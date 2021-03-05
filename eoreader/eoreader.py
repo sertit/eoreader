@@ -56,8 +56,8 @@ PLATFORM_REGEX = {
 }
 
 
-class ProductFactory:
-    """ Factory class creating eoreader according to their names """
+class EOReader:
+    """ Factory class creating satellite products according to their names """
 
     def __init__(self):
         self._platform_regex = {}
@@ -84,7 +84,7 @@ class ProductFactory:
         else:
             self._platform_regex[platform] = compile_sat(regex)
 
-    def get_product(self, product_path: str, archive_path: str = None) -> "Product":
+    def open(self, product_path: str, archive_path: str = None) -> "Product":
         """
         Get the correct products
 
