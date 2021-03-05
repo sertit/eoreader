@@ -27,6 +27,9 @@ Index and bands are opened as `numpy.ma.maskedarrays`
 (see [here](https://numpy.org/doc/stable/reference/maskedarray.generic.html) to learn more about it) and converted to float.
 The mask corresponds to the nodata of your product, that is set to 0 by convention.
 
+:warning:  
+Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be available in your path !
+
 ## Optical data
 
 Accepted optical satellites are:
@@ -55,7 +58,7 @@ Accepted SAR satellites are:
 
 Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/SAR) to learn more about that.
 
-## Available index:
+## Available index
 
 - `AFRI_1_6`
 - `AFRI_2_1`
