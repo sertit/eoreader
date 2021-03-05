@@ -18,9 +18,9 @@ from typing import Union, Callable
 import numpy as np
 
 from eoreader.bands import OpticalBandNames as obn
-from eoreader.utils import EEO_NAME
+from eoreader.utils import EOREADER_NAME
 
-LOGGER = logging.getLogger(EEO_NAME)
+LOGGER = logging.getLogger(EOREADER_NAME)
 
 np.seterr(divide='ignore', invalid='ignore')
 

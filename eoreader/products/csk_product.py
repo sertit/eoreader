@@ -22,9 +22,9 @@ from shapely.geometry import Polygon
 
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.sar_product import SarProduct
-from eoreader.utils import EEO_NAME, DATETIME_FMT
+from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
-LOGGER = logging.getLogger(EEO_NAME)
+LOGGER = logging.getLogger(EOREADER_NAME)
 CSK_NAME = "COSMO-Skymed"
 
 # Disable georef warnings here as the SAR eoreader are not georeferenced
