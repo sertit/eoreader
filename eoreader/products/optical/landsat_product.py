@@ -18,7 +18,7 @@ from sertit import rasters
 
 from eoreader.exceptions import InvalidProductError
 from eoreader.bands import OpticalBandNames as obn, BandNames
-from eoreader.products.optical_product import OpticalProduct
+from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)

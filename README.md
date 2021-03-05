@@ -86,4 +86,54 @@ Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extract
 - `TCWET`
 - `WI`
 
-See [here](https://extracteo.pages.sertit.unistra.fr/extracteo/products/index.m.html) for more info.
+See [here](https://extracteo.pages.sertit.unistra.fr/eoreader/index.m.html) for more info.
+
+## Available functions
+
+### For both SAR and Optical data
+
+- `get_footprint`
+- `get_utm_extent`
+- `get_utm_proj`
+- `get_product_type`
+- `get_datetime`
+- `get_date`
+- `get_existing_bands`
+- `get_existing_band_paths`
+- `read_band`
+- `load_bands`
+- `load`
+- `get_condensed_name`
+- `has_band`
+- `has_index`
+- `get_split_name`
+- `get_default_band_path`
+- `get_default_band`
+- `warp_dem`
+- `stack`
+
+See [here](https://extracteo.pages.sertit.unistra.fr/eoreader/products/product.html) for more info.
+
+### Only for Optical data
+
+- `get_band_paths`
+- `open_bands`
+- `manage_invalid_pixels`
+- `create_band_masked_array`
+- `get_mean_sun_angles`
+
+See [here](https://extracteo.pages.sertit.unistra.fr/eoreader/products/optical/optical_product.html) for more info.
+
+### Only for SAR data
+
+- `get_wgs84_extent`
+- `get_sar_product_type`
+- `get_sensor_mode`
+- `get_band_paths`
+- `get_raw_band_paths`
+- `get_raw_bands`
+- `get_existing_band_paths`
+- `get_existing_bands`
+
+See [here](https://extracteo.pages.sertit.unistra.fr/eoreader/products/sar/sar_product.html) for more info.
+

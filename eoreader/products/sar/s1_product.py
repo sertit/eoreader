@@ -20,7 +20,7 @@ from sertit.misc import ListEnum
 from sertit import vectors
 
 from eoreader.exceptions import InvalidProductError
-from eoreader.products.sar_product import SarProduct
+from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)

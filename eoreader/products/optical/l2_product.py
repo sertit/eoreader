@@ -1,11 +1,11 @@
-""" Landsat-1 products """
+""" Landsat-2 products """
 from eoreader.exceptions import InvalidProductError
 from eoreader.bands import OpticalBandNames as obn
-from eoreader.products.landsat_product import LandsatProduct, LandsatProductType
+from eoreader.products.optical.landsat_product import LandsatProduct, LandsatProductType
 
 
-class L1Product(LandsatProduct):
-    """ Class of Landsat-1 Products """
+class L2Product(LandsatProduct):
+    """ Class of Landsat-2 Products """
 
     def get_product_type(self) -> None:
         """ Get products type """
@@ -21,13 +21,13 @@ class L1Product(LandsatProduct):
                 obn.NNIR: '7'
             })
         else:
-            raise InvalidProductError(f"Invalid Landsat-1 name: {self.name}")
+            raise InvalidProductError(f"Invalid Landsat-2 name: {self.name}")
 
     def get_condensed_name(self) -> str:
         """
-        Get products condensed name ({date}_L1_{tile}_{product_type}).
+        Get products condensed name (L2_{date}_{tile}_{product_type}).
 
         Returns:
-            str: Condensed L1 name
+            str: Condensed L2 name
         """
-        return f"{self.get_datetime()}_L1_{self.tile_name}_{self.product_type.value}"
+        return f"{self.get_datetime()}_L2_{self.tile_name}_{self.product_type.value}"
