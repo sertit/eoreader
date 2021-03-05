@@ -5,7 +5,7 @@ import os
 import psutil
 from sertit import strings, misc
 
-EEO_NAME = "eoreader"
+EOREADER_NAME = "eoreader"
 MAX_CORES = os.cpu_count() - 2
 MAX_MEM = int(os.environ.get('JAVA_OPTS_XMX', 0.95 * psutil.virtual_memory().total))
 TILE_SIZE = 2048
@@ -13,7 +13,7 @@ DRIVER_EXT = {"ESRI Shapefile": ".shp",
               "GeoJSON": ".geojson",
               "KML": ".kml"}
 DATETIME_FMT = "%Y%m%dT%H%M%S"
-LOGGER = logging.getLogger(EEO_NAME)
+LOGGER = logging.getLogger(EOREADER_NAME)
 
 # Environment variables
 USE_EX = "EEO_USE_EXCEPTIONS"

@@ -11,9 +11,9 @@ from typing import Union
 from sertit import strings, files
 from sertit.misc import ListEnum
 
-from eoreader.utils import EEO_NAME
+from eoreader.utils import EOREADER_NAME
 
-LOGGER = logging.getLogger(EEO_NAME)
+LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 @unique
@@ -56,7 +56,7 @@ PLATFORM_REGEX = {
 }
 
 
-class EOReader:
+class Reader:
     """ Factory class creating satellite products according to their names """
 
     def __init__(self):

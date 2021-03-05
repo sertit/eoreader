@@ -28,9 +28,9 @@ from sertit import rasters, vectors
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError, EoReaderError
 from eoreader.bands import SarBands, SarBandNames as sbn, BandNames
 from eoreader.products.product import Product, SensorType
-from eoreader.utils import EEO_NAME
+from eoreader.utils import EOREADER_NAME
 
-LOGGER = logging.getLogger(EEO_NAME)
+LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 @unique

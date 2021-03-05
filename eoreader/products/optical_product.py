@@ -15,9 +15,9 @@ from eoreader.exceptions import InvalidIndexError, InvalidBandError, InvalidType
 from eoreader.bands import OpticalBands, OpticalBandNames as obn, BandNames
 from eoreader import index
 from eoreader.products.product import Product, SensorType
-from eoreader.utils import EEO_NAME
+from eoreader.utils import EOREADER_NAME
 
-LOGGER = logging.getLogger(EEO_NAME)
+LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 class OpticalProduct(Product):

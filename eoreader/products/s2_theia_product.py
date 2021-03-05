@@ -17,9 +17,9 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.products.s2_product import S2ProductType
 from eoreader.bands import OpticalBandNames as obn, BandNames
 from eoreader.products.optical_product import OpticalProduct
-from eoreader.utils import EEO_NAME, DATETIME_FMT
+from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
-LOGGER = logging.getLogger(EEO_NAME)
+LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 class S2TheiaProduct(OpticalProduct):

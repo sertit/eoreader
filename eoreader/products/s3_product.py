@@ -19,9 +19,9 @@ from eoreader import utils
 from eoreader.exceptions import InvalidTypeError, InvalidProductError
 from eoreader.bands import OpticalBandNames as obn, BandNames
 from eoreader.products.optical_product import OpticalProduct
-from eoreader.utils import EEO_NAME, DATETIME_FMT
+from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
-LOGGER = logging.getLogger(EEO_NAME)
+LOGGER = logging.getLogger(EOREADER_NAME)
 BT_BANDS = [obn.MIR, obn.TIR_1, obn.TIR_2]
 
 

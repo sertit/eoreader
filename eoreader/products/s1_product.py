@@ -21,9 +21,9 @@ from sertit import vectors
 
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.sar_product import SarProduct
-from eoreader.utils import EEO_NAME, DATETIME_FMT
+from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
-LOGGER = logging.getLogger(EEO_NAME)
+LOGGER = logging.getLogger(EOREADER_NAME)
 S1_NAME = "Sentinel-1"
 
 # Disable georef warnings here as the SAR eoreader are not georeferenced

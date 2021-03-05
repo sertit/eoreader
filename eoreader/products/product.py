@@ -19,16 +19,16 @@ from sertit import rasters
 from eoreader import index
 from eoreader.utils import MAX_CORES
 from eoreader import utils
-from eoreader.eoreader import EOReader, Platform
+from eoreader.reader import Reader, Platform
 from eoreader.bands import OpticalBandNames as obn, SarBandNames as sbn, BandNames
-from eoreader.utils import EEO_NAME
+from eoreader.utils import EOREADER_NAME
 
-LOGGER = logging.getLogger(EEO_NAME)
+LOGGER = logging.getLogger(EOREADER_NAME)
 
 MERIT_DEM = os.path.join(utils.get_db_dir(), 'GLOBAL', "MERIT_Hydrologically_Adjusted_Elevations", "MERIT_DEM.vrt")
 EUDEM_PATH = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
 
-PRODUCT_FACTORY = EOReader()
+PRODUCT_FACTORY = Reader()
 
 
 @unique

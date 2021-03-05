@@ -4,7 +4,7 @@ This project allows you to read and open satellite data.
 This software relies on satellite's name to open them, so please du not modify them !
 
 ```python
->>> from eoreader.eoreader import EOReader
+>>> from eoreader.reader import Reader
 >>> from eoreader import index
 >>> from eoreader.bands import OpticalBandNames as obn
 
@@ -13,11 +13,11 @@ This software relies on satellite's name to open them, so please du not modify t
 >>> resolution = 20  # in meters
 
 >>> # Create the reader object and open satellite data
->>> eoreader = EOReader()
+>>> eoreader = Reader()  # This is a singleton, call it only once !
 >>> prod = eoreader.open(opt_path)
 
 >>> # Load some bands and index
->>> idx, meta = prod.load(index_list=[index.NDVI, index.MNDWI], band_list=[obn.GREEN],resolution=resolution)
+>>> idx, meta = prod.load(index_list=[index.NDVI, index.MNDWI], band_list=[obn.GREEN], resolution=resolution)
 >>> ndvi = idx[index.NDVI]
 >>> mndwi = idx[index.MNDWI]
 >>> green = idx[obn.GREEN]
@@ -31,7 +31,7 @@ The mask corresponds to the nodata of your product, that is set to 0 by conventi
 
 Accepted optical satellites are:
 
-- `Sentinel-2`: **L2A** and **L1C**
+- `Sentinel-2`: **L2A** and **L1C**, zip accepted
 - `Sentinel-2 Theia`: **L2A**
 - `Sentinel-3`: **OLCI** and **SLSTR**
 - `Landsat-1`: **MSS**
@@ -48,10 +48,10 @@ Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extract
 
 Accepted SAR satellites are:
 
-- `Sentinel-1` **GRD** + **SLC**
+- `Sentinel-1` **GRD** + **SLC**, zip accepted
 - `COSMO-SkyMed` **DGM** + **SCS**
 - `TerraSAR-X` **MGD** (+ **SSC**, :warning: not tested, use it at your own risk)
-- `RADARSAT-2` **SGF** (+ **SLC**, :warning: not tested, use it at your own risk)
+- `RADARSAT-2` **SGF** (+ **SLC**, :warning: not tested, use it at your own risk), zip accepted
 
 Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/SAR) to learn more about that.
 
