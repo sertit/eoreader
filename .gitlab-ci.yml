@@ -1,7 +1,6 @@
 stages:
   - test
-  - deploy
-  - push
+  - publish
   - doc
 
 pytest:
