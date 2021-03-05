@@ -4,7 +4,7 @@ import logging
 import os
 import tempfile
 from datetime import datetime
-from enum import unique, Enum
+from enum import unique
 from typing import Union
 
 import netCDF4
@@ -15,6 +15,8 @@ from rasterio.enums import Resampling
 from rasterio.windows import Window
 from sertit import rasters, vectors
 from sertit import files, strings, misc
+from sertit.misc import ListEnum
+
 from eoreader import utils
 from eoreader.exceptions import InvalidTypeError, InvalidProductError
 from eoreader.bands import OpticalBandNames as obn, BandNames
@@ -26,21 +28,21 @@ BT_BANDS = [obn.MIR, obn.TIR_1, obn.TIR_2]
 
 
 @unique
-class S3ProductType(Enum):
+class S3ProductType(ListEnum):
     """ Sentinel-3 products types (only L1)"""
     OLCI_EFR = "OL_1_EFR___"
     SLSTR_RBT = "SL_1_RBT___"
 
 
 @unique
-class S3Instrument(Enum):
+class S3Instrument(ListEnum):
     """ Sentinel-3 products types """
     OLCI = "OLCI"
     SLSTR = "SLSTR"
 
 
 @unique
-class S3DataTypes(Enum):
+class S3DataTypes(ListEnum):
     """ Sentinel-3 data types -> only consider useful ones """
     EFR = "EFR___"  # For OLCI
     RBT = "RBT__"  # For SLSTR
@@ -119,7 +121,7 @@ class S3Product(OpticalProduct):
         else:
             raise InvalidProductError(f"Invalid Sentinel-3 name: {self.name}")
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -130,7 +132,7 @@ class S3Product(OpticalProduct):
              Union[str, datetime.datetime]: Its acquisition datetime
         """
 
-        date = self.get_split_name()[4]
+        date = self.split_name[4]
 
         if as_datetime:
             date = datetime.strptime(date, DATETIME_FMT)
@@ -276,12 +278,12 @@ class S3Product(OpticalProduct):
         if use_snap:
             # If output do not exist do not compute SNAP bands !
             if not self.output:
-                raise FileNotFoundError(f"Non existing output for products: {self.get_condensed_name()}")
+                raise FileNotFoundError(f"Non existing output for products: {self.condensed_name}")
 
             # DIM in tmp files
             tmp_dir = tempfile.TemporaryDirectory()
             # out_dim = os.path.join(self.output, self.get_condensed_name() + ".dim")  DEBUG OPTION
-            out_dim = os.path.join(tmp_dir.name, self.get_condensed_name() + ".dim")
+            out_dim = os.path.join(tmp_dir.name, self.condensed_name + ".dim")
 
             # Run GPT graph
             processed_bands = self.run_s3_gpt_cli(out_dim)
@@ -527,7 +529,8 @@ class S3Product(OpticalProduct):
 
         return band_arrays, meta
 
-    def get_utm_extent(self) -> gpd.GeoDataFrame:
+    @property
+    def utm_extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
 
@@ -535,7 +538,7 @@ class S3Product(OpticalProduct):
             gpd.GeoDataFrame: Footprint in UTM
         """
         try:
-            extent = super().get_utm_extent()
+            extent = super().utm_extent
 
         except (FileNotFoundError, TypeError) as ex:
             def get_min_max(substr: str, subdatasets: list) -> (float, float):
@@ -594,14 +597,15 @@ class S3Product(OpticalProduct):
 
         return extent
 
-    def get_condensed_name(self) -> str:
+    @property
+    def condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
 
         Returns:
             str: Condensed S2 name
         """
-        return f"{self.get_datetime()}_S3_{self.product_type.name}"
+        return f"{self.datetime()}_S3_{self.product_type.name}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """

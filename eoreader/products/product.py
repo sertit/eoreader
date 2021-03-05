@@ -6,7 +6,7 @@ import os
 from enum import Enum, unique
 from abc import abstractmethod
 from typing import Union, Callable
-import datetime
+import datetime as dt
 import numpy as np
 import geopandas as gpd
 import rasterio
@@ -15,6 +15,7 @@ from rasterio import warp
 from rasterio.enums import Resampling
 from sertit import files, strings
 from sertit import rasters
+from sertit.misc import ListEnum
 
 from eoreader import index
 from eoreader.utils import MAX_CORES
@@ -32,7 +33,7 @@ PRODUCT_FACTORY = Reader()
 
 
 @unique
-class SensorType(Enum):
+class SensorType(ListEnum):
     """
     Sensor type of the products, optical or radar
     """
@@ -61,8 +62,8 @@ class Product:
         self.output = None
 
         # Get the products date and datetime
-        self.date = self.get_date(as_date=True)
-        self.datetime = self.get_datetime(as_datetime=True)
+        self.date = self.date(as_date=True)
+        self.datetime = self.datetime(as_datetime=True)
 
         # Used to distinguish eoreader that can be piled (for S2 and L8)
         self.tile_name = None
@@ -75,13 +76,14 @@ class Product:
         self.band_names = None
         self.is_reference = False
 
-        # A list because of multiple ref in case of non-stackable eoreader (S3, S1...)
+        # A list because of multiple ref in case of non-stackable products (S3, S1...)
         self.corresponding_ref = []
         self.nodata = 0
         self.sat_id = PRODUCT_FACTORY.get_platform_name(self.path)
         self.platform = getattr(Platform, self.sat_id)
 
-    def get_footprint(self) -> gpd.GeoDataFrame:
+    @property
+    def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint of the products (without nodata, in french == emprise utile)
 
@@ -90,8 +92,9 @@ class Product:
         """
         return rasters.get_footprint(self.get_default_band_path())
 
+    @property
     @abstractmethod
-    def get_utm_extent(self) -> gpd.GeoDataFrame:
+    def utm_extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
 
@@ -100,8 +103,9 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @property
     @abstractmethod
-    def get_utm_proj(self) -> crs.CRS:
+    def utm_crs(self) -> crs.CRS:
         """
         Get UTM projection
 
@@ -110,17 +114,39 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @property
     @abstractmethod
     def get_product_type(self) -> None:
         """
-        Get products type
+        Get product type
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @property
     @abstractmethod
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime.datetime]:
+    def condensed_name(self) -> str:
         """
-        Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
+        Get product condensed name.
+
+        Returns:
+            str: Condensed name
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
+
+    @property
+    def split_name(self) -> list:
+        """
+        Get split name (erasing empty strings in it by precaution, especially for S1 and S3 data)
+
+        Returns:
+            list: Split products name
+        """
+        return [x for x in self.name.split('_') if x]
+
+    @abstractmethod
+    def datetime(self, as_datetime: bool = False) -> Union[str, dt.datetime]:
+        """
+        Get the product's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -130,9 +156,9 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def get_date(self, as_date: bool = False) -> Union[str, datetime.date]:
+    def date(self, as_date: bool = False) -> Union[str, dt.date]:
         """
-        Get the products's acquisition date.
+        Get the product's acquisition date.
 
         Args:
             as_date (bool): Return the date as a datetime.date. If false, returns a string.
@@ -140,12 +166,32 @@ class Product:
         Returns:
             str: Its acquisition date
         """
-        date = self.get_datetime().split('T')[0]
+        date = self.datetime.split('T')[0]
 
         if as_date:
             date = strings.str_to_date(date, date_format="%Y%m%d")
 
         return date
+
+    @abstractmethod
+    def get_default_band_path(self) -> str:
+        """
+        Get default band path (among the existing ones)
+
+        Returns:
+            str: Default band path
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
+
+    @abstractmethod
+    def get_default_band(self) -> BandNames:
+        """
+        Get default band
+
+        Returns:
+            str: Default band
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
 
     def get_existing_bands(self) -> list:
         """
@@ -212,16 +258,6 @@ class Product:
 
         Returns:
             dict, dict: Index and band dict, metadata
-        """
-        raise NotImplementedError("This method should be implemented by a child class")
-
-    @abstractmethod
-    def get_condensed_name(self) -> str:
-        """
-        Get products condensed name.
-
-        Returns:
-            str: Condensed name
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
@@ -334,35 +370,6 @@ class Product:
         """
         return self.date < other.date
 
-    def get_split_name(self) -> list:
-        """
-        Get split name (erasing empty strings in it by precaution, especially for S1 data)
-
-        Returns:
-            list: Split products name
-        """
-        return [x for x in self.name.split('_') if x]
-
-    @abstractmethod
-    def get_default_band_path(self) -> str:
-        """
-        Get default band path (among the existing ones)
-
-        Returns:
-            str: Default band path
-        """
-        raise NotImplementedError("This method should be implemented by a child class")
-
-    @abstractmethod
-    def get_default_band(self) -> BandNames:
-        """
-        Get default band
-
-        Returns:
-            str: Default band
-        """
-        raise NotImplementedError("This method should be implemented by a child class")
-
     def warp_dem(self,
                  dem_path: str = "",
                  resolution: Union[float, tuple] = 20.,
@@ -384,14 +391,14 @@ class Product:
             str: DEM path (as a VRT)
 
         """
-        warped_dem_path = os.path.join(self.output, f"{self.get_condensed_name()}_DEM.tif")
+        warped_dem_path = os.path.join(self.output, f"{self.condensed_name}_DEM.tif")
         if os.path.isfile(warped_dem_path):
             LOGGER.info("Already existing DEM for %s. Skipping process.", self.name)
         else:
             LOGGER.info("Warping DEM for %s", self.name)
 
             # Get products extent
-            prod_extent_df = self.get_utm_extent()
+            prod_extent_df = self.utm_extent
 
             # The MERIT is the default DEM as it covers almost the entire Earth
             if not dem_path:
@@ -459,8 +466,8 @@ class Product:
               band_combination: list,
               idx_combination: list,
               resolution: float,
-              stack_path: str,
-              save_as_int: bool = False) -> None:
+              stack_path: str = None,
+              save_as_int: bool = False) -> (np.ma.masked_array, dict):
         """
         Stack bands and index of a products.
         # TODO: merge band and idx to keep the correct stacking order asked by the user
@@ -495,9 +502,13 @@ class Product:
         # Here do not use utils.write()
         meta.update({"count": len(stack_list),
                      "dtype": stack.dtype})
-        with rasterio.open(stack_path, "w", **meta) as out_dst:
-            for i, band in enumerate(idx_bands):
-                # Band name is either a value or a function
-                band_name = band.value if isinstance(band, Enum) else band.__name__
-                out_dst.set_band_description(i + 1, band_name)
-            out_dst.write(stack)
+
+        if stack_path:
+            with rasterio.open(stack_path, "w", **meta) as out_dst:
+                for i, band in enumerate(idx_bands):
+                    # Band name is either a value or a function
+                    band_name = band.value if isinstance(band, Enum) else band.__name__
+                    out_dst.set_band_description(i + 1, band_name)
+                out_dst.write(stack)
+
+        return stack, meta

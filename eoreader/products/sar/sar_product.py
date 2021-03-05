@@ -146,7 +146,7 @@ class SarProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def get_utm_extent(self) -> gpd.GeoDataFrame:
+    def utm_extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
 
@@ -167,7 +167,7 @@ class SarProduct(Product):
 
         return extent
 
-    def get_utm_proj(self) -> rasterio.crs.CRS:
+    def utm_crs(self) -> rasterio.crs.CRS:
         """
         Get UTM projection
 
@@ -219,7 +219,7 @@ class SarProduct(Product):
         # Get products type
         try:
             # All products types can be found in the filename and are 3 characters long
-            self.product_type = prod_type_class.from_value(self.get_split_name()[prod_type_pos][:3])
+            self.product_type = prod_type_class.from_value(self.split_name[prod_type_pos][:3])
         except ValueError as ex:
             raise InvalidTypeError(f"Invalid products type for {self.name}") from ex
 
@@ -244,7 +244,7 @@ class SarProduct(Product):
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -280,7 +280,7 @@ class SarProduct(Product):
             try:
                 # Try to load orthorectified bands
                 band_paths[band] = files.get_file_in_dir(self.output,
-                                                         f"{self.get_condensed_name()}_{bname}.tif",
+                                                         f"{self.condensed_name()}_{bname}.tif",
                                                          exact_name=True)
             except FileNotFoundError as ex:
                 if not only_ortho_bands:
@@ -405,7 +405,7 @@ class SarProduct(Product):
         meta = None
         for band_name, band_path in band_paths.items():
             # Signature of a processing: image starting with the condensed name
-            if not os.path.basename(band_path).startswith(self.get_condensed_name()):
+            if not os.path.basename(band_path).startswith(self.condensed_name()):
                 raise EoReaderError("You need to add a terrain correction step before using SAR images.")
 
             with rasterio.open(band_path) as band_ds:
@@ -443,12 +443,12 @@ class SarProduct(Product):
 
         for band in band_list:
             if not self.has_band(band):
-                raise InvalidBandError(f"{band} cannot be retrieved from {self.get_condensed_name()}")
+                raise InvalidBandError(f"{band} cannot be retrieved from {self.condensed_name()}")
 
         return self.load_bands(band_list, resolution)
 
     @abstractmethod
-    def get_condensed_name(self) -> str:
+    def condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 

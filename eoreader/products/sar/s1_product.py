@@ -151,7 +151,7 @@ class S1Product(SarProduct):
         """
         Get products type from S1 products name (could check the metadata too)
         """
-        sensor_mode_name = self.get_split_name()[1]
+        sensor_mode_name = self.split_name[1]
 
         # Get sensor mode
         for sens_mode in S1SensorMode:
@@ -164,7 +164,7 @@ class S1Product(SarProduct):
         if not self.sensor_mode:
             raise InvalidProductError(f"Invalid {S1_NAME} name: {self.name}")
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -174,14 +174,14 @@ class S1Product(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        date = self.get_split_name()[4]
+        date = self.split_name[4]
 
         if as_datetime:
             date = datetime.strptime(date, DATETIME_FMT)
 
         return date
 
-    def get_condensed_name(self) -> str:
+    def condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
@@ -189,4 +189,4 @@ class S1Product(SarProduct):
             str: Condensed S1 name
         """
 
-        return f"{self.get_datetime()}_S1_{self.sensor_mode.value}_{self.product_type.value}"
+        return f"{self.datetime()}_S1_{self.sensor_mode.value}_{self.product_type.value}"

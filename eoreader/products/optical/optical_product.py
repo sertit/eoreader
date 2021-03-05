@@ -48,7 +48,8 @@ class OpticalProduct(Product):
         default_band = self.get_default_band()
         return self.get_band_paths([default_band])[default_band]
 
-    def get_utm_proj(self) -> rasterio.crs.CRS:
+    @property
+    def utm_crs(self) -> rasterio.crs.CRS:
         """
         Get UTM projection
 
@@ -61,7 +62,8 @@ class OpticalProduct(Product):
 
         return utm
 
-    def get_utm_extent(self) -> gpd.GeoDataFrame:
+    @property
+    def utm_extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
 
@@ -247,7 +249,7 @@ class OpticalProduct(Product):
         # Check if all index are valid
         for idx in index_list:
             if not self.has_index(idx):
-                raise InvalidIndexError(f"{idx} cannot be computed from {self.get_condensed_name()}.")
+                raise InvalidIndexError(f"{idx} cannot be computed from {self.condensed_name()}.")
 
         # Convert band_list into list if needed
         if band_list is None:
@@ -263,7 +265,7 @@ class OpticalProduct(Product):
         # Check if all bands are valid
         for band in band_list:
             if not self.has_band(band):
-                raise InvalidBandError(f"{band} cannot be retrieved from {self.get_condensed_name()}.")
+                raise InvalidBandError(f"{band} cannot be retrieved from {self.condensed_name()}.")
 
         # Get all bands to be open
         index_bands = []
@@ -289,7 +291,7 @@ class OpticalProduct(Product):
         return idx_dict, meta
 
     @abstractmethod
-    def get_condensed_name(self) -> str:
+    def condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
 

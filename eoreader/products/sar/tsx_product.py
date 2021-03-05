@@ -109,11 +109,11 @@ class TsxProduct(SarProduct):
         """
         # Get sensor mode
         try:
-            self.sensor_mode = TsxSensorMode.from_value(self.get_split_name()[4])
+            self.sensor_mode = TsxSensorMode.from_value(self.split_name[4])
         except ValueError as ex:
             raise InvalidTypeError(f"Invalid sensor mode for {self.name}") from ex
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -123,18 +123,18 @@ class TsxProduct(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        date = self.get_split_name()[7]
+        date = self.split_name[7]
 
         if as_datetime:
             date = datetime.strptime(date, DATETIME_FMT)
 
         return date
 
-    def get_condensed_name(self) -> str:
+    def condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
         Returns:
             str: Condensed S1 name
         """
-        return f"{self.get_datetime()}_TSX_{self.sensor_mode.value}_{self.product_type.value}"
+        return f"{self.datetime}_TSX_{self.sensor_mode.value}_{self.product_type.value}"
