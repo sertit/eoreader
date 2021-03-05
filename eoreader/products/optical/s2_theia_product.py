@@ -40,7 +40,7 @@ class S2TheiaProduct(OpticalProduct):
             str: Tile name
         """
 
-        return self.get_split_name()[3]
+        return self.split_name[3]
 
     def get_product_type(self) -> None:
         """ Get products type """
@@ -62,7 +62,7 @@ class S2TheiaProduct(OpticalProduct):
         # B1 to be divided by 20
         # B9 to be divided by 200
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime.datetime]:
+    def datetime(self, as_datetime: bool = False) -> Union[str, datetime.datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -73,7 +73,7 @@ class S2TheiaProduct(OpticalProduct):
              Union[str, datetime.datetime]: Its acquisition datetime
         """
         # 20200624-105726-971
-        date = datetime.datetime.strptime(self.get_split_name()[1], "%Y%m%d-%H%M%S-%f")
+        date = datetime.datetime.strptime(self.split_name[1], "%Y%m%d-%H%M%S-%f")
 
         if not as_datetime:
             date = date.strftime(DATETIME_FMT)
@@ -213,14 +213,15 @@ class S2TheiaProduct(OpticalProduct):
 
         return band_arrays, meta
 
-    def get_condensed_name(self) -> str:
+    @property
+    def condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
 
         Returns:
             str: Condensed S2 name
         """
-        return f"{self.get_datetime()}_S2THEIA_{self.tile_name}_{self.product_type.value}"
+        return f"{self.datetime()}_S2THEIA_{self.tile_name}_{self.product_type.value}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """

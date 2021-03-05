@@ -6,7 +6,7 @@ import os
 import re
 import zipfile
 from datetime import datetime
-from enum import unique, Enum
+from enum import unique
 from typing import Union
 
 from lxml import etree
@@ -16,6 +16,7 @@ from rasterio import features
 from rasterio.enums import Resampling
 from sertit import files
 from sertit import rasters
+from sertit.misc import ListEnum
 
 from eoreader.exceptions import InvalidProductError
 from eoreader.bands import OpticalBandNames as obn, BandNames
@@ -26,7 +27,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 @unique
-class S2ProductType(Enum):
+class S2ProductType(ListEnum):
     """ Sentinel-2 products types (L1C or L2A) """
     L1C = "L1C"
     L2A = "L2A"
@@ -64,7 +65,7 @@ class S2Product(OpticalProduct):
         Returns:
             str: Tile name
         """
-        return self.get_split_name()[-2]
+        return self.split_name[-2]
 
     def get_product_type(self) -> None:
         """ Get products type """
@@ -104,7 +105,7 @@ class S2Product(OpticalProduct):
         else:
             raise InvalidProductError(f"Invalid Sentinel-2 name: {self.name}")
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -115,7 +116,7 @@ class S2Product(OpticalProduct):
              Union[str, datetime.datetime]: Its acquisition datetime
         """
 
-        date = self.get_split_name()[2]
+        date = self.split_name[2]
 
         if as_datetime:
             date = datetime.strptime(date, DATETIME_FMT)
@@ -282,7 +283,7 @@ class S2Product(OpticalProduct):
             # Set fiona logger back to what it was
             fiona_logger.setLevel(logging.INFO)
         except ValueError:
-            mask = gpd.GeoDataFrame(geometry=[], crs=self.get_utm_proj())
+            mask = gpd.GeoDataFrame(geometry=[], crs=self.utm_crs)
 
         return mask
 
@@ -372,7 +373,8 @@ class S2Product(OpticalProduct):
 
         return band_arrays, meta
 
-    def get_condensed_name(self) -> str:
+    @property
+    def condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile}_{product_type}_{processed_hours}).
 
@@ -380,8 +382,8 @@ class S2Product(OpticalProduct):
             str: Condensed S2 name
         """
         # Used to make the difference between 2 eoreader acquired on the same tile at the same date but cut differently
-        proc_time = self.get_split_name()[-1].split("T")[-1]
-        return f"{self.get_datetime()}_S2_{self.tile_name}_{self.product_type.value}_{proc_time}"
+        proc_time = self.split_name[-1].split("T")[-1]
+        return f"{self.datetime()}_S2_{self.tile_name}_{self.product_type.value}_{proc_time}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """

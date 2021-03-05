@@ -15,11 +15,25 @@ This project allows you to read and open satellite data.
 >>> eoreader = Reader()  # This is a singleton, call it only once !
 >>> prod = eoreader.open(opt_path)
 
+>>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
+>>> footprint = prod.footprint
+>>> extent = prod.extent
+
 >>> # Load some bands and index
->>> idx, meta = prod.load(index_list=[index.NDVI, index.MNDWI], band_list=[obn.GREEN], resolution=resolution)
+>>> idx, meta = prod.load(index_list=[index.NDVI, index.MNDWI], 
+>>>                       band_list=[obn.GREEN], 
+>>>                       resolution=resolution)
 >>> ndvi = idx[index.NDVI]
 >>> mndwi = idx[index.MNDWI]
 >>> green = idx[obn.GREEN]
+
+>>> # Warp a DEM over the tile, using an internal DEM (EUDEM over Europe, MERIT DEM everwhere else)
+>>> wp_dem_path = prod.warp_dem(resolution=20)
+
+>>> # Create a stack with some other bands
+>>> stack, stk_meta = prod.stack(index_list=[index.NDVI, index.MNDWI], 
+>>>                              band_list=[obn.GREEN],
+>>>                              resolution=20)
 ```
 
 :bulb:  
@@ -96,48 +110,13 @@ See [here](https://extracteo.pages.sertit.unistra.fr/eoreader/index.m.html) for 
 
 ### For both SAR and Optical data
 
-- `get_footprint`
-- `get_utm_extent`
-- `get_utm_proj`
-- `get_product_type`
-- `get_datetime`
-- `get_date`
-- `get_existing_bands`
-- `get_existing_band_paths`
-- `read_band`
-- `load_bands`
-- `load`
-- `get_condensed_name`
-- `has_band`
-- `has_index`
-- `get_split_name`
-- `get_default_band_path`
-- `get_default_band`
-- `warp_dem`
-- `stack`
-
 See [here](https://extracteo.pages.sertit.unistra.fr/eoreader/products/product.html) for more info.
 
 ### Only for Optical data
 
-- `get_band_paths`
-- `open_bands`
-- `manage_invalid_pixels`
-- `create_band_masked_array`
-- `get_mean_sun_angles`
-
 See [here](https://extracteo.pages.sertit.unistra.fr/eoreader/products/optical/optical_product.html) for more info.
 
 ### Only for SAR data
-
-- `get_wgs84_extent`
-- `get_sar_product_type`
-- `get_sensor_mode`
-- `get_band_paths`
-- `get_raw_band_paths`
-- `get_raw_bands`
-- `get_existing_band_paths`
-- `get_existing_bands`
 
 See [here](https://extracteo.pages.sertit.unistra.fr/eoreader/products/sar/sar_product.html) for more info.
 

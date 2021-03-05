@@ -5,7 +5,7 @@ import os
 import tempfile
 from datetime import datetime
 from abc import abstractmethod
-from enum import unique, Enum
+from enum import unique
 from typing import Union
 
 import numpy as np
@@ -15,6 +15,7 @@ import rasterio
 from rasterio.enums import Resampling
 from sertit import files
 from sertit import rasters
+from sertit.misc import ListEnum
 
 from eoreader.exceptions import InvalidProductError
 from eoreader.bands import OpticalBandNames as obn, BandNames
@@ -25,7 +26,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 @unique
-class LandsatProductType(Enum):
+class LandsatProductType(ListEnum):
     """ Landsat products types """
     L1_OLCI = "OLCI"
     L1_ETM = "ETM"
@@ -40,7 +41,8 @@ class LandsatProduct(OpticalProduct):
         super().__init__(product_path, archive_path)
         self.tile_name = self.retrieve_tile_names()
 
-    def get_footprint(self) -> gpd.GeoDataFrame:
+    @property
+    def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint of the products (without nodata, in french == emprise utile)
 
@@ -58,7 +60,7 @@ class LandsatProduct(OpticalProduct):
 
         # Create tmp dir and save here the default band
         tmp_dir = tempfile.TemporaryDirectory()
-        tmp_band_path = os.path.join(tmp_dir.name, f"{self.get_condensed_name()}_DEF.tif")
+        tmp_band_path = os.path.join(tmp_dir.name, f"{self.condensed_name()}_DEF.tif")
         rasters.write(band[default_band], tmp_band_path, meta)
 
         # Vectorize the default band and clean the tmp dir
@@ -75,14 +77,14 @@ class LandsatProduct(OpticalProduct):
         Returns:
             str: Tile name
         """
-        return self.get_split_name()[2]
+        return self.split_name[2]
 
     @abstractmethod
     def get_product_type(self) -> None:
         """ Get products type """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -101,7 +103,7 @@ class LandsatProduct(OpticalProduct):
             date = f"{datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')}" \
                    f"T{datetime.strptime(hours, '%H:%M:%S.%f').strftime('%H%M%S')}"
         except FileNotFoundError:
-            date = datetime.strptime(self.get_split_name()[3], "%Y%m%d").strftime(DATETIME_FMT)
+            date = datetime.strptime(self.split_name[3], "%Y%m%d").strftime(DATETIME_FMT)
 
         if as_datetime:
             date = datetime.strptime(date, DATETIME_FMT)
@@ -301,7 +303,7 @@ class LandsatProduct(OpticalProduct):
         return azimuth_angle, zenith_angle
 
     @abstractmethod
-    def get_condensed_name(self) -> str:
+    def condensed_name(self) -> str:
         """
         Get products condensed name ({date}_Lx_{tile}_{product_type}).
 

@@ -194,7 +194,8 @@ class Rs2Product(SarProduct):
         else:
             raise InvalidTypeError(f"Invalid sensor mode for {self.name}")
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    @property
+    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -204,7 +205,7 @@ class Rs2Product(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        split_name = self.get_split_name()
+        split_name = self.split_name
 
         date = f"{split_name[5]}T{split_name[6]}"
 
@@ -213,7 +214,8 @@ class Rs2Product(SarProduct):
 
         return date
 
-    def get_condensed_name(self) -> str:
+    @property
+    def condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
@@ -221,4 +223,4 @@ class Rs2Product(SarProduct):
             str: Condensed S1 name
         """
 
-        return f"{self.get_datetime()}_RS2_{self.sensor_mode.name}_{self.product_type.value}"
+        return f"{self.datetime}_RS2_{self.sensor_mode.name}_{self.product_type.value}"

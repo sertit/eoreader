@@ -23,11 +23,12 @@ class L1Product(LandsatProduct):
         else:
             raise InvalidProductError(f"Invalid Landsat-1 name: {self.name}")
 
-    def get_condensed_name(self) -> str:
+    @property
+    def condensed_name(self) -> str:
         """
         Get products condensed name ({date}_L1_{tile}_{product_type}).
 
         Returns:
             str: Condensed L1 name
         """
-        return f"{self.get_datetime()}_L1_{self.tile_name}_{self.product_type.value}"
+        return f"{self.datetime()}_L1_{self.tile_name}_{self.product_type.value}"
