@@ -1,0 +1,43 @@
+stages:
+  - test
+  - deploy
+  - push
+  - doc
+
+pytest:
+  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  stage: test
+  before_script:
+    - pip install -e .
+  script:
+    - pytest -v --cov-report term --cov-report xml:cov.xml --cov=extracteo CI/SCRIPTS
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  tags:
+    - linux
+
+upload_wheel:linux:
+  image: python:3.7-buster
+  stage: publish
+  script:
+    - pip install twine
+    - python setup.py sdist bdist_wheel
+    - TWINE_PASSWORD=${DEPLOY_PWD} TWINE_USERNAME=${DEPLOY_NAME} python -m twine upload --verbose --repository-url https://code.sertit.unistra.fr/api/v4/projects/${CI_PROJECT_ID}/packages/pypi dist/*
+  tags:
+    - linux
+  only:
+    - tags
+
+pages:
+  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  stage: doc
+  script:
+    - pip install -r requirements.txt
+    - pdoc eoreader -o doc -f --html --template-dir doc_template
+    - mv doc/eoreader public/
+  artifacts:
+    paths:
+      - public
+  tags:
+    - linux
+  only:
+    - master
