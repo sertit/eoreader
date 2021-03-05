@@ -1,7 +1,6 @@
 # EOReader
 
 This project allows you to read and open satellite data.
-This software relies on satellite's name to open them, so please du not modify them !
 
 ```python
 >>> from eoreader.reader import Reader
@@ -23,12 +22,14 @@ This software relies on satellite's name to open them, so please du not modify t
 >>> green = idx[obn.GREEN]
 ```
 
+:bulb:  
 Index and bands are opened as `numpy.ma.maskedarrays` 
 (see [here](https://numpy.org/doc/stable/reference/maskedarray.generic.html) to learn more about it) and converted to float.
 The mask corresponds to the nodata of your product, that is set to 0 by convention.
 
 :warning:  
-Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be available in your path !
+- This software relies on satellite's name to open them, so please do not modify them !
+- Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be available in your path !
 
 ## Optical data
 
