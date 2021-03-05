@@ -1,0 +1,68 @@
+# Generic extension to ignore
+*.py[cod]
+.idea
+*.txt
+!*requirements.txt
+*.aux.xml
+__pycache__/
+*.gfs
+
+# Json to save
+configuration/*.json
+!configuration/s2_water_dwnld.json
+!configuration/s2_water_on_disk.json
+!configuration/s2_index_on_disk.json
+!configuration/s1_water_dwnld.json
+!configuration/s1_water_on_disk.json
+!configuration/s1_water_on_disk_cplx.json
+!configuration/s3_slstr_water_on_disk.json
+!configuration/s3_olci_water_dwnld.json
+!configuration/s3_olci_water_on_disk.json
+!configuration/L8_water_on_disk.json
+!configuration/s2_fire_on_disk.json
+!configuration/s2_fire_dwnld.json
+!configuration/s3_slstr_fire_dwnld.json
+!configuration/csk_water_on_disk.json
+!configuration/s2_theia_water_on_disk.json
+!configuration/tsx_water_on_disk.json
+!configuration/rs2_water_on_disk.json
+!configuration/s2_surfaces_computation_dwnld.json
+!configuration/s1_water_dwnld_emsr.json
+!configuration/s2_landslides_dwnld.json
+!configuration/s2_landslides_on_disk.json
+
+# GeoJSON
+*.geojson
+!CI/DATA/AOIs/*.geojson
+
+# -- CI folder
+!CI/
+CI/*
+!CI/*.py
+
+# Save scripts, COTS
+!CI/SCRIPTS/
+!CI/COTS/
+
+# Save some CI/DATA
+!CI/DATA/
+CI/DATA/*
+!CI/DATA/AOIs/
+!CI/CONFIGURATION/
+!CI/DATA/DAX/
+!CI/DATA/T37SEB/
+CI/DATA/DAX/*
+!CI/DATA/DAX/DEM/
+!CI/DATA/DAX/BY_PRODUCTS/
+!CI/DATA/DAX/BY_DATES/
+!CI/DATA/UNZIP/
+CI/DATA/UNZIP/*/GRANULE/*/IMG_DATA/*/*.tif
+!CI/DATA/ZIP/
+
+# Discard CI/OUTPUTS
+CI/OUTPUT/*
+CI/OUTPUT/LOG/*
+
+# Build options
+build/
+*.egg-info/
