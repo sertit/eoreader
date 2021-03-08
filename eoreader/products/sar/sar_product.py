@@ -6,6 +6,7 @@ https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Descr
 import logging
 import os
 import re
+import tempfile
 import zipfile
 from abc import abstractmethod
 from datetime import datetime
@@ -21,17 +22,23 @@ import rasterio.transform
 import geopandas as gpd
 import numpy as np
 from rasterio.enums import Resampling
-from sertit import files
+from sertit import files, strings, misc
 from sertit.misc import ListEnum
 from sertit import rasters, vectors
 
-from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError, EoReaderError
+from eoreader import utils
+from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.bands.bands import SarBands, SarBandNames as sbn, BandNames
 from eoreader.bands.alias import is_index, is_sar_band, is_optical_band
 from eoreader.products.product import Product, SensorType
+from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
+
+PP_ENV = "EOREADER_PP_GRAPH"
+DSPK_ENV = "EOREADER_DSPK_GRAPH"
+SAR_DEF_RES = "EOREADER_SAR_DEFAULT_RES"
 
 
 @unique
@@ -76,8 +83,8 @@ class ExtendedFormatter(Formatter):
 class SarProduct(Product):
     """ Super class for SAR Products """
 
-    def __init__(self, product_path: str, archive_path: str = None) -> None:
-        super().__init__(product_path, archive_path)
+    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
+        super().__init__(product_path, archive_path, output_path)
         self.tile_name = None
         self.sar_prod_type = None
         self.get_product_type()
@@ -117,21 +124,15 @@ class SarProduct(Product):
 
     # Parameters differ from overridden 'get_default_band_path' method (arguments-differ)
     # pylint: disable=W0221
-    def get_default_band_path(self, fail_if_non_existing: bool = False, only_ortho_bands: bool = True) -> str:
+    def get_default_band_path(self) -> str:
         """
         Get default band path (among the existing ones)
-
-        Args:
-            fail_if_non_existing (bool): Fail if a non existing band is asked
-            only_ortho_bands (bool): Return only orthorectified bands
 
         Returns:
             str: Default band path
         """
         default_band = self.get_default_band()
-        band_path = self.get_band_paths([default_band],
-                                        fail_if_non_existing=fail_if_non_existing,
-                                        only_ortho_bands=only_ortho_bands)
+        band_path = self.get_band_paths([default_band])
 
         return band_path[default_band]
 
@@ -154,41 +155,29 @@ class SarProduct(Product):
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
         """
-        try:
-            # Get extent from orthorectified bands
-            extent = rasters.get_extent(self.get_default_band_path(only_ortho_bands=True,
-                                                                   fail_if_non_existing=True))
-        except (FileNotFoundError, TypeError):
-            # Get WGS84 extent
-            extent_wgs84 = self.get_wgs84_extent()
+        # Get WGS84 extent
+        extent_wgs84 = self.get_wgs84_extent()
 
-            # Get upper-left corner and deduce UTM proj from it
-            utm = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy)
-            extent = extent_wgs84.to_crs(utm)
+        # Get upper-left corner and deduce UTM proj from it
+        utm = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
+                                                   extent_wgs84.bounds.maxy)
+        extent = extent_wgs84.to_crs(utm)
 
         return extent
 
-    def utm_crs(self) -> rasterio.crs.CRS:
+    def utm_crs(self) -> str:
         """
         Get UTM projection
 
         Returns:
             rasterio.crs.CRS: CRS object
         """
-        try:
-            # Get extent from orthorectified bands
-            band_path = self.get_default_band_path(only_ortho_bands=True,
-                                                   fail_if_non_existing=True)
-            with rasterio.open(band_path) as dst:
-                utm = dst.crs
-        except FileNotFoundError:
-            # Get WGS84 extent
-            extent_wgs84 = self.get_wgs84_extent()
+        # Get WGS84 extent
+        extent_wgs84 = self.get_wgs84_extent()
 
-            # Get upper-left corner and deduce UTM proj from it
-            utm = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy)
-
-        return utm
+        # Get upper-left corner and deduce UTM proj from it
+        return vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
+                                                    extent_wgs84.bounds.maxy)
 
     @abstractmethod
     def get_product_type(self) -> None:
@@ -257,24 +246,19 @@ class SarProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def get_band_paths(self,
-                       band_list: list,
-                       fail_if_non_existing: bool = False,
-                       only_ortho_bands: bool = False) -> dict:
+    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
         """
-        Return the band paths.
+        Return the folder containing the bands of a proper S2 products.
 
         Args:
             band_list (list): List of the wanted bands
-            fail_if_non_existing (bool): Fail if non existing band
-            only_ortho_bands (bool): Outputs only orthorectified bands
+            resolution (float): Band resolution
 
         Returns:
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
         for band in band_list:
-            assert band in sbn
             bname = self.band_names[band]
             if bname is None:
                 raise InvalidProductError(f"Non existing band ({band.name}) for {self.name}")
@@ -283,20 +267,13 @@ class SarProduct(Product):
                 band_paths[band] = files.get_file_in_dir(self.output,
                                                          f"{self.condensed_name}_{bname}.tif",
                                                          exact_name=True)
-            except FileNotFoundError as ex:
-                if not only_ortho_bands:
-                    try:
-                        band_paths[band] = self._get_raw_band_paths()[band]
-                    except IndexError:
-                        if fail_if_non_existing:
-                            raise InvalidProductError(f"Non existing band {bname} in {self.output}") from ex
-                        # Else
-                        continue
+            except FileNotFoundError:
+                if sbn.is_despeckle(band):
+                    # Despeckle the noisy band
+                    band_paths[band] = self._despeckle_sar(sbn.corresponding_speckle(band))
                 else:
-                    if fail_if_non_existing:
-                        raise FileNotFoundError(f"Non existing orthorectified band {bname} in {self.output}") from ex
-                    # Else
-                    continue
+                    all_band_paths = self._pre_process_sar(resolution)
+                    band_paths = {band: path for band, path in all_band_paths.items() if band in band_list}
 
         return band_paths
 
@@ -349,7 +326,11 @@ class SarProduct(Product):
         Returns:
             dict: Dictionary containing the path of every orthorectified bands
         """
-        return self.get_band_paths(list(sbn), only_ortho_bands=True)
+        # Get raw bands (maximum number of bands)
+        raw_bands = self._get_raw_bands()
+        possible_bands = raw_bands + [sbn.corresponding_despeckle(band) for band in raw_bands]
+
+        return self.get_band_paths(possible_bands)
 
     def get_existing_bands(self) -> list:
         """
@@ -399,16 +380,12 @@ class SarProduct(Product):
         # Get band paths
         if not isinstance(band_list, list):
             band_list = [band_list]
-        band_paths = self.get_band_paths(band_list)
+        band_paths = self.get_band_paths(band_list, resolution)
 
         # Open bands and get array (resampled if needed)
         band_arrays = {}
         meta = None
         for band_name, band_path in band_paths.items():
-            # Signature of a processing: image starting with the condensed name
-            if not os.path.basename(band_path).startswith(self.condensed_name):
-                raise EoReaderError("You need to add a terrain correction step before using SAR images.")
-
             with rasterio.open(band_path) as band_ds:
                 # Read CSK band
                 band_arrays[band_name], ds_meta = self.read_band(band_ds, resolution, resolution)
@@ -459,3 +436,127 @@ class SarProduct(Product):
             str: Condensed S1 name
         """
         raise NotImplementedError("This method should be implemented by a child class")
+
+    def _pre_process_sar(self, resolution: float = None) -> dict:
+        """
+        Pre-process SAR data (orthorectify...)
+
+        Args:
+            resolution (float): Resolution
+
+        Returns:
+            dict: Dictionary containing {band: path}
+        """
+        out = {}
+
+        # Create target dir (tmp dir)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Set command as a list
+            target_file = os.path.join(tmp_dir, f"{self.get_condensed_name()}")
+
+            # Use dimap for speed and security (ie. GeoTiff's broken georef)
+            pp_target = f"{target_file}"
+            pp_dim = pp_target + '.dim'
+
+            # Pre-process graph
+            if PP_ENV not in os.environ:
+                sat = "s1" if self.sat_id == Platform.S1 else "sar"
+                spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
+                pp_graph = os.path.join(utils.get_gpt_graphs_dir(), f"{spt}_{sat}_preprocess_default.xml")
+            else:
+                pp_graph = os.environ[PP_ENV]
+                if not os.path.isfile(pp_graph) or not pp_graph.endswith(".xml"):
+                    FileNotFoundError(f"{pp_graph} cannot be found.")
+
+            # Command line
+            if not os.path.isfile(pp_dim):
+                def_res = float(os.environ.get(SAR_DEF_RES, 0.0))
+                res_m = resolution if resolution else def_res
+                res_deg = res_m / 10. * 8.983152841195215E-5  # Approx
+                cmd_list = utils.get_gpt_cli(pp_graph,
+                                             [f'-Pfile={strings.to_cmd_string(self.snap_path)}',
+                                              f'-Pout={pp_dim}',
+                                              f'-Pcrs={self.utm_crs()}',
+                                              f'-Pres_m={res_m}',
+                                              f'-Pres_deg={res_deg}'],
+                                             display_snap_opt=LOGGER.level == logging.DEBUG)
+
+                # Pre-process SAR images according to the given graph
+                LOGGER.debug("Pre-process SAR image")
+                misc.run_cli(cmd_list)
+
+            # Convert DIMAP images to GeoTiff
+            for pol in self.pol_channels:
+                # Speckle image
+                out[sbn.from_value(pol)] = self._write_sar(pp_dim, pol.value)
+
+        return out
+
+    def _despeckle_sar(self, band: sbn) -> str:
+        """
+        Pre-process SAR data (orthorectify...)
+
+        Args:
+            band (sbn): Band to despeckle
+
+        Returns:
+            str: Despeckled path
+        """
+        # Create target dir (tmp dir)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Out files
+            target_file = os.path.join(tmp_dir, f"{self.get_condensed_name()}_DESPK")
+            dspk_dim = target_file + '.dim'
+
+            # Despeckle graph
+            if DSPK_ENV not in os.environ:
+                dspk_graph = os.path.join(utils.get_gpt_graphs_dir(), f"sar_despeckle_default.xml")
+            else:
+                dspk_graph = os.environ[DSPK_ENV]
+                if not os.path.isfile(dspk_graph) or not dspk_graph.endswith(".xml"):
+                    FileNotFoundError(f"{dspk_graph} cannot be found.")
+
+            # Create command line and run it
+            if not os.path.isfile(dspk_dim):
+                path = self.get_band_paths([band])[band]
+                cmd_list = utils.get_gpt_cli(dspk_graph,
+                                             [f'-Pfile={path}',
+                                              f'-Pout={dspk_dim}'],
+                                             display_snap_opt=False)
+
+                # Pre-process SAR images according to the given graph
+                LOGGER.debug("Despeckle SAR image")
+                misc.run_cli(cmd_list)
+
+            # Convert DIMAP images to GeoTiff
+            out = self._write_sar(dspk_dim, band.value)
+
+        return out
+
+    def _write_sar(self, dim_path: str, pol_up: str):
+        """
+        Write SAR image on disk.
+
+        Args:
+            dim_path (str): DIMAP path
+            pol_up (str): Polarization name
+        """
+        pol_up = pol_up.upper()  # To be sure
+
+        # Get .img file path (readable by rasterio)
+        try:
+            img = rasters.get_dim_img_path(dim_path, pol_up)
+        except FileNotFoundError:
+            img = rasters.get_dim_img_path(dim_path)  # Maybe not the good name
+
+        with rasterio.open(img, 'r') as dst:
+            # Read array and set no data
+            arr = dst.read(masked=True)
+            arr[np.isnan(arr)] = self.nodata
+            meta = dst.meta
+
+            # Save the file as the terrain-corrected image
+            file_path = os.path.join(self.output, f"{files.get_filename(dim_path)}_{pol_up}.tif")
+            rasters.write(arr, file_path, meta, nodata=self.nodata)
+
+        return file_path

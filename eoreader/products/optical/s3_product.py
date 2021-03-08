@@ -25,6 +25,7 @@ from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 BT_BANDS = [obn.MIR, obn.TIR_1, obn.TIR_2]
+S3_DEF_RES = "EOREADER_S3_DEFAULT_RES"
 
 
 @unique
@@ -56,11 +57,10 @@ class S3Product(OpticalProduct):
     Note: We only use NADIR rasters for S3-SLSTR bands (and maybe the 7th band wont be used in EEO)
     """
 
-    def __init__(self, product_path: str, archive_path: str = None) -> None:
-        self.tile_name = None
+    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
         self.instrument_name = None
         self.data_type = None
-        super().__init__(product_path, archive_path)
+        super().__init__(product_path, archive_path, output_path)  # Order is important here
         self.snap_no_data = -1
         self.condensed_name = self.get_condensed_name()
 
@@ -167,6 +167,28 @@ class S3Product(OpticalProduct):
 
         return snap_bn
 
+    def get_band_from_filename(self, band_filename: str) -> obn:
+        """
+        Get band from filename
+        Args:
+            band_filename (str): Band filename
+
+        Returns:
+            obn: Band name with SNAP format
+        """
+        # Get band name
+        if self.data_type == S3DataTypes.EFR:
+            band_nb = band_filename[2:4]
+        elif self.data_type == S3DataTypes.RBT:
+            band_nb = band_filename[1]
+        else:
+            raise InvalidTypeError(f"Invalid Sentinel-3 datatype: {self.data_type}")
+
+        # Get band
+        band = list(self.band_names.keys())[list(self.band_names.values()).index(band_nb)]
+
+        return band
+
     def get_slstr_quality_flags_name(self, band: obn) -> str:
         """
         Get SNAP band name.
@@ -189,9 +211,9 @@ class S3Product(OpticalProduct):
 
         return snap_bn
 
-    def get_band_name(self, band: Union[obn, str]) -> str:
+    def get_band_filename(self, band: Union[obn, str]) -> str:
         """
-        Get band name from its band type
+        Get band filename from its band type
 
         Args:
             band ( Union[obn, str]): Band as an OpticalBandNames or directly the snap_name
@@ -206,49 +228,11 @@ class S3Product(OpticalProduct):
         else:
             raise InvalidTypeError("The given band should be an OpticalBandNames or directly the snap_name")
 
-        # Remove _an/_in for SLSTR eoreader
+        # Remove _an/_in for SLSTR products
         if self.data_type == S3DataTypes.RBT:
             snap_name = snap_name[:-3]
 
         return snap_name
-
-    def run_s3_gpt_cli(self, out_dim: str) -> list:
-        """
-        Construct GPT command line to reproject S3 images and quality flags
-
-        Args:
-            out_dim (str): Out DIMAP name
-
-        Returns:
-            list: Processed band name
-        """
-        # Construct GPT graph
-        graph_path = os.path.join(utils.get_data_dir(), "gpt_graphs", "preprocess_s3.xml")
-        snap_bands = ",".join([self.get_snap_band_name(band)
-                               for band, band_nb in self.band_names.items() if band_nb])
-        if self.instrument_name == S3Instrument.OLCI:
-            sensor = "OLCI"
-            fmt = "Sen3"
-            snap_bands += ",quality_flags"
-        else:
-            sensor = "SLSTR_500m"
-            fmt = "Sen3_SLSTRL1B_500m"
-            exception_bands = ",".join([self.get_slstr_quality_flags_name(band)
-                                        for band, band_nb in self.band_names.items() if band_nb])
-            snap_bands += f",{exception_bands}"
-
-        # Run GPT graph
-        cmd_list = utils.get_gpt_cli(graph_path, [f'-Pin={strings.to_cmd_string(self.path)}',
-                                                  f'-Pbands={snap_bands}',
-                                                  f'-Psensor={sensor}',
-                                                  f'-Pformat={fmt}',
-                                                  f'-Pno_data={self.snap_no_data}',
-                                                  f'-Pout={strings.to_cmd_string(out_dim)}'],
-                                     display_snap_opt=LOGGER.level == logging.DEBUG)
-        LOGGER.debug("Converting %s", self.name)
-        misc.run_cli(cmd_list)
-
-        return snap_bands.split(",")
 
     def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
         """
@@ -264,10 +248,8 @@ class S3Product(OpticalProduct):
         band_paths = {}
         use_snap = False
         for band in band_list:
-            assert band in obn
-
             # Get standard band names
-            band_name = self.get_band_name(band)
+            band_name = self.get_band_filename(band)
 
             try:
                 # Try to open converted images
@@ -277,43 +259,7 @@ class S3Product(OpticalProduct):
 
         # If not existing (file or output), convert them
         if use_snap:
-            # If output do not exist do not compute SNAP bands !
-            if not self.output:
-                raise FileNotFoundError(f"Non existing output for products: {self.condensed_name}")
-
-            # DIM in tmp files
-            tmp_dir = tempfile.TemporaryDirectory()
-            # out_dim = os.path.join(self.output, self.condensed_name + ".dim")  DEBUG OPTION
-            out_dim = os.path.join(tmp_dir.name, self.condensed_name + ".dim")
-
-            # Run GPT graph
-            processed_bands = self.run_s3_gpt_cli(out_dim)
-
-            # Save all processed bands and quality flags into GeoTIFFs
-            for snap_band_name in processed_bands:
-                # Get standard band names
-                band_name = self.get_band_name(snap_band_name)
-
-                # Remove tif if already existing
-                # (if we are here, sth has failed when creating them, so delete them all)
-                out_tif = os.path.join(self.output, band_name + ".tif")
-                if os.path.isfile(out_tif):
-                    files.remove(out_tif)
-
-                # Convert to geotiffs and set no data with only keeping the first band
-                with rasterio.open(rasters.get_dim_img_path(out_dim, snap_band_name)) as dim_ds:
-                    nodata = self.snap_no_data if dim_ds.meta["dtype"] == float else self.nodata
-                    rasters.write(dim_ds.read(masked=True), out_tif, dim_ds.meta, nodata=nodata)
-
-            # Get the wanted bands (not the quality flags here !)
-            for band in band_list:
-                out_tif = os.path.join(self.output, self.get_band_name(band) + ".tif")
-                if not os.path.isfile(out_tif):
-                    raise FileNotFoundError(f"Error when processing S3 bands with SNAP. Couldn't find {out_tif}")
-                band_paths[band] = out_tif
-
-            # Remove dimap file
-            tmp_dir.cleanup()
+            band_paths = self._preprocess_s3(resolution)
 
         return band_paths
 
@@ -356,20 +302,20 @@ class S3Product(OpticalProduct):
             np.ma.masked_array, dict: Cleaned band array and its metadata
         """
         if self.instrument_name == S3Instrument.OLCI:
-            band_arr_mask, meta = self.manage_invalid_pixels_olci(band_arr, band, meta, res_x, res_y)
+            band_arr_mask, meta = self._manage_invalid_pixels_olci(band_arr, band, meta, res_x, res_y)
         else:
-            band_arr_mask, meta = self.manage_invalid_pixels_slstr(band_arr, band, meta, res_x, res_y)
+            band_arr_mask, meta = self._manage_invalid_pixels_slstr(band_arr, band, meta, res_x, res_y)
 
         return band_arr_mask, meta
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def manage_invalid_pixels_olci(self,
-                                   band_arr: np.ma.masked_array,
-                                   band: obn,
-                                   meta: dict,
-                                   res_x: float = None,
-                                   res_y: float = None) -> (np.ma.masked_array, dict):
+    def _manage_invalid_pixels_olci(self,
+                                    band_arr: np.ma.masked_array,
+                                    band: obn,
+                                    meta: dict,
+                                    res_x: float = None,
+                                    res_y: float = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...) for OLCI data.
         See there:
@@ -463,12 +409,12 @@ class S3Product(OpticalProduct):
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def manage_invalid_pixels_slstr(self,
-                                    band_arr: np.ma.masked_array,
-                                    band: obn,
-                                    meta: dict,
-                                    res_x: float = None,
-                                    res_y: float = None) -> (np.ma.masked_array, dict):
+    def _manage_invalid_pixels_slstr(self,
+                                     band_arr: np.ma.masked_array,
+                                     band: obn,
+                                     meta: dict,
+                                     res_x: float = None,
+                                     res_y: float = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
@@ -529,6 +475,101 @@ class S3Product(OpticalProduct):
         band_arrays, meta = self._open_bands(band_paths, resolution)
 
         return band_arrays, meta
+
+    def _preprocess_s3(self, resolution: float):
+        """
+        pre-process S3 bands (orthorectify...)
+
+        Args:
+            resolution (float): Resolution
+
+        Returns:
+            dict: Dictionary containing {band: path}
+        """
+
+        band_paths = {}
+
+        # DIM in tmp files
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # out_dim = os.path.join(self.output, self.condensed_name + ".dim")  DEBUG OPTION
+            out_dim = os.path.join(tmp_dir, self.condensed_name + ".dim")
+
+            # Run GPT graph
+            processed_bands = self._run_s3_gpt_cli(out_dim, resolution)
+
+            # Save all processed bands and quality flags into GeoTIFFs
+            for snap_band_name in processed_bands:
+                # Get standard band names
+                band_name = self.get_band_filename(snap_band_name)
+
+                # Remove tif if already existing
+                # (if we are here, sth has failed when creating them, so delete them all)
+                out_tif = os.path.join(self.output, band_name + ".tif")
+                if os.path.isfile(out_tif):
+                    files.remove(out_tif)
+
+                # Convert to geotiffs and set no data with only keeping the first band
+                with rasterio.open(rasters.get_dim_img_path(out_dim, snap_band_name)) as dim_ds:
+                    nodata = self.snap_no_data if dim_ds.meta["dtype"] == float else self.nodata
+                    rasters.write(dim_ds.read(masked=True), out_tif, dim_ds.meta, nodata=nodata)
+
+        # Get the wanted bands (not the quality flags here !)
+        for band in processed_bands:
+            filename = self.get_band_filename(band)
+            if "exception" not in filename:
+                out_tif = os.path.join(self.output, filename + ".tif")
+                if not os.path.isfile(out_tif):
+                    raise FileNotFoundError(f"Error when processing S3 bands with SNAP. Couldn't find {out_tif}")
+
+                # Quality flags will crash here
+                try:
+                    band_paths[self.get_band_from_filename(filename)] = out_tif
+                except ValueError:
+                    pass
+
+        return band_paths
+
+    def _run_s3_gpt_cli(self, out_dim: str, resolution: float) -> list:
+        """
+        Construct GPT command line to reproject S3 images and quality flags
+
+        Args:
+            out_dim (str): Out DIMAP name
+            resolution (float): Resolution
+
+        Returns:
+            list: Processed band name
+        """
+        # Construct GPT graph
+        graph_path = os.path.join(utils.get_data_dir(), "gpt_graphs", "preprocess_s3.xml")
+        snap_bands = ",".join([self.get_snap_band_name(band)
+                               for band, band_nb in self.band_names.items() if band_nb])
+        if self.instrument_name == S3Instrument.OLCI:
+            sensor = "OLCI"
+            fmt = "Sen3"
+            snap_bands += ",quality_flags"
+            def_res = os.environ.get(S3_DEF_RES, 300)
+        else:
+            sensor = "SLSTR_500m"
+            fmt = "Sen3_SLSTRL1B_500m"
+            def_res = os.environ.get(S3_DEF_RES, 500)
+            exception_bands = ",".join([self.get_slstr_quality_flags_name(band)
+                                        for band, band_nb in self.band_names.items() if band_nb])
+            snap_bands += f",{exception_bands}"
+
+        # Run GPT graph
+        cmd_list = utils.get_gpt_cli(graph_path, [f'-Pin={strings.to_cmd_string(self.path)}',
+                                                  f'-Pbands={snap_bands}',
+                                                  f'-Psensor={sensor}',
+                                                  f'-Pformat={fmt}',
+                                                  f'-Pno_data={self.snap_no_data}',
+                                                  f'-Pres_m={resolution if resolution else def_res}',
+                                                  f'-Pout={strings.to_cmd_string(out_dim)}'],
+                                     display_snap_opt=LOGGER.level == logging.DEBUG)
+        LOGGER.debug("Converting %s", self.name)
+        misc.run_cli(cmd_list)
+
+        return snap_bands.split(",")
 
     def utm_extent(self) -> gpd.GeoDataFrame:
         """
@@ -604,7 +645,7 @@ class S3Product(OpticalProduct):
         Returns:
             str: Condensed S2 name
         """
-        return f"{self.datetime}_S3_{self.product_type.name}"
+        return f"{self.get_datetime()}_S3_{self.product_type.name}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """

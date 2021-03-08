@@ -105,6 +105,23 @@ class SarBandNames(BandNames):
     HV = 'HV'
     HV_DSPK = 'DESPK_HV'
 
+    @classmethod
+    def corresponding_despeckle(cls, band: "SarBandNames"):
+        if cls.is_despeckle(band):
+            dspk = band
+        else:
+            dspk = cls.from_value(f"DESPK_{band.name}")
+
+        return dspk
+
+    @classmethod
+    def corresponding_speckle(cls, band: "SarBandNames"):
+        return cls.from_value(f"{band.name[:2]}")
+
+    @classmethod
+    def is_despeckle(cls, band: "SarBandNames"):
+        return "DSPK" in band.name
+
 
 # too many ancestors
 # pylint: disable=R0901

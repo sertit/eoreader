@@ -30,4 +30,4 @@ class L1Product(LandsatProduct):
         Returns:
             str: Condensed L1 name
         """
-        return f"{self.datetime}_L1_{self.tile_name}_{self.product_type.value}"
+        return f"{self.get_datetime()}_L1_{self.tile_name}_{self.product_type.value}"

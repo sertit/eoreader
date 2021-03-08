@@ -19,16 +19,16 @@ This project allows you to read and open satellite data.
 >>> extent = prod.extent
 
 >>> # Load some bands and index
->>> idx, meta = prod.load(band_and_idx_list=[NDVI, MNDWI],resolution=resolution)
+>>> idx, meta = prod.load([NDVI, MNDWI, GREEN],resolution=resolution)
 >>> ndvi = idx[NDVI]
 >>> mndwi = idx[MNDWI]
 >>> green = idx[GREEN]
 
->>> # Warp a DEM over the tile, using an internal DEM (EUDEM over Europe, MERIT DEM everwhere else)
+>>> # Warp a DEM over the tile, using an internal DEM (EUDEM over Europe, MERIT DEM everywhere else)
 >>> wp_dem_path = prod.warp_dem(resolution=resolution)
 
 >>> # Create a stack with some other bands
->>> stack, stk_meta = prod.stack(index_list=[NDVI, MNDWI], band_list=[GREEN], resolution=resolution)
+>>> stack, stk_meta = prod.stack([NDVI, MNDWI, GREEN], resolution=resolution)
 ```
 
 :bulb:  

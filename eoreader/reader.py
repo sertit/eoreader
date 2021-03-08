@@ -84,7 +84,7 @@ class Reader:
         else:
             self._platform_regex[platform] = compile_sat(regex)
 
-    def open(self, product_path: str, archive_path: str = None) -> "Product":
+    def open(self, product_path: str, archive_path: str = None, output_path: str = None) -> "Product":
         """
         Get the correct products
 
@@ -108,7 +108,7 @@ class Reader:
                     mod = importlib.import_module(f'eoreader.products.optical.{sat_class}')
 
                 class_ = getattr(mod, strings.snake_to_camel_case(sat_class))
-                prod = class_(product_path, archive_path)
+                prod = class_(product_path, archive_path, output_path)
                 break
 
         if not prod:

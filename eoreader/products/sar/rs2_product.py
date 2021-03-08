@@ -98,8 +98,8 @@ class Rs2Polarization(ListEnum):
 class Rs2Product(SarProduct):
     """ Class for RADARSAT-2 Products """
 
-    def __init__(self, product_path: str, archive_path: str = None) -> None:
-        super().__init__(product_path, archive_path)
+    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
+        super().__init__(product_path, archive_path, output_path)
         self.raw_band_regex = "*imagery_{}.tif"
         self.band_folder = self.path
         self.snap_path = self.path
@@ -125,12 +125,12 @@ class Rs2Product(SarProduct):
                 with zipfile.ZipFile(self.path, "r") as zip_ds:
                     # Get the correct band path
                     filenames = [f.filename for f in zip_ds.filelist]
-                    regex = re.compile(f".*products.kml")
+                    regex = re.compile(f".*product.kml")
                     extent_file = zip_ds.open(list(filter(regex.match, filenames))[0])
             else:
-                extent_file = glob.glob(os.path.join(self.path, "products.kml"))[0]
+                extent_file = glob.glob(os.path.join(self.path, "product.kml"))[0]
         except IndexError as ex:
-            raise InvalidProductError(f"Extent file (products.kml) not found in {self.path}") from ex
+            raise InvalidProductError(f"Extent file (product.kml) not found in {self.path}") from ex
 
         vectors.set_kml_driver()
         product_kml = gpd.read_file(extent_file)
@@ -222,4 +222,4 @@ class Rs2Product(SarProduct):
             str: Condensed S1 name
         """
 
-        return f"{self.get_datetime}_RS2_{self.sensor_mode.name}_{self.product_type.value}"
+        return f"{self.get_datetime()}_RS2_{self.sensor_mode.name}_{self.product_type.value}"

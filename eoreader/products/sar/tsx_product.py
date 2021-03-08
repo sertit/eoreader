@@ -67,8 +67,8 @@ class TsxPolarization(ListEnum):
 class TsxProduct(SarProduct):
     """ Class for TerraSAR-X Products """
 
-    def __init__(self, product_path: str, archive_path: str = None) -> None:
-        super().__init__(product_path, archive_path)
+    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
+        super().__init__(product_path, archive_path, output_path)
         self.raw_band_regex = "IMAGE_{}_*.tif"
         self.band_folder = os.path.join(self.path, "IMAGEDATA")
         self.snap_path = os.path.join(self.path, self.name + ".xml")
@@ -138,4 +138,4 @@ class TsxProduct(SarProduct):
         Returns:
             str: Condensed S1 name
         """
-        return f"{self.get_datetime}_TSX_{self.sensor_mode.value}_{self.product_type.value}"
+        return f"{self.get_datetime()}_TSX_{self.sensor_mode.value}_{self.product_type.value}"
