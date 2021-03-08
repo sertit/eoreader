@@ -13,7 +13,7 @@ from sertit import rasters
 
 from eoreader.exceptions import InvalidIndexError, InvalidBandError, InvalidTypeError
 from eoreader.bands import OpticalBands, OpticalBandNames as obn, BandNames
-from eoreader import index
+from eoreader.bands import index
 from eoreader.products.product import Product, SensorType
 from eoreader.utils import EOREADER_NAME
 
@@ -217,7 +217,7 @@ class OpticalProduct(Product):
         return band_arr_mask, meta
 
     def load(self,
-             index_list: [list, Callable] = None,
+             index_list: [list, index] = None,
              band_list: [list, BandNames] = None,
              resolution: float = 20) -> (dict, dict):
         """

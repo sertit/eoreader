@@ -17,7 +17,7 @@ from typing import Union, Callable
 
 import numpy as np
 
-from eoreader.bands import OpticalBandNames as obn
+from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)

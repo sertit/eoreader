@@ -4,15 +4,14 @@ This project allows you to read and open satellite data.
 
 ```python
 >>> from eoreader.reader import Reader
->>> from eoreader import index
->>> from eoreader.bands import OpticalBandNames as obn
+>>> from eoreader.bands.alias import *
 
 >>> # Your variables
 >>> opt_path = "path\to\your\satellite"
 >>> resolution = 20  # in meters
 
 >>> # Create the reader object and open satellite data
->>> eoreader = Reader()  # This is a singleton, call it only once !
+>>> eoreader = Reader()  # This is a singleton
 >>> prod = eoreader.open(opt_path)
 
 >>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
@@ -20,20 +19,16 @@ This project allows you to read and open satellite data.
 >>> extent = prod.extent
 
 >>> # Load some bands and index
->>> idx, meta = prod.load(index_list=[index.NDVI, index.MNDWI], 
->>>                       band_list=[obn.GREEN], 
->>>                       resolution=resolution)
->>> ndvi = idx[index.NDVI]
->>> mndwi = idx[index.MNDWI]
->>> green = idx[obn.GREEN]
+>>> idx, meta = prod.load(index_list=[NDVI, MNDWI], band_list=[GREEN], resolution=resolution)
+>>> ndvi = idx[NDVI]
+>>> mndwi = idx[MNDWI]
+>>> green = idx[GREEN]
 
 >>> # Warp a DEM over the tile, using an internal DEM (EUDEM over Europe, MERIT DEM everwhere else)
->>> wp_dem_path = prod.warp_dem(resolution=20)
+>>> wp_dem_path = prod.warp_dem(resolution=resolution)
 
 >>> # Create a stack with some other bands
->>> stack, stk_meta = prod.stack(index_list=[index.NDVI, index.MNDWI], 
->>>                              band_list=[obn.GREEN],
->>>                              resolution=20)
+>>> stack, stk_meta = prod.stack(index_list=[NDVI, MNDWI], band_list=[GREEN], resolution=resolution)
 ```
 
 :bulb:  
