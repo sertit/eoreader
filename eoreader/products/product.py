@@ -17,11 +17,11 @@ from sertit import files, strings
 from sertit import rasters
 from sertit.misc import ListEnum
 
-from eoreader import index
+from eoreader.products.bands import index
 from eoreader.utils import MAX_CORES
 from eoreader import utils
 from eoreader.reader import Reader, Platform
-from eoreader.bands import OpticalBandNames as obn, SarBandNames as sbn, BandNames
+from eoreader.bands.bands import OpticalBandNames as obn, SarBandNames as sbn, BandNames
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)

@@ -1,6 +1,6 @@
 """ Landsat-2 products """
 from eoreader.exceptions import InvalidProductError
-from eoreader.bands import OpticalBandNames as obn
+from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.products.optical.landsat_product import LandsatProduct, LandsatProductType
 
 

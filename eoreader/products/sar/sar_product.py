@@ -26,7 +26,7 @@ from sertit.misc import ListEnum
 from sertit import rasters, vectors
 
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError, EoReaderError
-from eoreader.bands import SarBands, SarBandNames as sbn, BandNames
+from eoreader.bands.bands import SarBands, SarBandNames as sbn, BandNames
 from eoreader.products.product import Product, SensorType
 from eoreader.utils import EOREADER_NAME
 

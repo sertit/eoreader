@@ -19,7 +19,7 @@ from sertit import rasters
 from sertit.misc import ListEnum
 
 from eoreader.exceptions import InvalidProductError
-from eoreader.bands import OpticalBandNames as obn, BandNames
+from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 

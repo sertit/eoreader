@@ -19,7 +19,7 @@ from sertit.misc import ListEnum
 
 from eoreader import utils
 from eoreader.exceptions import InvalidTypeError, InvalidProductError
-from eoreader.bands import OpticalBandNames as obn, BandNames
+from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
