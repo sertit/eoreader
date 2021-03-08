@@ -2,7 +2,7 @@
 
 import logging
 from abc import abstractmethod
-from typing import Callable
+from typing import Callable, Union
 import numpy as np
 import geopandas as gpd
 import rasterio
@@ -11,9 +11,9 @@ import rasterio.warp
 import rasterio.crs
 from sertit import rasters
 
-from eoreader.exceptions import InvalidIndexError, InvalidBandError, InvalidTypeError
-from eoreader.bands import OpticalBands, OpticalBandNames as obn, BandNames
-from eoreader.bands import index
+from eoreader.exceptions import InvalidIndexError, InvalidBandError
+from eoreader.bands.bands import OpticalBands, OpticalBandNames as obn, BandNames
+from eoreader.bands import index, alias
 from eoreader.products.product import Product, SensorType
 from eoreader.utils import EOREADER_NAME
 
@@ -48,7 +48,6 @@ class OpticalProduct(Product):
         default_band = self.get_default_band()
         return self.get_band_paths([default_band])[default_band]
 
-    @property
     def utm_crs(self) -> rasterio.crs.CRS:
         """
         Get UTM projection
@@ -62,7 +61,6 @@ class OpticalProduct(Product):
 
         return utm
 
-    @property
     def utm_extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -112,7 +110,7 @@ class OpticalProduct(Product):
         return self.get_band_paths(band_list=existing_bands)
 
     @abstractmethod
-    def load_bands(self, band_list: [list, BandNames], resolution: float = 20) -> (dict, dict):
+    def _load_bands(self, band_list: [list, BandNames], resolution: float = 20) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -125,7 +123,7 @@ class OpticalProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def open_bands(self, band_paths: dict, resolution: float = None) -> (dict, dict):
+    def _open_bands(self, band_paths: dict, resolution: float = None) -> (dict, dict):
         """
         Open bands from their paths.
 
@@ -145,8 +143,9 @@ class OpticalProduct(Product):
             with rasterio.open(band_path) as band_ds:
                 # Read band
                 band_arrays[band_name], ds_meta = self.read_band(band_ds, resolution, resolution)
-                band_arrays[band_name], ds_meta = self.manage_invalid_pixels(band_arrays[band_name], band_name, ds_meta,
-                                                                             resolution, resolution)
+                band_arrays[band_name], ds_meta = self._manage_invalid_pixels(band_arrays[band_name],
+                                                                              band_name, ds_meta,
+                                                                              resolution, resolution)
 
                 # Meta
                 if not meta:
@@ -157,12 +156,12 @@ class OpticalProduct(Product):
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     @abstractmethod
-    def manage_invalid_pixels(self,
-                              band_arr: np.ma.masked_array,
-                              band: obn,
-                              meta: dict,
-                              res_x: float = None,
-                              res_y: float = None) -> (np.ma.masked_array, dict):
+    def _manage_invalid_pixels(self,
+                               band_arr: np.ma.masked_array,
+                               band: obn,
+                               meta: dict,
+                               res_x: float = None,
+                               res_y: float = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
@@ -178,10 +177,10 @@ class OpticalProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def create_band_masked_array(self,
-                                 band_arr: np.ma.masked_array,
-                                 mask: np.ndarray,
-                                 meta: dict) -> (np.ma.masked_array, dict):
+    def _create_band_masked_array(self,
+                                  band_arr: np.ma.masked_array,
+                                  mask: np.ndarray,
+                                  meta: dict) -> (np.ma.masked_array, dict):
         """
         Create the correct masked array with well positioned nodata and values properly set to nodata
 
@@ -217,81 +216,57 @@ class OpticalProduct(Product):
         return band_arr_mask, meta
 
     def load(self,
-             index_list: [list, index] = None,
-             band_list: [list, BandNames] = None,
+             band_and_idx_list: Union[list, BandNames, Callable],
              resolution: float = 20) -> (dict, dict):
         """
         Open the bands and compute the wanted index.
         You can add some bands in the dict.
 
         Args:
-            index_list (list, index): Index list
-            band_list (list, BandNames): Band list
+            band_and_idx_list (list, index): Index list
             resolution (float): Resolution of the band, in meters
 
         Returns:
             dict, dict: Index and band dict, metadata
         """
-        # We should have at least one band or index
-        assert index_list is not None or band_list is not None
+        if not isinstance(band_and_idx_list, list):
+            band_and_idx_list = [band_and_idx_list]
 
-        # Convert index_list into list if needed
-        if index_list is None:
-            index_list = []
-        else:
-            if isinstance(index_list, Callable):
-                index_list = [index_list]
-            elif isinstance(index_list, list):
-                pass
-            else:
-                raise InvalidTypeError("index_list should be a list of index or an index")
+        band_list = []
+        index_list = []
 
-        # Check if all index are valid
-        for idx in index_list:
-            if not self.has_index(idx):
-                raise InvalidIndexError(f"{idx} cannot be computed from {self.condensed_name()}.")
-
-        # Convert band_list into list if needed
-        if band_list is None:
-            band_list = []
-        else:
-            if isinstance(band_list, obn):
-                band_list = [band_list]
-            elif isinstance(band_list, list):
-                pass
-            else:
-                raise InvalidTypeError("band_list should be a list of obn or a obn")
-
-        # Check if all bands are valid
-        for band in band_list:
-            if not self.has_band(band):
-                raise InvalidBandError(f"{band} cannot be retrieved from {self.condensed_name()}.")
+        # Check if everything is valid
+        for idx_or_band in band_and_idx_list:
+            if alias.is_index(idx_or_band):
+                if self.has_index(idx_or_band):
+                    index_list.append(idx_or_band)
+                else:
+                    raise InvalidIndexError(f"{idx_or_band} cannot be computed from {self.condensed_name}.")
+            elif alias.is_sar_band(idx_or_band):
+                raise TypeError(f"You should ask for Optical bands as {self.name} is an optical product.")
+            elif alias.is_optical_band(idx_or_band):
+                if self.has_band(idx_or_band):
+                    band_list.append(idx_or_band)
+                else:
+                    raise InvalidBandError(f"{idx_or_band} cannot be retrieved from {self.condensed_name}.")
 
         # Get all bands to be open
-        index_bands = []
         for idx in index_list:
-            index_bands += index.NEEDED_BANDS[idx]
-        index_bands += band_list
+            band_list += index.NEEDED_BANDS[idx]
 
-        # Only keep unique bands (open them only one time !)
-        index_bands = list(set(index_bands))
-
-        # Load band arrays -> All needed bands are loaded, if not a FileNotFoundError in thrown here
-        bands, meta = self.load_bands(index_bands, resolution=resolution)
+        # Load band arrays (only keep unique bands: open them only one time !)
+        bands, meta = self._load_bands(list(set(band_list)), resolution=resolution)
 
         # Compute index (they conserve the nodata)
-        idx_dict = {}
-        for idx in index_list:
-            idx_dict[idx] = idx(bands)
+        idx_and_bands_dict = {idx: idx(bands) for idx in index_list}
 
         # Add bands
-        for band in band_list:
-            idx_dict[band] = bands[band]
+        idx_and_bands_dict.update({band: bands[band] for band in band_list})
 
-        return idx_dict, meta
+        return idx_and_bands_dict, meta
 
     @abstractmethod
-    def condensed_name(self) -> str:
+    def get_condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
 

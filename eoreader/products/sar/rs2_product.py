@@ -103,7 +103,8 @@ class Rs2Product(SarProduct):
         self.raw_band_regex = "*imagery_{}.tif"
         self.band_folder = self.path
         self.snap_path = self.path
-        self.pol_channels = self.get_raw_bands()
+        self.pol_channels = self._get_raw_bands()
+        self.condensed_name = self.get_condensed_name()
 
         # Zipped and SNAP can process its archive
         self.needs_extraction = False
@@ -156,20 +157,20 @@ class Rs2Product(SarProduct):
             with zipfile.ZipFile(self.path, "r") as zip_ds:
                 # Get the correct band path
                 filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f".*products.xml")
+                regex = re.compile(f".*product.xml")
                 xml_zip = zip_ds.read(list(filter(regex.match, filenames))[0])
                 root = etree.fromstring(xml_zip)
         else:
             # Open metadata file
             try:
-                mtd_file = glob.glob(os.path.join(self.path, "products.xml"))[0]
+                mtd_file = glob.glob(os.path.join(self.path, "product.xml"))[0]
 
                 # pylint: disable=I1101:
                 # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
                 xml_tree = etree.parse(mtd_file)
                 root = xml_tree.getroot()
             except IndexError as ex:
-                raise InvalidProductError(f"Metadata file (products.xml) not found in {self.path}") from ex
+                raise InvalidProductError(f"Metadata file (product.xml) not found in {self.path}") from ex
 
         idx = root.tag.rindex("}")
         namespace = root.tag[:idx + 1]
@@ -194,8 +195,7 @@ class Rs2Product(SarProduct):
         else:
             raise InvalidTypeError(f"Invalid sensor mode for {self.name}")
 
-    @property
-    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -214,8 +214,7 @@ class Rs2Product(SarProduct):
 
         return date
 
-    @property
-    def condensed_name(self) -> str:
+    def get_condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
@@ -223,4 +222,4 @@ class Rs2Product(SarProduct):
             str: Condensed S1 name
         """
 
-        return f"{self.datetime}_RS2_{self.sensor_mode.name}_{self.product_type.value}"
+        return f"{self.get_datetime}_RS2_{self.sensor_mode.name}_{self.product_type.value}"

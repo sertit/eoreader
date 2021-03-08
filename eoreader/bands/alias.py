@@ -5,6 +5,7 @@ You can import them as:
 - `from eoreader.bands import alias` -> `alias.GREEN`
 """
 # Module name begins with _ to not be imported with *
+import typing as _tp
 from eoreader.bands.bands import OpticalBandNames as _obn, SarBandNames as _sbn
 from eoreader.bands import index as _idx
 
@@ -67,3 +68,59 @@ WI = _idx.WI
 AFRI_1_6 = _idx.AFRI_1_6
 AFRI_2_1 = _idx.AFRI_2_1
 BSI = _idx.BSI
+
+
+def is_index(idx: _tp.Any) -> bool:
+    """
+    Returns True if is an index Callable from the index module
+
+    Args:
+        idx (Any): Sth that could be an index
+
+    Returns:
+        bool: True if the index asked is an index Callable (such as index.BSI)
+
+    """
+    return "index" in idx.__module__ and idx.__name__ in _idx.get_all_index()
+
+
+def is_optical_band(band: _tp.Any) -> bool:
+    """
+    Returns True if is an optical band (obn.xxx)
+
+    Args:
+        band (Any): Sth that could be an optical band
+
+    Returns:
+        bool: True if the band asked is an optical band
+
+    """
+    return band in _obn
+
+
+def is_sar_band(band: _tp.Any) -> bool:
+    """
+    Returns True if is a SAR band (sbn.xxx)
+
+    Args:
+        band (Any): Sth that could be a SAR band
+
+    Returns:
+        bool: True if the band asked is a SAR band
+
+    """
+    return band in _sbn
+
+
+def is_band(band: _tp.Any) -> bool:
+    """
+    Returns True if is a SAR band (sbn.xxx)
+
+    Args:
+        band (Any): Sth that could be a SAR band
+
+    Returns:
+        bool: True if the band asked is a SAR band
+
+    """
+    return is_sar_band(band) or is_optical_band(band)

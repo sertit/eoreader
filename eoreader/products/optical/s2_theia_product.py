@@ -31,6 +31,7 @@ class S2TheiaProduct(OpticalProduct):
     def __init__(self, product_path: str, archive_path: str = None) -> None:
         super().__init__(product_path, archive_path)
         self.tile_name = self.retrieve_tile_names()
+        self.condensed_name = self.get_condensed_name()
 
     def retrieve_tile_names(self) -> str:
         """
@@ -62,7 +63,7 @@ class S2TheiaProduct(OpticalProduct):
         # B1 to be divided by 20
         # B9 to be divided by 200
 
-    def datetime(self, as_datetime: bool = False) -> Union[str, datetime.datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime.datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -123,12 +124,12 @@ class S2TheiaProduct(OpticalProduct):
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def manage_invalid_pixels(self,
-                              band_arr: np.ma.masked_array,
-                              band: obn,
-                              meta: dict,
-                              res_x: float = None,
-                              res_y: float = None) -> (np.ma.masked_array, dict):
+    def _manage_invalid_pixels(self,
+                               band_arr: np.ma.masked_array,
+                               band: obn,
+                               meta: dict,
+                               res_x: float = None,
+                               res_y: float = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See there:
@@ -189,9 +190,9 @@ class S2TheiaProduct(OpticalProduct):
         mask = no_data_mask | edg_mask | sat_mask
 
         # -- Merge masks
-        return self.create_band_masked_array(band_arr, mask, meta)
+        return self._create_band_masked_array(band_arr, mask, meta)
 
-    def load_bands(self, band_list: [list, BandNames], resolution: float = 20) -> (dict, dict):
+    def _load_bands(self, band_list: [list, BandNames], resolution: float = 20) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -208,20 +209,19 @@ class S2TheiaProduct(OpticalProduct):
         band_paths = self.get_band_paths(band_list)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self.open_bands(band_paths, resolution)
+        band_arrays, meta = self._open_bands(band_paths, resolution)
         meta["driver"] = "GTiff"
 
         return band_arrays, meta
 
-    @property
-    def condensed_name(self) -> str:
+    def get_condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
 
         Returns:
             str: Condensed S2 name
         """
-        return f"{self.datetime()}_S2THEIA_{self.tile_name}_{self.product_type.value}"
+        return f"{self.datetime}_S2THEIA_{self.tile_name}_{self.product_type.value}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """

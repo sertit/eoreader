@@ -72,7 +72,8 @@ class TsxProduct(SarProduct):
         self.raw_band_regex = "IMAGE_{}_*.tif"
         self.band_folder = os.path.join(self.path, "IMAGEDATA")
         self.snap_path = os.path.join(self.path, self.name + ".xml")
-        self.pol_channels = self.get_raw_bands()
+        self.pol_channels = self._get_raw_bands()
+        self.condensed_name = self.get_condensed_name()
 
     def get_wgs84_extent(self) -> gpd.GeoDataFrame:
         """
@@ -113,7 +114,7 @@ class TsxProduct(SarProduct):
         except ValueError as ex:
             raise InvalidTypeError(f"Invalid sensor mode for {self.name}") from ex
 
-    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -130,11 +131,11 @@ class TsxProduct(SarProduct):
 
         return date
 
-    def condensed_name(self) -> str:
+    def get_condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
         Returns:
             str: Condensed S1 name
         """
-        return f"{self.datetime}_TSX_{self.sensor_mode.value}_{self.product_type.value}"
+        return f"{self.get_datetime}_TSX_{self.sensor_mode.value}_{self.product_type.value}"

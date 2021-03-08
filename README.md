@@ -19,7 +19,7 @@ This project allows you to read and open satellite data.
 >>> extent = prod.extent
 
 >>> # Load some bands and index
->>> idx, meta = prod.load(index_list=[NDVI, MNDWI], band_list=[GREEN], resolution=resolution)
+>>> idx, meta = prod.load(band_and_idx_list=[NDVI, MNDWI],resolution=resolution)
 >>> ndvi = idx[NDVI]
 >>> mndwi = idx[MNDWI]
 >>> green = idx[GREEN]

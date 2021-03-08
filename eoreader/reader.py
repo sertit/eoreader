@@ -100,7 +100,13 @@ class Reader:
         for platform, regex in self._platform_regex.items():
             if self.is_valid(product_path, regex):
                 sat_class = platform.name.lower() + "_product"
-                mod = importlib.import_module(f'eoreader.eoreader.{sat_class}')
+
+                # Manage both optical and SAR
+                try:
+                    mod = importlib.import_module(f'eoreader.products.sar.{sat_class}')
+                except ModuleNotFoundError:
+                    mod = importlib.import_module(f'eoreader.products.optical.{sat_class}')
+
                 class_ = getattr(mod, strings.snake_to_camel_case(sat_class))
                 prod = class_(product_path, archive_path)
                 break

@@ -62,6 +62,7 @@ class S3Product(OpticalProduct):
         self.data_type = None
         super().__init__(product_path, archive_path)
         self.snap_no_data = -1
+        self.condensed_name = self.get_condensed_name()
 
     def get_product_type(self) -> None:
         """ Get products type """
@@ -121,7 +122,7 @@ class S3Product(OpticalProduct):
         else:
             raise InvalidProductError(f"Invalid Sentinel-3 name: {self.name}")
 
-    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -282,7 +283,7 @@ class S3Product(OpticalProduct):
 
             # DIM in tmp files
             tmp_dir = tempfile.TemporaryDirectory()
-            # out_dim = os.path.join(self.output, self.get_condensed_name() + ".dim")  DEBUG OPTION
+            # out_dim = os.path.join(self.output, self.condensed_name + ".dim")  DEBUG OPTION
             out_dim = os.path.join(tmp_dir.name, self.condensed_name + ".dim")
 
             # Run GPT graph
@@ -335,12 +336,12 @@ class S3Product(OpticalProduct):
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def manage_invalid_pixels(self,
-                              band_arr: np.ma.masked_array,
-                              band: obn,
-                              meta: dict,
-                              res_x: float = None,
-                              res_y: float = None) -> (np.ma.masked_array, dict):
+    def _manage_invalid_pixels(self,
+                               band_arr: np.ma.masked_array,
+                               band: obn,
+                               meta: dict,
+                               res_x: float = None,
+                               res_y: float = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
@@ -458,7 +459,7 @@ class S3Product(OpticalProduct):
         mask = no_data | invalid | sat
 
         # DO not set 0 to epsilons as they are a part of the
-        return self.create_band_masked_array(band_arr, mask, meta)
+        return self._create_band_masked_array(band_arr, mask, meta)
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
@@ -506,9 +507,9 @@ class S3Product(OpticalProduct):
         mask = no_data | exception
 
         # DO not set 0 to epsilons as they are a part of the
-        return self.create_band_masked_array(band_arr, mask, meta)
+        return self._create_band_masked_array(band_arr, mask, meta)
 
-    def load_bands(self, band_list: [list, BandNames], resolution: float = 20) -> (dict, dict):
+    def _load_bands(self, band_list: [list, BandNames], resolution: float = 20) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -525,11 +526,10 @@ class S3Product(OpticalProduct):
         band_paths = self.get_band_paths(band_list)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self.open_bands(band_paths, resolution)
+        band_arrays, meta = self._open_bands(band_paths, resolution)
 
         return band_arrays, meta
 
-    @property
     def utm_extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -538,7 +538,7 @@ class S3Product(OpticalProduct):
             gpd.GeoDataFrame: Footprint in UTM
         """
         try:
-            extent = super().utm_extent
+            extent = super().utm_extent()
 
         except (FileNotFoundError, TypeError) as ex:
             def get_min_max(substr: str, subdatasets: list) -> (float, float):
@@ -597,15 +597,14 @@ class S3Product(OpticalProduct):
 
         return extent
 
-    @property
-    def condensed_name(self) -> str:
+    def get_condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
 
         Returns:
             str: Condensed S2 name
         """
-        return f"{self.datetime()}_S3_{self.product_type.name}"
+        return f"{self.datetime}_S3_{self.product_type.name}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """

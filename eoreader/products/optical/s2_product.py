@@ -54,6 +54,7 @@ class S2Product(OpticalProduct):
     def __init__(self, product_path: str, archive_path: str = None) -> None:
         super().__init__(product_path, archive_path)
         self.tile_name = self.retrieve_tile_names()
+        self.condensed_name = self.get_condensed_name()
 
         # Zipped
         self.needs_extraction = False
@@ -105,7 +106,7 @@ class S2Product(OpticalProduct):
         else:
             raise InvalidProductError(f"Invalid Sentinel-2 name: {self.name}")
 
-    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -250,6 +251,23 @@ class S2Product(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Mask as a vector
         """
+        def open_mask(mask_path):
+            # Read the GML file
+            try:
+                # Discard some weird error concerning a NULL pointer that outputs a ValueError (as we already except it)
+                fiona_logger = logging.getLogger("fiona._env")
+                fiona_logger.setLevel(logging.CRITICAL)
+
+                # Read mask
+                mask = gpd.read_file(mask_path)
+
+                # Set fiona logger back to what it was
+                fiona_logger.setLevel(logging.INFO)
+            except ValueError:
+                mask = gpd.GeoDataFrame(geometry=[], crs=self.utm_crs())
+
+            return mask
+
         # Get QI_DATA path
         if isinstance(band, obn):
             band_name = self.band_names[band]
@@ -262,7 +280,8 @@ class S2Product(OpticalProduct):
                 # Get the correct band path
                 filenames = [f.filename for f in zip_ds.filelist]
                 regex = re.compile(f".*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml")
-                mask_path = zip_ds.open(list(filter(regex.match, filenames))[0])
+                with zip_ds.open(list(filter(regex.match, filenames))[0]) as mask_path:
+                    mask = open_mask(mask_path)
         else:
             qi_data_path = os.path.join(self.path, 'GRANULE', '*', 'QI_DATA')
 
@@ -271,30 +290,18 @@ class S2Product(OpticalProduct):
                                               f"MSK_{mask_str}_B{band_name}.gml",
                                               exact_name=True)
 
-        # Read the GML file
-        try:
-            # Discard some weird error concerning a NULL pointer that outputs a ValueError (as we already except it)
-            fiona_logger = logging.getLogger("fiona._env")
-            fiona_logger.setLevel(logging.CRITICAL)
-
-            # Read mask
-            mask = gpd.read_file(mask_path)
-
-            # Set fiona logger back to what it was
-            fiona_logger.setLevel(logging.INFO)
-        except ValueError:
-            mask = gpd.GeoDataFrame(geometry=[], crs=self.utm_crs)
+            mask = open_mask(mask_path)
 
         return mask
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def manage_invalid_pixels(self,
-                              band_arr: np.ma.masked_array,
-                              band: obn,
-                              meta: dict,
-                              res_x: float = None,
-                              res_y: float = None) -> (np.ma.masked_array, dict):
+    def _manage_invalid_pixels(self,
+                               band_arr: np.ma.masked_array,
+                               band: obn,
+                               meta: dict,
+                               res_x: float = None,
+                               res_y: float = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
@@ -349,9 +356,9 @@ class S2Product(OpticalProduct):
 
             mask[mask_pix] = nodata_true
 
-        return self.create_band_masked_array(band_arr, mask, meta)
+        return self._create_band_masked_array(band_arr, mask, meta)
 
-    def load_bands(self, band_list: [list, BandNames], resolution: float = 20) -> (dict, dict):
+    def _load_bands(self, band_list: [list, BandNames], resolution: float = 20) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -368,13 +375,12 @@ class S2Product(OpticalProduct):
         band_paths = self.get_band_paths(band_list, resolution)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self.open_bands(band_paths, resolution)
+        band_arrays, meta = self._open_bands(band_paths, resolution)
         meta["driver"] = "GTiff"
 
         return band_arrays, meta
 
-    @property
-    def condensed_name(self) -> str:
+    def get_condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile}_{product_type}_{processed_hours}).
 
@@ -383,7 +389,7 @@ class S2Product(OpticalProduct):
         """
         # Used to make the difference between 2 eoreader acquired on the same tile at the same date but cut differently
         proc_time = self.split_name[-1].split("T")[-1]
-        return f"{self.datetime()}_S2_{self.tile_name}_{self.product_type.value}_{proc_time}"
+        return f"{self.datetime}_S2_{self.tile_name}_{self.product_type.value}_{proc_time}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """

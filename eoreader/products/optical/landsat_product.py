@@ -40,8 +40,8 @@ class LandsatProduct(OpticalProduct):
     def __init__(self, product_path: str, archive_path: str = None) -> None:
         super().__init__(product_path, archive_path)
         self.tile_name = self.retrieve_tile_names()
+        self.condensed_name = self.get_condensed_name()
 
-    @property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint of the products (without nodata, in french == emprise utile)
@@ -56,11 +56,11 @@ class LandsatProduct(OpticalProduct):
         # Load default band
         # We need to use that to get the correct nodata stored in the QA file
         default_band = self.get_default_band()
-        band, meta = self.load_bands(default_band)
+        band, meta = self._load_bands(default_band)
 
         # Create tmp dir and save here the default band
         tmp_dir = tempfile.TemporaryDirectory()
-        tmp_band_path = os.path.join(tmp_dir.name, f"{self.condensed_name()}_DEF.tif")
+        tmp_band_path = os.path.join(tmp_dir.name, f"{self.condensed_name}_DEF.tif")
         rasters.write(band[default_band], tmp_band_path, meta)
 
         # Vectorize the default band and clean the tmp dir
@@ -84,7 +84,7 @@ class LandsatProduct(OpticalProduct):
         """ Get products type """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -102,7 +102,7 @@ class LandsatProduct(OpticalProduct):
 
             date = f"{datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')}" \
                    f"T{datetime.strptime(hours, '%H:%M:%S.%f').strftime('%H%M%S')}"
-        except FileNotFoundError:
+        except (FileNotFoundError, KeyError):
             date = datetime.strptime(self.split_name[3], "%Y%m%d").strftime(DATETIME_FMT)
 
         if as_datetime:
@@ -148,11 +148,9 @@ class LandsatProduct(OpticalProduct):
 
         # Parse
         mtd_data = pd.read_table(mtd_path,
-                                 sep="=",
+                                 sep=" = ",
                                  names=["NAME", "value"],
-                                 skipinitialspace=True,
-                                 parse_dates=True,
-                                 infer_datetime_format=True)
+                                 skipinitialspace=True)
 
         # Workaround an unexpected behaviour in pandas !
         if any(mtd_data.NAME == "="):
@@ -160,9 +158,7 @@ class LandsatProduct(OpticalProduct):
                                      sep="=",
                                      names=["NAME", "=", "value"],
                                      usecols=[0, 2],
-                                     skipinitialspace=True,
-                                     parse_dates=True,
-                                     infer_datetime_format=True)
+                                     skipinitialspace=True)
 
         # Remove useless rows
         mtd_data = mtd_data[~mtd_data["NAME"].isin(["GROUP", "END_GROUP", "END"])]
@@ -228,12 +224,12 @@ class LandsatProduct(OpticalProduct):
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def manage_invalid_pixels(self,
-                              band_arr: np.ma.masked_array,
-                              band: obn,
-                              meta: dict,
-                              res_x: float = None,
-                              res_y: float = None) -> (np.ma.masked_array, dict):
+    def _manage_invalid_pixels(self,
+                               band_arr: np.ma.masked_array,
+                               band: obn,
+                               meta: dict,
+                               res_x: float = None,
+                               res_y: float = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         Args:
@@ -265,9 +261,9 @@ class LandsatProduct(OpticalProduct):
             nodata, dropped, sat_1, sat_2 = rasters.read_bit_array(qa_arr, [nodata_id, dropped_id, sat_id_1, sat_id_2])
             mask = nodata | dropped | sat_1 | sat_2
 
-        return self.create_band_masked_array(band_arr, mask, meta)
+        return self._create_band_masked_array(band_arr, mask, meta)
 
-    def load_bands(self, band_list: [list, BandNames], resolution: float = None) -> (dict, dict):
+    def _load_bands(self, band_list: [list, BandNames], resolution: float = None) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -284,7 +280,7 @@ class LandsatProduct(OpticalProduct):
         band_paths = self.get_band_paths(band_list)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self.open_bands(band_paths, resolution)
+        band_arrays, meta = self._open_bands(band_paths, resolution)
 
         return band_arrays, meta
 
@@ -303,7 +299,7 @@ class LandsatProduct(OpticalProduct):
         return azimuth_angle, zenith_angle
 
     @abstractmethod
-    def condensed_name(self) -> str:
+    def get_condensed_name(self) -> str:
         """
         Get products condensed name ({date}_Lx_{tile}_{product_type}).
 

@@ -27,6 +27,7 @@ from sertit import rasters, vectors
 
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError, EoReaderError
 from eoreader.bands.bands import SarBands, SarBandNames as sbn, BandNames
+from eoreader.bands.alias import is_index, is_sar_band, is_optical_band
 from eoreader.products.product import Product, SensorType
 from eoreader.utils import EOREADER_NAME
 
@@ -96,7 +97,7 @@ class SarProduct(Product):
         Returns:
             str: Default band
         """
-        existing_bands = self.get_raw_bands()
+        existing_bands = self._get_raw_bands()
         if not existing_bands:
             raise InvalidProductError(f"No band exists for products: {self.name}")
 
@@ -244,7 +245,7 @@ class SarProduct(Product):
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -280,12 +281,12 @@ class SarProduct(Product):
             try:
                 # Try to load orthorectified bands
                 band_paths[band] = files.get_file_in_dir(self.output,
-                                                         f"{self.condensed_name()}_{bname}.tif",
+                                                         f"{self.condensed_name}_{bname}.tif",
                                                          exact_name=True)
             except FileNotFoundError as ex:
                 if not only_ortho_bands:
                     try:
-                        band_paths[band] = self.get_raw_band_paths()[band]
+                        band_paths[band] = self._get_raw_band_paths()[band]
                     except IndexError:
                         if fail_if_non_existing:
                             raise InvalidProductError(f"Non existing band {bname} in {self.output}") from ex
@@ -299,7 +300,7 @@ class SarProduct(Product):
 
         return band_paths
 
-    def get_raw_band_paths(self) -> dict:
+    def _get_raw_band_paths(self) -> dict:
         """
         Return the existing band paths (as they come with th archived products).
 
@@ -331,14 +332,14 @@ class SarProduct(Product):
 
         return band_paths
 
-    def get_raw_bands(self) -> list:
+    def _get_raw_bands(self) -> list:
         """
         Return the existing band paths (as they come with th archived products).
 
         Returns:
             list: List of existing bands in the raw products (vv, hh, vh, hv)
         """
-        band_paths = self.get_raw_band_paths()
+        band_paths = self._get_raw_band_paths()
         return list(band_paths.keys())
 
     def get_existing_band_paths(self) -> dict:
@@ -384,7 +385,7 @@ class SarProduct(Product):
 
         return masked_array, dst_meta
 
-    def load_bands(self, band_list: [list, BandNames], resolution: float = None) -> (dict, dict):
+    def _load_bands(self, band_list: [list, BandNames], resolution: float = None) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -405,7 +406,7 @@ class SarProduct(Product):
         meta = None
         for band_name, band_path in band_paths.items():
             # Signature of a processing: image starting with the condensed name
-            if not os.path.basename(band_path).startswith(self.condensed_name()):
+            if not os.path.basename(band_path).startswith(self.condensed_name):
                 raise EoReaderError("You need to add a terrain correction step before using SAR images.")
 
             with rasterio.open(band_path) as band_ds:
@@ -419,36 +420,38 @@ class SarProduct(Product):
         return band_arrays, meta
 
     def load(self,
-             index_list: [list, Callable] = None,
-             band_list: [list, BandNames] = None,
+             band_and_idx_list: Union[list, BandNames, Callable],
              resolution: float = 20) -> (dict, dict):
         """
         Open the bands and compute the wanted index.
         You can add some bands in the dict.
 
         Args:
-            index_list (list, index): Index list
-            band_list (list, BandNames): Band list
+            band_and_idx_list (list, index): Index list
             resolution (float): Resolution of the band, in meters
 
         Returns:
             dict, dict: Index and band dict, metadata
         """
-        if index_list:
-            raise NotImplementedError("For now, no index is implemented for SAR data.")
-
         # Check if all bands are valid
-        if not isinstance(band_list, list):
-            band_list = [band_list]
+        if not isinstance(band_and_idx_list, list):
+            band_and_idx_list = [band_and_idx_list]
 
-        for band in band_list:
-            if not self.has_band(band):
-                raise InvalidBandError(f"{band} cannot be retrieved from {self.condensed_name()}")
+        for band in band_and_idx_list:
+            if is_index(band):
+                raise NotImplementedError("For now, no index is implemented for SAR data.")
+            elif is_optical_band(band):
+                raise TypeError(f"You should ask for SAR bands as {self.name} is a SAR product.")
+            elif is_sar_band(band):
+                if not self.has_band(band):
+                    raise InvalidBandError(f"{band} cannot be retrieved from {self.condensed_name}")
+            else:
+                raise InvalidTypeError(f"{band} is neither a band nor an index !")
 
-        return self.load_bands(band_list, resolution)
+        return self._load_bands(band_and_idx_list, resolution)
 
     @abstractmethod
-    def condensed_name(self) -> str:
+    def get_condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
