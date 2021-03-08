@@ -37,8 +37,8 @@ class LandsatProductType(ListEnum):
 class LandsatProduct(OpticalProduct):
     """ Class of Landsat Products """
 
-    def __init__(self, product_path: str, archive_path: str = None) -> None:
-        super().__init__(product_path, archive_path)
+    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
+        super().__init__(product_path, archive_path, output_path)
         self.tile_name = self.retrieve_tile_names()
         self.condensed_name = self.get_condensed_name()
 

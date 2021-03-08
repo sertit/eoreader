@@ -75,7 +75,7 @@ class CskPolarization(ListEnum):
 class CskProduct(SarProduct):
     """ Class for COSMO-SkyMed Products """
 
-    def __init__(self, product_path: str, archive_path: str = None) -> None:
+    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
         # Rename with a more explicit one
         try:
             img = glob.glob(os.path.join(product_path, "*.h5"))[0]
@@ -83,7 +83,7 @@ class CskProduct(SarProduct):
             raise InvalidProductError(f"Image file (*.h5) not found in {product_path}") from ex
         self.real_name = files.get_filename(img)
 
-        super().__init__(product_path, archive_path)
+        super().__init__(product_path, archive_path, output_path)
         self.raw_band_regex = "*_{}_*.h5"
         self.band_folder = self.path
         self.snap_path = img
@@ -176,7 +176,7 @@ class CskProduct(SarProduct):
         Returns:
             str: Condensed S1 name
         """
-        return f"{self.datetime}_CSK_{self.sensor_mode.value}_{self.product_type.value}"
+        return f"{self.get_datetime()}_CSK_{self.sensor_mode.value}_{self.product_type.value}"
 
     def get_split_name(self) -> list:
         """

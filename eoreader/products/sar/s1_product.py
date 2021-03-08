@@ -62,8 +62,8 @@ class S1SensorMode(ListEnum):
 class S1Product(SarProduct):
     """ Class for Sentinel-1 Products """
 
-    def __init__(self, product_path: str, archive_path: str = None) -> None:
-        super().__init__(product_path, archive_path)
+    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
+        super().__init__(product_path, archive_path, output_path)
         if self.product_type == S1ProductType.GRD:
             self.raw_band_regex = "*-{!l}-*.tiff"
         if self.product_type == S1ProductType.SLC:
@@ -190,4 +190,4 @@ class S1Product(SarProduct):
             str: Condensed S1 name
         """
 
-        return f"{self.datetime}_S1_{self.sensor_mode.value}_{self.product_type.value}"
+        return f"{self.get_datetime()}_S1_{self.sensor_mode.value}_{self.product_type.value}"

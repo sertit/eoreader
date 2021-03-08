@@ -51,8 +51,8 @@ BAND_DIR_NAMES = {S2ProductType.L1C: 'IMG_DATA',
 class S2Product(OpticalProduct):
     """ Class of Sentinel-2 Products """
 
-    def __init__(self, product_path: str, archive_path: str = None) -> None:
-        super().__init__(product_path, archive_path)
+    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
+        super().__init__(product_path, archive_path, output_path)
         self.tile_name = self.retrieve_tile_names()
         self.condensed_name = self.get_condensed_name()
 
@@ -389,7 +389,7 @@ class S2Product(OpticalProduct):
         """
         # Used to make the difference between 2 eoreader acquired on the same tile at the same date but cut differently
         proc_time = self.split_name[-1].split("T")[-1]
-        return f"{self.datetime}_S2_{self.tile_name}_{self.product_type.value}_{proc_time}"
+        return f"{self.get_datetime()}_S2_{self.tile_name}_{self.product_type.value}_{proc_time}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """

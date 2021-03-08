@@ -46,4 +46,4 @@ class L5Product(LandsatProduct):
         Returns:
             str: Condensed L5 name
         """
-        return f"{self.datetime}_L5_{self.tile_name}_{self.product_type.value}"
+        return f"{self.get_datetime()}_L5_{self.tile_name}_{self.product_type.value}"

@@ -28,8 +28,8 @@ class S2TheiaProduct(OpticalProduct):
     https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
     """
 
-    def __init__(self, product_path: str, archive_path: str = None) -> None:
-        super().__init__(product_path, archive_path)
+    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
+        super().__init__(product_path, archive_path, output_path)
         self.tile_name = self.retrieve_tile_names()
         self.condensed_name = self.get_condensed_name()
 
@@ -221,7 +221,7 @@ class S2TheiaProduct(OpticalProduct):
         Returns:
             str: Condensed S2 name
         """
-        return f"{self.datetime}_S2THEIA_{self.tile_name}_{self.product_type.value}"
+        return f"{self.get_datetime()}_S2THEIA_{self.tile_name}_{self.product_type.value}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """

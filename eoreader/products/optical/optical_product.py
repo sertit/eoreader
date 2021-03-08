@@ -23,8 +23,8 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class OpticalProduct(Product):
     """ Super class for optical eoreader """
 
-    def __init__(self, product_path: str, archive_path: str = None) -> None:
-        super().__init__(product_path, archive_path)
+    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
+        super().__init__(product_path, archive_path, output_path)
         self.band_names = OpticalBands()
         self.get_product_type()
         self.sensor_type = SensorType.Optical

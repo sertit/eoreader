@@ -51,13 +51,13 @@
       <easting/>
       <northing/>
       <orientation/>
-      <pixelSizeX/>
-      <pixelSizeY/>
+      <pixelSizeX>$res_m</pixelSizeX>
+      <pixelSizeY>$res_m</pixelSizeY>
       <width/>
       <height/>
       <tileSizeX/>
       <tileSizeY/>
-      <orthorectify>false</orthorectify>
+      <orthorectify>true</orthorectify>
       <elevationModelName/>
       <noDataValue>$no_data</noDataValue>
       <includeTiePointGrids>true</includeTiePointGrids>

@@ -44,7 +44,7 @@ class SensorType(ListEnum):
 class Product:
     """ Super class of eoreader Products """
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
+    def __init__(self, product_path: str, archive_path: str = None, output_path: str = None) -> None:
         # The products name is its filename without any extension
         self.name = files.get_filename(product_path)
         self.split_name = self.get_split_name()
@@ -61,6 +61,8 @@ class Product:
 
         # The output will be given later
         self._output = output_path
+        if output_path:
+            os.makedirs(output_path, exist_ok=True)
 
         # Get the products date and datetime
         self.date = self.get_date(as_date=True)
@@ -202,6 +204,19 @@ class Product:
     def get_existing_band_paths(self) -> dict:
         """
         Return the existing band paths.
+
+        Returns:
+            dict: Dictionary containing the path of each queried band
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
+
+    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+        """
+        Return the folder containing the bands of a proper S2 products.
+
+        Args:
+            band_list (list): List of the wanted bands
+            resolution (float): Band resolution
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -365,12 +380,21 @@ class Product:
         return self.date < other.date
 
     @property
-    def output(self):
+    def output(self) -> str:
         """ Getter of output """
         if not self._output:
             self._output = os.path.join(os.path.dirname(self.path), self.condensed_name)
+            os.makedirs(self._output, exist_ok=True)
 
         return self._output
+
+    @output.setter
+    def output(self, value: str):
+        """ Getter of output """
+        self._output = value
+        if not os.path.isdir(self._output):
+            os.makedirs(self._output, exist_ok=True)
+
 
     def warp_dem(self,
                  dem_path: str = "",
@@ -412,7 +436,7 @@ class Product:
                 else:
                     dem_extent_df = rasters.get_extent(dem_path).to_crs(prod_extent_df.crs)
                     if not dem_extent_df.contains(prod_extent_df)[0]:
-                        LOGGER.warning("Input DEM file does nor intersect %s. Using default ones (EUDEM or MERIT)",
+                        LOGGER.warning("Input DEM file does not intersect %s. Using default ones (EUDEM or MERIT)",
                                        self.name)
                         dem_path = MERIT_DEM
 
