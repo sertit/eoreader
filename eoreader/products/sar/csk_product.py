@@ -87,7 +87,8 @@ class CskProduct(SarProduct):
         self.raw_band_regex = "*_{}_*.h5"
         self.band_folder = self.path
         self.snap_path = img
-        self.pol_channels = self.get_raw_bands()
+        self.pol_channels = self._get_raw_bands()
+        self.condensed_name = self.get_condensed_name()
 
     def get_wgs84_extent(self) -> gpd.GeoDataFrame:
         """
@@ -140,7 +141,7 @@ class CskProduct(SarProduct):
         """
         Get products type from S2 products name (could check the metadata too)
         """
-        sensor_mode_name = self.split_name()[3]
+        sensor_mode_name = self.split_name[3]
 
         # Get sensor mode
         for sens_mode in CskSensorMode:
@@ -150,7 +151,7 @@ class CskProduct(SarProduct):
         if not self.sensor_mode:
             raise InvalidProductError(f"Invalid {CSK_NAME} name: {self.real_name}")
 
-    def datetime(self, as_datetime: bool = False) -> Union[str, datetime.datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime.datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -161,23 +162,23 @@ class CskProduct(SarProduct):
              Union[str, datetime.datetime]: Its acquisition datetime
         """
         # 20201008224018
-        date = datetime.datetime.strptime(self.split_name()[8], "%Y%m%d%H%M%S")
+        date = datetime.datetime.strptime(self.split_name[8], "%Y%m%d%H%M%S")
 
         if not as_datetime:
             date = date.strftime(DATETIME_FMT)
 
         return date
 
-    def condensed_name(self) -> str:
+    def get_condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
         Returns:
             str: Condensed S1 name
         """
-        return f"{self.datetime()}_CSK_{self.sensor_mode.value}_{self.product_type.value}"
+        return f"{self.datetime}_CSK_{self.sensor_mode.value}_{self.product_type.value}"
 
-    def split_name(self) -> list:
+    def get_split_name(self) -> list:
         """
         Get split name (erasing empty strings in it by precaution, especially for S1 data)
 

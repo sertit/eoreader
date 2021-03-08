@@ -17,7 +17,7 @@ from sertit import files, strings
 from sertit import rasters
 from sertit.misc import ListEnum
 
-from eoreader.products.bands import index
+from eoreader.bands import index
 from eoreader.utils import MAX_CORES
 from eoreader import utils
 from eoreader.reader import Reader, Platform
@@ -44,9 +44,10 @@ class SensorType(ListEnum):
 class Product:
     """ Super class of eoreader Products """
 
-    def __init__(self, product_path: str, archive_path: str = None) -> None:
+    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
         # The products name is its filename without any extension
         self.name = files.get_filename(product_path)
+        self.split_name = self.get_split_name()
 
         # The archive path ios the products path if not given
         self.archive_path = archive_path if archive_path else product_path
@@ -59,11 +60,11 @@ class Product:
         self.needs_extraction = True
 
         # The output will be given later
-        self.output = None
+        self._output = output_path
 
         # Get the products date and datetime
-        self.date = self.date(as_date=True)
-        self.datetime = self.datetime(as_datetime=True)
+        self.date = self.get_date(as_date=True)
+        self.datetime = self.get_datetime(as_datetime=True)
 
         # Used to distinguish eoreader that can be piled (for S2 and L8)
         self.tile_name = None
@@ -81,8 +82,8 @@ class Product:
         self.nodata = 0
         self.sat_id = PRODUCT_FACTORY.get_platform_name(self.path)
         self.platform = getattr(Platform, self.sat_id)
+        self.condensed_name = None  # This needs a lot of set variables (datetimes...) -> do not set this here
 
-    @property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint of the products (without nodata, in french == emprise utile)
@@ -92,7 +93,6 @@ class Product:
         """
         return rasters.get_footprint(self.get_default_band_path())
 
-    @property
     @abstractmethod
     def utm_extent(self) -> gpd.GeoDataFrame:
         """
@@ -103,7 +103,6 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    @property
     @abstractmethod
     def utm_crs(self) -> crs.CRS:
         """
@@ -114,7 +113,6 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    @property
     @abstractmethod
     def get_product_type(self) -> None:
         """
@@ -122,9 +120,8 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    @property
     @abstractmethod
-    def condensed_name(self) -> str:
+    def get_condensed_name(self) -> str:
         """
         Get product condensed name.
 
@@ -133,8 +130,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    @property
-    def split_name(self) -> list:
+    def get_split_name(self) -> list:
         """
         Get split name (erasing empty strings in it by precaution, especially for S1 and S3 data)
 
@@ -144,7 +140,7 @@ class Product:
         return [x for x in self.name.split('_') if x]
 
     @abstractmethod
-    def datetime(self, as_datetime: bool = False) -> Union[str, dt.datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> Union[str, dt.datetime]:
         """
         Get the product's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -156,7 +152,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def date(self, as_date: bool = False) -> Union[str, dt.date]:
+    def get_date(self, as_date: bool = False) -> Union[str, dt.date]:
         """
         Get the product's acquisition date.
 
@@ -166,7 +162,7 @@ class Product:
         Returns:
             str: Its acquisition date
         """
-        date = self.datetime.split('T')[0]
+        date = self.get_datetime().split('T')[0]
 
         if as_date:
             date = strings.str_to_date(date, date_format="%Y%m%d")
@@ -229,12 +225,12 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def load_bands(self, band_list: [list, BandNames], resolution: float = None) -> (dict, dict):
+    def _load_bands(self, band_list: Union[list, BandNames], resolution: float = None) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (list, BandNames): List of the wanted bands
+            band_list (Union[list, BandNames]): List of the wanted bands
             resolution (int): Band resolution in meters
         Returns:
             dict, dict: Dictionary {band_name, band_array} and the products metadata
@@ -244,16 +240,14 @@ class Product:
 
     @abstractmethod
     def load(self,
-             index_list: [list, Callable] = None,
-             band_list: [list, BandNames] = None,
+             band_and_idx_list: Union[list, BandNames, Callable],
              resolution: float = 20) -> (dict, dict):
         """
         Open the bands and compute the wanted index.
         You can add some bands in the dict.
 
         Args:
-            index_list (list, index): Index list
-            band_list (list, BandNames): Band list
+            band_and_idx_list (Union[list, BandNames, Callable]): Index list
             resolution (float): Resolution of the band, in meters
 
         Returns:
@@ -261,7 +255,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def has_band(self, band: Union[obn, sbn]) -> bool:
+    def has_band(self, band: Union[BandNames, obn, sbn]) -> bool:
         """
         Does this products has the specified band ?
 
@@ -370,6 +364,14 @@ class Product:
         """
         return self.date < other.date
 
+    @property
+    def output(self):
+        """ Getter of output """
+        if not self._output:
+            self._output = os.path.join(os.path.dirname(self.path), self.condensed_name)
+
+        return self._output
+
     def warp_dem(self,
                  dem_path: str = "",
                  resolution: Union[float, tuple] = 20.,
@@ -398,7 +400,7 @@ class Product:
             LOGGER.info("Warping DEM for %s", self.name)
 
             # Get products extent
-            prod_extent_df = self.utm_extent
+            prod_extent_df = self.utm_extent()
 
             # The MERIT is the default DEM as it covers almost the entire Earth
             if not dem_path:
@@ -463,33 +465,22 @@ class Product:
     # pylint: disable=R0913
     # Too many arguments (6/5)
     def stack(self,
-              band_combination: list,
-              idx_combination: list,
+              band_and_idx_combination: list,
               resolution: float,
               stack_path: str = None,
               save_as_int: bool = False) -> (np.ma.masked_array, dict):
         """
         Stack bands and index of a products.
-        # TODO: merge band and idx to keep the correct stacking order asked by the user
 
         Args:
-            band_combination (list): Bands combination
-            idx_combination (list): Index combination
+            band_and_idx_combination (list): Bands and index combination
             resolution (float): Stack resolution
             stack_path (str): Stack path
             save_as_int (bool): Save stack as integers (uint16 and therefore multiply the values by 10.000)
         """
-
-        # Get band combination
-        if self.sensor_type == SensorType.Optical:
-            band_combi = obn.from_list(band_combination)
-        else:
-            band_combi = sbn.from_list(band_combination)
-        idx_bands = band_combi + idx_combination
-
         # Create the analysis stack
-        bands, meta = self.load(idx_combination, band_combi, resolution)
-        stack_list = [bands[band] for band in idx_bands]
+        bands, meta = self.load(band_and_idx_combination, resolution)
+        stack_list = [bands[bd_or_idx] for bd_or_idx in band_and_idx_combination]
         stack = np.ma.vstack(stack_list)
 
         # Force nodata
@@ -505,7 +496,7 @@ class Product:
 
         if stack_path:
             with rasterio.open(stack_path, "w", **meta) as out_dst:
-                for i, band in enumerate(idx_bands):
+                for i, band in enumerate(band_and_idx_combination):
                     # Band name is either a value or a function
                     band_name = band.value if isinstance(band, Enum) else band.__name__
                     out_dst.set_band_description(i + 1, band_name)

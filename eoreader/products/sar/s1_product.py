@@ -70,7 +70,8 @@ class S1Product(SarProduct):
             self.raw_band_regex = "*iw1-slc-{!l}-*.tiff"  # Just get the iw1 image for now
         self.band_folder = os.path.join(self.path, "measurement")
         self.snap_path = self.path
-        self.pol_channels = self.get_raw_bands()
+        self.pol_channels = self._get_raw_bands()
+        self.condensed_name = self.get_condensed_name()
 
         # Zipped and SNAP can process its archive
         self.needs_extraction = False
@@ -164,7 +165,7 @@ class S1Product(SarProduct):
         if not self.sensor_mode:
             raise InvalidProductError(f"Invalid {S1_NAME} name: {self.name}")
 
-    def datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
 
@@ -181,7 +182,7 @@ class S1Product(SarProduct):
 
         return date
 
-    def condensed_name(self) -> str:
+    def get_condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
@@ -189,4 +190,4 @@ class S1Product(SarProduct):
             str: Condensed S1 name
         """
 
-        return f"{self.datetime()}_S1_{self.sensor_mode.value}_{self.product_type.value}"
+        return f"{self.datetime}_S1_{self.sensor_mode.value}_{self.product_type.value}"
