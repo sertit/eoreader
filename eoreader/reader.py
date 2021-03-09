@@ -84,13 +84,17 @@ class Reader:
         else:
             self._platform_regex[platform] = compile_sat(regex)
 
-    def open(self, product_path: str, archive_path: str = None, output_path: str = None) -> "Product":
+    def open(self,
+             product_path: str,
+             archive_path: str = None,
+             output_path: str = None) -> "Product":
         """
         Get the correct products
 
         Args:
             product_path (str): Product path
             archive_path (str): Archive path
+            output_path (str): Output Path
 
         Returns:
             Product: Correct products

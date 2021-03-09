@@ -9,14 +9,8 @@ EOREADER_NAME = "eoreader"
 MAX_CORES = os.cpu_count() - 2
 MAX_MEM = int(os.environ.get('JAVA_OPTS_XMX', 0.95 * psutil.virtual_memory().total))
 TILE_SIZE = 2048
-DRIVER_EXT = {"ESRI Shapefile": ".shp",
-              "GeoJSON": ".geojson",
-              "KML": ".kml"}
 DATETIME_FMT = "%Y%m%dT%H%M%S"
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Environment variables
-USE_EX = "EEO_USE_EXCEPTIONS"
 
 
 def bytes2snap(nof_bytes: int) -> str:
@@ -49,16 +43,6 @@ def get_root_dir() -> str:
         str: Root directory
     """
     return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-
-
-def get_cfg_dir() -> str:
-    """
-    Get configuration directory.
-
-    Returns:
-        str: Configuration directory
-    """
-    return os.path.abspath(os.path.join(get_root_dir(), 'configuration'))
 
 
 def get_data_dir() -> str:

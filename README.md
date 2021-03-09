@@ -12,7 +12,7 @@ This project allows you to read and open satellite data.
 
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()  # This is a singleton
->>> prod = eoreader.open(opt_path)
+>>> prod = eoreader.open(opt_path)  # The Reader will recognize the satellite type from its name
 
 >>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
 >>> footprint = prod.footprint
@@ -37,6 +37,7 @@ Index and bands are opened as `numpy.ma.maskedarrays`
 The mask corresponds to the nodata of your product, that is set to 0 by convention.
 
 :warning:  
+
 - This software relies on satellite's name to open them, so please do not modify them !
 - Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be available in your path !
 
@@ -44,7 +45,7 @@ The mask corresponds to the nodata of your product, that is set to 0 by conventi
 
 Accepted optical satellites are:
 
-- `Sentinel-2`: **L2A** and **L1C**, zip accepted
+- `Sentinel-2`: **L2A** and **L1C**, zip files are accepted
 - `Sentinel-2 Theia`: **L2A**
 - `Sentinel-3`: **OLCI** and **SLSTR**
 - `Landsat-1`: **MSS**
@@ -61,10 +62,10 @@ Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extract
 
 Accepted SAR satellites are:
 
-- `Sentinel-1` **GRD** + **SLC**, zip accepted
+- `Sentinel-1` **GRD** + **SLC**, zip files are accepted
 - `COSMO-SkyMed` **DGM** + **SCS**
 - `TerraSAR-X` **MGD** (+ **SSC**, :warning: not tested, use it at your own risk)
-- `RADARSAT-2` **SGF** (+ **SLC**, :warning: not tested, use it at your own risk), zip accepted
+- `RADARSAT-2` **SGF** (+ **SLC**, :warning: not tested, use it at your own risk), zip files are accepted
 
 Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/SAR) to learn more about that.
 
