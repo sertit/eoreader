@@ -49,17 +49,21 @@ BAND_DIR_NAMES = {S2ProductType.L1C: 'IMG_DATA',
 
 
 class S2Product(OpticalProduct):
-    """ Class of Sentinel-2 Products """
+    """
+    Class of Sentinel-2 Products
+
+    You can use directly the .zip file
+    """
 
     def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
         super().__init__(product_path, archive_path, output_path)
-        self.tile_name = self.retrieve_tile_names()
-        self.condensed_name = self.get_condensed_name()
+        self.tile_name = self._get_tile_name()
+        self.condensed_name = self._get_condensed_name()
 
         # Zipped
         self.needs_extraction = False
 
-    def retrieve_tile_names(self) -> str:
+    def _get_tile_name(self) -> str:
         """
         Retrieve tile name
 
@@ -68,7 +72,7 @@ class S2Product(OpticalProduct):
         """
         return self.split_name[-2]
 
-    def get_product_type(self) -> None:
+    def _set_product_type(self) -> None:
         """ Get products type """
         if "MSIL2A" in self.name:
             self.product_type = S2ProductType.L2A
@@ -108,7 +112,17 @@ class S2Product(OpticalProduct):
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
-        Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
+        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_datetime(as_datetime=True)
+        datetime.datetime(2020, 8, 24, 11, 6, 31)
+        >>> prod.get_datetime(as_datetime=False)
+        '20200824T110631'
+        ```
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -124,7 +138,7 @@ class S2Product(OpticalProduct):
 
         return date
 
-    def get_band_folder(self, band_list: list, resolution: float = None) -> dict:
+    def _get_band_folder(self, band_list: list, resolution: float = None) -> dict:
         """
         Return the folder containing the bands of a proper S2 products.
 
@@ -181,7 +195,19 @@ class S2Product(OpticalProduct):
 
     def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
         """
-        Return the folder containing the bands of a proper S2 products.
+        Return the paths of required bands.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_band_paths([GREEN, RED])
+        {
+            <OpticalBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
+            <OpticalBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
+        }
+        ```
 
         Args:
             band_list (list): List of the wanted bands
@@ -190,7 +216,7 @@ class S2Product(OpticalProduct):
         Returns:
             dict: Dictionary containing the path of each queried band
         """
-        band_folders = self.get_band_folder(band_list, resolution)
+        band_folders = self._get_band_folder(band_list, resolution)
         band_paths = {}
         for band in band_list:
             assert band in obn
@@ -216,9 +242,38 @@ class S2Product(OpticalProduct):
 
         return band_paths
 
-    def read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
+    def _read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
         """
-        Read band from a dataset -> Manage if they need to be divided by 10k or not.
+        Read band from a dataset.
+
+        **WARNING**: Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
+
+        ```python
+        >>> import rasterio
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> with rasterio.open(prod.get_default_band_path()) as dst:
+        >>>     band, meta = prod.read_band(dst, x_res=20, y_res=20)  # You can create not square pixels here
+        >>> band
+        masked_array(
+          data=[[[0.0614, ..., 0.15799999]]],
+          mask=False,
+          fill_value=1e+20,
+          dtype=float32)
+        >>> meta
+        {
+            'driver': 'JP2OpenJPEG',
+            'dtype': <class 'numpy.float32'>,
+            'nodata': None,
+            'width': 5490,
+            'height': 5490,
+            'count': 1,
+            'crs': CRS.from_epsg(32630),
+            'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
+        }
+        ```
 
         Args:
             dataset (Dataset): Band dataset
@@ -242,7 +297,39 @@ class S2Product(OpticalProduct):
 
     def open_mask(self, mask_str: str, band: Union[obn, str]) -> gpd.GeoDataFrame:
         """
-        Open S2 mask (GML files stored in QI_DATA)
+        Open S2 mask (GML files stored in QI_DATA) as `gpd.GeoDataFrame`.
+
+        Masks than can be called that way are:
+
+        - `TECQUA`: Technical quality mask
+        - `SATURA`: Saturated Pixels
+        - `NODATA`: Pixel nodata (inside the detectors)
+        - `DETFOO`: Detectors footprint -> used to process nodata outside the detectors
+        - `DEFECT`: Defective pixels
+        - `CLOUDS`, **only with `00` as a band !**
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod.open_mask("NODATA", GREEN)
+        Empty GeoDataFrame
+        Columns: [geometry]
+        Index: []
+        >>> prod.open_mask("SATURA", GREEN)
+        Empty GeoDataFrame
+        Columns: [geometry]
+        Index: []
+        >>> prod.open_mask("DETFOO", GREEN)
+                                gml_id  ...                                           geometry
+        0  detector_footprint-B03-02-0  ...  POLYGON Z ((199980.000 4500000.000 0.000, 1999...
+        1  detector_footprint-B03-03-1  ...  POLYGON Z ((222570.000 4500000.000 0.000, 2225...
+        2  detector_footprint-B03-05-2  ...  POLYGON Z ((273050.000 4500000.000 0.000, 2730...
+        3  detector_footprint-B03-07-3  ...  POLYGON Z ((309770.000 4453710.000 0.000, 3097...
+        4  detector_footprint-B03-04-4  ...  POLYGON Z ((248080.000 4500000.000 0.000, 2480...
+        5  detector_footprint-B03-06-5  ...  POLYGON Z ((297980.000 4500000.000 0.000, 2979...
+        [6 rows x 3 columns]
+        ```
 
         Args:
             mask_str (str): Mask name, such as DEFECT, NODATA, SATURA...
@@ -251,6 +338,11 @@ class S2Product(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Mask as a vector
         """
+        # Check inputs
+        assert mask_str in ['DEFECT', 'DETFOO', 'NODATA', 'SATURA', 'TECQUA', 'CLOUDS']
+        if mask_str == "CLOUDS":
+            band = "00"
+
         def open_mask(mask_path):
             # Read the GML file
             try:
@@ -380,20 +472,28 @@ class S2Product(OpticalProduct):
 
         return band_arrays, meta
 
-    def get_condensed_name(self) -> str:
+    def _get_condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile}_{product_type}_{processed_hours}).
 
         Returns:
             str: Condensed S2 name
         """
-        # Used to make the difference between 2 eoreader acquired on the same tile at the same date but cut differently
+        # Used to make the difference between 2 products acquired on the same tile at the same date but cut differently
         proc_time = self.split_name[-1].split("T")[-1]
         return f"{self.get_datetime()}_S2_{self.tile_name}_{self.product_type.value}_{proc_time}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """
-        Get Mean Sun angles (Zenith and Azimuth angles)
+        Get Mean Sun angles (Azimuth and Zenith angles)
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_mean_sun_angles()
+        (149.148155074489, 32.6627897525474)
+        ```
 
         Returns:
             (float, float): Mean Azimuth and Zenith angle

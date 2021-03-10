@@ -29,9 +29,16 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class LandsatProductType(ListEnum):
     """ Landsat products types """
     L1_OLCI = "OLCI"
+    """OLCI Product Type, for Landsat-8 platform"""
+
     L1_ETM = "ETM"
+    """ETM Product Type, for Landsat-7 platform"""
+
     L1_TM = "TM"
+    """TM Product Type, for Landsat-5 and 4 platforms"""
+
     L1_MSS = "MSS"
+    """MSS Product Type, for Landsat-5,4,3,2,1 platforms"""
 
 
 class LandsatProduct(OpticalProduct):
@@ -39,16 +46,24 @@ class LandsatProduct(OpticalProduct):
 
     def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
         super().__init__(product_path, archive_path, output_path)
-        self.tile_name = self.retrieve_tile_names()
-        self.condensed_name = self.get_condensed_name()
+        self.tile_name = self._get_tile_name()
+        self.condensed_name = self._get_condensed_name()
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint of the products (without nodata, in french == emprise utile)
 
-        Overload of the generic function because for landsat eoreader,
-        the no data seems to be different in QA than in regular bands.
-        We keep the QA value.
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+        >>> prod = Reader().open(path)
+        >>> prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
+        ```
+
+        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+        **We keep the QA value**.
 
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
@@ -59,20 +74,27 @@ class LandsatProduct(OpticalProduct):
         band, meta = self._load_bands(default_band)
 
         # Create tmp dir and save here the default band
-        tmp_dir = tempfile.TemporaryDirectory()
-        tmp_band_path = os.path.join(tmp_dir.name, f"{self.condensed_name}_DEF.tif")
-        rasters.write(band[default_band], tmp_band_path, meta)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_band_path = os.path.join(tmp_dir, f"{self.condensed_name}_DEF.tif")
+            rasters.write(band[default_band], tmp_band_path, meta)
 
-        # Vectorize the default band and clean the tmp dir
-        footprint = rasters.get_footprint(tmp_band_path)
-        tmp_dir.cleanup()
+            # Vectorize the default band and clean the tmp dir
+            footprint = rasters.get_footprint(tmp_band_path)
 
         # Get the footprint max (discard small holes)
         return footprint
 
-    def retrieve_tile_names(self) -> str:
+    def _get_tile_name(self) -> str:
         """
         Retrieve tile name
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+        >>> prod = Reader().open(path)
+        >>> prod.get_tile_name()
+        '023030'
+        ```
 
         Returns:
             str: Tile name
@@ -80,13 +102,23 @@ class LandsatProduct(OpticalProduct):
         return self.split_name[2]
 
     @abstractmethod
-    def get_product_type(self) -> None:
+    def _set_product_type(self) -> None:
         """ Get products type """
         raise NotImplementedError("This method should be implemented by a child class")
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
-        Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
+        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+        >>> prod = Reader().open(path)
+        >>> prod.get_datetime(as_datetime=True)
+        datetime.datetime(2020, 5, 18, 16, 34, 7)
+        >>> prod.get_datetime(as_datetime=False)
+        '20200518T163407'
+        ```
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -112,7 +144,22 @@ class LandsatProduct(OpticalProduct):
 
     def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
         """
-        Return the folder containing the bands of a proper S2 products.
+        Return the paths of required bands.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_band_paths([GREEN, RED])
+        {
+            <OpticalBandNames.GREEN: 'GREEN'>:
+                'LC08_L1GT_023030_20200518_20200527_01_T2\\LC08_L1GT_023030_20200518_20200527_01_T2_B3.TIF',
+            <OpticalBandNames.RED: 'RED'>:
+                'LC08_L1GT_023030_20200518_20200527_01_T2\\LC08_L1GT_023030_20200518_20200527_01_T2_B4.TIF'
+        }
+
+        ```
 
         Args:
             band_list (list): List of the wanted bands
@@ -137,7 +184,17 @@ class LandsatProduct(OpticalProduct):
 
     def read_mtd(self) -> pd.DataFrame:
         """
-        Read Landsat metadata
+        Read Landsat metadata as a `pandas.DataFrame`
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+        >>> prod = Reader().open(path)
+        >>> prod.read_mtd()
+        NAME                                           ORIGIN  ...    RESAMPLING_OPTION
+        value  "Image courtesy of the U.S. Geological Survey"  ...  "CUBIC_CONVOLUTION"
+        [1 rows x 197 columns]
+        ```
 
         Returns:
             pd.DataFrame: Metadata as a Pandas DataFrame
@@ -148,9 +205,10 @@ class LandsatProduct(OpticalProduct):
 
         # Parse
         mtd_data = pd.read_table(mtd_path,
-                                 sep=" = ",
+                                 sep="\s=\s",
                                  names=["NAME", "value"],
-                                 skipinitialspace=True)
+                                 skipinitialspace=True,
+                                 engine="python")
 
         # Workaround an unexpected behaviour in pandas !
         if any(mtd_data.NAME == "="):
@@ -168,9 +226,38 @@ class LandsatProduct(OpticalProduct):
 
         return mtd_data
 
-    def read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
+    def _read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
         """
-        Read band from a dataset -> Manage if they need to be divided by 10k or not.
+        Read band from a dataset.
+
+        **WARNING**: Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
+
+        ```python
+        >>> import rasterio
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> with rasterio.open(prod.get_default_band_path()) as dst:
+        >>>     band, meta = prod.read_band(dst, x_res=20, y_res=20)  # You can create not square pixels here
+        >>> band
+        masked_array(
+          data=[[[-0.1, ..., -0.1]]],
+          mask=False,
+          fill_value=1e+20,
+          dtype=float32)
+        >>> meta
+        {
+            'driver': 'GTiff',
+            'dtype': <class 'numpy.float32'>,
+            'nodata': None,
+            'width': 11746,
+            'height': 11912,
+            'count': 1,
+            'crs': CRS.from_epsg(32616),
+            'transform': Affine(20.00085135365231, 0.0, 314985.0, 0.0, -19.999160510409673, 4900215.0)
+        }
+        ```
 
         Args:
             dataset (Dataset): Band dataset
@@ -247,7 +334,7 @@ class LandsatProduct(OpticalProduct):
 
         # Open QA band
         with rasterio.open(landsat_qa_path) as dataset:
-            qa_arr, meta = self.read_band(dataset, res_x, res_y)
+            qa_arr, meta = self._read_band(dataset, res_x, res_y)
 
             # Get clouds and nodata
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -286,7 +373,15 @@ class LandsatProduct(OpticalProduct):
 
     def get_mean_sun_angles(self) -> (float, float):
         """
-        Get Mean Sun angles (Zenith and Azimuth angles)
+        Get Mean Sun angles (Azimuth and Zenith angles)
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_mean_sun_angles()
+        (140.80752656, 61.93065805)
+        ```
 
         Returns:
             (float, float): Mean Azimuth and Zenith angle
@@ -299,7 +394,7 @@ class LandsatProduct(OpticalProduct):
         return azimuth_angle, zenith_angle
 
     @abstractmethod
-    def get_condensed_name(self) -> str:
+    def _get_condensed_name(self) -> str:
         """
         Get products condensed name ({date}_Lx_{tile}_{product_type}).
 

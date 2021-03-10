@@ -10,10 +10,6 @@ import warnings
 from typing import Union
 
 import rasterio
-import rasterio.features
-import rasterio.warp
-import rasterio.crs
-import rasterio.transform
 import geopandas as gpd
 from sertit import strings, misc
 from sertit.misc import ListEnum
@@ -26,7 +22,7 @@ from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 LOGGER = logging.getLogger(EOREADER_NAME)
 S1_NAME = "Sentinel-1"
 
-# Disable georef warnings here as the SAR eoreader are not georeferenced
+# Disable georef warnings here as the SAR products are not georeferenced
 warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
@@ -60,26 +56,40 @@ class S1SensorMode(ListEnum):
 
 
 class S1Product(SarProduct):
-    """ Class for Sentinel-1 Products """
+    """
+    Class for Sentinel-1 Products
+
+    You can use directly the .zip file
+    """
 
     def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
         super().__init__(product_path, archive_path, output_path)
         if self.product_type == S1ProductType.GRD:
-            self.raw_band_regex = "*-{!l}-*.tiff"
+            self._raw_band_regex = "*-{!l}-*.tiff"
         if self.product_type == S1ProductType.SLC:
-            self.raw_band_regex = "*iw1-slc-{!l}-*.tiff"  # Just get the iw1 image for now
-        self.band_folder = os.path.join(self.path, "measurement")
-        self.snap_path = self.path
+            self._raw_band_regex = "*iw1-slc-{!l}-*.tiff"  # Just get the iw1 image for now
+        self._band_folder = os.path.join(self.path, "measurement")
+        self._snap_path = self.path
         self.pol_channels = self._get_raw_bands()
-        self.condensed_name = self.get_condensed_name()
+        self.condensed_name = self._get_condensed_name()
 
         # Zipped and SNAP can process its archive
         self.needs_extraction = False
 
-    def get_wgs84_extent(self) -> gpd.GeoDataFrame:
+    def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
         This is useful when the SAR pre-process has not been done yet.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.wgs84_extent()
+                               Name  ...                                           geometry
+        0  Sentinel-1 Image Overlay  ...  POLYGON ((0.85336 42.24660, -2.32032 42.65493,...
+        [1 rows x 12 columns]
+        ```
 
         Returns:
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
@@ -142,13 +152,13 @@ class S1Product(SarProduct):
 
         return extent_wgs84
 
-    def get_product_type(self) -> None:
+    def _set_product_type(self) -> None:
         """ Get products type """
-        self.get_sar_product_type(prod_type_pos=2,
-                                  gdrg_types=S1ProductType.GRD,
-                                  cplx_types=S1ProductType.SLC)
+        self._get_sar_product_type(prod_type_pos=2,
+                                   gdrg_types=S1ProductType.GRD,
+                                   cplx_types=S1ProductType.SLC)
 
-    def get_sensor_mode(self) -> None:
+    def _set_sensor_mode(self) -> None:
         """
         Get products type from S1 products name (could check the metadata too)
         """
@@ -161,13 +171,23 @@ class S1Product(SarProduct):
 
         # Discard invalid sensor mode
         if self.sensor_mode != S1SensorMode.IW:
-            raise NotImplementedError(f"For now, only IW sensor mode is used in eoreader processes: {self.name}")
+            raise NotImplementedError(f"For now, only IW sensor mode is used in EOReader processes: {self.name}")
         if not self.sensor_mode:
             raise InvalidProductError(f"Invalid {S1_NAME} name: {self.name}")
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
-        Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
+        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_datetime(as_datetime=True)
+        datetime.datetime(2019, 12, 15, 6, 9, 6)
+        >>> prod.get_datetime(as_datetime=False)
+        '20191215T060906'
+        ```
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -182,7 +202,7 @@ class S1Product(SarProduct):
 
         return date
 
-    def get_condensed_name(self) -> str:
+    def _get_condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 

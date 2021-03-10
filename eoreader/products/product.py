@@ -1,4 +1,4 @@
-""" Product, superclass of all eoreader satellites eoreader """
+""" Product, superclass of all EOReader satellites products """
 # pylint: disable=W0107
 from __future__ import annotations
 import logging
@@ -10,15 +10,13 @@ import datetime as dt
 import numpy as np
 import geopandas as gpd
 import rasterio
-from rasterio import crs
-from rasterio import warp
+from rasterio import crs, warp
 from rasterio.enums import Resampling
-from sertit import files, strings
-from sertit import rasters
+from sertit import files, strings, rasters
+from sertit.snap import MAX_CORES
 from sertit.misc import ListEnum
 
 from eoreader.bands import index
-from eoreader.utils import MAX_CORES
 from eoreader import utils
 from eoreader.reader import Reader, Platform
 from eoreader.bands.bands import OpticalBandNames as obn, SarBandNames as sbn, BandNames
@@ -35,60 +33,97 @@ PRODUCT_FACTORY = Reader()
 @unique
 class SensorType(ListEnum):
     """
-    Sensor type of the products, optical or radar
+    Sensor type of the products, optical or SAR
     """
-    Optical = "optical"
-    SAR = "radar"
+    OPTICAL = "Optical"
+    """For optical data"""
+
+    SAR = "SAR"
+    """For SAR data"""
 
 
 class Product:
-    """ Super class of eoreader Products """
+    """ Super class of EOReader Products """
 
     def __init__(self, product_path: str, archive_path: str = None, output_path: str = None) -> None:
-        # The products name is its filename without any extension
         self.name = files.get_filename(product_path)
-        self.split_name = self.get_split_name()
+        """Product name (its filename without any extension)."""
 
-        # The archive path ios the products path if not given
+        self.split_name = self._get_split_name()
+        """Split name, to retrieve every information from its filename (dates, tile, product type...)."""
+
         self.archive_path = archive_path if archive_path else product_path
+        """Archive path, same as the product path if not specified. 
+        Useful when you want to know where both the extracted and archived version of your product are stored."""
+
         self.path = product_path
+        """Usable path to the product, either extracted or archived path, according to the satellite."""
 
-        # A products is considered as archived if its products path is a directory
         self.is_archived = os.path.isfile(self.path)
+        """ Is the archived product is processed 
+        (a products is considered as archived if its products path is a directory)."""
 
-        # Does this products needs to be extracted to be processed ? (by default, True)
         self.needs_extraction = True
+        """Does this products needs to be extracted to be processed ? (`True` by default)."""
 
         # The output will be given later
         self._output = output_path
         if output_path:
             os.makedirs(output_path, exist_ok=True)
+        """Output directory of the product, to write orthorectified data for example."""
 
         # Get the products date and datetime
         self.date = self.get_date(as_date=True)
+        """Acquisition date."""
         self.datetime = self.get_datetime(as_datetime=True)
+        """Acquisition datetime."""
 
-        # Used to distinguish eoreader that can be piled (for S2 and L8)
         self.tile_name = None
+        """Tile if possible (for data that can be piled, for example S2 and Landsats)."""
 
-        # SAR or optical
         self.sensor_type = None
+        """Sensor type, SAR or optical."""
 
-        # Others
         self.product_type = None
-        self.band_names = None
-        self.is_reference = False
+        """Product type, satellite-related field, such as L1C or L2A for Sentinel-2 data."""
 
-        # A list because of multiple ref in case of non-stackable products (S3, S1...)
+        self.band_names = None
+        """Band mapping between band wrapping names such as `GREEN` and band real number such as `03` for Sentinel-2."""
+
+        self.is_reference = False
+        """If the product is a reference, used for algorithms that need pre and post data, such as fire detection."""
+
         self.corresponding_ref = []
+        """The corresponding reference products to the current one
+         (if the product is not a reference but has a reference data corresponding to it).
+         A list because of multiple ref in case of non-stackable products (S3, S1...)"""
+
         self.nodata = 0
-        self.sat_id = PRODUCT_FACTORY.get_platform_name(self.path)
+        """ Product nodata, set to 0 by default. Please do not touch this or all index will fail. """
+
+        self.sat_id = PRODUCT_FACTORY.get_platform_id(self.path)
+        """Satellite ID, i.e. `S2` for Sentinel-2"""
+
         self.platform = getattr(Platform, self.sat_id)
+        """Product platform, such as Sentinel-2"""
+
         self.condensed_name = None  # This needs a lot of set variables (datetimes...) -> do not set this here
+        """Condensed name, the filename with only useful data to keep the name unique 
+        (ie. `20191215T110441_S2_30TXP_L2A_122756`). 
+        Used to shorten names and paths."""
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint of the products (without nodata, in french == emprise utile)
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
+        ```
 
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
@@ -100,6 +135,15 @@ class Product:
         """
         Get UTM extent of the tile
 
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.utm_extent()
+                                                    geometry
+        0  POLYGON ((309780.000 4390200.000, 309780.000 4...
+        ```
+
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
         """
@@ -108,7 +152,15 @@ class Product:
     @abstractmethod
     def utm_crs(self) -> crs.CRS:
         """
-        Get UTM projection
+        Get UTM projection of the tile
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.utm_crs()
+        CRS.from_epsg(32630)
+        ```
 
         Returns:
             crs.CRS: CRS object
@@ -116,14 +168,14 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def get_product_type(self) -> None:
+    def _set_product_type(self) -> None:
         """
         Get product type
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def get_condensed_name(self) -> str:
+    def _get_condensed_name(self) -> str:
         """
         Get product condensed name.
 
@@ -132,7 +184,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def get_split_name(self) -> list:
+    def _get_split_name(self) -> list:
         """
         Get split name (erasing empty strings in it by precaution, especially for S1 and S3 data)
 
@@ -144,7 +196,17 @@ class Product:
     @abstractmethod
     def get_datetime(self, as_datetime: bool = False) -> Union[str, dt.datetime]:
         """
-        Get the product's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
+        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_datetime(as_datetime=True)
+        datetime.datetime(2020, 8, 24, 11, 6, 31)
+        >>> prod.get_datetime(as_datetime=False)
+        '20200824T110631'
+        ```
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -157,6 +219,16 @@ class Product:
     def get_date(self, as_date: bool = False) -> Union[str, dt.date]:
         """
         Get the product's acquisition date.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_date(as_date=True)
+        datetime.datetime(2020, 8, 24, 0, 0)
+        >>> prod.get_date(as_date=False)
+        '20200824'
+        ```
 
         Args:
             as_date (bool): Return the date as a datetime.date. If false, returns a string.
@@ -174,8 +246,17 @@ class Product:
     @abstractmethod
     def get_default_band_path(self) -> str:
         """
-        Get default band path (among the existing ones)
+        Get default band path (among the existing ones).
 
+        Usually `GREEN` band for optical data and the first existing one between `VV` and `HH` for SAR data.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_default_band_path()
+        'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'
+        ```
         Returns:
             str: Default band path
         """
@@ -184,7 +265,16 @@ class Product:
     @abstractmethod
     def get_default_band(self) -> BandNames:
         """
-        Get default band
+        Get default band:
+        Usually `GREEN` band for optical data and the first existing one between `VV` and `HH` for SAR data.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_default_band()
+        <OpticalBandNames.GREEN: 'GREEN'>
+        ```
 
         Returns:
             str: Default band
@@ -193,7 +283,27 @@ class Product:
 
     def get_existing_bands(self) -> list:
         """
-        Return the existing band paths.
+        Return the existing bands.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_existing_bands()
+        [<OpticalBandNames.CA: 'COASTAL_AEROSOL'>,
+        <OpticalBandNames.BLUE: 'BLUE'>,
+        <OpticalBandNames.GREEN: 'GREEN'>,
+        <OpticalBandNames.RED: 'RED'>,
+        <OpticalBandNames.VRE_1: 'VEGETATION_RED_EDGE_1'>,
+        <OpticalBandNames.VRE_2: 'VEGETATION_RED_EDGE_2'>,
+        <OpticalBandNames.VRE_3: 'VEGETATION_RED_EDGE_3'>,
+        <OpticalBandNames.NIR: 'NIR'>,
+        <OpticalBandNames.NNIR: 'NARROW_NIR'>,
+        <OpticalBandNames.WV: 'WATER_VAPOUR'>,
+        <OpticalBandNames.CIRRUS: 'CIRRUS'>,
+        <OpticalBandNames.SWIR_1: 'SWIR_1'>,
+        <OpticalBandNames.SWIR_2: 'SWIR_2'>]
+        ```
 
         Returns:
             list: List of existing bands in the products
@@ -205,6 +315,18 @@ class Product:
         """
         Return the existing band paths.
 
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_existing_band_paths()
+        {
+            <OpticalBandNames.CA: 'COASTAL_AEROSOL'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2',
+            ...,
+            <OpticalBandNames.SWIR_2: 'SWIR_2'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2'
+        }
+        ```
+
         Returns:
             dict: Dictionary containing the path of each queried band
         """
@@ -212,7 +334,19 @@ class Product:
 
     def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
         """
-        Return the folder containing the bands of a proper S2 products.
+        Return the paths of required bands.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_band_paths([GREEN, RED])
+        {
+            <OpticalBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
+            <OpticalBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
+        }
+        ```
 
         Args:
             band_list (list): List of the wanted bands
@@ -223,11 +357,40 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    # unused band_name (compatibility reasons)
     # pylint: disable=W0613
-    def read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
+    def _read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
         """
-        Read band from a dataset
+        Read band from a dataset.
+
+        **WARNING**: For optical data, invalid pixels are not managed here,
+        so please consider using `load` or use this function at your own risk!
+
+        ```python
+        >>> import rasterio
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> with rasterio.open(prod.get_default_band_path()) as dst:
+        >>>     band, meta = prod.read_band(dst, x_res=20, y_res=20)  # You can create not square pixels here
+        >>> band
+        masked_array(
+          data=[[[0.0614, ..., 0.15799999]]],
+          mask=False,
+          fill_value=1e+20,
+          dtype=float32)
+        >>> meta
+        {
+            'driver': 'JP2OpenJPEG',
+            'dtype': <class 'numpy.float32'>,
+            'nodata': None,
+            'width': 5490,
+            'height': 5490,
+            'count': 1,
+            'crs': CRS.from_epsg(32630),
+            'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
+        }
+        ```
 
         Args:
             dataset (Dataset): Band dataset
@@ -261,6 +424,39 @@ class Product:
         Open the bands and compute the wanted index.
         You can add some bands in the dict.
 
+        The bands will be purged of nodata and invalid pixels,
+        the nodata will be set to 0 and the bands will be masked arrays in float.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> bands, meta = prod.load([GREEN, NDVI], resolution=20)  # Always square pixels here
+        >>> bands
+        {<function NDVI at 0x00000227FBB929D8>: masked_array(
+          data=[[[-0.02004455029964447, ..., 0.11663568764925003]]],
+          mask=[[[False, ..., False]]],
+          fill_value=0.0,
+          dtype=float32),
+          <OpticalBandNames.GREEN: 'GREEN'>: masked_array(
+          data=[[[0.061400000005960464, ..., 0.15799999237060547]]],
+          mask=[[[False, ..., False]]],
+          fill_value=0.0,
+          dtype=float32)}
+        >>> meta
+        {
+            'driver': 'GTiff',
+            'dtype': <class 'numpy.float32'>,
+            'nodata': 0,
+            'width': 5490,
+            'height': 5490,
+            'count': 1,
+            'crs': CRS.from_epsg(32630),
+            'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
+        }
+        ```
+
         Args:
             band_and_idx_list (Union[list, BandNames, Callable]): Index list
             resolution (float): Resolution of the band, in meters
@@ -274,6 +470,17 @@ class Product:
         """
         Does this products has the specified band ?
 
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.has_band(GREEN)
+        True
+        >>> prod.has_band(TIR_2)
+        False
+        ```
+
         Args:
             band (Union[obn, sbn]): Optical or SAR band
 
@@ -285,6 +492,15 @@ class Product:
     def has_index(self, idx: Callable) -> bool:
         """
         Cen the specified index be computed from this products ?
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.has_index(NDVI)
+        True
+        ```
 
         Args:
             idx (Callable): Index
@@ -381,7 +597,7 @@ class Product:
 
     @property
     def output(self) -> str:
-        """ Getter of output """
+        """ Output directory of the product, to write orthorectified data for example. """
         if not self._output:
             self._output = os.path.join(os.path.dirname(self.path), self.condensed_name)
             os.makedirs(self._output, exist_ok=True)
@@ -390,11 +606,10 @@ class Product:
 
     @output.setter
     def output(self, value: str):
-        """ Getter of output """
+        """ Output directory of the product, to write orthorectified data for example. """
         self._output = value
         if not os.path.isdir(self._output):
             os.makedirs(self._output, exist_ok=True)
-
 
     def warp_dem(self,
                  dem_path: str = "",
@@ -407,6 +622,15 @@ class Product:
 
         - Using EUDEM over Europe
         - Using MERIT DEM everwhere else
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.warp_dem(resolution=20)  # In meters
+        '/path/to/20200824T110631_S2_T30TTK_L1C_150432_DEM.tif'
+        ```
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
@@ -495,6 +719,31 @@ class Product:
               save_as_int: bool = False) -> (np.ma.masked_array, dict):
         """
         Stack bands and index of a products.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> stack, stk_meta = prod.stack([NDVI, MNDWI, GREEN], resolution=20)  # In meters
+        >>> stack
+        masked_array(
+          data=[[[-0.02004455029964447, ..., 0.15799999237060547]]],
+          mask=[[[False, ..., False]]],
+          fill_value=1e+20,
+          dtype=float32)
+        >>> stk_meta
+        {
+            'driver': 'GTiff',
+            'dtype': <class 'numpy.float32'>,
+            'nodata': 0,
+            'width': 5490,
+            'height': 5490,
+            'count': 3,
+            'crs': CRS.from_epsg(32630),
+            'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
+        }
+        ```
 
         Args:
             band_and_idx_combination (list): Bands and index combination

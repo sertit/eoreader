@@ -2,7 +2,7 @@
 
 
 class EoReaderError(Exception):
-    """ eoreader error """
+    """ EOReader error """
     pass
 
 

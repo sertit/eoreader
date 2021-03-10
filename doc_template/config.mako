@@ -6,7 +6,7 @@
     # You can also run pdoc with `--config KEY=VALUE` to override
     # individual values.
     html_lang = 'en'
-    show_inherited_members = False
+    show_inherited_members = True
     extract_module_toc_into_sidebar = True
     list_class_variables_in_index = True
     sort_identifiers = False

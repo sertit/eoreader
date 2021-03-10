@@ -7,7 +7,7 @@ from eoreader.products.optical.landsat_product import LandsatProduct, LandsatPro
 class L8Product(LandsatProduct):
     """ Class of Landsat-8 Products """
 
-    def get_product_type(self) -> None:
+    def _set_product_type(self) -> None:
         """ Get products type """
         if "L1" in self.name:
             self.product_type = LandsatProductType.L1_OLCI
@@ -28,7 +28,7 @@ class L8Product(LandsatProduct):
         else:
             raise InvalidProductError(f"Invalid Landsat-8 name: {self.name}")
 
-    def get_condensed_name(self) -> str:
+    def _get_condensed_name(self) -> str:
         """
         Get products condensed name ({date}_L8_{tile}_{product_type}).
 

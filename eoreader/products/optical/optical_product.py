@@ -1,4 +1,4 @@
-""" Super class for optical eoreader """
+""" Super class for optical products """
 
 import logging
 from abc import abstractmethod
@@ -6,9 +6,7 @@ from typing import Callable, Union
 import numpy as np
 import geopandas as gpd
 import rasterio
-import rasterio.features
-import rasterio.warp
-import rasterio.crs
+from rasterio import crs
 from sertit import rasters
 
 from eoreader.exceptions import InvalidIndexError, InvalidBandError
@@ -21,17 +19,25 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 class OpticalProduct(Product):
-    """ Super class for optical eoreader """
+    """ Super class for optical products """
 
     def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
         super().__init__(product_path, archive_path, output_path)
         self.band_names = OpticalBands()
-        self.get_product_type()
-        self.sensor_type = SensorType.Optical
+        self._set_product_type()
+        self.sensor_type = SensorType.OPTICAL
 
     def get_default_band(self) -> BandNames:
         """
-        Get default band
+        Get default band: `GREEN` for optical data as every optical satellite has a GREEN band.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_default_band()
+        <OpticalBandNames.GREEN: 'GREEN'>
+        ```
 
         Returns:
             str: Default band
@@ -40,7 +46,15 @@ class OpticalProduct(Product):
 
     def get_default_band_path(self) -> str:
         """
-        Get default band path (among the existing ones)
+        Get default band (`GREEN` for optical data) path.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_default_band_path()
+        'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'
+        ```
 
         Returns:
             str: Default band path
@@ -50,7 +64,15 @@ class OpticalProduct(Product):
 
     def utm_crs(self) -> rasterio.crs.CRS:
         """
-        Get UTM projection
+        Get UTM projection of the tile
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.utm_crs()
+        CRS.from_epsg(32630)
+        ```
 
         Returns:
             rasterio.crs.CRS: CRS object
@@ -65,34 +87,44 @@ class OpticalProduct(Product):
         """
         Get UTM extent of the tile
 
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.utm_extent()
+                                                    geometry
+        0  POLYGON ((309780.000 4390200.000, 309780.000 4...
+        ```
+
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
         """
         # Get extent
         return rasters.get_extent(self.get_default_band_path())
 
-    @abstractmethod
-    def get_product_type(self) -> None:
-        """ Get products type """
-        raise NotImplementedError("This method should be implemented by a child class")
-
-    @abstractmethod
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
-        """
-        Return the folder containing the bands of a proper S2 products.
-
-        Args:
-            band_list (list): List of the wanted bands
-            resolution (float): Band resolution
-
-        Returns:
-            dict: Dictionary containing the path of each queried band
-        """
-        raise NotImplementedError("This method should be implemented by a child class")
-
     def get_existing_bands(self) -> list:
         """
         Return the existing band paths.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_existing_bands()
+        [<OpticalBandNames.CA: 'COASTAL_AEROSOL'>,
+        <OpticalBandNames.BLUE: 'BLUE'>,
+        <OpticalBandNames.GREEN: 'GREEN'>,
+        <OpticalBandNames.RED: 'RED'>,
+        <OpticalBandNames.VRE_1: 'VEGETATION_RED_EDGE_1'>,
+        <OpticalBandNames.VRE_2: 'VEGETATION_RED_EDGE_2'>,
+        <OpticalBandNames.VRE_3: 'VEGETATION_RED_EDGE_3'>,
+        <OpticalBandNames.NIR: 'NIR'>,
+        <OpticalBandNames.NNIR: 'NARROW_NIR'>,
+        <OpticalBandNames.WV: 'WATER_VAPOUR'>,
+        <OpticalBandNames.CIRRUS: 'CIRRUS'>,
+        <OpticalBandNames.SWIR_1: 'SWIR_1'>,
+        <OpticalBandNames.SWIR_2: 'SWIR_2'>]
+        ```
 
         Returns:
             list: List of existing bands in the products
@@ -103,25 +135,23 @@ class OpticalProduct(Product):
         """
         Return the existing band paths.
 
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_existing_band_paths()
+        {
+            <OpticalBandNames.CA: 'COASTAL_AEROSOL'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2',
+            ...,
+            <OpticalBandNames.SWIR_2: 'SWIR_2'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2'
+        }
+        ```
+
         Returns:
             dict: Dictionary containing the path of each queried band
         """
         existing_bands = self.get_existing_bands()
         return self.get_band_paths(band_list=existing_bands)
-
-    @abstractmethod
-    def _load_bands(self, band_list: [list, BandNames], resolution: float = 20) -> (dict, dict):
-        """
-        Load bands as numpy arrays with the same resolution (and same metadata).
-
-        Args:
-            band_list (list, BandNames): List of the wanted bands
-            resolution (float): Band resolution in meters
-        Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
-        """
-        raise NotImplementedError("This method should be implemented by a child class")
 
     def _open_bands(self, band_paths: dict, resolution: float = None) -> (dict, dict):
         """
@@ -142,7 +172,7 @@ class OpticalProduct(Product):
         for band_name, band_path in band_paths.items():
             with rasterio.open(band_path) as band_ds:
                 # Read band
-                band_arrays[band_name], ds_meta = self.read_band(band_ds, resolution, resolution)
+                band_arrays[band_name], ds_meta = self._read_band(band_ds, resolution, resolution)
                 band_arrays[band_name], ds_meta = self._manage_invalid_pixels(band_arrays[band_name],
                                                                               band_name, ds_meta,
                                                                               resolution, resolution)
@@ -222,6 +252,39 @@ class OpticalProduct(Product):
         Open the bands and compute the wanted index.
         You can add some bands in the dict.
 
+        The bands will be purged of nodata and invalid pixels,
+        the nodata will be set to 0 and the bands will be masked arrays in float.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> bands, meta = prod.load([GREEN, NDVI], resolution=20)  # Always square pixels here
+        >>> bands
+        {<function NDVI at 0x00000227FBB929D8>: masked_array(
+          data=[[[-0.02004455029964447, ..., 0.11663568764925003]]],
+          mask=[[[False, ..., False]]],
+          fill_value=0.0,
+          dtype=float32),
+          <OpticalBandNames.GREEN: 'GREEN'>: masked_array(
+          data=[[[0.061400000005960464, ..., 0.15799999237060547]]],
+          mask=[[[False, ..., False]]],
+          fill_value=0.0,
+          dtype=float32)}
+        >>> meta
+        {
+            'driver': 'GTiff',
+            'dtype': <class 'numpy.float32'>,
+            'nodata': 0,
+            'width': 5490,
+            'height': 5490,
+            'count': 1,
+            'crs': CRS.from_epsg(32630),
+            'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
+        }
+        ```
+
         Args:
             band_and_idx_list (list, index): Index list
             resolution (float): Resolution of the band, in meters
@@ -251,11 +314,12 @@ class OpticalProduct(Product):
                     raise InvalidBandError(f"{idx_or_band} cannot be retrieved from {self.condensed_name}.")
 
         # Get all bands to be open
+        bands_to_load = band_list.copy()
         for idx in index_list:
-            band_list += index.NEEDED_BANDS[idx]
+            bands_to_load += index.NEEDED_BANDS[idx]
 
         # Load band arrays (only keep unique bands: open them only one time !)
-        bands, meta = self._load_bands(list(set(band_list)), resolution=resolution)
+        bands, meta = self._load_bands(list(set(bands_to_load)), resolution=resolution)
 
         # Compute index (they conserve the nodata)
         idx_and_bands_dict = {idx: idx(bands) for idx in index_list}
@@ -266,19 +330,17 @@ class OpticalProduct(Product):
         return idx_and_bands_dict, meta
 
     @abstractmethod
-    def get_condensed_name(self) -> str:
-        """
-        Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
-
-        Returns:
-            str: Condensed S2 name
-        """
-        raise NotImplementedError("This method should be implemented by a child class")
-
-    @abstractmethod
     def get_mean_sun_angles(self) -> (float, float):
         """
-        Get Mean Sun angles (Zenith and Azimuth angles)
+        Get Mean Sun angles (Azimuth and Zenith angles)
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_mean_sun_angles()
+        (149.148155074489, 32.6627897525474)
+        ```
 
         Returns:
             (float, float): Mean Azimuth and Zenith angle

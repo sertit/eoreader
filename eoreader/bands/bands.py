@@ -3,13 +3,14 @@
 # pylint: disable=C0301
 from enum import unique
 from collections.abc import MutableMapping
+from typing import Union
 
 from sertit.misc import ListEnum
 
 from eoreader.exceptions import InvalidTypeError
 
 
-class Bands(MutableMapping):
+class _Bands(MutableMapping):
     """ Super bands class, used as a dict """
 
     def __init__(self, *args, **kwargs):
@@ -33,12 +34,17 @@ class Bands(MutableMapping):
 
 
 class BandNames(ListEnum):
-    """ Super class for band names """
+    """ Super class for band names, **do not use it**. """
 
     @classmethod
     def get_band_names(cls) -> list:
         """
         Get all band names
+
+        ```python
+        >>> SarBandNames.get_band_names()
+        ['VV', 'VV_DSPK', 'HH', 'HH_DSPK', 'VH', 'VH_DSPK', 'HV', 'HV_DSPK']
+        ```
 
         Returns:
             list: List of names
@@ -47,17 +53,23 @@ class BandNames(ListEnum):
         return cls.list_names()
 
     @classmethod
-    def from_list(cls, name_list: list) -> list:
+    def from_list(cls, name_list: Union[list, str]) -> list:
         """
         Get the band enums from list of band names
 
+        ```python
+        >>> SarBandNames.from_list("VV")
+        [<SarBandNames.VV: 'VV'>]
+        ```
+
         Args:
-            name_list (list): List of names
+            name_list (Union[list, str]): List of names
 
         Returns:
             list: List of enums
-
         """
+        if not isinstance(name_list, list):
+            name_list = [name_list]
         try:
             band_names = [cls(name) for name in name_list]
         except ValueError as ex:
@@ -66,9 +78,16 @@ class BandNames(ListEnum):
         return band_names
 
     @classmethod
-    def tolist(cls, name_list: list = None) -> list:
+    def to_name_list(cls, name_list: list = None) -> list:
         """
         Get a list from the values of the bands
+
+        ```python
+        >>> SarBandNames.to_name_list([SarBandNames.HV_DSPK, SarBandNames.VV])
+        ['DESPK_HV', 'VV']
+        >>> SarBandNames.to_name_list()
+        ['VV', 'DESPK_VV', 'HH', 'DESPK_HH', 'VH', 'DESPK_VH', 'HV', 'DESPK_HV']
+        ```
 
         Args:
             name_list (list): List of band names
@@ -82,8 +101,8 @@ class BandNames(ListEnum):
             for key in name_list:
                 if isinstance(key, str):
                     out_list.append(getattr(cls, key).value)
-                elif isinstance(key, Bands):
-                    out_list.append(cls[key])
+                elif isinstance(key, cls):
+                    out_list.append(key.value)
                 else:
                     raise InvalidTypeError("The list should either contain strings or SarBandNames")
         else:
@@ -97,16 +116,46 @@ class BandNames(ListEnum):
 class SarBandNames(BandNames):
     """ SAR Band names """
     VV = 'VV'
+    """ Vertical Transmit-Vertical Receive Polarisation """
+
     VV_DSPK = 'DESPK_VV'
+    """ Vertical Transmit-Vertical Receive Polarisation Despeckled """
+
     HH = 'HH'
+    """ Horizontal Transmit-Horizontal Receive Polarisation """
+
     HH_DSPK = 'DESPK_HH'
+    """ Horizontal Transmit-Horizontal Receive Polarisation Despeckled """
+
     VH = 'VH'
+    """ Vertical Transmit-Horizontal Receive Polarisation """
+
     VH_DSPK = 'DESPK_VH'
+    """ Vertical Transmit-Horizontal Receive Polarisatio Despeckled """
+
     HV = 'HV'
+    """ Horizontal Transmit-Vertical Receive Polarisation """
+
     HV_DSPK = 'DESPK_HV'
+    """ Horizontal Transmit-Vertical Receive Polarisation Despeckled """
 
     @classmethod
     def corresponding_despeckle(cls, band: "SarBandNames"):
+        """
+        Corresponding despeckled band.
+
+        ```python
+        >>> SarBandNames.corresponding_despeckle(SarBandNames.VV)
+        <SarBandNames.VV_DSPK: 'DESPK_VV'>
+        >>> SarBandNames.corresponding_despeckle(SarBandNames.VV_DSPK)
+        <SarBandNames.VV_DSPK: 'DESPK_VV'>
+        ```
+        Args:
+            band (SarBandNames): Noisy (speckle) band
+
+        Returns:
+            SarBandNames: Despeckled band
+        """
         if cls.is_despeckle(band):
             dspk = band
         else:
@@ -116,16 +165,47 @@ class SarBandNames(BandNames):
 
     @classmethod
     def corresponding_speckle(cls, band: "SarBandNames"):
+        """
+        Corresponding speckle (noisy) band.
+
+        ```python
+        >>> SarBandNames.corresponding_speckle(SarBandNames.VV)
+        <SarBandNames.VV: 'VV'>
+        >>> SarBandNames.corresponding_speckle(SarBandNames.VV_DSPK)
+        <SarBandNames.VV: 'VV'>
+        ```
+        Args:
+            band (SarBandNames): Noisy (speckle) band
+
+        Returns:
+            SarBandNames: Despeckled band
+        """
         return cls.from_value(f"{band.name[:2]}")
 
     @classmethod
     def is_despeckle(cls, band: "SarBandNames"):
+        """
+        Returns True if the band corresponds to a despeckled one.
+
+        ```python
+        >>> SarBandNames.is_despeckle(SarBandNames.VV)
+        False
+        >>> SarBandNames.is_despeckle(SarBandNames.VV_DSPK)
+        True
+        ```
+        Args:
+            band (SarBandNames): Band to test
+
+        Returns:
+            SarBandNames: Despeckled band
+        """
+        """"""
         return "DSPK" in band.name
 
 
 # too many ancestors
 # pylint: disable=R0901
-class SarBands(Bands):
+class SarBands(_Bands):
     """ SAR bands class """
 
     def __init__(self) -> None:
@@ -138,80 +218,83 @@ class OpticalBandNames(BandNames):
     This class aims to regroup equivalent bands under the same nomenclature.
     Each products will set their band number in regard to their corresponding name.
 
+    **Note**: The mapping is based on Sentinel-2 bands.
+    Satellites can have not mapped bands (such as Sentinel-3)
+
     More information can be retrieved here:
 
-    - overall: http://blog.imagico.de/wp-content/uploads/2016/11/sat_spectra_full4a.png
+    - [Overall comparison](http://blog.imagico.de/wp-content/uploads/2016/11/sat_spectra_full4a.png)
     - L8/S2:
-       - https://reader.elsevier.com/reader/sd/pii/S0034425718301883
-       - https://landsat.gsfc.nasa.gov/wp-content/uploads/2015/06/Landsat.v.Sentinel-2.png
-    - L4/L5, MSS-TM: https://landsat.gsfc.nasa.gov/the-multispectral-scanner-system/
-    - All Landsats: https://landsat.gsfc.nasa.gov/wp-content/uploads/2016/10/all_Landsat_bands.png
-    - S2: https://discovery.creodias.eu/dataset/72181b08-a577-4d55-8ece-d8485167beb7/resource/d8f5dd92-b35c-46ee-98a2-0879dad03fce/download/res_band_s2_1.png
-    - S3 OLCI: https://discovery.creodias.eu/dataset/a0960a9b-c9c4-46db-bca5-ec79d0dda32b/resource/de8300a4-08cd-41aa-96ec-d9813115cc08/download/s3_res_band_ol.png
-    - S3 SLSTR: https://discovery.creodias.eu/dataset/ea8f247e-d193-4368-8cf6-8687a03a5306/resource/8e5c485a-d832-42be-ad9c-af500b468f29/download/s3_slcs.png
-    - Index consistency: https://www.indexdatabase.de/
+        - [Resource 1](https://reader.elsevier.com/reader/sd/pii/S0034425718301883)
+        - [Resource 2](https://landsat.gsfc.nasa.gov/wp-content/uploads/2015/06/Landsat.v.Sentinel-2.png)
+    - [L4/L5, MSS-TM](https://landsat.gsfc.nasa.gov/the-multispectral-scanner-system/)
+    - [All Landsats](https://landsat.gsfc.nasa.gov/wp-content/uploads/2016/10/all_Landsat_bands.png)
+    - [S2](https://discovery.creodias.eu/dataset/72181b08-a577-4d55-8ece-d8485167beb7/resource/d8f5dd92-b35c-46ee-98a2-0879dad03fce/download/res_band_s2_1.png)
+    - [S3 OLCI](https://discovery.creodias.eu/dataset/a0960a9b-c9c4-46db-bca5-ec79d0dda32b/resource/de8300a4-08cd-41aa-96ec-d9813115cc08/download/s3_res_band_ol.png)
+    - [S3 SLSTR](https://discovery.creodias.eu/dataset/ea8f247e-d193-4368-8cf6-8687a03a5306/resource/8e5c485a-d832-42be-ad9c-af500b468f29/download/s3_slcs.png)
+    - [Index consistency](https://www.indexdatabase.de/)
 
     This classification allows index computation and algorithms to run without knowing the band nb of every satellite.
     If None, then the band does not exist for the satellite.
     """
-    # Coastal aerosol
     CA = 'COASTAL_AEROSOL'
+    """Coastal aerosol"""
 
-    # Blue
     BLUE = "BLUE"
+    """Blue"""
 
-    # Green
     GREEN = "GREEN"
+    """Green"""
 
-    # Red
     RED = "RED"
+    """Red"""
 
-    # Vegetation red edge
     VRE_1 = "VEGETATION_RED_EDGE_1"
+    """Vegetation red edge, Band 1"""
 
-    # Vegetation red edge
     VRE_2 = "VEGETATION_RED_EDGE_2"
+    """Vegetation red edge, Band 2"""
 
-    # Vegetation red edge
     VRE_3 = "VEGETATION_RED_EDGE_3"
+    """Vegetation red edge, Band 3"""
 
-    # NIR
     NIR = "NIR"
+    """NIR"""
 
-    # Narrow NIR
     NNIR = "NARROW_NIR"
+    """Narrow NIR"""
 
-    # Water vapour
     WV = "WATER_VAPOUR"
+    """Water vapour"""
 
-    # Far NIR /!\ WARNING -> For satellites that don't have any SWIR, do not use it in index !
     FNIR = "FAR_NIR"
+    """Far NIR"""
 
-    # Cirrus
     CIRRUS = "CIRRUS"
+    """Cirrus"""
 
-    # SWIR
     SWIR_1 = "SWIR_1"
+    """SWIR, Band 1"""
 
-    # SWIR
     SWIR_2 = "SWIR_2"
+    """SWIR, Band 2"""
 
-    # MIR
     MIR = "MIR"
+    """MIR"""
 
-    # Thermal IR
     TIR_1 = "THERMAL_IR_1"
+    """Thermal IR, Band 1"""
 
-    # Thermal IR
     TIR_2 = "THERMAL_IR_2"
+    """Thermal IR, Band 2"""
 
-    # Panchromatic
     PAN = "PANCHROMATIC"
+    """Panchromatic"""
 
 
 # too many ancestors
 # pylint: disable=R0901
-class OpticalBands(Bands):
+class OpticalBands(_Bands):
     """ Optical bands class """
 
     def __init__(self) -> None:
@@ -219,7 +302,25 @@ class OpticalBands(Bands):
 
     def map_bands(self, band_map: dict) -> None:
         """
-        Set band map (only useful values)
+        Mapping band names to specific satellite band numbers, as strings.
+
+        ```python
+        >>> # Example for Sentinel-2 L1C data
+        >>> OpticalBands.map_bands({
+                CA: '01',
+                BLUE: '02',
+                GREEN: '03',
+                RED: '04',
+                VRE_1: '05',
+                VRE_2: '06',
+                VRE_3: '07',
+                NIR: '08',
+                NNIR: '8A',
+                WV: '09',
+                SWIR_1: '11',
+                SWIR_2: '12'
+            })
+        ```
 
         Args:
             band_map (dict): Band mapping as {OpticalBandNames: Band number for loading band}

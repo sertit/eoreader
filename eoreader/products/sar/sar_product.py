@@ -1,28 +1,20 @@
-"""
-COSMO-SkyMed products
-More info here:
-https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description
-"""
+""" Super class for SAR products """
 import logging
 import os
 import re
 import tempfile
 import zipfile
 from abc import abstractmethod
-from datetime import datetime
 from enum import unique
 from string import Formatter
 from typing import Union, Callable
 
 import rasterio
-import rasterio.features
-import rasterio.warp
-import rasterio.crs
-import rasterio.transform
+from rasterio import crs
 import geopandas as gpd
 import numpy as np
 from rasterio.enums import Resampling
-from sertit import files, strings, misc
+from sertit import files, strings, misc, snap
 from sertit.misc import ListEnum
 from sertit import rasters, vectors
 
@@ -37,22 +29,32 @@ from eoreader.utils import EOREADER_NAME
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 PP_ENV = "EOREADER_PP_GRAPH"
+"""Environment variables for pre-processing graph path"""
+
 DSPK_ENV = "EOREADER_DSPK_GRAPH"
+"""Environment variables for despeckling graph path"""
+
 SAR_DEF_RES = "EOREADER_SAR_DEFAULT_RES"
+"""Environment variables for SAR default resolution, used for SNAP orthorectification."""
 
 
 @unique
 class SarProductType(ListEnum):
     """
-    Generic products types to chose a SNAP graph
+    Generic products types, used to chose a SNAP graph.
     """
-    CPLX = "COMPLEX"  # Single Look Complex
-    GDRG = "GROUND"  # Ground Range
-    OTHER = "OTHER"  # Other products types, no used in EEO
-    # Add ortho eoreader ?
+    CPLX = "COMPLEX"
+    """Single Look Complex"""
+
+    GDRG = "GROUND"
+    """Ground Range"""
+
+    OTHER = "OTHER"
+    """Other products types, no used in EOReader"""
+    # Add ortho products ?
 
 
-class ExtendedFormatter(Formatter):
+class _ExtendedFormatter(Formatter):
     """An extended format string formatter
 
     Formatter with extended conversion symbol
@@ -85,21 +87,40 @@ class SarProduct(Product):
 
     def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
         super().__init__(product_path, archive_path, output_path)
-        self.tile_name = None
+
         self.sar_prod_type = None
-        self.get_product_type()
-        self.sensor_type = SensorType.SAR
+        """SAR product type, either Single Look Complex or Ground Range"""
+        self._set_product_type()
+
         self.sensor_mode = None
-        self.get_sensor_mode()
-        self.band_folder = None
+        """Sensor Mode of the current product"""
+        self._set_sensor_mode()
+
         self.band_names = SarBands()
-        self.snap_path = None
-        self.raw_band_regex = None
         self.pol_channels = None
+        """Polarization Channels stored in the current product"""
+
+        # Other that do not need to be re-documented
+        self.tile_name = None
+        self.sensor_type = SensorType.SAR
+
+        # Private attributes
+        self._band_folder = None
+        self._snap_path = None
+        self._raw_band_regex = None
 
     def get_default_band(self) -> BandNames:
         """
-        Get default band
+        Get default band:
+        The first existing one between `VV` and `HH` for SAR data.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_default_band()
+        <SarBandNames.VV: 'VV'>
+        ```
 
         Returns:
             str: Default band
@@ -126,7 +147,19 @@ class SarProduct(Product):
     # pylint: disable=W0221
     def get_default_band_path(self) -> str:
         """
-        Get default band path (among the existing ones)
+        Get default band path (the first existing one between `VV` and `HH` for SAR data), ready to use (orthorectified)
+
+        **WARNING** This functions orthorectifies SAR bands if not existing !
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_default_band_path()
+        Executing processing graph
+        ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.
+        '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif'
+        ```
 
         Returns:
             str: Default band path
@@ -137,10 +170,20 @@ class SarProduct(Product):
         return band_path[default_band]
 
     @abstractmethod
-    def get_wgs84_extent(self) -> gpd.GeoDataFrame:
+    def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
         This is useful when the SAR pre-process has not been done yet.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.wgs84_extent()
+                               Name  ...                                           geometry
+        0  Sentinel-1 Image Overlay  ...  POLYGON ((0.85336 42.24660, -2.32032 42.65493,...
+        [1 rows x 12 columns]
+        ```
 
         Returns:
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
@@ -152,11 +195,21 @@ class SarProduct(Product):
         """
         Get UTM extent of the tile
 
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.utm_extent()
+                               Name  ...                                           geometry
+        0  Sentinel-1 Image Overlay  ...  POLYGON ((817914.501 4684349.823, 555708.624 4...
+        [1 rows x 12 columns]
+        ```
+
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
         """
         # Get WGS84 extent
-        extent_wgs84 = self.get_wgs84_extent()
+        extent_wgs84 = self.wgs84_extent()
 
         # Get upper-left corner and deduce UTM proj from it
         utm = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
@@ -165,29 +218,34 @@ class SarProduct(Product):
 
         return extent
 
-    def utm_crs(self) -> str:
+    def utm_crs(self) -> crs.CRS:
         """
         Get UTM projection
 
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.utm_crs()
+        CRS.from_epsg(32630)
+        ```
+
         Returns:
-            rasterio.crs.CRS: CRS object
+            crs.CRS: CRS object
         """
         # Get WGS84 extent
-        extent_wgs84 = self.get_wgs84_extent()
+        extent_wgs84 = self.wgs84_extent()
 
         # Get upper-left corner and deduce UTM proj from it
-        return vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
-                                                    extent_wgs84.bounds.maxy)
+        crs_str = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
+                                                       extent_wgs84.bounds.maxy)
 
-    @abstractmethod
-    def get_product_type(self) -> None:
-        """ Get products type """
-        raise NotImplementedError("This method should be implemented by a child class")
+        return crs.CRS.from_string(crs_str)
 
-    def get_sar_product_type(self,
-                             prod_type_pos: int,
-                             gdrg_types: Union[ListEnum, list],
-                             cplx_types: Union[ListEnum, list]) -> None:
+    def _get_sar_product_type(self,
+                              prod_type_pos: int,
+                              gdrg_types: Union[ListEnum, list],
+                              cplx_types: Union[ListEnum, list]) -> None:
         """
         Get products type, special function for SAR satellites.
 
@@ -227,28 +285,28 @@ class SarProduct(Product):
                                       f"is not used in eoreader processes: {self.name}")
 
     @abstractmethod
-    def get_sensor_mode(self) -> None:
+    def _set_sensor_mode(self) -> None:
         """
-        Get products type from S2 products name (could check the metadata too)
-        """
-        raise NotImplementedError("This method should be implemented by a child class")
-
-    @abstractmethod
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
-        """
-        Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
-
-        Args:
-            as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
-
-        Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+        Set SAR sensor mode
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
     def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
         """
-        Return the folder containing the bands of a proper S2 products.
+        Return the paths of required bands.
+
+        **WARNING** This functions orthorectifies SAR bands if not existing !
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_band_paths([VV, HH])
+        {
+            <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif'  # HH doesn't exist
+        }
+        ```
 
         Args:
             band_list (list): List of the wanted bands
@@ -268,12 +326,14 @@ class SarProduct(Product):
                                                          f"{self.condensed_name}_{bname}.tif",
                                                          exact_name=True)
             except FileNotFoundError:
-                if sbn.is_despeckle(band):
-                    # Despeckle the noisy band
-                    band_paths[band] = self._despeckle_sar(sbn.corresponding_speckle(band))
-                else:
-                    all_band_paths = self._pre_process_sar(resolution)
-                    band_paths = {band: path for band, path in all_band_paths.items() if band in band_list}
+                speckle_band = sbn.corresponding_speckle(band)
+                if speckle_band in self.pol_channels:
+                    if sbn.is_despeckle(band):
+                        # Despeckle the noisy band
+                        band_paths[band] = self._despeckle_sar(speckle_band)
+                    else:
+                        all_band_paths = self._pre_process_sar(resolution)
+                        band_paths = {band: path for band, path in all_band_paths.items() if band in band_list}
 
         return band_paths
 
@@ -284,10 +344,10 @@ class SarProduct(Product):
         Returns:
             dict: Dictionary containing the path of every band existing in the raw products
         """
-        extended_fmt = ExtendedFormatter()
+        extended_fmt = _ExtendedFormatter()
         band_paths = {}
         for band, band_name in self.band_names.items():
-            band_regex = extended_fmt.format(self.raw_band_regex, band_name)
+            band_regex = extended_fmt.format(self._raw_band_regex, band_name)
 
             if self.is_archived:
                 if self.path.endswith(".zip"):
@@ -303,7 +363,7 @@ class SarProduct(Product):
                     raise InvalidProductError(f"Only zipped eoreader can be processed without extraction: {self.path}")
             else:
                 try:
-                    band_paths[band] = files.get_file_in_dir(self.band_folder, band_regex, exact_name=True)
+                    band_paths[band] = files.get_file_in_dir(self._band_folder, band_regex, exact_name=True)
                 except FileNotFoundError:
                     continue
 
@@ -323,6 +383,28 @@ class SarProduct(Product):
         """
         Return the existing orthorectified band paths (including despeckle bands).
 
+        **WARNING** This functions orthorectifies SAR bands if not existing !
+
+        **WARNING** This functions despeckles SAR bands if not existing !
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_existing_band_paths()
+        Executing processing graph
+        ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.
+        Executing processing graph
+        ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.
+        {
+            <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif',
+            <SarBandNames.VH: 'VH'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VH.tif',
+            <SarBandNames.VV_DSPK: 'DESPK_VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_DESPK_VV.tif',
+            <SarBandNames.VH_DSPK: 'DESPK_VH'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_DESPK_VH.tif'
+        }
+        ```
+
         Returns:
             dict: Dictionary containing the path of every orthorectified bands
         """
@@ -336,6 +418,22 @@ class SarProduct(Product):
         """
         Return the existing orthorectified bands (including despeckle bands).
 
+        **WARNING** This functions orthorectifies SAR bands if not existing !
+
+        **WARNING** This functions despeckles SAR bands if not existing !
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.get_existing_bands()
+        [<SarBandNames.VV: 'VV'>,
+        <SarBandNames.VH: 'VH'>,
+        <SarBandNames.VV_DSPK: 'DESPK_VV'>,
+        <SarBandNames.VH_DSPK: 'DESPK_VH'>]
+        ```
+
         Returns:
             list: List of existing bands in the products
         """
@@ -344,9 +442,36 @@ class SarProduct(Product):
 
     # unused band_name (compatibility reasons)
     # pylint: disable=W0613
-    def read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
+    def _read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
         """
         Read band from a dataset
+
+        ```python
+        >>> import rasterio
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> with rasterio.open(prod.get_default_band_path()) as dst:
+        >>>     band, meta = prod.read_band(dst, x_res=20, y_res=20)  # You can create not square pixels here
+        >>> band
+        masked_array(
+          data=[[[--, ..., --]]],
+          mask=[[[True, ..., True]]],
+          fill_value=0.0,
+          dtype=float32)
+        >>> meta
+        {
+            'driver': 'JP2OpenJPEG',
+            'dtype': <class 'numpy.float32'>,
+            'nodata': None,
+            'width': 5490,
+            'height': 5490,
+            'count': 1,
+            'crs': CRS.from_epsg(32630),
+            'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
+        }
+        ```
 
         Args:
             dataset (Dataset): Band dataset
@@ -388,7 +513,7 @@ class SarProduct(Product):
         for band_name, band_path in band_paths.items():
             with rasterio.open(band_path) as band_ds:
                 # Read CSK band
-                band_arrays[band_name], ds_meta = self.read_band(band_ds, resolution, resolution)
+                band_arrays[band_name], ds_meta = self._read_band(band_ds, resolution, resolution)
 
                 # Meta
                 if not meta:
@@ -400,8 +525,37 @@ class SarProduct(Product):
              band_and_idx_list: Union[list, BandNames, Callable],
              resolution: float = 20) -> (dict, dict):
         """
-        Open the bands and compute the wanted index.
-        You can add some bands in the dict.
+        Load SAR bands.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> bands, meta = prod.load([GREEN, NDVI], resolution=20)  # Always square pixels here
+        >>> bands
+        {<function NDVI at 0x00000227FBB929D8>: masked_array(
+          data=[[[--, ..., --]]],
+          mask=[[[True, ..., True]]],
+          fill_value=0.0,
+          dtype=float32),
+          <OpticalBandNames.GREEN: 'GREEN'>: masked_array(
+          data=[[[0.061400000005960464, ..., 0.15799999237060547]]],
+          mask=[[[False, ..., False]]],
+          fill_value=0.0,
+          dtype=float32)}
+        >>> meta
+        {
+            'driver': 'GTiff',
+            'dtype': dtype('float32'),
+            'nodata': 0.0,
+            'width': 14900,
+            'height': 11014,
+            'count': 1,
+            'crs': CRS.from_epsg(32630),
+            'transform': Affine(20.000671140939595, 0.0, 554358.8404375388, 0.0, -19.999092064644998, 4897675.306485827)
+        }
+        ```
 
         Args:
             band_and_idx_list (list, index): Index list
@@ -427,16 +581,6 @@ class SarProduct(Product):
 
         return self._load_bands(band_and_idx_list, resolution)
 
-    @abstractmethod
-    def get_condensed_name(self) -> str:
-        """
-        Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
-
-        Returns:
-            str: Condensed S1 name
-        """
-        raise NotImplementedError("This method should be implemented by a child class")
-
     def _pre_process_sar(self, resolution: float = None) -> dict:
         """
         Pre-process SAR data (orthorectify...)
@@ -452,7 +596,7 @@ class SarProduct(Product):
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Set command as a list
-            target_file = os.path.join(tmp_dir, f"{self.get_condensed_name()}")
+            target_file = os.path.join(tmp_dir, f"{self._get_condensed_name()}")
 
             # Use dimap for speed and security (ie. GeoTiff's broken georef)
             pp_target = f"{target_file}"
@@ -473,13 +617,13 @@ class SarProduct(Product):
                 def_res = float(os.environ.get(SAR_DEF_RES, 0.0))
                 res_m = resolution if resolution else def_res
                 res_deg = res_m / 10. * 8.983152841195215E-5  # Approx
-                cmd_list = utils.get_gpt_cli(pp_graph,
-                                             [f'-Pfile={strings.to_cmd_string(self.snap_path)}',
-                                              f'-Pout={pp_dim}',
-                                              f'-Pcrs={self.utm_crs()}',
-                                              f'-Pres_m={res_m}',
-                                              f'-Pres_deg={res_deg}'],
-                                             display_snap_opt=LOGGER.level == logging.DEBUG)
+                cmd_list = snap.get_gpt_cli(pp_graph,
+                                            [f'-Pfile={strings.to_cmd_string(self._snap_path)}',
+                                             f'-Pout={pp_dim}',
+                                             f'-Pcrs={self.utm_crs()}',
+                                             f'-Pres_m={res_m}',
+                                             f'-Pres_deg={res_deg}'],
+                                            display_snap_opt=LOGGER.level == logging.DEBUG)
 
                 # Pre-process SAR images according to the given graph
                 LOGGER.debug("Pre-process SAR image")
@@ -505,7 +649,7 @@ class SarProduct(Product):
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Out files
-            target_file = os.path.join(tmp_dir, f"{self.get_condensed_name()}_DESPK")
+            target_file = os.path.join(tmp_dir, f"{self._get_condensed_name()}_DESPK")
             dspk_dim = target_file + '.dim'
 
             # Despeckle graph
@@ -519,10 +663,10 @@ class SarProduct(Product):
             # Create command line and run it
             if not os.path.isfile(dspk_dim):
                 path = self.get_band_paths([band])[band]
-                cmd_list = utils.get_gpt_cli(dspk_graph,
-                                             [f'-Pfile={path}',
-                                              f'-Pout={dspk_dim}'],
-                                             display_snap_opt=False)
+                cmd_list = snap.get_gpt_cli(dspk_graph,
+                                            [f'-Pfile={path}',
+                                             f'-Pout={dspk_dim}'],
+                                            display_snap_opt=False)
 
                 # Pre-process SAR images according to the given graph
                 LOGGER.debug("Despeckle SAR image")
