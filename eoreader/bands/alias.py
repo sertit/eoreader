@@ -15,6 +15,7 @@ To use it, simply type:
 """
 # Module name begins with _ to not be imported with *
 import typing as _tp
+from eoreader.exceptions import InvalidTypeError
 from eoreader.bands.bands import OpticalBandNames as _obn, SarBandNames as _sbn
 from eoreader.bands import index as _idx
 
@@ -172,3 +173,54 @@ def is_band(band: _tp.Any) -> bool:
 
     """
     return is_sar_band(band) or is_optical_band(band)
+
+
+def to_band_or_idx(to_convert: _tp.Union[list, str]) -> list:
+    """
+    Convert a string (or real value) to any alias, band or index.
+
+    You can pass the name or the value of the bands.
+
+    ```python
+    >>> to_band_or_idx(["NDVI", "GREEN", RED, "DESPK_VH"])
+    [<function NDVI at 0x000002C0D903E158>,
+    <OpticalBandNames.GREEN: 'GREEN'>,
+    <OpticalBandNames.RED: 'RED'>,
+    <SarBandNames.VH_DSPK: 'DESPK_VH'>]
+    ```
+    Args:
+        to_convert:
+
+    Returns:
+
+    """
+    if not isinstance(to_convert, list):
+        to_convert = [to_convert]
+
+    bands_or_idx = []
+    for tc in to_convert:
+        band_or_idx = None
+        # Try legit types
+        if isinstance(tc, str):
+            # Try index
+            if hasattr(_idx, tc):
+                band_or_idx = getattr(_idx, tc)
+            else:
+                try:
+                    band_or_idx = _sbn.convert_from(tc)[0]
+                except TypeError:
+                    try:
+                        band_or_idx = _obn.convert_from(tc)[0]
+                    except TypeError:
+                        pass
+
+        elif is_index(tc) or is_band(tc):
+            band_or_idx = tc
+
+        # Store it
+        if band_or_idx:
+            bands_or_idx.append(band_or_idx)
+        else:
+            raise InvalidTypeError(f"Unknown band or index: {tc}")
+
+    return bands_or_idx
