@@ -9,7 +9,7 @@ pytest:
   before_script:
     - pip install -e .
   script:
-    - pytest -v --cov-report term --cov-report xml:cov.xml --cov=extracteo CI/SCRIPTS
+    - pytest -v --cov-report term --cov-report xml:cov.xml --cov=eoreader CI/SCRIPTS
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - linux
