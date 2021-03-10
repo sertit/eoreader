@@ -7,22 +7,22 @@ This project allows you to read and open satellite data.
 >>> from eoreader.bands.alias import *
 
 >>> # Your variables
->>> opt_path = "path\to\your\satellite"
+>>> path = "path\to\your\satellite"  # Optical in this example
 >>> resolution = 20  # in meters
 
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()  # This is a singleton
->>> prod = eoreader.open(opt_path)  # The Reader will recognize the satellite type from its name
+>>> prod = eoreader.open(path)  # The Reader will recognize the satellite type from its name
 
 >>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
 >>> footprint = prod.footprint
 >>> extent = prod.extent
 
 >>> # Load some bands and index
->>> idx, meta = prod.load([NDVI, MNDWI, GREEN],resolution=resolution)
->>> ndvi = idx[NDVI]
->>> mndwi = idx[MNDWI]
->>> green = idx[GREEN]
+>>> bands, meta = prod.load([NDVI, MNDWI, GREEN], resolution=resolution)
+>>> ndvi = bands[NDVI]
+>>> mndwi = bands[MNDWI]
+>>> green = bands[GREEN]
 
 >>> # Warp a DEM over the tile, using an internal DEM (EUDEM over Europe, MERIT DEM everywhere else)
 >>> wp_dem_path = prod.warp_dem(resolution=resolution)

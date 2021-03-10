@@ -1,11 +1,10 @@
 """
-Optical Index
-More information here: https://www.indexdatabase.de/
+Set of usual optical index.
 
-Note: for now the nodata is always considered as set to 0.
+**Note**: The nodata is always considered to be set to 0.
 If this changes, it will become mandatory to use the NODATA mask everywhere !
 
-Note 2: Easier if not a class
+**Note 2**: This is easier to manage index as raw functions in a file rather than stored in a class
 """
 # Index not snake case
 # pylint: disable=C0103
@@ -27,7 +26,7 @@ np.seterr(divide='ignore', invalid='ignore')
 NODATA = 0
 
 
-def set_no_data(idx: np.ma.masked_array) -> np.ma.masked_array:
+def _set_no_data(idx: np.ma.masked_array) -> np.ma.masked_array:
     """
     Set nodata to a masked array (replacing masked pixel values by the fill_value)
     Args:
@@ -41,7 +40,7 @@ def set_no_data(idx: np.ma.masked_array) -> np.ma.masked_array:
     return idx
 
 
-def no_data_divide(band_1: Union[float, np.ma.masked_array], band_2: np.ma.masked_array) -> np.ma.masked_array:
+def _no_data_divide(band_1: Union[float, np.ma.masked_array], band_2: np.ma.masked_array) -> np.ma.masked_array:
     """
     Get the dicision taking into account the nodata between b1 and b2
 
@@ -52,10 +51,10 @@ def no_data_divide(band_1: Union[float, np.ma.masked_array], band_2: np.ma.maske
     Returns:
         np.ma.masked_array: Division between band 1 and band 2
     """
-    return set_no_data(np.divide(band_1, band_2))
+    return _set_no_data(np.divide(band_1, band_2))
 
 
-def norm_diff(band_1: np.ma.masked_array, band_2: np.ma.masked_array) -> np.ma.masked_array:
+def _norm_diff(band_1: np.ma.masked_array, band_2: np.ma.masked_array) -> np.ma.masked_array:
     """
     Get normalized difference index between band 1 and band 2:
     (band_1 - band_2)/(band_1 + band_2)
@@ -68,7 +67,7 @@ def norm_diff(band_1: np.ma.masked_array, band_2: np.ma.masked_array) -> np.ma.m
         np.ma.masked_array: Normalized Difference between band 1 and band 2
 
     """
-    return no_data_divide(band_1 - band_2, band_1 + band_2)
+    return _no_data_divide(band_1 - band_2, band_1 + band_2)
 
 
 def RGI(bands: dict) -> np.ma.masked_array:
@@ -82,7 +81,7 @@ def RGI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return no_data_divide(bands[obn.RED], bands[obn.GREEN])
+    return _no_data_divide(bands[obn.RED], bands[obn.GREEN])
 
 
 def NDVI(bands: dict) -> np.ma.masked_array:
@@ -96,7 +95,7 @@ def NDVI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return norm_diff(bands[obn.NIR], bands[obn.RED])
+    return _norm_diff(bands[obn.NIR], bands[obn.RED])
 
 
 def TCBRI(bands: dict) -> np.ma.masked_array:
@@ -112,8 +111,8 @@ def TCBRI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return set_no_data(0.3037 * bands[obn.BLUE] + 0.2793 * bands[obn.GREEN] + 0.4743 * bands[obn.RED] +
-                       0.5585 * bands[obn.NIR] + 0.5082 * bands[obn.SWIR_1] + 0.1863 * bands[obn.SWIR_2])
+    return _set_no_data(0.3037 * bands[obn.BLUE] + 0.2793 * bands[obn.GREEN] + 0.4743 * bands[obn.RED] +
+                        0.5585 * bands[obn.NIR] + 0.5082 * bands[obn.SWIR_1] + 0.1863 * bands[obn.SWIR_2])
 
 
 def TCGRE(bands: dict) -> np.ma.masked_array:
@@ -129,8 +128,8 @@ def TCGRE(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return set_no_data(- 0.2848 * bands[obn.BLUE] - 0.2435 * bands[obn.GREEN] - 0.5436 * bands[obn.RED] +
-                       0.7243 * bands[obn.NIR] + 0.0840 * bands[obn.SWIR_1] - 0.1800 * bands[obn.SWIR_2])
+    return _set_no_data(- 0.2848 * bands[obn.BLUE] - 0.2435 * bands[obn.GREEN] - 0.5436 * bands[obn.RED] +
+                        0.7243 * bands[obn.NIR] + 0.0840 * bands[obn.SWIR_1] - 0.1800 * bands[obn.SWIR_2])
 
 
 def TCWET(bands: dict) -> np.ma.masked_array:
@@ -146,8 +145,8 @@ def TCWET(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return set_no_data(0.1509 * bands[obn.BLUE] + 0.1973 * bands[obn.GREEN] + 0.3279 * bands[obn.RED] +
-                       0.3406 * bands[obn.NIR] - 0.7112 * bands[obn.SWIR_1] - 0.4572 * bands[obn.SWIR_2])
+    return _set_no_data(0.1509 * bands[obn.BLUE] + 0.1973 * bands[obn.GREEN] + 0.3279 * bands[obn.RED] +
+                        0.3406 * bands[obn.NIR] - 0.7112 * bands[obn.SWIR_1] - 0.4572 * bands[obn.SWIR_2])
 
 
 def NDRE2(bands: dict) -> np.ma.masked_array:
@@ -160,7 +159,7 @@ def NDRE2(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return norm_diff(bands[obn.NIR], bands[obn.VRE_1])
+    return _norm_diff(bands[obn.NIR], bands[obn.VRE_1])
 
 
 def NDRE3(bands: dict) -> np.ma.masked_array:
@@ -174,7 +173,7 @@ def NDRE3(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return norm_diff(bands[obn.NIR], bands[obn.VRE_2])
+    return _norm_diff(bands[obn.NIR], bands[obn.VRE_2])
 
 
 def GLI(bands: dict) -> np.ma.masked_array:
@@ -188,8 +187,8 @@ def GLI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return no_data_divide(2 * (bands[obn.GREEN] - bands[obn.RED] - bands[obn.BLUE]),
-                          2 * (bands[obn.GREEN] + bands[obn.RED] + bands[obn.BLUE]))
+    return _no_data_divide(2 * (bands[obn.GREEN] - bands[obn.RED] - bands[obn.BLUE]),
+                           2 * (bands[obn.GREEN] + bands[obn.RED] + bands[obn.BLUE]))
 
 
 def GNDVI(bands: dict) -> np.ma.masked_array:
@@ -203,7 +202,7 @@ def GNDVI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return norm_diff(bands[obn.NIR], bands[obn.GREEN])
+    return _norm_diff(bands[obn.NIR], bands[obn.GREEN])
 
 
 def RI(bands: dict) -> np.ma.masked_array:
@@ -217,7 +216,7 @@ def RI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return norm_diff(bands[obn.VRE_1], + bands[obn.GREEN])
+    return _norm_diff(bands[obn.VRE_1], + bands[obn.GREEN])
 
 
 def NDGRI(bands: dict) -> np.ma.masked_array:
@@ -233,7 +232,7 @@ def NDGRI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return norm_diff(bands[obn.GREEN], bands[obn.RED])
+    return _norm_diff(bands[obn.GREEN], bands[obn.RED])
 
 
 def CIG(bands: dict) -> np.ma.masked_array:
@@ -247,21 +246,7 @@ def CIG(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return set_no_data(np.divide(bands[obn.NIR], bands[obn.GREEN]) - 1)
-
-
-def PGR(bands: dict) -> np.ma.masked_array:
-    """
-    # TODO: ???
-
-    Args:
-        bands (dict): Bands as {band_name: numpy array}
-
-    Returns:
-        np.ma.masked_array: Computed index
-
-    """
-    return norm_diff(bands[obn.GREEN], bands[obn.BLUE])
+    return _set_no_data(np.divide(bands[obn.NIR], bands[obn.GREEN]) - 1)
 
 
 def NDMI(bands: dict) -> np.ma.masked_array:
@@ -275,7 +260,7 @@ def NDMI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return norm_diff(bands[obn.NIR], + bands[obn.SWIR_1])
+    return _norm_diff(bands[obn.NIR], + bands[obn.SWIR_1])
 
 
 def DSWI(bands: dict) -> np.ma.masked_array:
@@ -289,7 +274,7 @@ def DSWI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return no_data_divide(bands[obn.NIR] + bands[obn.GREEN], bands[obn.SWIR_1] + bands[obn.RED])
+    return _no_data_divide(bands[obn.NIR] + bands[obn.GREEN], bands[obn.SWIR_1] + bands[obn.RED])
 
 
 def LWCI(bands: dict) -> np.ma.masked_array:
@@ -304,8 +289,8 @@ def LWCI(bands: dict) -> np.ma.masked_array:
 
     """
     LOGGER.warning("This index formula is suspect (constant, = -1). You should use another one.")
-    return - no_data_divide(np.log(1 - (bands[obn.NIR] - bands[obn.SWIR_1])),
-                            np.log(1 - (bands[obn.NIR] - bands[obn.SWIR_1])))
+    return - _no_data_divide(np.log(1 - (bands[obn.NIR] - bands[obn.SWIR_1])),
+                             np.log(1 - (bands[obn.NIR] - bands[obn.SWIR_1])))
 
 
 def SRSWIR(bands: dict) -> np.ma.masked_array:
@@ -319,7 +304,7 @@ def SRSWIR(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return no_data_divide(bands[obn.SWIR_1], bands[obn.SWIR_2])
+    return _no_data_divide(bands[obn.SWIR_1], bands[obn.SWIR_2])
 
 
 def RDI(bands: dict) -> np.ma.masked_array:
@@ -333,7 +318,7 @@ def RDI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return no_data_divide(bands[obn.SWIR_2], bands[obn.NNIR])
+    return _no_data_divide(bands[obn.SWIR_2], bands[obn.NNIR])
 
 
 def NDWI(bands: dict) -> np.ma.masked_array:
@@ -347,7 +332,7 @@ def NDWI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return norm_diff(bands[obn.GREEN], bands[obn.NIR])
+    return _norm_diff(bands[obn.GREEN], bands[obn.NIR])
 
 
 def BAI(bands: dict) -> np.ma.masked_array:
@@ -360,7 +345,7 @@ def BAI(bands: dict) -> np.ma.masked_array:
     Returns:
         np.ma.masked_array: Computed index
     """
-    return no_data_divide(1, (0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)
+    return _no_data_divide(1, (0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)
 
 
 def NBR(bands: dict) -> np.ma.masked_array:
@@ -374,7 +359,7 @@ def NBR(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return norm_diff(bands[obn.NNIR], bands[obn.SWIR_2])
+    return _norm_diff(bands[obn.NNIR], bands[obn.SWIR_2])
 
 
 def MNDWI(bands: dict) -> np.ma.masked_array:
@@ -388,7 +373,7 @@ def MNDWI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return norm_diff(bands[obn.GREEN], bands[obn.SWIR_1])
+    return _norm_diff(bands[obn.GREEN], bands[obn.SWIR_1])
 
 
 def AWEInsh(bands: dict) -> np.ma.masked_array:
@@ -402,7 +387,7 @@ def AWEInsh(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return set_no_data(4 * (bands[obn.GREEN] - bands[obn.SWIR_1]) - (0.25 * bands[obn.NIR] + 2.75 * bands[obn.SWIR_2]))
+    return _set_no_data(4 * (bands[obn.GREEN] - bands[obn.SWIR_1]) - (0.25 * bands[obn.NIR] + 2.75 * bands[obn.SWIR_2]))
 
 
 def AWEIsh(bands: dict) -> np.ma.masked_array:
@@ -416,8 +401,8 @@ def AWEIsh(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return set_no_data(bands[obn.BLUE] + 2.5 * bands[obn.GREEN] -
-                       1.5 * (bands[obn.NIR] + bands[obn.SWIR_1]) - 0.25 * bands[obn.SWIR_2])
+    return _set_no_data(bands[obn.BLUE] + 2.5 * bands[obn.GREEN] -
+                        1.5 * (bands[obn.NIR] + bands[obn.SWIR_1]) - 0.25 * bands[obn.SWIR_2])
 
 
 def WI(bands: dict) -> np.ma.masked_array:
@@ -430,8 +415,8 @@ def WI(bands: dict) -> np.ma.masked_array:
     Returns:
         np.ma.masked_array: Computed index
     """
-    return set_no_data(1.7204 + 171 * bands[obn.GREEN] + 3 * bands[obn.RED] -
-                       70 * bands[obn.NIR] - 45 * bands[obn.SWIR_1] - 71 * bands[obn.SWIR_2])
+    return _set_no_data(1.7204 + 171 * bands[obn.GREEN] + 3 * bands[obn.RED] -
+                        70 * bands[obn.NIR] - 45 * bands[obn.SWIR_1] - 71 * bands[obn.SWIR_2])
 
 
 def AFRI_1_6(bands: dict) -> np.ma.masked_array:
@@ -444,7 +429,7 @@ def AFRI_1_6(bands: dict) -> np.ma.masked_array:
     Returns:
         np.ma.masked_array: Computed index
     """
-    return norm_diff(bands[obn.NIR], 0.66 * bands[obn.SWIR_1])
+    return _norm_diff(bands[obn.NIR], 0.66 * bands[obn.SWIR_1])
 
 
 def AFRI_2_1(bands: dict) -> np.ma.masked_array:
@@ -460,7 +445,7 @@ def AFRI_2_1(bands: dict) -> np.ma.masked_array:
     Returns:
         np.ma.masked_array: Computed index
     """
-    return norm_diff(bands[obn.NIR], 0.5 * bands[obn.SWIR_2])
+    return _norm_diff(bands[obn.NIR], 0.5 * bands[obn.SWIR_2])
 
 
 def BSI(bands: dict) -> np.ma.masked_array:
@@ -477,12 +462,19 @@ def BSI(bands: dict) -> np.ma.masked_array:
     Returns:
         np.ma.masked_array: Computed index
     """
-    return norm_diff(bands[obn.RED] + bands[obn.SWIR_1], bands[obn.NIR] + bands[obn.BLUE])
+    return _norm_diff(bands[obn.RED] + bands[obn.SWIR_1], bands[obn.NIR] + bands[obn.BLUE])
 
 
 def get_all_index() -> list:
     """
     Get all index names contained in this file
+
+    ```python
+    >>> from eoreader.bands import index
+    >>> index.get_all_index()
+    ['AFRI_1_6', 'AFRI_2_1', 'AWEInsh', 'AWEIsh', 'BAI', ..., 'WI']
+    ```
+
     Returns:
         list: Index names
 
@@ -502,6 +494,10 @@ def get_needed_bands(index: Callable) -> list:
     """
     Gather all the needed bands for the specified index function
 
+    ```python
+    >>> index.get_needed_bands(index.NDVI)
+    [<OpticalBandNames.NIR: 'NIR'>, <OpticalBandNames.RED: 'RED'>]
+    ```
     Returns:
         list: Needed bands for the index function
     """
@@ -517,6 +513,23 @@ def get_needed_bands(index: Callable) -> list:
 def get_all_needed_bands() -> dict:
     """
     Gather all the needed bands for all index functions
+
+    ```python
+    >>> index.get_all_needed_bands()
+    {
+        <function AFRI_1_6 at 0x00000261F6FF36A8>: [<OpticalBandNames.NIR: 'NIR'>, <OpticalBandNames.SWIR_2: 'SWIR_2'>],
+        ...
+        <function WI at 0x00000261F6FF3620>: [<OpticalBandNames.NIR: 'NIR'>, <OpticalBandNames.SWIR_1: 'SWIR_1'>]
+    }
+
+    >>> # Or written in a more readable fashion:
+    >>> {idx.__name__: [band.value for band in bands] for idx, bands in index.get_all_needed_bands().items()}
+    {
+        'AFRI_1_6': ['NIR', 'SWIR_2'],
+        ...,
+        'WI': ['NIR', 'SWIR_1']
+    }
+    ```
 
     Returns:
         dict: Needed bands for all index functions

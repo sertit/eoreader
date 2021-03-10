@@ -1,4 +1,7 @@
-""" Sentinel-2 Theia products """
+"""
+Sentinel-2 Theia products
+See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more information.
+"""
 
 import glob
 import logging
@@ -10,8 +13,7 @@ import rasterio
 from lxml import etree
 import numpy as np
 from rasterio.enums import Resampling
-from sertit import files
-from sertit import rasters
+from sertit import files, rasters
 
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.optical.s2_product import S2ProductType
@@ -24,16 +26,16 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 class S2TheiaProduct(OpticalProduct):
     """
-    Class of Sentinel-2 Theia Products
-    https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
+    Class of Sentinel-2 Theia Products.
+    See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more information.
     """
 
     def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
         super().__init__(product_path, archive_path, output_path)
-        self.tile_name = self.retrieve_tile_names()
-        self.condensed_name = self.get_condensed_name()
+        self.tile_name = self._get_tile_name()
+        self.condensed_name = self._get_condensed_name()
 
-    def retrieve_tile_names(self) -> str:
+    def _get_tile_name(self) -> str:
         """
         Retrieve tile name
 
@@ -43,7 +45,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return self.split_name[3]
 
-    def get_product_type(self) -> None:
+    def _set_product_type(self) -> None:
         """ Get products type """
         self.product_type = S2ProductType.L2A
         self.band_names.map_bands({
@@ -65,7 +67,17 @@ class S2TheiaProduct(OpticalProduct):
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime.datetime]:
         """
-        Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
+        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+        >>> prod = Reader().open(path)
+        >>> prod.get_datetime(as_datetime=True)
+        datetime.datetime(2019, 6, 25, 10, 57, 28, 756000), fetched from metadata, so we have the ms
+        >>> prod.get_datetime(as_datetime=False)
+        '20190625T105728'
+        ```
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -83,7 +95,19 @@ class S2TheiaProduct(OpticalProduct):
 
     def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
         """
-        Return the folder containing the bands of a proper S2 products.
+        Return the paths of required bands.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+        >>> prod = Reader().open(path)
+        >>> prod.get_band_paths([GREEN, RED])
+        {
+            <OpticalBandNames.GREEN: 'GREEN'>: 'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2\\SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B3.tif',
+            <OpticalBandNames.RED: 'RED'>: 'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2\\SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B4.tif'
+        }
+        ```
 
         Args:
             band_list (list): List of the wanted bands
@@ -102,9 +126,38 @@ class S2TheiaProduct(OpticalProduct):
 
         return band_paths
 
-    def read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
+    def _read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
         """
-        Read band from a dataset -> Manage if they need to be divided by 10k or not.
+        Read band from a dataset
+
+        **WARNING**: Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
+
+        ```python
+        >>> import rasterio
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+        >>> prod = Reader().open(path)
+        >>> with rasterio.open(prod.get_default_band_path()) as dst:
+        >>>     band, meta = prod.read_band(dst, x_res=20, y_res=20)  # You can create not square pixels here
+        >>> band
+        masked_array(
+          data=[[[0.05339999869465828, ..., 0.05790000036358833]]],
+          mask=[[[False, ..., False],
+          fill_value=1e+20,
+          dtype=float32)
+        >>> meta
+        {
+            'driver': 'GTiff',
+            'dtype': <class 'numpy.float32'>,
+            'nodata': 0,
+            'width': 5490,
+            'height': 5490,
+            'count': 1,
+            'crs': CRS.from_epsg(32631),
+            'transform': Affine(20.0, 0.0, 499980.0, 0.0, -20.0, 5500020.0)
+        }
+        ```
 
         Args:
             dataset (Dataset): Band dataset
@@ -119,6 +172,7 @@ class S2TheiaProduct(OpticalProduct):
         # Compute the correct radiometry of the band
         band = band.astype(np.float32) / 10000.
         dst_meta["dtype"] = np.float32
+        dst_meta["nodata"] = 0
 
         return band, dst_meta
 
@@ -214,7 +268,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return band_arrays, meta
 
-    def get_condensed_name(self) -> str:
+    def _get_condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
 
@@ -225,7 +279,15 @@ class S2TheiaProduct(OpticalProduct):
 
     def get_mean_sun_angles(self) -> (float, float):
         """
-        Get Mean Sun angles (Zenith and Azimuth angles)
+        Get Mean Sun angles (Azimuth and Zenith angles)
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+        >>> prod = Reader().open(path)
+        >>> prod.get_mean_sun_angles()
+        (154.554755774838, 27.5941391571236)
+        ```
 
         Returns:
             (float, float): Mean Azimuth and Zenith angle

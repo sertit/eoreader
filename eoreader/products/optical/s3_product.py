@@ -13,8 +13,7 @@ import rasterio
 import geopandas as gpd
 from rasterio.enums import Resampling
 from rasterio.windows import Window
-from sertit import rasters, vectors
-from sertit import files, strings, misc
+from sertit import rasters, vectors, files, strings, misc, snap
 from sertit.misc import ListEnum
 
 from eoreader import utils
@@ -30,31 +29,41 @@ S3_DEF_RES = "EOREADER_S3_DEFAULT_RES"
 
 @unique
 class S3ProductType(ListEnum):
-    """ Sentinel-3 products types (only L1)"""
+    """ Sentinel-3 products types (not exhaustive, only L1)"""
     OLCI_EFR = "OL_1_EFR___"
+    """OLCI EFR Product Type"""
+
     SLSTR_RBT = "SL_1_RBT___"
+    """SLSTR RBT Product Type"""
 
 
 @unique
 class S3Instrument(ListEnum):
     """ Sentinel-3 products types """
     OLCI = "OLCI"
+    """OLCI Instrument"""
+
     SLSTR = "SLSTR"
+    """SLSTR Instrument"""
 
 
 @unique
 class S3DataTypes(ListEnum):
-    """ Sentinel-3 data types -> only consider useful ones """
-    EFR = "EFR___"  # For OLCI
-    RBT = "RBT__"  # For SLSTR
+    """ Sentinel-3 data types -> only considering useful ones """
+    EFR = "EFR___"
+    """EFR Data Type, for OLCI instrument"""
+
+    RBT = "RBT__"
+    """RBT Data Type, for SLSTR instrument"""
 
 
 class S3Product(OpticalProduct):
     """
     Class of Sentinel-3 Products
 
-    Note: All S3-OLCI bands won't be used in eoreader !
-    Note: We only use NADIR rasters for S3-SLSTR bands (and maybe the 7th band wont be used in EEO)
+    **Note**: All S3-OLCI bands won't be used in EOReader !
+
+    **Note**: We only use NADIR rasters for S3-SLSTR bands
     """
 
     def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
@@ -62,9 +71,9 @@ class S3Product(OpticalProduct):
         self.data_type = None
         super().__init__(product_path, archive_path, output_path)  # Order is important here
         self.snap_no_data = -1
-        self.condensed_name = self.get_condensed_name()
+        self.condensed_name = self._get_condensed_name()
 
-    def get_product_type(self) -> None:
+    def _set_product_type(self) -> None:
         """ Get products type """
         # Product type
         if self.name[7] != "1":
@@ -124,7 +133,17 @@ class S3Product(OpticalProduct):
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
-        Get the products's acquisition datetime, with format YYYYMMDDTHHMMSS <-> %Y%m%dT%H%M%S
+        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
+        >>> prod = Reader().open(path)
+        >>> prod.get_datetime(as_datetime=True)
+        datetime.datetime(2019, 11, 15, 23, 37, 22)
+        >>> prod.get_datetime(as_datetime=False)
+        '20191115T233722'
+        ```
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -140,7 +159,7 @@ class S3Product(OpticalProduct):
 
         return date
 
-    def get_snap_band_name(self, band: obn) -> str:
+    def _get_snap_band_name(self, band: obn) -> str:
         """
         Get SNAP band name.
         Args:
@@ -167,7 +186,7 @@ class S3Product(OpticalProduct):
 
         return snap_bn
 
-    def get_band_from_filename(self, band_filename: str) -> obn:
+    def _get_band_from_filename(self, band_filename: str) -> obn:
         """
         Get band from filename
         Args:
@@ -189,7 +208,7 @@ class S3Product(OpticalProduct):
 
         return band
 
-    def get_slstr_quality_flags_name(self, band: obn) -> str:
+    def _get_slstr_quality_flags_name(self, band: obn) -> str:
         """
         Get SNAP band name.
         Args:
@@ -211,7 +230,7 @@ class S3Product(OpticalProduct):
 
         return snap_bn
 
-    def get_band_filename(self, band: Union[obn, str]) -> str:
+    def _get_band_filename(self, band: Union[obn, str]) -> str:
         """
         Get band filename from its band type
 
@@ -222,7 +241,7 @@ class S3Product(OpticalProduct):
             str: Band name
         """
         if isinstance(band, obn):
-            snap_name = self.get_snap_band_name(band)
+            snap_name = self._get_snap_band_name(band)
         elif isinstance(band, str):
             snap_name = band
         else:
@@ -236,7 +255,23 @@ class S3Product(OpticalProduct):
 
     def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
         """
-        Return the folder containing the bands of a proper S2 products.
+        Return the paths of required bands.
+
+        **WARNING**: If not existing, this function will orthorectify your bands !
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
+        >>> prod = Reader().open(path)
+        >>> prod.get_band_paths([GREEN, RED])
+        Executing processing graph
+        ...11%...21%...31%...42%...52%...62%...73%...83%... done.
+        {
+            <OpticalBandNames.GREEN: 'GREEN'>: '20191115T233722_S3_SLSTR_RBT\\S1_reflectance.tif',
+            <OpticalBandNames.RED: 'RED'>: '20191115T233722_S3_SLSTR_RBT\\S2_reflectance.tif',
+        }
+        ```
 
         Args:
             band_list (list): List of the wanted bands
@@ -249,7 +284,7 @@ class S3Product(OpticalProduct):
         use_snap = False
         for band in band_list:
             # Get standard band names
-            band_name = self.get_band_filename(band)
+            band_name = self._get_band_filename(band)
 
             try:
                 # Try to open converted images
@@ -259,15 +294,43 @@ class S3Product(OpticalProduct):
 
         # If not existing (file or output), convert them
         if use_snap:
-            band_paths = self._preprocess_s3(resolution)
+            all_band_paths = self._preprocess_s3(resolution)
+            band_paths = {band: all_band_paths[band] for band in band_list}
 
         return band_paths
 
-    # unused band_name (compatibility reasons)
     # pylint: disable=W0613
-    def read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
+    def _read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
         """
-        Read band from a dataset
+        Read band from a dataset.
+
+        **WARNING**: Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
+
+        ```python
+        >>> import rasterio
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
+        >>> prod = Reader().open(path)
+        >>> with rasterio.open(prod.get_default_band_path()) as dst:
+        >>>     band, meta = prod.read_band(dst, x_res=500, y_res=500)  # You can create not square pixels here
+        >>> band
+        masked_array(
+          data=[[[-1.0, ..., -1.0]]],
+          mask=[[[False, ..., False],
+          fill_value=1e+20,
+          dtype=float32)
+        >>> meta
+        {
+            'driver': 'GTiff',
+            'dtype': dtype('float32'),
+            'nodata': 0.0,
+            'width': 3530,
+            'height': 3099,
+            'count': 1,
+            'crs': CRS.from_epsg(32755),
+            'transform': Affine(500.0, 0.0, -276153.9721025338, 0.0, -500.0, 7671396.450676169)
+        }
 
         Args:
             dataset (Dataset): Band dataset
@@ -434,7 +497,7 @@ class S3Product(OpticalProduct):
         nodata_false = 0
 
         # Open quality flags (discard _an/_in)
-        qual_flags_path = os.path.join(self.output, self.get_slstr_quality_flags_name(band)[:-3] + ".tif")
+        qual_flags_path = os.path.join(self.output, self._get_slstr_quality_flags_name(band)[:-3] + ".tif")
         if not os.path.isfile(qual_flags_path):
             LOGGER.warning("Impossible to open quality flags %s. Taking the band as is.", qual_flags_path)
             return band_arr, meta
@@ -500,7 +563,7 @@ class S3Product(OpticalProduct):
             # Save all processed bands and quality flags into GeoTIFFs
             for snap_band_name in processed_bands:
                 # Get standard band names
-                band_name = self.get_band_filename(snap_band_name)
+                band_name = self._get_band_filename(snap_band_name)
 
                 # Remove tif if already existing
                 # (if we are here, sth has failed when creating them, so delete them all)
@@ -515,7 +578,7 @@ class S3Product(OpticalProduct):
 
         # Get the wanted bands (not the quality flags here !)
         for band in processed_bands:
-            filename = self.get_band_filename(band)
+            filename = self._get_band_filename(band)
             if "exception" not in filename:
                 out_tif = os.path.join(self.output, filename + ".tif")
                 if not os.path.isfile(out_tif):
@@ -523,7 +586,7 @@ class S3Product(OpticalProduct):
 
                 # Quality flags will crash here
                 try:
-                    band_paths[self.get_band_from_filename(filename)] = out_tif
+                    band_paths[self._get_band_from_filename(filename)] = out_tif
                 except ValueError:
                     pass
 
@@ -542,7 +605,7 @@ class S3Product(OpticalProduct):
         """
         # Construct GPT graph
         graph_path = os.path.join(utils.get_data_dir(), "gpt_graphs", "preprocess_s3.xml")
-        snap_bands = ",".join([self.get_snap_band_name(band)
+        snap_bands = ",".join([self._get_snap_band_name(band)
                                for band, band_nb in self.band_names.items() if band_nb])
         if self.instrument_name == S3Instrument.OLCI:
             sensor = "OLCI"
@@ -553,19 +616,19 @@ class S3Product(OpticalProduct):
             sensor = "SLSTR_500m"
             fmt = "Sen3_SLSTRL1B_500m"
             def_res = os.environ.get(S3_DEF_RES, 500)
-            exception_bands = ",".join([self.get_slstr_quality_flags_name(band)
+            exception_bands = ",".join([self._get_slstr_quality_flags_name(band)
                                         for band, band_nb in self.band_names.items() if band_nb])
             snap_bands += f",{exception_bands}"
 
         # Run GPT graph
-        cmd_list = utils.get_gpt_cli(graph_path, [f'-Pin={strings.to_cmd_string(self.path)}',
-                                                  f'-Pbands={snap_bands}',
-                                                  f'-Psensor={sensor}',
-                                                  f'-Pformat={fmt}',
-                                                  f'-Pno_data={self.snap_no_data}',
-                                                  f'-Pres_m={resolution if resolution else def_res}',
-                                                  f'-Pout={strings.to_cmd_string(out_dim)}'],
-                                     display_snap_opt=LOGGER.level == logging.DEBUG)
+        cmd_list = snap.get_gpt_cli(graph_path, [f'-Pin={strings.to_cmd_string(self.path)}',
+                                                 f'-Pbands={snap_bands}',
+                                                 f'-Psensor={sensor}',
+                                                 f'-Pformat={fmt}',
+                                                 f'-Pno_data={self.snap_no_data}',
+                                                 f'-Pres_m={resolution if resolution else def_res}',
+                                                 f'-Pout={strings.to_cmd_string(out_dim)}'],
+                                    display_snap_opt=LOGGER.level == logging.DEBUG)
         LOGGER.debug("Converting %s", self.name)
         misc.run_cli(cmd_list)
 
@@ -573,7 +636,16 @@ class S3Product(OpticalProduct):
 
     def utm_extent(self) -> gpd.GeoDataFrame:
         """
-        Get UTM extent of the tile
+        Get UTM extent of the tile, managing the case with not orthorectified bands.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.utm_extent()
+                                                    geometry
+        0  POLYGON ((1488846.028 6121896.451, 1488846.028...
+        ```
 
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
@@ -638,7 +710,7 @@ class S3Product(OpticalProduct):
 
         return extent
 
-    def get_condensed_name(self) -> str:
+    def _get_condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
 
@@ -649,7 +721,15 @@ class S3Product(OpticalProduct):
 
     def get_mean_sun_angles(self) -> (float, float):
         """
-        Get Mean Sun angles (Zenith and Azimuth angles)
+        Get Mean Sun angles (Azimuth and Zenith angles)
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+        >>> prod = Reader().open(path)
+        >>> prod.get_mean_sun_angles()
+        (78.55043955912154, 31.172127033319388)
+        ```
 
         Returns:
             (float, float): Mean Azimuth and Zenith angle

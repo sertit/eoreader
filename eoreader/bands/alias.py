@@ -1,8 +1,17 @@
 """
-Aliases for bands and index, created in order to import just this file and not obn, sbn and _idx.
-You can import them as:
-- `from eoreader.bands.alias import *` -> `GREEN`
-- `from eoreader.bands import alias` -> `alias.GREEN`
+Aliases for bands and index, created in order to import just this file and not `OpticalBandNames`, `SarBandNames` and `index`.
+
+To use it, simply type:
+
+```python
+>>> from eoreader.bands.alias import *
+>>> GREEN
+<OpticalBandNames.GREEN: 'GREEN'>
+>>> HH
+<SarBandNames.HH: 'HH'>
+>>> NDVI
+<function NDVI at 0x00000261F6FFA950>
+```
 """
 # Module name begins with _ to not be imported with *
 import typing as _tp
@@ -52,7 +61,6 @@ GNDVI = _idx.GNDVI
 RI = _idx.RI
 NDGRI = _idx.NDGRI
 CIG = _idx.CIG
-PGR = _idx.PGR
 NDMI = _idx.NDMI
 DSWI = _idx.DSWI
 LWCI = _idx.LWCI
@@ -72,13 +80,23 @@ BSI = _idx.BSI
 
 def is_index(idx: _tp.Any) -> bool:
     """
-    Returns True if is an index Callable from the index module
+    Returns True if is an index function from the `bands.index` module
+
+    ```python
+    >>> from eoreader.bands.alias import *
+    >>> is_index(NDVI)
+    True
+    >>> is_index(HH)
+    False
+    >>> is_index(GREEN)
+    False
+    ```
 
     Args:
-        idx (Any): Sth that could be an index
+        idx (Any): Anything that could be an index
 
     Returns:
-        bool: True if the index asked is an index Callable (such as index.BSI)
+        bool: True if the index asked is an index function (such as `index.NDVI`)
 
     """
     return "index" in idx.__module__ and idx.__name__ in _idx.get_all_index()
@@ -86,10 +104,20 @@ def is_index(idx: _tp.Any) -> bool:
 
 def is_optical_band(band: _tp.Any) -> bool:
     """
-    Returns True if is an optical band (obn.xxx)
+    Returns True if is an optical band (from `OpticalBandNames`)
+
+    ```python
+    >>> from eoreader.bands.alias import *
+    >>> is_optical_band(NDVI)
+    False
+    >>> is_optical_band(HH)
+    False
+    >>> is_optical_band(GREEN)
+    True
+    ```
 
     Args:
-        band (Any): Sth that could be an optical band
+        band (Any): Anything that could be an optical band
 
     Returns:
         bool: True if the band asked is an optical band
@@ -100,10 +128,20 @@ def is_optical_band(band: _tp.Any) -> bool:
 
 def is_sar_band(band: _tp.Any) -> bool:
     """
-    Returns True if is a SAR band (sbn.xxx)
+    Returns True if is a SAR band (from `SarBandNames`)
+
+    ```python
+    >>> from eoreader.bands.alias import *
+    >>> is_sar_band(NDVI)
+    False
+    >>> is_sar_band(HH)
+    True
+    >>> is_sar_band(GREEN)
+    False
+    ```
 
     Args:
-        band (Any): Sth that could be a SAR band
+        band (Any): Anything that could be a SAR band
 
     Returns:
         bool: True if the band asked is a SAR band
@@ -114,13 +152,23 @@ def is_sar_band(band: _tp.Any) -> bool:
 
 def is_band(band: _tp.Any) -> bool:
     """
-    Returns True if is a SAR band (sbn.xxx)
+    Returns True if is a band (from both `SarBandNames` or `OpticalBandNames`)
+
+    ```python
+    >>> from eoreader.bands.alias import *
+    >>> is_band(NDVI)
+    False
+    >>> is_band(HH)
+    True
+    >>> is_band(GREEN)
+    True
+    ```
 
     Args:
-        band (Any): Sth that could be a SAR band
+        band (Any): Anything that could be a band
 
     Returns:
-        bool: True if the band asked is a SAR band
+        bool: True if the band asked is a band
 
     """
     return is_sar_band(band) or is_optical_band(band)

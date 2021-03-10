@@ -1,4 +1,4 @@
-""" Product Factory, class creating eoreader according to their names """
+""" Product Factory, class creating products according to their names """
 
 from __future__ import annotations
 import importlib
@@ -11,6 +11,7 @@ from typing import Union
 from sertit import strings, files
 from sertit.misc import ListEnum
 
+from eoreader.exceptions import InvalidTypeError
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -18,21 +19,48 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 @unique
 class Platform(ListEnum):
-    """ Platforms supported by eoreader """
+    """ Platforms supported by EOReader """
     S1 = "Sentinel-1"
+    """Sentinel-1"""
+
     S2 = "Sentinel-2"
+    """Sentinel-2"""
+
     S2_THEIA = "Sentinel-2 Theia"
+    """Sentinel-2 Theia"""
+
     S3 = "Sentinel-3"
+    """Sentinel-3"""
+
     L8 = "Landsat-8"
+    """Landsat-8"""
+
     L7 = "Landsat-7"
+    """Landsat-7"""
+
     L5 = "Landsat-5"
+    """Landsat-5"""
+
     L4 = "Landsat-4"
+    """Landsat-4"""
+
     L3 = "Landsat-3"
+    """Landsat-3"""
+
     L2 = "Landsat-2"
+    """Landsat-2"""
+
     L1 = "Landsat-1"
+    """Landsat-1"""
+
     CSK = "COSMO-SkyMed"
+    """COSMO-SkyMed"""
+
     TSX = "TerraSAR-X"
+    """TerraSAR-X"""
+
     RS2 = "RADARSAT-2"
+    """RADARSAT-2"""
 
 
 PLATFORM_REGEX = {
@@ -54,19 +82,24 @@ PLATFORM_REGEX = {
     # "tsx": "TX01_SAR_[SH][MCLS]_(SSC|MGD|GEC|EEC)_\d{8}T\d{6}_\d{8}T\d{6}_NSG_\d{6}_\d{4}",
     Platform.RS2: r"RS2_OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)"
 }
+"""Platfomr regex, mapping every platform to a regex allowing the reader to recognize them."""
 
 
 class Reader:
-    """ Factory class creating satellite products according to their names """
+    """
+    Factory class creating satellite products according to their names.
+
+    It creates a singleton that you can call only on,e time per file.
+    """
 
     def __init__(self):
         self._platform_regex = {}
 
         # Register satellites platforms
         for platform, regex in PLATFORM_REGEX.items():
-            self.register_platforms(platform, regex)
+            self._register_platforms(platform, regex)
 
-    def register_platforms(self, platform: Platform, regex: Union[str, list]) -> None:
+    def _register_platforms(self, platform: Platform, regex: Union[str, list]) -> None:
         """
         Register new platforms
 
@@ -89,7 +122,14 @@ class Reader:
              archive_path: str = None,
              output_path: str = None) -> "Product":
         """
-        Get the correct products
+        Open the product.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> Reader().open(path)
+        <eoreader.products.optical.s2_product.S2Product object at 0x000001984986FAC8>
+        ```
 
         Args:
             product_path (str): Product path
@@ -102,7 +142,7 @@ class Reader:
         """
         prod = None
         for platform, regex in self._platform_regex.items():
-            if self.is_valid(product_path, regex):
+            if self._is_valid(product_path, regex):
                 sat_class = platform.name.lower() + "_product"
 
                 # Manage both optical and SAR
@@ -116,13 +156,20 @@ class Reader:
                 break
 
         if not prod:
-            LOGGER.warning("There is no existing products in eoreader corresponding to %s", product_path)
+            LOGGER.warning("There is no existing products in EOReader corresponding to %s", product_path)
 
         return prod
 
-    def get_platform_name(self, product_path: str) -> str:
+    def get_platform_id(self, product_path: str) -> str:
         """
-        Get the correct platform short name (s1...)
+        Get the correct platform ID (S1, S2, TSX...)
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> Reader().get_platform_name(path)
+        'S2'
+        ```
 
         Args:
             product_path (str): Product path
@@ -133,7 +180,7 @@ class Reader:
         """
         sat_name = ""
         for sat_prod, regex in self._platform_regex.items():
-            if self.is_valid(product_path, regex):
+            if self._is_valid(product_path, regex):
                 sat_name = sat_prod.name
                 break
 
@@ -142,26 +189,58 @@ class Reader:
 
         return sat_name
 
-    def valid_name(self, product_path: str, satellite: str) -> bool:
+    def valid_name(self, product_path: str, platform: Union[str, Platform]) -> bool:
         """
-        Check if the products's name is valid for the given satellite
+        Check if the product's name is valid for the given satellite
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> With IDs
+        >>> Reader().valid_name(path, "S1")
+        False
+        >>> Reader().valid_name(path, "S2")
+        True
+
+        >>> # With names
+        >>> Reader().valid_name(path, "Sentinel-1")
+        False
+        >>> Reader().valid_name(path, "Sentinel-2")
+        True
+
+        >>> # With Platform
+        >>> Reader().valid_name(path, Platform.S1)
+        False
+        >>> Reader().valid_name(path, Platform.S2)
+        True
+        ```
 
         Args:
             product_path (str): Product path
-            satellite (str): Satellite's name
+            platform (str): Platform's name or ID
 
         Returns:
             bool: True if valid name
 
         """
-        assert satellite in Platform.list_values()
-        regex = self._platform_regex[Platform.from_value(satellite)]
-        return self.is_valid(product_path, regex)
+        if platform in Platform.list_values():
+            platform = Platform.from_value(platform)
+        elif platform in Platform.list_names():
+            platform = getattr(Platform, platform)
+        elif isinstance(platform, Platform):
+            platform = platform
+        else:
+            raise InvalidTypeError(f"Invalid platform name {platform}, "
+                                   f"should be chosen among {Platform.list_values()} or {Platform.list_names()}")
+
+        regex = self._platform_regex[platform]
+        return self._is_valid(product_path, regex)
 
     @staticmethod
-    def is_valid(product_path: str, regex: Union[list, re.Pattern]) -> bool:
+    def _is_valid(product_path: str, regex: Union[list, re.Pattern]) -> bool:
         """
         Check if the filename corresponds to the given satellite regex
+
         Args:
             product_path (str): Product path
             regex (Union[list, re.Pattern]): Regex or list of regex
