@@ -223,16 +223,7 @@ class Reader:
             bool: True if valid name
 
         """
-        if platform in Platform.list_values():
-            platform = Platform.from_value(platform)
-        elif platform in Platform.list_names():
-            platform = getattr(Platform, platform)
-        elif isinstance(platform, Platform):
-            platform = platform
-        else:
-            raise InvalidTypeError(f"Invalid platform name {platform}, "
-                                   f"should be chosen among {Platform.list_values()} or {Platform.list_names()}")
-
+        platform = Platform.convert_from(platform)[0]
         regex = self._platform_regex[platform]
         return self._is_valid(product_path, regex)
 
