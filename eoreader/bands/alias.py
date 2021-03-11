@@ -16,7 +16,7 @@ To use it, simply type:
 # Module name begins with _ to not be imported with *
 import typing as _tp
 from eoreader.exceptions import InvalidTypeError
-from eoreader.bands.bands import OpticalBandNames as _obn, SarBandNames as _sbn
+from eoreader.bands.bands import OpticalBandNames as _obn, SarBandNames as _sbn, DemBandNames as _dem
 from eoreader.bands import index as _idx
 
 # -- OPTICAL BANDS --
@@ -49,7 +49,7 @@ VH_DSPK = _sbn.VH_DSPK
 HV = _sbn.HV
 HV_DSPK = _sbn.HV_DSPK
 
-# -- INDEX
+# -- INDEX --
 RGI = _idx.RGI
 NDVI = _idx.NDVI
 TCBRI = _idx.TCBRI
@@ -78,6 +78,29 @@ AFRI_1_6 = _idx.AFRI_1_6
 AFRI_2_1 = _idx.AFRI_2_1
 BSI = _idx.BSI
 
+# -- DEM --
+DEM = _dem.DEM
+SLOPE = _dem.SLOPE
+HLSHD = _dem.HLSHD
+
+def is_dem(dem: _tp.Any) -> bool:
+    """
+    Returns True if we have a DEM-related keyword
+
+    ```python
+    >>> from eoreader.bands.alias import *
+    >>> is_dem(NDVI)
+    False
+    >>> is_dem(HH)
+    False
+    >>> is_dem(GREEN)
+    False
+    >>> is_dem(SLOPE)
+    True
+    ```
+    """
+    return dem in _dem
+
 
 def is_index(idx: _tp.Any) -> bool:
     """
@@ -90,6 +113,8 @@ def is_index(idx: _tp.Any) -> bool:
     >>> is_index(HH)
     False
     >>> is_index(GREEN)
+    False
+    >>> is_index(SLOPE)
     False
     ```
 
@@ -115,6 +140,8 @@ def is_optical_band(band: _tp.Any) -> bool:
     False
     >>> is_optical_band(GREEN)
     True
+    >>> is_optical_band(SLOPE)
+    False
     ```
 
     Args:
@@ -138,6 +165,8 @@ def is_sar_band(band: _tp.Any) -> bool:
     >>> is_sar_band(HH)
     True
     >>> is_sar_band(GREEN)
+    False
+    >>> is_sar_band(SLOPE)
     False
     ```
 
@@ -163,6 +192,8 @@ def is_band(band: _tp.Any) -> bool:
     True
     >>> is_band(GREEN)
     True
+    >>> is_band(SLOPE)
+    False
     ```
 
     Args:
@@ -182,11 +213,12 @@ def to_band_or_idx(to_convert: _tp.Union[list, str]) -> list:
     You can pass the name or the value of the bands.
 
     ```python
-    >>> to_band_or_idx(["NDVI", "GREEN", RED, "DESPK_VH"])
+    >>> to_band_or_idx(["NDVI", "GREEN", RED, "DESPK_VH", "SLOPE"])
     [<function NDVI at 0x000002C0D903E158>,
     <OpticalBandNames.GREEN: 'GREEN'>,
     <OpticalBandNames.RED: 'RED'>,
-    <SarBandNames.VH_DSPK: 'DESPK_VH'>]
+    <SarBandNames.VH_DSPK: 'DESPK_VH'>,
+    <DemBandNames.SLOPE: 'SLOPE'>]
     ```
     Args:
         to_convert:
@@ -212,7 +244,10 @@ def to_band_or_idx(to_convert: _tp.Union[list, str]) -> list:
                     try:
                         band_or_idx = _obn.convert_from(tc)[0]
                     except TypeError:
-                        pass
+                        try:
+                            band_or_idx = _dem.convert_from(tc)[0]
+                        except TypeError:
+                            pass
 
         elif is_index(tc) or is_band(tc):
             band_or_idx = tc

@@ -1,14 +1,18 @@
 """ Super class for optical products """
 
 import logging
+import os
 from abc import abstractmethod
 from typing import Callable, Union
 import numpy as np
 import geopandas as gpd
 import rasterio
 from rasterio import crs
-from sertit import rasters
+from rasterio.enums import Resampling
+from sertit import rasters, strings, misc
+from sertit.snap import MAX_CORES
 
+from eoreader.bands.alias import is_dem
 from eoreader.exceptions import InvalidIndexError, InvalidBandError
 from eoreader.bands.bands import OpticalBands, OpticalBandNames as obn, BandNames
 from eoreader.bands import index, alias
@@ -171,7 +175,7 @@ class OpticalProduct(Product):
         """
         # Open bands and get array (resampled if needed)
         band_arrays = {}
-        meta = None
+        meta = {}
         for band_name, band_path in band_paths.items():
             with rasterio.open(band_path) as band_ds:
                 # Read band
@@ -298,8 +302,12 @@ class OpticalProduct(Product):
         if not isinstance(band_and_idx_list, list):
             band_and_idx_list = [band_and_idx_list]
 
+        if len(band_and_idx_list) == 0:
+            return {}, {}
+
         band_list = []
         index_list = []
+        dem_list = []
 
         # Check if everything is valid
         for idx_or_band in band_and_idx_list:
@@ -315,6 +323,8 @@ class OpticalProduct(Product):
                     band_list.append(idx_or_band)
                 else:
                     raise InvalidBandError(f"{idx_or_band} cannot be retrieved from {self.condensed_name}.")
+            elif is_dem(idx_or_band):
+                dem_list.append(idx_or_band)
 
         # Get all bands to be open
         bands_to_load = band_list.copy()
@@ -329,6 +339,12 @@ class OpticalProduct(Product):
 
         # Add bands
         idx_and_bands_dict.update({band: bands[band] for band in band_list})
+
+        # Add DEM
+        dem_bands, dem_meta = self._load_dem(dem_list, resolution=resolution)
+        idx_and_bands_dict.update(dem_bands)
+        if not meta:
+            meta = dem_meta
 
         return idx_and_bands_dict, meta
 
@@ -349,3 +365,49 @@ class OpticalProduct(Product):
             (float, float): Mean Azimuth and Zenith angle
         """
         raise NotImplementedError("This method should be implemented by a child class")
+
+    def _compute_hillshade(self,
+                           dem_path: str = "",
+                           resolution: Union[float, tuple] = None,
+                           resampling: Resampling = Resampling.bilinear) -> str:
+        """
+        Compute Hillshade mask
+
+        Args:
+            dem_path (str): DEM path, using EUDEM/MERIT DEM if none
+            resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
+            resampling (Resampling): Resampling method
+
+        Returns:
+            str: Hillshade mask path
+
+        """
+        # Warp DEM
+        warped_dem_path = self._warp_dem(dem_path, resolution, resampling)
+
+        # Get Hillshade path
+        hillshade_dem = os.path.join(self.output, f"{self.condensed_name}_HILLSHADE.tif")
+        if os.path.isfile(hillshade_dem):
+            LOGGER.debug("Already existing hillshade DEM for %s. Skipping process.", self.name)
+        else:
+            LOGGER.info("Computing hillshade DEM for %s", self.name)
+
+            # Get angles
+            mean_azimuth_angle, mean_zenith_angle = self.get_mean_sun_angles()
+            zenith = 90.0 - mean_zenith_angle
+            azimuth = mean_azimuth_angle
+
+            # Run cmd
+            cmd_hillshade = ["gdaldem", "--config",
+                             "NUM_THREADS", "1",
+                             "hillshade", strings.to_cmd_string(warped_dem_path),
+                             "-compute_edges",
+                             "-z", MAX_CORES,
+                             "-az", azimuth,
+                             "-alt", zenith,
+                             "-of", "GTiff",
+                             strings.to_cmd_string(hillshade_dem)]
+            # Run command
+            misc.run_cli(cmd_hillshade)
+
+        return hillshade_dem
