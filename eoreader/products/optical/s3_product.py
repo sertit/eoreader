@@ -604,7 +604,7 @@ class S3Product(OpticalProduct):
             list: Processed band name
         """
         # Construct GPT graph
-        graph_path = os.path.join(utils.get_data_dir(), "gpt_graphs", "preprocess_s3.xml")
+        graph_path = os.path.join(utils.get_data_dir(), "preprocess_s3.xml")
         snap_bands = ",".join([self._get_snap_band_name(band)
                                for band, band_nb in self.band_names.items() if band_nb])
         if self.instrument_name == S3Instrument.OLCI:

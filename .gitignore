@@ -14,3 +14,4 @@ CI/OUTPUT/*
 build/
 *.egg-info/
 doc/
+dist/
