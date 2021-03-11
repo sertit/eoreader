@@ -18,4 +18,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7",
         "Operating System :: OS Independent"
     ],
+    package_data={'eoreader.data': ['*.xml']},
+    include_package_data=True
 )

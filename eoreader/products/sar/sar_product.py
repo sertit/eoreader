@@ -606,7 +606,7 @@ class SarProduct(Product):
             if PP_ENV not in os.environ:
                 sat = "s1" if self.sat_id == Platform.S1 else "sar"
                 spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
-                pp_graph = os.path.join(utils.get_gpt_graphs_dir(), f"{spt}_{sat}_preprocess_default.xml")
+                pp_graph = os.path.join(utils.get_data_dir(), f"{spt}_{sat}_preprocess_default.xml")
             else:
                 pp_graph = os.environ[PP_ENV]
                 if not os.path.isfile(pp_graph) or not pp_graph.endswith(".xml"):
@@ -654,7 +654,7 @@ class SarProduct(Product):
 
             # Despeckle graph
             if DSPK_ENV not in os.environ:
-                dspk_graph = os.path.join(utils.get_gpt_graphs_dir(), f"sar_despeckle_default.xml")
+                dspk_graph = os.path.join(utils.get_data_dir(), f"sar_despeckle_default.xml")
             else:
                 dspk_graph = os.environ[DSPK_ENV]
                 if not os.path.isfile(dspk_graph) or not dspk_graph.endswith(".xml"):
