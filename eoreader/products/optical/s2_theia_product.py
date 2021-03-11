@@ -7,6 +7,8 @@ import glob
 import logging
 import os
 import datetime
+import re
+import zipfile
 from typing import Union
 
 import rasterio
@@ -30,10 +32,24 @@ class S2TheiaProduct(OpticalProduct):
     See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more information.
     """
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
-        super().__init__(product_path, archive_path, output_path)
+    def _post_init(self) -> None:
+        """
+        Function used to post_init the products
+        (setting sensor type, band names and so on)
+        """
         self.tile_name = self._get_tile_name()
-        self.condensed_name = self._get_condensed_name()
+        self.needs_extraction = False
+
+        # Post init done by the super class
+        super()._post_init()
+
+    def _set_default_resolution(self) -> float:
+        """
+        Set product default resolution (in meters)
+        """
+        # S2: use 20m resolution, even if we have 60m and 10m resolution
+        # In the future maybe set one resolution per band ?
+        return 20.
 
     def _get_tile_name(self) -> str:
         """
@@ -118,10 +134,19 @@ class S2TheiaProduct(OpticalProduct):
         """
         band_paths = {}
         for band in band_list:
-            assert band in obn
             try:
-                band_paths[band] = files.get_file_in_dir(self.path, f"FRE_B{self.band_names[band]}.tif")
-            except FileNotFoundError as ex:
+                if self.is_archived:
+                    # Open the zip file
+                    with zipfile.ZipFile(self.path, "r") as zip_ds:
+                        # Get the correct band path
+                        regex = re.compile(f".*FRE_B{self.band_names[band]}.tif")
+                        band_path = list(filter(regex.match, zip_ds.filelist))[0]
+
+                    # Create the zip band path (readable from rasterio)
+                    band_paths[band] = f"zip+file://{self.path}!/{band_path}"
+                else:
+                    band_paths[band] = files.get_file_in_dir(self.path, f"FRE_B{self.band_names[band]}.tif")
+            except (FileNotFoundError, IndexError) as ex:
                 raise InvalidProductError(f"Non existing {band} ({self.band_names[band]}) band for {self.path}") from ex
 
         return band_paths
@@ -202,6 +227,69 @@ class S2TheiaProduct(OpticalProduct):
         nodata_true = 1
         nodata_false = 0
 
+        # -- Manage nodata from Theia band array
+        # Theia nodata is already processed
+        theia_nodata = -1.
+        no_data_mask = np.where(band == theia_nodata, nodata_true, nodata_false).astype(np.uint8)
+
+        # Open NODATA pixels mask
+        edg_mask = self.open_mask("EDG", band, res_x, res_y)
+
+        # Open saturated pixels
+        sat_mask = self.open_mask("SAT", band, res_x, res_y)
+
+        # Combine masks
+        mask = no_data_mask | edg_mask | sat_mask
+
+        # Open defective pixels (optional mask)
+        try:
+            def_mask = self.open_mask("DFP", band, res_x, res_y)
+            mask = mask | def_mask
+        except InvalidProductError:
+            pass
+
+        # -- Merge masks
+        return self._create_band_masked_array(band_arr, mask, meta)
+
+    def open_mask(self,
+                  mask_id: str,
+                  band: obn,
+                  res_x: float = None,
+                  res_y: float = None) -> np.ndarray:
+        """
+        Get a Sentinel-2 THEIA mask path.
+        See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
+        information.
+
+        Accepted mask IDs:
+
+        - `DFP`: Defective pixels
+        - `EDG`: Nodata pixels mask
+        - `SAT`: Saturated pixels mask
+        - `MG2`: Geophysical mask (classification)
+        - `IAB`: Mask where water vapor and TOA pixels have been interpolated
+        - `CLM`: Cloud mask
+
+
+        ```python
+        >>> from eoreader.bands.alias import *
+        >>> from eoreader.reader import Reader
+        >>> path = r"SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.open_mask("CLM", GREEN)
+        array([[[0, ..., 0]]], dtype=uint8)
+        ```
+
+        Args:
+            mask_id: Mask ID
+            band (obn): Band name as an OpticalBandNames
+            res_x (float): Resolution for X axis
+            res_y (float): Resolution for Y axis
+
+        Returns:
+            np.ndarray: Mask array
+
+        """
         # https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
         # For r_1, the band order is: B2, B3, B4, B8 and for r_2: B5, B6, B7, B8a, B11, B12
         r_1 = [obn.BLUE, obn.GREEN, obn.RED, obn.NIR]
@@ -215,36 +303,32 @@ class S2TheiaProduct(OpticalProduct):
         else:
             raise InvalidProductError(f"Invalid band: {band.value}")
 
-        # -- Manage nodata from Theia band array
-        # Theia nodata is already processed
-        theia_nodata = -1.
-        no_data_mask = np.where(band == theia_nodata, nodata_true, nodata_false).astype(np.uint8)
+        mask_regex = f"*{mask_id}_{r_x}.tif"
+        try:
+            if self.is_archived:
+                # Open the zip file
+                with zipfile.ZipFile(self.path, "r") as zip_ds:
+                    # Get the correct band path
+                    regex = re.compile(f"{mask_regex.replace('*', '.*')}")
+                    filenames = [f.filename for f in zip_ds.filelist]
+                    band_path = list(filter(regex.match, filenames))[0]
 
-        # -- Manage NODATA pixels
-        # Get EDG file path
-        edg_path = files.get_file_in_dir(os.path.join(self.path, "MASKS"), f"*EDG_{r_x}.tif", exact_name=True)
-
-        # Open EDG band
-        with rasterio.open(edg_path) as edg_dst:
-            # Nearest to keep the flags
-            edg_arr, _ = rasters.read(edg_dst, [res_x, res_y], Resampling.nearest, masked=False)
-            edg_mask = rasters.read_bit_array(edg_arr, bit_id)
-
-        # -- Manage saturated pixels
-        # Get SAT file path
-        sat_path = files.get_file_in_dir(os.path.join(self.path, "MASKS"), f"*SAT_{r_x}.tif", exact_name=True)
+                # Create the zip band path (readable from rasterio)
+                mask_path = f"zip+file://{self.path}!/{band_path}"
+            else:
+                mask_path = files.get_file_in_dir(os.path.join(self.path, "MASKS"),
+                                                  mask_regex,
+                                                  exact_name=True)
+        except (FileNotFoundError, IndexError) as ex:
+            raise InvalidProductError(f"Non existing mask {mask_regex} in {self.name}") from ex
 
         # Open SAT band
-        with rasterio.open(sat_path) as sat_dst:
+        with rasterio.open(mask_path) as sat_dst:
             # Nearest to keep the flags
             sat_arr, _ = rasters.read(sat_dst, [res_x, res_y], Resampling.nearest, masked=False)
             sat_mask = rasters.read_bit_array(sat_arr, bit_id)
 
-        # Combine masks
-        mask = no_data_mask | edg_mask | sat_mask
-
-        # -- Merge masks
-        return self._create_band_masked_array(band_arr, mask, meta)
+        return sat_mask
 
     def _load_bands(self, band_list: [list, BandNames], resolution: float = 20) -> (dict, dict):
         """
@@ -268,7 +352,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return band_arrays, meta
 
-    def _get_condensed_name(self) -> str:
+    def _set_condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
 
@@ -297,15 +381,7 @@ class S2TheiaProduct(OpticalProduct):
         azimuth_angle = None
 
         # Get MTD XML file
-        try:
-            mtd_xml = glob.glob(os.path.join(self.path, '*MTD_ALL.xml'))[0]
-        except IndexError as ex:
-            raise InvalidProductError(f"Metadata file not found in {self.path}") from ex
-
-        # Open and parse XML
-        # pylint: disable=I1101
-        xml_tree = etree.parse(mtd_xml)
-        root = xml_tree.getroot()
+        root, _ = self.read_mtd()
 
         # Open zenith and azimuth angle
         for element in root:
@@ -322,3 +398,44 @@ class S2TheiaProduct(OpticalProduct):
             raise InvalidProductError("Azimuth or Zenith angles not found")
 
         return azimuth_angle, zenith_angle
+
+    def read_mtd(self) -> (etree.Element, str):
+        """
+        Read metadata and outputs the metadata XML root and its namespace
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.read_mtd()
+        (<Element Muscate_Metadata_Document at 0x252d2071e88>, '')
+        ```
+
+        Returns:
+            (etree.Element, str): Metadata XML root and its namespace
+        """
+        # Get MTD XML file
+        if self.is_archived:
+            # Open the zip file
+            with zipfile.ZipFile(self.path, "r") as zip_ds:
+                # Get the correct band path
+                filenames = [f.filename for f in zip_ds.filelist]
+                regex = re.compile(f".*.MTD_ALL.xml")
+                xml_zip = zip_ds.read(list(filter(regex.match, filenames))[0])
+                root = etree.fromstring(xml_zip)
+        else:
+            # Open metadata file
+            try:
+                mtd_xml = glob.glob(os.path.join(self.path, '*MTD_ALL.xml'))[0]
+
+                # pylint: disable=I1101:
+                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                xml_tree = etree.parse(mtd_xml)
+                root = xml_tree.getroot()
+            except IndexError as ex:
+                raise InvalidProductError(f"Metadata file not found in {self.path}") from ex
+
+        # Get namespace
+        namespace = ""
+
+        return root, namespace

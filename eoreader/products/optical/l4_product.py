@@ -7,6 +7,17 @@ from eoreader.products.optical.landsat_product import LandsatProduct, LandsatPro
 class L4Product(LandsatProduct):
     """ Class of Landsat-4 Products """
 
+    def _set_default_resolution(self) -> float:
+        """
+        Set product default resolution (in meters)
+        """
+        if self.product_type == LandsatProductType.L1_TM:
+            def_res = 60.
+        else:
+            # DO NOT TAKE INTO ACCOUNT TIRS RES
+            def_res = 30.
+        return def_res
+
     def _set_product_type(self) -> None:
         """ Get products type """
         if "L1" in self.name:
@@ -39,7 +50,7 @@ class L4Product(LandsatProduct):
         else:
             raise InvalidProductError(f"Invalid Landsat-4 name: {self.name}")
 
-    def _get_condensed_name(self) -> str:
+    def _set_condensed_name(self) -> str:
         """
         Get products condensed name ({date}_L4_{tile]_{product_type}).
 

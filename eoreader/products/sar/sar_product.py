@@ -86,28 +86,33 @@ class SarProduct(Product):
     """ Super class for SAR Products """
 
     def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
-        super().__init__(product_path, archive_path, output_path)
-
         self.sar_prod_type = None
         """SAR product type, either Single Look Complex or Ground Range"""
-        self._set_product_type()
 
         self.sensor_mode = None
         """Sensor Mode of the current product"""
-        self._set_sensor_mode()
 
-        self.band_names = SarBands()
         self.pol_channels = None
         """Polarization Channels stored in the current product"""
-
-        # Other that do not need to be re-documented
-        self.tile_name = None
-        self.sensor_type = SensorType.SAR
 
         # Private attributes
         self._band_folder = None
         self._snap_path = None
         self._raw_band_regex = None
+
+        # Initialization from the super class
+        super().__init__(product_path, archive_path, output_path)
+
+    def _post_init(self) -> None:
+        """
+        Function used to post_init the products
+        (setting product-type, band names and so on)
+        """
+        self.tile_name = None
+        self.sensor_type = SensorType.SAR
+        self.band_names = SarBands()
+        self._set_sensor_mode()
+        self.pol_channels = self._get_raw_bands()
 
     def get_default_band(self) -> BandNames:
         """
@@ -280,9 +285,8 @@ class SarProduct(Product):
             self.sar_prod_type = SarProductType.OTHER
 
         # Discard invalid products types
-        if self.product_type == SarProductType.OTHER:
-            raise NotImplementedError(f"For now, {self.product_type.value} products type "
-                                      f"is not used in eoreader processes: {self.name}")
+        if self.sar_prod_type == SarProductType.OTHER:
+            raise NotImplementedError(f"{self.product_type.value} product type is not available ({self.name})")
 
     @abstractmethod
     def _set_sensor_mode(self) -> None:
@@ -596,7 +600,7 @@ class SarProduct(Product):
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Set command as a list
-            target_file = os.path.join(tmp_dir, f"{self._get_condensed_name()}")
+            target_file = os.path.join(tmp_dir, f"{self._set_condensed_name()}")
 
             # Use dimap for speed and security (ie. GeoTiff's broken georef)
             pp_target = f"{target_file}"
@@ -614,7 +618,7 @@ class SarProduct(Product):
 
             # Command line
             if not os.path.isfile(pp_dim):
-                def_res = float(os.environ.get(SAR_DEF_RES, 0.0))
+                def_res = float(os.environ.get(SAR_DEF_RES, self.default_res))
                 res_m = resolution if resolution else def_res
                 res_deg = res_m / 10. * 8.983152841195215E-5  # Approx
                 cmd_list = snap.get_gpt_cli(pp_graph,
@@ -649,7 +653,7 @@ class SarProduct(Product):
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Out files
-            target_file = os.path.join(tmp_dir, f"{self._get_condensed_name()}_DESPK")
+            target_file = os.path.join(tmp_dir, f"{self._set_condensed_name()}_DESPK")
             dspk_dim = target_file + '.dim'
 
             # Despeckle graph

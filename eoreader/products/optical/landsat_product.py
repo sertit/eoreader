@@ -44,11 +44,6 @@ class LandsatProductType(ListEnum):
 class LandsatProduct(OpticalProduct):
     """ Class of Landsat Products """
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
-        super().__init__(product_path, archive_path, output_path)
-        self.tile_name = self._get_tile_name()
-        self.condensed_name = self._get_condensed_name()
-
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint of the products (without nodata, in french == emprise utile)
@@ -394,7 +389,7 @@ class LandsatProduct(OpticalProduct):
         return azimuth_angle, zenith_angle
 
     @abstractmethod
-    def _get_condensed_name(self) -> str:
+    def _set_condensed_name(self) -> str:
         """
         Get products condensed name ({date}_Lx_{tile}_{product_type}).
 
