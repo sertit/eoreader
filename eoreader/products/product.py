@@ -466,7 +466,7 @@ class Product:
     @abstractmethod
     def load(self,
              band_and_idx_list: Union[list, BandNames, Callable],
-             resolution: float = 20) -> (dict, dict):
+             resolution: float = None) -> (dict, dict):
         """
         Open the bands and compute the wanted index.
         You can add some bands in the dict.
@@ -660,7 +660,7 @@ class Product:
 
     def warp_dem(self,
                  dem_path: str = "",
-                 resolution: Union[float, tuple] = 20.,
+                 resolution: Union[float, tuple] = None,
                  resampling: Resampling = Resampling.bilinear) -> str:
         """
         Get this products DEM, warped to this products footprint and CRS.
@@ -681,13 +681,16 @@ class Product:
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            resolution (Union[float, tuple]): Resolution in meters
+            resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
             resampling (Resampling): Resampling method
 
         Returns:
             str: DEM path (as a VRT)
-
         """
+        # If no specified resolution, use the default one
+        if not resolution:
+            resolution = self.resolution
+
         warped_dem_path = os.path.join(self.output, f"{self.condensed_name}_DEM.tif")
         if os.path.isfile(warped_dem_path):
             LOGGER.info("Already existing DEM for %s. Skipping process.", self.name)
@@ -761,7 +764,7 @@ class Product:
     # Too many arguments (6/5)
     def stack(self,
               band_and_idx_combination: list,
-              resolution: float,
+              resolution: float = None,
               stack_path: str = None,
               save_as_int: bool = False) -> (np.ma.masked_array, dict):
         """
@@ -794,10 +797,13 @@ class Product:
 
         Args:
             band_and_idx_combination (list): Bands and index combination
-            resolution (float): Stack resolution
+            resolution (float): Stack resolution. . If not specified, use the product resolution.
             stack_path (str): Stack path
             save_as_int (bool): Save stack as integers (uint16 and therefore multiply the values by 10.000)
         """
+        if not resolution:
+            resolution = self.resolution
+
         # Create the analysis stack
         bands, meta = self.load(band_and_idx_combination, resolution)
         stack_list = [bands[bd_or_idx] for bd_or_idx in band_and_idx_combination]

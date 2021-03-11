@@ -527,7 +527,7 @@ class SarProduct(Product):
 
     def load(self,
              band_and_idx_list: Union[list, BandNames, Callable],
-             resolution: float = 20) -> (dict, dict):
+             resolution: float = None) -> (dict, dict):
         """
         Load SAR bands.
 
