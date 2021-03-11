@@ -5,7 +5,7 @@ import logging
 import os
 from enum import Enum, unique
 from abc import abstractmethod
-from typing import Union, Callable
+from typing import Union, Callable, Any
 import datetime as dt
 import numpy as np
 import geopandas as gpd
@@ -107,10 +107,31 @@ class Product:
         self.platform = getattr(Platform, self.sat_id)
         """Product platform, such as Sentinel-2"""
 
-        self.condensed_name = None  # This needs a lot of set variables (datetimes...) -> do not set this here
+        # Post initialization
+        self._post_init()
+
+        # Set product type, needs to be done after the post-initialization
+        self._set_product_type()
+
+        # Set teh default resolution, needs to be done with knowing the product type
+        self.default_res = self._set_default_resolution()
+        """
+        Default resolution in meters of the current product. 
+        For SAR product, we use Ground Range resolution as we will automatically orthorectify the tiles.
+        """
+
+        self.condensed_name = self._set_condensed_name()
         """Condensed name, the filename with only useful data to keep the name unique 
         (ie. `20191215T110441_S2_30TXP_L2A_122756`). 
         Used to shorten names and paths."""
+
+    @abstractmethod
+    def _post_init(self) -> None:
+        """
+        Function used to post_init the products
+        (setting sensor type, band names and so on)
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
@@ -168,16 +189,23 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def _set_product_type(self) -> None:
+    def _set_default_resolution(self) -> float:
         """
-        Get product type
+        Set product default resolution (in meters)
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def _get_condensed_name(self) -> str:
+    def _set_product_type(self) -> None:
         """
-        Get product condensed name.
+        Set product type
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
+
+    @abstractmethod
+    def _set_condensed_name(self) -> str:
+        """
+        Set product condensed name.
 
         Returns:
             str: Condensed name
@@ -354,6 +382,25 @@ class Product:
 
         Returns:
             dict: Dictionary containing the path of each queried band
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
+
+    @abstractmethod
+    def read_mtd(self) -> Any:
+        """
+        Read metadata and outputs the metadata XML root and its namespace most of the time,
+        except from L8-collection 1 data which outputs a pandas DataFrame
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.read_mtd()
+        (<Element product at 0x1832895d788>, '')
+        ```
+
+        Returns:
+            Any: Metadata XML root and its namespace or pd.DataFrame
         """
         raise NotImplementedError("This method should be implemented by a child class")
 

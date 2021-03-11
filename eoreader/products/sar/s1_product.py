@@ -1,4 +1,5 @@
 """ Sentinel-1 products """
+import glob
 import logging
 import os
 import re
@@ -11,11 +12,12 @@ from typing import Union
 
 import rasterio
 import geopandas as gpd
+from lxml import etree
 from sertit import strings, misc
 from sertit.misc import ListEnum
 from sertit import vectors
 
-from eoreader.exceptions import InvalidProductError
+from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
@@ -62,19 +64,58 @@ class S1Product(SarProduct):
     You can use directly the .zip file
     """
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
-        super().__init__(product_path, archive_path, output_path)
-        if self.product_type == S1ProductType.GRD:
-            self._raw_band_regex = "*-{!l}-*.tiff"
-        if self.product_type == S1ProductType.SLC:
-            self._raw_band_regex = "*iw1-slc-{!l}-*.tiff"  # Just get the iw1 image for now
+    def _set_default_resolution(self) -> float:
+        """
+        Set product default resolution (in meters)
+
+        **WARNING**: We assume being in High Resolution (except for WV where we must be in medium resolution)
+        """
+        def_res = None
+
+        # Read metadata
+        try:
+            root, _ = self.read_mtd()
+
+            for element in root:
+                if element.tag == 'imageAnnotation':
+                    image_info = element.find('imageInformation')
+                    def_res = float(image_info.findtext('rangePixelSpacing'))
+                    print("from mtd: %s" % def_res)
+                    break
+        except (InvalidProductError, AttributeError):
+            pass
+
+        # If we cannot read it in MTD, initiate survival mode
+        if not def_res:
+            if self.sensor_mode in [S1SensorMode.SM, S1SensorMode.IW]:
+                def_res = 10.0
+            elif self.sensor_mode in [S1SensorMode.EW, S1SensorMode.WV]:
+                def_res = 25.0
+            else:
+                raise InvalidTypeError(f"Unknown sensor mode {self.sensor_mode}")
+
+            LOGGER.debug(f"Default resolution is set to {def_res}. "
+                         f"The product is considered being in "
+                         f"{'Medium' if self.sensor_mode == S1SensorMode.WV else 'High'}-Resolution")
+
+        return def_res
+
+    def _post_init(self) -> None:
+        """
+        Function used to post_init the products
+        (setting product-type, band names and so on)
+        """
+        # Private attributes
+        self._raw_band_regex = "*(iw1-slc|-grd)-{!l}-*.tiff"  # Just get the SLC-iw1 image for now
+
         self._band_folder = os.path.join(self.path, "measurement")
         self._snap_path = self.path
-        self.pol_channels = self._get_raw_bands()
-        self.condensed_name = self._get_condensed_name()
 
         # Zipped and SNAP can process its archive
         self.needs_extraction = False
+
+        # Post init done by the super class
+        super()._post_init()
 
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
@@ -202,7 +243,7 @@ class S1Product(SarProduct):
 
         return date
 
-    def _get_condensed_name(self) -> str:
+    def _set_condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
@@ -211,3 +252,44 @@ class S1Product(SarProduct):
         """
 
         return f"{self.get_datetime()}_S1_{self.sensor_mode.value}_{self.product_type.value}"
+
+    def read_mtd(self) -> (etree.Element, str):
+        """
+        Read metadata and outputs the metadata XML root and its namespace
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.read_mtd()
+        (<Element product at 0x1832895d788>, '')
+        ```
+
+        Returns:
+            (etree.Element, str): Metadata XML root and its namespace
+        """
+        # Get MTD XML file
+        if self.is_archived:
+            # Open the zip file
+            with zipfile.ZipFile(self.path, "r") as zip_ds:
+                # Get the correct band path
+                filenames = [f.filename for f in zip_ds.filelist]
+                regex = re.compile(f".*annotation.*.xml")
+                xml_zip = zip_ds.read(list(filter(regex.match, filenames))[0])
+                root = etree.fromstring(xml_zip)
+        else:
+            # Open metadata file
+            try:
+                mtd_file = glob.glob(os.path.join(self.path, "annotation", "*.xml"))[0]
+
+                # pylint: disable=I1101:
+                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                xml_tree = etree.parse(mtd_file)
+                root = xml_tree.getroot()
+            except IndexError as ex:
+                raise InvalidProductError(f"Metadata file (product.xml) not found in {self.path}") from ex
+
+        # Get namespace
+        namespace = ""
+
+        return root, namespace

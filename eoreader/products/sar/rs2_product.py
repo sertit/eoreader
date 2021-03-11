@@ -15,6 +15,7 @@ from typing import Union
 
 from lxml import etree
 import rasterio
+import pandas as pd
 import geopandas as gpd
 from sertit.misc import ListEnum
 from sertit import vectors
@@ -156,16 +157,75 @@ class Rs2Product(SarProduct):
     You can use directly the .zip file
     """
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
-        super().__init__(product_path, archive_path, output_path)
+    def _set_default_resolution(self) -> float:
+        """
+        Set product default resolution (in meters)
+        """
+        def_res = None
+
+        # Read metadata
+        try:
+            root, namespace = self.read_mtd()
+
+            for element in root:
+                if element.tag == namespace + 'imageAttributes':
+                    raster_attr = element.find(namespace + 'rasterAttributes')
+                    def_res = float(raster_attr.findtext(namespace + 'sampledPixelSpacing'))
+                    break
+        except (InvalidProductError, AttributeError):
+            pass
+
+        # If we cannot read it in MTD, initiate survival mode
+        if not def_res:
+            if self.sensor_mode == Rs2SensorMode.SLA:
+                def_res = 1.0 if self.product_type == Rs2ProductType.SGX else 0.5
+            elif self.sensor_mode in [Rs2SensorMode.U, Rs2SensorMode.WU]:
+                def_res = 1.0 if self.product_type == Rs2ProductType.SGX else 1.56
+            elif self.sensor_mode in [Rs2SensorMode.MF, Rs2SensorMode.WMF, Rs2SensorMode.F, Rs2SensorMode.WF]:
+                def_res = 3.13 if self.product_type == Rs2ProductType.SGX else 6.25
+            elif self.sensor_mode == Rs2SensorMode.XF:
+                def_res = 2.0 if self.product_type == Rs2ProductType.SGX else 3.13
+                if self.product_type in [Rs2ProductType.SGF, Rs2ProductType.SGX]:
+                    LOGGER.debug("This product is considered to have one look (not checked in metadata)")  # TODO
+            elif self.sensor_mode in [Rs2SensorMode.S, Rs2SensorMode.EH]:
+                def_res = 8.0 if self.product_type == Rs2ProductType.SGX else 12.5
+            elif self.sensor_mode in [Rs2SensorMode.W, Rs2SensorMode.EL]:
+                def_res = 10.0 if self.product_type == Rs2ProductType.SGX else 12.5
+            elif self.sensor_mode in [Rs2SensorMode.FQ, Rs2SensorMode.WQ]:
+                def_res = 3.13
+            elif self.sensor_mode in [Rs2SensorMode.SQ, Rs2SensorMode.WSQ]:
+                raise NotImplementedError("Not squared pixels management are not implemented in EOReader.")
+            elif self.sensor_mode == Rs2SensorMode.SCN:
+                def_res = 25.
+            elif self.sensor_mode == Rs2SensorMode.SCW:
+                def_res = 50.
+            elif self.sensor_mode == Rs2SensorMode.DVWF:
+                def_res = 40. if self.product_type == Rs2ProductType.SCF else 20.
+            elif self.sensor_mode == Rs2SensorMode.SCW:
+                if self.product_type == Rs2ProductType.SCF:
+                    def_res = 50.
+                else:
+                    raise NotImplementedError("Not squared pixels management are not implemented in EOReader.")
+            else:
+                raise InvalidTypeError(f"Unknown sensor mode {self.sensor_mode}")
+
+        return def_res
+
+    def _post_init(self) -> None:
+        """
+        Function used to post_init the products
+        (setting product-type, band names and so on)
+        """
+        # Private attributes
         self._raw_band_regex = "*imagery_{}.tif"
         self._band_folder = self.path
         self._snap_path = self.path
-        self.pol_channels = self._get_raw_bands()
-        self.condensed_name = self._get_condensed_name()
 
         # Zipped and SNAP can process its archive
         self.needs_extraction = False
+
+        # Post init done by the super class
+        super()._post_init()
 
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
@@ -218,29 +278,8 @@ class Rs2Product(SarProduct):
         """
         Get products type from RADARSAT-2 products name (could check the metadata too)
         """
-        # Get MTD XML file
-        if self.is_archived:
-            # Open the zip file
-            with zipfile.ZipFile(self.path, "r") as zip_ds:
-                # Get the correct band path
-                filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f".*product.xml")
-                xml_zip = zip_ds.read(list(filter(regex.match, filenames))[0])
-                root = etree.fromstring(xml_zip)
-        else:
-            # Open metadata file
-            try:
-                mtd_file = glob.glob(os.path.join(self.path, "product.xml"))[0]
-
-                # pylint: disable=I1101:
-                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                xml_tree = etree.parse(mtd_file)
-                root = xml_tree.getroot()
-            except IndexError as ex:
-                raise InvalidProductError(f"Metadata file (product.xml) not found in {self.path}") from ex
-
-        idx = root.tag.rindex("}")
-        namespace = root.tag[:idx + 1]
+        # Get metadata
+        root, namespace = self.read_mtd()
 
         # Get sensor mode
         sensor_mode_xml = None
@@ -291,7 +330,7 @@ class Rs2Product(SarProduct):
 
         return date
 
-    def _get_condensed_name(self) -> str:
+    def _set_condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
@@ -300,3 +339,46 @@ class Rs2Product(SarProduct):
         """
 
         return f"{self.get_datetime()}_RS2_{self.sensor_mode.name}_{self.product_type.value}"
+
+    def read_mtd(self) -> (etree.Element, str):
+        """
+        Read metadata and outputs the metadata XML root and its namespace
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+        >>> prod = Reader().open(path)
+        >>> prod.read_mtd()
+        (<Element {http://www.rsi.ca/rs2/prod/xml/schemas}product at 0x1c0efbd37c8>,
+        '{http://www.rsi.ca/rs2/prod/xml/schemas}')
+        ```
+
+        Returns:
+            (etree.Element, str): Metadata XML root and its namespace
+        """
+        # Get MTD XML file
+        if self.is_archived:
+            # Open the zip file
+            with zipfile.ZipFile(self.path, "r") as zip_ds:
+                # Get the correct band path
+                filenames = [f.filename for f in zip_ds.filelist]
+                regex = re.compile(f".*product.xml")
+                xml_zip = zip_ds.read(list(filter(regex.match, filenames))[0])
+                root = etree.fromstring(xml_zip)
+        else:
+            # Open metadata file
+            try:
+                mtd_file = glob.glob(os.path.join(self.path, "product.xml"))[0]
+
+                # pylint: disable=I1101:
+                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                xml_tree = etree.parse(mtd_file)
+                root = xml_tree.getroot()
+            except IndexError as ex:
+                raise InvalidProductError(f"Metadata file (product.xml) not found in {self.path}") from ex
+
+        # Get namespace
+        idx = root.tag.rindex("}")
+        namespace = root.tag[:idx + 1]
+
+        return root, namespace

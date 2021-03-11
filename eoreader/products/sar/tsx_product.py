@@ -12,6 +12,7 @@ from typing import Union
 
 import rasterio
 import geopandas as gpd
+from lxml import etree
 from sertit import vectors
 from sertit.misc import ListEnum
 
@@ -89,13 +90,82 @@ class TsxPolarization(ListEnum):
 class TsxProduct(SarProduct):
     """ Class for TerraSAR-X Products """
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
-        super().__init__(product_path, archive_path, output_path)
+    def _set_default_resolution(self) -> float:
+        """
+        Set product default resolution (in meters)
+
+        **WARNING**:
+
+        - We assume being in High Resolution (except for WV where we must be in medium resolution)
+        - Incidence angle: we consider the best option, around 55 degrees
+        """
+        def_res = None
+
+        # Read metadata
+        try:
+            root, _ = self.read_mtd()
+
+            for element in root:
+                if element.tag == 'productInfo':
+                    image_data = element.find('imageDataInfo')
+                    image_raster = image_data.find('imageRaster')
+                    def_res = float(image_raster.findtext('rowSpacing'))  # Square pixels
+                    break
+        except (InvalidProductError, AttributeError):
+            pass
+
+        # If we cannot read it in MTD, initiate survival mode
+        if not def_res:
+            # Get if we are in spatially enhanced mode or radiometrically enhanced mode
+            se = "SE" == self.split_name[3]
+
+            # Polarization mode
+            pol_mode = TsxPolarization.from_value(self.split_name[5])
+
+            # We suppose we are close to 55 degrees of incidence angle (best resolution)
+            if pol_mode == TsxPolarization.SINGLE:
+                if self.sensor_mode == TsxSensorMode.SM:
+                    def_res = 1.25 if se else 3.25
+                elif self.sensor_mode == TsxSensorMode.HS:
+                    def_res = 0.5 if se else 1.5
+                elif self.sensor_mode == TsxSensorMode.SL:
+                    def_res = 0.75 if se else 1.75
+                elif self.sensor_mode == TsxSensorMode.ST:
+                    def_res = 0.2 if se else 0.4
+                else:
+                    # ScanSAR: assert 4 beams
+                    def_res = 8.25
+            elif pol_mode == TsxPolarization.DUAL:
+                if self.sensor_mode == TsxSensorMode.SM:
+                    def_res = 3.0 if se else 4.5
+                elif self.sensor_mode == TsxSensorMode.HS:
+                    def_res = 1.0 if se else 2.0
+                else:
+                    # self.sensor_mode == TsxSensorMode.SL:
+                    def_res = 3.4 if se else 5.5
+            elif pol_mode == TsxPolarization.QUAD:
+                raise NotImplementedError(f"Quadratic polarization is not implemented yet: {self.name}")
+            else:
+                # if pol_mode == TsxPolarization.TWIN
+                raise NotImplementedError(f"Twin polarization is not implemented yet: {self.name}")
+
+        return def_res
+
+    def _post_init(self) -> None:
+        """
+        Function used to post_init the products
+        (setting product-type, band names and so on)
+        """
+        # Private attributes
         self._raw_band_regex = "IMAGE_{}_*.tif"
         self._band_folder = os.path.join(self.path, "IMAGEDATA")
         self._snap_path = os.path.join(self.path, self.name + ".xml")
-        self.pol_channels = self._get_raw_bands()
-        self.condensed_name = self._get_condensed_name()
+
+        # Zipped and SNAP can process its archive
+        self.needs_extraction = False
+
+        # Post init done by the super class
+        super()._post_init()
 
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
@@ -172,7 +242,7 @@ class TsxProduct(SarProduct):
 
         return date
 
-    def _get_condensed_name(self) -> str:
+    def _set_condensed_name(self) -> str:
         """
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
@@ -180,3 +250,33 @@ class TsxProduct(SarProduct):
             str: Condensed S1 name
         """
         return f"{self.get_datetime()}_TSX_{self.sensor_mode.value}_{self.product_type.value}"
+
+    def read_mtd(self) -> (etree.Element, str):
+        """
+        Read metadata and outputs the metadata XML root and its namespace
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20200605T042203_20200605T042211"
+        >>> prod = Reader().open(path)
+        >>> prod.read_mtd()
+        (<Element level1Product at 0x1b845b7ab88>, '')
+        ```
+
+        Returns:
+            (etree.Element, str): Metadata XML root and its namespace
+        """
+        try:
+            mtd_file = glob.glob(os.path.join(self.path, f"{self.name}.xml"))[0]
+
+            # pylint: disable=I1101:
+            # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+            xml_tree = etree.parse(mtd_file)
+            root = xml_tree.getroot()
+        except IndexError as ex:
+            raise InvalidProductError(f"Metadata file ({self.name}.xml) not found in {self.path}") from ex
+
+        # Get namespace
+        namespace = ""  # No namespace here
+
+        return root, namespace

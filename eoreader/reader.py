@@ -11,7 +11,6 @@ from typing import Union
 from sertit import strings, files
 from sertit.misc import ListEnum
 
-from eoreader.exceptions import InvalidTypeError
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)

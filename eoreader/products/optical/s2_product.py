@@ -54,14 +54,24 @@ class S2Product(OpticalProduct):
 
     You can use directly the .zip file
     """
-
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
-        super().__init__(product_path, archive_path, output_path)
+    def _post_init(self) -> None:
+        """
+        Function used to post_init the products
+        (setting sensor type, band names and so on)
+        """
         self.tile_name = self._get_tile_name()
-        self.condensed_name = self._get_condensed_name()
-
-        # Zipped
         self.needs_extraction = False
+
+        # Post init done by the super class
+        super()._post_init()
+
+    def _set_default_resolution(self) -> float:
+        """
+        Set product default resolution (in meters)
+        """
+        # S2: use 20m resolution, even if we have 60m and 10m resolution
+        # In the future maybe set one resolution per band ?
+        return 20.
 
     def _get_tile_name(self) -> str:
         """
@@ -219,7 +229,6 @@ class S2Product(OpticalProduct):
         band_folders = self._get_band_folder(band_list, resolution)
         band_paths = {}
         for band in band_list:
-            assert band in obn
             try:
                 if self.is_archived:
                     # Open the zip file
@@ -472,7 +481,7 @@ class S2Product(OpticalProduct):
 
         return band_arrays, meta
 
-    def _get_condensed_name(self) -> str:
+    def _set_condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile}_{product_type}_{processed_hours}).
 
@@ -502,29 +511,8 @@ class S2Product(OpticalProduct):
         zenith_angle = None
         azimuth_angle = None
 
-        # Get MTD XML file
-        if self.is_archived:
-            # Open the zip file
-            with zipfile.ZipFile(self.path, "r") as zip_ds:
-                # Get the correct band path
-                filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f".*GRANULE.*.xml")
-                mtd_xml = list(filter(regex.match, filenames))[0]
-                root = etree.fromstring(zip_ds.read(mtd_xml))
-        else:
-            granule_dir = os.path.join(self.path, 'GRANULE')
-            try:
-                mtd_xml = glob.glob(os.path.join(granule_dir, '*', '*.xml'))[0]
-            except IndexError as ex:
-                raise InvalidProductError(f"Metadata file not found in {self.path}") from ex
-
-            # Open and parse XML
-            # pylint: disable=I1101
-            xml_tree = etree.parse(mtd_xml)
-            root = xml_tree.getroot()
-
-        idx = root.tag.rindex("}")
-        namespace = root.tag[:idx + 1]
+        # Read metadata
+        root, namespace = self.read_mtd()
 
         # Open zenith and azimuth angle
         for element in root:
@@ -541,3 +529,47 @@ class S2Product(OpticalProduct):
             raise InvalidProductError("Azimuth or Zenith angles not found")
 
         return azimuth_angle, zenith_angle
+
+    def read_mtd(self) -> (etree.Element, str):
+        """
+        Read metadata and outputs the metadata XML root and its namespace
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.read_mtd()
+        (<Element {https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}Level-2A_Tile_ID at ...>,
+        '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}')
+
+        ```
+
+        Returns:
+            (etree.Element, str): Metadata XML root and its namespace
+        """
+        # Get MTD XML file
+        if self.is_archived:
+            # Open the zip file
+            with zipfile.ZipFile(self.path, "r") as zip_ds:
+                # Get the correct band path
+                filenames = [f.filename for f in zip_ds.filelist]
+                regex = re.compile(f".*GRANULE.*.xml")
+                xml_zip = zip_ds.read(list(filter(regex.match, filenames))[0])
+                root = etree.fromstring(xml_zip)
+        else:
+            # Open metadata file
+            try:
+                mtd_file = glob.glob(os.path.join(self.path, "GRANULE", "*", "*.xml"))[0]
+
+                # pylint: disable=I1101:
+                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                xml_tree = etree.parse(mtd_file)
+                root = xml_tree.getroot()
+            except IndexError as ex:
+                raise InvalidProductError(f"Metadata file not found in {self.path}") from ex
+
+        # Get namespace
+        idx = root.tag.rindex("}")
+        namespace = root.tag[:idx + 1]
+
+        return root, namespace
