@@ -80,7 +80,6 @@ class S1Product(SarProduct):
                 if element.tag == 'imageAnnotation':
                     image_info = element.find('imageInformation')
                     def_res = float(image_info.findtext('rangePixelSpacing'))
-                    print("from mtd: %s" % def_res)
                     break
         except (InvalidProductError, AttributeError):
             pass
