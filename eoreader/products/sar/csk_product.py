@@ -123,7 +123,7 @@ class CskProduct(SarProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path)
 
-    def _set_default_resolution(self) -> float:
+    def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
         """

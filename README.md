@@ -17,6 +17,7 @@ This project allows you to read and open satellite data.
 >>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
 >>> footprint = prod.footprint
 >>> extent = prod.extent
+>>> def_res = prod.default_resolution
 
 >>> # Load some bands and index
 >>> bands, meta = prod.load([NDVI, MNDWI, GREEN], resolution=resolution)
@@ -29,6 +30,9 @@ This project allows you to read and open satellite data.
 
 >>> # Create a stack with some other bands
 >>> stack, stk_meta = prod.stack([NDVI, MNDWI, GREEN], resolution=resolution)
+
+>>> # Read Metadata
+>>> mtd, namespace = prod.read_mtd()
 ```
 
 :bulb:  
@@ -47,7 +51,7 @@ Ensure that you have the folder containing your `gpt.exe` in your `PATH`.
 Accepted optical satellites are:
 
 - `Sentinel-2`: **L2A** and **L1C**, zip files are accepted
-- `Sentinel-2 Theia`: **L2A**
+- `Sentinel-2 Theia`: **L2A**, zip files are accepted
 - `Sentinel-3`: **OLCI** and **SLSTR**
 - `Landsat-1`: **MSS**
 - `Landsat-2`: **MSS**

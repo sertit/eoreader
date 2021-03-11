@@ -65,7 +65,7 @@ class S2Product(OpticalProduct):
         # Post init done by the super class
         super()._post_init()
 
-    def _set_default_resolution(self) -> float:
+    def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
         """
