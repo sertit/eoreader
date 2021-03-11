@@ -536,7 +536,7 @@ class S3Product(OpticalProduct):
         # DO not set 0 to epsilons as they are a part of the
         return self._create_band_masked_array(band_arr, mask, meta)
 
-    def _load_bands(self, band_list: [list, BandNames], resolution: float = 20) -> (dict, dict):
+    def _load_bands(self, band_list: [list, BandNames], resolution: float = None) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -557,7 +557,7 @@ class S3Product(OpticalProduct):
 
         return band_arrays, meta
 
-    def _preprocess_s3(self, resolution: float):
+    def _preprocess_s3(self, resolution: float = None):
         """
         pre-process S3 bands (orthorectify...)
 
@@ -610,7 +610,7 @@ class S3Product(OpticalProduct):
 
         return band_paths
 
-    def _run_s3_gpt_cli(self, out_dim: str, resolution: float) -> list:
+    def _run_s3_gpt_cli(self, out_dim: str, resolution: float = None) -> list:
         """
         Construct GPT command line to reproject S3 images and quality flags
 

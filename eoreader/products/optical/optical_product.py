@@ -250,7 +250,7 @@ class OpticalProduct(Product):
 
     def load(self,
              band_and_idx_list: Union[list, BandNames, Callable],
-             resolution: float = 20) -> (dict, dict):
+             resolution: float = None) -> (dict, dict):
         """
         Open the bands and compute the wanted index.
         You can add some bands in the dict.

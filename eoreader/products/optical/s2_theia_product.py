@@ -330,7 +330,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return sat_mask
 
-    def _load_bands(self, band_list: [list, BandNames], resolution: float = 20) -> (dict, dict):
+    def _load_bands(self, band_list: [list, BandNames], resolution: float = None) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
