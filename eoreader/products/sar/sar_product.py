@@ -618,7 +618,7 @@ class SarProduct(Product):
 
             # Command line
             if not os.path.isfile(pp_dim):
-                def_res = float(os.environ.get(SAR_DEF_RES, self.default_res))
+                def_res = float(os.environ.get(SAR_DEF_RES, self.resolution))
                 res_m = resolution if resolution else def_res
                 res_deg = res_m / 10. * 8.983152841195215E-5  # Approx
                 cmd_list = snap.get_gpt_cli(pp_graph,

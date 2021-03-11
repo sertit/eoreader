@@ -7,7 +7,7 @@ from eoreader.products.optical.landsat_product import LandsatProduct, LandsatPro
 class L1Product(LandsatProduct):
     """ Class of Landsat-1 Products """
 
-    def _set_default_resolution(self) -> float:
+    def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
         """

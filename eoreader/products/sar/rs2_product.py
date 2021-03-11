@@ -157,7 +157,7 @@ class Rs2Product(SarProduct):
     You can use directly the .zip file
     """
 
-    def _set_default_resolution(self) -> float:
+    def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
         """

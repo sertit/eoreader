@@ -81,7 +81,7 @@ class S3Product(OpticalProduct):
         # Post init done by the super class
         super()._post_init()
 
-    def _set_default_resolution(self) -> float:
+    def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
         """
@@ -622,7 +622,7 @@ class S3Product(OpticalProduct):
             list: Processed band name
         """
         # Default resolution
-        def_res = os.environ.get(S3_DEF_RES, self.default_res)
+        def_res = os.environ.get(S3_DEF_RES, self.resolution)
 
         # Construct GPT graph
         graph_path = os.path.join(utils.get_data_dir(), "preprocess_s3.xml")

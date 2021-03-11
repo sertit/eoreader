@@ -90,7 +90,7 @@ class TsxPolarization(ListEnum):
 class TsxProduct(SarProduct):
     """ Class for TerraSAR-X Products """
 
-    def _set_default_resolution(self) -> float:
+    def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
 

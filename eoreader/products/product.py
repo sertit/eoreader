@@ -113,8 +113,8 @@ class Product:
         # Set product type, needs to be done after the post-initialization
         self._set_product_type()
 
-        # Set teh default resolution, needs to be done with knowing the product type
-        self.default_res = self._set_default_resolution()
+        # Set the resolution, needs to be done when knowing the product type
+        self.resolution = self._set_resolution()
         """
         Default resolution in meters of the current product. 
         For SAR product, we use Ground Range resolution as we will automatically orthorectify the tiles.
@@ -189,7 +189,7 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def _set_default_resolution(self) -> float:
+    def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
         """
