@@ -331,3 +331,26 @@ class OpticalBands(_Bands):
 
             # Set number
             self._band_map[band_name] = band_nb
+
+
+# ---------------------- SAR ----------------------
+@unique
+class DemBandNames(BandNames):
+    """ DEM Band names """
+    DEM = 'DEM'
+    """ DEM """
+
+    SLOPE = 'SLOPE'
+    """ Slope """
+
+    HLSHD = 'HILLSHADE'
+    """ Hillshade """
+
+
+# too many ancestors
+# pylint: disable=R0901
+class DemBands(_Bands):
+    """ DEM bands class """
+
+    def __init__(self) -> None:
+        super().__init__({band_name: band_name.value for band_name in DemBandNames})

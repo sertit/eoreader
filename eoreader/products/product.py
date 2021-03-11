@@ -12,15 +12,17 @@ import geopandas as gpd
 import rasterio
 from rasterio import crs, warp
 from rasterio.enums import Resampling
-from sertit import files, strings, rasters
+from sertit import files, strings, rasters, misc
 from sertit.snap import MAX_CORES
 from sertit.misc import ListEnum
 
 from eoreader.bands import index
 from eoreader import utils
 from eoreader.reader import Reader, Platform
-from eoreader.bands.bands import OpticalBandNames as obn, SarBandNames as sbn, BandNames
+from eoreader.bands.alias import *
+from eoreader.bands.bands import BandNames
 from eoreader.utils import EOREADER_NAME
+from eoreader.env_vars import DEM
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -463,6 +465,36 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    def _load_dem(self, band_list: Union[list, BandNames], resolution: float = None) -> (dict, dict):
+        """
+        Load bands as numpy arrays with the same resolution (and same metadata).
+
+        Args:
+            band_list (Union[list, BandNames]): List of the wanted bands
+            resolution (int): Band resolution in meters
+        Returns:
+            dict, dict: Dictionary {band_name, band_array} and the products metadata
+                        (supposed to be the same for all bands)
+        """
+        dem_path = os.environ.get(DEM, "")
+        dem_bands = {}
+        meta = {}
+        for band in band_list:
+            assert is_dem(band)
+            if band == DEM:
+                path = self._warp_dem(dem_path, resolution)
+            elif band == SLOPE:
+                path = self._compute_slope(dem_path, resolution)
+            elif band == HLSHD:
+                path = self._compute_hillshade(dem_path, resolution)
+            else:
+                raise InvalidTypeError(f"Unknown DEM band: {band}")
+
+            with rasterio.open(path) as dst:
+                dem_bands[band], meta = rasters.read(dst, resolution)
+
+        return dem_bands, meta
+
     @abstractmethod
     def load(self,
              band_and_idx_list: Union[list, BandNames, Callable],
@@ -513,7 +545,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def has_band(self, band: Union[BandNames, obn, sbn]) -> bool:
+    def has_band(self, band: BandNames) -> bool:
         """
         Does this products has the specified band ?
 
@@ -534,7 +566,15 @@ class Product:
         Returns:
             bool: True if the products has the specified band
         """
-        return band in self.get_existing_bands()
+        if is_dem(band):
+            if self.sensor_type == SensorType.SAR and band == HLSHD:
+                has_band = False
+            else:
+                has_band = True
+        else:
+            has_band = band in self.get_existing_bands()
+
+        return has_band
 
     def has_index(self, idx: Callable) -> bool:
         """
@@ -647,7 +687,9 @@ class Product:
         """ Output directory of the product, to write orthorectified data for example. """
         if not self._output:
             self._output = os.path.join(os.path.dirname(self.path), self.condensed_name)
-            os.makedirs(self._output, exist_ok=True)
+
+        # Makedir in case
+        os.makedirs(self._output, exist_ok=True)
 
         return self._output
 
@@ -658,10 +700,10 @@ class Product:
         if not os.path.isdir(self._output):
             os.makedirs(self._output, exist_ok=True)
 
-    def warp_dem(self,
-                 dem_path: str = "",
-                 resolution: Union[float, tuple] = None,
-                 resampling: Resampling = Resampling.bilinear) -> str:
+    def _warp_dem(self,
+                  dem_path: str = "",
+                  resolution: Union[float, tuple] = None,
+                  resampling: Resampling = Resampling.bilinear) -> str:
         """
         Get this products DEM, warped to this products footprint and CRS.
 
@@ -693,7 +735,7 @@ class Product:
 
         warped_dem_path = os.path.join(self.output, f"{self.condensed_name}_DEM.tif")
         if os.path.isfile(warped_dem_path):
-            LOGGER.info("Already existing DEM for %s. Skipping process.", self.name)
+            LOGGER.debug("Already existing DEM for %s. Skipping process.", self.name)
         else:
             LOGGER.info("Warping DEM for %s", self.name)
 
@@ -708,17 +750,18 @@ class Product:
                     LOGGER.warning("Non existing DEM file: %s. Using default ones (EUDEM or MERIT)", dem_path)
                     dem_path = MERIT_DEM
                 else:
-                    dem_extent_df = rasters.get_extent(dem_path).to_crs(prod_extent_df.crs)
+                    dem_extent_df = rasters.get_footprint(dem_path).to_crs(prod_extent_df.crs)
                     if not dem_extent_df.contains(prod_extent_df)[0]:
                         LOGGER.warning("Input DEM file does not intersect %s. Using default ones (EUDEM or MERIT)",
                                        self.name)
                         dem_path = MERIT_DEM
 
             # Use EUDEM if the products is contained in it
-            if dem_path == MERIT_DEM and os.path.isfile(EUDEM_PATH):
-                dem_extent_df = rasters.get_extent(EUDEM_PATH)
-                if dem_extent_df.contains(prod_extent_df.to_crs(dem_extent_df.crs))[0]:
-                    dem_path = EUDEM_PATH
+            # TODO: DEBUG EUDEM FOOTPRINT
+            # if dem_path == MERIT_DEM and os.path.isfile(EUDEM_PATH):
+            #     dem_extent_df = rasters.get_extent(EUDEM_PATH)
+            #     if dem_extent_df.contains(prod_extent_df.to_crs(dem_extent_df.crs))[0]:
+            #         dem_path = EUDEM_PATH
 
             # Check existence (SRTM)
             if not os.path.isfile(dem_path):
@@ -759,6 +802,63 @@ class Product:
                             num_threads=MAX_CORES)
 
         return warped_dem_path
+
+    @abstractmethod
+    def _compute_hillshade(self,
+                           dem_path: str = "",
+                           resolution: Union[float, tuple] = None,
+                           resampling: Resampling = Resampling.bilinear) -> str:
+        """
+        Compute Hillshade mask
+
+        Args:
+            dem_path (str): DEM path, using EUDEM/MERIT DEM if none
+            resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
+            resampling (Resampling): Resampling method
+
+        Returns:
+            str: Hillshade mask path
+
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
+
+    def _compute_slope(self,
+                       dem_path: str = "",
+                       resolution: Union[float, tuple] = None,
+                       resampling: Resampling = Resampling.bilinear) -> str:
+        """
+        Compute slope mask
+
+        Args:
+            dem_path (str): DEM path, using EUDEM/MERIT DEM if none
+            resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
+            resampling (Resampling): Resampling method
+
+        Returns:
+            str: Slope mask path
+
+        """
+        # Warp DEM
+        warped_dem_path = self._warp_dem(dem_path, resolution, resampling)
+
+        # Get slope path
+        slope_dem = os.path.join(self.output, f"{self.condensed_name}_SLOPE.tif")
+        if os.path.isfile(slope_dem):
+            LOGGER.debug("Already existing slope DEM for %s. Skipping process.", self.name)
+        else:
+            LOGGER.info("Computing slope for %s", self.name)
+            cmd_slope = ["gdaldem",
+                         "--config",
+                         "NUM_THREADS", MAX_CORES,
+                         "slope",
+                         "-compute_edges",
+                         strings.to_cmd_string(warped_dem_path),
+                         strings.to_cmd_string(slope_dem), "-p"]
+
+            # Run command
+            misc.run_cli(cmd_slope)
+
+        return slope_dem
 
     # pylint: disable=R0913
     # Too many arguments (6/5)

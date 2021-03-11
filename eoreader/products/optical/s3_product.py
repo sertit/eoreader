@@ -1,5 +1,4 @@
 """ Sentinel-3 products """
-import glob
 import logging
 import os
 import tempfile
@@ -22,10 +21,10 @@ from eoreader.exceptions import InvalidTypeError, InvalidProductError
 from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
+from eoreader.env_vars import S3_DEF_RES
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 BT_BANDS = [obn.MIR, obn.TIR_1, obn.TIR_2]
-S3_DEF_RES = "EOREADER_S3_DEFAULT_RES"
 
 
 @unique

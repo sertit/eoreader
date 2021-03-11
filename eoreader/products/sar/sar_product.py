@@ -21,21 +21,13 @@ from sertit import rasters, vectors
 from eoreader import utils
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.bands.bands import SarBands, SarBandNames as sbn, BandNames
-from eoreader.bands.alias import is_index, is_sar_band, is_optical_band
+from eoreader.bands.alias import is_index, is_sar_band, is_optical_band, is_dem
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
+from eoreader.env_vars import PP_GRAPH, DSPK_GRAPH, SAR_DEF_RES
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-PP_ENV = "EOREADER_PP_GRAPH"
-"""Environment variables for pre-processing graph path"""
-
-DSPK_ENV = "EOREADER_DSPK_GRAPH"
-"""Environment variables for despeckling graph path"""
-
-SAR_DEF_RES = "EOREADER_SAR_DEFAULT_RES"
-"""Environment variables for SAR default resolution, used for SNAP orthorectification."""
 
 
 @unique
@@ -513,7 +505,7 @@ class SarProduct(Product):
 
         # Open bands and get array (resampled if needed)
         band_arrays = {}
-        meta = None
+        meta = {}
         for band_name, band_path in band_paths.items():
             with rasterio.open(band_path) as band_ds:
                 # Read CSK band
@@ -572,6 +564,11 @@ class SarProduct(Product):
         if not isinstance(band_and_idx_list, list):
             band_and_idx_list = [band_and_idx_list]
 
+        if len(band_and_idx_list) == 0:
+            return {}, {}
+
+        band_list = []
+        dem_list = []
         for band in band_and_idx_list:
             if is_index(band):
                 raise NotImplementedError("For now, no index is implemented for SAR data.")
@@ -580,10 +577,23 @@ class SarProduct(Product):
             elif is_sar_band(band):
                 if not self.has_band(band):
                     raise InvalidBandError(f"{band} cannot be retrieved from {self.condensed_name}")
+                else:
+                    band_list.append(band)
+            elif is_dem(band):
+                dem_list.append(band)
             else:
                 raise InvalidTypeError(f"{band} is neither a band nor an index !")
 
-        return self._load_bands(band_and_idx_list, resolution)
+        # Load bands
+        bands, meta = self._load_bands(band_list, resolution=resolution)
+
+        # Add DEM
+        dem_bands, dem_meta = self._load_dem(dem_list, resolution=resolution)
+        bands.update(dem_bands)
+        if not meta:
+            meta = dem_meta
+
+        return bands, meta
 
     def _pre_process_sar(self, resolution: float = None) -> dict:
         """
@@ -607,12 +617,12 @@ class SarProduct(Product):
             pp_dim = pp_target + '.dim'
 
             # Pre-process graph
-            if PP_ENV not in os.environ:
+            if PP_GRAPH not in os.environ:
                 sat = "s1" if self.sat_id == Platform.S1 else "sar"
                 spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
                 pp_graph = os.path.join(utils.get_data_dir(), f"{spt}_{sat}_preprocess_default.xml")
             else:
-                pp_graph = os.environ[PP_ENV]
+                pp_graph = os.environ[PP_GRAPH]
                 if not os.path.isfile(pp_graph) or not pp_graph.endswith(".xml"):
                     FileNotFoundError(f"{pp_graph} cannot be found.")
 
@@ -657,10 +667,10 @@ class SarProduct(Product):
             dspk_dim = target_file + '.dim'
 
             # Despeckle graph
-            if DSPK_ENV not in os.environ:
+            if DSPK_GRAPH not in os.environ:
                 dspk_graph = os.path.join(utils.get_data_dir(), f"sar_despeckle_default.xml")
             else:
-                dspk_graph = os.environ[DSPK_ENV]
+                dspk_graph = os.environ[DSPK_GRAPH]
                 if not os.path.isfile(dspk_graph) or not dspk_graph.endswith(".xml"):
                     FileNotFoundError(f"{dspk_graph} cannot be found.")
 
@@ -708,3 +718,19 @@ class SarProduct(Product):
             rasters.write(arr, file_path, meta, nodata=self.nodata)
 
         return file_path
+
+    def _compute_hillshade(self,
+                           dem_path: str = "",
+                           resolution: Union[float, tuple] = None,
+                           resampling: Resampling = Resampling.bilinear) -> str:
+        """
+        Compute Hillshade mask
+
+        Args:
+            dem_path (str): DEM path, using EUDEM/MERIT DEM if none
+            resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
+            resampling (Resampling): Resampling method
+        Returns:
+            str: Hillshade mask path
+        """
+        raise NotImplementedError("Impossible to compute hillshade mask for SAR data.")
