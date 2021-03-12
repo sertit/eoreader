@@ -314,8 +314,21 @@
             % if submodules:
                 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
                     <ul>
-                        % for m in submodules:
-                            <li><code>${link(m)}</code></li>
+                        <%
+                            subm = []
+                            subp = []
+                            # Submodules
+                            for m in submodules:
+                                if m.is_package:
+                                    subp.append(m)
+                                else:
+                                    subm.append(m)
+                        %>
+                        % for m in subm:
+                            <li><code><strong>${link(m)}</strong></code></li>
+                        % endfor
+                        % for m in subp:
+                            <li><code><i>${link(m)}</i></code></li>
                         % endfor
                     </ul>
                 </li>
