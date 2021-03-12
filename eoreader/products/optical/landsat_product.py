@@ -1,17 +1,18 @@
 """ Landsat products """
-
+import glob
 import logging
 import os
 import tempfile
 from datetime import datetime
 from abc import abstractmethod
 from enum import unique
-from typing import Union
+from typing import Union, Tuple
 
 import numpy as np
 import pandas as pd
 import geopandas as gpd
 import rasterio
+from lxml import etree
 from rasterio.enums import Resampling
 from sertit import files
 from sertit import rasters
@@ -41,8 +42,47 @@ class LandsatProductType(ListEnum):
     """MSS Product Type, for Landsat-5,4,3,2,1 platforms"""
 
 
+@unique
+class LandsatCollection(ListEnum):
+    """
+    Landsat collection number.
+    See [here](https://www.usgs.gov/media/files/landsat-collection-1-vs-collection-2-summary) for more information
+    """
+    COL_1 = "01"
+    """Collection 1"""
+
+    COL_2 = "02"
+    """Collection 2"""
+
+
 class LandsatProduct(OpticalProduct):
     """ Class of Landsat Products """
+
+    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
+        # Private
+        self._collection = None
+        self._quality_id = None
+
+        # Initialization from the super class
+        super().__init__(product_path, archive_path, output_path)
+
+    def _set_collection(self):
+        """ Set Landsat collection """
+        return LandsatCollection.from_value(self.split_name[-2])
+
+    def _post_init(self) -> None:
+        """
+        Function used to post_init the products
+        (setting sensor type, band names and so on)
+        """
+        self.tile_name = self._get_tile_name()
+        self._collection = self._set_collection()
+        # self.needs_extraction = False for col2 ?
+
+        self._quality_id = "_BQA" if self._collection == LandsatCollection.COL_1 else "_QA_RADSAT"
+
+        # Post init done by the super class
+        super()._post_init()
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
@@ -122,7 +162,7 @@ class LandsatProduct(OpticalProduct):
              Union[str, datetime.datetime]: Its acquisition datetime
         """
         try:
-            mtd = self.read_mtd()
+            mtd = self.read_mtd(force_pd=True)
             date = mtd["DATE_ACQUIRED"].value  # 1982-09-06
             # "16:47:09.5990000Z": needs max 6 digits for ms
             hours = mtd["SCENE_CENTER_TIME"].value.replace("\"", "")[:-3]
@@ -177,47 +217,86 @@ class LandsatProduct(OpticalProduct):
 
         return band_paths
 
-    def read_mtd(self) -> pd.DataFrame:
+    def read_mtd(self, force_pd=False) -> Union[pd.DataFrame, Tuple[etree.Element, str]]:
         """
-        Read Landsat metadata as a `pandas.DataFrame`
+        Read Landsat metadata as:
+
+         - a `pandas.DataFrame` whatever its collection is (by default for collection 1)
+         - a XML root + its namespace if the product is retrieved from the 2nd collection (by default for collection 2)
 
         ```python
         >>> from eoreader.reader import Reader
         >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
         >>> prod = Reader().open(path)
+
+        >>> # COLLECTION 1 : Open metadata as panda DataFrame
         >>> prod.read_mtd()
         NAME                                           ORIGIN  ...    RESAMPLING_OPTION
         value  "Image courtesy of the U.S. Geological Survey"  ...  "CUBIC_CONVOLUTION"
         [1 rows x 197 columns]
-        ```
 
+        >>> # COLLECTION 2 : Open metadata as XML
+        >>> path = r"LC08_L1TP_200030_20201220_20210310_02_T1"  # Collection 2
+        >>> prod = Reader().open(path)
+        >>> prod.read_mtd()
+        (<Element LANDSAT_METADATA_FILE at 0x19229016048>, '')
+
+        >>> # COLLECTION 2 : Force to pandas.DataFrame
+        >>> prod.read_mtd(force_pd=True)
+        NAME                                           ORIGIN  ...    RESAMPLING_OPTION
+        value  "Image courtesy of the U.S. Geological Survey"  ...  "CUBIC_CONVOLUTION"
+        [1 rows x 263 columns]
+        ```
+        Args:
+            force_pd (bool): If collection 2, return a pandas.DataFrame instead of a XML root + namespace
         Returns:
             pd.DataFrame: Metadata as a Pandas DataFrame
         """
-        mtd_path = os.path.join(self.path, f"{self.name}_MTL.txt")
-        if not os.path.isfile(mtd_path):
-            raise FileNotFoundError(f"Unable to find the metadata file associated with {self.path}")
+        # WARNING: always use force_pd in this class !
+        as_pd = (self._collection == LandsatCollection.COL_1) or force_pd
 
-        # Parse
-        mtd_data = pd.read_table(mtd_path,
-                                 sep="\s=\s",
-                                 names=["NAME", "value"],
-                                 skipinitialspace=True,
-                                 engine="python")
+        if as_pd:
+            # FOR COLLECTION 1 AND 2
+            mtd_path = os.path.join(self.path, f"{self.name}_MTL.txt")
+            if not os.path.isfile(mtd_path):
+                raise FileNotFoundError(f"Unable to find the metadata file associated with {self.path}")
 
-        # Workaround an unexpected behaviour in pandas !
-        if any(mtd_data.NAME == "="):
+            # Parse
             mtd_data = pd.read_table(mtd_path,
-                                     sep="=",
-                                     names=["NAME", "=", "value"],
-                                     usecols=[0, 2],
-                                     skipinitialspace=True)
+                                     sep="\s=\s",
+                                     names=["NAME", "value"],
+                                     skipinitialspace=True,
+                                     engine="python")
 
-        # Remove useless rows
-        mtd_data = mtd_data[~mtd_data["NAME"].isin(["GROUP", "END_GROUP", "END"])]
+            # Workaround an unexpected behaviour in pandas !
+            if any(mtd_data.NAME == "="):
+                mtd_data = pd.read_table(mtd_path,
+                                         sep="=",
+                                         names=["NAME", "=", "value"],
+                                         usecols=[0, 2],
+                                         skipinitialspace=True)
 
-        # Set index
-        mtd_data = mtd_data.set_index("NAME").T
+            # Remove useless rows
+            mtd_data = mtd_data[~mtd_data["NAME"].isin(["GROUP", "END_GROUP", "END"])]
+
+            # Set index
+            mtd_data = mtd_data.set_index("NAME").T
+        else:
+            # ONLY FOR COLLECTION 2
+            try:
+                mtd_file = glob.glob(os.path.join(self.path, f"{self.name}_MTL.xml"))[0]
+
+                # pylint: disable=I1101:
+                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                xml_tree = etree.parse(mtd_file)
+                root = xml_tree.getroot()
+            except IndexError as ex:
+                raise InvalidProductError(f"Metadata file ({self.name}.xml) not found in {self.path}") from ex
+
+            # Get namespace
+            namespace = ""  # No namespace here
+
+            mtd_data = (root, namespace)
 
         return mtd_data
 
@@ -266,7 +345,7 @@ class LandsatProduct(OpticalProduct):
         # Get band name: the last number before the .TIF:
         # ie: 'LC08_L1TP_200030_20191218_20191226_01_T1_B1.TIF'
         band_name = dataset.name[-5:-4]
-        if "_BQA" in dataset.name:
+        if self._quality_id in dataset.name:
             band, dst_meta = rasters.read(dataset,
                                           [x_res, y_res],
                                           Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
@@ -276,7 +355,7 @@ class LandsatProduct(OpticalProduct):
             band, dst_meta = rasters.read(dataset, [x_res, y_res], Resampling.bilinear)
 
             # Open mtd
-            mtd_data = self.read_mtd()
+            mtd_data = self.read_mtd(force_pd=True)
 
             # Get band nb and corresponding coeff
             c_mul_str = 'REFLECTANCE_MULT_BAND_' + band_name
@@ -325,23 +404,40 @@ class LandsatProduct(OpticalProduct):
             np.ma.masked_array, dict: Cleaned band array and its metadata
         """
         # Get QA file path
-        landsat_qa_path = files.get_file_in_dir(self.path, "*BQA.TIF", exact_name=True)
+        landsat_qa_path = files.get_file_in_dir(self.path, f"*{self._quality_id}.TIF", exact_name=True)
 
         # Open QA band
         with rasterio.open(landsat_qa_path) as dataset:
             qa_arr, meta = self._read_band(dataset, res_x, res_y)
 
-            # Get clouds and nodata
-            # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
-            nodata_id = 0  # Fill value
-            dropped_id = 1  # Dropped pixel or terrain occlusion
-            # Set nodata to every saturated pixel, even if only 1-2 bands are touched by it
-            # -> 01 or 10 or 11
-            # -> bit 2 or bit 3
-            sat_id_1 = 2
-            sat_id_2 = 3
-            nodata, dropped, sat_1, sat_2 = rasters.read_bit_array(qa_arr, [nodata_id, dropped_id, sat_id_1, sat_id_2])
-            mask = nodata | dropped | sat_1 | sat_2
+            if self._collection == LandsatCollection.COL_1:
+                # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
+                # Bit ids
+                nodata_id = 0  # Fill value
+                dropped_id = 1  # Dropped pixel or terrain occlusion
+                # Set nodata to every saturated pixel, even if only 1-2 bands are touched by it
+                # -> 01 or 10 or 11
+                # -> bit 2 or bit 3
+                sat_id_1 = 2
+                sat_id_2 = 3
+                nodata, dropped, sat_1, sat_2 = rasters.read_bit_array(qa_arr,
+                                                                       [nodata_id, dropped_id, sat_id_1, sat_id_2])
+                mask = nodata | dropped | sat_1 | sat_2
+            else:
+                # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
+                band_nb = int(self.band_names[band])
+
+                # Bit ids
+                nodata_id = 0  # Fill value
+                sat_id = band_nb - 1  # Saturated pixel
+                if self.product_type != LandsatProductType.L1_OLCI:
+                    other_id = 11  # Terrain occlusion
+                else:
+                    other_id = 9  # Dropped pixels
+
+                nodata, sat, other = rasters.read_bit_array(qa_arr,
+                                                            [nodata_id, sat_id, other_id])
+                mask = nodata | sat | other
 
         return self._create_band_masked_array(band_arr, mask, meta)
 
@@ -382,7 +478,7 @@ class LandsatProduct(OpticalProduct):
             (float, float): Mean Azimuth and Zenith angle
         """
         # Retrieve angles
-        mtd_data = self.read_mtd()
+        mtd_data = self.read_mtd(force_pd=True)
         azimuth_angle = float(mtd_data.SUN_AZIMUTH.value)
         zenith_angle = float(mtd_data.SUN_ELEVATION.value)
 
