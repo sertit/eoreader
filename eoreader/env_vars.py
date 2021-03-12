@@ -12,5 +12,5 @@ SAR_DEF_RES = "EOREADER_SAR_DEFAULT_RES"
 S3_DEF_RES = "EOREADER_S3_DEFAULT_RES"
 """Environment variables for S3 default resolution, used for SNAP orthorectification to override default resolution."""
 
-DEM = "EOREADER_DEM_PATH"
+DEM_PATH = "EOREADER_DEM_PATH"
 """Environment variables for overriding default DEM path"""

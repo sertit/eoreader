@@ -22,7 +22,7 @@ from eoreader.reader import Reader, Platform
 from eoreader.bands.alias import *
 from eoreader.bands.bands import BandNames
 from eoreader.utils import EOREADER_NAME
-from eoreader.env_vars import DEM
+from eoreader.env_vars import DEM_PATH
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -476,7 +476,7 @@ class Product:
             dict, dict: Dictionary {band_name, band_array} and the products metadata
                         (supposed to be the same for all bands)
         """
-        dem_path = os.environ.get(DEM, "")
+        dem_path = os.environ.get(DEM_PATH, "")
         dem_bands = {}
         meta = {}
         for band in band_list:
