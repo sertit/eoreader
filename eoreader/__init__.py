@@ -3,3 +3,8 @@
 
 .. include:: ../README.md
 """
+
+__pdoc__ = {
+    "eoreader.version": False,
+    "eoreader.data": False,
+}
