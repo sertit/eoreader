@@ -340,18 +340,44 @@
                             <li>
                                 <h4><code>${link(c)}</code></h4>
                                 <%
-                                    members = c.functions(sort=sort_identifiers) + c.methods(sort=sort_identifiers)
+                                    # Functions
+                                    fcts = c.functions(sort=sort_identifiers) + c.methods(sort=sort_identifiers)
+                                    if not show_inherited_members:
+                                        fcts = [i for i in fcts if not i.inherits]
+                                    if sort_identifiers:
+                                        fcts = sorted(fcts)
+
+                                    # Variables
                                     if list_class_variables_in_index:
-                                        members += (c.instance_variables(sort=sort_identifiers) +
+                                        var = (c.instance_variables(sort=sort_identifiers) +
                                         c.class_variables(sort=sort_identifiers))
                                     if not show_inherited_members:
-                                        members = [i for i in members if not i.inherits]
+                                        var = [i for i in var if not i.inherits]
                                     if sort_identifiers:
-                                        members = sorted(members)
+                                        var = sorted(var)
                                 %>
-                                % if members:
-                                    ${show_column_list(members)}
-                                % endif
+                                <ul>
+                                    <li>
+                                    % if fcts and var:
+                                        <h4><code>Functions</code></h4>
+                                    % endif
+                                    </li>
+                                    <li>
+                                    % if fcts:
+                                        ${show_column_list(fcts)}
+                                    % endif
+                                    </li>
+                                    <li>
+                                    % if fcts and var:
+                                        <h4><code>Variables</code></h4>
+                                    % endif
+                                    </li>
+                                    <li>
+                                    % if var:
+                                        ${show_column_list(var)}
+                                    % endif
+                                    </li>
+                                </ul>
                             </li>
                         % endfor
                     </ul>
