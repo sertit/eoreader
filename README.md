@@ -50,13 +50,13 @@ Accepted optical satellites are:
 - `Sentinel-2`: **L2A** and **L1C**, zip files are accepted
 - `Sentinel-2 Theia`: **L2A**, zip files are accepted
 - `Sentinel-3`: **OLCI** and **SLSTR**
-- `Landsat-1`: **MSS**
-- `Landsat-2`: **MSS**
-- `Landsat-3`: **MSS**
-- `Landsat-4`: **TM** and **MSS**
-- `Landsat-5`: **TM** and **MSS**
-- `Landsat-7`: **ETM**
-- `Landsat-8`: **OLCI**
+- `Landsat-1`: **MSS**, level 1, both collection 1 and 2
+- `Landsat-2`: **MSS**, level 1, both collection 1 and 2
+- `Landsat-3`: **MSS**, level 1, both collection 1 and 2
+- `Landsat-4`: **TM** and **MSS**, level 1, both collection 1 and 2
+- `Landsat-5`: **TM** and **MSS**, level 1, both collection 1 and 2
+- `Landsat-7`: **ETM**, level 1, both collection 1 and 2
+- `Landsat-8`: **OLCI**, level 1, both collection 1 and 2
 
 Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/Optical) to learn more about that.
 

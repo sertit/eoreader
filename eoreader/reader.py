@@ -81,7 +81,7 @@ PLATFORM_REGEX = {
     # "tsx": "TX01_SAR_[SH][MCLS]_(SSC|MGD|GEC|EEC)_\d{8}T\d{6}_\d{8}T\d{6}_NSG_\d{6}_\d{4}",
     Platform.RS2: r"RS2_OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)"
 }
-"""Platfomr regex, mapping every platform to a regex allowing the reader to recognize them."""
+"""Platform regex, mapping every platform to a regex allowing the reader to recognize them."""
 
 
 class Reader:
