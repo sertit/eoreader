@@ -465,13 +465,13 @@ def BSI(bands: dict) -> np.ma.masked_array:
     return _norm_diff(bands[obn.RED] + bands[obn.SWIR_1], bands[obn.NIR] + bands[obn.BLUE])
 
 
-def get_all_index() -> list:
+def get_all_index_names() -> list:
     """
     Get all index names contained in this file
 
     ```python
     >>> from eoreader.bands import index
-    >>> index.get_all_index()
+    >>> index.get_all_index_names()
     ['AFRI_1_6', 'AFRI_2_1', 'AWEInsh', 'AWEIsh', 'BAI', ..., 'WI']
     ```
 
@@ -479,13 +479,30 @@ def get_all_index() -> list:
         list: Index names
 
     """
+    return [idx_fct.__name__ for idx_fct in get_all_index()]
+
+
+def get_all_index() -> list:
+    """
+    Get all index functions contained in this file
+
+    ```python
+    >>> from eoreader.bands import index
+    >>> index.get_all_index()
+    [<function AFRI_1_6 at 0x00000118FFFB51E0>, ..., <function WI at 0x00000118FFFB5158>]
+    ```
+
+    Returns:
+        list: Index functions
+
+    """
     idx = []
     functions = inspect.getmembers(sys.modules[__name__], predicate=inspect.isfunction)
 
-    for (name, _) in functions:
+    for (name, fct) in functions:
         # Do not gather this fct nor np.divide
         if name[0].isupper():
-            idx.append(name)
+            idx.append(fct)
 
     return idx
 

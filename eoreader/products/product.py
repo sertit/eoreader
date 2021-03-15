@@ -737,7 +737,7 @@ class Product:
         if os.path.isfile(warped_dem_path):
             LOGGER.debug("Already existing DEM for %s. Skipping process.", self.name)
         else:
-            LOGGER.info("Warping DEM for %s", self.name)
+            LOGGER.debug("Warping DEM for %s", self.name)
 
             # Get products extent
             prod_extent_df = self.utm_extent()
@@ -846,7 +846,7 @@ class Product:
         if os.path.isfile(slope_dem):
             LOGGER.debug("Already existing slope DEM for %s. Skipping process.", self.name)
         else:
-            LOGGER.info("Computing slope for %s", self.name)
+            LOGGER.debug("Computing slope for %s", self.name)
             cmd_slope = ["gdaldem",
                          "--config",
                          "NUM_THREADS", MAX_CORES,
@@ -907,7 +907,24 @@ class Product:
         # Create the analysis stack
         bands, meta = self.load(band_and_idx_combination, resolution)
         stack_list = [bands[bd_or_idx] for bd_or_idx in band_and_idx_combination]
-        stack = np.ma.vstack(stack_list)
+
+        try:
+            stack = np.ma.vstack(stack_list)
+        except ValueError:
+            # ValueError: all the input array dimensions for the concatenation axis must match exactly
+            # => COLLOCATE
+            true_shape = (meta["count"], meta["height"], meta["width"])
+            slave_meta = meta.copy()
+            for band_id, band in bands.items():
+                if band.shape != true_shape:
+                    count, height, width = band.shape
+                    slave_meta.update({"count": count, "height": height, "width": width})
+                    bands[band_id], _ = rasters.collocate(master_meta=meta,
+                                                          slave_arr=band,
+                                                          slave_meta=slave_meta)
+
+            stack_list = [bands[bd_or_idx] for bd_or_idx in band_and_idx_combination]
+            stack = np.ma.vstack(stack_list)
 
         # Force nodata
         stack[stack.mask] = meta["nodata"]

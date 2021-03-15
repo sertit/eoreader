@@ -105,7 +105,7 @@ class S1Product(SarProduct):
         (setting product-type, band names and so on)
         """
         # Private attributes
-        self._raw_band_regex = "*(iw1-slc|-grd)-{!l}-*.tiff"  # Just get the SLC-iw1 image for now
+        self._raw_band_regex = "*-{!l}-*.tiff"  # Just get the SLC-iw1 image for now
 
         self._band_folder = os.path.join(self.path, "measurement")
         self._snap_path = self.path

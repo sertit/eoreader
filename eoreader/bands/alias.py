@@ -125,7 +125,7 @@ def is_index(idx: _tp.Any) -> bool:
         bool: True if the index asked is an index function (such as `index.NDVI`)
 
     """
-    return "index" in idx.__module__ and idx.__name__ in _idx.get_all_index()
+    return "index" in idx.__module__ and idx.__name__ in _idx.get_all_index_names()
 
 
 def is_optical_band(band: _tp.Any) -> bool:

@@ -140,7 +140,8 @@ class S2TheiaProduct(OpticalProduct):
                     with zipfile.ZipFile(self.path, "r") as zip_ds:
                         # Get the correct band path
                         regex = re.compile(f".*FRE_B{self.band_names[band]}.tif")
-                        band_path = list(filter(regex.match, zip_ds.filelist))[0]
+                        filenames = [f.filename for f in zip_ds.filelist]
+                        band_path = list(filter(regex.match, filenames))[0]
 
                     # Create the zip band path (readable from rasterio)
                     band_paths[band] = f"zip+file://{self.path}!/{band_path}"

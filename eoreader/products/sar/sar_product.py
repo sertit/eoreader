@@ -356,10 +356,13 @@ class SarProduct(Product):
                         except IndexError:
                             continue
                 else:
-                    raise InvalidProductError(f"Only zipped eoreader can be processed without extraction: {self.path}")
+                    raise InvalidProductError(f"Only zipped products can be processed without extraction: {self.path}")
             else:
                 try:
-                    band_paths[band] = files.get_file_in_dir(self._band_folder, band_regex, exact_name=True)
+                    band_paths[band] = files.get_file_in_dir(self._band_folder,
+                                                             band_regex,
+                                                             exact_name=True,
+                                                             get_list=True)
                 except FileNotFoundError:
                     continue
 
@@ -618,7 +621,7 @@ class SarProduct(Product):
 
             # Pre-process graph
             if PP_GRAPH not in os.environ:
-                sat = "s1" if self.sat_id == Platform.S1 else "sar"
+                sat = "s1" if self.sat_id == Platform.S1.name else "sar"
                 spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
                 pp_graph = os.path.join(utils.get_data_dir(), f"{spt}_{sat}_preprocess_default.xml")
             else:

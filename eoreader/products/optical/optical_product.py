@@ -390,7 +390,7 @@ class OpticalProduct(Product):
         if os.path.isfile(hillshade_dem):
             LOGGER.debug("Already existing hillshade DEM for %s. Skipping process.", self.name)
         else:
-            LOGGER.info("Computing hillshade DEM for %s", self.name)
+            LOGGER.debug("Computing hillshade DEM for %s", self.name)
 
             # Get angles
             mean_azimuth_angle, mean_zenith_angle = self.get_mean_sun_angles()
