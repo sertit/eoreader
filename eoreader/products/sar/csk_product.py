@@ -288,7 +288,7 @@ class CskProduct(SarProduct):
         # Use the real name
         return [x for x in self._real_name.split('_') if x]
 
-    def read_mtd(self) -> (etree.Element, str):
+    def read_mtd(self) -> (etree._Element, str):
         """
         Read metadata and outputs the metadata XML root and its namespace
 
@@ -301,7 +301,7 @@ class CskProduct(SarProduct):
         ```
 
         Returns:
-            (etree.Element, str): Metadata XML root and its namespace
+            (etree._Element, str): Metadata XML root and its namespace
         """
         mtd_name = f"DFDN_{self._real_name}.h5.xml"
         try:

@@ -81,7 +81,7 @@ BSI = _idx.BSI
 # -- DEM --
 DEM = _dem.DEM
 SLOPE = _dem.SLOPE
-HLSHD = _dem.HLSHD
+HILLSHADE = _dem.HLSHD
 
 
 def is_dem(dem: _tp.Any) -> bool:

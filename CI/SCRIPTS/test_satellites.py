@@ -1,5 +1,5 @@
 """ Script testing EOReader satellites in a push routine """
-
+import glob
 import logging
 import os
 import tempfile
@@ -15,6 +15,15 @@ from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 RES = 1000  # 1000m
+
+
+def remove_dem(prod):
+    """ Remove DEM from product output """
+    to_del = glob.glob(os.path.join(prod.output, "*_DEM.tif"))
+    to_del += glob.glob(os.path.join(prod.output, "*_HILLSHADE.tif"))
+    to_del += glob.glob(os.path.join(prod.output, "*_SLOPE.tif"))
+    for to_d in to_del:
+        files.remove(to_d)
 
 
 def test_invalid():
@@ -40,12 +49,12 @@ def test_optical():
 
         prod.output = os.path.join(get_ci_data_dir(), prod.condensed_name)
 
-        if not prod.sat_id == "S3":
-            continue
+        # Remove DEM tifs if existing
+        remove_dem(prod)
 
         # Get stack bands
         # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-        possible_bands = [RED, SWIR_2, NDVI, HLSHD]
+        possible_bands = [RED, SWIR_2, NDVI, HILLSHADE]
         stack_bands = [band for band in possible_bands if prod.has_band(band)]
 
         # Manage S3 resolution to speed up processes
@@ -66,6 +75,9 @@ def test_optical():
             ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
             ci.assert_raster_equal(curr_path, ci_data)
 
+        # CRS
+        assert prod.utm_crs().is_projected
+
 
 def test_sar():
     """ Function testing the correct functioning of the SAR satellites """
@@ -82,9 +94,12 @@ def test_sar():
         os.environ[SAR_DEF_RES] = str(RES)
         prod.output = os.path.join(get_ci_data_dir(), prod.condensed_name)
 
+        # Remove DEM tifs if existing
+        remove_dem(prod)
+
         # Get stack bands
         # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-        possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HLSHD]
+        possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
         stack_bands = [band for band in possible_bands if prod.has_band(band)]
 
         # Stack data
@@ -97,3 +112,6 @@ def test_sar():
             # Test
             ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
             ci.assert_raster_equal(curr_path, ci_data)
+
+        # CRS
+        assert prod.utm_crs().is_projected

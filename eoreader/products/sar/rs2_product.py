@@ -15,7 +15,6 @@ from typing import Union
 
 from lxml import etree
 import rasterio
-import pandas as pd
 import geopandas as gpd
 from sertit.misc import ListEnum
 from sertit import vectors
@@ -340,7 +339,7 @@ class Rs2Product(SarProduct):
 
         return f"{self.get_datetime()}_RS2_{self.sensor_mode.name}_{self.product_type.value}"
 
-    def read_mtd(self) -> (etree.Element, str):
+    def read_mtd(self) -> (etree._Element, str):
         """
         Read metadata and outputs the metadata XML root and its namespace
 
@@ -354,7 +353,7 @@ class Rs2Product(SarProduct):
         ```
 
         Returns:
-            (etree.Element, str): Metadata XML root and its namespace
+            (etree._Element, str): Metadata XML root and its namespace
         """
         # Get MTD XML file
         if self.is_archived:

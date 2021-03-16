@@ -37,22 +37,6 @@ class BandNames(ListEnum):
     """ Super class for band names, **do not use it**. """
 
     @classmethod
-    def get_band_names(cls) -> list:
-        """
-        Get all band names
-
-        ```python
-        >>> SarBandNames.get_band_names()
-        ['VV', 'VV_DSPK', 'HH', 'HH_DSPK', 'VH', 'VH_DSPK', 'HV', 'HV_DSPK']
-        ```
-
-        Returns:
-            list: List of names
-
-        """
-        return cls.list_names()
-
-    @classmethod
     def from_list(cls, name_list: Union[list, str]) -> list:
         """
         Get the band enums from list of band names
@@ -73,12 +57,12 @@ class BandNames(ListEnum):
         try:
             band_names = [cls(name) for name in name_list]
         except ValueError as ex:
-            raise InvalidTypeError(f"Band names ({name_list}) should be chosen among: {cls.get_band_names()}") from ex
+            raise InvalidTypeError(f"Band names ({name_list}) should be chosen among: {cls.list_names()}") from ex
 
         return band_names
 
     @classmethod
-    def to_name_list(cls, name_list: list = None) -> list:
+    def to_value_list(cls, name_list: list = None) -> list:
         """
         Get a list from the values of the bands
 
@@ -306,7 +290,8 @@ class OpticalBands(_Bands):
 
         ```python
         >>> # Example for Sentinel-2 L1C data
-        >>> OpticalBands.map_bands({
+        >>> ob = OpticalBands()
+        >>> ob.map_bands({
                 CA: '01',
                 BLUE: '02',
                 GREEN: '03',

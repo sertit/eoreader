@@ -736,4 +736,4 @@ class SarProduct(Product):
         Returns:
             str: Hillshade mask path
         """
-        raise NotImplementedError("Impossible to compute hillshade mask for SAR data.")
+        raise InvalidProductError("Impossible to compute hillshade mask for SAR data.")
