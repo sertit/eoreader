@@ -6,7 +6,7 @@ import tempfile
 
 from sertit import logs, files, ci
 
-from CI.SCRIPTS.scripts_utils import OPT_PATH, SAR_PATH, READER, get_ci_data_dir
+from .scripts_utils import OPT_PATH, SAR_PATH, READER, get_ci_data_dir
 from eoreader.bands.alias import *
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES

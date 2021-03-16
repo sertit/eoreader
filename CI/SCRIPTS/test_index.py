@@ -8,7 +8,7 @@ from sertit import rasters, ci
 from eoreader.utils import EOREADER_NAME
 from eoreader.bands.index import get_all_index
 
-from CI.SCRIPTS.scripts_utils import OPT_PATH, READER, get_ci_data_dir
+from .scripts_utils import OPT_PATH, READER, get_ci_data_dir
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
