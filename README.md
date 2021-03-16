@@ -18,12 +18,12 @@ This project allows you to read and open satellite data.
 >>> extent = prod.extent
 
 >>> # Load some bands and index
->>> bands, meta = prod.load([NDVI, MNDWI, GREEN, DEM, HLSHD])  # Resolution not specified: use product resolution
+>>> bands, meta = prod.load([NDVI, MNDWI, GREEN, DEM, HILLSHADE])  # Resolution not specified: use product resolution
 >>> ndvi = bands[NDVI]
 >>> mndwi = bands[MNDWI]
 >>> green = bands[GREEN]
 >>> dem = bands[DEM]
->>> hillshade = bands[HLSHD]
+>>> hillshade = bands[HILLSHADE]
 
 >>> # Create a stack with some other bands
 >>> stack, stk_meta = prod.stack([NDVI, MNDWI, GREEN, SLOPE])  # Resolution not specified: use product resolution

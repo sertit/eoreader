@@ -485,7 +485,7 @@ class Product:
                 path = self._warp_dem(dem_path, resolution)
             elif band == SLOPE:
                 path = self._compute_slope(dem_path, resolution)
-            elif band == HLSHD:
+            elif band == HILLSHADE:
                 path = self._compute_hillshade(dem_path, resolution)
             else:
                 raise InvalidTypeError(f"Unknown DEM band: {band}")
@@ -567,7 +567,7 @@ class Product:
             bool: True if the products has the specified band
         """
         if is_dem(band):
-            if self.sensor_type == SensorType.SAR and band == HLSHD:
+            if self.sensor_type == SensorType.SAR and band == HILLSHADE:
                 has_band = False
             else:
                 has_band = True

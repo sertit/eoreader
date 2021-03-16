@@ -252,7 +252,7 @@ class S1Product(SarProduct):
 
         return f"{self.get_datetime()}_S1_{self.sensor_mode.value}_{self.product_type.value}"
 
-    def read_mtd(self) -> (etree.Element, str):
+    def read_mtd(self) -> (etree._Element, str):
         """
         Read metadata and outputs the metadata XML root and its namespace
 
@@ -265,7 +265,7 @@ class S1Product(SarProduct):
         ```
 
         Returns:
-            (etree.Element, str): Metadata XML root and its namespace
+            (etree._Element, str): Metadata XML root and its namespace
         """
         # Get MTD XML file
         if self.is_archived:

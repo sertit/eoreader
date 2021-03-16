@@ -217,7 +217,7 @@ class LandsatProduct(OpticalProduct):
 
         return band_paths
 
-    def read_mtd(self, force_pd=False) -> Union[pd.DataFrame, Tuple[etree.Element, str]]:
+    def read_mtd(self, force_pd=False) -> Union[pd.DataFrame, Tuple[etree._Element, str]]:
         """
         Read Landsat metadata as:
 

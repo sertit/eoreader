@@ -400,7 +400,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return azimuth_angle, zenith_angle
 
-    def read_mtd(self) -> (etree.Element, str):
+    def read_mtd(self) -> (etree._Element, str):
         """
         Read metadata and outputs the metadata XML root and its namespace
 
@@ -413,7 +413,7 @@ class S2TheiaProduct(OpticalProduct):
         ```
 
         Returns:
-            (etree.Element, str): Metadata XML root and its namespace
+            (etree._Element, str): Metadata XML root and its namespace
         """
         # Get MTD XML file
         if self.is_archived:

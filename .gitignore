@@ -9,6 +9,9 @@ __pycache__/
 
 # Discard CI/OUTPUTS
 CI/OUTPUT/*
+CI/DATA/*/*_DEM.tif
+CI/DATA/*/*_HILLSHADE.tif
+CI/DATA/*/*_SLOPE.tif
 
 # Build options
 build/
