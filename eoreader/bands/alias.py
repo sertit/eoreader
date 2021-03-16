@@ -83,6 +83,7 @@ DEM = _dem.DEM
 SLOPE = _dem.SLOPE
 HLSHD = _dem.HLSHD
 
+
 def is_dem(dem: _tp.Any) -> bool:
     """
     Returns True if we have a DEM-related keyword
