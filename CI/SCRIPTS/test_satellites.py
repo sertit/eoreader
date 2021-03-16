@@ -66,7 +66,7 @@ def test_optical():
 
         # Stack data
         with tempfile.TemporaryDirectory() as tmp_dir:
-            curr_path = os.path.join(tmp_dir, "stack.tif")
+            curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
             prod.stack(stack_bands,
                        resolution=res,
                        stack_path=curr_path)
@@ -104,7 +104,7 @@ def test_sar():
 
         # Stack data
         with tempfile.TemporaryDirectory() as tmp_dir:
-            curr_path = os.path.join(tmp_dir, "stack.tif")
+            curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
             prod.stack(stack_bands,
                        resolution=RES,
                        stack_path=curr_path)
