@@ -4,7 +4,7 @@ import pytest
 import pandas as pd
 from lxml import etree
 
-from CI.SCRIPTS.scripts_utils import OPT_PATH, READER
+from .scripts_utils import OPT_PATH, READER
 from eoreader import utils
 from eoreader.bands.bands import SarBandNames, OpticalBands
 from eoreader.products.product import MERIT_DEM
