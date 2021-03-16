@@ -66,13 +66,13 @@ def test_optical():
 
         # Stack data
         with tempfile.TemporaryDirectory() as tmp_dir:
-            curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
+            ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
+            curr_path = ci_data# os.path.join(tmp_dir, f"stack.tif")
             prod.stack(stack_bands,
                        resolution=res,
                        stack_path=curr_path)
 
             # Test
-            ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
             ci.assert_raster_equal(curr_path, ci_data)
 
         # CRS
