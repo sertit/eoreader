@@ -399,10 +399,10 @@ class OpticalProduct(Product):
 
             # Run cmd
             cmd_hillshade = ["gdaldem", "--config",
-                             "NUM_THREADS", "1",
+                             "NUM_THREADS", MAX_CORES,
                              "hillshade", strings.to_cmd_string(warped_dem_path),
                              "-compute_edges",
-                             "-z", MAX_CORES,
+                             "-z",  "1",
                              "-az", azimuth,
                              "-alt", zenith,
                              "-of", "GTiff",
