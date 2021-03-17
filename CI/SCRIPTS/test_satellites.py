@@ -47,39 +47,41 @@ def test_optical():
         # Open product and set output
         prod: OpticalProduct = READER.open(path)
 
-        prod.output = os.path.join(get_ci_data_dir(), prod.condensed_name)
+        # Discard the case where an invalid file/directory is in the CI folder
+        if prod is not None:
+            prod.output = os.path.join(get_ci_data_dir(), prod.condensed_name)
 
-        # Remove DEM tifs if existing
-        remove_dem(prod)
+            # Remove DEM tifs if existing
+            remove_dem(prod)
 
-        # Get stack bands
-        # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-        possible_bands = [RED, SWIR_2, NDVI, HILLSHADE]
-        stack_bands = [band for band in possible_bands if prod.has_band(band)]
+            # Get stack bands
+            # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
+            possible_bands = [RED, SWIR_2, NDVI, HILLSHADE]
+            stack_bands = [band for band in possible_bands if prod.has_band(band)]
 
-        # Manage S3 resolution to speed up processes
-        if prod.sat_id == "S3":
-            res = RES * prod.resolution / 20.
-            os.environ[S3_DEF_RES] = str(res)
-        else:
-            res = RES
+            # Manage S3 resolution to speed up processes
+            if prod.sat_id == "S3":
+                res = RES * prod.resolution / 20.
+                os.environ[S3_DEF_RES] = str(res)
+            else:
+                res = RES
 
-        # Stack data
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
-            curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
-            prod.stack(stack_bands,
-                       resolution=res,
-                       stack_path=curr_path)
+            # Stack data
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
+                curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
+                prod.stack(stack_bands,
+                           resolution=res,
+                           stack_path=curr_path)
 
-            # Test
-            try:
-                ci.assert_raster_equal(curr_path, ci_data)
-            except AssertionError as ex:
-                LOGGER.warning("Non equal rasters: %s", ex)
+                # Test
+                try:
+                    ci.assert_raster_equal(curr_path, ci_data)
+                except AssertionError as ex:
+                    LOGGER.warning("Non equal rasters: %s", ex)
 
-        # CRS
-        assert prod.utm_crs().is_projected
+            # CRS
+            assert prod.utm_crs().is_projected
 
 
 def test_sar():
@@ -94,27 +96,30 @@ def test_sar():
 
         # Open product and set output
         prod: SarProduct = READER.open(path)
-        os.environ[SAR_DEF_RES] = str(RES)
-        prod.output = os.path.join(get_ci_data_dir(), prod.condensed_name)
 
-        # Remove DEM tifs if existing
-        remove_dem(prod)
+        # Discard the case where an invalid file/directory is in the CI folder
+        if prod is not None:
+            os.environ[SAR_DEF_RES] = str(RES)
+            prod.output = os.path.join(get_ci_data_dir(), prod.condensed_name)
 
-        # Get stack bands
-        # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-        possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
-        stack_bands = [band for band in possible_bands if prod.has_band(band)]
+            # Remove DEM tifs if existing
+            remove_dem(prod)
 
-        # Stack data
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
-            prod.stack(stack_bands,
-                       resolution=RES,
-                       stack_path=curr_path)
+            # Get stack bands
+            # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
+            possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
+            stack_bands = [band for band in possible_bands if prod.has_band(band)]
 
-            # Test
-            ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
-            ci.assert_raster_equal(curr_path, ci_data)
+            # Stack data
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
+                prod.stack(stack_bands,
+                           resolution=RES,
+                           stack_path=curr_path)
 
-        # CRS
-        assert prod.utm_crs().is_projected
+                # Test
+                ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
+                ci.assert_raster_equal(curr_path, ci_data)
+
+            # CRS
+            assert prod.utm_crs().is_projected
