@@ -17,7 +17,7 @@ pytest:
     changes:
       - "*.md"
       - eoreader/version.py
-      - doc_template
+      - doc_template/*
 
 upload_wheel:linux:
   image: python:3.7-buster
