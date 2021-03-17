@@ -7,11 +7,14 @@ This project allows you to read and open satellite data.
 >>> from eoreader.bands.alias import *
 
 >>> # Your variables
->>> path = r"path\to\your\satellite"  # Optical in this example
+>>> path = r"path/to/your/satellite/product"  # Optical in this example
+>>> # WARNING: you can leave the output_path empty, 
+>>> # but EOReader will create an output directory right next to the product path
+>>> output = r"path/to/your/output"
 
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()  # This is a singleton
->>> prod = eoreader.open(path)  # The Reader will recognize the satellite type from its name
+>>> prod = eoreader.open(path, output_path=output)  # The Reader will recognize the satellite type from its name
 
 >>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
 >>> footprint = prod.footprint
