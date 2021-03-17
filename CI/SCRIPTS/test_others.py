@@ -7,7 +7,6 @@ from lxml import etree
 from .scripts_utils import OPT_PATH, READER
 from eoreader import utils
 from eoreader.bands.bands import SarBandNames, OpticalBands
-from eoreader.products.product import MERIT_DEM
 
 from eoreader.bands.alias import *
 
@@ -22,8 +21,7 @@ def test_utils():
     assert utils.get_data_dir() == data_dir
 
     # DB dir
-    assert os.path.isfile(MERIT_DEM)
-
+    assert os.path.isdir(utils.get_db_dir())
 
 def test_alias():
     # DEM

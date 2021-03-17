@@ -402,7 +402,7 @@ class OpticalProduct(Product):
                              "NUM_THREADS", MAX_CORES,
                              "hillshade", strings.to_cmd_string(warped_dem_path),
                              "-compute_edges",
-                             "-z",  "1",
+                             "-z", "1",
                              "-az", azimuth,
                              "-alt", zenith,
                              "-of", "GTiff",
