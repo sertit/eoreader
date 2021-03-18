@@ -596,6 +596,9 @@ class SarProduct(Product):
         if not meta:
             meta = dem_meta
 
+        # Manage the case of arrays of different size -> collocate arrays if needed
+        bands = self._collocate_bands(bands, meta)
+
         return bands, meta
 
     def _pre_process_sar(self, resolution: float = None) -> dict:
