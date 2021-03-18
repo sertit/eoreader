@@ -1,13 +1,10 @@
 # Libs for all platforms
 pytest
-tqdm
 twine
 pylint
 pdoc3
 lxml
-cftime
 netCDF4
-colorlog
 psutil
 
 # For Windows (use wheels)
