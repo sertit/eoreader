@@ -27,6 +27,8 @@ This project allows you to read and open satellite data.
 >>> green = bands[GREEN]
 >>> dem = bands[DEM]
 >>> hillshade = bands[HILLSHADE]
+>>> # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately 
+>>> # (important for DEM data as they may have different grids)
 
 >>> # Create a stack with some other bands
 >>> stack, stk_meta = prod.stack([NDVI, MNDWI, GREEN, SLOPE])  # Resolution not specified: use product resolution
