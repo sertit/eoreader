@@ -18,6 +18,14 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7",
         "Operating System :: OS Independent"
     ],
+    install_requires=[
+        "psutil",
+        "lxml",
+        "netCDF4",
+        "rasterio",
+        "geopandas",
+        "sertit",
+    ],
     package_data={'eoreader.data': ['*.xml']},
     include_package_data=True
 )
