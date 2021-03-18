@@ -524,7 +524,10 @@ class SarProduct(Product):
              band_and_idx_list: Union[list, BandNames, Callable],
              resolution: float = None) -> (dict, dict):
         """
-        Load SAR bands.
+        Load SAR (and DEM) bands.
+
+        Bands that come out this function at the same time are collocated and therefore have the same shapes.
+        This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
 
         ```python
         >>> from eoreader.reader import Reader

@@ -497,10 +497,12 @@ class Product:
              resolution: float = None) -> (dict, dict):
         """
         Open the bands and compute the wanted index.
-        You can add some bands in the dict.
 
         The bands will be purged of nodata and invalid pixels,
         the nodata will be set to 0 and the bands will be masked arrays in float.
+
+        Bands that come out this function at the same time are collocated and therefore have the same shapes.
+        This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
 
         ```python
         >>> from eoreader.reader import Reader
