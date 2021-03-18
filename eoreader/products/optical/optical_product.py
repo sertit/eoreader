@@ -346,6 +346,9 @@ class OpticalProduct(Product):
         if not meta:
             meta = dem_meta
 
+        # Manage the case of arrays of different size -> collocate arrays if needed
+        idx_and_bands_dict = self._collocate_bands(idx_and_bands_dict, meta)
+
         return idx_and_bands_dict, meta
 
     @abstractmethod

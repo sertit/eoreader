@@ -867,6 +867,36 @@ class Product:
 
         return slope_dem
 
+    def _collocate_bands(self, bands: dict, true_meta: dict) -> dict:
+        """
+        Collocate all bands from a dict if needed (if a raster shape is different)
+
+        Args:
+            bands (dict): Dict of bands to collocate if needed
+            true_meta (dict): True metadata
+
+        Returns:
+            dict: Collocated bands
+        """
+        true_shape = (true_meta["count"], true_meta["height"], true_meta["width"])
+        slave_meta = true_meta.copy()
+        for band_id, band in bands.items():
+            if band.shape != true_shape:
+                count, height, width = band.shape
+                slave_meta.update({
+                    "count": count,
+                    "height": height,
+                    "width": width,
+                    "transform": true_meta["transform"]
+                })
+
+                bands[band_id], _ = rasters.collocate(master_meta=true_meta,
+                                                      slave_arr=band,
+                                                      slave_meta=slave_meta)
+
+        return bands
+
+
     # pylint: disable=R0913
     # Too many arguments (6/5)
     def stack(self,
@@ -914,24 +944,7 @@ class Product:
         # Create the analysis stack
         bands, meta = self.load(band_and_idx_combination, resolution)
         stack_list = [bands[bd_or_idx] for bd_or_idx in band_and_idx_combination]
-
-        try:
-            stack = np.ma.vstack(stack_list)
-        except ValueError:
-            # ValueError: all the input array dimensions for the concatenation axis must match exactly
-            # => COLLOCATE
-            true_shape = (meta["count"], meta["height"], meta["width"])
-            slave_meta = meta.copy()
-            for band_id, band in bands.items():
-                if band.shape != true_shape:
-                    count, height, width = band.shape
-                    slave_meta.update({"count": count, "height": height, "width": width})
-                    bands[band_id], _ = rasters.collocate(master_meta=meta,
-                                                          slave_arr=band,
-                                                          slave_meta=slave_meta)
-
-            stack_list = [bands[bd_or_idx] for bd_or_idx in band_and_idx_combination]
-            stack = np.ma.vstack(stack_list)
+        stack = np.ma.vstack(stack_list)
 
         # Force nodata
         stack[stack.mask] = meta["nodata"]
