@@ -800,8 +800,8 @@ class Product:
                             out_w = size[0]
 
                             # Get destination transform
-                            coeff_x = out_w / prod_dst.width
-                            coeff_y = out_h / prod_dst.height
+                            coeff_x = prod_dst.width / out_w
+                            coeff_y = prod_dst.height / out_h
                             dst_tr = prod_dst.transform
                             dst_tr *= dst_tr.scale(coeff_x, coeff_y)
 
