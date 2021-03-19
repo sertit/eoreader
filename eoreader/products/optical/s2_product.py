@@ -481,9 +481,14 @@ class S2Product(OpticalProduct):
             dict, dict: Dictionary {band_name, band_array} and the products metadata
                         (supposed to be the same for all bands)
         """
+        # Return empty if no band are specified
+        if not band_list:
+            return {}, {}
+
         # Get band paths
         if not isinstance(band_list, list):
             band_list = [band_list]
+
         band_paths = self.get_band_paths(band_list, resolution)
 
         # Open bands and get array (resampled if needed)
