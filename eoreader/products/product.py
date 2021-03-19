@@ -794,21 +794,35 @@ class Product:
                     # Get adjusted transform and shape (with new resolution)
                     if size is not None and resolution is None:
                         try:
+
+                            # Get destination transform
                             out_h = size[1]
                             out_w = size[0]
+
+                            # Get destination transform
+                            coeff_x = out_w / prod_dst.width
+                            coeff_y = out_h / prod_dst.height
+                            dst_tr = prod_dst.transform
+                            dst_tr *= dst_tr.scale(coeff_x, coeff_y)
+
                         except (TypeError, KeyError):
                             raise ValueError(f"Size should exist (as resolution is None)"
                                              f" and castable to a list: {size}")
+
                     else:
+                        # Refine resolution
                         if resolution is None:
                             resolution = self.resolution
-
                         res_x = resolution[0] if isinstance(resolution, (tuple, list)) else resolution
                         res_y = resolution[1] if isinstance(resolution, (tuple, list)) else resolution
+
+                        # Get destination transform
                         dst_tr = prod_dst.transform
                         coeff_x = np.abs(res_x / dst_tr.a)
                         coeff_y = np.abs(res_y / dst_tr.e)
                         dst_tr *= dst_tr.scale(coeff_x, coeff_y)
+
+                        # Get destination transform
                         out_w = int(np.round(prod_dst.width / coeff_x))
                         out_h = int(np.round(prod_dst.height / coeff_y))
 
