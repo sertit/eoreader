@@ -80,6 +80,11 @@ def test_optical():
             # CRS
             assert prod.utm_crs().is_projected
 
+            # Empty load
+            band, meta = prod.load([])
+            assert band == {}
+            assert meta == {}
+
 
 def test_sar():
     """ Function testing the correct functioning of the SAR satellites """
@@ -120,3 +125,8 @@ def test_sar():
 
             # CRS
             assert prod.utm_crs().is_projected
+
+            # Empty load
+            band, meta = prod.load([])
+            assert band == {}
+            assert meta == {}
