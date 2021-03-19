@@ -403,7 +403,10 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     # pylint: disable=W0613
-    def _read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
+    def _read_band(self,
+                   dataset,
+                   resolution: Union[tuple, list, float] = None,
+                   size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Read band from a dataset.
 
@@ -439,8 +442,8 @@ class Product:
 
         Args:
             dataset (Dataset): Band dataset
-            x_res (float): Resolution for X axis
-            y_res (float): Resolution for Y axis
+            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             np.ma.masked_array, dict: Radar band, saved as float 32 and its metadata
 
@@ -448,26 +451,34 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def _load_bands(self, band_list: Union[list, BandNames], resolution: float = None) -> (dict, dict):
+    def _load_bands(self,
+                    band_list: Union[list, BandNames],
+                    resolution: float = None,
+                    size: Union[list, tuple] = None) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
             band_list (Union[list, BandNames]): List of the wanted bands
             resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             dict, dict: Dictionary {band_name, band_array} and the products metadata
                         (supposed to be the same for all bands)
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _load_dem(self, band_list: Union[list, BandNames], resolution: float = None) -> (dict, dict):
+    def _load_dem(self,
+                  band_list: Union[list, BandNames],
+                  resolution: float = None,
+                  size: Union[list, tuple] = None) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
             band_list (Union[list, BandNames]): List of the wanted bands
             resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             dict, dict: Dictionary {band_name, band_array} and the products metadata
                         (supposed to be the same for all bands)
@@ -478,23 +489,24 @@ class Product:
         for band in band_list:
             assert is_dem(band)
             if band == DEM:
-                path = self._warp_dem(dem_path, resolution)
+                path = self._warp_dem(dem_path, resolution=resolution, size=size)
             elif band == SLOPE:
-                path = self._compute_slope(dem_path, resolution)
+                path = self._compute_slope(dem_path, resolution=resolution, size=size)
             elif band == HILLSHADE:
-                path = self._compute_hillshade(dem_path, resolution)
+                path = self._compute_hillshade(dem_path, resolution=resolution, size=size)
             else:
                 raise InvalidTypeError(f"Unknown DEM band: {band}")
 
             with rasterio.open(path) as dst:
-                dem_bands[band], meta = rasters.read(dst, resolution)
+                dem_bands[band], meta = rasters.read(dst, resolution=resolution, size=size)
 
         return dem_bands, meta
 
     @abstractmethod
     def load(self,
              band_and_idx_list: Union[list, BandNames, Callable],
-             resolution: float = None) -> (dict, dict):
+             resolution: float = None,
+             size: Union[list, tuple] = None) -> (dict, dict):
         """
         Open the bands and compute the wanted index.
 
@@ -537,6 +549,7 @@ class Product:
         Args:
             band_and_idx_list (Union[list, BandNames, Callable]): Index list
             resolution (float): Resolution of the band, in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             dict, dict: Index and band dict, metadata
@@ -701,6 +714,7 @@ class Product:
     def _warp_dem(self,
                   dem_path: str = "",
                   resolution: Union[float, tuple] = None,
+                  size: Union[list, tuple] = None,
                   resampling: Resampling = Resampling.bilinear) -> str:
         """
         Get this products DEM, warped to this products footprint and CRS.
@@ -723,6 +737,7 @@ class Product:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
             resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
             resampling (Resampling): Resampling method
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             str: DEM path (as a VRT)
@@ -734,10 +749,6 @@ class Product:
         except NotADirectoryError as ex:
             LOGGER.debug("Non available default DEM: %s", ex)
             merit_dem = None
-
-        # If no specified resolution, use the default one
-        if not resolution:
-            resolution = self.resolution
 
         warped_dem_path = os.path.join(self.output, f"{self.condensed_name}_DEM.tif")
         if os.path.isfile(warped_dem_path):
@@ -781,14 +792,25 @@ class Product:
                 LOGGER.debug("Using DEM: %s", dem_path)
                 with rasterio.open(dem_path) as dem_ds:
                     # Get adjusted transform and shape (with new resolution)
-                    res_x = resolution[0] if isinstance(resolution, (tuple, list)) else resolution
-                    res_y = resolution[1] if isinstance(resolution, (tuple, list)) else resolution
-                    dst_tr = prod_dst.transform
-                    coeff_x = np.abs(res_x / dst_tr.a)
-                    coeff_y = np.abs(res_y / dst_tr.e)
-                    dst_tr *= dst_tr.scale(coeff_x, coeff_y)
-                    out_w = int(np.round(prod_dst.width / coeff_x))
-                    out_h = int(np.round(prod_dst.height / coeff_y))
+                    if size is not None and resolution is None:
+                        try:
+                            out_h = size[1]
+                            out_w = size[0]
+                        except (TypeError, KeyError):
+                            raise ValueError(f"Size should exist (as resolution is None)"
+                                             f" and castable to a list: {size}")
+                    else:
+                        if resolution is None:
+                            resolution = self.resolution
+
+                        res_x = resolution[0] if isinstance(resolution, (tuple, list)) else resolution
+                        res_y = resolution[1] if isinstance(resolution, (tuple, list)) else resolution
+                        dst_tr = prod_dst.transform
+                        coeff_x = np.abs(res_x / dst_tr.a)
+                        coeff_y = np.abs(res_y / dst_tr.e)
+                        dst_tr *= dst_tr.scale(coeff_x, coeff_y)
+                        out_w = int(np.round(prod_dst.width / coeff_x))
+                        out_h = int(np.round(prod_dst.height / coeff_y))
 
                     # Get empty output
                     reprojected_array = np.zeros((prod_dst.count, out_h, out_w), dtype=np.float32)
@@ -816,6 +838,7 @@ class Product:
     def _compute_hillshade(self,
                            dem_path: str = "",
                            resolution: Union[float, tuple] = None,
+                           size: Union[list, tuple] = None,
                            resampling: Resampling = Resampling.bilinear) -> str:
         """
         Compute Hillshade mask
@@ -823,6 +846,7 @@ class Product:
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
             resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             resampling (Resampling): Resampling method
 
         Returns:
@@ -834,6 +858,7 @@ class Product:
     def _compute_slope(self,
                        dem_path: str = "",
                        resolution: Union[float, tuple] = None,
+                       size: Union[list, tuple] = None,
                        resampling: Resampling = Resampling.bilinear) -> str:
         """
         Compute slope mask
@@ -841,6 +866,7 @@ class Product:
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
             resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             resampling (Resampling): Resampling method
 
         Returns:
@@ -848,7 +874,7 @@ class Product:
 
         """
         # Warp DEM
-        warped_dem_path = self._warp_dem(dem_path, resolution, resampling)
+        warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
         # Get slope path
         slope_dem = os.path.join(self.output, f"{self.condensed_name}_SLOPE.tif")
@@ -869,7 +895,8 @@ class Product:
 
         return slope_dem
 
-    def _collocate_bands(self, bands: dict, true_meta: dict) -> dict:
+    @staticmethod
+    def _collocate_bands(bands: dict, true_meta: dict) -> dict:
         """
         Collocate all bands from a dict if needed (if a raster shape is different)
 
@@ -897,7 +924,6 @@ class Product:
                                                       slave_meta=slave_meta)
 
         return bands
-
 
     # pylint: disable=R0913
     # Too many arguments (6/5)

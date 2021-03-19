@@ -54,6 +54,7 @@ class S2Product(OpticalProduct):
 
     You can use directly the .zip file
     """
+
     def _post_init(self) -> None:
         """
         Function used to post_init the products
@@ -251,7 +252,10 @@ class S2Product(OpticalProduct):
 
         return band_paths
 
-    def _read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
+    def _read_band(self,
+                   dataset,
+                   resolution: Union[tuple, list, float] = None,
+                   size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Read band from a dataset.
 
@@ -286,14 +290,17 @@ class S2Product(OpticalProduct):
 
         Args:
             dataset (Dataset): Band dataset
-            x_res (float): Resolution for X axis
-            y_res (float): Resolution for Y axis
+            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             np.ma.masked_array, dict: Radiometrically coherent band, saved as float 32 and its metadata
 
         """
         # Read band
-        band, dst_meta = rasters.read(dataset, [x_res, y_res], Resampling.bilinear)
+        band, dst_meta = rasters.read(dataset,
+                                      resolution=resolution,
+                                      size=size,
+                                      resampling=Resampling.bilinear)
 
         # Get resolution
         coeff = 1 / 10000. if dataset.meta['dtype'] == 'uint16' else 1
@@ -401,8 +408,8 @@ class S2Product(OpticalProduct):
                                band_arr: np.ma.masked_array,
                                band: obn,
                                meta: dict,
-                               res_x: float = None,
-                               res_y: float = None) -> (np.ma.masked_array, dict):
+                               resolution: float = None,
+                               size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
@@ -411,8 +418,8 @@ class S2Product(OpticalProduct):
             band_arr (np.ma.masked_array): Band array loaded
             band (obn): Band name as an OpticalBandNames
             meta (dict): Band metadata from rasterio
-            res_x (float): Resolution for X axis
-            res_y (float): Resolution for Y axis
+            resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             np.ma.masked_array, dict: Cleaned band array and its metadata
@@ -459,13 +466,17 @@ class S2Product(OpticalProduct):
 
         return self._create_band_masked_array(band_arr, mask, meta)
 
-    def _load_bands(self, band_list: [list, BandNames], resolution: float = None) -> (dict, dict):
+    def _load_bands(self,
+                    band_list: Union[list, BandNames],
+                    resolution: float = None,
+                    size: Union[list, tuple] = None) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
             band_list (list, BandNames): List of the wanted bands
             resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             dict, dict: Dictionary {band_name, band_array} and the products metadata
                         (supposed to be the same for all bands)
@@ -476,7 +487,7 @@ class S2Product(OpticalProduct):
         band_paths = self.get_band_paths(band_list, resolution)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self._open_bands(band_paths, resolution)
+        band_arrays, meta = self._open_bands(band_paths, resolution=resolution, size=size)
         meta["driver"] = "GTiff"
 
         return band_arrays, meta

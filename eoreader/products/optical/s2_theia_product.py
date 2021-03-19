@@ -152,7 +152,10 @@ class S2TheiaProduct(OpticalProduct):
 
         return band_paths
 
-    def _read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
+    def _read_band(self,
+                   dataset,
+                   resolution: Union[tuple, list, float] = None,
+                   size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Read band from a dataset
 
@@ -187,13 +190,16 @@ class S2TheiaProduct(OpticalProduct):
 
         Args:
             dataset (Dataset): Band dataset
-            x_res (float): Resolution for X axis
-            y_res (float): Resolution for Y axis
+            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             np.ma.masked_array, dict: Radiometrically coherent band, saved as float 32 and its metadata
         """
         # Read band
-        band, dst_meta = rasters.read(dataset, [x_res, y_res], Resampling.bilinear)
+        band, dst_meta = rasters.read(dataset,
+                                      resolution=resolution,
+                                      size=size,
+                                      resampling=Resampling.bilinear)
 
         # Compute the correct radiometry of the band
         band = band.astype(np.float32) / 10000.
@@ -208,8 +214,8 @@ class S2TheiaProduct(OpticalProduct):
                                band_arr: np.ma.masked_array,
                                band: obn,
                                meta: dict,
-                               res_x: float = None,
-                               res_y: float = None) -> (np.ma.masked_array, dict):
+                               resolution: float = None,
+                               size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See there:
@@ -219,8 +225,8 @@ class S2TheiaProduct(OpticalProduct):
             band_arr (np.ma.masked_array): Band array loaded
             band (obn): Band name as an OpticalBandNames
             meta (dict): Band metadata from rasterio
-            res_x (float): Resolution for X axis
-            res_y (float): Resolution for Y axis
+            resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             np.ma.masked_array, dict: Cleaned band array and its metadata
@@ -234,17 +240,17 @@ class S2TheiaProduct(OpticalProduct):
         no_data_mask = np.where(band == theia_nodata, nodata_true, nodata_false).astype(np.uint8)
 
         # Open NODATA pixels mask
-        edg_mask = self.open_mask("EDG", band, res_x, res_y)
+        edg_mask = self.open_mask("EDG", band, resolution=resolution, size=size)
 
         # Open saturated pixels
-        sat_mask = self.open_mask("SAT", band, res_x, res_y)
+        sat_mask = self.open_mask("SAT", band, resolution=resolution, size=size)
 
         # Combine masks
         mask = no_data_mask | edg_mask | sat_mask
 
         # Open defective pixels (optional mask)
         try:
-            def_mask = self.open_mask("DFP", band, res_x, res_y)
+            def_mask = self.open_mask("DFP", band, resolution=resolution, size=size)
             mask = mask | def_mask
         except InvalidProductError:
             pass
@@ -255,8 +261,8 @@ class S2TheiaProduct(OpticalProduct):
     def open_mask(self,
                   mask_id: str,
                   band: obn,
-                  res_x: float = None,
-                  res_y: float = None) -> np.ndarray:
+                  resolution: float = None,
+                  size: Union[list, tuple] = None) -> np.ndarray:
         """
         Get a Sentinel-2 THEIA mask path.
         See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
@@ -284,8 +290,8 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             mask_id: Mask ID
             band (obn): Band name as an OpticalBandNames
-            res_x (float): Resolution for X axis
-            res_y (float): Resolution for Y axis
+            resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             np.ndarray: Mask array
@@ -326,18 +332,26 @@ class S2TheiaProduct(OpticalProduct):
         # Open SAT band
         with rasterio.open(mask_path) as sat_dst:
             # Nearest to keep the flags
-            sat_arr, _ = rasters.read(sat_dst, [res_x, res_y], Resampling.nearest, masked=False)
+            sat_arr, _ = rasters.read(sat_dst,
+                                      resolution=resolution,
+                                      size=size,
+                                      resampling=Resampling.nearest,
+                                      masked=False)
             sat_mask = rasters.read_bit_array(sat_arr, bit_id)
 
         return sat_mask
 
-    def _load_bands(self, band_list: [list, BandNames], resolution: float = None) -> (dict, dict):
+    def _load_bands(self,
+                    band_list: Union[list, BandNames],
+                    resolution: float = None,
+                    size: Union[list, tuple] = None) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
             band_list (list, BandNames): List of the wanted bands
             resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             dict, dict: Dictionary {band_name, band_array} and the products metadata
                         (supposed to be the same for all bands)
@@ -348,7 +362,7 @@ class S2TheiaProduct(OpticalProduct):
         band_paths = self.get_band_paths(band_list)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self._open_bands(band_paths, resolution)
+        band_arrays, meta = self._open_bands(band_paths, resolution=resolution, size=size)
         meta["driver"] = "GTiff"
 
         return band_arrays, meta

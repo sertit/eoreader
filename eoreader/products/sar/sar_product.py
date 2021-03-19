@@ -441,7 +441,9 @@ class SarProduct(Product):
 
     # unused band_name (compatibility reasons)
     # pylint: disable=W0613
-    def _read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
+    def _read_band(self, dataset,
+                   resolution: Union[tuple, list, float] = None,
+                   size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Read band from a dataset
 
@@ -474,14 +476,17 @@ class SarProduct(Product):
 
         Args:
             dataset (Dataset): Band dataset
-            x_res (float): Resolution for X axis
-            y_res (float): Resolution for Y axis
+            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             np.ma.masked_array, dict: Radar band, saved as float 32 and its metadata
 
         """
         # Read band
-        band_array, dst_meta = rasters.read(dataset, [x_res, y_res], Resampling.bilinear)
+        band_array, dst_meta = rasters.read(dataset,
+                                            resolution=resolution,
+                                            size=size,
+                                            resampling=Resampling.bilinear)
 
         # Set correct nodata
         masked_array = np.ma.masked_array(band_array,
@@ -490,13 +495,17 @@ class SarProduct(Product):
 
         return masked_array, dst_meta
 
-    def _load_bands(self, band_list: [list, BandNames], resolution: float = None) -> (dict, dict):
+    def _load_bands(self,
+                    band_list: Union[list, BandNames],
+                    resolution: float = None,
+                    size: Union[list, tuple] = None) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
             band_list (list, BandNames): List of the wanted bands
             resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             dict, dict: Dictionary {band_name, band_array} and the products metadata
                         (supposed to be the same for all bands)
@@ -512,7 +521,9 @@ class SarProduct(Product):
         for band_name, band_path in band_paths.items():
             with rasterio.open(band_path) as band_ds:
                 # Read CSK band
-                band_arrays[band_name], ds_meta = self._read_band(band_ds, resolution, resolution)
+                band_arrays[band_name], ds_meta = self._read_band(band_ds,
+                                                                  resolution=resolution,
+                                                                  size=size)
 
                 # Meta
                 if not meta:
@@ -522,7 +533,8 @@ class SarProduct(Product):
 
     def load(self,
              band_and_idx_list: Union[list, BandNames, Callable],
-             resolution: float = None) -> (dict, dict):
+             resolution: float = None,
+             size: Union[list, tuple] = None) -> (dict, dict):
         """
         Load SAR (and DEM) bands.
 
@@ -562,6 +574,7 @@ class SarProduct(Product):
         Args:
             band_and_idx_list (list, index): Index list
             resolution (float): Resolution of the band, in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             dict, dict: Index and band dict, metadata
@@ -591,10 +604,10 @@ class SarProduct(Product):
                 raise InvalidTypeError(f"{band} is neither a band nor an index !")
 
         # Load bands
-        bands, meta = self._load_bands(band_list, resolution=resolution)
+        bands, meta = self._load_bands(band_list, resolution=resolution, size=size)
 
         # Add DEM
-        dem_bands, dem_meta = self._load_dem(dem_list, resolution=resolution)
+        dem_bands, dem_meta = self._load_dem(dem_list, resolution=resolution, size=size)
         bands.update(dem_bands)
         if not meta:
             meta = dem_meta
@@ -731,6 +744,7 @@ class SarProduct(Product):
     def _compute_hillshade(self,
                            dem_path: str = "",
                            resolution: Union[float, tuple] = None,
+                           size: Union[list, tuple] = None,
                            resampling: Resampling = Resampling.bilinear) -> str:
         """
         Compute Hillshade mask
@@ -739,6 +753,7 @@ class SarProduct(Product):
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
             resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
             resampling (Resampling): Resampling method
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             str: Hillshade mask path
         """

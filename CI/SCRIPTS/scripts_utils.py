@@ -20,8 +20,6 @@ OPT_PATH = os.path.join(CI_PATH, "optical")
 SAR_PATH = os.path.join(CI_PATH, "sar")
 
 
-
-
 def get_ci_dir() -> str:
     """
     Get CI DATA directory

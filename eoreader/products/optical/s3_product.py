@@ -317,7 +317,10 @@ class S3Product(OpticalProduct):
         return band_paths
 
     # pylint: disable=W0613
-    def _read_band(self, dataset, x_res: float = None, y_res: float = None) -> (np.ma.masked_array, dict):
+    def _read_band(self,
+                   dataset,
+                   resolution: Union[tuple, list, float] = None,
+                   size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Read band from a dataset.
 
@@ -351,14 +354,17 @@ class S3Product(OpticalProduct):
 
         Args:
             dataset (Dataset): Band dataset
-            x_res (float): Resolution for X axis
-            y_res (float): Resolution for Y axis
+            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             np.ma.masked_array, dict: Radar band, saved as float 32 and its metadata
 
         """
         # Read band
-        return rasters.read(dataset, [x_res, y_res], Resampling.bilinear)
+        return rasters.read(dataset,
+                            resolution=resolution,
+                            size=size,
+                            resampling=Resampling.bilinear)
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
@@ -366,8 +372,8 @@ class S3Product(OpticalProduct):
                                band_arr: np.ma.masked_array,
                                band: obn,
                                meta: dict,
-                               res_x: float = None,
-                               res_y: float = None) -> (np.ma.masked_array, dict):
+                               resolution: float = None,
+                               size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
@@ -375,16 +381,20 @@ class S3Product(OpticalProduct):
             band_arr (np.ma.masked_array): Band array loaded
             band (obn): Band name as an OpticalBandNames
             meta (dict): Band metadata from rasterio
-            res_x (float): Resolution for X axis
-            res_y (float): Resolution for Y axis
+            resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             np.ma.masked_array, dict: Cleaned band array and its metadata
         """
         if self._instrument_name == S3Instrument.OLCI:
-            band_arr_mask, meta = self._manage_invalid_pixels_olci(band_arr, band, meta, res_x, res_y)
+            band_arr_mask, meta = self._manage_invalid_pixels_olci(band_arr, band, meta,
+                                                                   resolution=resolution,
+                                                                   size=size)
         else:
-            band_arr_mask, meta = self._manage_invalid_pixels_slstr(band_arr, band, meta, res_x, res_y)
+            band_arr_mask, meta = self._manage_invalid_pixels_slstr(band_arr, band, meta,
+                                                                    resolution=resolution,
+                                                                    size=size)
 
         return band_arr_mask, meta
 
@@ -394,8 +404,8 @@ class S3Product(OpticalProduct):
                                     band_arr: np.ma.masked_array,
                                     band: obn,
                                     meta: dict,
-                                    res_x: float = None,
-                                    res_y: float = None) -> (np.ma.masked_array, dict):
+                                    resolution: float = None,
+                                    size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...) for OLCI data.
         See there:
@@ -441,8 +451,8 @@ class S3Product(OpticalProduct):
             band_arr (np.ma.masked_array): Band array loaded
             band (obn): Band name as an OpticalBandNames
             meta (dict): Band metadata from rasterio
-            res_x (float): Resolution for X axis
-            res_y (float): Resolution for Y axis
+            resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             np.ma.masked_array, dict: Cleaned band array and its metadata
@@ -475,7 +485,11 @@ class S3Product(OpticalProduct):
 
         with rasterio.open(qual_flags_path) as qual_dst:
             # Nearest to keep the flags
-            qual_arr, _ = rasters.read(qual_dst, [res_x, res_y], Resampling.nearest, masked=False)
+            qual_arr, _ = rasters.read(qual_dst,
+                                       resolution=resolution,
+                                       size=size,
+                                       resampling=Resampling.nearest,
+                                       masked=False)
             invalid, sat = rasters.read_bit_array(qual_arr, [invalid_id, sat_band_id])
 
         # Get nodata mask
@@ -493,8 +507,8 @@ class S3Product(OpticalProduct):
                                      band_arr: np.ma.masked_array,
                                      band: obn,
                                      meta: dict,
-                                     res_x: float = None,
-                                     res_y: float = None) -> (np.ma.masked_array, dict):
+                                     resolution: float = None,
+                                     size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
@@ -504,8 +518,8 @@ class S3Product(OpticalProduct):
             band_arr (np.ma.masked_array): Band array loaded
             band (obn): Band name as an OpticalBandNames
             meta (dict): Band metadata from rasterio
-            res_x (float): Resolution for X axis
-            res_y (float): Resolution for Y axis
+            resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             np.ma.masked_array, dict: Cleaned band array and its metadata
@@ -521,7 +535,10 @@ class S3Product(OpticalProduct):
 
         with rasterio.open(qual_flags_path) as qual_dst:
             # Nearest to keep the flags
-            qual_arr, _ = rasters.read(qual_dst, [res_x, res_y], Resampling.nearest, masked=False)
+            qual_arr, _ = rasters.read(qual_dst,
+                                       resolution=resolution,
+                                       size=size,
+                                       resampling=Resampling.nearest, masked=False)
 
             # Set no data for everything (except ISP) that caused an exception
             exception = np.where(qual_arr > 2, nodata_true, nodata_false)
@@ -535,13 +552,17 @@ class S3Product(OpticalProduct):
         # DO not set 0 to epsilons as they are a part of the
         return self._create_band_masked_array(band_arr, mask, meta)
 
-    def _load_bands(self, band_list: [list, BandNames], resolution: float = None) -> (dict, dict):
+    def _load_bands(self,
+                    band_list: Union[list, BandNames],
+                    resolution: float = None,
+                    size: Union[list, tuple] = None) -> (dict, dict):
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
             band_list (list, BandNames): List of the wanted bands
             resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             dict, dict: Dictionary {band_name, band_array} and the products metadata
                         (supposed to be the same for all bands)
@@ -552,7 +573,7 @@ class S3Product(OpticalProduct):
         band_paths = self.get_band_paths(band_list)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self._open_bands(band_paths, resolution)
+        band_arrays, meta = self._open_bands(band_paths, resolution=resolution, size=size)
 
         return band_arrays, meta
 
