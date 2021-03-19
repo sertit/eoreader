@@ -24,7 +24,7 @@ setuptools.setup(
         "netCDF4",
         "rasterio",
         "geopandas",
-        "sertit",
+        # "sertit",
     ],
     package_data={'eoreader.data': ['*.xml']},
     include_package_data=True
