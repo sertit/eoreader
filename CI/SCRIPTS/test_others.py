@@ -1,6 +1,7 @@
 import os
 
 import pytest
+import numpy as np
 import pandas as pd
 from lxml import etree
 
@@ -55,7 +56,7 @@ def test_products():
     prod1_path = os.path.join(OPT_PATH, "LC08_L1TP_200030_20201220_20210310_02_T1")  # Newer
     prod2_path = os.path.join(OPT_PATH, "LM03_L1GS_033028_19820906_20180414_01_T2")  # Older
 
-    # Open porods
+    # Open prods
     prod1 = READER.open(prod1_path)
     prod2 = READER.open(prod2_path)
 
@@ -72,6 +73,14 @@ def test_products():
     assert isinstance(mtd_pd, pd.DataFrame)
     assert isinstance(mtd_xml, etree._Element)
     assert nmsp == ""
+
+    # Check size
+    green, meta = prod1.load([GREEN], resolution=30)
+    green2, meta2 = prod1.load([GREEN], size=(meta["width"], meta["height"]))
+
+    np.testing.assert_array_equal(green[GREEN], green2[GREEN])
+    assert meta == meta2
+
 
 
 def test_bands():
