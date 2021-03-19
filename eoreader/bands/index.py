@@ -345,7 +345,7 @@ def BAI(bands: dict) -> np.ma.masked_array:
     Returns:
         np.ma.masked_array: Computed index
     """
-    return _no_data_divide(1, (0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)
+    return _no_data_divide(1., (0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)
 
 
 def NBR(bands: dict) -> np.ma.masked_array:

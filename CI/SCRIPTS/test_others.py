@@ -23,6 +23,7 @@ def test_utils():
     # DB dir
     assert os.path.isdir(utils.get_db_dir())
 
+
 def test_alias():
     # DEM
     assert not is_dem(NDVI)

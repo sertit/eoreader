@@ -1,17 +1,18 @@
 import setuptools
+import os
 from eoreader.version import __version__
+
+BASEDIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+with open(os.path.join(BASEDIR, "README.md"), "r") as f:
+    readme = f.read()
 
 setuptools.setup(
     name='eoreader',
     version=__version__,  # Semantic Versioning (see https://semver.org/)
     author="Rémi BRAUN",
     author_email="remi.braun@unistra.fr",
-    description="SERTIT python library for extracting data on satellite products",
-    long_description=
-    '''
-        SERTIT python library for extracting data on satellite products.
-        For more information please see http://code.sertit.unistra.fr/SERTIT/eoreader/blob/master/README.md"
-    ''',
+    description="SERTIT python library for reading and stacking satellite data",
+    long_description=readme,
     url="http://code.sertit.unistra.fr/SERTIT/eoreader",
     packages=setuptools.find_packages(),
     classifiers=[

@@ -160,13 +160,17 @@ class OpticalProduct(Product):
         existing_bands = self.get_existing_bands()
         return self.get_band_paths(band_list=existing_bands)
 
-    def _open_bands(self, band_paths: dict, resolution: float = None) -> (dict, dict):
+    def _open_bands(self,
+                    band_paths: dict,
+                    resolution: float = None,
+                    size: Union[list, tuple] = None) -> (dict, dict):
         """
         Open bands from their paths.
 
         Args:
             band_paths (dict): Band dict: {band_enum: band_path}
             resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             dict, dict: Dictionary {band_name, band_array} and the products metadata
@@ -179,10 +183,11 @@ class OpticalProduct(Product):
         for band_name, band_path in band_paths.items():
             with rasterio.open(band_path) as band_ds:
                 # Read band
-                band_arrays[band_name], ds_meta = self._read_band(band_ds, resolution, resolution)
+                band_arrays[band_name], ds_meta = self._read_band(band_ds, resolution=resolution, size=size)
                 band_arrays[band_name], ds_meta = self._manage_invalid_pixels(band_arrays[band_name],
                                                                               band_name, ds_meta,
-                                                                              resolution, resolution)
+                                                                              resolution=resolution,
+                                                                              size=size)
 
                 # Meta
                 if not meta:
@@ -197,8 +202,8 @@ class OpticalProduct(Product):
                                band_arr: np.ma.masked_array,
                                band: obn,
                                meta: dict,
-                               res_x: float = None,
-                               res_y: float = None) -> (np.ma.masked_array, dict):
+                               resolution: float = None,
+                               size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
@@ -206,8 +211,8 @@ class OpticalProduct(Product):
             band_arr (np.ma.masked_array): Band array loaded
             band (obn): Band name as an OpticalBandNames
             meta (dict): Band metadata from rasterio
-            res_x (float): Resolution for X axis
-            res_y (float): Resolution for Y axis
+            resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             np.ma.masked_array, dict: Cleaned band array and its metadata
@@ -254,7 +259,8 @@ class OpticalProduct(Product):
 
     def load(self,
              band_and_idx_list: Union[list, BandNames, Callable],
-             resolution: float = None) -> (dict, dict):
+             resolution: float = None,
+             size: Union[list, tuple] = None) -> (dict, dict):
         """
         Open the bands and compute the wanted index.
 
@@ -297,6 +303,7 @@ class OpticalProduct(Product):
         Args:
             band_and_idx_list (list, index): Index list
             resolution (float): Resolution of the band, in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             dict, dict: Index and band dict, metadata
@@ -334,7 +341,7 @@ class OpticalProduct(Product):
             bands_to_load += index.NEEDED_BANDS[idx]
 
         # Load band arrays (only keep unique bands: open them only one time !)
-        bands, meta = self._load_bands(list(set(bands_to_load)), resolution=resolution)
+        bands, meta = self._load_bands(list(set(bands_to_load)), resolution=resolution, size=size)
 
         # Compute index (they conserve the nodata)
         idx_and_bands_dict = {idx: idx(bands) for idx in index_list}
@@ -343,7 +350,7 @@ class OpticalProduct(Product):
         idx_and_bands_dict.update({band: bands[band] for band in band_list})
 
         # Add DEM
-        dem_bands, dem_meta = self._load_dem(dem_list, resolution=resolution)
+        dem_bands, dem_meta = self._load_dem(dem_list, resolution=resolution, size=size)
         idx_and_bands_dict.update(dem_bands)
         if not meta:
             meta = dem_meta
@@ -374,6 +381,7 @@ class OpticalProduct(Product):
     def _compute_hillshade(self,
                            dem_path: str = "",
                            resolution: Union[float, tuple] = None,
+                           size: Union[list, tuple] = None,
                            resampling: Resampling = Resampling.bilinear) -> str:
         """
         Compute Hillshade mask
@@ -381,6 +389,7 @@ class OpticalProduct(Product):
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
             resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             resampling (Resampling): Resampling method
 
         Returns:
@@ -388,7 +397,7 @@ class OpticalProduct(Product):
 
         """
         # Warp DEM
-        warped_dem_path = self._warp_dem(dem_path, resolution, resampling)
+        warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
         # Get Hillshade path
         hillshade_dem = os.path.join(self.output, f"{self.condensed_name}_HILLSHADE.tif")
