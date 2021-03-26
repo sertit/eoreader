@@ -270,6 +270,8 @@ class OpticalProduct(Product):
         Bands that come out this function at the same time are collocated and therefore have the same shapes.
         This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
 
+        If neither resolution nor size is given, bands will be loaded at the product's default resolution.
+
         ```python
         >>> from eoreader.reader import Reader
         >>> from eoreader.bands.alias import *
@@ -308,6 +310,9 @@ class OpticalProduct(Product):
         Returns:
             dict, dict: Index and band dict, metadata
         """
+        if not resolution and not size:
+            resolution = self.resolution
+
         if not isinstance(band_and_idx_list, list):
             band_and_idx_list = [band_and_idx_list]
 
