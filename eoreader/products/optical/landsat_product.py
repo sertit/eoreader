@@ -39,7 +39,7 @@ class LandsatProductType(ListEnum):
     """TM Product Type, for Landsat-5 and 4 platforms"""
 
     L1_MSS = "MSS"
-    """MSS Product Type, for Landsat-5,4,3,2,1 platforms"""
+    """MSS Product Type, for Landsat-5, 4, 3, 2, 1 platforms"""
 
 
 @unique
@@ -80,6 +80,7 @@ class LandsatProduct(OpticalProduct):
         # self.needs_extraction = False for col2 ?
 
         self._quality_id = "_BQA" if self._collection == LandsatCollection.COL_1 else "_QA_RADSAT"
+        self._nodata_band_id = "_BQA" if self._collection == LandsatCollection.COL_1 else "_QA_PIXEL"
 
         # Post init done by the super class
         super()._post_init()
@@ -98,25 +99,22 @@ class LandsatProduct(OpticalProduct):
         ```
 
         Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
-        **We keep the QA value**.
+        Indeed, nodata pixels vary according to the band sensor footprint,
+        whereas QA nodata is where at least one band has nodata.
+
+        We chose to keep QA nodata values for the footprint in order to show where all bands are valid.
+
+        **TL;DR: We use the QA nodata value to determine the product's footprint**.
 
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        # Load default band
-        # We need to use that to get the correct nodata stored in the QA file
-        default_band = self.get_default_band()
-        band, meta = self._load_bands(default_band)
+        # Load nodata band
+        nodata_band = files.get_file_in_dir(self.path, f"*{self._nodata_band_id}.TIF", exact_name=True)
 
-        # Create tmp dir and save here the default band
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_band_path = os.path.join(tmp_dir, f"{self.condensed_name}_DEF.tif")
-            rasters.write(band[default_band], tmp_band_path, meta)
+        # Vectorize the nodata band
+        footprint = rasters.vectorize(nodata_band, values=1)
 
-            # Vectorize the default band and clean the tmp dir
-            footprint = rasters.get_footprint(tmp_band_path)
-
-        # Get the footprint max (discard small holes)
         return footprint
 
     def _get_tile_name(self) -> str:
@@ -400,6 +398,7 @@ class LandsatProduct(OpticalProduct):
                                size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
+
         Args:
             band_arr (np.ma.masked_array): Band array loaded
             band (obn): Band name as an OpticalBandNames
@@ -434,19 +433,28 @@ class LandsatProduct(OpticalProduct):
                 mask = nodata | dropped | sat_1 | sat_2
             else:
                 # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
+                # SATURATED & OTHER PIXELS
                 band_nb = int(self.band_names[band])
 
                 # Bit ids
-                nodata_id = 0  # Fill value
                 sat_id = band_nb - 1  # Saturated pixel
                 if self.product_type != LandsatProductType.L1_OLCI:
                     other_id = 11  # Terrain occlusion
                 else:
                     other_id = 9  # Dropped pixels
 
-                nodata, sat, other = rasters.read_bit_array(qa_arr,
-                                                            [nodata_id, sat_id, other_id])
-                mask = nodata | sat | other
+                sat, other = rasters.read_bit_array(qa_arr, [sat_id, other_id])
+                mask = sat | other
+
+        # If collection 2, nodata has to be found in pixel QA file
+        if self._collection == LandsatCollection.COL_2:
+            landsat_stat_path = files.get_file_in_dir(self.path, f"*{self._nodata_band_id}.TIF", exact_name=True)
+            pixel_arr, meta = self._read_band(landsat_stat_path,
+                                              resolution=resolution,
+                                              size=size)
+            nodata = np.where(pixel_arr == 1, 1, 0)
+
+            mask = nodata | mask
 
         return self._create_band_masked_array(band_arr, mask, meta)
 
