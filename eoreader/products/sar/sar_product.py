@@ -16,7 +16,6 @@ from rasterio.enums import Resampling
 from sertit import files, strings, misc, snap
 from sertit.misc import ListEnum
 from sertit import rasters, vectors
-from sertit.rasters import path_or_dst
 
 from eoreader import utils
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
