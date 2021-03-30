@@ -753,7 +753,7 @@ class S3Product(OpticalProduct):
 
         return extent
 
-    def _set_condensed_name(self) -> str:
+    def _get_condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
 

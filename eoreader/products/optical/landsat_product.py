@@ -138,6 +138,80 @@ class LandsatProduct(OpticalProduct):
         """ Get products type """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    def _set_mss_product_type(self, version: int) -> None:
+        """ Set MSS product type and map corresponding bands """
+        if "L1" in self.name:
+            self.product_type = LandsatProductType.L1_MSS
+            self.band_names.map_bands({
+                obn.GREEN: '4' if version < 4 else '1',
+                obn.RED: '5' if version < 4 else '2',
+                obn.VRE_1: '6' if version < 4 else '3',
+                obn.VRE_2: '6' if version < 4 else '3',
+                obn.VRE_3: '6' if version < 4 else '3',
+                obn.NIR: '7' if version < 4 else '4',
+                obn.NNIR: '7' if version < 4 else '4'
+            })
+        else:
+            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
+
+    def _set_tm_product_type(self) -> None:
+        """ Set TM product type and map corresponding bands """
+        if "L1" in self.name:
+            self.product_type = LandsatProductType.L1_TM
+            self.band_names.map_bands({
+                obn.BLUE: '1',
+                obn.GREEN: '2',
+                obn.RED: '3',
+                obn.NIR: '4',
+                obn.NNIR: '4',
+                obn.SWIR_1: '5',
+                obn.SWIR_2: '7',
+                obn.TIR_1: '6',
+                obn.TIR_2: '6'
+            })
+        else:
+            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
+
+    def _set_etm_product_type(self) -> None:
+        """ Set ETM product type and map corresponding bands """
+        if "L1" in self.name:
+            self.product_type = LandsatProductType.L1_ETM
+            self.band_names.map_bands({
+                obn.BLUE: '1',
+                obn.GREEN: '2',
+                obn.RED: '3',
+                obn.NIR: '4',
+                obn.NNIR: '4',
+                obn.SWIR_1: '5',
+                obn.SWIR_2: '7',
+                obn.PAN: '8',
+                obn.TIR_1: '6_VCID_1',
+                obn.TIR_2: '6_VCID_2'
+            })
+        else:
+            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
+
+    def _set_olci_product_type(self) -> None:
+        """ Set OLCI product type and map corresponding bands """
+        if "L1" in self.name:
+            self.product_type = LandsatProductType.L1_OLCI
+            self.band_names.map_bands({
+                obn.CA: '1',
+                obn.BLUE: '2',
+                obn.GREEN: '3',
+                obn.RED: '4',
+                obn.NIR: '5',
+                obn.NNIR: '5',
+                obn.SWIR_1: '6',
+                obn.SWIR_2: '7',
+                obn.PAN: '8',
+                obn.CIRRUS: '9',
+                obn.TIR_1: '10',
+                obn.TIR_2: '11'
+            })
+        else:
+            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
+
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
@@ -502,7 +576,7 @@ class LandsatProduct(OpticalProduct):
         return azimuth_angle, zenith_angle
 
     @abstractmethod
-    def _set_condensed_name(self) -> str:
+    def _get_condensed_name(self) -> str:
         """
         Get products condensed name ({date}_Lx_{tile}_{product_type}).
 
@@ -510,3 +584,12 @@ class LandsatProduct(OpticalProduct):
             str: Condensed Landsat name
         """
         raise NotImplementedError("This method should be implemented by a child class")
+
+    def _get_landsat_condensed_name(self, version: int) -> str:
+        """
+        Get products condensed name ({date}_L{version}_{tile}_{product_type}).
+
+        Returns:
+            str: Condensed L8 name
+        """
+        return f"{self.get_datetime()}_L{version}_{self.tile_name}_{self.product_type.value}"

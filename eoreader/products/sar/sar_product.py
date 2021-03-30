@@ -639,7 +639,7 @@ class SarProduct(Product):
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Set command as a list
-            target_file = os.path.join(tmp_dir, f"{self._set_condensed_name()}")
+            target_file = os.path.join(tmp_dir, f"{self.condensed_name}")
 
             # Use dimap for speed and security (ie. GeoTiff's broken georef)
             pp_target = f"{target_file}"
@@ -692,7 +692,7 @@ class SarProduct(Product):
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Out files
-            target_file = os.path.join(tmp_dir, f"{self._set_condensed_name()}_DESPK")
+            target_file = os.path.join(tmp_dir, f"{self.condensed_name}_DESPK")
             dspk_dim = target_file + '.dim'
 
             # Despeckle graph

@@ -368,7 +368,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return band_arrays, meta
 
-    def _set_condensed_name(self) -> str:
+    def _get_condensed_name(self) -> str:
         """
         Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
 
