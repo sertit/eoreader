@@ -168,7 +168,7 @@ class Product:
         For SAR product, we use Ground Range resolution as we will automatically orthorectify the tiles.
         """
 
-        self.condensed_name = self._set_condensed_name()
+        self.condensed_name = self._get_condensed_name()
         """Condensed name, the filename with only useful data to keep the name unique 
         (ie. `20191215T110441_S2_30TXP_L2A_122756`). 
         Used to shorten names and paths."""
@@ -251,7 +251,7 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def _set_condensed_name(self) -> str:
+    def _get_condensed_name(self) -> str:
         """
         Set product condensed name.
 
