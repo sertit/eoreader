@@ -82,7 +82,6 @@ def test_products():
     assert meta == meta2
 
 
-
 def test_bands():
     # SAR
     assert SarBandNames.from_list(["VV", "VH"]) == [VV, VH]

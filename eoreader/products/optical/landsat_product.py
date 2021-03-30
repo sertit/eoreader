@@ -2,7 +2,6 @@
 import glob
 import logging
 import os
-import tempfile
 from datetime import datetime
 from abc import abstractmethod
 from enum import unique
@@ -367,13 +366,8 @@ class LandsatProduct(OpticalProduct):
             c_add_str = 'REFLECTANCE_ADD_BAND_' + band_name
 
             # Get coeffs to convert DN to reflectance
-            try:
-                c_mul = mtd_data[c_mul_str].value
-                c_add = mtd_data[c_add_str].value
-            except KeyError:
-                c_mul = mtd_data.T[c_mul_str].value
-                c_add = mtd_data.T[c_add_str].value
-
+            c_mul = mtd_data[c_mul_str].value
+            c_add = mtd_data[c_add_str].value
 
             # Manage NULL values
             try:

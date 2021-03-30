@@ -60,6 +60,7 @@ def path_or_dst(method: Callable) -> Callable:
         """
         Path or dataset wrapper
         Args:
+            self: Class
             path_or_ds (Union[str, rasterio.DatasetReader]): Raster path or its dataset
             *args: args
             **kwargs: kwargs
