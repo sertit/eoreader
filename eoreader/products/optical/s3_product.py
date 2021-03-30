@@ -20,6 +20,7 @@ from eoreader import utils
 from eoreader.exceptions import InvalidTypeError, InvalidProductError
 from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.products.optical.optical_product import OpticalProduct
+from eoreader.products.product import path_or_dst
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 from eoreader.env_vars import S3_DEF_RES
 
@@ -317,6 +318,7 @@ class S3Product(OpticalProduct):
         return band_paths
 
     # pylint: disable=W0613
+    @path_or_dst
     def _read_band(self,
                    dataset,
                    resolution: Union[tuple, list, float] = None,
@@ -332,8 +334,7 @@ class S3Product(OpticalProduct):
         >>> from eoreader.bands.alias import *
         >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
         >>> prod = Reader().open(path)
-        >>> with rasterio.open(prod.get_default_band_path()) as dst:
-        >>>     band, meta = prod.read_band(dst, x_res=500, y_res=500)  # You can create not square pixels here
+        >>> band, meta = prod._read_band(prod.get_default_band_path(), resolution=500)
         >>> band
         masked_array(
           data=[[[-1.0, ..., -1.0]]],
@@ -483,14 +484,13 @@ class S3Product(OpticalProduct):
             LOGGER.warning("Impossible to open quality flags %s. Taking the band as is.", qual_flags_path)
             return band_arr, meta
 
-        with rasterio.open(qual_flags_path) as qual_dst:
-            # Nearest to keep the flags
-            qual_arr, _ = rasters.read(qual_dst,
-                                       resolution=resolution,
-                                       size=size,
-                                       resampling=Resampling.nearest,
-                                       masked=False)
-            invalid, sat = rasters.read_bit_array(qual_arr, [invalid_id, sat_band_id])
+        # Open flag file
+        qual_arr, _ = rasters.read(qual_flags_path,
+                                   resolution=resolution,
+                                   size=size,
+                                   resampling=Resampling.nearest,  # Nearest to keep the flags
+                                   masked=False)
+        invalid, sat = rasters.read_bit_array(qual_arr, [invalid_id, sat_band_id])
 
         # Get nodata mask
         no_data = np.where(band_arr == self._snap_no_data, nodata_true, nodata_false)
@@ -533,15 +533,15 @@ class S3Product(OpticalProduct):
             LOGGER.warning("Impossible to open quality flags %s. Taking the band as is.", qual_flags_path)
             return band_arr, meta
 
-        with rasterio.open(qual_flags_path) as qual_dst:
-            # Nearest to keep the flags
-            qual_arr, _ = rasters.read(qual_dst,
-                                       resolution=resolution,
-                                       size=size,
-                                       resampling=Resampling.nearest, masked=False)
+        # Open flag file
+        qual_arr, _ = rasters.read(qual_flags_path,
+                                   resolution=resolution,
+                                   size=size,
+                                   resampling=Resampling.nearest,  # Nearest to keep the flags
+                                   masked=False)
 
-            # Set no data for everything (except ISP) that caused an exception
-            exception = np.where(qual_arr > 2, nodata_true, nodata_false)
+        # Set no data for everything (except ISP) that caused an exception
+        exception = np.where(qual_arr > 2, nodata_true, nodata_false)
 
         # Get nodata mask
         no_data = np.where(band_arr.data == self._snap_no_data, nodata_true, nodata_false)
@@ -614,9 +614,9 @@ class S3Product(OpticalProduct):
                     files.remove(out_tif)
 
                 # Convert to geotiffs and set no data with only keeping the first band
-                with rasterio.open(rasters.get_dim_img_path(out_dim, snap_band_name)) as dim_ds:
-                    nodata = self._snap_no_data if dim_ds.meta["dtype"] == float else self.nodata
-                    rasters.write(dim_ds.read(masked=True), out_tif, dim_ds.meta, nodata=nodata)
+                arr, meta = rasters.read(rasters.get_dim_img_path(out_dim, snap_band_name))
+                nodata = self._snap_no_data if meta["dtype"] == float else self.nodata
+                rasters.write(arr, out_tif, meta, nodata=nodata)
 
         # Get the wanted bands (not the quality flags here !)
         for band in processed_bands:

@@ -5,6 +5,7 @@ import logging
 import os
 from enum import Enum, unique
 from abc import abstractmethod
+from functools import wraps
 from typing import Union, Callable, Any
 import datetime as dt
 import numpy as np
@@ -26,6 +27,54 @@ from eoreader.env_vars import DEM_PATH
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
+
+
+def path_or_dst(method: Callable) -> Callable:
+    """
+    Path or dataset decorator: allows a function to ingest a path or a rasterio dataset
+
+    ```python
+    >>> # Create mock function
+    >>> @path_or_dst
+    >>> def fct(dst):
+    >>>     read(dst)
+    >>>
+    >>> # Test the two ways
+    >>> read1 = fct("path\\to\\raster.tif")
+    >>> with rasterio.open("path\\to\\raster.tif") as dst:
+    >>>     read2 = fct(dst)
+    >>>
+    >>> # Test
+    >>> read1 == read2
+    True
+    ```
+    Args:
+        method (Callable): Function to decorate
+
+    Returns:
+        Callable: decorated function
+    """
+
+    @wraps(method)
+    def path_or_dst_wrapper(self, path_or_ds: Union[str, rasterio.DatasetReader], *args, **kwargs) -> Any:
+        """
+        Path or dataset wrapper
+        Args:
+            path_or_ds (Union[str, rasterio.DatasetReader]): Raster path or its dataset
+            *args: args
+            **kwargs: kwargs
+
+        Returns:
+            Any: regular output
+        """
+        if isinstance(path_or_ds, str):
+            with rasterio.open(path_or_ds) as dst:
+                out = method(self, dst, *args, **kwargs)
+        else:
+            out = method(self, path_or_ds, *args, **kwargs)
+        return out
+
+    return path_or_dst_wrapper
 
 
 @unique
@@ -403,6 +452,7 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     # pylint: disable=W0613
+    @path_or_dst
     def _read_band(self,
                    dataset,
                    resolution: Union[tuple, list, float] = None,
@@ -419,8 +469,7 @@ class Product:
         >>> from eoreader.bands.alias import *
         >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
         >>> prod = Reader().open(path)
-        >>> with rasterio.open(prod.get_default_band_path()) as dst:
-        >>>     band, meta = prod.read_band(dst, x_res=20, y_res=20)  # You can create not square pixels here
+        >>> band, meta = prod._read_band(prod.get_default_band_path(), resolution=20)
         >>> band
         masked_array(
           data=[[[0.0614, ..., 0.15799999]]],
@@ -497,8 +546,7 @@ class Product:
             else:
                 raise InvalidTypeError(f"Unknown DEM band: {band}")
 
-            with rasterio.open(path) as dst:
-                dem_bands[band], meta = rasters.read(dst, resolution=resolution, size=size)
+            dem_bands[band], meta = rasters.read(path, resolution=resolution, size=size)
 
         return dem_bands, meta
 

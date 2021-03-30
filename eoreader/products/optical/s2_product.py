@@ -21,6 +21,7 @@ from sertit.misc import ListEnum
 from eoreader.exceptions import InvalidProductError
 from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.products.optical.optical_product import OpticalProduct
+from eoreader.products.product import path_or_dst
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -252,6 +253,7 @@ class S2Product(OpticalProduct):
 
         return band_paths
 
+    @path_or_dst
     def _read_band(self,
                    dataset,
                    resolution: Union[tuple, list, float] = None,
@@ -267,8 +269,7 @@ class S2Product(OpticalProduct):
         >>> from eoreader.bands.alias import *
         >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
         >>> prod = Reader().open(path)
-        >>> with rasterio.open(prod.get_default_band_path()) as dst:
-        >>>     band, meta = prod.read_band(dst, x_res=20, y_res=20)  # You can create not square pixels here
+        >>> band, meta = prod._read_band(prod.get_default_band_path(), resolution=20)
         >>> band
         masked_array(
           data=[[[0.0614, ..., 0.15799999]]],

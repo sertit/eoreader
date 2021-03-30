@@ -11,7 +11,6 @@ from typing import Union, Tuple
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-import rasterio
 from lxml import etree
 from rasterio.enums import Resampling
 from sertit import files
@@ -21,6 +20,7 @@ from sertit.misc import ListEnum
 from eoreader.exceptions import InvalidProductError
 from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.products.optical.optical_product import OpticalProduct
+from eoreader.products.product import path_or_dst
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -298,6 +298,7 @@ class LandsatProduct(OpticalProduct):
 
         return mtd_data
 
+    @path_or_dst
     def _read_band(self,
                    dataset,
                    resolution: Union[tuple, list, float] = None,
@@ -313,8 +314,7 @@ class LandsatProduct(OpticalProduct):
         >>> from eoreader.bands.alias import *
         >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2.SAFE.zip"
         >>> prod = Reader().open(path)
-        >>> with rasterio.open(prod.get_default_band_path()) as dst:
-        >>>     band, meta = prod.read_band(dst, x_res=20, y_res=20)  # You can create not square pixels here
+        >>> band, meta = prod._read_band(prod.get_default_band_path(), resolution=30)
         >>> band
         masked_array(
           data=[[[-0.1, ..., -0.1]]],
@@ -346,7 +346,7 @@ class LandsatProduct(OpticalProduct):
         # Get band name: the last number before the .TIF:
         # ie: 'LC08_L1TP_200030_20191218_20191226_01_T1_B1.TIF'
         band_name = dataset.name[-5:-4]
-        if self._quality_id in dataset.name:
+        if self._quality_id in dataset.name or self._nodata_band_id in dataset.name:
             band, dst_meta = rasters.read(dataset,
                                           resolution=resolution,
                                           size=size,
@@ -367,8 +367,13 @@ class LandsatProduct(OpticalProduct):
             c_add_str = 'REFLECTANCE_ADD_BAND_' + band_name
 
             # Get coeffs to convert DN to reflectance
-            c_mul = mtd_data[c_mul_str].value
-            c_add = mtd_data[c_add_str].value
+            try:
+                c_mul = mtd_data[c_mul_str].value
+                c_add = mtd_data[c_add_str].value
+            except KeyError:
+                c_mul = mtd_data.T[c_mul_str].value
+                c_add = mtd_data.T[c_add_str].value
+
 
             # Manage NULL values
             try:
@@ -409,49 +414,42 @@ class LandsatProduct(OpticalProduct):
         Returns:
             np.ma.masked_array, dict: Cleaned band array and its metadata
         """
-        # Get QA file path
-        landsat_qa_path = files.get_file_in_dir(self.path, f"*{self._quality_id}.TIF", exact_name=True)
-
         # Open QA band
-        with rasterio.open(landsat_qa_path) as dataset:
-            qa_arr, meta = self._read_band(dataset,
-                                           resolution=resolution,
-                                           size=size)
+        landsat_qa_path = files.get_file_in_dir(self.path, f"*{self._quality_id}.TIF", exact_name=True)
+        qa_arr, meta = self._read_band(landsat_qa_path, resolution=resolution, size=size)
 
-            if self._collection == LandsatCollection.COL_1:
-                # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
-                # Bit ids
-                nodata_id = 0  # Fill value
-                dropped_id = 1  # Dropped pixel or terrain occlusion
-                # Set nodata to every saturated pixel, even if only 1-2 bands are touched by it
-                # -> 01 or 10 or 11
-                # -> bit 2 or bit 3
-                sat_id_1 = 2
-                sat_id_2 = 3
-                nodata, dropped, sat_1, sat_2 = rasters.read_bit_array(qa_arr,
-                                                                       [nodata_id, dropped_id, sat_id_1, sat_id_2])
-                mask = nodata | dropped | sat_1 | sat_2
+        if self._collection == LandsatCollection.COL_1:
+            # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
+            # Bit ids
+            nodata_id = 0  # Fill value
+            dropped_id = 1  # Dropped pixel or terrain occlusion
+            # Set nodata to every saturated pixel, even if only 1-2 bands are touched by it
+            # -> 01 or 10 or 11
+            # -> bit 2 or bit 3
+            sat_id_1 = 2
+            sat_id_2 = 3
+            nodata, dropped, sat_1, sat_2 = rasters.read_bit_array(qa_arr,
+                                                                   [nodata_id, dropped_id, sat_id_1, sat_id_2])
+            mask = nodata | dropped | sat_1 | sat_2
+        else:
+            # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
+            # SATURATED & OTHER PIXELS
+            band_nb = int(self.band_names[band])
+
+            # Bit ids
+            sat_id = band_nb - 1  # Saturated pixel
+            if self.product_type != LandsatProductType.L1_OLCI:
+                other_id = 11  # Terrain occlusion
             else:
-                # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
-                # SATURATED & OTHER PIXELS
-                band_nb = int(self.band_names[band])
+                other_id = 9  # Dropped pixels
 
-                # Bit ids
-                sat_id = band_nb - 1  # Saturated pixel
-                if self.product_type != LandsatProductType.L1_OLCI:
-                    other_id = 11  # Terrain occlusion
-                else:
-                    other_id = 9  # Dropped pixels
-
-                sat, other = rasters.read_bit_array(qa_arr, [sat_id, other_id])
-                mask = sat | other
+            sat, other = rasters.read_bit_array(qa_arr, [sat_id, other_id])
+            mask = sat | other
 
         # If collection 2, nodata has to be found in pixel QA file
         if self._collection == LandsatCollection.COL_2:
             landsat_stat_path = files.get_file_in_dir(self.path, f"*{self._nodata_band_id}.TIF", exact_name=True)
-            pixel_arr, meta = self._read_band(landsat_stat_path,
-                                              resolution=resolution,
-                                              size=size)
+            pixel_arr, meta = self._read_band(landsat_stat_path, resolution=resolution, size=size)
             nodata = np.where(pixel_arr == 1, 1, 0)
 
             mask = nodata | mask

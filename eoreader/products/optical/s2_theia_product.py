@@ -11,7 +11,6 @@ import re
 import zipfile
 from typing import Union
 
-import rasterio
 from lxml import etree
 import numpy as np
 from rasterio.enums import Resampling
@@ -21,6 +20,7 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.products.optical.s2_product import S2ProductType
 from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.products.optical.optical_product import OpticalProduct
+from eoreader.products.product import path_or_dst
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -152,6 +152,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return band_paths
 
+    @path_or_dst
     def _read_band(self,
                    dataset,
                    resolution: Union[tuple, list, float] = None,
@@ -167,8 +168,7 @@ class S2TheiaProduct(OpticalProduct):
         >>> from eoreader.bands.alias import *
         >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
         >>> prod = Reader().open(path)
-        >>> with rasterio.open(prod.get_default_band_path()) as dst:
-        >>>     band, meta = prod.read_band(dst, x_res=20, y_res=20)  # You can create not square pixels here
+        >>> band, meta = prod._read_band(prod.get_default_band_path(), resolution=20)
         >>> band
         masked_array(
           data=[[[0.05339999869465828, ..., 0.05790000036358833]]],
@@ -330,14 +330,12 @@ class S2TheiaProduct(OpticalProduct):
             raise InvalidProductError(f"Non existing mask {mask_regex} in {self.name}") from ex
 
         # Open SAT band
-        with rasterio.open(mask_path) as sat_dst:
-            # Nearest to keep the flags
-            sat_arr, _ = rasters.read(sat_dst,
-                                      resolution=resolution,
-                                      size=size,
-                                      resampling=Resampling.nearest,
-                                      masked=False)
-            sat_mask = rasters.read_bit_array(sat_arr, bit_id)
+        sat_arr, _ = rasters.read(mask_path,
+                                  resolution=resolution,
+                                  size=size,
+                                  resampling=Resampling.nearest,  # Nearest to keep the flags
+                                  masked=False)
+        sat_mask = rasters.read_bit_array(sat_arr, bit_id)
 
         return sat_mask
 
