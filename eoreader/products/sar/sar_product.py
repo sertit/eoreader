@@ -9,7 +9,6 @@ from enum import unique
 from string import Formatter
 from typing import Union, Callable
 
-import rasterio
 from rasterio import crs
 import geopandas as gpd
 import numpy as np
@@ -17,12 +16,13 @@ from rasterio.enums import Resampling
 from sertit import files, strings, misc, snap
 from sertit.misc import ListEnum
 from sertit import rasters, vectors
+from sertit.rasters import path_or_dst
 
 from eoreader import utils
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.bands.bands import SarBands, SarBandNames as sbn, BandNames
 from eoreader.bands.alias import is_index, is_sar_band, is_optical_band, is_dem
-from eoreader.products.product import Product, SensorType
+from eoreader.products.product import Product, SensorType, path_or_dst
 from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
 from eoreader.env_vars import PP_GRAPH, DSPK_GRAPH, SAR_DEF_RES
@@ -441,6 +441,7 @@ class SarProduct(Product):
 
     # unused band_name (compatibility reasons)
     # pylint: disable=W0613
+    @path_or_dst
     def _read_band(self, dataset,
                    resolution: Union[tuple, list, float] = None,
                    size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
@@ -453,8 +454,7 @@ class SarProduct(Product):
         >>> from eoreader.bands.alias import *
         >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
         >>> prod = Reader().open(path)
-        >>> with rasterio.open(prod.get_default_band_path()) as dst:
-        >>>     band, meta = prod.read_band(dst, x_res=20, y_res=20)  # You can create not square pixels here
+        >>> band, meta = prod._read_band(prod.get_default_band_path(), resolution=10)
         >>> band
         masked_array(
           data=[[[--, ..., --]]],
@@ -523,15 +523,14 @@ class SarProduct(Product):
         band_arrays = {}
         meta = {}
         for band_name, band_path in band_paths.items():
-            with rasterio.open(band_path) as band_ds:
-                # Read CSK band
-                band_arrays[band_name], ds_meta = self._read_band(band_ds,
-                                                                  resolution=resolution,
-                                                                  size=size)
+            # Read CSK band
+            band_arrays[band_name], ds_meta = self._read_band(band_path,
+                                                              resolution=resolution,
+                                                              size=size)
 
-                # Meta
-                if not meta:
-                    meta = ds_meta.copy()
+            # Meta
+            if not meta:
+                meta = ds_meta.copy()
 
         return band_arrays, meta
 
@@ -738,15 +737,13 @@ class SarProduct(Product):
         except FileNotFoundError:
             img = rasters.get_dim_img_path(dim_path)  # Maybe not the good name
 
-        with rasterio.open(img, 'r') as dst:
-            # Read array and set no data
-            arr = dst.read(masked=True)
-            arr[np.isnan(arr)] = self.nodata
-            meta = dst.meta
+        # Open SAR image
+        arr, meta = rasters.read(img)
+        arr[np.isnan(arr)] = self.nodata
 
-            # Save the file as the terrain-corrected image
-            file_path = os.path.join(self.output, f"{files.get_filename(dim_path)}_{pol_up}.tif")
-            rasters.write(arr, file_path, meta, nodata=self.nodata)
+        # Save the file as the terrain-corrected image
+        file_path = os.path.join(self.output, f"{files.get_filename(dim_path)}_{pol_up}.tif")
+        rasters.write(arr, file_path, meta, nodata=self.nodata)
 
         return file_path
 

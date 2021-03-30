@@ -181,17 +181,16 @@ class OpticalProduct(Product):
         band_arrays = {}
         meta = {}
         for band_name, band_path in band_paths.items():
-            with rasterio.open(band_path) as band_ds:
-                # Read band
-                band_arrays[band_name], ds_meta = self._read_band(band_ds, resolution=resolution, size=size)
-                band_arrays[band_name], ds_meta = self._manage_invalid_pixels(band_arrays[band_name],
-                                                                              band_name, ds_meta,
-                                                                              resolution=resolution,
-                                                                              size=size)
+            # Read band
+            band_arrays[band_name], ds_meta = self._read_band(band_path, resolution=resolution, size=size)
+            band_arrays[band_name], ds_meta = self._manage_invalid_pixels(band_arrays[band_name],
+                                                                          band_name, ds_meta,
+                                                                          resolution=resolution,
+                                                                          size=size)
 
-                # Meta
-                if not meta:
-                    meta = ds_meta.copy()
+            # Meta
+            if not meta:
+                meta = ds_meta.copy()
 
         return band_arrays, meta
 
