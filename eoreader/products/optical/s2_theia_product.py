@@ -9,6 +9,7 @@ import os
 import datetime
 import re
 import zipfile
+from functools import reduce
 from typing import Union
 
 from lxml import etree
@@ -16,9 +17,10 @@ import numpy as np
 from rasterio.enums import Resampling
 from sertit import files, rasters
 
-from eoreader.exceptions import InvalidProductError
+from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.s2_product import S2ProductType
 from eoreader.bands.bands import OpticalBandNames as obn, BandNames
+from eoreader.bands.alias import ALL_CLOUDS, RAW_CLOUDS, CLOUDS, SHADOWS, CIRRUS
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.products.product import path_or_dst
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
@@ -455,3 +457,122 @@ class S2TheiaProduct(OpticalProduct):
         namespace = ""
 
         return root, namespace
+
+    def _has_cloud_band(self, band: BandNames) -> bool:
+        """
+        Does this products has the specified cloud band ?
+        """
+        return True
+
+    def _load_clouds(self,
+                     band_list: Union[list, BandNames],
+                     resolution: float = None,
+                     size: Union[list, tuple] = None) -> (dict, dict):
+        """
+        Load cloud files as numpy arrays with the same resolution (and same metadata).
+
+        Read S2 Theia cloud mask:
+        https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
+
+        > A cloud mask for each resolution (CLM_R1.tif ou CLM_R2.tif):
+            - bit 0 (1) : all clouds except the thinnest and all shadows
+            - bit 1 (2) : all clouds (except the thinnest)
+            - bit 2 (4) : clouds detected via mono-temporal thresholds
+            - bit 3 (8) : clouds detected via multi-temporal thresholds
+            - bit 4 (16) : thinnest clouds
+            - bit 5 (32) : cloud shadows cast by a detected cloud
+            - bit 6 (64) : cloud shadows cast by a cloud outside image
+            - bit 7 (128) : high clouds detected by 1.38 µm
+
+        Args:
+            band_list (Union[list, BandNames]): List of the wanted bands
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+        Returns:
+            dict, dict: Dictionary {band_name, band_array} and the products metadata
+                        (supposed to be the same for all bands)
+        """
+        bands = {}
+        meta = {}
+
+        if band_list:
+            # Open 20m cloud file if resolution >= 20m
+            cld_file_name = "CLM_R2" if resolution >= 20 else "CLM_R1"
+
+            if self.is_archived:
+                # Open the zip file
+                with zipfile.ZipFile(self.path, "r") as zip_ds:
+                    # Get the correct band path
+                    filenames = [f.filename for f in zip_ds.filelist]
+                    regex = re.compile(f".*MASKS.*_{cld_file_name}.tif")
+                    cloud_path = f"zip+file://{self.path}!/{list(filter(regex.match, filenames))[0]}"
+            else:
+                cloud_path = files.get_file_in_dir(os.path.join(self.path, 'MASKS'),
+                                                  f"*_{cld_file_name}.tif",
+                                                  exact_name=True)
+
+            if not cloud_path:
+                raise FileNotFoundError(f'Unable to find the cloud mask for {self.path}')
+
+            # Open cloud file
+            clouds_array, meta = rasters.read(cloud_path,
+                                              resolution=resolution,
+                                              size=size,
+                                              resampling=Resampling.nearest)
+
+            # Get nodata mask
+            nodata = np.where(clouds_array == meta["nodata"], 1, 0)
+
+            # Bit ids
+            clouds_shadows_id = 0
+            clouds_id = 1
+            cirrus_id = 4
+            shadows_in_id = 5
+            shadows_out_id = 6
+
+            for band in band_list:
+                if band == ALL_CLOUDS:
+                    bands[band] = self._create_mask(clouds_array, [clouds_shadows_id, cirrus_id], nodata)
+                elif band == SHADOWS:
+                    bands[band] = self._create_mask(clouds_array, [shadows_in_id, shadows_out_id], nodata)
+                elif band == CLOUDS:
+                    bands[band] = self._create_mask(clouds_array, clouds_id, nodata)
+                elif band == CIRRUS:
+                    bands[band] = self._create_mask(clouds_array, cirrus_id, nodata)
+                elif band == RAW_CLOUDS:
+                    bands[band] = clouds_array
+                else:
+                    raise InvalidTypeError(f"Non existing cloud band for Sentinel-2 THEIA: {band}")
+
+        return bands, meta
+
+    def _create_mask(self,
+                     bit_array: np.ma.masked_array,
+                     bit_ids: Union[int, list],
+                     nodata: np.ndarray) -> np.ma.masked_array:
+        """
+        Create a mask masked array (uint8) from a bit array, bit IDs and a nodata mask.
+
+        Args:
+            bit_array (np.ma.masked_array): Conditional array
+            bit_ids (Union[int, list]): Bit IDs
+            nodata (np.ndarray): Nodata mask
+
+        Returns:
+            np.ma.masked_array: Mask masked array
+
+        """
+        if not isinstance(bit_ids, list):
+            bit_ids = [bit_ids]
+        conds = rasters.read_bit_array(bit_array, bit_ids)
+        cond = reduce(lambda x, y: x | y, conds)  # Use every conditions (bitwise or)
+
+        mask = np.ma.masked_array(np.where(cond, self._mask_true, self._mask_false),
+                                  mask=nodata,
+                                  fill_value=self._mask_nodata,
+                                  dtype=np.uint8)
+
+        # Fill nodata pixels
+        mask[nodata == 1] = self._mask_nodata
+
+        return mask

@@ -149,6 +149,11 @@ class Product:
         self.nodata = 0
         """ Product nodata, set to 0 by default. Please do not touch this or all index will fail. """
 
+        # Mask values
+        self._mask_nodata = 255
+        self._mask_true = 1
+        self._mask_false = 0
+
         self.sat_id = PRODUCT_FACTORY.get_platform_id(self.path)
         """Satellite ID, i.e. `S2` for Sentinel-2"""
 
@@ -570,7 +575,7 @@ class Product:
         >>> from eoreader.bands.alias import *
         >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
         >>> prod = Reader().open(path)
-        >>> bands, meta = prod.load([GREEN, NDVI], resolution=20)  # Always square pixels here
+        >>> bands, meta = prod.load([GREEN, NDVI], resolution=20)
         >>> bands
         {<function NDVI at 0x00000227FBB929D8>: masked_array(
           data=[[[-0.02004455029964447, ..., 0.11663568764925003]]],
@@ -631,10 +636,27 @@ class Product:
                 has_band = False
             else:
                 has_band = True
+        elif is_clouds(band):
+            has_band = self._has_cloud_band(band)
         else:
             has_band = band in self.get_existing_bands()
 
         return has_band
+
+    def _has_cloud_band(self, band: BandNames) -> bool:
+        """
+        Does this products has the specified cloud band ?
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.has_cloud_band(CLOUDS)
+        True
+        ```
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
 
     def has_index(self, idx: Callable) -> bool:
         """
@@ -1033,6 +1055,7 @@ class Product:
             resolution = self.resolution
 
         # Create the analysis stack
+        # TODO: set nodatavals = (nodata_1, ..., nodata_x) when using xarrays
         bands, meta = self.load(band_and_idx_combination, resolution)
         stack_list = [bands[bd_or_idx] for bd_or_idx in band_and_idx_combination]
         stack = np.ma.vstack(stack_list)

@@ -12,14 +12,15 @@ from typing import Union
 from lxml import etree
 import numpy as np
 import geopandas as gpd
-from rasterio import features
+from rasterio import features, MemoryFile
 from rasterio.enums import Resampling
 from sertit import files
 from sertit import rasters
 from sertit.misc import ListEnum
 
-from eoreader.exceptions import InvalidProductError
+from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.bands.bands import OpticalBandNames as obn, BandNames
+from eoreader.bands.alias import ALL_CLOUDS, RAW_CLOUDS, CLOUDS, SHADOWS, CIRRUS
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.products.product import path_or_dst
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
@@ -115,7 +116,7 @@ class S2Product(OpticalProduct):
                 obn.NIR: '08',
                 obn.NNIR: '8A',
                 obn.WV: '09',
-                obn.CIRRUS: '10',
+                obn.SWIR_CIRRUS: '10',
                 obn.SWIR_1: '11',
                 obn.SWIR_2: '12'
             })
@@ -590,3 +591,100 @@ class S2Product(OpticalProduct):
         namespace = root.tag[:idx + 1]
 
         return root, namespace
+
+    def _has_cloud_band(self, band: BandNames) -> bool:
+        """
+        Does this products has the specified cloud band ?
+        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
+        """
+        if band == SHADOWS:
+            has_band = False
+        else:
+            has_band = True
+        return has_band
+
+    def _load_clouds(self,
+                     band_list: Union[list, BandNames],
+                     resolution: float = None,
+                     size: Union[list, tuple] = None) -> (dict, dict):
+        """
+        Load cloud files as numpy arrays with the same resolution (and same metadata).
+
+        Read S2 cloud mask .GML files (both valid for L2A and L1C products).
+        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
+
+        Args:
+            band_list (Union[list, BandNames]): List of the wanted bands
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+        Returns:
+            dict, dict: Dictionary {band_name, band_array} and the products metadata
+                        (supposed to be the same for all bands)
+        """
+        bands = {}
+        meta = {}
+
+        if band_list:
+            def_band = self.get_default_band()
+            cloud_vec = self.open_mask('CLOUDS', "00")
+
+            # Open a bands to mask it
+            band, meta = self.load(def_band, resolution=resolution)
+            nodata = np.where(band == meta["nodata"], 1, 0)
+
+            with MemoryFile().open(**meta) as mem_ds:
+                # Write band into dst
+                mem_ds.write(band[def_band])
+
+                for band in band_list:
+                    if band == ALL_CLOUDS:
+                        bands[band] = self._rasterize(mem_ds, cloud_vec, nodata)
+                    elif band == CIRRUS:
+                        bands[band] = self._rasterize(mem_ds,
+                                                      cloud_vec[cloud_vec.maskType == "CIRRUS"],
+                                                      nodata)
+                    elif band == CLOUDS:
+                        bands[band] = self._rasterize(mem_ds,
+                                                      cloud_vec[cloud_vec.maskType == "OPAQUE"],
+                                                      nodata)
+                    elif band == RAW_CLOUDS:
+                        bands[band] = self._rasterize(mem_ds, cloud_vec, nodata)
+                    else:
+                        raise InvalidTypeError(f"Non existing cloud band for Sentinel-2: {band}")
+
+        return bands, meta
+
+    def _rasterize(self, mem_ds, geometry: gpd.GeoDataFrame, nodata: np.ndarray) -> np.ma.masked_array:
+        """
+        Rasterize a vector on a memory dataset
+
+        Args:
+            mem_ds: Memory file
+            geometry (gpd.GeoDataFrame): Geometry to rasterize
+            nodata (np.ndarray): Nodata mask
+
+        Returns:
+
+        """
+        if not geometry.empty:
+            # Just in case
+            if geometry.crs != mem_ds.crs:
+                geometry = geometry.to_crs(mem_ds.crs)
+
+            # Mask the file -> do not use rasterize to get a correct nodata mask !
+            rstrzd, _ = rasters.mask(mem_ds, geometry.geometry, nodata=mem_ds.nodata)
+
+            # Get cloud raster
+            mask = np.ma.masked_array(np.where(rstrzd > 0, self._mask_true, self._mask_false),
+                                      mask=nodata,
+                                      fill_value=self._mask_nodata,
+                                      dtype=np.uint8)
+        else:
+            # If empty geometry, just
+            mask = np.ma.masked_array(np.full(shape=(mem_ds.count, mem_ds.height, mem_ds.width),
+                                              dtype=np.uint8,
+                                              fill_value=self._mask_false),
+                                      mask=nodata,
+                                      fill_value=self._mask_nodata,
+                                      dtype=np.uint8)
+        return mask

@@ -6,6 +6,7 @@ import tempfile
 
 from sertit import logs, files, ci
 
+from eoreader.products.optical.landsat_product import LandsatCollection
 from .scripts_utils import OPT_PATH, SAR_PATH, READER, get_ci_data_dir
 from eoreader.bands.alias import *
 from eoreader.products.optical.optical_product import OpticalProduct
@@ -56,7 +57,7 @@ def test_optical():
 
             # Get stack bands
             # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-            possible_bands = [RED, SWIR_2, NDVI, HILLSHADE]
+            possible_bands = [RED, SWIR_2, NDVI, HILLSHADE, CLOUDS]
             stack_bands = [band for band in possible_bands if prod.has_band(band)]
 
             # Manage S3 resolution to speed up processes
@@ -69,8 +70,8 @@ def test_optical():
             # Stack data
             with tempfile.TemporaryDirectory() as tmp_dir:
                 ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
-                curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
-                # curr_path = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
+                # curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
+                curr_path = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
                 prod.stack(stack_bands,
                            resolution=res,
                            stack_path=curr_path)
@@ -131,3 +132,7 @@ def test_sar():
             band, meta = prod.load([])
             assert band == {}
             assert meta == {}
+
+# TODO:
+# check non existing bands
+# check cloud results

@@ -31,22 +31,32 @@ def test_alias():
     assert not is_dem(HH)
     assert not is_dem(GREEN)
     assert is_dem(SLOPE)
+    assert not is_dem(CLOUDS)
 
     # Index
     assert is_index(NDVI)
     assert not is_index(HH)
     assert not is_index(GREEN)
     assert not is_index(SLOPE)
+    assert not is_index(CLOUDS)
 
     # Bands
     assert not is_band(NDVI)
     assert is_band(HH)
     assert is_band(GREEN)
     assert not is_band(SLOPE)
+    assert not is_band(CLOUDS)
+
+    # CLASSIF
+    assert not is_clouds(NDVI)
+    assert not is_clouds(HH)
+    assert not is_clouds(GREEN)
+    assert not is_clouds(SLOPE)
+    assert is_clouds(CLOUDS)
 
     # Other functions
-    lst = to_band_or_idx(["NDVI", "GREEN", RED, "DESPK_VH", "SLOPE"])
-    assert lst == [NDVI, GREEN, RED, VH_DSPK, SLOPE]
+    lst = to_band_or_idx(["NDVI", "GREEN", RED, "DESPK_VH", "SLOPE", DEM, "CLOUDS", CLOUDS])
+    assert lst == [NDVI, GREEN, RED, VH_DSPK, SLOPE, DEM, CLOUDS, CLOUDS]
     with pytest.raises(InvalidTypeError):
         to_band_or_idx(["WRONG_BAND"])
 
@@ -67,7 +77,7 @@ def test_products():
     assert prod2 < prod1
     assert prod1 != prod2
 
-    # Read the LANDSAT metdata the two ways
+    # Read the LANDSAT metadata the two ways
     mtd_xml, nmsp = prod1.read_mtd(force_pd=False)
     mtd_pd = prod1.read_mtd(force_pd=True)
     assert isinstance(mtd_pd, pd.DataFrame)
