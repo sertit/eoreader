@@ -4,19 +4,25 @@ import os
 import tempfile
 from datetime import datetime
 from enum import unique
+from functools import reduce
 from typing import Union
 
 import netCDF4
 import numpy as np
 import rasterio
 import geopandas as gpd
+from affine import Affine
 from lxml import etree
 from rasterio.enums import Resampling
+from rasterio.warp import reproject
 from rasterio.windows import Window
 from sertit import rasters, vectors, files, strings, misc, snap
 from sertit.misc import ListEnum
+from sertit.snap import MAX_CORES
+from sertit.vectors import WGS84
 
 from eoreader import utils
+from eoreader.bands.alias import ALL_CLOUDS, RAW_CLOUDS, CLOUDS, CIRRUS
 from eoreader.exceptions import InvalidTypeError, InvalidProductError
 from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.products.optical.optical_product import OpticalProduct
@@ -139,7 +145,7 @@ class S3Product(OpticalProduct):
                 obn.RED: '2',  # radiance, 500m
                 obn.NIR: '3',  # radiance, 500m
                 obn.NNIR: '3',  # radiance, 500m
-                obn.CIRRUS: '4',  # radiance, 500m
+                obn.SWIR_CIRRUS: '4',  # radiance, 500m
                 obn.SWIR_1: '5',  # radiance, 500m
                 obn.SWIR_2: '6',  # radiance, 500m
                 obn.MIR: '7',  # brilliance temperature, 1km
@@ -267,7 +273,13 @@ class S3Product(OpticalProduct):
 
         # Remove _an/_in for SLSTR products
         if self._data_type == S3DataTypes.RBT:
-            snap_name = snap_name[:-3]
+            if "cloud" not in snap_name:
+                snap_name = snap_name[:-3]
+            elif "an" in snap_name:
+                snap_name = snap_name[:-3] + "_RAD"
+            else:
+                # in
+                snap_name = snap_name[:-3] + "_BT"
 
         return snap_name
 
@@ -596,7 +608,7 @@ class S3Product(OpticalProduct):
 
         # DIM in tmp files
         with tempfile.TemporaryDirectory() as tmp_dir:
-            # out_dim = os.path.join(self.output, self.condensed_name + ".dim")  DEBUG OPTION
+            # out_dim = os.path.join(self.output, self.condensed_name + ".dim")  # DEBUG OPTION
             out_dim = os.path.join(tmp_dir, self.condensed_name + ".dim")
 
             # Run GPT graph
@@ -661,7 +673,7 @@ class S3Product(OpticalProduct):
             fmt = "Sen3_SLSTRL1B_500m"
             exception_bands = ",".join([self._get_slstr_quality_flags_name(band)
                                         for band, band_nb in self.band_names.items() if band_nb])
-            snap_bands += f",{exception_bands}"
+            snap_bands += f",{exception_bands},cloud_an,cloud_in"
 
         # Run GPT graph
         cmd_list = snap.get_gpt_cli(graph_path, [f'-Pin={strings.to_cmd_string(self.path)}',
@@ -683,7 +695,7 @@ class S3Product(OpticalProduct):
 
         ```python
         >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
         >>> prod = Reader().open(path)
         >>> prod.utm_extent()
                                                     geometry
@@ -768,7 +780,7 @@ class S3Product(OpticalProduct):
 
         ```python
         >>> from eoreader.reader import Reader
-        >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+        >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
         >>> prod = Reader().open(path)
         >>> prod.get_mean_sun_angles()
         (78.55043955912154, 31.172127033319388)
@@ -815,7 +827,7 @@ class S3Product(OpticalProduct):
 
         ```python
         >>> from eoreader.reader import Reader
-        >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20200605T042203_20200605T042211"
+        >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
         >>> prod = Reader().open(path)
         >>> prod.read_mtd()
         (<Element level1Product at 0x1b845b7ab88>, '')
@@ -826,3 +838,199 @@ class S3Product(OpticalProduct):
         """
         raise NotImplementedError("Sentinel-3 products don't have XML metadata. "
                                   "Please check directly into NetCDF files")
+
+    def _has_cloud_band(self, band: BandNames) -> bool:
+        """
+        Does this products has the specified cloud band ?
+
+        - SLSTR does
+        - OLCI does not provide any cloud mask
+        ```
+        """
+        if self._instrument_name == S3Instrument.SLSTR and band in [RAW_CLOUDS, ALL_CLOUDS, CLOUDS, CIRRUS]:
+            has_band = True
+        else:
+            has_band = False
+
+        return has_band
+
+    def _load_clouds(self,
+                     band_list: Union[list, BandNames],
+                     resolution: float = None,
+                     size: Union[list, tuple] = None) -> (dict, dict):
+        """
+        Load cloud files as numpy arrays with the same resolution (and same metadata).
+
+        Read S3 SLSTR clouds from the flags file:cloud netcdf file.
+        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/cloud-identification
+
+        bit_id  flag_masks (ushort)     flag_meanings
+        ===     ===                     ===
+        0       1US                     visible
+        1       2US                     1.37_threshold
+        2       4US                     1.6_small_histogram
+        3       8US                     1.6_large_histogram
+        4       16US                    2.25_small_histogram
+        5       32US                    2.25_large_histogram
+        6       64US                    11_spatial_coherence
+        7       128US                   gross_cloud
+        8       256US                   thin_cirrus
+        9       512US                   medium_high
+        10      1024US                  fog_low_stratus
+        11      2048US                  11_12_view_difference
+        12      4096US                  3.7_11_view_difference
+        13      8192US                  thermal_histogram
+        14      16384US                 spare
+        15      32768US                 spare
+
+        Args:
+            band_list (Union[list, BandNames]): List of the wanted bands
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+        Returns:
+            dict, dict: Dictionary {band_name, band_array} and the products metadata
+                        (supposed to be the same for all bands)
+        """
+        bands = {}
+        meta = {}
+
+        if band_list:
+            if self._instrument_name == S3Instrument.OLCI:
+                raise InvalidTypeError("Sentinel-3 OLCI sensor does not provide any cloud file.")
+
+            all_ids = list(np.arange(0, 14))
+            cir_id = 8
+            cloud_ids = [id for id in all_ids if id != cir_id]
+
+            try:
+                cloud_path = files.get_file_in_dir(self.output, "cloud_RAD.tif")
+            except FileNotFoundError:
+                self._preprocess_s3(resolution)
+                cloud_path = files.get_file_in_dir(self.output, "cloud_RAD.tif")
+
+            if not cloud_path:
+                raise FileNotFoundError(f'Unable to find the cloud mask for {self.path}')
+
+            # Open cloud file
+            clouds_array, meta = rasters.read(cloud_path,
+                                              resolution=resolution,
+                                              size=size,
+                                              resampling=Resampling.nearest)
+
+            # Get nodata mask
+            nodata = np.where(clouds_array == 65535, 1, 0)
+
+            for band in band_list:
+                if band == ALL_CLOUDS:
+                    bands[band] = self._create_mask(clouds_array, all_ids, nodata)
+                elif band == CLOUDS:
+                    bands[band] = self._create_mask(clouds_array, cloud_ids, nodata)
+                elif band == CIRRUS:
+                    bands[band] = self._create_mask(clouds_array, cir_id, nodata)
+                elif band == RAW_CLOUDS:
+                    bands[band] = clouds_array
+                else:
+                    raise InvalidTypeError(f"Non existing cloud band for Sentinel-3 SLSTR: {band}")
+
+
+            # # Open georeferenced default band
+            # georef_arr, meta = rasters.read(self.get_default_band_path(),
+            #                                 resolution=resolution,
+            #                                 size=size)
+
+            # # Open non georeferenced default band
+            # geodetic_path = os.path.join(self.path, "geodetic_tx.nc")
+            # if not os.path.isfile(geodetic_path):
+            #     raise FileNotFoundError(f"No 'geodetic_tx.nc' band not found in {self.name}")
+            #
+            # # Compute geotransform
+            # try:
+            #     lat_path = f"netcdf:{geodetic_path}:latitude_tx"
+            #     lon_path = f"netcdf:{geodetic_path}:longitude_tx"
+            #     lat, _ = rasters.read(lat_path)
+            #     lon, _ = rasters.read(lon_path)
+            # except rasterio.errors.RasterioIOError:
+            #     raise InvalidProductError(f"Missing geodetic latitude or longitude in {self.name}")
+            #
+            # _, height, width = lat.shape  # count, rows, cols: (1, 1200, 130)
+            # west = lon.min()
+            # south = lat.min()
+            # east = lon.max()
+            # north = lat.max()
+            # tx_transform = rasterio.transform.from_bounds(west, south, east, north, width, height)
+            #
+            # # Open meteo file
+            # meteo_path = os.path.join(self.path, "met_tx.nc")
+            # if not os.path.isfile(meteo_path):
+            #     raise FileNotFoundError(f"Non existing Meteorological Parameters for {self.name}")
+            #
+            # frac_clouds_path = f"netcdf:{meteo_path}:cloud_fraction_tx"
+            #
+            # # NOTE: Here, the clouds are subsampled and not georeferenced !
+            # clouds_arr, tmp_meta = rasters.read(frac_clouds_path)
+            # tmp_meta["driver"] = "GTiff"
+            # tmp_meta["crs"] = WGS84
+            # tmp_meta["transform"] = tx_transform
+            # rasters.write(clouds_arr, os.path.join(self.path, "clouds.tif"), tmp_meta)
+            #
+            # # Reproject clouds
+            # clouds_reproj = np.zeros_like(georef_arr, dtype=np.uint8)
+            # reproject(source=clouds_arr,
+            #           destination=clouds_reproj,
+            #           src_transform=tx_transform,
+            #           src_crs=WGS84,
+            #           dst_transform=meta['transform'],
+            #           dst_crs=meta["crs"],
+            #           dst_nodata=self.nodata,
+            #           resampling=Resampling.nearest,
+            #           num_threads=MAX_CORES)
+            #
+            # # Get nodata mask
+            # nodata = np.where(clouds_reproj == self.nodata, 1, 0)
+
+            # # Following Landsat clouds, high confidence of clouds is 67% and higher
+            # for band in band_list:
+            #     if band == ALL_CLOUDS:
+            #         bands[band] = self._create_mask(clouds_reproj > 0.67, nodata)
+            #     elif band == CLOUDS:
+            #         bands[band] = self._create_mask(clouds_reproj > 0.67, nodata)
+            #     elif band == RAW_CLOUDS:
+            #         bands[band] = clouds_reproj
+            #     else:
+            #         raise InvalidTypeError(f"Non existing cloud band for Sentinel-3 SLSTR sensor: {band}")
+
+        return bands, meta
+
+    def _create_mask(self,
+                     bit_array: np.ma.masked_array,
+                     bit_ids: Union[int, list],
+                     nodata: np.ndarray) -> np.ma.masked_array:
+        """
+        Create a mask masked array (uint8) from a bit array, bit IDs and a nodata mask.
+
+        Args:
+            bit_array (np.ma.masked_array): Conditional array
+            bit_ids (Union[int, list]): Bit IDs
+            nodata (np.ndarray): Nodata mask
+
+        Returns:
+            np.ma.masked_array: Mask masked array
+
+        """
+        if not isinstance(bit_ids, list):
+            bit_ids = [bit_ids]
+        conds = rasters.read_bit_array(bit_array, bit_ids)
+        cond = reduce(lambda x, y: x | y, conds)  # Use every conditions (bitwise or)
+
+        cond_arr = np.where(cond, self._mask_true, self._mask_false)
+        cond_arr, _ = rasters.sieve(cond_arr, {"dtype": cond_arr.dtype}, 10)
+
+        mask = np.ma.masked_array(cond_arr,
+                                  mask=nodata,
+                                  fill_value=self._mask_nodata,
+                                  dtype=np.uint8)
+
+        # Fill nodata pixels
+        mask[nodata == 1] = self._mask_nodata
+
+        return mask

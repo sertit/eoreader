@@ -16,7 +16,11 @@ To use it, simply type:
 # Module name begins with _ to not be imported with *
 import typing as _tp
 from eoreader.exceptions import InvalidTypeError
-from eoreader.bands.bands import OpticalBandNames as _obn, SarBandNames as _sbn, DemBandNames as _dem
+from eoreader.bands.bands import \
+    OpticalBandNames as _obn, \
+    SarBandNames as _sbn, \
+    DemBandNames as _dem, \
+    CloudsBandNames as _clouds
 from eoreader.bands import index as _idx
 
 # -- OPTICAL BANDS --
@@ -31,7 +35,7 @@ NIR = _obn.NIR
 NNIR = _obn.NNIR
 WV = _obn.WV
 FNIR = _obn.FNIR
-CIRRUS = _obn.CIRRUS
+SWIR_CIRRUS = _obn.SWIR_CIRRUS  # Optical band based on cirrus
 SWIR_1 = _obn.SWIR_1
 SWIR_2 = _obn.SWIR_2
 MIR = _obn.MIR
@@ -81,7 +85,35 @@ BSI = _idx.BSI
 # -- DEM --
 DEM = _dem.DEM
 SLOPE = _dem.SLOPE
-HILLSHADE = _dem.HLSHD
+HILLSHADE = _dem.HILLSHADE
+
+# -- CLOUDS --
+RAW_CLOUDS = _clouds.RAW_CLOUDS
+CLOUDS = _clouds.CLOUDS
+SHADOWS = _clouds.SHADOWS
+CIRRUS = _clouds.CIRRUS  # Cirrus detected
+ALL_CLOUDS = _clouds.ALL_CLOUDS
+
+
+def is_clouds(classif: _tp.Any) -> bool:
+    """
+    Returns True if we have a Clouds-related keyword
+
+    ```python
+    >>> from eoreader.bands.alias import *
+    >>> is_clouds(NDVI)
+    False
+    >>> is_clouds(HH)
+    False
+    >>> is_clouds(GREEN)
+    False
+    >>> is_clouds(SLOPE)
+    False
+    >>> is_clouds(CLOUDS)
+    True
+    ```
+    """
+    return classif in _clouds
 
 
 def is_dem(dem: _tp.Any) -> bool:
@@ -98,6 +130,8 @@ def is_dem(dem: _tp.Any) -> bool:
     False
     >>> is_dem(SLOPE)
     True
+    >>> is_dem(CLOUDS)
+    False
     ```
     """
     return dem in _dem
@@ -116,6 +150,8 @@ def is_index(idx: _tp.Any) -> bool:
     >>> is_index(GREEN)
     False
     >>> is_index(SLOPE)
+    False
+    >>> is_index(CLOUDS)
     False
     ```
 
@@ -143,6 +179,8 @@ def is_optical_band(band: _tp.Any) -> bool:
     True
     >>> is_optical_band(SLOPE)
     False
+    >>> is_optical_band(CLOUDS)
+    False
     ```
 
     Args:
@@ -168,6 +206,8 @@ def is_sar_band(band: _tp.Any) -> bool:
     >>> is_sar_band(GREEN)
     False
     >>> is_sar_band(SLOPE)
+    False
+    >>> is_sar_band(CLOUDS)
     False
     ```
 
@@ -195,6 +235,8 @@ def is_band(band: _tp.Any) -> bool:
     True
     >>> is_band(SLOPE)
     False
+    >>> is_band(CLOUDS)
+    False
     ```
 
     Args:
@@ -214,12 +256,15 @@ def to_band_or_idx(to_convert: _tp.Union[list, str]) -> list:
     You can pass the name or the value of the bands.
 
     ```python
-    >>> to_band_or_idx(["NDVI", "GREEN", RED, "DESPK_VH", "SLOPE"])
-    [<function NDVI at 0x000002C0D903E158>,
+    >>> to_band_or_idx(["NDVI", "GREEN", RED, "DESPK_VH", "SLOPE", DEM, "CLOUDS", CLOUDS])
+    [<function NDVI at 0x00000154DDB12488>,
     <OpticalBandNames.GREEN: 'GREEN'>,
     <OpticalBandNames.RED: 'RED'>,
     <SarBandNames.VH_DSPK: 'DESPK_VH'>,
-    <DemBandNames.SLOPE: 'SLOPE'>]
+    <DemBandNames.SLOPE: 'SLOPE'>,
+    <DemBandNames.DEM: 'DEM'>,
+    <ClassifBandNames.CLOUDS: 'CLOUDS'>,
+    <ClassifBandNames.CLOUDS: 'CLOUDS'>]
     ```
     Args:
         to_convert:
@@ -248,9 +293,12 @@ def to_band_or_idx(to_convert: _tp.Union[list, str]) -> list:
                         try:
                             band_or_idx = _dem.convert_from(tc)[0]
                         except TypeError:
-                            pass
+                            try:
+                                band_or_idx = _clouds.convert_from(tc)[0]
+                            except TypeError:
+                                pass
 
-        elif is_index(tc) or is_band(tc):
+        elif is_index(tc) or is_band(tc) or is_dem(tc) or is_clouds(tc):
             band_or_idx = tc
 
         # Store it

@@ -16,8 +16,9 @@ from sertit import files
 from sertit import rasters
 from sertit.misc import ListEnum
 
-from eoreader.exceptions import InvalidProductError
+from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.bands.bands import OpticalBandNames as obn, BandNames
+from eoreader.bands.alias import ALL_CLOUDS, RAW_CLOUDS, CLOUDS, SHADOWS, CIRRUS
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.products.product import path_or_dst
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
@@ -205,7 +206,7 @@ class LandsatProduct(OpticalProduct):
                 obn.SWIR_1: '6',
                 obn.SWIR_2: '7',
                 obn.PAN: '8',
-                obn.CIRRUS: '9',
+                obn.SWIR_CIRRUS: '9',
                 obn.TIR_1: '10',
                 obn.TIR_2: '11'
             })
@@ -559,7 +560,7 @@ class LandsatProduct(OpticalProduct):
 
         ```python
         >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2.SAFE.zip"
         >>> prod = Reader().open(path)
         >>> prod.get_mean_sun_angles()
         (140.80752656, 61.93065805)
@@ -593,3 +594,268 @@ class LandsatProduct(OpticalProduct):
             str: Condensed L8 name
         """
         return f"{self.get_datetime()}_L{version}_{self.tile_name}_{self.product_type.value}"
+
+    def _has_cloud_band(self, band: BandNames) -> bool:
+        """
+        Does this products has the specified cloud band ?
+
+        - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
+        - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
+        True
+        ```
+        """
+        if self._collection == LandsatCollection.COL_1:
+            if self.product_type == LandsatProductType.L1_OLCI:
+                has_band = True
+            elif self.product_type in [LandsatProductType.L1_ETM, LandsatProductType.L1_TM]:
+                has_band = self._e_tm_has_cloud_band(band)
+            elif self.product_type == LandsatProductType.L1_MSS:
+                has_band = self._mss_has_cloud_band(band)
+            else:
+                raise InvalidProductError(f"Invalid product type: {self.product_type}")
+        else:
+            LOGGER.warning("Cloud files are not yet used for LANDSAT collection2")
+            has_band = False
+
+        return has_band
+
+    @staticmethod
+    def _mss_has_cloud_band(band: BandNames) -> bool:
+        """
+        Does this products has the specified cloud band ?
+        ```
+        """
+        if band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS]:
+            has_band = True
+        else:
+            has_band = False
+        return has_band
+
+    @staticmethod
+    def _e_tm_has_cloud_band(band: BandNames) -> bool:
+        """
+        Does this products has the specified cloud band ?
+        ```
+        """
+        if band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS, SHADOWS]:
+            has_band = True
+        else:
+            has_band = False
+        return has_band
+
+    def _load_clouds(self,
+                     band_list: Union[list, BandNames],
+                     resolution: float = None,
+                     size: Union[list, tuple] = None) -> (dict, dict):
+        """
+        Load cloud files as numpy arrays with the same resolution (and same metadata).
+
+        Read Landsat clouds from QA mask.
+        See here for clouds_values:
+
+        - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
+        - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
+
+
+        Args:
+            band_list (Union[list, BandNames]): List of the wanted bands
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+        Returns:
+            dict, dict: Dictionary {band_name, band_array} and the products metadata
+                        (supposed to be the same for all bands)
+        """
+        bands = {}
+        meta = {}
+
+        if band_list:
+            if self._collection == LandsatCollection.COL_1:
+                # Open QA band
+                landsat_qa_path = files.get_file_in_dir(self.path, f"*{self._quality_id}.TIF", exact_name=True)
+                qa_arr, meta = self._read_band(landsat_qa_path, resolution=resolution, size=size)
+
+                if self.product_type == LandsatProductType.L1_OLCI:
+                    bands = self._load_olci_clouds(qa_arr, band_list)
+                elif self.product_type in [LandsatProductType.L1_ETM, LandsatProductType.L1_TM]:
+                    bands = self._load_e_tm_clouds(qa_arr, band_list)
+                elif self.product_type == LandsatProductType.L1_MSS:
+                    bands = self._load_mss_clouds(qa_arr, band_list)
+                else:
+                    raise InvalidProductError(f"Invalid product type: {self.product_type}")
+
+            else:
+                # TODO
+                raise NotImplementedError("This method is not yet implemented.")
+
+        return bands, meta
+
+    def _load_mss_clouds(self,
+                         qa_arr: np.ma.masked_array,
+                         band_list: Union[list, BandNames]) -> dict:
+        """
+        Load cloud files as numpy arrays with the same resolution (and same metadata).
+
+        Read Landsat-MSS clouds from QA mask.
+        See here for clouds_values:
+
+        - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
+        - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
+
+
+        Args:
+            qa_arr (np.ma.masked_array): Quality array
+            band_list (Union[list, BandNames]): List of the wanted bands
+        Returns:
+            dict, dict: Dictionary {band_name, band_array}
+        """
+        bands = {}
+
+        # Get clouds and nodata
+        nodata_id = 0
+        cloud_id = 4  # Clouds with high confidence
+
+        clouds = None
+        if ALL_CLOUDS in band_list or CLOUDS in band_list:
+            nodata, cld = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id])
+            clouds = self._create_mask(cld, nodata)
+
+        for band in band_list:
+            if band == ALL_CLOUDS:
+                bands[band] = clouds
+            elif band == CLOUDS:
+                bands[band] = clouds
+            elif band == RAW_CLOUDS:
+                bands[band] = qa_arr
+            else:
+                raise InvalidTypeError(f"Non existing cloud band for Landsat-MSS sensor: {band}")
+
+        return bands
+
+    def _load_e_tm_clouds(self,
+                          qa_arr: np.ma.masked_array,
+                          band_list: Union[list, BandNames]) -> dict:
+        """
+        Load cloud files as numpy arrays with the same resolution (and same metadata).
+
+        Read Landsat-(E)TM clouds from QA mask.
+        See here for clouds_values:
+
+        - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
+        - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
+
+
+        Args:
+            qa_arr (np.ma.masked_array): Quality array
+            band_list (Union[list, BandNames]): List of the wanted bands
+        Returns:
+            dict, dict: Dictionary {band_name, band_array}
+        """
+        bands = {}
+
+        # Get clouds and nodata
+        nodata_id = 0
+        cloud_id = 4  # Clouds with high confidence
+        shd_conf_1_id = 7
+        shd_conf_2_id = 8
+
+        nodata = None
+        cld = None
+        shd_conf_1 = None
+        shd_conf_2 = None
+        if any(band in [ALL_CLOUDS, CLOUDS, SHADOWS] for band in band_list):
+            nodata, cld, shd_conf_1, shd_conf_2 = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id,
+                                                                                  shd_conf_1_id, shd_conf_2_id])
+
+        for band in band_list:
+            if band == ALL_CLOUDS:
+                bands[band] = self._create_mask(cld | (shd_conf_1 & shd_conf_2), nodata)
+            elif band == SHADOWS:
+                bands[band] = self._create_mask(shd_conf_1 & shd_conf_2, nodata)
+            elif band == CLOUDS:
+                bands[band] = self._create_mask(cld, nodata)
+            elif band == RAW_CLOUDS:
+                bands[band] = qa_arr
+            else:
+                raise InvalidTypeError(f"Non existing cloud band for Landsat-(E)TM sensor: {band}")
+
+        return bands
+
+    def _load_olci_clouds(self,
+                          qa_arr: np.ma.masked_array,
+                          band_list: Union[list, BandNames]) -> dict:
+        """
+        Load cloud files as numpy arrays with the same resolution (and same metadata).
+
+        Read Landsat-OLCI clouds from QA mask.
+        See here for clouds_values:
+
+        - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
+        - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
+
+
+        Args:
+            qa_arr (np.ma.masked_array): Quality array
+            band_list (Union[list, BandNames]): List of the wanted bands
+        Returns:
+            dict, dict: Dictionary {band_name, band_array}
+        """
+        bands = {}
+
+        # Get clouds and nodata
+        nodata_id = 0
+        cloud_id = 4  # Clouds with high confidence
+        shd_conf_1_id = 7
+        shd_conf_2_id = 8
+        cir_conf_1_id = 11
+        cir_conf_2_id = 12
+
+        nodata = None
+        cld = None
+        shd_conf_1 = None
+        shd_conf_2 = None
+        cir_conf_1 = None
+        cir_conf_2 = None
+        if any(band in [ALL_CLOUDS, CLOUDS, SHADOWS] for band in band_list):
+            nodata, cld, shd_conf_1, shd_conf_2, cir_conf_1, cir_conf_2 = \
+                rasters.read_bit_array(qa_arr, [nodata_id, cloud_id,
+                                                shd_conf_1_id, shd_conf_2_id,
+                                                cir_conf_1_id, cir_conf_2_id])
+
+        for band in band_list:
+            if band == ALL_CLOUDS:
+                bands[band] = self._create_mask(cld | (shd_conf_1 & shd_conf_2) | (cir_conf_1 & cir_conf_2),
+                                                nodata)
+            elif band == SHADOWS:
+                bands[band] = self._create_mask(shd_conf_1 & shd_conf_2, nodata)
+            elif band == CLOUDS:
+                bands[band] = self._create_mask(cld, nodata)
+            elif band == CIRRUS:
+                bands[band] = self._create_mask(cir_conf_1 & cir_conf_2, nodata)
+            elif band == RAW_CLOUDS:
+                bands[band] = qa_arr
+            else:
+                raise InvalidTypeError(f"Non existing cloud band for Landsat-OLCI sensor: {band}")
+
+        return bands
+
+    def _create_mask(self, cond: np.ndarray, nodata: np.ndarray) -> np.ma.masked_array:
+        """
+        Create a mask masked array (uint8) from a conditional array and a nodata mask.
+
+        Args:
+            cond (np.ndarray): Conditional array
+            nodata (np.ndarray): Nodata mask
+
+        Returns:
+            np.ma.masked_array: Mask masked array
+
+        """
+        mask = np.ma.masked_array(np.where(cond, self._mask_true, self._mask_false),
+                                  mask=nodata,
+                                  fill_value=self._mask_nodata,
+                                  dtype=np.uint8)
+
+        # Fill nodata pixels
+        mask[nodata == 1] = self._mask_nodata
+
+        return mask

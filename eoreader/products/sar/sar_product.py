@@ -20,7 +20,7 @@ from sertit import rasters, vectors
 from eoreader import utils
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.bands.bands import SarBands, SarBandNames as sbn, BandNames
-from eoreader.bands.alias import is_index, is_sar_band, is_optical_band, is_dem
+from eoreader.bands.alias import is_index, is_sar_band, is_optical_band, is_dem, is_clouds
 from eoreader.products.product import Product, SensorType, path_or_dst
 from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
@@ -548,18 +548,13 @@ class SarProduct(Product):
         ```python
         >>> from eoreader.reader import Reader
         >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
         >>> prod = Reader().open(path)
-        >>> bands, meta = prod.load([GREEN, NDVI], resolution=20)  # Always square pixels here
+        >>> bands, meta = prod.load([VV], resolution=10)
         >>> bands
-        {<function NDVI at 0x00000227FBB929D8>: masked_array(
+        {<SarBandNames.VV: 'VV'>: masked_array(
           data=[[[--, ..., --]]],
           mask=[[[True, ..., True]]],
-          fill_value=0.0,
-          dtype=float32),
-          <OpticalBandNames.GREEN: 'GREEN'>: masked_array(
-          data=[[[0.061400000005960464, ..., 0.15799999237060547]]],
-          mask=[[[False, ..., False]]],
           fill_value=0.0,
           dtype=float32)}
         >>> meta
@@ -607,6 +602,8 @@ class SarProduct(Product):
                     band_list.append(band)
             elif is_dem(band):
                 dem_list.append(band)
+            elif is_clouds(band):
+                raise NotImplementedError(f"Clouds cannot be retrieved from SAR data ({self.condensed_name}).")
             else:
                 raise InvalidTypeError(f"{band} is neither a band nor an index !")
 
@@ -763,3 +760,18 @@ class SarProduct(Product):
             str: Hillshade mask path
         """
         raise InvalidProductError("Impossible to compute hillshade mask for SAR data.")
+
+    def _has_cloud_band(self, band: BandNames) -> bool:
+        """
+        Does this products has the specified cloud band ?
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> from eoreader.bands.alias import *
+        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.has_cloud_band(CLOUDS)
+        False
+        ```
+        """
+        return False

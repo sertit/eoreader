@@ -12,10 +12,10 @@ from rasterio.enums import Resampling
 from sertit import rasters, strings, misc
 from sertit.snap import MAX_CORES
 
-from eoreader.bands.alias import is_dem
+from eoreader.bands.alias import is_dem, is_clouds, is_index, is_optical_band, is_sar_band
 from eoreader.exceptions import InvalidIndexError, InvalidBandError
 from eoreader.bands.bands import OpticalBands, OpticalBandNames as obn, BandNames
-from eoreader.bands import index, alias
+from eoreader.bands import index
 from eoreader.products.product import Product, SensorType
 from eoreader.utils import EOREADER_NAME
 
@@ -276,7 +276,7 @@ class OpticalProduct(Product):
         >>> from eoreader.bands.alias import *
         >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
         >>> prod = Reader().open(path)
-        >>> bands, meta = prod.load([GREEN, NDVI], resolution=20)  # Always square pixels here
+        >>> bands, meta = prod.load([GREEN, NDVI], resolution=20)
         >>> bands
         {<function NDVI at 0x00000227FBB929D8>: masked_array(
           data=[[[-0.02004455029964447, ..., 0.11663568764925003]]],
@@ -321,23 +321,26 @@ class OpticalProduct(Product):
         band_list = []
         index_list = []
         dem_list = []
+        clouds_list = []
 
         # Check if everything is valid
         for idx_or_band in band_and_idx_list:
-            if alias.is_index(idx_or_band):
+            if is_index(idx_or_band):
                 if self.has_index(idx_or_band):
                     index_list.append(idx_or_band)
                 else:
                     raise InvalidIndexError(f"{idx_or_band} cannot be computed from {self.condensed_name}.")
-            elif alias.is_sar_band(idx_or_band):
+            elif is_sar_band(idx_or_band):
                 raise TypeError(f"You should ask for Optical bands as {self.name} is an optical product.")
-            elif alias.is_optical_band(idx_or_band):
+            elif is_optical_band(idx_or_band):
                 if self.has_band(idx_or_band):
                     band_list.append(idx_or_band)
                 else:
                     raise InvalidBandError(f"{idx_or_band} cannot be retrieved from {self.condensed_name}.")
             elif is_dem(idx_or_band):
                 dem_list.append(idx_or_band)
+            elif is_clouds(idx_or_band):
+                clouds_list.append(idx_or_band)
 
         # Get all bands to be open
         bands_to_load = band_list.copy()
@@ -358,6 +361,12 @@ class OpticalProduct(Product):
         idx_and_bands_dict.update(dem_bands)
         if not meta:
             meta = dem_meta
+
+        # Add Clouds
+        clouds_bands, clouds_meta = self._load_clouds(clouds_list, resolution=resolution, size=size)
+        idx_and_bands_dict.update(clouds_bands)
+        if not meta:
+            meta = clouds_meta
 
         # Manage the case of arrays of different size -> collocate arrays if needed
         idx_and_bands_dict = self._collocate_bands(idx_and_bands_dict, meta)
@@ -429,3 +438,20 @@ class OpticalProduct(Product):
             misc.run_cli(cmd_hillshade)
 
         return hillshade_dem
+
+    def _load_clouds(self,
+                  band_list: Union[list, BandNames],
+                  resolution: float = None,
+                  size: Union[list, tuple] = None) -> (dict, dict):
+        """
+        Load cloud files as numpy arrays with the same resolution (and same metadata).
+
+        Args:
+            band_list (Union[list, BandNames]): List of the wanted bands
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+        Returns:
+            dict, dict: Dictionary {band_name, band_array} and the products metadata
+                        (supposed to be the same for all bands)
+        """
+        raise NotImplementedError("This method should be implemented by a child class")

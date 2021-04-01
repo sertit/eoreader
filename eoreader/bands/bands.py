@@ -254,7 +254,7 @@ class OpticalBandNames(BandNames):
     FNIR = "FAR_NIR"
     """Far NIR"""
 
-    CIRRUS = "CIRRUS"
+    SWIR_CIRRUS = "CIRRUS"
     """Cirrus"""
 
     SWIR_1 = "SWIR_1"
@@ -318,7 +318,7 @@ class OpticalBands(_Bands):
             self._band_map[band_name] = band_nb
 
 
-# ---------------------- SAR ----------------------
+# ---------------------- DEM ----------------------
 @unique
 class DemBandNames(BandNames):
     """ DEM Band names """
@@ -328,7 +328,7 @@ class DemBandNames(BandNames):
     SLOPE = 'SLOPE'
     """ Slope """
 
-    HLSHD = 'HILLSHADE'
+    HILLSHADE = 'HILLSHADE'
     """ Hillshade """
 
 
@@ -339,3 +339,31 @@ class DemBands(_Bands):
 
     def __init__(self) -> None:
         super().__init__({band_name: band_name.value for band_name in DemBandNames})
+
+
+# ---------------------- DEM ----------------------
+@unique
+class CloudsBandNames(BandNames):
+    """ Clouds Band names """
+    RAW_CLOUDS = 'RAW CLOUDS'
+    """ Raw cloud raster (can be either QA raster, rasterized cloud vectors...) """
+
+    CLOUDS = 'CLOUDS'
+    """ Binary mask of clouds (High confidence) """
+
+    SHADOWS = 'SHADOWS'
+    """ Binary mask of shadows (High confidence) """
+
+    CIRRUS = 'CIRRUS'
+    """ Binary mask of cirrus (High confidence) """
+
+    ALL_CLOUDS = 'ALL CLOUDS'
+    """ All clouds (Including all high confidence clouds, shadows and cirrus) """
+
+# too many ancestors
+# pylint: disable=R0901
+class CloudsBands(_Bands):
+    """ Clouds bands class """
+
+    def __init__(self) -> None:
+        super().__init__({band_name: band_name.value for band_name in CloudsBandNames})
