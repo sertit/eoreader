@@ -604,18 +604,14 @@ class LandsatProduct(OpticalProduct):
         True
         ```
         """
-        if self._collection == LandsatCollection.COL_1:
-            if self.product_type == LandsatProductType.L1_OLCI:
-                has_band = True
-            elif self.product_type in [LandsatProductType.L1_ETM, LandsatProductType.L1_TM]:
-                has_band = self._e_tm_has_cloud_band(band)
-            elif self.product_type == LandsatProductType.L1_MSS:
-                has_band = self._mss_has_cloud_band(band)
-            else:
-                raise InvalidProductError(f"Invalid product type: {self.product_type}")
+        if self.product_type == LandsatProductType.L1_OLCI:
+            has_band = True
+        elif self.product_type in [LandsatProductType.L1_ETM, LandsatProductType.L1_TM]:
+            has_band = self._e_tm_has_cloud_band(band)
+        elif self.product_type == LandsatProductType.L1_MSS:
+            has_band = self._mss_has_cloud_band(band)
         else:
-            LOGGER.warning("Cloud files are not yet used for LANDSAT collection2")
-            has_band = False
+            raise InvalidProductError(f"Invalid product type: {self.product_type}")
 
         return has_band
 
@@ -669,23 +665,18 @@ class LandsatProduct(OpticalProduct):
         meta = {}
 
         if band_list:
-            if self._collection == LandsatCollection.COL_1:
-                # Open QA band
-                landsat_qa_path = files.get_file_in_dir(self.path, f"*{self._quality_id}.TIF", exact_name=True)
-                qa_arr, meta = self._read_band(landsat_qa_path, resolution=resolution, size=size)
+            # Open QA band
+            landsat_qa_path = files.get_file_in_dir(self.path, f"*{self._quality_id}.TIF", exact_name=True)
+            qa_arr, meta = self._read_band(landsat_qa_path, resolution=resolution, size=size)
 
-                if self.product_type == LandsatProductType.L1_OLCI:
-                    bands = self._load_olci_clouds(qa_arr, band_list)
-                elif self.product_type in [LandsatProductType.L1_ETM, LandsatProductType.L1_TM]:
-                    bands = self._load_e_tm_clouds(qa_arr, band_list)
-                elif self.product_type == LandsatProductType.L1_MSS:
-                    bands = self._load_mss_clouds(qa_arr, band_list)
-                else:
-                    raise InvalidProductError(f"Invalid product type: {self.product_type}")
-
+            if self.product_type == LandsatProductType.L1_OLCI:
+                bands = self._load_olci_clouds(qa_arr, band_list)
+            elif self.product_type in [LandsatProductType.L1_ETM, LandsatProductType.L1_TM]:
+                bands = self._load_e_tm_clouds(qa_arr, band_list)
+            elif self.product_type == LandsatProductType.L1_MSS:
+                bands = self._load_mss_clouds(qa_arr, band_list)
             else:
-                # TODO
-                raise NotImplementedError("This method is not yet implemented.")
+                raise InvalidProductError(f"Invalid product type: {self.product_type}")
 
         return bands, meta
 
@@ -699,7 +690,7 @@ class LandsatProduct(OpticalProduct):
         See here for clouds_values:
 
         - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
-        - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
+        - (COL 2)[https://www.usgs.gov/media/files/landsat-1-5-mss-collection-2-level-1-data-format-control-book]
 
 
         Args:
@@ -712,7 +703,7 @@ class LandsatProduct(OpticalProduct):
 
         # Get clouds and nodata
         nodata_id = 0
-        cloud_id = 4  # Clouds with high confidence
+        cloud_id = 4 if self._collection == LandsatCollection.COL_1 else 3  # Clouds with high confidence
 
         clouds = None
         if ALL_CLOUDS in band_list or CLOUDS in band_list:
@@ -741,7 +732,8 @@ class LandsatProduct(OpticalProduct):
         See here for clouds_values:
 
         - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
-        - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
+        - (COL 2 TM)[https://www.usgs.gov/media/files/landsat-4-5-tm-collection-2-level-1-data-format-control-book]
+        - (COL 2 ETM)[https://www.usgs.gov/media/files/landsat-7-etm-collection-2-level-1-data-format-control-book]
 
 
         Args:
@@ -753,24 +745,31 @@ class LandsatProduct(OpticalProduct):
         bands = {}
 
         # Get clouds and nodata
-        nodata_id = 0
-        cloud_id = 4  # Clouds with high confidence
-        shd_conf_1_id = 7
-        shd_conf_2_id = 8
-
         nodata = None
         cld = None
-        shd_conf_1 = None
-        shd_conf_2 = None
+        shd = None
         if any(band in [ALL_CLOUDS, CLOUDS, SHADOWS] for band in band_list):
-            nodata, cld, shd_conf_1, shd_conf_2 = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id,
-                                                                                  shd_conf_1_id, shd_conf_2_id])
+            if self._collection == LandsatCollection.COL_1:
+                # Bit id
+                nodata_id = 0
+                cloud_id = 4  # Clouds with high confidence
+                shd_conf_1_id = 7
+                shd_conf_2_id = 8
+                nodata, cld, shd_conf_1, shd_conf_2 = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id,
+                                                                                      shd_conf_1_id, shd_conf_2_id])
+                shd = shd_conf_1 & shd_conf_2
+            else:
+                # Bit ids
+                nodata_id = 0
+                cloud_id = 3  # Clouds with high confidence
+                shd_id = 4  # Shadows with high confidence
+                nodata, cld, shd = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id, shd_id])
 
         for band in band_list:
             if band == ALL_CLOUDS:
-                bands[band] = self._create_mask(cld | (shd_conf_1 & shd_conf_2), nodata)
+                bands[band] = self._create_mask(cld | shd, nodata)
             elif band == SHADOWS:
-                bands[band] = self._create_mask(shd_conf_1 & shd_conf_2, nodata)
+                bands[band] = self._create_mask(shd, nodata)
             elif band == CLOUDS:
                 bands[band] = self._create_mask(cld, nodata)
             elif band == RAW_CLOUDS:
@@ -790,7 +789,7 @@ class LandsatProduct(OpticalProduct):
         See here for clouds_values:
 
         - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
-        - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
+        - (COL 2)[https://www.usgs.gov/media/files/landsat-8-level-1-data-format-control-book]
 
 
         Args:
@@ -802,35 +801,45 @@ class LandsatProduct(OpticalProduct):
         bands = {}
 
         # Get clouds and nodata
-        nodata_id = 0
-        cloud_id = 4  # Clouds with high confidence
-        shd_conf_1_id = 7
-        shd_conf_2_id = 8
-        cir_conf_1_id = 11
-        cir_conf_2_id = 12
-
         nodata = None
         cld = None
-        shd_conf_1 = None
-        shd_conf_2 = None
-        cir_conf_1 = None
-        cir_conf_2 = None
+        shd = None
+        cir = None
         if any(band in [ALL_CLOUDS, CLOUDS, SHADOWS] for band in band_list):
-            nodata, cld, shd_conf_1, shd_conf_2, cir_conf_1, cir_conf_2 = \
-                rasters.read_bit_array(qa_arr, [nodata_id, cloud_id,
-                                                shd_conf_1_id, shd_conf_2_id,
-                                                cir_conf_1_id, cir_conf_2_id])
+            if self._collection == LandsatCollection.COL_1:
+                # Bit ids
+                nodata_id = 0
+                cloud_id = 4  # Clouds with high confidence
+                shd_conf_1_id = 7
+                shd_conf_2_id = 8
+                cir_conf_1_id = 11
+                cir_conf_2_id = 12
+
+                # Read binary mask
+                nodata, cld, shd_conf_1, shd_conf_2, cir_conf_1, cir_conf_2 = \
+                    rasters.read_bit_array(qa_arr, [nodata_id, cloud_id,
+                                                    shd_conf_1_id, shd_conf_2_id,
+                                                    cir_conf_1_id, cir_conf_2_id])
+
+                shd = shd_conf_1 & shd_conf_2
+                cir = cir_conf_1 & cir_conf_2
+            else:
+                # Bit ids
+                nodata_id = 0
+                cloud_id = 3  # Clouds with high confidence
+                shd_id = 4  # Shadows with high confidence
+                cir_id = 2  # Cirrus with high confidence
+                nodata, cld, shd, cir = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id, shd_id, cir_id])
 
         for band in band_list:
             if band == ALL_CLOUDS:
-                bands[band] = self._create_mask(cld | (shd_conf_1 & shd_conf_2) | (cir_conf_1 & cir_conf_2),
-                                                nodata)
+                bands[band] = self._create_mask(cld | shd | cir, nodata)
             elif band == SHADOWS:
-                bands[band] = self._create_mask(shd_conf_1 & shd_conf_2, nodata)
+                bands[band] = self._create_mask(shd, nodata)
             elif band == CLOUDS:
                 bands[band] = self._create_mask(cld, nodata)
             elif band == CIRRUS:
-                bands[band] = self._create_mask(cir_conf_1 & cir_conf_2, nodata)
+                bands[band] = self._create_mask(cir, nodata)
             elif band == RAW_CLOUDS:
                 bands[band] = qa_arr
             else:
