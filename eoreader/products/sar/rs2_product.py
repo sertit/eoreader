@@ -6,9 +6,7 @@ import glob
 import logging
 import os
 import difflib
-import re
 import warnings
-import zipfile
 from datetime import datetime
 from enum import unique
 from typing import Union
@@ -17,7 +15,7 @@ from lxml import etree
 import rasterio
 import geopandas as gpd
 from sertit.misc import ListEnum
-from sertit import vectors
+from sertit import vectors, files
 from sertit.vectors import WGS84
 
 from eoreader.exceptions import InvalidTypeError, InvalidProductError
@@ -247,19 +245,14 @@ class Rs2Product(SarProduct):
         # Open extent KML file
         try:
             if self.is_archived:
-                # Open the zip file
-                with zipfile.ZipFile(self.path, "r") as zip_ds:
-                    # Get the correct band path
-                    filenames = [f.filename for f in zip_ds.filelist]
-                    regex = re.compile(f".*product.kml")
-                    extent_file = zip_ds.open(list(filter(regex.match, filenames))[0])
+                product_kml = files.read_archived_vector(self.path, ".*product\.kml")
             else:
                 extent_file = glob.glob(os.path.join(self.path, "product.kml"))[0]
+                vectors.set_kml_driver()
+                product_kml = gpd.read_file(extent_file)
         except IndexError as ex:
             raise InvalidProductError(f"Extent file (product.kml) not found in {self.path}") from ex
 
-        vectors.set_kml_driver()
-        product_kml = gpd.read_file(extent_file)
         extent_wgs84 = product_kml[product_kml.Name == "Polygon Outline"].envelope.to_crs(WGS84)
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
@@ -357,13 +350,7 @@ class Rs2Product(SarProduct):
         """
         # Get MTD XML file
         if self.is_archived:
-            # Open the zip file
-            with zipfile.ZipFile(self.path, "r") as zip_ds:
-                # Get the correct band path
-                filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f".*product.xml")
-                xml_zip = zip_ds.read(list(filter(regex.match, filenames))[0])
-                root = etree.fromstring(xml_zip)
+            root = files.read_archived_xml(self.path, ".*product\.xml")
         else:
             # Open metadata file
             try:

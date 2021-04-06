@@ -2,6 +2,7 @@
 import glob
 import logging
 import os
+import tarfile
 from datetime import datetime
 from abc import abstractmethod
 from enum import unique
@@ -77,13 +78,40 @@ class LandsatProduct(OpticalProduct):
         """
         self.tile_name = self._get_tile_name()
         self._collection = self._set_collection()
-        # self.needs_extraction = False for col2 ?
-
-        self._quality_id = "_BQA" if self._collection == LandsatCollection.COL_1 else "_QA_RADSAT"
-        self._nodata_band_id = "_BQA" if self._collection == LandsatCollection.COL_1 else "_QA_PIXEL"
+        if self._collection == LandsatCollection.COL_1:
+            self._quality_id = "_BQA"
+            self._nodata_band_id = "_BQA"
+            self.needs_extraction = True  # Too slow to read directly tar.gz files
+        else:
+            self._quality_id = "_QA_RADSAT"
+            self._nodata_band_id = "_QA_PIXEL"
+            self.needs_extraction = False  # Fine to read .tar files
 
         # Post init done by the super class
         super()._post_init()
+
+    def _get_path(self, band_id: str) -> str:
+        """
+        Get either the archived path of the normal path of a tif file
+
+        Args:
+            band_id (str): Band ID
+
+        Returns:
+            str: band path
+
+        """
+        if self.is_archived:
+            # Because of gap_mask files that have the same name structure and exists only for L7
+            if self.product_type == LandsatProductType.L1_ETM:
+                regex = f".*RT{band_id}.*"
+            else:
+                regex = f".*{band_id}.*"
+            path = files.get_archived_rio_path(self.path, regex)
+        else:
+            path = files.get_file_in_dir(self.path, band_id, extension="TIF")
+
+        return path
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
@@ -109,8 +137,7 @@ class LandsatProduct(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        # Load nodata band
-        nodata_band = files.get_file_in_dir(self.path, f"*{self._nodata_band_id}.TIF", exact_name=True)
+        nodata_band = self._get_path(self._nodata_band_id)
 
         # Vectorize the nodata band
         footprint = rasters.vectorize(nodata_band, values=1)
@@ -277,13 +304,13 @@ class LandsatProduct(OpticalProduct):
         """
         band_paths = {}
         for band in band_list:
-            assert band in obn
-            band_nb = self.band_names[band]
-            if band_nb is None:
+            if not self.has_band(band):
                 raise InvalidProductError(f"Non existing band ({band.name}) "
                                           f"for Landsat-{self.product_type.name} products")
+            band_nb = self.band_names[band]
+
             try:
-                band_paths[band] = files.get_file_in_dir(self.path, f"_B{band_nb}.TIF")
+                band_paths[band] = self._get_path(f"_B{band_nb}")
             except FileNotFoundError as ex:
                 raise InvalidProductError(f"Non existing {band} ({band_nb}) band for {self.path}") from ex
 
@@ -328,10 +355,19 @@ class LandsatProduct(OpticalProduct):
         as_pd = (self._collection == LandsatCollection.COL_1) or force_pd
 
         if as_pd:
-            # FOR COLLECTION 1 AND 2
-            mtd_path = os.path.join(self.path, f"{self.name}_MTL.txt")
-            if not os.path.isfile(mtd_path):
-                raise FileNotFoundError(f"Unable to find the metadata file associated with {self.path}")
+            mtd_name = f"{self.name}_MTL.txt"
+            if self.is_archived:
+                # We need to extract the file in memry to be used with pandas
+                tar_ds = tarfile.open(self.path, "r")
+                info = [f.name for f in tar_ds.getmembers() if mtd_name in f.name][0]
+                mtd_path = tar_ds.extractfile(info)
+            else:
+                # FOR COLLECTION 1 AND 2
+                tar_ds = None
+                mtd_path = os.path.join(self.path, mtd_name)
+
+                if not os.path.isfile(mtd_path):
+                    raise FileNotFoundError(f"Unable to find the metadata file associated with {self.path}")
 
             # Parse
             mtd_data = pd.read_table(mtd_path,
@@ -353,17 +389,24 @@ class LandsatProduct(OpticalProduct):
 
             # Set index
             mtd_data = mtd_data.set_index("NAME").T
-        else:
-            # ONLY FOR COLLECTION 2
-            try:
-                mtd_file = glob.glob(os.path.join(self.path, f"{self.name}_MTL.xml"))[0]
 
-                # pylint: disable=I1101:
-                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                xml_tree = etree.parse(mtd_file)
-                root = xml_tree.getroot()
-            except IndexError as ex:
-                raise InvalidProductError(f"Metadata file ({self.name}.xml) not found in {self.path}") from ex
+            # Close if needed
+            if tar_ds:
+                tar_ds.close()
+        else:
+            if self.is_archived:
+                root = files.read_archived_xml(self.path, f".*{self.name}_MTL.xml")
+            else:
+                # ONLY FOR COLLECTION 2
+                try:
+                    mtd_file = glob.glob(os.path.join(self.path, f"{self.name}_MTL.xml"))[0]
+
+                    # pylint: disable=I1101:
+                    # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                    xml_tree = etree.parse(mtd_file)
+                    root = xml_tree.getroot()
+                except IndexError as ex:
+                    raise InvalidProductError(f"Metadata file ({self.name}.xml) not found in {self.path}") from ex
 
             # Get namespace
             namespace = ""  # No namespace here
@@ -484,7 +527,7 @@ class LandsatProduct(OpticalProduct):
             np.ma.masked_array, dict: Cleaned band array and its metadata
         """
         # Open QA band
-        landsat_qa_path = files.get_file_in_dir(self.path, f"*{self._quality_id}.TIF", exact_name=True)
+        landsat_qa_path = self._get_path(self._quality_id)
         qa_arr, meta = self._read_band(landsat_qa_path, resolution=resolution, size=size)
 
         if self._collection == LandsatCollection.COL_1:
@@ -517,7 +560,7 @@ class LandsatProduct(OpticalProduct):
 
         # If collection 2, nodata has to be found in pixel QA file
         if self._collection == LandsatCollection.COL_2:
-            landsat_stat_path = files.get_file_in_dir(self.path, f"*{self._nodata_band_id}.TIF", exact_name=True)
+            landsat_stat_path = self._get_path(self._nodata_band_id)
             pixel_arr, meta = self._read_band(landsat_stat_path, resolution=resolution, size=size)
             nodata = np.where(pixel_arr == 1, 1, 0)
 
@@ -666,7 +709,7 @@ class LandsatProduct(OpticalProduct):
 
         if band_list:
             # Open QA band
-            landsat_qa_path = files.get_file_in_dir(self.path, f"*{self._quality_id}.TIF", exact_name=True)
+            landsat_qa_path = self._get_path(self._quality_id)
             qa_arr, meta = self._read_band(landsat_qa_path, resolution=resolution, size=size)
 
             if self.product_type == LandsatProductType.L1_OLCI:

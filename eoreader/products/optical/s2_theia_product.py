@@ -7,8 +7,6 @@ import glob
 import logging
 import os
 import datetime
-import re
-import zipfile
 from functools import reduce
 from typing import Union
 
@@ -138,15 +136,7 @@ class S2TheiaProduct(OpticalProduct):
         for band in band_list:
             try:
                 if self.is_archived:
-                    # Open the zip file
-                    with zipfile.ZipFile(self.path, "r") as zip_ds:
-                        # Get the correct band path
-                        regex = re.compile(f".*FRE_B{self.band_names[band]}.tif")
-                        filenames = [f.filename for f in zip_ds.filelist]
-                        band_path = list(filter(regex.match, filenames))[0]
-
-                    # Create the zip band path (readable from rasterio)
-                    band_paths[band] = f"zip+file://{self.path}!/{band_path}"
+                    band_paths[band] = files.get_archived_rio_path(self.path, f".*FRE_B{self.band_names[band]}\.tif")
                 else:
                     band_paths[band] = files.get_file_in_dir(self.path, f"FRE_B{self.band_names[band]}.tif")
             except (FileNotFoundError, IndexError) as ex:
@@ -315,15 +305,7 @@ class S2TheiaProduct(OpticalProduct):
         mask_regex = f"*{mask_id}_{r_x}.tif"
         try:
             if self.is_archived:
-                # Open the zip file
-                with zipfile.ZipFile(self.path, "r") as zip_ds:
-                    # Get the correct band path
-                    regex = re.compile(f"{mask_regex.replace('*', '.*')}")
-                    filenames = [f.filename for f in zip_ds.filelist]
-                    band_path = list(filter(regex.match, filenames))[0]
-
-                # Create the zip band path (readable from rasterio)
-                mask_path = f"zip+file://{self.path}!/{band_path}"
+                mask_path = files.get_archived_rio_path(self.path, mask_regex.replace('*', '.*'))
             else:
                 mask_path = files.get_file_in_dir(os.path.join(self.path, "MASKS"),
                                                   mask_regex,
@@ -434,13 +416,7 @@ class S2TheiaProduct(OpticalProduct):
         """
         # Get MTD XML file
         if self.is_archived:
-            # Open the zip file
-            with zipfile.ZipFile(self.path, "r") as zip_ds:
-                # Get the correct band path
-                filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f".*.MTD_ALL.xml")
-                xml_zip = zip_ds.read(list(filter(regex.match, filenames))[0])
-                root = etree.fromstring(xml_zip)
+            root = files.read_archived_xml(self.path, ".*MTD_ALL\.xml")
         else:
             # Open metadata file
             try:
@@ -500,16 +476,11 @@ class S2TheiaProduct(OpticalProduct):
             cld_file_name = "CLM_R2" if resolution >= 20 else "CLM_R1"
 
             if self.is_archived:
-                # Open the zip file
-                with zipfile.ZipFile(self.path, "r") as zip_ds:
-                    # Get the correct band path
-                    filenames = [f.filename for f in zip_ds.filelist]
-                    regex = re.compile(f".*MASKS.*_{cld_file_name}.tif")
-                    cloud_path = f"zip+file://{self.path}!/{list(filter(regex.match, filenames))[0]}"
+                cloud_path = files.get_archived_rio_path(self.path, f".*MASKS.*_{cld_file_name}.tif")
             else:
                 cloud_path = files.get_file_in_dir(os.path.join(self.path, 'MASKS'),
-                                                  f"*_{cld_file_name}.tif",
-                                                  exact_name=True)
+                                                   f"*_{cld_file_name}.tif",
+                                                   exact_name=True)
 
             if not cloud_path:
                 raise FileNotFoundError(f'Unable to find the cloud mask for {self.path}')

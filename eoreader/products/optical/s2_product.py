@@ -3,7 +3,6 @@
 import glob
 import logging
 import os
-import re
 import zipfile
 from datetime import datetime
 from enum import unique
@@ -234,17 +233,7 @@ class S2Product(OpticalProduct):
         for band in band_list:
             try:
                 if self.is_archived:
-                    # Open the zip file
-                    with zipfile.ZipFile(self.path, "r") as zip_ds:
-                        # Get all files from inside the band folder
-                        folder_paths = [f.filename for f in zip_ds.filelist if band_folders[band] in f.filename]
-
-                        # Get the correct band path
-                        regex = re.compile(f".*_B{self.band_names[band]}.*.jp2")
-                        band_path = list(filter(regex.match, folder_paths))[0]
-
-                    # Create the zip band path (readable from rasterio)
-                    band_paths[band] = f"zip+file://{self.path}!/{band_path}"
+                    band_paths[band] = files.get_archived_rio_path(self.path, f".*_B{self.band_names[band]}.*.jp2")
                 else:
                     band_paths[band] = files.get_file_in_dir(band_folders[band],
                                                              "_B" + self.band_names[band],
@@ -361,7 +350,7 @@ class S2Product(OpticalProduct):
         if mask_str == "CLOUDS":
             band = "00"
 
-        def open_mask(mask_path):
+        def open_mask(fct, *args, **kwargs):
             # Read the GML file
             try:
                 # Discard some weird error concerning a NULL pointer that outputs a ValueError (as we already except it)
@@ -369,7 +358,7 @@ class S2Product(OpticalProduct):
                 fiona_logger.setLevel(logging.CRITICAL)
 
                 # Read mask
-                mask = gpd.read_file(mask_path)
+                mask = fct(*args, **kwargs)
 
                 # Set fiona logger back to what it was
                 fiona_logger.setLevel(logging.INFO)
@@ -386,12 +375,9 @@ class S2Product(OpticalProduct):
 
         if self.is_archived:
             # Open the zip file
-            with zipfile.ZipFile(self.path, "r") as zip_ds:
-                # Get the correct band path
-                filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f".*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml")
-                with zip_ds.open(list(filter(regex.match, filenames))[0]) as mask_path:
-                    mask = open_mask(mask_path)
+            mask = open_mask(files.read_archived_vector,
+                             self.path,
+                             f".*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}\.gml")
         else:
             qi_data_path = os.path.join(self.path, 'GRANULE', '*', 'QI_DATA')
 
@@ -400,7 +386,8 @@ class S2Product(OpticalProduct):
                                               f"MSK_{mask_str}_B{band_name}.gml",
                                               exact_name=True)
 
-            mask = open_mask(mask_path)
+            mask = open_mask(gpd.read_file,
+                             mask_path)
 
         return mask
 
@@ -567,13 +554,7 @@ class S2Product(OpticalProduct):
         """
         # Get MTD XML file
         if self.is_archived:
-            # Open the zip file
-            with zipfile.ZipFile(self.path, "r") as zip_ds:
-                # Get the correct band path
-                filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f".*GRANULE.*.xml")
-                xml_zip = zip_ds.read(list(filter(regex.match, filenames))[0])
-                root = etree.fromstring(xml_zip)
+            root = files.read_archived_xml(self.path, ".*GRANULE.*\.xml")
         else:
             # Open metadata file
             try:
