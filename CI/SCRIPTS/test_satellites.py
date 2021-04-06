@@ -6,7 +6,6 @@ import tempfile
 
 from sertit import logs, files, ci
 
-from eoreader.products.optical.landsat_product import LandsatCollection
 from .scripts_utils import OPT_PATH, SAR_PATH, READER, get_ci_data_dir
 from eoreader.bands.alias import *
 from eoreader.products.optical.optical_product import OpticalProduct
@@ -34,13 +33,12 @@ def test_invalid():
     assert not READER.valid_name(wrong_path, "S2")
 
 
-def test_optical():
-    """ Function testing the correct functioning of the optical satellites """
+def _test_core(pattern: str):
     # Init logger
     logs.init_logger(LOGGER)
 
     # DATA paths
-    opt_path = files.listdir_abspath(OPT_PATH)
+    opt_path = files.get_file_in_dir(OPT_PATH, pattern, get_list=True)
 
     for path in opt_path:
         LOGGER.info(os.path.basename(path))
@@ -82,10 +80,67 @@ def test_optical():
             # CRS
             assert prod.utm_crs().is_projected
 
-            # Empty load
-            band, meta = prod.load([])
-            assert band == {}
-            assert meta == {}
+
+def test_s2():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core("S2*_MSI*")
+
+
+def test_s2_theia():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core("SENTINEL2")
+
+
+def test_s3():
+    """ Function testing the correct functioning of the optical satellites """
+    # Init logger
+    _test_core("S3*_*L_1_*")
+
+
+def test_l8():
+    """ Function testing the correct functioning of the optical satellites """
+    # Init logger
+    _test_core("LC08*")
+
+
+def test_l7():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core("LE07*")
+
+
+def test_l5_tm():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core("LT05*")
+
+
+def test_l4_tm():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core("LT04*")
+
+
+def test_l5_mss():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core("LM05*")
+
+
+def test_l4_mss():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core("LM04*")
+
+
+def test_l3_mss():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core("LM03*")
+
+
+def test_l2_mss():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core("LM02*")
+
+
+def test_l1_mss():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core("LM01*")
 
 
 def test_sar():
