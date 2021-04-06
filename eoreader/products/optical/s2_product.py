@@ -4,6 +4,7 @@ import glob
 import logging
 import os
 import zipfile
+import re
 from datetime import datetime
 from enum import unique
 from typing import Union
@@ -350,7 +351,7 @@ class S2Product(OpticalProduct):
         if mask_str == "CLOUDS":
             band = "00"
 
-        def open_mask(fct, *args, **kwargs):
+        def _open_mask(fct, *args, **kwargs):
             # Read the GML file
             try:
                 # Discard some weird error concerning a NULL pointer that outputs a ValueError (as we already except it)
@@ -375,9 +376,17 @@ class S2Product(OpticalProduct):
 
         if self.is_archived:
             # Open the zip file
-            mask = open_mask(files.read_archived_vector,
-                             self.path,
-                             f".*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}\.gml")
+            # WE DON'T KNOW WHY BUT DO NOT USE files.read_archived_vector HERE !!!
+            with zipfile.ZipFile(self.path, "r") as zip_ds:
+                filenames = [f.filename for f in zip_ds.filelist]
+                regex = re.compile(f".*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml")
+                with zip_ds.open(list(filter(regex.match, filenames))[0]) as mask_path:
+                    mask = _open_mask(gpd.read_file,
+                                      mask_path)
+
+            # mask = _open_mask(files.read_archived_vector,
+            #                   self.path,
+            #                   f".*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}\.gml")
         else:
             qi_data_path = os.path.join(self.path, 'GRANULE', '*', 'QI_DATA')
 
@@ -386,8 +395,8 @@ class S2Product(OpticalProduct):
                                               f"MSK_{mask_str}_B{band_name}.gml",
                                               exact_name=True)
 
-            mask = open_mask(gpd.read_file,
-                             mask_path)
+            mask = _open_mask(gpd.read_file,
+                              mask_path)
 
         return mask
 
