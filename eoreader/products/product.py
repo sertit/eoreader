@@ -3,6 +3,7 @@
 from __future__ import annotations
 import logging
 import os
+import tempfile
 from enum import Enum, unique
 from abc import abstractmethod
 from functools import wraps
@@ -115,9 +116,13 @@ class Product:
         """Does this products needs to be extracted to be processed ? (`True` by default)."""
 
         # The output will be given later
-        self._output = output_path
         if output_path:
+            self._tmp = None
+            self._output = output_path
             os.makedirs(output_path, exist_ok=True)
+        else:
+            self._tmp = tempfile.TemporaryDirectory()
+            self._output = self._tmp.name
         """Output directory of the product, to write orthorectified data for example."""
 
         # Get the products date and datetime
@@ -177,6 +182,11 @@ class Product:
         """Condensed name, the filename with only useful data to keep the name unique 
         (ie. `20191215T110441_S2_30TXP_L2A_122756`). 
         Used to shorten names and paths."""
+
+    def __del__(self):
+        """ Cleaning up _tmp directory """
+        if self._tmp:
+            self._tmp.cleanup()
 
     @abstractmethod
     def _post_init(self) -> None:
@@ -767,12 +777,6 @@ class Product:
     @property
     def output(self) -> str:
         """ Output directory of the product, to write orthorectified data for example. """
-        if not self._output:
-            self._output = os.path.join(os.path.dirname(self.path), self.condensed_name)
-
-        # Makedir in case
-        os.makedirs(self._output, exist_ok=True)
-
         return self._output
 
     @output.setter
