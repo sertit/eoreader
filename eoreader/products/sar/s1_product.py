@@ -13,7 +13,7 @@ from typing import Union
 import rasterio
 import geopandas as gpd
 from lxml import etree
-from sertit import strings, misc
+from sertit import strings, misc, files
 from sertit.misc import ListEnum
 from sertit import vectors
 
@@ -140,13 +140,10 @@ class S1Product(SarProduct):
         try:
             # Open the map-overlay file
             if self.is_archived:
-                # Open the zip file
+                # We need to extract the file here as we need a proper file
                 with zipfile.ZipFile(self.path, "r") as zip_ds:
-                    # Get the correct band path
                     filenames = [f.filename for f in zip_ds.filelist]
                     regex = re.compile(f".*preview.*map-overlay.kml")
-
-                    # We need to extract here as we need a proper file
                     preview_overlay = zip_ds.extract(list(filter(regex.match, filenames))[0], tmp_dir.name)
             else:
                 preview_overlay = os.path.join(self.path, "preview", "map-overlay.kml")
@@ -172,17 +169,7 @@ class S1Product(SarProduct):
                     if extent_wgs84.empty:
                         raise InvalidProductError(f"Cannot determine the WGS84 extent of {self.name}")
             else:
-                # In this case, use the GCP :)
-                LOGGER.warning("The preview overlay cannot be found here: %s. "
-                               "Using the GCPs for getting an approximate footprint. "
-                               "The footprint is likely to be smaller than the actual one.", preview_overlay)
-
-                # Open the .SAFE folder, not any raster -> makes rasterio bug
-                with rasterio.open(self.path, "r") as dst:
-                    transform = rasterio.transform.from_gcps(dst.gcps[0])
-                    crs = dst.gcps[1]
-                    bounds = rasterio.transform.array_bounds(dst.height, dst.width, transform)
-                    extent_wgs84 = gpd.GeoDataFrame(geometry=[vectors.from_bounds_to_polygon(*bounds)], crs=crs)
+                raise InvalidProductError(f"Impossible to find the map-overlay.kml in {self.path}")
 
         except Exception as ex:
             raise InvalidProductError(ex) from ex
@@ -269,13 +256,7 @@ class S1Product(SarProduct):
         """
         # Get MTD XML file
         if self.is_archived:
-            # Open the zip file
-            with zipfile.ZipFile(self.path, "r") as zip_ds:
-                # Get the correct band path
-                filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f".*annotation.*.xml")
-                xml_zip = zip_ds.read(list(filter(regex.match, filenames))[0])
-                root = etree.fromstring(xml_zip)
+            root = files.read_archived_xml(self.path, ".*annotation.*\.xml")
         else:
             # Open metadata file
             try:

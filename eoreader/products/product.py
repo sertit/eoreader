@@ -179,9 +179,13 @@ class Product:
         """
 
         self.condensed_name = self._get_condensed_name()
-        """Condensed name, the filename with only useful data to keep the name unique 
+        """
+        Condensed name, the filename with only useful data to keep the name unique 
         (ie. `20191215T110441_S2_30TXP_L2A_122756`). 
-        Used to shorten names and paths."""
+        Used to shorten names and paths.
+        """
+
+        # TODO: manage self.needs_extraction
 
     def __del__(self):
         """ Cleaning up _tmp directory """

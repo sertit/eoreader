@@ -43,7 +43,7 @@ def test_optical():
     opt_path = files.listdir_abspath(OPT_PATH)
 
     for path in opt_path:
-        LOGGER.info(files.get_filename(path))
+        LOGGER.info(os.path.basename(path))
 
         # Open product and set output
         prod: OpticalProduct = READER.open(path)
