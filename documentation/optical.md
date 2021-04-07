@@ -1,24 +1,27 @@
 # Optical data
+
 Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/Optical) to learn
 more about that.
 
 ## Enabled optical satellites
 
-|Satellites | Allowed Product Types | Use archive|
-|--- | --- | ---|
-|Sentinel-2 | L1C & L2A | Yes|
-|Sentinel-2 Theia | L2A | Yes|
-|Sentinel-3 SLSTR | RBT | No|
-|Sentinel-3 OLCI | EFR | No|
-|Landsat-8 OLCI | Level 1 | Collection 1: No, Collection 2: Yes|
-|Landsat-7 ETM | Level 1 | Collection 1: No, Collection 2: Yes|
-|Landsat-5 TM | Level 1 | Collection 1: No, Collection 2: Yes|
-|Landsat-4 TM | Level 1 | Collection 1: No, Collection 2: Yes|
-|Landsat-5 MSS | Level 1 | Collection 1: No, Collection 2: Yes|
-|Landsat-4 MSS | Level 1 | Collection 1: No, Collection 2: Yes|
-|Landsat-3 MSS | Level 1 | Collection 1: No, Collection 2: Yes|
-|Landsat-2 MSS | Level 1 | Collection 1: No, Collection 2: Yes|
-|Landsat-1 MSS | Level 1 | Collection 1: No, Collection 2: Yes|
+|Satellites | Allowed Product Types | Use archive | Default Resolution |
+|--- | --- | --- | ---|
+|Sentinel-2 | L1C & L2A | Yes | 20m| 
+|Sentinel-2 Theia | L2A | Yes | 20m|
+|Sentinel-3 SLSTR | RBT | No | 300m|
+|Sentinel-3 OLCI | EFR | No | 500m|
+|Landsat-8 OLCI | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat-7 ETM | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat-5 TM | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat-4 TM | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat-5 MSS | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat-4 MSS | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat-3 MSS | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat-2 MSS | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat-1 MSS | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+
+Satellites products that cannot be used as archived have to be extracted before use. 
 
 ## Band mapping
 
@@ -42,6 +45,22 @@ more about that.
 \* Not all bands of this satellite are used in EOReader
 
 ## Cloud bands
+Maximum 5 cloud bands are available, according to the files provided in the data.
+All the bands are rasterized and orthorectified if needed (for Sentinel-2 or 3 data for example), ready to be stacked.
+
+The only difference with the other bands is that the cloud bands are provided in `uint8` and have a nodata equal to 255.
+
+- `RAW_CLOUDS`: Raw Cloud file as provided (the only changes are the orthorectification and rasterization).  
+  Can provide other flags, or cloud probability.
+- `CLOUDS`: Cloud presence (1) or absence (0).  
+  If clouds are provided in probabilities, their presence is determined according to Landsat definition (proba> 67%)
+- `CIRRUS`: Cirrus presence (1) or absence (0).  
+  If clouds are provided in probabilities, their presence is determined according to Landsat definition (proba> 67%)
+- `SHADOWS`: Shadows presence (1) or absence (0).  
+  If clouds are provided in probabilities, their presence is determined according to Landsat definition (proba> 67%)
+- `ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (0).  
+  Do not take into account missing bands (ie. for Landsat MSS sensors, `ALL_CLOUDS` == `CLOUDS`)
+
 |Satellites | Clouds Bands|
 |--- | ---|
 |Sentinel-2 | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`|
@@ -60,6 +79,7 @@ more about that.
 
 ## DEM bands
 Optical satellites can all load `DEM`, `SLOPE` and `HILLSHADE` bands.
+The `SLOPE` and `HILLSHADE` bands are computed with the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
 
 ## Available index
 
