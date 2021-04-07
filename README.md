@@ -89,7 +89,8 @@ more about that.
 |Landsat-3 |  |  | 4 (60m) | 5 (60m) | 6 (60m) | 6 (60m) | 6 (60m) | 7 (60m) | 7 (60m) |  |  |  |  |  | 8 (240m) | 8 (240m)|
 |Landsat-2 |  |  | 4 (60m) | 5 (60m) | 6 (60m) | 6 (60m) | 6 (60m) | 7 (60m) | 7 (60m) |  |  |  |  |  |  | |
 |Landsat-1 |  |  | 4 (60m) | 5 (60m) | 6 (60m) | 6 (60m) | 6 (60m) | 7 (60m) | 7 (60m) |  |  |  |  |  |  | |
-* Not all bands of this satellite are used in EOReader
+
+\* Not all bands of this satellite are used in EOReader
 
 ### Cloud bands
 |Satellites | Clouds Bands|
