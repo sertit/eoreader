@@ -2,18 +2,21 @@
 
 ## Implemented SAR satellites
 
-|Satellites | Allowed Product Types | Use archive|
-|--- | --- | ---|
-|Sentinel-1 | SLC & GRD | Yes|
-|COSMO-Skymed | DGM & SCS, (others should also be OK) | No|
-|TerraSAR-X | MGD (SSC should be OK) | No|
-|RADARSAT-2 | SGF (SLC should be OK) | Yes|
+|Satellites | Class | Product Types | Use archive|
+|--- | --- | --- | ---|
+|Sentinel-1 | `eoreader.products.sar.s1_product.S1Product` | SLC & GRD | Yes|
+|COSMO-Skymed | `eoreader.products.sar.csk_product.CskProduct` | DGM & SCS, (others should also be OK) | No|
+|TerraSAR-X | `eoreader.products.sar.tsx_product.TsxProduct` | MGD (SSC should be OK) | No|
+|RADARSAT-2 | `eoreader.products.sar.rs2_product.Rs2Product` | SGF (SLC should be OK) | Yes|
 
 Satellites products that cannot be used as archived have to be extracted before use.
 
 ## DEM bands
-SAR satellites can only load `DEM` and `SLOPE` bands. The `SLOPE` and `HILLSHADE` bands are computed
-with the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
+SAR satellites can only load `eoreader.bands.bands.DemBandNames.DEM` and `eoreader.bands.bands.DemBandNames.SLOPE` bands. 
+The `SLOPE` band is computed with the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
+
+Use the environment variable `eoreader.env_vars.EOREADER_SAR_DEFAULT_RES` to override the default DEM 
+([Merit DEM](https://developers.google.com/earth-engine/datasets/catalog/MERIT_DEM_v1_0_3)).
 
 ## Default resolution
 The default resolution of SAR products depends on their type. 
@@ -79,8 +82,8 @@ The product resolution is read in the metadata file if possible, so the followin
 ## GPT graphs
 You can change the SAR GPT graphs used by setting the following environment variables:
 
-- `EOREADER_PP_GRAPH`: Environment variables for pre-processing graph path.  
-- `EOREADER_DSPK_GRAPH`: Environment variables for despeckling graph path
+- `eoreader.env_vars.EOREADER_PP_GRAPH`: Environment variables for pre-processing graph path.  
+- `eoreader.env_vars.EOREADER_DSPK_GRAPH`: Environment variables for despeckling graph path
   
 **WARNING**:  
 For performance reasons, the `Terrain Correction` step is done **before** the `Despeckle` step.
@@ -170,4 +173,4 @@ The default `Terrain Correction` step is:
 You can override default SNAP resolution (in meters) when orthorecifying SAR and S3 bands by 
 setting the following environment variables:
 
-- `EOREADER_SAR_DEFAULT_RES` (0.0 by default, which means using the product's default resolution)
+- `eoreader.env_vars.EOREADER_SAR_DEFAULT_RES` (0.0 by default, which means using the product's default resolution)

@@ -210,8 +210,8 @@ class S2TheiaProduct(OpticalProduct):
                                size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
-        See there:
-        https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+        See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
+        information.
 
         Args:
             band_arr (np.ma.masked_array): Band array loaded

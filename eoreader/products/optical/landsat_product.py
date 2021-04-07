@@ -57,7 +57,11 @@ class LandsatCollection(ListEnum):
 
 
 class LandsatProduct(OpticalProduct):
-    """ Class of Landsat Products """
+    """
+    Super Class of Landsat Products
+
+    You can use directly the .tar file in case of collection 2 products.
+    """
 
     def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
         # Private

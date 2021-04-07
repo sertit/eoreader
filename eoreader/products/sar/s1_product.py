@@ -34,10 +34,15 @@ class S1ProductType(ListEnum):
     S1 products types. Take a look here:
     https://earth.esa.int/web/sentinel/missions/sentinel-1/data-products
     """
-    RAW = "RAW"  # Raw products (lvl 0)
-    SLC = "SLC"  # Single Look Complex (SLC, lvl 1)
-    GRD = "GRD"  # Ground Range Detected (GRD, lvl 1, phase lost)
-    OCN = "OCN"  # Ocean products (lvl 2)
+    RAW = "RAW"
+    """Raw products (lvl 0): **not used by EOReader**"""
+
+    SLC = "SLC"
+    """Single Look Complex (SLC, lvl 1)"""
+    GRD = "GRD"
+    """Ground Range Detected (GRD, lvl 1, phase lost)"""
+    OCN = "OCN"
+    """Ocean products (lvl 2): **not used by EOReader**"""
 
 
 @unique
@@ -51,10 +56,17 @@ class S1SensorMode(ListEnum):
     EW mode is primarily used for wide area coastal monitoring including ship traffic, oil spill and sea-ice monitoring.
     SM mode is only used for small islands and on request for extraordinary events such as emergency management.
     """
-    SM = "SM"  # Stripmap (SM)
-    IW = "IW"  # Interferometric Wide swath (IW)
-    EW = "EW"  # Extra-Wide swath (EW)
-    WV = "WV"  # Wave (WV) -> single polarisation only (HH or VV)
+    SM = "SM"
+    """Stripmap (SM)"""
+
+    IW = "IW"
+    """Interferometric Wide swath (IW)"""
+
+    EW = "EW"
+    """Extra-Wide swath (EW)"""
+
+    WV = "WV"
+    """Wave (WV) -> single polarisation only (HH or VV)"""
 
 
 class S1Product(SarProduct):
