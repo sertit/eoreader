@@ -302,44 +302,56 @@
 
 <%def name="desktop()" filter="minify_css">
     @media screen and (min-width: 700px) {
-        #sidebar {
-            width: 30%;
-            height: 100vh;
-            overflow: auto;
-            position: sticky;
-            top: 0;
-        }
-        #content {
-            width: 70%;
-            max-width: 100%;
-            padding: 3em 4em;
-            border-left: 1px solid #ddd;
-            overflow-x: hidden;
-        }
-        pre code {
-            font-size: 1em;
-        }
-        .item .name {
-            font-size: 1em;
-        }
-        main {
-            display: flex;
-            flex-direction: row-reverse;
-            justify-content: flex-end;
-        }
-        .toc ul ul, #index ul {
-            padding-left: 1.5em;
-        }
-        .toc > ul > li {
-            margin-top: .5em;
-        }
-        .table {
-            display: block;
-            overflow-x: auto;
-        }
-        .th {
-            background-color: #ececec;
-        }
+    #sidebar {
+    width: 30%;
+    height: 100vh;
+    overflow: auto;
+    position: sticky;
+    top: 0;
+    }
+    #content {
+    width: 70%;
+    max-width: 100%;
+    padding: 3em 4em;
+    border-left: 1px solid #ddd;
+    overflow-x: hidden;
+    }
+    pre code {
+    font-size: 1em;
+    }
+    .item .name {
+    font-size: 1em;
+    }
+    main {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    }
+    .toc ul ul, #index ul {
+    padding-left: 1.5em;
+    }
+    .toc > ul > li {
+    margin-top: .5em;
+    }
+    table {
+    display: block;
+    overflow-x: auto;
+    word-break: keep-all;
+    }
+    th {
+    background-color: #ececec80;
+    border: 0.1px solid gray;
+    padding: 5px;
+    }
+    thead {
+    border-bottom: 0.5px double gray;
+    }
+    td {
+    border: 0.1px solid gray;
+    }
+    td:nth-child(1) {
+    background-color: #ececec80;
+    }
     }
 </%def>
 
