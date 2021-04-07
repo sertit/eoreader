@@ -68,7 +68,6 @@ NDGRI = _idx.NDGRI
 CIG = _idx.CIG
 NDMI = _idx.NDMI
 DSWI = _idx.DSWI
-LWCI = _idx.LWCI
 SRSWIR = _idx.SRSWIR
 RDI = _idx.RDI
 NDWI = _idx.NDWI
