@@ -283,7 +283,7 @@ class S3Product(OpticalProduct):
         """
         Return the paths of required bands.
 
-        **WARNING**: If not existing, this function will orthorectify your bands !
+        .. WARNING:: If not existing, this function will orthorectify your bands !
 
         ```python
         >>> from eoreader.reader import Reader
@@ -334,7 +334,7 @@ class S3Product(OpticalProduct):
         """
         Read band from a dataset.
 
-        **WARNING**: Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
+        .. WARNING:: Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
 
         ```python
         >>> import rasterio

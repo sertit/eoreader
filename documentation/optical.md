@@ -78,7 +78,7 @@ The only difference with the other bands is that the cloud bands are provided in
 Optical satellites can all load `eoreader.bands.bands.DemBandNames.DEM`, `eoreader.bands.bands.DemBandNames.SLOPE` and `eoreader.bands.bands.DemBandNames.HILLSHADE` bands.
 The `SLOPE` and `HILLSHADE` bands are computed with the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
 
-Use the environment variable `eoreader.env_vars.EOREADER_SAR_DEFAULT_RES` to override the default DEM
+Use the environment variable `EOREADER_SAR_DEFAULT_RES` to override the default DEM
 ([Merit DEM](https://developers.google.com/earth-engine/datasets/catalog/MERIT_DEM_v1_0_3)).
 
 ## Available index
@@ -117,4 +117,4 @@ Use the environment variable `eoreader.env_vars.EOREADER_SAR_DEFAULT_RES` to ove
 You can override default SNAP resolution (in meters) when orthorecifying SAR and S3 bands by setting the following
 environment variables:
 
-- `eoreader.env_vars.EOREADER_S3_DEFAULT_RES` (500m for SLSTR and 300m for OLCI data by default)
+- `EOREADER_S3_DEFAULT_RES` (500m for SLSTR and 300m for OLCI data by default)

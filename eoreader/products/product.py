@@ -480,7 +480,7 @@ class Product:
         """
         Read band from a dataset.
 
-        **WARNING**: For optical data, invalid pixels are not managed here,
+        .. WARNING:: For optical data, invalid pixels are not managed here,
         so please consider using `load` or use this function at your own risk!
 
         ```python

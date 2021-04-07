@@ -145,7 +145,7 @@ class SarProduct(Product):
         """
         Get default band path (the first existing one between `VV` and `HH` for SAR data), ready to use (orthorectified)
 
-        **WARNING** This functions orthorectifies SAR bands if not existing !
+        .. WARNING:: This functions orthorectifies SAR bands if not existing !
 
         ```python
         >>> from eoreader.reader import Reader
@@ -290,7 +290,7 @@ class SarProduct(Product):
         """
         Return the paths of required bands.
 
-        **WARNING** This functions orthorectifies SAR bands if not existing !
+        .. WARNING:: This functions orthorectifies SAR bands if not existing !
 
         ```python
         >>> from eoreader.reader import Reader
@@ -381,9 +381,9 @@ class SarProduct(Product):
         """
         Return the existing orthorectified band paths (including despeckle bands).
 
-        **WARNING** This functions orthorectifies SAR bands if not existing !
+        .. WARNING:: This functions orthorectifies SAR bands if not existing !
 
-        **WARNING** This functions despeckles SAR bands if not existing !
+        .. WARNING:: This functions despeckles SAR bands if not existing !
 
         ```python
         >>> from eoreader.reader import Reader
@@ -416,9 +416,9 @@ class SarProduct(Product):
         """
         Return the existing orthorectified bands (including despeckle bands).
 
-        **WARNING** This functions orthorectifies SAR bands if not existing !
+        .. WARNING:: This functions orthorectifies SAR bands if not existing !
 
-        **WARNING** This functions despeckles SAR bands if not existing !
+        .. WARNING:: This functions despeckles SAR bands if not existing !
 
         ```python
         >>> from eoreader.reader import Reader

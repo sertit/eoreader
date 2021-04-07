@@ -252,7 +252,7 @@ class S2Product(OpticalProduct):
         """
         Read band from a dataset.
 
-        **WARNING**: Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
+        .. WARNING:: Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
 
         ```python
         >>> import rasterio

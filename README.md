@@ -54,16 +54,12 @@ The main features of EOReader are gathered hereunder:
 >>> mtd, namespace = prod.read_mtd()
 ```
  
-Index and bands are opened as [`numpy.ma.masked_array`](https://numpy.org/doc/stable/reference/maskedarray.generic.html) and converted to float.
-Their mask corresponds to the nodata of your product, that is set to 0 by convention.
-Clouds masks are loaded in `uint8` and their nodata is set to 255.
+.. NOTE::
+  Index and bands are opened as [`numpy.ma.masked_array`](https://numpy.org/doc/stable/reference/maskedarray.generic.html) and converted to float.
+  Their mask corresponds to the nodata of your product, that is set to 0 by convention.  
+  Clouds masks are loaded in `uint8` and their nodata is set to 255.
 
-**WARNING**: 
-
-- This software relies on the satellite's name to recognise its type, so please do not modify it !
-- Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.  
-Ensure that you have the folder containing your `gpt.exe` in your `PATH`.
-
-## Documentary sources
-
-Please take a look to the documentary sources file [here](sources.md).
+.. WARNING::
+  - This software relies on the satellite's name to recognise its type, so please do not modify it !
+  - Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.  
+  Ensure that you have the folder containing your `gpt.exe` in your `PATH`.

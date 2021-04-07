@@ -420,8 +420,9 @@ def AFRI_2_1(bands: dict) -> np.ma.masked_array:
     """
     Aerosol free vegetation index 2100: https://www.indexdatabase.de/db/i-single.php?id=395
 
-    **WARNING**: There is an error in the formula, go see the papers to get the right one (0.56 instead of 0.5):
-    https://core.ac.uk/download/pdf/130673386.pdf
+    .. WARNING::
+        There is an error in the formula, go see the papers to get the right one (0.56 instead of 0.5):
+        https://core.ac.uk/download/pdf/130673386.pdf
 
     Args:
         bands (dict): Bands as {band_name: numpy array}
