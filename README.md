@@ -36,13 +36,12 @@ This project allows you to read and open satellite data.
 >>> mtd, namespace = prod.read_mtd()
 ```
  
-Index and bands are opened as `numpy.ma.masked_array` 
-(see [here](https://numpy.org/doc/stable/reference/maskedarray.generic.html) to learn more about it) and converted to float.
+Index and bands are opened as [`numpy.ma.masked_array`](https://numpy.org/doc/stable/reference/maskedarray.generic.html) and converted to float.
 Their mask corresponds to the nodata of your product, that is set to 0 by convention.
 Clouds masks are loaded in `uint8` and their nodata is set to 255.
 
 **WARNING**: 
 
-- This software relies on satellite's name to open them, so please do not modify them !
-- Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to work.  
+- This software relies on the satellite's name to recognise its type, so please do not modify it !
+- Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.  
 Ensure that you have the folder containing your `gpt.exe` in your `PATH`.

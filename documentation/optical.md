@@ -1,9 +1,6 @@
 # Optical data
 
-Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/Optical) to learn
-more about that.
-
-## Enabled optical satellites
+## Implemented optical satellites
 
 |Satellites | Allowed Product Types | Use archive | Default Resolution |
 |--- | --- | --- | ---|
