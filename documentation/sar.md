@@ -19,19 +19,65 @@ SAR satellites can only load `DEM` and `SLOPE` bands. The `SLOPE` and `HILLSHADE
 with the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
 
 ## Default resolution
-The default resolution of SAR products depends on their type:
+The default resolution of SAR products depends on their type. 
+Note that complex data are always converted back to ground range to be used.
+The product resolution is read in the metadata file if possible, so the following values are given as hints:
 
 ### Sentinel-1
-![s1_res](https://code.sertit.unistra.fr/extracteo/eoreader/-/blob/master/documentation/images/S1_res.png)
+| **Sentinel-1** | Single Look Complex (SLC) |Ground Range Detected (GRD)<br>Full Resolution (FR) | Ground Range Detected (GRD)<br>High Resolution (HR) | Ground Range Detected (GRD)<br>Medium Resolution (MR)|
+|--- | --- | --- | --- | ---|
+|StripMap (SM) | 1.5x3.6   m to 3.1x4.1 m | 3.5m | 10.0m | 40.0m|
+|Interferometric   Wide swath (IW) | 2.3x14.1   m |  | 10.0m | 40.0m|
+|Extra-Wide swath (EW) | 5.9x19.9 m |  | 25.0m | 40.0m|
+|Wave (WV) | 1.7x4.1 m and 2.7x4.1 m |  |  | 25.0m|
 
 ### COSMO-Skymed
-![csk_res](https://code.sertit.unistra.fr/extracteo/eoreader/-/blob/master/documentation/images/CSK_res.png)
+| **COSMO-Skymed** | Single-look Complex Slant (SCS) | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+|--- | --- | ---|
+|**Spotlight**<br>Mode-2 (S2) | 1.1-0.9x0.91m | 1.0m|
+|**StripMap**<br>Himage (HI) | 3.0-2.6x2.4-2.6m | 5.0m|
+|**StripMap**<br>PingPong (PP) | 11-10x9.7m | 20.0m|
+|**ScanSAR**<br>Wide Region (WR) | 13.5x23m | 30.0m|
+|**ScanSAR**<br>Huge Region (HR) | 13.5x38.0m | 100.0m|
 
 ### TerraSAR-X
-![s1_res](https://code.sertit.unistra.fr/extracteo/eoreader/-/blob/master/documentation/images/TSX_res.png)
+
+|**TerraSAR-X** | Single-look Slant Range (SSC) | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
+|--- | --- | --- | ---|
+|**StripMap (SM)**<br>Single-Pol | 0.9x2.0m | 1.5m   or 1.25m | 4.0m   or 3.25m|
+|**StripMap (SM)**<br>Dual-Pol | 0.9x2.5m | 3.0m | 5.5m   or 4.5m|
+|**High Resolution Spotlight (HS)**<br>Single-Pol | 0.9x0.8m | 1.5m or 0.5m | 2.0m or 1.5m|
+|**High Resolution Spotlight (HS)**<br>Dual-Pol | 0.9x1.5m | 1.5m or 1.0m | 3.0m or 2.0m|
+|**Spotlight (SL)**<br>Single-Pol | 0.9x1.3m | 1.5m or 0.75m | 3.0m or 1.75m|
+|**Spotlight (SL)**<br>Dual-Pol | 0.9x2.6m | 3.5m or 3.4m | 8.5m or 5.5m|
+|**Staring Spotlight (ST)**<br>Single-Pol | 0.5x0.2m | 0.4m or 0.2m | 0.8m or 0.4m|
+|**ScanSAR (SC)**<br>Four Beams | 0.9x13m |  | 8.25m|
+|**ScanSAR (SC)**<br>Six Beams | 1.4x?m |  | 15.0m|
 
 ### RADARSAT-2
-![s1_res](https://code.sertit.unistra.fr/extracteo/eoreader/-/blob/master/documentation/images/RS2_res.png)
+
+|**RADARSAT-2** | Single-look   complex (SLC) | SAR   georeferenced extra(SGX) | SAR   georeferenced fine (SGF) | SAR   systematic geocorrected (SSG) | SAR   precision geocorrected (SPG) | ScanSAR   narrow beam (SCN) | ScanSAR   wide beam (SCW) | ScanSAR   fine (SCF) | ScanSAR   sampled (SCS)|
+|--- | --- | --- | --- | --- | --- | --- | --- | --- | ---|
+|Spotlight | 1.3x0.4m | 1.0   or 0.8x1/3m | 0.5m | 0.5m | 0.5m |  |  |  | |
+|Ultra-Fine | 1.3x2.1m | 1.0x1.0   or 0.8x0.8m | 1.56m | 1.56m | 1.56m |  |  |  | |
+|Wide Ultra-Fine | 1.3x2.1m | 1.0m | 1.56m | 1.56m | 1.56m |  |  |  | |
+|Multi-Look Fine | 2.7x2.9m | 3.13m | 6.25m | 6.25m | 6.25m |  |  |  | |
+|Wide Multi-Look Fine | 2.7x2.9m | 3.13m | 6.25m | 6.25m | 6.25m |  |  |  | |
+|Extra-Fine | Full Res: 2.7x2.9m    Fine Res: 4.3x5.8m    Full Res: 7.1x5.8m    Wide Res: 10.6x5.8m | 1 look: 2.0m    4 looks: 3.13m    28 looks: 5.0m | 1 look: 3.13m    4 looks: 6.25m    28 looks: 8.0m | 3.13m | 3.13m |  |  |  | |
+|Fine | 4.7x5.1m | 3.13m | 6.25m | 6.25m | 6.25m |  |  |  | |
+|Wide-Fine | 4.7x5.1m | 3.13m | 6.25m | 6.25m | 6.25m |  |  |  | |
+|Standard | 8.0 or 11.8x5.1m | 8.0m | 12.5m | 12.5m | 12.5m |  |  |  | |
+|Wide | 11.8x5.1m | 10.0m | 12.5m | 12.5m | 12.5m |  |  |  | |
+|Extended High | 11.8x5.1m | 8.0m | 12.5m | 12.5m | 12.5m |  |  |  | |
+|Extended Low | 8.0x5.1m | 10.0m | 12.5m | 12.5m | 12.5m |  |  |  | |
+|Fine Quad-Pol | 4.7x5.1m | 3.13m | 3.13m | 3.13m | 3.13m |  |  |  | |
+|Wide Quad-Pol | 4.7x5.1m | 3.13m | 3.13m | 3.13m | 3.13m |  |  |  | |
+|Standard Quad-Pol | 8.0 or 11.8x5.1m | 8.0x3.13m | 8.0x3.13m | 8.0x3.13m | 8.0x3.13m |  |  |  | |
+|Wide Standard Quad-Pol | 8.0 or 11.8x5.1m | 8.0x3.13m | 8.0x3.13m | 8.0x3.13m | 8.0x3.13m |  |  |  | |
+|ScanSAR Narrow |  |  |  |  |  | 25.0m |  | 25.0m | 25.0m|
+|ScanSAR Wide |  |  |  |  |  |  | 50.0m | 50.0m | 50.0m|
+|Ship (Detection of vessels) |  |  |  |  |  |  |  | 40.0m | 20.0m|
+|Ocean Surveillance |  |  |  |  |  |  |  | 50.0m | 35.0x25.0m|
 
 ## GPT graphs
 You can change the SAR GPT graphs used by setting the following environment variables:
