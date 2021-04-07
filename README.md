@@ -26,7 +26,8 @@ This project allows you to read and open satellite data.
 >>> mndwi = bands[MNDWI]
 >>> green = bands[GREEN]
 >>> dem = bands[DEM]
->>> hillshade = bands[HILLSHADE]
+>> > hillshade = bands[HILLSHADE]
+>> > clouds = bands[CLOUDS]
 >>> # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately 
 >>> # (important for DEM data as they may have different grids)
 
@@ -49,63 +50,112 @@ The mask corresponds to the nodata of your product, that is set to 0 by conventi
 Ensure that you have the folder containing your `gpt.exe` in your `PATH`.
 
 ## Optical data
+Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/Optical) to learn
+more about that.
 
-Accepted optical satellites are:
+### Enabled optical satellites
 
-- `Sentinel-2`: **L2A** and **L1C**, zip files are accepted
-- `Sentinel-2 Theia`: **L2A**, zip files are accepted
-- `Sentinel-3`: **OLCI** and **SLSTR**
-- `Landsat-1`: **MSS**, level 1, both collection 1 and 2
-- `Landsat-2`: **MSS**, level 1, both collection 1 and 2
-- `Landsat-3`: **MSS**, level 1, both collection 1 and 2
-- `Landsat-4`: **TM** and **MSS**, level 1, both collection 1 and 2
-- `Landsat-5`: **TM** and **MSS**, level 1, both collection 1 and 2
-- `Landsat-7`: **ETM**, level 1, both collection 1 and 2
-- `Landsat-8`: **OLCI**, level 1, both collection 1 and 2
+|Satellites | Allowed Product Types | Use archive|
+|--- | --- | ---|
+|Sentinel-2 | L1C & L2A | Yes|
+|Sentinel-2 Theia | L2A | Yes|
+|Sentinel-3 SLSTR | RBT | No|
+|Sentinel-3 OLCI | EFR | No|
+|Landsat-8 OLCI | Level 1 | Collection 1: No, Collection 2: Yes|
+|Landsat-7 ETM | Level 1 | Collection 1: No, Collection 2: Yes|
+|Landsat-5 TM | Level 1 | Collection 1: No, Collection 2: Yes|
+|Landsat-4 TM | Level 1 | Collection 1: No, Collection 2: Yes|
+|Landsat-5 MSS | Level 1 | Collection 1: No, Collection 2: Yes|
+|Landsat-4 MSS | Level 1 | Collection 1: No, Collection 2: Yes|
+|Landsat-3 MSS | Level 1 | Collection 1: No, Collection 2: Yes|
+|Landsat-2 MSS | Level 1 | Collection 1: No, Collection 2: Yes|
+|Landsat-1 MSS | Level 1 | Collection 1: No, Collection 2: Yes|
 
-Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/Optical) to learn more about that.
+### Band mapping between optical satellites is:
+
+|Bands (names) | Coastal aerosol | Blue | Green | Red | Vegetation red edge | Vegetation red edge | Vegetation red edge | NIR | Narrow NIR | Water vapor | SWIR – Cirrus | SWIR | SWIR | Panchromatic | Thermal IR | Thermal IR|
+|--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---|
+|**Bands enum** | `CA` | `BLUE` | `GREEN` | `RED` | `VRE_1` | `VRE_2` | `VRE_3` | `NIR` | `NNIR` | `WP` | `SWIR_CIRRUS` | `SWIR_1` | `SWIR_2` | `PAN` | `TIR_1` | `TIR_2`|
+|Sentinel-2 | 1 (60m) | 2 (10m) | 3 (10m) | 4 (10m) | 5 (20m) | 6 (20m) | 7 (20m) | 8 (10m) | 8A (20m) | 9 (60m) | 10 (60m) | 11 (20m) | 12 (20m) |  |  | |
+|Sentinel-2 Theia | *Not available* | 2 (10m) | 3 (10m) | 4 (10m) | 5 (20m) | 6 (20m) | 7 (20m) | 8 (10m) | 8A (20m) | *Not available* | 10 (60m) | 11 (20m) | 12 (20m) |  |  | |
+|Sentinel-3 OLCI* | 2 (300m) | 3 (300m) | 6 (300m) | 8 (300m) | 11 (300m) | 12 (300m) | 16 (300m) | 17 (300m) | 17 (300m) | 20 (300m) |  |  |  |  |  | |
+|Sentinel-3 SLSTR* |  | 1 (500m) | 2 (500m) |  |  |  | 3 (500m) | 3 (500m) |  | 4 (500m) | 5 (500m) | 6 (500m) |  | 8 (1km | 9 (1km|
+|Landsat-8 | 1 (30m) | 2 (30m) | 3 (30m) | 4 (30m) |  |  |  | 5 (30m) | 5 (30m) |  | 9 (30m) | 6 (30m) | 7 (30m) | 8 (15m | 10 (100m) | 11 (100m)|
+|Landsat-7 |  | 1 (30m) | 2 (30m) | 3 (30m) |  |  |  | 4 (30m) | 4 (30m) |  |  | 5 (30m) | 7 (30m) | 8 (15m | 6 (60m) | 6 (60m)|
+|Landsat-5 TM |  | 1 (30m) | 2 (30m) | 3 (30m) |  |  |  | 4 (30m) | 4 (30m) |  |  | 5 (30m) | 7 (30m) |  | 6 (120m) | 6 (120m)|
+|Landsat-4 TM |  | 1 (30m) | 2 (30m) | 3 (30m) |  |  |  | 4 (30m) | 4 (30m) |  |  | 5 (30m) | 7 (30m) |  | 6 (120m) | 6 (120m)|
+|Landsat-5 MSS |  |  | 1 (60m) | 2 (60m) | 3 (60m) | 3 (60m) | 3 (60m) | 4 (60m) | 4 (60m) |  |  |  |  |  |  | |
+|Landsat-4 MSS |  |  | 1 (60m) | 2 (60m) | 3 (60m) | 3 (60m) | 3 (60m) | 4 (60m) | 4 (60m) |  |  |  |  |  |  | |
+|Landsat-3 |  |  | 4 (60m) | 5 (60m) | 6 (60m) | 6 (60m) | 6 (60m) | 7 (60m) | 7 (60m) |  |  |  |  |  | 8 (240m) | 8 (240m)|
+|Landsat-2 |  |  | 4 (60m) | 5 (60m) | 6 (60m) | 6 (60m) | 6 (60m) | 7 (60m) | 7 (60m) |  |  |  |  |  |  | |
+|Landsat-1 |  |  | 4 (60m) | 5 (60m) | 6 (60m) | 6 (60m) | 6 (60m) | 7 (60m) | 7 (60m) |  |  |  |  |  |  | |
+* Not all bands of this satellite are used in EOReader
+
+### Cloud bands
+|Satellites | Clouds Bands|
+|--- | ---|
+|Sentinel-2 | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`|
+|Sentinel-2 Theia | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
+|Sentinel-3 OLCI | *No cloud file available for S3-OLCI data* |
+|Sentinel-3 SLSTR | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`|
+|Landsat-8 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
+|Landsat-7 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
+|Landsat-5 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
+|Landsat-4 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
+|Landsat-5 MSS | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat-4 MSS | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat-3 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat-2 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat-1 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+
+### DEM bands
+Optical satellites can all load `DEM`, `SLOPE` and `HILLSHADE` bands.
+
 
 ## SAR data
 
-Accepted SAR satellites are:
+|Satellites | Allowed Product Types | Use archive|
+|--- | --- | ---|
+|Sentinel-1 | SLC & GRD | Yes|
+|COSMO-Skymed | DGM & SCS, (others should also be OK) | No|
+|TerraSAR-X | MGD (SSC should be OK) | No|
+|RADARSAT-2 | SGF (SLC should be OK) | Yes|
 
-- `Sentinel-1` **GRD** + **SLC**, zip files are accepted
-- `COSMO-SkyMed` **DGM** + **SCS**
-- `TerraSAR-X` **MGD** (+ **SSC**, :warning: not tested, use it at your own risk)
-- `RADARSAT-2` **SGF** (+ **SLC**, :warning: not tested, use it at your own risk), zip files are accepted
+SAR satellites can only load `DEM` and `SLOPE` bands.
 
-Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/SAR) to learn more about that.
+Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/SAR) to learn more
+about that.
 
 ## Available index
 
-- `AFRI_1_6`
-- `AFRI_2_1`
-- `AWEInsh`
-- `AWEIsh`
-- `BAI`
-- `BSI`
-- `CIG`
-- `DSWI`
-- `GLI`
-- `GNDVI`
-- `LWCI`
-- `MNDWI`
-- `NBR`
-- `NDGRI`
-- `NDMI`
-- `NDRE2`
-- `NDRE3`
-- `NDVI`
-- `NDWI`
-- `PGR`
-- `RDI`
-- `RGI`
-- `RI`
-- `SRSWIR`
-- `TCBRI`
-- `TCGRE`
-- `TCWET`
-- `WI`
+|Index | Needed bands | Accepted satellites|
+|--- | --- | ---|
+|`AFRI_1_6` | `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`AFRI_2_1` | `NIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`AWEInsh` | `BLUE`, `GREEN`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`AWEIsh` | `GREEN`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`BAI` | `RED`, `NIR` | All optical satellites|
+|`BSI` | `BLUE`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`CIG` | `GREEN`, `NIR` | All optical satellites|
+|`DSWI` | `GREEN`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`GLI` | `GREEN`, `RED`, `BLUE` | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, (E)TM|
+|`GNDVI` | `GREEN`, `NIR` | All optical satellites|
+|`MNDWI` | `GREEN`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`NBR` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`NDGRI` | `GREEN`, `RED` | All optical satellites|
+|`NDMI` | `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`NDRE2` | `NIR`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
+|`NDRE3` | `NIR`, `VRE_2` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
+|`NDVI` | `RED`, `NIR` | All optical satellites|
+|`NDWI` | `GREEN`, `NIR` | All optical satellites|
+|`RDI` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`RGI` | `GREEN`, `RED` | All optical satellites|
+|`RI` | `GREEN`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
+|`SRSWIR` | `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`TCBRI` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`TCGRE` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`TCWET` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`WI` | `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 
 See [here](https://extracteo.pages.sertit.unistra.fr/eoreader/index.m.html) for more info.
 

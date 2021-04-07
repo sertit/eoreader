@@ -277,22 +277,6 @@ def DSWI(bands: dict) -> np.ma.masked_array:
     return _no_data_divide(bands[obn.NIR] + bands[obn.GREEN], bands[obn.SWIR_1] + bands[obn.RED])
 
 
-def LWCI(bands: dict) -> np.ma.masked_array:
-    """
-    Leaf Water Content Index: https://www.indexdatabase.de/db/i-single.php?id=129
-
-    Args:
-        bands (dict): Bands as {band_name: numpy array}
-
-    Returns:
-        np.ma.masked_array: Computed index
-
-    """
-    LOGGER.warning("This index formula is suspect (constant, = -1). You should use another one.")
-    return - _no_data_divide(np.log(1 - (bands[obn.NIR] - bands[obn.SWIR_1])),
-                             np.log(1 - (bands[obn.NIR] - bands[obn.SWIR_1])))
-
-
 def SRSWIR(bands: dict) -> np.ma.masked_array:
     """
     Simple Ratio SWIRI/SWIRII Clay Minerals: https://www.indexdatabase.de/db/i-single.php?id=204
