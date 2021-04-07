@@ -17,8 +17,8 @@ You can change the SAR GPT graphs used by setting the following environment vari
 
 - `EOREADER_PP_GRAPH`: Environment variables for pre-processing graph path.  
 - `EOREADER_DSPK_GRAPH`: Environment variables for despeckling graph path
-
-:warning:  
+  
+**WARNING**:  
 For performance reasons, the `Terrain Correction` step is done **before** the `Despeckle` step.
 Indeed this step is very time-consuming and better done 
 one time on the raw image than two times on both the raw and the despeckled image.  
