@@ -80,7 +80,7 @@ class S1Product(SarProduct):
         """
         Set product default resolution (in meters)
 
-        **WARNING**: We assume being in High Resolution (except for WV where we must be in medium resolution)
+        .. WARNING:: We assume being in High Resolution (except for WV where we must be in medium resolution)
         """
         def_res = None
 

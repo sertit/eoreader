@@ -94,10 +94,9 @@ class TsxProduct(SarProduct):
         """
         Set product default resolution (in meters)
 
-        **WARNING**:
-
-        - We assume being in High Resolution (except for WV where we must be in medium resolution)
-        - Incidence angle: we consider the best option, around 55 degrees
+        .. WARNING::
+            - We assume being in High Resolution (except for WV where we must be in medium resolution)
+            - Incidence angle: we consider the best option, around 55 degrees
         """
         def_res = None
 

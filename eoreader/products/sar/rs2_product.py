@@ -69,7 +69,7 @@ class Rs2SensorMode(ListEnum):
     RADARSAT-2 sensor mode.
     Take a look [here](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html)
 
-    **WARNING**: The name in the metadata may vary !
+    .. WARNING:: The name in the metadata may vary !
     """
     # Single Beam Modes
     S = "Standard"
