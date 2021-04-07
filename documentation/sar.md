@@ -1,5 +1,10 @@
 # SAR data
 
+Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/SAR) to learn more
+about that.
+
+## Enabled SAR satellites
+
 |Satellites | Allowed Product Types | Use archive|
 |--- | --- | ---|
 |Sentinel-1 | SLC & GRD | Yes|
@@ -7,10 +12,26 @@
 |TerraSAR-X | MGD (SSC should be OK) | No|
 |RADARSAT-2 | SGF (SLC should be OK) | Yes|
 
-SAR satellites can only load `DEM` and `SLOPE` bands.
+Satellites products that cannot be used as archived have to be extracted before use.
 
-Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/SAR) to learn more
-about that.
+## DEM bands
+SAR satellites can only load `DEM` and `SLOPE` bands. The `SLOPE` and `HILLSHADE` bands are computed
+with the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
+
+## Default resolution
+The default resolution of SAR products depends on their type:
+
+### Sentinel-1
+![s1_res](https://code.sertit.unistra.fr/extracteo/eoreader/-/blob/master/documentation/images/S1_res.png)
+
+### COSMO-Skymed
+![csk_res](https://code.sertit.unistra.fr/extracteo/eoreader/-/blob/master/documentation/images/CSK_res.png)
+
+### TerraSAR-X
+![s1_res](https://code.sertit.unistra.fr/extracteo/eoreader/-/blob/master/documentation/images/TSX_res.png)
+
+### RADARSAT-2
+![s1_res](https://code.sertit.unistra.fr/extracteo/eoreader/-/blob/master/documentation/images/RS2_res.png)
 
 ## GPT graphs
 You can change the SAR GPT graphs used by setting the following environment variables:
