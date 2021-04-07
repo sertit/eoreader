@@ -1,9 +1,6 @@
 # SAR data
 
-Please look at this [WIKI page](https://code.sertit.unistra.fr/extracteo/extracteo/-/wikis/Satellites/SAR) to learn more
-about that.
-
-## Enabled SAR satellites
+## Implemented SAR satellites
 
 |Satellites | Allowed Product Types | Use archive|
 |--- | --- | ---|
@@ -122,6 +119,7 @@ Pay attention to set `$file` and `$out` and leave the `BEAM-DIMAP` file format. 
 SAR data, but should not despeckle it. The second graph is precisely charged to do it.
 
 The pre-processing graph should also have a `Terrain Correction` step with the following wildcards that are set automatically in the module:
+
 - `$res_m`: Resolution in meters
 - `$res_deg`: Resolution in degrees
 - `$crs`: CRS
