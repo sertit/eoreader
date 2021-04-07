@@ -33,7 +33,7 @@ warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarni
 class Rs2ProductType(ListEnum):
     """
     RADARSAT-2 projection identifier.
-    Take a look [here](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs)
+    Take a look [here](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html)
     """
     SLC = "SLC"
     """Single-look complex"""
@@ -67,7 +67,7 @@ class Rs2ProductType(ListEnum):
 class Rs2SensorMode(ListEnum):
     """
     RADARSAT-2 sensor mode.
-    Take a look [here](https://mdacorporation.com/docs/default-source/technical-documents/geospatial-services/52-1238_rs2_product_description.pdf)
+    Take a look [here](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html)
 
     **WARNING**: The name in the metadata may vary !
     """

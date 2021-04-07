@@ -11,15 +11,11 @@ import netCDF4
 import numpy as np
 import rasterio
 import geopandas as gpd
-from affine import Affine
 from lxml import etree
 from rasterio.enums import Resampling
-from rasterio.warp import reproject
 from rasterio.windows import Window
 from sertit import rasters, vectors, files, strings, misc, snap
 from sertit.misc import ListEnum
-from sertit.snap import MAX_CORES
-from sertit.vectors import WGS84
 
 from eoreader import utils
 from eoreader.bands.alias import ALL_CLOUDS, RAW_CLOUDS, CLOUDS, CIRRUS
@@ -931,73 +927,6 @@ class S3Product(OpticalProduct):
                     bands[band] = clouds_array
                 else:
                     raise InvalidTypeError(f"Non existing cloud band for Sentinel-3 SLSTR: {band}")
-
-
-            # # Open georeferenced default band
-            # georef_arr, meta = rasters.read(self.get_default_band_path(),
-            #                                 resolution=resolution,
-            #                                 size=size)
-
-            # # Open non georeferenced default band
-            # geodetic_path = os.path.join(self.path, "geodetic_tx.nc")
-            # if not os.path.isfile(geodetic_path):
-            #     raise FileNotFoundError(f"No 'geodetic_tx.nc' band not found in {self.name}")
-            #
-            # # Compute geotransform
-            # try:
-            #     lat_path = f"netcdf:{geodetic_path}:latitude_tx"
-            #     lon_path = f"netcdf:{geodetic_path}:longitude_tx"
-            #     lat, _ = rasters.read(lat_path)
-            #     lon, _ = rasters.read(lon_path)
-            # except rasterio.errors.RasterioIOError:
-            #     raise InvalidProductError(f"Missing geodetic latitude or longitude in {self.name}")
-            #
-            # _, height, width = lat.shape  # count, rows, cols: (1, 1200, 130)
-            # west = lon.min()
-            # south = lat.min()
-            # east = lon.max()
-            # north = lat.max()
-            # tx_transform = rasterio.transform.from_bounds(west, south, east, north, width, height)
-            #
-            # # Open meteo file
-            # meteo_path = os.path.join(self.path, "met_tx.nc")
-            # if not os.path.isfile(meteo_path):
-            #     raise FileNotFoundError(f"Non existing Meteorological Parameters for {self.name}")
-            #
-            # frac_clouds_path = f"netcdf:{meteo_path}:cloud_fraction_tx"
-            #
-            # # NOTE: Here, the clouds are subsampled and not georeferenced !
-            # clouds_arr, tmp_meta = rasters.read(frac_clouds_path)
-            # tmp_meta["driver"] = "GTiff"
-            # tmp_meta["crs"] = WGS84
-            # tmp_meta["transform"] = tx_transform
-            # rasters.write(clouds_arr, os.path.join(self.path, "clouds.tif"), tmp_meta)
-            #
-            # # Reproject clouds
-            # clouds_reproj = np.zeros_like(georef_arr, dtype=np.uint8)
-            # reproject(source=clouds_arr,
-            #           destination=clouds_reproj,
-            #           src_transform=tx_transform,
-            #           src_crs=WGS84,
-            #           dst_transform=meta['transform'],
-            #           dst_crs=meta["crs"],
-            #           dst_nodata=self.nodata,
-            #           resampling=Resampling.nearest,
-            #           num_threads=MAX_CORES)
-            #
-            # # Get nodata mask
-            # nodata = np.where(clouds_reproj == self.nodata, 1, 0)
-
-            # # Following Landsat clouds, high confidence of clouds is 67% and higher
-            # for band in band_list:
-            #     if band == ALL_CLOUDS:
-            #         bands[band] = self._create_mask(clouds_reproj > 0.67, nodata)
-            #     elif band == CLOUDS:
-            #         bands[band] = self._create_mask(clouds_reproj > 0.67, nodata)
-            #     elif band == RAW_CLOUDS:
-            #         bands[band] = clouds_reproj
-            #     else:
-            #         raise InvalidTypeError(f"Non existing cloud band for Sentinel-3 SLSTR sensor: {band}")
 
         return bands, meta
 

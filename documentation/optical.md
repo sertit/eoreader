@@ -2,21 +2,21 @@
 
 ## Implemented optical satellites
 
-|Satellites | Allowed Product Types | Use archive | Default Resolution |
-|--- | --- | --- | ---|
-|Sentinel-2 | L1C & L2A | Yes | 20m| 
-|Sentinel-2 Theia | L2A | Yes | 20m|
-|Sentinel-3 SLSTR | RBT | No | 300m|
-|Sentinel-3 OLCI | EFR | No | 500m|
-|Landsat-8 OLCI | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat-7 ETM | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat-5 TM | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat-4 TM | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat-5 MSS | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat-4 MSS | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat-3 MSS | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat-2 MSS | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat-1 MSS | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Satellites | Class | Product Types | Use archive | Default Resolution |
+|--- | --- | --- | --- | ---|
+|Sentinel-2 | `eoreader.products.optical.s2_product.S2Product` | L1C & L2A | Yes | 20m| 
+|Sentinel-2 Theia | `eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | Yes | 20m|
+|Sentinel-3 SLSTR | `eoreader.products.optical.s3_product.S3Product` | RBT | No | 300m|
+|Sentinel-3 OLCI | `eoreader.products.optical.s3_product.S3Product` | EFR | No | 500m|
+|Landsat-8 OLCI | `eoreader.products.optical.l8_product.L8Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat-7 ETM | `eoreader.products.optical.l7_product.L7Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat-5 TM | `eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat-4 TM | `eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat-5 MSS | `eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat-4 MSS | `eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat-3 MSS | `eoreader.products.optical.l3_product.L3Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat-2 MSS | `eoreader.products.optical.l2_product.L2Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat-1 MSS | `eoreader.products.optical.l1_product.L1Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
 
 Satellites products that cannot be used as archived have to be extracted before use. 
 
@@ -47,15 +47,15 @@ All the bands are rasterized and orthorectified if needed (for Sentinel-2 or 3 d
 
 The only difference with the other bands is that the cloud bands are provided in `uint8` and have a nodata equal to 255.
 
-- `RAW_CLOUDS`: Raw Cloud file as provided (the only changes are the orthorectification and rasterization).  
+- `eoreader.bands.bands.CloudsBandNames.RAW_CLOUDS`: Raw Cloud file as provided (the only changes are the orthorectification and rasterization).  
   Can provide other flags, or cloud probability.
-- `CLOUDS`: Cloud presence (1) or absence (0).  
+- `eoreader.bands.bands.CloudsBandNames.CLOUDS`: Cloud presence (1) or absence (0).  
   If clouds are provided in probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- `CIRRUS`: Cirrus presence (1) or absence (0).  
+- `eoreader.bands.bands.CloudsBandNames.CIRRUS`: Cirrus presence (1) or absence (0).  
   If clouds are provided in probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- `SHADOWS`: Shadows presence (1) or absence (0).  
+- `eoreader.bands.bands.CloudsBandNames.SHADOWS`: Shadows presence (1) or absence (0).  
   If clouds are provided in probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- `ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (0).  
+- `eoreader.bands.bands.CloudsBandNames.ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (0).  
   Do not take into account missing bands (ie. for Landsat MSS sensors, `ALL_CLOUDS` == `CLOUDS`)
 
 |Satellites | Clouds Bands|
@@ -75,43 +75,46 @@ The only difference with the other bands is that the cloud bands are provided in
 |Landsat-1 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
 
 ## DEM bands
-Optical satellites can all load `DEM`, `SLOPE` and `HILLSHADE` bands.
+Optical satellites can all load `eoreader.bands.bands.DemBandNames.DEM`, `eoreader.bands.bands.DemBandNames.SLOPE` and `eoreader.bands.bands.DemBandNames.HILLSHADE` bands.
 The `SLOPE` and `HILLSHADE` bands are computed with the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
+
+Use the environment variable `eoreader.env_vars.EOREADER_SAR_DEFAULT_RES` to override the default DEM
+([Merit DEM](https://developers.google.com/earth-engine/datasets/catalog/MERIT_DEM_v1_0_3)).
 
 ## Available index
 
 |Index | Needed bands | Accepted satellites|
 |--- | --- | ---|
-|`AFRI_1_6` | `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`AFRI_2_1` | `NIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`AWEInsh` | `BLUE`, `GREEN`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`AWEIsh` | `GREEN`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`BAI` | `RED`, `NIR` | All optical satellites|
-|`BSI` | `BLUE`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`CIG` | `GREEN`, `NIR` | All optical satellites|
-|`DSWI` | `GREEN`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`GLI` | `GREEN`, `RED`, `BLUE` | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, (E)TM|
-|`GNDVI` | `GREEN`, `NIR` | All optical satellites|
-|`MNDWI` | `GREEN`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`NBR` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`NDGRI` | `GREEN`, `RED` | All optical satellites|
-|`NDMI` | `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`NDRE2` | `NIR`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
-|`NDRE3` | `NIR`, `VRE_2` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
-|`NDVI` | `RED`, `NIR` | All optical satellites|
-|`NDWI` | `GREEN`, `NIR` | All optical satellites|
-|`RDI` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`RGI` | `GREEN`, `RED` | All optical satellites|
-|`RI` | `GREEN`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
-|`SRSWIR` | `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`TCBRI` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`TCGRE` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`TCWET` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|`WI` | `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.AFRI_1_6` | `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.AFRI_2_1` | `NIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.AWEInsh` | `BLUE`, `GREEN`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.AWEIsh` | `GREEN`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.BAI` | `RED`, `NIR` | All optical satellites|
+|`eoreader.bands.index.BSI` | `BLUE`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.CIG` | `GREEN`, `NIR` | All optical satellites|
+|`eoreader.bands.index.DSWI` | `GREEN`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.GNDVI` | `GREEN`, `NIR` | All optical satellites|
+|`eoreader.bands.index.MNDWI` | `GREEN`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.NBR` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.NDGRI` | `GREEN`, `RED` | All optical satellites|
+|`eoreader.bands.index.NDMI` | `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.NDRE2` | `NIR`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
+|`eoreader.bands.index.NDRE3` | `NIR`, `VRE_2` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
+|`eoreader.bands.index.NDVI` | `RED`, `NIR` | All optical satellites|
+|`eoreader.bands.index.NDWI` | `GREEN`, `NIR` | All optical satellites|
+|`eoreader.bands.index.RDI` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.RGI` | `GREEN`, `RED` | All optical satellites|
+|`eoreader.bands.index.RI` | `GREEN`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
+|`eoreader.bands.index.SRSWIR` | `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.TCBRI` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.TCGRE` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.TCWET` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|`eoreader.bands.index.WI` | `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 
 ## Default SNAP resolution
 
 You can override default SNAP resolution (in meters) when orthorecifying SAR and S3 bands by setting the following
 environment variables:
 
-- `EOREADER_S3_DEFAULT_RES` (500m for SLSTR and 300m for OLCI data by default)
+- `eoreader.env_vars.EOREADER_S3_DEFAULT_RES` (500m for SLSTR and 300m for OLCI data by default)

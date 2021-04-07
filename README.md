@@ -2,6 +2,24 @@
 
 This project allows you to read and open satellite data.
 
+## Dependencies
+
+EOReader depends mainly on `geopandas` and `rasterio`.
+
+If you are on Windows, be careful with the GDAL dependencies: 
+use the wheels in the `CI\COTS` folder, or better create the conda environment that can be found on the repo page.
+
+On Linux, everything should be OK.
+
+## Installation
+- Inside SERTIT: `pip install --extra-index-url https://gitlab-deploy-token:4i
+  eKmsaqk4zLfM3WLxF4@code.sertit.unistra.fr/api/v4/projects/134/packages/pypi/simple eoreader`.
+- Outside SERTIT (not available for now): `pip install eoreader`.
+
+## Python Quickstart
+
+The main features of EOReader are gathered hereunder:
+
 ```python
 >>> from eoreader.reader import Reader
 >>> from eoreader.bands.alias import *
@@ -45,3 +63,7 @@ Clouds masks are loaded in `uint8` and their nodata is set to 255.
 - This software relies on the satellite's name to recognise its type, so please do not modify it !
 - Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.  
 Ensure that you have the folder containing your `gpt.exe` in your `PATH`.
+
+## Documentary sources
+
+Please take a look to the documentary sources file [here](sources.md).
