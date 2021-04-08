@@ -187,7 +187,7 @@ class SarProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def utm_extent(self) -> gpd.GeoDataFrame:
+    def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
 
@@ -214,7 +214,7 @@ class SarProduct(Product):
 
         return extent
 
-    def utm_crs(self) -> crs.CRS:
+    def crs(self) -> crs.CRS:
         """
         Get UTM projection
 
@@ -398,8 +398,8 @@ class SarProduct(Product):
         {
             <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif',
             <SarBandNames.VH: 'VH'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VH.tif',
-            <SarBandNames.VV_DSPK: 'DESPK_VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_DESPK_VV.tif',
-            <SarBandNames.VH_DSPK: 'DESPK_VH'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_DESPK_VH.tif'
+            <SarBandNames.VV_DSPK: 'VV_DSPK'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV_DSPK.tif',
+            <SarBandNames.VH_DSPK: 'VH_DSPK'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VH_DSPK.tif'
         }
         ```
 
@@ -428,8 +428,8 @@ class SarProduct(Product):
         >>> prod.get_existing_bands()
         [<SarBandNames.VV: 'VV'>,
         <SarBandNames.VH: 'VH'>,
-        <SarBandNames.VV_DSPK: 'DESPK_VV'>,
-        <SarBandNames.VH_DSPK: 'DESPK_VH'>]
+        <SarBandNames.VV_DSPK: 'VV_DSPK'>,
+        <SarBandNames.VH_DSPK: 'VH_DSPK'>]
         ```
 
         Returns:
@@ -660,7 +660,7 @@ class SarProduct(Product):
                 cmd_list = snap.get_gpt_cli(pp_graph,
                                             [f'-Pfile={strings.to_cmd_string(self._snap_path)}',
                                              f'-Pout={pp_dim}',
-                                             f'-Pcrs={self.utm_crs()}',
+                                             f'-Pcrs={self.crs()}',
                                              f'-Pres_m={res_m}',
                                              f'-Pres_deg={res_deg}'],
                                             display_snap_opt=LOGGER.level == logging.DEBUG)
@@ -689,7 +689,7 @@ class SarProduct(Product):
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Out files
-            target_file = os.path.join(tmp_dir, f"{self.condensed_name}_DESPK")
+            target_file = os.path.join(tmp_dir, f"{self.condensed_name}_DSPK")
             dspk_dim = target_file + '.dim'
 
             # Despeckle graph

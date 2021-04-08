@@ -364,7 +364,7 @@ class S2Product(OpticalProduct):
                 # Set fiona logger back to what it was
                 fiona_logger.setLevel(logging.INFO)
             except ValueError:
-                mask = gpd.GeoDataFrame(geometry=[], crs=self.utm_crs())
+                mask = gpd.GeoDataFrame(geometry=[], crs=self.crs())
 
             return mask
 

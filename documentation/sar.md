@@ -12,6 +12,22 @@
 .. WARNING::
     Satellites products that cannot be used as archived have to be extracted before use.
 
+## SAR Bands
+According to what contains the products, allowed SAR bands are:
+
+- `VV` (`eoreader.bands.bands.SarBandNames.VV`)
+- `VH` (`eoreader.bands.bands.SarBandNames.VH`)
+- `HH` (`eoreader.bands.bands.SarBandNames.HH`)
+- `HV` (`eoreader.bands.bands.SarBandNames.HV`)
+
+You also can load despeckled bands:
+
+- `VV_DSPK` (`eoreader.bands.bands.SarBandNames.VV_DSPK`)
+- `VH_DSPK` (`eoreader.bands.bands.SarBandNames.VH_DSPK`)
+- `HH_DSPK` (`eoreader.bands.bands.SarBandNames.HH_DSPK`)
+- `HV_DSPK` (`eoreader.bands.bands.SarBandNames.HV_DSPK`)
+
+
 ## DEM bands
 SAR satellites can only load `eoreader.bands.bands.DemBandNames.DEM` and `eoreader.bands.bands.DemBandNames.SLOPE` bands. 
 The `SLOPE` band is computed with the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.

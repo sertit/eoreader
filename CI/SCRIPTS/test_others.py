@@ -47,7 +47,7 @@ def test_alias():
     assert not is_band(SLOPE)
     assert not is_band(CLOUDS)
 
-    # CLASSIF
+    # Clouds
     assert not is_clouds(NDVI)
     assert not is_clouds(HH)
     assert not is_clouds(GREEN)
@@ -55,7 +55,7 @@ def test_alias():
     assert is_clouds(CLOUDS)
 
     # Other functions
-    lst = to_band_or_idx(["NDVI", "GREEN", RED, "DESPK_VH", "SLOPE", DEM, "CLOUDS", CLOUDS])
+    lst = to_band_or_idx(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
     assert lst == [NDVI, GREEN, RED, VH_DSPK, SLOPE, DEM, CLOUDS, CLOUDS]
     with pytest.raises(InvalidTypeError):
         to_band_or_idx(["WRONG_BAND"])
@@ -95,7 +95,7 @@ def test_products():
 def test_bands():
     # SAR
     assert SarBandNames.from_list(["VV", "VH"]) == [VV, VH]
-    assert SarBandNames.to_value_list([HV_DSPK, VV]) == ['DESPK_HV', 'VV']
+    assert SarBandNames.to_value_list([HV_DSPK, VV]) == ['HV_DSPK', 'VV']
     assert SarBandNames.to_value_list() == SarBandNames.list_values()
     assert SarBandNames.corresponding_speckle(SarBandNames.VV) == VV
     assert SarBandNames.corresponding_speckle(SarBandNames.VV_DSPK) == VV

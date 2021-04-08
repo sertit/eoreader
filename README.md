@@ -1,6 +1,17 @@
 # EOReader
 
-This project allows you to read and open satellite data.
+This project allows you to read and open multiple 
+[optical](#implemented-optical-satellites) and [SAR](#implemented-sar-satellites) satellite data.
+
+It also implements two additional features:
+
+- `eoreader.products.product.Product.load`: Load many band types:
+    - satellite bands ([optical](#band-mapping) or [SAR](#sar-bands))
+    - [index](#available-index)
+    - [cloud bands](#cloud-bands)
+    - [DEM bands](#dem-bands)
+- `eoreader.products.product.Product.stack`: Stack all these type of bands
+
 
 ## Dependencies
 

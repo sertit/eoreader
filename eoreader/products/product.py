@@ -202,7 +202,7 @@ class Product:
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint of the products (without nodata, in french == emprise utile)
+        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
 
         ```python
         >>> from eoreader.reader import Reader
@@ -219,7 +219,7 @@ class Product:
         return rasters.get_footprint(self.get_default_band_path())
 
     @abstractmethod
-    def utm_extent(self) -> gpd.GeoDataFrame:
+    def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
 
@@ -238,7 +238,7 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def utm_crs(self) -> crs.CRS:
+    def crs(self) -> crs.CRS:
         """
         Get UTM projection of the tile
 
@@ -624,9 +624,16 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def has_band(self, band: BandNames) -> bool:
+    def has_band(self, band: Union[BandNames, Callable]) -> bool:
         """
         Does this products has the specified band ?
+
+        By band, we mean:
+
+        - satellite band
+        - index
+        - DEM band
+        - cloud band
 
         ```python
         >>> from eoreader.reader import Reader
@@ -637,6 +644,12 @@ class Product:
         True
         >>> prod.has_band(TIR_2)
         False
+        >>> prod.has_band(NDVI)
+        True
+        >>> prod.has_band(SHADOWS)
+        False
+        >>> prod.has_band(HILLSHADE)
+        True
         ```
 
         Args:
@@ -652,6 +665,8 @@ class Product:
                 has_band = True
         elif is_clouds(band):
             has_band = self._has_cloud_band(band)
+        elif is_index(band):
+            has_band = self._has_index(band)
         else:
             has_band = band in self.get_existing_bands()
 
@@ -672,7 +687,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def has_index(self, idx: Callable) -> bool:
+    def _has_index(self, idx: Callable) -> bool:
         """
         Cen the specified index be computed from this products ?
 
@@ -836,7 +851,7 @@ class Product:
             LOGGER.debug("Warping DEM for %s", self.name)
 
             # Get products extent
-            prod_extent_df = self.utm_extent()
+            prod_extent_df = self.extent()
 
             # The MERIT is the default DEM as it covers almost the entire Earth
             if not dem_path:
