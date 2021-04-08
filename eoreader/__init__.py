@@ -5,6 +5,10 @@
 
 _____
 
+.. include:: ../documentation/main_features.md
+
+_____
+
 .. include:: ../documentation/optical.md
 
 _____

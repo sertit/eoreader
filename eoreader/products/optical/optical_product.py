@@ -69,7 +69,7 @@ class OpticalProduct(Product):
         default_band = self.get_default_band()
         return self.get_band_paths([default_band])[default_band]
 
-    def utm_crs(self) -> rasterio.crs.CRS:
+    def crs(self) -> rasterio.crs.CRS:
         """
         Get UTM projection of the tile
 
@@ -90,7 +90,7 @@ class OpticalProduct(Product):
 
         return utm
 
-    def utm_extent(self) -> gpd.GeoDataFrame:
+    def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
 
@@ -326,7 +326,7 @@ class OpticalProduct(Product):
         # Check if everything is valid
         for idx_or_band in band_and_idx_list:
             if is_index(idx_or_band):
-                if self.has_index(idx_or_band):
+                if self._has_index(idx_or_band):
                     index_list.append(idx_or_band)
                 else:
                     raise InvalidIndexError(f"{idx_or_band} cannot be computed from {self.condensed_name}.")

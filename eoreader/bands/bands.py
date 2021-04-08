@@ -68,9 +68,9 @@ class BandNames(ListEnum):
 
         ```python
         >>> SarBandNames.to_name_list([SarBandNames.HV_DSPK, SarBandNames.VV])
-        ['DESPK_HV', 'VV']
+        ['HV_DSPK', 'VV']
         >>> SarBandNames.to_name_list()
-        ['VV', 'DESPK_VV', 'HH', 'DESPK_HH', 'VH', 'DESPK_VH', 'HV', 'DESPK_HV']
+        ['VV', 'VV_DSPK', 'HH', 'HH_DSPK', 'VH', 'VH_DSPK', 'HV', 'HV_DSPK']
         ```
 
         Args:
@@ -102,25 +102,25 @@ class SarBandNames(BandNames):
     VV = 'VV'
     """ Vertical Transmit-Vertical Receive Polarisation """
 
-    VV_DSPK = 'DESPK_VV'
+    VV_DSPK = 'VV_DSPK'
     """ Vertical Transmit-Vertical Receive Polarisation Despeckled """
 
     HH = 'HH'
     """ Horizontal Transmit-Horizontal Receive Polarisation """
 
-    HH_DSPK = 'DESPK_HH'
+    HH_DSPK = 'HH_DSPK'
     """ Horizontal Transmit-Horizontal Receive Polarisation Despeckled """
 
     VH = 'VH'
     """ Vertical Transmit-Horizontal Receive Polarisation """
 
-    VH_DSPK = 'DESPK_VH'
+    VH_DSPK = 'VH_DSPK'
     """ Vertical Transmit-Horizontal Receive Polarisatio Despeckled """
 
     HV = 'HV'
     """ Horizontal Transmit-Vertical Receive Polarisation """
 
-    HV_DSPK = 'DESPK_HV'
+    HV_DSPK = 'HV_DSPK'
     """ Horizontal Transmit-Vertical Receive Polarisation Despeckled """
 
     @classmethod
@@ -130,9 +130,9 @@ class SarBandNames(BandNames):
 
         ```python
         >>> SarBandNames.corresponding_despeckle(SarBandNames.VV)
-        <SarBandNames.VV_DSPK: 'DESPK_VV'>
+        <SarBandNames.VV_DSPK: 'VV_DSPK'>
         >>> SarBandNames.corresponding_despeckle(SarBandNames.VV_DSPK)
-        <SarBandNames.VV_DSPK: 'DESPK_VV'>
+        <SarBandNames.VV_DSPK: 'VV_DSPK'>
         ```
         Args:
             band (SarBandNames): Noisy (speckle) band
@@ -143,7 +143,7 @@ class SarBandNames(BandNames):
         if cls.is_despeckle(band):
             dspk = band
         else:
-            dspk = cls.from_value(f"DESPK_{band.name}")
+            dspk = cls.from_value(f"{band.name}_DSPK")
 
         return dspk
 

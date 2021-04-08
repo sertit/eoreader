@@ -55,7 +55,7 @@ def _test_core(pattern: str):
 
             # Get stack bands
             # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-            possible_bands = [RED, SWIR_2, NDVI, HILLSHADE, CLOUDS]
+            possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
             stack_bands = [band for band in possible_bands if prod.has_band(band)]
 
             # Manage S3 resolution to speed up processes
@@ -78,7 +78,7 @@ def _test_core(pattern: str):
                 ci.assert_raster_equal(curr_path, ci_data)
 
             # CRS
-            assert prod.utm_crs().is_projected
+            assert prod.crs().is_projected
 
 
 def test_s2():
@@ -181,7 +181,7 @@ def test_sar():
                 ci.assert_raster_equal(curr_path, ci_data)
 
             # CRS
-            assert prod.utm_crs().is_projected
+            assert prod.crs().is_projected
 
             # Empty load
             band, meta = prod.load([])

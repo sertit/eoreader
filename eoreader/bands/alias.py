@@ -255,11 +255,11 @@ def to_band_or_idx(to_convert: _tp.Union[list, str]) -> list:
     You can pass the name or the value of the bands.
 
     ```python
-    >>> to_band_or_idx(["NDVI", "GREEN", RED, "DESPK_VH", "SLOPE", DEM, "CLOUDS", CLOUDS])
+    >>> to_band_or_idx(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
     [<function NDVI at 0x00000154DDB12488>,
     <OpticalBandNames.GREEN: 'GREEN'>,
     <OpticalBandNames.RED: 'RED'>,
-    <SarBandNames.VH_DSPK: 'DESPK_VH'>,
+    <SarBandNames.VH_DSPK: 'VH_DSPK'>,
     <DemBandNames.SLOPE: 'SLOPE'>,
     <DemBandNames.DEM: 'DEM'>,
     <ClassifBandNames.CLOUDS: 'CLOUDS'>,

@@ -685,7 +685,7 @@ class S3Product(OpticalProduct):
 
         return snap_bands.split(",")
 
-    def utm_extent(self) -> gpd.GeoDataFrame:
+    def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile, managing the case with not orthorectified bands.
 
@@ -702,7 +702,7 @@ class S3Product(OpticalProduct):
             gpd.GeoDataFrame: Footprint in UTM
         """
         try:
-            extent = super().utm_extent()
+            extent = super().extent()
 
         except (FileNotFoundError, TypeError) as ex:
             def get_min_max(substr: str, subdatasets: list) -> (float, float):
