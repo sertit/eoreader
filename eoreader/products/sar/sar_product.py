@@ -678,7 +678,7 @@ class SarProduct(Product):
 
     def _despeckle_sar(self, band: sbn) -> str:
         """
-        Pre-process SAR data (orthorectify...)
+        Pre-process SAR data (geocode...)
 
         Args:
             band (sbn): Band to despeckle
