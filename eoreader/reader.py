@@ -17,6 +17,25 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 @unique
+class CheckMethod(ListEnum):
+    """Methods to recognize a product"""
+
+    MTD = "Metadata"
+    """Check the metadata: faster method"""
+
+    NAME = "Filename"
+    """
+    Check the filename: 
+    
+    Safer method that allows modified product names as it recursively looks for the metadata name in the product files.
+    For products that have generic metadata files (ie. RS2 that as mtd named `product.xml`), 
+    it also checks the band name.
+    """
+
+    BOTH = "Both"
+    """Check the metadata and the filename: Double check if you have a doubt."""
+
+@unique
 class Platform(ListEnum):
     """ Platforms supported by EOReader """
     S1 = "Sentinel-1"
@@ -74,14 +93,36 @@ PLATFORM_REGEX = {
     Platform.L3: r"LM03_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
     Platform.L2: r"LM02_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
     Platform.L1: r"LM01_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
-    Platform.CSK: [r".+",
+    Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}",
+    Platform.CSK: [r".+",  # Need to check inside as the folder does not have any recognizable name
                    r"CSKS[1-4]_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
-                   r"\w{2}_(HH|VV|VH|HV|CO|CH|CV)_[LR][AD]_[FS][NF]_\d{14}_\d{14}.h5"],
+                   r"\w{2}_(HH|VV|VH|HV|CO|CH|CV)_[LR][AD]_[FS][NF]_\d{14}_\d{14}\.h5"],
     Platform.TSX: r"T[SD]X1_SAR__(SSC|MGD|GEC|EEC)_[SR]E___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
-    # "tsx": "TX01_SAR_[SH][MCLS]_(SSC|MGD|GEC|EEC)_\d{8}T\d{6}_\d{8}T\d{6}_NSG_\d{6}_\d{4}",
     Platform.RS2: r"RS2_OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)"
 }
-"""Platform regex, mapping every platform to a regex allowing the reader to recognize them."""
+
+# Not used for now
+MTD_REGEX = {
+    Platform.S1: f"{PLATFORM_REGEX[Platform.S1].lower().replace('_', '-')}-\d{3}\.xml",
+    Platform.S2: [r"MTD_MSIL(1C|2A)\.xml",  # Too generic name, check also a band
+                  r"T\d{2}\w{3}_\d{8}T\d{6}_B\d{2}(_\d0m|).jp2"],
+    Platform.S2_THEIA: f"{PLATFORM_REGEX[Platform.S2_THEIA]}_MTD_ALL\.xml",
+    Platform.S3: [r"xfdumanifest\.xml",  # Not the real metadata...
+                  r"(S\d|Oa\d{2})_radiance(_an|).nc"],
+    Platform.L8: f"{PLATFORM_REGEX[Platform.L8]}_MTL\.txt",
+    Platform.L7: f"{PLATFORM_REGEX[Platform.L7]}_MTL\.txt",
+    Platform.L5: f"{PLATFORM_REGEX[Platform.L5]}_MTL\.txt",
+    Platform.L4: f"{PLATFORM_REGEX[Platform.L4]}_MTL\.txt",
+    Platform.L3: f"{PLATFORM_REGEX[Platform.L3]}_MTL\.txt",
+    Platform.L2: f"{PLATFORM_REGEX[Platform.L2]}_MTL\.txt",
+    Platform.L1: f"{PLATFORM_REGEX[Platform.L1]}_MTL\.txt",
+    Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*\.xml",
+    Platform.CSK: f"{PLATFORM_REGEX[Platform.CSK][1]}\.xml",
+    Platform.TSX: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
+    Platform.RS2: [r"product\.xml",  # Too generic name, check also a band
+                   r"imagery_[HV]{2}.tif"]
+}
+"""Platform XML regex, mapping every metadata XML to a regex allowing the reader to recognize them (as a fallback)."""
 
 
 class Reader:
@@ -93,33 +134,45 @@ class Reader:
 
     def __init__(self):
         self._platform_regex = {}
+        self._mtd_regex = {}
 
-        # Register satellites platforms
+        # Register platforms
         for platform, regex in PLATFORM_REGEX.items():
-            self._register_platforms(platform, regex)
+            self._platform_regex[platform] = self._compile(regex)
 
-    def _register_platforms(self, platform: Platform, regex: Union[str, list]) -> None:
+        # Register metadata
+        for platform, regex in MTD_REGEX.items():
+            self._mtd_regex[platform] = self._compile(regex, prefix=".*", suffix="")
+
+    def _compile(self, regex: Union[str, list], prefix="^", suffix="&") -> list:
         """
-        Register new platforms
+        Compile regex or list of regex
 
         Args:
-            platform (Platform): Platform
-            regex (str): Regex of its file name
+            regex (Union[str, list]): Regex in `re` sense
+            prefix (str): Prefix of regex, ^ by default (means start of the string)
+            suffix (str): Prefix of regex, & by default (means end of the string)
+
+        Returns:
+            list: List of compiled pattern
         """
 
-        def compile_sat(regex_str: str):
-            return re.compile(f"^{regex_str}$")  # Regex for the whole name: ^...$
+        def _compile_(regex_str: str):
+            return re.compile(f"{prefix}{regex_str}{suffix}")
 
         # Case folder is not enough to identify the products (ie. COSMO Skymed)
         if isinstance(regex, list):
-            self._platform_regex[platform] = [compile_sat(regex) for regex in regex]
+            comp = [_compile_(regex) for regex in regex]
         else:
-            self._platform_regex[platform] = compile_sat(regex)
+            comp = [_compile_(regex)]
+
+        return comp
 
     def open(self,
              product_path: str,
              archive_path: str = None,
-             output_path: str = None) -> "Product":
+             output_path: str = None,
+             method=CheckMethod.MTD) -> "Product":
         """
         Open the product.
 
@@ -134,15 +187,23 @@ class Reader:
             product_path (str): Product path
             archive_path (str): Archive path
             output_path (str): Output Path
+            look_for_mtd (bool): Look for the metadata. If false, only check the
 
         Returns:
             Product: Correct products
 
         """
         prod = None
-        for platform, regex in self._platform_regex.items():
-            if self._is_valid(product_path, regex):
-                sat_class = platform.name.lower() + "_product"
+        for platform in Platform.list_names():
+            if method == CheckMethod.MTD:
+                is_valid = self.valid_mtd(product_path, platform)
+            elif method == CheckMethod.NAME:
+                is_valid = self.valid_name(product_path, platform)
+            else:
+                is_valid = self.valid_name(product_path, platform) and self.valid_mtd(product_path, platform)
+
+            if is_valid:
+                sat_class = platform.lower() + "_product"
 
                 # Manage both optical and SAR
                 try:
@@ -159,41 +220,12 @@ class Reader:
 
         return prod
 
-    def get_platform_id(self, product_path: str) -> str:
-        """
-        Get the correct platform ID (S1, S2, TSX...)
-
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> Reader().get_platform_name(path)
-        'S2'
-        ```
-
-        Args:
-            product_path (str): Product path
-
-        Returns:
-            str: Product type
-
-        """
-        sat_name = ""
-        for sat_prod, regex in self._platform_regex.items():
-            if self._is_valid(product_path, regex):
-                sat_name = sat_prod.name
-                break
-
-        if not sat_name:
-            LOGGER.warning("Product not found for file %s", product_path)
-
-        return sat_name
-
     def valid_name(self, product_path: str, platform: Union[str, Platform]) -> bool:
         """
         Check if the product's name is valid for the given satellite
 
         ```python
-        >>> from eoreader.reader import Reader
+        >>> from eoreader.reader import Reader, Platform
         >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
         >>> With IDs
         >>> Reader().valid_name(path, "S1")
@@ -224,12 +256,79 @@ class Reader:
         """
         platform = Platform.convert_from(platform)[0]
         regex = self._platform_regex[platform]
-        return self._is_valid(product_path, regex)
+        return self._is_filename_valid(product_path, regex)
+
+    def valid_mtd(self, product_path: str, platform: Union[str, Platform]) -> bool:
+        """
+        Check if the product's mtd is in the product folder/archive
+
+        ```python
+        >>> from eoreader.reader import Reader, Platform
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> With IDs
+        >>> Reader().valid_mtd(path, "S1")
+        False
+        >>> Reader().valid_mtd(path, "S2")
+        True
+
+        >>> # With names
+        >>> Reader().valid_mtd(path, "Sentinel-1")
+        False
+        >>> Reader().valid_mtd(path, "Sentinel-2")
+        True
+
+        >>> # With Platform
+        >>> Reader().valid_mtd(path, Platform.S1)
+        False
+        >>> Reader().valid_mtd(path, Platform.S2)
+        True
+        ```
+
+        Args:
+            product_path (str): Product path
+            platform (str): Platform's name or ID
+
+        Returns:
+            bool: True if valid name
+
+        """
+        platform = Platform.convert_from(platform)[0]
+
+        # Here the list is a check of several files
+        regex_list = self._mtd_regex[platform]
+
+        # False by default
+        is_valid = [False for idx in regex_list]
+
+        for idx, regex in enumerate(regex_list):
+            # Folder
+            if os.path.isdir(product_path):
+                for root, dirs, fls in os.walk(product_path):
+                    for fle in fls:
+                        if regex.match(fle):
+                            is_valid[idx] = True
+                            break
+
+            # Archive
+            else:
+                if os.path.isfile(product_path):
+                    fls = files.get_archived_file_list(product_path)
+                    for fle in fls:
+                        if regex.match(fle):
+                            is_valid[idx] = True
+                            break
+
+        return all(is_valid)
 
     @staticmethod
-    def _is_valid(product_path: str, regex: Union[list, re.Pattern]) -> bool:
+    def _is_filename_valid(product_path: str, regex: Union[list, re.Pattern]) -> bool:
         """
-        Check if the filename corresponds to the given satellite regex
+        Check if the filename corresponds to the given satellite regex.
+
+        Checks also if a file inside the directory is correct.
+
+        .. WARNING::
+            Two level max for the moment
 
         Args:
             product_path (str): Product path
@@ -238,19 +337,20 @@ class Reader:
         Returns:
             bool: True if the filename corresponds to the given satellite regex
         """
-        is_valid = False
         product_file_name = files.get_filename(product_path)
 
         # Case folder is not enough to identify the products (ie. COSMO Skymed)
-        # Two level max for the moment
-        if isinstance(regex, list):
-            if regex[0].match(product_file_name) and os.path.isdir(product_path):
+        # WARNING: Two level max for the moment
+        is_valid = bool(regex[0].match(product_file_name))
+        if is_valid and len(regex) > 1:
+            is_valid = False # Reset
+            if os.path.isdir(product_path):
                 file_list = os.listdir(product_path)
                 for file in file_list:
                     if regex[1].match(file):
                         is_valid = True
                         break
-        else:
-            is_valid = bool(regex.match(product_file_name))
+            else:
+                LOGGER.debug("The product should be a folder.")
 
         return is_valid

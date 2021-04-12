@@ -16,4 +16,4 @@ DEM_PATH = "EOREADER_DEM_PATH"
 """Environment variables for overriding default DEM path"""
 
 CI_SNAP_BAND_FOLDER = "CI_SNAP_BAND_FOLDER"
-"""Environment variables used in CI to override the existing band path in order to skip SNAP process."""
+"""Environment variables used in CI to override the existing band path in order to bypass SNAP process."""
