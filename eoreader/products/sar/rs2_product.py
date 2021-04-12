@@ -23,7 +23,6 @@ from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-RS2_NAME = "RADARSAT-2"
 
 # Disable georef warnings here as the SAR products are not georeferenced
 warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
@@ -264,7 +263,7 @@ class Rs2Product(SarProduct):
                                    cplx_types=Rs2ProductType.SLC)
         if self.product_type != Rs2ProductType.SGF:
             LOGGER.warning("Other products type than SGF has not been tested for %s data. "
-                           "Use it at your own risks !", RS2_NAME)
+                           "Use it at your own risks !", self.platform.value)
 
     def _set_sensor_mode(self) -> None:
         """
@@ -321,16 +320,6 @@ class Rs2Product(SarProduct):
             date = datetime.strptime(date, DATETIME_FMT)
 
         return date
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
-
-        Returns:
-            str: Condensed S1 name
-        """
-
-        return f"{self.get_datetime()}_RS2_{self.sensor_mode.name}_{self.product_type.value}"
 
     def read_mtd(self) -> (etree._Element, str):
         """

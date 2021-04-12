@@ -22,7 +22,6 @@ from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-S1_NAME = "Sentinel-1"
 
 # Disable georef warnings here as the SAR products are not georeferenced
 warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
@@ -212,7 +211,7 @@ class S1Product(SarProduct):
         if self.sensor_mode != S1SensorMode.IW:
             raise NotImplementedError(f"For now, only IW sensor mode is used in EOReader processes: {self.name}")
         if not self.sensor_mode:
-            raise InvalidProductError(f"Invalid {S1_NAME} name: {self.name}")
+            raise InvalidProductError(f"Invalid {self.platform.value} name: {self.name}")
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -240,16 +239,6 @@ class S1Product(SarProduct):
             date = datetime.strptime(date, DATETIME_FMT)
 
         return date
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
-
-        Returns:
-            str: Condensed S1 name
-        """
-
-        return f"{self.get_datetime()}_S1_{self.sensor_mode.value}_{self.product_type.value}"
 
     def read_mtd(self) -> (etree._Element, str):
         """

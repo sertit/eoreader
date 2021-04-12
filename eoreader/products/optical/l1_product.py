@@ -14,17 +14,3 @@ class L1Product(LandsatProduct):
     def _set_product_type(self) -> None:
         """ Get products type """
         self._set_mss_product_type(version=1)
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get products condensed name ({date}_L1_{tile}_{product_type}).
-
-        ```python
-        >>> prod.get_condensed_name()
-        19771228T151759_L1_033031_MSS
-        ```
-
-        Returns:
-            str: Condensed L1 name
-        """
-        return self._get_landsat_condensed_name(version=1)
