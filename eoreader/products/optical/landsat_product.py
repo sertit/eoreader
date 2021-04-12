@@ -632,16 +632,7 @@ class LandsatProduct(OpticalProduct):
         Returns:
             str: Condensed Landsat name
         """
-        raise NotImplementedError("This method should be implemented by a child class")
-
-    def _get_landsat_condensed_name(self, version: int) -> str:
-        """
-        Get products condensed name ({date}_L{version}_{tile}_{product_type}).
-
-        Returns:
-            str: Condensed L8 name
-        """
-        return f"{self.get_datetime()}_L{version}_{self.tile_name}_{self.product_type.value}"
+        return f"{self.get_datetime()}_{self.platform.name}_{self.tile_name}_{self.product_type.value}"
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """

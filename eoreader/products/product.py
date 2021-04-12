@@ -159,10 +159,7 @@ class Product:
         self._mask_true = 1
         self._mask_false = 0
 
-        self.sat_id = PRODUCT_FACTORY.get_platform_id(self.path)
-        """Satellite ID, i.e. `S2` for Sentinel-2"""
-
-        self.platform = getattr(Platform, self.sat_id)
+        self.platform = self._get_platform()
         """Product platform, such as Sentinel-2"""
 
         # Post initialization
@@ -184,6 +181,9 @@ class Product:
         (ie. `20191215T110441_S2_30TXP_L2A_122756`). 
         Used to shorten names and paths.
         """
+
+        self.sat_id = self.platform.name
+        """Satellite ID, i.e. `S2` for Sentinel-2"""
 
         # TODO: manage self.needs_extraction
 
@@ -268,6 +268,12 @@ class Product:
         Set product type
         """
         raise NotImplementedError("This method should be implemented by a child class")
+
+    @classmethod
+    def _get_platform(cls) -> Platform:
+        class_module = cls.__module__.split(".")[-1]
+        sat_id = class_module.split("_")[0].upper()
+        return getattr(Platform, sat_id)
 
     @abstractmethod
     def _get_condensed_name(self) -> str:

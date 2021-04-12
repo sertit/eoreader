@@ -23,7 +23,6 @@ from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-CSK_NAME = "COSMO-Skymed"
 
 # Disable georef warnings here as the SAR products are not georeferenced
 warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
@@ -239,7 +238,7 @@ class CskProduct(SarProduct):
                 self.sensor_mode = sens_mode
 
         if not self.sensor_mode:
-            raise InvalidProductError(f"Invalid {CSK_NAME} name: {self._real_name}")
+            raise InvalidProductError(f"Invalid {self.platform.value} name: {self._real_name}")
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime.datetime]:
         """
@@ -268,15 +267,6 @@ class CskProduct(SarProduct):
             date = date.strftime(DATETIME_FMT)
 
         return date
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
-
-        Returns:
-            str: Condensed S1 name
-        """
-        return f"{self.get_datetime()}_CSK_{self.sensor_mode.value}_{self.product_type.value}"
 
     def _get_split_name(self) -> list:
         """

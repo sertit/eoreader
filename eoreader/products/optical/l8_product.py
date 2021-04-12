@@ -15,12 +15,3 @@ class L8Product(LandsatProduct):
     def _set_product_type(self) -> None:
         """ Get products type """
         self._set_olci_product_type()
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get products condensed name ({date}_L8_{tile}_{product_type}).
-
-        Returns:
-            str: Condensed L8 name
-        """
-        return self._get_landsat_condensed_name(version=8)

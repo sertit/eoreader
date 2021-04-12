@@ -25,12 +25,3 @@ class L5Product(LandsatProduct):
             self._set_mss_product_type(version=5)
         else:
             raise InvalidProductError(f"Invalid Landsat-5 name: {self.name}")
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get products condensed name ({date}_L5_{tile}_{product_type}).
-
-        Returns:
-            str: Condensed L5 name
-        """
-        return self._get_landsat_condensed_name(version=5)
