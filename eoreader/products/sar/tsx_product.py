@@ -21,7 +21,6 @@ from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-TSX_NAME = "TerraSAR-X"
 
 # Disable georef warnings here as the SAR products are not georeferenced
 warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
@@ -202,7 +201,7 @@ class TsxProduct(SarProduct):
                                    cplx_types=TsxProductType.SSC)
         if self.product_type != TsxProductType.MGD:
             LOGGER.warning("Other products type than MGD has not been tested for %s data. "
-                           "Use it at your own risks !", TSX_NAME)
+                           "Use it at your own risks !", self.platform.value)
 
     def _set_sensor_mode(self) -> None:
         """
@@ -240,15 +239,6 @@ class TsxProduct(SarProduct):
             date = datetime.strptime(date, DATETIME_FMT)
 
         return date
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
-
-        Returns:
-            str: Condensed S1 name
-        """
-        return f"{self.get_datetime()}_TSX_{self.sensor_mode.value}_{self.product_type.value}"
 
     def read_mtd(self) -> (etree._Element, str):
         """

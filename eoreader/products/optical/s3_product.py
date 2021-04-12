@@ -24,7 +24,7 @@ from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.products.product import path_or_dst
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
-from eoreader.env_vars import S3_DEF_RES
+from eoreader.env_vars import S3_DEF_RES, CI_SNAP_BAND_FOLDER
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 BT_BANDS = [obn.MIR, obn.TIR_1, obn.TIR_2]
@@ -74,6 +74,17 @@ class S3Product(OpticalProduct):
         self._data_type = None
         self._snap_no_data = -1
         super().__init__(product_path, archive_path, output_path)  # Order is important here
+
+    def _get_band_folder(self):
+        """ Manage the case of CI SNAP Bands"""
+
+        # Manage CI SNAP band
+        if os.path.isdir(os.environ[CI_SNAP_BAND_FOLDER]):
+            band_folder = os.environ[CI_SNAP_BAND_FOLDER]
+        else:
+            band_folder = self.output
+
+        return band_folder
 
     def _post_init(self) -> None:
         """
@@ -314,7 +325,7 @@ class S3Product(OpticalProduct):
 
             try:
                 # Try to open converted images
-                band_paths[band] = files.get_file_in_dir(self.output, band_name + ".tif")
+                band_paths[band] = files.get_file_in_dir(self._get_band_folder(), band_name + ".tif")
             except (FileNotFoundError, TypeError):
                 use_snap = True
 
@@ -487,7 +498,7 @@ class S3Product(OpticalProduct):
         sat_band_id = band_bit_id[band]
 
         # Open quality flags
-        qual_flags_path = os.path.join(self.output, "quality_flags.tif")
+        qual_flags_path = os.path.join(self._get_band_folder(), "quality_flags.tif")
         if not os.path.isfile(qual_flags_path):
             LOGGER.warning("Impossible to open quality flags %s. Taking the band as is.", qual_flags_path)
             return band_arr, meta
@@ -536,7 +547,8 @@ class S3Product(OpticalProduct):
         nodata_false = 0
 
         # Open quality flags (discard _an/_in)
-        qual_flags_path = os.path.join(self.output, self._get_slstr_quality_flags_name(band)[:-3] + ".tif")
+        qual_flags_path = os.path.join(self._get_band_folder(),
+                                       self._get_slstr_quality_flags_name(band)[:-3] + ".tif")
         if not os.path.isfile(qual_flags_path):
             LOGGER.warning("Impossible to open quality flags %s. Taking the band as is.", qual_flags_path)
             return band_arr, meta
@@ -899,7 +911,7 @@ class S3Product(OpticalProduct):
             cloud_ids = [id for id in all_ids if id != cir_id]
 
             try:
-                cloud_path = files.get_file_in_dir(self.output, "cloud_RAD.tif")
+                cloud_path = files.get_file_in_dir(self._get_band_folder(), "cloud_RAD.tif")
             except FileNotFoundError:
                 self._preprocess_s3(resolution)
                 cloud_path = files.get_file_in_dir(self.output, "cloud_RAD.tif")
