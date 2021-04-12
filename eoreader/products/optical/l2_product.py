@@ -14,12 +14,3 @@ class L2Product(LandsatProduct):
     def _set_product_type(self) -> None:
         """ Get products type """
         self._set_mss_product_type(version=2)
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get products condensed name (L2_{date}_{tile}_{product_type}).
-
-        Returns:
-            str: Condensed L2 name
-        """
-        return self._get_landsat_condensed_name(version=2)

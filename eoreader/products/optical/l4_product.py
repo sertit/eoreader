@@ -25,12 +25,3 @@ class L4Product(LandsatProduct):
             self._set_mss_product_type(version=4)
         else:
             raise InvalidProductError(f"Invalid Landsat-4 name: {self.name}")
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get products condensed name ({date}_L4_{tile]_{product_type}).
-
-        Returns:
-            str: Condensed L4 name
-        """
-        return self._get_landsat_condensed_name(version=4)

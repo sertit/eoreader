@@ -8,9 +8,7 @@ from sertit import logs, files, ci
 
 from .scripts_utils import OPT_PATH, SAR_PATH, READER, get_ci_data_dir
 from eoreader.bands.alias import *
-from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES, CI_SNAP_BAND_FOLDER
-from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -32,31 +30,56 @@ def test_invalid():
     assert not READER.valid_name(wrong_path, "S2")
 
 
-def _test_core(pattern: str):
+def _test_core_optical(pattern: str):
+    """
+    Core function testing optical data
+    Args:
+        pattern (str): Pattern of the satellite
+    """
+    possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
+    _test_core(pattern, OPT_PATH, possible_bands)
+
+def _test_core_sar(pattern: str):
+    """
+    Core function testing SAR data
+    Args:
+        pattern (str): Pattern of the satellite
+    """
+    possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
+    _test_core(pattern, SAR_PATH, possible_bands)
+
+def _test_core(pattern: str, prod_dir: str, possible_bands: list):
+    """
+    Core function testing all data
+    Args:
+        pattern (str): Pattern of the satellite
+        prod_dir (str): Product directory
+        possible_bands(list): Possible bands
+    """
     # Init logger
     logs.init_logger(LOGGER)
 
     # DATA paths
-    opt_path = files.get_file_in_dir(OPT_PATH, pattern, get_list=True)
+    pattern_paths = files.get_file_in_dir(prod_dir, pattern, exact_name=True, get_list=True)
 
-    for path in opt_path:
+    for path in pattern_paths:
         LOGGER.info(os.path.basename(path))
 
         # Open product and set output
-        prod: OpticalProduct = READER.open(path)
+        prod = READER.open(path)
 
         # Discard the case where an invalid file/directory is in the CI folder
         if prod is not None:
             with tempfile.TemporaryDirectory() as tmp_dir:
                 prod.output = tmp_dir
                 os.environ[CI_SNAP_BAND_FOLDER] = os.path.join(get_ci_data_dir(), prod.condensed_name)
+                os.environ[SAR_DEF_RES] = str(RES)
 
                 # Remove DEM tifs if existing
                 remove_dem(prod)
 
                 # Get stack bands
                 # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-                possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
                 stack_bands = [band for band in possible_bands if prod.has_band(band)]
 
                 # Manage S3 resolution to speed up processes
@@ -83,111 +106,85 @@ def _test_core(pattern: str):
 
 def test_s2():
     """ Function testing the correct functioning of the optical satellites """
-    _test_core("S2*_MSI*")
+    _test_core_optical("S2*_MSI*")
 
 
 def test_s2_theia():
     """ Function testing the correct functioning of the optical satellites """
-    _test_core("SENTINEL2")
+    _test_core_optical("SENTINEL2*")
 
 
 def test_s3():
     """ Function testing the correct functioning of the optical satellites """
     # Init logger
-    _test_core("S3*_*L_1_*")
+    _test_core_optical("S3*_*L_1_*")
 
 
 def test_l8():
     """ Function testing the correct functioning of the optical satellites """
     # Init logger
-    _test_core("LC08*")
+    _test_core_optical("LC08*")
 
 
 def test_l7():
     """ Function testing the correct functioning of the optical satellites """
-    _test_core("LE07*")
+    _test_core_optical("LE07*")
 
 
 def test_l5_tm():
     """ Function testing the correct functioning of the optical satellites """
-    _test_core("LT05*")
+    _test_core_optical("LT05*")
 
 
 def test_l4_tm():
     """ Function testing the correct functioning of the optical satellites """
-    _test_core("LT04*")
+    _test_core_optical("LT04*")
 
 
 def test_l5_mss():
     """ Function testing the correct functioning of the optical satellites """
-    _test_core("LM05*")
+    _test_core_optical("LM05*")
 
 
 def test_l4_mss():
     """ Function testing the correct functioning of the optical satellites """
-    _test_core("LM04*")
+    _test_core_optical("LM04*")
 
 
 def test_l3_mss():
     """ Function testing the correct functioning of the optical satellites """
-    _test_core("LM03*")
+    _test_core_optical("LM03*")
 
 
 def test_l2_mss():
     """ Function testing the correct functioning of the optical satellites """
-    _test_core("LM02*")
+    _test_core_optical("LM02*")
 
 
 def test_l1_mss():
     """ Function testing the correct functioning of the optical satellites """
-    _test_core("LM01*")
+    _test_core_optical("LM01*")
 
 
-def test_sar():
-    """ Function testing the correct functioning of the SAR satellites """
-    # Init logger
-    logs.init_logger(LOGGER)
+def test_s1():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core_sar("S1*_IW*")
 
-    # DATA paths
-    sar_path = files.listdir_abspath(SAR_PATH)
-    for path in sar_path:
-        LOGGER.info(files.get_filename(path))
 
-        # Open product and set output
-        prod: SarProduct = READER.open(path)
+def test_csk():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core_sar("csk_*")
 
-        # Discard the case where an invalid file/directory is in the CI folder
-        if prod is not None:
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                prod.output = tmp_dir
-                os.environ[CI_SNAP_BAND_FOLDER] = os.path.join(get_ci_data_dir(), prod.condensed_name)
-                os.environ[SAR_DEF_RES] = str(RES)
 
-                # Remove DEM tifs if existing
-                remove_dem(prod)
+def test_tsx():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core_sar("TSX*")
 
-                # Get stack bands
-                # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-                possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
-                stack_bands = [band for band in possible_bands if prod.has_band(band)]
 
-                # Stack data
-                curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
-                prod.stack(stack_bands,
-                           resolution=RES,
-                           stack_path=curr_path)
+def test_rs2():
+    """ Function testing the correct functioning of the optical satellites """
+    _test_core_sar("RS2_*")
 
-                # Test
-                ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
-                ci.assert_raster_equal(curr_path, ci_data)
-
-            # CRS
-            assert prod.crs().is_projected
-
-            # Empty load
-            band, meta = prod.load([])
-            assert band == {}
-            assert meta == {}
 
 # TODO:
 # check non existing bands
