@@ -6,6 +6,7 @@ import tempfile
 
 from sertit import logs, files, ci
 
+from eoreader.reader import CheckMethod
 from .scripts_utils import OPT_PATH, SAR_PATH, READER, get_ci_data_dir
 from eoreader.bands.alias import *
 from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES, CI_SNAP_BAND_FOLDER
@@ -66,7 +67,12 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list):
         LOGGER.info(os.path.basename(path))
 
         # Open product and set output
-        prod = READER.open(path)
+        prod = READER.open(path, method=CheckMethod.MTD)
+        prod_name = READER.open(path, method=CheckMethod.NAME)
+        prod_both = READER.open(path, method=CheckMethod.BOTH)
+        assert prod is not None
+        assert prod == prod_name
+        assert prod == prod_both
 
         # Discard the case where an invalid file/directory is in the CI folder
         if prod is not None:

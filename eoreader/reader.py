@@ -112,7 +112,7 @@ PLATFORM_REGEX = {
 
 # Not used for now
 MTD_REGEX = {
-    Platform.S1: f"{PLATFORM_REGEX[Platform.S1].lower().replace('_', '-')}-\d{3}\.xml",
+    Platform.S1: r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}\.xml",
     Platform.S2: [r"MTD_MSIL(1C|2A)\.xml",  # Too generic name, check also a band
                   r"T\d{2}\w{3}_\d{8}T\d{6}_B\d{2}(_\d0m|).jp2"],
     Platform.S2_THEIA: f"{PLATFORM_REGEX[Platform.S2_THEIA]}_MTD_ALL\.xml",
@@ -147,7 +147,7 @@ class Reader:
 
         # Register platforms
         for platform, regex in PLATFORM_REGEX.items():
-            self._platform_regex[platform] = self._compile(regex)
+            self._platform_regex[platform] = self._compile(regex, prefix="", suffix="")
 
         # Register metadata
         for platform, regex in MTD_REGEX.items():
