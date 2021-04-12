@@ -71,6 +71,15 @@ class Platform(ListEnum):
     L1 = "Landsat-1"
     """Landsat-1"""
 
+    PLA = "PlanetScope"
+    """PlanetScope"""
+
+    # RPD = "RapidEye"
+    # """RapidEye"""
+    #
+    # SKY = "SkySat"
+    # """SkySat"""
+
     CSK = "COSMO-SkyMed"
     """COSMO-SkyMed"""
 
