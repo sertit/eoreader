@@ -9,7 +9,7 @@ from sertit import logs, files, ci
 from .scripts_utils import OPT_PATH, SAR_PATH, READER, get_ci_data_dir
 from eoreader.bands.alias import *
 from eoreader.products.optical.optical_product import OpticalProduct
-from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES
+from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES, CI_SNAP_BAND_FOLDER
 from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import EOREADER_NAME
 
@@ -29,7 +29,6 @@ def remove_dem(prod):
 def test_invalid():
     wrong_path = "dzfdzef"
     assert READER.open(wrong_path) is None
-    assert READER.get_platform_id(wrong_path) == ""
     assert not READER.valid_name(wrong_path, "S2")
 
 
@@ -48,25 +47,26 @@ def _test_core(pattern: str):
 
         # Discard the case where an invalid file/directory is in the CI folder
         if prod is not None:
-            prod.output = os.path.join(get_ci_data_dir(), prod.condensed_name)
-
-            # Remove DEM tifs if existing
-            remove_dem(prod)
-
-            # Get stack bands
-            # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-            possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
-            stack_bands = [band for band in possible_bands if prod.has_band(band)]
-
-            # Manage S3 resolution to speed up processes
-            if prod.sat_id == "S3":
-                res = RES * prod.resolution / 20.
-                os.environ[S3_DEF_RES] = str(res)
-            else:
-                res = RES
-
-            # Stack data
             with tempfile.TemporaryDirectory() as tmp_dir:
+                prod.output = tmp_dir
+                os.environ[CI_SNAP_BAND_FOLDER] = os.path.join(get_ci_data_dir(), prod.condensed_name)
+
+                # Remove DEM tifs if existing
+                remove_dem(prod)
+
+                # Get stack bands
+                # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
+                possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
+                stack_bands = [band for band in possible_bands if prod.has_band(band)]
+
+                # Manage S3 resolution to speed up processes
+                if prod.sat_id == "S3":
+                    res = RES * prod.resolution / 20.
+                    os.environ[S3_DEF_RES] = str(res)
+                else:
+                    res = RES
+
+                # Stack data
                 ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
                 curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
                 # curr_path = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
@@ -158,19 +158,20 @@ def test_sar():
 
         # Discard the case where an invalid file/directory is in the CI folder
         if prod is not None:
-            os.environ[SAR_DEF_RES] = str(RES)
-            prod.output = os.path.join(get_ci_data_dir(), prod.condensed_name)
-
-            # Remove DEM tifs if existing
-            remove_dem(prod)
-
-            # Get stack bands
-            # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-            possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
-            stack_bands = [band for band in possible_bands if prod.has_band(band)]
-
-            # Stack data
             with tempfile.TemporaryDirectory() as tmp_dir:
+                prod.output = tmp_dir
+                os.environ[CI_SNAP_BAND_FOLDER] = os.path.join(get_ci_data_dir(), prod.condensed_name)
+                os.environ[SAR_DEF_RES] = str(RES)
+
+                # Remove DEM tifs if existing
+                remove_dem(prod)
+
+                # Get stack bands
+                # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
+                possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
+                stack_bands = [band for band in possible_bands if prod.has_band(band)]
+
+                # Stack data
                 curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
                 prod.stack(stack_bands,
                            resolution=RES,
