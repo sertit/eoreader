@@ -24,7 +24,7 @@ from eoreader.bands.alias import is_index, is_sar_band, is_optical_band, is_dem,
 from eoreader.products.product import Product, SensorType, path_or_dst
 from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
-from eoreader.env_vars import PP_GRAPH, DSPK_GRAPH, SAR_DEF_RES, CI_SNAP_BAND_FOLDER
+from eoreader.env_vars import PP_GRAPH, DSPK_GRAPH, SAR_DEF_RES
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -104,17 +104,6 @@ class SarProduct(Product):
         self.band_names = SarBands()
         self._set_sensor_mode()
         self.pol_channels = self._get_raw_bands()
-
-    def _get_band_folder(self):
-        """ Manage the case of CI SNAP Bands"""
-
-        # Manage CI SNAP band
-        if os.path.isdir(os.environ[CI_SNAP_BAND_FOLDER]):
-            band_folder = os.environ[CI_SNAP_BAND_FOLDER]
-        else:
-            band_folder = self.output
-
-        return band_folder
 
     def get_default_band(self) -> BandNames:
         """
