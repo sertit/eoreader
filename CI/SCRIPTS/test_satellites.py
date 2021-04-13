@@ -9,7 +9,7 @@ from sertit import logs, files, ci
 from eoreader.reader import CheckMethod
 from .scripts_utils import OPT_PATH, SAR_PATH, READER, get_ci_data_dir
 from eoreader.bands.alias import *
-from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES, CI_SNAP_BAND_FOLDER
+from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES, CI_EOREADER_BAND_FOLDER
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -78,7 +78,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list):
         if prod is not None:
             with tempfile.TemporaryDirectory() as tmp_dir:
                 prod.output = tmp_dir
-                os.environ[CI_SNAP_BAND_FOLDER] = os.path.join(get_ci_data_dir(), prod.condensed_name)
+                os.environ[CI_EOREADER_BAND_FOLDER] = os.path.join(get_ci_data_dir(), prod.condensed_name)
                 os.environ[SAR_DEF_RES] = str(RES)
 
                 # Remove DEM tifs if existing
