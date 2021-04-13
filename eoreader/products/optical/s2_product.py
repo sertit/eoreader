@@ -151,9 +151,10 @@ class S2Product(OpticalProduct):
 
         return date
 
-    def _get_band_folder(self, band_list: list, resolution: float = None) -> dict:
+    def _get_res_band_folder(self, band_list: list, resolution: float = None) -> dict:
         """
         Return the folder containing the bands of a proper S2 products.
+        (IMG_DATA for L1C, IMG_DATA/Rx0m for L2A)
 
         Args:
             band_list (list): Wanted bands (listed as 01, 02...)
@@ -229,7 +230,7 @@ class S2Product(OpticalProduct):
         Returns:
             dict: Dictionary containing the path of each queried band
         """
-        band_folders = self._get_band_folder(band_list, resolution)
+        band_folders = self._get_res_band_folder(band_list, resolution)
         band_paths = {}
         for band in band_list:
             try:
