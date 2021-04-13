@@ -24,7 +24,7 @@ from eoreader.reader import Reader, Platform
 from eoreader.bands.alias import *
 from eoreader.bands.bands import BandNames
 from eoreader.utils import EOREADER_NAME
-from eoreader.env_vars import DEM_PATH
+from eoreader.env_vars import DEM_PATH, CI_EOREADER_BAND_FOLDER
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
@@ -254,6 +254,17 @@ class Product:
             crs.CRS: CRS object
         """
         raise NotImplementedError("This method should be implemented by a child class")
+
+    def _get_band_folder(self):
+        """ Manage the case of CI SNAP Bands"""
+
+        # Manage CI SNAP band
+        if os.path.isdir(os.environ[CI_EOREADER_BAND_FOLDER]):
+            band_folder = os.environ[CI_EOREADER_BAND_FOLDER]
+        else:
+            band_folder = self.output
+
+        return band_folder
 
     @abstractmethod
     def _set_resolution(self) -> float:
@@ -850,7 +861,7 @@ class Product:
             LOGGER.debug("Non available default DEM: %s", ex)
             merit_dem = None
 
-        warped_dem_path = os.path.join(self.output, f"{self.condensed_name}_DEM.tif")
+        warped_dem_path = os.path.join(self._get_band_folder(), f"{self.condensed_name}_DEM.tif")
         if os.path.isfile(warped_dem_path):
             LOGGER.debug("Already existing DEM for %s. Skipping process.", self.name)
         else:

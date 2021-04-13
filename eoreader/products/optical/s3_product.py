@@ -24,7 +24,7 @@ from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.products.product import path_or_dst
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
-from eoreader.env_vars import S3_DEF_RES, CI_SNAP_BAND_FOLDER
+from eoreader.env_vars import S3_DEF_RES
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 BT_BANDS = [obn.MIR, obn.TIR_1, obn.TIR_2]
@@ -74,17 +74,6 @@ class S3Product(OpticalProduct):
         self._data_type = None
         self._snap_no_data = -1
         super().__init__(product_path, archive_path, output_path)  # Order is important here
-
-    def _get_band_folder(self):
-        """ Manage the case of CI SNAP Bands"""
-
-        # Manage CI SNAP band
-        if os.path.isdir(os.environ[CI_SNAP_BAND_FOLDER]):
-            band_folder = os.environ[CI_SNAP_BAND_FOLDER]
-        else:
-            band_folder = self.output
-
-        return band_folder
 
     def _post_init(self) -> None:
         """

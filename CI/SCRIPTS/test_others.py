@@ -85,7 +85,7 @@ def test_products():
     assert nmsp == ""
 
     # Check size
-    green, meta = prod1.load([GREEN], resolution=30)
+    green, meta = prod1.load([GREEN], resolution=300)
     green2, meta2 = prod1.load([GREEN], size=(meta["width"], meta["height"]))
 
     np.testing.assert_array_equal(green[GREEN], green2[GREEN])
