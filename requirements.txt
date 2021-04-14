@@ -1,6 +1,3 @@
-# Use windows wheels on windows
---extra-index-url ${WINDOWS_WHEELS}
-
 # Libs for all platforms
 pytest
 twine
