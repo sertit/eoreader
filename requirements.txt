@@ -10,5 +10,5 @@ geopandas
 rasterio
 
 # SERTIT libs
---extra-index-url https://{GITLAB_SERTIT_READ_NAME}:{GITLAB_SERTIT_READ_PWD}@code.sertit.unistra.fr/api/v4/projects/134/packages/pypi/simple
+--extra-index-url https://${GITLAB_SERTIT_READ_TOKEN}:${GITLAB_SERTIT_READ_PWD}@code.sertit.unistra.fr/api/v4/projects/134/packages/pypi/simple
 sertit[full]
