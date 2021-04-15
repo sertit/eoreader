@@ -337,20 +337,25 @@
     display: block;
     overflow-x: auto;
     word-break: keep-all;
+    border-collapse: separate;
+    border-spacing: 0;
     }
     th {
     background-color: #ececec80;
-    border: 0.1px solid gray;
     padding: 5px;
     }
-    thead {
-    border-bottom: 0.5px double gray;
-    }
-    td {
+    td, th {
+    margin: 0;
     border: 0.1px solid gray;
     }
-    td:nth-child(1) {
-    background-color: #ececec80;
+    td{
+    white-space: nowrap;
+    }
+    th:nth-child(1), td:nth-child(1) {
+    background-color: #ececec;
+    position: -webkit-sticky;
+    position: sticky;
+    left:0;
     }
     }
 </%def>
