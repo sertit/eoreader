@@ -6,19 +6,9 @@ pdoc3
 lxml
 netCDF4
 psutil
-
-# For Windows (use wheels)
-./CI/COTS/pyproj-3.0.0.post1-cp37-cp37m-win_amd64.whl;platform_system=="Windows"
-./CI/COTS/GDAL-3.2.1-cp37-cp37m-win_amd64.whl;platform_system=="Windows"
-./CI/COTS/Fiona-1.8.18-cp37-cp37m-win_amd64.whl;platform_system=="Windows"
-./CI/COTS/Shapely-1.7.1-cp37-cp37m-win_amd64.whl;platform_system=="Windows"
-./CI/COTS/geopandas-0.8.2-py3-none-any.whl;platform_system=="Windows"
-./CI/COTS/rasterio-1.2.0-cp37-cp37m-win_amd64.whl;platform_system=="Windows"
-
-# For Linux
-geopandas;platform_system=="Linux"
-rasterio;platform_system=="Linux"
+geopandas
+rasterio
 
 # SERTIT libs
---extra-index-url https://gitlab-deploy-token:4ieKmsaqk4zLfM3WLxF4@code.sertit.unistra.fr/api/v4/projects/134/packages/pypi/simple
+--extra-index-url https://${GITLAB_SERTIT_READ_TOKEN}:${GITLAB_SERTIT_READ_PWD}@code.sertit.unistra.fr/api/v4/projects/134/packages/pypi/simple
 sertit[full]

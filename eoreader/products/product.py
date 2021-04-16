@@ -259,8 +259,9 @@ class Product:
         """ Manage the case of CI SNAP Bands"""
 
         # Manage CI SNAP band
-        if os.path.isdir(os.environ[CI_EOREADER_BAND_FOLDER]):
-            band_folder = os.environ[CI_EOREADER_BAND_FOLDER]
+        ci_band_folder = os.environ.get(CI_EOREADER_BAND_FOLDER)
+        if ci_band_folder and os.path.isdir(ci_band_folder):
+            band_folder = ci_band_folder
         else:
             band_folder = self.output
 
