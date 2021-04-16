@@ -631,13 +631,19 @@ class S2Product(OpticalProduct):
                     if band == ALL_CLOUDS:
                         bands[band] = self._rasterize(mem_ds, cloud_vec, nodata)
                     elif band == CIRRUS:
-                        bands[band] = self._rasterize(mem_ds,
-                                                      cloud_vec[cloud_vec.maskType == "CIRRUS"],
-                                                      nodata)
+                        try:
+                            cirrus = cloud_vec[cloud_vec.maskType == "CIRRUS"]
+                        except AttributeError:
+                            # No masktype -> empty
+                            cirrus = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
+                        bands[band] = self._rasterize(mem_ds, cirrus, nodata)
                     elif band == CLOUDS:
-                        bands[band] = self._rasterize(mem_ds,
-                                                      cloud_vec[cloud_vec.maskType == "OPAQUE"],
-                                                      nodata)
+                        try:
+                            clouds = cloud_vec[cloud_vec.maskType == "CIRRUS"]
+                        except AttributeError:
+                            # No masktype -> empty
+                            clouds = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
+                        bands[band] = self._rasterize(mem_ds, clouds, nodata)
                     elif band == RAW_CLOUDS:
                         bands[band] = self._rasterize(mem_ds, cloud_vec, nodata)
                     else:
