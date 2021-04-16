@@ -6,7 +6,8 @@ import tempfile
 
 from sertit import logs, files, ci
 
-from eoreader.reader import CheckMethod
+from eoreader.products.product import Product, SensorType
+from eoreader.reader import CheckMethod, Platform
 from .scripts_utils import OPT_PATH, SAR_PATH, READER, get_ci_data_dir
 from eoreader.bands.alias import *
 from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES, CI_EOREADER_BAND_FOLDER
@@ -31,31 +32,34 @@ def test_invalid():
     assert not READER.valid_name(wrong_path, "S2")
 
 
-def _test_core_optical(pattern: str):
+def _test_core_optical(pattern: str, debug=False):
     """
     Core function testing optical data
     Args:
         pattern (str): Pattern of the satellite
+        debug (bool): Debug option
     """
     possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
-    _test_core(pattern, OPT_PATH, possible_bands)
+    _test_core(pattern, OPT_PATH, possible_bands, debug)
 
-def _test_core_sar(pattern: str):
+def _test_core_sar(pattern: str, debug=False):
     """
     Core function testing SAR data
     Args:
         pattern (str): Pattern of the satellite
+        debug (bool): Debug option
     """
     possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
-    _test_core(pattern, SAR_PATH, possible_bands)
+    _test_core(pattern, SAR_PATH, possible_bands, debug)
 
-def _test_core(pattern: str, prod_dir: str, possible_bands: list):
+def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
     """
     Core function testing all data
     Args:
         pattern (str): Pattern of the satellite
         prod_dir (str): Product directory
         possible_bands(list): Possible bands
+        debug (bool): Debug option
     """
     # Init logger
     logs.init_logger(LOGGER)
@@ -67,7 +71,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list):
         LOGGER.info(os.path.basename(path))
 
         # Open product and set output
-        prod = READER.open(path, method=CheckMethod.MTD)
+        prod: Product = READER.open(path, method=CheckMethod.MTD)
         prod_name = READER.open(path, method=CheckMethod.NAME)
         prod_both = READER.open(path, method=CheckMethod.BOTH)
         assert prod is not None
@@ -78,7 +82,11 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list):
         if prod is not None:
             with tempfile.TemporaryDirectory() as tmp_dir:
                 prod.output = tmp_dir
-                os.environ[CI_EOREADER_BAND_FOLDER] = os.path.join(get_ci_data_dir(), prod.condensed_name)
+                if prod.platform == Platform.S3 or prod.sensor_type == SensorType.SAR:
+                    os.environ[CI_EOREADER_BAND_FOLDER] = os.path.join(get_ci_data_dir(), prod.condensed_name)
+                else:
+                    if CI_EOREADER_BAND_FOLDER in os.environ:
+                        os.environ.pop(CI_EOREADER_BAND_FOLDER)
                 os.environ[SAR_DEF_RES] = str(RES)
 
                 # Remove DEM tifs if existing
@@ -97,8 +105,10 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list):
 
                 # Stack data
                 ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
-                curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
-                # curr_path = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
+                if debug:
+                    curr_path = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
+                else:
+                    curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
                 prod.stack(stack_bands,
                            resolution=res,
                            stack_path=curr_path)
@@ -113,7 +123,6 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list):
 def test_s2():
     """ Function testing the correct functioning of the optical satellites """
     _test_core_optical("S2*_MSI*")
-
 
 def test_s2_theia():
     """ Function testing the correct functioning of the optical satellites """

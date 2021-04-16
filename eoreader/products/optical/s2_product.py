@@ -639,7 +639,7 @@ class S2Product(OpticalProduct):
                         bands[band] = self._rasterize(mem_ds, cirrus, nodata)
                     elif band == CLOUDS:
                         try:
-                            clouds = cloud_vec[cloud_vec.maskType == "CIRRUS"]
+                            clouds = cloud_vec[cloud_vec.maskType == "OPAQUE"]
                         except AttributeError:
                             # No masktype -> empty
                             clouds = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
