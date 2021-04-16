@@ -81,7 +81,7 @@ The product resolution is read in the metadata file if possible, so the followin
 |Wide Ultra-Fine | 1.3x2.1m | 1.0m | 1.56m | 1.56m | 1.56m |  |  |  | |
 |Multi-Look Fine | 2.7x2.9m | 3.13m | 6.25m | 6.25m | 6.25m |  |  |  | |
 |Wide Multi-Look Fine | 2.7x2.9m | 3.13m | 6.25m | 6.25m | 6.25m |  |  |  | |
-|Extra-Fine | Full Res: 2.7x2.9m    Fine Res: 4.3x5.8m    Full Res: 7.1x5.8m    Wide Res: 10.6x5.8m | 1 look: 2.0m    4 looks: 3.13m    28 looks: 5.0m | 1 look: 3.13m    4 looks: 6.25m    28 looks: 8.0m | 3.13m | 3.13m |  |  |  | |
+|Extra-Fine | Full Res: 2.7x2.9m<br>Fine Res: 4.3x5.8m<br>Full Res: 7.1x5.8m<br>Wide Res: 10.6x5.8m | 1 look: 2.0m<br>4 looks: 3.13m<br>28 looks: 5.0m | 1 look: 3.13m<br>4 looks: 6.25m<br>28 looks: 8.0m | 3.13m | 3.13m |  |  |  | |
 |Fine | 4.7x5.1m | 3.13m | 6.25m | 6.25m | 6.25m |  |  |  | |
 |Wide-Fine | 4.7x5.1m | 3.13m | 6.25m | 6.25m | 6.25m |  |  |  | |
 |Standard | 8.0 or 11.8x5.1m | 8.0m | 12.5m | 12.5m | 12.5m |  |  |  | |
