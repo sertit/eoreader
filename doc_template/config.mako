@@ -43,8 +43,7 @@
     # added to every query word, see: https://lunrjs.com/guides/searching.html#fuzzy-matches
     # If 'index_docstrings' is False, a shorter index is built, indexing only
     # the full object reference names.
-    #lunr_search = {'fuzziness': 1, 'index_docstrings': True}
-    lunr_search = None
+    lunr_search = {'fuzziness': 1, 'index_docstrings': True}
     # If set, render LaTeX math syntax within \(...\) (inline equations),
     # or within \[...\] or $$...$$ or `.. math::` (block equations)
     # as nicely-formatted math formulas using MathJax.
