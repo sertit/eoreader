@@ -37,7 +37,8 @@ pages:
   script:
     - pip install -r requirements.txt
     - pdoc eoreader -o doc -f --html --template-dir doc_template
-    - mv doc/eoreader public/
+    - cp doc_template/index.html doc/index.html
+    - mv doc/ public/
   artifacts:
     paths:
       - public
