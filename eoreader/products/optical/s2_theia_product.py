@@ -72,7 +72,7 @@ class S2TheiaProduct(OpticalProduct):
             obn.VRE_2: '6',
             obn.VRE_3: '7',
             obn.NIR: '8',
-            obn.NNIR: '8A',
+            obn.NARROW_NIR: '8A',
             obn.SWIR_1: '11',
             obn.SWIR_2: '12'
         })
@@ -292,7 +292,7 @@ class S2TheiaProduct(OpticalProduct):
         # https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
         # For r_1, the band order is: B2, B3, B4, B8 and for r_2: B5, B6, B7, B8a, B11, B12
         r_1 = [obn.BLUE, obn.GREEN, obn.RED, obn.NIR]
-        r_2 = [obn.VRE_1, obn.VRE_2, obn.VRE_3, obn.NNIR, obn.SWIR_1, obn.SWIR_2]
+        r_2 = [obn.VRE_1, obn.VRE_2, obn.VRE_3, obn.NARROW_NIR, obn.SWIR_1, obn.SWIR_2]
         if band in r_1:
             r_x = "R1"
             bit_id = r_1.index(band)

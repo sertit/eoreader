@@ -245,7 +245,7 @@ class OpticalBandNames(BandNames):
     NIR = "NIR"
     """NIR"""
 
-    NNIR = "NARROW_NIR"
+    NARROW_NIR = "NARROW_NIR"
     """Narrow NIR"""
 
     WV = "WATER_VAPOUR"

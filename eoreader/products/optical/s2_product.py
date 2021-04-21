@@ -98,7 +98,7 @@ class S2Product(OpticalProduct):
                 obn.VRE_2: '06',
                 obn.VRE_3: '07',
                 obn.NIR: '08',
-                obn.NNIR: '8A',
+                obn.NARROW_NIR: '8A',
                 obn.WV: '09',
                 obn.SWIR_1: '11',
                 obn.SWIR_2: '12'
@@ -114,7 +114,7 @@ class S2Product(OpticalProduct):
                 obn.VRE_2: '06',
                 obn.VRE_3: '07',
                 obn.NIR: '08',
-                obn.NNIR: '8A',
+                obn.NARROW_NIR: '8A',
                 obn.WV: '09',
                 obn.SWIR_CIRRUS: '10',
                 obn.SWIR_1: '11',

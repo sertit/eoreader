@@ -181,7 +181,7 @@ class LandsatProduct(OpticalProduct):
                 obn.VRE_2: '6' if version < 4 else '3',
                 obn.VRE_3: '6' if version < 4 else '3',
                 obn.NIR: '7' if version < 4 else '4',
-                obn.NNIR: '7' if version < 4 else '4'
+                obn.NARROW_NIR: '7' if version < 4 else '4'
             })
         else:
             raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
@@ -195,7 +195,7 @@ class LandsatProduct(OpticalProduct):
                 obn.GREEN: '2',
                 obn.RED: '3',
                 obn.NIR: '4',
-                obn.NNIR: '4',
+                obn.NARROW_NIR: '4',
                 obn.SWIR_1: '5',
                 obn.SWIR_2: '7',
                 obn.TIR_1: '6',
@@ -213,7 +213,7 @@ class LandsatProduct(OpticalProduct):
                 obn.GREEN: '2',
                 obn.RED: '3',
                 obn.NIR: '4',
-                obn.NNIR: '4',
+                obn.NARROW_NIR: '4',
                 obn.SWIR_1: '5',
                 obn.SWIR_2: '7',
                 obn.PAN: '8',
@@ -233,7 +233,7 @@ class LandsatProduct(OpticalProduct):
                 obn.GREEN: '3',
                 obn.RED: '4',
                 obn.NIR: '5',
-                obn.NNIR: '5',
+                obn.NARROW_NIR: '5',
                 obn.SWIR_1: '6',
                 obn.SWIR_2: '7',
                 obn.PAN: '8',

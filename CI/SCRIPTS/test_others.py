@@ -110,7 +110,7 @@ def test_bands():
         VRE_2: '06',
         VRE_3: '07',
         NIR: '08',
-        NNIR: '8A',
+        NARROW_NIR: '8A',
         WV: '09',
         SWIR_1: '11',
         SWIR_2: '12'
