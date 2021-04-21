@@ -120,7 +120,7 @@ class S3Product(OpticalProduct):
                 obn.VRE_2: '12',
                 obn.VRE_3: '16',
                 obn.NIR: '17',
-                obn.NNIR: '17',
+                obn.NARROW_NIR: '17',
                 obn.WV: '20',
                 obn.FNIR: '21'
             })
@@ -140,7 +140,7 @@ class S3Product(OpticalProduct):
                 obn.GREEN: '1',  # radiance, 500m
                 obn.RED: '2',  # radiance, 500m
                 obn.NIR: '3',  # radiance, 500m
-                obn.NNIR: '3',  # radiance, 500m
+                obn.NARROW_NIR: '3',  # radiance, 500m
                 obn.SWIR_CIRRUS: '4',  # radiance, 500m
                 obn.SWIR_1: '5',  # radiance, 500m
                 obn.SWIR_2: '6',  # radiance, 500m
@@ -479,7 +479,7 @@ class S3Product(OpticalProduct):
             obn.VRE_2: 9,  # Band 12
             obn.VRE_3: 5,  # Band 16
             obn.NIR: 4,  # Band 17
-            obn.NNIR: 4,  # Band 17
+            obn.NARROW_NIR: 4,  # Band 17
             obn.WV: 1,  # Band 20
             obn.FNIR: 0  # Band 21
         }

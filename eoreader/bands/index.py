@@ -302,7 +302,7 @@ def RDI(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return _no_data_divide(bands[obn.SWIR_2], bands[obn.NNIR])
+    return _no_data_divide(bands[obn.SWIR_2], bands[obn.NARROW_NIR])
 
 
 def NDWI(bands: dict) -> np.ma.masked_array:
@@ -343,7 +343,7 @@ def NBR(bands: dict) -> np.ma.masked_array:
         np.ma.masked_array: Computed index
 
     """
-    return _norm_diff(bands[obn.NNIR], bands[obn.SWIR_2])
+    return _norm_diff(bands[obn.NARROW_NIR], bands[obn.SWIR_2])
 
 
 def MNDWI(bands: dict) -> np.ma.masked_array:

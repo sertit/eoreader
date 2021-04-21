@@ -24,7 +24,7 @@ from eoreader.bands.bands import \
 from eoreader.bands import index as _idx
 
 # -- OPTICAL BANDS --
-CA = _obn.CA
+CA = _obn.CA  # Coastal aerosol
 BLUE = _obn.BLUE
 GREEN = _obn.GREEN
 RED = _obn.RED
@@ -32,8 +32,8 @@ VRE_1 = _obn.VRE_1
 VRE_2 = _obn.VRE_2
 VRE_3 = _obn.VRE_3
 NIR = _obn.NIR
-NNIR = _obn.NNIR
-WV = _obn.WV
+NARROW_NIR = _obn.NARROW_NIR
+WV = _obn.WV  # Water vapour
 FNIR = _obn.FNIR
 SWIR_CIRRUS = _obn.SWIR_CIRRUS  # Optical band based on cirrus
 SWIR_1 = _obn.SWIR_1
