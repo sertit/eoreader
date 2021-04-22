@@ -24,7 +24,7 @@ Satellites products that cannot be used as archived have to be extracted before 
 
 |Bands (names) | Coastal aerosol | Blue | Green | Red | Vegetation red edge | Vegetation red edge | Vegetation red edge | NIR | Narrow NIR | Water vapor | SWIR – Cirrus | SWIR | SWIR | Panchromatic | Thermal IR | Thermal IR|
 |--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---|
-|**Bands enum** | `CA` | `BLUE` | `GREEN` | `RED` | `VRE_1` | `VRE_2` | `VRE_3` | `NIR` | `NARROW_NIR` | `WP` | `SWIR_CIRRUS` | `SWIR_1` | `SWIR_2` | `PAN` | `TIR_1` | `TIR_2`|
+|**Band alias** | `CA` | `BLUE` | `GREEN` | `RED` | `VRE_1` | `VRE_2` | `VRE_3` | `NIR` | `NARROW_NIR` | `WP` | `SWIR_CIRRUS` | `SWIR_1` | `SWIR_2` | `PAN` | `TIR_1` | `TIR_2`|
 |Sentinel-2 | **1** (60m) | **2** (10m) | **3** (10m) | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8** (10m) | **8A** (20m) |**9** (60m) |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
 |Sentinel-2 Theia | *Not available* | **2** (10m) |**3** (10m) | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8** (10m) | **8A** (20m) | *Not available* |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
 |Sentinel-3 OLCI* | **2** (300m) | **3** (300m) |**6** (300m) |**8** (300m) |**11** (300m) |**12** (300m) | **16** (300m) | **17** (300m) | **17** (300m) | **20** (300m) |  |  |  |  |  | |
