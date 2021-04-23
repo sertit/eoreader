@@ -12,17 +12,17 @@ from typing import Union
 from lxml import etree
 import numpy as np
 import geopandas as gpd
-from rasterio import features, MemoryFile
+from rasterio import features
 from rasterio.enums import Resampling
 from sertit import files
 from sertit import rasters
 from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE, ORIGIN_DTYPE
 
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.bands.alias import ALL_CLOUDS, RAW_CLOUDS, CLOUDS, SHADOWS, CIRRUS
 from eoreader.products.optical.optical_product import OpticalProduct
-from eoreader.products.product import path_or_dst
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -245,44 +245,18 @@ class S2Product(OpticalProduct):
 
         return band_paths
 
-    @path_or_dst
     def _read_band(self,
-                   dataset,
+                   path: str,
                    resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
+                   size: Union[list, tuple] = None) -> XDS_TYPE:
         """
         Read band from a dataset.
 
-        .. WARNING:: Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
-
-        ```python
-        >>> import rasterio
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> band, meta = prod._read_band(prod.get_default_band_path(), resolution=20)
-        >>> band
-        masked_array(
-          data=[[[0.0614, ..., 0.15799999]]],
-          mask=False,
-          fill_value=1e+20,
-          dtype=float32)
-        >>> meta
-        {
-            'driver': 'JP2OpenJPEG',
-            'dtype': <class 'numpy.float32'>,
-            'nodata': None,
-            'width': 5490,
-            'height': 5490,
-            'count': 1,
-            'crs': CRS.from_epsg(32630),
-            'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
-        }
-        ```
+        .. WARNING::
+            Invalid pixels are not managed here !
 
         Args:
-            dataset (Dataset): Band dataset
+            path (str): Band path
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
@@ -290,19 +264,13 @@ class S2Product(OpticalProduct):
 
         """
         # Read band
-        band, dst_meta = rasters.read(dataset,
-                                      resolution=resolution,
-                                      size=size,
-                                      resampling=Resampling.bilinear)
-
-        # Get resolution
-        coeff = 1 / 10000. if dataset.meta['dtype'] == 'uint16' else 1
+        band = rasters.read(path, resolution=resolution, size=size, resampling=Resampling.bilinear)
 
         # Compute the correct radiometry of the band
-        band = band.astype(np.float32) * coeff
-        dst_meta["dtype"] = np.float32
+        if band.attrs[ORIGIN_DTYPE] == 'uint16':
+            band /= 10000.
 
-        return band, dst_meta
+        return band
 
     def open_mask(self, mask_str: str, band: Union[obn, str]) -> gpd.GeoDataFrame:
         """
@@ -404,24 +372,22 @@ class S2Product(OpticalProduct):
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(self,
-                               band_arr: np.ma.masked_array,
+                               band_arr: XDS_TYPE,
                                band: obn,
-                               meta: dict,
                                resolution: float = None,
-                               size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
+                               size: Union[list, tuple] = None) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
-            band_arr (np.ma.masked_array): Band array loaded
+            band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            meta (dict): Band metadata from rasterio
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            np.ma.masked_array, dict: Cleaned band array and its metadata
+            XDS_TYPE: Cleaned band array 
         """
         nodata_true = 1
         nodata_false = 0
@@ -431,10 +397,10 @@ class S2Product(OpticalProduct):
 
         # Rasterize nodata
         mask = features.rasterize(nodata_det.geometry,
-                                  out_shape=(meta["width"], meta["height"]),
+                                  out_shape=(band_arr.rio.width, band_arr.rio.height),
                                   fill=nodata_true,  # Outside detector = nodata
                                   default_value=nodata_false,  # Inside detector = acceptable value
-                                  transform=meta["transform"],
+                                  transform=band_arr.rio.transform(),
                                   dtype=np.uint8)
 
         #  Load masks and merge them into the nodata
@@ -455,46 +421,40 @@ class S2Product(OpticalProduct):
         if len(nodata_pix) > 0:
             # Rasterize mask
             mask_pix = features.rasterize(nodata_pix.geometry,
-                                          out_shape=(meta["width"], meta["height"]),
+                                          out_shape=(band_arr.rio.width, band_arr.rio.height),
                                           fill=nodata_false,  # OK pixels = OK value
                                           default_value=nodata_true,  # Discarded pixels = nodata
-                                          transform=meta["transform"],
+                                          transform=band_arr.rio.transform(),
                                           dtype=np.uint8)
 
             mask[mask_pix] = nodata_true
 
-        return self._create_band_masked_array(band_arr, mask, meta)
+        return self._set_nodata_mask(band_arr, mask)
 
     def _load_bands(self,
-                    band_list: Union[list, BandNames],
+                    bands: list,
                     resolution: float = None,
-                    size: Union[list, tuple] = None) -> (dict, dict):
+                    size: Union[list, tuple] = None) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (list, BandNames): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         """
         # Return empty if no band are specified
-        if not band_list:
-            return {}, {}
+        if not bands:
+            return {}
 
-        # Get band paths
-        if not isinstance(band_list, list):
-            band_list = [band_list]
-
-        band_paths = self.get_band_paths(band_list, resolution)
+        band_paths = self.get_band_paths(bands, resolution)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self._open_bands(band_paths, resolution=resolution, size=size)
-        meta["driver"] = "GTiff"
+        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
 
-        return band_arrays, meta
+        return band_arrays
 
     def _get_condensed_name(self) -> str:
         """
@@ -595,9 +555,9 @@ class S2Product(OpticalProduct):
         return has_band
 
     def _load_clouds(self,
-                     band_list: Union[list, BandNames],
+                     bands: list,
                      resolution: float = None,
-                     size: Union[list, tuple] = None) -> (dict, dict):
+                     size: Union[list, tuple] = None) -> dict:
         """
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -605,58 +565,52 @@ class S2Product(OpticalProduct):
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
 
         Args:
-            band_list (Union[list, BandNames]): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         """
-        bands = {}
-        meta = {}
+        band_dict = {}
 
-        if band_list:
+        if bands:
             def_band = self.get_default_band()
             cloud_vec = self.open_mask('CLOUDS', "00")
 
             # Open a bands to mask it
-            band, meta = self.load(def_band, resolution=resolution)
-            nodata = np.where(band == meta["nodata"], 1, 0)
+            def_band = self.load(def_band, resolution=resolution)[def_band]
+            nodata = np.where(np.isnan(def_band), 1, 0)
 
-            with MemoryFile().open(**meta) as mem_ds:
-                # Write band into dst
-                mem_ds.write(band[def_band])
+            for band in bands:
+                if band == ALL_CLOUDS:
+                    band_dict[band] = self._rasterize(def_band, cloud_vec, nodata)
+                elif band == CIRRUS:
+                    try:
+                        cirrus = cloud_vec[cloud_vec.maskType == "CIRRUS"]
+                    except AttributeError:
+                        # No masktype -> empty
+                        cirrus = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
+                    band_dict[band] = self._rasterize(def_band, cirrus, nodata)
+                elif band == CLOUDS:
+                    try:
+                        clouds = cloud_vec[cloud_vec.maskType == "OPAQUE"]
+                    except AttributeError:
+                        # No masktype -> empty
+                        clouds = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
+                    band_dict[band] = self._rasterize(def_band, clouds, nodata)
+                elif band == RAW_CLOUDS:
+                    band_dict[band] = self._rasterize(def_band, cloud_vec, nodata)
+                else:
+                    raise InvalidTypeError(f"Non existing cloud band for Sentinel-2: {band}")
 
-                for band in band_list:
-                    if band == ALL_CLOUDS:
-                        bands[band] = self._rasterize(mem_ds, cloud_vec, nodata)
-                    elif band == CIRRUS:
-                        try:
-                            cirrus = cloud_vec[cloud_vec.maskType == "CIRRUS"]
-                        except AttributeError:
-                            # No masktype -> empty
-                            cirrus = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
-                        bands[band] = self._rasterize(mem_ds, cirrus, nodata)
-                    elif band == CLOUDS:
-                        try:
-                            clouds = cloud_vec[cloud_vec.maskType == "OPAQUE"]
-                        except AttributeError:
-                            # No masktype -> empty
-                            clouds = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
-                        bands[band] = self._rasterize(mem_ds, clouds, nodata)
-                    elif band == RAW_CLOUDS:
-                        bands[band] = self._rasterize(mem_ds, cloud_vec, nodata)
-                    else:
-                        raise InvalidTypeError(f"Non existing cloud band for Sentinel-2: {band}")
+        return band_dict
 
-        return bands, meta
-
-    def _rasterize(self, mem_ds, geometry: gpd.GeoDataFrame, nodata: np.ndarray) -> np.ma.masked_array:
+    def _rasterize(self, xds: XDS_TYPE, geometry: gpd.GeoDataFrame, nodata: np.ndarray) -> np.ma.masked_array:
         """
         Rasterize a vector on a memory dataset
 
         Args:
-            mem_ds: Memory file
+            xds: xarray
             geometry (gpd.GeoDataFrame): Geometry to rasterize
             nodata (np.ndarray): Nodata mask
 
@@ -665,23 +619,17 @@ class S2Product(OpticalProduct):
         """
         if not geometry.empty:
             # Just in case
-            if geometry.crs != mem_ds.crs:
-                geometry = geometry.to_crs(mem_ds.crs)
+            if geometry.crs != xds.rio.crs:
+                geometry = geometry.to_crs(xds.rio.crs)
 
             # Mask the file -> do not use rasterize to get a correct nodata mask !
-            rstrzd, _ = rasters.mask(mem_ds, geometry.geometry, nodata=mem_ds.nodata)
+            rstrzd = rasters.mask(xds, geometry.geometry, nodata=xds.rio.encoded_nodata)
 
             # Get cloud raster
-            mask = np.ma.masked_array(np.where(rstrzd > 0, self._mask_true, self._mask_false),
-                                      mask=nodata,
-                                      fill_value=self._mask_nodata,
-                                      dtype=np.uint8)
+            cond = np.where(rstrzd.data > 0, self._mask_true, self._mask_false)
         else:
             # If empty geometry, just
-            mask = np.ma.masked_array(np.full(shape=(mem_ds.count, mem_ds.height, mem_ds.width),
-                                              dtype=np.uint8,
-                                              fill_value=self._mask_false),
-                                      mask=nodata,
-                                      fill_value=self._mask_nodata,
-                                      dtype=np.uint8)
-        return mask
+            cond = np.full(shape=(xds.rio.count, xds.rio.height, xds.rio.width),
+                           fill_value=self._mask_false,
+                           dtype=np.uint8)
+        return self._create_mask(xds, cond, nodata)
