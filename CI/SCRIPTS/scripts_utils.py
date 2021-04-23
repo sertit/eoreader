@@ -2,6 +2,8 @@
 import os
 import logging
 
+import numpy as np
+import rasterio
 from sertit import ci
 
 from eoreader.reader import Reader
@@ -36,3 +38,49 @@ def get_ci_data_dir() -> str:
         str: CI DATA directory
     """
     return os.path.join(get_ci_dir(), 'DATA')
+
+
+def assert_raster_almost_equal(path_1: str, path_2: str, decimal=5) -> None:
+    """
+    Assert that two rasters are almost equal.
+    (everything is equal except the transform and the arrays that are almost equal)
+
+    Accepts an offset of `1E{decimal}` on the array and the transform
+
+    -> Useful for pytests.
+
+    ```python
+    >>> path = r"CI\DATA\rasters\raster.tif"
+    >>> path2 = r"CI\DATA\rasters\raster_almost.tif"
+    >>> assert_raster_equal(path, path2)
+    >>> # Raises AssertionError if sth goes wrong
+    ```
+
+    Args:
+        path_1 (str): Raster 1
+        path_2 (str): Raster 2
+    """
+    with rasterio.open(path_1) as dst_1:
+        with rasterio.open(path_2) as dst_2:
+            assert dst_1.meta["driver"] == dst_2.meta["driver"]
+            assert dst_1.meta["dtype"] == dst_2.meta["dtype"]
+            assert dst_1.meta["nodata"] == dst_2.meta["nodata"]
+            assert dst_1.meta["width"] == dst_2.meta["width"]
+            assert dst_1.meta["height"] == dst_2.meta["height"]
+            assert dst_1.meta["count"] == dst_2.meta["count"]
+            assert dst_1.meta["crs"] == dst_2.meta["crs"]
+            dst_1.meta["transform"].almost_equals(dst_1.meta["transform"], precision=1E-7)
+            for i in range(dst_1.count):
+
+                LOGGER.info(f"Band {i + 1}: {dst_1.descriptions[i]}")
+                try:
+                    marr_1 = dst_1.read(i + 1, masked=True)
+                    arr_1 = np.where(marr_1.mask, 0, marr_1.data)
+                    arr_1 = np.where(arr_1 == 255., 0, arr_1)
+
+                    marr_2 = dst_2.read(i + 1, masked=True)
+                    arr_2 = np.where(marr_2.mask, 0, marr_2.data)
+                    arr_2 = np.where(arr_2 == 255., 0, arr_2)
+                    np.testing.assert_array_almost_equal(arr_1, arr_2, decimal=decimal)
+                except AssertionError:
+                    LOGGER.error(f"Band {i + 1}: {dst_1.descriptions[i]} failed", exc_info=True)

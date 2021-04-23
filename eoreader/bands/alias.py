@@ -248,14 +248,14 @@ def is_band(band: _tp.Any) -> bool:
     return is_sar_band(band) or is_optical_band(band)
 
 
-def to_band_or_idx(to_convert: _tp.Union[list, str]) -> list:
+def to_band(to_convert: list) -> list:
     """
     Convert a string (or real value) to any alias, band or index.
 
     You can pass the name or the value of the bands.
 
     ```python
-    >>> to_band_or_idx(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
+    >>> to_band(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
     [<function NDVI at 0x00000154DDB12488>,
     <OpticalBandNames.GREEN: 'GREEN'>,
     <OpticalBandNames.RED: 'RED'>,
@@ -266,15 +266,16 @@ def to_band_or_idx(to_convert: _tp.Union[list, str]) -> list:
     <ClassifBandNames.CLOUDS: 'CLOUDS'>]
     ```
     Args:
-        to_convert:
+        to_convert (list): Values to convert into band objects
 
     Returns:
+        list: converted values
 
     """
     if not isinstance(to_convert, list):
         to_convert = [to_convert]
 
-    bands_or_idx = []
+    bands = []
     for tc in to_convert:
         band_or_idx = None
         # Try legit types
@@ -302,8 +303,42 @@ def to_band_or_idx(to_convert: _tp.Union[list, str]) -> list:
 
         # Store it
         if band_or_idx:
-            bands_or_idx.append(band_or_idx)
+            bands.append(band_or_idx)
         else:
             raise InvalidTypeError(f"Unknown band or index: {tc}")
 
-    return bands_or_idx
+    return bands
+
+
+def to_str(to_convert: list) -> list:
+    """
+    Convert a string (or real value) to any alias, band or index.
+
+    You can pass the name or the value of the bands.
+
+    ```python
+    >>> to_str(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
+    ['NDVI', 'GREEN', 'RED', 'VH_DSPK', 'SLOPE', 'DEM', 'CLOUDS', 'CLOUDS']
+    ```
+    Args:
+        to_convert (list): Values to convert into str
+
+    Returns:
+        list: str bands
+    """
+    if not isinstance(to_convert, list):
+        to_convert = [to_convert]
+
+    bands_str = []
+    for tc in to_convert:
+        if isinstance(tc, str):
+            band_str = tc
+        else:
+            try:
+                band_str = tc.name
+            except AttributeError:
+                band_str = tc.__name__
+
+        bands_str.append(band_str)
+
+    return bands_str
