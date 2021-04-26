@@ -7,7 +7,7 @@ import zipfile
 from abc import abstractmethod
 from enum import unique
 from string import Formatter
-from typing import Union, Callable
+from typing import Union
 
 from rasterio import crs
 import geopandas as gpd
@@ -16,6 +16,7 @@ from rasterio.enums import Resampling
 from sertit import files, strings, misc, snap
 from sertit.misc import ListEnum
 from sertit import rasters, vectors
+from sertit.rasters import XDS_TYPE
 
 from eoreader import utils
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
@@ -441,156 +442,72 @@ class SarProduct(Product):
     # unused band_name (compatibility reasons)
     # pylint: disable=W0613
     @path_or_dst
-    def _read_band(self, dataset,
+    def _read_band(self,
+                   path: str,
                    resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
+                   size: Union[list, tuple] = None) -> XDS_TYPE:
         """
-        Read band from a dataset
-
-        ```python
-        >>> import rasterio
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> band, meta = prod._read_band(prod.get_default_band_path(), resolution=10)
-        >>> band
-        masked_array(
-          data=[[[--, ..., --]]],
-          mask=[[[True, ..., True]]],
-          fill_value=0.0,
-          dtype=float32)
-        >>> meta
-        {
-            'driver': 'JP2OpenJPEG',
-            'dtype': <class 'numpy.float32'>,
-            'nodata': None,
-            'width': 5490,
-            'height': 5490,
-            'count': 1,
-            'crs': CRS.from_epsg(32630),
-            'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
-        }
-        ```
+        Read band from disk.
 
         Args:
-            dataset (Dataset): Band dataset
+            path (str): Band path
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            np.ma.masked_array, dict: Radar band, saved as float 32 and its metadata
-
+            XDS_TYPE: Band xarray
         """
-        # Read band
-        band_array, dst_meta = rasters.read(dataset,
-                                            resolution=resolution,
-                                            size=size,
-                                            resampling=Resampling.bilinear)
 
-        # Set correct nodata
-        masked_array = np.ma.masked_array(band_array,
-                                          mask=np.where(band_array == self.nodata, 1, 0).astype(np.uint8),
-                                          fill_value=self.nodata)
-
-        return masked_array, dst_meta
+        return rasters.read(path, resolution=resolution, size=size, resampling=Resampling.bilinear)
 
     def _load_bands(self,
-                    band_list: Union[list, BandNames],
+                    bands: Union[list, BandNames],
                     resolution: float = None,
-                    size: Union[list, tuple] = None) -> (dict, dict):
+                    size: Union[list, tuple] = None) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (list, BandNames): List of the wanted bands
+            bands (list, BandNames): List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         """
         # Return empty if no band are specified
-        if not band_list:
-            return {}, {}
+        if not bands:
+            return {}
 
         # Get band paths
-        if not isinstance(band_list, list):
-            band_list = [band_list]
-        band_paths = self.get_band_paths(band_list, resolution)
+        if not isinstance(bands, list):
+            bands = [bands]
+        band_paths = self.get_band_paths(bands, resolution)
 
         # Open bands and get array (resampled if needed)
         band_arrays = {}
-        meta = {}
         for band_name, band_path in band_paths.items():
             # Read CSK band
-            band_arrays[band_name], ds_meta = self._read_band(band_path,
-                                                              resolution=resolution,
-                                                              size=size)
+            band_arrays[band_name] = self._read_band(band_path, resolution=resolution, size=size)
 
-            # Meta
-            if not meta:
-                meta = ds_meta.copy()
+        return band_arrays
 
-        return band_arrays, meta
-
-    def load(self,
-             band_and_idx_list: Union[list, BandNames, Callable],
-             resolution: float = None,
-             size: Union[list, tuple] = None) -> (dict, dict):
+    def _load(self,
+              bands: list,
+              resolution: float = None,
+              size: Union[list, tuple] = None) -> dict:
         """
-        Load SAR (and DEM) bands.
-
-        Bands that come out this function at the same time are collocated and therefore have the same shapes.
-        This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
-
-        If neither resolution nor size is given, bands will be loaded at the product's default resolution.
-
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> bands, meta = prod.load([VV], resolution=10)
-        >>> bands
-        {<SarBandNames.VV: 'VV'>: masked_array(
-          data=[[[--, ..., --]]],
-          mask=[[[True, ..., True]]],
-          fill_value=0.0,
-          dtype=float32)}
-        >>> meta
-        {
-            'driver': 'GTiff',
-            'dtype': dtype('float32'),
-            'nodata': 0.0,
-            'width': 14900,
-            'height': 11014,
-            'count': 1,
-            'crs': CRS.from_epsg(32630),
-            'transform': Affine(20.000671140939595, 0.0, 554358.8404375388, 0.0, -19.999092064644998, 4897675.306485827)
-        }
-        ```
+        Core function loading SAR data bands
 
         Args:
-            band_and_idx_list (list, index): Index list
+            bands (list): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            dict, dict: Index and band dict, metadata
+            Dictionary {band_name, band_xarray}
         """
-        if not resolution and not size:
-            resolution = self.resolution
-
-        # Check if all bands are valid
-        if not isinstance(band_and_idx_list, list):
-            band_and_idx_list = [band_and_idx_list]
-
-        if len(band_and_idx_list) == 0:
-            return {}, {}
-
         band_list = []
         dem_list = []
-        for band in band_and_idx_list:
+        for band in bands:
             if is_index(band):
                 raise NotImplementedError("For now, no index is implemented for SAR data.")
             elif is_optical_band(band):
@@ -608,18 +525,12 @@ class SarProduct(Product):
                 raise InvalidTypeError(f"{band} is neither a band nor an index !")
 
         # Load bands
-        bands, meta = self._load_bands(band_list, resolution=resolution, size=size)
+        bands = self._load_bands(band_list, resolution=resolution, size=size)
 
         # Add DEM
-        dem_bands, dem_meta = self._load_dem(dem_list, resolution=resolution, size=size)
-        bands.update(dem_bands)
-        if not meta:
-            meta = dem_meta
+        bands.update(self._load_dem(dem_list, resolution=resolution, size=size))
 
-        # Manage the case of arrays of different size -> collocate arrays if needed
-        bands = self._collocate_bands(bands, meta)
-
-        return bands, meta
+        return bands
 
     def _pre_process_sar(self, resolution: float = None) -> dict:
         """
@@ -734,12 +645,12 @@ class SarProduct(Product):
             img = rasters.get_dim_img_path(dim_path)  # Maybe not the good name
 
         # Open SAR image
-        arr, meta = rasters.read(img)
-        arr[np.isnan(arr)] = self.nodata
+        arr = rasters.read(img)
+        arr = rasters.set_nodata(arr, self.nodata)
 
         # Save the file as the terrain-corrected image
         file_path = os.path.join(self.output, f"{files.get_filename(dim_path)}_{pol_up}.tif")
-        rasters.write(arr, file_path, meta, nodata=self.nodata)
+        rasters.write(arr, file_path, dtype=np.float32)
 
         return file_path
 

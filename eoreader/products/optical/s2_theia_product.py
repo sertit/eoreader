@@ -14,13 +14,13 @@ from lxml import etree
 import numpy as np
 from rasterio.enums import Resampling
 from sertit import files, rasters
+from sertit.rasters import XDS_TYPE
 
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.s2_product import S2ProductType
 from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.bands.alias import ALL_CLOUDS, RAW_CLOUDS, CLOUDS, SHADOWS, CIRRUS
 from eoreader.products.optical.optical_product import OpticalProduct
-from eoreader.products.product import path_or_dst
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -144,84 +144,54 @@ class S2TheiaProduct(OpticalProduct):
 
         return band_paths
 
-    @path_or_dst
     def _read_band(self,
-                   dataset,
+                   path: str,
                    resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
+                   size: Union[list, tuple] = None) -> XDS_TYPE:
         """
         Read band from a dataset
 
-        .. WARNING:: Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
-
-        ```python
-        >>> import rasterio
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
-        >>> prod = Reader().open(path)
-        >>> band, meta = prod._read_band(prod.get_default_band_path(), resolution=20)
-        >>> band
-        masked_array(
-          data=[[[0.05339999869465828, ..., 0.05790000036358833]]],
-          mask=[[[False, ..., False],
-          fill_value=1e+20,
-          dtype=float32)
-        >>> meta
-        {
-            'driver': 'GTiff',
-            'dtype': <class 'numpy.float32'>,
-            'nodata': 0,
-            'width': 5490,
-            'height': 5490,
-            'count': 1,
-            'crs': CRS.from_epsg(32631),
-            'transform': Affine(20.0, 0.0, 499980.0, 0.0, -20.0, 5500020.0)
-        }
-        ```
+        .. WARNING::
+            Invalid pixels are not managed here!
 
         Args:
-            dataset (Dataset): Band dataset
+            path (str): Band path
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             np.ma.masked_array, dict: Radiometrically coherent band, saved as float 32 and its metadata
         """
         # Read band
-        band, dst_meta = rasters.read(dataset,
-                                      resolution=resolution,
-                                      size=size,
-                                      resampling=Resampling.bilinear)
+        band = rasters.read(path,
+                            resolution=resolution,
+                            size=size,
+                            resampling=Resampling.bilinear)
 
         # Compute the correct radiometry of the band
-        band = band.astype(np.float32) / 10000.
-        dst_meta["dtype"] = np.float32
-        dst_meta["nodata"] = 0
+        band = band / 10000.
 
-        return band, dst_meta
+        return band
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(self,
-                               band_arr: np.ma.masked_array,
+                               band_arr: XDS_TYPE,
                                band: obn,
-                               meta: dict,
                                resolution: float = None,
-                               size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
+                               size: Union[list, tuple] = None) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
         information.
 
         Args:
-            band_arr (np.ma.masked_array): Band array loaded
+            band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            meta (dict): Band metadata from rasterio
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            np.ma.masked_array, dict: Cleaned band array and its metadata
+            XDS_TYPE: Cleaned band array 
         """
         nodata_true = 1
         nodata_false = 0
@@ -229,7 +199,7 @@ class S2TheiaProduct(OpticalProduct):
         # -- Manage nodata from Theia band array
         # Theia nodata is already processed
         theia_nodata = -1.
-        no_data_mask = np.where(band == theia_nodata, nodata_true, nodata_false).astype(np.uint8)
+        no_data_mask = np.where(band_arr.data == theia_nodata, nodata_true, nodata_false).astype(np.uint8)
 
         # Open NODATA pixels mask
         edg_mask = self.open_mask("EDG", band, resolution=resolution, size=size)
@@ -248,7 +218,7 @@ class S2TheiaProduct(OpticalProduct):
             pass
 
         # -- Merge masks
-        return self._create_band_masked_array(band_arr, mask, meta)
+        return self._set_nodata_mask(band_arr, mask)
 
     def open_mask(self,
                   mask_id: str,
@@ -314,43 +284,40 @@ class S2TheiaProduct(OpticalProduct):
             raise InvalidProductError(f"Non existing mask {mask_regex} in {self.name}") from ex
 
         # Open SAT band
-        sat_arr, _ = rasters.read(mask_path,
-                                  resolution=resolution,
-                                  size=size,
-                                  resampling=Resampling.nearest,  # Nearest to keep the flags
-                                  masked=False)
+        sat_arr = rasters.read(mask_path,
+                               resolution=resolution,
+                               size=size,
+                               resampling=Resampling.nearest,  # Nearest to keep the flags
+                               masked=False).astype(np.uint8)
         sat_mask = rasters.read_bit_array(sat_arr, bit_id)
 
         return sat_mask
 
     def _load_bands(self,
-                    band_list: Union[list, BandNames],
+                    bands: list,
                     resolution: float = None,
-                    size: Union[list, tuple] = None) -> (dict, dict):
+                    size: Union[list, tuple] = None) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (list, BandNames): List of the wanted bands
+            bands list: List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         """
         # Return empty if no band are specified
-        if not band_list:
-            return {}, {}
+        if not bands:
+            return {}
 
         # Get band paths
-        if not isinstance(band_list, list):
-            band_list = [band_list]
-        band_paths = self.get_band_paths(band_list)
+        band_paths = self.get_band_paths(bands)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self._open_bands(band_paths, resolution=resolution, size=size)
+        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
 
-        return band_arrays, meta
+        return band_arrays
 
     def _get_condensed_name(self) -> str:
         """
@@ -441,9 +408,9 @@ class S2TheiaProduct(OpticalProduct):
         return True
 
     def _load_clouds(self,
-                     band_list: Union[list, BandNames],
+                     bands: list,
                      resolution: float = None,
-                     size: Union[list, tuple] = None) -> (dict, dict):
+                     size: Union[list, tuple] = None) -> dict:
         """
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -461,17 +428,15 @@ class S2TheiaProduct(OpticalProduct):
             - bit 7 (128) : high clouds detected by 1.38 µm
 
         Args:
-            band_list (Union[list, BandNames]): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         """
-        bands = {}
-        meta = {}
+        band_dict = {}
 
-        if band_list:
+        if bands:
             # Open 20m cloud file if resolution >= 20m
             cld_file_name = "CLM_R2" if resolution >= 20 else "CLM_R1"
 
@@ -486,13 +451,13 @@ class S2TheiaProduct(OpticalProduct):
                 raise FileNotFoundError(f'Unable to find the cloud mask for {self.path}')
 
             # Open cloud file
-            clouds_array, meta = rasters.read(cloud_path,
-                                              resolution=resolution,
-                                              size=size,
-                                              resampling=Resampling.nearest)
+            clouds_array = rasters.read(cloud_path,
+                                        resolution=resolution,
+                                        size=size,
+                                        resampling=Resampling.nearest)
 
             # Get nodata mask
-            nodata = np.where(clouds_array == meta["nodata"], 1, 0)
+            nodata = np.where(np.isnan(clouds_array), 1, 0)
 
             # Bit ids
             clouds_shadows_id = 0
@@ -501,31 +466,31 @@ class S2TheiaProduct(OpticalProduct):
             shadows_in_id = 5
             shadows_out_id = 6
 
-            for band in band_list:
+            for band in bands:
                 if band == ALL_CLOUDS:
-                    bands[band] = self._create_mask(clouds_array, [clouds_shadows_id, cirrus_id], nodata)
+                    band_dict[band] = self._create_mask(clouds_array, [clouds_shadows_id, cirrus_id], nodata)
                 elif band == SHADOWS:
-                    bands[band] = self._create_mask(clouds_array, [shadows_in_id, shadows_out_id], nodata)
+                    band_dict[band] = self._create_mask(clouds_array, [shadows_in_id, shadows_out_id], nodata)
                 elif band == CLOUDS:
-                    bands[band] = self._create_mask(clouds_array, clouds_id, nodata)
+                    band_dict[band] = self._create_mask(clouds_array, clouds_id, nodata)
                 elif band == CIRRUS:
-                    bands[band] = self._create_mask(clouds_array, cirrus_id, nodata)
+                    band_dict[band] = self._create_mask(clouds_array, cirrus_id, nodata)
                 elif band == RAW_CLOUDS:
-                    bands[band] = clouds_array
+                    band_dict[band] = clouds_array
                 else:
                     raise InvalidTypeError(f"Non existing cloud band for Sentinel-2 THEIA: {band}")
 
-        return bands, meta
+        return band_dict
 
     def _create_mask(self,
-                     bit_array: np.ma.masked_array,
+                     bit_array: XDS_TYPE,
                      bit_ids: Union[int, list],
                      nodata: np.ndarray) -> np.ma.masked_array:
         """
         Create a mask masked array (uint8) from a bit array, bit IDs and a nodata mask.
 
         Args:
-            bit_array (np.ma.masked_array): Conditional array
+            bit_array (XDS_TYPE): Conditional array
             bit_ids (Union[int, list]): Bit IDs
             nodata (np.ndarray): Nodata mask
 
@@ -535,15 +500,7 @@ class S2TheiaProduct(OpticalProduct):
         """
         if not isinstance(bit_ids, list):
             bit_ids = [bit_ids]
-        conds = rasters.read_bit_array(bit_array, bit_ids)
+        conds = rasters.read_bit_array(bit_array.astype(np.uint8), bit_ids)
         cond = reduce(lambda x, y: x | y, conds)  # Use every conditions (bitwise or)
 
-        mask = np.ma.masked_array(np.where(cond, self._mask_true, self._mask_false),
-                                  mask=nodata,
-                                  fill_value=self._mask_nodata,
-                                  dtype=np.uint8)
-
-        # Fill nodata pixels
-        mask[nodata == 1] = self._mask_nodata
-
-        return mask
+        return super()._create_mask(bit_array, cond, nodata)

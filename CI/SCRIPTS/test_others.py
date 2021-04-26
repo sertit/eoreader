@@ -1,7 +1,7 @@
 import os
 
 import pytest
-import numpy as np
+import xarray as xr
 import pandas as pd
 from lxml import etree
 
@@ -55,10 +55,10 @@ def test_alias():
     assert is_clouds(CLOUDS)
 
     # Other functions
-    lst = to_band_or_idx(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
+    lst = to_band(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
     assert lst == [NDVI, GREEN, RED, VH_DSPK, SLOPE, DEM, CLOUDS, CLOUDS]
     with pytest.raises(InvalidTypeError):
-        to_band_or_idx(["WRONG_BAND"])
+        to_band(["WRONG_BAND"])
 
 
 def test_products():
@@ -85,11 +85,10 @@ def test_products():
     assert nmsp == ""
 
     # Check size
-    green, meta = prod1.load([GREEN], resolution=300)
-    green2, meta2 = prod1.load([GREEN], size=(meta["width"], meta["height"]))
+    green = prod1.load([GREEN], resolution=300)
+    green2 = prod1.load([GREEN], size=(green[GREEN].rio.width, green[GREEN].rio.height))
 
-    np.testing.assert_array_equal(green[GREEN], green2[GREEN])
-    assert meta == meta2
+    xr.testing.assert_equal(green[GREEN], green2[GREEN])
 
 
 def test_bands():

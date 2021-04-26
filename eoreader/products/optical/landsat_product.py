@@ -16,12 +16,12 @@ from rasterio.enums import Resampling
 from sertit import files
 from sertit import rasters
 from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
 
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.bands.bands import OpticalBandNames as obn, BandNames
 from eoreader.bands.alias import ALL_CLOUDS, RAW_CLOUDS, CLOUDS, SHADOWS, CIRRUS
 from eoreader.products.optical.optical_product import OpticalProduct
-from eoreader.products.product import path_or_dst
 from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -419,67 +419,44 @@ class LandsatProduct(OpticalProduct):
 
         return mtd_data
 
-    @path_or_dst
     def _read_band(self,
-                   dataset,
+                   path: str,
                    resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
+                   size: Union[list, tuple] = None) -> XDS_TYPE:
         """
         Read band from a dataset.
 
         .. WARNING::
-            Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
-
-        ```python
-        >>> import rasterio
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> band, meta = prod._read_band(prod.get_default_band_path(), resolution=30)
-        >>> band
-        masked_array(
-          data=[[[-0.1, ..., -0.1]]],
-          mask=False,
-          fill_value=1e+20,
-          dtype=float32)
-        >>> meta
-        {
-            'driver': 'GTiff',
-            'dtype': <class 'numpy.float32'>,
-            'nodata': None,
-            'width': 11746,
-            'height': 11912,
-            'count': 1,
-            'crs': CRS.from_epsg(32616),
-            'transform': Affine(20.00085135365231, 0.0, 314985.0, 0.0, -19.999160510409673, 4900215.0)
-        }
-        ```
+            Invalid pixels are not managed here !
 
         Args:
-            dataset (Dataset): Band dataset
+            path (str): Band path
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             np.ma.masked_array, dict: Radiometrically coherent band, saved as float 32 and its metadata
 
         """
+        # Get band name: the last number of the filename:
+        # ie: 'LC08_L1TP_200030_20191218_20191226_01_T1_B1'
+        if self.is_archived:
+            filename = files.get_filename(path.split("!")[-1])
+        else:
+            filename = files.get_filename(path)
 
-        # Get band name: the last number before the .TIF:
-        # ie: 'LC08_L1TP_200030_20191218_20191226_01_T1_B1.TIF'
-        band_name = dataset.name[-5:-4]
-        if self._quality_id in dataset.name or self._nodata_band_id in dataset.name:
-            band, dst_meta = rasters.read(dataset,
-                                          resolution=resolution,
-                                          size=size,
-                                          resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
-                                          masked=False)  # No need to get masked_array
+        band_name = filename[-1]
+        if self._quality_id in filename or self._nodata_band_id in filename:
+            band = rasters.read(path,
+                                resolution=resolution,
+                                size=size,
+                                resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
+                                masked=False).astype(np.uint16)  # No need to get masked_array
         else:
             # Read band (call superclass generic method)
-            band, dst_meta = rasters.read(dataset,
-                                          resolution=resolution,
-                                          size=size,
-                                          resampling=Resampling.bilinear)
+            band = rasters.read(path,
+                                resolution=resolution,
+                                size=size,
+                                resampling=Resampling.bilinear).astype(np.float32)
 
             # Open mtd
             mtd_data = self.read_mtd(force_pd=True)
@@ -503,37 +480,32 @@ class LandsatProduct(OpticalProduct):
                 c_add = 0
 
             # Compute the correct radiometry of the band and set no data to 0
-            band = c_mul * band.astype(np.float32) + c_add
+            band = c_mul * band + c_add  # Already in float
 
-            # Update MTD
-            dst_meta["dtype"] = np.float32
-
-        return band, dst_meta
+        return band
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(self,
-                               band_arr: np.ma.masked_array,
+                               band_arr: XDS_TYPE,
                                band: obn,
-                               meta: dict,
                                resolution: float = None,
-                               size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
+                               size: Union[list, tuple] = None) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
-            band_arr (np.ma.masked_array): Band array loaded
+            band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            meta (dict): Band metadata from rasterio
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            np.ma.masked_array, dict: Cleaned band array and its metadata
+            XDS_TYPE: Cleaned band array 
         """
         # Open QA band
         landsat_qa_path = self._get_path(self._quality_id)
-        qa_arr, meta = self._read_band(landsat_qa_path, resolution=resolution, size=size)
+        qa_arr = self._read_band(landsat_qa_path, resolution=resolution, size=size).data  # To np array
 
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -561,22 +533,20 @@ class LandsatProduct(OpticalProduct):
                 other_id = 9  # Dropped pixels
 
             sat, other = rasters.read_bit_array(qa_arr, [sat_id, other_id])
-            mask = sat | other
 
-        # If collection 2, nodata has to be found in pixel QA file
-        if self._collection == LandsatCollection.COL_2:
+            # If collection 2, nodata has to be found in pixel QA file
             landsat_stat_path = self._get_path(self._nodata_band_id)
-            pixel_arr, meta = self._read_band(landsat_stat_path, resolution=resolution, size=size)
+            pixel_arr = self._read_band(landsat_stat_path, resolution=resolution, size=size).data
             nodata = np.where(pixel_arr == 1, 1, 0)
 
-            mask = nodata | mask
+            mask = sat | other | nodata
 
-        return self._create_band_masked_array(band_arr, mask, meta)
+        return self._set_nodata_mask(band_arr, mask)
 
     def _load_bands(self,
                     band_list: Union[list, BandNames],
                     resolution: float = None,
-                    size: Union[list, tuple] = None) -> (dict, dict):
+                    size: Union[list, tuple] = None) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -585,12 +555,11 @@ class LandsatProduct(OpticalProduct):
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         """
         # Return empty if no band are specified
         if not band_list:
-            return {}, {}
+            return {}
 
         # Get band paths
         if not isinstance(band_list, list):
@@ -598,9 +567,9 @@ class LandsatProduct(OpticalProduct):
         band_paths = self.get_band_paths(band_list)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self._open_bands(band_paths, resolution=resolution, size=size)
+        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
 
-        return band_arrays, meta
+        return band_arrays
 
     def get_mean_sun_angles(self) -> (float, float):
         """
@@ -679,9 +648,9 @@ class LandsatProduct(OpticalProduct):
         return has_band
 
     def _load_clouds(self,
-                     band_list: Union[list, BandNames],
+                     bands: list,
                      resolution: float = None,
-                     size: Union[list, tuple] = None) -> (dict, dict):
+                     size: Union[list, tuple] = None) -> dict:
         """
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -693,35 +662,33 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            band_list (Union[list, BandNames]): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         """
-        bands = {}
-        meta = {}
+        band_dict = {}
 
-        if band_list:
+        if bands:
             # Open QA band
             landsat_qa_path = self._get_path(self._quality_id)
-            qa_arr, meta = self._read_band(landsat_qa_path, resolution=resolution, size=size)
+            qa_arr = self._read_band(landsat_qa_path, resolution=resolution, size=size)
 
             if self.product_type == LandsatProductType.L1_OLCI:
-                bands = self._load_olci_clouds(qa_arr, band_list)
+                band_dict = self._load_olci_clouds(qa_arr, bands)
             elif self.product_type in [LandsatProductType.L1_ETM, LandsatProductType.L1_TM]:
-                bands = self._load_e_tm_clouds(qa_arr, band_list)
+                band_dict = self._load_e_tm_clouds(qa_arr, bands)
             elif self.product_type == LandsatProductType.L1_MSS:
-                bands = self._load_mss_clouds(qa_arr, band_list)
+                band_dict = self._load_mss_clouds(qa_arr, bands)
             else:
                 raise InvalidProductError(f"Invalid product type: {self.product_type}")
 
-        return bands, meta
+        return band_dict
 
     def _load_mss_clouds(self,
-                         qa_arr: np.ma.masked_array,
-                         band_list: Union[list, BandNames]) -> dict:
+                         qa_arr: XDS_TYPE,
+                         band_list: list) -> dict:
         """
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -733,8 +700,8 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            qa_arr (np.ma.masked_array): Quality array
-            band_list (Union[list, BandNames]): List of the wanted bands
+            qa_arr (XDS_TYPE): Quality array
+            band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
         """
@@ -747,7 +714,7 @@ class LandsatProduct(OpticalProduct):
         clouds = None
         if ALL_CLOUDS in band_list or CLOUDS in band_list:
             nodata, cld = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id])
-            clouds = self._create_mask(cld, nodata)
+            clouds = self._create_mask(qa_arr, cld, nodata)
 
         for band in band_list:
             if band == ALL_CLOUDS:
@@ -762,7 +729,7 @@ class LandsatProduct(OpticalProduct):
         return bands
 
     def _load_e_tm_clouds(self,
-                          qa_arr: np.ma.masked_array,
+                          qa_arr: XDS_TYPE,
                           band_list: Union[list, BandNames]) -> dict:
         """
         Load cloud files as numpy arrays with the same resolution (and same metadata).
@@ -776,8 +743,8 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            qa_arr (np.ma.masked_array): Quality array
-            band_list (Union[list, BandNames]): List of the wanted bands
+            qa_arr (XDS_TYPE): Quality array
+            band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
         """
@@ -804,13 +771,14 @@ class LandsatProduct(OpticalProduct):
                 shd_id = 4  # Shadows with high confidence
                 nodata, cld, shd = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id, shd_id])
 
+
         for band in band_list:
             if band == ALL_CLOUDS:
-                bands[band] = self._create_mask(cld | shd, nodata)
+                bands[band] = self._create_mask(qa_arr, cld | shd, nodata)
             elif band == SHADOWS:
-                bands[band] = self._create_mask(shd, nodata)
+                bands[band] = self._create_mask(qa_arr, shd, nodata)
             elif band == CLOUDS:
-                bands[band] = self._create_mask(cld, nodata)
+                bands[band] = self._create_mask(qa_arr, cld, nodata)
             elif band == RAW_CLOUDS:
                 bands[band] = qa_arr
             else:
@@ -819,7 +787,7 @@ class LandsatProduct(OpticalProduct):
         return bands
 
     def _load_olci_clouds(self,
-                          qa_arr: np.ma.masked_array,
+                          qa_arr: XDS_TYPE,
                           band_list: Union[list, BandNames]) -> dict:
         """
         Load cloud files as numpy arrays with the same resolution (and same metadata).
@@ -832,8 +800,8 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            qa_arr (np.ma.masked_array): Quality array
-            band_list (Union[list, BandNames]): List of the wanted bands
+            qa_arr (XDS_TYPE): Quality array
+            band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
         """
@@ -872,38 +840,16 @@ class LandsatProduct(OpticalProduct):
 
         for band in band_list:
             if band == ALL_CLOUDS:
-                bands[band] = self._create_mask(cld | shd | cir, nodata)
+                bands[band] = self._create_mask(qa_arr, cld | shd | cir, nodata)
             elif band == SHADOWS:
-                bands[band] = self._create_mask(shd, nodata)
+                bands[band] = self._create_mask(qa_arr, shd, nodata)
             elif band == CLOUDS:
-                bands[band] = self._create_mask(cld, nodata)
+                bands[band] = self._create_mask(qa_arr, cld, nodata)
             elif band == CIRRUS:
-                bands[band] = self._create_mask(cir, nodata)
+                bands[band] = self._create_mask(qa_arr, cir, nodata)
             elif band == RAW_CLOUDS:
                 bands[band] = qa_arr
             else:
                 raise InvalidTypeError(f"Non existing cloud band for Landsat-OLCI sensor: {band}")
 
         return bands
-
-    def _create_mask(self, cond: np.ndarray, nodata: np.ndarray) -> np.ma.masked_array:
-        """
-        Create a mask masked array (uint8) from a conditional array and a nodata mask.
-
-        Args:
-            cond (np.ndarray): Conditional array
-            nodata (np.ndarray): Nodata mask
-
-        Returns:
-            np.ma.masked_array: Mask masked array
-
-        """
-        mask = np.ma.masked_array(np.where(cond, self._mask_true, self._mask_false),
-                                  mask=nodata,
-                                  fill_value=self._mask_nodata,
-                                  dtype=np.uint8)
-
-        # Fill nodata pixels
-        mask[nodata == 1] = self._mask_nodata
-
-        return mask
