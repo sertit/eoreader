@@ -4,6 +4,7 @@ import logging
 import os
 import tempfile
 
+import xarray
 from sertit import logs, files, ci
 
 from eoreader.products.product import Product, SensorType
@@ -19,9 +20,9 @@ RES = 1000  # 1000m
 
 def remove_dem(prod):
     """ Remove DEM from product output """
-    to_del = glob.glob(os.path.join(prod.output, "*_DEM.tif"))
-    to_del += glob.glob(os.path.join(prod.output, "*_HILLSHADE.tif"))
-    to_del += glob.glob(os.path.join(prod.output, "*_SLOPE.tif"))
+    to_del = glob.glob(os.path.join(prod.output, f"{prod.condensed_name}_DEM.tif"))
+    to_del += glob.glob(os.path.join(prod.output, f"{prod.condensed_name}_HILLSHADE.tif"))
+    to_del += glob.glob(os.path.join(prod.output, f"{prod.condensed_name}_SLOPE.tif"))
     for to_d in to_del:
         files.remove(to_d)
 
@@ -42,6 +43,7 @@ def _test_core_optical(pattern: str, debug=False):
     possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
     _test_core(pattern, OPT_PATH, possible_bands, debug)
 
+
 def _test_core_sar(pattern: str, debug=False):
     """
     Core function testing SAR data
@@ -52,6 +54,7 @@ def _test_core_sar(pattern: str, debug=False):
     possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
     _test_core(pattern, SAR_PATH, possible_bands, debug)
 
+
 def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
     """
     Core function testing all data
@@ -61,78 +64,86 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
         possible_bands(list): Possible bands
         debug (bool): Debug option
     """
-    # Init logger
-    logs.init_logger(LOGGER)
+    with xarray.set_options(warn_for_unclosed_files=True):
 
-    # DATA paths
-    pattern_paths = files.get_file_in_dir(prod_dir, pattern, exact_name=True, get_list=True)
+        # Init logger
+        logs.init_logger(LOGGER)
 
-    for path in pattern_paths:
-        LOGGER.info(os.path.basename(path))
+        # DATA paths
+        pattern_paths = files.get_file_in_dir(prod_dir, pattern, exact_name=True, get_list=True)
 
-        # Open product and set output
-        prod: Product = READER.open(path, method=CheckMethod.MTD)
-        prod_name = READER.open(path, method=CheckMethod.NAME)
-        prod_both = READER.open(path, method=CheckMethod.BOTH)
-        assert prod is not None
-        assert prod == prod_name
-        assert prod == prod_both
+        for path in pattern_paths:
+            LOGGER.info(os.path.basename(path))
 
-        # Discard the case where an invalid file/directory is in the CI folder
-        if prod is not None:
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                prod.output = tmp_dir
-                if prod.platform == Platform.S3 or prod.sensor_type == SensorType.SAR:
-                    os.environ[CI_EOREADER_BAND_FOLDER] = os.path.join(get_ci_data_dir(), prod.condensed_name)
-                else:
-                    if CI_EOREADER_BAND_FOLDER in os.environ:
-                        os.environ.pop(CI_EOREADER_BAND_FOLDER)
-                os.environ[SAR_DEF_RES] = str(RES)
+            # Open product and set output
+            prod: Product = READER.open(path, method=CheckMethod.MTD)
+            prod_name = READER.open(path, method=CheckMethod.NAME)
+            prod_both = READER.open(path, method=CheckMethod.BOTH)
+            assert prod is not None
+            assert prod == prod_name
+            assert prod == prod_both
 
-                # Remove DEM tifs if existing
-                remove_dem(prod)
+            # Discard the case where an invalid file/directory is in the CI folder
+            if prod is not None:
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    # tmp_dir = os.path.join(get_ci_data_dir(), "OUTPUT")
+                    prod.output = tmp_dir
+                    if prod.platform == Platform.S3 or prod.sensor_type == SensorType.SAR:
+                        os.environ[CI_EOREADER_BAND_FOLDER] = os.path.join(get_ci_data_dir(), prod.condensed_name)
+                    else:
+                        if CI_EOREADER_BAND_FOLDER in os.environ:
+                            os.environ.pop(CI_EOREADER_BAND_FOLDER)
+                    os.environ[SAR_DEF_RES] = str(RES)
 
-                # Get stack bands
-                # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-                stack_bands = [band for band in possible_bands if prod.has_band(band)]
+                    # Remove DEM tifs if existing
+                    remove_dem(prod)
 
-                # Manage S3 resolution to speed up processes
-                if prod.sat_id == "S3":
-                    res = RES * prod.resolution / 20.
-                    os.environ[S3_DEF_RES] = str(res)
-                else:
-                    res = RES
+                    # Get stack bands
+                    # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
+                    stack_bands = [band for band in possible_bands if prod.has_band(band)]
 
-                # Stack data
-                ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
-                if debug:
-                    curr_path = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
-                else:
-                    curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
-                prod.stack(stack_bands,
-                           resolution=res,
-                           stack_path=curr_path)
+                    # Manage S3 resolution to speed up processes
+                    if prod.sat_id == "S3":
+                        res = RES * prod.resolution / 20.
+                        os.environ[S3_DEF_RES] = str(res)
+                    else:
+                        res = RES
 
-                # Test
-                ci.assert_raster_equal(curr_path, ci_data)
+                    # Stack data
+                    ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
+                    if debug:
+                        curr_path = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
+                    else:
+                        curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
+                    prod.stack(stack_bands, resolution=res, stack_path=curr_path)
 
-            # CRS
-            assert prod.crs().is_projected
+                    # Test
+                    ci.assert_raster_equal(curr_path, ci_data)
+
+                # CRS
+                assert prod.crs().is_projected
 
 
 def test_s2():
     """ Function testing the correct functioning of the optical satellites """
     _test_core_optical("S2*_MSI*")
 
+
 def test_s2_theia():
     """ Function testing the correct functioning of the optical satellites """
     _test_core_optical("SENTINEL2*")
 
 
-def test_s3():
+def test_s3_olci():
     """ Function testing the correct functioning of the optical satellites """
     # Init logger
-    _test_core_optical("S3*_*L_1_*")
+    _test_core_optical("S3*_OL_1_*")
+
+
+def test_s3_slstr():
+    """ Function testing the correct functioning of the optical satellites """
+    # Init logger
+    _test_core_optical("S3*_SL_1_*")
 
 
 def test_l8():
@@ -199,7 +210,6 @@ def test_tsx():
 def test_rs2():
     """ Function testing the correct functioning of the optical satellites """
     _test_core_sar("RS2_*")
-
 
 # TODO:
 # check non existing bands

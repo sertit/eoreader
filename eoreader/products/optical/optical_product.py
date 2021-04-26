@@ -3,13 +3,15 @@
 import logging
 import os
 from abc import abstractmethod
-from typing import Callable, Union
+from typing import Union
 import numpy as np
+import xarray as xr
 import geopandas as gpd
 import rasterio
 from rasterio import crs
 from rasterio.enums import Resampling
 from sertit import rasters, strings, misc
+from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 
 from eoreader.bands.alias import is_dem, is_clouds, is_index, is_optical_band, is_sar_band
@@ -163,9 +165,9 @@ class OpticalProduct(Product):
     def _open_bands(self,
                     band_paths: dict,
                     resolution: float = None,
-                    size: Union[list, tuple] = None) -> (dict, dict):
+                    size: Union[list, tuple] = None) -> dict:
         """
-        Open bands from their paths.
+        Open bands from disk.
 
         Args:
             band_paths (dict): Band dict: {band_enum: band_path}
@@ -173,66 +175,53 @@ class OpticalProduct(Product):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
 
         """
         # Open bands and get array (resampled if needed)
         band_arrays = {}
-        meta = {}
         for band_name, band_path in band_paths.items():
             # Read band
-            band_arrays[band_name], ds_meta = self._read_band(band_path, resolution=resolution, size=size)
-            band_arrays[band_name], ds_meta = self._manage_invalid_pixels(band_arrays[band_name],
-                                                                          band_name, ds_meta,
-                                                                          resolution=resolution,
-                                                                          size=size)
+            band_arrays[band_name] = self._read_band(band_path, resolution=resolution, size=size)
+            band_arrays[band_name] = self._manage_invalid_pixels(band_arrays[band_name], band_name,
+                                                                 resolution=resolution, size=size)
 
-            # Meta
-            if not meta:
-                meta = ds_meta.copy()
-
-        return band_arrays, meta
+        return band_arrays
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     @abstractmethod
     def _manage_invalid_pixels(self,
-                               band_arr: np.ma.masked_array,
+                               band_arr: XDS_TYPE,
                                band: obn,
-                               meta: dict,
                                resolution: float = None,
-                               size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
+                               size: Union[list, tuple] = None) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
-            band_arr (np.ma.masked_array): Band array loaded
+            band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            meta (dict): Band metadata from rasterio
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            np.ma.masked_array, dict: Cleaned band array and its metadata
+            XDS_TYPE: Cleaned band array
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _create_band_masked_array(self,
-                                  band_arr: np.ma.masked_array,
-                                  mask: np.ndarray,
-                                  meta: dict) -> (np.ma.masked_array, dict):
+    def _set_nodata_mask(self,
+                         band_arr: XDS_TYPE,
+                         mask: np.ndarray) -> XDS_TYPE:
         """
-        Create the correct masked array with well positioned nodata and values properly set to nodata
+        Create the correct xarray with well positioned nodata
 
         Args:
-            band_arr (np.ma.masked_array): Band array
-                (should already be a masked array as it comes from rasterio.read(..., masked=True)
-            mask (np.ndarray): Mask array, should be the same size as band_arr (in 2D)
-            meta (dict): Metadata of the band array
+            band_arr (XDS_TYPE): Band array
+            mask (np.ndarray): Mask array
 
         Returns:
-            (np.ma.masked_array, dict): Corrected band array and updated metadata
+            (XDS_TYPE): Corrected band array
         """
         # Binary mask
         if mask.dtype != np.uint8:
@@ -241,90 +230,33 @@ class OpticalProduct(Product):
         if len(mask.shape) < len(band_arr.shape):
             mask = np.expand_dims(mask, axis=0)
 
-        # Set ok pixels that have 0 value to epsilon
-        eps = 0.0001  # min value to be set to 1 when saved as uint16 (*10000)
-        # band_arr[band_arr.data == self.nodata] = eps  # Do not let not nodata pixels to 0
-        # band_arr[mask == 1] = self.nodata  # Set no data pixels to the correct value
-        # band_arr.mask = mask
-        # band_arr.fill_value = self.nodata
+        # Set masked values to nodata
+        band_arr = xr.where(mask, self.nodata, band_arr)
 
-        band_arr_mask = np.ma.masked_array(np.where(band_arr == self.nodata, eps, band_arr),
-                                           mask=mask,
-                                           fill_value=self.nodata,
-                                           dtype=band_arr.dtype)
-        meta["nodata"] = self.nodata
+        return rasters.set_nodata(band_arr, self.nodata)
 
-        return band_arr_mask, meta
-
-    def load(self,
-             band_and_idx_list: Union[list, BandNames, Callable],
-             resolution: float = None,
-             size: Union[list, tuple] = None) -> (dict, dict):
+    def _load(self,
+              bands: list,
+              resolution: float = None,
+              size: Union[list, tuple] = None) -> dict:
         """
-        Open the bands and compute the wanted index.
-
-        The bands will be purged of nodata and invalid pixels,
-        the nodata will be set to 0 and the bands will be masked arrays in float.
-
-        Bands that come out this function at the same time are collocated and therefore have the same shapes.
-        This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
-
-        If neither resolution nor size is given, bands will be loaded at the product's default resolution.
-
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> bands, meta = prod.load([GREEN, NDVI], resolution=20)
-        >>> bands
-        {<function NDVI at 0x00000227FBB929D8>: masked_array(
-          data=[[[-0.02004455029964447, ..., 0.11663568764925003]]],
-          mask=[[[False, ..., False]]],
-          fill_value=0.0,
-          dtype=float32),
-          <OpticalBandNames.GREEN: 'GREEN'>: masked_array(
-          data=[[[0.061400000005960464, ..., 0.15799999237060547]]],
-          mask=[[[False, ..., False]]],
-          fill_value=0.0,
-          dtype=float32)}
-        >>> meta
-        {
-            'driver': 'GTiff',
-            'dtype': <class 'numpy.float32'>,
-            'nodata': 0,
-            'width': 5490,
-            'height': 5490,
-            'count': 1,
-            'crs': CRS.from_epsg(32630),
-            'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
-        }
-        ```
+        Core function loading optical data bands
 
         Args:
-            band_and_idx_list (list, index): Index list
+            bands (list): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            dict, dict: Index and band dict, metadata
+            Dictionary {band_name, band_xarray}
         """
-        if not resolution and not size:
-            resolution = self.resolution
-
-        if not isinstance(band_and_idx_list, list):
-            band_and_idx_list = [band_and_idx_list]
-
-        if len(band_and_idx_list) == 0:
-            return {}, {}
-
         band_list = []
         index_list = []
         dem_list = []
         clouds_list = []
 
         # Check if everything is valid
-        for idx_or_band in band_and_idx_list:
+        for idx_or_band in bands:
             if is_index(idx_or_band):
                 if self._has_index(idx_or_band):
                     index_list.append(idx_or_band)
@@ -348,30 +280,21 @@ class OpticalProduct(Product):
             bands_to_load += index.NEEDED_BANDS[idx]
 
         # Load band arrays (only keep unique bands: open them only one time !)
-        bands, meta = self._load_bands(list(set(bands_to_load)), resolution=resolution, size=size)
+        bands = self._load_bands(list(set(bands_to_load)), resolution=resolution, size=size)
 
         # Compute index (they conserve the nodata)
-        idx_and_bands_dict = {idx: idx(bands) for idx in index_list}
+        bands_dict = {idx: idx(bands) for idx in index_list}
 
         # Add bands
-        idx_and_bands_dict.update({band: bands[band] for band in band_list})
+        bands_dict.update({band: bands[band] for band in band_list})
 
         # Add DEM
-        dem_bands, dem_meta = self._load_dem(dem_list, resolution=resolution, size=size)
-        idx_and_bands_dict.update(dem_bands)
-        if not meta:
-            meta = dem_meta
+        bands_dict.update(self._load_dem(dem_list, resolution=resolution, size=size))
 
         # Add Clouds
-        clouds_bands, clouds_meta = self._load_clouds(clouds_list, resolution=resolution, size=size)
-        idx_and_bands_dict.update(clouds_bands)
-        if not meta:
-            meta = clouds_meta
+        bands_dict.update(self._load_clouds(clouds_list, resolution=resolution, size=size))
 
-        # Manage the case of arrays of different size -> collocate arrays if needed
-        idx_and_bands_dict = self._collocate_bands(idx_and_bands_dict, meta)
-
-        return idx_and_bands_dict, meta
+        return bands_dict
 
     @abstractmethod
     def get_mean_sun_angles(self) -> (float, float):
@@ -440,18 +363,35 @@ class OpticalProduct(Product):
         return hillshade_dem
 
     def _load_clouds(self,
-                  band_list: Union[list, BandNames],
-                  resolution: float = None,
-                  size: Union[list, tuple] = None) -> (dict, dict):
+                     bands: list,
+                     resolution: float = None,
+                     size: Union[list, tuple] = None) -> dict:
         """
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (Union[list, BandNames]): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         """
         raise NotImplementedError("This method should be implemented by a child class")
+
+    def _create_mask(self, xds: XDS_TYPE, cond: np.ndarray, nodata: np.ndarray) -> XDS_TYPE:
+        """
+        Create a mask from a conditional array and a nodata mask.
+
+        Args:
+            xds (XDS_TYPE): xarray to retrieve attributes
+            cond (np.ndarray): Conditional array
+            nodata (np.ndarray): Nodata mask
+
+        Returns:
+            np.ma.masked_array: Mask masked array
+        """
+        mask = xds.copy(data=np.where(cond, self._mask_true, self._mask_false))
+        mask = xr.where(nodata, self.nodata, mask)
+        mask = rasters.set_nodata(mask, self.nodata)
+
+        return mask

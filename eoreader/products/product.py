@@ -4,17 +4,19 @@ from __future__ import annotations
 import logging
 import os
 import tempfile
-from enum import Enum, unique
+from enum import unique
 from abc import abstractmethod
 from functools import wraps
 from typing import Union, Callable, Any
 import datetime as dt
 import numpy as np
+import xarray as xr
 import geopandas as gpd
 import rasterio
 from rasterio import crs, warp
 from rasterio.enums import Resampling
 from sertit import files, strings, rasters, misc
+from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 from sertit.misc import ListEnum
 
@@ -151,11 +153,10 @@ class Product:
          (if the product is not a reference but has a reference data corresponding to it).
          A list because of multiple ref in case of non-stackable products (S3, S1...)"""
 
-        self.nodata = 0
+        self.nodata = -9999
         """ Product nodata, set to 0 by default. Please do not touch this or all index will fail. """
 
         # Mask values
-        self._mask_nodata = 255
         self._mask_true = 1
         self._mask_false = 0
 
@@ -494,85 +495,56 @@ class Product:
     def _read_band(self,
                    dataset,
                    resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -> (np.ma.masked_array, dict):
+                   size: Union[list, tuple] = None) -> XDS_TYPE:
         """
-        Read band from a dataset.
+        Read band from disk.
 
-        .. WARNING:: For optical data, invalid pixels are not managed here,
-        so please consider using `load` or use this function at your own risk!
-
-        ```python
-        >>> import rasterio
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> band, meta = prod._read_band(prod.get_default_band_path(), resolution=20)
-        >>> band
-        masked_array(
-          data=[[[0.0614, ..., 0.15799999]]],
-          mask=False,
-          fill_value=1e+20,
-          dtype=float32)
-        >>> meta
-        {
-            'driver': 'JP2OpenJPEG',
-            'dtype': <class 'numpy.float32'>,
-            'nodata': None,
-            'width': 5490,
-            'height': 5490,
-            'count': 1,
-            'crs': CRS.from_epsg(32630),
-            'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
-        }
-        ```
+        .. WARNING::
+            For optical data, invalid pixels are not managed here
 
         Args:
             dataset (Dataset): Band dataset
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            np.ma.masked_array, dict: Radar band, saved as float 32 and its metadata
+            XDS_TYPE: Band xarray
 
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
     def _load_bands(self,
-                    band_list: Union[list, BandNames],
+                    band_list: list,
                     resolution: float = None,
-                    size: Union[list, tuple] = None) -> (dict, dict):
+                    size: Union[list, tuple] = None) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (Union[list, BandNames]): List of the wanted bands
+            band_list (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
     def _load_dem(self,
-                  band_list: Union[list, BandNames],
+                  band_list: list,
                   resolution: float = None,
-                  size: Union[list, tuple] = None) -> (dict, dict):
+                  size: Union[list, tuple] = None) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (Union[list, BandNames]): List of the wanted bands
+            band_list (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         """
         dem_path = os.environ.get(DEM_PATH, "")
         dem_bands = {}
-        meta = {}
         for band in band_list:
             assert is_dem(band)
             if band == DEM:
@@ -584,15 +556,14 @@ class Product:
             else:
                 raise InvalidTypeError(f"Unknown DEM band: {band}")
 
-            dem_bands[band], meta = rasters.read(path, resolution=resolution, size=size)
+            dem_bands[band] = rasters.read(path, resolution=resolution, size=size)
 
-        return dem_bands, meta
+        return dem_bands
 
-    @abstractmethod
     def load(self,
-             band_and_idx_list: Union[list, BandNames, Callable],
+             bands: Union[list, BandNames, Callable],
              resolution: float = None,
-             size: Union[list, tuple] = None) -> (dict, dict):
+             size: Union[list, tuple] = None) -> dict:
         """
         Open the bands and compute the wanted index.
 
@@ -607,7 +578,7 @@ class Product:
         >>> from eoreader.bands.alias import *
         >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
         >>> prod = Reader().open(path)
-        >>> bands, meta = prod.load([GREEN, NDVI], resolution=20)
+        >>> bands = prod.load([GREEN, NDVI], resolution=20)
         >>> bands
         {<function NDVI at 0x00000227FBB929D8>: masked_array(
           data=[[[-0.02004455029964447, ..., 0.11663568764925003]]],
@@ -633,12 +604,49 @@ class Product:
         ```
 
         Args:
-            band_and_idx_list (Union[list, BandNames, Callable]): Index list
+            bands (Union[list, BandNames, Callable]): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            dict, dict: Index and band dict, metadata
+            dict: {band_name, band xarray}
+        """
+        if not resolution and not size:
+            resolution = self.resolution
+
+        # Check if all bands are valid
+        if not isinstance(bands, list):
+            bands = [bands]
+
+        band_dict = self._load(bands, resolution, size)
+
+        # Manage the case of arrays of different size -> collocate arrays if needed
+        band_dict = self._collocate_bands(band_dict)
+
+        # Convert to xarray dataset when all the bands have the same size
+        # TODO: cannot convert as we have non-string index
+        # xds = xr.Dataset(band_dict)
+
+        # Sort bands to the asked order
+        # xds.reindex({"band": bands})
+
+        return band_dict
+
+    @abstractmethod
+    def _load(self,
+              bands: list,
+              resolution: float = None,
+              size: Union[list, tuple] = None) -> dict:
+        """
+        Core function loading data bands
+
+        Args:
+            bands (list): Band list
+            resolution (float): Resolution of the band, in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+
+        Returns:
+            Dictionary {band_name, band_xarray}
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
@@ -1022,42 +1030,37 @@ class Product:
         return slope_dem
 
     @staticmethod
-    def _collocate_bands(bands: dict, true_meta: dict) -> dict:
+    def _collocate_bands(bands: dict, master_xds: XDS_TYPE = None) -> dict:
         """
         Collocate all bands from a dict if needed (if a raster shape is different)
 
         Args:
             bands (dict): Dict of bands to collocate if needed
-            true_meta (dict): True metadata
 
         Returns:
             dict: Collocated bands
         """
-        true_shape = (true_meta["count"], true_meta["height"], true_meta["width"])
-        slave_meta = true_meta.copy()
         for band_id, band in bands.items():
-            if band.shape != true_shape:
-                count, height, width = band.shape
-                slave_meta.update({
-                    "count": count,
-                    "height": height,
-                    "width": width,
-                    "transform": true_meta["transform"]
-                })
+            if master_xds is None:
+                master_xds = band # Master array is the first one in this case
 
-                bands[band_id], _ = rasters.collocate(master_meta=true_meta,
-                                                      slave_arr=band,
-                                                      slave_meta=slave_meta)
+            if band.shape != master_xds.shape:
+                bands[band_id] = rasters.collocate(master_xds=master_xds, slave_xds=band)
+
+            bands[band_id] = bands[band_id].assign_coords({
+                "x": master_xds.x,
+                "y": master_xds.y,
+            })  # Bug for now, tiny difference in coords
 
         return bands
 
     # pylint: disable=R0913
     # Too many arguments (6/5)
     def stack(self,
-              band_and_idx_combination: list,
+              bands: list,
               resolution: float = None,
               stack_path: str = None,
-              save_as_int: bool = False) -> (np.ma.masked_array, dict):
+              save_as_int: bool = False) -> xr.DataArray:
         """
         Stack bands and index of a products.
 
@@ -1066,7 +1069,7 @@ class Product:
         >>> from eoreader.bands.alias import *
         >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
         >>> prod = Reader().open(path)
-        >>> stack, stk_meta = prod.stack([NDVI, MNDWI, GREEN], resolution=20)  # In meters
+        >>> stack = prod.stack([NDVI, MNDWI, GREEN], resolution=20)  # In meters
         >>> stack
         masked_array(
           data=[[[-0.02004455029964447, ..., 0.15799999237060547]]],
@@ -1087,37 +1090,46 @@ class Product:
         ```
 
         Args:
-            band_and_idx_combination (list): Bands and index combination
+            bands (list): Bands and index combination
             resolution (float): Stack resolution. . If not specified, use the product resolution.
             stack_path (str): Stack path
             save_as_int (bool): Save stack as integers (uint16 and therefore multiply the values by 10.000)
+
+        Returns:
+            xr.DataArray: Stack as a DataArray
         """
         if not resolution:
             resolution = self.resolution
 
         # Create the analysis stack
-        # TODO: set nodatavals = (nodata_1, ..., nodata_x) when using xarrays
-        bands, meta = self.load(band_and_idx_combination, resolution)
-        stack_list = [bands[bd_or_idx] for bd_or_idx in band_and_idx_combination]
-        stack = np.ma.vstack(stack_list)
+        band_dict = self.load(bands, resolution)
+
+        # Convert into dataset with str as names
+        xds = xr.Dataset(data_vars={to_str(key)[0]: val for key, val in band_dict.items()},
+                         coords=band_dict[bands[0]].coords)
 
         # Force nodata
-        stack[stack.mask] = meta["nodata"]
+        stack = xds.to_stacked_array(new_dim="z", sample_dims=("x", "y"))
+        stack = stack.transpose('z', 'y', 'x')
 
         # Save as integer
         if save_as_int:
-            stack = (stack * 10000).astype(np.uint16)
+            dtype = np.uint16
+            stack = (stack * 10000).astype(dtype)
+        else:
+            dtype = np.float32
+            stack = stack.astype(dtype)
 
-        # Here do not use utils.write()
-        meta.update({"count": len(stack_list),
-                     "dtype": stack.dtype})
+        # Some updates
+        stack = rasters.set_nodata(stack, self.nodata)
+        stack.attrs["long_name"] = to_str(list(band_dict.keys()))
 
+        # Write on disk
         if stack_path:
-            with rasterio.open(stack_path, "w", **meta) as out_dst:
-                for i, band in enumerate(band_and_idx_combination):
-                    # Band name is either a value or a function
-                    band_name = band.value if isinstance(band, Enum) else band.__name__
-                    out_dst.set_band_description(i + 1, band_name)
-                out_dst.write(stack)
+            rasters.write(stack, stack_path, dtype=dtype)
 
-        return stack, meta
+        # Close datasets
+        for val in band_dict.values():
+            val.close()
+
+        return stack
