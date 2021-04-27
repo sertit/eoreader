@@ -38,7 +38,7 @@ class CheckMethod(ListEnum):
 
 @unique
 class Platform(ListEnum):
-    """ Platforms supported by EOReader """
+    """Platforms supported by EOReader"""
 
     S1 = "Sentinel-1"
     """Sentinel-1"""
@@ -193,7 +193,7 @@ class Reader:
         archive_path: str = None,
         output_path: str = None,
         method=CheckMethod.MTD,
-    ) -> "Product":
+    ) -> "Product":  # noqa: F821
         """
         Open the product.
 

@@ -20,7 +20,7 @@ RES = 1000  # 1000m
 
 
 def remove_dem(prod):
-    """ Remove DEM from product output """
+    """Remove DEM from product output"""
     to_del = glob.glob(os.path.join(prod.output, f"{prod.condensed_name}_DEM.tif"))
     to_del += glob.glob(
         os.path.join(prod.output, f"{prod.condensed_name}_HILLSHADE.tif")
@@ -143,90 +143,90 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
 
 
 def test_s2():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("S2*_MSI*")
 
 
 def test_s2_theia():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("SENTINEL2*")
 
 
 def test_s3_olci():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     # Init logger
     _test_core_optical("S3*_OL_1_*")
 
 
 def test_s3_slstr():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     # Init logger
     _test_core_optical("S3*_SL_1_*")
 
 
 def test_l8():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     # Init logger
     _test_core_optical("LC08*")
 
 
 def test_l7():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LE07*")
 
 
 def test_l5_tm():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LT05*")
 
 
 def test_l4_tm():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LT04*")
 
 
 def test_l5_mss():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LM05*")
 
 
 def test_l4_mss():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LM04*")
 
 
 def test_l3_mss():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LM03*")
 
 
 def test_l2_mss():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LM02*")
 
 
 def test_l1_mss():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LM01*")
 
 
 def test_s1():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("S1*_IW*")
 
 
 def test_csk():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("csk_*")
 
 
 def test_tsx():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("TSX*")
 
 
 def test_rs2():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("RS2_*")
 
 

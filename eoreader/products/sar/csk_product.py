@@ -232,7 +232,7 @@ class CskProduct(SarProduct):
         return extent_wgs84
 
     def _set_product_type(self) -> None:
-        """ Get products type """
+        """Get products type"""
         self._get_sar_product_type(
             prod_type_pos=1,
             gdrg_types=CskProductType.DGM,

@@ -1,12 +1,7 @@
 """ Utils: mostly getting directories relative to the project """
 import logging
 import os
-from typing import Union
 
-import numpy as np
-import xarray as xr
-
-from sertit import rasters
 from sertit.ci import get_db2_path
 
 EOREADER_NAME = "eoreader"

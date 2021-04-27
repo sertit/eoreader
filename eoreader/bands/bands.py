@@ -10,7 +10,7 @@ from sertit.misc import ListEnum
 
 
 class _Bands(MutableMapping):
-    """ Super bands class, used as a dict """
+    """Super bands class, used as a dict"""
 
     def __init__(self, *args, **kwargs):
         self._band_map = dict()
@@ -33,7 +33,7 @@ class _Bands(MutableMapping):
 
 
 class BandNames(ListEnum):
-    """ Super class for band names, **do not use it**. """
+    """Super class for band names, **do not use it**."""
 
     @classmethod
     def from_list(cls, name_list: Union[list, str]) -> list:
@@ -101,7 +101,7 @@ class BandNames(ListEnum):
 # ---------------------- SAR ----------------------
 @unique
 class SarBandNames(BandNames):
-    """ SAR Band names """
+    """SAR Band names"""
 
     VV = "VV"
     """ Vertical Transmit-Vertical Receive Polarisation """
@@ -194,7 +194,7 @@ class SarBandNames(BandNames):
 # too many ancestors
 # pylint: disable=R0901
 class SarBands(_Bands):
-    """ SAR bands class """
+    """SAR bands class"""
 
     def __init__(self) -> None:
         super().__init__({band_name: band_name.value for band_name in SarBandNames})
@@ -256,7 +256,7 @@ class OpticalBandNames(BandNames):
     WV = "WATER_VAPOUR"
     """Water vapour"""
 
-    FNIR = "FAR_NIR"
+    FAR_NIR = "FAR_NIR"
     """Far NIR"""
 
     SWIR_CIRRUS = "CIRRUS"
@@ -284,7 +284,7 @@ class OpticalBandNames(BandNames):
 # too many ancestors
 # pylint: disable=R0901
 class OpticalBands(_Bands):
-    """ Optical bands class """
+    """Optical bands class"""
 
     def __init__(self) -> None:
         super().__init__({band_name: None for band_name in OpticalBandNames})
@@ -330,7 +330,7 @@ class OpticalBands(_Bands):
 # ---------------------- DEM ----------------------
 @unique
 class DemBandNames(BandNames):
-    """ DEM Band names """
+    """DEM Band names"""
 
     DEM = "DEM"
     """ DEM """
@@ -345,7 +345,7 @@ class DemBandNames(BandNames):
 # too many ancestors
 # pylint: disable=R0901
 class DemBands(_Bands):
-    """ DEM bands class """
+    """DEM bands class"""
 
     def __init__(self) -> None:
         super().__init__({band_name: band_name.value for band_name in DemBandNames})
@@ -354,7 +354,7 @@ class DemBands(_Bands):
 # ---------------------- DEM ----------------------
 @unique
 class CloudsBandNames(BandNames):
-    """ Clouds Band names """
+    """Clouds Band names"""
 
     RAW_CLOUDS = "RAW CLOUDS"
     """ Raw cloud raster (can be either QA raster, rasterized cloud vectors...) """
@@ -375,7 +375,7 @@ class CloudsBandNames(BandNames):
 # too many ancestors
 # pylint: disable=R0901
 class CloudsBands(_Bands):
-    """ Clouds bands class """
+    """Clouds bands class"""
 
     def __init__(self) -> None:
         super().__init__({band_name: band_name.value for band_name in CloudsBandNames})

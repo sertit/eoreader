@@ -63,7 +63,7 @@ class S2TheiaProduct(OpticalProduct):
         return self.split_name[3]
 
     def _set_product_type(self) -> None:
-        """ Get products type """
+        """Get products type"""
         self.product_type = S2ProductType.L2A
         self.band_names.map_bands(
             {

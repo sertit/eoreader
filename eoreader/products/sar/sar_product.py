@@ -83,7 +83,7 @@ class _ExtendedFormatter(Formatter):
 
 
 class SarProduct(Product):
-    """ Super class for SAR Products """
+    """Super class for SAR Products"""
 
     def __init__(
         self, product_path: str, archive_path: str = None, output_path=None
@@ -660,7 +660,7 @@ class SarProduct(Product):
             # Despeckle graph
             if DSPK_GRAPH not in os.environ:
                 dspk_graph = os.path.join(
-                    utils.get_data_dir(), f"sar_despeckle_default.xml"
+                    utils.get_data_dir(), "sar_despeckle_default.xml"
                 )
             else:
                 dspk_graph = os.environ[DSPK_GRAPH]

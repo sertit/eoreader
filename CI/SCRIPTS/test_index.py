@@ -17,7 +17,7 @@ RES = 2000.0  # 400 meters
 
 
 def test_index():
-    """ Function testing the correct functioning of the index """
+    """Function testing the correct functioning of the index"""
     # Load S2 products as it can load every index
     s2_path = os.path.join(
         OPT_PATH, r"S2B_MSIL2A_20200114T065229_N0213_R020_T40REQ_20200114T094749.SAFE"

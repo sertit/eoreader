@@ -5,15 +5,11 @@
 The reader singleton is your unique entry.
 It will create for you the product object corresponding to your satellite data.
 
-.. WARNING::
-    Be sure that your satellite data folder has the required name to be recognized !
-    Only COSMO-Skymed data relies on the SAR band name and can have any folder name.
-
 ```python
 >>> import os
 >>> from eoreader.reader import Reader
 
->>> # Path to your satellite data, ie. S2
+>>> # Path to your satellite data, ie. Sentinel-2
 >>> path = r'S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip'  # You can work with the archive for S2 data
 
 >>> # Path to your output directory (if not set, it will work in a temp directory)
@@ -21,7 +17,6 @@ It will create for you the product object corresponding to your satellite data.
 
 >>> # Create the reader singleton
 >>> eoreader = Reader()
->>> # The Reader will recognize the satellite type from its name so keep the original one !
 >>> prod = eoreader.open(path, output_path=output)
 
 >>> # NOTE: you can set the output directory after the creation, that allows you to use the product condensed name
@@ -85,45 +80,70 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 >>> # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
 
 >>> # Load bands
->>> bands, meta = prod.load(ok_bands)
+>>> bands = prod.load(ok_bands)
 >>> bands
-{
-<function NDVI at 0x00000227FBB929D8>: masked_array(
-  data=[[[-0.02004455029964447, ..., 0.11663568764925003]]],
-  mask=[[[False, ..., False]]],
-  fill_value=0.0,
-  dtype=float32),
-  <OpticalBandNames.GREEN: 'GREEN'>: masked_array(
-  data=[[[0.061400000005960464, ..., 0.15799999237060547]]],
-  mask=[[[False, ..., False]]],
-  fill_value=0.0,
-  dtype=float32),
-  <DemBandNames.HILLSHADE: 'HILLSHADE' >: masked_array(
-  data=[[[0.0, ..., 0.0]]],
-  mask=[[[False, ..., False]]],
-  fill_value=0.0,
-  dtype=float32)
-}
->>> meta
-{
-    'driver': 'GTiff',
-    'dtype': <class 'numpy.float32'>,
-    'nodata': 0,
-    'width': 5490,
-    'height': 5490,
-    'count': 1,
-    'crs': CRS.from_epsg(32630),
-    'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
-}
->>> # 20. meters is the default resolution
->>> # All bands will have the same metadata
+"""
+{<function NDVI at 0x000001C47FF05E18>: <xarray.DataArray 'NDVI' (band: 1, y: 5490, x: 5490)>
+array([[[0.94786006, 0.92717856, 0.92240528, ..., 1.73572724,
+         1.55314477, 1.63242706],
+        [1.04147187, 0.93668633, 0.91499688, ..., 1.59941784,
+         1.52895995, 1.51386761],
+        [2.86996677, 1.69360304, 1.2413562 , ..., 1.61172353,
+         1.55742907, 1.50568275],
+        ...,
+        [1.45807257, 1.61071344, 1.64620751, ..., 1.25498441,
+         1.42998927, 1.70447076],
+        [1.57802352, 1.77086658, 1.69901482, ..., 1.19999853,
+         1.27813254, 1.52287237],
+        [1.63569594, 1.66751277, 1.63474646, ..., 1.27617084,
+         1.22456033, 1.27022877]]])
+Coordinates:
+  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+  * band         (band) int32 1
+    spatial_ref  int32 0,
+<OpticalBandNames.GREEN: 'GREEN'>: <xarray.DataArray 'T30TTK_20200824T110631_B03' (band: 1, y: 5490, x: 5490)>
+array([[[0.06146327, 0.06141786, 0.06100179, ..., 0.11880179,
+         0.12087143, 0.11468571],
+        [0.06123214, 0.06071094, 0.06029063, ..., 0.11465781,
+         0.11858906, 0.11703929],
+        [0.06494643, 0.06226562, 0.06169219, ..., 0.11174062,
+         0.11434844, 0.11491964],
+        ...,
+        [0.1478125 , 0.13953906, 0.13751719, ..., 0.15949688,
+         0.14200781, 0.12982321],
+        [0.14091429, 0.12959531, 0.13144844, ..., 0.17246719,
+         0.156175  , 0.13453036],
+        [0.13521429, 0.13274286, 0.13084821, ..., 0.16064821,
+         0.16847143, 0.16009592]]])
+Coordinates:
+  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+  * band         (band) int32 1
+    spatial_ref  int32 0,
+<DemBandNames.HILLSHADE: 'HILLSHADE'>: <xarray.DataArray '20200824T110631_S2_T30TTK_L1C_150432_HILLSHADE' (band: 1, y: 5490, x: 5490)>
+array([[[220., 221., 221., ..., 210., 210., 210.],
+        [222., 222., 221., ..., 210., 210., 210.],
+        [221., 221., 220., ..., 210., 210., 210.],
+        ...,
+        [215., 214., 212., ..., 207., 207., 207.],
+        [214., 212., 211., ..., 206., 205., 205.],
+        [213., 211., 209., ..., 205., 204., 205.]]])
+Coordinates:
+  * band         (band) int32 1
+  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+    spatial_ref  int32 0
+Attributes:
+    grid_mapping:    spatial_ref
+    original_dtype:  uint8}
+"""
 ```
 
-.. WARNING::
-    For now there is a discrepancy between clouds bands and metadata
-    (**only if loaded with other bands**) as their type is `uint8` and their nodata is `255`.
-    This will be fixed when EOReader will use `xarrays` instead of `dicts`.
-    The current workaround is to load cloud bands separately.
+.. NOTE::
+Index and bands are opened as [`xarrays`](http://xarray.pydata.org/en/stable/)
+with [`rioxarray`](https://corteva.github.io/rioxarray/stable/), in `float` with the nodata set to `np.nan`. The nodata
+written back on disk is -9999 by convention (for now the rasters will be written in float)
 
 ## Stack
 
@@ -132,5 +152,55 @@ It is based on the load function and then just stacks the bands and write it on 
 
 ```python
 >>> # Create a stack with the previous OK bands
->>> stack, stk_meta = prod.stack(ok_bands, resolution=300., stack_path=os.path.join(prod.output, "stack.tif")
+>>> stack = prod.stack(ok_bands, resolution=300., stack_path=os.path.join(prod.output, "stack.tif")
+"""
+<xarray.DataArray 'NDVI_GREEN_HILLSHADE' (z: 3, y: 5490, x: 5490)>
+array([[[9.47860062e-01, 9.27178562e-01, 9.22405303e-01, ...,
+         1.73572719e+00, 1.55314481e+00, 1.63242710e+00],
+        [1.04147184e+00, 9.36686337e-01, 9.14996862e-01, ...,
+         1.59941781e+00, 1.52895999e+00, 1.51386762e+00],
+        [2.86996675e+00, 1.69360304e+00, 1.24135625e+00, ...,
+         1.61172354e+00, 1.55742908e+00, 1.50568271e+00],
+        ...,
+        [1.45807254e+00, 1.61071348e+00, 1.64620745e+00, ...,
+         1.25498438e+00, 1.42998922e+00, 1.70447075e+00],
+        [1.57802355e+00, 1.77086663e+00, 1.69901478e+00, ...,
+         1.19999850e+00, 1.27813256e+00, 1.52287233e+00],
+        [1.63569593e+00, 1.66751277e+00, 1.63474643e+00, ...,
+         1.27617085e+00, 1.22456038e+00, 1.27022874e+00]],
+       [[6.14632666e-02, 6.14178553e-02, 6.10017851e-02, ...,
+         1.18801787e-01, 1.20871432e-01, 1.14685714e-01],
+        [6.12321422e-02, 6.07109368e-02, 6.02906235e-02, ...,
+         1.14657812e-01, 1.18589066e-01, 1.17039286e-01],
+        [6.49464279e-02, 6.22656234e-02, 6.16921857e-02, ...,
+         1.11740626e-01, 1.14348434e-01, 1.14919640e-01],
+        [1.47812501e-01, 1.39539063e-01, 1.37517184e-01, ...,
+         1.59496874e-01, 1.42007813e-01, 1.29823208e-01],
+        [1.40914291e-01, 1.29595309e-01, 1.31448433e-01, ...,
+         1.72467187e-01, 1.56175002e-01, 1.34530351e-01],
+        [1.35214284e-01, 1.32742852e-01, 1.30848214e-01, ...,
+         1.60648212e-01, 1.68471426e-01, 1.60095915e-01]],
+       [[2.20000000e+02, 2.21000000e+02, 2.21000000e+02, ...,
+         2.10000000e+02, 2.10000000e+02, 2.10000000e+02],
+        [2.22000000e+02, 2.22000000e+02, 2.21000000e+02, ...,
+         2.10000000e+02, 2.10000000e+02, 2.10000000e+02],
+        [2.21000000e+02, 2.21000000e+02, 2.20000000e+02, ...,
+         2.10000000e+02, 2.10000000e+02, 2.10000000e+02],
+        ...,
+        [2.15000000e+02, 2.14000000e+02, 2.12000000e+02, ...,
+         2.07000000e+02, 2.07000000e+02, 2.07000000e+02],
+        [2.14000000e+02, 2.12000000e+02, 2.11000000e+02, ...,
+         2.06000000e+02, 2.05000000e+02, 2.05000000e+02],
+        [2.13000000e+02, 2.11000000e+02, 2.09000000e+02, ...,
+         2.05000000e+02, 2.04000000e+02, 2.05000000e+02]]], dtype=float32)
+Coordinates:
+  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+    spatial_ref  int32 0
+  * z            (z) MultiIndex
+  - variable     (z) object 'NDVI' 'GREEN' 'HILLSHADE'
+  - band         (z) int64 1 1 1
+Attributes:
+    long_name:  ['NDVI', 'GREEN', 'HILLSHADE']
+"""
 ```

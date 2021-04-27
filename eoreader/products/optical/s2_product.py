@@ -30,7 +30,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 @unique
 class S2ProductType(ListEnum):
-    """ Sentinel-2 products types (L1C or L2A) """
+    """Sentinel-2 products types (L1C or L2A)"""
 
     L1C = "L1C"
     L2A = "L2A"
@@ -91,7 +91,7 @@ class S2Product(OpticalProduct):
         return self.split_name[-2]
 
     def _set_product_type(self) -> None:
-        """ Get products type """
+        """Get products type"""
         if "MSIL2A" in self.name:
             self.product_type = S2ProductType.L2A
             self.band_names.map_bands(
