@@ -2,25 +2,25 @@
 COSMO-SkyMed products.
 More info [here](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description).
 """
+import datetime
 import glob
 import logging
 import os
 import warnings
-import datetime
 from enum import unique
 from typing import Union
 
-from lxml import etree
-import rasterio
 import geopandas as gpd
 import numpy as np
-from sertit import files, strings, vectors
-from sertit.misc import ListEnum
+import rasterio
+from lxml import etree
 from shapely.geometry import Polygon
 
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct
-from eoreader.utils import EOREADER_NAME, DATETIME_FMT
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from sertit import files, strings, vectors
+from sertit.misc import ListEnum
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -34,6 +34,7 @@ class CskProductType(ListEnum):
     COSMO-SkyMed products types.
     Take a look [here](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description).
     """
+
     RAW = "RAW"
     """Level 0"""
 
@@ -56,6 +57,7 @@ class CskSensorMode(ListEnum):
     COSMO-SkyMed sensor mode.
     Take a look [here](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description)
     """
+
     HI = "HI"
     """Himage"""
 
@@ -78,6 +80,7 @@ class CskPolarization(ListEnum):
     COSMO-SkyMed polarizations used during the acquisition.
     Take a look [here](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description).
     """
+
     HH = "HH"
     """Horizontal Tx/Horizontal Rx for Himage, ScanSAR and Spotlight modes"""
 
@@ -112,11 +115,15 @@ class CskProduct(SarProduct):
     ```
     """
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
+    def __init__(
+        self, product_path: str, archive_path: str = None, output_path=None
+    ) -> None:
         try:
             self._img_path = glob.glob(os.path.join(product_path, "*.h5"))[0]
         except IndexError as ex:
-            raise InvalidProductError(f"Image file (*.h5) not found in {product_path}") from ex
+            raise InvalidProductError(
+                f"Image file (*.h5) not found in {product_path}"
+            ) from ex
         self._real_name = files.get_filename(self._img_path)
 
         # Initialization from the super class
@@ -133,8 +140,8 @@ class CskProduct(SarProduct):
             root, _ = self.read_mtd()
 
             for element in root:
-                if element.tag == 'ProductCharacteristics':
-                    def_res = float(element.findtext('GroundRangeGeometricResolution'))
+                if element.tag == "ProductCharacteristics":
+                    def_res = float(element.findtext("GroundRangeGeometricResolution"))
                     break
         except (InvalidProductError, AttributeError):
             pass
@@ -146,11 +153,11 @@ class CskProduct(SarProduct):
             elif self.sensor_mode == CskSensorMode.HI:
                 def_res = 5.0
             elif self.sensor_mode == CskSensorMode.PP:
-                def_res = 20.
+                def_res = 20.0
             elif self.sensor_mode == CskSensorMode.WR:
-                def_res = 30.
+                def_res = 30.0
             elif self.sensor_mode == CskSensorMode.HR:
-                def_res = 100.
+                def_res = 100.0
             else:
                 raise InvalidTypeError(f"Unknown sensor mode {self.sensor_mode}")
 
@@ -192,7 +199,9 @@ class CskProduct(SarProduct):
         try:
             mtd_file = glob.glob(os.path.join(self.path, "*.h5.xml"))[0]
         except IndexError as ex:
-            raise InvalidProductError(f"Metadata file ({self._real_name}.h5.xml) not found in {self.path}") from ex
+            raise InvalidProductError(
+                f"Metadata file ({self._real_name}.h5.xml) not found in {self.path}"
+            ) from ex
 
         # Open and parse XML
         # pylint: disable=I1101
@@ -205,26 +214,30 @@ class CskProduct(SarProduct):
 
         bl_corner = br_corner = tr_corner = tl_corner = None
         for element in root:
-            if element.tag == 'ProductDefinitionData':
-                bl_corner = from_str_to_arr(element.findtext('GeoCoordBottomLeft'))
-                br_corner = from_str_to_arr(element.findtext('GeoCoordBottomRight'))
-                tl_corner = from_str_to_arr(element.findtext('GeoCoordTopLeft'))
-                tr_corner = from_str_to_arr(element.findtext('GeoCoordTopRight'))
+            if element.tag == "ProductDefinitionData":
+                bl_corner = from_str_to_arr(element.findtext("GeoCoordBottomLeft"))
+                br_corner = from_str_to_arr(element.findtext("GeoCoordBottomRight"))
+                tl_corner = from_str_to_arr(element.findtext("GeoCoordTopLeft"))
+                tr_corner = from_str_to_arr(element.findtext("GeoCoordTopRight"))
                 break
 
         if bl_corner is None:
             raise InvalidProductError("Invalid XML: missing extent.")
 
-        extent_wgs84 = gpd.GeoDataFrame(geometry=[Polygon([tl_corner, tr_corner, br_corner, bl_corner])],
-                                        crs=vectors.WGS84)
+        extent_wgs84 = gpd.GeoDataFrame(
+            geometry=[Polygon([tl_corner, tr_corner, br_corner, bl_corner])],
+            crs=vectors.WGS84,
+        )
 
         return extent_wgs84
 
     def _set_product_type(self) -> None:
         """ Get products type """
-        self._get_sar_product_type(prod_type_pos=1,
-                                   gdrg_types=CskProductType.DGM,
-                                   cplx_types=CskProductType.SCS)
+        self._get_sar_product_type(
+            prod_type_pos=1,
+            gdrg_types=CskProductType.DGM,
+            cplx_types=CskProductType.SCS,
+        )
 
     def _set_sensor_mode(self) -> None:
         """
@@ -238,7 +251,9 @@ class CskProduct(SarProduct):
                 self.sensor_mode = sens_mode
 
         if not self.sensor_mode:
-            raise InvalidProductError(f"Invalid {self.platform.value} name: {self._real_name}")
+            raise InvalidProductError(
+                f"Invalid {self.platform.value} name: {self._real_name}"
+            )
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime.datetime]:
         """
@@ -276,7 +291,7 @@ class CskProduct(SarProduct):
             list: Split products name
         """
         # Use the real name
-        return [x for x in self._real_name.split('_') if x]
+        return [x for x in self._real_name.split("_") if x]
 
     def read_mtd(self) -> (etree._Element, str):
         """
@@ -302,7 +317,9 @@ class CskProduct(SarProduct):
             xml_tree = etree.parse(mtd_file)
             root = xml_tree.getroot()
         except IndexError as ex:
-            raise InvalidProductError(f"Metadata file ({mtd_name}) not found in {self.path}") from ex
+            raise InvalidProductError(
+                f"Metadata file ({mtd_name}) not found in {self.path}"
+            ) from ex
 
         # Get namespace
         namespace = ""  # No namespace here

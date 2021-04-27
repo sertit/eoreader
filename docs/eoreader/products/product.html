@@ -140,14 +140,14 @@ class Product:
         &#34;&#34;&#34;Split name, to retrieve every information from its filename (dates, tile, product type...).&#34;&#34;&#34;
 
         self.archive_path = archive_path if archive_path else product_path
-        &#34;&#34;&#34;Archive path, same as the product path if not specified. 
+        &#34;&#34;&#34;Archive path, same as the product path if not specified.
         Useful when you want to know where both the extracted and archived version of your product are stored.&#34;&#34;&#34;
 
         self.path = product_path
         &#34;&#34;&#34;Usable path to the product, either extracted or archived path, according to the satellite.&#34;&#34;&#34;
 
         self.is_archived = os.path.isfile(self.path)
-        &#34;&#34;&#34; Is the archived product is processed 
+        &#34;&#34;&#34; Is the archived product is processed
         (a products is considered as archived if its products path is a directory).&#34;&#34;&#34;
 
         self.needs_extraction = True
@@ -209,14 +209,14 @@ class Product:
         # Set the resolution, needs to be done when knowing the product type
         self.resolution = self._set_resolution()
         &#34;&#34;&#34;
-        Default resolution in meters of the current product. 
+        Default resolution in meters of the current product.
         For SAR product, we use Ground Range resolution as we will automatically orthorectify the tiles.
         &#34;&#34;&#34;
 
         self.condensed_name = self._get_condensed_name()
         &#34;&#34;&#34;
-        Condensed name, the filename with only useful data to keep the name unique 
-        (ie. `20191215T110441_S2_30TXP_L2A_122756`). 
+        Condensed name, the filename with only useful data to keep the name unique
+        (ie. `20191215T110441_S2_30TXP_L2A_122756`).
         Used to shorten names and paths.
         &#34;&#34;&#34;
 
@@ -1315,14 +1315,14 @@ True
         &#34;&#34;&#34;Split name, to retrieve every information from its filename (dates, tile, product type...).&#34;&#34;&#34;
 
         self.archive_path = archive_path if archive_path else product_path
-        &#34;&#34;&#34;Archive path, same as the product path if not specified. 
+        &#34;&#34;&#34;Archive path, same as the product path if not specified.
         Useful when you want to know where both the extracted and archived version of your product are stored.&#34;&#34;&#34;
 
         self.path = product_path
         &#34;&#34;&#34;Usable path to the product, either extracted or archived path, according to the satellite.&#34;&#34;&#34;
 
         self.is_archived = os.path.isfile(self.path)
-        &#34;&#34;&#34; Is the archived product is processed 
+        &#34;&#34;&#34; Is the archived product is processed
         (a products is considered as archived if its products path is a directory).&#34;&#34;&#34;
 
         self.needs_extraction = True
@@ -1384,14 +1384,14 @@ True
         # Set the resolution, needs to be done when knowing the product type
         self.resolution = self._set_resolution()
         &#34;&#34;&#34;
-        Default resolution in meters of the current product. 
+        Default resolution in meters of the current product.
         For SAR product, we use Ground Range resolution as we will automatically orthorectify the tiles.
         &#34;&#34;&#34;
 
         self.condensed_name = self._get_condensed_name()
         &#34;&#34;&#34;
-        Condensed name, the filename with only useful data to keep the name unique 
-        (ie. `20191215T110441_S2_30TXP_L2A_122756`). 
+        Condensed name, the filename with only useful data to keep the name unique
+        (ie. `20191215T110441_S2_30TXP_L2A_122756`).
         Used to shorten names and paths.
         &#34;&#34;&#34;
 

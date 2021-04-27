@@ -1,5 +1,7 @@
-import setuptools
 import os
+
+import setuptools
+
 from eoreader import __version__
 
 BASEDIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
@@ -7,7 +9,7 @@ with open(os.path.join(BASEDIR, "README.md"), "r") as f:
     readme = f.read()
 
 setuptools.setup(
-    name='eoreader',
+    name="eoreader",
     version=__version__,
     author="Rémi BRAUN",
     author_email="dev-sertit@unistra.fr",
@@ -15,13 +17,7 @@ setuptools.setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
-    install_requires=[
-        "lxml",
-        "netCDF4",
-        "rioxarray",
-        "geopandas",
-        "sertit[full]"
-    ],
+    install_requires=["lxml", "netCDF4", "rioxarray", "geopandas", "sertit[full]"],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
@@ -36,8 +32,7 @@ setuptools.setup(
         "Topic :: Scientific/Engineering :: GIS",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    package_data={"": ["LICENSE", "NOTICE"],
-                  'eoreader.data': ['*.xml']},
+    package_data={"": ["LICENSE", "NOTICE"], "eoreader.data": ["*.xml"]},
     include_package_data=True,
     python_requires=">=3.7",
     project_urls={

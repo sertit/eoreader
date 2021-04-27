@@ -2,16 +2,16 @@
 
 ## Read
 
-The reader singleton is your unique entry. 
-It will create for you the product object corresponding to your satellite data. 
+The reader singleton is your unique entry.
+It will create for you the product object corresponding to your satellite data.
 
 .. WARNING::
-    Be sure that your satellite data folder has the required name to be recognized !  
+    Be sure that your satellite data folder has the required name to be recognized !
     Only COSMO-Skymed data relies on the SAR band name and can have any folder name.
 
 ```python
 >>> import os
->>> from eoreader.reader import Reader  
+>>> from eoreader.reader import Reader
 
 >>> # Path to your satellite data, ie. S2
 >>> path = r'S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip'  # You can work with the archive for S2 data
@@ -67,8 +67,8 @@ See the difference between footprint and extent hereunder:
 
 ## Load
 
-`eoreader.products.product.Product.load` is the function for accessing to product-related bands.  
-It can load satellite bands, index, DEM bands and cloud bands according to this workflow:  
+`eoreader.products.product.Product.load` is the function for accessing to product-related bands.
+It can load satellite bands, index, DEM bands and cloud bands according to this workflow:
 ![load_workflow](https://zupimages.net/up/21/14/vtnc.png)
 
 ```python
@@ -120,9 +120,9 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 ```
 
 .. WARNING::
-    For now there is a discrepancy between clouds bands and metadata 
+    For now there is a discrepancy between clouds bands and metadata
     (**only if loaded with other bands**) as their type is `uint8` and their nodata is `255`.
-    This will be fixed when EOReader will use `xarrays` instead of `dicts`.  
+    This will be fixed when EOReader will use `xarrays` instead of `dicts`.
     The current workaround is to load cloud bands separately.
 
 ## Stack

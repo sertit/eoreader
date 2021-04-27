@@ -1,32 +1,34 @@
 """ Product, superclass of all EOReader satellites products """
 # pylint: disable=W0107
 from __future__ import annotations
+
+import datetime as dt
 import logging
 import os
 import tempfile
-from enum import unique
 from abc import abstractmethod
+from enum import unique
 from functools import wraps
-from typing import Union, Callable, Any
-import datetime as dt
-import numpy as np
-import xarray as xr
+from typing import Any, Callable, Union
+
 import geopandas as gpd
+import numpy as np
 import rasterio
+import xarray as xr
 from rasterio import crs, warp
 from rasterio.enums import Resampling
-from sertit import files, strings, rasters, misc
-from sertit.rasters import XDS_TYPE
-from sertit.snap import MAX_CORES
-from sertit.misc import ListEnum
 
-from eoreader.bands import index
 from eoreader import utils
-from eoreader.reader import Reader, Platform
+from eoreader.bands import index
 from eoreader.bands.alias import *
 from eoreader.bands.bands import BandNames
+from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
+from eoreader.reader import Platform, Reader
 from eoreader.utils import EOREADER_NAME
-from eoreader.env_vars import DEM_PATH, CI_EOREADER_BAND_FOLDER
+from sertit import files, misc, rasters, strings
+from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
+from sertit.snap import MAX_CORES
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
@@ -59,7 +61,9 @@ def path_or_dst(method: Callable) -> Callable:
     """
 
     @wraps(method)
-    def path_or_dst_wrapper(self, path_or_ds: Union[str, rasterio.DatasetReader], *args, **kwargs) -> Any:
+    def path_or_dst_wrapper(
+        self, path_or_ds: Union[str, rasterio.DatasetReader], *args, **kwargs
+    ) -> Any:
         """
         Path or dataset wrapper
         Args:
@@ -86,6 +90,7 @@ class SensorType(ListEnum):
     """
     Sensor type of the products, optical or SAR
     """
+
     OPTICAL = "Optical"
     """For optical data"""
 
@@ -96,7 +101,9 @@ class SensorType(ListEnum):
 class Product:
     """ Super class of EOReader Products """
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path: str = None) -> None:
+    def __init__(
+        self, product_path: str, archive_path: str = None, output_path: str = None
+    ) -> None:
         self.name = files.get_filename(product_path)
         """Product name (its filename without any extension)."""
 
@@ -104,14 +111,14 @@ class Product:
         """Split name, to retrieve every information from its filename (dates, tile, product type...)."""
 
         self.archive_path = archive_path if archive_path else product_path
-        """Archive path, same as the product path if not specified. 
+        """Archive path, same as the product path if not specified.
         Useful when you want to know where both the extracted and archived version of your product are stored."""
 
         self.path = product_path
         """Usable path to the product, either extracted or archived path, according to the satellite."""
 
         self.is_archived = os.path.isfile(self.path)
-        """ Is the archived product is processed 
+        """ Is the archived product is processed
         (a products is considered as archived if its products path is a directory)."""
 
         self.needs_extraction = True
@@ -172,14 +179,14 @@ class Product:
         # Set the resolution, needs to be done when knowing the product type
         self.resolution = self._set_resolution()
         """
-        Default resolution in meters of the current product. 
+        Default resolution in meters of the current product.
         For SAR product, we use Ground Range resolution as we will automatically orthorectify the tiles.
         """
 
         self.condensed_name = self._get_condensed_name()
         """
-        Condensed name, the filename with only useful data to keep the name unique 
-        (ie. `20191215T110441_S2_30TXP_L2A_122756`). 
+        Condensed name, the filename with only useful data to keep the name unique
+        (ie. `20191215T110441_S2_30TXP_L2A_122756`).
         Used to shorten names and paths.
         """
 
@@ -305,7 +312,7 @@ class Product:
         Returns:
             list: Split products name
         """
-        return [x for x in self.name.split('_') if x]
+        return [x for x in self.name.split("_") if x]
 
     @abstractmethod
     def get_datetime(self, as_datetime: bool = False) -> Union[str, dt.datetime]:
@@ -350,7 +357,7 @@ class Product:
         Returns:
             str: Its acquisition date
         """
-        date = self.get_datetime().split('T')[0]
+        date = self.get_datetime().split("T")[0]
 
         if as_date:
             date = strings.str_to_date(date, date_format="%Y%m%d")
@@ -492,10 +499,12 @@ class Product:
 
     # pylint: disable=W0613
     @path_or_dst
-    def _read_band(self,
-                   dataset,
-                   resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -> XDS_TYPE:
+    def _read_band(
+        self,
+        dataset,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+    ) -> XDS_TYPE:
         """
         Read band from disk.
 
@@ -513,10 +522,9 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def _load_bands(self,
-                    band_list: list,
-                    resolution: float = None,
-                    size: Union[list, tuple] = None) -> dict:
+    def _load_bands(
+        self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -529,10 +537,9 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _load_dem(self,
-                  band_list: list,
-                  resolution: float = None,
-                  size: Union[list, tuple] = None) -> dict:
+    def _load_dem(
+        self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -552,7 +559,9 @@ class Product:
             elif band == SLOPE:
                 path = self._compute_slope(dem_path, resolution=resolution, size=size)
             elif band == HILLSHADE:
-                path = self._compute_hillshade(dem_path, resolution=resolution, size=size)
+                path = self._compute_hillshade(
+                    dem_path, resolution=resolution, size=size
+                )
             else:
                 raise InvalidTypeError(f"Unknown DEM band: {band}")
 
@@ -560,10 +569,12 @@ class Product:
 
         return dem_bands
 
-    def load(self,
-             bands: Union[list, BandNames, Callable],
-             resolution: float = None,
-             size: Union[list, tuple] = None) -> dict:
+    def load(
+        self,
+        bands: Union[list, BandNames, Callable],
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -> dict:
         """
         Open the bands and compute the wanted index.
 
@@ -633,10 +644,9 @@ class Product:
         return band_dict
 
     @abstractmethod
-    def _load(self,
-              bands: list,
-              resolution: float = None,
-              size: Union[list, tuple] = None) -> dict:
+    def _load(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -> dict:
         """
         Core function loading data bands
 
@@ -831,11 +841,13 @@ class Product:
         if not os.path.isdir(self._output):
             os.makedirs(self._output, exist_ok=True)
 
-    def _warp_dem(self,
-                  dem_path: str = "",
-                  resolution: Union[float, tuple] = None,
-                  size: Union[list, tuple] = None,
-                  resampling: Resampling = Resampling.bilinear) -> str:
+    def _warp_dem(
+        self,
+        dem_path: str = "",
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
+    ) -> str:
         """
         Get this products DEM, warped to this products footprint and CRS.
 
@@ -863,14 +875,20 @@ class Product:
             str: DEM path (as a VRT)
         """
         try:
-            merit_dem = os.path.join(utils.get_db_dir(), 'GLOBAL', "MERIT_Hydrologically_Adjusted_Elevations",
-                                     "MERIT_DEM.vrt")
+            merit_dem = os.path.join(
+                utils.get_db_dir(),
+                "GLOBAL",
+                "MERIT_Hydrologically_Adjusted_Elevations",
+                "MERIT_DEM.vrt",
+            )
             # eudem_path = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
         except NotADirectoryError as ex:
             LOGGER.debug("Non available default DEM: %s", ex)
             merit_dem = None
 
-        warped_dem_path = os.path.join(self._get_band_folder(), f"{self.condensed_name}_DEM.tif")
+        warped_dem_path = os.path.join(
+            self._get_band_folder(), f"{self.condensed_name}_DEM.tif"
+        )
         if os.path.isfile(warped_dem_path):
             LOGGER.debug("Already existing DEM for %s. Skipping process.", self.name)
         else:
@@ -884,13 +902,20 @@ class Product:
                 dem_path = merit_dem
             else:
                 if not os.path.isfile(dem_path):
-                    LOGGER.warning("Non existing DEM file: %s. Using default ones (EUDEM or MERIT)", dem_path)
+                    LOGGER.warning(
+                        "Non existing DEM file: %s. Using default ones (EUDEM or MERIT)",
+                        dem_path,
+                    )
                     dem_path = merit_dem
                 else:
-                    dem_extent_df = rasters.get_footprint(dem_path).to_crs(prod_extent_df.crs)
+                    dem_extent_df = rasters.get_footprint(dem_path).to_crs(
+                        prod_extent_df.crs
+                    )
                     if not dem_extent_df.contains(prod_extent_df)[0]:
-                        LOGGER.warning("Input DEM file does not intersect %s. Using default ones (EUDEM or MERIT)",
-                                       self.name)
+                        LOGGER.warning(
+                            "Input DEM file does not intersect %s. Using default ones (EUDEM or MERIT)",
+                            self.name,
+                        )
                         dem_path = merit_dem
 
             # Use EUDEM if the products is contained in it
@@ -926,15 +951,25 @@ class Product:
                             dst_tr *= dst_tr.scale(coeff_x, coeff_y)
 
                         except (TypeError, KeyError):
-                            raise ValueError(f"Size should exist (as resolution is None)"
-                                             f" and castable to a list: {size}")
+                            raise ValueError(
+                                f"Size should exist (as resolution is None)"
+                                f" and castable to a list: {size}"
+                            )
 
                     else:
                         # Refine resolution
                         if resolution is None:
                             resolution = self.resolution
-                        res_x = resolution[0] if isinstance(resolution, (tuple, list)) else resolution
-                        res_y = resolution[1] if isinstance(resolution, (tuple, list)) else resolution
+                        res_x = (
+                            resolution[0]
+                            if isinstance(resolution, (tuple, list))
+                            else resolution
+                        )
+                        res_y = (
+                            resolution[1]
+                            if isinstance(resolution, (tuple, list))
+                            else resolution
+                        )
 
                         # Get destination transform
                         dst_tr = prod_dst.transform
@@ -947,7 +982,9 @@ class Product:
                         out_h = int(np.round(prod_dst.height / coeff_y))
 
                     # Get empty output
-                    reprojected_array = np.zeros((prod_dst.count, out_h, out_w), dtype=np.float32)
+                    reprojected_array = np.zeros(
+                        (prod_dst.count, out_h, out_w), dtype=np.float32
+                    )
 
                     # Write reprojected DEM: here do not use utils.write()
                     out_meta = prod_dst.meta.copy()
@@ -962,18 +999,23 @@ class Product:
                         # Reproject
                         warp.reproject(
                             source=rasterio.band(dem_ds, range(1, dem_ds.count + 1)),
-                            destination=rasterio.band(out_dst, range(1, out_dst.count + 1)),
+                            destination=rasterio.band(
+                                out_dst, range(1, out_dst.count + 1)
+                            ),
                             resampling=resampling,
-                            num_threads=MAX_CORES)
+                            num_threads=MAX_CORES,
+                        )
 
         return warped_dem_path
 
     @abstractmethod
-    def _compute_hillshade(self,
-                           dem_path: str = "",
-                           resolution: Union[float, tuple] = None,
-                           size: Union[list, tuple] = None,
-                           resampling: Resampling = Resampling.bilinear) -> str:
+    def _compute_hillshade(
+        self,
+        dem_path: str = "",
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
+    ) -> str:
         """
         Compute Hillshade mask
 
@@ -989,11 +1031,13 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _compute_slope(self,
-                       dem_path: str = "",
-                       resolution: Union[float, tuple] = None,
-                       size: Union[list, tuple] = None,
-                       resampling: Resampling = Resampling.bilinear) -> str:
+    def _compute_slope(
+        self,
+        dem_path: str = "",
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
+    ) -> str:
         """
         Compute slope mask
 
@@ -1013,16 +1057,22 @@ class Product:
         # Get slope path
         slope_dem = os.path.join(self.output, f"{self.condensed_name}_SLOPE.tif")
         if os.path.isfile(slope_dem):
-            LOGGER.debug("Already existing slope DEM for %s. Skipping process.", self.name)
+            LOGGER.debug(
+                "Already existing slope DEM for %s. Skipping process.", self.name
+            )
         else:
             LOGGER.debug("Computing slope for %s", self.name)
-            cmd_slope = ["gdaldem",
-                         "--config",
-                         "NUM_THREADS", MAX_CORES,
-                         "slope",
-                         "-compute_edges",
-                         strings.to_cmd_string(warped_dem_path),
-                         strings.to_cmd_string(slope_dem), "-p"]
+            cmd_slope = [
+                "gdaldem",
+                "--config",
+                "NUM_THREADS",
+                MAX_CORES,
+                "slope",
+                "-compute_edges",
+                strings.to_cmd_string(warped_dem_path),
+                strings.to_cmd_string(slope_dem),
+                "-p",
+            ]
 
             # Run command
             misc.run_cli(cmd_slope)
@@ -1042,25 +1092,31 @@ class Product:
         """
         for band_id, band in bands.items():
             if master_xds is None:
-                master_xds = band # Master array is the first one in this case
+                master_xds = band  # Master array is the first one in this case
 
             if band.shape != master_xds.shape:
-                bands[band_id] = rasters.collocate(master_xds=master_xds, slave_xds=band)
+                bands[band_id] = rasters.collocate(
+                    master_xds=master_xds, slave_xds=band
+                )
 
-            bands[band_id] = bands[band_id].assign_coords({
-                "x": master_xds.x,
-                "y": master_xds.y,
-            })  # Bug for now, tiny difference in coords
+            bands[band_id] = bands[band_id].assign_coords(
+                {
+                    "x": master_xds.x,
+                    "y": master_xds.y,
+                }
+            )  # Bug for now, tiny difference in coords
 
         return bands
 
     # pylint: disable=R0913
     # Too many arguments (6/5)
-    def stack(self,
-              bands: list,
-              resolution: float = None,
-              stack_path: str = None,
-              save_as_int: bool = False) -> xr.DataArray:
+    def stack(
+        self,
+        bands: list,
+        resolution: float = None,
+        stack_path: str = None,
+        save_as_int: bool = False,
+    ) -> xr.DataArray:
         """
         Stack bands and index of a products.
 
@@ -1105,12 +1161,14 @@ class Product:
         band_dict = self.load(bands, resolution)
 
         # Convert into dataset with str as names
-        xds = xr.Dataset(data_vars={to_str(key)[0]: val for key, val in band_dict.items()},
-                         coords=band_dict[bands[0]].coords)
+        xds = xr.Dataset(
+            data_vars={to_str(key)[0]: val for key, val in band_dict.items()},
+            coords=band_dict[bands[0]].coords,
+        )
 
         # Force nodata
         stack = xds.to_stacked_array(new_dim="z", sample_dims=("x", "y"))
-        stack = stack.transpose('z', 'y', 'x')
+        stack = stack.transpose("z", "y", "x")
 
         # Save as integer
         if save_as_int:

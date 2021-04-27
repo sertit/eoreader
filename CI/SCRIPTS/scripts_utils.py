@@ -1,13 +1,13 @@
 """ Utils module for scripts """
-import os
 import logging
+import os
 
 import numpy as np
 import rasterio
-from sertit import ci
 
 from eoreader.reader import Reader
 from eoreader.utils import EOREADER_NAME
+from sertit import ci
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 READER = Reader()
@@ -16,7 +16,7 @@ try:
     CI_PATH = os.path.join(ci.get_db3_path(), "CI", "eoreader")
 except NotADirectoryError:
     # Windows
-    CI_PATH = os.path.join(r'\\ds2', 'database03', "CI", "eoreader")
+    CI_PATH = os.path.join(r"\\ds2", "database03", "CI", "eoreader")
 
 OPT_PATH = os.path.join(CI_PATH, "optical")
 SAR_PATH = os.path.join(CI_PATH, "sar")
@@ -28,7 +28,7 @@ def get_ci_dir() -> str:
     Returns:
         str: CI DATA directory
     """
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 def get_ci_data_dir() -> str:
@@ -37,7 +37,7 @@ def get_ci_data_dir() -> str:
     Returns:
         str: CI DATA directory
     """
-    return os.path.join(get_ci_dir(), 'DATA')
+    return os.path.join(get_ci_dir(), "DATA")
 
 
 def assert_raster_almost_equal(path_1: str, path_2: str, decimal=5) -> None:
@@ -69,18 +69,22 @@ def assert_raster_almost_equal(path_1: str, path_2: str, decimal=5) -> None:
             assert dst_1.meta["height"] == dst_2.meta["height"]
             assert dst_1.meta["count"] == dst_2.meta["count"]
             assert dst_1.meta["crs"] == dst_2.meta["crs"]
-            dst_1.meta["transform"].almost_equals(dst_1.meta["transform"], precision=1E-7)
+            dst_1.meta["transform"].almost_equals(
+                dst_1.meta["transform"], precision=1e-7
+            )
             for i in range(dst_1.count):
 
                 LOGGER.info(f"Band {i + 1}: {dst_1.descriptions[i]}")
                 try:
                     marr_1 = dst_1.read(i + 1, masked=True)
                     arr_1 = np.where(marr_1.mask, 0, marr_1.data)
-                    arr_1 = np.where(arr_1 == 255., 0, arr_1)
+                    arr_1 = np.where(arr_1 == 255.0, 0, arr_1)
 
                     marr_2 = dst_2.read(i + 1, masked=True)
                     arr_2 = np.where(marr_2.mask, 0, marr_2.data)
-                    arr_2 = np.where(arr_2 == 255., 0, arr_2)
+                    arr_2 = np.where(arr_2 == 255.0, 0, arr_2)
                     np.testing.assert_array_almost_equal(arr_1, arr_2, decimal=decimal)
                 except AssertionError:
-                    LOGGER.error(f"Band {i + 1}: {dst_1.descriptions[i]} failed", exc_info=True)
+                    LOGGER.error(
+                        f"Band {i + 1}: {dst_1.descriptions[i]} failed", exc_info=True
+                    )

@@ -10,7 +10,7 @@ class L8Product(LandsatProduct):
         Set product default resolution (in meters)
         """
         # DO NOT TAKE INTO ACCOUNT PAN AND TIRS RES
-        return 30.
+        return 30.0
 
     def _set_product_type(self) -> None:
         """ Get products type """

@@ -17,14 +17,14 @@ from typing import Callable
 
 import numpy as np
 import xarray as xr
-from sertit import rasters
 
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.utils import EOREADER_NAME
+from sertit import rasters
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-np.seterr(divide='ignore', invalid='ignore')
+np.seterr(divide="ignore", invalid="ignore")
 
 
 def _idx_fct(function: Callable) -> Callable:
@@ -48,8 +48,9 @@ def _idx_fct(function: Callable) -> Callable:
     return _idx_fct_wrapper
 
 
-def _norm_diff(band_1: np.ma.masked_array,
-               band_2: np.ma.masked_array) -> np.ma.masked_array:
+def _norm_diff(
+    band_1: np.ma.masked_array, band_2: np.ma.masked_array
+) -> np.ma.masked_array:
     """
     Get normalized difference index between band 1 and band 2:
     (band_1 - band_2)/(band_1 + band_2)
@@ -110,8 +111,14 @@ def TCBRI(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return (0.3037 * bands[obn.BLUE] + 0.2793 * bands[obn.GREEN] + 0.4743 * bands[obn.RED] +
-            0.5585 * bands[obn.NIR] + 0.5082 * bands[obn.SWIR_1] + 0.1863 * bands[obn.SWIR_2])
+    return (
+        0.3037 * bands[obn.BLUE]
+        + 0.2793 * bands[obn.GREEN]
+        + 0.4743 * bands[obn.RED]
+        + 0.5585 * bands[obn.NIR]
+        + 0.5082 * bands[obn.SWIR_1]
+        + 0.1863 * bands[obn.SWIR_2]
+    )
 
 
 @_idx_fct
@@ -128,8 +135,14 @@ def TCGRE(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return (- 0.2848 * bands[obn.BLUE] - 0.2435 * bands[obn.GREEN] - 0.5436 * bands[obn.RED] +
-            0.7243 * bands[obn.NIR] + 0.0840 * bands[obn.SWIR_1] - 0.1800 * bands[obn.SWIR_2])
+    return (
+        -0.2848 * bands[obn.BLUE]
+        - 0.2435 * bands[obn.GREEN]
+        - 0.5436 * bands[obn.RED]
+        + 0.7243 * bands[obn.NIR]
+        + 0.0840 * bands[obn.SWIR_1]
+        - 0.1800 * bands[obn.SWIR_2]
+    )
 
 
 @_idx_fct
@@ -146,8 +159,14 @@ def TCWET(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return (0.1509 * bands[obn.BLUE] + 0.1973 * bands[obn.GREEN] + 0.3279 * bands[obn.RED] +
-            0.3406 * bands[obn.NIR] - 0.7112 * bands[obn.SWIR_1] - 0.4572 * bands[obn.SWIR_2])
+    return (
+        0.1509 * bands[obn.BLUE]
+        + 0.1973 * bands[obn.GREEN]
+        + 0.3279 * bands[obn.RED]
+        + 0.3406 * bands[obn.NIR]
+        - 0.7112 * bands[obn.SWIR_1]
+        - 0.4572 * bands[obn.SWIR_2]
+    )
 
 
 @_idx_fct
@@ -191,8 +210,10 @@ def GLI(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return np.divide(2 * (bands[obn.GREEN] - bands[obn.RED] - bands[obn.BLUE]),
-                     2 * (bands[obn.GREEN] + bands[obn.RED] + bands[obn.BLUE]))
+    return np.divide(
+        2 * (bands[obn.GREEN] - bands[obn.RED] - bands[obn.BLUE]),
+        2 * (bands[obn.GREEN] + bands[obn.RED] + bands[obn.BLUE]),
+    )
 
 
 @_idx_fct
@@ -222,7 +243,7 @@ def RI(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.VRE_1], + bands[obn.GREEN])
+    return _norm_diff(bands[obn.VRE_1], +bands[obn.GREEN])
 
 
 @_idx_fct
@@ -269,7 +290,7 @@ def NDMI(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NIR], + bands[obn.SWIR_1])
+    return _norm_diff(bands[obn.NIR], +bands[obn.SWIR_1])
 
 
 @_idx_fct
@@ -284,7 +305,9 @@ def DSWI(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return np.divide(bands[obn.NIR] + bands[obn.GREEN], bands[obn.SWIR_1] + bands[obn.RED])
+    return np.divide(
+        bands[obn.NIR] + bands[obn.GREEN], bands[obn.SWIR_1] + bands[obn.RED]
+    )
 
 
 @_idx_fct
@@ -343,7 +366,7 @@ def BAI(bands: dict) -> np.ma.masked_array:
     Returns:
         xr.DataArray: Computed index
     """
-    return np.divide(1., (0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)
+    return np.divide(1.0, (0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)
 
 
 @_idx_fct
@@ -388,7 +411,9 @@ def AWEInsh(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return (4 * (bands[obn.GREEN] - bands[obn.SWIR_1]) - (0.25 * bands[obn.NIR] + 2.75 * bands[obn.SWIR_2]))
+    return 4 * (bands[obn.GREEN] - bands[obn.SWIR_1]) - (
+        0.25 * bands[obn.NIR] + 2.75 * bands[obn.SWIR_2]
+    )
 
 
 @_idx_fct
@@ -403,8 +428,12 @@ def AWEIsh(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return (bands[obn.BLUE] + 2.5 * bands[obn.GREEN] -
-            1.5 * (bands[obn.NIR] + bands[obn.SWIR_1]) - 0.25 * bands[obn.SWIR_2])
+    return (
+        bands[obn.BLUE]
+        + 2.5 * bands[obn.GREEN]
+        - 1.5 * (bands[obn.NIR] + bands[obn.SWIR_1])
+        - 0.25 * bands[obn.SWIR_2]
+    )
 
 
 @_idx_fct
@@ -418,8 +447,14 @@ def WI(bands: dict) -> np.ma.masked_array:
     Returns:
         xr.DataArray: Computed index
     """
-    return (1.7204 + 171 * bands[obn.GREEN] + 3 * bands[obn.RED] -
-            70 * bands[obn.NIR] - 45 * bands[obn.SWIR_1] - 71 * bands[obn.SWIR_2])
+    return (
+        1.7204
+        + 171 * bands[obn.GREEN]
+        + 3 * bands[obn.RED]
+        - 70 * bands[obn.NIR]
+        - 45 * bands[obn.SWIR_1]
+        - 71 * bands[obn.SWIR_2]
+    )
 
 
 @_idx_fct
@@ -469,7 +504,9 @@ def BSI(bands: dict) -> np.ma.masked_array:
     Returns:
         xr.DataArray: Computed index
     """
-    return _norm_diff(bands[obn.RED] + bands[obn.SWIR_1], bands[obn.NIR] + bands[obn.BLUE])
+    return _norm_diff(
+        bands[obn.RED] + bands[obn.SWIR_1], bands[obn.NIR] + bands[obn.BLUE]
+    )
 
 
 def get_all_index_names() -> list:
@@ -531,7 +568,7 @@ def get_needed_bands(index: Callable) -> list:
     # Parse band's signature
     b_regex = r"obn\.\w+"
 
-    return [getattr(obn, b.split('.')[-1]) for b in re.findall(b_regex, code)]
+    return [getattr(obn, b.split(".")[-1]) for b in re.findall(b_regex, code)]
 
 
 def get_all_needed_bands() -> dict:

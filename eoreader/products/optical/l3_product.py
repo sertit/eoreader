@@ -10,7 +10,7 @@ class L3Product(LandsatProduct):
         Set product default resolution (in meters)
         """
         # DO NOT TAKE INTO ACCOUNT TIRS RES
-        return 60.
+        return 60.0
 
     def _set_product_type(self) -> None:
         """ Get products type """

@@ -4,22 +4,31 @@ import logging
 import os
 from abc import abstractmethod
 from typing import Union
-import numpy as np
-import xarray as xr
+
 import geopandas as gpd
+import numpy as np
 import rasterio
+import xarray as xr
 from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import rasters, strings, misc
-from sertit.rasters import XDS_TYPE
-from sertit.snap import MAX_CORES
 
-from eoreader.bands.alias import is_dem, is_clouds, is_index, is_optical_band, is_sar_band
-from eoreader.exceptions import InvalidIndexError, InvalidBandError
-from eoreader.bands.bands import OpticalBands, OpticalBandNames as obn, BandNames
 from eoreader.bands import index
+from eoreader.bands.alias import (
+    is_clouds,
+    is_dem,
+    is_index,
+    is_optical_band,
+    is_sar_band,
+)
+from eoreader.bands.bands import BandNames
+from eoreader.bands.bands import OpticalBandNames as obn
+from eoreader.bands.bands import OpticalBands
+from eoreader.exceptions import InvalidBandError, InvalidIndexError
 from eoreader.products.product import Product, SensorType
 from eoreader.utils import EOREADER_NAME
+from sertit import misc, rasters, strings
+from sertit.rasters import XDS_TYPE
+from sertit.snap import MAX_CORES
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -162,10 +171,12 @@ class OpticalProduct(Product):
         existing_bands = self.get_existing_bands()
         return self.get_band_paths(band_list=existing_bands)
 
-    def _open_bands(self,
-                    band_paths: dict,
-                    resolution: float = None,
-                    size: Union[list, tuple] = None) -> dict:
+    def _open_bands(
+        self,
+        band_paths: dict,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -> dict:
         """
         Open bands from disk.
 
@@ -182,20 +193,25 @@ class OpticalProduct(Product):
         band_arrays = {}
         for band_name, band_path in band_paths.items():
             # Read band
-            band_arrays[band_name] = self._read_band(band_path, resolution=resolution, size=size)
-            band_arrays[band_name] = self._manage_invalid_pixels(band_arrays[band_name], band_name,
-                                                                 resolution=resolution, size=size)
+            band_arrays[band_name] = self._read_band(
+                band_path, resolution=resolution, size=size
+            )
+            band_arrays[band_name] = self._manage_invalid_pixels(
+                band_arrays[band_name], band_name, resolution=resolution, size=size
+            )
 
         return band_arrays
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     @abstractmethod
-    def _manage_invalid_pixels(self,
-                               band_arr: XDS_TYPE,
-                               band: obn,
-                               resolution: float = None,
-                               size: Union[list, tuple] = None) -> XDS_TYPE:
+    def _manage_invalid_pixels(
+        self,
+        band_arr: XDS_TYPE,
+        band: obn,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
@@ -210,9 +226,7 @@ class OpticalProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _set_nodata_mask(self,
-                         band_arr: XDS_TYPE,
-                         mask: np.ndarray) -> XDS_TYPE:
+    def _set_nodata_mask(self, band_arr: XDS_TYPE, mask: np.ndarray) -> XDS_TYPE:
         """
         Create the correct xarray with well positioned nodata
 
@@ -235,10 +249,9 @@ class OpticalProduct(Product):
 
         return rasters.set_nodata(band_arr, self.nodata)
 
-    def _load(self,
-              bands: list,
-              resolution: float = None,
-              size: Union[list, tuple] = None) -> dict:
+    def _load(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -> dict:
         """
         Core function loading optical data bands
 
@@ -261,14 +274,20 @@ class OpticalProduct(Product):
                 if self._has_index(idx_or_band):
                     index_list.append(idx_or_band)
                 else:
-                    raise InvalidIndexError(f"{idx_or_band} cannot be computed from {self.condensed_name}.")
+                    raise InvalidIndexError(
+                        f"{idx_or_band} cannot be computed from {self.condensed_name}."
+                    )
             elif is_sar_band(idx_or_band):
-                raise TypeError(f"You should ask for Optical bands as {self.name} is an optical product.")
+                raise TypeError(
+                    f"You should ask for Optical bands as {self.name} is an optical product."
+                )
             elif is_optical_band(idx_or_band):
                 if self.has_band(idx_or_band):
                     band_list.append(idx_or_band)
                 else:
-                    raise InvalidBandError(f"{idx_or_band} cannot be retrieved from {self.condensed_name}.")
+                    raise InvalidBandError(
+                        f"{idx_or_band} cannot be retrieved from {self.condensed_name}."
+                    )
             elif is_dem(idx_or_band):
                 dem_list.append(idx_or_band)
             elif is_clouds(idx_or_band):
@@ -280,7 +299,9 @@ class OpticalProduct(Product):
             bands_to_load += index.NEEDED_BANDS[idx]
 
         # Load band arrays (only keep unique bands: open them only one time !)
-        bands = self._load_bands(list(set(bands_to_load)), resolution=resolution, size=size)
+        bands = self._load_bands(
+            list(set(bands_to_load)), resolution=resolution, size=size
+        )
 
         # Compute index (they conserve the nodata)
         bands_dict = {idx: idx(bands) for idx in index_list}
@@ -292,7 +313,9 @@ class OpticalProduct(Product):
         bands_dict.update(self._load_dem(dem_list, resolution=resolution, size=size))
 
         # Add Clouds
-        bands_dict.update(self._load_clouds(clouds_list, resolution=resolution, size=size))
+        bands_dict.update(
+            self._load_clouds(clouds_list, resolution=resolution, size=size)
+        )
 
         return bands_dict
 
@@ -314,11 +337,13 @@ class OpticalProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _compute_hillshade(self,
-                           dem_path: str = "",
-                           resolution: Union[float, tuple] = None,
-                           size: Union[list, tuple] = None,
-                           resampling: Resampling = Resampling.bilinear) -> str:
+    def _compute_hillshade(
+        self,
+        dem_path: str = "",
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
+    ) -> str:
         """
         Compute Hillshade mask
 
@@ -336,9 +361,13 @@ class OpticalProduct(Product):
         warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
         # Get Hillshade path
-        hillshade_dem = os.path.join(self.output, f"{self.condensed_name}_HILLSHADE.tif")
+        hillshade_dem = os.path.join(
+            self.output, f"{self.condensed_name}_HILLSHADE.tif"
+        )
         if os.path.isfile(hillshade_dem):
-            LOGGER.debug("Already existing hillshade DEM for %s. Skipping process.", self.name)
+            LOGGER.debug(
+                "Already existing hillshade DEM for %s. Skipping process.", self.name
+            )
         else:
             LOGGER.debug("Computing hillshade DEM for %s", self.name)
 
@@ -348,24 +377,32 @@ class OpticalProduct(Product):
             azimuth = mean_azimuth_angle
 
             # Run cmd
-            cmd_hillshade = ["gdaldem", "--config",
-                             "NUM_THREADS", MAX_CORES,
-                             "hillshade", strings.to_cmd_string(warped_dem_path),
-                             "-compute_edges",
-                             "-z", "1",
-                             "-az", azimuth,
-                             "-alt", zenith,
-                             "-of", "GTiff",
-                             strings.to_cmd_string(hillshade_dem)]
+            cmd_hillshade = [
+                "gdaldem",
+                "--config",
+                "NUM_THREADS",
+                MAX_CORES,
+                "hillshade",
+                strings.to_cmd_string(warped_dem_path),
+                "-compute_edges",
+                "-z",
+                "1",
+                "-az",
+                azimuth,
+                "-alt",
+                zenith,
+                "-of",
+                "GTiff",
+                strings.to_cmd_string(hillshade_dem),
+            ]
             # Run command
             misc.run_cli(cmd_hillshade)
 
         return hillshade_dem
 
-    def _load_clouds(self,
-                     bands: list,
-                     resolution: float = None,
-                     size: Union[list, tuple] = None) -> dict:
+    def _load_clouds(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -> dict:
         """
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -378,7 +415,9 @@ class OpticalProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _create_mask(self, xds: XDS_TYPE, cond: np.ndarray, nodata: np.ndarray) -> XDS_TYPE:
+    def _create_mask(
+        self, xds: XDS_TYPE, cond: np.ndarray, nodata: np.ndarray
+    ) -> XDS_TYPE:
         """
         Create a mask from a conditional array and a nodata mask.
 
