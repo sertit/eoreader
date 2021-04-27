@@ -468,7 +468,7 @@ class LandsatProduct(OpticalProduct):
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            np.ma.masked_array, dict: Radiometrically coherent band, saved as float 32 and its metadata
+            XDS_TYPE: Radiometrically coherent band, saved as float 32 and its metadata
 
         """
         # Get band name: the last number of the filename:
@@ -486,9 +486,7 @@ class LandsatProduct(OpticalProduct):
                 size=size,
                 resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
                 masked=False,
-            ).astype(
-                np.uint16
-            )  # No need to get masked_array
+            ).astype(np.uint16)
         else:
             # Read band (call superclass generic method)
             band = rasters.read(
