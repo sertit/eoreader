@@ -8,7 +8,6 @@ from lxml import etree
 from eoreader import utils
 from eoreader.bands.alias import *
 from eoreader.bands.bands import OpticalBands, SarBandNames
-from sertit import misc
 
 from .scripts_utils import OPT_PATH, READER
 

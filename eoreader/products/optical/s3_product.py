@@ -35,7 +35,7 @@ BT_BANDS = [obn.MIR, obn.TIR_1, obn.TIR_2]
 
 @unique
 class S3ProductType(ListEnum):
-    """ Sentinel-3 products types (not exhaustive, only L1)"""
+    """Sentinel-3 products types (not exhaustive, only L1)"""
 
     OLCI_EFR = "OL_1_EFR___"
     """OLCI EFR Product Type"""
@@ -46,7 +46,7 @@ class S3ProductType(ListEnum):
 
 @unique
 class S3Instrument(ListEnum):
-    """ Sentinel-3 products types """
+    """Sentinel-3 products types"""
 
     OLCI = "OLCI"
     """OLCI Instrument"""
@@ -57,7 +57,7 @@ class S3Instrument(ListEnum):
 
 @unique
 class S3DataTypes(ListEnum):
-    """ Sentinel-3 data types -> only considering useful ones """
+    """Sentinel-3 data types -> only considering useful ones"""
 
     EFR = "EFR___"
     """EFR Data Type, for OLCI instrument"""
@@ -104,7 +104,7 @@ class S3Product(OpticalProduct):
         return def_res
 
     def _set_product_type(self) -> None:
-        """ Get products type """
+        """Get products type"""
         # Product type
         if self.name[7] != "1":
             raise InvalidTypeError("Only L1 products are used for Sentinel-3 data.")
@@ -135,7 +135,7 @@ class S3Product(OpticalProduct):
                     obn.NIR: "17",
                     obn.NARROW_NIR: "17",
                     obn.WV: "20",
-                    obn.FNIR: "21",
+                    obn.FAR_NIR: "21",
                 }
             )
         elif "SL" in self.name:
@@ -489,7 +489,7 @@ class S3Product(OpticalProduct):
             obn.NIR: 4,  # Band 17
             obn.NARROW_NIR: 4,  # Band 17
             obn.WV: 1,  # Band 20
-            obn.FNIR: 0,  # Band 21
+            obn.FAR_NIR: 0,  # Band 21
         }
         invalid_id = 24
         sat_band_id = band_bit_id[band]

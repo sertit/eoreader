@@ -9,7 +9,7 @@ import geopandas as gpd
 import numpy as np
 import rasterio
 import xarray as xr
-from rasterio import crs
+from rasterio import crs as rcrs
 from rasterio.enums import Resampling
 
 from eoreader.bands import index
@@ -34,7 +34,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 class OpticalProduct(Product):
-    """ Super class for optical products """
+    """Super class for optical products"""
 
     def _post_init(self) -> None:
         """
@@ -80,7 +80,7 @@ class OpticalProduct(Product):
         default_band = self.get_default_band()
         return self.get_band_paths([default_band])[default_band]
 
-    def crs(self) -> rasterio.crs.CRS:
+    def crs(self) -> rcrs.CRS:
         """
         Get UTM projection of the tile
 

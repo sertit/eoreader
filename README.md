@@ -1,15 +1,16 @@
 # EOReader
 
 This project allows you to read and open multiple
-[optical](#implemented-optical-satellites) and [SAR](#implemented-sar-satellites) satellite data.
+[optical](https://sertit.github.io/eoreader/eoreader#implemented-optical-satellites)
+and [SAR](https://sertit.github.io/eoreader/eoreader#implemented-sar-satellites) satellite data.
 
 It also implements two additional features:
 
 - `eoreader.products.product.Product.load`: Load many band types:
-    - satellite bands ([optical](#band-mapping) or [SAR](#sar-bands))
-    - [index](#available-index)
-    - [cloud bands](#cloud-bands)
-    - [DEM bands](#dem-bands)
+    - satellite bands ([optical](https://sertit.github.io/eoreader/eoreader#band-mapping) or [SAR](https://sertit.github.io/eoreader/eoreader#sar-bands))
+    - [index](https://sertit.github.io/eoreader/eoreader#available-index)
+    - [cloud bands](https://sertit.github.io/eoreader/eoreader#cloud-bands)
+    - [DEM bands](https://sertit.github.io/eoreader/eoreader#dem-bands)
 - `eoreader.products.product.Product.stack`: Stack all these type of bands
 
 ## Installation
@@ -57,11 +58,6 @@ The main features of EOReader are gathered hereunder:
 >>> # Read Metadata
 >>> mtd, namespace = prod.read_mtd()
 ```
-
-.. NOTE::
-  Index and bands are opened as [`xarrays`](http://xarray.pydata.org/en/stable/)
-with [`rioxarray`](https://corteva.github.io/rioxarray/stable/), in `float` with the nodata set to `np.nan`.
-  The nodata written back on disk is -9999 by convention (for now the rasters will be written in float)
 
 .. WARNING::
   - Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.

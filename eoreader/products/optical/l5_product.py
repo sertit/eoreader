@@ -4,7 +4,7 @@ from eoreader.products.optical.landsat_product import LandsatProduct, LandsatPro
 
 
 class L5Product(LandsatProduct):
-    """ Class of Landsat-5 Products """
+    """Class of Landsat-5 Products"""
 
     def _set_resolution(self) -> float:
         """
@@ -18,7 +18,7 @@ class L5Product(LandsatProduct):
         return def_res
 
     def _set_product_type(self) -> None:
-        """ Get products type """
+        """Get products type"""
         if "LT05" in self.name:
             self._set_tm_product_type()
         elif "LM05" in self.name:

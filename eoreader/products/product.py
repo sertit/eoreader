@@ -15,7 +15,8 @@ import geopandas as gpd
 import numpy as np
 import rasterio
 import xarray as xr
-from rasterio import crs, warp
+from rasterio import crs as rcrs
+from rasterio import warp
 from rasterio.enums import Resampling
 
 from eoreader import utils
@@ -99,7 +100,7 @@ class SensorType(ListEnum):
 
 
 class Product:
-    """ Super class of EOReader Products """
+    """Super class of EOReader Products"""
 
     def __init__(
         self, product_path: str, archive_path: str = None, output_path: str = None
@@ -196,7 +197,7 @@ class Product:
         # TODO: manage self.needs_extraction
 
     def __del__(self):
-        """ Cleaning up _tmp directory """
+        """Cleaning up _tmp directory"""
         if self._tmp:
             self._tmp.cleanup()
 
@@ -246,7 +247,7 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def crs(self) -> crs.CRS:
+    def crs(self) -> rcrs.CRS:
         """
         Get UTM projection of the tile
 
@@ -264,7 +265,7 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     def _get_band_folder(self):
-        """ Manage the case of CI SNAP Bands"""
+        """Manage the case of CI SNAP Bands"""
 
         # Manage CI SNAP band
         ci_band_folder = os.environ.get(CI_EOREADER_BAND_FOLDER)
@@ -831,12 +832,12 @@ class Product:
 
     @property
     def output(self) -> str:
-        """ Output directory of the product, to write orthorectified data for example. """
+        """Output directory of the product, to write orthorectified data for example."""
         return self._output
 
     @output.setter
     def output(self, value: str):
-        """ Output directory of the product, to write orthorectified data for example. """
+        """Output directory of the product, to write orthorectified data for example."""
         self._output = value
         if not os.path.isdir(self._output):
             os.makedirs(self._output, exist_ok=True)
@@ -928,7 +929,7 @@ class Product:
             # Check existence (SRTM)
             if not os.path.isfile(dem_path):
                 if not merit_dem:
-                    raise FileNotFoundError(f"Impossible to retrieve default DEM.")
+                    raise FileNotFoundError("Impossible to retrieve default DEM.")
                 else:
                     raise FileNotFoundError(f"DEM file does not exist here: {dem_path}")
 
@@ -1180,7 +1181,9 @@ class Product:
 
         # Some updates
         stack = rasters.set_nodata(stack, self.nodata)
-        stack.attrs["long_name"] = to_str(list(band_dict.keys()))
+        band_list = to_str(list(band_dict.keys()))
+        stack.attrs["long_name"] = band_list
+        stack = stack.rename("_".join(band_list))
 
         # Write on disk
         if stack_path:

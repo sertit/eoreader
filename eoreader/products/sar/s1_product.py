@@ -157,7 +157,7 @@ class S1Product(SarProduct):
                 # We need to extract the file here as we need a proper file
                 with zipfile.ZipFile(self.path, "r") as zip_ds:
                     filenames = [f.filename for f in zip_ds.filelist]
-                    regex = re.compile(f".*preview.*map-overlay.kml")
+                    regex = re.compile(".*preview.*map-overlay.kml")
                     preview_overlay = zip_ds.extract(
                         list(filter(regex.match, filenames))[0], tmp_dir.name
                     )
@@ -202,7 +202,7 @@ class S1Product(SarProduct):
         return extent_wgs84
 
     def _set_product_type(self) -> None:
-        """ Get products type """
+        """Get products type"""
         self._get_sar_product_type(
             prod_type_pos=2, gdrg_types=S1ProductType.GRD, cplx_types=S1ProductType.SLC
         )

@@ -29,7 +29,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 @unique
 class LandsatProductType(ListEnum):
-    """ Landsat products types """
+    """Landsat products types"""
 
     L1_OLCI = "OLCI"
     """OLCI Product Type, for Landsat-8 platform"""
@@ -76,7 +76,7 @@ class LandsatProduct(OpticalProduct):
         super().__init__(product_path, archive_path, output_path)
 
     def _set_collection(self):
-        """ Set Landsat collection """
+        """Set Landsat collection"""
         return LandsatCollection.from_value(self.split_name[-2])
 
     def _post_init(self) -> None:
@@ -171,11 +171,11 @@ class LandsatProduct(OpticalProduct):
 
     @abstractmethod
     def _set_product_type(self) -> None:
-        """ Get products type """
+        """Get products type"""
         raise NotImplementedError("This method should be implemented by a child class")
 
     def _set_mss_product_type(self, version: int) -> None:
-        """ Set MSS product type and map corresponding bands """
+        """Set MSS product type and map corresponding bands"""
         if "L1" in self.name:
             self.product_type = LandsatProductType.L1_MSS
             self.band_names.map_bands(
@@ -193,7 +193,7 @@ class LandsatProduct(OpticalProduct):
             raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
 
     def _set_tm_product_type(self) -> None:
-        """ Set TM product type and map corresponding bands """
+        """Set TM product type and map corresponding bands"""
         if "L1" in self.name:
             self.product_type = LandsatProductType.L1_TM
             self.band_names.map_bands(
@@ -213,7 +213,7 @@ class LandsatProduct(OpticalProduct):
             raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
 
     def _set_etm_product_type(self) -> None:
-        """ Set ETM product type and map corresponding bands """
+        """Set ETM product type and map corresponding bands"""
         if "L1" in self.name:
             self.product_type = LandsatProductType.L1_ETM
             self.band_names.map_bands(
@@ -234,7 +234,7 @@ class LandsatProduct(OpticalProduct):
             raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
 
     def _set_olci_product_type(self) -> None:
-        """ Set OLCI product type and map corresponding bands """
+        """Set OLCI product type and map corresponding bands"""
         if "L1" in self.name:
             self.product_type = LandsatProductType.L1_OLCI
             self.band_names.map_bands(

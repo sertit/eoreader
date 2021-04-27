@@ -90,7 +90,7 @@ class TsxPolarization(ListEnum):
 
 
 class TsxProduct(SarProduct):
-    """ Class for TerraSAR-X Products """
+    """Class for TerraSAR-X Products"""
 
     def _set_resolution(self) -> float:
         """
@@ -208,7 +208,7 @@ class TsxProduct(SarProduct):
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
     def _set_product_type(self) -> None:
-        """ Get products type """
+        """Get products type"""
         self._get_sar_product_type(
             prod_type_pos=2,
             gdrg_types=TsxProductType.MGD,
