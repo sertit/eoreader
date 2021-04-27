@@ -278,7 +278,7 @@ class Rs2Product(SarProduct):
             if element.tag == namespace + 'sourceAttributes':
                 radar_param = element.find(namespace + 'radarParameters')
 
-                # WARNING: this word may differ from the Enum !!! (no doc available)
+                # WARNING: this word may differ from the Enum !!! (no docs available)
                 # Get the closest match
                 sensor_mode_xml = radar_param.findtext(namespace + 'acquisitionType')
                 break

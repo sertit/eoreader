@@ -1,0 +1,3 @@
+include README.md LICENSE NOTICE requirements.txt
+recursive-include docs *
+prune CI

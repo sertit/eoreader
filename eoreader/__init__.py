@@ -21,6 +21,7 @@ _____
 """
 
 __pdoc__ = {
-    "eoreader.version": False,
     "eoreader.data": False,
 }
+
+__version__ = '0.2.0'
