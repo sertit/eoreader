@@ -4,7 +4,7 @@
 
 |Satellites | Class | Product Types | Use archive | Default Resolution |
 |--- | --- | --- | --- | ---|
-|Sentinel-2 | `eoreader.products.optical.s2_product.S2Product` | L1C & L2A | Yes | 20m| 
+|Sentinel-2 | `eoreader.products.optical.s2_product.S2Product` | L1C & L2A | Yes | 20m|
 |Sentinel-2 Theia | `eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | Yes | 20m|
 |Sentinel-3 SLSTR | `eoreader.products.optical.s3_product.S3Product` | RBT | No | 300m|
 |Sentinel-3 OLCI | `eoreader.products.optical.s3_product.S3Product` | EFR | No | 500m|
@@ -18,7 +18,7 @@
 |Landsat-2 MSS | `eoreader.products.optical.l2_product.L2Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
 |Landsat-1 MSS | `eoreader.products.optical.l1_product.L1Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
 
-Satellites products that cannot be used as archived have to be extracted before use. 
+Satellites products that cannot be used as archived have to be extracted before use.
 
 ## Band mapping
 
@@ -43,15 +43,15 @@ All the bands are rasterized and orthorectified if needed (for Sentinel-2 or 3 d
 
 The only difference with the other bands is that the cloud bands are provided in `uint8` and have a nodata equal to 255.
 
-- `eoreader.bands.bands.CloudsBandNames.RAW_CLOUDS`: Raw Cloud file as provided (the only changes are the orthorectification and rasterization).  
+- `eoreader.bands.bands.CloudsBandNames.RAW_CLOUDS`: Raw Cloud file as provided (the only changes are the orthorectification and rasterization).
   Can provide other flags, or cloud probability.
-- `eoreader.bands.bands.CloudsBandNames.CLOUDS`: Cloud presence (1) or absence (0).  
+- `eoreader.bands.bands.CloudsBandNames.CLOUDS`: Cloud presence (1) or absence (0).
   If clouds are provided in probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- `eoreader.bands.bands.CloudsBandNames.CIRRUS`: Cirrus presence (1) or absence (0).  
+- `eoreader.bands.bands.CloudsBandNames.CIRRUS`: Cirrus presence (1) or absence (0).
   If clouds are provided in probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- `eoreader.bands.bands.CloudsBandNames.SHADOWS`: Shadows presence (1) or absence (0).  
+- `eoreader.bands.bands.CloudsBandNames.SHADOWS`: Shadows presence (1) or absence (0).
   If clouds are provided in probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- `eoreader.bands.bands.CloudsBandNames.ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (0).  
+- `eoreader.bands.bands.CloudsBandNames.ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (0).
   Do not take into account missing bands (ie. for Landsat MSS sensors, `ALL_CLOUDS` == `CLOUDS`)
 
 |Satellites | Clouds Bands|

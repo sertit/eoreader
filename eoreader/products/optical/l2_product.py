@@ -9,7 +9,7 @@ class L2Product(LandsatProduct):
         """
         Set product default resolution (in meters)
         """
-        return 60.
+        return 60.0
 
     def _set_product_type(self) -> None:
         """ Get products type """

@@ -1,6 +1,7 @@
 """ Product Factory, class creating products according to their names """
 
 from __future__ import annotations
+
 import importlib
 import logging
 import os
@@ -8,10 +9,9 @@ import re
 from enum import unique
 from typing import Union
 
-from sertit import strings, files
-from sertit.misc import ListEnum
-
 from eoreader.utils import EOREADER_NAME
+from sertit import files, strings
+from sertit.misc import ListEnum
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -25,19 +25,21 @@ class CheckMethod(ListEnum):
 
     NAME = "Filename"
     """
-    Check the filename: 
-    
+    Check the filename:
+
     Safer method that allows modified product names as it recursively looks for the metadata name in the product files.
-    For products that have generic metadata files (ie. RS2 that as mtd named `product.xml`), 
+    For products that have generic metadata files (ie. RS2 that as mtd named `product.xml`),
     it also checks the band name.
     """
 
     BOTH = "Both"
     """Check the metadata and the filename: Double check if you have a doubt."""
 
+
 @unique
 class Platform(ListEnum):
     """ Platforms supported by EOReader """
+
     S1 = "Sentinel-1"
     """Sentinel-1"""
 
@@ -103,21 +105,27 @@ PLATFORM_REGEX = {
     Platform.L2: r"LM02_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
     Platform.L1: r"LM01_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
     Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}",
-    Platform.CSK: [r".+",  # Need to check inside as the folder does not have any recognizable name
-                   r"CSKS[1-4]_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
-                   r"\w{2}_(HH|VV|VH|HV|CO|CH|CV)_[LR][AD]_[FS][NF]_\d{14}_\d{14}\.h5"],
+    Platform.CSK: [
+        r".+",  # Need to check inside as the folder does not have any recognizable name
+        r"CSKS[1-4]_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
+        r"\w{2}_(HH|VV|VH|HV|CO|CH|CV)_[LR][AD]_[FS][NF]_\d{14}_\d{14}\.h5",
+    ],
     Platform.TSX: r"T[SD]X1_SAR__(SSC|MGD|GEC|EEC)_[SR]E___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
-    Platform.RS2: r"RS2_OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)"
+    Platform.RS2: r"RS2_OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)",
 }
 
 # Not used for now
 MTD_REGEX = {
     Platform.S1: r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}\.xml",
-    Platform.S2: [r"MTD_MSIL(1C|2A)\.xml",  # Too generic name, check also a band
-                  r"T\d{2}\w{3}_\d{8}T\d{6}_B\d{2}(_\d0m|).jp2"],
+    Platform.S2: [
+        r"MTD_MSIL(1C|2A)\.xml",  # Too generic name, check also a band
+        r"T\d{2}\w{3}_\d{8}T\d{6}_B\d{2}(_\d0m|).jp2",
+    ],
     Platform.S2_THEIA: f"{PLATFORM_REGEX[Platform.S2_THEIA]}_MTD_ALL\.xml",
-    Platform.S3: [r"xfdumanifest\.xml",  # Not the real metadata...
-                  r"(S\d|Oa\d{2})_radiance(_an|).nc"],
+    Platform.S3: [
+        r"xfdumanifest\.xml",  # Not the real metadata...
+        r"(S\d|Oa\d{2})_radiance(_an|).nc",
+    ],
     Platform.L8: f"{PLATFORM_REGEX[Platform.L8]}_MTL\.txt",
     Platform.L7: f"{PLATFORM_REGEX[Platform.L7]}_MTL\.txt",
     Platform.L5: f"{PLATFORM_REGEX[Platform.L5]}_MTL\.txt",
@@ -128,8 +136,10 @@ MTD_REGEX = {
     Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*\.xml",
     Platform.CSK: f"{PLATFORM_REGEX[Platform.CSK][1]}\.xml",
     Platform.TSX: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
-    Platform.RS2: [r"product\.xml",  # Too generic name, check also a band
-                   r"imagery_[HV]{2}.tif"]
+    Platform.RS2: [
+        r"product\.xml",  # Too generic name, check also a band
+        r"imagery_[HV]{2}.tif",
+    ],
 }
 """Platform XML regex, mapping every metadata XML to a regex allowing the reader to recognize them (as a fallback)."""
 
@@ -177,11 +187,13 @@ class Reader:
 
         return comp
 
-    def open(self,
-             product_path: str,
-             archive_path: str = None,
-             output_path: str = None,
-             method=CheckMethod.MTD) -> "Product":
+    def open(
+        self,
+        product_path: str,
+        archive_path: str = None,
+        output_path: str = None,
+        method=CheckMethod.MTD,
+    ) -> "Product":
         """
         Open the product.
 
@@ -209,23 +221,30 @@ class Reader:
             elif method == CheckMethod.NAME:
                 is_valid = self.valid_name(product_path, platform)
             else:
-                is_valid = self.valid_name(product_path, platform) and self.valid_mtd(product_path, platform)
+                is_valid = self.valid_name(product_path, platform) and self.valid_mtd(
+                    product_path, platform
+                )
 
             if is_valid:
                 sat_class = platform.lower() + "_product"
 
                 # Manage both optical and SAR
                 try:
-                    mod = importlib.import_module(f'eoreader.products.sar.{sat_class}')
+                    mod = importlib.import_module(f"eoreader.products.sar.{sat_class}")
                 except ModuleNotFoundError:
-                    mod = importlib.import_module(f'eoreader.products.optical.{sat_class}')
+                    mod = importlib.import_module(
+                        f"eoreader.products.optical.{sat_class}"
+                    )
 
                 class_ = getattr(mod, strings.snake_to_camel_case(sat_class))
                 prod = class_(product_path, archive_path, output_path)
                 break
 
         if not prod:
-            LOGGER.warning("There is no existing products in EOReader corresponding to %s", product_path)
+            LOGGER.warning(
+                "There is no existing products in EOReader corresponding to %s",
+                product_path,
+            )
 
         return prod
 
@@ -352,7 +371,7 @@ class Reader:
         # WARNING: Two level max for the moment
         is_valid = bool(regex[0].match(product_file_name))
         if is_valid and len(regex) > 1:
-            is_valid = False # Reset
+            is_valid = False  # Reset
             if os.path.isdir(product_path):
                 file_list = os.listdir(product_path)
                 for file in file_list:

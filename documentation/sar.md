@@ -29,14 +29,14 @@ You also can load despeckled bands:
 
 
 ## DEM bands
-SAR satellites can only load `eoreader.bands.bands.DemBandNames.DEM` and `eoreader.bands.bands.DemBandNames.SLOPE` bands. 
+SAR satellites can only load `eoreader.bands.bands.DemBandNames.DEM` and `eoreader.bands.bands.DemBandNames.SLOPE` bands.
 The `SLOPE` band is computed with the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
 
-Use the environment variable `EOREADER_SAR_DEFAULT_RES` to override the default DEM 
+Use the environment variable `EOREADER_SAR_DEFAULT_RES` to override the default DEM
 ([Merit DEM](https://developers.google.com/earth-engine/datasets/catalog/MERIT_DEM_v1_0_3)).
 
 ## Default resolution
-The default resolution of SAR products depends on their type. 
+The default resolution of SAR products depends on their type.
 Complex data are **always** converted back to ground range to be used.
 
 The product resolution is read in the metadata file if possible, so the following values are given as hints:
@@ -100,14 +100,14 @@ The product resolution is read in the metadata file if possible, so the followin
 ## GPT graphs
 You can change the SAR GPT graphs used by setting the following environment variables:
 
-- `EOREADER_PP_GRAPH`: Environment variables for pre-processing graph path.  
+- `EOREADER_PP_GRAPH`: Environment variables for pre-processing graph path.
 - `EOREADER_DSPK_GRAPH`: Environment variables for despeckling graph path
 
-.. WARNING:: 
-    For performance reasons, the `Terrain Correction` step is done **before** the `Despeckle` step.  
-    Indeed this step is very time-consuming and better done 
-    one time on the raw image than two times on both the raw and the despeckled image.    
-    Even if this is not the regular way of handling SAR data, 
+.. WARNING::
+    For performance reasons, the `Terrain Correction` step is done **before** the `Despeckle` step.
+    Indeed this step is very time-consuming and better done
+    one time on the raw image than two times on both the raw and the despeckled image.
+    Even if this is not the regular way of handling SAR data,
     this shouldn't really affect the quality of any extraction done after that.
 
 ### What to know if you are changing a graph
@@ -139,15 +139,15 @@ Those graphs should have a reader and a writer on this model:
 .. WARNING::
     Pay attention to set `$file` and `$out` and leave the `BEAM-DIMAP` file format. The first graph must orthorectify your
     SAR data, but should not despeckle it. The second graph is precisely charged to do it.
-    
+
     The pre-processing graph should also have a `Terrain Correction` step with the following wildcards that are set automatically in the module:
-    
+
     - `$res_m`: Resolution in meters
     - `$res_deg`: Resolution in degrees
     - `$crs`: CRS
     - The nodata value should **always** be set to 0.
 
-The default `Terrain Correction` step is: 
+The default `Terrain Correction` step is:
 ```xml
 <node id="Terrain-Correction">
     <operator>Terrain-Correction</operator>

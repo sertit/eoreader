@@ -64,7 +64,7 @@ eKmsaqk4zLfM3WLxF4@code.sertit.unistra.fr/api/v4/projects/134/packages/pypi/simp
 
 &gt;&gt;&gt; # Your variables
 &gt;&gt;&gt; path = r&quot;path/to/your/satellite/product&quot;  # Optical in this example
-&gt;&gt;&gt; # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory 
+&gt;&gt;&gt; # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
 &gt;&gt;&gt; # and you won't be able to retrieve what's has been written on disk
 &gt;&gt;&gt; output = r&quot;path/to/your/output&quot;
 
@@ -82,7 +82,7 @@ eKmsaqk4zLfM3WLxF4@code.sertit.unistra.fr/api/v4/projects/134/packages/pypi/simp
 &gt;&gt;&gt; green = bands[GREEN]
 &gt;&gt;&gt; hillshade = bands[HILLSHADE]
 &gt;&gt;&gt; clouds = bands[CLOUDS]
-&gt;&gt;&gt; # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately 
+&gt;&gt;&gt; # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
 &gt;&gt;&gt; # (important for DEM data as they may have different grids)
 
 &gt;&gt;&gt; # Create a stack with some other bands
@@ -116,7 +116,7 @@ It will create for you the product object corresponding to your satellite data. 
 Only COSMO-Skymed data relies on the SAR band name and can have any folder name.</p>
 </div>
 <pre><code class="language-python">&gt;&gt;&gt; import os
-&gt;&gt;&gt; from eoreader.reader import Reader  
+&gt;&gt;&gt; from eoreader.reader import Reader
 
 &gt;&gt;&gt; # Path to your satellite data, ie. S2
 &gt;&gt;&gt; path = r'S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip'  # You can work with the archive for S2 data

@@ -2,25 +2,25 @@
 RADARSAT-2 products.
 More info [here](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs).
 """
+import difflib
 import glob
 import logging
 import os
-import difflib
 import warnings
 from datetime import datetime
 from enum import unique
 from typing import Union
 
-from lxml import etree
-import rasterio
 import geopandas as gpd
-from sertit.misc import ListEnum
-from sertit import vectors, files
-from sertit.vectors import WGS84
+import rasterio
+from lxml import etree
 
-from eoreader.exceptions import InvalidTypeError, InvalidProductError
+from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct
-from eoreader.utils import EOREADER_NAME, DATETIME_FMT
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from sertit import files, vectors
+from sertit.misc import ListEnum
+from sertit.vectors import WGS84
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -34,6 +34,7 @@ class Rs2ProductType(ListEnum):
     RADARSAT-2 projection identifier.
     Take a look [here](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html)
     """
+
     SLC = "SLC"
     """Single-look complex"""
 
@@ -70,6 +71,7 @@ class Rs2SensorMode(ListEnum):
 
     .. WARNING:: The name in the metadata may vary !
     """
+
     # Single Beam Modes
     S = "Standard"
     """Standard Mode"""
@@ -140,6 +142,7 @@ class Rs2Polarization(ListEnum):
     RADARSAT-2 polarization mode.
     Take a look [here](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs)
     """
+
     HH = "HH"
     VV = "VV"
     VH = "VH"
@@ -164,9 +167,11 @@ class Rs2Product(SarProduct):
             root, namespace = self.read_mtd()
 
             for element in root:
-                if element.tag == namespace + 'imageAttributes':
-                    raster_attr = element.find(namespace + 'rasterAttributes')
-                    def_res = float(raster_attr.findtext(namespace + 'sampledPixelSpacing'))
+                if element.tag == namespace + "imageAttributes":
+                    raster_attr = element.find(namespace + "rasterAttributes")
+                    def_res = float(
+                        raster_attr.findtext(namespace + "sampledPixelSpacing")
+                    )
                     break
         except (InvalidProductError, AttributeError):
             pass
@@ -177,12 +182,19 @@ class Rs2Product(SarProduct):
                 def_res = 1.0 if self.product_type == Rs2ProductType.SGX else 0.5
             elif self.sensor_mode in [Rs2SensorMode.U, Rs2SensorMode.WU]:
                 def_res = 1.0 if self.product_type == Rs2ProductType.SGX else 1.56
-            elif self.sensor_mode in [Rs2SensorMode.MF, Rs2SensorMode.WMF, Rs2SensorMode.F, Rs2SensorMode.WF]:
+            elif self.sensor_mode in [
+                Rs2SensorMode.MF,
+                Rs2SensorMode.WMF,
+                Rs2SensorMode.F,
+                Rs2SensorMode.WF,
+            ]:
                 def_res = 3.13 if self.product_type == Rs2ProductType.SGX else 6.25
             elif self.sensor_mode == Rs2SensorMode.XF:
                 def_res = 2.0 if self.product_type == Rs2ProductType.SGX else 3.13
                 if self.product_type in [Rs2ProductType.SGF, Rs2ProductType.SGX]:
-                    LOGGER.debug("This product is considered to have one look (not checked in metadata)")  # TODO
+                    LOGGER.debug(
+                        "This product is considered to have one look (not checked in metadata)"
+                    )  # TODO
             elif self.sensor_mode in [Rs2SensorMode.S, Rs2SensorMode.EH]:
                 def_res = 8.0 if self.product_type == Rs2ProductType.SGX else 12.5
             elif self.sensor_mode in [Rs2SensorMode.W, Rs2SensorMode.EL]:
@@ -190,18 +202,22 @@ class Rs2Product(SarProduct):
             elif self.sensor_mode in [Rs2SensorMode.FQ, Rs2SensorMode.WQ]:
                 def_res = 3.13
             elif self.sensor_mode in [Rs2SensorMode.SQ, Rs2SensorMode.WSQ]:
-                raise NotImplementedError("Not squared pixels management are not implemented in EOReader.")
+                raise NotImplementedError(
+                    "Not squared pixels management are not implemented in EOReader."
+                )
             elif self.sensor_mode == Rs2SensorMode.SCN:
-                def_res = 25.
+                def_res = 25.0
             elif self.sensor_mode == Rs2SensorMode.SCW:
-                def_res = 50.
+                def_res = 50.0
             elif self.sensor_mode == Rs2SensorMode.DVWF:
-                def_res = 40. if self.product_type == Rs2ProductType.SCF else 20.
+                def_res = 40.0 if self.product_type == Rs2ProductType.SCF else 20.0
             elif self.sensor_mode == Rs2SensorMode.SCW:
                 if self.product_type == Rs2ProductType.SCF:
-                    def_res = 50.
+                    def_res = 50.0
                 else:
-                    raise NotImplementedError("Not squared pixels management are not implemented in EOReader.")
+                    raise NotImplementedError(
+                        "Not squared pixels management are not implemented in EOReader."
+                    )
             else:
                 raise InvalidTypeError(f"Unknown sensor mode {self.sensor_mode}")
 
@@ -250,20 +266,29 @@ class Rs2Product(SarProduct):
                 vectors.set_kml_driver()
                 product_kml = gpd.read_file(extent_file)
         except IndexError as ex:
-            raise InvalidProductError(f"Extent file (product.kml) not found in {self.path}") from ex
+            raise InvalidProductError(
+                f"Extent file (product.kml) not found in {self.path}"
+            ) from ex
 
-        extent_wgs84 = product_kml[product_kml.Name == "Polygon Outline"].envelope.to_crs(WGS84)
+        extent_wgs84 = product_kml[
+            product_kml.Name == "Polygon Outline"
+        ].envelope.to_crs(WGS84)
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
     def _set_product_type(self) -> None:
         """ Get products type """
-        self._get_sar_product_type(prod_type_pos=-1,
-                                   gdrg_types=Rs2ProductType.SGF,
-                                   cplx_types=Rs2ProductType.SLC)
+        self._get_sar_product_type(
+            prod_type_pos=-1,
+            gdrg_types=Rs2ProductType.SGF,
+            cplx_types=Rs2ProductType.SLC,
+        )
         if self.product_type != Rs2ProductType.SGF:
-            LOGGER.warning("Other products type than SGF has not been tested for %s data. "
-                           "Use it at your own risks !", self.platform.value)
+            LOGGER.warning(
+                "Other products type than SGF has not been tested for %s data. "
+                "Use it at your own risks !",
+                self.platform.value,
+            )
 
     def _set_sensor_mode(self) -> None:
         """
@@ -275,16 +300,18 @@ class Rs2Product(SarProduct):
         # Get sensor mode
         sensor_mode_xml = None
         for element in root:
-            if element.tag == namespace + 'sourceAttributes':
-                radar_param = element.find(namespace + 'radarParameters')
+            if element.tag == namespace + "sourceAttributes":
+                radar_param = element.find(namespace + "radarParameters")
 
                 # WARNING: this word may differ from the Enum !!! (no docs available)
                 # Get the closest match
-                sensor_mode_xml = radar_param.findtext(namespace + 'acquisitionType')
+                sensor_mode_xml = radar_param.findtext(namespace + "acquisitionType")
                 break
 
         if sensor_mode_xml:
-            sensor_mode = difflib.get_close_matches(sensor_mode_xml, Rs2SensorMode.list_values())[0]
+            sensor_mode = difflib.get_close_matches(
+                sensor_mode_xml, Rs2SensorMode.list_values()
+            )[0]
             try:
                 self.sensor_mode = Rs2SensorMode.from_value(sensor_mode)
             except ValueError as ex:
@@ -350,10 +377,12 @@ class Rs2Product(SarProduct):
                 xml_tree = etree.parse(mtd_file)
                 root = xml_tree.getroot()
             except IndexError as ex:
-                raise InvalidProductError(f"Metadata file (product.xml) not found in {self.path}") from ex
+                raise InvalidProductError(
+                    f"Metadata file (product.xml) not found in {self.path}"
+                ) from ex
 
         # Get namespace
         idx = root.tag.rindex("}")
-        namespace = root.tag[:idx + 1]
+        namespace = root.tag[: idx + 1]
 
         return root, namespace

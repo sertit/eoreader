@@ -1,6 +1,6 @@
 # EOReader
 
-This project allows you to read and open multiple 
+This project allows you to read and open multiple
 [optical](#implemented-optical-satellites) and [SAR](#implemented-sar-satellites) satellite data.
 
 It also implements two additional features:
@@ -15,7 +15,7 @@ It also implements two additional features:
 ## Installation
 `pip install eoreader`
 
-.. WARNING :: 
+.. WARNING ::
   EOReader depends mainly on `geopandas` and `rasterio`.
   (with GDAL installation issues on Windows, so please install them from wheels that you can
   find [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio)).
@@ -30,7 +30,7 @@ The main features of EOReader are gathered hereunder:
 
 >>> # Your variables
 >>> path = r"path/to/your/satellite/product"  # Optical in this example
->>> # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory 
+>>> # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
 >>> # and you won't be able to retrieve what's has been written on disk
 >>> output = r"path/to/your/output"
 
@@ -48,7 +48,7 @@ The main features of EOReader are gathered hereunder:
 >>> green = bands[GREEN]
 >>> hillshade = bands[HILLSHADE]
 >>> clouds = bands[CLOUDS]
->>> # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately 
+>>> # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
 >>> # (important for DEM data as they may have different grids)
 
 >>> # Create a stack with some other bands
@@ -57,12 +57,12 @@ The main features of EOReader are gathered hereunder:
 >>> # Read Metadata
 >>> mtd, namespace = prod.read_mtd()
 ```
- 
+
 .. NOTE::
-  Index and bands are opened as [`xarrays`](http://xarray.pydata.org/en/stable/) 
+  Index and bands are opened as [`xarrays`](http://xarray.pydata.org/en/stable/)
 with [`rioxarray`](https://corteva.github.io/rioxarray/stable/), in `float` with the nodata set to `np.nan`.
   The nodata written back on disk is -9999 by convention (for now the rasters will be written in float)
 
 .. WARNING::
-  - Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.  
+  - Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.
   Ensure that you have the folder containing your `gpt.exe` in your `PATH`.
