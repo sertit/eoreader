@@ -11,6 +11,7 @@ from typing import Union
 
 import geopandas as gpd
 import numpy as np
+import xarray as xr
 from lxml import etree
 from rasterio import features
 from rasterio.enums import Resampling
@@ -285,7 +286,7 @@ class S2Product(OpticalProduct):
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            np.ma.masked_array, dict: Radiometrically coherent band, saved as float 32 and its metadata
+            XDS_TYPE: Radiometrically coherent band, saved as float 32
 
         """
         # Read band
@@ -648,7 +649,7 @@ class S2Product(OpticalProduct):
 
     def _rasterize(
         self, xds: XDS_TYPE, geometry: gpd.GeoDataFrame, nodata: np.ndarray
-    ) -> np.ma.masked_array:
+    ) -> xr.DataArray:
         """
         Rasterize a vector on a memory dataset
 
@@ -658,7 +659,7 @@ class S2Product(OpticalProduct):
             nodata (np.ndarray): Nodata mask
 
         Returns:
-
+            xr.DataArray: Rasterized vector
         """
         if not geometry.empty:
             # Just in case

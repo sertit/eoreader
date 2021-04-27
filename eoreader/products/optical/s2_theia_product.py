@@ -11,6 +11,7 @@ from functools import reduce
 from typing import Union
 
 import numpy as np
+import xarray as xr
 from lxml import etree
 from rasterio.enums import Resampling
 
@@ -170,7 +171,7 @@ class S2TheiaProduct(OpticalProduct):
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            np.ma.masked_array, dict: Radiometrically coherent band, saved as float 32 and its metadata
+            XDS_TYPE: Radiometrically coherent band, saved as float 32
         """
         # Read band
         band = rasters.read(
@@ -522,7 +523,7 @@ class S2TheiaProduct(OpticalProduct):
 
     def _create_mask(
         self, bit_array: XDS_TYPE, bit_ids: Union[int, list], nodata: np.ndarray
-    ) -> np.ma.masked_array:
+    ) -> xr.DataArray:
         """
         Create a mask masked array (uint8) from a bit array, bit IDs and a nodata mask.
 
@@ -532,7 +533,7 @@ class S2TheiaProduct(OpticalProduct):
             nodata (np.ndarray): Nodata mask
 
         Returns:
-            np.ma.masked_array: Mask masked array
+            xr.DataArray: Mask masked array
 
         """
         if not isinstance(bit_ids, list):

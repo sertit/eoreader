@@ -427,7 +427,7 @@ class OpticalProduct(Product):
             nodata (np.ndarray): Nodata mask
 
         Returns:
-            np.ma.masked_array: Mask masked array
+            XDS_TYPE: Mask as xarray
         """
         mask = xds.copy(data=np.where(cond, self._mask_true, self._mask_false))
         mask = xr.where(nodata, self.nodata, mask)

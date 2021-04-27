@@ -1007,20 +1007,20 @@ class S3Product(OpticalProduct):
 
     def _create_mask(
         self,
-        bit_array: np.ma.masked_array,
+        bit_array: xr.DataArray,
         bit_ids: Union[int, list],
         nodata: np.ndarray,
-    ) -> np.ma.masked_array:
+    ) -> xr.DataArray:
         """
         Create a mask masked array (uint8) from a bit array, bit IDs and a nodata mask.
 
         Args:
-            bit_array (np.ma.masked_array): Conditional array
+            bit_array (xr.DataArray): Conditional array
             bit_ids (Union[int, list]): Bit IDs
             nodata (np.ndarray): Nodata mask
 
         Returns:
-            np.ma.masked_array: Mask masked array
+            xr.DataArray: Mask masked array
 
         """
         if not isinstance(bit_ids, list):
