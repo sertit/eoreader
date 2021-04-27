@@ -20,10 +20,10 @@ tqdm
 psutil
 lxml
 colorlog
+netCDF4
 rasterio
 rioxarray
 geopandas
-
 
 # SERTIT libs
 sertit[full]

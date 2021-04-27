@@ -189,8 +189,8 @@ class S2Product(OpticalProduct):
             # If L2A products, we care about the resolution
             if self.product_type == S2ProductType.L2A:
                 # If we got a true S2 resolution, open the corresponding band
-                if resolution and f"R{resolution}m" in band_dir[band_nb]:
-                    dir_name = f"R{resolution}m"
+                if resolution and f"R{int(resolution)}m" in band_dir[band_nb]:
+                    dir_name = f"R{int(resolution)}m"
 
                 # Else open the first one, it will be resampled when the ban will be read
                 else:
@@ -252,7 +252,8 @@ class S2Product(OpticalProduct):
             try:
                 if self.is_archived:
                     band_paths[band] = files.get_archived_rio_path(
-                        self.path, f".*_B{self.band_names[band]}.*.jp2"
+                        self.path,
+                        f".*{band_folders[band]}.*_B{self.band_names[band]}.*.jp2",
                     )
                 else:
                     band_paths[band] = files.get_file_in_dir(
