@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1"/>
+<meta name="generator" content="pdoc 0.9.2"/>
+<title>eoreader.products.sar API documentation</title>
+<meta name="description" content="SAR products …"/>
+<link rel="preload stylesheet" as="style"
+href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css"
+integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style"
+href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css"
+integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style"
+href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/darcula.min.css"
+crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}#lunr-search{width:100%;font-size:1em;padding:6px 9px 5px 9px;border:1px solid silver}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100%;padding:3em 4em;border-left:1px solid #ddd;overflow-x:hidden}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}table{display:block;overflow-x:auto;word-break:keep-all;border-collapse:separate;border-spacing:0}th{background-color:#c4d5e780;padding:5px;border-bottom:0.1px solid gray;border-right:0.1px solid gray;border-top:0.1px solid gray}td,th{margin:0}td{white-space:nowrap;border-bottom:0.1px solid gray;border-right:0.1px solid gray}td:empty{background-color:#ececec}th:nth-child(1){border-left:0.1px solid gray}td:nth-child(1){border-left:0.1px solid gray;border-right:0.1px solid gray}th:nth-child(1),td:nth-child(1){background-color:#c4d5e7;position:-webkit-sticky;position:sticky;left:0}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML"
+integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"
+integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>eoreader.products.sar</code></h1>
+</header>
+<section id="section-intro">
+<p>SAR products.</p>
+<h1 id="sar-data">SAR data</h1>
+<h2 id="implemented-sar-satellites">Implemented SAR satellites</h2>
+<table>
+<thead>
+<tr>
+<th>Satellites</th>
+<th>Class</th>
+<th>Product Types</th>
+<th>Use archive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sentinel-1</td>
+<td><code><a title="eoreader.products.sar.s1_product.S1Product" href="s1_product.html#eoreader.products.sar.s1_product.S1Product">S1Product</a></code></td>
+<td>SLC &amp; GRD</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>COSMO-Skymed</td>
+<td><code><a title="eoreader.products.sar.csk_product.CskProduct" href="csk_product.html#eoreader.products.sar.csk_product.CskProduct">CskProduct</a></code></td>
+<td>DGM &amp; SCS, (others should also be OK)</td>
+<td>No</td>
+</tr>
+<tr>
+<td>TerraSAR-X</td>
+<td><code><a title="eoreader.products.sar.tsx_product.TsxProduct" href="tsx_product.html#eoreader.products.sar.tsx_product.TsxProduct">TsxProduct</a></code></td>
+<td>MGD (SSC should be OK)</td>
+<td>No</td>
+</tr>
+<tr>
+<td>RADARSAT-2</td>
+<td><code><a title="eoreader.products.sar.rs2_product.Rs2Product" href="rs2_product.html#eoreader.products.sar.rs2_product.Rs2Product">Rs2Product</a></code></td>
+<td>SGF (SLC should be OK)</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Satellites products that cannot be used as archived have to be extracted before use.</p>
+</div>
+<h2 id="sar-bands">SAR Bands</h2>
+<p>According to what contains the products, allowed SAR bands are:</p>
+<ul>
+<li><code>VV</code> (<code><a title="eoreader.bands.bands.SarBandNames.VV" href="../../bands/bands.html#eoreader.bands.bands.SarBandNames.VV">SarBandNames.VV</a></code>)</li>
+<li><code>VH</code> (<code><a title="eoreader.bands.bands.SarBandNames.VH" href="../../bands/bands.html#eoreader.bands.bands.SarBandNames.VH">SarBandNames.VH</a></code>)</li>
+<li><code>HH</code> (<code><a title="eoreader.bands.bands.SarBandNames.HH" href="../../bands/bands.html#eoreader.bands.bands.SarBandNames.HH">SarBandNames.HH</a></code>)</li>
+<li><code>HV</code> (<code><a title="eoreader.bands.bands.SarBandNames.HV" href="../../bands/bands.html#eoreader.bands.bands.SarBandNames.HV">SarBandNames.HV</a></code>)</li>
+</ul>
+<p>You also can load despeckled bands:</p>
+<ul>
+<li><code>VV_DSPK</code> (<code><a title="eoreader.bands.bands.SarBandNames.VV_DSPK" href="../../bands/bands.html#eoreader.bands.bands.SarBandNames.VV_DSPK">SarBandNames.VV_DSPK</a></code>)</li>
+<li><code>VH_DSPK</code> (<code><a title="eoreader.bands.bands.SarBandNames.VH_DSPK" href="../../bands/bands.html#eoreader.bands.bands.SarBandNames.VH_DSPK">SarBandNames.VH_DSPK</a></code>)</li>
+<li><code>HH_DSPK</code> (<code><a title="eoreader.bands.bands.SarBandNames.HH_DSPK" href="../../bands/bands.html#eoreader.bands.bands.SarBandNames.HH_DSPK">SarBandNames.HH_DSPK</a></code>)</li>
+<li><code>HV_DSPK</code> (<code><a title="eoreader.bands.bands.SarBandNames.HV_DSPK" href="../../bands/bands.html#eoreader.bands.bands.SarBandNames.HV_DSPK">SarBandNames.HV_DSPK</a></code>)</li>
+</ul>
+<h2 id="dem-bands">DEM bands</h2>
+<p>SAR satellites can only load <code><a title="eoreader.bands.bands.DemBandNames.DEM" href="../../bands/bands.html#eoreader.bands.bands.DemBandNames.DEM">DemBandNames.DEM</a></code> and <code><a title="eoreader.bands.bands.DemBandNames.SLOPE" href="../../bands/bands.html#eoreader.bands.bands.DemBandNames.SLOPE">DemBandNames.SLOPE</a></code> bands.
+The <code>SLOPE</code> band is computed with the <a href="https://gdal.org/programs/gdaldem.html"><code>gdaldem</code></a> tool.</p>
+<p>Use the environment variable <code>EOREADER_SAR_DEFAULT_RES</code> to override the default DEM
+(<a href="https://developers.google.com/earth-engine/datasets/catalog/MERIT_DEM_v1_0_3">Merit DEM</a>).</p>
+<h2 id="default-resolution">Default resolution</h2>
+<p>The default resolution of SAR products depends on their type.
+Complex data are <strong>always</strong> converted back to ground range to be used.</p>
+<p>The product resolution is read in the metadata file if possible, so the following values are given as hints:</p>
+<h3 id="sentinel-1">Sentinel-1</h3>
+<table>
+<thead>
+<tr>
+<th><strong>Sentinel-1</strong></th>
+<th>Single Look Complex (SLC)</th>
+<th>Ground Range Detected (GRD)<br>Full Resolution (FR)</th>
+<th>Ground Range Detected (GRD)<br>High Resolution (HR)</th>
+<th>Ground Range Detected (GRD)<br>Medium Resolution (MR)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>StripMap (SM)</td>
+<td>1.5x3.6
+m to 3.1x4.1 m</td>
+<td>3.5m</td>
+<td>10.0m</td>
+<td>40.0m</td>
+</tr>
+<tr>
+<td>Interferometric
+Wide swath (IW)</td>
+<td>2.3x14.1
+m</td>
+<td></td>
+<td>10.0m</td>
+<td>40.0m</td>
+</tr>
+<tr>
+<td>Extra-Wide swath (EW)</td>
+<td>5.9x19.9 m</td>
+<td></td>
+<td>25.0m</td>
+<td>40.0m</td>
+</tr>
+<tr>
+<td>Wave (WV)</td>
+<td>1.7x4.1 m and 2.7x4.1 m</td>
+<td></td>
+<td></td>
+<td>25.0m</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cosmo-skymed">COSMO-Skymed</h3>
+<table>
+<thead>
+<tr>
+<th><strong>COSMO-Skymed</strong></th>
+<th>Single-look Complex Slant (SCS)</th>
+<th>Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Spotlight</strong><br>Mode-2 (S2)</td>
+<td>1.1-0.9x0.91m</td>
+<td>1.0m</td>
+</tr>
+<tr>
+<td><strong>StripMap</strong><br>Himage (HI)</td>
+<td>3.0-2.6x2.4-2.6m</td>
+<td>5.0m</td>
+</tr>
+<tr>
+<td><strong>StripMap</strong><br>PingPong (PP)</td>
+<td>11-10x9.7m</td>
+<td>20.0m</td>
+</tr>
+<tr>
+<td><strong>ScanSAR</strong><br>Wide Region (WR)</td>
+<td>13.5x23m</td>
+<td>30.0m</td>
+</tr>
+<tr>
+<td><strong>ScanSAR</strong><br>Huge Region (HR)</td>
+<td>13.5x38.0m</td>
+<td>100.0m</td>
+</tr>
+</tbody>
+</table>
+<h3 id="terrasar-x">TerraSAR-X</h3>
+<table>
+<thead>
+<tr>
+<th><strong>TerraSAR-X</strong></th>
+<th>Single-look Slant Range (SSC)</th>
+<th>Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)</th>
+<th>Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>StripMap (SM)</strong><br>Single-Pol</td>
+<td>0.9x2.0m</td>
+<td>1.5m
+or 1.25m</td>
+<td>4.0m
+or 3.25m</td>
+</tr>
+<tr>
+<td><strong>StripMap (SM)</strong><br>Dual-Pol</td>
+<td>0.9x2.5m</td>
+<td>3.0m</td>
+<td>5.5m
+or 4.5m</td>
+</tr>
+<tr>
+<td><strong>High Resolution Spotlight (HS)</strong><br>Single-Pol</td>
+<td>0.9x0.8m</td>
+<td>1.5m or 0.5m</td>
+<td>2.0m or 1.5m</td>
+</tr>
+<tr>
+<td><strong>High Resolution Spotlight (HS)</strong><br>Dual-Pol</td>
+<td>0.9x1.5m</td>
+<td>1.5m or 1.0m</td>
+<td>3.0m or 2.0m</td>
+</tr>
+<tr>
+<td><strong>Spotlight (SL)</strong><br>Single-Pol</td>
+<td>0.9x1.3m</td>
+<td>1.5m or 0.75m</td>
+<td>3.0m or 1.75m</td>
+</tr>
+<tr>
+<td><strong>Spotlight (SL)</strong><br>Dual-Pol</td>
+<td>0.9x2.6m</td>
+<td>3.5m or 3.4m</td>
+<td>8.5m or 5.5m</td>
+</tr>
+<tr>
+<td><strong>Staring Spotlight (ST)</strong><br>Single-Pol</td>
+<td>0.5x0.2m</td>
+<td>0.4m or 0.2m</td>
+<td>0.8m or 0.4m</td>
+</tr>
+<tr>
+<td><strong>ScanSAR (SC)</strong><br>Four Beams</td>
+<td>0.9x13m</td>
+<td></td>
+<td>8.25m</td>
+</tr>
+<tr>
+<td><strong>ScanSAR (SC)</strong><br>Six Beams</td>
+<td>1.4x?m</td>
+<td></td>
+<td>15.0m</td>
+</tr>
+</tbody>
+</table>
+<h3 id="radarsat-2">RADARSAT-2</h3>
+<table>
+<thead>
+<tr>
+<th><strong>RADARSAT-2</strong></th>
+<th>Single-look
+complex (SLC)</th>
+<th>SAR
+georeferenced extra(SGX)</th>
+<th>SAR
+georeferenced fine (SGF)</th>
+<th>SAR
+systematic geocorrected (SSG)</th>
+<th>SAR
+precision geocorrected (SPG)</th>
+<th>ScanSAR
+narrow beam (SCN)</th>
+<th>ScanSAR
+wide beam (SCW)</th>
+<th>ScanSAR
+fine (SCF)</th>
+<th>ScanSAR
+sampled (SCS)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spotlight</td>
+<td>1.3x0.4m</td>
+<td>1.0
+or 0.8x1/3m</td>
+<td>0.5m</td>
+<td>0.5m</td>
+<td>0.5m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Ultra-Fine</td>
+<td>1.3x2.1m</td>
+<td>1.0x1.0
+or 0.8x0.8m</td>
+<td>1.56m</td>
+<td>1.56m</td>
+<td>1.56m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Wide Ultra-Fine</td>
+<td>1.3x2.1m</td>
+<td>1.0m</td>
+<td>1.56m</td>
+<td>1.56m</td>
+<td>1.56m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Multi-Look Fine</td>
+<td>2.7x2.9m</td>
+<td>3.13m</td>
+<td>6.25m</td>
+<td>6.25m</td>
+<td>6.25m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Wide Multi-Look Fine</td>
+<td>2.7x2.9m</td>
+<td>3.13m</td>
+<td>6.25m</td>
+<td>6.25m</td>
+<td>6.25m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Extra-Fine</td>
+<td>Full Res: 2.7x2.9m<br>Fine Res: 4.3x5.8m<br>Full Res: 7.1x5.8m<br>Wide Res: 10.6x5.8m</td>
+<td>1 look: 2.0m<br>4 looks: 3.13m<br>28 looks: 5.0m</td>
+<td>1 look: 3.13m<br>4 looks: 6.25m<br>28 looks: 8.0m</td>
+<td>3.13m</td>
+<td>3.13m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Fine</td>
+<td>4.7x5.1m</td>
+<td>3.13m</td>
+<td>6.25m</td>
+<td>6.25m</td>
+<td>6.25m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Wide-Fine</td>
+<td>4.7x5.1m</td>
+<td>3.13m</td>
+<td>6.25m</td>
+<td>6.25m</td>
+<td>6.25m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Standard</td>
+<td>8.0 or 11.8x5.1m</td>
+<td>8.0m</td>
+<td>12.5m</td>
+<td>12.5m</td>
+<td>12.5m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Wide</td>
+<td>11.8x5.1m</td>
+<td>10.0m</td>
+<td>12.5m</td>
+<td>12.5m</td>
+<td>12.5m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Extended High</td>
+<td>11.8x5.1m</td>
+<td>8.0m</td>
+<td>12.5m</td>
+<td>12.5m</td>
+<td>12.5m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Extended Low</td>
+<td>8.0x5.1m</td>
+<td>10.0m</td>
+<td>12.5m</td>
+<td>12.5m</td>
+<td>12.5m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Fine Quad-Pol</td>
+<td>4.7x5.1m</td>
+<td>3.13m</td>
+<td>3.13m</td>
+<td>3.13m</td>
+<td>3.13m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Wide Quad-Pol</td>
+<td>4.7x5.1m</td>
+<td>3.13m</td>
+<td>3.13m</td>
+<td>3.13m</td>
+<td>3.13m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Standard Quad-Pol</td>
+<td>8.0 or 11.8x5.1m</td>
+<td>8.0x3.13m</td>
+<td>8.0x3.13m</td>
+<td>8.0x3.13m</td>
+<td>8.0x3.13m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Wide Standard Quad-Pol</td>
+<td>8.0 or 11.8x5.1m</td>
+<td>8.0x3.13m</td>
+<td>8.0x3.13m</td>
+<td>8.0x3.13m</td>
+<td>8.0x3.13m</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>ScanSAR Narrow</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>25.0m</td>
+<td></td>
+<td>25.0m</td>
+<td>25.0m</td>
+</tr>
+<tr>
+<td>ScanSAR Wide</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>50.0m</td>
+<td>50.0m</td>
+<td>50.0m</td>
+</tr>
+<tr>
+<td>Ship (Detection of vessels)</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>40.0m</td>
+<td>20.0m</td>
+</tr>
+<tr>
+<td>Ocean Surveillance</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>50.0m</td>
+<td>35.0x25.0m</td>
+</tr>
+</tbody>
+</table>
+<h2 id="gpt-graphs">GPT graphs</h2>
+<p>You can change the SAR GPT graphs used by setting the following environment variables:</p>
+<ul>
+<li><code>EOREADER_PP_GRAPH</code>: Environment variables for pre-processing graph path.
+</li>
+<li><code>EOREADER_DSPK_GRAPH</code>: Environment variables for despeckling graph path</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>For performance reasons, the <code>Terrain Correction</code> step is done <strong>before</strong> the <code>Despeckle</code> step.<br>
+Indeed this step is very time-consuming and better done
+one time on the raw image than two times on both the raw and the despeckled image.
+<br>
+Even if this is not the regular way of handling SAR data,
+this shouldn't really affect the quality of any extraction done after that.</p>
+</div>
+<h3 id="what-to-know-if-you-are-changing-a-graph">What to know if you are changing a graph</h3>
+<p>Those graphs should have a reader and a writer on this model:</p>
+<pre><code class="language-xml">&lt;graph id=&quot;Graph&quot;&gt;
+  &lt;version&gt;1.0&lt;/version&gt;
+  &lt;node id=&quot;Read&quot;&gt;
+    &lt;operator&gt;Read&lt;/operator&gt;
+    &lt;sources/&gt;
+    &lt;parameters class=&quot;com.bc.ceres.binding.dom.XppDomElement&quot;&gt;
+      &lt;file&gt;$file&lt;/file&gt;
+    &lt;/parameters&gt;
+  &lt;/node&gt;
+  &lt;node id=&quot;Write&quot;&gt;
+    &lt;operator&gt;Write&lt;/operator&gt;
+    &lt;sources&gt;
+      &lt;sourceProduct refid=&quot;????&quot;/&gt;
+    &lt;/sources&gt;
+    &lt;parameters class=&quot;com.bc.ceres.binding.dom.XppDomElement&quot;&gt;
+      &lt;file&gt;$out&lt;/file&gt;
+      &lt;formatName&gt;BEAM-DIMAP&lt;/formatName&gt;
+    &lt;/parameters&gt;
+  &lt;/node&gt;
+&lt;/graph&gt;
+</code></pre>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Pay attention to set <code>$file</code> and <code>$out</code> and leave the <code>BEAM-DIMAP</code> file format. The first graph must orthorectify your
+SAR data, but should not despeckle it. The second graph is precisely charged to do it.</p>
+<p>The pre-processing graph should also have a <code>Terrain Correction</code> step with the following wildcards that are set automatically in the module:</p>
+<ul>
+<li><code>$res_m</code>: Resolution in meters</li>
+<li><code>$res_deg</code>: Resolution in degrees</li>
+<li><code>$crs</code>: CRS</li>
+<li>The nodata value should <strong>always</strong> be set to 0.</li>
+</ul>
+</div>
+<p>The default <code>Terrain Correction</code> step is: </p>
+<pre><code class="language-xml">&lt;node id=&quot;Terrain-Correction&quot;&gt;
+    &lt;operator&gt;Terrain-Correction&lt;/operator&gt;
+    &lt;sources&gt;
+      &lt;sourceProduct refid=&quot;LinearToFromdB&quot;/&gt;
+    &lt;/sources&gt;
+    &lt;parameters class=&quot;com.bc.ceres.binding.dom.XppDomElement&quot;&gt;
+      &lt;sourceBands/&gt;
+      &lt;demName&gt;GETASSE30&lt;/demName&gt;
+      &lt;externalDEMFile/&gt;
+      &lt;externalDEMNoDataValue&gt;0.0&lt;/externalDEMNoDataValue&gt;
+      &lt;externalDEMApplyEGM&gt;true&lt;/externalDEMApplyEGM&gt;
+      &lt;demResamplingMethod&gt;BILINEAR_INTERPOLATION&lt;/demResamplingMethod&gt;
+      &lt;imgResamplingMethod&gt;BILINEAR_INTERPOLATION&lt;/imgResamplingMethod&gt;
+      &lt;pixelSpacingInMeter&gt;$res_m&lt;/pixelSpacingInMeter&gt;
+      &lt;pixelSpacingInDegree&gt;$res_deg&lt;/pixelSpacingInDegree&gt;
+      &lt;mapProjection&gt;$crs&lt;/mapProjection&gt;
+      &lt;alignToStandardGrid&gt;false&lt;/alignToStandardGrid&gt;
+      &lt;standardGridOriginX&gt;0.0&lt;/standardGridOriginX&gt;
+      &lt;standardGridOriginY&gt;0.0&lt;/standardGridOriginY&gt;
+      &lt;nodataValueAtSea&gt;true&lt;/nodataValueAtSea&gt;
+      &lt;saveDEM&gt;false&lt;/saveDEM&gt;
+      &lt;saveLatLon&gt;false&lt;/saveLatLon&gt;
+      &lt;saveIncidenceAngleFromEllipsoid&gt;false&lt;/saveIncidenceAngleFromEllipsoid&gt;
+      &lt;saveLocalIncidenceAngle&gt;false&lt;/saveLocalIncidenceAngle&gt;
+      &lt;saveProjectedLocalIncidenceAngle&gt;false&lt;/saveProjectedLocalIncidenceAngle&gt;
+      &lt;saveSelectedSourceBand&gt;true&lt;/saveSelectedSourceBand&gt;
+      &lt;outputComplex&gt;false&lt;/outputComplex&gt;
+      &lt;applyRadiometricNormalization&gt;false&lt;/applyRadiometricNormalization&gt;
+      &lt;saveSigmaNought&gt;false&lt;/saveSigmaNought&gt;
+      &lt;saveGammaNought&gt;false&lt;/saveGammaNought&gt;
+      &lt;saveBetaNought&gt;false&lt;/saveBetaNought&gt;
+      &lt;incidenceAngleForSigma0&gt;Use projected local incidence angle from DEM&lt;/incidenceAngleForSigma0&gt;
+      &lt;incidenceAngleForGamma0&gt;Use projected local incidence angle from DEM&lt;/incidenceAngleForGamma0&gt;
+      &lt;auxFile&gt;Latest Auxiliary File&lt;/auxFile&gt;
+      &lt;externalAuxFile/&gt;
+    &lt;/parameters&gt;
+  &lt;/node&gt;
+</code></pre>
+<h3 id="default-snap-resolution">Default SNAP resolution</h3>
+<p>You can override default SNAP resolution (in meters) when geocoding SAR bands by setting the following environment variable:</p>
+<ul>
+<li><code>EOREADER_SAR_DEFAULT_RES</code> (0.0 by default, which means using the product's default resolution)</li>
+</ul>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+SAR products.
+
+.. include:: ../../../documentation/sar.md
+&#34;&#34;&#34;</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="eoreader.products.sar.csk_product" href="csk_product.html">eoreader.products.sar.csk_product</a></code></dt>
+<dd>
+<div class="desc"><p>COSMO-SkyMed products.
+More info <a href="https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description">here</a>.</p></div>
+</dd>
+<dt><code class="name"><a title="eoreader.products.sar.rs2_product" href="rs2_product.html">eoreader.products.sar.rs2_product</a></code></dt>
+<dd>
+<div class="desc"><p>RADARSAT-2 products.
+More info <a href="https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs">here</a>.</p></div>
+</dd>
+<dt><code class="name"><a title="eoreader.products.sar.s1_product" href="s1_product.html">eoreader.products.sar.s1_product</a></code></dt>
+<dd>
+<div class="desc"><p>Sentinel-1 products</p></div>
+</dd>
+<dt><code class="name"><a title="eoreader.products.sar.sar_product" href="sar_product.html">eoreader.products.sar.sar_product</a></code></dt>
+<dd>
+<div class="desc"><p>Super class for SAR products</p></div>
+</dd>
+<dt><code class="name"><a title="eoreader.products.sar.tsx_product" href="tsx_product.html">eoreader.products.sar.tsx_product</a></code></dt>
+<dd>
+<div class="desc"><p>TerraSAR-X products.
+More info <a href="https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf">here</a>.</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="Home" href="/eoreader/">
+<img src="https://extracteo.pages.sertit.unistra.fr/eoreader/eoreader.png"
+alt="logo"
+style="width:40%;"/>
+</a>
+</header>
+<form>
+<input id="lunr-search" name="q" placeholder="🔎 Search ..." aria-label="Search"
+disabled minlength="2">
+</form>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.css" integrity="sha512-j1u8eUJ4f23xPPxwOrLUPQaCD2dwzNqqmDDcWS4deWsMv2ohLqmXXuP3hU7g8TyzbMSakP/mMqoNBYWj8AEIFg==" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.js" integrity="sha512-plGUER9JkeEWPPqQBE4sdLqBoQug5Ap+BCGMc7bJ8BXkm+VVj6QzkpBz5Yv2yPkkq+cqg9IpkBaGCas6uDbW8g==" crossorigin></script>
+<style>
+.modal-dialog iframe {
+width: 100vw;
+height: calc(100vh - 80px);
+}
+@media screen and (min-width: 700px) {
+.modal-dialog iframe {
+width: 70vw;
+height: 80vh;
+}
+}
+.modal-dialog .tingle-modal-box {width: auto;}
+.modal-dialog .tingle-modal-box__content {padding: 0;}
+</style>
+<script>
+const input = document.getElementById('lunr-search');
+input.disabled = false;
+input.form.addEventListener('submit', (ev) => {
+ev.preventDefault();
+const url = new URL(window.location);
+url.searchParams.set('q', input.value);
+history.replaceState({}, null, url.toString());
+search(input.value);
+});
+const query = new URL(window.location).searchParams.get('q');
+if (query)
+search(query);
+function search(query) {
+const url = '../../../doc-search.html#' + encodeURIComponent(query);
+new tingle.modal({
+cssClass: ['modal-dialog'],
+onClose: () => {
+const url = new URL(window.location);
+url.searchParams.delete('q');
+history.replaceState({}, null, url.toString());
+setTimeout(() => input.focus(), 100);
+}
+}).setContent('<iframe src="' + url + '"></iframe>').open();
+}
+</script>
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#sar-data">SAR data</a><ul>
+<li><a href="#implemented-sar-satellites">Implemented SAR satellites</a></li>
+<li><a href="#sar-bands">SAR Bands</a></li>
+<li><a href="#dem-bands">DEM bands</a></li>
+<li><a href="#default-resolution">Default resolution</a><ul>
+<li><a href="#sentinel-1">Sentinel-1</a></li>
+<li><a href="#cosmo-skymed">COSMO-Skymed</a></li>
+<li><a href="#terrasar-x">TerraSAR-X</a></li>
+<li><a href="#radarsat-2">RADARSAT-2</a></li>
+</ul>
+</li>
+<li><a href="#gpt-graphs">GPT graphs</a><ul>
+<li><a href="#what-to-know-if-you-are-changing-a-graph">What to know if you are changing a graph</a></li>
+<li><a href="#default-snap-resolution">Default SNAP resolution</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="eoreader.products" href="../index.html">eoreader.products</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><strong><a title="eoreader.products.sar.csk_product" href="csk_product.html">eoreader.products.sar.csk_product</a></strong></code></li>
+<li><code><strong><a title="eoreader.products.sar.rs2_product" href="rs2_product.html">eoreader.products.sar.rs2_product</a></strong></code></li>
+<li><code><strong><a title="eoreader.products.sar.s1_product" href="s1_product.html">eoreader.products.sar.s1_product</a></strong></code></li>
+<li><code><strong><a title="eoreader.products.sar.sar_product" href="sar_product.html">eoreader.products.sar.sar_product</a></strong></code></li>
+<li><code><strong><a title="eoreader.products.sar.tsx_product" href="tsx_product.html">eoreader.products.sar.tsx_product</a></strong></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

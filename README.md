@@ -50,7 +50,7 @@ The main features of EOReader are gathered hereunder:
 >>> extent = prod.extent
 
 >>> # Load some bands and index: they will all share the same metadata
->>> bands, meta = prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])  # Resolution not specified: use product resolution
+>>> bands = prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])  # Resolution not specified: use product resolution
 >>> ndvi = bands[NDVI]
 >>> green = bands[GREEN]
 >>> hillshade = bands[HILLSHADE]
@@ -59,7 +59,7 @@ The main features of EOReader are gathered hereunder:
 >>> # (important for DEM data as they may have different grids)
 
 >>> # Create a stack with some other bands
->>> stack, stk_meta = prod.stack([NDVI, MNDWI, GREEN, SLOPE, CIRRUS])  # Resolution not specified: use product resolution
+>>> stack = prod.stack([NDVI, MNDWI, GREEN, SLOPE, CIRRUS])  # Resolution not specified: use product resolution
 
 >>> # Read Metadata
 >>> mtd, namespace = prod.read_mtd()

@@ -1,12 +1,30 @@
 stages:
+  - build
   - test
   - publish
-  - doc
+  - docs
+
+lint:
+  image: python:3.7-buster
+  stage: build
+  script:
+    - python -m pip install --upgrade pip
+    - pip install flake8
+    - flake8 .
+  tags:
+    - linux
+  except:
+    changes:
+      - "*.md"
+      - sertit/version.py
+      - doc_template/*
 
 pytest:
   image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
   stage: test
   before_script:
+    - python -m pip install --upgrade pip
+    - pip install -r requirements.txt
     - pip install -e .
   script:
     - pytest -v --durations=0 --cov-report term --cov-report xml:cov.xml --cov=eoreader CI/SCRIPTS
@@ -25,7 +43,7 @@ upload_wheel:linux:
   script:
     - pip install twine
     - python setup.py sdist bdist_wheel
-    - TWINE_PASSWORD=${DEPLOY_PWD} TWINE_USERNAME=${DEPLOY_NAME} python -m twine upload --verbose --repository-url https://code.sertit.unistra.fr/api/v4/projects/${CI_PROJECT_ID}/packages/pypi dist/*
+    - TWINE_PASSWORD=${PYPI_PWD} TWINE_USERNAME=${PYPI_TOKEN} python -m twine upload dist/*
   tags:
     - linux
   only:
@@ -33,11 +51,12 @@ upload_wheel:linux:
 
 pages:
   image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
-  stage: doc
+  stage: docs
   script:
+    - python -m pip install --upgrade pip
     - pip install -r requirements.txt
-    - pdoc eoreader -o doc -f --html --template-dir doc_template
-    - mv doc/ public/
+    - pdoc eoreader -o docs -f --html --template-dir doc_template
+    - mv docs/ public/
   artifacts:
     paths:
       - public

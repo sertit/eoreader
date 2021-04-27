@@ -1,0 +1,47 @@
+Sertit-Utils Copyright 2021 ICube-Sertit - France
+
+This software is distributed under the Apache Software License (ASL) v2.0, see LICENSE
+file or http://www.apache.org/licenses/LICENSE-2.0 for details.
+
+
+This software includes code from many other open source projects. See below for details
+about the license of each project.
+
+
+================================================================
+The Apache 2.0 License
+================================================================
+
+The following components are provided under the  Apache 2.0 License  (https://opensource.org/licenses/Apache-2.0).
+See project link for details.
+
+https://github.com/pydata/xarray
+https://github.com/corteva/rioxarray
+https://github.com/sertit/sertit-utils
+
+
+================================================================
+The MIT License
+================================================================
+
+The following components are provided under the  MIT License  (http://www.opensource.org/licenses/mit-license.php).
+See project link for details.
+
+https://pyyaml.org/wiki/PyYAML
+https://github.com/tqdm/tqdm
+https://github.com/jswhit/pyproj
+
+
+================================================================
+The BSD-3-Clause Licence
+================================================================
+
+The following components are provided under the  BSD-3-Clause License  (https://opensource.org/licenses/BSD-3-Clause).
+See project link for details.
+
+https://github.com/Toblerity/Shapely
+https://github.com/Toblerity/Fiona
+http://www.numpy.org/
+https://pandas.pydata.org/
+https://geopandas.org/
+https://github.com/lxml/lxml

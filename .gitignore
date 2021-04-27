@@ -17,7 +17,4 @@ CI/DATA/*/*_SLOPE.tif
 # Build options
 build/
 *.egg-info/
-doc/
-!doc/index.html
-!doc/eoreader.png
 dist/
