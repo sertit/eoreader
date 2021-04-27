@@ -1,4 +1,7 @@
-exclude: '^$'
+exclude: |
+  (?x)^(
+      docs/.*
+  )$
 fail_fast: false
 repos:
 
