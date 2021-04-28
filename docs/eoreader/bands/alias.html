@@ -62,13 +62,13 @@ To use it, simply type:
 &#34;&#34;&#34;
 # Module name begins with _ to not be imported with *
 import typing as _tp
-from eoreader.exceptions import InvalidTypeError
-from eoreader.bands.bands import \
-    OpticalBandNames as _obn, \
-    SarBandNames as _sbn, \
-    DemBandNames as _dem, \
-    CloudsBandNames as _clouds
+
 from eoreader.bands import index as _idx
+from eoreader.bands.bands import CloudsBandNames as _clouds
+from eoreader.bands.bands import DemBandNames as _dem
+from eoreader.bands.bands import OpticalBandNames as _obn
+from eoreader.bands.bands import SarBandNames as _sbn
+from eoreader.exceptions import InvalidTypeError
 
 # -- OPTICAL BANDS --
 CA = _obn.CA  # Coastal aerosol
@@ -81,7 +81,7 @@ VRE_3 = _obn.VRE_3
 NIR = _obn.NIR
 NARROW_NIR = _obn.NARROW_NIR
 WV = _obn.WV  # Water vapour
-FNIR = _obn.FNIR
+FNIR = _obn.FAR_NIR
 SWIR_CIRRUS = _obn.SWIR_CIRRUS  # Optical band based on cirrus
 SWIR_1 = _obn.SWIR_1
 SWIR_2 = _obn.SWIR_2
@@ -159,7 +159,11 @@ def is_clouds(classif: _tp.Any) -&gt; bool:
     True
     ```
     &#34;&#34;&#34;
-    return classif in _clouds
+    try:
+        is_valid = classif in _clouds
+    except TypeError:
+        is_valid = False
+    return is_valid
 
 
 def is_dem(dem: _tp.Any) -&gt; bool:
@@ -180,7 +184,11 @@ def is_dem(dem: _tp.Any) -&gt; bool:
     False
     ```
     &#34;&#34;&#34;
-    return dem in _dem
+    try:
+        is_valid = dem in _dem
+    except TypeError:
+        is_valid = False
+    return is_valid
 
 
 def is_index(idx: _tp.Any) -&gt; bool:
@@ -236,7 +244,11 @@ def is_optical_band(band: _tp.Any) -&gt; bool:
         bool: True if the band asked is an optical band
 
     &#34;&#34;&#34;
-    return band in _obn
+    try:
+        is_valid = band in _obn
+    except TypeError:
+        is_valid = False
+    return is_valid
 
 
 def is_sar_band(band: _tp.Any) -&gt; bool:
@@ -264,7 +276,11 @@ def is_sar_band(band: _tp.Any) -&gt; bool:
         bool: True if the band asked is a SAR band
 
     &#34;&#34;&#34;
-    return band in _sbn
+    try:
+        is_valid = band in _sbn
+    except TypeError:
+        is_valid = False
+    return is_valid
 
 
 def is_band(band: _tp.Any) -&gt; bool:
@@ -295,14 +311,14 @@ def is_band(band: _tp.Any) -&gt; bool:
     return is_sar_band(band) or is_optical_band(band)
 
 
-def to_band_or_idx(to_convert: _tp.Union[list, str]) -&gt; list:
+def to_band(to_convert: list) -&gt; list:
     &#34;&#34;&#34;
     Convert a string (or real value) to any alias, band or index.
 
     You can pass the name or the value of the bands.
 
     ```python
-    &gt;&gt;&gt; to_band_or_idx([&#34;NDVI&#34;, &#34;GREEN&#34;, RED, &#34;VH_DSPK&#34;, &#34;SLOPE&#34;, DEM, &#34;CLOUDS&#34;, CLOUDS])
+    &gt;&gt;&gt; to_band([&#34;NDVI&#34;, &#34;GREEN&#34;, RED, &#34;VH_DSPK&#34;, &#34;SLOPE&#34;, DEM, &#34;CLOUDS&#34;, CLOUDS])
     [&lt;function NDVI at 0x00000154DDB12488&gt;,
     &lt;OpticalBandNames.GREEN: &#39;GREEN&#39;&gt;,
     &lt;OpticalBandNames.RED: &#39;RED&#39;&gt;,
@@ -313,15 +329,16 @@ def to_band_or_idx(to_convert: _tp.Union[list, str]) -&gt; list:
     &lt;ClassifBandNames.CLOUDS: &#39;CLOUDS&#39;&gt;]
     ```
     Args:
-        to_convert:
+        to_convert (list): Values to convert into band objects
 
     Returns:
+        list: converted values
 
     &#34;&#34;&#34;
     if not isinstance(to_convert, list):
         to_convert = [to_convert]
 
-    bands_or_idx = []
+    bands = []
     for tc in to_convert:
         band_or_idx = None
         # Try legit types
@@ -349,11 +366,45 @@ def to_band_or_idx(to_convert: _tp.Union[list, str]) -&gt; list:
 
         # Store it
         if band_or_idx:
-            bands_or_idx.append(band_or_idx)
+            bands.append(band_or_idx)
         else:
             raise InvalidTypeError(f&#34;Unknown band or index: {tc}&#34;)
 
-    return bands_or_idx</code></pre>
+    return bands
+
+
+def to_str(to_convert: list) -&gt; list:
+    &#34;&#34;&#34;
+    Convert a string (or real value) to any alias, band or index.
+
+    You can pass the name or the value of the bands.
+
+    ```python
+    &gt;&gt;&gt; to_str([&#34;NDVI&#34;, &#34;GREEN&#34;, RED, &#34;VH_DSPK&#34;, &#34;SLOPE&#34;, DEM, &#34;CLOUDS&#34;, CLOUDS])
+    [&#39;NDVI&#39;, &#39;GREEN&#39;, &#39;RED&#39;, &#39;VH_DSPK&#39;, &#39;SLOPE&#39;, &#39;DEM&#39;, &#39;CLOUDS&#39;, &#39;CLOUDS&#39;]
+    ```
+    Args:
+        to_convert (list): Values to convert into str
+
+    Returns:
+        list: str bands
+    &#34;&#34;&#34;
+    if not isinstance(to_convert, list):
+        to_convert = [to_convert]
+
+    bands_str = []
+    for tc in to_convert:
+        if isinstance(tc, str):
+            band_str = tc
+        else:
+            try:
+                band_str = tc.name
+            except AttributeError:
+                band_str = tc.__name__
+
+        bands_str.append(band_str)
+
+    return bands_str</code></pre>
 </details>
 </section>
 <section>
@@ -402,7 +453,11 @@ True
     True
     ```
     &#34;&#34;&#34;
-    return classif in _clouds</code></pre>
+    try:
+        is_valid = classif in _clouds
+    except TypeError:
+        is_valid = False
+    return is_valid</code></pre>
 </details>
 </dd>
 <dt id="eoreader.bands.alias.is_dem"><code class="name flex">
@@ -444,7 +499,11 @@ False
     False
     ```
     &#34;&#34;&#34;
-    return dem in _dem</code></pre>
+    try:
+        is_valid = dem in _dem
+    except TypeError:
+        is_valid = False
+    return is_valid</code></pre>
 </details>
 </dd>
 <dt id="eoreader.bands.alias.is_index"><code class="name flex">
@@ -562,7 +621,11 @@ False
         bool: True if the band asked is an optical band
 
     &#34;&#34;&#34;
-    return band in _obn</code></pre>
+    try:
+        is_valid = band in _obn
+    except TypeError:
+        is_valid = False
+    return is_valid</code></pre>
 </details>
 </dd>
 <dt id="eoreader.bands.alias.is_sar_band"><code class="name flex">
@@ -621,7 +684,11 @@ False
         bool: True if the band asked is a SAR band
 
     &#34;&#34;&#34;
-    return band in _sbn</code></pre>
+    try:
+        is_valid = band in _sbn
+    except TypeError:
+        is_valid = False
+    return is_valid</code></pre>
 </details>
 </dd>
 <dt id="eoreader.bands.alias.is_band"><code class="name flex">
@@ -683,13 +750,13 @@ False
     return is_sar_band(band) or is_optical_band(band)</code></pre>
 </details>
 </dd>
-<dt id="eoreader.bands.alias.to_band_or_idx"><code class="name flex">
-<p>def <span class="ident">to_band_or_idx</span>(</p><p>to_convert)</p>
+<dt id="eoreader.bands.alias.to_band"><code class="name flex">
+<p>def <span class="ident">to_band</span>(</p><p>to_convert)</p>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert a string (or real value) to any alias, band or index.</p>
 <p>You can pass the name or the value of the bands.</p>
-<pre><code class="language-python">&gt;&gt;&gt; to_band_or_idx([&quot;NDVI&quot;, &quot;GREEN&quot;, RED, &quot;VH_DSPK&quot;, &quot;SLOPE&quot;, DEM, &quot;CLOUDS&quot;, CLOUDS])
+<pre><code class="language-python">&gt;&gt;&gt; to_band([&quot;NDVI&quot;, &quot;GREEN&quot;, RED, &quot;VH_DSPK&quot;, &quot;SLOPE&quot;, DEM, &quot;CLOUDS&quot;, CLOUDS])
 [&lt;function NDVI at 0x00000154DDB12488&gt;,
 &lt;OpticalBandNames.GREEN: 'GREEN'&gt;,
 &lt;OpticalBandNames.RED: 'RED'&gt;,
@@ -700,20 +767,27 @@ False
 &lt;ClassifBandNames.CLOUDS: 'CLOUDS'&gt;]
 </code></pre>
 <h2 id="args">Args</h2>
-<p>to_convert:
-Returns:</p></div>
+<dl>
+<dt><strong><code>to_convert</code></strong> :&ensp;<code>list</code></dt>
+<dd>Values to convert into band objects</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>converted values</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_band_or_idx(to_convert: _tp.Union[list, str]) -&gt; list:
+<pre><code class="python">def to_band(to_convert: list) -&gt; list:
     &#34;&#34;&#34;
     Convert a string (or real value) to any alias, band or index.
 
     You can pass the name or the value of the bands.
 
     ```python
-    &gt;&gt;&gt; to_band_or_idx([&#34;NDVI&#34;, &#34;GREEN&#34;, RED, &#34;VH_DSPK&#34;, &#34;SLOPE&#34;, DEM, &#34;CLOUDS&#34;, CLOUDS])
+    &gt;&gt;&gt; to_band([&#34;NDVI&#34;, &#34;GREEN&#34;, RED, &#34;VH_DSPK&#34;, &#34;SLOPE&#34;, DEM, &#34;CLOUDS&#34;, CLOUDS])
     [&lt;function NDVI at 0x00000154DDB12488&gt;,
     &lt;OpticalBandNames.GREEN: &#39;GREEN&#39;&gt;,
     &lt;OpticalBandNames.RED: &#39;RED&#39;&gt;,
@@ -724,15 +798,16 @@ Returns:</p></div>
     &lt;ClassifBandNames.CLOUDS: &#39;CLOUDS&#39;&gt;]
     ```
     Args:
-        to_convert:
+        to_convert (list): Values to convert into band objects
 
     Returns:
+        list: converted values
 
     &#34;&#34;&#34;
     if not isinstance(to_convert, list):
         to_convert = [to_convert]
 
-    bands_or_idx = []
+    bands = []
     for tc in to_convert:
         band_or_idx = None
         # Try legit types
@@ -760,11 +835,68 @@ Returns:</p></div>
 
         # Store it
         if band_or_idx:
-            bands_or_idx.append(band_or_idx)
+            bands.append(band_or_idx)
         else:
             raise InvalidTypeError(f&#34;Unknown band or index: {tc}&#34;)
 
-    return bands_or_idx</code></pre>
+    return bands</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.alias.to_str"><code class="name flex">
+<p>def <span class="ident">to_str</span>(</p><p>to_convert)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert a string (or real value) to any alias, band or index.</p>
+<p>You can pass the name or the value of the bands.</p>
+<pre><code class="language-python">&gt;&gt;&gt; to_str([&quot;NDVI&quot;, &quot;GREEN&quot;, RED, &quot;VH_DSPK&quot;, &quot;SLOPE&quot;, DEM, &quot;CLOUDS&quot;, CLOUDS])
+['NDVI', 'GREEN', 'RED', 'VH_DSPK', 'SLOPE', 'DEM', 'CLOUDS', 'CLOUDS']
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>to_convert</code></strong> :&ensp;<code>list</code></dt>
+<dd>Values to convert into str</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>str bands</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_str(to_convert: list) -&gt; list:
+    &#34;&#34;&#34;
+    Convert a string (or real value) to any alias, band or index.
+
+    You can pass the name or the value of the bands.
+
+    ```python
+    &gt;&gt;&gt; to_str([&#34;NDVI&#34;, &#34;GREEN&#34;, RED, &#34;VH_DSPK&#34;, &#34;SLOPE&#34;, DEM, &#34;CLOUDS&#34;, CLOUDS])
+    [&#39;NDVI&#39;, &#39;GREEN&#39;, &#39;RED&#39;, &#39;VH_DSPK&#39;, &#39;SLOPE&#39;, &#39;DEM&#39;, &#39;CLOUDS&#39;, &#39;CLOUDS&#39;]
+    ```
+    Args:
+        to_convert (list): Values to convert into str
+
+    Returns:
+        list: str bands
+    &#34;&#34;&#34;
+    if not isinstance(to_convert, list):
+        to_convert = [to_convert]
+
+    bands_str = []
+    for tc in to_convert:
+        if isinstance(tc, str):
+            band_str = tc
+        else:
+            try:
+                band_str = tc.name
+            except AttributeError:
+                band_str = tc.__name__
+
+        bands_str.append(band_str)
+
+    return bands_str</code></pre>
 </details>
 </dd>
 </dl>
@@ -844,7 +976,8 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.bands.alias.is_optical_band" href="#eoreader.bands.alias.is_optical_band">is_optical_band</a></code></li>
 <li><code><a title="eoreader.bands.alias.is_sar_band" href="#eoreader.bands.alias.is_sar_band">is_sar_band</a></code></li>
 <li><code><a title="eoreader.bands.alias.is_band" href="#eoreader.bands.alias.is_band">is_band</a></code></li>
-<li><code><a title="eoreader.bands.alias.to_band_or_idx" href="#eoreader.bands.alias.to_band_or_idx">to_band_or_idx</a></code></li>
+<li><code><a title="eoreader.bands.alias.to_band" href="#eoreader.bands.alias.to_band">to_band</a></code></li>
+<li><code><a title="eoreader.bands.alias.to_str" href="#eoreader.bands.alias.to_str">to_str</a></code></li>
 </ul>
 </li>
 </ul>

@@ -45,24 +45,32 @@ import zipfile
 from abc import abstractmethod
 from enum import unique
 from string import Formatter
-from typing import Union, Callable
+from typing import Union
 
-from rasterio import crs
 import geopandas as gpd
 import numpy as np
+from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import files, strings, misc, snap
-from sertit.misc import ListEnum
-from sertit import rasters, vectors
 
 from eoreader import utils
+from eoreader.bands.alias import (
+    is_clouds,
+    is_dem,
+    is_index,
+    is_optical_band,
+    is_sar_band,
+)
+from eoreader.bands.bands import BandNames
+from eoreader.bands.bands import SarBandNames as sbn
+from eoreader.bands.bands import SarBands
+from eoreader.env_vars import DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
-from eoreader.bands.bands import SarBands, SarBandNames as sbn, BandNames
-from eoreader.bands.alias import is_index, is_sar_band, is_optical_band, is_dem, is_clouds
 from eoreader.products.product import Product, SensorType, path_or_dst
 from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
-from eoreader.env_vars import PP_GRAPH, DSPK_GRAPH, SAR_DEF_RES
+from sertit import files, misc, rasters, snap, strings, vectors
+from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -72,6 +80,7 @@ class SarProductType(ListEnum):
     &#34;&#34;&#34;
     Generic products types, used to chose a SNAP graph.
     &#34;&#34;&#34;
+
     CPLX = &#34;COMPLEX&#34;
     &#34;&#34;&#34;Single Look Complex&#34;&#34;&#34;
 
@@ -90,7 +99,7 @@ class _ExtendedFormatter(Formatter):
     &#34;&#34;&#34;
 
     def convert_field(self, value, conversion):
-        &#34;&#34;&#34; Extend conversion symbol
+        &#34;&#34;&#34;Extend conversion symbol
         Following additional symbol has been added
         * l: convert to string and low case
         * u: convert to string and up case
@@ -112,9 +121,11 @@ class _ExtendedFormatter(Formatter):
 
 
 class SarProduct(Product):
-    &#34;&#34;&#34; Super class for SAR Products &#34;&#34;&#34;
+    &#34;&#34;&#34;Super class for SAR Products&#34;&#34;&#34;
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -&gt; None:
+    def __init__(
+        self, product_path: str, archive_path: str = None, output_path=None
+    ) -&gt; None:
         self.sar_prod_type = None
         &#34;&#34;&#34;SAR product type, either Single Look Complex or Ground Range&#34;&#34;&#34;
 
@@ -246,8 +257,9 @@ class SarProduct(Product):
         extent_wgs84 = self.wgs84_extent()
 
         # Get upper-left corner and deduce UTM proj from it
-        utm = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
-                                                   extent_wgs84.bounds.maxy)
+        utm = vectors.corresponding_utm_projection(
+            extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy
+        )
         extent = extent_wgs84.to_crs(utm)
 
         return extent
@@ -271,15 +283,18 @@ class SarProduct(Product):
         extent_wgs84 = self.wgs84_extent()
 
         # Get upper-left corner and deduce UTM proj from it
-        crs_str = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
-                                                       extent_wgs84.bounds.maxy)
+        crs_str = vectors.corresponding_utm_projection(
+            extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy
+        )
 
         return crs.CRS.from_string(crs_str)
 
-    def _get_sar_product_type(self,
-                              prod_type_pos: int,
-                              gdrg_types: Union[ListEnum, list],
-                              cplx_types: Union[ListEnum, list]) -&gt; None:
+    def _get_sar_product_type(
+        self,
+        prod_type_pos: int,
+        gdrg_types: Union[ListEnum, list],
+        cplx_types: Union[ListEnum, list],
+    ) -&gt; None:
         &#34;&#34;&#34;
         Get products type, special function for SAR satellites.
 
@@ -301,7 +316,9 @@ class SarProduct(Product):
         # Get products type
         try:
             # All products types can be found in the filename and are 3 characters long
-            self.product_type = prod_type_class.from_value(self.split_name[prod_type_pos][:3])
+            self.product_type = prod_type_class.from_value(
+                self.split_name[prod_type_pos][:3]
+            )
         except ValueError as ex:
             raise InvalidTypeError(f&#34;Invalid products type for {self.name}&#34;) from ex
 
@@ -315,7 +332,9 @@ class SarProduct(Product):
 
         # Discard invalid products types
         if self.sar_prod_type == SarProductType.OTHER:
-            raise NotImplementedError(f&#34;{self.product_type.value} product type is not available ({self.name})&#34;)
+            raise NotImplementedError(
+                f&#34;{self.product_type.value} product type is not available ({self.name})&#34;
+            )
 
     @abstractmethod
     def _set_sensor_mode(self) -&gt; None:
@@ -352,12 +371,16 @@ class SarProduct(Product):
         for band in band_list:
             bname = self.band_names[band]
             if bname is None:
-                raise InvalidProductError(f&#34;Non existing band ({band.name}) for {self.name}&#34;)
+                raise InvalidProductError(
+                    f&#34;Non existing band ({band.name}) for {self.name}&#34;
+                )
             try:
                 # Try to load orthorectified bands
-                band_paths[band] = files.get_file_in_dir(self._get_band_folder(),
-                                                         f&#34;{self.condensed_name}_{bname}.tif&#34;,
-                                                         exact_name=True)
+                band_paths[band] = files.get_file_in_dir(
+                    self._get_band_folder(),
+                    f&#34;{self.condensed_name}_{bname}.tif&#34;,
+                    exact_name=True,
+                )
             except FileNotFoundError:
                 speckle_band = sbn.corresponding_speckle(band)
                 if speckle_band in self.pol_channels:
@@ -366,7 +389,11 @@ class SarProduct(Product):
                         band_paths[band] = self._despeckle_sar(speckle_band)
                     else:
                         all_band_paths = self._pre_process_sar(resolution)
-                        band_paths = {band: path for band, path in all_band_paths.items() if band in band_list}
+                        band_paths = {
+                            band: path
+                            for band, path in all_band_paths.items()
+                            if band in band_list
+                        }
 
         return band_paths
 
@@ -389,17 +416,22 @@ class SarProduct(Product):
                         # Get the correct band path
                         regex = re.compile(band_regex.replace(&#34;*&#34;, &#34;.*&#34;))
                         try:
-                            band_paths[band] = list(filter(regex.match, [f.filename for f in zip_ds.filelist]))[0]
+                            band_paths[band] = list(
+                                filter(
+                                    regex.match, [f.filename for f in zip_ds.filelist]
+                                )
+                            )[0]
                         except IndexError:
                             continue
                 else:
-                    raise InvalidProductError(f&#34;Only zipped products can be processed without extraction: {self.path}&#34;)
+                    raise InvalidProductError(
+                        f&#34;Only zipped products can be processed without extraction: {self.path}&#34;
+                    )
             else:
                 try:
-                    band_paths[band] = files.get_file_in_dir(self._band_folder,
-                                                             band_regex,
-                                                             exact_name=True,
-                                                             get_list=True)
+                    band_paths[band] = files.get_file_in_dir(
+                        self._band_folder, band_regex, exact_name=True, get_list=True
+                    )
                 except FileNotFoundError:
                     continue
 
@@ -446,7 +478,9 @@ class SarProduct(Product):
         &#34;&#34;&#34;
         # Get raw bands (maximum number of bands)
         raw_bands = self._get_raw_bands()
-        possible_bands = raw_bands + [sbn.corresponding_despeckle(band) for band in raw_bands]
+        possible_bands = raw_bands + [
+            sbn.corresponding_despeckle(band) for band in raw_bands
+        ]
 
         return self.get_band_paths(possible_bands)
 
@@ -479,185 +513,110 @@ class SarProduct(Product):
     # unused band_name (compatibility reasons)
     # pylint: disable=W0613
     @path_or_dst
-    def _read_band(self, dataset,
-                   resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -&gt; (np.ma.masked_array, dict):
+    def _read_band(
+        self,
+        path: str,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; XDS_TYPE:
         &#34;&#34;&#34;
-        Read band from a dataset
-
-        ```python
-        &gt;&gt;&gt; import rasterio
-        &gt;&gt;&gt; from eoreader.reader import Reader
-        &gt;&gt;&gt; from eoreader.bands.alias import *
-        &gt;&gt;&gt; path = r&#34;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&#34;
-        &gt;&gt;&gt; prod = Reader().open(path)
-        &gt;&gt;&gt; band, meta = prod._read_band(prod.get_default_band_path(), resolution=10)
-        &gt;&gt;&gt; band
-        masked_array(
-          data=[[[--, ..., --]]],
-          mask=[[[True, ..., True]]],
-          fill_value=0.0,
-          dtype=float32)
-        &gt;&gt;&gt; meta
-        {
-            &#39;driver&#39;: &#39;JP2OpenJPEG&#39;,
-            &#39;dtype&#39;: &lt;class &#39;numpy.float32&#39;&gt;,
-            &#39;nodata&#39;: None,
-            &#39;width&#39;: 5490,
-            &#39;height&#39;: 5490,
-            &#39;count&#39;: 1,
-            &#39;crs&#39;: CRS.from_epsg(32630),
-            &#39;transform&#39;: Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
-        }
-        ```
+        Read band from disk.
 
         Args:
-            dataset (Dataset): Band dataset
+            path (str): Band path
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            np.ma.masked_array, dict: Radar band, saved as float 32 and its metadata
-
+            XDS_TYPE: Band xarray
         &#34;&#34;&#34;
-        # Read band
-        band_array, dst_meta = rasters.read(dataset,
-                                            resolution=resolution,
-                                            size=size,
-                                            resampling=Resampling.bilinear)
 
-        # Set correct nodata
-        masked_array = np.ma.masked_array(band_array,
-                                          mask=np.where(band_array == self.nodata, 1, 0).astype(np.uint8),
-                                          fill_value=self.nodata)
+        return rasters.read(
+            path, resolution=resolution, size=size, resampling=Resampling.bilinear
+        )
 
-        return masked_array, dst_meta
-
-    def _load_bands(self,
-                    band_list: Union[list, BandNames],
-                    resolution: float = None,
-                    size: Union[list, tuple] = None) -&gt; (dict, dict):
+    def _load_bands(
+        self,
+        bands: Union[list, BandNames],
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (list, BandNames): List of the wanted bands
+            bands (list, BandNames): List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         &#34;&#34;&#34;
         # Return empty if no band are specified
-        if not band_list:
-            return {}, {}
+        if not bands:
+            return {}
 
         # Get band paths
-        if not isinstance(band_list, list):
-            band_list = [band_list]
-        band_paths = self.get_band_paths(band_list, resolution)
+        if not isinstance(bands, list):
+            bands = [bands]
+        band_paths = self.get_band_paths(bands, resolution)
 
         # Open bands and get array (resampled if needed)
         band_arrays = {}
-        meta = {}
         for band_name, band_path in band_paths.items():
             # Read CSK band
-            band_arrays[band_name], ds_meta = self._read_band(band_path,
-                                                              resolution=resolution,
-                                                              size=size)
+            band_arrays[band_name] = self._read_band(
+                band_path, resolution=resolution, size=size
+            )
 
-            # Meta
-            if not meta:
-                meta = ds_meta.copy()
+        return band_arrays
 
-        return band_arrays, meta
-
-    def load(self,
-             band_and_idx_list: Union[list, BandNames, Callable],
-             resolution: float = None,
-             size: Union[list, tuple] = None) -&gt; (dict, dict):
+    def _load(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -&gt; dict:
         &#34;&#34;&#34;
-        Load SAR (and DEM) bands.
-
-        Bands that come out this function at the same time are collocated and therefore have the same shapes.
-        This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
-
-        If neither resolution nor size is given, bands will be loaded at the product&#39;s default resolution.
-
-        ```python
-        &gt;&gt;&gt; from eoreader.reader import Reader
-        &gt;&gt;&gt; from eoreader.bands.alias import *
-        &gt;&gt;&gt; path = r&#34;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&#34;
-        &gt;&gt;&gt; prod = Reader().open(path)
-        &gt;&gt;&gt; bands, meta = prod.load([VV], resolution=10)
-        &gt;&gt;&gt; bands
-        {&lt;SarBandNames.VV: &#39;VV&#39;&gt;: masked_array(
-          data=[[[--, ..., --]]],
-          mask=[[[True, ..., True]]],
-          fill_value=0.0,
-          dtype=float32)}
-        &gt;&gt;&gt; meta
-        {
-            &#39;driver&#39;: &#39;GTiff&#39;,
-            &#39;dtype&#39;: dtype(&#39;float32&#39;),
-            &#39;nodata&#39;: 0.0,
-            &#39;width&#39;: 14900,
-            &#39;height&#39;: 11014,
-            &#39;count&#39;: 1,
-            &#39;crs&#39;: CRS.from_epsg(32630),
-            &#39;transform&#39;: Affine(20.000671140939595, 0.0, 554358.8404375388, 0.0, -19.999092064644998, 4897675.306485827)
-        }
-        ```
+        Core function loading SAR data bands
 
         Args:
-            band_and_idx_list (list, index): Index list
+            bands (list): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            dict, dict: Index and band dict, metadata
+            Dictionary {band_name, band_xarray}
         &#34;&#34;&#34;
-        if not resolution and not size:
-            resolution = self.resolution
-
-        # Check if all bands are valid
-        if not isinstance(band_and_idx_list, list):
-            band_and_idx_list = [band_and_idx_list]
-
-        if len(band_and_idx_list) == 0:
-            return {}, {}
-
         band_list = []
         dem_list = []
-        for band in band_and_idx_list:
+        for band in bands:
             if is_index(band):
-                raise NotImplementedError(&#34;For now, no index is implemented for SAR data.&#34;)
+                raise NotImplementedError(
+                    &#34;For now, no index is implemented for SAR data.&#34;
+                )
             elif is_optical_band(band):
-                raise TypeError(f&#34;You should ask for SAR bands as {self.name} is a SAR product.&#34;)
+                raise TypeError(
+                    f&#34;You should ask for SAR bands as {self.name} is a SAR product.&#34;
+                )
             elif is_sar_band(band):
                 if not self.has_band(band):
-                    raise InvalidBandError(f&#34;{band} cannot be retrieved from {self.condensed_name}&#34;)
+                    raise InvalidBandError(
+                        f&#34;{band} cannot be retrieved from {self.condensed_name}&#34;
+                    )
                 else:
                     band_list.append(band)
             elif is_dem(band):
                 dem_list.append(band)
             elif is_clouds(band):
-                raise NotImplementedError(f&#34;Clouds cannot be retrieved from SAR data ({self.condensed_name}).&#34;)
+                raise NotImplementedError(
+                    f&#34;Clouds cannot be retrieved from SAR data ({self.condensed_name}).&#34;
+                )
             else:
                 raise InvalidTypeError(f&#34;{band} is neither a band nor an index !&#34;)
 
         # Load bands
-        bands, meta = self._load_bands(band_list, resolution=resolution, size=size)
+        bands = self._load_bands(band_list, resolution=resolution, size=size)
 
         # Add DEM
-        dem_bands, dem_meta = self._load_dem(dem_list, resolution=resolution, size=size)
-        bands.update(dem_bands)
-        if not meta:
-            meta = dem_meta
+        bands.update(self._load_dem(dem_list, resolution=resolution, size=size))
 
-        # Manage the case of arrays of different size -&gt; collocate arrays if needed
-        bands = self._collocate_bands(bands, meta)
-
-        return bands, meta
+        return bands
 
     def _pre_process_sar(self, resolution: float = None) -&gt; dict:
         &#34;&#34;&#34;
@@ -678,13 +637,15 @@ class SarProduct(Product):
 
             # Use dimap for speed and security (ie. GeoTiff&#39;s broken georef)
             pp_target = f&#34;{target_file}&#34;
-            pp_dim = pp_target + &#39;.dim&#39;
+            pp_dim = pp_target + &#34;.dim&#34;
 
             # Pre-process graph
             if PP_GRAPH not in os.environ:
                 sat = &#34;s1&#34; if self.sat_id == Platform.S1.name else &#34;sar&#34;
                 spt = &#34;grd&#34; if self.sar_prod_type == SarProductType.GDRG else &#34;cplx&#34;
-                pp_graph = os.path.join(utils.get_data_dir(), f&#34;{spt}_{sat}_preprocess_default.xml&#34;)
+                pp_graph = os.path.join(
+                    utils.get_data_dir(), f&#34;{spt}_{sat}_preprocess_default.xml&#34;
+                )
             else:
                 pp_graph = os.environ[PP_GRAPH]
                 if not os.path.isfile(pp_graph) or not pp_graph.endswith(&#34;.xml&#34;):
@@ -694,14 +655,18 @@ class SarProduct(Product):
             if not os.path.isfile(pp_dim):
                 def_res = float(os.environ.get(SAR_DEF_RES, self.resolution))
                 res_m = resolution if resolution else def_res
-                res_deg = res_m / 10. * 8.983152841195215E-5  # Approx
-                cmd_list = snap.get_gpt_cli(pp_graph,
-                                            [f&#39;-Pfile={strings.to_cmd_string(self._snap_path)}&#39;,
-                                             f&#39;-Pout={pp_dim}&#39;,
-                                             f&#39;-Pcrs={self.crs()}&#39;,
-                                             f&#39;-Pres_m={res_m}&#39;,
-                                             f&#39;-Pres_deg={res_deg}&#39;],
-                                            display_snap_opt=LOGGER.level == logging.DEBUG)
+                res_deg = res_m / 10.0 * 8.983152841195215e-5  # Approx
+                cmd_list = snap.get_gpt_cli(
+                    pp_graph,
+                    [
+                        f&#34;-Pfile={strings.to_cmd_string(self._snap_path)}&#34;,
+                        f&#34;-Pout={pp_dim}&#34;,
+                        f&#34;-Pcrs={self.crs()}&#34;,
+                        f&#34;-Pres_m={res_m}&#34;,
+                        f&#34;-Pres_deg={res_deg}&#34;,
+                    ],
+                    display_snap_opt=LOGGER.level == logging.DEBUG,
+                )
 
                 # Pre-process SAR images according to the given graph
                 LOGGER.debug(&#34;Pre-process SAR image&#34;)
@@ -728,11 +693,13 @@ class SarProduct(Product):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Out files
             target_file = os.path.join(tmp_dir, f&#34;{self.condensed_name}_DSPK&#34;)
-            dspk_dim = target_file + &#39;.dim&#39;
+            dspk_dim = target_file + &#34;.dim&#34;
 
             # Despeckle graph
             if DSPK_GRAPH not in os.environ:
-                dspk_graph = os.path.join(utils.get_data_dir(), f&#34;sar_despeckle_default.xml&#34;)
+                dspk_graph = os.path.join(
+                    utils.get_data_dir(), &#34;sar_despeckle_default.xml&#34;
+                )
             else:
                 dspk_graph = os.environ[DSPK_GRAPH]
                 if not os.path.isfile(dspk_graph) or not dspk_graph.endswith(&#34;.xml&#34;):
@@ -741,10 +708,11 @@ class SarProduct(Product):
             # Create command line and run it
             if not os.path.isfile(dspk_dim):
                 path = self.get_band_paths([band])[band]
-                cmd_list = snap.get_gpt_cli(dspk_graph,
-                                            [f&#39;-Pfile={path}&#39;,
-                                             f&#39;-Pout={dspk_dim}&#39;],
-                                            display_snap_opt=False)
+                cmd_list = snap.get_gpt_cli(
+                    dspk_graph,
+                    [f&#34;-Pfile={path}&#34;, f&#34;-Pout={dspk_dim}&#34;],
+                    display_snap_opt=False,
+                )
 
                 # Pre-process SAR images according to the given graph
                 LOGGER.debug(&#34;Despeckle SAR image&#34;)
@@ -772,20 +740,24 @@ class SarProduct(Product):
             img = rasters.get_dim_img_path(dim_path)  # Maybe not the good name
 
         # Open SAR image
-        arr, meta = rasters.read(img)
-        arr[np.isnan(arr)] = self.nodata
+        arr = rasters.read(img)
+        arr = rasters.set_nodata(arr, self.nodata)
 
         # Save the file as the terrain-corrected image
-        file_path = os.path.join(self.output, f&#34;{files.get_filename(dim_path)}_{pol_up}.tif&#34;)
-        rasters.write(arr, file_path, meta, nodata=self.nodata)
+        file_path = os.path.join(
+            self.output, f&#34;{files.get_filename(dim_path)}_{pol_up}.tif&#34;
+        )
+        rasters.write(arr, file_path, dtype=np.float32)
 
         return file_path
 
-    def _compute_hillshade(self,
-                           dem_path: str = &#34;&#34;,
-                           resolution: Union[float, tuple] = None,
-                           size: Union[list, tuple] = None,
-                           resampling: Resampling = Resampling.bilinear) -&gt; str:
+    def _compute_hillshade(
+        self,
+        dem_path: str = &#34;&#34;,
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
+    ) -&gt; str:
         &#34;&#34;&#34;
         Compute Hillshade mask
 
@@ -847,6 +819,7 @@ class SarProduct(Product):
     &#34;&#34;&#34;
     Generic products types, used to chose a SNAP graph.
     &#34;&#34;&#34;
+
     CPLX = &#34;COMPLEX&#34;
     &#34;&#34;&#34;Single Look Complex&#34;&#34;&#34;
 
@@ -891,9 +864,11 @@ class SarProduct(Product):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class SarProduct(Product):
-    &#34;&#34;&#34; Super class for SAR Products &#34;&#34;&#34;
+    &#34;&#34;&#34;Super class for SAR Products&#34;&#34;&#34;
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -&gt; None:
+    def __init__(
+        self, product_path: str, archive_path: str = None, output_path=None
+    ) -&gt; None:
         self.sar_prod_type = None
         &#34;&#34;&#34;SAR product type, either Single Look Complex or Ground Range&#34;&#34;&#34;
 
@@ -1025,8 +1000,9 @@ class SarProduct(Product):
         extent_wgs84 = self.wgs84_extent()
 
         # Get upper-left corner and deduce UTM proj from it
-        utm = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
-                                                   extent_wgs84.bounds.maxy)
+        utm = vectors.corresponding_utm_projection(
+            extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy
+        )
         extent = extent_wgs84.to_crs(utm)
 
         return extent
@@ -1050,15 +1026,18 @@ class SarProduct(Product):
         extent_wgs84 = self.wgs84_extent()
 
         # Get upper-left corner and deduce UTM proj from it
-        crs_str = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
-                                                       extent_wgs84.bounds.maxy)
+        crs_str = vectors.corresponding_utm_projection(
+            extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy
+        )
 
         return crs.CRS.from_string(crs_str)
 
-    def _get_sar_product_type(self,
-                              prod_type_pos: int,
-                              gdrg_types: Union[ListEnum, list],
-                              cplx_types: Union[ListEnum, list]) -&gt; None:
+    def _get_sar_product_type(
+        self,
+        prod_type_pos: int,
+        gdrg_types: Union[ListEnum, list],
+        cplx_types: Union[ListEnum, list],
+    ) -&gt; None:
         &#34;&#34;&#34;
         Get products type, special function for SAR satellites.
 
@@ -1080,7 +1059,9 @@ class SarProduct(Product):
         # Get products type
         try:
             # All products types can be found in the filename and are 3 characters long
-            self.product_type = prod_type_class.from_value(self.split_name[prod_type_pos][:3])
+            self.product_type = prod_type_class.from_value(
+                self.split_name[prod_type_pos][:3]
+            )
         except ValueError as ex:
             raise InvalidTypeError(f&#34;Invalid products type for {self.name}&#34;) from ex
 
@@ -1094,7 +1075,9 @@ class SarProduct(Product):
 
         # Discard invalid products types
         if self.sar_prod_type == SarProductType.OTHER:
-            raise NotImplementedError(f&#34;{self.product_type.value} product type is not available ({self.name})&#34;)
+            raise NotImplementedError(
+                f&#34;{self.product_type.value} product type is not available ({self.name})&#34;
+            )
 
     @abstractmethod
     def _set_sensor_mode(self) -&gt; None:
@@ -1131,12 +1114,16 @@ class SarProduct(Product):
         for band in band_list:
             bname = self.band_names[band]
             if bname is None:
-                raise InvalidProductError(f&#34;Non existing band ({band.name}) for {self.name}&#34;)
+                raise InvalidProductError(
+                    f&#34;Non existing band ({band.name}) for {self.name}&#34;
+                )
             try:
                 # Try to load orthorectified bands
-                band_paths[band] = files.get_file_in_dir(self._get_band_folder(),
-                                                         f&#34;{self.condensed_name}_{bname}.tif&#34;,
-                                                         exact_name=True)
+                band_paths[band] = files.get_file_in_dir(
+                    self._get_band_folder(),
+                    f&#34;{self.condensed_name}_{bname}.tif&#34;,
+                    exact_name=True,
+                )
             except FileNotFoundError:
                 speckle_band = sbn.corresponding_speckle(band)
                 if speckle_band in self.pol_channels:
@@ -1145,7 +1132,11 @@ class SarProduct(Product):
                         band_paths[band] = self._despeckle_sar(speckle_band)
                     else:
                         all_band_paths = self._pre_process_sar(resolution)
-                        band_paths = {band: path for band, path in all_band_paths.items() if band in band_list}
+                        band_paths = {
+                            band: path
+                            for band, path in all_band_paths.items()
+                            if band in band_list
+                        }
 
         return band_paths
 
@@ -1168,17 +1159,22 @@ class SarProduct(Product):
                         # Get the correct band path
                         regex = re.compile(band_regex.replace(&#34;*&#34;, &#34;.*&#34;))
                         try:
-                            band_paths[band] = list(filter(regex.match, [f.filename for f in zip_ds.filelist]))[0]
+                            band_paths[band] = list(
+                                filter(
+                                    regex.match, [f.filename for f in zip_ds.filelist]
+                                )
+                            )[0]
                         except IndexError:
                             continue
                 else:
-                    raise InvalidProductError(f&#34;Only zipped products can be processed without extraction: {self.path}&#34;)
+                    raise InvalidProductError(
+                        f&#34;Only zipped products can be processed without extraction: {self.path}&#34;
+                    )
             else:
                 try:
-                    band_paths[band] = files.get_file_in_dir(self._band_folder,
-                                                             band_regex,
-                                                             exact_name=True,
-                                                             get_list=True)
+                    band_paths[band] = files.get_file_in_dir(
+                        self._band_folder, band_regex, exact_name=True, get_list=True
+                    )
                 except FileNotFoundError:
                     continue
 
@@ -1225,7 +1221,9 @@ class SarProduct(Product):
         &#34;&#34;&#34;
         # Get raw bands (maximum number of bands)
         raw_bands = self._get_raw_bands()
-        possible_bands = raw_bands + [sbn.corresponding_despeckle(band) for band in raw_bands]
+        possible_bands = raw_bands + [
+            sbn.corresponding_despeckle(band) for band in raw_bands
+        ]
 
         return self.get_band_paths(possible_bands)
 
@@ -1258,185 +1256,110 @@ class SarProduct(Product):
     # unused band_name (compatibility reasons)
     # pylint: disable=W0613
     @path_or_dst
-    def _read_band(self, dataset,
-                   resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -&gt; (np.ma.masked_array, dict):
+    def _read_band(
+        self,
+        path: str,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; XDS_TYPE:
         &#34;&#34;&#34;
-        Read band from a dataset
-
-        ```python
-        &gt;&gt;&gt; import rasterio
-        &gt;&gt;&gt; from eoreader.reader import Reader
-        &gt;&gt;&gt; from eoreader.bands.alias import *
-        &gt;&gt;&gt; path = r&#34;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&#34;
-        &gt;&gt;&gt; prod = Reader().open(path)
-        &gt;&gt;&gt; band, meta = prod._read_band(prod.get_default_band_path(), resolution=10)
-        &gt;&gt;&gt; band
-        masked_array(
-          data=[[[--, ..., --]]],
-          mask=[[[True, ..., True]]],
-          fill_value=0.0,
-          dtype=float32)
-        &gt;&gt;&gt; meta
-        {
-            &#39;driver&#39;: &#39;JP2OpenJPEG&#39;,
-            &#39;dtype&#39;: &lt;class &#39;numpy.float32&#39;&gt;,
-            &#39;nodata&#39;: None,
-            &#39;width&#39;: 5490,
-            &#39;height&#39;: 5490,
-            &#39;count&#39;: 1,
-            &#39;crs&#39;: CRS.from_epsg(32630),
-            &#39;transform&#39;: Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
-        }
-        ```
+        Read band from disk.
 
         Args:
-            dataset (Dataset): Band dataset
+            path (str): Band path
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            np.ma.masked_array, dict: Radar band, saved as float 32 and its metadata
-
+            XDS_TYPE: Band xarray
         &#34;&#34;&#34;
-        # Read band
-        band_array, dst_meta = rasters.read(dataset,
-                                            resolution=resolution,
-                                            size=size,
-                                            resampling=Resampling.bilinear)
 
-        # Set correct nodata
-        masked_array = np.ma.masked_array(band_array,
-                                          mask=np.where(band_array == self.nodata, 1, 0).astype(np.uint8),
-                                          fill_value=self.nodata)
+        return rasters.read(
+            path, resolution=resolution, size=size, resampling=Resampling.bilinear
+        )
 
-        return masked_array, dst_meta
-
-    def _load_bands(self,
-                    band_list: Union[list, BandNames],
-                    resolution: float = None,
-                    size: Union[list, tuple] = None) -&gt; (dict, dict):
+    def _load_bands(
+        self,
+        bands: Union[list, BandNames],
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (list, BandNames): List of the wanted bands
+            bands (list, BandNames): List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         &#34;&#34;&#34;
         # Return empty if no band are specified
-        if not band_list:
-            return {}, {}
+        if not bands:
+            return {}
 
         # Get band paths
-        if not isinstance(band_list, list):
-            band_list = [band_list]
-        band_paths = self.get_band_paths(band_list, resolution)
+        if not isinstance(bands, list):
+            bands = [bands]
+        band_paths = self.get_band_paths(bands, resolution)
 
         # Open bands and get array (resampled if needed)
         band_arrays = {}
-        meta = {}
         for band_name, band_path in band_paths.items():
             # Read CSK band
-            band_arrays[band_name], ds_meta = self._read_band(band_path,
-                                                              resolution=resolution,
-                                                              size=size)
+            band_arrays[band_name] = self._read_band(
+                band_path, resolution=resolution, size=size
+            )
 
-            # Meta
-            if not meta:
-                meta = ds_meta.copy()
+        return band_arrays
 
-        return band_arrays, meta
-
-    def load(self,
-             band_and_idx_list: Union[list, BandNames, Callable],
-             resolution: float = None,
-             size: Union[list, tuple] = None) -&gt; (dict, dict):
+    def _load(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -&gt; dict:
         &#34;&#34;&#34;
-        Load SAR (and DEM) bands.
-
-        Bands that come out this function at the same time are collocated and therefore have the same shapes.
-        This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
-
-        If neither resolution nor size is given, bands will be loaded at the product&#39;s default resolution.
-
-        ```python
-        &gt;&gt;&gt; from eoreader.reader import Reader
-        &gt;&gt;&gt; from eoreader.bands.alias import *
-        &gt;&gt;&gt; path = r&#34;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&#34;
-        &gt;&gt;&gt; prod = Reader().open(path)
-        &gt;&gt;&gt; bands, meta = prod.load([VV], resolution=10)
-        &gt;&gt;&gt; bands
-        {&lt;SarBandNames.VV: &#39;VV&#39;&gt;: masked_array(
-          data=[[[--, ..., --]]],
-          mask=[[[True, ..., True]]],
-          fill_value=0.0,
-          dtype=float32)}
-        &gt;&gt;&gt; meta
-        {
-            &#39;driver&#39;: &#39;GTiff&#39;,
-            &#39;dtype&#39;: dtype(&#39;float32&#39;),
-            &#39;nodata&#39;: 0.0,
-            &#39;width&#39;: 14900,
-            &#39;height&#39;: 11014,
-            &#39;count&#39;: 1,
-            &#39;crs&#39;: CRS.from_epsg(32630),
-            &#39;transform&#39;: Affine(20.000671140939595, 0.0, 554358.8404375388, 0.0, -19.999092064644998, 4897675.306485827)
-        }
-        ```
+        Core function loading SAR data bands
 
         Args:
-            band_and_idx_list (list, index): Index list
+            bands (list): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            dict, dict: Index and band dict, metadata
+            Dictionary {band_name, band_xarray}
         &#34;&#34;&#34;
-        if not resolution and not size:
-            resolution = self.resolution
-
-        # Check if all bands are valid
-        if not isinstance(band_and_idx_list, list):
-            band_and_idx_list = [band_and_idx_list]
-
-        if len(band_and_idx_list) == 0:
-            return {}, {}
-
         band_list = []
         dem_list = []
-        for band in band_and_idx_list:
+        for band in bands:
             if is_index(band):
-                raise NotImplementedError(&#34;For now, no index is implemented for SAR data.&#34;)
+                raise NotImplementedError(
+                    &#34;For now, no index is implemented for SAR data.&#34;
+                )
             elif is_optical_band(band):
-                raise TypeError(f&#34;You should ask for SAR bands as {self.name} is a SAR product.&#34;)
+                raise TypeError(
+                    f&#34;You should ask for SAR bands as {self.name} is a SAR product.&#34;
+                )
             elif is_sar_band(band):
                 if not self.has_band(band):
-                    raise InvalidBandError(f&#34;{band} cannot be retrieved from {self.condensed_name}&#34;)
+                    raise InvalidBandError(
+                        f&#34;{band} cannot be retrieved from {self.condensed_name}&#34;
+                    )
                 else:
                     band_list.append(band)
             elif is_dem(band):
                 dem_list.append(band)
             elif is_clouds(band):
-                raise NotImplementedError(f&#34;Clouds cannot be retrieved from SAR data ({self.condensed_name}).&#34;)
+                raise NotImplementedError(
+                    f&#34;Clouds cannot be retrieved from SAR data ({self.condensed_name}).&#34;
+                )
             else:
                 raise InvalidTypeError(f&#34;{band} is neither a band nor an index !&#34;)
 
         # Load bands
-        bands, meta = self._load_bands(band_list, resolution=resolution, size=size)
+        bands = self._load_bands(band_list, resolution=resolution, size=size)
 
         # Add DEM
-        dem_bands, dem_meta = self._load_dem(dem_list, resolution=resolution, size=size)
-        bands.update(dem_bands)
-        if not meta:
-            meta = dem_meta
+        bands.update(self._load_dem(dem_list, resolution=resolution, size=size))
 
-        # Manage the case of arrays of different size -&gt; collocate arrays if needed
-        bands = self._collocate_bands(bands, meta)
-
-        return bands, meta
+        return bands
 
     def _pre_process_sar(self, resolution: float = None) -&gt; dict:
         &#34;&#34;&#34;
@@ -1457,13 +1380,15 @@ class SarProduct(Product):
 
             # Use dimap for speed and security (ie. GeoTiff&#39;s broken georef)
             pp_target = f&#34;{target_file}&#34;
-            pp_dim = pp_target + &#39;.dim&#39;
+            pp_dim = pp_target + &#34;.dim&#34;
 
             # Pre-process graph
             if PP_GRAPH not in os.environ:
                 sat = &#34;s1&#34; if self.sat_id == Platform.S1.name else &#34;sar&#34;
                 spt = &#34;grd&#34; if self.sar_prod_type == SarProductType.GDRG else &#34;cplx&#34;
-                pp_graph = os.path.join(utils.get_data_dir(), f&#34;{spt}_{sat}_preprocess_default.xml&#34;)
+                pp_graph = os.path.join(
+                    utils.get_data_dir(), f&#34;{spt}_{sat}_preprocess_default.xml&#34;
+                )
             else:
                 pp_graph = os.environ[PP_GRAPH]
                 if not os.path.isfile(pp_graph) or not pp_graph.endswith(&#34;.xml&#34;):
@@ -1473,14 +1398,18 @@ class SarProduct(Product):
             if not os.path.isfile(pp_dim):
                 def_res = float(os.environ.get(SAR_DEF_RES, self.resolution))
                 res_m = resolution if resolution else def_res
-                res_deg = res_m / 10. * 8.983152841195215E-5  # Approx
-                cmd_list = snap.get_gpt_cli(pp_graph,
-                                            [f&#39;-Pfile={strings.to_cmd_string(self._snap_path)}&#39;,
-                                             f&#39;-Pout={pp_dim}&#39;,
-                                             f&#39;-Pcrs={self.crs()}&#39;,
-                                             f&#39;-Pres_m={res_m}&#39;,
-                                             f&#39;-Pres_deg={res_deg}&#39;],
-                                            display_snap_opt=LOGGER.level == logging.DEBUG)
+                res_deg = res_m / 10.0 * 8.983152841195215e-5  # Approx
+                cmd_list = snap.get_gpt_cli(
+                    pp_graph,
+                    [
+                        f&#34;-Pfile={strings.to_cmd_string(self._snap_path)}&#34;,
+                        f&#34;-Pout={pp_dim}&#34;,
+                        f&#34;-Pcrs={self.crs()}&#34;,
+                        f&#34;-Pres_m={res_m}&#34;,
+                        f&#34;-Pres_deg={res_deg}&#34;,
+                    ],
+                    display_snap_opt=LOGGER.level == logging.DEBUG,
+                )
 
                 # Pre-process SAR images according to the given graph
                 LOGGER.debug(&#34;Pre-process SAR image&#34;)
@@ -1507,11 +1436,13 @@ class SarProduct(Product):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Out files
             target_file = os.path.join(tmp_dir, f&#34;{self.condensed_name}_DSPK&#34;)
-            dspk_dim = target_file + &#39;.dim&#39;
+            dspk_dim = target_file + &#34;.dim&#34;
 
             # Despeckle graph
             if DSPK_GRAPH not in os.environ:
-                dspk_graph = os.path.join(utils.get_data_dir(), f&#34;sar_despeckle_default.xml&#34;)
+                dspk_graph = os.path.join(
+                    utils.get_data_dir(), &#34;sar_despeckle_default.xml&#34;
+                )
             else:
                 dspk_graph = os.environ[DSPK_GRAPH]
                 if not os.path.isfile(dspk_graph) or not dspk_graph.endswith(&#34;.xml&#34;):
@@ -1520,10 +1451,11 @@ class SarProduct(Product):
             # Create command line and run it
             if not os.path.isfile(dspk_dim):
                 path = self.get_band_paths([band])[band]
-                cmd_list = snap.get_gpt_cli(dspk_graph,
-                                            [f&#39;-Pfile={path}&#39;,
-                                             f&#39;-Pout={dspk_dim}&#39;],
-                                            display_snap_opt=False)
+                cmd_list = snap.get_gpt_cli(
+                    dspk_graph,
+                    [f&#34;-Pfile={path}&#34;, f&#34;-Pout={dspk_dim}&#34;],
+                    display_snap_opt=False,
+                )
 
                 # Pre-process SAR images according to the given graph
                 LOGGER.debug(&#34;Despeckle SAR image&#34;)
@@ -1551,20 +1483,24 @@ class SarProduct(Product):
             img = rasters.get_dim_img_path(dim_path)  # Maybe not the good name
 
         # Open SAR image
-        arr, meta = rasters.read(img)
-        arr[np.isnan(arr)] = self.nodata
+        arr = rasters.read(img)
+        arr = rasters.set_nodata(arr, self.nodata)
 
         # Save the file as the terrain-corrected image
-        file_path = os.path.join(self.output, f&#34;{files.get_filename(dim_path)}_{pol_up}.tif&#34;)
-        rasters.write(arr, file_path, meta, nodata=self.nodata)
+        file_path = os.path.join(
+            self.output, f&#34;{files.get_filename(dim_path)}_{pol_up}.tif&#34;
+        )
+        rasters.write(arr, file_path, dtype=np.float32)
 
         return file_path
 
-    def _compute_hillshade(self,
-                           dem_path: str = &#34;&#34;,
-                           resolution: Union[float, tuple] = None,
-                           size: Union[list, tuple] = None,
-                           resampling: Resampling = Resampling.bilinear) -&gt; str:
+    def _compute_hillshade(
+        self,
+        dem_path: str = &#34;&#34;,
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
+    ) -&gt; str:
         &#34;&#34;&#34;
         Compute Hillshade mask
 
@@ -1806,7 +1742,7 @@ For SAR product, we use Ground Range resolution as we will automatically orthore
 </p>
 <div class="desc inherited"><p>Condensed name, the filename with only useful data to keep the name unique
 (ie. <code>20191215T110441_S2_30TXP_L2A_122756</code>).
-Used to shorten names and …</p></div>
+Used to shorten names and paths.</p></div>
 </dd>
 <dt id="eoreader.products.sar.sar_product.SarProduct.sat_id"><code class="name">var <span class="ident">sat_id</span></code>
 </dt>
@@ -2015,8 +1951,9 @@ def wgs84_extent(self) -&gt; gpd.GeoDataFrame:
     extent_wgs84 = self.wgs84_extent()
 
     # Get upper-left corner and deduce UTM proj from it
-    utm = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
-                                               extent_wgs84.bounds.maxy)
+    utm = vectors.corresponding_utm_projection(
+        extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy
+    )
     extent = extent_wgs84.to_crs(utm)
 
     return extent</code></pre>
@@ -2061,8 +1998,9 @@ CRS.from_epsg(32630)
     extent_wgs84 = self.wgs84_extent()
 
     # Get upper-left corner and deduce UTM proj from it
-    crs_str = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
-                                                   extent_wgs84.bounds.maxy)
+    crs_str = vectors.corresponding_utm_projection(
+        extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy
+    )
 
     return crs.CRS.from_string(crs_str)</code></pre>
 </details>
@@ -2128,12 +2066,16 @@ CRS.from_epsg(32630)
     for band in band_list:
         bname = self.band_names[band]
         if bname is None:
-            raise InvalidProductError(f&#34;Non existing band ({band.name}) for {self.name}&#34;)
+            raise InvalidProductError(
+                f&#34;Non existing band ({band.name}) for {self.name}&#34;
+            )
         try:
             # Try to load orthorectified bands
-            band_paths[band] = files.get_file_in_dir(self._get_band_folder(),
-                                                     f&#34;{self.condensed_name}_{bname}.tif&#34;,
-                                                     exact_name=True)
+            band_paths[band] = files.get_file_in_dir(
+                self._get_band_folder(),
+                f&#34;{self.condensed_name}_{bname}.tif&#34;,
+                exact_name=True,
+            )
         except FileNotFoundError:
             speckle_band = sbn.corresponding_speckle(band)
             if speckle_band in self.pol_channels:
@@ -2142,7 +2084,11 @@ CRS.from_epsg(32630)
                     band_paths[band] = self._despeckle_sar(speckle_band)
                 else:
                     all_band_paths = self._pre_process_sar(resolution)
-                    band_paths = {band: path for band, path in all_band_paths.items() if band in band_list}
+                    band_paths = {
+                        band: path
+                        for band, path in all_band_paths.items()
+                        if band in band_list
+                    }
 
     return band_paths</code></pre>
 </details>
@@ -2214,7 +2160,9 @@ Executing processing graph
     &#34;&#34;&#34;
     # Get raw bands (maximum number of bands)
     raw_bands = self._get_raw_bands()
-    possible_bands = raw_bands + [sbn.corresponding_despeckle(band) for band in raw_bands]
+    possible_bands = raw_bands + [
+        sbn.corresponding_despeckle(band) for band in raw_bands
+    ]
 
     return self.get_band_paths(possible_bands)</code></pre>
 </details>
@@ -2276,144 +2224,6 @@ Executing processing graph
     return list(band_paths.keys())</code></pre>
 </details>
 </dd>
-<dt id="eoreader.products.sar.sar_product.SarProduct.load"><code class="name flex">
-<p>def <span class="ident">load</span>(</p><p>self, <br>band_and_idx_list, <br>resolution=None, <br>size=None)</p>
-</code></dt>
-<dd>
-<div class="desc"><p>Load SAR (and DEM) bands.</p>
-<p>Bands that come out this function at the same time are collocated and therefore have the same shapes.
-This can be broken if you load data separately. Its is best to always load DEM data with some real bands.</p>
-<p>If neither resolution nor size is given, bands will be loaded at the product's default resolution.</p>
-<pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
-&gt;&gt;&gt; from eoreader.bands.alias import *
-&gt;&gt;&gt; path = r&quot;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&quot;
-&gt;&gt;&gt; prod = Reader().open(path)
-&gt;&gt;&gt; bands, meta = prod.load([VV], resolution=10)
-&gt;&gt;&gt; bands
-{&lt;SarBandNames.VV: 'VV'&gt;: masked_array(
-  data=[[[--, ..., --]]],
-  mask=[[[True, ..., True]]],
-  fill_value=0.0,
-  dtype=float32)}
-&gt;&gt;&gt; meta
-{
-    'driver': 'GTiff',
-    'dtype': dtype('float32'),
-    'nodata': 0.0,
-    'width': 14900,
-    'height': 11014,
-    'count': 1,
-    'crs': CRS.from_epsg(32630),
-    'transform': Affine(20.000671140939595, 0.0, 554358.8404375388, 0.0, -19.999092064644998, 4897675.306485827)
-}
-</code></pre>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>band_and_idx_list</code></strong> :&ensp;<code>list, index</code></dt>
-<dd>Index list</dd>
-<dt><strong><code>resolution</code></strong> :&ensp;<code>float</code></dt>
-<dd>Resolution of the band, in meters</dd>
-<dt><strong><code>size</code></strong> :&ensp;<code>Union[tuple, list]</code></dt>
-<dd>Size of the array (width, height). Not used if resolution is provided.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>dict, dict</code></dt>
-<dd>Index and band dict, metadata</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def load(self,
-         band_and_idx_list: Union[list, BandNames, Callable],
-         resolution: float = None,
-         size: Union[list, tuple] = None) -&gt; (dict, dict):
-    &#34;&#34;&#34;
-    Load SAR (and DEM) bands.
-
-    Bands that come out this function at the same time are collocated and therefore have the same shapes.
-    This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
-
-    If neither resolution nor size is given, bands will be loaded at the product&#39;s default resolution.
-
-    ```python
-    &gt;&gt;&gt; from eoreader.reader import Reader
-    &gt;&gt;&gt; from eoreader.bands.alias import *
-    &gt;&gt;&gt; path = r&#34;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&#34;
-    &gt;&gt;&gt; prod = Reader().open(path)
-    &gt;&gt;&gt; bands, meta = prod.load([VV], resolution=10)
-    &gt;&gt;&gt; bands
-    {&lt;SarBandNames.VV: &#39;VV&#39;&gt;: masked_array(
-      data=[[[--, ..., --]]],
-      mask=[[[True, ..., True]]],
-      fill_value=0.0,
-      dtype=float32)}
-    &gt;&gt;&gt; meta
-    {
-        &#39;driver&#39;: &#39;GTiff&#39;,
-        &#39;dtype&#39;: dtype(&#39;float32&#39;),
-        &#39;nodata&#39;: 0.0,
-        &#39;width&#39;: 14900,
-        &#39;height&#39;: 11014,
-        &#39;count&#39;: 1,
-        &#39;crs&#39;: CRS.from_epsg(32630),
-        &#39;transform&#39;: Affine(20.000671140939595, 0.0, 554358.8404375388, 0.0, -19.999092064644998, 4897675.306485827)
-    }
-    ```
-
-    Args:
-        band_and_idx_list (list, index): Index list
-        resolution (float): Resolution of the band, in meters
-        size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-
-    Returns:
-        dict, dict: Index and band dict, metadata
-    &#34;&#34;&#34;
-    if not resolution and not size:
-        resolution = self.resolution
-
-    # Check if all bands are valid
-    if not isinstance(band_and_idx_list, list):
-        band_and_idx_list = [band_and_idx_list]
-
-    if len(band_and_idx_list) == 0:
-        return {}, {}
-
-    band_list = []
-    dem_list = []
-    for band in band_and_idx_list:
-        if is_index(band):
-            raise NotImplementedError(&#34;For now, no index is implemented for SAR data.&#34;)
-        elif is_optical_band(band):
-            raise TypeError(f&#34;You should ask for SAR bands as {self.name} is a SAR product.&#34;)
-        elif is_sar_band(band):
-            if not self.has_band(band):
-                raise InvalidBandError(f&#34;{band} cannot be retrieved from {self.condensed_name}&#34;)
-            else:
-                band_list.append(band)
-        elif is_dem(band):
-            dem_list.append(band)
-        elif is_clouds(band):
-            raise NotImplementedError(f&#34;Clouds cannot be retrieved from SAR data ({self.condensed_name}).&#34;)
-        else:
-            raise InvalidTypeError(f&#34;{band} is neither a band nor an index !&#34;)
-
-    # Load bands
-    bands, meta = self._load_bands(band_list, resolution=resolution, size=size)
-
-    # Add DEM
-    dem_bands, dem_meta = self._load_dem(dem_list, resolution=resolution, size=size)
-    bands.update(dem_bands)
-    if not meta:
-        meta = dem_meta
-
-    # Manage the case of arrays of different size -&gt; collocate arrays if needed
-    bands = self._collocate_bands(bands, meta)
-
-    return bands, meta</code></pre>
-</details>
-</dd>
 <dt id="eoreader.products.sar.sar_product.SarProduct.footprint"><code class="name flex">
 <p>def <span class="ident">footprint</span>(</p><p>self)</p>
 </code></dt>
@@ -2455,6 +2265,16 @@ This can be broken if you load data separately. Its is best to always load DEM d
 <div class="desc inherited"><p>Read metadata and outputs the metadata XML root and its namespace most of the time,
 except from L8-collection 1 data which outputs a pandas DataFrame …</p></div>
 </dd>
+<dt id="eoreader.products.sar.sar_product.SarProduct.load"><code class="name flex">
+<p>def <span class="ident">load</span>(</p><p>self, <br>bands, <br>resolution=None, <br>size=None)</p>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="eoreader.products.product.Product" href="../product.html#eoreader.products.product.Product">Product</a></code>.<code><a title="eoreader.products.product.Product.load" href="../product.html#eoreader.products.product.Product.load">load</a></code>
+</p>
+<div class="desc inherited"><p>Open the bands and compute the wanted index …</p></div>
+</dd>
 <dt id="eoreader.products.sar.sar_product.SarProduct.has_band"><code class="name flex">
 <p>def <span class="ident">has_band</span>(</p><p>self, <br>band)</p>
 </code></dt>
@@ -2466,7 +2286,7 @@ except from L8-collection 1 data which outputs a pandas DataFrame …</p></div>
 <div class="desc inherited"><p>Does this products has the specified band ? …</p></div>
 </dd>
 <dt id="eoreader.products.sar.sar_product.SarProduct.stack"><code class="name flex">
-<p>def <span class="ident">stack</span>(</p><p>self, <br>band_and_idx_combination, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
+<p>def <span class="ident">stack</span>(</p><p>self, <br>bands, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -2580,11 +2400,11 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.get_band_paths" href="#eoreader.products.sar.sar_product.SarProduct.get_band_paths">get_band_paths</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.get_existing_band_paths" href="#eoreader.products.sar.sar_product.SarProduct.get_existing_band_paths">get_existing_band_paths</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.get_existing_bands" href="#eoreader.products.sar.sar_product.SarProduct.get_existing_bands">get_existing_bands</a></code></li>
-<li><code><a title="eoreader.products.sar.sar_product.SarProduct.load" href="#eoreader.products.sar.sar_product.SarProduct.load">load</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.footprint" href="../product.html#eoreader.products.sar.sar_product.SarProduct.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.get_datetime" href="../product.html#eoreader.products.sar.sar_product.SarProduct.get_datetime">get_datetime</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.get_date" href="../product.html#eoreader.products.sar.sar_product.SarProduct.get_date">get_date</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.read_mtd" href="../product.html#eoreader.products.sar.sar_product.SarProduct.read_mtd">read_mtd</a></code></li>
+<li><code><a title="eoreader.products.sar.sar_product.SarProduct.load" href="../product.html#eoreader.products.sar.sar_product.SarProduct.load">load</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.has_band" href="../product.html#eoreader.products.sar.sar_product.SarProduct.has_band">has_band</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.stack" href="../product.html#eoreader.products.sar.sar_product.SarProduct.stack">stack</a></code></li>
 </ul>

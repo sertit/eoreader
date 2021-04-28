@@ -42,21 +42,21 @@ from eoreader.products.optical.landsat_product import LandsatProduct, LandsatPro
 
 
 class L4Product(LandsatProduct):
-    &#34;&#34;&#34; Class of Landsat-4 Products &#34;&#34;&#34;
+    &#34;&#34;&#34;Class of Landsat-4 Products&#34;&#34;&#34;
 
     def _set_resolution(self) -&gt; float:
         &#34;&#34;&#34;
         Set product default resolution (in meters)
         &#34;&#34;&#34;
         if self.product_type == LandsatProductType.L1_TM:
-            def_res = 60.
+            def_res = 60.0
         else:
             # DO NOT TAKE INTO ACCOUNT TIRS RES
-            def_res = 30.
+            def_res = 30.0
         return def_res
 
     def _set_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Get products type &#34;&#34;&#34;
+        &#34;&#34;&#34;Get products type&#34;&#34;&#34;
         if &#34;LT04&#34; in self.name:
             self._set_tm_product_type()
         elif &#34;LM04&#34; in self.name:
@@ -85,21 +85,21 @@ class L4Product(LandsatProduct):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class L4Product(LandsatProduct):
-    &#34;&#34;&#34; Class of Landsat-4 Products &#34;&#34;&#34;
+    &#34;&#34;&#34;Class of Landsat-4 Products&#34;&#34;&#34;
 
     def _set_resolution(self) -&gt; float:
         &#34;&#34;&#34;
         Set product default resolution (in meters)
         &#34;&#34;&#34;
         if self.product_type == LandsatProductType.L1_TM:
-            def_res = 60.
+            def_res = 60.0
         else:
             # DO NOT TAKE INTO ACCOUNT TIRS RES
-            def_res = 30.
+            def_res = 30.0
         return def_res
 
     def _set_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Get products type &#34;&#34;&#34;
+        &#34;&#34;&#34;Get products type&#34;&#34;&#34;
         if &#34;LT04&#34; in self.name:
             self._set_tm_product_type()
         elif &#34;LM04&#34; in self.name:
@@ -291,7 +291,7 @@ For SAR product, we use Ground Range resolution as we will automatically orthore
 </p>
 <div class="desc inherited"><p>Condensed name, the filename with only useful data to keep the name unique
 (ie. <code>20191215T110441_S2_30TXP_L2A_122756</code>).
-Used to shorten names and …</p></div>
+Used to shorten names and paths.</p></div>
 </dd>
 <dt id="eoreader.products.optical.l4_product.L4Product.sat_id"><code class="name">var <span class="ident">sat_id</span></code>
 </dt>
@@ -415,16 +415,6 @@ Used to shorten names and …</p></div>
 </p>
 <div class="desc inherited"><p>Return the existing band paths …</p></div>
 </dd>
-<dt id="eoreader.products.optical.l4_product.L4Product.load"><code class="name flex">
-<p>def <span class="ident">load</span>(</p><p>self, <br>band_and_idx_list, <br>resolution=None, <br>size=None)</p>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="eoreader.products.optical.landsat_product.LandsatProduct" href="landsat_product.html#eoreader.products.optical.landsat_product.LandsatProduct">LandsatProduct</a></code>.<code><a title="eoreader.products.optical.landsat_product.LandsatProduct.load" href="optical_product.html#eoreader.products.optical.landsat_product.LandsatProduct.load">load</a></code>
-</p>
-<div class="desc inherited"><p>Open the bands and compute the wanted index …</p></div>
-</dd>
 <dt id="eoreader.products.optical.l4_product.L4Product.get_date"><code class="name flex">
 <p>def <span class="ident">get_date</span>(</p><p>self, <br>as_date=False)</p>
 </code></dt>
@@ -434,6 +424,16 @@ Used to shorten names and …</p></div>
 <code><a title="eoreader.products.optical.landsat_product.LandsatProduct" href="landsat_product.html#eoreader.products.optical.landsat_product.LandsatProduct">LandsatProduct</a></code>.<code><a title="eoreader.products.optical.landsat_product.LandsatProduct.get_date" href="../product.html#eoreader.products.optical.landsat_product.LandsatProduct.get_date">get_date</a></code>
 </p>
 <div class="desc inherited"><p>Get the product's acquisition date …</p></div>
+</dd>
+<dt id="eoreader.products.optical.l4_product.L4Product.load"><code class="name flex">
+<p>def <span class="ident">load</span>(</p><p>self, <br>bands, <br>resolution=None, <br>size=None)</p>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="eoreader.products.optical.landsat_product.LandsatProduct" href="landsat_product.html#eoreader.products.optical.landsat_product.LandsatProduct">LandsatProduct</a></code>.<code><a title="eoreader.products.optical.landsat_product.LandsatProduct.load" href="../product.html#eoreader.products.optical.landsat_product.LandsatProduct.load">load</a></code>
+</p>
+<div class="desc inherited"><p>Open the bands and compute the wanted index …</p></div>
 </dd>
 <dt id="eoreader.products.optical.l4_product.L4Product.has_band"><code class="name flex">
 <p>def <span class="ident">has_band</span>(</p><p>self, <br>band)</p>
@@ -446,7 +446,7 @@ Used to shorten names and …</p></div>
 <div class="desc inherited"><p>Does this products has the specified band ? …</p></div>
 </dd>
 <dt id="eoreader.products.optical.l4_product.L4Product.stack"><code class="name flex">
-<p>def <span class="ident">stack</span>(</p><p>self, <br>band_and_idx_combination, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
+<p>def <span class="ident">stack</span>(</p><p>self, <br>bands, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -545,8 +545,8 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.products.optical.l4_product.L4Product.extent" href="optical_product.html#eoreader.products.optical.l4_product.L4Product.extent">extent</a></code></li>
 <li><code><a title="eoreader.products.optical.l4_product.L4Product.get_existing_bands" href="optical_product.html#eoreader.products.optical.l4_product.L4Product.get_existing_bands">get_existing_bands</a></code></li>
 <li><code><a title="eoreader.products.optical.l4_product.L4Product.get_existing_band_paths" href="optical_product.html#eoreader.products.optical.l4_product.L4Product.get_existing_band_paths">get_existing_band_paths</a></code></li>
-<li><code><a title="eoreader.products.optical.l4_product.L4Product.load" href="optical_product.html#eoreader.products.optical.l4_product.L4Product.load">load</a></code></li>
 <li><code><a title="eoreader.products.optical.l4_product.L4Product.get_date" href="../product.html#eoreader.products.optical.l4_product.L4Product.get_date">get_date</a></code></li>
+<li><code><a title="eoreader.products.optical.l4_product.L4Product.load" href="../product.html#eoreader.products.optical.l4_product.L4Product.load">load</a></code></li>
 <li><code><a title="eoreader.products.optical.l4_product.L4Product.has_band" href="../product.html#eoreader.products.optical.l4_product.L4Product.has_band">has_band</a></code></li>
 <li><code><a title="eoreader.products.optical.l4_product.L4Product.stack" href="../product.html#eoreader.products.optical.l4_product.L4Product.stack">stack</a></code></li>
 </ul>

@@ -40,27 +40,32 @@ integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></sc
 
 
 class EoReaderError(Exception):
-    &#34;&#34;&#34; EOReader error &#34;&#34;&#34;
+    &#34;&#34;&#34;EOReader error&#34;&#34;&#34;
+
     pass
 
 
 class InvalidBandError(EoReaderError):
-    &#34;&#34;&#34; Invalid Band error, thrown when a non existing band is asked to a product. &#34;&#34;&#34;
+    &#34;&#34;&#34;Invalid Band error, thrown when a non existing band is asked to a product.&#34;&#34;&#34;
+
     pass
 
 
 class InvalidIndexError(InvalidBandError):
-    &#34;&#34;&#34; Invalid Index error, thrown when a non existing band is asked to a produc. &#34;&#34;&#34;
+    &#34;&#34;&#34;Invalid Index error, thrown when a non existing band is asked to a produc.&#34;&#34;&#34;
+
     pass
 
 
 class InvalidProductError(EoReaderError):
-    &#34;&#34;&#34; Invalid Product error, thrown when satellite product is not as expected. &#34;&#34;&#34;
+    &#34;&#34;&#34;Invalid Product error, thrown when satellite product is not as expected.&#34;&#34;&#34;
+
     pass
 
 
 class InvalidTypeError(EoReaderError, TypeError):
-    &#34;&#34;&#34; Tile Name error, thrown when an unknown type is given (shouldn&#39;t never happen). &#34;&#34;&#34;
+    &#34;&#34;&#34;Tile Name error, thrown when an unknown type is given (shouldn&#39;t never happen).&#34;&#34;&#34;
+
     pass</code></pre>
 </details>
 </section>
@@ -84,7 +89,8 @@ class InvalidTypeError(EoReaderError, TypeError):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class EoReaderError(Exception):
-    &#34;&#34;&#34; EOReader error &#34;&#34;&#34;
+    &#34;&#34;&#34;EOReader error&#34;&#34;&#34;
+
     pass</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -110,7 +116,8 @@ class InvalidTypeError(EoReaderError, TypeError):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class InvalidBandError(EoReaderError):
-    &#34;&#34;&#34; Invalid Band error, thrown when a non existing band is asked to a product. &#34;&#34;&#34;
+    &#34;&#34;&#34;Invalid Band error, thrown when a non existing band is asked to a product.&#34;&#34;&#34;
+
     pass</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -135,7 +142,8 @@ class InvalidTypeError(EoReaderError, TypeError):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class InvalidIndexError(InvalidBandError):
-    &#34;&#34;&#34; Invalid Index error, thrown when a non existing band is asked to a produc. &#34;&#34;&#34;
+    &#34;&#34;&#34;Invalid Index error, thrown when a non existing band is asked to a produc.&#34;&#34;&#34;
+
     pass</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -157,7 +165,8 @@ class InvalidTypeError(EoReaderError, TypeError):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class InvalidProductError(EoReaderError):
-    &#34;&#34;&#34; Invalid Product error, thrown when satellite product is not as expected. &#34;&#34;&#34;
+    &#34;&#34;&#34;Invalid Product error, thrown when satellite product is not as expected.&#34;&#34;&#34;
+
     pass</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -178,7 +187,8 @@ class InvalidTypeError(EoReaderError, TypeError):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class InvalidTypeError(EoReaderError, TypeError):
-    &#34;&#34;&#34; Tile Name error, thrown when an unknown type is given (shouldn&#39;t never happen). &#34;&#34;&#34;
+    &#34;&#34;&#34;Tile Name error, thrown when an unknown type is given (shouldn&#39;t never happen).&#34;&#34;&#34;
+
     pass</code></pre>
 </details>
 <h3>Ancestors</h3>

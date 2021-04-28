@@ -225,7 +225,8 @@ class Product:
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        return rasters.get_footprint(self.get_default_band_path())
+        default_xda = self.load(self.get_default_band())
+        return rasters.get_footprint(default_xda)
 
     @abstractmethod
     def extent(self) -> gpd.GeoDataFrame:

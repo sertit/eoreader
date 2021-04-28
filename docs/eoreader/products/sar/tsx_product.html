@@ -45,20 +45,20 @@ More info [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Product
 import glob
 import logging
 import os
+import warnings
 from datetime import datetime
 from enum import unique
-import warnings
 from typing import Union
 
-import rasterio
 import geopandas as gpd
+import rasterio
 from lxml import etree
+
+from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.products.sar.sar_product import SarProduct
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 from sertit import vectors
 from sertit.misc import ListEnum
-
-from eoreader.exceptions import InvalidTypeError, InvalidProductError
-from eoreader.products.sar.sar_product import SarProduct
-from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -72,6 +72,7 @@ class TsxProductType(ListEnum):
     TerraSAR-X projection identifier.
     Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
     &#34;&#34;&#34;
+
     SSC = &#34;SSC&#34;
     &#34;&#34;&#34;Single Look Slant Range, Complex representation&#34;&#34;&#34;
 
@@ -91,6 +92,7 @@ class TsxSensorMode(ListEnum):
     TerraSAR-X sensor mode.
     Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
     &#34;&#34;&#34;
+
     HS = &#34;HS&#34;
     &#34;&#34;&#34;High Resolution Spotlight&#34;&#34;&#34;
 
@@ -113,6 +115,7 @@ class TsxPolarization(ListEnum):
     TerraSAR-X polarization mode.
     Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
     &#34;&#34;&#34;
+
     SINGLE = &#34;S&#34;
     &#34;&#34;&#34;&#34;Single Polarization&#34;&#34;&#34;
 
@@ -127,7 +130,7 @@ class TsxPolarization(ListEnum):
 
 
 class TsxProduct(SarProduct):
-    &#34;&#34;&#34; Class for TerraSAR-X Products &#34;&#34;&#34;
+    &#34;&#34;&#34;Class for TerraSAR-X Products&#34;&#34;&#34;
 
     def _set_resolution(self) -&gt; float:
         &#34;&#34;&#34;
@@ -144,10 +147,12 @@ class TsxProduct(SarProduct):
             root, _ = self.read_mtd()
 
             for element in root:
-                if element.tag == &#39;productInfo&#39;:
-                    image_data = element.find(&#39;imageDataInfo&#39;)
-                    image_raster = image_data.find(&#39;imageRaster&#39;)
-                    def_res = float(image_raster.findtext(&#39;rowSpacing&#39;))  # Square pixels
+                if element.tag == &#34;productInfo&#34;:
+                    image_data = element.find(&#34;imageDataInfo&#34;)
+                    image_raster = image_data.find(&#34;imageRaster&#34;)
+                    def_res = float(
+                        image_raster.findtext(&#34;rowSpacing&#34;)
+                    )  # Square pixels
                     break
         except (InvalidProductError, AttributeError):
             pass
@@ -182,10 +187,14 @@ class TsxProduct(SarProduct):
                     # self.sensor_mode == TsxSensorMode.SL:
                     def_res = 3.4 if se else 5.5
             elif pol_mode == TsxPolarization.QUAD:
-                raise NotImplementedError(f&#34;Quadratic polarization is not implemented yet: {self.name}&#34;)
+                raise NotImplementedError(
+                    f&#34;Quadratic polarization is not implemented yet: {self.name}&#34;
+                )
             else:
                 # if pol_mode == TsxPolarization.TWIN
-                raise NotImplementedError(f&#34;Twin polarization is not implemented yet: {self.name}&#34;)
+                raise NotImplementedError(
+                    f&#34;Twin polarization is not implemented yet: {self.name}&#34;
+                )
 
         return def_res
 
@@ -226,22 +235,31 @@ class TsxProduct(SarProduct):
         # Open extent KML file
         vectors.set_kml_driver()
         try:
-            extent_file = glob.glob(os.path.join(self.path, &#34;SUPPORT&#34;, &#34;GEARTH_POLY.kml&#34;))[0]
+            extent_file = glob.glob(
+                os.path.join(self.path, &#34;SUPPORT&#34;, &#34;GEARTH_POLY.kml&#34;)
+            )[0]
         except IndexError as ex:
-            raise InvalidProductError(f&#34;Extent file (products.kml) not found in {self.path}&#34;) from ex
+            raise InvalidProductError(
+                f&#34;Extent file (products.kml) not found in {self.path}&#34;
+            ) from ex
 
         extent_wgs84 = gpd.read_file(extent_file).envelope.to_crs(vectors.WGS84)
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
     def _set_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Get products type &#34;&#34;&#34;
-        self._get_sar_product_type(prod_type_pos=2,
-                                   gdrg_types=TsxProductType.MGD,
-                                   cplx_types=TsxProductType.SSC)
+        &#34;&#34;&#34;Get products type&#34;&#34;&#34;
+        self._get_sar_product_type(
+            prod_type_pos=2,
+            gdrg_types=TsxProductType.MGD,
+            cplx_types=TsxProductType.SSC,
+        )
         if self.product_type != TsxProductType.MGD:
-            LOGGER.warning(&#34;Other products type than MGD has not been tested for %s data. &#34;
-                           &#34;Use it at your own risks !&#34;, self.platform.value)
+            LOGGER.warning(
+                &#34;Other products type than MGD has not been tested for %s data. &#34;
+                &#34;Use it at your own risks !&#34;,
+                self.platform.value,
+            )
 
     def _set_sensor_mode(self) -&gt; None:
         &#34;&#34;&#34;
@@ -303,7 +321,9 @@ class TsxProduct(SarProduct):
             xml_tree = etree.parse(mtd_file)
             root = xml_tree.getroot()
         except IndexError as ex:
-            raise InvalidProductError(f&#34;Metadata file ({self.name}.xml) not found in {self.path}&#34;) from ex
+            raise InvalidProductError(
+                f&#34;Metadata file ({self.name}.xml) not found in {self.path}&#34;
+            ) from ex
 
         # Get namespace
         namespace = &#34;&#34;  # No namespace here
@@ -336,6 +356,7 @@ Take a look <a href="https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Pro
     TerraSAR-X projection identifier.
     Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
     &#34;&#34;&#34;
+
     SSC = &#34;SSC&#34;
     &#34;&#34;&#34;Single Look Slant Range, Complex representation&#34;&#34;&#34;
 
@@ -393,6 +414,7 @@ Take a look <a href="https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Pro
     TerraSAR-X sensor mode.
     Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
     &#34;&#34;&#34;
+
     HS = &#34;HS&#34;
     &#34;&#34;&#34;High Resolution Spotlight&#34;&#34;&#34;
 
@@ -458,6 +480,7 @@ Take a look <a href="https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Pro
     TerraSAR-X polarization mode.
     Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
     &#34;&#34;&#34;
+
     SINGLE = &#34;S&#34;
     &#34;&#34;&#34;&#34;Single Polarization&#34;&#34;&#34;
 
@@ -510,7 +533,7 @@ Take a look <a href="https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Pro
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class TsxProduct(SarProduct):
-    &#34;&#34;&#34; Class for TerraSAR-X Products &#34;&#34;&#34;
+    &#34;&#34;&#34;Class for TerraSAR-X Products&#34;&#34;&#34;
 
     def _set_resolution(self) -&gt; float:
         &#34;&#34;&#34;
@@ -527,10 +550,12 @@ Take a look <a href="https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Pro
             root, _ = self.read_mtd()
 
             for element in root:
-                if element.tag == &#39;productInfo&#39;:
-                    image_data = element.find(&#39;imageDataInfo&#39;)
-                    image_raster = image_data.find(&#39;imageRaster&#39;)
-                    def_res = float(image_raster.findtext(&#39;rowSpacing&#39;))  # Square pixels
+                if element.tag == &#34;productInfo&#34;:
+                    image_data = element.find(&#34;imageDataInfo&#34;)
+                    image_raster = image_data.find(&#34;imageRaster&#34;)
+                    def_res = float(
+                        image_raster.findtext(&#34;rowSpacing&#34;)
+                    )  # Square pixels
                     break
         except (InvalidProductError, AttributeError):
             pass
@@ -565,10 +590,14 @@ Take a look <a href="https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Pro
                     # self.sensor_mode == TsxSensorMode.SL:
                     def_res = 3.4 if se else 5.5
             elif pol_mode == TsxPolarization.QUAD:
-                raise NotImplementedError(f&#34;Quadratic polarization is not implemented yet: {self.name}&#34;)
+                raise NotImplementedError(
+                    f&#34;Quadratic polarization is not implemented yet: {self.name}&#34;
+                )
             else:
                 # if pol_mode == TsxPolarization.TWIN
-                raise NotImplementedError(f&#34;Twin polarization is not implemented yet: {self.name}&#34;)
+                raise NotImplementedError(
+                    f&#34;Twin polarization is not implemented yet: {self.name}&#34;
+                )
 
         return def_res
 
@@ -609,22 +638,31 @@ Take a look <a href="https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Pro
         # Open extent KML file
         vectors.set_kml_driver()
         try:
-            extent_file = glob.glob(os.path.join(self.path, &#34;SUPPORT&#34;, &#34;GEARTH_POLY.kml&#34;))[0]
+            extent_file = glob.glob(
+                os.path.join(self.path, &#34;SUPPORT&#34;, &#34;GEARTH_POLY.kml&#34;)
+            )[0]
         except IndexError as ex:
-            raise InvalidProductError(f&#34;Extent file (products.kml) not found in {self.path}&#34;) from ex
+            raise InvalidProductError(
+                f&#34;Extent file (products.kml) not found in {self.path}&#34;
+            ) from ex
 
         extent_wgs84 = gpd.read_file(extent_file).envelope.to_crs(vectors.WGS84)
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
     def _set_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Get products type &#34;&#34;&#34;
-        self._get_sar_product_type(prod_type_pos=2,
-                                   gdrg_types=TsxProductType.MGD,
-                                   cplx_types=TsxProductType.SSC)
+        &#34;&#34;&#34;Get products type&#34;&#34;&#34;
+        self._get_sar_product_type(
+            prod_type_pos=2,
+            gdrg_types=TsxProductType.MGD,
+            cplx_types=TsxProductType.SSC,
+        )
         if self.product_type != TsxProductType.MGD:
-            LOGGER.warning(&#34;Other products type than MGD has not been tested for %s data. &#34;
-                           &#34;Use it at your own risks !&#34;, self.platform.value)
+            LOGGER.warning(
+                &#34;Other products type than MGD has not been tested for %s data. &#34;
+                &#34;Use it at your own risks !&#34;,
+                self.platform.value,
+            )
 
     def _set_sensor_mode(self) -&gt; None:
         &#34;&#34;&#34;
@@ -686,7 +724,9 @@ Take a look <a href="https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Pro
             xml_tree = etree.parse(mtd_file)
             root = xml_tree.getroot()
         except IndexError as ex:
-            raise InvalidProductError(f&#34;Metadata file ({self.name}.xml) not found in {self.path}&#34;) from ex
+            raise InvalidProductError(
+                f&#34;Metadata file ({self.name}.xml) not found in {self.path}&#34;
+            ) from ex
 
         # Get namespace
         namespace = &#34;&#34;  # No namespace here
@@ -903,7 +943,7 @@ For SAR product, we use Ground Range resolution as we will automatically orthore
 </p>
 <div class="desc inherited"><p>Condensed name, the filename with only useful data to keep the name unique
 (ie. <code>20191215T110441_S2_30TXP_L2A_122756</code>).
-Used to shorten names and …</p></div>
+Used to shorten names and paths.</p></div>
 </dd>
 <dt id="eoreader.products.sar.tsx_product.TsxProduct.sat_id"><code class="name">var <span class="ident">sat_id</span></code>
 </dt>
@@ -960,9 +1000,13 @@ This is useful when the SAR pre-process has not been done yet.</p>
     # Open extent KML file
     vectors.set_kml_driver()
     try:
-        extent_file = glob.glob(os.path.join(self.path, &#34;SUPPORT&#34;, &#34;GEARTH_POLY.kml&#34;))[0]
+        extent_file = glob.glob(
+            os.path.join(self.path, &#34;SUPPORT&#34;, &#34;GEARTH_POLY.kml&#34;)
+        )[0]
     except IndexError as ex:
-        raise InvalidProductError(f&#34;Extent file (products.kml) not found in {self.path}&#34;) from ex
+        raise InvalidProductError(
+            f&#34;Extent file (products.kml) not found in {self.path}&#34;
+        ) from ex
 
     extent_wgs84 = gpd.read_file(extent_file).envelope.to_crs(vectors.WGS84)
 
@@ -1064,7 +1108,9 @@ datetime.datetime(2016, 2, 29, 22, 30, 18)
         xml_tree = etree.parse(mtd_file)
         root = xml_tree.getroot()
     except IndexError as ex:
-        raise InvalidProductError(f&#34;Metadata file ({self.name}.xml) not found in {self.path}&#34;) from ex
+        raise InvalidProductError(
+            f&#34;Metadata file ({self.name}.xml) not found in {self.path}&#34;
+        ) from ex
 
     # Get namespace
     namespace = &#34;&#34;  # No namespace here
@@ -1143,16 +1189,6 @@ The first existing one between <code>VV</code> and <code>HH</code> for SAR data 
 </p>
 <div class="desc inherited"><p>Return the existing orthorectified bands (including despeckle bands) …</p></div>
 </dd>
-<dt id="eoreader.products.sar.tsx_product.TsxProduct.load"><code class="name flex">
-<p>def <span class="ident">load</span>(</p><p>self, <br>band_and_idx_list, <br>resolution=None, <br>size=None)</p>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="eoreader.products.sar.sar_product.SarProduct" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct">SarProduct</a></code>.<code><a title="eoreader.products.sar.sar_product.SarProduct.load" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct.load">load</a></code>
-</p>
-<div class="desc inherited"><p>Load SAR (and DEM) bands …</p></div>
-</dd>
 <dt id="eoreader.products.sar.tsx_product.TsxProduct.footprint"><code class="name flex">
 <p>def <span class="ident">footprint</span>(</p><p>self)</p>
 </code></dt>
@@ -1173,6 +1209,16 @@ The first existing one between <code>VV</code> and <code>HH</code> for SAR data 
 </p>
 <div class="desc inherited"><p>Get the product's acquisition date …</p></div>
 </dd>
+<dt id="eoreader.products.sar.tsx_product.TsxProduct.load"><code class="name flex">
+<p>def <span class="ident">load</span>(</p><p>self, <br>bands, <br>resolution=None, <br>size=None)</p>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="eoreader.products.sar.sar_product.SarProduct" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct">SarProduct</a></code>.<code><a title="eoreader.products.sar.sar_product.SarProduct.load" href="../product.html#eoreader.products.sar.sar_product.SarProduct.load">load</a></code>
+</p>
+<div class="desc inherited"><p>Open the bands and compute the wanted index …</p></div>
+</dd>
 <dt id="eoreader.products.sar.tsx_product.TsxProduct.has_band"><code class="name flex">
 <p>def <span class="ident">has_band</span>(</p><p>self, <br>band)</p>
 </code></dt>
@@ -1184,7 +1230,7 @@ The first existing one between <code>VV</code> and <code>HH</code> for SAR data 
 <div class="desc inherited"><p>Does this products has the specified band ? …</p></div>
 </dd>
 <dt id="eoreader.products.sar.tsx_product.TsxProduct.stack"><code class="name flex">
-<p>def <span class="ident">stack</span>(</p><p>self, <br>band_and_idx_combination, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
+<p>def <span class="ident">stack</span>(</p><p>self, <br>bands, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -1340,9 +1386,9 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.products.sar.tsx_product.TsxProduct.get_band_paths" href="sar_product.html#eoreader.products.sar.tsx_product.TsxProduct.get_band_paths">get_band_paths</a></code></li>
 <li><code><a title="eoreader.products.sar.tsx_product.TsxProduct.get_existing_band_paths" href="sar_product.html#eoreader.products.sar.tsx_product.TsxProduct.get_existing_band_paths">get_existing_band_paths</a></code></li>
 <li><code><a title="eoreader.products.sar.tsx_product.TsxProduct.get_existing_bands" href="sar_product.html#eoreader.products.sar.tsx_product.TsxProduct.get_existing_bands">get_existing_bands</a></code></li>
-<li><code><a title="eoreader.products.sar.tsx_product.TsxProduct.load" href="sar_product.html#eoreader.products.sar.tsx_product.TsxProduct.load">load</a></code></li>
 <li><code><a title="eoreader.products.sar.tsx_product.TsxProduct.footprint" href="../product.html#eoreader.products.sar.tsx_product.TsxProduct.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.sar.tsx_product.TsxProduct.get_date" href="../product.html#eoreader.products.sar.tsx_product.TsxProduct.get_date">get_date</a></code></li>
+<li><code><a title="eoreader.products.sar.tsx_product.TsxProduct.load" href="../product.html#eoreader.products.sar.tsx_product.TsxProduct.load">load</a></code></li>
 <li><code><a title="eoreader.products.sar.tsx_product.TsxProduct.has_band" href="../product.html#eoreader.products.sar.tsx_product.TsxProduct.has_band">has_band</a></code></li>
 <li><code><a title="eoreader.products.sar.tsx_product.TsxProduct.stack" href="../product.html#eoreader.products.sar.tsx_product.TsxProduct.stack">stack</a></code></li>
 </ul>

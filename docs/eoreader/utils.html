@@ -74,7 +74,7 @@ def get_data_dir() -&gt; str:
     Returns:
         str: Data directory
     &#34;&#34;&#34;
-    return os.path.abspath(os.path.join(get_src_dir(), &#39;data&#39;))
+    return os.path.abspath(os.path.join(get_src_dir(), &#34;data&#34;))
 
 
 def get_db_dir() -&gt; str:
@@ -84,13 +84,13 @@ def get_db_dir() -&gt; str:
     Returns:
         str: Database directory
     &#34;&#34;&#34;
-    db_dir = os.path.join(r&#39;\\ds2&#39;, &#39;database02&#39;, &#39;BASES_DE_DONNEES&#39;)
+    db_dir = os.path.join(r&#34;\\ds2&#34;, &#34;database02&#34;, &#34;BASES_DE_DONNEES&#34;)
 
     if not os.path.isdir(db_dir):
         try:
-            db_dir = os.path.join(get_db2_path(), &#39;BASES_DE_DONNEES&#39;)
+            db_dir = os.path.join(get_db2_path(), &#34;BASES_DE_DONNEES&#34;)
         except NotADirectoryError:
-            db_dir = os.path.join(&#34;/home&#34;, &#34;ds2_db2&#34;, &#39;BASES_DE_DONNEES&#39;)
+            db_dir = os.path.join(&#34;/home&#34;, &#34;ds2_db2&#34;, &#34;BASES_DE_DONNEES&#34;)
 
     if not os.path.isdir(db_dir):
         raise NotADirectoryError(&#34;Impossible to open database directory !&#34;)
@@ -174,7 +174,7 @@ def get_db_dir() -&gt; str:
     Returns:
         str: Data directory
     &#34;&#34;&#34;
-    return os.path.abspath(os.path.join(get_src_dir(), &#39;data&#39;))</code></pre>
+    return os.path.abspath(os.path.join(get_src_dir(), &#34;data&#34;))</code></pre>
 </details>
 </dd>
 <dt id="eoreader.utils.get_db_dir"><code class="name flex">
@@ -198,13 +198,13 @@ def get_db_dir() -&gt; str:
     Returns:
         str: Database directory
     &#34;&#34;&#34;
-    db_dir = os.path.join(r&#39;\\ds2&#39;, &#39;database02&#39;, &#39;BASES_DE_DONNEES&#39;)
+    db_dir = os.path.join(r&#34;\\ds2&#34;, &#34;database02&#34;, &#34;BASES_DE_DONNEES&#34;)
 
     if not os.path.isdir(db_dir):
         try:
-            db_dir = os.path.join(get_db2_path(), &#39;BASES_DE_DONNEES&#39;)
+            db_dir = os.path.join(get_db2_path(), &#34;BASES_DE_DONNEES&#34;)
         except NotADirectoryError:
-            db_dir = os.path.join(&#34;/home&#34;, &#34;ds2_db2&#34;, &#39;BASES_DE_DONNEES&#39;)
+            db_dir = os.path.join(&#34;/home&#34;, &#34;ds2_db2&#34;, &#34;BASES_DE_DONNEES&#34;)
 
     if not os.path.isdir(db_dir):
         raise NotADirectoryError(&#34;Impossible to open database directory !&#34;)

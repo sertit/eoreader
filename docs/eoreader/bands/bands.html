@@ -39,17 +39,16 @@ integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></sc
 <pre><code class="python">&#34;&#34;&#34; Optical Bands &#34;&#34;&#34;
 # Lines too long
 # pylint: disable=C0301
-from enum import unique
 from collections.abc import MutableMapping
+from enum import unique
 from typing import Union
 
-from sertit.misc import ListEnum
-
 from eoreader.exceptions import InvalidTypeError
+from sertit.misc import ListEnum
 
 
 class _Bands(MutableMapping):
-    &#34;&#34;&#34; Super bands class, used as a dict &#34;&#34;&#34;
+    &#34;&#34;&#34;Super bands class, used as a dict&#34;&#34;&#34;
 
     def __init__(self, *args, **kwargs):
         self._band_map = dict()
@@ -72,7 +71,7 @@ class _Bands(MutableMapping):
 
 
 class BandNames(ListEnum):
-    &#34;&#34;&#34; Super class for band names, **do not use it**. &#34;&#34;&#34;
+    &#34;&#34;&#34;Super class for band names, **do not use it**.&#34;&#34;&#34;
 
     @classmethod
     def from_list(cls, name_list: Union[list, str]) -&gt; list:
@@ -95,7 +94,9 @@ class BandNames(ListEnum):
         try:
             band_names = [cls(name) for name in name_list]
         except ValueError as ex:
-            raise InvalidTypeError(f&#34;Band names ({name_list}) should be chosen among: {cls.list_names()}&#34;) from ex
+            raise InvalidTypeError(
+                f&#34;Band names ({name_list}) should be chosen among: {cls.list_names()}&#34;
+            ) from ex
 
         return band_names
 
@@ -126,7 +127,9 @@ class BandNames(ListEnum):
                 elif isinstance(key, cls):
                     out_list.append(key.value)
                 else:
-                    raise InvalidTypeError(&#34;The list should either contain strings or SarBandNames&#34;)
+                    raise InvalidTypeError(
+                        &#34;The list should either contain strings or SarBandNames&#34;
+                    )
         else:
             out_list = cls.list_values()
 
@@ -136,29 +139,30 @@ class BandNames(ListEnum):
 # ---------------------- SAR ----------------------
 @unique
 class SarBandNames(BandNames):
-    &#34;&#34;&#34; SAR Band names &#34;&#34;&#34;
-    VV = &#39;VV&#39;
+    &#34;&#34;&#34;SAR Band names&#34;&#34;&#34;
+
+    VV = &#34;VV&#34;
     &#34;&#34;&#34; Vertical Transmit-Vertical Receive Polarisation &#34;&#34;&#34;
 
-    VV_DSPK = &#39;VV_DSPK&#39;
+    VV_DSPK = &#34;VV_DSPK&#34;
     &#34;&#34;&#34; Vertical Transmit-Vertical Receive Polarisation Despeckled &#34;&#34;&#34;
 
-    HH = &#39;HH&#39;
+    HH = &#34;HH&#34;
     &#34;&#34;&#34; Horizontal Transmit-Horizontal Receive Polarisation &#34;&#34;&#34;
 
-    HH_DSPK = &#39;HH_DSPK&#39;
+    HH_DSPK = &#34;HH_DSPK&#34;
     &#34;&#34;&#34; Horizontal Transmit-Horizontal Receive Polarisation Despeckled &#34;&#34;&#34;
 
-    VH = &#39;VH&#39;
+    VH = &#34;VH&#34;
     &#34;&#34;&#34; Vertical Transmit-Horizontal Receive Polarisation &#34;&#34;&#34;
 
-    VH_DSPK = &#39;VH_DSPK&#39;
+    VH_DSPK = &#34;VH_DSPK&#34;
     &#34;&#34;&#34; Vertical Transmit-Horizontal Receive Polarisatio Despeckled &#34;&#34;&#34;
 
-    HV = &#39;HV&#39;
+    HV = &#34;HV&#34;
     &#34;&#34;&#34; Horizontal Transmit-Vertical Receive Polarisation &#34;&#34;&#34;
 
-    HV_DSPK = &#39;HV_DSPK&#39;
+    HV_DSPK = &#34;HV_DSPK&#34;
     &#34;&#34;&#34; Horizontal Transmit-Vertical Receive Polarisation Despeckled &#34;&#34;&#34;
 
     @classmethod
@@ -228,7 +232,7 @@ class SarBandNames(BandNames):
 # too many ancestors
 # pylint: disable=R0901
 class SarBands(_Bands):
-    &#34;&#34;&#34; SAR bands class &#34;&#34;&#34;
+    &#34;&#34;&#34;SAR bands class&#34;&#34;&#34;
 
     def __init__(self) -&gt; None:
         super().__init__({band_name: band_name.value for band_name in SarBandNames})
@@ -259,7 +263,8 @@ class OpticalBandNames(BandNames):
     This classification allows index computation and algorithms to run without knowing the band nb of every satellite.
     If None, then the band does not exist for the satellite.
     &#34;&#34;&#34;
-    CA = &#39;COASTAL_AEROSOL&#39;
+
+    CA = &#34;COASTAL_AEROSOL&#34;
     &#34;&#34;&#34;Coastal aerosol&#34;&#34;&#34;
 
     BLUE = &#34;BLUE&#34;
@@ -289,7 +294,7 @@ class OpticalBandNames(BandNames):
     WV = &#34;WATER_VAPOUR&#34;
     &#34;&#34;&#34;Water vapour&#34;&#34;&#34;
 
-    FNIR = &#34;FAR_NIR&#34;
+    FAR_NIR = &#34;FAR_NIR&#34;
     &#34;&#34;&#34;Far NIR&#34;&#34;&#34;
 
     SWIR_CIRRUS = &#34;CIRRUS&#34;
@@ -317,7 +322,7 @@ class OpticalBandNames(BandNames):
 # too many ancestors
 # pylint: disable=R0901
 class OpticalBands(_Bands):
-    &#34;&#34;&#34; Optical bands class &#34;&#34;&#34;
+    &#34;&#34;&#34;Optical bands class&#34;&#34;&#34;
 
     def __init__(self) -&gt; None:
         super().__init__({band_name: None for band_name in OpticalBandNames})
@@ -349,8 +354,12 @@ class OpticalBands(_Bands):
             band_map (dict): Band mapping as {OpticalBandNames: Band number for loading band}
         &#34;&#34;&#34;
         for band_name, band_nb in band_map.items():
-            if band_name not in self._band_map or not isinstance(band_name, OpticalBandNames):
-                raise InvalidTypeError(f&#34;{band_name} should be an OpticalBandNames object&#34;)
+            if band_name not in self._band_map or not isinstance(
+                band_name, OpticalBandNames
+            ):
+                raise InvalidTypeError(
+                    f&#34;{band_name} should be an OpticalBandNames object&#34;
+                )
 
             # Set number
             self._band_map[band_name] = band_nb
@@ -359,21 +368,22 @@ class OpticalBands(_Bands):
 # ---------------------- DEM ----------------------
 @unique
 class DemBandNames(BandNames):
-    &#34;&#34;&#34; DEM Band names &#34;&#34;&#34;
-    DEM = &#39;DEM&#39;
+    &#34;&#34;&#34;DEM Band names&#34;&#34;&#34;
+
+    DEM = &#34;DEM&#34;
     &#34;&#34;&#34; DEM &#34;&#34;&#34;
 
-    SLOPE = &#39;SLOPE&#39;
+    SLOPE = &#34;SLOPE&#34;
     &#34;&#34;&#34; Slope &#34;&#34;&#34;
 
-    HILLSHADE = &#39;HILLSHADE&#39;
+    HILLSHADE = &#34;HILLSHADE&#34;
     &#34;&#34;&#34; Hillshade &#34;&#34;&#34;
 
 
 # too many ancestors
 # pylint: disable=R0901
 class DemBands(_Bands):
-    &#34;&#34;&#34; DEM bands class &#34;&#34;&#34;
+    &#34;&#34;&#34;DEM bands class&#34;&#34;&#34;
 
     def __init__(self) -&gt; None:
         super().__init__({band_name: band_name.value for band_name in DemBandNames})
@@ -382,26 +392,28 @@ class DemBands(_Bands):
 # ---------------------- DEM ----------------------
 @unique
 class CloudsBandNames(BandNames):
-    &#34;&#34;&#34; Clouds Band names &#34;&#34;&#34;
-    RAW_CLOUDS = &#39;RAW CLOUDS&#39;
+    &#34;&#34;&#34;Clouds Band names&#34;&#34;&#34;
+
+    RAW_CLOUDS = &#34;RAW CLOUDS&#34;
     &#34;&#34;&#34; Raw cloud raster (can be either QA raster, rasterized cloud vectors...) &#34;&#34;&#34;
 
-    CLOUDS = &#39;CLOUDS&#39;
+    CLOUDS = &#34;CLOUDS&#34;
     &#34;&#34;&#34; Binary mask of clouds (High confidence) &#34;&#34;&#34;
 
-    SHADOWS = &#39;SHADOWS&#39;
+    SHADOWS = &#34;SHADOWS&#34;
     &#34;&#34;&#34; Binary mask of shadows (High confidence) &#34;&#34;&#34;
 
-    CIRRUS = &#39;CIRRUS&#39;
+    CIRRUS = &#34;CIRRUS&#34;
     &#34;&#34;&#34; Binary mask of cirrus (High confidence) &#34;&#34;&#34;
 
-    ALL_CLOUDS = &#39;ALL CLOUDS&#39;
+    ALL_CLOUDS = &#34;ALL CLOUDS&#34;
     &#34;&#34;&#34; All clouds (Including all high confidence clouds, shadows and cirrus) &#34;&#34;&#34;
+
 
 # too many ancestors
 # pylint: disable=R0901
 class CloudsBands(_Bands):
-    &#34;&#34;&#34; Clouds bands class &#34;&#34;&#34;
+    &#34;&#34;&#34;Clouds bands class&#34;&#34;&#34;
 
     def __init__(self) -&gt; None:
         super().__init__({band_name: band_name.value for band_name in CloudsBandNames})</code></pre>
@@ -427,7 +439,7 @@ class CloudsBands(_Bands):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class BandNames(ListEnum):
-    &#34;&#34;&#34; Super class for band names, **do not use it**. &#34;&#34;&#34;
+    &#34;&#34;&#34;Super class for band names, **do not use it**.&#34;&#34;&#34;
 
     @classmethod
     def from_list(cls, name_list: Union[list, str]) -&gt; list:
@@ -450,7 +462,9 @@ class CloudsBands(_Bands):
         try:
             band_names = [cls(name) for name in name_list]
         except ValueError as ex:
-            raise InvalidTypeError(f&#34;Band names ({name_list}) should be chosen among: {cls.list_names()}&#34;) from ex
+            raise InvalidTypeError(
+                f&#34;Band names ({name_list}) should be chosen among: {cls.list_names()}&#34;
+            ) from ex
 
         return band_names
 
@@ -481,7 +495,9 @@ class CloudsBands(_Bands):
                 elif isinstance(key, cls):
                     out_list.append(key.value)
                 else:
-                    raise InvalidTypeError(&#34;The list should either contain strings or SarBandNames&#34;)
+                    raise InvalidTypeError(
+                        &#34;The list should either contain strings or SarBandNames&#34;
+                    )
         else:
             out_list = cls.list_values()
 
@@ -544,7 +560,9 @@ def from_list(cls, name_list: Union[list, str]) -&gt; list:
     try:
         band_names = [cls(name) for name in name_list]
     except ValueError as ex:
-        raise InvalidTypeError(f&#34;Band names ({name_list}) should be chosen among: {cls.list_names()}&#34;) from ex
+        raise InvalidTypeError(
+            f&#34;Band names ({name_list}) should be chosen among: {cls.list_names()}&#34;
+        ) from ex
 
     return band_names</code></pre>
 </details>
@@ -600,7 +618,9 @@ def to_value_list(cls, name_list: list = None) -&gt; list:
             elif isinstance(key, cls):
                 out_list.append(key.value)
             else:
-                raise InvalidTypeError(&#34;The list should either contain strings or SarBandNames&#34;)
+                raise InvalidTypeError(
+                    &#34;The list should either contain strings or SarBandNames&#34;
+                )
     else:
         out_list = cls.list_values()
 
@@ -620,29 +640,30 @@ def to_value_list(cls, name_list: list = None) -&gt; list:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class SarBandNames(BandNames):
-    &#34;&#34;&#34; SAR Band names &#34;&#34;&#34;
-    VV = &#39;VV&#39;
+    &#34;&#34;&#34;SAR Band names&#34;&#34;&#34;
+
+    VV = &#34;VV&#34;
     &#34;&#34;&#34; Vertical Transmit-Vertical Receive Polarisation &#34;&#34;&#34;
 
-    VV_DSPK = &#39;VV_DSPK&#39;
+    VV_DSPK = &#34;VV_DSPK&#34;
     &#34;&#34;&#34; Vertical Transmit-Vertical Receive Polarisation Despeckled &#34;&#34;&#34;
 
-    HH = &#39;HH&#39;
+    HH = &#34;HH&#34;
     &#34;&#34;&#34; Horizontal Transmit-Horizontal Receive Polarisation &#34;&#34;&#34;
 
-    HH_DSPK = &#39;HH_DSPK&#39;
+    HH_DSPK = &#34;HH_DSPK&#34;
     &#34;&#34;&#34; Horizontal Transmit-Horizontal Receive Polarisation Despeckled &#34;&#34;&#34;
 
-    VH = &#39;VH&#39;
+    VH = &#34;VH&#34;
     &#34;&#34;&#34; Vertical Transmit-Horizontal Receive Polarisation &#34;&#34;&#34;
 
-    VH_DSPK = &#39;VH_DSPK&#39;
+    VH_DSPK = &#34;VH_DSPK&#34;
     &#34;&#34;&#34; Vertical Transmit-Horizontal Receive Polarisatio Despeckled &#34;&#34;&#34;
 
-    HV = &#39;HV&#39;
+    HV = &#34;HV&#34;
     &#34;&#34;&#34; Horizontal Transmit-Vertical Receive Polarisation &#34;&#34;&#34;
 
-    HV_DSPK = &#39;HV_DSPK&#39;
+    HV_DSPK = &#34;HV_DSPK&#34;
     &#34;&#34;&#34; Horizontal Transmit-Vertical Receive Polarisation Despeckled &#34;&#34;&#34;
 
     @classmethod
@@ -929,7 +950,7 @@ def is_despeckle(cls, band: &#34;SarBandNames&#34;):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class SarBands(_Bands):
-    &#34;&#34;&#34; SAR bands class &#34;&#34;&#34;
+    &#34;&#34;&#34;SAR bands class&#34;&#34;&#34;
 
     def __init__(self) -&gt; None:
         super().__init__({band_name: band_name.value for band_name in SarBandNames})</code></pre>
@@ -999,7 +1020,8 @@ If None, then the band does not exist for the satellite.</p></div>
     This classification allows index computation and algorithms to run without knowing the band nb of every satellite.
     If None, then the band does not exist for the satellite.
     &#34;&#34;&#34;
-    CA = &#39;COASTAL_AEROSOL&#39;
+
+    CA = &#34;COASTAL_AEROSOL&#34;
     &#34;&#34;&#34;Coastal aerosol&#34;&#34;&#34;
 
     BLUE = &#34;BLUE&#34;
@@ -1029,7 +1051,7 @@ If None, then the band does not exist for the satellite.</p></div>
     WV = &#34;WATER_VAPOUR&#34;
     &#34;&#34;&#34;Water vapour&#34;&#34;&#34;
 
-    FNIR = &#34;FAR_NIR&#34;
+    FAR_NIR = &#34;FAR_NIR&#34;
     &#34;&#34;&#34;Far NIR&#34;&#34;&#34;
 
     SWIR_CIRRUS = &#34;CIRRUS&#34;
@@ -1111,7 +1133,7 @@ If None, then the band does not exist for the satellite.</p></div>
 <dd>
 <div class="desc"><p>Water vapour</p></div>
 </dd>
-<dt id="eoreader.bands.bands.OpticalBandNames.FNIR"><code class="name">var <span class="ident">FNIR</span></code>
+<dt id="eoreader.bands.bands.OpticalBandNames.FAR_NIR"><code class="name">var <span class="ident">FAR_NIR</span></code>
 </dt>
 <dd>
 <div class="desc"><p>Far NIR</p></div>
@@ -1186,7 +1208,7 @@ If None, then the band does not exist for the satellite.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class OpticalBands(_Bands):
-    &#34;&#34;&#34; Optical bands class &#34;&#34;&#34;
+    &#34;&#34;&#34;Optical bands class&#34;&#34;&#34;
 
     def __init__(self) -&gt; None:
         super().__init__({band_name: None for band_name in OpticalBandNames})
@@ -1218,8 +1240,12 @@ If None, then the band does not exist for the satellite.</p></div>
             band_map (dict): Band mapping as {OpticalBandNames: Band number for loading band}
         &#34;&#34;&#34;
         for band_name, band_nb in band_map.items():
-            if band_name not in self._band_map or not isinstance(band_name, OpticalBandNames):
-                raise InvalidTypeError(f&#34;{band_name} should be an OpticalBandNames object&#34;)
+            if band_name not in self._band_map or not isinstance(
+                band_name, OpticalBandNames
+            ):
+                raise InvalidTypeError(
+                    f&#34;{band_name} should be an OpticalBandNames object&#34;
+                )
 
             # Set number
             self._band_map[band_name] = band_nb</code></pre>
@@ -1294,8 +1320,12 @@ If None, then the band does not exist for the satellite.</p></div>
         band_map (dict): Band mapping as {OpticalBandNames: Band number for loading band}
     &#34;&#34;&#34;
     for band_name, band_nb in band_map.items():
-        if band_name not in self._band_map or not isinstance(band_name, OpticalBandNames):
-            raise InvalidTypeError(f&#34;{band_name} should be an OpticalBandNames object&#34;)
+        if band_name not in self._band_map or not isinstance(
+            band_name, OpticalBandNames
+        ):
+            raise InvalidTypeError(
+                f&#34;{band_name} should be an OpticalBandNames object&#34;
+            )
 
         # Set number
         self._band_map[band_name] = band_nb</code></pre>
@@ -1314,14 +1344,15 @@ If None, then the band does not exist for the satellite.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class DemBandNames(BandNames):
-    &#34;&#34;&#34; DEM Band names &#34;&#34;&#34;
-    DEM = &#39;DEM&#39;
+    &#34;&#34;&#34;DEM Band names&#34;&#34;&#34;
+
+    DEM = &#34;DEM&#34;
     &#34;&#34;&#34; DEM &#34;&#34;&#34;
 
-    SLOPE = &#39;SLOPE&#39;
+    SLOPE = &#34;SLOPE&#34;
     &#34;&#34;&#34; Slope &#34;&#34;&#34;
 
-    HILLSHADE = &#39;HILLSHADE&#39;
+    HILLSHADE = &#34;HILLSHADE&#34;
     &#34;&#34;&#34; Hillshade &#34;&#34;&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1382,7 +1413,7 @@ If None, then the band does not exist for the satellite.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class DemBands(_Bands):
-    &#34;&#34;&#34; DEM bands class &#34;&#34;&#34;
+    &#34;&#34;&#34;DEM bands class&#34;&#34;&#34;
 
     def __init__(self) -&gt; None:
         super().__init__({band_name: band_name.value for band_name in DemBandNames})</code></pre>
@@ -1409,20 +1440,21 @@ If None, then the band does not exist for the satellite.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class CloudsBandNames(BandNames):
-    &#34;&#34;&#34; Clouds Band names &#34;&#34;&#34;
-    RAW_CLOUDS = &#39;RAW CLOUDS&#39;
+    &#34;&#34;&#34;Clouds Band names&#34;&#34;&#34;
+
+    RAW_CLOUDS = &#34;RAW CLOUDS&#34;
     &#34;&#34;&#34; Raw cloud raster (can be either QA raster, rasterized cloud vectors...) &#34;&#34;&#34;
 
-    CLOUDS = &#39;CLOUDS&#39;
+    CLOUDS = &#34;CLOUDS&#34;
     &#34;&#34;&#34; Binary mask of clouds (High confidence) &#34;&#34;&#34;
 
-    SHADOWS = &#39;SHADOWS&#39;
+    SHADOWS = &#34;SHADOWS&#34;
     &#34;&#34;&#34; Binary mask of shadows (High confidence) &#34;&#34;&#34;
 
-    CIRRUS = &#39;CIRRUS&#39;
+    CIRRUS = &#34;CIRRUS&#34;
     &#34;&#34;&#34; Binary mask of cirrus (High confidence) &#34;&#34;&#34;
 
-    ALL_CLOUDS = &#39;ALL CLOUDS&#39;
+    ALL_CLOUDS = &#34;ALL CLOUDS&#34;
     &#34;&#34;&#34; All clouds (Including all high confidence clouds, shadows and cirrus) &#34;&#34;&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1493,7 +1525,7 @@ If None, then the band does not exist for the satellite.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class CloudsBands(_Bands):
-    &#34;&#34;&#34; Clouds bands class &#34;&#34;&#34;
+    &#34;&#34;&#34;Clouds bands class&#34;&#34;&#34;
 
     def __init__(self) -&gt; None:
         super().__init__({band_name: band_name.value for band_name in CloudsBandNames})</code></pre>
@@ -1667,7 +1699,7 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.bands.bands.OpticalBandNames.NIR" href="#eoreader.bands.bands.OpticalBandNames.NIR">NIR</a></code></li>
 <li><code><a title="eoreader.bands.bands.OpticalBandNames.NARROW_NIR" href="#eoreader.bands.bands.OpticalBandNames.NARROW_NIR">NARROW_NIR</a></code></li>
 <li><code><a title="eoreader.bands.bands.OpticalBandNames.WV" href="#eoreader.bands.bands.OpticalBandNames.WV">WV</a></code></li>
-<li><code><a title="eoreader.bands.bands.OpticalBandNames.FNIR" href="#eoreader.bands.bands.OpticalBandNames.FNIR">FNIR</a></code></li>
+<li><code><a title="eoreader.bands.bands.OpticalBandNames.FAR_NIR" href="#eoreader.bands.bands.OpticalBandNames.FAR_NIR">FAR_NIR</a></code></li>
 <li><code><a title="eoreader.bands.bands.OpticalBandNames.SWIR_CIRRUS" href="#eoreader.bands.bands.OpticalBandNames.SWIR_CIRRUS">SWIR_CIRRUS</a></code></li>
 <li><code><a title="eoreader.bands.bands.OpticalBandNames.SWIR_1" href="#eoreader.bands.bands.OpticalBandNames.SWIR_1">SWIR_1</a></code></li>
 <li><code><a title="eoreader.bands.bands.OpticalBandNames.SWIR_2" href="#eoreader.bands.bands.OpticalBandNames.SWIR_2">SWIR_2</a></code></li>

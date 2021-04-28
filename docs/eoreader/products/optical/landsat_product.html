@@ -41,33 +41,34 @@ import glob
 import logging
 import os
 import tarfile
-from datetime import datetime
 from abc import abstractmethod
+from datetime import datetime
 from enum import unique
-from typing import Union, Tuple
+from typing import Tuple, Union
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
-import geopandas as gpd
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import files
-from sertit import rasters
-from sertit.misc import ListEnum
 
+from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
+from eoreader.bands.bands import BandNames
+from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.bands.bands import OpticalBandNames as obn, BandNames
-from eoreader.bands.alias import ALL_CLOUDS, RAW_CLOUDS, CLOUDS, SHADOWS, CIRRUS
 from eoreader.products.optical.optical_product import OpticalProduct
-from eoreader.products.product import path_or_dst
-from eoreader.utils import EOREADER_NAME, DATETIME_FMT
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from sertit import files, rasters
+from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 @unique
 class LandsatProductType(ListEnum):
-    &#34;&#34;&#34; Landsat products types &#34;&#34;&#34;
+    &#34;&#34;&#34;Landsat products types&#34;&#34;&#34;
+
     L1_OLCI = &#34;OLCI&#34;
     &#34;&#34;&#34;OLCI Product Type, for Landsat-8 platform&#34;&#34;&#34;
 
@@ -87,6 +88,7 @@ class LandsatCollection(ListEnum):
     Landsat collection number.
     See [here](https://www.usgs.gov/media/files/landsat-collection-1-vs-collection-2-summary) for more information
     &#34;&#34;&#34;
+
     COL_1 = &#34;01&#34;
     &#34;&#34;&#34;Collection 1&#34;&#34;&#34;
 
@@ -101,7 +103,9 @@ class LandsatProduct(OpticalProduct):
     You can use directly the .tar file in case of collection 2 products.
     &#34;&#34;&#34;
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -&gt; None:
+    def __init__(
+        self, product_path: str, archive_path: str = None, output_path=None
+    ) -&gt; None:
         # Private
         self._collection = None
         self._quality_id = None
@@ -110,7 +114,7 @@ class LandsatProduct(OpticalProduct):
         super().__init__(product_path, archive_path, output_path)
 
     def _set_collection(self):
-        &#34;&#34;&#34; Set Landsat collection &#34;&#34;&#34;
+        &#34;&#34;&#34;Set Landsat collection&#34;&#34;&#34;
         return LandsatCollection.from_value(self.split_name[-2])
 
     def _post_init(self) -&gt; None:
@@ -205,80 +209,88 @@ class LandsatProduct(OpticalProduct):
 
     @abstractmethod
     def _set_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Get products type &#34;&#34;&#34;
+        &#34;&#34;&#34;Get products type&#34;&#34;&#34;
         raise NotImplementedError(&#34;This method should be implemented by a child class&#34;)
 
     def _set_mss_product_type(self, version: int) -&gt; None:
-        &#34;&#34;&#34; Set MSS product type and map corresponding bands &#34;&#34;&#34;
+        &#34;&#34;&#34;Set MSS product type and map corresponding bands&#34;&#34;&#34;
         if &#34;L1&#34; in self.name:
             self.product_type = LandsatProductType.L1_MSS
-            self.band_names.map_bands({
-                obn.GREEN: &#39;4&#39; if version &lt; 4 else &#39;1&#39;,
-                obn.RED: &#39;5&#39; if version &lt; 4 else &#39;2&#39;,
-                obn.VRE_1: &#39;6&#39; if version &lt; 4 else &#39;3&#39;,
-                obn.VRE_2: &#39;6&#39; if version &lt; 4 else &#39;3&#39;,
-                obn.VRE_3: &#39;6&#39; if version &lt; 4 else &#39;3&#39;,
-                obn.NIR: &#39;7&#39; if version &lt; 4 else &#39;4&#39;,
-                obn.NARROW_NIR: &#39;7&#39; if version &lt; 4 else &#39;4&#39;
-            })
+            self.band_names.map_bands(
+                {
+                    obn.GREEN: &#34;4&#34; if version &lt; 4 else &#34;1&#34;,
+                    obn.RED: &#34;5&#34; if version &lt; 4 else &#34;2&#34;,
+                    obn.VRE_1: &#34;6&#34; if version &lt; 4 else &#34;3&#34;,
+                    obn.VRE_2: &#34;6&#34; if version &lt; 4 else &#34;3&#34;,
+                    obn.VRE_3: &#34;6&#34; if version &lt; 4 else &#34;3&#34;,
+                    obn.NIR: &#34;7&#34; if version &lt; 4 else &#34;4&#34;,
+                    obn.NARROW_NIR: &#34;7&#34; if version &lt; 4 else &#34;4&#34;,
+                }
+            )
         else:
             raise InvalidProductError(&#34;Only Landsat level 1 are managed in EOReader&#34;)
 
     def _set_tm_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Set TM product type and map corresponding bands &#34;&#34;&#34;
+        &#34;&#34;&#34;Set TM product type and map corresponding bands&#34;&#34;&#34;
         if &#34;L1&#34; in self.name:
             self.product_type = LandsatProductType.L1_TM
-            self.band_names.map_bands({
-                obn.BLUE: &#39;1&#39;,
-                obn.GREEN: &#39;2&#39;,
-                obn.RED: &#39;3&#39;,
-                obn.NIR: &#39;4&#39;,
-                obn.NARROW_NIR: &#39;4&#39;,
-                obn.SWIR_1: &#39;5&#39;,
-                obn.SWIR_2: &#39;7&#39;,
-                obn.TIR_1: &#39;6&#39;,
-                obn.TIR_2: &#39;6&#39;
-            })
+            self.band_names.map_bands(
+                {
+                    obn.BLUE: &#34;1&#34;,
+                    obn.GREEN: &#34;2&#34;,
+                    obn.RED: &#34;3&#34;,
+                    obn.NIR: &#34;4&#34;,
+                    obn.NARROW_NIR: &#34;4&#34;,
+                    obn.SWIR_1: &#34;5&#34;,
+                    obn.SWIR_2: &#34;7&#34;,
+                    obn.TIR_1: &#34;6&#34;,
+                    obn.TIR_2: &#34;6&#34;,
+                }
+            )
         else:
             raise InvalidProductError(&#34;Only Landsat level 1 are managed in EOReader&#34;)
 
     def _set_etm_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Set ETM product type and map corresponding bands &#34;&#34;&#34;
+        &#34;&#34;&#34;Set ETM product type and map corresponding bands&#34;&#34;&#34;
         if &#34;L1&#34; in self.name:
             self.product_type = LandsatProductType.L1_ETM
-            self.band_names.map_bands({
-                obn.BLUE: &#39;1&#39;,
-                obn.GREEN: &#39;2&#39;,
-                obn.RED: &#39;3&#39;,
-                obn.NIR: &#39;4&#39;,
-                obn.NARROW_NIR: &#39;4&#39;,
-                obn.SWIR_1: &#39;5&#39;,
-                obn.SWIR_2: &#39;7&#39;,
-                obn.PAN: &#39;8&#39;,
-                obn.TIR_1: &#39;6_VCID_1&#39;,
-                obn.TIR_2: &#39;6_VCID_2&#39;
-            })
+            self.band_names.map_bands(
+                {
+                    obn.BLUE: &#34;1&#34;,
+                    obn.GREEN: &#34;2&#34;,
+                    obn.RED: &#34;3&#34;,
+                    obn.NIR: &#34;4&#34;,
+                    obn.NARROW_NIR: &#34;4&#34;,
+                    obn.SWIR_1: &#34;5&#34;,
+                    obn.SWIR_2: &#34;7&#34;,
+                    obn.PAN: &#34;8&#34;,
+                    obn.TIR_1: &#34;6_VCID_1&#34;,
+                    obn.TIR_2: &#34;6_VCID_2&#34;,
+                }
+            )
         else:
             raise InvalidProductError(&#34;Only Landsat level 1 are managed in EOReader&#34;)
 
     def _set_olci_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Set OLCI product type and map corresponding bands &#34;&#34;&#34;
+        &#34;&#34;&#34;Set OLCI product type and map corresponding bands&#34;&#34;&#34;
         if &#34;L1&#34; in self.name:
             self.product_type = LandsatProductType.L1_OLCI
-            self.band_names.map_bands({
-                obn.CA: &#39;1&#39;,
-                obn.BLUE: &#39;2&#39;,
-                obn.GREEN: &#39;3&#39;,
-                obn.RED: &#39;4&#39;,
-                obn.NIR: &#39;5&#39;,
-                obn.NARROW_NIR: &#39;5&#39;,
-                obn.SWIR_1: &#39;6&#39;,
-                obn.SWIR_2: &#39;7&#39;,
-                obn.PAN: &#39;8&#39;,
-                obn.SWIR_CIRRUS: &#39;9&#39;,
-                obn.TIR_1: &#39;10&#39;,
-                obn.TIR_2: &#39;11&#39;
-            })
+            self.band_names.map_bands(
+                {
+                    obn.CA: &#34;1&#34;,
+                    obn.BLUE: &#34;2&#34;,
+                    obn.GREEN: &#34;3&#34;,
+                    obn.RED: &#34;4&#34;,
+                    obn.NIR: &#34;5&#34;,
+                    obn.NARROW_NIR: &#34;5&#34;,
+                    obn.SWIR_1: &#34;6&#34;,
+                    obn.SWIR_2: &#34;7&#34;,
+                    obn.PAN: &#34;8&#34;,
+                    obn.SWIR_CIRRUS: &#34;9&#34;,
+                    obn.TIR_1: &#34;10&#34;,
+                    obn.TIR_2: &#34;11&#34;,
+                }
+            )
         else:
             raise InvalidProductError(&#34;Only Landsat level 1 are managed in EOReader&#34;)
 
@@ -306,12 +318,16 @@ class LandsatProduct(OpticalProduct):
             mtd = self.read_mtd(force_pd=True)
             date = mtd[&#34;DATE_ACQUIRED&#34;].value  # 1982-09-06
             # &#34;16:47:09.5990000Z&#34;: needs max 6 digits for ms
-            hours = mtd[&#34;SCENE_CENTER_TIME&#34;].value.replace(&#34;\&#34;&#34;, &#34;&#34;)[:-3]
+            hours = mtd[&#34;SCENE_CENTER_TIME&#34;].value.replace(&#39;&#34;&#39;, &#34;&#34;)[:-3]
 
-            date = f&#34;{datetime.strptime(date, &#39;%Y-%m-%d&#39;).strftime(&#39;%Y%m%d&#39;)}&#34; \
-                   f&#34;T{datetime.strptime(hours, &#39;%H:%M:%S.%f&#39;).strftime(&#39;%H%M%S&#39;)}&#34;
+            date = (
+                f&#34;{datetime.strptime(date, &#39;%Y-%m-%d&#39;).strftime(&#39;%Y%m%d&#39;)}&#34;
+                f&#34;T{datetime.strptime(hours, &#39;%H:%M:%S.%f&#39;).strftime(&#39;%H%M%S&#39;)}&#34;
+            )
         except (FileNotFoundError, KeyError):
-            date = datetime.strptime(self.split_name[3], &#34;%Y%m%d&#34;).strftime(DATETIME_FMT)
+            date = datetime.strptime(self.split_name[3], &#34;%Y%m%d&#34;).strftime(
+                DATETIME_FMT
+            )
 
         if as_datetime:
             date = datetime.strptime(date, DATETIME_FMT)
@@ -347,18 +363,24 @@ class LandsatProduct(OpticalProduct):
         band_paths = {}
         for band in band_list:
             if not self.has_band(band):
-                raise InvalidProductError(f&#34;Non existing band ({band.name}) &#34;
-                                          f&#34;for Landsat-{self.product_type.name} products&#34;)
+                raise InvalidProductError(
+                    f&#34;Non existing band ({band.name}) &#34;
+                    f&#34;for Landsat-{self.product_type.name} products&#34;
+                )
             band_nb = self.band_names[band]
 
             try:
                 band_paths[band] = self._get_path(f&#34;_B{band_nb}&#34;)
             except FileNotFoundError as ex:
-                raise InvalidProductError(f&#34;Non existing {band} ({band_nb}) band for {self.path}&#34;) from ex
+                raise InvalidProductError(
+                    f&#34;Non existing {band} ({band_nb}) band for {self.path}&#34;
+                ) from ex
 
         return band_paths
 
-    def read_mtd(self, force_pd=False) -&gt; Union[pd.DataFrame, Tuple[etree._Element, str]]:
+    def read_mtd(
+        self, force_pd=False
+    ) -&gt; Union[pd.DataFrame, Tuple[etree._Element, str]]:
         &#34;&#34;&#34;
         Read Landsat metadata as:
 
@@ -409,22 +431,28 @@ class LandsatProduct(OpticalProduct):
                 mtd_path = os.path.join(self.path, mtd_name)
 
                 if not os.path.isfile(mtd_path):
-                    raise FileNotFoundError(f&#34;Unable to find the metadata file associated with {self.path}&#34;)
+                    raise FileNotFoundError(
+                        f&#34;Unable to find the metadata file associated with {self.path}&#34;
+                    )
 
             # Parse
-            mtd_data = pd.read_table(mtd_path,
-                                     sep=&#34;\s=\s&#34;,
-                                     names=[&#34;NAME&#34;, &#34;value&#34;],
-                                     skipinitialspace=True,
-                                     engine=&#34;python&#34;)
+            mtd_data = pd.read_table(
+                mtd_path,
+                sep=&#34;\s=\s&#34;,
+                names=[&#34;NAME&#34;, &#34;value&#34;],
+                skipinitialspace=True,
+                engine=&#34;python&#34;,
+            )
 
             # Workaround an unexpected behaviour in pandas !
             if any(mtd_data.NAME == &#34;=&#34;):
-                mtd_data = pd.read_table(mtd_path,
-                                         sep=&#34;=&#34;,
-                                         names=[&#34;NAME&#34;, &#34;=&#34;, &#34;value&#34;],
-                                         usecols=[0, 2],
-                                         skipinitialspace=True)
+                mtd_data = pd.read_table(
+                    mtd_path,
+                    sep=&#34;=&#34;,
+                    names=[&#34;NAME&#34;, &#34;=&#34;, &#34;value&#34;],
+                    usecols=[0, 2],
+                    skipinitialspace=True,
+                )
 
             # Remove useless rows
             mtd_data = mtd_data[~mtd_data[&#34;NAME&#34;].isin([&#34;GROUP&#34;, &#34;END_GROUP&#34;, &#34;END&#34;])]
@@ -441,14 +469,18 @@ class LandsatProduct(OpticalProduct):
             else:
                 # ONLY FOR COLLECTION 2
                 try:
-                    mtd_file = glob.glob(os.path.join(self.path, f&#34;{self.name}_MTL.xml&#34;))[0]
+                    mtd_file = glob.glob(
+                        os.path.join(self.path, f&#34;{self.name}_MTL.xml&#34;)
+                    )[0]
 
                     # pylint: disable=I1101:
                     # Module &#39;lxml.etree&#39; has no &#39;parse&#39; member, but source is unavailable.
                     xml_tree = etree.parse(mtd_file)
                     root = xml_tree.getroot()
                 except IndexError as ex:
-                    raise InvalidProductError(f&#34;Metadata file ({self.name}.xml) not found in {self.path}&#34;) from ex
+                    raise InvalidProductError(
+                        f&#34;Metadata file ({self.name}.xml) not found in {self.path}&#34;
+                    ) from ex
 
             # Get namespace
             namespace = &#34;&#34;  # No namespace here
@@ -457,74 +489,54 @@ class LandsatProduct(OpticalProduct):
 
         return mtd_data
 
-    @path_or_dst
-    def _read_band(self,
-                   dataset,
-                   resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -&gt; (np.ma.masked_array, dict):
+    def _read_band(
+        self,
+        path: str,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; XDS_TYPE:
         &#34;&#34;&#34;
         Read band from a dataset.
 
         .. WARNING::
-            Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
-
-        ```python
-        &gt;&gt;&gt; import rasterio
-        &gt;&gt;&gt; from eoreader.reader import Reader
-        &gt;&gt;&gt; from eoreader.bands.alias import *
-        &gt;&gt;&gt; path = r&#34;LC08_L1GT_023030_20200518_20200527_01_T2.SAFE.zip&#34;
-        &gt;&gt;&gt; prod = Reader().open(path)
-        &gt;&gt;&gt; band, meta = prod._read_band(prod.get_default_band_path(), resolution=30)
-        &gt;&gt;&gt; band
-        masked_array(
-          data=[[[-0.1, ..., -0.1]]],
-          mask=False,
-          fill_value=1e+20,
-          dtype=float32)
-        &gt;&gt;&gt; meta
-        {
-            &#39;driver&#39;: &#39;GTiff&#39;,
-            &#39;dtype&#39;: &lt;class &#39;numpy.float32&#39;&gt;,
-            &#39;nodata&#39;: None,
-            &#39;width&#39;: 11746,
-            &#39;height&#39;: 11912,
-            &#39;count&#39;: 1,
-            &#39;crs&#39;: CRS.from_epsg(32616),
-            &#39;transform&#39;: Affine(20.00085135365231, 0.0, 314985.0, 0.0, -19.999160510409673, 4900215.0)
-        }
-        ```
+            Invalid pixels are not managed here !
 
         Args:
-            dataset (Dataset): Band dataset
+            path (str): Band path
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            np.ma.masked_array, dict: Radiometrically coherent band, saved as float 32 and its metadata
+            XDS_TYPE: Radiometrically coherent band, saved as float 32 and its metadata
 
         &#34;&#34;&#34;
+        # Get band name: the last number of the filename:
+        # ie: &#39;LC08_L1TP_200030_20191218_20191226_01_T1_B1&#39;
+        if self.is_archived:
+            filename = files.get_filename(path.split(&#34;!&#34;)[-1])
+        else:
+            filename = files.get_filename(path)
 
-        # Get band name: the last number before the .TIF:
-        # ie: &#39;LC08_L1TP_200030_20191218_20191226_01_T1_B1.TIF&#39;
-        band_name = dataset.name[-5:-4]
-        if self._quality_id in dataset.name or self._nodata_band_id in dataset.name:
-            band, dst_meta = rasters.read(dataset,
-                                          resolution=resolution,
-                                          size=size,
-                                          resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
-                                          masked=False)  # No need to get masked_array
+        band_name = filename[-1]
+        if self._quality_id in filename or self._nodata_band_id in filename:
+            band = rasters.read(
+                path,
+                resolution=resolution,
+                size=size,
+                resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
+                masked=False,
+            ).astype(np.uint16)
         else:
             # Read band (call superclass generic method)
-            band, dst_meta = rasters.read(dataset,
-                                          resolution=resolution,
-                                          size=size,
-                                          resampling=Resampling.bilinear)
+            band = rasters.read(
+                path, resolution=resolution, size=size, resampling=Resampling.bilinear
+            ).astype(np.float32)
 
             # Open mtd
             mtd_data = self.read_mtd(force_pd=True)
 
             # Get band nb and corresponding coeff
-            c_mul_str = &#39;REFLECTANCE_MULT_BAND_&#39; + band_name
-            c_add_str = &#39;REFLECTANCE_ADD_BAND_&#39; + band_name
+            c_mul_str = &#34;REFLECTANCE_MULT_BAND_&#34; + band_name
+            c_add_str = &#34;REFLECTANCE_ADD_BAND_&#34; + band_name
 
             # Get coeffs to convert DN to reflectance
             c_mul = mtd_data[c_mul_str].value
@@ -541,37 +553,36 @@ class LandsatProduct(OpticalProduct):
                 c_add = 0
 
             # Compute the correct radiometry of the band and set no data to 0
-            band = c_mul * band.astype(np.float32) + c_add
+            band = c_mul * band + c_add  # Already in float
 
-            # Update MTD
-            dst_meta[&#34;dtype&#34;] = np.float32
-
-        return band, dst_meta
+        return band
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels(self,
-                               band_arr: np.ma.masked_array,
-                               band: obn,
-                               meta: dict,
-                               resolution: float = None,
-                               size: Union[list, tuple] = None) -&gt; (np.ma.masked_array, dict):
+    def _manage_invalid_pixels(
+        self,
+        band_arr: XDS_TYPE,
+        band: obn,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; XDS_TYPE:
         &#34;&#34;&#34;
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
-            band_arr (np.ma.masked_array): Band array loaded
+            band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            meta (dict): Band metadata from rasterio
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            np.ma.masked_array, dict: Cleaned band array and its metadata
+            XDS_TYPE: Cleaned band array
         &#34;&#34;&#34;
         # Open QA band
         landsat_qa_path = self._get_path(self._quality_id)
-        qa_arr, meta = self._read_band(landsat_qa_path, resolution=resolution, size=size)
+        qa_arr = self._read_band(
+            landsat_qa_path, resolution=resolution, size=size
+        ).data  # To np array
 
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -583,8 +594,9 @@ class LandsatProduct(OpticalProduct):
             # -&gt; bit 2 or bit 3
             sat_id_1 = 2
             sat_id_2 = 3
-            nodata, dropped, sat_1, sat_2 = rasters.read_bit_array(qa_arr,
-                                                                   [nodata_id, dropped_id, sat_id_1, sat_id_2])
+            nodata, dropped, sat_1, sat_2 = rasters.read_bit_array(
+                qa_arr, [nodata_id, dropped_id, sat_id_1, sat_id_2]
+            )
             mask = nodata | dropped | sat_1 | sat_2
         else:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
@@ -599,22 +611,24 @@ class LandsatProduct(OpticalProduct):
                 other_id = 9  # Dropped pixels
 
             sat, other = rasters.read_bit_array(qa_arr, [sat_id, other_id])
-            mask = sat | other
 
-        # If collection 2, nodata has to be found in pixel QA file
-        if self._collection == LandsatCollection.COL_2:
+            # If collection 2, nodata has to be found in pixel QA file
             landsat_stat_path = self._get_path(self._nodata_band_id)
-            pixel_arr, meta = self._read_band(landsat_stat_path, resolution=resolution, size=size)
+            pixel_arr = self._read_band(
+                landsat_stat_path, resolution=resolution, size=size
+            ).data
             nodata = np.where(pixel_arr == 1, 1, 0)
 
-            mask = nodata | mask
+            mask = sat | other | nodata
 
-        return self._create_band_masked_array(band_arr, mask, meta)
+        return self._set_nodata_mask(band_arr, mask)
 
-    def _load_bands(self,
-                    band_list: Union[list, BandNames],
-                    resolution: float = None,
-                    size: Union[list, tuple] = None) -&gt; (dict, dict):
+    def _load_bands(
+        self,
+        band_list: Union[list, BandNames],
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -623,12 +637,11 @@ class LandsatProduct(OpticalProduct):
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         &#34;&#34;&#34;
         # Return empty if no band are specified
         if not band_list:
-            return {}, {}
+            return {}
 
         # Get band paths
         if not isinstance(band_list, list):
@@ -636,9 +649,9 @@ class LandsatProduct(OpticalProduct):
         band_paths = self.get_band_paths(band_list)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self._open_bands(band_paths, resolution=resolution, size=size)
+        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
 
-        return band_arrays, meta
+        return band_arrays
 
     def get_mean_sun_angles(self) -&gt; (float, float):
         &#34;&#34;&#34;
@@ -716,10 +729,9 @@ class LandsatProduct(OpticalProduct):
             has_band = False
         return has_band
 
-    def _load_clouds(self,
-                     band_list: Union[list, BandNames],
-                     resolution: float = None,
-                     size: Union[list, tuple] = None) -&gt; (dict, dict):
+    def _load_clouds(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -731,35 +743,34 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            band_list (Union[list, BandNames]): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         &#34;&#34;&#34;
-        bands = {}
-        meta = {}
+        band_dict = {}
 
-        if band_list:
+        if bands:
             # Open QA band
             landsat_qa_path = self._get_path(self._quality_id)
-            qa_arr, meta = self._read_band(landsat_qa_path, resolution=resolution, size=size)
+            qa_arr = self._read_band(landsat_qa_path, resolution=resolution, size=size)
 
             if self.product_type == LandsatProductType.L1_OLCI:
-                bands = self._load_olci_clouds(qa_arr, band_list)
-            elif self.product_type in [LandsatProductType.L1_ETM, LandsatProductType.L1_TM]:
-                bands = self._load_e_tm_clouds(qa_arr, band_list)
+                band_dict = self._load_olci_clouds(qa_arr, bands)
+            elif self.product_type in [
+                LandsatProductType.L1_ETM,
+                LandsatProductType.L1_TM,
+            ]:
+                band_dict = self._load_e_tm_clouds(qa_arr, bands)
             elif self.product_type == LandsatProductType.L1_MSS:
-                bands = self._load_mss_clouds(qa_arr, band_list)
+                band_dict = self._load_mss_clouds(qa_arr, bands)
             else:
                 raise InvalidProductError(f&#34;Invalid product type: {self.product_type}&#34;)
 
-        return bands, meta
+        return band_dict
 
-    def _load_mss_clouds(self,
-                         qa_arr: np.ma.masked_array,
-                         band_list: Union[list, BandNames]) -&gt; dict:
+    def _load_mss_clouds(self, qa_arr: XDS_TYPE, band_list: list) -&gt; dict:
         &#34;&#34;&#34;
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -771,8 +782,8 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            qa_arr (np.ma.masked_array): Quality array
-            band_list (Union[list, BandNames]): List of the wanted bands
+            qa_arr (XDS_TYPE): Quality array
+            band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
         &#34;&#34;&#34;
@@ -780,12 +791,14 @@ class LandsatProduct(OpticalProduct):
 
         # Get clouds and nodata
         nodata_id = 0
-        cloud_id = 4 if self._collection == LandsatCollection.COL_1 else 3  # Clouds with high confidence
+        cloud_id = (
+            4 if self._collection == LandsatCollection.COL_1 else 3
+        )  # Clouds with high confidence
 
         clouds = None
         if ALL_CLOUDS in band_list or CLOUDS in band_list:
             nodata, cld = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id])
-            clouds = self._create_mask(cld, nodata)
+            clouds = self._create_mask(qa_arr, cld, nodata)
 
         for band in band_list:
             if band == ALL_CLOUDS:
@@ -795,13 +808,15 @@ class LandsatProduct(OpticalProduct):
             elif band == RAW_CLOUDS:
                 bands[band] = qa_arr
             else:
-                raise InvalidTypeError(f&#34;Non existing cloud band for Landsat-MSS sensor: {band}&#34;)
+                raise InvalidTypeError(
+                    f&#34;Non existing cloud band for Landsat-MSS sensor: {band}&#34;
+                )
 
         return bands
 
-    def _load_e_tm_clouds(self,
-                          qa_arr: np.ma.masked_array,
-                          band_list: Union[list, BandNames]) -&gt; dict:
+    def _load_e_tm_clouds(
+        self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -814,8 +829,8 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            qa_arr (np.ma.masked_array): Quality array
-            band_list (Union[list, BandNames]): List of the wanted bands
+            qa_arr (XDS_TYPE): Quality array
+            band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
         &#34;&#34;&#34;
@@ -832,33 +847,38 @@ class LandsatProduct(OpticalProduct):
                 cloud_id = 4  # Clouds with high confidence
                 shd_conf_1_id = 7
                 shd_conf_2_id = 8
-                nodata, cld, shd_conf_1, shd_conf_2 = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id,
-                                                                                      shd_conf_1_id, shd_conf_2_id])
+                nodata, cld, shd_conf_1, shd_conf_2 = rasters.read_bit_array(
+                    qa_arr, [nodata_id, cloud_id, shd_conf_1_id, shd_conf_2_id]
+                )
                 shd = shd_conf_1 &amp; shd_conf_2
             else:
                 # Bit ids
                 nodata_id = 0
                 cloud_id = 3  # Clouds with high confidence
                 shd_id = 4  # Shadows with high confidence
-                nodata, cld, shd = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id, shd_id])
+                nodata, cld, shd = rasters.read_bit_array(
+                    qa_arr, [nodata_id, cloud_id, shd_id]
+                )
 
         for band in band_list:
             if band == ALL_CLOUDS:
-                bands[band] = self._create_mask(cld | shd, nodata)
+                bands[band] = self._create_mask(qa_arr, cld | shd, nodata)
             elif band == SHADOWS:
-                bands[band] = self._create_mask(shd, nodata)
+                bands[band] = self._create_mask(qa_arr, shd, nodata)
             elif band == CLOUDS:
-                bands[band] = self._create_mask(cld, nodata)
+                bands[band] = self._create_mask(qa_arr, cld, nodata)
             elif band == RAW_CLOUDS:
                 bands[band] = qa_arr
             else:
-                raise InvalidTypeError(f&#34;Non existing cloud band for Landsat-(E)TM sensor: {band}&#34;)
+                raise InvalidTypeError(
+                    f&#34;Non existing cloud band for Landsat-(E)TM sensor: {band}&#34;
+                )
 
         return bands
 
-    def _load_olci_clouds(self,
-                          qa_arr: np.ma.masked_array,
-                          band_list: Union[list, BandNames]) -&gt; dict:
+    def _load_olci_clouds(
+        self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -870,8 +890,8 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            qa_arr (np.ma.masked_array): Quality array
-            band_list (Union[list, BandNames]): List of the wanted bands
+            qa_arr (XDS_TYPE): Quality array
+            band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
         &#34;&#34;&#34;
@@ -893,10 +913,24 @@ class LandsatProduct(OpticalProduct):
                 cir_conf_2_id = 12
 
                 # Read binary mask
-                nodata, cld, shd_conf_1, shd_conf_2, cir_conf_1, cir_conf_2 = \
-                    rasters.read_bit_array(qa_arr, [nodata_id, cloud_id,
-                                                    shd_conf_1_id, shd_conf_2_id,
-                                                    cir_conf_1_id, cir_conf_2_id])
+                (
+                    nodata,
+                    cld,
+                    shd_conf_1,
+                    shd_conf_2,
+                    cir_conf_1,
+                    cir_conf_2,
+                ) = rasters.read_bit_array(
+                    qa_arr,
+                    [
+                        nodata_id,
+                        cloud_id,
+                        shd_conf_1_id,
+                        shd_conf_2_id,
+                        cir_conf_1_id,
+                        cir_conf_2_id,
+                    ],
+                )
 
                 shd = shd_conf_1 &amp; shd_conf_2
                 cir = cir_conf_1 &amp; cir_conf_2
@@ -906,45 +940,27 @@ class LandsatProduct(OpticalProduct):
                 cloud_id = 3  # Clouds with high confidence
                 shd_id = 4  # Shadows with high confidence
                 cir_id = 2  # Cirrus with high confidence
-                nodata, cld, shd, cir = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id, shd_id, cir_id])
+                nodata, cld, shd, cir = rasters.read_bit_array(
+                    qa_arr, [nodata_id, cloud_id, shd_id, cir_id]
+                )
 
         for band in band_list:
             if band == ALL_CLOUDS:
-                bands[band] = self._create_mask(cld | shd | cir, nodata)
+                bands[band] = self._create_mask(qa_arr, cld | shd | cir, nodata)
             elif band == SHADOWS:
-                bands[band] = self._create_mask(shd, nodata)
+                bands[band] = self._create_mask(qa_arr, shd, nodata)
             elif band == CLOUDS:
-                bands[band] = self._create_mask(cld, nodata)
+                bands[band] = self._create_mask(qa_arr, cld, nodata)
             elif band == CIRRUS:
-                bands[band] = self._create_mask(cir, nodata)
+                bands[band] = self._create_mask(qa_arr, cir, nodata)
             elif band == RAW_CLOUDS:
                 bands[band] = qa_arr
             else:
-                raise InvalidTypeError(f&#34;Non existing cloud band for Landsat-OLCI sensor: {band}&#34;)
+                raise InvalidTypeError(
+                    f&#34;Non existing cloud band for Landsat-OLCI sensor: {band}&#34;
+                )
 
-        return bands
-
-    def _create_mask(self, cond: np.ndarray, nodata: np.ndarray) -&gt; np.ma.masked_array:
-        &#34;&#34;&#34;
-        Create a mask masked array (uint8) from a conditional array and a nodata mask.
-
-        Args:
-            cond (np.ndarray): Conditional array
-            nodata (np.ndarray): Nodata mask
-
-        Returns:
-            np.ma.masked_array: Mask masked array
-
-        &#34;&#34;&#34;
-        mask = np.ma.masked_array(np.where(cond, self._mask_true, self._mask_false),
-                                  mask=nodata,
-                                  fill_value=self._mask_nodata,
-                                  dtype=np.uint8)
-
-        # Fill nodata pixels
-        mask[nodata == 1] = self._mask_nodata
-
-        return mask</code></pre>
+        return bands</code></pre>
 </details>
 </section>
 <section>
@@ -967,7 +983,8 @@ class LandsatProduct(OpticalProduct):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class LandsatProductType(ListEnum):
-    &#34;&#34;&#34; Landsat products types &#34;&#34;&#34;
+    &#34;&#34;&#34;Landsat products types&#34;&#34;&#34;
+
     L1_OLCI = &#34;OLCI&#34;
     &#34;&#34;&#34;OLCI Product Type, for Landsat-8 platform&#34;&#34;&#34;
 
@@ -1025,6 +1042,7 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
     Landsat collection number.
     See [here](https://www.usgs.gov/media/files/landsat-collection-1-vs-collection-2-summary) for more information
     &#34;&#34;&#34;
+
     COL_1 = &#34;01&#34;
     &#34;&#34;&#34;Collection 1&#34;&#34;&#34;
 
@@ -1068,7 +1086,9 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
     You can use directly the .tar file in case of collection 2 products.
     &#34;&#34;&#34;
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -&gt; None:
+    def __init__(
+        self, product_path: str, archive_path: str = None, output_path=None
+    ) -&gt; None:
         # Private
         self._collection = None
         self._quality_id = None
@@ -1077,7 +1097,7 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
         super().__init__(product_path, archive_path, output_path)
 
     def _set_collection(self):
-        &#34;&#34;&#34; Set Landsat collection &#34;&#34;&#34;
+        &#34;&#34;&#34;Set Landsat collection&#34;&#34;&#34;
         return LandsatCollection.from_value(self.split_name[-2])
 
     def _post_init(self) -&gt; None:
@@ -1172,80 +1192,88 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
 
     @abstractmethod
     def _set_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Get products type &#34;&#34;&#34;
+        &#34;&#34;&#34;Get products type&#34;&#34;&#34;
         raise NotImplementedError(&#34;This method should be implemented by a child class&#34;)
 
     def _set_mss_product_type(self, version: int) -&gt; None:
-        &#34;&#34;&#34; Set MSS product type and map corresponding bands &#34;&#34;&#34;
+        &#34;&#34;&#34;Set MSS product type and map corresponding bands&#34;&#34;&#34;
         if &#34;L1&#34; in self.name:
             self.product_type = LandsatProductType.L1_MSS
-            self.band_names.map_bands({
-                obn.GREEN: &#39;4&#39; if version &lt; 4 else &#39;1&#39;,
-                obn.RED: &#39;5&#39; if version &lt; 4 else &#39;2&#39;,
-                obn.VRE_1: &#39;6&#39; if version &lt; 4 else &#39;3&#39;,
-                obn.VRE_2: &#39;6&#39; if version &lt; 4 else &#39;3&#39;,
-                obn.VRE_3: &#39;6&#39; if version &lt; 4 else &#39;3&#39;,
-                obn.NIR: &#39;7&#39; if version &lt; 4 else &#39;4&#39;,
-                obn.NARROW_NIR: &#39;7&#39; if version &lt; 4 else &#39;4&#39;
-            })
+            self.band_names.map_bands(
+                {
+                    obn.GREEN: &#34;4&#34; if version &lt; 4 else &#34;1&#34;,
+                    obn.RED: &#34;5&#34; if version &lt; 4 else &#34;2&#34;,
+                    obn.VRE_1: &#34;6&#34; if version &lt; 4 else &#34;3&#34;,
+                    obn.VRE_2: &#34;6&#34; if version &lt; 4 else &#34;3&#34;,
+                    obn.VRE_3: &#34;6&#34; if version &lt; 4 else &#34;3&#34;,
+                    obn.NIR: &#34;7&#34; if version &lt; 4 else &#34;4&#34;,
+                    obn.NARROW_NIR: &#34;7&#34; if version &lt; 4 else &#34;4&#34;,
+                }
+            )
         else:
             raise InvalidProductError(&#34;Only Landsat level 1 are managed in EOReader&#34;)
 
     def _set_tm_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Set TM product type and map corresponding bands &#34;&#34;&#34;
+        &#34;&#34;&#34;Set TM product type and map corresponding bands&#34;&#34;&#34;
         if &#34;L1&#34; in self.name:
             self.product_type = LandsatProductType.L1_TM
-            self.band_names.map_bands({
-                obn.BLUE: &#39;1&#39;,
-                obn.GREEN: &#39;2&#39;,
-                obn.RED: &#39;3&#39;,
-                obn.NIR: &#39;4&#39;,
-                obn.NARROW_NIR: &#39;4&#39;,
-                obn.SWIR_1: &#39;5&#39;,
-                obn.SWIR_2: &#39;7&#39;,
-                obn.TIR_1: &#39;6&#39;,
-                obn.TIR_2: &#39;6&#39;
-            })
+            self.band_names.map_bands(
+                {
+                    obn.BLUE: &#34;1&#34;,
+                    obn.GREEN: &#34;2&#34;,
+                    obn.RED: &#34;3&#34;,
+                    obn.NIR: &#34;4&#34;,
+                    obn.NARROW_NIR: &#34;4&#34;,
+                    obn.SWIR_1: &#34;5&#34;,
+                    obn.SWIR_2: &#34;7&#34;,
+                    obn.TIR_1: &#34;6&#34;,
+                    obn.TIR_2: &#34;6&#34;,
+                }
+            )
         else:
             raise InvalidProductError(&#34;Only Landsat level 1 are managed in EOReader&#34;)
 
     def _set_etm_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Set ETM product type and map corresponding bands &#34;&#34;&#34;
+        &#34;&#34;&#34;Set ETM product type and map corresponding bands&#34;&#34;&#34;
         if &#34;L1&#34; in self.name:
             self.product_type = LandsatProductType.L1_ETM
-            self.band_names.map_bands({
-                obn.BLUE: &#39;1&#39;,
-                obn.GREEN: &#39;2&#39;,
-                obn.RED: &#39;3&#39;,
-                obn.NIR: &#39;4&#39;,
-                obn.NARROW_NIR: &#39;4&#39;,
-                obn.SWIR_1: &#39;5&#39;,
-                obn.SWIR_2: &#39;7&#39;,
-                obn.PAN: &#39;8&#39;,
-                obn.TIR_1: &#39;6_VCID_1&#39;,
-                obn.TIR_2: &#39;6_VCID_2&#39;
-            })
+            self.band_names.map_bands(
+                {
+                    obn.BLUE: &#34;1&#34;,
+                    obn.GREEN: &#34;2&#34;,
+                    obn.RED: &#34;3&#34;,
+                    obn.NIR: &#34;4&#34;,
+                    obn.NARROW_NIR: &#34;4&#34;,
+                    obn.SWIR_1: &#34;5&#34;,
+                    obn.SWIR_2: &#34;7&#34;,
+                    obn.PAN: &#34;8&#34;,
+                    obn.TIR_1: &#34;6_VCID_1&#34;,
+                    obn.TIR_2: &#34;6_VCID_2&#34;,
+                }
+            )
         else:
             raise InvalidProductError(&#34;Only Landsat level 1 are managed in EOReader&#34;)
 
     def _set_olci_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Set OLCI product type and map corresponding bands &#34;&#34;&#34;
+        &#34;&#34;&#34;Set OLCI product type and map corresponding bands&#34;&#34;&#34;
         if &#34;L1&#34; in self.name:
             self.product_type = LandsatProductType.L1_OLCI
-            self.band_names.map_bands({
-                obn.CA: &#39;1&#39;,
-                obn.BLUE: &#39;2&#39;,
-                obn.GREEN: &#39;3&#39;,
-                obn.RED: &#39;4&#39;,
-                obn.NIR: &#39;5&#39;,
-                obn.NARROW_NIR: &#39;5&#39;,
-                obn.SWIR_1: &#39;6&#39;,
-                obn.SWIR_2: &#39;7&#39;,
-                obn.PAN: &#39;8&#39;,
-                obn.SWIR_CIRRUS: &#39;9&#39;,
-                obn.TIR_1: &#39;10&#39;,
-                obn.TIR_2: &#39;11&#39;
-            })
+            self.band_names.map_bands(
+                {
+                    obn.CA: &#34;1&#34;,
+                    obn.BLUE: &#34;2&#34;,
+                    obn.GREEN: &#34;3&#34;,
+                    obn.RED: &#34;4&#34;,
+                    obn.NIR: &#34;5&#34;,
+                    obn.NARROW_NIR: &#34;5&#34;,
+                    obn.SWIR_1: &#34;6&#34;,
+                    obn.SWIR_2: &#34;7&#34;,
+                    obn.PAN: &#34;8&#34;,
+                    obn.SWIR_CIRRUS: &#34;9&#34;,
+                    obn.TIR_1: &#34;10&#34;,
+                    obn.TIR_2: &#34;11&#34;,
+                }
+            )
         else:
             raise InvalidProductError(&#34;Only Landsat level 1 are managed in EOReader&#34;)
 
@@ -1273,12 +1301,16 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
             mtd = self.read_mtd(force_pd=True)
             date = mtd[&#34;DATE_ACQUIRED&#34;].value  # 1982-09-06
             # &#34;16:47:09.5990000Z&#34;: needs max 6 digits for ms
-            hours = mtd[&#34;SCENE_CENTER_TIME&#34;].value.replace(&#34;\&#34;&#34;, &#34;&#34;)[:-3]
+            hours = mtd[&#34;SCENE_CENTER_TIME&#34;].value.replace(&#39;&#34;&#39;, &#34;&#34;)[:-3]
 
-            date = f&#34;{datetime.strptime(date, &#39;%Y-%m-%d&#39;).strftime(&#39;%Y%m%d&#39;)}&#34; \
-                   f&#34;T{datetime.strptime(hours, &#39;%H:%M:%S.%f&#39;).strftime(&#39;%H%M%S&#39;)}&#34;
+            date = (
+                f&#34;{datetime.strptime(date, &#39;%Y-%m-%d&#39;).strftime(&#39;%Y%m%d&#39;)}&#34;
+                f&#34;T{datetime.strptime(hours, &#39;%H:%M:%S.%f&#39;).strftime(&#39;%H%M%S&#39;)}&#34;
+            )
         except (FileNotFoundError, KeyError):
-            date = datetime.strptime(self.split_name[3], &#34;%Y%m%d&#34;).strftime(DATETIME_FMT)
+            date = datetime.strptime(self.split_name[3], &#34;%Y%m%d&#34;).strftime(
+                DATETIME_FMT
+            )
 
         if as_datetime:
             date = datetime.strptime(date, DATETIME_FMT)
@@ -1314,18 +1346,24 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
         band_paths = {}
         for band in band_list:
             if not self.has_band(band):
-                raise InvalidProductError(f&#34;Non existing band ({band.name}) &#34;
-                                          f&#34;for Landsat-{self.product_type.name} products&#34;)
+                raise InvalidProductError(
+                    f&#34;Non existing band ({band.name}) &#34;
+                    f&#34;for Landsat-{self.product_type.name} products&#34;
+                )
             band_nb = self.band_names[band]
 
             try:
                 band_paths[band] = self._get_path(f&#34;_B{band_nb}&#34;)
             except FileNotFoundError as ex:
-                raise InvalidProductError(f&#34;Non existing {band} ({band_nb}) band for {self.path}&#34;) from ex
+                raise InvalidProductError(
+                    f&#34;Non existing {band} ({band_nb}) band for {self.path}&#34;
+                ) from ex
 
         return band_paths
 
-    def read_mtd(self, force_pd=False) -&gt; Union[pd.DataFrame, Tuple[etree._Element, str]]:
+    def read_mtd(
+        self, force_pd=False
+    ) -&gt; Union[pd.DataFrame, Tuple[etree._Element, str]]:
         &#34;&#34;&#34;
         Read Landsat metadata as:
 
@@ -1376,22 +1414,28 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
                 mtd_path = os.path.join(self.path, mtd_name)
 
                 if not os.path.isfile(mtd_path):
-                    raise FileNotFoundError(f&#34;Unable to find the metadata file associated with {self.path}&#34;)
+                    raise FileNotFoundError(
+                        f&#34;Unable to find the metadata file associated with {self.path}&#34;
+                    )
 
             # Parse
-            mtd_data = pd.read_table(mtd_path,
-                                     sep=&#34;\s=\s&#34;,
-                                     names=[&#34;NAME&#34;, &#34;value&#34;],
-                                     skipinitialspace=True,
-                                     engine=&#34;python&#34;)
+            mtd_data = pd.read_table(
+                mtd_path,
+                sep=&#34;\s=\s&#34;,
+                names=[&#34;NAME&#34;, &#34;value&#34;],
+                skipinitialspace=True,
+                engine=&#34;python&#34;,
+            )
 
             # Workaround an unexpected behaviour in pandas !
             if any(mtd_data.NAME == &#34;=&#34;):
-                mtd_data = pd.read_table(mtd_path,
-                                         sep=&#34;=&#34;,
-                                         names=[&#34;NAME&#34;, &#34;=&#34;, &#34;value&#34;],
-                                         usecols=[0, 2],
-                                         skipinitialspace=True)
+                mtd_data = pd.read_table(
+                    mtd_path,
+                    sep=&#34;=&#34;,
+                    names=[&#34;NAME&#34;, &#34;=&#34;, &#34;value&#34;],
+                    usecols=[0, 2],
+                    skipinitialspace=True,
+                )
 
             # Remove useless rows
             mtd_data = mtd_data[~mtd_data[&#34;NAME&#34;].isin([&#34;GROUP&#34;, &#34;END_GROUP&#34;, &#34;END&#34;])]
@@ -1408,14 +1452,18 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
             else:
                 # ONLY FOR COLLECTION 2
                 try:
-                    mtd_file = glob.glob(os.path.join(self.path, f&#34;{self.name}_MTL.xml&#34;))[0]
+                    mtd_file = glob.glob(
+                        os.path.join(self.path, f&#34;{self.name}_MTL.xml&#34;)
+                    )[0]
 
                     # pylint: disable=I1101:
                     # Module &#39;lxml.etree&#39; has no &#39;parse&#39; member, but source is unavailable.
                     xml_tree = etree.parse(mtd_file)
                     root = xml_tree.getroot()
                 except IndexError as ex:
-                    raise InvalidProductError(f&#34;Metadata file ({self.name}.xml) not found in {self.path}&#34;) from ex
+                    raise InvalidProductError(
+                        f&#34;Metadata file ({self.name}.xml) not found in {self.path}&#34;
+                    ) from ex
 
             # Get namespace
             namespace = &#34;&#34;  # No namespace here
@@ -1424,74 +1472,54 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
 
         return mtd_data
 
-    @path_or_dst
-    def _read_band(self,
-                   dataset,
-                   resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -&gt; (np.ma.masked_array, dict):
+    def _read_band(
+        self,
+        path: str,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; XDS_TYPE:
         &#34;&#34;&#34;
         Read band from a dataset.
 
         .. WARNING::
-            Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
-
-        ```python
-        &gt;&gt;&gt; import rasterio
-        &gt;&gt;&gt; from eoreader.reader import Reader
-        &gt;&gt;&gt; from eoreader.bands.alias import *
-        &gt;&gt;&gt; path = r&#34;LC08_L1GT_023030_20200518_20200527_01_T2.SAFE.zip&#34;
-        &gt;&gt;&gt; prod = Reader().open(path)
-        &gt;&gt;&gt; band, meta = prod._read_band(prod.get_default_band_path(), resolution=30)
-        &gt;&gt;&gt; band
-        masked_array(
-          data=[[[-0.1, ..., -0.1]]],
-          mask=False,
-          fill_value=1e+20,
-          dtype=float32)
-        &gt;&gt;&gt; meta
-        {
-            &#39;driver&#39;: &#39;GTiff&#39;,
-            &#39;dtype&#39;: &lt;class &#39;numpy.float32&#39;&gt;,
-            &#39;nodata&#39;: None,
-            &#39;width&#39;: 11746,
-            &#39;height&#39;: 11912,
-            &#39;count&#39;: 1,
-            &#39;crs&#39;: CRS.from_epsg(32616),
-            &#39;transform&#39;: Affine(20.00085135365231, 0.0, 314985.0, 0.0, -19.999160510409673, 4900215.0)
-        }
-        ```
+            Invalid pixels are not managed here !
 
         Args:
-            dataset (Dataset): Band dataset
+            path (str): Band path
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            np.ma.masked_array, dict: Radiometrically coherent band, saved as float 32 and its metadata
+            XDS_TYPE: Radiometrically coherent band, saved as float 32 and its metadata
 
         &#34;&#34;&#34;
+        # Get band name: the last number of the filename:
+        # ie: &#39;LC08_L1TP_200030_20191218_20191226_01_T1_B1&#39;
+        if self.is_archived:
+            filename = files.get_filename(path.split(&#34;!&#34;)[-1])
+        else:
+            filename = files.get_filename(path)
 
-        # Get band name: the last number before the .TIF:
-        # ie: &#39;LC08_L1TP_200030_20191218_20191226_01_T1_B1.TIF&#39;
-        band_name = dataset.name[-5:-4]
-        if self._quality_id in dataset.name or self._nodata_band_id in dataset.name:
-            band, dst_meta = rasters.read(dataset,
-                                          resolution=resolution,
-                                          size=size,
-                                          resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
-                                          masked=False)  # No need to get masked_array
+        band_name = filename[-1]
+        if self._quality_id in filename or self._nodata_band_id in filename:
+            band = rasters.read(
+                path,
+                resolution=resolution,
+                size=size,
+                resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
+                masked=False,
+            ).astype(np.uint16)
         else:
             # Read band (call superclass generic method)
-            band, dst_meta = rasters.read(dataset,
-                                          resolution=resolution,
-                                          size=size,
-                                          resampling=Resampling.bilinear)
+            band = rasters.read(
+                path, resolution=resolution, size=size, resampling=Resampling.bilinear
+            ).astype(np.float32)
 
             # Open mtd
             mtd_data = self.read_mtd(force_pd=True)
 
             # Get band nb and corresponding coeff
-            c_mul_str = &#39;REFLECTANCE_MULT_BAND_&#39; + band_name
-            c_add_str = &#39;REFLECTANCE_ADD_BAND_&#39; + band_name
+            c_mul_str = &#34;REFLECTANCE_MULT_BAND_&#34; + band_name
+            c_add_str = &#34;REFLECTANCE_ADD_BAND_&#34; + band_name
 
             # Get coeffs to convert DN to reflectance
             c_mul = mtd_data[c_mul_str].value
@@ -1508,37 +1536,36 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
                 c_add = 0
 
             # Compute the correct radiometry of the band and set no data to 0
-            band = c_mul * band.astype(np.float32) + c_add
+            band = c_mul * band + c_add  # Already in float
 
-            # Update MTD
-            dst_meta[&#34;dtype&#34;] = np.float32
-
-        return band, dst_meta
+        return band
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels(self,
-                               band_arr: np.ma.masked_array,
-                               band: obn,
-                               meta: dict,
-                               resolution: float = None,
-                               size: Union[list, tuple] = None) -&gt; (np.ma.masked_array, dict):
+    def _manage_invalid_pixels(
+        self,
+        band_arr: XDS_TYPE,
+        band: obn,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; XDS_TYPE:
         &#34;&#34;&#34;
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
-            band_arr (np.ma.masked_array): Band array loaded
+            band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            meta (dict): Band metadata from rasterio
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            np.ma.masked_array, dict: Cleaned band array and its metadata
+            XDS_TYPE: Cleaned band array
         &#34;&#34;&#34;
         # Open QA band
         landsat_qa_path = self._get_path(self._quality_id)
-        qa_arr, meta = self._read_band(landsat_qa_path, resolution=resolution, size=size)
+        qa_arr = self._read_band(
+            landsat_qa_path, resolution=resolution, size=size
+        ).data  # To np array
 
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -1550,8 +1577,9 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
             # -&gt; bit 2 or bit 3
             sat_id_1 = 2
             sat_id_2 = 3
-            nodata, dropped, sat_1, sat_2 = rasters.read_bit_array(qa_arr,
-                                                                   [nodata_id, dropped_id, sat_id_1, sat_id_2])
+            nodata, dropped, sat_1, sat_2 = rasters.read_bit_array(
+                qa_arr, [nodata_id, dropped_id, sat_id_1, sat_id_2]
+            )
             mask = nodata | dropped | sat_1 | sat_2
         else:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
@@ -1566,22 +1594,24 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
                 other_id = 9  # Dropped pixels
 
             sat, other = rasters.read_bit_array(qa_arr, [sat_id, other_id])
-            mask = sat | other
 
-        # If collection 2, nodata has to be found in pixel QA file
-        if self._collection == LandsatCollection.COL_2:
+            # If collection 2, nodata has to be found in pixel QA file
             landsat_stat_path = self._get_path(self._nodata_band_id)
-            pixel_arr, meta = self._read_band(landsat_stat_path, resolution=resolution, size=size)
+            pixel_arr = self._read_band(
+                landsat_stat_path, resolution=resolution, size=size
+            ).data
             nodata = np.where(pixel_arr == 1, 1, 0)
 
-            mask = nodata | mask
+            mask = sat | other | nodata
 
-        return self._create_band_masked_array(band_arr, mask, meta)
+        return self._set_nodata_mask(band_arr, mask)
 
-    def _load_bands(self,
-                    band_list: Union[list, BandNames],
-                    resolution: float = None,
-                    size: Union[list, tuple] = None) -&gt; (dict, dict):
+    def _load_bands(
+        self,
+        band_list: Union[list, BandNames],
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -1590,12 +1620,11 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         &#34;&#34;&#34;
         # Return empty if no band are specified
         if not band_list:
-            return {}, {}
+            return {}
 
         # Get band paths
         if not isinstance(band_list, list):
@@ -1603,9 +1632,9 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
         band_paths = self.get_band_paths(band_list)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self._open_bands(band_paths, resolution=resolution, size=size)
+        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
 
-        return band_arrays, meta
+        return band_arrays
 
     def get_mean_sun_angles(self) -&gt; (float, float):
         &#34;&#34;&#34;
@@ -1683,10 +1712,9 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
             has_band = False
         return has_band
 
-    def _load_clouds(self,
-                     band_list: Union[list, BandNames],
-                     resolution: float = None,
-                     size: Union[list, tuple] = None) -&gt; (dict, dict):
+    def _load_clouds(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -1698,35 +1726,34 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
 
 
         Args:
-            band_list (Union[list, BandNames]): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         &#34;&#34;&#34;
-        bands = {}
-        meta = {}
+        band_dict = {}
 
-        if band_list:
+        if bands:
             # Open QA band
             landsat_qa_path = self._get_path(self._quality_id)
-            qa_arr, meta = self._read_band(landsat_qa_path, resolution=resolution, size=size)
+            qa_arr = self._read_band(landsat_qa_path, resolution=resolution, size=size)
 
             if self.product_type == LandsatProductType.L1_OLCI:
-                bands = self._load_olci_clouds(qa_arr, band_list)
-            elif self.product_type in [LandsatProductType.L1_ETM, LandsatProductType.L1_TM]:
-                bands = self._load_e_tm_clouds(qa_arr, band_list)
+                band_dict = self._load_olci_clouds(qa_arr, bands)
+            elif self.product_type in [
+                LandsatProductType.L1_ETM,
+                LandsatProductType.L1_TM,
+            ]:
+                band_dict = self._load_e_tm_clouds(qa_arr, bands)
             elif self.product_type == LandsatProductType.L1_MSS:
-                bands = self._load_mss_clouds(qa_arr, band_list)
+                band_dict = self._load_mss_clouds(qa_arr, bands)
             else:
                 raise InvalidProductError(f&#34;Invalid product type: {self.product_type}&#34;)
 
-        return bands, meta
+        return band_dict
 
-    def _load_mss_clouds(self,
-                         qa_arr: np.ma.masked_array,
-                         band_list: Union[list, BandNames]) -&gt; dict:
+    def _load_mss_clouds(self, qa_arr: XDS_TYPE, band_list: list) -&gt; dict:
         &#34;&#34;&#34;
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -1738,8 +1765,8 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
 
 
         Args:
-            qa_arr (np.ma.masked_array): Quality array
-            band_list (Union[list, BandNames]): List of the wanted bands
+            qa_arr (XDS_TYPE): Quality array
+            band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
         &#34;&#34;&#34;
@@ -1747,12 +1774,14 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
 
         # Get clouds and nodata
         nodata_id = 0
-        cloud_id = 4 if self._collection == LandsatCollection.COL_1 else 3  # Clouds with high confidence
+        cloud_id = (
+            4 if self._collection == LandsatCollection.COL_1 else 3
+        )  # Clouds with high confidence
 
         clouds = None
         if ALL_CLOUDS in band_list or CLOUDS in band_list:
             nodata, cld = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id])
-            clouds = self._create_mask(cld, nodata)
+            clouds = self._create_mask(qa_arr, cld, nodata)
 
         for band in band_list:
             if band == ALL_CLOUDS:
@@ -1762,13 +1791,15 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
             elif band == RAW_CLOUDS:
                 bands[band] = qa_arr
             else:
-                raise InvalidTypeError(f&#34;Non existing cloud band for Landsat-MSS sensor: {band}&#34;)
+                raise InvalidTypeError(
+                    f&#34;Non existing cloud band for Landsat-MSS sensor: {band}&#34;
+                )
 
         return bands
 
-    def _load_e_tm_clouds(self,
-                          qa_arr: np.ma.masked_array,
-                          band_list: Union[list, BandNames]) -&gt; dict:
+    def _load_e_tm_clouds(
+        self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -1781,8 +1812,8 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
 
 
         Args:
-            qa_arr (np.ma.masked_array): Quality array
-            band_list (Union[list, BandNames]): List of the wanted bands
+            qa_arr (XDS_TYPE): Quality array
+            band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
         &#34;&#34;&#34;
@@ -1799,33 +1830,38 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
                 cloud_id = 4  # Clouds with high confidence
                 shd_conf_1_id = 7
                 shd_conf_2_id = 8
-                nodata, cld, shd_conf_1, shd_conf_2 = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id,
-                                                                                      shd_conf_1_id, shd_conf_2_id])
+                nodata, cld, shd_conf_1, shd_conf_2 = rasters.read_bit_array(
+                    qa_arr, [nodata_id, cloud_id, shd_conf_1_id, shd_conf_2_id]
+                )
                 shd = shd_conf_1 &amp; shd_conf_2
             else:
                 # Bit ids
                 nodata_id = 0
                 cloud_id = 3  # Clouds with high confidence
                 shd_id = 4  # Shadows with high confidence
-                nodata, cld, shd = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id, shd_id])
+                nodata, cld, shd = rasters.read_bit_array(
+                    qa_arr, [nodata_id, cloud_id, shd_id]
+                )
 
         for band in band_list:
             if band == ALL_CLOUDS:
-                bands[band] = self._create_mask(cld | shd, nodata)
+                bands[band] = self._create_mask(qa_arr, cld | shd, nodata)
             elif band == SHADOWS:
-                bands[band] = self._create_mask(shd, nodata)
+                bands[band] = self._create_mask(qa_arr, shd, nodata)
             elif band == CLOUDS:
-                bands[band] = self._create_mask(cld, nodata)
+                bands[band] = self._create_mask(qa_arr, cld, nodata)
             elif band == RAW_CLOUDS:
                 bands[band] = qa_arr
             else:
-                raise InvalidTypeError(f&#34;Non existing cloud band for Landsat-(E)TM sensor: {band}&#34;)
+                raise InvalidTypeError(
+                    f&#34;Non existing cloud band for Landsat-(E)TM sensor: {band}&#34;
+                )
 
         return bands
 
-    def _load_olci_clouds(self,
-                          qa_arr: np.ma.masked_array,
-                          band_list: Union[list, BandNames]) -&gt; dict:
+    def _load_olci_clouds(
+        self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -1837,8 +1873,8 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
 
 
         Args:
-            qa_arr (np.ma.masked_array): Quality array
-            band_list (Union[list, BandNames]): List of the wanted bands
+            qa_arr (XDS_TYPE): Quality array
+            band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
         &#34;&#34;&#34;
@@ -1860,10 +1896,24 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
                 cir_conf_2_id = 12
 
                 # Read binary mask
-                nodata, cld, shd_conf_1, shd_conf_2, cir_conf_1, cir_conf_2 = \
-                    rasters.read_bit_array(qa_arr, [nodata_id, cloud_id,
-                                                    shd_conf_1_id, shd_conf_2_id,
-                                                    cir_conf_1_id, cir_conf_2_id])
+                (
+                    nodata,
+                    cld,
+                    shd_conf_1,
+                    shd_conf_2,
+                    cir_conf_1,
+                    cir_conf_2,
+                ) = rasters.read_bit_array(
+                    qa_arr,
+                    [
+                        nodata_id,
+                        cloud_id,
+                        shd_conf_1_id,
+                        shd_conf_2_id,
+                        cir_conf_1_id,
+                        cir_conf_2_id,
+                    ],
+                )
 
                 shd = shd_conf_1 &amp; shd_conf_2
                 cir = cir_conf_1 &amp; cir_conf_2
@@ -1873,45 +1923,27 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
                 cloud_id = 3  # Clouds with high confidence
                 shd_id = 4  # Shadows with high confidence
                 cir_id = 2  # Cirrus with high confidence
-                nodata, cld, shd, cir = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id, shd_id, cir_id])
+                nodata, cld, shd, cir = rasters.read_bit_array(
+                    qa_arr, [nodata_id, cloud_id, shd_id, cir_id]
+                )
 
         for band in band_list:
             if band == ALL_CLOUDS:
-                bands[band] = self._create_mask(cld | shd | cir, nodata)
+                bands[band] = self._create_mask(qa_arr, cld | shd | cir, nodata)
             elif band == SHADOWS:
-                bands[band] = self._create_mask(shd, nodata)
+                bands[band] = self._create_mask(qa_arr, shd, nodata)
             elif band == CLOUDS:
-                bands[band] = self._create_mask(cld, nodata)
+                bands[band] = self._create_mask(qa_arr, cld, nodata)
             elif band == CIRRUS:
-                bands[band] = self._create_mask(cir, nodata)
+                bands[band] = self._create_mask(qa_arr, cir, nodata)
             elif band == RAW_CLOUDS:
                 bands[band] = qa_arr
             else:
-                raise InvalidTypeError(f&#34;Non existing cloud band for Landsat-OLCI sensor: {band}&#34;)
+                raise InvalidTypeError(
+                    f&#34;Non existing cloud band for Landsat-OLCI sensor: {band}&#34;
+                )
 
-        return bands
-
-    def _create_mask(self, cond: np.ndarray, nodata: np.ndarray) -&gt; np.ma.masked_array:
-        &#34;&#34;&#34;
-        Create a mask masked array (uint8) from a conditional array and a nodata mask.
-
-        Args:
-            cond (np.ndarray): Conditional array
-            nodata (np.ndarray): Nodata mask
-
-        Returns:
-            np.ma.masked_array: Mask masked array
-
-        &#34;&#34;&#34;
-        mask = np.ma.masked_array(np.where(cond, self._mask_true, self._mask_false),
-                                  mask=nodata,
-                                  fill_value=self._mask_nodata,
-                                  dtype=np.uint8)
-
-        # Fill nodata pixels
-        mask[nodata == 1] = self._mask_nodata
-
-        return mask</code></pre>
+        return bands</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2106,7 +2138,7 @@ For SAR product, we use Ground Range resolution as we will automatically orthore
 </p>
 <div class="desc inherited"><p>Condensed name, the filename with only useful data to keep the name unique
 (ie. <code>20191215T110441_S2_30TXP_L2A_122756</code>).
-Used to shorten names and …</p></div>
+Used to shorten names and paths.</p></div>
 </dd>
 <dt id="eoreader.products.optical.landsat_product.LandsatProduct.sat_id"><code class="name">var <span class="ident">sat_id</span></code>
 </dt>
@@ -2229,12 +2261,16 @@ datetime.datetime(2020, 5, 18, 16, 34, 7)
         mtd = self.read_mtd(force_pd=True)
         date = mtd[&#34;DATE_ACQUIRED&#34;].value  # 1982-09-06
         # &#34;16:47:09.5990000Z&#34;: needs max 6 digits for ms
-        hours = mtd[&#34;SCENE_CENTER_TIME&#34;].value.replace(&#34;\&#34;&#34;, &#34;&#34;)[:-3]
+        hours = mtd[&#34;SCENE_CENTER_TIME&#34;].value.replace(&#39;&#34;&#39;, &#34;&#34;)[:-3]
 
-        date = f&#34;{datetime.strptime(date, &#39;%Y-%m-%d&#39;).strftime(&#39;%Y%m%d&#39;)}&#34; \
-               f&#34;T{datetime.strptime(hours, &#39;%H:%M:%S.%f&#39;).strftime(&#39;%H%M%S&#39;)}&#34;
+        date = (
+            f&#34;{datetime.strptime(date, &#39;%Y-%m-%d&#39;).strftime(&#39;%Y%m%d&#39;)}&#34;
+            f&#34;T{datetime.strptime(hours, &#39;%H:%M:%S.%f&#39;).strftime(&#39;%H%M%S&#39;)}&#34;
+        )
     except (FileNotFoundError, KeyError):
-        date = datetime.strptime(self.split_name[3], &#34;%Y%m%d&#34;).strftime(DATETIME_FMT)
+        date = datetime.strptime(self.split_name[3], &#34;%Y%m%d&#34;).strftime(
+            DATETIME_FMT
+        )
 
     if as_datetime:
         date = datetime.strptime(date, DATETIME_FMT)
@@ -2305,14 +2341,18 @@ datetime.datetime(2020, 5, 18, 16, 34, 7)
     band_paths = {}
     for band in band_list:
         if not self.has_band(band):
-            raise InvalidProductError(f&#34;Non existing band ({band.name}) &#34;
-                                      f&#34;for Landsat-{self.product_type.name} products&#34;)
+            raise InvalidProductError(
+                f&#34;Non existing band ({band.name}) &#34;
+                f&#34;for Landsat-{self.product_type.name} products&#34;
+            )
         band_nb = self.band_names[band]
 
         try:
             band_paths[band] = self._get_path(f&#34;_B{band_nb}&#34;)
         except FileNotFoundError as ex:
-            raise InvalidProductError(f&#34;Non existing {band} ({band_nb}) band for {self.path}&#34;) from ex
+            raise InvalidProductError(
+                f&#34;Non existing {band} ({band_nb}) band for {self.path}&#34;
+            ) from ex
 
     return band_paths</code></pre>
 </details>
@@ -2362,7 +2402,9 @@ value  &quot;Image courtesy of the U.S. Geological Survey&quot;  ...  &quot;CUBI
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def read_mtd(self, force_pd=False) -&gt; Union[pd.DataFrame, Tuple[etree._Element, str]]:
+<pre><code class="python">def read_mtd(
+    self, force_pd=False
+) -&gt; Union[pd.DataFrame, Tuple[etree._Element, str]]:
     &#34;&#34;&#34;
     Read Landsat metadata as:
 
@@ -2413,22 +2455,28 @@ value  &quot;Image courtesy of the U.S. Geological Survey&quot;  ...  &quot;CUBI
             mtd_path = os.path.join(self.path, mtd_name)
 
             if not os.path.isfile(mtd_path):
-                raise FileNotFoundError(f&#34;Unable to find the metadata file associated with {self.path}&#34;)
+                raise FileNotFoundError(
+                    f&#34;Unable to find the metadata file associated with {self.path}&#34;
+                )
 
         # Parse
-        mtd_data = pd.read_table(mtd_path,
-                                 sep=&#34;\s=\s&#34;,
-                                 names=[&#34;NAME&#34;, &#34;value&#34;],
-                                 skipinitialspace=True,
-                                 engine=&#34;python&#34;)
+        mtd_data = pd.read_table(
+            mtd_path,
+            sep=&#34;\s=\s&#34;,
+            names=[&#34;NAME&#34;, &#34;value&#34;],
+            skipinitialspace=True,
+            engine=&#34;python&#34;,
+        )
 
         # Workaround an unexpected behaviour in pandas !
         if any(mtd_data.NAME == &#34;=&#34;):
-            mtd_data = pd.read_table(mtd_path,
-                                     sep=&#34;=&#34;,
-                                     names=[&#34;NAME&#34;, &#34;=&#34;, &#34;value&#34;],
-                                     usecols=[0, 2],
-                                     skipinitialspace=True)
+            mtd_data = pd.read_table(
+                mtd_path,
+                sep=&#34;=&#34;,
+                names=[&#34;NAME&#34;, &#34;=&#34;, &#34;value&#34;],
+                usecols=[0, 2],
+                skipinitialspace=True,
+            )
 
         # Remove useless rows
         mtd_data = mtd_data[~mtd_data[&#34;NAME&#34;].isin([&#34;GROUP&#34;, &#34;END_GROUP&#34;, &#34;END&#34;])]
@@ -2445,14 +2493,18 @@ value  &quot;Image courtesy of the U.S. Geological Survey&quot;  ...  &quot;CUBI
         else:
             # ONLY FOR COLLECTION 2
             try:
-                mtd_file = glob.glob(os.path.join(self.path, f&#34;{self.name}_MTL.xml&#34;))[0]
+                mtd_file = glob.glob(
+                    os.path.join(self.path, f&#34;{self.name}_MTL.xml&#34;)
+                )[0]
 
                 # pylint: disable=I1101:
                 # Module &#39;lxml.etree&#39; has no &#39;parse&#39; member, but source is unavailable.
                 xml_tree = etree.parse(mtd_file)
                 root = xml_tree.getroot()
             except IndexError as ex:
-                raise InvalidProductError(f&#34;Metadata file ({self.name}.xml) not found in {self.path}&#34;) from ex
+                raise InvalidProductError(
+                    f&#34;Metadata file ({self.name}.xml) not found in {self.path}&#34;
+                ) from ex
 
         # Get namespace
         namespace = &#34;&#34;  # No namespace here
@@ -2562,16 +2614,6 @@ value  &quot;Image courtesy of the U.S. Geological Survey&quot;  ...  &quot;CUBI
 </p>
 <div class="desc inherited"><p>Return the existing band paths …</p></div>
 </dd>
-<dt id="eoreader.products.optical.landsat_product.LandsatProduct.load"><code class="name flex">
-<p>def <span class="ident">load</span>(</p><p>self, <br>band_and_idx_list, <br>resolution=None, <br>size=None)</p>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="eoreader.products.optical.optical_product.OpticalProduct" href="optical_product.html#eoreader.products.optical.optical_product.OpticalProduct">OpticalProduct</a></code>.<code><a title="eoreader.products.optical.optical_product.OpticalProduct.load" href="optical_product.html#eoreader.products.optical.optical_product.OpticalProduct.load">load</a></code>
-</p>
-<div class="desc inherited"><p>Open the bands and compute the wanted index …</p></div>
-</dd>
 <dt id="eoreader.products.optical.landsat_product.LandsatProduct.get_date"><code class="name flex">
 <p>def <span class="ident">get_date</span>(</p><p>self, <br>as_date=False)</p>
 </code></dt>
@@ -2581,6 +2623,16 @@ value  &quot;Image courtesy of the U.S. Geological Survey&quot;  ...  &quot;CUBI
 <code><a title="eoreader.products.optical.optical_product.OpticalProduct" href="optical_product.html#eoreader.products.optical.optical_product.OpticalProduct">OpticalProduct</a></code>.<code><a title="eoreader.products.optical.optical_product.OpticalProduct.get_date" href="../product.html#eoreader.products.optical.optical_product.OpticalProduct.get_date">get_date</a></code>
 </p>
 <div class="desc inherited"><p>Get the product's acquisition date …</p></div>
+</dd>
+<dt id="eoreader.products.optical.landsat_product.LandsatProduct.load"><code class="name flex">
+<p>def <span class="ident">load</span>(</p><p>self, <br>bands, <br>resolution=None, <br>size=None)</p>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="eoreader.products.optical.optical_product.OpticalProduct" href="optical_product.html#eoreader.products.optical.optical_product.OpticalProduct">OpticalProduct</a></code>.<code><a title="eoreader.products.optical.optical_product.OpticalProduct.load" href="../product.html#eoreader.products.optical.optical_product.OpticalProduct.load">load</a></code>
+</p>
+<div class="desc inherited"><p>Open the bands and compute the wanted index …</p></div>
 </dd>
 <dt id="eoreader.products.optical.landsat_product.LandsatProduct.has_band"><code class="name flex">
 <p>def <span class="ident">has_band</span>(</p><p>self, <br>band)</p>
@@ -2593,7 +2645,7 @@ value  &quot;Image courtesy of the U.S. Geological Survey&quot;  ...  &quot;CUBI
 <div class="desc inherited"><p>Does this products has the specified band ? …</p></div>
 </dd>
 <dt id="eoreader.products.optical.landsat_product.LandsatProduct.stack"><code class="name flex">
-<p>def <span class="ident">stack</span>(</p><p>self, <br>band_and_idx_combination, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
+<p>def <span class="ident">stack</span>(</p><p>self, <br>bands, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -2728,8 +2780,8 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.products.optical.landsat_product.LandsatProduct.extent" href="optical_product.html#eoreader.products.optical.landsat_product.LandsatProduct.extent">extent</a></code></li>
 <li><code><a title="eoreader.products.optical.landsat_product.LandsatProduct.get_existing_bands" href="optical_product.html#eoreader.products.optical.landsat_product.LandsatProduct.get_existing_bands">get_existing_bands</a></code></li>
 <li><code><a title="eoreader.products.optical.landsat_product.LandsatProduct.get_existing_band_paths" href="optical_product.html#eoreader.products.optical.landsat_product.LandsatProduct.get_existing_band_paths">get_existing_band_paths</a></code></li>
-<li><code><a title="eoreader.products.optical.landsat_product.LandsatProduct.load" href="optical_product.html#eoreader.products.optical.landsat_product.LandsatProduct.load">load</a></code></li>
 <li><code><a title="eoreader.products.optical.landsat_product.LandsatProduct.get_date" href="../product.html#eoreader.products.optical.landsat_product.LandsatProduct.get_date">get_date</a></code></li>
+<li><code><a title="eoreader.products.optical.landsat_product.LandsatProduct.load" href="../product.html#eoreader.products.optical.landsat_product.LandsatProduct.load">load</a></code></li>
 <li><code><a title="eoreader.products.optical.landsat_product.LandsatProduct.has_band" href="../product.html#eoreader.products.optical.landsat_product.LandsatProduct.has_band">has_band</a></code></li>
 <li><code><a title="eoreader.products.optical.landsat_product.LandsatProduct.stack" href="../product.html#eoreader.products.optical.landsat_product.LandsatProduct.stack">stack</a></code></li>
 </ul>

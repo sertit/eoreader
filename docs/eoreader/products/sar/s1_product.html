@@ -42,22 +42,21 @@ import logging
 import os
 import re
 import tempfile
+import warnings
 import zipfile
 from datetime import datetime
 from enum import unique
-import warnings
 from typing import Union
 
-import rasterio
 import geopandas as gpd
+import rasterio
 from lxml import etree
-from sertit import strings, misc, files
-from sertit.misc import ListEnum
-from sertit import vectors
 
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct
-from eoreader.utils import EOREADER_NAME, DATETIME_FMT
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from sertit import files, misc, strings, vectors
+from sertit.misc import ListEnum
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -71,6 +70,7 @@ class S1ProductType(ListEnum):
     S1 products types. Take a look here:
     https://earth.esa.int/web/sentinel/missions/sentinel-1/data-products
     &#34;&#34;&#34;
+
     RAW = &#34;RAW&#34;
     &#34;&#34;&#34;Raw products (lvl 0): **not used by EOReader**&#34;&#34;&#34;
 
@@ -93,6 +93,7 @@ class S1SensorMode(ListEnum):
     EW mode is primarily used for wide area coastal monitoring including ship traffic, oil spill and sea-ice monitoring.
     SM mode is only used for small islands and on request for extraordinary events such as emergency management.
     &#34;&#34;&#34;
+
     SM = &#34;SM&#34;
     &#34;&#34;&#34;Stripmap (SM)&#34;&#34;&#34;
 
@@ -126,9 +127,9 @@ class S1Product(SarProduct):
             root, _ = self.read_mtd()
 
             for element in root:
-                if element.tag == &#39;imageAnnotation&#39;:
-                    image_info = element.find(&#39;imageInformation&#39;)
-                    def_res = float(image_info.findtext(&#39;rangePixelSpacing&#39;))
+                if element.tag == &#34;imageAnnotation&#34;:
+                    image_info = element.find(&#34;imageInformation&#34;)
+                    def_res = float(image_info.findtext(&#34;rangePixelSpacing&#34;))
                     break
         except (InvalidProductError, AttributeError):
             pass
@@ -142,9 +143,11 @@ class S1Product(SarProduct):
             else:
                 raise InvalidTypeError(f&#34;Unknown sensor mode {self.sensor_mode}&#34;)
 
-            LOGGER.debug(f&#34;Default resolution is set to {def_res}. &#34;
-                         f&#34;The product is considered being in &#34;
-                         f&#34;{&#39;Medium&#39; if self.sensor_mode == S1SensorMode.WV else &#39;High&#39;}-Resolution&#34;)
+            LOGGER.debug(
+                f&#34;Default resolution is set to {def_res}. &#34;
+                f&#34;The product is considered being in &#34;
+                f&#34;{&#39;Medium&#39; if self.sensor_mode == S1SensorMode.WV else &#39;High&#39;}-Resolution&#34;
+            )
 
         return def_res
 
@@ -192,8 +195,10 @@ class S1Product(SarProduct):
                 # We need to extract the file here as we need a proper file
                 with zipfile.ZipFile(self.path, &#34;r&#34;) as zip_ds:
                     filenames = [f.filename for f in zip_ds.filelist]
-                    regex = re.compile(f&#34;.*preview.*map-overlay.kml&#34;)
-                    preview_overlay = zip_ds.extract(list(filter(regex.match, filenames))[0], tmp_dir.name)
+                    regex = re.compile(&#34;.*preview.*map-overlay.kml&#34;)
+                    preview_overlay = zip_ds.extract(
+                        list(filter(regex.match, filenames))[0], tmp_dir.name
+                    )
             else:
                 preview_overlay = os.path.join(self.path, &#34;preview&#34;, &#34;map-overlay.kml&#34;)
 
@@ -205,20 +210,26 @@ class S1Product(SarProduct):
                 if extent_wgs84.empty:
                     # Convert KML to GeoJSON
                     gj_preview_overlay = preview_overlay.replace(&#34;kml&#34;, &#34;geojson&#34;)
-                    cmd_line = [&#34;ogr2ogr&#34;,
-                                &#34;-fieldTypeToString DateTime&#34;,  # Disable warning
-                                &#34;-f GeoJSON&#34;,
-                                strings.to_cmd_string(gj_preview_overlay),
-                                strings.to_cmd_string(preview_overlay)]
+                    cmd_line = [
+                        &#34;ogr2ogr&#34;,
+                        &#34;-fieldTypeToString DateTime&#34;,  # Disable warning
+                        &#34;-f GeoJSON&#34;,
+                        strings.to_cmd_string(gj_preview_overlay),
+                        strings.to_cmd_string(preview_overlay),
+                    ]
                     misc.run_cli(cmd_line)
 
                     # Open the geojson
                     extent_wgs84 = gpd.read_file(gj_preview_overlay)
 
                     if extent_wgs84.empty:
-                        raise InvalidProductError(f&#34;Cannot determine the WGS84 extent of {self.name}&#34;)
+                        raise InvalidProductError(
+                            f&#34;Cannot determine the WGS84 extent of {self.name}&#34;
+                        )
             else:
-                raise InvalidProductError(f&#34;Impossible to find the map-overlay.kml in {self.path}&#34;)
+                raise InvalidProductError(
+                    f&#34;Impossible to find the map-overlay.kml in {self.path}&#34;
+                )
 
         except Exception as ex:
             raise InvalidProductError(ex) from ex
@@ -229,10 +240,10 @@ class S1Product(SarProduct):
         return extent_wgs84
 
     def _set_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Get products type &#34;&#34;&#34;
-        self._get_sar_product_type(prod_type_pos=2,
-                                   gdrg_types=S1ProductType.GRD,
-                                   cplx_types=S1ProductType.SLC)
+        &#34;&#34;&#34;Get products type&#34;&#34;&#34;
+        self._get_sar_product_type(
+            prod_type_pos=2, gdrg_types=S1ProductType.GRD, cplx_types=S1ProductType.SLC
+        )
 
     def _set_sensor_mode(self) -&gt; None:
         &#34;&#34;&#34;
@@ -247,9 +258,13 @@ class S1Product(SarProduct):
 
         # Discard invalid sensor mode
         if self.sensor_mode != S1SensorMode.IW:
-            raise NotImplementedError(f&#34;For now, only IW sensor mode is used in EOReader processes: {self.name}&#34;)
+            raise NotImplementedError(
+                f&#34;For now, only IW sensor mode is used in EOReader processes: {self.name}&#34;
+            )
         if not self.sensor_mode:
-            raise InvalidProductError(f&#34;Invalid {self.platform.value} name: {self.name}&#34;)
+            raise InvalidProductError(
+                f&#34;Invalid {self.platform.value} name: {self.name}&#34;
+            )
 
     def get_datetime(self, as_datetime: bool = False) -&gt; Union[str, datetime]:
         &#34;&#34;&#34;
@@ -306,7 +321,9 @@ class S1Product(SarProduct):
                 xml_tree = etree.parse(mtd_file)
                 root = xml_tree.getroot()
             except IndexError as ex:
-                raise InvalidProductError(f&#34;Metadata file (product.xml) not found in {self.path}&#34;) from ex
+                raise InvalidProductError(
+                    f&#34;Metadata file (product.xml) not found in {self.path}&#34;
+                ) from ex
 
         # Get namespace
         namespace = &#34;&#34;
@@ -339,6 +356,7 @@ class S1Product(SarProduct):
     S1 products types. Take a look here:
     https://earth.esa.int/web/sentinel/missions/sentinel-1/data-products
     &#34;&#34;&#34;
+
     RAW = &#34;RAW&#34;
     &#34;&#34;&#34;Raw products (lvl 0): **not used by EOReader**&#34;&#34;&#34;
 
@@ -403,6 +421,7 @@ SM mode is only used for small islands and on request for extraordinary events s
     EW mode is primarily used for wide area coastal monitoring including ship traffic, oil spill and sea-ice monitoring.
     SM mode is only used for small islands and on request for extraordinary events such as emergency management.
     &#34;&#34;&#34;
+
     SM = &#34;SM&#34;
     &#34;&#34;&#34;Stripmap (SM)&#34;&#34;&#34;
 
@@ -475,9 +494,9 @@ SM mode is only used for small islands and on request for extraordinary events s
             root, _ = self.read_mtd()
 
             for element in root:
-                if element.tag == &#39;imageAnnotation&#39;:
-                    image_info = element.find(&#39;imageInformation&#39;)
-                    def_res = float(image_info.findtext(&#39;rangePixelSpacing&#39;))
+                if element.tag == &#34;imageAnnotation&#34;:
+                    image_info = element.find(&#34;imageInformation&#34;)
+                    def_res = float(image_info.findtext(&#34;rangePixelSpacing&#34;))
                     break
         except (InvalidProductError, AttributeError):
             pass
@@ -491,9 +510,11 @@ SM mode is only used for small islands and on request for extraordinary events s
             else:
                 raise InvalidTypeError(f&#34;Unknown sensor mode {self.sensor_mode}&#34;)
 
-            LOGGER.debug(f&#34;Default resolution is set to {def_res}. &#34;
-                         f&#34;The product is considered being in &#34;
-                         f&#34;{&#39;Medium&#39; if self.sensor_mode == S1SensorMode.WV else &#39;High&#39;}-Resolution&#34;)
+            LOGGER.debug(
+                f&#34;Default resolution is set to {def_res}. &#34;
+                f&#34;The product is considered being in &#34;
+                f&#34;{&#39;Medium&#39; if self.sensor_mode == S1SensorMode.WV else &#39;High&#39;}-Resolution&#34;
+            )
 
         return def_res
 
@@ -541,8 +562,10 @@ SM mode is only used for small islands and on request for extraordinary events s
                 # We need to extract the file here as we need a proper file
                 with zipfile.ZipFile(self.path, &#34;r&#34;) as zip_ds:
                     filenames = [f.filename for f in zip_ds.filelist]
-                    regex = re.compile(f&#34;.*preview.*map-overlay.kml&#34;)
-                    preview_overlay = zip_ds.extract(list(filter(regex.match, filenames))[0], tmp_dir.name)
+                    regex = re.compile(&#34;.*preview.*map-overlay.kml&#34;)
+                    preview_overlay = zip_ds.extract(
+                        list(filter(regex.match, filenames))[0], tmp_dir.name
+                    )
             else:
                 preview_overlay = os.path.join(self.path, &#34;preview&#34;, &#34;map-overlay.kml&#34;)
 
@@ -554,20 +577,26 @@ SM mode is only used for small islands and on request for extraordinary events s
                 if extent_wgs84.empty:
                     # Convert KML to GeoJSON
                     gj_preview_overlay = preview_overlay.replace(&#34;kml&#34;, &#34;geojson&#34;)
-                    cmd_line = [&#34;ogr2ogr&#34;,
-                                &#34;-fieldTypeToString DateTime&#34;,  # Disable warning
-                                &#34;-f GeoJSON&#34;,
-                                strings.to_cmd_string(gj_preview_overlay),
-                                strings.to_cmd_string(preview_overlay)]
+                    cmd_line = [
+                        &#34;ogr2ogr&#34;,
+                        &#34;-fieldTypeToString DateTime&#34;,  # Disable warning
+                        &#34;-f GeoJSON&#34;,
+                        strings.to_cmd_string(gj_preview_overlay),
+                        strings.to_cmd_string(preview_overlay),
+                    ]
                     misc.run_cli(cmd_line)
 
                     # Open the geojson
                     extent_wgs84 = gpd.read_file(gj_preview_overlay)
 
                     if extent_wgs84.empty:
-                        raise InvalidProductError(f&#34;Cannot determine the WGS84 extent of {self.name}&#34;)
+                        raise InvalidProductError(
+                            f&#34;Cannot determine the WGS84 extent of {self.name}&#34;
+                        )
             else:
-                raise InvalidProductError(f&#34;Impossible to find the map-overlay.kml in {self.path}&#34;)
+                raise InvalidProductError(
+                    f&#34;Impossible to find the map-overlay.kml in {self.path}&#34;
+                )
 
         except Exception as ex:
             raise InvalidProductError(ex) from ex
@@ -578,10 +607,10 @@ SM mode is only used for small islands and on request for extraordinary events s
         return extent_wgs84
 
     def _set_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Get products type &#34;&#34;&#34;
-        self._get_sar_product_type(prod_type_pos=2,
-                                   gdrg_types=S1ProductType.GRD,
-                                   cplx_types=S1ProductType.SLC)
+        &#34;&#34;&#34;Get products type&#34;&#34;&#34;
+        self._get_sar_product_type(
+            prod_type_pos=2, gdrg_types=S1ProductType.GRD, cplx_types=S1ProductType.SLC
+        )
 
     def _set_sensor_mode(self) -&gt; None:
         &#34;&#34;&#34;
@@ -596,9 +625,13 @@ SM mode is only used for small islands and on request for extraordinary events s
 
         # Discard invalid sensor mode
         if self.sensor_mode != S1SensorMode.IW:
-            raise NotImplementedError(f&#34;For now, only IW sensor mode is used in EOReader processes: {self.name}&#34;)
+            raise NotImplementedError(
+                f&#34;For now, only IW sensor mode is used in EOReader processes: {self.name}&#34;
+            )
         if not self.sensor_mode:
-            raise InvalidProductError(f&#34;Invalid {self.platform.value} name: {self.name}&#34;)
+            raise InvalidProductError(
+                f&#34;Invalid {self.platform.value} name: {self.name}&#34;
+            )
 
     def get_datetime(self, as_datetime: bool = False) -&gt; Union[str, datetime]:
         &#34;&#34;&#34;
@@ -655,7 +688,9 @@ SM mode is only used for small islands and on request for extraordinary events s
                 xml_tree = etree.parse(mtd_file)
                 root = xml_tree.getroot()
             except IndexError as ex:
-                raise InvalidProductError(f&#34;Metadata file (product.xml) not found in {self.path}&#34;) from ex
+                raise InvalidProductError(
+                    f&#34;Metadata file (product.xml) not found in {self.path}&#34;
+                ) from ex
 
         # Get namespace
         namespace = &#34;&#34;
@@ -872,7 +907,7 @@ For SAR product, we use Ground Range resolution as we will automatically orthore
 </p>
 <div class="desc inherited"><p>Condensed name, the filename with only useful data to keep the name unique
 (ie. <code>20191215T110441_S2_30TXP_L2A_122756</code>).
-Used to shorten names and …</p></div>
+Used to shorten names and paths.</p></div>
 </dd>
 <dt id="eoreader.products.sar.s1_product.S1Product.sat_id"><code class="name">var <span class="ident">sat_id</span></code>
 </dt>
@@ -927,8 +962,10 @@ This is useful when the SAR pre-process has not been done yet …</p></div>
             # We need to extract the file here as we need a proper file
             with zipfile.ZipFile(self.path, &#34;r&#34;) as zip_ds:
                 filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f&#34;.*preview.*map-overlay.kml&#34;)
-                preview_overlay = zip_ds.extract(list(filter(regex.match, filenames))[0], tmp_dir.name)
+                regex = re.compile(&#34;.*preview.*map-overlay.kml&#34;)
+                preview_overlay = zip_ds.extract(
+                    list(filter(regex.match, filenames))[0], tmp_dir.name
+                )
         else:
             preview_overlay = os.path.join(self.path, &#34;preview&#34;, &#34;map-overlay.kml&#34;)
 
@@ -940,20 +977,26 @@ This is useful when the SAR pre-process has not been done yet …</p></div>
             if extent_wgs84.empty:
                 # Convert KML to GeoJSON
                 gj_preview_overlay = preview_overlay.replace(&#34;kml&#34;, &#34;geojson&#34;)
-                cmd_line = [&#34;ogr2ogr&#34;,
-                            &#34;-fieldTypeToString DateTime&#34;,  # Disable warning
-                            &#34;-f GeoJSON&#34;,
-                            strings.to_cmd_string(gj_preview_overlay),
-                            strings.to_cmd_string(preview_overlay)]
+                cmd_line = [
+                    &#34;ogr2ogr&#34;,
+                    &#34;-fieldTypeToString DateTime&#34;,  # Disable warning
+                    &#34;-f GeoJSON&#34;,
+                    strings.to_cmd_string(gj_preview_overlay),
+                    strings.to_cmd_string(preview_overlay),
+                ]
                 misc.run_cli(cmd_line)
 
                 # Open the geojson
                 extent_wgs84 = gpd.read_file(gj_preview_overlay)
 
                 if extent_wgs84.empty:
-                    raise InvalidProductError(f&#34;Cannot determine the WGS84 extent of {self.name}&#34;)
+                    raise InvalidProductError(
+                        f&#34;Cannot determine the WGS84 extent of {self.name}&#34;
+                    )
         else:
-            raise InvalidProductError(f&#34;Impossible to find the map-overlay.kml in {self.path}&#34;)
+            raise InvalidProductError(
+                f&#34;Impossible to find the map-overlay.kml in {self.path}&#34;
+            )
 
     except Exception as ex:
         raise InvalidProductError(ex) from ex
@@ -1064,7 +1107,9 @@ datetime.datetime(2019, 12, 15, 6, 9, 6)
             xml_tree = etree.parse(mtd_file)
             root = xml_tree.getroot()
         except IndexError as ex:
-            raise InvalidProductError(f&#34;Metadata file (product.xml) not found in {self.path}&#34;) from ex
+            raise InvalidProductError(
+                f&#34;Metadata file (product.xml) not found in {self.path}&#34;
+            ) from ex
 
     # Get namespace
     namespace = &#34;&#34;
@@ -1143,16 +1188,6 @@ The first existing one between <code>VV</code> and <code>HH</code> for SAR data 
 </p>
 <div class="desc inherited"><p>Return the existing orthorectified bands (including despeckle bands) …</p></div>
 </dd>
-<dt id="eoreader.products.sar.s1_product.S1Product.load"><code class="name flex">
-<p>def <span class="ident">load</span>(</p><p>self, <br>band_and_idx_list, <br>resolution=None, <br>size=None)</p>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="eoreader.products.sar.sar_product.SarProduct" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct">SarProduct</a></code>.<code><a title="eoreader.products.sar.sar_product.SarProduct.load" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct.load">load</a></code>
-</p>
-<div class="desc inherited"><p>Load SAR (and DEM) bands …</p></div>
-</dd>
 <dt id="eoreader.products.sar.s1_product.S1Product.footprint"><code class="name flex">
 <p>def <span class="ident">footprint</span>(</p><p>self)</p>
 </code></dt>
@@ -1173,6 +1208,16 @@ The first existing one between <code>VV</code> and <code>HH</code> for SAR data 
 </p>
 <div class="desc inherited"><p>Get the product's acquisition date …</p></div>
 </dd>
+<dt id="eoreader.products.sar.s1_product.S1Product.load"><code class="name flex">
+<p>def <span class="ident">load</span>(</p><p>self, <br>bands, <br>resolution=None, <br>size=None)</p>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="eoreader.products.sar.sar_product.SarProduct" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct">SarProduct</a></code>.<code><a title="eoreader.products.sar.sar_product.SarProduct.load" href="../product.html#eoreader.products.sar.sar_product.SarProduct.load">load</a></code>
+</p>
+<div class="desc inherited"><p>Open the bands and compute the wanted index …</p></div>
+</dd>
 <dt id="eoreader.products.sar.s1_product.S1Product.has_band"><code class="name flex">
 <p>def <span class="ident">has_band</span>(</p><p>self, <br>band)</p>
 </code></dt>
@@ -1184,7 +1229,7 @@ The first existing one between <code>VV</code> and <code>HH</code> for SAR data 
 <div class="desc inherited"><p>Does this products has the specified band ? …</p></div>
 </dd>
 <dt id="eoreader.products.sar.s1_product.S1Product.stack"><code class="name flex">
-<p>def <span class="ident">stack</span>(</p><p>self, <br>band_and_idx_combination, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
+<p>def <span class="ident">stack</span>(</p><p>self, <br>bands, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -1320,9 +1365,9 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.products.sar.s1_product.S1Product.get_band_paths" href="sar_product.html#eoreader.products.sar.s1_product.S1Product.get_band_paths">get_band_paths</a></code></li>
 <li><code><a title="eoreader.products.sar.s1_product.S1Product.get_existing_band_paths" href="sar_product.html#eoreader.products.sar.s1_product.S1Product.get_existing_band_paths">get_existing_band_paths</a></code></li>
 <li><code><a title="eoreader.products.sar.s1_product.S1Product.get_existing_bands" href="sar_product.html#eoreader.products.sar.s1_product.S1Product.get_existing_bands">get_existing_bands</a></code></li>
-<li><code><a title="eoreader.products.sar.s1_product.S1Product.load" href="sar_product.html#eoreader.products.sar.s1_product.S1Product.load">load</a></code></li>
 <li><code><a title="eoreader.products.sar.s1_product.S1Product.footprint" href="../product.html#eoreader.products.sar.s1_product.S1Product.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.sar.s1_product.S1Product.get_date" href="../product.html#eoreader.products.sar.s1_product.S1Product.get_date">get_date</a></code></li>
+<li><code><a title="eoreader.products.sar.s1_product.S1Product.load" href="../product.html#eoreader.products.sar.s1_product.S1Product.load">load</a></code></li>
 <li><code><a title="eoreader.products.sar.s1_product.S1Product.has_band" href="../product.html#eoreader.products.sar.s1_product.S1Product.has_band">has_band</a></code></li>
 <li><code><a title="eoreader.products.sar.s1_product.S1Product.stack" href="../product.html#eoreader.products.sar.s1_product.S1Product.stack">stack</a></code></li>
 </ul>

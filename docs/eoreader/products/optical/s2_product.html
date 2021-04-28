@@ -41,51 +41,57 @@ integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></sc
 import glob
 import logging
 import os
-import zipfile
 import re
+import zipfile
 from datetime import datetime
 from enum import unique
 from typing import Union
 
-from lxml import etree
-import numpy as np
 import geopandas as gpd
-from rasterio import features, MemoryFile
+import numpy as np
+import xarray as xr
+from lxml import etree
+from rasterio import features
 from rasterio.enums import Resampling
-from sertit import files
-from sertit import rasters
-from sertit.misc import ListEnum
 
+from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
+from eoreader.bands.bands import BandNames
+from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.bands.bands import OpticalBandNames as obn, BandNames
-from eoreader.bands.alias import ALL_CLOUDS, RAW_CLOUDS, CLOUDS, SHADOWS, CIRRUS
 from eoreader.products.optical.optical_product import OpticalProduct
-from eoreader.products.product import path_or_dst
-from eoreader.utils import EOREADER_NAME, DATETIME_FMT
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from sertit import files, rasters
+from sertit.misc import ListEnum
+from sertit.rasters import ORIGIN_DTYPE, XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 @unique
 class S2ProductType(ListEnum):
-    &#34;&#34;&#34; Sentinel-2 products types (L1C or L2A) &#34;&#34;&#34;
+    &#34;&#34;&#34;Sentinel-2 products types (L1C or L2A)&#34;&#34;&#34;
+
     L1C = &#34;L1C&#34;
     L2A = &#34;L2A&#34;
 
 
-BAND_DIR_NAMES = {S2ProductType.L1C: &#39;IMG_DATA&#39;,
-                  S2ProductType.L2A: {&#39;01&#39;: [&#39;R60m&#39;],
-                                      &#39;02&#39;: [&#39;R10m&#39;, &#39;R20m&#39;, &#39;R60m&#39;],
-                                      &#39;03&#39;: [&#39;R10m&#39;, &#39;R20m&#39;, &#39;R60m&#39;],
-                                      &#39;04&#39;: [&#39;R10m&#39;, &#39;R20m&#39;, &#39;R60m&#39;],
-                                      &#39;05&#39;: [&#39;R20m&#39;, &#39;R60m&#39;],
-                                      &#39;06&#39;: [&#39;R20m&#39;, &#39;R60m&#39;],
-                                      &#39;07&#39;: [&#39;R20m&#39;, &#39;R60m&#39;],
-                                      &#39;08&#39;: [&#39;R10m&#39;],
-                                      &#39;8A&#39;: [&#39;R20m&#39;, &#39;R60m&#39;],
-                                      &#39;09&#39;: [&#39;R60m&#39;],
-                                      &#39;11&#39;: [&#39;R20m&#39;, &#39;R60m&#39;],
-                                      &#39;12&#39;: [&#39;R20m&#39;, &#39;R60m&#39;]}}
+BAND_DIR_NAMES = {
+    S2ProductType.L1C: &#34;IMG_DATA&#34;,
+    S2ProductType.L2A: {
+        &#34;01&#34;: [&#34;R60m&#34;],
+        &#34;02&#34;: [&#34;R10m&#34;, &#34;R20m&#34;, &#34;R60m&#34;],
+        &#34;03&#34;: [&#34;R10m&#34;, &#34;R20m&#34;, &#34;R60m&#34;],
+        &#34;04&#34;: [&#34;R10m&#34;, &#34;R20m&#34;, &#34;R60m&#34;],
+        &#34;05&#34;: [&#34;R20m&#34;, &#34;R60m&#34;],
+        &#34;06&#34;: [&#34;R20m&#34;, &#34;R60m&#34;],
+        &#34;07&#34;: [&#34;R20m&#34;, &#34;R60m&#34;],
+        &#34;08&#34;: [&#34;R10m&#34;],
+        &#34;8A&#34;: [&#34;R20m&#34;, &#34;R60m&#34;],
+        &#34;09&#34;: [&#34;R60m&#34;],
+        &#34;11&#34;: [&#34;R20m&#34;, &#34;R60m&#34;],
+        &#34;12&#34;: [&#34;R20m&#34;, &#34;R60m&#34;],
+    },
+}
 
 
 class S2Product(OpticalProduct):
@@ -112,7 +118,7 @@ class S2Product(OpticalProduct):
         &#34;&#34;&#34;
         # S2: use 20m resolution, even if we have 60m and 10m resolution
         # In the future maybe set one resolution per band ?
-        return 20.
+        return 20.0
 
     def _get_tile_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -124,40 +130,44 @@ class S2Product(OpticalProduct):
         return self.split_name[-2]
 
     def _set_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Get products type &#34;&#34;&#34;
+        &#34;&#34;&#34;Get products type&#34;&#34;&#34;
         if &#34;MSIL2A&#34; in self.name:
             self.product_type = S2ProductType.L2A
-            self.band_names.map_bands({
-                obn.CA: &#39;01&#39;,
-                obn.BLUE: &#39;02&#39;,
-                obn.GREEN: &#39;03&#39;,
-                obn.RED: &#39;04&#39;,
-                obn.VRE_1: &#39;05&#39;,
-                obn.VRE_2: &#39;06&#39;,
-                obn.VRE_3: &#39;07&#39;,
-                obn.NIR: &#39;08&#39;,
-                obn.NARROW_NIR: &#39;8A&#39;,
-                obn.WV: &#39;09&#39;,
-                obn.SWIR_1: &#39;11&#39;,
-                obn.SWIR_2: &#39;12&#39;
-            })
+            self.band_names.map_bands(
+                {
+                    obn.CA: &#34;01&#34;,
+                    obn.BLUE: &#34;02&#34;,
+                    obn.GREEN: &#34;03&#34;,
+                    obn.RED: &#34;04&#34;,
+                    obn.VRE_1: &#34;05&#34;,
+                    obn.VRE_2: &#34;06&#34;,
+                    obn.VRE_3: &#34;07&#34;,
+                    obn.NIR: &#34;08&#34;,
+                    obn.NARROW_NIR: &#34;8A&#34;,
+                    obn.WV: &#34;09&#34;,
+                    obn.SWIR_1: &#34;11&#34;,
+                    obn.SWIR_2: &#34;12&#34;,
+                }
+            )
         elif &#34;MSIL1C&#34; in self.name:
             self.product_type = S2ProductType.L1C
-            self.band_names.map_bands({
-                obn.CA: &#39;01&#39;,
-                obn.BLUE: &#39;02&#39;,
-                obn.GREEN: &#39;03&#39;,
-                obn.RED: &#39;04&#39;,
-                obn.VRE_1: &#39;05&#39;,
-                obn.VRE_2: &#39;06&#39;,
-                obn.VRE_3: &#39;07&#39;,
-                obn.NIR: &#39;08&#39;,
-                obn.NARROW_NIR: &#39;8A&#39;,
-                obn.WV: &#39;09&#39;,
-                obn.SWIR_CIRRUS: &#39;10&#39;,
-                obn.SWIR_1: &#39;11&#39;,
-                obn.SWIR_2: &#39;12&#39;
-            })
+            self.band_names.map_bands(
+                {
+                    obn.CA: &#34;01&#34;,
+                    obn.BLUE: &#34;02&#34;,
+                    obn.GREEN: &#34;03&#34;,
+                    obn.RED: &#34;04&#34;,
+                    obn.VRE_1: &#34;05&#34;,
+                    obn.VRE_2: &#34;06&#34;,
+                    obn.VRE_3: &#34;07&#34;,
+                    obn.NIR: &#34;08&#34;,
+                    obn.NARROW_NIR: &#34;8A&#34;,
+                    obn.WV: &#34;09&#34;,
+                    obn.SWIR_CIRRUS: &#34;10&#34;,
+                    obn.SWIR_1: &#34;11&#34;,
+                    obn.SWIR_2: &#34;12&#34;,
+                }
+            )
         else:
             raise InvalidProductError(f&#34;Invalid Sentinel-2 name: {self.name}&#34;)
 
@@ -211,13 +221,15 @@ class S2Product(OpticalProduct):
             assert band in obn
             band_nb = self.band_names[band]
             if band_nb is None:
-                raise InvalidProductError(f&#34;Non existing band ({band.name}) for S2-{self.product_type.name} products&#34;)
+                raise InvalidProductError(
+                    f&#34;Non existing band ({band.name}) for S2-{self.product_type.name} products&#34;
+                )
 
             # If L2A products, we care about the resolution
             if self.product_type == S2ProductType.L2A:
                 # If we got a true S2 resolution, open the corresponding band
-                if resolution and f&#34;R{resolution}m&#34; in band_dir[band_nb]:
-                    dir_name = f&#34;R{resolution}m&#34;
+                if resolution and f&#34;R{int(resolution)}m&#34; in band_dir[band_nb]:
+                    dir_name = f&#34;R{int(resolution)}m&#34;
 
                 # Else open the first one, it will be resampled when the ban will be read
                 else:
@@ -230,8 +242,11 @@ class S2Product(OpticalProduct):
                 # Open the zip file
                 with zipfile.ZipFile(self.path, &#34;r&#34;) as zip_ds:
                     # Get the band folder (use dirname is the first of the list is a band)
-                    s2_bands_folder[band] = [os.path.dirname(f.filename) for f in zip_ds.filelist
-                                             if dir_name in f.filename][0]
+                    s2_bands_folder[band] = [
+                        os.path.dirname(f.filename)
+                        for f in zip_ds.filelist
+                        if dir_name in f.filename
+                    ][0]
             else:
                 # Search for the name of the folder into the S2 products
                 for root, folders, _ in os.walk(os.path.abspath(self.path)):
@@ -241,7 +256,9 @@ class S2Product(OpticalProduct):
 
         for band in band_list:
             if band not in s2_bands_folder:
-                raise InvalidProductError(f&#34;Band folder for band {band.value} not found in {self.path}&#34;)
+                raise InvalidProductError(
+                    f&#34;Band folder for band {band.value} not found in {self.path}&#34;
+                )
 
         return s2_bands_folder
 
@@ -273,74 +290,53 @@ class S2Product(OpticalProduct):
         for band in band_list:
             try:
                 if self.is_archived:
-                    band_paths[band] = files.get_archived_rio_path(self.path, f&#34;.*_B{self.band_names[band]}.*.jp2&#34;)
+                    band_paths[band] = files.get_archived_rio_path(
+                        self.path,
+                        f&#34;.*{band_folders[band]}.*_B{self.band_names[band]}.*.jp2&#34;,
+                    )
                 else:
-                    band_paths[band] = files.get_file_in_dir(band_folders[band],
-                                                             &#34;_B&#34; + self.band_names[band],
-                                                             extension=&#34;jp2&#34;)
+                    band_paths[band] = files.get_file_in_dir(
+                        band_folders[band],
+                        &#34;_B&#34; + self.band_names[band],
+                        extension=&#34;jp2&#34;,
+                    )
             except (FileNotFoundError, IndexError) as ex:
-                raise InvalidProductError(f&#34;Non existing {band} ({self.band_names[band]}) band for {self.path}&#34;) from ex
+                raise InvalidProductError(
+                    f&#34;Non existing {band} ({self.band_names[band]}) band for {self.path}&#34;
+                ) from ex
 
         return band_paths
 
-    @path_or_dst
-    def _read_band(self,
-                   dataset,
-                   resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -&gt; (np.ma.masked_array, dict):
+    def _read_band(
+        self,
+        path: str,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; XDS_TYPE:
         &#34;&#34;&#34;
         Read band from a dataset.
 
-        .. WARNING:: Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
-
-        ```python
-        &gt;&gt;&gt; import rasterio
-        &gt;&gt;&gt; from eoreader.reader import Reader
-        &gt;&gt;&gt; from eoreader.bands.alias import *
-        &gt;&gt;&gt; path = r&#34;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&#34;
-        &gt;&gt;&gt; prod = Reader().open(path)
-        &gt;&gt;&gt; band, meta = prod._read_band(prod.get_default_band_path(), resolution=20)
-        &gt;&gt;&gt; band
-        masked_array(
-          data=[[[0.0614, ..., 0.15799999]]],
-          mask=False,
-          fill_value=1e+20,
-          dtype=float32)
-        &gt;&gt;&gt; meta
-        {
-            &#39;driver&#39;: &#39;JP2OpenJPEG&#39;,
-            &#39;dtype&#39;: &lt;class &#39;numpy.float32&#39;&gt;,
-            &#39;nodata&#39;: None,
-            &#39;width&#39;: 5490,
-            &#39;height&#39;: 5490,
-            &#39;count&#39;: 1,
-            &#39;crs&#39;: CRS.from_epsg(32630),
-            &#39;transform&#39;: Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
-        }
-        ```
+        .. WARNING::
+            Invalid pixels are not managed here !
 
         Args:
-            dataset (Dataset): Band dataset
+            path (str): Band path
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            np.ma.masked_array, dict: Radiometrically coherent band, saved as float 32 and its metadata
+            XDS_TYPE: Radiometrically coherent band, saved as float 32
 
         &#34;&#34;&#34;
         # Read band
-        band, dst_meta = rasters.read(dataset,
-                                      resolution=resolution,
-                                      size=size,
-                                      resampling=Resampling.bilinear)
-
-        # Get resolution
-        coeff = 1 / 10000. if dataset.meta[&#39;dtype&#39;] == &#39;uint16&#39; else 1
+        band = rasters.read(
+            path, resolution=resolution, size=size, resampling=Resampling.bilinear
+        )
 
         # Compute the correct radiometry of the band
-        band = band.astype(np.float32) * coeff
-        dst_meta[&#34;dtype&#34;] = np.float32
+        if band.attrs[ORIGIN_DTYPE] == &#34;uint16&#34;:
+            band /= 10000.0
 
-        return band, dst_meta
+        return band
 
     def open_mask(self, mask_str: str, band: Union[obn, str]) -&gt; gpd.GeoDataFrame:
         &#34;&#34;&#34;
@@ -386,7 +382,7 @@ class S2Product(OpticalProduct):
             gpd.GeoDataFrame: Mask as a vector
         &#34;&#34;&#34;
         # Check inputs
-        assert mask_str in [&#39;DEFECT&#39;, &#39;DETFOO&#39;, &#39;NODATA&#39;, &#39;SATURA&#39;, &#39;TECQUA&#39;, &#39;CLOUDS&#39;]
+        assert mask_str in [&#34;DEFECT&#34;, &#34;DETFOO&#34;, &#34;NODATA&#34;, &#34;SATURA&#34;, &#34;TECQUA&#34;, &#34;CLOUDS&#34;]
         if mask_str == &#34;CLOUDS&#34;:
             band = &#34;00&#34;
 
@@ -418,65 +414,71 @@ class S2Product(OpticalProduct):
             # WE DON&#39;T KNOW WHY BUT DO NOT USE files.read_archived_vector HERE !!!
             with zipfile.ZipFile(self.path, &#34;r&#34;) as zip_ds:
                 filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f&#34;.*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml&#34;)
+                regex = re.compile(
+                    f&#34;.*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml&#34;
+                )
                 with zip_ds.open(list(filter(regex.match, filenames))[0]) as mask_path:
-                    mask = _open_mask(gpd.read_file,
-                                      mask_path)
+                    mask = _open_mask(gpd.read_file, mask_path)
 
             # mask = _open_mask(files.read_archived_vector,
             #                   self.path,
             #                   f&#34;.*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}\.gml&#34;)
         else:
-            qi_data_path = os.path.join(self.path, &#39;GRANULE&#39;, &#39;*&#39;, &#39;QI_DATA&#39;)
+            qi_data_path = os.path.join(self.path, &#34;GRANULE&#34;, &#34;*&#34;, &#34;QI_DATA&#34;)
 
             # Get mask path
-            mask_path = files.get_file_in_dir(qi_data_path,
-                                              f&#34;MSK_{mask_str}_B{band_name}.gml&#34;,
-                                              exact_name=True)
+            mask_path = files.get_file_in_dir(
+                qi_data_path, f&#34;MSK_{mask_str}_B{band_name}.gml&#34;, exact_name=True
+            )
 
-            mask = _open_mask(gpd.read_file,
-                              mask_path)
+            mask = _open_mask(gpd.read_file, mask_path)
 
         return mask
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels(self,
-                               band_arr: np.ma.masked_array,
-                               band: obn,
-                               meta: dict,
-                               resolution: float = None,
-                               size: Union[list, tuple] = None) -&gt; (np.ma.masked_array, dict):
+    def _manage_invalid_pixels(
+        self,
+        band_arr: XDS_TYPE,
+        band: obn,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; XDS_TYPE:
         &#34;&#34;&#34;
         Manage invalid pixels (Nodata, saturated, defective...)
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
-            band_arr (np.ma.masked_array): Band array loaded
+            band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            meta (dict): Band metadata from rasterio
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            np.ma.masked_array, dict: Cleaned band array and its metadata
+            XDS_TYPE: Cleaned band array
         &#34;&#34;&#34;
         nodata_true = 1
         nodata_false = 0
 
         # Get detector footprint to deduce the outside nodata
-        nodata_det = self.open_mask(&#34;DETFOO&#34;, band)  # Detector nodata, -&gt; pixels that are outside of the detectors
+        nodata_det = self.open_mask(
+            &#34;DETFOO&#34;, band
+        )  # Detector nodata, -&gt; pixels that are outside of the detectors
 
         # Rasterize nodata
-        mask = features.rasterize(nodata_det.geometry,
-                                  out_shape=(meta[&#34;width&#34;], meta[&#34;height&#34;]),
-                                  fill=nodata_true,  # Outside detector = nodata
-                                  default_value=nodata_false,  # Inside detector = acceptable value
-                                  transform=meta[&#34;transform&#34;],
-                                  dtype=np.uint8)
+        mask = features.rasterize(
+            nodata_det.geometry,
+            out_shape=(band_arr.rio.width, band_arr.rio.height),
+            fill=nodata_true,  # Outside detector = nodata
+            default_value=nodata_false,  # Inside detector = acceptable value
+            transform=band_arr.rio.transform(),
+            dtype=np.uint8,
+        )
 
         #  Load masks and merge them into the nodata
-        nodata_pix = self.open_mask(&#34;NODATA&#34;, band)  # Pixel nodata, not pixels that are outside of the detectors !!!
+        nodata_pix = self.open_mask(
+            &#34;NODATA&#34;, band
+        )  # Pixel nodata, not pixels that are outside of the detectors !!!
         if len(nodata_pix) &gt; 0:
             # Discard pixels corrected during crosstalk
             nodata_pix = nodata_pix[nodata_pix.gml_id == &#34;QT_NODATA_PIXELS&#34;]
@@ -492,47 +494,42 @@ class S2Product(OpticalProduct):
 
         if len(nodata_pix) &gt; 0:
             # Rasterize mask
-            mask_pix = features.rasterize(nodata_pix.geometry,
-                                          out_shape=(meta[&#34;width&#34;], meta[&#34;height&#34;]),
-                                          fill=nodata_false,  # OK pixels = OK value
-                                          default_value=nodata_true,  # Discarded pixels = nodata
-                                          transform=meta[&#34;transform&#34;],
-                                          dtype=np.uint8)
+            mask_pix = features.rasterize(
+                nodata_pix.geometry,
+                out_shape=(band_arr.rio.width, band_arr.rio.height),
+                fill=nodata_false,  # OK pixels = OK value
+                default_value=nodata_true,  # Discarded pixels = nodata
+                transform=band_arr.rio.transform(),
+                dtype=np.uint8,
+            )
 
             mask[mask_pix] = nodata_true
 
-        return self._create_band_masked_array(band_arr, mask, meta)
+        return self._set_nodata_mask(band_arr, mask)
 
-    def _load_bands(self,
-                    band_list: Union[list, BandNames],
-                    resolution: float = None,
-                    size: Union[list, tuple] = None) -&gt; (dict, dict):
+    def _load_bands(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (list, BandNames): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         &#34;&#34;&#34;
         # Return empty if no band are specified
-        if not band_list:
-            return {}, {}
+        if not bands:
+            return {}
 
-        # Get band paths
-        if not isinstance(band_list, list):
-            band_list = [band_list]
-
-        band_paths = self.get_band_paths(band_list, resolution)
+        band_paths = self.get_band_paths(bands, resolution)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self._open_bands(band_paths, resolution=resolution, size=size)
-        meta[&#34;driver&#34;] = &#34;GTiff&#34;
+        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
 
-        return band_arrays, meta
+        return band_arrays
 
     def _get_condensed_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -569,12 +566,12 @@ class S2Product(OpticalProduct):
 
         # Open zenith and azimuth angle
         for element in root:
-            if element.tag == namespace + &#39;Geometric_Info&#39;:
+            if element.tag == namespace + &#34;Geometric_Info&#34;:
                 for node in element:
-                    if node.tag == &#39;Tile_Angles&#39;:
-                        mean_sun_angles = node.find(&#39;Mean_Sun_Angle&#39;)
-                        zenith_angle = float(mean_sun_angles.findtext(&#39;ZENITH_ANGLE&#39;))
-                        azimuth_angle = float(mean_sun_angles.findtext(&#39;AZIMUTH_ANGLE&#39;))
+                    if node.tag == &#34;Tile_Angles&#34;:
+                        mean_sun_angles = node.find(&#34;Mean_Sun_Angle&#34;)
+                        zenith_angle = float(mean_sun_angles.findtext(&#34;ZENITH_ANGLE&#34;))
+                        azimuth_angle = float(mean_sun_angles.findtext(&#34;AZIMUTH_ANGLE&#34;))
                         break  # Only one Mean_Sun_Angle
                 break  # Only one Geometric_Info
 
@@ -606,18 +603,22 @@ class S2Product(OpticalProduct):
         else:
             # Open metadata file
             try:
-                mtd_file = glob.glob(os.path.join(self.path, &#34;GRANULE&#34;, &#34;*&#34;, &#34;*.xml&#34;))[0]
+                mtd_file = glob.glob(os.path.join(self.path, &#34;GRANULE&#34;, &#34;*&#34;, &#34;*.xml&#34;))[
+                    0
+                ]
 
                 # pylint: disable=I1101:
                 # Module &#39;lxml.etree&#39; has no &#39;parse&#39; member, but source is unavailable.
                 xml_tree = etree.parse(mtd_file)
                 root = xml_tree.getroot()
             except IndexError as ex:
-                raise InvalidProductError(f&#34;Metadata file not found in {self.path}&#34;) from ex
+                raise InvalidProductError(
+                    f&#34;Metadata file not found in {self.path}&#34;
+                ) from ex
 
         # Get namespace
         idx = root.tag.rindex(&#34;}&#34;)
-        namespace = root.tag[:idx + 1]
+        namespace = root.tag[: idx + 1]
 
         return root, namespace
 
@@ -632,10 +633,9 @@ class S2Product(OpticalProduct):
             has_band = True
         return has_band
 
-    def _load_clouds(self,
-                     band_list: Union[list, BandNames],
-                     resolution: float = None,
-                     size: Union[list, tuple] = None) -&gt; (dict, dict):
+    def _load_clouds(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -643,86 +643,80 @@ class S2Product(OpticalProduct):
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
 
         Args:
-            band_list (Union[list, BandNames]): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         &#34;&#34;&#34;
-        bands = {}
-        meta = {}
+        band_dict = {}
 
-        if band_list:
+        if bands:
             def_band = self.get_default_band()
-            cloud_vec = self.open_mask(&#39;CLOUDS&#39;, &#34;00&#34;)
+            cloud_vec = self.open_mask(&#34;CLOUDS&#34;, &#34;00&#34;)
 
             # Open a bands to mask it
-            band, meta = self.load(def_band, resolution=resolution)
-            nodata = np.where(band == meta[&#34;nodata&#34;], 1, 0)
+            def_band = self.load(def_band, resolution=resolution)[def_band]
+            nodata = np.where(np.isnan(def_band), 1, 0)
 
-            with MemoryFile().open(**meta) as mem_ds:
-                # Write band into dst
-                mem_ds.write(band[def_band])
+            for band in bands:
+                if band == ALL_CLOUDS:
+                    band_dict[band] = self._rasterize(def_band, cloud_vec, nodata)
+                elif band == CIRRUS:
+                    try:
+                        cirrus = cloud_vec[cloud_vec.maskType == &#34;CIRRUS&#34;]
+                    except AttributeError:
+                        # No masktype -&gt; empty
+                        cirrus = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
+                    band_dict[band] = self._rasterize(def_band, cirrus, nodata)
+                elif band == CLOUDS:
+                    try:
+                        clouds = cloud_vec[cloud_vec.maskType == &#34;OPAQUE&#34;]
+                    except AttributeError:
+                        # No masktype -&gt; empty
+                        clouds = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
+                    band_dict[band] = self._rasterize(def_band, clouds, nodata)
+                elif band == RAW_CLOUDS:
+                    band_dict[band] = self._rasterize(def_band, cloud_vec, nodata)
+                else:
+                    raise InvalidTypeError(
+                        f&#34;Non existing cloud band for Sentinel-2: {band}&#34;
+                    )
 
-                for band in band_list:
-                    if band == ALL_CLOUDS:
-                        bands[band] = self._rasterize(mem_ds, cloud_vec, nodata)
-                    elif band == CIRRUS:
-                        try:
-                            cirrus = cloud_vec[cloud_vec.maskType == &#34;CIRRUS&#34;]
-                        except AttributeError:
-                            # No masktype -&gt; empty
-                            cirrus = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
-                        bands[band] = self._rasterize(mem_ds, cirrus, nodata)
-                    elif band == CLOUDS:
-                        try:
-                            clouds = cloud_vec[cloud_vec.maskType == &#34;OPAQUE&#34;]
-                        except AttributeError:
-                            # No masktype -&gt; empty
-                            clouds = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
-                        bands[band] = self._rasterize(mem_ds, clouds, nodata)
-                    elif band == RAW_CLOUDS:
-                        bands[band] = self._rasterize(mem_ds, cloud_vec, nodata)
-                    else:
-                        raise InvalidTypeError(f&#34;Non existing cloud band for Sentinel-2: {band}&#34;)
+        return band_dict
 
-        return bands, meta
-
-    def _rasterize(self, mem_ds, geometry: gpd.GeoDataFrame, nodata: np.ndarray) -&gt; np.ma.masked_array:
+    def _rasterize(
+        self, xds: XDS_TYPE, geometry: gpd.GeoDataFrame, nodata: np.ndarray
+    ) -&gt; xr.DataArray:
         &#34;&#34;&#34;
         Rasterize a vector on a memory dataset
 
         Args:
-            mem_ds: Memory file
+            xds: xarray
             geometry (gpd.GeoDataFrame): Geometry to rasterize
             nodata (np.ndarray): Nodata mask
 
         Returns:
-
+            xr.DataArray: Rasterized vector
         &#34;&#34;&#34;
         if not geometry.empty:
             # Just in case
-            if geometry.crs != mem_ds.crs:
-                geometry = geometry.to_crs(mem_ds.crs)
+            if geometry.crs != xds.rio.crs:
+                geometry = geometry.to_crs(xds.rio.crs)
 
             # Mask the file -&gt; do not use rasterize to get a correct nodata mask !
-            rstrzd, _ = rasters.mask(mem_ds, geometry.geometry, nodata=mem_ds.nodata)
+            rstrzd = rasters.mask(xds, geometry.geometry, nodata=xds.rio.encoded_nodata)
 
             # Get cloud raster
-            mask = np.ma.masked_array(np.where(rstrzd &gt; 0, self._mask_true, self._mask_false),
-                                      mask=nodata,
-                                      fill_value=self._mask_nodata,
-                                      dtype=np.uint8)
+            cond = np.where(rstrzd.data &gt; 0, self._mask_true, self._mask_false)
         else:
             # If empty geometry, just
-            mask = np.ma.masked_array(np.full(shape=(mem_ds.count, mem_ds.height, mem_ds.width),
-                                              dtype=np.uint8,
-                                              fill_value=self._mask_false),
-                                      mask=nodata,
-                                      fill_value=self._mask_nodata,
-                                      dtype=np.uint8)
-        return mask</code></pre>
+            cond = np.full(
+                shape=(xds.rio.count, xds.rio.height, xds.rio.width),
+                fill_value=self._mask_false,
+                dtype=np.uint8,
+            )
+        return self._create_mask(xds, cond, nodata)</code></pre>
 </details>
 </section>
 <section>
@@ -745,7 +739,8 @@ class S2Product(OpticalProduct):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class S2ProductType(ListEnum):
-    &#34;&#34;&#34; Sentinel-2 products types (L1C or L2A) &#34;&#34;&#34;
+    &#34;&#34;&#34;Sentinel-2 products types (L1C or L2A)&#34;&#34;&#34;
+
     L1C = &#34;L1C&#34;
     L2A = &#34;L2A&#34;</code></pre>
 </details>
@@ -803,7 +798,7 @@ class S2Product(OpticalProduct):
         &#34;&#34;&#34;
         # S2: use 20m resolution, even if we have 60m and 10m resolution
         # In the future maybe set one resolution per band ?
-        return 20.
+        return 20.0
 
     def _get_tile_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -815,40 +810,44 @@ class S2Product(OpticalProduct):
         return self.split_name[-2]
 
     def _set_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Get products type &#34;&#34;&#34;
+        &#34;&#34;&#34;Get products type&#34;&#34;&#34;
         if &#34;MSIL2A&#34; in self.name:
             self.product_type = S2ProductType.L2A
-            self.band_names.map_bands({
-                obn.CA: &#39;01&#39;,
-                obn.BLUE: &#39;02&#39;,
-                obn.GREEN: &#39;03&#39;,
-                obn.RED: &#39;04&#39;,
-                obn.VRE_1: &#39;05&#39;,
-                obn.VRE_2: &#39;06&#39;,
-                obn.VRE_3: &#39;07&#39;,
-                obn.NIR: &#39;08&#39;,
-                obn.NARROW_NIR: &#39;8A&#39;,
-                obn.WV: &#39;09&#39;,
-                obn.SWIR_1: &#39;11&#39;,
-                obn.SWIR_2: &#39;12&#39;
-            })
+            self.band_names.map_bands(
+                {
+                    obn.CA: &#34;01&#34;,
+                    obn.BLUE: &#34;02&#34;,
+                    obn.GREEN: &#34;03&#34;,
+                    obn.RED: &#34;04&#34;,
+                    obn.VRE_1: &#34;05&#34;,
+                    obn.VRE_2: &#34;06&#34;,
+                    obn.VRE_3: &#34;07&#34;,
+                    obn.NIR: &#34;08&#34;,
+                    obn.NARROW_NIR: &#34;8A&#34;,
+                    obn.WV: &#34;09&#34;,
+                    obn.SWIR_1: &#34;11&#34;,
+                    obn.SWIR_2: &#34;12&#34;,
+                }
+            )
         elif &#34;MSIL1C&#34; in self.name:
             self.product_type = S2ProductType.L1C
-            self.band_names.map_bands({
-                obn.CA: &#39;01&#39;,
-                obn.BLUE: &#39;02&#39;,
-                obn.GREEN: &#39;03&#39;,
-                obn.RED: &#39;04&#39;,
-                obn.VRE_1: &#39;05&#39;,
-                obn.VRE_2: &#39;06&#39;,
-                obn.VRE_3: &#39;07&#39;,
-                obn.NIR: &#39;08&#39;,
-                obn.NARROW_NIR: &#39;8A&#39;,
-                obn.WV: &#39;09&#39;,
-                obn.SWIR_CIRRUS: &#39;10&#39;,
-                obn.SWIR_1: &#39;11&#39;,
-                obn.SWIR_2: &#39;12&#39;
-            })
+            self.band_names.map_bands(
+                {
+                    obn.CA: &#34;01&#34;,
+                    obn.BLUE: &#34;02&#34;,
+                    obn.GREEN: &#34;03&#34;,
+                    obn.RED: &#34;04&#34;,
+                    obn.VRE_1: &#34;05&#34;,
+                    obn.VRE_2: &#34;06&#34;,
+                    obn.VRE_3: &#34;07&#34;,
+                    obn.NIR: &#34;08&#34;,
+                    obn.NARROW_NIR: &#34;8A&#34;,
+                    obn.WV: &#34;09&#34;,
+                    obn.SWIR_CIRRUS: &#34;10&#34;,
+                    obn.SWIR_1: &#34;11&#34;,
+                    obn.SWIR_2: &#34;12&#34;,
+                }
+            )
         else:
             raise InvalidProductError(f&#34;Invalid Sentinel-2 name: {self.name}&#34;)
 
@@ -902,13 +901,15 @@ class S2Product(OpticalProduct):
             assert band in obn
             band_nb = self.band_names[band]
             if band_nb is None:
-                raise InvalidProductError(f&#34;Non existing band ({band.name}) for S2-{self.product_type.name} products&#34;)
+                raise InvalidProductError(
+                    f&#34;Non existing band ({band.name}) for S2-{self.product_type.name} products&#34;
+                )
 
             # If L2A products, we care about the resolution
             if self.product_type == S2ProductType.L2A:
                 # If we got a true S2 resolution, open the corresponding band
-                if resolution and f&#34;R{resolution}m&#34; in band_dir[band_nb]:
-                    dir_name = f&#34;R{resolution}m&#34;
+                if resolution and f&#34;R{int(resolution)}m&#34; in band_dir[band_nb]:
+                    dir_name = f&#34;R{int(resolution)}m&#34;
 
                 # Else open the first one, it will be resampled when the ban will be read
                 else:
@@ -921,8 +922,11 @@ class S2Product(OpticalProduct):
                 # Open the zip file
                 with zipfile.ZipFile(self.path, &#34;r&#34;) as zip_ds:
                     # Get the band folder (use dirname is the first of the list is a band)
-                    s2_bands_folder[band] = [os.path.dirname(f.filename) for f in zip_ds.filelist
-                                             if dir_name in f.filename][0]
+                    s2_bands_folder[band] = [
+                        os.path.dirname(f.filename)
+                        for f in zip_ds.filelist
+                        if dir_name in f.filename
+                    ][0]
             else:
                 # Search for the name of the folder into the S2 products
                 for root, folders, _ in os.walk(os.path.abspath(self.path)):
@@ -932,7 +936,9 @@ class S2Product(OpticalProduct):
 
         for band in band_list:
             if band not in s2_bands_folder:
-                raise InvalidProductError(f&#34;Band folder for band {band.value} not found in {self.path}&#34;)
+                raise InvalidProductError(
+                    f&#34;Band folder for band {band.value} not found in {self.path}&#34;
+                )
 
         return s2_bands_folder
 
@@ -964,74 +970,53 @@ class S2Product(OpticalProduct):
         for band in band_list:
             try:
                 if self.is_archived:
-                    band_paths[band] = files.get_archived_rio_path(self.path, f&#34;.*_B{self.band_names[band]}.*.jp2&#34;)
+                    band_paths[band] = files.get_archived_rio_path(
+                        self.path,
+                        f&#34;.*{band_folders[band]}.*_B{self.band_names[band]}.*.jp2&#34;,
+                    )
                 else:
-                    band_paths[band] = files.get_file_in_dir(band_folders[band],
-                                                             &#34;_B&#34; + self.band_names[band],
-                                                             extension=&#34;jp2&#34;)
+                    band_paths[band] = files.get_file_in_dir(
+                        band_folders[band],
+                        &#34;_B&#34; + self.band_names[band],
+                        extension=&#34;jp2&#34;,
+                    )
             except (FileNotFoundError, IndexError) as ex:
-                raise InvalidProductError(f&#34;Non existing {band} ({self.band_names[band]}) band for {self.path}&#34;) from ex
+                raise InvalidProductError(
+                    f&#34;Non existing {band} ({self.band_names[band]}) band for {self.path}&#34;
+                ) from ex
 
         return band_paths
 
-    @path_or_dst
-    def _read_band(self,
-                   dataset,
-                   resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -&gt; (np.ma.masked_array, dict):
+    def _read_band(
+        self,
+        path: str,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; XDS_TYPE:
         &#34;&#34;&#34;
         Read band from a dataset.
 
-        .. WARNING:: Invalid pixels are not managed here, please consider using `load` or use it at your own risk!
-
-        ```python
-        &gt;&gt;&gt; import rasterio
-        &gt;&gt;&gt; from eoreader.reader import Reader
-        &gt;&gt;&gt; from eoreader.bands.alias import *
-        &gt;&gt;&gt; path = r&#34;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&#34;
-        &gt;&gt;&gt; prod = Reader().open(path)
-        &gt;&gt;&gt; band, meta = prod._read_band(prod.get_default_band_path(), resolution=20)
-        &gt;&gt;&gt; band
-        masked_array(
-          data=[[[0.0614, ..., 0.15799999]]],
-          mask=False,
-          fill_value=1e+20,
-          dtype=float32)
-        &gt;&gt;&gt; meta
-        {
-            &#39;driver&#39;: &#39;JP2OpenJPEG&#39;,
-            &#39;dtype&#39;: &lt;class &#39;numpy.float32&#39;&gt;,
-            &#39;nodata&#39;: None,
-            &#39;width&#39;: 5490,
-            &#39;height&#39;: 5490,
-            &#39;count&#39;: 1,
-            &#39;crs&#39;: CRS.from_epsg(32630),
-            &#39;transform&#39;: Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
-        }
-        ```
+        .. WARNING::
+            Invalid pixels are not managed here !
 
         Args:
-            dataset (Dataset): Band dataset
+            path (str): Band path
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            np.ma.masked_array, dict: Radiometrically coherent band, saved as float 32 and its metadata
+            XDS_TYPE: Radiometrically coherent band, saved as float 32
 
         &#34;&#34;&#34;
         # Read band
-        band, dst_meta = rasters.read(dataset,
-                                      resolution=resolution,
-                                      size=size,
-                                      resampling=Resampling.bilinear)
-
-        # Get resolution
-        coeff = 1 / 10000. if dataset.meta[&#39;dtype&#39;] == &#39;uint16&#39; else 1
+        band = rasters.read(
+            path, resolution=resolution, size=size, resampling=Resampling.bilinear
+        )
 
         # Compute the correct radiometry of the band
-        band = band.astype(np.float32) * coeff
-        dst_meta[&#34;dtype&#34;] = np.float32
+        if band.attrs[ORIGIN_DTYPE] == &#34;uint16&#34;:
+            band /= 10000.0
 
-        return band, dst_meta
+        return band
 
     def open_mask(self, mask_str: str, band: Union[obn, str]) -&gt; gpd.GeoDataFrame:
         &#34;&#34;&#34;
@@ -1077,7 +1062,7 @@ class S2Product(OpticalProduct):
             gpd.GeoDataFrame: Mask as a vector
         &#34;&#34;&#34;
         # Check inputs
-        assert mask_str in [&#39;DEFECT&#39;, &#39;DETFOO&#39;, &#39;NODATA&#39;, &#39;SATURA&#39;, &#39;TECQUA&#39;, &#39;CLOUDS&#39;]
+        assert mask_str in [&#34;DEFECT&#34;, &#34;DETFOO&#34;, &#34;NODATA&#34;, &#34;SATURA&#34;, &#34;TECQUA&#34;, &#34;CLOUDS&#34;]
         if mask_str == &#34;CLOUDS&#34;:
             band = &#34;00&#34;
 
@@ -1109,65 +1094,71 @@ class S2Product(OpticalProduct):
             # WE DON&#39;T KNOW WHY BUT DO NOT USE files.read_archived_vector HERE !!!
             with zipfile.ZipFile(self.path, &#34;r&#34;) as zip_ds:
                 filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f&#34;.*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml&#34;)
+                regex = re.compile(
+                    f&#34;.*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml&#34;
+                )
                 with zip_ds.open(list(filter(regex.match, filenames))[0]) as mask_path:
-                    mask = _open_mask(gpd.read_file,
-                                      mask_path)
+                    mask = _open_mask(gpd.read_file, mask_path)
 
             # mask = _open_mask(files.read_archived_vector,
             #                   self.path,
             #                   f&#34;.*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}\.gml&#34;)
         else:
-            qi_data_path = os.path.join(self.path, &#39;GRANULE&#39;, &#39;*&#39;, &#39;QI_DATA&#39;)
+            qi_data_path = os.path.join(self.path, &#34;GRANULE&#34;, &#34;*&#34;, &#34;QI_DATA&#34;)
 
             # Get mask path
-            mask_path = files.get_file_in_dir(qi_data_path,
-                                              f&#34;MSK_{mask_str}_B{band_name}.gml&#34;,
-                                              exact_name=True)
+            mask_path = files.get_file_in_dir(
+                qi_data_path, f&#34;MSK_{mask_str}_B{band_name}.gml&#34;, exact_name=True
+            )
 
-            mask = _open_mask(gpd.read_file,
-                              mask_path)
+            mask = _open_mask(gpd.read_file, mask_path)
 
         return mask
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels(self,
-                               band_arr: np.ma.masked_array,
-                               band: obn,
-                               meta: dict,
-                               resolution: float = None,
-                               size: Union[list, tuple] = None) -&gt; (np.ma.masked_array, dict):
+    def _manage_invalid_pixels(
+        self,
+        band_arr: XDS_TYPE,
+        band: obn,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; XDS_TYPE:
         &#34;&#34;&#34;
         Manage invalid pixels (Nodata, saturated, defective...)
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
-            band_arr (np.ma.masked_array): Band array loaded
+            band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            meta (dict): Band metadata from rasterio
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            np.ma.masked_array, dict: Cleaned band array and its metadata
+            XDS_TYPE: Cleaned band array
         &#34;&#34;&#34;
         nodata_true = 1
         nodata_false = 0
 
         # Get detector footprint to deduce the outside nodata
-        nodata_det = self.open_mask(&#34;DETFOO&#34;, band)  # Detector nodata, -&gt; pixels that are outside of the detectors
+        nodata_det = self.open_mask(
+            &#34;DETFOO&#34;, band
+        )  # Detector nodata, -&gt; pixels that are outside of the detectors
 
         # Rasterize nodata
-        mask = features.rasterize(nodata_det.geometry,
-                                  out_shape=(meta[&#34;width&#34;], meta[&#34;height&#34;]),
-                                  fill=nodata_true,  # Outside detector = nodata
-                                  default_value=nodata_false,  # Inside detector = acceptable value
-                                  transform=meta[&#34;transform&#34;],
-                                  dtype=np.uint8)
+        mask = features.rasterize(
+            nodata_det.geometry,
+            out_shape=(band_arr.rio.width, band_arr.rio.height),
+            fill=nodata_true,  # Outside detector = nodata
+            default_value=nodata_false,  # Inside detector = acceptable value
+            transform=band_arr.rio.transform(),
+            dtype=np.uint8,
+        )
 
         #  Load masks and merge them into the nodata
-        nodata_pix = self.open_mask(&#34;NODATA&#34;, band)  # Pixel nodata, not pixels that are outside of the detectors !!!
+        nodata_pix = self.open_mask(
+            &#34;NODATA&#34;, band
+        )  # Pixel nodata, not pixels that are outside of the detectors !!!
         if len(nodata_pix) &gt; 0:
             # Discard pixels corrected during crosstalk
             nodata_pix = nodata_pix[nodata_pix.gml_id == &#34;QT_NODATA_PIXELS&#34;]
@@ -1183,47 +1174,42 @@ class S2Product(OpticalProduct):
 
         if len(nodata_pix) &gt; 0:
             # Rasterize mask
-            mask_pix = features.rasterize(nodata_pix.geometry,
-                                          out_shape=(meta[&#34;width&#34;], meta[&#34;height&#34;]),
-                                          fill=nodata_false,  # OK pixels = OK value
-                                          default_value=nodata_true,  # Discarded pixels = nodata
-                                          transform=meta[&#34;transform&#34;],
-                                          dtype=np.uint8)
+            mask_pix = features.rasterize(
+                nodata_pix.geometry,
+                out_shape=(band_arr.rio.width, band_arr.rio.height),
+                fill=nodata_false,  # OK pixels = OK value
+                default_value=nodata_true,  # Discarded pixels = nodata
+                transform=band_arr.rio.transform(),
+                dtype=np.uint8,
+            )
 
             mask[mask_pix] = nodata_true
 
-        return self._create_band_masked_array(band_arr, mask, meta)
+        return self._set_nodata_mask(band_arr, mask)
 
-    def _load_bands(self,
-                    band_list: Union[list, BandNames],
-                    resolution: float = None,
-                    size: Union[list, tuple] = None) -&gt; (dict, dict):
+    def _load_bands(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (list, BandNames): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         &#34;&#34;&#34;
         # Return empty if no band are specified
-        if not band_list:
-            return {}, {}
+        if not bands:
+            return {}
 
-        # Get band paths
-        if not isinstance(band_list, list):
-            band_list = [band_list]
-
-        band_paths = self.get_band_paths(band_list, resolution)
+        band_paths = self.get_band_paths(bands, resolution)
 
         # Open bands and get array (resampled if needed)
-        band_arrays, meta = self._open_bands(band_paths, resolution=resolution, size=size)
-        meta[&#34;driver&#34;] = &#34;GTiff&#34;
+        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
 
-        return band_arrays, meta
+        return band_arrays
 
     def _get_condensed_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -1260,12 +1246,12 @@ class S2Product(OpticalProduct):
 
         # Open zenith and azimuth angle
         for element in root:
-            if element.tag == namespace + &#39;Geometric_Info&#39;:
+            if element.tag == namespace + &#34;Geometric_Info&#34;:
                 for node in element:
-                    if node.tag == &#39;Tile_Angles&#39;:
-                        mean_sun_angles = node.find(&#39;Mean_Sun_Angle&#39;)
-                        zenith_angle = float(mean_sun_angles.findtext(&#39;ZENITH_ANGLE&#39;))
-                        azimuth_angle = float(mean_sun_angles.findtext(&#39;AZIMUTH_ANGLE&#39;))
+                    if node.tag == &#34;Tile_Angles&#34;:
+                        mean_sun_angles = node.find(&#34;Mean_Sun_Angle&#34;)
+                        zenith_angle = float(mean_sun_angles.findtext(&#34;ZENITH_ANGLE&#34;))
+                        azimuth_angle = float(mean_sun_angles.findtext(&#34;AZIMUTH_ANGLE&#34;))
                         break  # Only one Mean_Sun_Angle
                 break  # Only one Geometric_Info
 
@@ -1297,18 +1283,22 @@ class S2Product(OpticalProduct):
         else:
             # Open metadata file
             try:
-                mtd_file = glob.glob(os.path.join(self.path, &#34;GRANULE&#34;, &#34;*&#34;, &#34;*.xml&#34;))[0]
+                mtd_file = glob.glob(os.path.join(self.path, &#34;GRANULE&#34;, &#34;*&#34;, &#34;*.xml&#34;))[
+                    0
+                ]
 
                 # pylint: disable=I1101:
                 # Module &#39;lxml.etree&#39; has no &#39;parse&#39; member, but source is unavailable.
                 xml_tree = etree.parse(mtd_file)
                 root = xml_tree.getroot()
             except IndexError as ex:
-                raise InvalidProductError(f&#34;Metadata file not found in {self.path}&#34;) from ex
+                raise InvalidProductError(
+                    f&#34;Metadata file not found in {self.path}&#34;
+                ) from ex
 
         # Get namespace
         idx = root.tag.rindex(&#34;}&#34;)
-        namespace = root.tag[:idx + 1]
+        namespace = root.tag[: idx + 1]
 
         return root, namespace
 
@@ -1323,10 +1313,9 @@ class S2Product(OpticalProduct):
             has_band = True
         return has_band
 
-    def _load_clouds(self,
-                     band_list: Union[list, BandNames],
-                     resolution: float = None,
-                     size: Union[list, tuple] = None) -&gt; (dict, dict):
+    def _load_clouds(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -&gt; dict:
         &#34;&#34;&#34;
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -1334,86 +1323,80 @@ class S2Product(OpticalProduct):
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
 
         Args:
-            band_list (Union[list, BandNames]): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            dict, dict: Dictionary {band_name, band_array} and the products metadata
-                        (supposed to be the same for all bands)
+            dict: Dictionary {band_name, band_xarray}
         &#34;&#34;&#34;
-        bands = {}
-        meta = {}
+        band_dict = {}
 
-        if band_list:
+        if bands:
             def_band = self.get_default_band()
-            cloud_vec = self.open_mask(&#39;CLOUDS&#39;, &#34;00&#34;)
+            cloud_vec = self.open_mask(&#34;CLOUDS&#34;, &#34;00&#34;)
 
             # Open a bands to mask it
-            band, meta = self.load(def_band, resolution=resolution)
-            nodata = np.where(band == meta[&#34;nodata&#34;], 1, 0)
+            def_band = self.load(def_band, resolution=resolution)[def_band]
+            nodata = np.where(np.isnan(def_band), 1, 0)
 
-            with MemoryFile().open(**meta) as mem_ds:
-                # Write band into dst
-                mem_ds.write(band[def_band])
+            for band in bands:
+                if band == ALL_CLOUDS:
+                    band_dict[band] = self._rasterize(def_band, cloud_vec, nodata)
+                elif band == CIRRUS:
+                    try:
+                        cirrus = cloud_vec[cloud_vec.maskType == &#34;CIRRUS&#34;]
+                    except AttributeError:
+                        # No masktype -&gt; empty
+                        cirrus = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
+                    band_dict[band] = self._rasterize(def_band, cirrus, nodata)
+                elif band == CLOUDS:
+                    try:
+                        clouds = cloud_vec[cloud_vec.maskType == &#34;OPAQUE&#34;]
+                    except AttributeError:
+                        # No masktype -&gt; empty
+                        clouds = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
+                    band_dict[band] = self._rasterize(def_band, clouds, nodata)
+                elif band == RAW_CLOUDS:
+                    band_dict[band] = self._rasterize(def_band, cloud_vec, nodata)
+                else:
+                    raise InvalidTypeError(
+                        f&#34;Non existing cloud band for Sentinel-2: {band}&#34;
+                    )
 
-                for band in band_list:
-                    if band == ALL_CLOUDS:
-                        bands[band] = self._rasterize(mem_ds, cloud_vec, nodata)
-                    elif band == CIRRUS:
-                        try:
-                            cirrus = cloud_vec[cloud_vec.maskType == &#34;CIRRUS&#34;]
-                        except AttributeError:
-                            # No masktype -&gt; empty
-                            cirrus = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
-                        bands[band] = self._rasterize(mem_ds, cirrus, nodata)
-                    elif band == CLOUDS:
-                        try:
-                            clouds = cloud_vec[cloud_vec.maskType == &#34;OPAQUE&#34;]
-                        except AttributeError:
-                            # No masktype -&gt; empty
-                            clouds = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
-                        bands[band] = self._rasterize(mem_ds, clouds, nodata)
-                    elif band == RAW_CLOUDS:
-                        bands[band] = self._rasterize(mem_ds, cloud_vec, nodata)
-                    else:
-                        raise InvalidTypeError(f&#34;Non existing cloud band for Sentinel-2: {band}&#34;)
+        return band_dict
 
-        return bands, meta
-
-    def _rasterize(self, mem_ds, geometry: gpd.GeoDataFrame, nodata: np.ndarray) -&gt; np.ma.masked_array:
+    def _rasterize(
+        self, xds: XDS_TYPE, geometry: gpd.GeoDataFrame, nodata: np.ndarray
+    ) -&gt; xr.DataArray:
         &#34;&#34;&#34;
         Rasterize a vector on a memory dataset
 
         Args:
-            mem_ds: Memory file
+            xds: xarray
             geometry (gpd.GeoDataFrame): Geometry to rasterize
             nodata (np.ndarray): Nodata mask
 
         Returns:
-
+            xr.DataArray: Rasterized vector
         &#34;&#34;&#34;
         if not geometry.empty:
             # Just in case
-            if geometry.crs != mem_ds.crs:
-                geometry = geometry.to_crs(mem_ds.crs)
+            if geometry.crs != xds.rio.crs:
+                geometry = geometry.to_crs(xds.rio.crs)
 
             # Mask the file -&gt; do not use rasterize to get a correct nodata mask !
-            rstrzd, _ = rasters.mask(mem_ds, geometry.geometry, nodata=mem_ds.nodata)
+            rstrzd = rasters.mask(xds, geometry.geometry, nodata=xds.rio.encoded_nodata)
 
             # Get cloud raster
-            mask = np.ma.masked_array(np.where(rstrzd &gt; 0, self._mask_true, self._mask_false),
-                                      mask=nodata,
-                                      fill_value=self._mask_nodata,
-                                      dtype=np.uint8)
+            cond = np.where(rstrzd.data &gt; 0, self._mask_true, self._mask_false)
         else:
             # If empty geometry, just
-            mask = np.ma.masked_array(np.full(shape=(mem_ds.count, mem_ds.height, mem_ds.width),
-                                              dtype=np.uint8,
-                                              fill_value=self._mask_false),
-                                      mask=nodata,
-                                      fill_value=self._mask_nodata,
-                                      dtype=np.uint8)
-        return mask</code></pre>
+            cond = np.full(
+                shape=(xds.rio.count, xds.rio.height, xds.rio.width),
+                fill_value=self._mask_false,
+                dtype=np.uint8,
+            )
+        return self._create_mask(xds, cond, nodata)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1598,7 +1581,7 @@ For SAR product, we use Ground Range resolution as we will automatically orthore
 </p>
 <div class="desc inherited"><p>Condensed name, the filename with only useful data to keep the name unique
 (ie. <code>20191215T110441_S2_30TXP_L2A_122756</code>).
-Used to shorten names and …</p></div>
+Used to shorten names and paths.</p></div>
 </dd>
 <dt id="eoreader.products.optical.s2_product.S2Product.sat_id"><code class="name">var <span class="ident">sat_id</span></code>
 </dt>
@@ -1695,13 +1678,20 @@ Used to shorten names and …</p></div>
     for band in band_list:
         try:
             if self.is_archived:
-                band_paths[band] = files.get_archived_rio_path(self.path, f&#34;.*_B{self.band_names[band]}.*.jp2&#34;)
+                band_paths[band] = files.get_archived_rio_path(
+                    self.path,
+                    f&#34;.*{band_folders[band]}.*_B{self.band_names[band]}.*.jp2&#34;,
+                )
             else:
-                band_paths[band] = files.get_file_in_dir(band_folders[band],
-                                                         &#34;_B&#34; + self.band_names[band],
-                                                         extension=&#34;jp2&#34;)
+                band_paths[band] = files.get_file_in_dir(
+                    band_folders[band],
+                    &#34;_B&#34; + self.band_names[band],
+                    extension=&#34;jp2&#34;,
+                )
         except (FileNotFoundError, IndexError) as ex:
-            raise InvalidProductError(f&#34;Non existing {band} ({self.band_names[band]}) band for {self.path}&#34;) from ex
+            raise InvalidProductError(
+                f&#34;Non existing {band} ({self.band_names[band]}) band for {self.path}&#34;
+            ) from ex
 
     return band_paths</code></pre>
 </details>
@@ -1801,7 +1791,7 @@ Index: []
         gpd.GeoDataFrame: Mask as a vector
     &#34;&#34;&#34;
     # Check inputs
-    assert mask_str in [&#39;DEFECT&#39;, &#39;DETFOO&#39;, &#39;NODATA&#39;, &#39;SATURA&#39;, &#39;TECQUA&#39;, &#39;CLOUDS&#39;]
+    assert mask_str in [&#34;DEFECT&#34;, &#34;DETFOO&#34;, &#34;NODATA&#34;, &#34;SATURA&#34;, &#34;TECQUA&#34;, &#34;CLOUDS&#34;]
     if mask_str == &#34;CLOUDS&#34;:
         band = &#34;00&#34;
 
@@ -1833,24 +1823,24 @@ Index: []
         # WE DON&#39;T KNOW WHY BUT DO NOT USE files.read_archived_vector HERE !!!
         with zipfile.ZipFile(self.path, &#34;r&#34;) as zip_ds:
             filenames = [f.filename for f in zip_ds.filelist]
-            regex = re.compile(f&#34;.*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml&#34;)
+            regex = re.compile(
+                f&#34;.*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml&#34;
+            )
             with zip_ds.open(list(filter(regex.match, filenames))[0]) as mask_path:
-                mask = _open_mask(gpd.read_file,
-                                  mask_path)
+                mask = _open_mask(gpd.read_file, mask_path)
 
         # mask = _open_mask(files.read_archived_vector,
         #                   self.path,
         #                   f&#34;.*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}\.gml&#34;)
     else:
-        qi_data_path = os.path.join(self.path, &#39;GRANULE&#39;, &#39;*&#39;, &#39;QI_DATA&#39;)
+        qi_data_path = os.path.join(self.path, &#34;GRANULE&#34;, &#34;*&#34;, &#34;QI_DATA&#34;)
 
         # Get mask path
-        mask_path = files.get_file_in_dir(qi_data_path,
-                                          f&#34;MSK_{mask_str}_B{band_name}.gml&#34;,
-                                          exact_name=True)
+        mask_path = files.get_file_in_dir(
+            qi_data_path, f&#34;MSK_{mask_str}_B{band_name}.gml&#34;, exact_name=True
+        )
 
-        mask = _open_mask(gpd.read_file,
-                          mask_path)
+        mask = _open_mask(gpd.read_file, mask_path)
 
     return mask</code></pre>
 </details>
@@ -1892,12 +1882,12 @@ Index: []
 
     # Open zenith and azimuth angle
     for element in root:
-        if element.tag == namespace + &#39;Geometric_Info&#39;:
+        if element.tag == namespace + &#34;Geometric_Info&#34;:
             for node in element:
-                if node.tag == &#39;Tile_Angles&#39;:
-                    mean_sun_angles = node.find(&#39;Mean_Sun_Angle&#39;)
-                    zenith_angle = float(mean_sun_angles.findtext(&#39;ZENITH_ANGLE&#39;))
-                    azimuth_angle = float(mean_sun_angles.findtext(&#39;AZIMUTH_ANGLE&#39;))
+                if node.tag == &#34;Tile_Angles&#34;:
+                    mean_sun_angles = node.find(&#34;Mean_Sun_Angle&#34;)
+                    zenith_angle = float(mean_sun_angles.findtext(&#34;ZENITH_ANGLE&#34;))
+                    azimuth_angle = float(mean_sun_angles.findtext(&#34;AZIMUTH_ANGLE&#34;))
                     break  # Only one Mean_Sun_Angle
             break  # Only one Geometric_Info
 
@@ -1949,18 +1939,22 @@ Index: []
     else:
         # Open metadata file
         try:
-            mtd_file = glob.glob(os.path.join(self.path, &#34;GRANULE&#34;, &#34;*&#34;, &#34;*.xml&#34;))[0]
+            mtd_file = glob.glob(os.path.join(self.path, &#34;GRANULE&#34;, &#34;*&#34;, &#34;*.xml&#34;))[
+                0
+            ]
 
             # pylint: disable=I1101:
             # Module &#39;lxml.etree&#39; has no &#39;parse&#39; member, but source is unavailable.
             xml_tree = etree.parse(mtd_file)
             root = xml_tree.getroot()
         except IndexError as ex:
-            raise InvalidProductError(f&#34;Metadata file not found in {self.path}&#34;) from ex
+            raise InvalidProductError(
+                f&#34;Metadata file not found in {self.path}&#34;
+            ) from ex
 
     # Get namespace
     idx = root.tag.rindex(&#34;}&#34;)
-    namespace = root.tag[:idx + 1]
+    namespace = root.tag[: idx + 1]
 
     return root, namespace</code></pre>
 </details>
@@ -2025,16 +2019,6 @@ Index: []
 </p>
 <div class="desc inherited"><p>Return the existing band paths …</p></div>
 </dd>
-<dt id="eoreader.products.optical.s2_product.S2Product.load"><code class="name flex">
-<p>def <span class="ident">load</span>(</p><p>self, <br>band_and_idx_list, <br>resolution=None, <br>size=None)</p>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="eoreader.products.optical.optical_product.OpticalProduct" href="optical_product.html#eoreader.products.optical.optical_product.OpticalProduct">OpticalProduct</a></code>.<code><a title="eoreader.products.optical.optical_product.OpticalProduct.load" href="optical_product.html#eoreader.products.optical.optical_product.OpticalProduct.load">load</a></code>
-</p>
-<div class="desc inherited"><p>Open the bands and compute the wanted index …</p></div>
-</dd>
 <dt id="eoreader.products.optical.s2_product.S2Product.footprint"><code class="name flex">
 <p>def <span class="ident">footprint</span>(</p><p>self)</p>
 </code></dt>
@@ -2055,6 +2039,16 @@ Index: []
 </p>
 <div class="desc inherited"><p>Get the product's acquisition date …</p></div>
 </dd>
+<dt id="eoreader.products.optical.s2_product.S2Product.load"><code class="name flex">
+<p>def <span class="ident">load</span>(</p><p>self, <br>bands, <br>resolution=None, <br>size=None)</p>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="eoreader.products.optical.optical_product.OpticalProduct" href="optical_product.html#eoreader.products.optical.optical_product.OpticalProduct">OpticalProduct</a></code>.<code><a title="eoreader.products.optical.optical_product.OpticalProduct.load" href="../product.html#eoreader.products.optical.optical_product.OpticalProduct.load">load</a></code>
+</p>
+<div class="desc inherited"><p>Open the bands and compute the wanted index …</p></div>
+</dd>
 <dt id="eoreader.products.optical.s2_product.S2Product.has_band"><code class="name flex">
 <p>def <span class="ident">has_band</span>(</p><p>self, <br>band)</p>
 </code></dt>
@@ -2066,7 +2060,7 @@ Index: []
 <div class="desc inherited"><p>Does this products has the specified band ? …</p></div>
 </dd>
 <dt id="eoreader.products.optical.s2_product.S2Product.stack"><code class="name flex">
-<p>def <span class="ident">stack</span>(</p><p>self, <br>band_and_idx_combination, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
+<p>def <span class="ident">stack</span>(</p><p>self, <br>bands, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -2182,9 +2176,9 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.extent" href="optical_product.html#eoreader.products.optical.s2_product.S2Product.extent">extent</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.get_existing_bands" href="optical_product.html#eoreader.products.optical.s2_product.S2Product.get_existing_bands">get_existing_bands</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.get_existing_band_paths" href="optical_product.html#eoreader.products.optical.s2_product.S2Product.get_existing_band_paths">get_existing_band_paths</a></code></li>
-<li><code><a title="eoreader.products.optical.s2_product.S2Product.load" href="optical_product.html#eoreader.products.optical.s2_product.S2Product.load">load</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.footprint" href="../product.html#eoreader.products.optical.s2_product.S2Product.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.get_date" href="../product.html#eoreader.products.optical.s2_product.S2Product.get_date">get_date</a></code></li>
+<li><code><a title="eoreader.products.optical.s2_product.S2Product.load" href="../product.html#eoreader.products.optical.s2_product.S2Product.load">load</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.has_band" href="../product.html#eoreader.products.optical.s2_product.S2Product.has_band">has_band</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.stack" href="../product.html#eoreader.products.optical.s2_product.S2Product.stack">stack</a></code></li>
 </ul>
