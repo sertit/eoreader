@@ -263,7 +263,8 @@ class Product:
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         &#34;&#34;&#34;
-        return rasters.get_footprint(self.get_default_band_path())
+        default_xda = self.load(self.get_default_band())
+        return rasters.get_footprint(default_xda)
 
     @abstractmethod
     def extent(self) -&gt; gpd.GeoDataFrame:
@@ -1561,7 +1562,8 @@ True
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         &#34;&#34;&#34;
-        return rasters.get_footprint(self.get_default_band_path())
+        default_xda = self.load(self.get_default_band())
+        return rasters.get_footprint(default_xda)
 
     @abstractmethod
     def extent(self) -&gt; gpd.GeoDataFrame:
@@ -2749,7 +2751,8 @@ Used to shorten names and paths.</p></div>
     Returns:
         gpd.GeoDataFrame: Footprint as a GeoDataFrame
     &#34;&#34;&#34;
-    return rasters.get_footprint(self.get_default_band_path())</code></pre>
+    default_xda = self.load(self.get_default_band())
+    return rasters.get_footprint(default_xda)</code></pre>
 </details>
 </dd>
 <dt id="eoreader.products.product.Product.extent"><code class="name flex">
