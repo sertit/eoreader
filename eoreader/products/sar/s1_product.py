@@ -4,22 +4,21 @@ import logging
 import os
 import re
 import tempfile
+import warnings
 import zipfile
 from datetime import datetime
 from enum import unique
-import warnings
 from typing import Union
 
-import rasterio
 import geopandas as gpd
+import rasterio
 from lxml import etree
-from sertit import strings, misc, files
-from sertit.misc import ListEnum
-from sertit import vectors
 
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct
-from eoreader.utils import EOREADER_NAME, DATETIME_FMT
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from sertit import files, misc, strings, vectors
+from sertit.misc import ListEnum
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -33,6 +32,7 @@ class S1ProductType(ListEnum):
     S1 products types. Take a look here:
     https://earth.esa.int/web/sentinel/missions/sentinel-1/data-products
     """
+
     RAW = "RAW"
     """Raw products (lvl 0): **not used by EOReader**"""
 
@@ -55,6 +55,7 @@ class S1SensorMode(ListEnum):
     EW mode is primarily used for wide area coastal monitoring including ship traffic, oil spill and sea-ice monitoring.
     SM mode is only used for small islands and on request for extraordinary events such as emergency management.
     """
+
     SM = "SM"
     """Stripmap (SM)"""
 
@@ -88,9 +89,9 @@ class S1Product(SarProduct):
             root, _ = self.read_mtd()
 
             for element in root:
-                if element.tag == 'imageAnnotation':
-                    image_info = element.find('imageInformation')
-                    def_res = float(image_info.findtext('rangePixelSpacing'))
+                if element.tag == "imageAnnotation":
+                    image_info = element.find("imageInformation")
+                    def_res = float(image_info.findtext("rangePixelSpacing"))
                     break
         except (InvalidProductError, AttributeError):
             pass
@@ -104,9 +105,11 @@ class S1Product(SarProduct):
             else:
                 raise InvalidTypeError(f"Unknown sensor mode {self.sensor_mode}")
 
-            LOGGER.debug(f"Default resolution is set to {def_res}. "
-                         f"The product is considered being in "
-                         f"{'Medium' if self.sensor_mode == S1SensorMode.WV else 'High'}-Resolution")
+            LOGGER.debug(
+                f"Default resolution is set to {def_res}. "
+                f"The product is considered being in "
+                f"{'Medium' if self.sensor_mode == S1SensorMode.WV else 'High'}-Resolution"
+            )
 
         return def_res
 
@@ -154,8 +157,10 @@ class S1Product(SarProduct):
                 # We need to extract the file here as we need a proper file
                 with zipfile.ZipFile(self.path, "r") as zip_ds:
                     filenames = [f.filename for f in zip_ds.filelist]
-                    regex = re.compile(f".*preview.*map-overlay.kml")
-                    preview_overlay = zip_ds.extract(list(filter(regex.match, filenames))[0], tmp_dir.name)
+                    regex = re.compile(".*preview.*map-overlay.kml")
+                    preview_overlay = zip_ds.extract(
+                        list(filter(regex.match, filenames))[0], tmp_dir.name
+                    )
             else:
                 preview_overlay = os.path.join(self.path, "preview", "map-overlay.kml")
 
@@ -167,20 +172,26 @@ class S1Product(SarProduct):
                 if extent_wgs84.empty:
                     # Convert KML to GeoJSON
                     gj_preview_overlay = preview_overlay.replace("kml", "geojson")
-                    cmd_line = ["ogr2ogr",
-                                "-fieldTypeToString DateTime",  # Disable warning
-                                "-f GeoJSON",
-                                strings.to_cmd_string(gj_preview_overlay),
-                                strings.to_cmd_string(preview_overlay)]
+                    cmd_line = [
+                        "ogr2ogr",
+                        "-fieldTypeToString DateTime",  # Disable warning
+                        "-f GeoJSON",
+                        strings.to_cmd_string(gj_preview_overlay),
+                        strings.to_cmd_string(preview_overlay),
+                    ]
                     misc.run_cli(cmd_line)
 
                     # Open the geojson
                     extent_wgs84 = gpd.read_file(gj_preview_overlay)
 
                     if extent_wgs84.empty:
-                        raise InvalidProductError(f"Cannot determine the WGS84 extent of {self.name}")
+                        raise InvalidProductError(
+                            f"Cannot determine the WGS84 extent of {self.name}"
+                        )
             else:
-                raise InvalidProductError(f"Impossible to find the map-overlay.kml in {self.path}")
+                raise InvalidProductError(
+                    f"Impossible to find the map-overlay.kml in {self.path}"
+                )
 
         except Exception as ex:
             raise InvalidProductError(ex) from ex
@@ -191,10 +202,10 @@ class S1Product(SarProduct):
         return extent_wgs84
 
     def _set_product_type(self) -> None:
-        """ Get products type """
-        self._get_sar_product_type(prod_type_pos=2,
-                                   gdrg_types=S1ProductType.GRD,
-                                   cplx_types=S1ProductType.SLC)
+        """Get products type"""
+        self._get_sar_product_type(
+            prod_type_pos=2, gdrg_types=S1ProductType.GRD, cplx_types=S1ProductType.SLC
+        )
 
     def _set_sensor_mode(self) -> None:
         """
@@ -209,9 +220,13 @@ class S1Product(SarProduct):
 
         # Discard invalid sensor mode
         if self.sensor_mode != S1SensorMode.IW:
-            raise NotImplementedError(f"For now, only IW sensor mode is used in EOReader processes: {self.name}")
+            raise NotImplementedError(
+                f"For now, only IW sensor mode is used in EOReader processes: {self.name}"
+            )
         if not self.sensor_mode:
-            raise InvalidProductError(f"Invalid {self.platform.value} name: {self.name}")
+            raise InvalidProductError(
+                f"Invalid {self.platform.value} name: {self.name}"
+            )
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -268,7 +283,9 @@ class S1Product(SarProduct):
                 xml_tree = etree.parse(mtd_file)
                 root = xml_tree.getroot()
             except IndexError as ex:
-                raise InvalidProductError(f"Metadata file (product.xml) not found in {self.path}") from ex
+                raise InvalidProductError(
+                    f"Metadata file (product.xml) not found in {self.path}"
+                ) from ex
 
         # Get namespace
         namespace = ""

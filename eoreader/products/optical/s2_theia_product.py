@@ -3,25 +3,27 @@ Sentinel-2 Theia products
 See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more information.
 """
 
+import datetime
 import glob
 import logging
 import os
-import datetime
 from functools import reduce
 from typing import Union
 
-from lxml import etree
 import numpy as np
+import xarray as xr
+from lxml import etree
 from rasterio.enums import Resampling
+
+from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
+from eoreader.bands.bands import BandNames
+from eoreader.bands.bands import OpticalBandNames as obn
+from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.products.optical.optical_product import OpticalProduct
+from eoreader.products.optical.s2_product import S2ProductType
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 from sertit import files, rasters
 from sertit.rasters import XDS_TYPE
-
-from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products.optical.s2_product import S2ProductType
-from eoreader.bands.bands import OpticalBandNames as obn, BandNames
-from eoreader.bands.alias import ALL_CLOUDS, RAW_CLOUDS, CLOUDS, SHADOWS, CIRRUS
-from eoreader.products.optical.optical_product import OpticalProduct
-from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -49,7 +51,7 @@ class S2TheiaProduct(OpticalProduct):
         """
         # S2: use 20m resolution, even if we have 60m and 10m resolution
         # In the future maybe set one resolution per band ?
-        return 20.
+        return 20.0
 
     def _get_tile_name(self) -> str:
         """
@@ -62,20 +64,22 @@ class S2TheiaProduct(OpticalProduct):
         return self.split_name[3]
 
     def _set_product_type(self) -> None:
-        """ Get products type """
+        """Get products type"""
         self.product_type = S2ProductType.L2A
-        self.band_names.map_bands({
-            obn.BLUE: '2',
-            obn.GREEN: '3',
-            obn.RED: '4',
-            obn.VRE_1: '5',
-            obn.VRE_2: '6',
-            obn.VRE_3: '7',
-            obn.NIR: '8',
-            obn.NARROW_NIR: '8A',
-            obn.SWIR_1: '11',
-            obn.SWIR_2: '12'
-        })
+        self.band_names.map_bands(
+            {
+                obn.BLUE: "2",
+                obn.GREEN: "3",
+                obn.RED: "4",
+                obn.VRE_1: "5",
+                obn.VRE_2: "6",
+                obn.VRE_3: "7",
+                obn.NIR: "8",
+                obn.NARROW_NIR: "8A",
+                obn.SWIR_1: "11",
+                obn.SWIR_2: "12",
+            }
+        )
 
         # TODO: bands 1 and 9 are in ATB_R1 (10m) and ATB_R2 (20m)
         # B1 to be divided by 20
@@ -136,18 +140,26 @@ class S2TheiaProduct(OpticalProduct):
         for band in band_list:
             try:
                 if self.is_archived:
-                    band_paths[band] = files.get_archived_rio_path(self.path, f".*FRE_B{self.band_names[band]}\.tif")
+                    band_paths[band] = files.get_archived_rio_path(
+                        self.path, f".*FRE_B{self.band_names[band]}\.tif"
+                    )
                 else:
-                    band_paths[band] = files.get_file_in_dir(self.path, f"FRE_B{self.band_names[band]}.tif")
+                    band_paths[band] = files.get_file_in_dir(
+                        self.path, f"FRE_B{self.band_names[band]}.tif"
+                    )
             except (FileNotFoundError, IndexError) as ex:
-                raise InvalidProductError(f"Non existing {band} ({self.band_names[band]}) band for {self.path}") from ex
+                raise InvalidProductError(
+                    f"Non existing {band} ({self.band_names[band]}) band for {self.path}"
+                ) from ex
 
         return band_paths
 
-    def _read_band(self,
-                   path: str,
-                   resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -> XDS_TYPE:
+    def _read_band(
+        self,
+        path: str,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+    ) -> XDS_TYPE:
         """
         Read band from a dataset
 
@@ -159,26 +171,27 @@ class S2TheiaProduct(OpticalProduct):
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            np.ma.masked_array, dict: Radiometrically coherent band, saved as float 32 and its metadata
+            XDS_TYPE: Radiometrically coherent band, saved as float 32
         """
         # Read band
-        band = rasters.read(path,
-                            resolution=resolution,
-                            size=size,
-                            resampling=Resampling.bilinear)
+        band = rasters.read(
+            path, resolution=resolution, size=size, resampling=Resampling.bilinear
+        )
 
         # Compute the correct radiometry of the band
-        band = band / 10000.
+        band = band / 10000.0
 
         return band
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels(self,
-                               band_arr: XDS_TYPE,
-                               band: obn,
-                               resolution: float = None,
-                               size: Union[list, tuple] = None) -> XDS_TYPE:
+    def _manage_invalid_pixels(
+        self,
+        band_arr: XDS_TYPE,
+        band: obn,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
@@ -191,15 +204,17 @@ class S2TheiaProduct(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
-            XDS_TYPE: Cleaned band array 
+            XDS_TYPE: Cleaned band array
         """
         nodata_true = 1
         nodata_false = 0
 
         # -- Manage nodata from Theia band array
         # Theia nodata is already processed
-        theia_nodata = -1.
-        no_data_mask = np.where(band_arr.data == theia_nodata, nodata_true, nodata_false).astype(np.uint8)
+        theia_nodata = -1.0
+        no_data_mask = np.where(
+            band_arr.data == theia_nodata, nodata_true, nodata_false
+        ).astype(np.uint8)
 
         # Open NODATA pixels mask
         edg_mask = self.open_mask("EDG", band, resolution=resolution, size=size)
@@ -220,11 +235,13 @@ class S2TheiaProduct(OpticalProduct):
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
 
-    def open_mask(self,
-                  mask_id: str,
-                  band: obn,
-                  resolution: float = None,
-                  size: Union[list, tuple] = None) -> np.ndarray:
+    def open_mask(
+        self,
+        mask_id: str,
+        band: obn,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -> np.ndarray:
         """
         Get a Sentinel-2 THEIA mask path.
         See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
@@ -275,28 +292,33 @@ class S2TheiaProduct(OpticalProduct):
         mask_regex = f"*{mask_id}_{r_x}.tif"
         try:
             if self.is_archived:
-                mask_path = files.get_archived_rio_path(self.path, mask_regex.replace('*', '.*'))
+                mask_path = files.get_archived_rio_path(
+                    self.path, mask_regex.replace("*", ".*")
+                )
             else:
-                mask_path = files.get_file_in_dir(os.path.join(self.path, "MASKS"),
-                                                  mask_regex,
-                                                  exact_name=True)
+                mask_path = files.get_file_in_dir(
+                    os.path.join(self.path, "MASKS"), mask_regex, exact_name=True
+                )
         except (FileNotFoundError, IndexError) as ex:
-            raise InvalidProductError(f"Non existing mask {mask_regex} in {self.name}") from ex
+            raise InvalidProductError(
+                f"Non existing mask {mask_regex} in {self.name}"
+            ) from ex
 
         # Open SAT band
-        sat_arr = rasters.read(mask_path,
-                               resolution=resolution,
-                               size=size,
-                               resampling=Resampling.nearest,  # Nearest to keep the flags
-                               masked=False).astype(np.uint8)
+        sat_arr = rasters.read(
+            mask_path,
+            resolution=resolution,
+            size=size,
+            resampling=Resampling.nearest,  # Nearest to keep the flags
+            masked=False,
+        ).astype(np.uint8)
         sat_mask = rasters.read_bit_array(sat_arr, bit_id)
 
         return sat_mask
 
-    def _load_bands(self,
-                    bands: list,
-                    resolution: float = None,
-                    size: Union[list, tuple] = None) -> dict:
+    def _load_bands(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -326,7 +348,9 @@ class S2TheiaProduct(OpticalProduct):
         Returns:
             str: Condensed S2 name
         """
-        return f"{self.get_datetime()}_S2THEIA_{self.tile_name}_{self.product_type.value}"
+        return (
+            f"{self.get_datetime()}_S2THEIA_{self.tile_name}_{self.product_type.value}"
+        )
 
     def get_mean_sun_angles(self) -> (float, float):
         """
@@ -352,12 +376,12 @@ class S2TheiaProduct(OpticalProduct):
 
         # Open zenith and azimuth angle
         for element in root:
-            if element.tag == 'Geometric_Informations':
+            if element.tag == "Geometric_Informations":
                 for node in element:
-                    if node.tag == 'Mean_Value_List':
-                        mean_sun_angles = node.find('Sun_Angles')
-                        zenith_angle = float(mean_sun_angles.findtext('ZENITH_ANGLE'))
-                        azimuth_angle = float(mean_sun_angles.findtext('AZIMUTH_ANGLE'))
+                    if node.tag == "Mean_Value_List":
+                        mean_sun_angles = node.find("Sun_Angles")
+                        zenith_angle = float(mean_sun_angles.findtext("ZENITH_ANGLE"))
+                        azimuth_angle = float(mean_sun_angles.findtext("AZIMUTH_ANGLE"))
                         break  # Only one Mean_Sun_Angle
                 break  # Only one Geometric_Info
 
@@ -387,14 +411,16 @@ class S2TheiaProduct(OpticalProduct):
         else:
             # Open metadata file
             try:
-                mtd_xml = glob.glob(os.path.join(self.path, '*MTD_ALL.xml'))[0]
+                mtd_xml = glob.glob(os.path.join(self.path, "*MTD_ALL.xml"))[0]
 
                 # pylint: disable=I1101:
                 # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
                 xml_tree = etree.parse(mtd_xml)
                 root = xml_tree.getroot()
             except IndexError as ex:
-                raise InvalidProductError(f"Metadata file not found in {self.path}") from ex
+                raise InvalidProductError(
+                    f"Metadata file not found in {self.path}"
+                ) from ex
 
         # Get namespace
         namespace = ""
@@ -407,10 +433,9 @@ class S2TheiaProduct(OpticalProduct):
         """
         return True
 
-    def _load_clouds(self,
-                     bands: list,
-                     resolution: float = None,
-                     size: Union[list, tuple] = None) -> dict:
+    def _load_clouds(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -> dict:
         """
         Load cloud files as numpy arrays with the same resolution (and same metadata).
 
@@ -441,20 +466,28 @@ class S2TheiaProduct(OpticalProduct):
             cld_file_name = "CLM_R2" if resolution >= 20 else "CLM_R1"
 
             if self.is_archived:
-                cloud_path = files.get_archived_rio_path(self.path, f".*MASKS.*_{cld_file_name}.tif")
+                cloud_path = files.get_archived_rio_path(
+                    self.path, f".*MASKS.*_{cld_file_name}.tif"
+                )
             else:
-                cloud_path = files.get_file_in_dir(os.path.join(self.path, 'MASKS'),
-                                                   f"*_{cld_file_name}.tif",
-                                                   exact_name=True)
+                cloud_path = files.get_file_in_dir(
+                    os.path.join(self.path, "MASKS"),
+                    f"*_{cld_file_name}.tif",
+                    exact_name=True,
+                )
 
             if not cloud_path:
-                raise FileNotFoundError(f'Unable to find the cloud mask for {self.path}')
+                raise FileNotFoundError(
+                    f"Unable to find the cloud mask for {self.path}"
+                )
 
             # Open cloud file
-            clouds_array = rasters.read(cloud_path,
-                                        resolution=resolution,
-                                        size=size,
-                                        resampling=Resampling.nearest)
+            clouds_array = rasters.read(
+                cloud_path,
+                resolution=resolution,
+                size=size,
+                resampling=Resampling.nearest,
+            )
 
             # Get nodata mask
             nodata = np.where(np.isnan(clouds_array), 1, 0)
@@ -468,9 +501,13 @@ class S2TheiaProduct(OpticalProduct):
 
             for band in bands:
                 if band == ALL_CLOUDS:
-                    band_dict[band] = self._create_mask(clouds_array, [clouds_shadows_id, cirrus_id], nodata)
+                    band_dict[band] = self._create_mask(
+                        clouds_array, [clouds_shadows_id, cirrus_id], nodata
+                    )
                 elif band == SHADOWS:
-                    band_dict[band] = self._create_mask(clouds_array, [shadows_in_id, shadows_out_id], nodata)
+                    band_dict[band] = self._create_mask(
+                        clouds_array, [shadows_in_id, shadows_out_id], nodata
+                    )
                 elif band == CLOUDS:
                     band_dict[band] = self._create_mask(clouds_array, clouds_id, nodata)
                 elif band == CIRRUS:
@@ -478,14 +515,15 @@ class S2TheiaProduct(OpticalProduct):
                 elif band == RAW_CLOUDS:
                     band_dict[band] = clouds_array
                 else:
-                    raise InvalidTypeError(f"Non existing cloud band for Sentinel-2 THEIA: {band}")
+                    raise InvalidTypeError(
+                        f"Non existing cloud band for Sentinel-2 THEIA: {band}"
+                    )
 
         return band_dict
 
-    def _create_mask(self,
-                     bit_array: XDS_TYPE,
-                     bit_ids: Union[int, list],
-                     nodata: np.ndarray) -> np.ma.masked_array:
+    def _create_mask(
+        self, bit_array: XDS_TYPE, bit_ids: Union[int, list], nodata: np.ndarray
+    ) -> xr.DataArray:
         """
         Create a mask masked array (uint8) from a bit array, bit IDs and a nodata mask.
 
@@ -495,7 +533,7 @@ class S2TheiaProduct(OpticalProduct):
             nodata (np.ndarray): Nodata mask
 
         Returns:
-            np.ma.masked_array: Mask masked array
+            xr.DataArray: Mask masked array
 
         """
         if not isinstance(bit_ids, list):

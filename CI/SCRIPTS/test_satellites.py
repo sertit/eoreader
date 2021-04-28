@@ -5,23 +5,26 @@ import os
 import tempfile
 
 import xarray
-from sertit import logs, files, ci
 
+from eoreader.bands.alias import *
+from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, S3_DEF_RES, SAR_DEF_RES
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod, Platform
-from .scripts_utils import OPT_PATH, SAR_PATH, READER, get_ci_data_dir
-from eoreader.bands.alias import *
-from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES, CI_EOREADER_BAND_FOLDER
 from eoreader.utils import EOREADER_NAME
+from sertit import ci, files, logs
+
+from .scripts_utils import OPT_PATH, READER, SAR_PATH, get_ci_data_dir
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 RES = 1000  # 1000m
 
 
 def remove_dem(prod):
-    """ Remove DEM from product output """
+    """Remove DEM from product output"""
     to_del = glob.glob(os.path.join(prod.output, f"{prod.condensed_name}_DEM.tif"))
-    to_del += glob.glob(os.path.join(prod.output, f"{prod.condensed_name}_HILLSHADE.tif"))
+    to_del += glob.glob(
+        os.path.join(prod.output, f"{prod.condensed_name}_HILLSHADE.tif")
+    )
     to_del += glob.glob(os.path.join(prod.output, f"{prod.condensed_name}_SLOPE.tif"))
     for to_d in to_del:
         files.remove(to_d)
@@ -64,13 +67,15 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
         possible_bands(list): Possible bands
         debug (bool): Debug option
     """
-    with xarray.set_options(warn_for_unclosed_files=True):
+    with xarray.set_options(warn_for_unclosed_files=False):
 
         # Init logger
         logs.init_logger(LOGGER)
 
         # DATA paths
-        pattern_paths = files.get_file_in_dir(prod_dir, pattern, exact_name=True, get_list=True)
+        pattern_paths = files.get_file_in_dir(
+            prod_dir, pattern, exact_name=True, get_list=True
+        )
 
         for path in pattern_paths:
             LOGGER.info(os.path.basename(path))
@@ -88,8 +93,13 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     # tmp_dir = os.path.join(get_ci_data_dir(), "OUTPUT")
                     prod.output = tmp_dir
-                    if prod.platform == Platform.S3 or prod.sensor_type == SensorType.SAR:
-                        os.environ[CI_EOREADER_BAND_FOLDER] = os.path.join(get_ci_data_dir(), prod.condensed_name)
+                    if (
+                        prod.platform == Platform.S3
+                        or prod.sensor_type == SensorType.SAR
+                    ):
+                        os.environ[CI_EOREADER_BAND_FOLDER] = os.path.join(
+                            get_ci_data_dir(), prod.condensed_name
+                        )
                     else:
                         if CI_EOREADER_BAND_FOLDER in os.environ:
                             os.environ.pop(CI_EOREADER_BAND_FOLDER)
@@ -100,116 +110,125 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
 
                     # Get stack bands
                     # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-                    stack_bands = [band for band in possible_bands if prod.has_band(band)]
+                    stack_bands = [
+                        band for band in possible_bands if prod.has_band(band)
+                    ]
 
                     # Manage S3 resolution to speed up processes
                     if prod.sat_id == "S3":
-                        res = RES * prod.resolution / 20.
+                        res = RES * prod.resolution / 20.0
                         os.environ[S3_DEF_RES] = str(res)
                     else:
                         res = RES
 
                     # Stack data
-                    ci_data = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
+                    ci_data = os.path.join(
+                        get_ci_data_dir(), prod.condensed_name, "stack.tif"
+                    )
                     if debug:
-                        curr_path = os.path.join(get_ci_data_dir(), prod.condensed_name, "stack.tif")
+                        curr_path = os.path.join(
+                            get_ci_data_dir(), prod.condensed_name, "stack.tif"
+                        )
                     else:
-                        curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
+                        curr_path = os.path.join(
+                            tmp_dir, f"{prod.condensed_name}_stack.tif"
+                        )
                     prod.stack(stack_bands, resolution=res, stack_path=curr_path)
 
                     # Test
-                    ci.assert_raster_equal(curr_path, ci_data)
+                    ci.assert_raster_almost_equal(curr_path, ci_data, decimal=6)
 
                 # CRS
                 assert prod.crs().is_projected
 
 
 def test_s2():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("S2*_MSI*")
 
 
 def test_s2_theia():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("SENTINEL2*")
 
 
 def test_s3_olci():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     # Init logger
     _test_core_optical("S3*_OL_1_*")
 
 
 def test_s3_slstr():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     # Init logger
     _test_core_optical("S3*_SL_1_*")
 
 
 def test_l8():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     # Init logger
     _test_core_optical("LC08*")
 
 
 def test_l7():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LE07*")
 
 
 def test_l5_tm():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LT05*")
 
 
 def test_l4_tm():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LT04*")
 
 
 def test_l5_mss():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LM05*")
 
 
 def test_l4_mss():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LM04*")
 
 
 def test_l3_mss():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LM03*")
 
 
 def test_l2_mss():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LM02*")
 
 
 def test_l1_mss():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LM01*")
 
 
 def test_s1():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("S1*_IW*")
 
 
 def test_csk():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("csk_*")
 
 
 def test_tsx():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("TSX*")
 
 
 def test_rs2():
-    """ Function testing the correct functioning of the optical satellites """
+    """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("RS2_*")
+
 
 # TODO:
 # check non existing bands

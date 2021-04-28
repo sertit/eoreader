@@ -9,23 +9,30 @@ from enum import unique
 from string import Formatter
 from typing import Union
 
-from rasterio import crs
 import geopandas as gpd
 import numpy as np
+from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import files, strings, misc, snap
-from sertit.misc import ListEnum
-from sertit import rasters, vectors
-from sertit.rasters import XDS_TYPE
 
 from eoreader import utils
+from eoreader.bands.alias import (
+    is_clouds,
+    is_dem,
+    is_index,
+    is_optical_band,
+    is_sar_band,
+)
+from eoreader.bands.bands import BandNames
+from eoreader.bands.bands import SarBandNames as sbn
+from eoreader.bands.bands import SarBands
+from eoreader.env_vars import DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
-from eoreader.bands.bands import SarBands, SarBandNames as sbn, BandNames
-from eoreader.bands.alias import is_index, is_sar_band, is_optical_band, is_dem, is_clouds
 from eoreader.products.product import Product, SensorType, path_or_dst
 from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
-from eoreader.env_vars import PP_GRAPH, DSPK_GRAPH, SAR_DEF_RES
+from sertit import files, misc, rasters, snap, strings, vectors
+from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -35,6 +42,7 @@ class SarProductType(ListEnum):
     """
     Generic products types, used to chose a SNAP graph.
     """
+
     CPLX = "COMPLEX"
     """Single Look Complex"""
 
@@ -53,7 +61,7 @@ class _ExtendedFormatter(Formatter):
     """
 
     def convert_field(self, value, conversion):
-        """ Extend conversion symbol
+        """Extend conversion symbol
         Following additional symbol has been added
         * l: convert to string and low case
         * u: convert to string and up case
@@ -75,9 +83,11 @@ class _ExtendedFormatter(Formatter):
 
 
 class SarProduct(Product):
-    """ Super class for SAR Products """
+    """Super class for SAR Products"""
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path=None) -> None:
+    def __init__(
+        self, product_path: str, archive_path: str = None, output_path=None
+    ) -> None:
         self.sar_prod_type = None
         """SAR product type, either Single Look Complex or Ground Range"""
 
@@ -209,8 +219,9 @@ class SarProduct(Product):
         extent_wgs84 = self.wgs84_extent()
 
         # Get upper-left corner and deduce UTM proj from it
-        utm = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
-                                                   extent_wgs84.bounds.maxy)
+        utm = vectors.corresponding_utm_projection(
+            extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy
+        )
         extent = extent_wgs84.to_crs(utm)
 
         return extent
@@ -234,15 +245,18 @@ class SarProduct(Product):
         extent_wgs84 = self.wgs84_extent()
 
         # Get upper-left corner and deduce UTM proj from it
-        crs_str = vectors.corresponding_utm_projection(extent_wgs84.bounds.minx,
-                                                       extent_wgs84.bounds.maxy)
+        crs_str = vectors.corresponding_utm_projection(
+            extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy
+        )
 
         return crs.CRS.from_string(crs_str)
 
-    def _get_sar_product_type(self,
-                              prod_type_pos: int,
-                              gdrg_types: Union[ListEnum, list],
-                              cplx_types: Union[ListEnum, list]) -> None:
+    def _get_sar_product_type(
+        self,
+        prod_type_pos: int,
+        gdrg_types: Union[ListEnum, list],
+        cplx_types: Union[ListEnum, list],
+    ) -> None:
         """
         Get products type, special function for SAR satellites.
 
@@ -264,7 +278,9 @@ class SarProduct(Product):
         # Get products type
         try:
             # All products types can be found in the filename and are 3 characters long
-            self.product_type = prod_type_class.from_value(self.split_name[prod_type_pos][:3])
+            self.product_type = prod_type_class.from_value(
+                self.split_name[prod_type_pos][:3]
+            )
         except ValueError as ex:
             raise InvalidTypeError(f"Invalid products type for {self.name}") from ex
 
@@ -278,7 +294,9 @@ class SarProduct(Product):
 
         # Discard invalid products types
         if self.sar_prod_type == SarProductType.OTHER:
-            raise NotImplementedError(f"{self.product_type.value} product type is not available ({self.name})")
+            raise NotImplementedError(
+                f"{self.product_type.value} product type is not available ({self.name})"
+            )
 
     @abstractmethod
     def _set_sensor_mode(self) -> None:
@@ -315,12 +333,16 @@ class SarProduct(Product):
         for band in band_list:
             bname = self.band_names[band]
             if bname is None:
-                raise InvalidProductError(f"Non existing band ({band.name}) for {self.name}")
+                raise InvalidProductError(
+                    f"Non existing band ({band.name}) for {self.name}"
+                )
             try:
                 # Try to load orthorectified bands
-                band_paths[band] = files.get_file_in_dir(self._get_band_folder(),
-                                                         f"{self.condensed_name}_{bname}.tif",
-                                                         exact_name=True)
+                band_paths[band] = files.get_file_in_dir(
+                    self._get_band_folder(),
+                    f"{self.condensed_name}_{bname}.tif",
+                    exact_name=True,
+                )
             except FileNotFoundError:
                 speckle_band = sbn.corresponding_speckle(band)
                 if speckle_band in self.pol_channels:
@@ -329,7 +351,11 @@ class SarProduct(Product):
                         band_paths[band] = self._despeckle_sar(speckle_band)
                     else:
                         all_band_paths = self._pre_process_sar(resolution)
-                        band_paths = {band: path for band, path in all_band_paths.items() if band in band_list}
+                        band_paths = {
+                            band: path
+                            for band, path in all_band_paths.items()
+                            if band in band_list
+                        }
 
         return band_paths
 
@@ -352,17 +378,22 @@ class SarProduct(Product):
                         # Get the correct band path
                         regex = re.compile(band_regex.replace("*", ".*"))
                         try:
-                            band_paths[band] = list(filter(regex.match, [f.filename for f in zip_ds.filelist]))[0]
+                            band_paths[band] = list(
+                                filter(
+                                    regex.match, [f.filename for f in zip_ds.filelist]
+                                )
+                            )[0]
                         except IndexError:
                             continue
                 else:
-                    raise InvalidProductError(f"Only zipped products can be processed without extraction: {self.path}")
+                    raise InvalidProductError(
+                        f"Only zipped products can be processed without extraction: {self.path}"
+                    )
             else:
                 try:
-                    band_paths[band] = files.get_file_in_dir(self._band_folder,
-                                                             band_regex,
-                                                             exact_name=True,
-                                                             get_list=True)
+                    band_paths[band] = files.get_file_in_dir(
+                        self._band_folder, band_regex, exact_name=True, get_list=True
+                    )
                 except FileNotFoundError:
                     continue
 
@@ -409,7 +440,9 @@ class SarProduct(Product):
         """
         # Get raw bands (maximum number of bands)
         raw_bands = self._get_raw_bands()
-        possible_bands = raw_bands + [sbn.corresponding_despeckle(band) for band in raw_bands]
+        possible_bands = raw_bands + [
+            sbn.corresponding_despeckle(band) for band in raw_bands
+        ]
 
         return self.get_band_paths(possible_bands)
 
@@ -442,10 +475,12 @@ class SarProduct(Product):
     # unused band_name (compatibility reasons)
     # pylint: disable=W0613
     @path_or_dst
-    def _read_band(self,
-                   path: str,
-                   resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -> XDS_TYPE:
+    def _read_band(
+        self,
+        path: str,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+    ) -> XDS_TYPE:
         """
         Read band from disk.
 
@@ -457,12 +492,16 @@ class SarProduct(Product):
             XDS_TYPE: Band xarray
         """
 
-        return rasters.read(path, resolution=resolution, size=size, resampling=Resampling.bilinear)
+        return rasters.read(
+            path, resolution=resolution, size=size, resampling=Resampling.bilinear
+        )
 
-    def _load_bands(self,
-                    bands: Union[list, BandNames],
-                    resolution: float = None,
-                    size: Union[list, tuple] = None) -> dict:
+    def _load_bands(
+        self,
+        bands: Union[list, BandNames],
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -486,14 +525,15 @@ class SarProduct(Product):
         band_arrays = {}
         for band_name, band_path in band_paths.items():
             # Read CSK band
-            band_arrays[band_name] = self._read_band(band_path, resolution=resolution, size=size)
+            band_arrays[band_name] = self._read_band(
+                band_path, resolution=resolution, size=size
+            )
 
         return band_arrays
 
-    def _load(self,
-              bands: list,
-              resolution: float = None,
-              size: Union[list, tuple] = None) -> dict:
+    def _load(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -> dict:
         """
         Core function loading SAR data bands
 
@@ -509,18 +549,26 @@ class SarProduct(Product):
         dem_list = []
         for band in bands:
             if is_index(band):
-                raise NotImplementedError("For now, no index is implemented for SAR data.")
+                raise NotImplementedError(
+                    "For now, no index is implemented for SAR data."
+                )
             elif is_optical_band(band):
-                raise TypeError(f"You should ask for SAR bands as {self.name} is a SAR product.")
+                raise TypeError(
+                    f"You should ask for SAR bands as {self.name} is a SAR product."
+                )
             elif is_sar_band(band):
                 if not self.has_band(band):
-                    raise InvalidBandError(f"{band} cannot be retrieved from {self.condensed_name}")
+                    raise InvalidBandError(
+                        f"{band} cannot be retrieved from {self.condensed_name}"
+                    )
                 else:
                     band_list.append(band)
             elif is_dem(band):
                 dem_list.append(band)
             elif is_clouds(band):
-                raise NotImplementedError(f"Clouds cannot be retrieved from SAR data ({self.condensed_name}).")
+                raise NotImplementedError(
+                    f"Clouds cannot be retrieved from SAR data ({self.condensed_name})."
+                )
             else:
                 raise InvalidTypeError(f"{band} is neither a band nor an index !")
 
@@ -551,13 +599,15 @@ class SarProduct(Product):
 
             # Use dimap for speed and security (ie. GeoTiff's broken georef)
             pp_target = f"{target_file}"
-            pp_dim = pp_target + '.dim'
+            pp_dim = pp_target + ".dim"
 
             # Pre-process graph
             if PP_GRAPH not in os.environ:
                 sat = "s1" if self.sat_id == Platform.S1.name else "sar"
                 spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
-                pp_graph = os.path.join(utils.get_data_dir(), f"{spt}_{sat}_preprocess_default.xml")
+                pp_graph = os.path.join(
+                    utils.get_data_dir(), f"{spt}_{sat}_preprocess_default.xml"
+                )
             else:
                 pp_graph = os.environ[PP_GRAPH]
                 if not os.path.isfile(pp_graph) or not pp_graph.endswith(".xml"):
@@ -567,14 +617,18 @@ class SarProduct(Product):
             if not os.path.isfile(pp_dim):
                 def_res = float(os.environ.get(SAR_DEF_RES, self.resolution))
                 res_m = resolution if resolution else def_res
-                res_deg = res_m / 10. * 8.983152841195215E-5  # Approx
-                cmd_list = snap.get_gpt_cli(pp_graph,
-                                            [f'-Pfile={strings.to_cmd_string(self._snap_path)}',
-                                             f'-Pout={pp_dim}',
-                                             f'-Pcrs={self.crs()}',
-                                             f'-Pres_m={res_m}',
-                                             f'-Pres_deg={res_deg}'],
-                                            display_snap_opt=LOGGER.level == logging.DEBUG)
+                res_deg = res_m / 10.0 * 8.983152841195215e-5  # Approx
+                cmd_list = snap.get_gpt_cli(
+                    pp_graph,
+                    [
+                        f"-Pfile={strings.to_cmd_string(self._snap_path)}",
+                        f"-Pout={pp_dim}",
+                        f"-Pcrs={self.crs()}",
+                        f"-Pres_m={res_m}",
+                        f"-Pres_deg={res_deg}",
+                    ],
+                    display_snap_opt=LOGGER.level == logging.DEBUG,
+                )
 
                 # Pre-process SAR images according to the given graph
                 LOGGER.debug("Pre-process SAR image")
@@ -601,11 +655,13 @@ class SarProduct(Product):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Out files
             target_file = os.path.join(tmp_dir, f"{self.condensed_name}_DSPK")
-            dspk_dim = target_file + '.dim'
+            dspk_dim = target_file + ".dim"
 
             # Despeckle graph
             if DSPK_GRAPH not in os.environ:
-                dspk_graph = os.path.join(utils.get_data_dir(), f"sar_despeckle_default.xml")
+                dspk_graph = os.path.join(
+                    utils.get_data_dir(), "sar_despeckle_default.xml"
+                )
             else:
                 dspk_graph = os.environ[DSPK_GRAPH]
                 if not os.path.isfile(dspk_graph) or not dspk_graph.endswith(".xml"):
@@ -614,10 +670,11 @@ class SarProduct(Product):
             # Create command line and run it
             if not os.path.isfile(dspk_dim):
                 path = self.get_band_paths([band])[band]
-                cmd_list = snap.get_gpt_cli(dspk_graph,
-                                            [f'-Pfile={path}',
-                                             f'-Pout={dspk_dim}'],
-                                            display_snap_opt=False)
+                cmd_list = snap.get_gpt_cli(
+                    dspk_graph,
+                    [f"-Pfile={path}", f"-Pout={dspk_dim}"],
+                    display_snap_opt=False,
+                )
 
                 # Pre-process SAR images according to the given graph
                 LOGGER.debug("Despeckle SAR image")
@@ -649,16 +706,20 @@ class SarProduct(Product):
         arr = rasters.set_nodata(arr, self.nodata)
 
         # Save the file as the terrain-corrected image
-        file_path = os.path.join(self.output, f"{files.get_filename(dim_path)}_{pol_up}.tif")
+        file_path = os.path.join(
+            self.output, f"{files.get_filename(dim_path)}_{pol_up}.tif"
+        )
         rasters.write(arr, file_path, dtype=np.float32)
 
         return file_path
 
-    def _compute_hillshade(self,
-                           dem_path: str = "",
-                           resolution: Union[float, tuple] = None,
-                           size: Union[list, tuple] = None,
-                           resampling: Resampling = Resampling.bilinear) -> str:
+    def _compute_hillshade(
+        self,
+        dem_path: str = "",
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
+    ) -> str:
         """
         Compute Hillshade mask
 

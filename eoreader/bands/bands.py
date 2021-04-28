@@ -1,17 +1,16 @@
 """ Optical Bands """
 # Lines too long
 # pylint: disable=C0301
-from enum import unique
 from collections.abc import MutableMapping
+from enum import unique
 from typing import Union
 
-from sertit.misc import ListEnum
-
 from eoreader.exceptions import InvalidTypeError
+from sertit.misc import ListEnum
 
 
 class _Bands(MutableMapping):
-    """ Super bands class, used as a dict """
+    """Super bands class, used as a dict"""
 
     def __init__(self, *args, **kwargs):
         self._band_map = dict()
@@ -34,7 +33,7 @@ class _Bands(MutableMapping):
 
 
 class BandNames(ListEnum):
-    """ Super class for band names, **do not use it**. """
+    """Super class for band names, **do not use it**."""
 
     @classmethod
     def from_list(cls, name_list: Union[list, str]) -> list:
@@ -57,7 +56,9 @@ class BandNames(ListEnum):
         try:
             band_names = [cls(name) for name in name_list]
         except ValueError as ex:
-            raise InvalidTypeError(f"Band names ({name_list}) should be chosen among: {cls.list_names()}") from ex
+            raise InvalidTypeError(
+                f"Band names ({name_list}) should be chosen among: {cls.list_names()}"
+            ) from ex
 
         return band_names
 
@@ -88,7 +89,9 @@ class BandNames(ListEnum):
                 elif isinstance(key, cls):
                     out_list.append(key.value)
                 else:
-                    raise InvalidTypeError("The list should either contain strings or SarBandNames")
+                    raise InvalidTypeError(
+                        "The list should either contain strings or SarBandNames"
+                    )
         else:
             out_list = cls.list_values()
 
@@ -98,29 +101,30 @@ class BandNames(ListEnum):
 # ---------------------- SAR ----------------------
 @unique
 class SarBandNames(BandNames):
-    """ SAR Band names """
-    VV = 'VV'
+    """SAR Band names"""
+
+    VV = "VV"
     """ Vertical Transmit-Vertical Receive Polarisation """
 
-    VV_DSPK = 'VV_DSPK'
+    VV_DSPK = "VV_DSPK"
     """ Vertical Transmit-Vertical Receive Polarisation Despeckled """
 
-    HH = 'HH'
+    HH = "HH"
     """ Horizontal Transmit-Horizontal Receive Polarisation """
 
-    HH_DSPK = 'HH_DSPK'
+    HH_DSPK = "HH_DSPK"
     """ Horizontal Transmit-Horizontal Receive Polarisation Despeckled """
 
-    VH = 'VH'
+    VH = "VH"
     """ Vertical Transmit-Horizontal Receive Polarisation """
 
-    VH_DSPK = 'VH_DSPK'
+    VH_DSPK = "VH_DSPK"
     """ Vertical Transmit-Horizontal Receive Polarisatio Despeckled """
 
-    HV = 'HV'
+    HV = "HV"
     """ Horizontal Transmit-Vertical Receive Polarisation """
 
-    HV_DSPK = 'HV_DSPK'
+    HV_DSPK = "HV_DSPK"
     """ Horizontal Transmit-Vertical Receive Polarisation Despeckled """
 
     @classmethod
@@ -190,7 +194,7 @@ class SarBandNames(BandNames):
 # too many ancestors
 # pylint: disable=R0901
 class SarBands(_Bands):
-    """ SAR bands class """
+    """SAR bands class"""
 
     def __init__(self) -> None:
         super().__init__({band_name: band_name.value for band_name in SarBandNames})
@@ -221,7 +225,8 @@ class OpticalBandNames(BandNames):
     This classification allows index computation and algorithms to run without knowing the band nb of every satellite.
     If None, then the band does not exist for the satellite.
     """
-    CA = 'COASTAL_AEROSOL'
+
+    CA = "COASTAL_AEROSOL"
     """Coastal aerosol"""
 
     BLUE = "BLUE"
@@ -251,7 +256,7 @@ class OpticalBandNames(BandNames):
     WV = "WATER_VAPOUR"
     """Water vapour"""
 
-    FNIR = "FAR_NIR"
+    FAR_NIR = "FAR_NIR"
     """Far NIR"""
 
     SWIR_CIRRUS = "CIRRUS"
@@ -279,7 +284,7 @@ class OpticalBandNames(BandNames):
 # too many ancestors
 # pylint: disable=R0901
 class OpticalBands(_Bands):
-    """ Optical bands class """
+    """Optical bands class"""
 
     def __init__(self) -> None:
         super().__init__({band_name: None for band_name in OpticalBandNames})
@@ -311,8 +316,12 @@ class OpticalBands(_Bands):
             band_map (dict): Band mapping as {OpticalBandNames: Band number for loading band}
         """
         for band_name, band_nb in band_map.items():
-            if band_name not in self._band_map or not isinstance(band_name, OpticalBandNames):
-                raise InvalidTypeError(f"{band_name} should be an OpticalBandNames object")
+            if band_name not in self._band_map or not isinstance(
+                band_name, OpticalBandNames
+            ):
+                raise InvalidTypeError(
+                    f"{band_name} should be an OpticalBandNames object"
+                )
 
             # Set number
             self._band_map[band_name] = band_nb
@@ -321,21 +330,22 @@ class OpticalBands(_Bands):
 # ---------------------- DEM ----------------------
 @unique
 class DemBandNames(BandNames):
-    """ DEM Band names """
-    DEM = 'DEM'
+    """DEM Band names"""
+
+    DEM = "DEM"
     """ DEM """
 
-    SLOPE = 'SLOPE'
+    SLOPE = "SLOPE"
     """ Slope """
 
-    HILLSHADE = 'HILLSHADE'
+    HILLSHADE = "HILLSHADE"
     """ Hillshade """
 
 
 # too many ancestors
 # pylint: disable=R0901
 class DemBands(_Bands):
-    """ DEM bands class """
+    """DEM bands class"""
 
     def __init__(self) -> None:
         super().__init__({band_name: band_name.value for band_name in DemBandNames})
@@ -344,26 +354,28 @@ class DemBands(_Bands):
 # ---------------------- DEM ----------------------
 @unique
 class CloudsBandNames(BandNames):
-    """ Clouds Band names """
-    RAW_CLOUDS = 'RAW CLOUDS'
+    """Clouds Band names"""
+
+    RAW_CLOUDS = "RAW CLOUDS"
     """ Raw cloud raster (can be either QA raster, rasterized cloud vectors...) """
 
-    CLOUDS = 'CLOUDS'
+    CLOUDS = "CLOUDS"
     """ Binary mask of clouds (High confidence) """
 
-    SHADOWS = 'SHADOWS'
+    SHADOWS = "SHADOWS"
     """ Binary mask of shadows (High confidence) """
 
-    CIRRUS = 'CIRRUS'
+    CIRRUS = "CIRRUS"
     """ Binary mask of cirrus (High confidence) """
 
-    ALL_CLOUDS = 'ALL CLOUDS'
+    ALL_CLOUDS = "ALL CLOUDS"
     """ All clouds (Including all high confidence clouds, shadows and cirrus) """
+
 
 # too many ancestors
 # pylint: disable=R0901
 class CloudsBands(_Bands):
-    """ Clouds bands class """
+    """Clouds bands class"""
 
     def __init__(self) -> None:
         super().__init__({band_name: band_name.value for band_name in CloudsBandNames})

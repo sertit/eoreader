@@ -17,14 +17,14 @@ from typing import Callable
 
 import numpy as np
 import xarray as xr
-from sertit import rasters
 
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.utils import EOREADER_NAME
+from sertit import rasters
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-np.seterr(divide='ignore', invalid='ignore')
+np.seterr(divide="ignore", invalid="ignore")
 
 
 def _idx_fct(function: Callable) -> Callable:
@@ -48,18 +48,17 @@ def _idx_fct(function: Callable) -> Callable:
     return _idx_fct_wrapper
 
 
-def _norm_diff(band_1: np.ma.masked_array,
-               band_2: np.ma.masked_array) -> np.ma.masked_array:
+def _norm_diff(band_1: xr.DataArray, band_2: xr.DataArray) -> xr.DataArray:
     """
     Get normalized difference index between band 1 and band 2:
     (band_1 - band_2)/(band_1 + band_2)
 
     Args:
-        band_1 (np.ma.masked_array): Band 1
-        band_2 (np.ma.masked_array): Band 2
+        band_1 (xr.DataArray): Band 1
+        band_2 (xr.DataArray): Band 2
 
     Returns:
-        np.ma.masked_array: Normalized Difference between band 1 and band 2
+        xr.DataArray: Normalized Difference between band 1 and band 2
     """
     norm = np.divide(band_1 - band_2, band_1 + band_2)
     norm = rasters.set_metadata(norm, band_1)
@@ -67,7 +66,7 @@ def _norm_diff(band_1: np.ma.masked_array,
 
 
 @_idx_fct
-def RGI(bands: dict) -> np.ma.masked_array:
+def RGI(bands: dict) -> xr.DataArray:
     """
     Relative Greenness Index: https://www.indexdatabase.de/db/i-single.php?id=326
 
@@ -82,7 +81,7 @@ def RGI(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def NDVI(bands: dict) -> np.ma.masked_array:
+def NDVI(bands: dict) -> xr.DataArray:
     """
     Normalized Difference Vegetation Index: https://www.indexdatabase.de/db/i-single.php?id=59
 
@@ -97,7 +96,7 @@ def NDVI(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def TCBRI(bands: dict) -> np.ma.masked_array:
+def TCBRI(bands: dict) -> xr.DataArray:
     """
     Tasseled Cap Brightness:
     https://en.wikipedia.org/wiki/Tasseled_cap_transformation
@@ -110,12 +109,18 @@ def TCBRI(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return (0.3037 * bands[obn.BLUE] + 0.2793 * bands[obn.GREEN] + 0.4743 * bands[obn.RED] +
-            0.5585 * bands[obn.NIR] + 0.5082 * bands[obn.SWIR_1] + 0.1863 * bands[obn.SWIR_2])
+    return (
+        0.3037 * bands[obn.BLUE]
+        + 0.2793 * bands[obn.GREEN]
+        + 0.4743 * bands[obn.RED]
+        + 0.5585 * bands[obn.NIR]
+        + 0.5082 * bands[obn.SWIR_1]
+        + 0.1863 * bands[obn.SWIR_2]
+    )
 
 
 @_idx_fct
-def TCGRE(bands: dict) -> np.ma.masked_array:
+def TCGRE(bands: dict) -> xr.DataArray:
     """
     Tasseled Cap Greenness:
     https://en.wikipedia.org/wiki/Tasseled_cap_transformation
@@ -128,12 +133,18 @@ def TCGRE(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return (- 0.2848 * bands[obn.BLUE] - 0.2435 * bands[obn.GREEN] - 0.5436 * bands[obn.RED] +
-            0.7243 * bands[obn.NIR] + 0.0840 * bands[obn.SWIR_1] - 0.1800 * bands[obn.SWIR_2])
+    return (
+        -0.2848 * bands[obn.BLUE]
+        - 0.2435 * bands[obn.GREEN]
+        - 0.5436 * bands[obn.RED]
+        + 0.7243 * bands[obn.NIR]
+        + 0.0840 * bands[obn.SWIR_1]
+        - 0.1800 * bands[obn.SWIR_2]
+    )
 
 
 @_idx_fct
-def TCWET(bands: dict) -> np.ma.masked_array:
+def TCWET(bands: dict) -> xr.DataArray:
     """
     Tasseled Cap Wetness:
     https://en.wikipedia.org/wiki/Tasseled_cap_transformation
@@ -146,12 +157,18 @@ def TCWET(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return (0.1509 * bands[obn.BLUE] + 0.1973 * bands[obn.GREEN] + 0.3279 * bands[obn.RED] +
-            0.3406 * bands[obn.NIR] - 0.7112 * bands[obn.SWIR_1] - 0.4572 * bands[obn.SWIR_2])
+    return (
+        0.1509 * bands[obn.BLUE]
+        + 0.1973 * bands[obn.GREEN]
+        + 0.3279 * bands[obn.RED]
+        + 0.3406 * bands[obn.NIR]
+        - 0.7112 * bands[obn.SWIR_1]
+        - 0.4572 * bands[obn.SWIR_2]
+    )
 
 
 @_idx_fct
-def NDRE2(bands: dict) -> np.ma.masked_array:
+def NDRE2(bands: dict) -> xr.DataArray:
     """
     Normalized Difference Red-Edge: https://www.indexdatabase.de/db/i-single.php?id=223
     Args:
@@ -165,7 +182,7 @@ def NDRE2(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def NDRE3(bands: dict) -> np.ma.masked_array:
+def NDRE3(bands: dict) -> xr.DataArray:
     """
     Normalized Difference Red-Edge: https://www.indexdatabase.de/db/i-single.php?id=223
 
@@ -180,7 +197,7 @@ def NDRE3(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def GLI(bands: dict) -> np.ma.masked_array:
+def GLI(bands: dict) -> xr.DataArray:
     """
     Green leaf index: https://www.indexdatabase.de/db/i-single.php?id=375
 
@@ -191,12 +208,14 @@ def GLI(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return np.divide(2 * (bands[obn.GREEN] - bands[obn.RED] - bands[obn.BLUE]),
-                     2 * (bands[obn.GREEN] + bands[obn.RED] + bands[obn.BLUE]))
+    return np.divide(
+        2 * (bands[obn.GREEN] - bands[obn.RED] - bands[obn.BLUE]),
+        2 * (bands[obn.GREEN] + bands[obn.RED] + bands[obn.BLUE]),
+    )
 
 
 @_idx_fct
-def GNDVI(bands: dict) -> np.ma.masked_array:
+def GNDVI(bands: dict) -> xr.DataArray:
     """
     Green NDVI: https://www.indexdatabase.de/db/i-single.php?id=401
 
@@ -211,7 +230,7 @@ def GNDVI(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def RI(bands: dict) -> np.ma.masked_array:
+def RI(bands: dict) -> xr.DataArray:
     """
     Normalized Difference RED/GREEN Redness Index: https://www.indexdatabase.de/db/i-single.php?id=74
 
@@ -222,11 +241,11 @@ def RI(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.VRE_1], + bands[obn.GREEN])
+    return _norm_diff(bands[obn.VRE_1], +bands[obn.GREEN])
 
 
 @_idx_fct
-def NDGRI(bands: dict) -> np.ma.masked_array:
+def NDGRI(bands: dict) -> xr.DataArray:
     """
     Normalized Difference GREEN/RED Index: https://www.indexdatabase.de/db/i-single.php?id=390
 
@@ -243,7 +262,7 @@ def NDGRI(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def CIG(bands: dict) -> np.ma.masked_array:
+def CIG(bands: dict) -> xr.DataArray:
     """
     Chlorophyll Index Green: https://www.indexdatabase.de/db/i-single.php?id=128
 
@@ -258,7 +277,7 @@ def CIG(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def NDMI(bands: dict) -> np.ma.masked_array:
+def NDMI(bands: dict) -> xr.DataArray:
     """
     Normalized Difference Moisture Index: https://www.indexdatabase.de/db/i-single.php?id=56
 
@@ -269,11 +288,11 @@ def NDMI(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NIR], + bands[obn.SWIR_1])
+    return _norm_diff(bands[obn.NIR], +bands[obn.SWIR_1])
 
 
 @_idx_fct
-def DSWI(bands: dict) -> np.ma.masked_array:
+def DSWI(bands: dict) -> xr.DataArray:
     """
     Disease water stress index: https://www.indexdatabase.de/db/i-single.php?id=106
 
@@ -284,11 +303,13 @@ def DSWI(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return np.divide(bands[obn.NIR] + bands[obn.GREEN], bands[obn.SWIR_1] + bands[obn.RED])
+    return np.divide(
+        bands[obn.NIR] + bands[obn.GREEN], bands[obn.SWIR_1] + bands[obn.RED]
+    )
 
 
 @_idx_fct
-def SRSWIR(bands: dict) -> np.ma.masked_array:
+def SRSWIR(bands: dict) -> xr.DataArray:
     """
     Simple Ratio SWIR_1/SWIR_2 Clay Minerals: https://www.indexdatabase.de/db/i-single.php?id=204
 
@@ -303,7 +324,7 @@ def SRSWIR(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def RDI(bands: dict) -> np.ma.masked_array:
+def RDI(bands: dict) -> xr.DataArray:
     """
     Ratio Drought Index: https://www.indexdatabase.de/db/i-single.php?id=71
 
@@ -318,7 +339,7 @@ def RDI(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def NDWI(bands: dict) -> np.ma.masked_array:
+def NDWI(bands: dict) -> xr.DataArray:
     """
     Simple Ratio MIR/NIR Ratio Drought Index: https://www.indexdatabase.de/db/i-single.php?id=71
 
@@ -333,7 +354,7 @@ def NDWI(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def BAI(bands: dict) -> np.ma.masked_array:
+def BAI(bands: dict) -> xr.DataArray:
     """
     Burn Area Index: https://www.harrisgeospatial.com/docs/BackgroundBurnIndices.html
 
@@ -343,11 +364,11 @@ def BAI(bands: dict) -> np.ma.masked_array:
     Returns:
         xr.DataArray: Computed index
     """
-    return np.divide(1., (0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)
+    return np.divide(1.0, (0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)
 
 
 @_idx_fct
-def NBR(bands: dict) -> np.ma.masked_array:
+def NBR(bands: dict) -> xr.DataArray:
     """
     Normalized Burn Ratio: https://www.indexdatabase.de/db/i-single.php?id=53
 
@@ -362,7 +383,7 @@ def NBR(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def MNDWI(bands: dict) -> np.ma.masked_array:
+def MNDWI(bands: dict) -> xr.DataArray:
     """
     Modified Normalised Difference Water Index : https://wiki.orfeo-toolbox.org/index.php/MNDWI
 
@@ -377,7 +398,7 @@ def MNDWI(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def AWEInsh(bands: dict) -> np.ma.masked_array:
+def AWEInsh(bands: dict) -> xr.DataArray:
     """
     Automated Water Extraction Index not shadow: Feyisa et al. (2014)
 
@@ -388,11 +409,13 @@ def AWEInsh(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return (4 * (bands[obn.GREEN] - bands[obn.SWIR_1]) - (0.25 * bands[obn.NIR] + 2.75 * bands[obn.SWIR_2]))
+    return 4 * (bands[obn.GREEN] - bands[obn.SWIR_1]) - (
+        0.25 * bands[obn.NIR] + 2.75 * bands[obn.SWIR_2]
+    )
 
 
 @_idx_fct
-def AWEIsh(bands: dict) -> np.ma.masked_array:
+def AWEIsh(bands: dict) -> xr.DataArray:
     """
     Automated Water Extraction Index shadow: Feyisa et al. (2014)
 
@@ -403,12 +426,16 @@ def AWEIsh(bands: dict) -> np.ma.masked_array:
         xr.DataArray: Computed index
 
     """
-    return (bands[obn.BLUE] + 2.5 * bands[obn.GREEN] -
-            1.5 * (bands[obn.NIR] + bands[obn.SWIR_1]) - 0.25 * bands[obn.SWIR_2])
+    return (
+        bands[obn.BLUE]
+        + 2.5 * bands[obn.GREEN]
+        - 1.5 * (bands[obn.NIR] + bands[obn.SWIR_1])
+        - 0.25 * bands[obn.SWIR_2]
+    )
 
 
 @_idx_fct
-def WI(bands: dict) -> np.ma.masked_array:
+def WI(bands: dict) -> xr.DataArray:
     """
     Water Index (2015): Fisher et al. (2016)
 
@@ -418,12 +445,18 @@ def WI(bands: dict) -> np.ma.masked_array:
     Returns:
         xr.DataArray: Computed index
     """
-    return (1.7204 + 171 * bands[obn.GREEN] + 3 * bands[obn.RED] -
-            70 * bands[obn.NIR] - 45 * bands[obn.SWIR_1] - 71 * bands[obn.SWIR_2])
+    return (
+        1.7204
+        + 171 * bands[obn.GREEN]
+        + 3 * bands[obn.RED]
+        - 70 * bands[obn.NIR]
+        - 45 * bands[obn.SWIR_1]
+        - 71 * bands[obn.SWIR_2]
+    )
 
 
 @_idx_fct
-def AFRI_1_6(bands: dict) -> np.ma.masked_array:
+def AFRI_1_6(bands: dict) -> xr.DataArray:
     """
     Aerosol free vegetation index 1600: https://www.indexdatabase.de/db/i-single.php?id=393
 
@@ -437,7 +470,7 @@ def AFRI_1_6(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def AFRI_2_1(bands: dict) -> np.ma.masked_array:
+def AFRI_2_1(bands: dict) -> xr.DataArray:
     """
     Aerosol free vegetation index 2100: https://www.indexdatabase.de/db/i-single.php?id=395
 
@@ -455,7 +488,7 @@ def AFRI_2_1(bands: dict) -> np.ma.masked_array:
 
 
 @_idx_fct
-def BSI(bands: dict) -> np.ma.masked_array:
+def BSI(bands: dict) -> xr.DataArray:
     """
     Barren Soil Index:
     Rikimaru et al., 2002. Tropical forest cover density mapping.
@@ -469,7 +502,9 @@ def BSI(bands: dict) -> np.ma.masked_array:
     Returns:
         xr.DataArray: Computed index
     """
-    return _norm_diff(bands[obn.RED] + bands[obn.SWIR_1], bands[obn.NIR] + bands[obn.BLUE])
+    return _norm_diff(
+        bands[obn.RED] + bands[obn.SWIR_1], bands[obn.NIR] + bands[obn.BLUE]
+    )
 
 
 def get_all_index_names() -> list:
@@ -531,7 +566,7 @@ def get_needed_bands(index: Callable) -> list:
     # Parse band's signature
     b_regex = r"obn\.\w+"
 
-    return [getattr(obn, b.split('.')[-1]) for b in re.findall(b_regex, code)]
+    return [getattr(obn, b.split(".")[-1]) for b in re.findall(b_regex, code)]
 
 
 def get_all_needed_bands() -> dict:
