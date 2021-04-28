@@ -592,15 +592,19 @@ class Product:
         dem_bands = {}
         dem_path = os.environ.get(DEM_PATH)
         if not dem_path:
-            LOGGER.warning(f&#34;Dem path not set, unable to compute DEM bands ! &#34;
-                           f&#34;Please set the environment variable {DEM_PATH}.&#34;)
+            LOGGER.warning(
+                f&#34;Dem path not set, unable to compute DEM bands ! &#34;
+                f&#34;Please set the environment variable {DEM_PATH}.&#34;
+            )
         else:
             for band in band_list:
                 assert is_dem(band)
                 if band == DEM:
                     path = self._warp_dem(dem_path, resolution=resolution, size=size)
                 elif band == SLOPE:
-                    path = self._compute_slope(dem_path, resolution=resolution, size=size)
+                    path = self._compute_slope(
+                        dem_path, resolution=resolution, size=size
+                    )
                 elif band == HILLSHADE:
                     path = self._compute_hillshade(
                         dem_path, resolution=resolution, size=size
@@ -1849,15 +1853,19 @@ True
         dem_bands = {}
         dem_path = os.environ.get(DEM_PATH)
         if not dem_path:
-            LOGGER.warning(f&#34;Dem path not set, unable to compute DEM bands ! &#34;
-                           f&#34;Please set the environment variable {DEM_PATH}.&#34;)
+            LOGGER.warning(
+                f&#34;Dem path not set, unable to compute DEM bands ! &#34;
+                f&#34;Please set the environment variable {DEM_PATH}.&#34;
+            )
         else:
             for band in band_list:
                 assert is_dem(band)
                 if band == DEM:
                     path = self._warp_dem(dem_path, resolution=resolution, size=size)
                 elif band == SLOPE:
-                    path = self._compute_slope(dem_path, resolution=resolution, size=size)
+                    path = self._compute_slope(
+                        dem_path, resolution=resolution, size=size
+                    )
                 elif band == HILLSHADE:
                     path = self._compute_hillshade(
                         dem_path, resolution=resolution, size=size
