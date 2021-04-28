@@ -1,6 +1,6 @@
 """
 EOReader examples.
 
-- [Basic tutorial](/examples/base.html)
+- [Basic tutorial](/eoreader/examples/base.html)
 
 """
