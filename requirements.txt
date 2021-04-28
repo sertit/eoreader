@@ -24,6 +24,7 @@ netCDF4
 rasterio
 rioxarray
 geopandas
+rtree
 
 # SERTIT libs
 sertit[full]

@@ -148,7 +148,10 @@ class LandsatProduct(OpticalProduct):
         nodata_band = self._get_path(self._nodata_band_id)
 
         # Vectorize the nodata band
-        footprint = rasters.vectorize(nodata_band, values=1)
+        nodata = rasters.vectorize(nodata_band, values=1)
+
+        # Clip the extent with the nodata
+        footprint = gpd.overlay(self.extent(), nodata, how="symmetric_difference")
 
         return footprint
 
