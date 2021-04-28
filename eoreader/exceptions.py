@@ -14,7 +14,7 @@ class InvalidBandError(EoReaderError):
 
 
 class InvalidIndexError(InvalidBandError):
-    """Invalid Index error, thrown when a non existing band is asked to a produc."""
+    """Invalid Index error, thrown when a non existing band is asked to a product."""
 
     pass
 
