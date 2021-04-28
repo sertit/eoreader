@@ -5,20 +5,20 @@ More info [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Product
 import glob
 import logging
 import os
+import warnings
 from datetime import datetime
 from enum import unique
-import warnings
 from typing import Union
 
-import rasterio
 import geopandas as gpd
+import rasterio
 from lxml import etree
+
+from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.products.sar.sar_product import SarProduct
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 from sertit import vectors
 from sertit.misc import ListEnum
-
-from eoreader.exceptions import InvalidTypeError, InvalidProductError
-from eoreader.products.sar.sar_product import SarProduct
-from eoreader.utils import EOREADER_NAME, DATETIME_FMT
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -32,6 +32,7 @@ class TsxProductType(ListEnum):
     TerraSAR-X projection identifier.
     Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
     """
+
     SSC = "SSC"
     """Single Look Slant Range, Complex representation"""
 
@@ -51,6 +52,7 @@ class TsxSensorMode(ListEnum):
     TerraSAR-X sensor mode.
     Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
     """
+
     HS = "HS"
     """High Resolution Spotlight"""
 
@@ -73,6 +75,7 @@ class TsxPolarization(ListEnum):
     TerraSAR-X polarization mode.
     Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
     """
+
     SINGLE = "S"
     """"Single Polarization"""
 
@@ -87,7 +90,7 @@ class TsxPolarization(ListEnum):
 
 
 class TsxProduct(SarProduct):
-    """ Class for TerraSAR-X Products """
+    """Class for TerraSAR-X Products"""
 
     def _set_resolution(self) -> float:
         """
@@ -104,10 +107,12 @@ class TsxProduct(SarProduct):
             root, _ = self.read_mtd()
 
             for element in root:
-                if element.tag == 'productInfo':
-                    image_data = element.find('imageDataInfo')
-                    image_raster = image_data.find('imageRaster')
-                    def_res = float(image_raster.findtext('rowSpacing'))  # Square pixels
+                if element.tag == "productInfo":
+                    image_data = element.find("imageDataInfo")
+                    image_raster = image_data.find("imageRaster")
+                    def_res = float(
+                        image_raster.findtext("rowSpacing")
+                    )  # Square pixels
                     break
         except (InvalidProductError, AttributeError):
             pass
@@ -142,10 +147,14 @@ class TsxProduct(SarProduct):
                     # self.sensor_mode == TsxSensorMode.SL:
                     def_res = 3.4 if se else 5.5
             elif pol_mode == TsxPolarization.QUAD:
-                raise NotImplementedError(f"Quadratic polarization is not implemented yet: {self.name}")
+                raise NotImplementedError(
+                    f"Quadratic polarization is not implemented yet: {self.name}"
+                )
             else:
                 # if pol_mode == TsxPolarization.TWIN
-                raise NotImplementedError(f"Twin polarization is not implemented yet: {self.name}")
+                raise NotImplementedError(
+                    f"Twin polarization is not implemented yet: {self.name}"
+                )
 
         return def_res
 
@@ -186,22 +195,31 @@ class TsxProduct(SarProduct):
         # Open extent KML file
         vectors.set_kml_driver()
         try:
-            extent_file = glob.glob(os.path.join(self.path, "SUPPORT", "GEARTH_POLY.kml"))[0]
+            extent_file = glob.glob(
+                os.path.join(self.path, "SUPPORT", "GEARTH_POLY.kml")
+            )[0]
         except IndexError as ex:
-            raise InvalidProductError(f"Extent file (products.kml) not found in {self.path}") from ex
+            raise InvalidProductError(
+                f"Extent file (products.kml) not found in {self.path}"
+            ) from ex
 
         extent_wgs84 = gpd.read_file(extent_file).envelope.to_crs(vectors.WGS84)
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
     def _set_product_type(self) -> None:
-        """ Get products type """
-        self._get_sar_product_type(prod_type_pos=2,
-                                   gdrg_types=TsxProductType.MGD,
-                                   cplx_types=TsxProductType.SSC)
+        """Get products type"""
+        self._get_sar_product_type(
+            prod_type_pos=2,
+            gdrg_types=TsxProductType.MGD,
+            cplx_types=TsxProductType.SSC,
+        )
         if self.product_type != TsxProductType.MGD:
-            LOGGER.warning("Other products type than MGD has not been tested for %s data. "
-                           "Use it at your own risks !", self.platform.value)
+            LOGGER.warning(
+                "Other products type than MGD has not been tested for %s data. "
+                "Use it at your own risks !",
+                self.platform.value,
+            )
 
     def _set_sensor_mode(self) -> None:
         """
@@ -263,7 +281,9 @@ class TsxProduct(SarProduct):
             xml_tree = etree.parse(mtd_file)
             root = xml_tree.getroot()
         except IndexError as ex:
-            raise InvalidProductError(f"Metadata file ({self.name}.xml) not found in {self.path}") from ex
+            raise InvalidProductError(
+                f"Metadata file ({self.name}.xml) not found in {self.path}"
+            ) from ex
 
         # Get namespace
         namespace = ""  # No namespace here

@@ -1,7 +1,7 @@
 """
-**Source Code**: https://code.sertit.unistra.fr/extracteo/eoreader
+**Source Code**: https://github.com/sertit/eoreader
 
-.. include:: ../README.md
+.. include:: ../documentation/index.md
 
 _____
 
@@ -15,12 +15,10 @@ _____
 
 .. include:: ../documentation/sar.md
 
-_____
-
-.. include:: ../documentation/sources.md
 """
 
 __pdoc__ = {
-    "eoreader.version": False,
     "eoreader.data": False,
 }
+
+__version__ = "0.2.1"

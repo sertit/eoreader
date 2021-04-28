@@ -1,32 +1,35 @@
 """ Product, superclass of all EOReader satellites products """
 # pylint: disable=W0107
 from __future__ import annotations
+
+import datetime as dt
 import logging
 import os
 import tempfile
-from enum import unique
 from abc import abstractmethod
+from enum import unique
 from functools import wraps
-from typing import Union, Callable, Any
-import datetime as dt
-import numpy as np
-import xarray as xr
-import geopandas as gpd
-import rasterio
-from rasterio import crs, warp
-from rasterio.enums import Resampling
-from sertit import files, strings, rasters, misc
-from sertit.rasters import XDS_TYPE
-from sertit.snap import MAX_CORES
-from sertit.misc import ListEnum
+from typing import Any, Callable, Union
 
-from eoreader.bands import index
+import geopandas as gpd
+import numpy as np
+import rasterio
+import xarray as xr
+from rasterio import crs as rcrs
+from rasterio import warp
+from rasterio.enums import Resampling
+
 from eoreader import utils
-from eoreader.reader import Reader, Platform
+from eoreader.bands import index
 from eoreader.bands.alias import *
 from eoreader.bands.bands import BandNames
+from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
+from eoreader.reader import Platform, Reader
 from eoreader.utils import EOREADER_NAME
-from eoreader.env_vars import DEM_PATH, CI_EOREADER_BAND_FOLDER
+from sertit import files, misc, rasters, strings
+from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
+from sertit.snap import MAX_CORES
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
@@ -59,7 +62,9 @@ def path_or_dst(method: Callable) -> Callable:
     """
 
     @wraps(method)
-    def path_or_dst_wrapper(self, path_or_ds: Union[str, rasterio.DatasetReader], *args, **kwargs) -> Any:
+    def path_or_dst_wrapper(
+        self, path_or_ds: Union[str, rasterio.DatasetReader], *args, **kwargs
+    ) -> Any:
         """
         Path or dataset wrapper
         Args:
@@ -86,6 +91,7 @@ class SensorType(ListEnum):
     """
     Sensor type of the products, optical or SAR
     """
+
     OPTICAL = "Optical"
     """For optical data"""
 
@@ -94,9 +100,11 @@ class SensorType(ListEnum):
 
 
 class Product:
-    """ Super class of EOReader Products """
+    """Super class of EOReader Products"""
 
-    def __init__(self, product_path: str, archive_path: str = None, output_path: str = None) -> None:
+    def __init__(
+        self, product_path: str, archive_path: str = None, output_path: str = None
+    ) -> None:
         self.name = files.get_filename(product_path)
         """Product name (its filename without any extension)."""
 
@@ -104,14 +112,14 @@ class Product:
         """Split name, to retrieve every information from its filename (dates, tile, product type...)."""
 
         self.archive_path = archive_path if archive_path else product_path
-        """Archive path, same as the product path if not specified. 
+        """Archive path, same as the product path if not specified.
         Useful when you want to know where both the extracted and archived version of your product are stored."""
 
         self.path = product_path
         """Usable path to the product, either extracted or archived path, according to the satellite."""
 
         self.is_archived = os.path.isfile(self.path)
-        """ Is the archived product is processed 
+        """ Is the archived product is processed
         (a products is considered as archived if its products path is a directory)."""
 
         self.needs_extraction = True
@@ -172,14 +180,14 @@ class Product:
         # Set the resolution, needs to be done when knowing the product type
         self.resolution = self._set_resolution()
         """
-        Default resolution in meters of the current product. 
+        Default resolution in meters of the current product.
         For SAR product, we use Ground Range resolution as we will automatically orthorectify the tiles.
         """
 
         self.condensed_name = self._get_condensed_name()
         """
-        Condensed name, the filename with only useful data to keep the name unique 
-        (ie. `20191215T110441_S2_30TXP_L2A_122756`). 
+        Condensed name, the filename with only useful data to keep the name unique
+        (ie. `20191215T110441_S2_30TXP_L2A_122756`).
         Used to shorten names and paths.
         """
 
@@ -189,7 +197,7 @@ class Product:
         # TODO: manage self.needs_extraction
 
     def __del__(self):
-        """ Cleaning up _tmp directory """
+        """Cleaning up _tmp directory"""
         if self._tmp:
             self._tmp.cleanup()
 
@@ -217,7 +225,8 @@ class Product:
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        return rasters.get_footprint(self.get_default_band_path())
+        default_xda = self.load(self.get_default_band())
+        return rasters.get_footprint(default_xda)
 
     @abstractmethod
     def extent(self) -> gpd.GeoDataFrame:
@@ -239,7 +248,7 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def crs(self) -> crs.CRS:
+    def crs(self) -> rcrs.CRS:
         """
         Get UTM projection of the tile
 
@@ -257,7 +266,7 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     def _get_band_folder(self):
-        """ Manage the case of CI SNAP Bands"""
+        """Manage the case of CI SNAP Bands"""
 
         # Manage CI SNAP band
         ci_band_folder = os.environ.get(CI_EOREADER_BAND_FOLDER)
@@ -305,7 +314,7 @@ class Product:
         Returns:
             list: Split products name
         """
-        return [x for x in self.name.split('_') if x]
+        return [x for x in self.name.split("_") if x]
 
     @abstractmethod
     def get_datetime(self, as_datetime: bool = False) -> Union[str, dt.datetime]:
@@ -350,7 +359,7 @@ class Product:
         Returns:
             str: Its acquisition date
         """
-        date = self.get_datetime().split('T')[0]
+        date = self.get_datetime().split("T")[0]
 
         if as_date:
             date = strings.str_to_date(date, date_format="%Y%m%d")
@@ -492,10 +501,12 @@ class Product:
 
     # pylint: disable=W0613
     @path_or_dst
-    def _read_band(self,
-                   dataset,
-                   resolution: Union[tuple, list, float] = None,
-                   size: Union[list, tuple] = None) -> XDS_TYPE:
+    def _read_band(
+        self,
+        dataset,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+    ) -> XDS_TYPE:
         """
         Read band from disk.
 
@@ -513,10 +524,9 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def _load_bands(self,
-                    band_list: list,
-                    resolution: float = None,
-                    size: Union[list, tuple] = None) -> dict:
+    def _load_bands(
+        self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -529,10 +539,9 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _load_dem(self,
-                  band_list: list,
-                  resolution: float = None,
-                  size: Union[list, tuple] = None) -> dict:
+    def _load_dem(
+        self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
@@ -552,7 +561,9 @@ class Product:
             elif band == SLOPE:
                 path = self._compute_slope(dem_path, resolution=resolution, size=size)
             elif band == HILLSHADE:
-                path = self._compute_hillshade(dem_path, resolution=resolution, size=size)
+                path = self._compute_hillshade(
+                    dem_path, resolution=resolution, size=size
+                )
             else:
                 raise InvalidTypeError(f"Unknown DEM band: {band}")
 
@@ -560,10 +571,12 @@ class Product:
 
         return dem_bands
 
-    def load(self,
-             bands: Union[list, BandNames, Callable],
-             resolution: float = None,
-             size: Union[list, tuple] = None) -> dict:
+    def load(
+        self,
+        bands: Union[list, BandNames, Callable],
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -> dict:
         """
         Open the bands and compute the wanted index.
 
@@ -580,27 +593,48 @@ class Product:
         >>> prod = Reader().open(path)
         >>> bands = prod.load([GREEN, NDVI], resolution=20)
         >>> bands
-        {<function NDVI at 0x00000227FBB929D8>: masked_array(
-          data=[[[-0.02004455029964447, ..., 0.11663568764925003]]],
-          mask=[[[False, ..., False]]],
-          fill_value=0.0,
-          dtype=float32),
-          <OpticalBandNames.GREEN: 'GREEN'>: masked_array(
-          data=[[[0.061400000005960464, ..., 0.15799999237060547]]],
-          mask=[[[False, ..., False]]],
-          fill_value=0.0,
-          dtype=float32)}
-        >>> meta
+        '''
         {
-            'driver': 'GTiff',
-            'dtype': <class 'numpy.float32'>,
-            'nodata': 0,
-            'width': 5490,
-            'height': 5490,
-            'count': 1,
-            'crs': CRS.from_epsg(32630),
-            'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
+            <function NDVI at 0x000001EFFFF5DD08>: <xarray.DataArray 'NDVI' (band: 1, y: 5490, x: 5490)>
+            array([[[0.949506  , 0.92181516, 0.9279379 , ..., 1.8002278 ,
+                     1.5424857 , 1.6747767 ],
+                    [0.95369846, 0.91685396, 0.8957871 , ..., 1.5847116 ,
+                     1.5248713 , 1.5011379 ],
+                    [2.9928885 , 1.3031474 , 1.0076253 , ..., 1.5969834 ,
+                     1.5590671 , 1.5018653 ],
+                    ...,
+                    [1.4245619 , 1.6115025 , 1.6201663 , ..., 1.2387121 ,
+                     1.4025431 , 1.800678  ],
+                    [1.5627214 , 1.822388  , 1.7245892 , ..., 1.1694248 ,
+                     1.2573677 , 1.5767351 ],
+                    [1.653781  , 1.6424649 , 1.5923225 , ..., 1.3072611 ,
+                     1.2181134 , 1.2478763 ]]], dtype=float32)
+            Coordinates:
+              * band         (band) int32 1
+              * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+              * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+                spatial_ref  int32 0,
+            <OpticalBandNames.GREEN: 'GREEN'>: <xarray.DataArray (band: 1, y: 5490, x: 5490)>
+            array([[[0.0615  , 0.061625, 0.061   , ..., 0.12085 , 0.120225,
+                     0.113575],
+                    [0.061075, 0.06045 , 0.06025 , ..., 0.114625, 0.119625,
+                     0.117625],
+                    [0.06475 , 0.06145 , 0.060925, ..., 0.111475, 0.114925,
+                     0.115175],
+                    ...,
+                    [0.1516  , 0.14195 , 0.1391  , ..., 0.159975, 0.14145 ,
+                     0.127075],
+                    [0.140325, 0.125975, 0.131875, ..., 0.18245 , 0.1565  ,
+                     0.13015 ],
+                    [0.133475, 0.1341  , 0.13345 , ..., 0.15565 , 0.170675,
+                     0.16405 ]]], dtype=float32)
+            Coordinates:
+              * band         (band) int32 1
+              * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+              * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+                spatial_ref  int32 0
         }
+        '''
         ```
 
         Args:
@@ -633,10 +667,9 @@ class Product:
         return band_dict
 
     @abstractmethod
-    def _load(self,
-              bands: list,
-              resolution: float = None,
-              size: Union[list, tuple] = None) -> dict:
+    def _load(
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+    ) -> dict:
         """
         Core function loading data bands
 
@@ -821,21 +854,23 @@ class Product:
 
     @property
     def output(self) -> str:
-        """ Output directory of the product, to write orthorectified data for example. """
+        """Output directory of the product, to write orthorectified data for example."""
         return self._output
 
     @output.setter
     def output(self, value: str):
-        """ Output directory of the product, to write orthorectified data for example. """
+        """Output directory of the product, to write orthorectified data for example."""
         self._output = value
         if not os.path.isdir(self._output):
             os.makedirs(self._output, exist_ok=True)
 
-    def _warp_dem(self,
-                  dem_path: str = "",
-                  resolution: Union[float, tuple] = None,
-                  size: Union[list, tuple] = None,
-                  resampling: Resampling = Resampling.bilinear) -> str:
+    def _warp_dem(
+        self,
+        dem_path: str = "",
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
+    ) -> str:
         """
         Get this products DEM, warped to this products footprint and CRS.
 
@@ -863,14 +898,20 @@ class Product:
             str: DEM path (as a VRT)
         """
         try:
-            merit_dem = os.path.join(utils.get_db_dir(), 'GLOBAL', "MERIT_Hydrologically_Adjusted_Elevations",
-                                     "MERIT_DEM.vrt")
+            merit_dem = os.path.join(
+                utils.get_db_dir(),
+                "GLOBAL",
+                "MERIT_Hydrologically_Adjusted_Elevations",
+                "MERIT_DEM.vrt",
+            )
             # eudem_path = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
         except NotADirectoryError as ex:
             LOGGER.debug("Non available default DEM: %s", ex)
             merit_dem = None
 
-        warped_dem_path = os.path.join(self._get_band_folder(), f"{self.condensed_name}_DEM.tif")
+        warped_dem_path = os.path.join(
+            self._get_band_folder(), f"{self.condensed_name}_DEM.tif"
+        )
         if os.path.isfile(warped_dem_path):
             LOGGER.debug("Already existing DEM for %s. Skipping process.", self.name)
         else:
@@ -884,13 +925,20 @@ class Product:
                 dem_path = merit_dem
             else:
                 if not os.path.isfile(dem_path):
-                    LOGGER.warning("Non existing DEM file: %s. Using default ones (EUDEM or MERIT)", dem_path)
+                    LOGGER.warning(
+                        "Non existing DEM file: %s. Using default ones (EUDEM or MERIT)",
+                        dem_path,
+                    )
                     dem_path = merit_dem
                 else:
-                    dem_extent_df = rasters.get_footprint(dem_path).to_crs(prod_extent_df.crs)
+                    dem_extent_df = rasters.get_footprint(dem_path).to_crs(
+                        prod_extent_df.crs
+                    )
                     if not dem_extent_df.contains(prod_extent_df)[0]:
-                        LOGGER.warning("Input DEM file does not intersect %s. Using default ones (EUDEM or MERIT)",
-                                       self.name)
+                        LOGGER.warning(
+                            "Input DEM file does not intersect %s. Using default ones (EUDEM or MERIT)",
+                            self.name,
+                        )
                         dem_path = merit_dem
 
             # Use EUDEM if the products is contained in it
@@ -903,7 +951,7 @@ class Product:
             # Check existence (SRTM)
             if not os.path.isfile(dem_path):
                 if not merit_dem:
-                    raise FileNotFoundError(f"Impossible to retrieve default DEM.")
+                    raise FileNotFoundError("Impossible to retrieve default DEM.")
                 else:
                     raise FileNotFoundError(f"DEM file does not exist here: {dem_path}")
 
@@ -926,15 +974,25 @@ class Product:
                             dst_tr *= dst_tr.scale(coeff_x, coeff_y)
 
                         except (TypeError, KeyError):
-                            raise ValueError(f"Size should exist (as resolution is None)"
-                                             f" and castable to a list: {size}")
+                            raise ValueError(
+                                f"Size should exist (as resolution is None)"
+                                f" and castable to a list: {size}"
+                            )
 
                     else:
                         # Refine resolution
                         if resolution is None:
                             resolution = self.resolution
-                        res_x = resolution[0] if isinstance(resolution, (tuple, list)) else resolution
-                        res_y = resolution[1] if isinstance(resolution, (tuple, list)) else resolution
+                        res_x = (
+                            resolution[0]
+                            if isinstance(resolution, (tuple, list))
+                            else resolution
+                        )
+                        res_y = (
+                            resolution[1]
+                            if isinstance(resolution, (tuple, list))
+                            else resolution
+                        )
 
                         # Get destination transform
                         dst_tr = prod_dst.transform
@@ -947,7 +1005,9 @@ class Product:
                         out_h = int(np.round(prod_dst.height / coeff_y))
 
                     # Get empty output
-                    reprojected_array = np.zeros((prod_dst.count, out_h, out_w), dtype=np.float32)
+                    reprojected_array = np.zeros(
+                        (prod_dst.count, out_h, out_w), dtype=np.float32
+                    )
 
                     # Write reprojected DEM: here do not use utils.write()
                     out_meta = prod_dst.meta.copy()
@@ -962,18 +1022,23 @@ class Product:
                         # Reproject
                         warp.reproject(
                             source=rasterio.band(dem_ds, range(1, dem_ds.count + 1)),
-                            destination=rasterio.band(out_dst, range(1, out_dst.count + 1)),
+                            destination=rasterio.band(
+                                out_dst, range(1, out_dst.count + 1)
+                            ),
                             resampling=resampling,
-                            num_threads=MAX_CORES)
+                            num_threads=MAX_CORES,
+                        )
 
         return warped_dem_path
 
     @abstractmethod
-    def _compute_hillshade(self,
-                           dem_path: str = "",
-                           resolution: Union[float, tuple] = None,
-                           size: Union[list, tuple] = None,
-                           resampling: Resampling = Resampling.bilinear) -> str:
+    def _compute_hillshade(
+        self,
+        dem_path: str = "",
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
+    ) -> str:
         """
         Compute Hillshade mask
 
@@ -989,11 +1054,13 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _compute_slope(self,
-                       dem_path: str = "",
-                       resolution: Union[float, tuple] = None,
-                       size: Union[list, tuple] = None,
-                       resampling: Resampling = Resampling.bilinear) -> str:
+    def _compute_slope(
+        self,
+        dem_path: str = "",
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
+    ) -> str:
         """
         Compute slope mask
 
@@ -1013,16 +1080,22 @@ class Product:
         # Get slope path
         slope_dem = os.path.join(self.output, f"{self.condensed_name}_SLOPE.tif")
         if os.path.isfile(slope_dem):
-            LOGGER.debug("Already existing slope DEM for %s. Skipping process.", self.name)
+            LOGGER.debug(
+                "Already existing slope DEM for %s. Skipping process.", self.name
+            )
         else:
             LOGGER.debug("Computing slope for %s", self.name)
-            cmd_slope = ["gdaldem",
-                         "--config",
-                         "NUM_THREADS", MAX_CORES,
-                         "slope",
-                         "-compute_edges",
-                         strings.to_cmd_string(warped_dem_path),
-                         strings.to_cmd_string(slope_dem), "-p"]
+            cmd_slope = [
+                "gdaldem",
+                "--config",
+                "NUM_THREADS",
+                MAX_CORES,
+                "slope",
+                "-compute_edges",
+                strings.to_cmd_string(warped_dem_path),
+                strings.to_cmd_string(slope_dem),
+                "-p",
+            ]
 
             # Run command
             misc.run_cli(cmd_slope)
@@ -1042,25 +1115,31 @@ class Product:
         """
         for band_id, band in bands.items():
             if master_xds is None:
-                master_xds = band # Master array is the first one in this case
+                master_xds = band  # Master array is the first one in this case
 
             if band.shape != master_xds.shape:
-                bands[band_id] = rasters.collocate(master_xds=master_xds, slave_xds=band)
+                bands[band_id] = rasters.collocate(
+                    master_xds=master_xds, slave_xds=band
+                )
 
-            bands[band_id] = bands[band_id].assign_coords({
-                "x": master_xds.x,
-                "y": master_xds.y,
-            })  # Bug for now, tiny difference in coords
+            bands[band_id] = bands[band_id].assign_coords(
+                {
+                    "x": master_xds.x,
+                    "y": master_xds.y,
+                }
+            )  # Bug for now, tiny difference in coords
 
         return bands
 
     # pylint: disable=R0913
     # Too many arguments (6/5)
-    def stack(self,
-              bands: list,
-              resolution: float = None,
-              stack_path: str = None,
-              save_as_int: bool = False) -> xr.DataArray:
+    def stack(
+        self,
+        bands: list,
+        resolution: float = None,
+        stack_path: str = None,
+        save_as_int: bool = False,
+    ) -> xr.DataArray:
         """
         Stack bands and index of a products.
 
@@ -1071,22 +1150,56 @@ class Product:
         >>> prod = Reader().open(path)
         >>> stack = prod.stack([NDVI, MNDWI, GREEN], resolution=20)  # In meters
         >>> stack
-        masked_array(
-          data=[[[-0.02004455029964447, ..., 0.15799999237060547]]],
-          mask=[[[False, ..., False]]],
-          fill_value=1e+20,
-          dtype=float32)
-        >>> stk_meta
-        {
-            'driver': 'GTiff',
-            'dtype': <class 'numpy.float32'>,
-            'nodata': 0,
-            'width': 5490,
-            'height': 5490,
-            'count': 3,
-            'crs': CRS.from_epsg(32630),
-            'transform': Affine(20.0, 0.0, 199980.0,0.0, -20.0, 4500000.0)
-        }
+        '''
+        <xarray.DataArray 'NDVI_MNDWI_GREEN' (z: 3, y: 5490, x: 5490)>
+        array([[[ 0.949506  ,  0.92181516,  0.9279379 , ...,  1.8002278 ,
+                  1.5424857 ,  1.6747767 ],
+                [ 0.95369846,  0.91685396,  0.8957871 , ...,  1.5847116 ,
+                  1.5248713 ,  1.5011379 ],
+                [ 2.9928885 ,  1.3031474 ,  1.0076253 , ...,  1.5969834 ,
+                  1.5590671 ,  1.5018653 ],
+                ...,
+                [ 1.4245619 ,  1.6115025 ,  1.6201663 , ...,  1.2387121 ,
+                  1.4025431 ,  1.800678  ],
+                [ 1.5627214 ,  1.822388  ,  1.7245892 , ...,  1.1694248 ,
+                  1.2573677 ,  1.5767351 ],
+                [ 1.653781  ,  1.6424649 ,  1.5923225 , ...,  1.3072611 ,
+                  1.2181134 ,  1.2478763 ]],
+               [[ 0.27066118,  0.23466069,  0.18792598, ..., -0.4611526 ,
+                 -0.49751845, -0.4865216 ],
+                [ 0.22425456,  0.28004232,  0.27851456, ..., -0.5032771 ,
+                 -0.501796  , -0.502669  ],
+                [-0.07466951,  0.06360884,  0.1207174 , ..., -0.50617427,
+                 -0.50219285, -0.5034222 ],
+                [-0.47076276, -0.4705828 , -0.4747971 , ..., -0.32138503,
+                 -0.36619243, -0.37428448],
+                [-0.4826967 , -0.5032287 , -0.48544118, ..., -0.278925  ,
+                 -0.31404778, -0.36052078],
+                [-0.488381  , -0.48253912, -0.4697526 , ..., -0.38105175,
+                 -0.30813277, -0.27739233]],
+               [[ 0.0615    ,  0.061625  ,  0.061     , ...,  0.12085   ,
+                  0.120225  ,  0.113575  ],
+                [ 0.061075  ,  0.06045   ,  0.06025   , ...,  0.114625  ,
+                  0.119625  ,  0.117625  ],
+                [ 0.06475   ,  0.06145   ,  0.060925  , ...,  0.111475  ,
+                  0.114925  ,  0.115175  ],
+                ...,
+                [ 0.1516    ,  0.14195   ,  0.1391    , ...,  0.159975  ,
+                  0.14145   ,  0.127075  ],
+                [ 0.140325  ,  0.125975  ,  0.131875  , ...,  0.18245   ,
+                  0.1565    ,  0.13015   ],
+                [ 0.133475  ,  0.1341    ,  0.13345   , ...,  0.15565   ,
+                  0.170675  ,  0.16405   ]]], dtype=float32)
+        Coordinates:
+          * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+          * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+            spatial_ref  int32 0
+          * z            (z) MultiIndex
+          - variable     (z) object 'NDVI' 'MNDWI' 'GREEN'
+          - band         (z) int64 1 1 1
+        Attributes:
+            long_name:  ['NDVI', 'MNDWI', 'GREEN']
+        '''
         ```
 
         Args:
@@ -1105,12 +1218,14 @@ class Product:
         band_dict = self.load(bands, resolution)
 
         # Convert into dataset with str as names
-        xds = xr.Dataset(data_vars={to_str(key)[0]: val for key, val in band_dict.items()},
-                         coords=band_dict[bands[0]].coords)
+        xds = xr.Dataset(
+            data_vars={to_str(key)[0]: val for key, val in band_dict.items()},
+            coords=band_dict[bands[0]].coords,
+        )
 
         # Force nodata
         stack = xds.to_stacked_array(new_dim="z", sample_dims=("x", "y"))
-        stack = stack.transpose('z', 'y', 'x')
+        stack = stack.transpose("z", "y", "x")
 
         # Save as integer
         if save_as_int:
@@ -1122,7 +1237,9 @@ class Product:
 
         # Some updates
         stack = rasters.set_nodata(stack, self.nodata)
-        stack.attrs["long_name"] = to_str(list(band_dict.keys()))
+        band_list = to_str(list(band_dict.keys()))
+        stack.attrs["long_name"] = band_list
+        stack = stack.rename("_".join(band_list))
 
         # Write on disk
         if stack_path:

@@ -15,13 +15,13 @@ To use it, simply type:
 """
 # Module name begins with _ to not be imported with *
 import typing as _tp
-from eoreader.exceptions import InvalidTypeError
-from eoreader.bands.bands import \
-    OpticalBandNames as _obn, \
-    SarBandNames as _sbn, \
-    DemBandNames as _dem, \
-    CloudsBandNames as _clouds
+
 from eoreader.bands import index as _idx
+from eoreader.bands.bands import CloudsBandNames as _clouds
+from eoreader.bands.bands import DemBandNames as _dem
+from eoreader.bands.bands import OpticalBandNames as _obn
+from eoreader.bands.bands import SarBandNames as _sbn
+from eoreader.exceptions import InvalidTypeError
 
 # -- OPTICAL BANDS --
 CA = _obn.CA  # Coastal aerosol
@@ -34,7 +34,7 @@ VRE_3 = _obn.VRE_3
 NIR = _obn.NIR
 NARROW_NIR = _obn.NARROW_NIR
 WV = _obn.WV  # Water vapour
-FNIR = _obn.FNIR
+FNIR = _obn.FAR_NIR
 SWIR_CIRRUS = _obn.SWIR_CIRRUS  # Optical band based on cirrus
 SWIR_1 = _obn.SWIR_1
 SWIR_2 = _obn.SWIR_2
@@ -112,7 +112,11 @@ def is_clouds(classif: _tp.Any) -> bool:
     True
     ```
     """
-    return classif in _clouds
+    try:
+        is_valid = classif in _clouds
+    except TypeError:
+        is_valid = False
+    return is_valid
 
 
 def is_dem(dem: _tp.Any) -> bool:
@@ -133,7 +137,11 @@ def is_dem(dem: _tp.Any) -> bool:
     False
     ```
     """
-    return dem in _dem
+    try:
+        is_valid = dem in _dem
+    except TypeError:
+        is_valid = False
+    return is_valid
 
 
 def is_index(idx: _tp.Any) -> bool:
@@ -189,7 +197,11 @@ def is_optical_band(band: _tp.Any) -> bool:
         bool: True if the band asked is an optical band
 
     """
-    return band in _obn
+    try:
+        is_valid = band in _obn
+    except TypeError:
+        is_valid = False
+    return is_valid
 
 
 def is_sar_band(band: _tp.Any) -> bool:
@@ -217,7 +229,11 @@ def is_sar_band(band: _tp.Any) -> bool:
         bool: True if the band asked is a SAR band
 
     """
-    return band in _sbn
+    try:
+        is_valid = band in _sbn
+    except TypeError:
+        is_valid = False
+    return is_valid
 
 
 def is_band(band: _tp.Any) -> bool:

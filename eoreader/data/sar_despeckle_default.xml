@@ -34,7 +34,7 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>$out</file>
-      <formatName>BEAM-DIMAP</formatName>  
+      <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>
 </graph>

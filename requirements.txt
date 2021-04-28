@@ -1,14 +1,29 @@
-# Libs for all platforms
+# Tests & lint
+tox
+tox-conda
+pre-commit
+black
 pytest
-twine
+coverage
+pytest-cov
+flake8
 pylint
+
+# Deploy
+twine
+
+# Doc
 pdoc3
-lxml
-netCDF4
+
+# Libs for all platforms
+tqdm
 psutil
-geopandas
+lxml
+colorlog
+netCDF4
 rasterio
+rioxarray
+geopandas
 
 # SERTIT libs
---extra-index-url https://${GITLAB_SERTIT_READ_TOKEN}:${GITLAB_SERTIT_READ_PWD}@code.sertit.unistra.fr/api/v4/projects/134/packages/pypi/simple
 sertit[full]
