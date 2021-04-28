@@ -1,4 +1,4 @@
-# EOReader
+# ![eoreader_logo](https://github.com/sertit/eoreader/blob/master/docs/eoreader_small.png) EOReader
 
 **EOReader** is a **multi-satellite reader** allowing you to open
 [optical](https://sertit.github.io/eoreader/eoreader#implemented-optical-satellites)
@@ -50,19 +50,20 @@ The main features of EOReader are gathered hereunder:
 >>> mtd, namespace = prod.read_mtd()
 ```
 
-.. WARNING::
-  - Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.
-  Ensure that you have the folder containing your `gpt.exe` in your `PATH`.
+Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.
+Ensure that you have the folder containing your `gpt.exe` in your `PATH`.
+
 
 ## Examples
 
-.. include:: ../documentation/examples.md
+Available notebooks provided as examples:
+
+- [Basic tutorial](/eoreader/examples/base.html)
 
 ## Installation
 
 `pip install eoreader`
 
-.. WARNING::
-  EOReader depends mainly on `geopandas` and `rasterio`.
-  (with GDAL installation issues on Windows, so please install them from wheels that you can
-  find [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio)).
+EOReader depends mainly on `geopandas` and `rasterio`.
+(with GDAL installation issues on Windows, so please install them from wheels that you can
+find [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio)).

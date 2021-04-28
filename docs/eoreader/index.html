@@ -32,7 +32,7 @@ integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></sc
 </header>
 <section id="section-intro">
 <p><strong>Source Code</strong>: <a href="https://github.com/sertit/eoreader">https://github.com/sertit/eoreader</a></p>
-<h1 id="eoreader">EOReader</h1>
+<h1 id="eoreader"><img alt="eoreader_logo" src="https://github.com/sertit/eoreader/blob/master/docs/eoreader_small.png"> EOReader</h1>
 <p><strong>EOReader</strong> is a <strong>multi-satellite reader</strong> allowing you to open
 <a href="https://sertit.github.io/eoreader/eoreader#implemented-optical-satellites">optical</a>
 and <a href="https://sertit.github.io/eoreader/eoreader#implemented-sar-satellites">SAR</a> data.</p>
@@ -90,25 +90,18 @@ and <a href="https://geopandas.org/docs/user_guide/data_structures.html#geodataf
 &gt;&gt;&gt; # Read Metadata
 &gt;&gt;&gt; mtd, namespace = prod.read_mtd()
 </code></pre>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<ul>
-<li>Sentinel-3 and SAR products need <a href="https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph"><code>SNAP gpt</code></a> to be geocoded.
-Ensure that you have the folder containing your <code>gpt.exe</code> in your <code>PATH</code>.</li>
-</ul>
-</div>
+<p>Sentinel-3 and SAR products need <a href="https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph"><code>SNAP gpt</code></a> to be geocoded.
+Ensure that you have the folder containing your <code>gpt.exe</code> in your <code>PATH</code>.</p>
 <h2 id="examples">Examples</h2>
+<p>Available notebooks provided as examples:</p>
 <ul>
 <li><a href="/eoreader/examples/base.html">Basic tutorial</a></li>
 </ul>
 <h2 id="installation">Installation</h2>
 <p><code>pip install <a title="eoreader" href="#eoreader">eoreader</a></code></p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
 <p>EOReader depends mainly on <code>geopandas</code> and <code>rasterio</code>.
 (with GDAL installation issues on Windows, so please install them from wheels that you can
 find <a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio">here</a>).</p>
-</div>
 <hr>
 <h1 id="main-features">Main features</h1>
 <p>These features can be seen in <a href="/eoreader/examples/base.html">this</a> example.</p>
@@ -639,7 +632,7 @@ __version__ = &#34;0.2.2&#34;</code></pre>
 <nav id="sidebar">
 <header>
 <a class="homelink" rel="home" title="Home" href="/eoreader/">
-<img src="https://extracteo.pages.sertit.unistra.fr/eoreader/eoreader.png"
+<img src=https://github.com/sertit/eoreader/blob/master/docs/eoreader.png"
 alt="logo"
 style="width:40%;"/>
 </a>
