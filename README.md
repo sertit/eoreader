@@ -60,7 +60,7 @@ The API documentation can be found [here](https://sertit.github.io/eoreader/eore
 
 Available notebooks provided as examples:
 
-- [Basic tutorial](/eoreader/examples/base.html)
+- [Basic tutorial](https://sertit.github.io/eoreader/examples/base.html)
 
 ## Installation
 
