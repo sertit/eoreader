@@ -22,9 +22,6 @@ def test_utils():
     assert utils.get_src_dir() == src_dir
     assert utils.get_data_dir() == data_dir
 
-    # DB dir
-    assert os.path.isdir(utils.get_db_dir())
-
 
 def test_alias():
     # DEM

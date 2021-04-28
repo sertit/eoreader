@@ -53,6 +53,8 @@ The main features of EOReader are gathered hereunder:
 Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.
 Ensure that you have the folder containing your `gpt.exe` in your `PATH`.
 
+## Documentation
+The API documentation can be found [here](https://sertit.github.io/eoreader/eoreader/).
 
 ## Examples
 

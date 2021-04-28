@@ -8,6 +8,7 @@ import rasterio
 from eoreader.reader import Reader
 from eoreader.utils import EOREADER_NAME
 from sertit import ci
+from sertit.ci import get_db2_path
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 READER = Reader()
@@ -88,3 +89,24 @@ def assert_raster_almost_equal(path_1: str, path_2: str, decimal=5) -> None:
                     LOGGER.error(
                         f"Band {i + 1}: {dst_1.descriptions[i]} failed", exc_info=True
                     )
+
+
+def get_db_dir() -> str:
+    """
+    Get database directory in the DS2
+
+    Returns:
+        str: Database directory
+    """
+    db_dir = os.path.join(r"\\ds2", "database02", "BASES_DE_DONNEES")
+
+    if not os.path.isdir(db_dir):
+        try:
+            db_dir = os.path.join(get_db2_path(), "BASES_DE_DONNEES")
+        except NotADirectoryError:
+            db_dir = os.path.join("/home", "ds2_db2", "BASES_DE_DONNEES")
+
+    if not os.path.isdir(db_dir):
+        raise NotADirectoryError("Impossible to open database directory !")
+
+    return db_dir

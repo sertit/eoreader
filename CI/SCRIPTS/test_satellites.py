@@ -7,16 +7,29 @@ import tempfile
 import xarray
 
 from eoreader.bands.alias import *
-from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, S3_DEF_RES, SAR_DEF_RES
+from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH, S3_DEF_RES, SAR_DEF_RES
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod, Platform
 from eoreader.utils import EOREADER_NAME
 from sertit import ci, files, logs
 
-from .scripts_utils import OPT_PATH, READER, SAR_PATH, get_ci_data_dir
+from .scripts_utils import OPT_PATH, READER, SAR_PATH, get_ci_data_dir, get_db_dir
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 RES = 1000  # 1000m
+
+try:
+    merit_dem = os.path.join(
+        get_db_dir(),
+        "GLOBAL",
+        "MERIT_Hydrologically_Adjusted_Elevations",
+        "MERIT_DEM.vrt",
+    )
+    # eudem_path = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
+    os.environ[DEM_PATH] = merit_dem
+except NotADirectoryError as ex:
+    LOGGER.debug("Non available default DEM: %s", ex)
+    pass
 
 
 def remove_dem(prod):
