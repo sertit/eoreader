@@ -44,7 +44,7 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 - `TIR_1`: Thermal Infrared 1
 - `TIR_2`: Thermal Infrared 2
 
-See [here]() for more information.
+See [here](https://sertit.github.io/eoreader/eoreader/products/optical/index.html#optical-band-mapping-between-sensors) for more information.
 
 ### Index
 
@@ -75,7 +75,7 @@ See [here]() for more information.
 - `TCWET`
 - `WI`
 
-See [here]() for more information.
+See [here](https://sertit.github.io/eoreader/eoreader/products/optical/index.html#available-index) for more information.
 
 ### Cloud bands
 
@@ -90,7 +90,7 @@ orthorectified if needed (for Sentinel-2 or 3 data for example), ready to be sta
 - `ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (0). Do not take into account missing bands (
   ie. for Landsat MSS sensors, `ALL_CLOUDS` == `CLOUDS`)
 
-See [here]() for more information.
+See [here](https://sertit.github.io/eoreader/eoreader/products/optical/index.html#cloud-bands-specifications) for more information.
 
 ### DEM bands
 
@@ -100,4 +100,4 @@ These bands need a valid worldwide DEM path positioned thanks to the environment
 - `SLOPE`
 - `HILLSHADE`
 
-See [here]() for more information.
+See [here](https://sertit.github.io/eoreader/eoreader/products/optical/index.html#dem-bands-specifications) for more information.

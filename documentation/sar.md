@@ -35,4 +35,4 @@ These bands need a valid worldwide DEM path positioned thanks to the environment
 - `DEM`
 - `SLOPE`
 
-See [here]() for more information.
+See [here](https://sertit.github.io/eoreader/eoreader/products/sar/index.html#dem-bands) for more information.

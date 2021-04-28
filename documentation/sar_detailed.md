@@ -15,8 +15,7 @@ The product resolution is read in the metadata file if possible, so the followin
 
 ### Sentinel-1
 
-| **
-Sentinel-1** | Single Look Complex (SLC) |Ground Range Detected (GRD)<br>Full Resolution (FR) | Ground Range Detected (GRD)<br>High Resolution (HR) | Ground Range Detected (GRD)<br>Medium Resolution (MR)|
+| **Sentinel-1** | Single Look Complex (SLC) |Ground Range Detected (GRD)<br>Full Resolution (FR) | Ground Range Detected (GRD)<br>High Resolution (HR) | Ground Range Detected (GRD)<br>Medium Resolution (MR)|
 |--- | --- | --- | --- | ---|
 |StripMap (SM) | 1.5x3.6   m to 3.1x4.1 m | 3.5m | 10.0m | 40.0m|
 |Interferometric   Wide swath (IW) | 2.3x14.1   m |  | 10.0m | 40.0m|
@@ -25,8 +24,7 @@ Sentinel-1** | Single Look Complex (SLC) |Ground Range Detected (GRD)<br>Full Re
 
 ### COSMO-Skymed
 
-| **
-COSMO-Skymed** | Single-look Complex Slant (SCS) | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+| **COSMO-Skymed** | Single-look Complex Slant (SCS) | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
 |--- | --- | ---|
 |**Spotlight**<br>Mode-2 (S2) | 1.1-0.9x0.91m | 1.0m|
 |**StripMap**<br>Himage (HI) | 3.0-2.6x2.4-2.6m | 5.0m|
@@ -36,8 +34,7 @@ COSMO-Skymed** | Single-look Complex Slant (SCS) | Detected Ground Multi-look (D
 
 ### TerraSAR-X
 
-|**
-TerraSAR-X** | Single-look Slant Range (SSC) | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
+|**TerraSAR-X** | Single-look Slant Range (SSC) | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
 |--- | --- | --- | ---|
 |**StripMap (SM)**<br>Single-Pol | 0.9x2.0m | 1.5m   or 1.25m | 4.0m   or 3.25m|
 |**StripMap (SM)**<br>Dual-Pol | 0.9x2.5m | 3.0m | 5.5m   or 4.5m|
@@ -51,8 +48,7 @@ TerraSAR-X** | Single-look Slant Range (SSC) | Multi Look Ground Range (MGD)<br>
 
 ### RADARSAT-2
 
-|**
-RADARSAT-2** | Single-look   complex (SLC) | SAR   georeferenced extra(SGX) | SAR   georeferenced fine (SGF) | SAR   systematic geocorrected (SSG) | SAR   precision geocorrected (SPG) | ScanSAR   narrow beam (SCN) | ScanSAR   wide beam (SCW) | ScanSAR   fine (SCF) | ScanSAR   sampled (SCS)|
+|**RADARSAT-2** | Single-look   complex (SLC) | SAR   georeferenced extra(SGX) | SAR   georeferenced fine (SGF) | SAR   systematic geocorrected (SSG) | SAR   precision geocorrected (SPG) | ScanSAR   narrow beam (SCN) | ScanSAR   wide beam (SCW) | ScanSAR   fine (SCF) | ScanSAR   sampled (SCS)|
 |--- | --- | --- | --- | --- | --- | --- | --- | --- | ---|
 |Spotlight | 1.3x0.4m | 1.0   or 0.8x1/3m | 0.5m | 0.5m | 0.5m |  |  |  | |
 |Ultra-Fine | 1.3x2.1m | 1.0x1.0   or 0.8x0.8m | 1.56m | 1.56m | 1.56m |  |  |  | |
