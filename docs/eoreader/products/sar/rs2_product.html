@@ -42,25 +42,25 @@ More info <a href="https://www.pcigeomatics.com/geomatica-help/references/gdb_r/
 RADARSAT-2 products.
 More info [here](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs).
 &#34;&#34;&#34;
+import difflib
 import glob
 import logging
 import os
-import difflib
 import warnings
 from datetime import datetime
 from enum import unique
 from typing import Union
 
-from lxml import etree
-import rasterio
 import geopandas as gpd
-from sertit.misc import ListEnum
-from sertit import vectors, files
-from sertit.vectors import WGS84
+import rasterio
+from lxml import etree
 
-from eoreader.exceptions import InvalidTypeError, InvalidProductError
+from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct
-from eoreader.utils import EOREADER_NAME, DATETIME_FMT
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from sertit import files, vectors
+from sertit.misc import ListEnum
+from sertit.vectors import WGS84
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -74,6 +74,7 @@ class Rs2ProductType(ListEnum):
     RADARSAT-2 projection identifier.
     Take a look [here](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html)
     &#34;&#34;&#34;
+
     SLC = &#34;SLC&#34;
     &#34;&#34;&#34;Single-look complex&#34;&#34;&#34;
 
@@ -110,6 +111,7 @@ class Rs2SensorMode(ListEnum):
 
     .. WARNING:: The name in the metadata may vary !
     &#34;&#34;&#34;
+
     # Single Beam Modes
     S = &#34;Standard&#34;
     &#34;&#34;&#34;Standard Mode&#34;&#34;&#34;
@@ -180,6 +182,7 @@ class Rs2Polarization(ListEnum):
     RADARSAT-2 polarization mode.
     Take a look [here](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs)
     &#34;&#34;&#34;
+
     HH = &#34;HH&#34;
     VV = &#34;VV&#34;
     VH = &#34;VH&#34;
@@ -204,9 +207,11 @@ class Rs2Product(SarProduct):
             root, namespace = self.read_mtd()
 
             for element in root:
-                if element.tag == namespace + &#39;imageAttributes&#39;:
-                    raster_attr = element.find(namespace + &#39;rasterAttributes&#39;)
-                    def_res = float(raster_attr.findtext(namespace + &#39;sampledPixelSpacing&#39;))
+                if element.tag == namespace + &#34;imageAttributes&#34;:
+                    raster_attr = element.find(namespace + &#34;rasterAttributes&#34;)
+                    def_res = float(
+                        raster_attr.findtext(namespace + &#34;sampledPixelSpacing&#34;)
+                    )
                     break
         except (InvalidProductError, AttributeError):
             pass
@@ -217,12 +222,19 @@ class Rs2Product(SarProduct):
                 def_res = 1.0 if self.product_type == Rs2ProductType.SGX else 0.5
             elif self.sensor_mode in [Rs2SensorMode.U, Rs2SensorMode.WU]:
                 def_res = 1.0 if self.product_type == Rs2ProductType.SGX else 1.56
-            elif self.sensor_mode in [Rs2SensorMode.MF, Rs2SensorMode.WMF, Rs2SensorMode.F, Rs2SensorMode.WF]:
+            elif self.sensor_mode in [
+                Rs2SensorMode.MF,
+                Rs2SensorMode.WMF,
+                Rs2SensorMode.F,
+                Rs2SensorMode.WF,
+            ]:
                 def_res = 3.13 if self.product_type == Rs2ProductType.SGX else 6.25
             elif self.sensor_mode == Rs2SensorMode.XF:
                 def_res = 2.0 if self.product_type == Rs2ProductType.SGX else 3.13
                 if self.product_type in [Rs2ProductType.SGF, Rs2ProductType.SGX]:
-                    LOGGER.debug(&#34;This product is considered to have one look (not checked in metadata)&#34;)  # TODO
+                    LOGGER.debug(
+                        &#34;This product is considered to have one look (not checked in metadata)&#34;
+                    )  # TODO
             elif self.sensor_mode in [Rs2SensorMode.S, Rs2SensorMode.EH]:
                 def_res = 8.0 if self.product_type == Rs2ProductType.SGX else 12.5
             elif self.sensor_mode in [Rs2SensorMode.W, Rs2SensorMode.EL]:
@@ -230,18 +242,22 @@ class Rs2Product(SarProduct):
             elif self.sensor_mode in [Rs2SensorMode.FQ, Rs2SensorMode.WQ]:
                 def_res = 3.13
             elif self.sensor_mode in [Rs2SensorMode.SQ, Rs2SensorMode.WSQ]:
-                raise NotImplementedError(&#34;Not squared pixels management are not implemented in EOReader.&#34;)
+                raise NotImplementedError(
+                    &#34;Not squared pixels management are not implemented in EOReader.&#34;
+                )
             elif self.sensor_mode == Rs2SensorMode.SCN:
-                def_res = 25.
+                def_res = 25.0
             elif self.sensor_mode == Rs2SensorMode.SCW:
-                def_res = 50.
+                def_res = 50.0
             elif self.sensor_mode == Rs2SensorMode.DVWF:
-                def_res = 40. if self.product_type == Rs2ProductType.SCF else 20.
+                def_res = 40.0 if self.product_type == Rs2ProductType.SCF else 20.0
             elif self.sensor_mode == Rs2SensorMode.SCW:
                 if self.product_type == Rs2ProductType.SCF:
-                    def_res = 50.
+                    def_res = 50.0
                 else:
-                    raise NotImplementedError(&#34;Not squared pixels management are not implemented in EOReader.&#34;)
+                    raise NotImplementedError(
+                        &#34;Not squared pixels management are not implemented in EOReader.&#34;
+                    )
             else:
                 raise InvalidTypeError(f&#34;Unknown sensor mode {self.sensor_mode}&#34;)
 
@@ -290,20 +306,29 @@ class Rs2Product(SarProduct):
                 vectors.set_kml_driver()
                 product_kml = gpd.read_file(extent_file)
         except IndexError as ex:
-            raise InvalidProductError(f&#34;Extent file (product.kml) not found in {self.path}&#34;) from ex
+            raise InvalidProductError(
+                f&#34;Extent file (product.kml) not found in {self.path}&#34;
+            ) from ex
 
-        extent_wgs84 = product_kml[product_kml.Name == &#34;Polygon Outline&#34;].envelope.to_crs(WGS84)
+        extent_wgs84 = product_kml[
+            product_kml.Name == &#34;Polygon Outline&#34;
+        ].envelope.to_crs(WGS84)
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
     def _set_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Get products type &#34;&#34;&#34;
-        self._get_sar_product_type(prod_type_pos=-1,
-                                   gdrg_types=Rs2ProductType.SGF,
-                                   cplx_types=Rs2ProductType.SLC)
+        &#34;&#34;&#34;Get products type&#34;&#34;&#34;
+        self._get_sar_product_type(
+            prod_type_pos=-1,
+            gdrg_types=Rs2ProductType.SGF,
+            cplx_types=Rs2ProductType.SLC,
+        )
         if self.product_type != Rs2ProductType.SGF:
-            LOGGER.warning(&#34;Other products type than SGF has not been tested for %s data. &#34;
-                           &#34;Use it at your own risks !&#34;, self.platform.value)
+            LOGGER.warning(
+                &#34;Other products type than SGF has not been tested for %s data. &#34;
+                &#34;Use it at your own risks !&#34;,
+                self.platform.value,
+            )
 
     def _set_sensor_mode(self) -&gt; None:
         &#34;&#34;&#34;
@@ -315,16 +340,18 @@ class Rs2Product(SarProduct):
         # Get sensor mode
         sensor_mode_xml = None
         for element in root:
-            if element.tag == namespace + &#39;sourceAttributes&#39;:
-                radar_param = element.find(namespace + &#39;radarParameters&#39;)
+            if element.tag == namespace + &#34;sourceAttributes&#34;:
+                radar_param = element.find(namespace + &#34;radarParameters&#34;)
 
-                # WARNING: this word may differ from the Enum !!! (no doc available)
+                # WARNING: this word may differ from the Enum !!! (no docs available)
                 # Get the closest match
-                sensor_mode_xml = radar_param.findtext(namespace + &#39;acquisitionType&#39;)
+                sensor_mode_xml = radar_param.findtext(namespace + &#34;acquisitionType&#34;)
                 break
 
         if sensor_mode_xml:
-            sensor_mode = difflib.get_close_matches(sensor_mode_xml, Rs2SensorMode.list_values())[0]
+            sensor_mode = difflib.get_close_matches(
+                sensor_mode_xml, Rs2SensorMode.list_values()
+            )[0]
             try:
                 self.sensor_mode = Rs2SensorMode.from_value(sensor_mode)
             except ValueError as ex:
@@ -390,11 +417,13 @@ class Rs2Product(SarProduct):
                 xml_tree = etree.parse(mtd_file)
                 root = xml_tree.getroot()
             except IndexError as ex:
-                raise InvalidProductError(f&#34;Metadata file (product.xml) not found in {self.path}&#34;) from ex
+                raise InvalidProductError(
+                    f&#34;Metadata file (product.xml) not found in {self.path}&#34;
+                ) from ex
 
         # Get namespace
         idx = root.tag.rindex(&#34;}&#34;)
-        namespace = root.tag[:idx + 1]
+        namespace = root.tag[: idx + 1]
 
         return root, namespace</code></pre>
 </details>
@@ -424,6 +453,7 @@ Take a look <a href="https://www.pcigeomatics.com/geomatica-help/references/gdb_
     RADARSAT-2 projection identifier.
     Take a look [here](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html)
     &#34;&#34;&#34;
+
     SLC = &#34;SLC&#34;
     &#34;&#34;&#34;Single-look complex&#34;&#34;&#34;
 
@@ -526,6 +556,7 @@ Take a look <a href="https://www.pcigeomatics.com/geomatica-help/references/gdb_
 
     .. WARNING:: The name in the metadata may vary !
     &#34;&#34;&#34;
+
     # Single Beam Modes
     S = &#34;Standard&#34;
     &#34;&#34;&#34;Standard Mode&#34;&#34;&#34;
@@ -714,6 +745,7 @@ Take a look <a href="https://www.pcigeomatics.com/geomatica-help/references/gdb_
     RADARSAT-2 polarization mode.
     Take a look [here](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs)
     &#34;&#34;&#34;
+
     HH = &#34;HH&#34;
     VV = &#34;VV&#34;
     VH = &#34;VH&#34;
@@ -777,9 +809,11 @@ Take a look <a href="https://www.pcigeomatics.com/geomatica-help/references/gdb_
             root, namespace = self.read_mtd()
 
             for element in root:
-                if element.tag == namespace + &#39;imageAttributes&#39;:
-                    raster_attr = element.find(namespace + &#39;rasterAttributes&#39;)
-                    def_res = float(raster_attr.findtext(namespace + &#39;sampledPixelSpacing&#39;))
+                if element.tag == namespace + &#34;imageAttributes&#34;:
+                    raster_attr = element.find(namespace + &#34;rasterAttributes&#34;)
+                    def_res = float(
+                        raster_attr.findtext(namespace + &#34;sampledPixelSpacing&#34;)
+                    )
                     break
         except (InvalidProductError, AttributeError):
             pass
@@ -790,12 +824,19 @@ Take a look <a href="https://www.pcigeomatics.com/geomatica-help/references/gdb_
                 def_res = 1.0 if self.product_type == Rs2ProductType.SGX else 0.5
             elif self.sensor_mode in [Rs2SensorMode.U, Rs2SensorMode.WU]:
                 def_res = 1.0 if self.product_type == Rs2ProductType.SGX else 1.56
-            elif self.sensor_mode in [Rs2SensorMode.MF, Rs2SensorMode.WMF, Rs2SensorMode.F, Rs2SensorMode.WF]:
+            elif self.sensor_mode in [
+                Rs2SensorMode.MF,
+                Rs2SensorMode.WMF,
+                Rs2SensorMode.F,
+                Rs2SensorMode.WF,
+            ]:
                 def_res = 3.13 if self.product_type == Rs2ProductType.SGX else 6.25
             elif self.sensor_mode == Rs2SensorMode.XF:
                 def_res = 2.0 if self.product_type == Rs2ProductType.SGX else 3.13
                 if self.product_type in [Rs2ProductType.SGF, Rs2ProductType.SGX]:
-                    LOGGER.debug(&#34;This product is considered to have one look (not checked in metadata)&#34;)  # TODO
+                    LOGGER.debug(
+                        &#34;This product is considered to have one look (not checked in metadata)&#34;
+                    )  # TODO
             elif self.sensor_mode in [Rs2SensorMode.S, Rs2SensorMode.EH]:
                 def_res = 8.0 if self.product_type == Rs2ProductType.SGX else 12.5
             elif self.sensor_mode in [Rs2SensorMode.W, Rs2SensorMode.EL]:
@@ -803,18 +844,22 @@ Take a look <a href="https://www.pcigeomatics.com/geomatica-help/references/gdb_
             elif self.sensor_mode in [Rs2SensorMode.FQ, Rs2SensorMode.WQ]:
                 def_res = 3.13
             elif self.sensor_mode in [Rs2SensorMode.SQ, Rs2SensorMode.WSQ]:
-                raise NotImplementedError(&#34;Not squared pixels management are not implemented in EOReader.&#34;)
+                raise NotImplementedError(
+                    &#34;Not squared pixels management are not implemented in EOReader.&#34;
+                )
             elif self.sensor_mode == Rs2SensorMode.SCN:
-                def_res = 25.
+                def_res = 25.0
             elif self.sensor_mode == Rs2SensorMode.SCW:
-                def_res = 50.
+                def_res = 50.0
             elif self.sensor_mode == Rs2SensorMode.DVWF:
-                def_res = 40. if self.product_type == Rs2ProductType.SCF else 20.
+                def_res = 40.0 if self.product_type == Rs2ProductType.SCF else 20.0
             elif self.sensor_mode == Rs2SensorMode.SCW:
                 if self.product_type == Rs2ProductType.SCF:
-                    def_res = 50.
+                    def_res = 50.0
                 else:
-                    raise NotImplementedError(&#34;Not squared pixels management are not implemented in EOReader.&#34;)
+                    raise NotImplementedError(
+                        &#34;Not squared pixels management are not implemented in EOReader.&#34;
+                    )
             else:
                 raise InvalidTypeError(f&#34;Unknown sensor mode {self.sensor_mode}&#34;)
 
@@ -863,20 +908,29 @@ Take a look <a href="https://www.pcigeomatics.com/geomatica-help/references/gdb_
                 vectors.set_kml_driver()
                 product_kml = gpd.read_file(extent_file)
         except IndexError as ex:
-            raise InvalidProductError(f&#34;Extent file (product.kml) not found in {self.path}&#34;) from ex
+            raise InvalidProductError(
+                f&#34;Extent file (product.kml) not found in {self.path}&#34;
+            ) from ex
 
-        extent_wgs84 = product_kml[product_kml.Name == &#34;Polygon Outline&#34;].envelope.to_crs(WGS84)
+        extent_wgs84 = product_kml[
+            product_kml.Name == &#34;Polygon Outline&#34;
+        ].envelope.to_crs(WGS84)
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
     def _set_product_type(self) -&gt; None:
-        &#34;&#34;&#34; Get products type &#34;&#34;&#34;
-        self._get_sar_product_type(prod_type_pos=-1,
-                                   gdrg_types=Rs2ProductType.SGF,
-                                   cplx_types=Rs2ProductType.SLC)
+        &#34;&#34;&#34;Get products type&#34;&#34;&#34;
+        self._get_sar_product_type(
+            prod_type_pos=-1,
+            gdrg_types=Rs2ProductType.SGF,
+            cplx_types=Rs2ProductType.SLC,
+        )
         if self.product_type != Rs2ProductType.SGF:
-            LOGGER.warning(&#34;Other products type than SGF has not been tested for %s data. &#34;
-                           &#34;Use it at your own risks !&#34;, self.platform.value)
+            LOGGER.warning(
+                &#34;Other products type than SGF has not been tested for %s data. &#34;
+                &#34;Use it at your own risks !&#34;,
+                self.platform.value,
+            )
 
     def _set_sensor_mode(self) -&gt; None:
         &#34;&#34;&#34;
@@ -888,16 +942,18 @@ Take a look <a href="https://www.pcigeomatics.com/geomatica-help/references/gdb_
         # Get sensor mode
         sensor_mode_xml = None
         for element in root:
-            if element.tag == namespace + &#39;sourceAttributes&#39;:
-                radar_param = element.find(namespace + &#39;radarParameters&#39;)
+            if element.tag == namespace + &#34;sourceAttributes&#34;:
+                radar_param = element.find(namespace + &#34;radarParameters&#34;)
 
-                # WARNING: this word may differ from the Enum !!! (no doc available)
+                # WARNING: this word may differ from the Enum !!! (no docs available)
                 # Get the closest match
-                sensor_mode_xml = radar_param.findtext(namespace + &#39;acquisitionType&#39;)
+                sensor_mode_xml = radar_param.findtext(namespace + &#34;acquisitionType&#34;)
                 break
 
         if sensor_mode_xml:
-            sensor_mode = difflib.get_close_matches(sensor_mode_xml, Rs2SensorMode.list_values())[0]
+            sensor_mode = difflib.get_close_matches(
+                sensor_mode_xml, Rs2SensorMode.list_values()
+            )[0]
             try:
                 self.sensor_mode = Rs2SensorMode.from_value(sensor_mode)
             except ValueError as ex:
@@ -963,11 +1019,13 @@ Take a look <a href="https://www.pcigeomatics.com/geomatica-help/references/gdb_
                 xml_tree = etree.parse(mtd_file)
                 root = xml_tree.getroot()
             except IndexError as ex:
-                raise InvalidProductError(f&#34;Metadata file (product.xml) not found in {self.path}&#34;) from ex
+                raise InvalidProductError(
+                    f&#34;Metadata file (product.xml) not found in {self.path}&#34;
+                ) from ex
 
         # Get namespace
         idx = root.tag.rindex(&#34;}&#34;)
-        namespace = root.tag[:idx + 1]
+        namespace = root.tag[: idx + 1]
 
         return root, namespace</code></pre>
 </details>
@@ -1181,7 +1239,7 @@ For SAR product, we use Ground Range resolution as we will automatically orthore
 </p>
 <div class="desc inherited"><p>Condensed name, the filename with only useful data to keep the name unique
 (ie. <code>20191215T110441_S2_30TXP_L2A_122756</code>).
-Used to shorten names and …</p></div>
+Used to shorten names and paths.</p></div>
 </dd>
 <dt id="eoreader.products.sar.rs2_product.Rs2Product.sat_id"><code class="name">var <span class="ident">sat_id</span></code>
 </dt>
@@ -1244,9 +1302,13 @@ This is useful when the SAR pre-process has not been done yet.</p>
             vectors.set_kml_driver()
             product_kml = gpd.read_file(extent_file)
     except IndexError as ex:
-        raise InvalidProductError(f&#34;Extent file (product.kml) not found in {self.path}&#34;) from ex
+        raise InvalidProductError(
+            f&#34;Extent file (product.kml) not found in {self.path}&#34;
+        ) from ex
 
-    extent_wgs84 = product_kml[product_kml.Name == &#34;Polygon Outline&#34;].envelope.to_crs(WGS84)
+    extent_wgs84 = product_kml[
+        product_kml.Name == &#34;Polygon Outline&#34;
+    ].envelope.to_crs(WGS84)
 
     return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)</code></pre>
 </details>
@@ -1355,11 +1417,13 @@ datetime.datetime(2016, 2, 28, 11, 24, 18)
             xml_tree = etree.parse(mtd_file)
             root = xml_tree.getroot()
         except IndexError as ex:
-            raise InvalidProductError(f&#34;Metadata file (product.xml) not found in {self.path}&#34;) from ex
+            raise InvalidProductError(
+                f&#34;Metadata file (product.xml) not found in {self.path}&#34;
+            ) from ex
 
     # Get namespace
     idx = root.tag.rindex(&#34;}&#34;)
-    namespace = root.tag[:idx + 1]
+    namespace = root.tag[: idx + 1]
 
     return root, namespace</code></pre>
 </details>
@@ -1435,16 +1499,6 @@ The first existing one between <code>VV</code> and <code>HH</code> for SAR data 
 </p>
 <div class="desc inherited"><p>Return the existing orthorectified bands (including despeckle bands) …</p></div>
 </dd>
-<dt id="eoreader.products.sar.rs2_product.Rs2Product.load"><code class="name flex">
-<p>def <span class="ident">load</span>(</p><p>self, <br>band_and_idx_list, <br>resolution=None, <br>size=None)</p>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="eoreader.products.sar.sar_product.SarProduct" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct">SarProduct</a></code>.<code><a title="eoreader.products.sar.sar_product.SarProduct.load" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct.load">load</a></code>
-</p>
-<div class="desc inherited"><p>Load SAR (and DEM) bands …</p></div>
-</dd>
 <dt id="eoreader.products.sar.rs2_product.Rs2Product.footprint"><code class="name flex">
 <p>def <span class="ident">footprint</span>(</p><p>self)</p>
 </code></dt>
@@ -1465,6 +1519,16 @@ The first existing one between <code>VV</code> and <code>HH</code> for SAR data 
 </p>
 <div class="desc inherited"><p>Get the product's acquisition date …</p></div>
 </dd>
+<dt id="eoreader.products.sar.rs2_product.Rs2Product.load"><code class="name flex">
+<p>def <span class="ident">load</span>(</p><p>self, <br>bands, <br>resolution=None, <br>size=None)</p>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="eoreader.products.sar.sar_product.SarProduct" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct">SarProduct</a></code>.<code><a title="eoreader.products.sar.sar_product.SarProduct.load" href="../product.html#eoreader.products.sar.sar_product.SarProduct.load">load</a></code>
+</p>
+<div class="desc inherited"><p>Open the bands and compute the wanted index …</p></div>
+</dd>
 <dt id="eoreader.products.sar.rs2_product.Rs2Product.has_band"><code class="name flex">
 <p>def <span class="ident">has_band</span>(</p><p>self, <br>band)</p>
 </code></dt>
@@ -1476,7 +1540,7 @@ The first existing one between <code>VV</code> and <code>HH</code> for SAR data 
 <div class="desc inherited"><p>Does this products has the specified band ? …</p></div>
 </dd>
 <dt id="eoreader.products.sar.rs2_product.Rs2Product.stack"><code class="name flex">
-<p>def <span class="ident">stack</span>(</p><p>self, <br>band_and_idx_combination, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
+<p>def <span class="ident">stack</span>(</p><p>self, <br>bands, <br>resolution=None, <br>stack_path=None, <br>save_as_int=False)</p>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -1652,9 +1716,9 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.get_band_paths" href="sar_product.html#eoreader.products.sar.rs2_product.Rs2Product.get_band_paths">get_band_paths</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.get_existing_band_paths" href="sar_product.html#eoreader.products.sar.rs2_product.Rs2Product.get_existing_band_paths">get_existing_band_paths</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.get_existing_bands" href="sar_product.html#eoreader.products.sar.rs2_product.Rs2Product.get_existing_bands">get_existing_bands</a></code></li>
-<li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.load" href="sar_product.html#eoreader.products.sar.rs2_product.Rs2Product.load">load</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.footprint" href="../product.html#eoreader.products.sar.rs2_product.Rs2Product.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.get_date" href="../product.html#eoreader.products.sar.rs2_product.Rs2Product.get_date">get_date</a></code></li>
+<li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.load" href="../product.html#eoreader.products.sar.rs2_product.Rs2Product.load">load</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.has_band" href="../product.html#eoreader.products.sar.rs2_product.Rs2Product.has_band">has_band</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.stack" href="../product.html#eoreader.products.sar.rs2_product.Rs2Product.stack">stack</a></code></li>
 </ul>

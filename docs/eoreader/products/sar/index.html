@@ -90,530 +90,278 @@ integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></sc
 <li><code>HV_DSPK</code> (<code><a title="eoreader.bands.bands.SarBandNames.HV_DSPK" href="../../bands/bands.html#eoreader.bands.bands.SarBandNames.HV_DSPK">SarBandNames.HV_DSPK</a></code>)</li>
 </ul>
 <h2 id="dem-bands">DEM bands</h2>
-<p>SAR satellites can only load <code><a title="eoreader.bands.bands.DemBandNames.DEM" href="../../bands/bands.html#eoreader.bands.bands.DemBandNames.DEM">DemBandNames.DEM</a></code> and <code><a title="eoreader.bands.bands.DemBandNames.SLOPE" href="../../bands/bands.html#eoreader.bands.bands.DemBandNames.SLOPE">DemBandNames.SLOPE</a></code> bands.
+<p>These bands need a valid worldwide DEM path positioned thanks to the environment variable <code>EOREADER_SAR_DEFAULT_RES</code></p>
+<ul>
+<li><code>DEM</code></li>
+<li><code>SLOPE</code></li>
+</ul>
+<p>See <a href="">here</a> for more information.
+SAR satellites can only load <code><a title="eoreader.bands.bands.DemBandNames.DEM" href="../../bands/bands.html#eoreader.bands.bands.DemBandNames.DEM">DemBandNames.DEM</a></code> and <code><a title="eoreader.bands.bands.DemBandNames.SLOPE" href="../../bands/bands.html#eoreader.bands.bands.DemBandNames.SLOPE">DemBandNames.SLOPE</a></code>
+bands as the sun position does not impact SAR data.
 The <code>SLOPE</code> band is computed with the <a href="https://gdal.org/programs/gdaldem.html"><code>gdaldem</code></a> tool.</p>
-<p>Use the environment variable <code>EOREADER_SAR_DEFAULT_RES</code> to override the default DEM
-(<a href="https://developers.google.com/earth-engine/datasets/catalog/MERIT_DEM_v1_0_3">Merit DEM</a>).</p>
+<p>These bands need a valid worldwide DEM path positioned thanks to the environment variable <code>EOREADER_SAR_DEFAULT_RES</code>.</p>
 <h2 id="default-resolution">Default resolution</h2>
-<p>The default resolution of SAR products depends on their type.
-Complex data are <strong>always</strong> converted back to ground range to be used.</p>
+<p>The default resolution of SAR products depends on their type. Complex data are <strong>always</strong> converted back to ground range
+to be used.</p>
 <p>The product resolution is read in the metadata file if possible, so the following values are given as hints:</p>
 <h3 id="sentinel-1">Sentinel-1</h3>
-<table>
-<thead>
-<tr>
-<th><strong>Sentinel-1</strong></th>
-<th>Single Look Complex (SLC)</th>
-<th>Ground Range Detected (GRD)<br>Full Resolution (FR)</th>
-<th>Ground Range Detected (GRD)<br>High Resolution (HR)</th>
-<th>Ground Range Detected (GRD)<br>Medium Resolution (MR)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>StripMap (SM)</td>
-<td>1.5x3.6
-m to 3.1x4.1 m</td>
-<td>3.5m</td>
-<td>10.0m</td>
-<td>40.0m</td>
-</tr>
-<tr>
-<td>Interferometric
-Wide swath (IW)</td>
-<td>2.3x14.1
-m</td>
-<td></td>
-<td>10.0m</td>
-<td>40.0m</td>
-</tr>
-<tr>
-<td>Extra-Wide swath (EW)</td>
-<td>5.9x19.9 m</td>
-<td></td>
-<td>25.0m</td>
-<td>40.0m</td>
-</tr>
-<tr>
-<td>Wave (WV)</td>
-<td>1.7x4.1 m and 2.7x4.1 m</td>
-<td></td>
-<td></td>
-<td>25.0m</td>
-</tr>
-</tbody>
-</table>
+<p>| <strong>
+Sentinel-1</strong> | Single Look Complex (SLC) |Ground Range Detected (GRD)<br>Full Resolution (FR) | Ground Range Detected (GRD)<br>High Resolution (HR) | Ground Range Detected (GRD)<br>Medium Resolution (MR)|
+|&mdash; | &mdash; | &mdash; | &mdash; | &mdash;|
+|StripMap (SM) | 1.5x3.6
+m to 3.1x4.1 m | 3.5m | 10.0m | 40.0m|
+|Interferometric
+Wide swath (IW) | 2.3x14.1
+m |
+| 10.0m | 40.0m|
+|Extra-Wide swath (EW) | 5.9x19.9 m |
+| 25.0m | 40.0m|
+|Wave (WV) | 1.7x4.1 m and 2.7x4.1 m |
+|
+| 25.0m|</p>
 <h3 id="cosmo-skymed">COSMO-Skymed</h3>
-<table>
-<thead>
-<tr>
-<th><strong>COSMO-Skymed</strong></th>
-<th>Single-look Complex Slant (SCS)</th>
-<th>Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Spotlight</strong><br>Mode-2 (S2)</td>
-<td>1.1-0.9x0.91m</td>
-<td>1.0m</td>
-</tr>
-<tr>
-<td><strong>StripMap</strong><br>Himage (HI)</td>
-<td>3.0-2.6x2.4-2.6m</td>
-<td>5.0m</td>
-</tr>
-<tr>
-<td><strong>StripMap</strong><br>PingPong (PP)</td>
-<td>11-10x9.7m</td>
-<td>20.0m</td>
-</tr>
-<tr>
-<td><strong>ScanSAR</strong><br>Wide Region (WR)</td>
-<td>13.5x23m</td>
-<td>30.0m</td>
-</tr>
-<tr>
-<td><strong>ScanSAR</strong><br>Huge Region (HR)</td>
-<td>13.5x38.0m</td>
-<td>100.0m</td>
-</tr>
-</tbody>
-</table>
+<p>| <strong>
+COSMO-Skymed</strong> | Single-look Complex Slant (SCS) | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+|&mdash; | &mdash; | &mdash;|
+|<strong>Spotlight</strong><br>Mode-2 (S2) | 1.1-0.9x0.91m | 1.0m|
+|<strong>StripMap</strong><br>Himage (HI) | 3.0-2.6x2.4-2.6m | 5.0m|
+|<strong>StripMap</strong><br>PingPong (PP) | 11-10x9.7m | 20.0m|
+|<strong>ScanSAR</strong><br>Wide Region (WR) | 13.5x23m | 30.0m|
+|<strong>ScanSAR</strong><br>Huge Region (HR) | 13.5x38.0m | 100.0m|</p>
 <h3 id="terrasar-x">TerraSAR-X</h3>
-<table>
-<thead>
-<tr>
-<th><strong>TerraSAR-X</strong></th>
-<th>Single-look Slant Range (SSC)</th>
-<th>Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)</th>
-<th>Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>StripMap (SM)</strong><br>Single-Pol</td>
-<td>0.9x2.0m</td>
-<td>1.5m
-or 1.25m</td>
-<td>4.0m
-or 3.25m</td>
-</tr>
-<tr>
-<td><strong>StripMap (SM)</strong><br>Dual-Pol</td>
-<td>0.9x2.5m</td>
-<td>3.0m</td>
-<td>5.5m
-or 4.5m</td>
-</tr>
-<tr>
-<td><strong>High Resolution Spotlight (HS)</strong><br>Single-Pol</td>
-<td>0.9x0.8m</td>
-<td>1.5m or 0.5m</td>
-<td>2.0m or 1.5m</td>
-</tr>
-<tr>
-<td><strong>High Resolution Spotlight (HS)</strong><br>Dual-Pol</td>
-<td>0.9x1.5m</td>
-<td>1.5m or 1.0m</td>
-<td>3.0m or 2.0m</td>
-</tr>
-<tr>
-<td><strong>Spotlight (SL)</strong><br>Single-Pol</td>
-<td>0.9x1.3m</td>
-<td>1.5m or 0.75m</td>
-<td>3.0m or 1.75m</td>
-</tr>
-<tr>
-<td><strong>Spotlight (SL)</strong><br>Dual-Pol</td>
-<td>0.9x2.6m</td>
-<td>3.5m or 3.4m</td>
-<td>8.5m or 5.5m</td>
-</tr>
-<tr>
-<td><strong>Staring Spotlight (ST)</strong><br>Single-Pol</td>
-<td>0.5x0.2m</td>
-<td>0.4m or 0.2m</td>
-<td>0.8m or 0.4m</td>
-</tr>
-<tr>
-<td><strong>ScanSAR (SC)</strong><br>Four Beams</td>
-<td>0.9x13m</td>
-<td></td>
-<td>8.25m</td>
-</tr>
-<tr>
-<td><strong>ScanSAR (SC)</strong><br>Six Beams</td>
-<td>1.4x?m</td>
-<td></td>
-<td>15.0m</td>
-</tr>
-</tbody>
-</table>
+<p>|<strong>
+TerraSAR-X</strong> | Single-look Slant Range (SSC) | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
+|&mdash; | &mdash; | &mdash; | &mdash;|
+|<strong>StripMap (SM)</strong><br>Single-Pol | 0.9x2.0m | 1.5m
+or 1.25m | 4.0m
+or 3.25m|
+|<strong>StripMap (SM)</strong><br>Dual-Pol | 0.9x2.5m | 3.0m | 5.5m
+or 4.5m|
+|<strong>High Resolution Spotlight (HS)</strong><br>Single-Pol | 0.9x0.8m | 1.5m or 0.5m | 2.0m or 1.5m|
+|<strong>High Resolution Spotlight (HS)</strong><br>Dual-Pol | 0.9x1.5m | 1.5m or 1.0m | 3.0m or 2.0m|
+|<strong>Spotlight (SL)</strong><br>Single-Pol | 0.9x1.3m | 1.5m or 0.75m | 3.0m or 1.75m|
+|<strong>Spotlight (SL)</strong><br>Dual-Pol | 0.9x2.6m | 3.5m or 3.4m | 8.5m or 5.5m|
+|<strong>Staring Spotlight (ST)</strong><br>Single-Pol | 0.5x0.2m | 0.4m or 0.2m | 0.8m or 0.4m|
+|<strong>ScanSAR (SC)</strong><br>Four Beams | 0.9x13m |
+| 8.25m|
+|<strong>ScanSAR (SC)</strong><br>Six Beams | 1.4x?m |
+| 15.0m|</p>
 <h3 id="radarsat-2">RADARSAT-2</h3>
-<table>
-<thead>
-<tr>
-<th><strong>RADARSAT-2</strong></th>
-<th>Single-look
-complex (SLC)</th>
-<th>SAR
-georeferenced extra(SGX)</th>
-<th>SAR
-georeferenced fine (SGF)</th>
-<th>SAR
-systematic geocorrected (SSG)</th>
-<th>SAR
-precision geocorrected (SPG)</th>
-<th>ScanSAR
-narrow beam (SCN)</th>
-<th>ScanSAR
-wide beam (SCW)</th>
-<th>ScanSAR
-fine (SCF)</th>
-<th>ScanSAR
-sampled (SCS)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Spotlight</td>
-<td>1.3x0.4m</td>
-<td>1.0
-or 0.8x1/3m</td>
-<td>0.5m</td>
-<td>0.5m</td>
-<td>0.5m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Ultra-Fine</td>
-<td>1.3x2.1m</td>
-<td>1.0x1.0
-or 0.8x0.8m</td>
-<td>1.56m</td>
-<td>1.56m</td>
-<td>1.56m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Wide Ultra-Fine</td>
-<td>1.3x2.1m</td>
-<td>1.0m</td>
-<td>1.56m</td>
-<td>1.56m</td>
-<td>1.56m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Multi-Look Fine</td>
-<td>2.7x2.9m</td>
-<td>3.13m</td>
-<td>6.25m</td>
-<td>6.25m</td>
-<td>6.25m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Wide Multi-Look Fine</td>
-<td>2.7x2.9m</td>
-<td>3.13m</td>
-<td>6.25m</td>
-<td>6.25m</td>
-<td>6.25m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Extra-Fine</td>
-<td>Full Res: 2.7x2.9m<br>Fine Res: 4.3x5.8m<br>Full Res: 7.1x5.8m<br>Wide Res: 10.6x5.8m</td>
-<td>1 look: 2.0m<br>4 looks: 3.13m<br>28 looks: 5.0m</td>
-<td>1 look: 3.13m<br>4 looks: 6.25m<br>28 looks: 8.0m</td>
-<td>3.13m</td>
-<td>3.13m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Fine</td>
-<td>4.7x5.1m</td>
-<td>3.13m</td>
-<td>6.25m</td>
-<td>6.25m</td>
-<td>6.25m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Wide-Fine</td>
-<td>4.7x5.1m</td>
-<td>3.13m</td>
-<td>6.25m</td>
-<td>6.25m</td>
-<td>6.25m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Standard</td>
-<td>8.0 or 11.8x5.1m</td>
-<td>8.0m</td>
-<td>12.5m</td>
-<td>12.5m</td>
-<td>12.5m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Wide</td>
-<td>11.8x5.1m</td>
-<td>10.0m</td>
-<td>12.5m</td>
-<td>12.5m</td>
-<td>12.5m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Extended High</td>
-<td>11.8x5.1m</td>
-<td>8.0m</td>
-<td>12.5m</td>
-<td>12.5m</td>
-<td>12.5m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Extended Low</td>
-<td>8.0x5.1m</td>
-<td>10.0m</td>
-<td>12.5m</td>
-<td>12.5m</td>
-<td>12.5m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Fine Quad-Pol</td>
-<td>4.7x5.1m</td>
-<td>3.13m</td>
-<td>3.13m</td>
-<td>3.13m</td>
-<td>3.13m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Wide Quad-Pol</td>
-<td>4.7x5.1m</td>
-<td>3.13m</td>
-<td>3.13m</td>
-<td>3.13m</td>
-<td>3.13m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Standard Quad-Pol</td>
-<td>8.0 or 11.8x5.1m</td>
-<td>8.0x3.13m</td>
-<td>8.0x3.13m</td>
-<td>8.0x3.13m</td>
-<td>8.0x3.13m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Wide Standard Quad-Pol</td>
-<td>8.0 or 11.8x5.1m</td>
-<td>8.0x3.13m</td>
-<td>8.0x3.13m</td>
-<td>8.0x3.13m</td>
-<td>8.0x3.13m</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>ScanSAR Narrow</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>25.0m</td>
-<td></td>
-<td>25.0m</td>
-<td>25.0m</td>
-</tr>
-<tr>
-<td>ScanSAR Wide</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>50.0m</td>
-<td>50.0m</td>
-<td>50.0m</td>
-</tr>
-<tr>
-<td>Ship (Detection of vessels)</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>40.0m</td>
-<td>20.0m</td>
-</tr>
-<tr>
-<td>Ocean Surveillance</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>50.0m</td>
-<td>35.0x25.0m</td>
-</tr>
-</tbody>
-</table>
+<p>|<strong>
+RADARSAT-2</strong> | Single-look
+complex (SLC) | SAR
+georeferenced extra(SGX) | SAR
+georeferenced fine (SGF) | SAR
+systematic geocorrected (SSG) | SAR
+precision geocorrected (SPG) | ScanSAR
+narrow beam (SCN) | ScanSAR
+wide beam (SCW) | ScanSAR
+fine (SCF) | ScanSAR
+sampled (SCS)|
+|&mdash; | &mdash; | &mdash; | &mdash; | &mdash; | &mdash; | &mdash; | &mdash; | &mdash; | &mdash;|
+|Spotlight | 1.3x0.4m | 1.0
+or 0.8x1/3m | 0.5m | 0.5m | 0.5m |
+|
+|
+| |
+|Ultra-Fine | 1.3x2.1m | 1.0x1.0
+or 0.8x0.8m | 1.56m | 1.56m | 1.56m |
+|
+|
+| |
+|Wide Ultra-Fine | 1.3x2.1m | 1.0m | 1.56m | 1.56m | 1.56m |
+|
+|
+| |
+|Multi-Look Fine | 2.7x2.9m | 3.13m | 6.25m | 6.25m | 6.25m |
+|
+|
+| |
+|Wide Multi-Look Fine | 2.7x2.9m | 3.13m | 6.25m | 6.25m | 6.25m |
+|
+|
+| |
+|Extra-Fine | Full Res: 2.7x2.9m<br>Fine Res: 4.3x5.8m<br>Full Res: 7.1x5.8m<br>Wide Res: 10.6x5.8m | 1 look: 2.0m<br>4 looks: 3.13m<br>28 looks: 5.0m | 1 look: 3.13m<br>4 looks: 6.25m<br>28 looks: 8.0m | 3.13m | 3.13m |
+|
+|
+| |
+|Fine | 4.7x5.1m | 3.13m | 6.25m | 6.25m | 6.25m |
+|
+|
+| |
+|Wide-Fine | 4.7x5.1m | 3.13m | 6.25m | 6.25m | 6.25m |
+|
+|
+| |
+|Standard | 8.0 or 11.8x5.1m | 8.0m | 12.5m | 12.5m | 12.5m |
+|
+|
+| |
+|Wide | 11.8x5.1m | 10.0m | 12.5m | 12.5m | 12.5m |
+|
+|
+| |
+|Extended High | 11.8x5.1m | 8.0m | 12.5m | 12.5m | 12.5m |
+|
+|
+| |
+|Extended Low | 8.0x5.1m | 10.0m | 12.5m | 12.5m | 12.5m |
+|
+|
+| |
+|Fine Quad-Pol | 4.7x5.1m | 3.13m | 3.13m | 3.13m | 3.13m |
+|
+|
+| |
+|Wide Quad-Pol | 4.7x5.1m | 3.13m | 3.13m | 3.13m | 3.13m |
+|
+|
+| |
+|Standard Quad-Pol | 8.0 or 11.8x5.1m | 8.0x3.13m | 8.0x3.13m | 8.0x3.13m | 8.0x3.13m |
+|
+|
+| |
+|Wide Standard Quad-Pol | 8.0 or 11.8x5.1m | 8.0x3.13m | 8.0x3.13m | 8.0x3.13m | 8.0x3.13m |
+|
+|
+| |
+|ScanSAR Narrow |
+|
+|
+|
+|
+| 25.0m |
+| 25.0m | 25.0m|
+|ScanSAR Wide |
+|
+|
+|
+|
+|
+| 50.0m | 50.0m | 50.0m|
+|Ship (Detection of vessels) |
+|
+|
+|
+|
+|
+|
+| 40.0m | 20.0m|
+|Ocean Surveillance |
+|
+|
+|
+|
+|
+|
+| 50.0m | 35.0x25.0m|</p>
 <h2 id="gpt-graphs">GPT graphs</h2>
 <p>You can change the SAR GPT graphs used by setting the following environment variables:</p>
 <ul>
-<li><code>EOREADER_PP_GRAPH</code>: Environment variables for pre-processing graph path.
-</li>
+<li><code>EOREADER_PP_GRAPH</code>: Environment variables for pre-processing graph path.</li>
 <li><code>EOREADER_DSPK_GRAPH</code>: Environment variables for despeckling graph path</li>
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>For performance reasons, the <code>Terrain Correction</code> step is done <strong>before</strong> the <code>Despeckle</code> step.<br>
-Indeed this step is very time-consuming and better done
-one time on the raw image than two times on both the raw and the despeckled image.
-<br>
-Even if this is not the regular way of handling SAR data,
-this shouldn't really affect the quality of any extraction done after that.</p>
 </div>
+<p>For performance reasons, the <code>Terrain Correction</code> step is done <strong>before</strong> the <code>Despeckle</code> step. Indeed this step is very
+time-consuming and better done one time on the raw image than two times on both the raw and the despeckled image. Even
+if this is not the regular way of handling SAR data, this shouldn't really affect the quality of any extraction done
+after that.</p>
 <h3 id="what-to-know-if-you-are-changing-a-graph">What to know if you are changing a graph</h3>
 <p>Those graphs should have a reader and a writer on this model:</p>
-<pre><code class="language-xml">&lt;graph id=&quot;Graph&quot;&gt;
-  &lt;version&gt;1.0&lt;/version&gt;
-  &lt;node id=&quot;Read&quot;&gt;
-    &lt;operator&gt;Read&lt;/operator&gt;
-    &lt;sources/&gt;
-    &lt;parameters class=&quot;com.bc.ceres.binding.dom.XppDomElement&quot;&gt;
-      &lt;file&gt;$file&lt;/file&gt;
-    &lt;/parameters&gt;
-  &lt;/node&gt;
-  &lt;node id=&quot;Write&quot;&gt;
-    &lt;operator&gt;Write&lt;/operator&gt;
-    &lt;sources&gt;
-      &lt;sourceProduct refid=&quot;????&quot;/&gt;
-    &lt;/sources&gt;
-    &lt;parameters class=&quot;com.bc.ceres.binding.dom.XppDomElement&quot;&gt;
-      &lt;file&gt;$out&lt;/file&gt;
-      &lt;formatName&gt;BEAM-DIMAP&lt;/formatName&gt;
-    &lt;/parameters&gt;
-  &lt;/node&gt;
+<pre><code class="language-xml">
+&lt;graph id=&quot;Graph&quot;&gt;
+    &lt;version&gt;1.0&lt;/version&gt;
+    &lt;node id=&quot;Read&quot;&gt;
+        &lt;operator&gt;Read&lt;/operator&gt;
+        &lt;sources/&gt;
+        &lt;parameters class=&quot;com.bc.ceres.binding.dom.XppDomElement&quot;&gt;
+            &lt;file&gt;$file&lt;/file&gt;
+        &lt;/parameters&gt;
+    &lt;/node&gt;
+    &lt;node id=&quot;Write&quot;&gt;
+        &lt;operator&gt;Write&lt;/operator&gt;
+        &lt;sources&gt;
+            &lt;sourceProduct refid=&quot;????&quot;/&gt;
+        &lt;/sources&gt;
+        &lt;parameters class=&quot;com.bc.ceres.binding.dom.XppDomElement&quot;&gt;
+            &lt;file&gt;$out&lt;/file&gt;
+            &lt;formatName&gt;BEAM-DIMAP&lt;/formatName&gt;
+        &lt;/parameters&gt;
+    &lt;/node&gt;
 &lt;/graph&gt;
 </code></pre>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
+</div>
 <p>Pay attention to set <code>$file</code> and <code>$out</code> and leave the <code>BEAM-DIMAP</code> file format. The first graph must orthorectify your
 SAR data, but should not despeckle it. The second graph is precisely charged to do it.</p>
-<p>The pre-processing graph should also have a <code>Terrain Correction</code> step with the following wildcards that are set automatically in the module:</p>
-<ul>
-<li><code>$res_m</code>: Resolution in meters</li>
-<li><code>$res_deg</code>: Resolution in degrees</li>
-<li><code>$crs</code>: CRS</li>
-<li>The nodata value should <strong>always</strong> be set to 0.</li>
-</ul>
-</div>
-<p>The default <code>Terrain Correction</code> step is: </p>
-<pre><code class="language-xml">&lt;node id=&quot;Terrain-Correction&quot;&gt;
+<pre><code>The pre-processing graph should also have a &lt;code&gt;Terrain Correction&lt;/code&gt; step with the following wildcards that are set automatically in the module:
+
+- `$res_m`: Resolution in meters
+- `$res_deg`: Resolution in degrees
+- `$crs`: CRS
+- The nodata value should **always** be set to 0.
+</code></pre>
+<p>The default <code>Terrain Correction</code> step is:</p>
+<pre><code class="language-xml">
+&lt;node id=&quot;Terrain-Correction&quot;&gt;
     &lt;operator&gt;Terrain-Correction&lt;/operator&gt;
     &lt;sources&gt;
-      &lt;sourceProduct refid=&quot;LinearToFromdB&quot;/&gt;
+        &lt;sourceProduct refid=&quot;LinearToFromdB&quot;/&gt;
     &lt;/sources&gt;
     &lt;parameters class=&quot;com.bc.ceres.binding.dom.XppDomElement&quot;&gt;
-      &lt;sourceBands/&gt;
-      &lt;demName&gt;GETASSE30&lt;/demName&gt;
-      &lt;externalDEMFile/&gt;
-      &lt;externalDEMNoDataValue&gt;0.0&lt;/externalDEMNoDataValue&gt;
-      &lt;externalDEMApplyEGM&gt;true&lt;/externalDEMApplyEGM&gt;
-      &lt;demResamplingMethod&gt;BILINEAR_INTERPOLATION&lt;/demResamplingMethod&gt;
-      &lt;imgResamplingMethod&gt;BILINEAR_INTERPOLATION&lt;/imgResamplingMethod&gt;
-      &lt;pixelSpacingInMeter&gt;$res_m&lt;/pixelSpacingInMeter&gt;
-      &lt;pixelSpacingInDegree&gt;$res_deg&lt;/pixelSpacingInDegree&gt;
-      &lt;mapProjection&gt;$crs&lt;/mapProjection&gt;
-      &lt;alignToStandardGrid&gt;false&lt;/alignToStandardGrid&gt;
-      &lt;standardGridOriginX&gt;0.0&lt;/standardGridOriginX&gt;
-      &lt;standardGridOriginY&gt;0.0&lt;/standardGridOriginY&gt;
-      &lt;nodataValueAtSea&gt;true&lt;/nodataValueAtSea&gt;
-      &lt;saveDEM&gt;false&lt;/saveDEM&gt;
-      &lt;saveLatLon&gt;false&lt;/saveLatLon&gt;
-      &lt;saveIncidenceAngleFromEllipsoid&gt;false&lt;/saveIncidenceAngleFromEllipsoid&gt;
-      &lt;saveLocalIncidenceAngle&gt;false&lt;/saveLocalIncidenceAngle&gt;
-      &lt;saveProjectedLocalIncidenceAngle&gt;false&lt;/saveProjectedLocalIncidenceAngle&gt;
-      &lt;saveSelectedSourceBand&gt;true&lt;/saveSelectedSourceBand&gt;
-      &lt;outputComplex&gt;false&lt;/outputComplex&gt;
-      &lt;applyRadiometricNormalization&gt;false&lt;/applyRadiometricNormalization&gt;
-      &lt;saveSigmaNought&gt;false&lt;/saveSigmaNought&gt;
-      &lt;saveGammaNought&gt;false&lt;/saveGammaNought&gt;
-      &lt;saveBetaNought&gt;false&lt;/saveBetaNought&gt;
-      &lt;incidenceAngleForSigma0&gt;Use projected local incidence angle from DEM&lt;/incidenceAngleForSigma0&gt;
-      &lt;incidenceAngleForGamma0&gt;Use projected local incidence angle from DEM&lt;/incidenceAngleForGamma0&gt;
-      &lt;auxFile&gt;Latest Auxiliary File&lt;/auxFile&gt;
-      &lt;externalAuxFile/&gt;
+        &lt;sourceBands/&gt;
+        &lt;demName&gt;GETASSE30&lt;/demName&gt;
+        &lt;externalDEMFile/&gt;
+        &lt;externalDEMNoDataValue&gt;0.0&lt;/externalDEMNoDataValue&gt;
+        &lt;externalDEMApplyEGM&gt;true&lt;/externalDEMApplyEGM&gt;
+        &lt;demResamplingMethod&gt;BILINEAR_INTERPOLATION&lt;/demResamplingMethod&gt;
+        &lt;imgResamplingMethod&gt;BILINEAR_INTERPOLATION&lt;/imgResamplingMethod&gt;
+        &lt;pixelSpacingInMeter&gt;$res_m&lt;/pixelSpacingInMeter&gt;
+        &lt;pixelSpacingInDegree&gt;$res_deg&lt;/pixelSpacingInDegree&gt;
+        &lt;mapProjection&gt;$crs&lt;/mapProjection&gt;
+        &lt;alignToStandardGrid&gt;false&lt;/alignToStandardGrid&gt;
+        &lt;standardGridOriginX&gt;0.0&lt;/standardGridOriginX&gt;
+        &lt;standardGridOriginY&gt;0.0&lt;/standardGridOriginY&gt;
+        &lt;nodataValueAtSea&gt;true&lt;/nodataValueAtSea&gt;
+        &lt;saveDEM&gt;false&lt;/saveDEM&gt;
+        &lt;saveLatLon&gt;false&lt;/saveLatLon&gt;
+        &lt;saveIncidenceAngleFromEllipsoid&gt;false&lt;/saveIncidenceAngleFromEllipsoid&gt;
+        &lt;saveLocalIncidenceAngle&gt;false&lt;/saveLocalIncidenceAngle&gt;
+        &lt;saveProjectedLocalIncidenceAngle&gt;false&lt;/saveProjectedLocalIncidenceAngle&gt;
+        &lt;saveSelectedSourceBand&gt;true&lt;/saveSelectedSourceBand&gt;
+        &lt;outputComplex&gt;false&lt;/outputComplex&gt;
+        &lt;applyRadiometricNormalization&gt;false&lt;/applyRadiometricNormalization&gt;
+        &lt;saveSigmaNought&gt;false&lt;/saveSigmaNought&gt;
+        &lt;saveGammaNought&gt;false&lt;/saveGammaNought&gt;
+        &lt;saveBetaNought&gt;false&lt;/saveBetaNought&gt;
+        &lt;incidenceAngleForSigma0&gt;Use projected local incidence angle from DEM&lt;/incidenceAngleForSigma0&gt;
+        &lt;incidenceAngleForGamma0&gt;Use projected local incidence angle from DEM&lt;/incidenceAngleForGamma0&gt;
+        &lt;auxFile&gt;Latest Auxiliary File&lt;/auxFile&gt;
+        &lt;externalAuxFile/&gt;
     &lt;/parameters&gt;
-  &lt;/node&gt;
+&lt;/node&gt;
 </code></pre>
 <h3 id="default-snap-resolution">Default SNAP resolution</h3>
-<p>You can override default SNAP resolution (in meters) when geocoding SAR bands by setting the following environment variable:</p>
+<p>You can override default SNAP resolution (in meters) when geocoding SAR bands by setting the following environment
+variable:</p>
 <ul>
 <li><code>EOREADER_SAR_DEFAULT_RES</code> (0.0 by default, which means using the product's default resolution)</li>
+</ul>
+<h1 id="documentary-sources">Documentary Sources</h1>
+<h2 id="sar-data_1">SAR data</h2>
+<h3 id="sentinel-1_1">Sentinel-1</h3>
+<ul>
+<li><a href="https://earth.esa.int/web/sentinel/missions/sentinel-1/data-products">Data Products</a></li>
+<li><a href="https://earth.esa.int/web/sentinel/user-guides/sentinel-1-sar/acquisition-modes">Acquisition Mode</a></li>
+</ul>
+<h3 id="others">Others</h3>
+<ul>
+<li><a href="https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description">COSMO-Skymed Product Description</a></li>
+<li><a href="https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf">TerraSAR-X Product Description</a></li>
+<li><a href="https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html">RADARSAT-2 Product Description</a></li>
 </ul>
 <details class="source">
 <summary>
@@ -622,7 +370,7 @@ SAR data, but should not despeckle it. The second graph is precisely charged to 
 <pre><code class="python">&#34;&#34;&#34;
 SAR products.
 
-.. include:: ../../../documentation/sar.md
+.. include:: ../../../documentation/sar_detailed.md
 &#34;&#34;&#34;</code></pre>
 </details>
 </section>
@@ -732,6 +480,14 @@ setTimeout(() => input.focus(), 100);
 <li><a href="#gpt-graphs">GPT graphs</a><ul>
 <li><a href="#what-to-know-if-you-are-changing-a-graph">What to know if you are changing a graph</a></li>
 <li><a href="#default-snap-resolution">Default SNAP resolution</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#documentary-sources">Documentary Sources</a><ul>
+<li><a href="#sar-data_1">SAR data</a><ul>
+<li><a href="#sentinel-1_1">Sentinel-1</a></li>
+<li><a href="#others">Others</a></li>
 </ul>
 </li>
 </ul>

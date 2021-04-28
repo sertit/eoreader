@@ -1,5 +1,5 @@
 """
 SAR products.
 
-.. include:: ../../../documentation/sar.md
+.. include:: ../../../documentation/sar_detailed.md
 """

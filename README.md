@@ -1,10 +1,10 @@
 # EOReader
 
-This project allows you to read and open multiple
+This project is a multi-satellite **reader** allowing you to open
 [optical](https://sertit.github.io/eoreader/eoreader#implemented-optical-satellites)
-and [SAR](https://sertit.github.io/eoreader/eoreader#implemented-sar-satellites) satellite data.
+and [SAR](https://sertit.github.io/eoreader/eoreader#implemented-sar-satellites) data.
 
-It also implements two additional features:
+It also implements two additional features, non depending on the sensor:
 
 - `eoreader.products.product.Product.load`: Load many band types:
     - satellite bands ([optical](https://sertit.github.io/eoreader/eoreader#band-mapping) or [SAR](https://sertit.github.io/eoreader/eoreader#sar-bands))
@@ -13,13 +13,7 @@ It also implements two additional features:
     - [DEM bands](https://sertit.github.io/eoreader/eoreader#dem-bands)
 - `eoreader.products.product.Product.stack`: Stack all these type of bands
 
-## Installation
-`pip install eoreader`
-
-.. WARNING ::
-  EOReader depends mainly on `geopandas` and `rasterio`.
-  (with GDAL installation issues on Windows, so please install them from wheels that you can
-  find [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio)).
+It allows you to focus on the science instead of worrying how to access to the data, especially if you have to work with multiple sensors !
 
 ## Python Quickstart
 
@@ -36,7 +30,7 @@ The main features of EOReader are gathered hereunder:
 >>> output = r"path/to/your/output"
 
 >>> # Create the reader object and open satellite data
->>> eoreader = Reader()  # This is a singleton
+>>> eoreader = Reader()
 >>> prod = eoreader.open(path, output_path=output)  # The Reader will recognize the satellite type from its name
 
 >>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
@@ -62,3 +56,12 @@ The main features of EOReader are gathered hereunder:
 .. WARNING::
   - Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.
   Ensure that you have the folder containing your `gpt.exe` in your `PATH`.
+
+## Installation
+
+`pip install eoreader`
+
+.. WARNING ::
+  EOReader depends mainly on `geopandas` and `rasterio`.
+  (with GDAL installation issues on Windows, so please install them from wheels that you can
+  find [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio)).

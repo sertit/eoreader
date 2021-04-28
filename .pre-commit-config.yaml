@@ -14,8 +14,6 @@ repos:
       - id: check-yaml
         args: [ --allow-multiple-documents, --unsafe ]
       - id: check-xml
-      - id: check-added-large-files
-        args: [ '--maxkb=1600' ]
       - id: debug-statements
       - id: check-merge-conflict
 
