@@ -67,7 +67,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
         possible_bands(list): Possible bands
         debug (bool): Debug option
     """
-    with xarray.set_options(warn_for_unclosed_files=False):
+    with xarray.set_options(warn_for_unclosed_files=debug):
 
         # Init logger
         logs.init_logger(LOGGER)
@@ -136,7 +136,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     prod.stack(stack_bands, resolution=res, stack_path=curr_path)
 
                     # Test
-                    ci.assert_raster_almost_equal(curr_path, ci_data, decimal=6)
+                    ci.assert_raster_equal(curr_path, ci_data)
 
                 # CRS
                 assert prod.crs().is_projected

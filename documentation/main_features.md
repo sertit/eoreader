@@ -1,5 +1,7 @@
 # Main features
 
+These features can be seen in [this](/eoreader/examples/base.html) example.
+
 ## Read
 
 The reader singleton is your unique entry.
@@ -67,11 +69,15 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 ![load_workflow](https://zupimages.net/up/21/14/vtnc.png)
 
 ```python
+>>> import os
 >>> from eoreader.reader import Reader
 >>> from eoreader.bands.alias import *
 
 >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip"
->>> prod = Reader().open(path)
+>>> output = os.path.abspath("./output")
+>>>  # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
+>>>  # and you won't be able to retrieve what's has been written on disk
+>>> prod = Reader().open(path, output_path=output)
 
 >>> # Get the wanted bands and check if the product can produce them
 >>> band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
@@ -80,7 +86,10 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 >>> # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
 
 >>> # Load bands
->>> bands = prod.load(ok_bands)
+>>> bands = prod.load(ok_bands)  # resolution not specified -> load at default resolution (20.0 m for S2 data)
+>> >  # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
+>> >  # (important for DEM data as they may have different grids)
+
 >>> bands
 """
 {<function NDVI at 0x000001C47FF05E18>: <xarray.DataArray 'NDVI' (band: 1, y: 5490, x: 5490)>

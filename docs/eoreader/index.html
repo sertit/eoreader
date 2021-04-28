@@ -33,10 +33,26 @@ integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></sc
 <section id="section-intro">
 <p><strong>Source Code</strong>: <a href="https://github.com/sertit/eoreader">https://github.com/sertit/eoreader</a></p>
 <h1 id="eoreader">EOReader</h1>
-<p>This project is a multi-satellite <strong>reader</strong> allowing you to open
+<p><strong>EOReader</strong> is a <strong>multi-satellite reader</strong> allowing you to open
 <a href="https://sertit.github.io/eoreader/eoreader#implemented-optical-satellites">optical</a>
 and <a href="https://sertit.github.io/eoreader/eoreader#implemented-sar-satellites">SAR</a> data.</p>
-<p>It also implements two additional features, non depending on the sensor:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Optical</strong></th>
+<th><strong>SAR</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sensors</td>
+<td>+ Sentinel-2 &amp; Theia<br>+ Sentinel-3 OLCI &amp; SLSTR<br>+ Landsats 1 - 8</td>
+<td>+ Sentinel-1<br>+ COSMO-Skymed<br>+ TerraSAR-X<br>+ RADARSAT-2</td>
+</tr>
+</tbody>
+</table>
+<p>It also implements additional <strong>sensor-agnostic</strong> features:</p>
 <ul>
 <li><code><a title="eoreader.products.product.Product.load" href="products/product.html#eoreader.products.product.Product.load">Product.load()</a></code>: Load many band types:<ul>
 <li>satellite bands (<a href="https://sertit.github.io/eoreader/eoreader#band-mapping">optical</a> or <a href="https://sertit.github.io/eoreader/eoreader#sar-bands">SAR</a>)</li>
@@ -47,7 +63,8 @@ and <a href="https://sertit.github.io/eoreader/eoreader#implemented-sar-satellit
 </li>
 <li><code><a title="eoreader.products.product.Product.stack" href="products/product.html#eoreader.products.product.Product.stack">Product.stack()</a></code>: Stack all these type of bands</li>
 </ul>
-<p>It allows you to focus on the science instead of worrying how to access to the data, especially if you have to work with multiple sensors !</p>
+<p>EOReader works with <a href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray"><code>xarrays.DataArray</code></a>
+and <a href="https://geopandas.org/docs/user_guide/data_structures.html#geodataframe"><code>geopandas.GeoDataFrames</code></a></p>
 <h2 id="python-quickstart">Python Quickstart</h2>
 <p>The main features of EOReader are gathered hereunder:</p>
 <pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
@@ -55,29 +72,20 @@ and <a href="https://sertit.github.io/eoreader/eoreader#implemented-sar-satellit
 
 &gt;&gt;&gt; # Your variables
 &gt;&gt;&gt; path = r&quot;path/to/your/satellite/product&quot;  # Optical in this example
-&gt;&gt;&gt; # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
-&gt;&gt;&gt; # and you won't be able to retrieve what's has been written on disk
-&gt;&gt;&gt; output = r&quot;path/to/your/output&quot;
 
 &gt;&gt;&gt; # Create the reader object and open satellite data
 &gt;&gt;&gt; eoreader = Reader()
-&gt;&gt;&gt; prod = eoreader.open(path, output_path=output)  # The Reader will recognize the satellite type from its name
+&gt;&gt;&gt; prod = eoreader.open(path)  # The Reader will recognize the satellite type from its name
 
 &gt;&gt;&gt; # Get the footprint of the product (usable data) and its extent (envelope of the tile)
 &gt;&gt;&gt; footprint = prod.footprint
 &gt;&gt;&gt; extent = prod.extent
 
 &gt;&gt;&gt; # Load some bands and index: they will all share the same metadata
-&gt;&gt;&gt; bands = prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])  # Resolution not specified: use product resolution
-&gt;&gt;&gt; ndvi = bands[NDVI]
-&gt;&gt;&gt; green = bands[GREEN]
-&gt;&gt;&gt; hillshade = bands[HILLSHADE]
-&gt;&gt;&gt; clouds = bands[CLOUDS]
-&gt;&gt;&gt; # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
-&gt;&gt;&gt; # (important for DEM data as they may have different grids)
+&gt;&gt;&gt; bands = prod.load([NDVI, GREEN, HILLSHADE, CLOUDS]
 
 &gt;&gt;&gt; # Create a stack with some other bands
-&gt;&gt;&gt; stack = prod.stack([NDVI, MNDWI, GREEN, SLOPE, CIRRUS])  # Resolution not specified: use product resolution
+&gt;&gt;&gt; stack = prod.stack([NDVI, MNDWI, GREEN, SLOPE, CIRRUS])
 
 &gt;&gt;&gt; # Read Metadata
 &gt;&gt;&gt; mtd, namespace = prod.read_mtd()
@@ -89,14 +97,21 @@ and <a href="https://sertit.github.io/eoreader/eoreader#implemented-sar-satellit
 Ensure that you have the folder containing your <code>gpt.exe</code> in your <code>PATH</code>.</li>
 </ul>
 </div>
+<h2 id="examples">Examples</h2>
+<ul>
+<li><a href="/eoreader/examples/base.html">Basic tutorial</a></li>
+</ul>
 <h2 id="installation">Installation</h2>
 <p><code>pip install <a title="eoreader" href="#eoreader">eoreader</a></code></p>
-<p>.. WARNING ::
-EOReader depends mainly on <code>geopandas</code> and <code>rasterio</code>.
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>EOReader depends mainly on <code>geopandas</code> and <code>rasterio</code>.
 (with GDAL installation issues on Windows, so please install them from wheels that you can
 find <a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio">here</a>).</p>
+</div>
 <hr>
 <h1 id="main-features">Main features</h1>
+<p>These features can be seen in <a href="/eoreader/examples/base.html">this</a> example.</p>
 <h2 id="read">Read</h2>
 <p>The reader singleton is your unique entry.
 It will create for you the product object corresponding to your satellite data.</p>
@@ -163,11 +178,15 @@ datetime.datetime(2020, 8, 24, 11, 6, 31)
 <p><code><a title="eoreader.products.product.Product.load" href="products/product.html#eoreader.products.product.Product.load">Product.load()</a></code> is the function for accessing to product-related bands.
 It can load satellite bands, index, DEM bands and cloud bands according to this workflow:
 <img alt="load_workflow" src="https://zupimages.net/up/21/14/vtnc.png"></p>
-<pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
+<pre><code class="language-python">&gt;&gt;&gt; import os
+&gt;&gt;&gt; from eoreader.reader import Reader
 &gt;&gt;&gt; from eoreader.bands.alias import *
 
 &gt;&gt;&gt; path = r&quot;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip&quot;
-&gt;&gt;&gt; prod = Reader().open(path)
+&gt;&gt;&gt; output = os.path.abspath(&quot;./output&quot;)
+&gt;&gt;&gt;  # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
+&gt;&gt;&gt;  # and you won't be able to retrieve what's has been written on disk
+&gt;&gt;&gt; prod = Reader().open(path, output_path=output)
 
 &gt;&gt;&gt; # Get the wanted bands and check if the product can produce them
 &gt;&gt;&gt; band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
@@ -176,7 +195,10 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 &gt;&gt;&gt; # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
 
 &gt;&gt;&gt; # Load bands
-&gt;&gt;&gt; bands = prod.load(ok_bands)
+&gt;&gt;&gt; bands = prod.load(ok_bands)  # resolution not specified -&gt; load at default resolution (20.0 m for S2 data)
+&gt;&gt; &gt;  # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
+&gt;&gt; &gt;  # (important for DEM data as they may have different grids)
+
 &gt;&gt;&gt; bands
 &quot;&quot;&quot;
 {&lt;function NDVI at 0x000001C47FF05E18&gt;: &lt;xarray.DataArray 'NDVI' (band: 1, y: 5490, x: 5490)&gt;
@@ -673,6 +695,7 @@ setTimeout(() => input.focus(), 100);
 <ul>
 <li><a href="#eoreader">EOReader</a><ul>
 <li><a href="#python-quickstart">Python Quickstart</a></li>
+<li><a href="#examples">Examples</a></li>
 <li><a href="#installation">Installation</a></li>
 </ul>
 </li>
