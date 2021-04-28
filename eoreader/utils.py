@@ -2,8 +2,6 @@
 import logging
 import os
 
-from sertit.ci import get_db2_path
-
 EOREADER_NAME = "eoreader"
 DATETIME_FMT = "%Y%m%dT%H%M%S"
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -37,24 +35,3 @@ def get_data_dir() -> str:
         str: Data directory
     """
     return os.path.abspath(os.path.join(get_src_dir(), "data"))
-
-
-def get_db_dir() -> str:
-    """
-    Get database directory in the DS2
-
-    Returns:
-        str: Database directory
-    """
-    db_dir = os.path.join(r"\\ds2", "database02", "BASES_DE_DONNEES")
-
-    if not os.path.isdir(db_dir):
-        try:
-            db_dir = os.path.join(get_db2_path(), "BASES_DE_DONNEES")
-        except NotADirectoryError:
-            db_dir = os.path.join("/home", "ds2_db2", "BASES_DE_DONNEES")
-
-    if not os.path.isdir(db_dir):
-        raise NotADirectoryError("Impossible to open database directory !")
-
-    return db_dir

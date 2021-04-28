@@ -19,7 +19,6 @@ from rasterio import crs as rcrs
 from rasterio import warp
 from rasterio.enums import Resampling
 
-from eoreader import utils
 from eoreader.bands import index
 from eoreader.bands.alias import *
 from eoreader.bands.bands import BandNames
@@ -552,22 +551,30 @@ class Product:
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        dem_path = os.environ.get(DEM_PATH, "")
         dem_bands = {}
-        for band in band_list:
-            assert is_dem(band)
-            if band == DEM:
-                path = self._warp_dem(dem_path, resolution=resolution, size=size)
-            elif band == SLOPE:
-                path = self._compute_slope(dem_path, resolution=resolution, size=size)
-            elif band == HILLSHADE:
-                path = self._compute_hillshade(
-                    dem_path, resolution=resolution, size=size
-                )
-            else:
-                raise InvalidTypeError(f"Unknown DEM band: {band}")
+        dem_path = os.environ.get(DEM_PATH)
+        if not dem_path:
+            LOGGER.warning(
+                f"Dem path not set, unable to compute DEM bands ! "
+                f"Please set the environment variable {DEM_PATH}."
+            )
+        else:
+            for band in band_list:
+                assert is_dem(band)
+                if band == DEM:
+                    path = self._warp_dem(dem_path, resolution=resolution, size=size)
+                elif band == SLOPE:
+                    path = self._compute_slope(
+                        dem_path, resolution=resolution, size=size
+                    )
+                elif band == HILLSHADE:
+                    path = self._compute_hillshade(
+                        dem_path, resolution=resolution, size=size
+                    )
+                else:
+                    raise InvalidTypeError(f"Unknown DEM band: {band}")
 
-            dem_bands[band] = rasters.read(path, resolution=resolution, size=size)
+                dem_bands[band] = rasters.read(path, resolution=resolution, size=size)
 
         return dem_bands
 
@@ -897,18 +904,6 @@ class Product:
         Returns:
             str: DEM path (as a VRT)
         """
-        try:
-            merit_dem = os.path.join(
-                utils.get_db_dir(),
-                "GLOBAL",
-                "MERIT_Hydrologically_Adjusted_Elevations",
-                "MERIT_DEM.vrt",
-            )
-            # eudem_path = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
-        except NotADirectoryError as ex:
-            LOGGER.debug("Non available default DEM: %s", ex)
-            merit_dem = None
-
         warped_dem_path = os.path.join(
             self._get_band_folder(), f"{self.condensed_name}_DEM.tif"
         )
@@ -917,43 +912,9 @@ class Product:
         else:
             LOGGER.debug("Warping DEM for %s", self.name)
 
-            # Get products extent
-            prod_extent_df = self.extent()
-
-            # The MERIT is the default DEM as it covers almost the entire Earth
-            if not dem_path:
-                dem_path = merit_dem
-            else:
-                if not os.path.isfile(dem_path):
-                    LOGGER.warning(
-                        "Non existing DEM file: %s. Using default ones (EUDEM or MERIT)",
-                        dem_path,
-                    )
-                    dem_path = merit_dem
-                else:
-                    dem_extent_df = rasters.get_footprint(dem_path).to_crs(
-                        prod_extent_df.crs
-                    )
-                    if not dem_extent_df.contains(prod_extent_df)[0]:
-                        LOGGER.warning(
-                            "Input DEM file does not intersect %s. Using default ones (EUDEM or MERIT)",
-                            self.name,
-                        )
-                        dem_path = merit_dem
-
-            # Use EUDEM if the products is contained in it
-            # TODO: DEBUG EUDEM FOOTPRINT
-            # if dem_path == merit_dem and os.path.isfile(eudem_path):
-            #     dem_extent_df = rasters.get_extent(eudem_path)
-            #     if dem_extent_df.contains(prod_extent_df.to_crs(dem_extent_df.crs))[0]:
-            #         dem_path = eudem_path
-
             # Check existence (SRTM)
             if not os.path.isfile(dem_path):
-                if not merit_dem:
-                    raise FileNotFoundError("Impossible to retrieve default DEM.")
-                else:
-                    raise FileNotFoundError(f"DEM file does not exist here: {dem_path}")
+                raise FileNotFoundError(f"DEM file does not exist here: {dem_path}")
 
             # Reproject DEM into products CRS
             with rasterio.open(self.get_default_band_path()) as prod_dst:
@@ -1197,7 +1158,7 @@ class Product:
           * z            (z) MultiIndex
           - variable     (z) object 'NDVI' 'MNDWI' 'GREEN'
           - band         (z) int64 1 1 1
-        Attributes:
+        -Attributes:
             long_name:  ['NDVI', 'MNDWI', 'GREEN']
         '''
         ```
