@@ -17,7 +17,14 @@ setuptools.setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
-    install_requires=["lxml", "netCDF4", "rioxarray", "geopandas", "sertit[full]"],
+    install_requires=[
+        "lxml",
+        "netCDF4",
+        "rioxarray",
+        "geopandas",
+        "sertit[full]",
+        "rtree",
+    ],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
