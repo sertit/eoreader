@@ -44,4 +44,4 @@ def test_index():
             rasters.write(idx_arr, curr_path, dtype=np.float32)
 
             # Test
-            ci.assert_raster_equal(curr_path, ci_data)
+            ci.assert_raster_almost_equal(curr_path, ci_data, decimal=6)
