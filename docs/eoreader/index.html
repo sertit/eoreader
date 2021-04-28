@@ -60,7 +60,7 @@ and <a href="https://sertit.github.io/eoreader/eoreader#implemented-sar-satellit
 &gt;&gt;&gt; output = r&quot;path/to/your/output&quot;
 
 &gt;&gt;&gt; # Create the reader object and open satellite data
-&gt;&gt;&gt; eoreader = Reader()  # This is a singleton
+&gt;&gt;&gt; eoreader = Reader()
 &gt;&gt;&gt; prod = eoreader.open(path, output_path=output)  # The Reader will recognize the satellite type from its name
 
 &gt;&gt;&gt; # Get the footprint of the product (usable data) and its extent (envelope of the tile)
@@ -406,7 +406,7 @@ Attributes:
 </table>
 <p>Satellites products that cannot be used as archived have to be extracted before use.</p>
 <h2 id="optical-bands">Optical bands</h2>
-<p>The following bands are available in <code>EOReader</code>, but may not be available for all sensors. </p>
+<p>The following bands are available in <code>EOReader</code>, but may not be available for all sensors.</p>
 <h3 id="satellite-bands">Satellite bands</h3>
 <p>These bands are mainly based on Sentinel-2 bands with some additions:</p>
 <ul>
@@ -417,7 +417,7 @@ Attributes:
 <li><code>VRE_1</code>: Vegetation Red Edge 1</li>
 <li><code>VRE_2</code>: Vegetation Red Edge 2</li>
 <li><code>VRE_3</code>: Vegetation Red Edge 3</li>
-<li><code>NIR</code>: Near Infrared </li>
+<li><code>NIR</code>: Near Infrared</li>
 <li><code>NARROW_NIR</code>: Narrow Near Infrared (band <code>8A</code> for <code>Sentinel-2</code>)</li>
 <li><code>WP</code>: Water vapour</li>
 <li><code>SWIR_CIRRUS</code></li>
@@ -443,7 +443,7 @@ Attributes:
 <li><code>MNDWI</code></li>
 <li><code>NBR</code></li>
 <li><code>NDGRI</code></li>
-<li><code>NDMI</code> </li>
+<li><code>NDMI</code></li>
 <li><code>NDRE2</code></li>
 <li><code>NDRE3</code></li>
 <li><code>NDVI</code></li>
@@ -571,7 +571,7 @@ __pdoc__ = {
     &#34;eoreader.data&#34;: False,
 }
 
-__version__ = &#34;0.2.0&#34;</code></pre>
+__version__ = &#34;0.2.1&#34;</code></pre>
 </details>
 </section>
 <section>
