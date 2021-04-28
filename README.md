@@ -1,4 +1,4 @@
-# ![eoreader_logo](https://github.com/sertit/eoreader/blob/master/docs/eoreader_small.png) EOReader
+# ![eoreader_logo](https://raw.githubusercontent.com/sertit/eoreader/master/docs/eoreader_small.png) EOReader
 
 **EOReader** is a **multi-satellite reader** allowing you to open
 [optical](https://sertit.github.io/eoreader/eoreader#implemented-optical-satellites)
