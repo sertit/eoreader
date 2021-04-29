@@ -13096,7 +13096,7 @@ div#notebook {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Basic-example">Basic example<a class="anchor-link" href="#Basic-example">&#182;</a></h1><p>Let's use EOReader for the first time !</p>
+<h1 id="Water-detection">Water detection<a class="anchor-link" href="#Water-detection">&#182;</a></h1><p>Let's use EOReader for water detection !</p>
 <div class="alert alert-warning">
 
 <strong>Warning:</strong> To complete this tutorial you will need <strong>matplotlib</strong>
@@ -13150,35 +13150,16 @@ div#notebook {
 
 <span class="c1"># Open your product</span>
 <span class="n">prod</span> <span class="o">=</span> <span class="n">eoreader</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="c1"># No need to unarchive here</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">prod</span><span class="p">)</span>
 </pre></div>
 
     </div>
 </div>
 </div>
 
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>&lt;eoreader.products.optical.l5_product.L5Product object at 0x00000152FEEF4EB8&gt;
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Load those bands as a dict of xarray.DataArray</span>
@@ -13193,7 +13174,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># The nan corresponds to the nodata you see on the footprint</span>
@@ -13213,13 +13194,13 @@ div#notebook {
 
 <div class="output_area">
 
-    <div class="prompt output_prompt">Out[11]:</div>
+    <div class="prompt output_prompt">Out[5]:</div>
 
 
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>&lt;matplotlib.collections.QuadMesh at 0x1528b02a6a0&gt;</pre>
+<pre>&lt;matplotlib.collections.QuadMesh at 0x1d100c5e978&gt;</pre>
 </div>
 
 </div>
@@ -13245,7 +13226,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[35]:</div>
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
@@ -13274,13 +13255,13 @@ div#notebook {
 
 <div class="output_area">
 
-    <div class="prompt output_prompt">Out[35]:</div>
+    <div class="prompt output_prompt">Out[6]:</div>
 
 
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>&lt;matplotlib.collections.QuadMesh at 0x1528d1bf710&gt;</pre>
+<pre>&lt;matplotlib.collections.QuadMesh at 0x1d100db0630&gt;</pre>
 </div>
 
 </div>
