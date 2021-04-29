@@ -257,7 +257,7 @@ class S2TheiaProduct(OpticalProduct):
 
         Accepted mask IDs:
 
-        - `DFP`: Defective pixels
+        - `DFP`: Defective pixels (do not always exist ! Will raise `InvalidProductError` if not)
         - `EDG`: Nodata pixels mask
         - `SAT`: Saturated pixels mask
         - `MG2`: Geophysical mask (classification)
