@@ -58,8 +58,15 @@ def _idx_fct(function: Callable) -> Callable:
         Returns:
             xr.DataArray: Computed index
         """
-        out = function(bands)
-        return out.rename(str(function.__name__))
+        # WARNING: for performance issues, use numpy arrays here to speed up computation !
+        out_np = function({key: val.data for key, val in bands.items()})
+
+        # Take the first band as a template for xarray
+        first_xda = list(bands.values())[0]
+        out_xda = first_xda.copy(data=out_np)
+
+        out = rasters.set_metadata(out_xda, first_xda, new_name=str(function.__name__))
+        return out
 
     return _idx_fct_wrapper
 
@@ -77,7 +84,6 @@ def _norm_diff(band_1: xr.DataArray, band_2: xr.DataArray) -> xr.DataArray:
         xr.DataArray: Normalized Difference between band 1 and band 2
     """
     norm = np.divide(band_1 - band_2, band_1 + band_2)
-    norm = rasters.set_metadata(norm, band_1)
     return norm
 
 
