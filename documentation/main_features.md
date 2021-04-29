@@ -144,9 +144,14 @@ Attributes:
 ```
 
 .. NOTE::
-Index and bands are opened as [`xarrays`](http://xarray.pydata.org/en/stable/)
-with [`rioxarray`](https://corteva.github.io/rioxarray/stable/), in `float` with the nodata set to `np.nan`. The nodata
-written back on disk is -9999 by convention (for now the rasters will be written in float)
+    Index and bands are opened as [`xarrays`](http://xarray.pydata.org/en/stable/)
+    with [`rioxarray`](https://corteva.github.io/rioxarray/stable/), in `float` with the nodata set to `np.nan`.
+    The nodata written back on disk is by convention:
+
+    - `-9999` for optical bands (saved in `float32`)
+    - `65535` for optical bands (saved in `uint16`)
+    - `0` for SAR bands (saved in `float32`), to be compliant with SNAP default nodata
+    - `255` for masks (saved in `uint8`)
 
 ## Stack
 

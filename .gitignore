@@ -24,3 +24,6 @@ dist/
 
 # Notebooks
 .ipynb_checkpoints
+
+# Other files
+/CI/SCRIPTS/test.py

@@ -2,6 +2,14 @@
 
 ## 0.3.1 (YYYY-MM-DD)
 
+- Multiple optimizations when reading and processing the bands
+- Bug resolutions:
+  - S2-Theia masks
+  - SAR DSPK bands always recomputed
+  - SAR nodata set to 0 as SNAP expects it
+  - Bad mask nodata setting when computing invalid pixels
+  - Interverted default resolution between L4/5 MSS and TM sensors
+- Removing useless logs when missing DEM but no computed DEM bands
 - Adding copyright headers to every python files
 - Fixing and adding examples
 
