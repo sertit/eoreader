@@ -24,8 +24,7 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import rasterio
-import xarray as xr
-from rasterio import crs as rcrs
+from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 
 from eoreader.bands import index
@@ -96,7 +95,7 @@ class OpticalProduct(Product):
         default_band = self.get_default_band()
         return self.get_band_paths([default_band])[default_band]
 
-    def crs(self) -> rcrs.CRS:
+    def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
 
@@ -261,9 +260,7 @@ class OpticalProduct(Product):
             mask = np.expand_dims(mask, axis=0)
 
         # Set masked values to nodata
-        band_arr = xr.where(mask, self.nodata, band_arr)
-
-        return rasters.set_nodata(band_arr, self.nodata)
+        return band_arr.where(mask == 0, np.nan)
 
     def _load(
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
@@ -446,7 +443,6 @@ class OpticalProduct(Product):
             XDS_TYPE: Mask as xarray
         """
         mask = xds.copy(data=np.where(cond, self._mask_true, self._mask_false))
-        mask = xr.where(nodata, self.nodata, mask)
-        mask = rasters.set_nodata(mask, self.nodata)
+        mask = mask.where(nodata == 0, np.nan)
 
         return mask

@@ -31,7 +31,7 @@ import geopandas as gpd
 import numpy as np
 import rasterio
 import xarray as xr
-from rasterio import crs as rcrs
+from rasterio import crs as riocrs
 from rasterio import warp
 from rasterio.enums import Resampling
 
@@ -263,7 +263,7 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def crs(self) -> rcrs.CRS:
+    def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
 
@@ -568,29 +568,34 @@ class Product:
             dict: Dictionary {band_name, band_xarray}
         """
         dem_bands = {}
-        dem_path = os.environ.get(DEM_PATH)
-        if not dem_path:
-            LOGGER.warning(
-                f"Dem path not set, unable to compute DEM bands ! "
-                f"Please set the environment variable {DEM_PATH}."
-            )
-        else:
-            for band in band_list:
-                assert is_dem(band)
-                if band == DEM:
-                    path = self._warp_dem(dem_path, resolution=resolution, size=size)
-                elif band == SLOPE:
-                    path = self._compute_slope(
-                        dem_path, resolution=resolution, size=size
-                    )
-                elif band == HILLSHADE:
-                    path = self._compute_hillshade(
-                        dem_path, resolution=resolution, size=size
-                    )
-                else:
-                    raise InvalidTypeError(f"Unknown DEM band: {band}")
+        if band_list:
+            dem_path = os.environ.get(DEM_PATH)
+            if not dem_path:
+                LOGGER.warning(
+                    f"Dem path not set, unable to compute DEM bands ! "
+                    f"Please set the environment variable {DEM_PATH}."
+                )
+            else:
+                for band in band_list:
+                    assert is_dem(band)
+                    if band == DEM:
+                        path = self._warp_dem(
+                            dem_path, resolution=resolution, size=size
+                        )
+                    elif band == SLOPE:
+                        path = self._compute_slope(
+                            dem_path, resolution=resolution, size=size
+                        )
+                    elif band == HILLSHADE:
+                        path = self._compute_hillshade(
+                            dem_path, resolution=resolution, size=size
+                        )
+                    else:
+                        raise InvalidTypeError(f"Unknown DEM band: {band}")
 
-                dem_bands[band] = rasters.read(path, resolution=resolution, size=size)
+                    dem_bands[band] = rasters.read(
+                        path, resolution=resolution, size=size
+                    )
 
         return dem_bands
 

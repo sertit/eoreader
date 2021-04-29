@@ -26,7 +26,7 @@ class L4Product(LandsatProduct):
         """
         Set product default resolution (in meters)
         """
-        if self.product_type == LandsatProductType.L1_TM:
+        if self.product_type == LandsatProductType.L1_MSS:
             def_res = 60.0
         else:
             # DO NOT TAKE INTO ACCOUNT TIRS RES

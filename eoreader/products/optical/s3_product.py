@@ -41,7 +41,7 @@ from eoreader.env_vars import S3_DEF_RES
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, misc, rasters, snap, strings, vectors
+from sertit import files, misc, rasters, rasters_rio, snap, strings, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
@@ -520,17 +520,19 @@ class S3Product(OpticalProduct):
             return band_arr
 
         # Open flag file
-        qual_arr = rasters.read(
+        qual_arr, _ = rasters_rio.read(
             qual_flags_path,
             resolution=resolution,
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
-        ).astype(np.uint32)
-        invalid, sat = rasters.read_bit_array(qual_arr, [invalid_id, sat_band_id])
+        )
+        invalid, sat = rasters.read_bit_array(
+            qual_arr.astype(np.uint32), [invalid_id, sat_band_id]
+        )
 
         # Get nodata mask
-        no_data = np.where(np.isnan(band_arr.data), nodata_true, nodata_false)
+        no_data = np.where(np.isnan(band_arr), nodata_true, nodata_false)
 
         # Combine masks
         mask = no_data | invalid | sat
@@ -577,7 +579,7 @@ class S3Product(OpticalProduct):
             return band_arr
 
         # Open flag file
-        qual_arr = rasters.read(
+        qual_arr, _ = rasters_rio.read(
             qual_flags_path,
             resolution=resolution,
             size=size,
@@ -586,7 +588,7 @@ class S3Product(OpticalProduct):
         )
 
         # Set no data for everything (except ISP) that caused an exception
-        exception = np.where(qual_arr.data > 2, nodata_true, nodata_false)
+        exception = np.where(qual_arr > 2, nodata_true, nodata_false)
 
         # Get nodata mask
         no_data = np.where(np.isnan(band_arr.data), nodata_true, nodata_false)
@@ -658,9 +660,7 @@ class S3Product(OpticalProduct):
 
                 # Convert to geotiffs and set no data with only keeping the first band
                 arr = rasters.read(rasters.get_dim_img_path(out_dim, snap_band_name))
-                arr = rasters.set_nodata(
-                    xr.where(arr == self._snap_no_data, self.nodata, arr), self.nodata
-                )
+                arr = arr.where(arr != self._snap_no_data, np.nan)
                 rasters.write(arr, out_tif, dtype=np.float32)
 
         # Get the wanted bands (not the quality flags here !)
@@ -999,7 +999,7 @@ class S3Product(OpticalProduct):
                 size=size,
                 resampling=Resampling.nearest,
                 masked=False,
-            ).astype(np.uint16)
+            )
 
             # Get nodata mask
             # nodata = np.where(np.isnan(clouds_array), 1, 0)

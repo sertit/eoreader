@@ -117,6 +117,7 @@ class SarProduct(Product):
         self._band_folder = None
         self._snap_path = None
         self._raw_band_regex = None
+        self._snap_no_data = 0
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path)
@@ -670,7 +671,7 @@ class SarProduct(Product):
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Out files
-            target_file = os.path.join(tmp_dir, f"{self.condensed_name}_DSPK")
+            target_file = os.path.join(tmp_dir, f"{self.condensed_name}")
             dspk_dim = target_file + ".dim"
 
             # Despeckle graph
@@ -697,11 +698,11 @@ class SarProduct(Product):
                 misc.run_cli(cmd_list)
 
             # Convert DIMAP images to GeoTiff
-            out = self._write_sar(dspk_dim, band.value)
+            out = self._write_sar(dspk_dim, band.value, dspk=True)
 
         return out
 
-    def _write_sar(self, dim_path: str, pol_up: str):
+    def _write_sar(self, dim_path: str, pol_up: str, dspk=False):
         """
         Write SAR image on disk.
 
@@ -719,13 +720,15 @@ class SarProduct(Product):
 
         # Open SAR image
         arr = rasters.read(img)
-        arr = rasters.set_nodata(arr, self.nodata)
+        arr = arr.where(arr != self._snap_no_data, np.nan)
 
         # Save the file as the terrain-corrected image
         file_path = os.path.join(
-            self.output, f"{files.get_filename(dim_path)}_{pol_up}.tif"
+            self.output,
+            f"{files.get_filename(dim_path)}_{pol_up}{'_DSPK' if dspk else ''}.tif",
         )
-        rasters.write(arr, file_path, dtype=np.float32)
+        # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
+        rasters.write(arr, file_path, dtype=np.float32, nodata=0)
 
         return file_path
 
