@@ -61,6 +61,7 @@ The API documentation can be found [here](https://sertit.github.io/eoreader/eore
 Available notebooks provided as examples:
 
 - [Basic tutorial](https://sertit.github.io/eoreader/examples/base.html)
+- [Water detection](https://sertit.github.io/eoreader/examples/water_detection.html)
 
 ## Installation
 

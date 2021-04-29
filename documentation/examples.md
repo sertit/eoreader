@@ -1,1 +1,2 @@
-- [Basic tutorial](/eoreader/examples/base.html)
+- [Basic tutorial](https://sertit.github.io/eoreader/examples/base.html))
+- [Water detection](https://sertit.github.io/eoreader/examples/water_detection.html)
