@@ -240,10 +240,16 @@ Attributes:
 </code></pre>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-</div>
 <p>Index and bands are opened as <a href="http://xarray.pydata.org/en/stable/"><code>xarrays</code></a>
-with <a href="https://corteva.github.io/rioxarray/stable/"><code>rioxarray</code></a>, in <code>float</code> with the nodata set to <code>np.nan</code>. The nodata
-written back on disk is -9999 by convention (for now the rasters will be written in float)</p>
+with <a href="https://corteva.github.io/rioxarray/stable/"><code>rioxarray</code></a>, in <code>float</code> with the nodata set to <code>np.nan</code>.
+The nodata written back on disk is by convention:</p>
+<ul>
+<li><code>-9999</code> for optical bands (saved in <code>float32</code>)</li>
+<li><code>65535</code> for optical bands (saved in <code>uint16</code>)</li>
+<li><code>0</code> for SAR bands (saved in <code>float32</code>), to be compliant with SNAP default nodata</li>
+<li><code>255</code> for masks (saved in <code>uint8</code>)</li>
+</ul>
+</div>
 <h2 id="stack">Stack</h2>
 <p><code><a title="eoreader.products.product.Product.stack" href="products/product.html#eoreader.products.product.Product.stack">Product.stack()</a></code> is the function stacking all possible bands.
 It is based on the load function and then just stacks the bands and write it on disk if needed.</p>
@@ -590,7 +596,7 @@ __pdoc__ = {
     &#34;eoreader.data&#34;: False,
 }
 
-__version__ = &#34;0.3.0&#34;</code></pre>
+__version__ = &#34;0.3.1&#34;</code></pre>
 </details>
 </section>
 <section>
