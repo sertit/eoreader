@@ -97,7 +97,8 @@ Ensure that you have the folder containing your <code>gpt.exe</code> in your <co
 <h2 id="examples">Examples</h2>
 <p>Available notebooks provided as examples:</p>
 <ul>
-<li><a href="/eoreader/examples/base.html">Basic tutorial</a></li>
+<li><a href="https://sertit.github.io/eoreader/examples/base.html">Basic tutorial</a></li>
+<li><a href="https://sertit.github.io/eoreader/examples/water_detection.html">Water detection</a></li>
 </ul>
 <h2 id="installation">Installation</h2>
 <p><code>pip install <a title="eoreader" href="#eoreader">eoreader</a></code></p>
@@ -154,21 +155,6 @@ datetime.datetime(2020, 8, 24, 11, 6, 31)
 &gt;&gt;&gt; # Access the raw metadata as an lxml.etree._Element:
 &gt;&gt;&gt; prod.read_mtd()
 </code></pre>
-<p>See the difference between footprint and extent hereunder:</p>
-<table>
-<thead>
-<tr>
-<th>Without nodata</th>
-<th>With nodata</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><img alt="without_nodata" src="https://zupimages.net/up/21/14/69i6.gif"></td>
-<td><img alt="with_nodata" src="https://zupimages.net/up/21/14/vg6w.gif"></td>
-</tr>
-</tbody>
-</table>
 <h2 id="load">Load</h2>
 <p><code><a title="eoreader.products.product.Product.load" href="products/product.html#eoreader.products.product.Product.load">Product.load()</a></code> is the function for accessing to product-related bands.
 It can load satellite bands, index, DEM bands and cloud bands according to this workflow:
@@ -565,7 +551,23 @@ ie. for Landsat MSS sensors, <code>ALL_CLOUDS</code> == <code>CLOUDS</code>)</li
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;
+<pre><code class="python"># -*- coding: utf-8 -*-
+# Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/
+# This file is part of eoreader project
+#     https://github.com/sertit/eoreader
+#
+# Licensed under the Apache License, Version 2.0 (the &#34;License&#34;);
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an &#34;AS IS&#34; BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+&#34;&#34;&#34;
 **Source Code**: https://github.com/sertit/eoreader
 
 .. include:: ../documentation/index.md
