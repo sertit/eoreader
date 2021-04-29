@@ -149,7 +149,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     prod.stack(stack_bands, resolution=res, stack_path=curr_path)
 
                     # Test
-                    ci.assert_raster_equal(curr_path, ci_data)
+                    ci.assert_raster_almost_equal(curr_path, ci_data, decimal=6)
 
                 # CRS
                 assert prod.crs().is_projected
