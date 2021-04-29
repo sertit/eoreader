@@ -78,7 +78,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.products.optical.s2_product import S2ProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, rasters
+from sertit import files, rasters, rasters_rio
 from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -291,61 +291,29 @@ class S2TheiaProduct(OpticalProduct):
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
 
-    def open_mask(
-        self,
-        mask_id: str,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-    ) -&gt; np.ndarray:
+    def get_mask_path(self, mask_id: str, res_id: str) -&gt; str:
         &#34;&#34;&#34;
-        Get a Sentinel-2 THEIA mask path.
-        See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
-        information.
+        Get mask path from its id and file_id (`R1` for 10m resolution, `R2` for 20m resolution)
 
         Accepted mask IDs:
 
-        - `DFP`: Defective pixels
+        - `DFP`: Defective pixels (do not always exist ! Will raise `InvalidProductError` if not)
         - `EDG`: Nodata pixels mask
         - `SAT`: Saturated pixels mask
         - `MG2`: Geophysical mask (classification)
         - `IAB`: Mask where water vapor and TOA pixels have been interpolated
         - `CLM`: Cloud mask
 
-
-        ```python
-        &gt;&gt;&gt; from eoreader.bands.alias import *
-        &gt;&gt;&gt; from eoreader.reader import Reader
-        &gt;&gt;&gt; path = r&#34;SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip&#34;
-        &gt;&gt;&gt; prod = Reader().open(path)
-        &gt;&gt;&gt; prod.open_mask(&#34;CLM&#34;, GREEN)
-        array([[[0, ..., 0]]], dtype=uint8)
-        ```
-
         Args:
-            mask_id: Mask ID
-            band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            mask_id (str): Mask ID
+            res_id (str): Resolution ID (`R1` or `R2`)
 
         Returns:
-            np.ndarray: Mask array
-
+            str: Mask path
         &#34;&#34;&#34;
-        # https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
-        # For r_1, the band order is: B2, B3, B4, B8 and for r_2: B5, B6, B7, B8a, B11, B12
-        r_1 = [obn.BLUE, obn.GREEN, obn.RED, obn.NIR]
-        r_2 = [obn.VRE_1, obn.VRE_2, obn.VRE_3, obn.NARROW_NIR, obn.SWIR_1, obn.SWIR_2]
-        if band in r_1:
-            r_x = &#34;R1&#34;
-            bit_id = r_1.index(band)
-        elif band in r_2:
-            r_x = &#34;R2&#34;
-            bit_id = r_2.index(band)
-        else:
-            raise InvalidProductError(f&#34;Invalid band: {band.value}&#34;)
+        assert res_id in [&#34;R1&#34;, &#34;R2&#34;]
 
-        mask_regex = f&#34;*{mask_id}_{r_x}.tif&#34;
+        mask_regex = f&#34;*{mask_id}_{res_id}.tif&#34;
         try:
             if self.is_archived:
                 mask_path = files.get_archived_rio_path(
@@ -360,17 +328,93 @@ class S2TheiaProduct(OpticalProduct):
                 f&#34;Non existing mask {mask_regex} in {self.name}&#34;
             ) from ex
 
+        return mask_path
+
+    def open_mask(
+        self,
+        mask_id: str,
+        band: Union[obn, str],
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; np.ndarray:
+        &#34;&#34;&#34;
+        Open a Sentinel-2 THEIA mask.
+
+        - Opens the saturation and defective mask to the correct bit ID corresponding to the given band.
+        - Opens the nodata binary mask
+        - Opens the other masks as is
+
+        Do not open cloud mask with this function. Use `load` instead.
+
+        See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
+        information.
+
+        Accepted mask IDs:
+
+        - `DFP`: Defective pixels
+        - `EDG`: Nodata pixels mask
+        - `SAT`: Saturated pixels mask
+        - `MG2`: Geophysical mask (classification)
+        - `IAB`: Mask where water vapor and TOA pixels have been interpolated
+
+
+        ```python
+        &gt;&gt;&gt; from eoreader.bands.alias import *
+        &gt;&gt;&gt; from eoreader.reader import Reader
+        &gt;&gt;&gt; path = r&#34;SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip&#34;
+        &gt;&gt;&gt; prod = Reader().open(path)
+        &gt;&gt;&gt; prod.open_mask(&#34;EDG&#34;, GREEN)
+        array([[[0, ..., 0]]], dtype=uint8)
+        ```
+
+        Args:
+            mask_id: Mask ID
+            band (Union[obn, str]): Band name as an OpticalBandNames or resolution ID: [`R1`, `R2`]
+            resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+
+        Returns:
+            np.ndarray: Mask array
+
+        &#34;&#34;&#34;
+        # https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
+        # For r_1, the band order is: B2, B3, B4, B8 and for r_2: B5, B6, B7, B8a, B11, B12
+        res_10m = [obn.BLUE, obn.GREEN, obn.RED, obn.NIR, &#34;R1&#34;]
+        res_20m = [
+            obn.VRE_1,
+            obn.VRE_2,
+            obn.VRE_3,
+            obn.NARROW_NIR,
+            obn.SWIR_1,
+            obn.SWIR_2,
+            &#34;R2&#34;,
+        ]
+        if band in res_10m:
+            bit_id = res_10m.index(band)
+            res_id = &#34;R1&#34;
+        elif band in res_20m:
+            res_id = &#34;R2&#34;
+            bit_id = res_20m.index(band)
+        else:
+            raise InvalidProductError(f&#34;Invalid band: {band.value}&#34;)
+
+        mask_path = self.get_mask_path(mask_id, res_id)
+
         # Open SAT band
-        sat_arr = rasters.read(
+        mask, _ = rasters_rio.read(
             mask_path,
             resolution=resolution,
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
-        ).astype(np.uint8)
-        sat_mask = rasters.read_bit_array(sat_arr, bit_id)
+        )
 
-        return sat_mask
+        if mask_id in [&#34;SAT&#34;, &#34;DFP&#34;]:
+            bit_mask = rasters_rio.read_bit_array(mask, bit_id)
+        else:
+            bit_mask = mask
+
+        return bit_mask
 
     def _load_bands(
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
@@ -519,26 +563,10 @@ class S2TheiaProduct(OpticalProduct):
 
         if bands:
             # Open 20m cloud file if resolution &gt;= 20m
-            cld_file_name = &#34;CLM_R2&#34; if resolution &gt;= 20 else &#34;CLM_R1&#34;
+            res_id = &#34;R2&#34; if resolution &gt;= 20 else &#34;R1&#34;
 
-            if self.is_archived:
-                cloud_path = files.get_archived_rio_path(
-                    self.path, f&#34;.*MASKS.*_{cld_file_name}.tif&#34;
-                )
-            else:
-                cloud_path = files.get_file_in_dir(
-                    os.path.join(self.path, &#34;MASKS&#34;),
-                    f&#34;*_{cld_file_name}.tif&#34;,
-                    exact_name=True,
-                )
-
-            if not cloud_path:
-                raise FileNotFoundError(
-                    f&#34;Unable to find the cloud mask for {self.path}&#34;
-                )
-
-            # Open cloud file
-            clouds_array = rasters.read(
+            cloud_path = self.get_mask_path(&#34;CLM&#34;, res_id)
+            clouds_mask = rasters.read(
                 cloud_path,
                 resolution=resolution,
                 size=size,
@@ -546,7 +574,7 @@ class S2TheiaProduct(OpticalProduct):
             )
 
             # Get nodata mask
-            nodata = np.where(np.isnan(clouds_array), 1, 0)
+            nodata = self.open_mask(&#34;EDG&#34;, res_id, resolution=resolution, size=size)
 
             # Bit ids
             clouds_shadows_id = 0
@@ -555,24 +583,28 @@ class S2TheiaProduct(OpticalProduct):
             shadows_in_id = 5
             shadows_out_id = 6
 
-            for band in bands:
-                if band == ALL_CLOUDS:
-                    band_dict[band] = self._create_mask(
-                        clouds_array, [clouds_shadows_id, cirrus_id], nodata
+            for res_id in bands:
+                if res_id == ALL_CLOUDS:
+                    band_dict[res_id] = self._create_mask(
+                        clouds_mask, [clouds_shadows_id, cirrus_id], nodata
                     )
-                elif band == SHADOWS:
-                    band_dict[band] = self._create_mask(
-                        clouds_array, [shadows_in_id, shadows_out_id], nodata
+                elif res_id == SHADOWS:
+                    band_dict[res_id] = self._create_mask(
+                        clouds_mask, [shadows_in_id, shadows_out_id], nodata
                     )
-                elif band == CLOUDS:
-                    band_dict[band] = self._create_mask(clouds_array, clouds_id, nodata)
-                elif band == CIRRUS:
-                    band_dict[band] = self._create_mask(clouds_array, cirrus_id, nodata)
-                elif band == RAW_CLOUDS:
-                    band_dict[band] = clouds_array
+                elif res_id == CLOUDS:
+                    band_dict[res_id] = self._create_mask(
+                        clouds_mask, clouds_id, nodata
+                    )
+                elif res_id == CIRRUS:
+                    band_dict[res_id] = self._create_mask(
+                        clouds_mask, cirrus_id, nodata
+                    )
+                elif res_id == RAW_CLOUDS:
+                    band_dict[res_id] = clouds_mask
                 else:
                     raise InvalidTypeError(
-                        f&#34;Non existing cloud band for Sentinel-2 THEIA: {band}&#34;
+                        f&#34;Non existing cloud band for Sentinel-2 THEIA: {res_id}&#34;
                     )
 
         return band_dict
@@ -827,61 +859,29 @@ See <a href="https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
 
-    def open_mask(
-        self,
-        mask_id: str,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-    ) -&gt; np.ndarray:
+    def get_mask_path(self, mask_id: str, res_id: str) -&gt; str:
         &#34;&#34;&#34;
-        Get a Sentinel-2 THEIA mask path.
-        See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
-        information.
+        Get mask path from its id and file_id (`R1` for 10m resolution, `R2` for 20m resolution)
 
         Accepted mask IDs:
 
-        - `DFP`: Defective pixels
+        - `DFP`: Defective pixels (do not always exist ! Will raise `InvalidProductError` if not)
         - `EDG`: Nodata pixels mask
         - `SAT`: Saturated pixels mask
         - `MG2`: Geophysical mask (classification)
         - `IAB`: Mask where water vapor and TOA pixels have been interpolated
         - `CLM`: Cloud mask
 
-
-        ```python
-        &gt;&gt;&gt; from eoreader.bands.alias import *
-        &gt;&gt;&gt; from eoreader.reader import Reader
-        &gt;&gt;&gt; path = r&#34;SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip&#34;
-        &gt;&gt;&gt; prod = Reader().open(path)
-        &gt;&gt;&gt; prod.open_mask(&#34;CLM&#34;, GREEN)
-        array([[[0, ..., 0]]], dtype=uint8)
-        ```
-
         Args:
-            mask_id: Mask ID
-            band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            mask_id (str): Mask ID
+            res_id (str): Resolution ID (`R1` or `R2`)
 
         Returns:
-            np.ndarray: Mask array
-
+            str: Mask path
         &#34;&#34;&#34;
-        # https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
-        # For r_1, the band order is: B2, B3, B4, B8 and for r_2: B5, B6, B7, B8a, B11, B12
-        r_1 = [obn.BLUE, obn.GREEN, obn.RED, obn.NIR]
-        r_2 = [obn.VRE_1, obn.VRE_2, obn.VRE_3, obn.NARROW_NIR, obn.SWIR_1, obn.SWIR_2]
-        if band in r_1:
-            r_x = &#34;R1&#34;
-            bit_id = r_1.index(band)
-        elif band in r_2:
-            r_x = &#34;R2&#34;
-            bit_id = r_2.index(band)
-        else:
-            raise InvalidProductError(f&#34;Invalid band: {band.value}&#34;)
+        assert res_id in [&#34;R1&#34;, &#34;R2&#34;]
 
-        mask_regex = f&#34;*{mask_id}_{r_x}.tif&#34;
+        mask_regex = f&#34;*{mask_id}_{res_id}.tif&#34;
         try:
             if self.is_archived:
                 mask_path = files.get_archived_rio_path(
@@ -896,17 +896,93 @@ See <a href="https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-
                 f&#34;Non existing mask {mask_regex} in {self.name}&#34;
             ) from ex
 
+        return mask_path
+
+    def open_mask(
+        self,
+        mask_id: str,
+        band: Union[obn, str],
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -&gt; np.ndarray:
+        &#34;&#34;&#34;
+        Open a Sentinel-2 THEIA mask.
+
+        - Opens the saturation and defective mask to the correct bit ID corresponding to the given band.
+        - Opens the nodata binary mask
+        - Opens the other masks as is
+
+        Do not open cloud mask with this function. Use `load` instead.
+
+        See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
+        information.
+
+        Accepted mask IDs:
+
+        - `DFP`: Defective pixels
+        - `EDG`: Nodata pixels mask
+        - `SAT`: Saturated pixels mask
+        - `MG2`: Geophysical mask (classification)
+        - `IAB`: Mask where water vapor and TOA pixels have been interpolated
+
+
+        ```python
+        &gt;&gt;&gt; from eoreader.bands.alias import *
+        &gt;&gt;&gt; from eoreader.reader import Reader
+        &gt;&gt;&gt; path = r&#34;SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip&#34;
+        &gt;&gt;&gt; prod = Reader().open(path)
+        &gt;&gt;&gt; prod.open_mask(&#34;EDG&#34;, GREEN)
+        array([[[0, ..., 0]]], dtype=uint8)
+        ```
+
+        Args:
+            mask_id: Mask ID
+            band (Union[obn, str]): Band name as an OpticalBandNames or resolution ID: [`R1`, `R2`]
+            resolution (float): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+
+        Returns:
+            np.ndarray: Mask array
+
+        &#34;&#34;&#34;
+        # https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
+        # For r_1, the band order is: B2, B3, B4, B8 and for r_2: B5, B6, B7, B8a, B11, B12
+        res_10m = [obn.BLUE, obn.GREEN, obn.RED, obn.NIR, &#34;R1&#34;]
+        res_20m = [
+            obn.VRE_1,
+            obn.VRE_2,
+            obn.VRE_3,
+            obn.NARROW_NIR,
+            obn.SWIR_1,
+            obn.SWIR_2,
+            &#34;R2&#34;,
+        ]
+        if band in res_10m:
+            bit_id = res_10m.index(band)
+            res_id = &#34;R1&#34;
+        elif band in res_20m:
+            res_id = &#34;R2&#34;
+            bit_id = res_20m.index(band)
+        else:
+            raise InvalidProductError(f&#34;Invalid band: {band.value}&#34;)
+
+        mask_path = self.get_mask_path(mask_id, res_id)
+
         # Open SAT band
-        sat_arr = rasters.read(
+        mask, _ = rasters_rio.read(
             mask_path,
             resolution=resolution,
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
-        ).astype(np.uint8)
-        sat_mask = rasters.read_bit_array(sat_arr, bit_id)
+        )
 
-        return sat_mask
+        if mask_id in [&#34;SAT&#34;, &#34;DFP&#34;]:
+            bit_mask = rasters_rio.read_bit_array(mask, bit_id)
+        else:
+            bit_mask = mask
+
+        return bit_mask
 
     def _load_bands(
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
@@ -1055,26 +1131,10 @@ See <a href="https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-
 
         if bands:
             # Open 20m cloud file if resolution &gt;= 20m
-            cld_file_name = &#34;CLM_R2&#34; if resolution &gt;= 20 else &#34;CLM_R1&#34;
+            res_id = &#34;R2&#34; if resolution &gt;= 20 else &#34;R1&#34;
 
-            if self.is_archived:
-                cloud_path = files.get_archived_rio_path(
-                    self.path, f&#34;.*MASKS.*_{cld_file_name}.tif&#34;
-                )
-            else:
-                cloud_path = files.get_file_in_dir(
-                    os.path.join(self.path, &#34;MASKS&#34;),
-                    f&#34;*_{cld_file_name}.tif&#34;,
-                    exact_name=True,
-                )
-
-            if not cloud_path:
-                raise FileNotFoundError(
-                    f&#34;Unable to find the cloud mask for {self.path}&#34;
-                )
-
-            # Open cloud file
-            clouds_array = rasters.read(
+            cloud_path = self.get_mask_path(&#34;CLM&#34;, res_id)
+            clouds_mask = rasters.read(
                 cloud_path,
                 resolution=resolution,
                 size=size,
@@ -1082,7 +1142,7 @@ See <a href="https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-
             )
 
             # Get nodata mask
-            nodata = np.where(np.isnan(clouds_array), 1, 0)
+            nodata = self.open_mask(&#34;EDG&#34;, res_id, resolution=resolution, size=size)
 
             # Bit ids
             clouds_shadows_id = 0
@@ -1091,24 +1151,28 @@ See <a href="https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-
             shadows_in_id = 5
             shadows_out_id = 6
 
-            for band in bands:
-                if band == ALL_CLOUDS:
-                    band_dict[band] = self._create_mask(
-                        clouds_array, [clouds_shadows_id, cirrus_id], nodata
+            for res_id in bands:
+                if res_id == ALL_CLOUDS:
+                    band_dict[res_id] = self._create_mask(
+                        clouds_mask, [clouds_shadows_id, cirrus_id], nodata
                     )
-                elif band == SHADOWS:
-                    band_dict[band] = self._create_mask(
-                        clouds_array, [shadows_in_id, shadows_out_id], nodata
+                elif res_id == SHADOWS:
+                    band_dict[res_id] = self._create_mask(
+                        clouds_mask, [shadows_in_id, shadows_out_id], nodata
                     )
-                elif band == CLOUDS:
-                    band_dict[band] = self._create_mask(clouds_array, clouds_id, nodata)
-                elif band == CIRRUS:
-                    band_dict[band] = self._create_mask(clouds_array, cirrus_id, nodata)
-                elif band == RAW_CLOUDS:
-                    band_dict[band] = clouds_array
+                elif res_id == CLOUDS:
+                    band_dict[res_id] = self._create_mask(
+                        clouds_mask, clouds_id, nodata
+                    )
+                elif res_id == CIRRUS:
+                    band_dict[res_id] = self._create_mask(
+                        clouds_mask, cirrus_id, nodata
+                    )
+                elif res_id == RAW_CLOUDS:
+                    band_dict[res_id] = clouds_mask
                 else:
                     raise InvalidTypeError(
-                        f&#34;Non existing cloud band for Sentinel-2 THEIA: {band}&#34;
+                        f&#34;Non existing cloud band for Sentinel-2 THEIA: {res_id}&#34;
                     )
 
         return band_dict
@@ -1461,12 +1525,88 @@ datetime.datetime(2019, 6, 25, 10, 57, 28, 756000), fetched from metadata, so we
     return band_paths</code></pre>
 </details>
 </dd>
+<dt id="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_mask_path"><code class="name flex">
+<p>def <span class="ident">get_mask_path</span>(</p><p>self, <br>mask_id, <br>res_id)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Get mask path from its id and file_id (<code>R1</code> for 10m resolution, <code>R2</code> for 20m resolution)</p>
+<p>Accepted mask IDs:</p>
+<ul>
+<li><code>DFP</code>: Defective pixels (do not always exist ! Will raise <code>InvalidProductError</code> if not)</li>
+<li><code>EDG</code>: Nodata pixels mask</li>
+<li><code>SAT</code>: Saturated pixels mask</li>
+<li><code>MG2</code>: Geophysical mask (classification)</li>
+<li><code>IAB</code>: Mask where water vapor and TOA pixels have been interpolated</li>
+<li><code>CLM</code>: Cloud mask</li>
+</ul>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>mask_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>Mask ID</dd>
+<dt><strong><code>res_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>Resolution ID (<code>R1</code> or <code>R2</code>)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>Mask path</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_mask_path(self, mask_id: str, res_id: str) -&gt; str:
+    &#34;&#34;&#34;
+    Get mask path from its id and file_id (`R1` for 10m resolution, `R2` for 20m resolution)
+
+    Accepted mask IDs:
+
+    - `DFP`: Defective pixels (do not always exist ! Will raise `InvalidProductError` if not)
+    - `EDG`: Nodata pixels mask
+    - `SAT`: Saturated pixels mask
+    - `MG2`: Geophysical mask (classification)
+    - `IAB`: Mask where water vapor and TOA pixels have been interpolated
+    - `CLM`: Cloud mask
+
+    Args:
+        mask_id (str): Mask ID
+        res_id (str): Resolution ID (`R1` or `R2`)
+
+    Returns:
+        str: Mask path
+    &#34;&#34;&#34;
+    assert res_id in [&#34;R1&#34;, &#34;R2&#34;]
+
+    mask_regex = f&#34;*{mask_id}_{res_id}.tif&#34;
+    try:
+        if self.is_archived:
+            mask_path = files.get_archived_rio_path(
+                self.path, mask_regex.replace(&#34;*&#34;, &#34;.*&#34;)
+            )
+        else:
+            mask_path = files.get_file_in_dir(
+                os.path.join(self.path, &#34;MASKS&#34;), mask_regex, exact_name=True
+            )
+    except (FileNotFoundError, IndexError) as ex:
+        raise InvalidProductError(
+            f&#34;Non existing mask {mask_regex} in {self.name}&#34;
+        ) from ex
+
+    return mask_path</code></pre>
+</details>
+</dd>
 <dt id="eoreader.products.optical.s2_theia_product.S2TheiaProduct.open_mask"><code class="name flex">
 <p>def <span class="ident">open_mask</span>(</p><p>self, <br>mask_id, <br>band, <br>resolution=None, <br>size=None)</p>
 </code></dt>
 <dd>
-<div class="desc"><p>Get a Sentinel-2 THEIA mask path.
-See <a href="https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/">here</a> for more
+<div class="desc"><p>Open a Sentinel-2 THEIA mask.</p>
+<ul>
+<li>Opens the saturation and defective mask to the correct bit ID corresponding to the given band.</li>
+<li>Opens the nodata binary mask</li>
+<li>Opens the other masks as is</li>
+</ul>
+<p>Do not open cloud mask with this function. Use <code>load</code> instead.</p>
+<p>See <a href="https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/">here</a> for more
 information.</p>
 <p>Accepted mask IDs:</p>
 <ul>
@@ -1475,21 +1615,20 @@ information.</p>
 <li><code>SAT</code>: Saturated pixels mask</li>
 <li><code>MG2</code>: Geophysical mask (classification)</li>
 <li><code>IAB</code>: Mask where water vapor and TOA pixels have been interpolated</li>
-<li><code>CLM</code>: Cloud mask</li>
 </ul>
 <pre><code class="language-python">&gt;&gt;&gt; from eoreader.bands.alias import *
 &gt;&gt;&gt; from eoreader.reader import Reader
 &gt;&gt;&gt; path = r&quot;SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip&quot;
 &gt;&gt;&gt; prod = Reader().open(path)
-&gt;&gt;&gt; prod.open_mask(&quot;CLM&quot;, GREEN)
+&gt;&gt;&gt; prod.open_mask(&quot;EDG&quot;, GREEN)
 array([[[0, ..., 0]]], dtype=uint8)
 </code></pre>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>mask_id</code></strong></dt>
 <dd>Mask ID</dd>
-<dt><strong><code>band</code></strong> :&ensp;<code>obn</code></dt>
-<dd>Band name as an OpticalBandNames</dd>
+<dt><strong><code>band</code></strong> :&ensp;<code>Union[obn, str]</code></dt>
+<dd>Band name as an OpticalBandNames or resolution ID: [<code>R1</code>, <code>R2</code>]</dd>
 <dt><strong><code>resolution</code></strong> :&ensp;<code>float</code></dt>
 <dd>Band resolution in meters</dd>
 <dt><strong><code>size</code></strong> :&ensp;<code>Union[tuple, list]</code></dt>
@@ -1507,12 +1646,19 @@ array([[[0, ..., 0]]], dtype=uint8)
 <pre><code class="python">def open_mask(
     self,
     mask_id: str,
-    band: obn,
+    band: Union[obn, str],
     resolution: float = None,
     size: Union[list, tuple] = None,
 ) -&gt; np.ndarray:
     &#34;&#34;&#34;
-    Get a Sentinel-2 THEIA mask path.
+    Open a Sentinel-2 THEIA mask.
+
+    - Opens the saturation and defective mask to the correct bit ID corresponding to the given band.
+    - Opens the nodata binary mask
+    - Opens the other masks as is
+
+    Do not open cloud mask with this function. Use `load` instead.
+
     See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
     information.
 
@@ -1523,7 +1669,6 @@ array([[[0, ..., 0]]], dtype=uint8)
     - `SAT`: Saturated pixels mask
     - `MG2`: Geophysical mask (classification)
     - `IAB`: Mask where water vapor and TOA pixels have been interpolated
-    - `CLM`: Cloud mask
 
 
     ```python
@@ -1531,13 +1676,13 @@ array([[[0, ..., 0]]], dtype=uint8)
     &gt;&gt;&gt; from eoreader.reader import Reader
     &gt;&gt;&gt; path = r&#34;SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip&#34;
     &gt;&gt;&gt; prod = Reader().open(path)
-    &gt;&gt;&gt; prod.open_mask(&#34;CLM&#34;, GREEN)
+    &gt;&gt;&gt; prod.open_mask(&#34;EDG&#34;, GREEN)
     array([[[0, ..., 0]]], dtype=uint8)
     ```
 
     Args:
         mask_id: Mask ID
-        band (obn): Band name as an OpticalBandNames
+        band (Union[obn, str]): Band name as an OpticalBandNames or resolution ID: [`R1`, `R2`]
         resolution (float): Band resolution in meters
         size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
@@ -1547,43 +1692,42 @@ array([[[0, ..., 0]]], dtype=uint8)
     &#34;&#34;&#34;
     # https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
     # For r_1, the band order is: B2, B3, B4, B8 and for r_2: B5, B6, B7, B8a, B11, B12
-    r_1 = [obn.BLUE, obn.GREEN, obn.RED, obn.NIR]
-    r_2 = [obn.VRE_1, obn.VRE_2, obn.VRE_3, obn.NARROW_NIR, obn.SWIR_1, obn.SWIR_2]
-    if band in r_1:
-        r_x = &#34;R1&#34;
-        bit_id = r_1.index(band)
-    elif band in r_2:
-        r_x = &#34;R2&#34;
-        bit_id = r_2.index(band)
+    res_10m = [obn.BLUE, obn.GREEN, obn.RED, obn.NIR, &#34;R1&#34;]
+    res_20m = [
+        obn.VRE_1,
+        obn.VRE_2,
+        obn.VRE_3,
+        obn.NARROW_NIR,
+        obn.SWIR_1,
+        obn.SWIR_2,
+        &#34;R2&#34;,
+    ]
+    if band in res_10m:
+        bit_id = res_10m.index(band)
+        res_id = &#34;R1&#34;
+    elif band in res_20m:
+        res_id = &#34;R2&#34;
+        bit_id = res_20m.index(band)
     else:
         raise InvalidProductError(f&#34;Invalid band: {band.value}&#34;)
 
-    mask_regex = f&#34;*{mask_id}_{r_x}.tif&#34;
-    try:
-        if self.is_archived:
-            mask_path = files.get_archived_rio_path(
-                self.path, mask_regex.replace(&#34;*&#34;, &#34;.*&#34;)
-            )
-        else:
-            mask_path = files.get_file_in_dir(
-                os.path.join(self.path, &#34;MASKS&#34;), mask_regex, exact_name=True
-            )
-    except (FileNotFoundError, IndexError) as ex:
-        raise InvalidProductError(
-            f&#34;Non existing mask {mask_regex} in {self.name}&#34;
-        ) from ex
+    mask_path = self.get_mask_path(mask_id, res_id)
 
     # Open SAT band
-    sat_arr = rasters.read(
+    mask, _ = rasters_rio.read(
         mask_path,
         resolution=resolution,
         size=size,
         resampling=Resampling.nearest,  # Nearest to keep the flags
         masked=False,
-    ).astype(np.uint8)
-    sat_mask = rasters.read_bit_array(sat_arr, bit_id)
+    )
 
-    return sat_mask</code></pre>
+    if mask_id in [&#34;SAT&#34;, &#34;DFP&#34;]:
+        bit_mask = rasters_rio.read_bit_array(mask, bit_id)
+    else:
+        bit_mask = mask
+
+    return bit_mask</code></pre>
 </details>
 </dd>
 <dt id="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_mean_sun_angles"><code class="name flex">
@@ -1888,6 +2032,7 @@ setTimeout(() => input.focus(), 100);
 <ul class="">
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_datetime" href="#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_datetime">get_datetime</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_band_paths" href="#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_band_paths">get_band_paths</a></code></li>
+<li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_mask_path" href="#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_mask_path">get_mask_path</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.open_mask" href="#eoreader.products.optical.s2_theia_product.S2TheiaProduct.open_mask">open_mask</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_mean_sun_angles" href="#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_mean_sun_angles">get_mean_sun_angles</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.read_mtd" href="#eoreader.products.optical.s2_theia_product.S2TheiaProduct.read_mtd">read_mtd</a></code></li>
