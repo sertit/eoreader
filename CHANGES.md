@@ -1,6 +1,8 @@
 # Release History
 
-## 0.3.1 (YYYY-MM-DD)
+## X.Y.Z (YYYY-MM-DD)
+
+## 0.3.1 (2021-04-29)
 
 - Multiple optimizations when reading and processing the bands
 - Bug resolutions:
