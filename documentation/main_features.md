@@ -56,12 +56,6 @@ datetime.datetime(2020, 8, 24, 11, 6, 31)
 >>> prod.read_mtd()
 ```
 
-See the difference between footprint and extent hereunder:
-
-|Without nodata | With nodata|
-|--- | ---|
-| ![without_nodata](https://zupimages.net/up/21/14/69i6.gif) | ![with_nodata](https://zupimages.net/up/21/14/vg6w.gif) |
-
 ## Load
 
 `eoreader.products.product.Product.load` is the function for accessing to product-related bands.

@@ -21,3 +21,6 @@ CI/DATA/*/*_SLOPE.tif
 build/
 *.egg-info/
 dist/
+
+# Notebooks
+.ipynb_checkpoints
