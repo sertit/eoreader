@@ -13,6 +13,7 @@
 - CI:
   - Testing footprints and extent
   - Resolving non update of gitlab documentation
+  - Changing the resolution of CI processes (to a multiple of the real resolution to speed up the computation)
 
 ## 0.3.1 (2021-04-29)
 
