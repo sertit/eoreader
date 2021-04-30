@@ -4,6 +4,10 @@
 
 ## 0.3.1 (2021-04-29)
 
+- Correcting a broken link in setup.py
+
+## 0.3.1 (2021-04-29)
+
 - Multiple optimizations when reading and processing the bands
 - Bug resolutions:
   - S2-Theia masks
