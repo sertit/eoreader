@@ -70,3 +70,21 @@ Available notebooks provided as examples:
 EOReader depends mainly on `geopandas` and `rasterio`.
 (with GDAL installation issues on Windows, so please install them from wheels that you can
 find [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio)).
+
+
+## License
+
+**EOReader** is licensed under Apache License v2.0. See LICENSE file for details.
+
+##Authors
+
+**EOReader** has been created by [ICube-SERTIT](https://sertit.unistra.fr/).
+
+## Credits
+
+**EOReader** is built on top of amazing libs, without which it couldn't have been coded:
+
+- [`geopandas`](https://geopandas.org/)
+- [`rasterio`](https://rasterio.readthedocs.io/en/latest/)
+- [`xarray`](http://xarray.pydata.org/en/stable/)
+- [`rioxarray`](https://corteva.github.io/rioxarray/stable/)
