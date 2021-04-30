@@ -17,7 +17,6 @@ from sertit import ci, files, logs
 from .scripts_utils import OPT_PATH, READER, SAR_PATH, get_ci_data_dir, get_db_dir
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-RES = 1000  # 1000m
 
 try:
     merit_dem = os.path.join(
@@ -117,7 +116,6 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     else:
                         if CI_EOREADER_BAND_FOLDER in os.environ:
                             os.environ.pop(CI_EOREADER_BAND_FOLDER)
-                    os.environ[SAR_DEF_RES] = str(RES)
 
                     # Extent
                     LOGGER.info("Checking extent")
@@ -152,11 +150,9 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     ]
 
                     # Manage S3 resolution to speed up processes
-                    if prod.sat_id == "S3":
-                        res = RES * prod.resolution / 20.0
-                        os.environ[S3_DEF_RES] = str(res)
-                    else:
-                        res = RES
+                    res = prod.resolution * 50
+                    os.environ[S3_DEF_RES] = str(res)
+                    os.environ[SAR_DEF_RES] = str(res)
 
                     # Stack data
                     ci_data = os.path.join(

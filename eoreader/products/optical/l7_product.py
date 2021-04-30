@@ -69,7 +69,7 @@ class L7Product(LandsatProduct):
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
         LOGGER.warning(
-            "Due to the Landsat-7 gaps, this function may be slow due to the large amount of vertices. "
+            "Due to the Landsat-7 gaps, this function returns a rounded footprint on the corners. "
             "Sorry for the inconvenience."
         )
 

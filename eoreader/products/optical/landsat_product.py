@@ -36,7 +36,7 @@ from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, rasters
+from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
@@ -163,9 +163,8 @@ class LandsatProduct(OpticalProduct):
         """
         nodata_band = self._get_path(self._nodata_band_id)
 
-        # Vectorize the nodata band
-        # Take the convex hull to discard the stripes of L7
-        footprint = rasters.vectorize(
+        # Vectorize the nodata band (rasters_rio is faster)
+        footprint = rasters_rio.vectorize(
             nodata_band, values=1, keep_values=False, dissolve=True
         ).convex_hull
 
