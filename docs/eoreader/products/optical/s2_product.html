@@ -187,6 +187,27 @@ class S2Product(OpticalProduct):
         else:
             raise InvalidProductError(f&#34;Invalid Sentinel-2 name: {self.name}&#34;)
 
+    def footprint(self) -&gt; gpd.GeoDataFrame:
+        &#34;&#34;&#34;
+        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+
+        ```python
+        &gt;&gt;&gt; from eoreader.reader import Reader
+        &gt;&gt;&gt; path = r&#34;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&#34;
+        &gt;&gt;&gt; prod = Reader().open(path)
+        &gt;&gt;&gt; prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
+        ```
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        &#34;&#34;&#34;
+        def_band = self.band_names[self.get_default_band()]
+        det_footprint = self.open_mask(&#34;DETFOO&#34;, def_band)
+        footprint_gs = det_footprint.dissolve().convex_hull
+        return gpd.GeoDataFrame(geometry=footprint_gs.geometry, crs=footprint_gs.crs)
+
     def get_datetime(self, as_datetime: bool = False) -&gt; Union[str, datetime]:
         &#34;&#34;&#34;
         Get the product&#39;s acquisition datetime, with format `YYYYMMDDTHHMMSS` &lt;-&gt; `%Y%m%dT%H%M%S`
@@ -866,6 +887,27 @@ class S2Product(OpticalProduct):
             )
         else:
             raise InvalidProductError(f&#34;Invalid Sentinel-2 name: {self.name}&#34;)
+
+    def footprint(self) -&gt; gpd.GeoDataFrame:
+        &#34;&#34;&#34;
+        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+
+        ```python
+        &gt;&gt;&gt; from eoreader.reader import Reader
+        &gt;&gt;&gt; path = r&#34;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&#34;
+        &gt;&gt;&gt; prod = Reader().open(path)
+        &gt;&gt;&gt; prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
+        ```
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        &#34;&#34;&#34;
+        def_band = self.band_names[self.get_default_band()]
+        det_footprint = self.open_mask(&#34;DETFOO&#34;, def_band)
+        footprint_gs = det_footprint.dissolve().convex_hull
+        return gpd.GeoDataFrame(geometry=footprint_gs.geometry, crs=footprint_gs.crs)
 
     def get_datetime(self, as_datetime: bool = False) -&gt; Union[str, datetime]:
         &#34;&#34;&#34;
@@ -1611,6 +1653,41 @@ Used to shorten names and paths.</p></div>
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="eoreader.products.optical.s2_product.S2Product.footprint"><code class="name flex">
+<p>def <span class="ident">footprint</span>(</p><p>self)</p>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="eoreader.products.optical.optical_product.OpticalProduct" href="optical_product.html#eoreader.products.optical.optical_product.OpticalProduct">OpticalProduct</a></code>.<code><a title="eoreader.products.optical.optical_product.OpticalProduct.footprint" href="../product.html#eoreader.products.optical.optical_product.OpticalProduct.footprint">footprint</a></code>
+</p>
+<div class="desc inherited"><p>Get UTM footprint of the products (without nodata, <em>in french == emprise utile</em>) …</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def footprint(self) -&gt; gpd.GeoDataFrame:
+    &#34;&#34;&#34;
+    Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+
+    ```python
+    &gt;&gt;&gt; from eoreader.reader import Reader
+    &gt;&gt;&gt; path = r&#34;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&#34;
+    &gt;&gt;&gt; prod = Reader().open(path)
+    &gt;&gt;&gt; prod.footprint()
+       index                                           geometry
+    0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
+    ```
+
+    Returns:
+        gpd.GeoDataFrame: Footprint as a GeoDataFrame
+    &#34;&#34;&#34;
+    def_band = self.band_names[self.get_default_band()]
+    det_footprint = self.open_mask(&#34;DETFOO&#34;, def_band)
+    footprint_gs = det_footprint.dissolve().convex_hull
+    return gpd.GeoDataFrame(geometry=footprint_gs.geometry, crs=footprint_gs.crs)</code></pre>
+</details>
+</dd>
 <dt id="eoreader.products.optical.s2_product.S2Product.get_datetime"><code class="name flex">
 <p>def <span class="ident">get_datetime</span>(</p><p>self, <br>as_datetime=False)</p>
 </code></dt>
@@ -2035,16 +2112,6 @@ Index: []
 </p>
 <div class="desc inherited"><p>Return the existing band paths …</p></div>
 </dd>
-<dt id="eoreader.products.optical.s2_product.S2Product.footprint"><code class="name flex">
-<p>def <span class="ident">footprint</span>(</p><p>self)</p>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="eoreader.products.optical.optical_product.OpticalProduct" href="optical_product.html#eoreader.products.optical.optical_product.OpticalProduct">OpticalProduct</a></code>.<code><a title="eoreader.products.optical.optical_product.OpticalProduct.footprint" href="../product.html#eoreader.products.optical.optical_product.OpticalProduct.footprint">footprint</a></code>
-</p>
-<div class="desc inherited"><p>Get UTM footprint of the products (without nodata, <em>in french == emprise utile</em>) …</p></div>
-</dd>
 <dt id="eoreader.products.optical.s2_product.S2Product.get_date"><code class="name flex">
 <p>def <span class="ident">get_date</span>(</p><p>self, <br>as_date=False)</p>
 </code></dt>
@@ -2181,6 +2248,7 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li>
 <ul class="">
+<li><code><a title="eoreader.products.optical.s2_product.S2Product.footprint" href="#eoreader.products.optical.s2_product.S2Product.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.get_datetime" href="#eoreader.products.optical.s2_product.S2Product.get_datetime">get_datetime</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.get_band_paths" href="#eoreader.products.optical.s2_product.S2Product.get_band_paths">get_band_paths</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.open_mask" href="#eoreader.products.optical.s2_product.S2Product.open_mask">open_mask</a></code></li>
@@ -2192,7 +2260,6 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.extent" href="optical_product.html#eoreader.products.optical.s2_product.S2Product.extent">extent</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.get_existing_bands" href="optical_product.html#eoreader.products.optical.s2_product.S2Product.get_existing_bands">get_existing_bands</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.get_existing_band_paths" href="optical_product.html#eoreader.products.optical.s2_product.S2Product.get_existing_band_paths">get_existing_band_paths</a></code></li>
-<li><code><a title="eoreader.products.optical.s2_product.S2Product.footprint" href="../product.html#eoreader.products.optical.s2_product.S2Product.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.get_date" href="../product.html#eoreader.products.optical.s2_product.S2Product.get_date">get_date</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.load" href="../product.html#eoreader.products.optical.s2_product.S2Product.load">load</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_product.S2Product.has_band" href="../product.html#eoreader.products.optical.s2_product.S2Product.has_band">has_band</a></code></li>

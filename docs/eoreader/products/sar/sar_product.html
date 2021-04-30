@@ -171,6 +171,26 @@ class SarProduct(Product):
         self._set_sensor_mode()
         self.pol_channels = self._get_raw_bands()
 
+    def footprint(self) -&gt; gpd.GeoDataFrame:
+        &#34;&#34;&#34;
+        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+
+        ```python
+        &gt;&gt;&gt; from eoreader.reader import Reader
+        &gt;&gt;&gt; path = r&#34;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&#34;
+        &gt;&gt;&gt; prod = Reader().open(path)
+        &gt;&gt;&gt; prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
+        ```
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        &#34;&#34;&#34;
+        return rasters.get_footprint(
+            self.get_default_band_path()
+        )  # Processed by SNAP: the nodata is set
+
     def get_default_band(self) -&gt; BandNames:
         &#34;&#34;&#34;
         Get default band:
@@ -916,6 +936,26 @@ class SarProduct(Product):
         self.band_names = SarBands()
         self._set_sensor_mode()
         self.pol_channels = self._get_raw_bands()
+
+    def footprint(self) -&gt; gpd.GeoDataFrame:
+        &#34;&#34;&#34;
+        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+
+        ```python
+        &gt;&gt;&gt; from eoreader.reader import Reader
+        &gt;&gt;&gt; path = r&#34;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&#34;
+        &gt;&gt;&gt; prod = Reader().open(path)
+        &gt;&gt;&gt; prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
+        ```
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        &#34;&#34;&#34;
+        return rasters.get_footprint(
+            self.get_default_band_path()
+        )  # Processed by SNAP: the nodata is set
 
     def get_default_band(self) -&gt; BandNames:
         &#34;&#34;&#34;
@@ -1778,6 +1818,40 @@ Used to shorten names and paths.</p></div>
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="eoreader.products.sar.sar_product.SarProduct.footprint"><code class="name flex">
+<p>def <span class="ident">footprint</span>(</p><p>self)</p>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="eoreader.products.product.Product" href="../product.html#eoreader.products.product.Product">Product</a></code>.<code><a title="eoreader.products.product.Product.footprint" href="../product.html#eoreader.products.product.Product.footprint">footprint</a></code>
+</p>
+<div class="desc inherited"><p>Get UTM footprint of the products (without nodata, <em>in french == emprise utile</em>) …</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def footprint(self) -&gt; gpd.GeoDataFrame:
+    &#34;&#34;&#34;
+    Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+
+    ```python
+    &gt;&gt;&gt; from eoreader.reader import Reader
+    &gt;&gt;&gt; path = r&#34;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&#34;
+    &gt;&gt;&gt; prod = Reader().open(path)
+    &gt;&gt;&gt; prod.footprint()
+       index                                           geometry
+    0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
+    ```
+
+    Returns:
+        gpd.GeoDataFrame: Footprint as a GeoDataFrame
+    &#34;&#34;&#34;
+    return rasters.get_footprint(
+        self.get_default_band_path()
+    )  # Processed by SNAP: the nodata is set</code></pre>
+</details>
+</dd>
 <dt id="eoreader.products.sar.sar_product.SarProduct.get_default_band"><code class="name flex">
 <p>def <span class="ident">get_default_band</span>(</p><p>self)</p>
 </code></dt>
@@ -2246,16 +2320,6 @@ Executing processing graph
     return list(band_paths.keys())</code></pre>
 </details>
 </dd>
-<dt id="eoreader.products.sar.sar_product.SarProduct.footprint"><code class="name flex">
-<p>def <span class="ident">footprint</span>(</p><p>self)</p>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="eoreader.products.product.Product" href="../product.html#eoreader.products.product.Product">Product</a></code>.<code><a title="eoreader.products.product.Product.footprint" href="../product.html#eoreader.products.product.Product.footprint">footprint</a></code>
-</p>
-<div class="desc inherited"><p>Get UTM footprint of the products (without nodata, <em>in french == emprise utile</em>) …</p></div>
-</dd>
 <dt id="eoreader.products.sar.sar_product.SarProduct.get_datetime"><code class="name flex">
 <p>def <span class="ident">get_datetime</span>(</p><p>self, <br>as_datetime=False)</p>
 </code></dt>
@@ -2414,6 +2478,7 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li>
 <ul class="">
+<li><code><a title="eoreader.products.sar.sar_product.SarProduct.footprint" href="#eoreader.products.sar.sar_product.SarProduct.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.get_default_band" href="#eoreader.products.sar.sar_product.SarProduct.get_default_band">get_default_band</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.get_default_band_path" href="#eoreader.products.sar.sar_product.SarProduct.get_default_band_path">get_default_band_path</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.wgs84_extent" href="#eoreader.products.sar.sar_product.SarProduct.wgs84_extent">wgs84_extent</a></code></li>
@@ -2422,7 +2487,6 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.get_band_paths" href="#eoreader.products.sar.sar_product.SarProduct.get_band_paths">get_band_paths</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.get_existing_band_paths" href="#eoreader.products.sar.sar_product.SarProduct.get_existing_band_paths">get_existing_band_paths</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.get_existing_bands" href="#eoreader.products.sar.sar_product.SarProduct.get_existing_bands">get_existing_bands</a></code></li>
-<li><code><a title="eoreader.products.sar.sar_product.SarProduct.footprint" href="../product.html#eoreader.products.sar.sar_product.SarProduct.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.get_datetime" href="../product.html#eoreader.products.sar.sar_product.SarProduct.get_datetime">get_datetime</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.get_date" href="../product.html#eoreader.products.sar.sar_product.SarProduct.get_date">get_date</a></code></li>
 <li><code><a title="eoreader.products.sar.sar_product.SarProduct.read_mtd" href="../product.html#eoreader.products.sar.sar_product.SarProduct.read_mtd">read_mtd</a></code></li>
