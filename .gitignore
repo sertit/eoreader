@@ -16,6 +16,7 @@ CI/DATA/*/*_DEM.tif
 !CI/DATA/*/*_S3_*_DEM.tif
 CI/DATA/*/*_HILLSHADE.tif
 CI/DATA/*/*_SLOPE.tif
+CI/DATA/OUTPUT/*
 
 # Build options
 build/
