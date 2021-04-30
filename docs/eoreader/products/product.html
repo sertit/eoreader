@@ -278,7 +278,10 @@ class Product:
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         &#34;&#34;&#34;
-        default_xda = self.load(self.get_default_band())
+        def_band = self.get_default_band()
+        default_xda = self.load(def_band)[
+            def_band
+        ]  # Forced to load as the nodata may not be positioned by default
         return rasters.get_footprint(default_xda)
 
     @abstractmethod
@@ -1544,7 +1547,10 @@ True
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         &#34;&#34;&#34;
-        default_xda = self.load(self.get_default_band())
+        def_band = self.get_default_band()
+        default_xda = self.load(def_band)[
+            def_band
+        ]  # Forced to load as the nodata may not be positioned by default
         return rasters.get_footprint(default_xda)
 
     @abstractmethod
@@ -2700,7 +2706,10 @@ Used to shorten names and paths.</p></div>
     Returns:
         gpd.GeoDataFrame: Footprint as a GeoDataFrame
     &#34;&#34;&#34;
-    default_xda = self.load(self.get_default_band())
+    def_band = self.get_default_band()
+    default_xda = self.load(def_band)[
+        def_band
+    ]  # Forced to load as the nodata may not be positioned by default
     return rasters.get_footprint(default_xda)</code></pre>
 </details>
 </dd>

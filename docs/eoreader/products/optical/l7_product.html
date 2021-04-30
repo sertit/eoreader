@@ -53,7 +53,15 @@ integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></sc
 # See the License for the specific language governing permissions and
 # limitations under the License.
 &#34;&#34;&#34; Landsat-7 products &#34;&#34;&#34;
+import logging
+
+import geopandas as gpd
+
 from eoreader.products.optical.landsat_product import LandsatProduct
+from eoreader.utils import EOREADER_NAME
+from sertit import rasters
+
+LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 class L7Product(LandsatProduct):
@@ -68,7 +76,58 @@ class L7Product(LandsatProduct):
 
     def _set_product_type(self) -&gt; None:
         &#34;&#34;&#34;Get products type&#34;&#34;&#34;
-        self._set_etm_product_type()</code></pre>
+        self._set_etm_product_type()
+
+    def footprint(self) -&gt; gpd.GeoDataFrame:
+        &#34;&#34;&#34;
+        Get real footprint of the products (without nodata, in french == emprise utile)
+
+        .. WARNING::
+            As Landsat 7 is broken (with nodata stripes all over the bands),
+            the footprint is not easily computed and may take some time to be delivered.
+
+        ```python
+        &gt;&gt;&gt; from eoreader.reader import Reader
+        &gt;&gt;&gt; path = r&#34;LC08_L1GT_023030_20200518_20200527_01_T2&#34;
+        &gt;&gt;&gt; prod = Reader().open(path)
+        &gt;&gt;&gt; prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
+        ```
+
+        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+        Indeed, nodata pixels vary according to the band sensor footprint,
+        whereas QA nodata is where at least one band has nodata.
+
+        We chose to keep QA nodata values for the footprint in order to show where all bands are valid.
+
+        **TL;DR: We use the QA nodata value to determine the product&#39;s footprint**.
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        &#34;&#34;&#34;
+        LOGGER.warning(
+            &#34;Due to the Landsat-7 gaps, this function returns a rounded footprint on the corners. &#34;
+            &#34;Sorry for the inconvenience.&#34;
+        )
+
+        # Read the file with a very low resolution -&gt; use raster_rio that is faster !
+        gap_msk = rasters.read(
+            self._get_path(self._nodata_band_id),
+            resolution=self.resolution * 50,
+            masked=False,
+        )
+
+        # Vectorize the nodata band
+        # Take the convex hull to discard the stripes of L7 to simplify the geometries
+        footprint = rasters.vectorize(
+            gap_msk, values=1, keep_values=False, dissolve=True
+        )
+
+        # Needs a dataframe to be dissolved
+        footprint = footprint.convex_hull
+
+        return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)</code></pre>
 </details>
 </section>
 <section>
@@ -102,7 +161,58 @@ class L7Product(LandsatProduct):
 
     def _set_product_type(self) -&gt; None:
         &#34;&#34;&#34;Get products type&#34;&#34;&#34;
-        self._set_etm_product_type()</code></pre>
+        self._set_etm_product_type()
+
+    def footprint(self) -&gt; gpd.GeoDataFrame:
+        &#34;&#34;&#34;
+        Get real footprint of the products (without nodata, in french == emprise utile)
+
+        .. WARNING::
+            As Landsat 7 is broken (with nodata stripes all over the bands),
+            the footprint is not easily computed and may take some time to be delivered.
+
+        ```python
+        &gt;&gt;&gt; from eoreader.reader import Reader
+        &gt;&gt;&gt; path = r&#34;LC08_L1GT_023030_20200518_20200527_01_T2&#34;
+        &gt;&gt;&gt; prod = Reader().open(path)
+        &gt;&gt;&gt; prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
+        ```
+
+        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+        Indeed, nodata pixels vary according to the band sensor footprint,
+        whereas QA nodata is where at least one band has nodata.
+
+        We chose to keep QA nodata values for the footprint in order to show where all bands are valid.
+
+        **TL;DR: We use the QA nodata value to determine the product&#39;s footprint**.
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        &#34;&#34;&#34;
+        LOGGER.warning(
+            &#34;Due to the Landsat-7 gaps, this function returns a rounded footprint on the corners. &#34;
+            &#34;Sorry for the inconvenience.&#34;
+        )
+
+        # Read the file with a very low resolution -&gt; use raster_rio that is faster !
+        gap_msk = rasters.read(
+            self._get_path(self._nodata_band_id),
+            resolution=self.resolution * 50,
+            masked=False,
+        )
+
+        # Vectorize the nodata band
+        # Take the convex hull to discard the stripes of L7 to simplify the geometries
+        footprint = rasters.vectorize(
+            gap_msk, values=1, keep_values=False, dissolve=True
+        )
+
+        # Needs a dataframe to be dissolved
+        footprint = footprint.convex_hull
+
+        return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -306,11 +416,84 @@ Used to shorten names and paths.</p></div>
 <p>def <span class="ident">footprint</span>(</p><p>self)</p>
 </code></dt>
 <dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="eoreader.products.optical.landsat_product.LandsatProduct" href="landsat_product.html#eoreader.products.optical.landsat_product.LandsatProduct">LandsatProduct</a></code>.<code><a title="eoreader.products.optical.landsat_product.LandsatProduct.footprint" href="landsat_product.html#eoreader.products.optical.landsat_product.LandsatProduct.footprint">footprint</a></code>
-</p>
-<div class="desc inherited"><p>Get real footprint of the products (without nodata, in french == emprise utile) …</p></div>
+<div class="desc"><p>Get real footprint of the products (without nodata, in french == emprise utile)</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>As Landsat 7 is broken (with nodata stripes all over the bands),
+the footprint is not easily computed and may take some time to be delivered.</p>
+</div>
+<pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
+&gt;&gt;&gt; path = r&quot;LC08_L1GT_023030_20200518_20200527_01_T2&quot;
+&gt;&gt;&gt; prod = Reader().open(path)
+&gt;&gt;&gt; prod.footprint()
+   index                                           geometry
+0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
+</code></pre>
+<p>Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+Indeed, nodata pixels vary according to the band sensor footprint,
+whereas QA nodata is where at least one band has nodata.</p>
+<p>We chose to keep QA nodata values for the footprint in order to show where all bands are valid.</p>
+<p><strong>TL;DR: We use the QA nodata value to determine the product's footprint</strong>.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>gpd.GeoDataFrame</code></dt>
+<dd>Footprint as a GeoDataFrame</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def footprint(self) -&gt; gpd.GeoDataFrame:
+    &#34;&#34;&#34;
+    Get real footprint of the products (without nodata, in french == emprise utile)
+
+    .. WARNING::
+        As Landsat 7 is broken (with nodata stripes all over the bands),
+        the footprint is not easily computed and may take some time to be delivered.
+
+    ```python
+    &gt;&gt;&gt; from eoreader.reader import Reader
+    &gt;&gt;&gt; path = r&#34;LC08_L1GT_023030_20200518_20200527_01_T2&#34;
+    &gt;&gt;&gt; prod = Reader().open(path)
+    &gt;&gt;&gt; prod.footprint()
+       index                                           geometry
+    0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
+    ```
+
+    Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+    Indeed, nodata pixels vary according to the band sensor footprint,
+    whereas QA nodata is where at least one band has nodata.
+
+    We chose to keep QA nodata values for the footprint in order to show where all bands are valid.
+
+    **TL;DR: We use the QA nodata value to determine the product&#39;s footprint**.
+
+    Returns:
+        gpd.GeoDataFrame: Footprint as a GeoDataFrame
+    &#34;&#34;&#34;
+    LOGGER.warning(
+        &#34;Due to the Landsat-7 gaps, this function returns a rounded footprint on the corners. &#34;
+        &#34;Sorry for the inconvenience.&#34;
+    )
+
+    # Read the file with a very low resolution -&gt; use raster_rio that is faster !
+    gap_msk = rasters.read(
+        self._get_path(self._nodata_band_id),
+        resolution=self.resolution * 50,
+        masked=False,
+    )
+
+    # Vectorize the nodata band
+    # Take the convex hull to discard the stripes of L7 to simplify the geometries
+    footprint = rasters.vectorize(
+        gap_msk, values=1, keep_values=False, dissolve=True
+    )
+
+    # Needs a dataframe to be dissolved
+    footprint = footprint.convex_hull
+
+    return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)</code></pre>
+</details>
 </dd>
 <dt id="eoreader.products.optical.l7_product.L7Product.get_datetime"><code class="name flex">
 <p>def <span class="ident">get_datetime</span>(</p><p>self, <br>as_datetime=False)</p>
@@ -531,7 +714,7 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li>
 <ul class="">
-<li><code><a title="eoreader.products.optical.l7_product.L7Product.footprint" href="landsat_product.html#eoreader.products.optical.l7_product.L7Product.footprint">footprint</a></code></li>
+<li><code><a title="eoreader.products.optical.l7_product.L7Product.footprint" href="#eoreader.products.optical.l7_product.L7Product.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.optical.l7_product.L7Product.get_datetime" href="landsat_product.html#eoreader.products.optical.l7_product.L7Product.get_datetime">get_datetime</a></code></li>
 <li><code><a title="eoreader.products.optical.l7_product.L7Product.get_band_paths" href="landsat_product.html#eoreader.products.optical.l7_product.L7Product.get_band_paths">get_band_paths</a></code></li>
 <li><code><a title="eoreader.products.optical.l7_product.L7Product.read_mtd" href="landsat_product.html#eoreader.products.optical.l7_product.L7Product.read_mtd">read_mtd</a></code></li>

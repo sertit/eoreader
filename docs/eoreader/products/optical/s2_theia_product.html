@@ -66,6 +66,7 @@ import os
 from functools import reduce
 from typing import Union
 
+import geopandas as gpd
 import numpy as np
 import xarray as xr
 from lxml import etree
@@ -78,7 +79,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.products.optical.s2_product import S2ProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, rasters, rasters_rio
+from sertit import files, rasters, rasters_rio, vectors
 from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -140,6 +141,45 @@ class S2TheiaProduct(OpticalProduct):
         # TODO: bands 1 and 9 are in ATB_R1 (10m) and ATB_R2 (20m)
         # B1 to be divided by 20
         # B9 to be divided by 200
+
+    def footprint(self) -&gt; gpd.GeoDataFrame:
+        &#34;&#34;&#34;
+        Get real footprint of the products (without nodata, in french == emprise utile)
+
+        .. WARNING::
+            As Landsat 7 is broken (with nodata stripes all over the bands),
+            the footprint is not easily computed and may take some time to be delivered.
+
+        ```python
+        &gt;&gt;&gt; from eoreader.reader import Reader
+        &gt;&gt;&gt; path = r&#34;LC08_L1GT_023030_20200518_20200527_01_T2&#34;
+        &gt;&gt;&gt; prod = Reader().open(path)
+        &gt;&gt;&gt; prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
+        ```
+
+        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+        Indeed, nodata pixels vary according to the band sensor footprint,
+        whereas QA nodata is where at least one band has nodata.
+
+        We chose to keep QA nodata values for the footprint in order to show where all bands are valid.
+
+        **TL;DR: We use the QA nodata value to determine the product&#39;s footprint**.
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        &#34;&#34;&#34;
+        edg_path = self.get_mask_path(&#34;EDG&#34;, &#34;R2&#34;)
+
+        # Open SAT band
+        mask = rasters.read(edg_path, masked=False)
+
+        # Vectorize the nodata band
+        footprint = rasters.vectorize(mask, values=0, default_nodata=-1)
+        footprint = vectors.get_wider_exterior(footprint).convex_hull
+
+        return footprint
 
     def get_datetime(self, as_datetime: bool = False) -&gt; Union[str, datetime.datetime]:
         &#34;&#34;&#34;
@@ -708,6 +748,45 @@ See <a href="https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-
         # TODO: bands 1 and 9 are in ATB_R1 (10m) and ATB_R2 (20m)
         # B1 to be divided by 20
         # B9 to be divided by 200
+
+    def footprint(self) -&gt; gpd.GeoDataFrame:
+        &#34;&#34;&#34;
+        Get real footprint of the products (without nodata, in french == emprise utile)
+
+        .. WARNING::
+            As Landsat 7 is broken (with nodata stripes all over the bands),
+            the footprint is not easily computed and may take some time to be delivered.
+
+        ```python
+        &gt;&gt;&gt; from eoreader.reader import Reader
+        &gt;&gt;&gt; path = r&#34;LC08_L1GT_023030_20200518_20200527_01_T2&#34;
+        &gt;&gt;&gt; prod = Reader().open(path)
+        &gt;&gt;&gt; prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
+        ```
+
+        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+        Indeed, nodata pixels vary according to the band sensor footprint,
+        whereas QA nodata is where at least one band has nodata.
+
+        We chose to keep QA nodata values for the footprint in order to show where all bands are valid.
+
+        **TL;DR: We use the QA nodata value to determine the product&#39;s footprint**.
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        &#34;&#34;&#34;
+        edg_path = self.get_mask_path(&#34;EDG&#34;, &#34;R2&#34;)
+
+        # Open SAT band
+        mask = rasters.read(edg_path, masked=False)
+
+        # Vectorize the nodata band
+        footprint = rasters.vectorize(mask, values=0, default_nodata=-1)
+        footprint = vectors.get_wider_exterior(footprint).convex_hull
+
+        return footprint
 
     def get_datetime(self, as_datetime: bool = False) -&gt; Union[str, datetime.datetime]:
         &#34;&#34;&#34;
@@ -1396,6 +1475,77 @@ Used to shorten names and paths.</p></div>
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="eoreader.products.optical.s2_theia_product.S2TheiaProduct.footprint"><code class="name flex">
+<p>def <span class="ident">footprint</span>(</p><p>self)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Get real footprint of the products (without nodata, in french == emprise utile)</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>As Landsat 7 is broken (with nodata stripes all over the bands),
+the footprint is not easily computed and may take some time to be delivered.</p>
+</div>
+<pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
+&gt;&gt;&gt; path = r&quot;LC08_L1GT_023030_20200518_20200527_01_T2&quot;
+&gt;&gt;&gt; prod = Reader().open(path)
+&gt;&gt;&gt; prod.footprint()
+   index                                           geometry
+0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
+</code></pre>
+<p>Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+Indeed, nodata pixels vary according to the band sensor footprint,
+whereas QA nodata is where at least one band has nodata.</p>
+<p>We chose to keep QA nodata values for the footprint in order to show where all bands are valid.</p>
+<p><strong>TL;DR: We use the QA nodata value to determine the product's footprint</strong>.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>gpd.GeoDataFrame</code></dt>
+<dd>Footprint as a GeoDataFrame</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def footprint(self) -&gt; gpd.GeoDataFrame:
+    &#34;&#34;&#34;
+    Get real footprint of the products (without nodata, in french == emprise utile)
+
+    .. WARNING::
+        As Landsat 7 is broken (with nodata stripes all over the bands),
+        the footprint is not easily computed and may take some time to be delivered.
+
+    ```python
+    &gt;&gt;&gt; from eoreader.reader import Reader
+    &gt;&gt;&gt; path = r&#34;LC08_L1GT_023030_20200518_20200527_01_T2&#34;
+    &gt;&gt;&gt; prod = Reader().open(path)
+    &gt;&gt;&gt; prod.footprint()
+       index                                           geometry
+    0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
+    ```
+
+    Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+    Indeed, nodata pixels vary according to the band sensor footprint,
+    whereas QA nodata is where at least one band has nodata.
+
+    We chose to keep QA nodata values for the footprint in order to show where all bands are valid.
+
+    **TL;DR: We use the QA nodata value to determine the product&#39;s footprint**.
+
+    Returns:
+        gpd.GeoDataFrame: Footprint as a GeoDataFrame
+    &#34;&#34;&#34;
+    edg_path = self.get_mask_path(&#34;EDG&#34;, &#34;R2&#34;)
+
+    # Open SAT band
+    mask = rasters.read(edg_path, masked=False)
+
+    # Vectorize the nodata band
+    footprint = rasters.vectorize(mask, values=0, default_nodata=-1)
+    footprint = vectors.get_wider_exterior(footprint).convex_hull
+
+    return footprint</code></pre>
+</details>
+</dd>
 <dt id="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_datetime"><code class="name flex">
 <p>def <span class="ident">get_datetime</span>(</p><p>self, <br>as_datetime=False)</p>
 </code></dt>
@@ -1901,16 +2051,6 @@ array([[[0, ..., 0]]], dtype=uint8)
 </p>
 <div class="desc inherited"><p>Return the existing band paths …</p></div>
 </dd>
-<dt id="eoreader.products.optical.s2_theia_product.S2TheiaProduct.footprint"><code class="name flex">
-<p>def <span class="ident">footprint</span>(</p><p>self)</p>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="eoreader.products.optical.optical_product.OpticalProduct" href="optical_product.html#eoreader.products.optical.optical_product.OpticalProduct">OpticalProduct</a></code>.<code><a title="eoreader.products.optical.optical_product.OpticalProduct.footprint" href="../product.html#eoreader.products.optical.optical_product.OpticalProduct.footprint">footprint</a></code>
-</p>
-<div class="desc inherited"><p>Get UTM footprint of the products (without nodata, <em>in french == emprise utile</em>) …</p></div>
-</dd>
 <dt id="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_date"><code class="name flex">
 <p>def <span class="ident">get_date</span>(</p><p>self, <br>as_date=False)</p>
 </code></dt>
@@ -2030,6 +2170,7 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li>
 <ul class="">
+<li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.footprint" href="#eoreader.products.optical.s2_theia_product.S2TheiaProduct.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_datetime" href="#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_datetime">get_datetime</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_band_paths" href="#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_band_paths">get_band_paths</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_mask_path" href="#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_mask_path">get_mask_path</a></code></li>
@@ -2042,7 +2183,6 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.extent" href="optical_product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.extent">extent</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_existing_bands" href="optical_product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_existing_bands">get_existing_bands</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_existing_band_paths" href="optical_product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_existing_band_paths">get_existing_band_paths</a></code></li>
-<li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.footprint" href="../product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_date" href="../product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_date">get_date</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.load" href="../product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.load">load</a></code></li>
 <li><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct.has_band" href="../product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.has_band">has_band</a></code></li>

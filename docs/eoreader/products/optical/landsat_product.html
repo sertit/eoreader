@@ -74,7 +74,7 @@ from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, rasters
+from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
@@ -201,13 +201,12 @@ class LandsatProduct(OpticalProduct):
         &#34;&#34;&#34;
         nodata_band = self._get_path(self._nodata_band_id)
 
-        # Vectorize the nodata band
-        nodata = rasters.vectorize(nodata_band, values=1)
+        # Vectorize the nodata band (rasters_rio is faster)
+        footprint = rasters_rio.vectorize(
+            nodata_band, values=1, keep_values=False, dissolve=True
+        ).convex_hull
 
-        # Clip the extent with the nodata
-        footprint = gpd.overlay(self.extent(), nodata, how=&#34;symmetric_difference&#34;)
-
-        return footprint
+        return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)
 
     def _get_tile_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -440,7 +439,7 @@ class LandsatProduct(OpticalProduct):
         if as_pd:
             mtd_name = f&#34;{self.name}_MTL.txt&#34;
             if self.is_archived:
-                # We need to extract the file in memry to be used with pandas
+                # We need to extract the file in memory to be used with pandas
                 tar_ds = tarfile.open(self.path, &#34;r&#34;)
                 info = [f.name for f in tar_ds.getmembers() if mtd_name in f.name][0]
                 mtd_path = tar_ds.extractfile(info)
@@ -1187,13 +1186,12 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
         &#34;&#34;&#34;
         nodata_band = self._get_path(self._nodata_band_id)
 
-        # Vectorize the nodata band
-        nodata = rasters.vectorize(nodata_band, values=1)
+        # Vectorize the nodata band (rasters_rio is faster)
+        footprint = rasters_rio.vectorize(
+            nodata_band, values=1, keep_values=False, dissolve=True
+        ).convex_hull
 
-        # Clip the extent with the nodata
-        footprint = gpd.overlay(self.extent(), nodata, how=&#34;symmetric_difference&#34;)
-
-        return footprint
+        return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)
 
     def _get_tile_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -1426,7 +1424,7 @@ See <a href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection
         if as_pd:
             mtd_name = f&#34;{self.name}_MTL.txt&#34;
             if self.is_archived:
-                # We need to extract the file in memry to be used with pandas
+                # We need to extract the file in memory to be used with pandas
                 tar_ds = tarfile.open(self.path, &#34;r&#34;)
                 info = [f.name for f in tar_ds.getmembers() if mtd_name in f.name][0]
                 mtd_path = tar_ds.extractfile(info)
@@ -2226,13 +2224,12 @@ whereas QA nodata is where at least one band has nodata.</p>
     &#34;&#34;&#34;
     nodata_band = self._get_path(self._nodata_band_id)
 
-    # Vectorize the nodata band
-    nodata = rasters.vectorize(nodata_band, values=1)
+    # Vectorize the nodata band (rasters_rio is faster)
+    footprint = rasters_rio.vectorize(
+        nodata_band, values=1, keep_values=False, dissolve=True
+    ).convex_hull
 
-    # Clip the extent with the nodata
-    footprint = gpd.overlay(self.extent(), nodata, how=&#34;symmetric_difference&#34;)
-
-    return footprint</code></pre>
+    return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)</code></pre>
 </details>
 </dd>
 <dt id="eoreader.products.optical.landsat_product.LandsatProduct.get_datetime"><code class="name flex">
@@ -2470,7 +2467,7 @@ value  &quot;Image courtesy of the U.S. Geological Survey&quot;  ...  &quot;CUBI
     if as_pd:
         mtd_name = f&#34;{self.name}_MTL.txt&#34;
         if self.is_archived:
-            # We need to extract the file in memry to be used with pandas
+            # We need to extract the file in memory to be used with pandas
             tar_ds = tarfile.open(self.path, &#34;r&#34;)
             info = [f.name for f in tar_ds.getmembers() if mtd_name in f.name][0]
             mtd_path = tar_ds.extractfile(info)

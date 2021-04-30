@@ -1444,6 +1444,16 @@ datetime.datetime(2016, 2, 28, 11, 24, 18)
     return root, namespace</code></pre>
 </details>
 </dd>
+<dt id="eoreader.products.sar.rs2_product.Rs2Product.footprint"><code class="name flex">
+<p>def <span class="ident">footprint</span>(</p><p>self)</p>
+</code></dt>
+<dd>
+<p class="inheritance">
+<em>Inherited from:</em>
+<code><a title="eoreader.products.sar.sar_product.SarProduct" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct">SarProduct</a></code>.<code><a title="eoreader.products.sar.sar_product.SarProduct.footprint" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct.footprint">footprint</a></code>
+</p>
+<div class="desc inherited"><p>Get UTM footprint of the products (without nodata, <em>in french == emprise utile</em>) …</p></div>
+</dd>
 <dt id="eoreader.products.sar.rs2_product.Rs2Product.get_default_band"><code class="name flex">
 <p>def <span class="ident">get_default_band</span>(</p><p>self)</p>
 </code></dt>
@@ -1514,16 +1524,6 @@ The first existing one between <code>VV</code> and <code>HH</code> for SAR data 
 <code><a title="eoreader.products.sar.sar_product.SarProduct" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct">SarProduct</a></code>.<code><a title="eoreader.products.sar.sar_product.SarProduct.get_existing_bands" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct.get_existing_bands">get_existing_bands</a></code>
 </p>
 <div class="desc inherited"><p>Return the existing orthorectified bands (including despeckle bands) …</p></div>
-</dd>
-<dt id="eoreader.products.sar.rs2_product.Rs2Product.footprint"><code class="name flex">
-<p>def <span class="ident">footprint</span>(</p><p>self)</p>
-</code></dt>
-<dd>
-<p class="inheritance">
-<em>Inherited from:</em>
-<code><a title="eoreader.products.sar.sar_product.SarProduct" href="sar_product.html#eoreader.products.sar.sar_product.SarProduct">SarProduct</a></code>.<code><a title="eoreader.products.sar.sar_product.SarProduct.footprint" href="../product.html#eoreader.products.sar.sar_product.SarProduct.footprint">footprint</a></code>
-</p>
-<div class="desc inherited"><p>Get UTM footprint of the products (without nodata, <em>in french == emprise utile</em>) …</p></div>
 </dd>
 <dt id="eoreader.products.sar.rs2_product.Rs2Product.get_date"><code class="name flex">
 <p>def <span class="ident">get_date</span>(</p><p>self, <br>as_date=False)</p>
@@ -1725,6 +1725,7 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.wgs84_extent" href="#eoreader.products.sar.rs2_product.Rs2Product.wgs84_extent">wgs84_extent</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.get_datetime" href="#eoreader.products.sar.rs2_product.Rs2Product.get_datetime">get_datetime</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.read_mtd" href="#eoreader.products.sar.rs2_product.Rs2Product.read_mtd">read_mtd</a></code></li>
+<li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.footprint" href="sar_product.html#eoreader.products.sar.rs2_product.Rs2Product.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.get_default_band" href="sar_product.html#eoreader.products.sar.rs2_product.Rs2Product.get_default_band">get_default_band</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.get_default_band_path" href="sar_product.html#eoreader.products.sar.rs2_product.Rs2Product.get_default_band_path">get_default_band_path</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.extent" href="sar_product.html#eoreader.products.sar.rs2_product.Rs2Product.extent">extent</a></code></li>
@@ -1732,7 +1733,6 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.get_band_paths" href="sar_product.html#eoreader.products.sar.rs2_product.Rs2Product.get_band_paths">get_band_paths</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.get_existing_band_paths" href="sar_product.html#eoreader.products.sar.rs2_product.Rs2Product.get_existing_band_paths">get_existing_band_paths</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.get_existing_bands" href="sar_product.html#eoreader.products.sar.rs2_product.Rs2Product.get_existing_bands">get_existing_bands</a></code></li>
-<li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.footprint" href="../product.html#eoreader.products.sar.rs2_product.Rs2Product.footprint">footprint</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.get_date" href="../product.html#eoreader.products.sar.rs2_product.Rs2Product.get_date">get_date</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.load" href="../product.html#eoreader.products.sar.rs2_product.Rs2Product.load">load</a></code></li>
 <li><code><a title="eoreader.products.sar.rs2_product.Rs2Product.has_band" href="../product.html#eoreader.products.sar.rs2_product.Rs2Product.has_band">has_band</a></code></li>
