@@ -22,7 +22,7 @@ setuptools.setup(
         "netCDF4",
         "rioxarray",
         "geopandas",
-        "sertit[full]",
+        "sertit[full]>=1.3.10",
         "rtree",
     ],
     classifiers=[

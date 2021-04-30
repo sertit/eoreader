@@ -133,6 +133,26 @@ class SarProduct(Product):
         self._set_sensor_mode()
         self.pol_channels = self._get_raw_bands()
 
+    def footprint(self) -> gpd.GeoDataFrame:
+        """
+        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
+        ```
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        """
+        return rasters.get_footprint(
+            self.get_default_band_path()
+        )  # Processed by SNAP: the nodata is set
+
     def get_default_band(self) -> BandNames:
         """
         Get default band:

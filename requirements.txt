@@ -27,4 +27,4 @@ geopandas
 rtree
 
 # SERTIT libs
-sertit[full]
+sertit[full] >=1.3.10

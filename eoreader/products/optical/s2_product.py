@@ -149,6 +149,27 @@ class S2Product(OpticalProduct):
         else:
             raise InvalidProductError(f"Invalid Sentinel-2 name: {self.name}")
 
+    def footprint(self) -> gpd.GeoDataFrame:
+        """
+        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+        >>> prod = Reader().open(path)
+        >>> prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
+        ```
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        """
+        def_band = self.band_names[self.get_default_band()]
+        det_footprint = self.open_mask("DETFOO", def_band)
+        footprint_gs = det_footprint.dissolve().convex_hull
+        return gpd.GeoDataFrame(geometry=footprint_gs.geometry, crs=footprint_gs.crs)
+
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`

@@ -240,7 +240,10 @@ class Product:
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        default_xda = self.load(self.get_default_band())
+        def_band = self.get_default_band()
+        default_xda = self.load(def_band)[
+            def_band
+        ]  # Forced to load as the nodata may not be positioned by default
         return rasters.get_footprint(default_xda)
 
     @abstractmethod

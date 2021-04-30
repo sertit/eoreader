@@ -2,9 +2,17 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.3.1 (2021-04-29)
+## 0.3.1-post1 (2021-04-30)
 
 - Correcting a broken link in setup.py
+- Setting a minimum version of sertit
+- Footprint:
+  - Fixing a bug in the default function
+  - Optimization for S2 and S2-Theia sensors
+  - Fixing L7 footprint which was too complex due to nodata stripes
+- CI:
+  - Testing footprints and extent
+  - Resolving non update of gitlab documentation
 
 ## 0.3.1 (2021-04-29)
 

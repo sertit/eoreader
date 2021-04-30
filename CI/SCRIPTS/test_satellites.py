@@ -4,7 +4,8 @@ import logging
 import os
 import tempfile
 
-import xarray
+import geopandas as gpd
+import xarray as xr
 
 from eoreader.bands.alias import *
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH, S3_DEF_RES, SAR_DEF_RES
@@ -80,7 +81,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
         possible_bands(list): Possible bands
         debug (bool): Debug option
     """
-    with xarray.set_options(warn_for_unclosed_files=debug):
+    with xr.set_options(warn_for_unclosed_files=debug):
 
         # Init logger
         logs.init_logger(LOGGER)
@@ -118,10 +119,33 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                             os.environ.pop(CI_EOREADER_BAND_FOLDER)
                     os.environ[SAR_DEF_RES] = str(RES)
 
+                    # Extent
+                    LOGGER.info("Checking extent")
+                    extent = prod.extent()
+                    extent_path = os.path.join(
+                        get_ci_data_dir(), prod.condensed_name, "extent.geojson"
+                    )
+                    if not os.path.isfile(extent_path):
+                        extent.to_file(extent_path, driver="GeoJSON")
+
+                    ci.assert_geom_equal(extent, gpd.read_file(extent_path))
+
+                    # Footprint
+                    LOGGER.info("Checking footprint")
+                    footprint = prod.footprint()
+                    footprint_path = os.path.join(
+                        get_ci_data_dir(), prod.condensed_name, "footprint.geojson"
+                    )
+                    if not os.path.isfile(footprint_path):
+                        footprint.to_file(footprint_path, driver="GeoJSON")
+
+                    ci.assert_geom_equal(footprint, gpd.read_file(footprint_path))
+
                     # Remove DEM tifs if existing
                     remove_dem(prod)
 
                     # Get stack bands
+                    LOGGER.info("Checking load and stack")
                     # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
                     stack_bands = [
                         band for band in possible_bands if prod.has_band(band)
@@ -152,6 +176,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     ci.assert_raster_almost_equal(curr_path, ci_data, decimal=4)
 
                 # CRS
+                LOGGER.info("Checking CRS")
                 assert prod.crs().is_projected
 
 
