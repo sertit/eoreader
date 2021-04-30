@@ -150,9 +150,12 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     ]
 
                     # Manage S3 resolution to speed up processes
-                    res = prod.resolution * 50
-                    os.environ[S3_DEF_RES] = str(res)
-                    os.environ[SAR_DEF_RES] = str(res)
+                    if prod.sensor_type == SensorType.SAR:
+                        res = 1000.0
+                        os.environ[SAR_DEF_RES] = str(res)
+                    else:
+                        res = prod.resolution * 50
+                        os.environ[S3_DEF_RES] = str(res)
 
                     # Stack data
                     ci_data = os.path.join(
