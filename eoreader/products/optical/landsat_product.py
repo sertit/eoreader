@@ -164,12 +164,12 @@ class LandsatProduct(OpticalProduct):
         nodata_band = self._get_path(self._nodata_band_id)
 
         # Vectorize the nodata band
-        nodata = rasters.vectorize(nodata_band, values=1)
+        # Take the convex hull to discard the stripes of L7
+        footprint = rasters.vectorize(
+            nodata_band, values=1, keep_values=False, dissolve=True
+        ).convex_hull
 
-        # Clip the extent with the nodata
-        footprint = gpd.overlay(self.extent(), nodata, how="symmetric_difference")
-
-        return footprint
+        return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)
 
     def _get_tile_name(self) -> str:
         """
@@ -402,7 +402,7 @@ class LandsatProduct(OpticalProduct):
         if as_pd:
             mtd_name = f"{self.name}_MTL.txt"
             if self.is_archived:
-                # We need to extract the file in memry to be used with pandas
+                # We need to extract the file in memory to be used with pandas
                 tar_ds = tarfile.open(self.path, "r")
                 info = [f.name for f in tar_ds.getmembers() if mtd_name in f.name][0]
                 mtd_path = tar_ds.extractfile(info)

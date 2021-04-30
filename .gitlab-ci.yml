@@ -15,9 +15,11 @@ lint:
     - linux
   except:
     changes:
-      - "*.md"
       - "*.html"
       - doc_template/*
+      - documentation/*
+      - docs/*
+      - examples/*
 
 pytest:
   image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
@@ -33,9 +35,11 @@ pytest:
     - linux
   except:
     changes:
-      - "*.md"
       - "*.html"
       - doc_template/*
+      - documentation/*
+      - docs/*
+      - examples/*
 
 upload_wheel:linux:
   image: python:3.7-buster

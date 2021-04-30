@@ -1,0 +1,7 @@
+{
+"type": "FeatureCollection",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::32630" } },
+"features": [
+{ "type": "Feature", "properties": { "Name": "Sentinel-1 Image Overlay", "description": null, "timestamp": null, "begin": null, "end": null, "altitudeMode": null, "tessellate": null, "extrude": null, "visibility": -1, "drawOrder": null, "icon": "quick-look.png" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 817914.501174670644104, 4684349.822728251107037 ], [ 555708.623928334098309, 4722720.858533217571676 ], [ 581438.052861296455376, 4889299.850810681469738 ], [ 843910.821630351943895, 4852322.598893884569407 ], [ 817914.501174670644104, 4684349.822728251107037 ] ] ] } }
+]
+}

@@ -26,6 +26,7 @@ import os
 from functools import reduce
 from typing import Union
 
+import geopandas as gpd
 import numpy as np
 import xarray as xr
 from lxml import etree
@@ -38,7 +39,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.products.optical.s2_product import S2ProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, rasters, rasters_rio
+from sertit import files, rasters, rasters_rio, vectors
 from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -100,6 +101,45 @@ class S2TheiaProduct(OpticalProduct):
         # TODO: bands 1 and 9 are in ATB_R1 (10m) and ATB_R2 (20m)
         # B1 to be divided by 20
         # B9 to be divided by 200
+
+    def footprint(self) -> gpd.GeoDataFrame:
+        """
+        Get real footprint of the products (without nodata, in french == emprise utile)
+
+        .. WARNING::
+            As Landsat 7 is broken (with nodata stripes all over the bands),
+            the footprint is not easily computed and may take some time to be delivered.
+
+        ```python
+        >>> from eoreader.reader import Reader
+        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+        >>> prod = Reader().open(path)
+        >>> prod.footprint()
+           index                                           geometry
+        0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
+        ```
+
+        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
+        Indeed, nodata pixels vary according to the band sensor footprint,
+        whereas QA nodata is where at least one band has nodata.
+
+        We chose to keep QA nodata values for the footprint in order to show where all bands are valid.
+
+        **TL;DR: We use the QA nodata value to determine the product's footprint**.
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        """
+        edg_path = self.get_mask_path("EDG", "R2")
+
+        # Open SAT band
+        mask = rasters.read(edg_path, masked=False)
+
+        # Vectorize the nodata band
+        footprint = rasters.vectorize(mask, values=0, default_nodata=-1)
+        footprint = vectors.get_wider_exterior(footprint).convex_hull
+
+        return footprint
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime.datetime]:
         """
