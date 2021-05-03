@@ -1,3 +1,12 @@
+[![pypi](https://img.shields.io/pypi/v/eoreader.svg)](https://pypi.python.org/pypi/eareader)
+[![Conda](https://img.shields.io/conda/vn/conda-forge/eoreader.svg)](https://anaconda.org/conda-forge/eoreader)
+[![Tests](https://github.com/sertit/eoreader/actions/workflows/test.yml/badge.svg)](https://github.com/sertit/eoreader/actions/workflows/test.yml)
+[![Gitter](https://badges.gitter.im/eoreader/community.svg)](https://gitter.im/eoreader/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
+[![Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/sertit/eoreader/blob/master/LICENSE)
+
+
 # ![eoreader_logo](https://raw.githubusercontent.com/sertit/eoreader/master/docs/eoreader_small.png) EOReader
 
 **EOReader** is a **multi-satellite reader** allowing you to open
@@ -76,7 +85,7 @@ find [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio)).
 
 **EOReader** is licensed under Apache License v2.0. See LICENSE file for details.
 
-##Authors
+## Authors
 
 **EOReader** has been created by [ICube-SERTIT](https://sertit.unistra.fr/).
 
