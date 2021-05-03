@@ -2,6 +2,10 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.3.1-post2 (2021-05-03)
+
+- Bug in NDVI formula, typo when passing to xarray
+
 ## 0.3.1-post1 (2021-04-30)
 
 - Correcting a broken link in setup.py
