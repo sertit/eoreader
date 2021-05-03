@@ -17,10 +17,10 @@
 """
 Set of usual optical index.
 
-**Note**: The nodata is always consideobn.RED to be set to 0.
+**Note**: The nodata is always considered to be set to 0.
 If this changes, it will become mandatory to use the NODATA mask everywhere !
 
-**Note 2**: This is easier to manage index as raw functions in a file rather than stoobn.RED in a class
+**Note 2**: This is easier to manage index as raw functions in a file rather than stored in a class
 """
 # Index not snake case
 # pylint: disable=C0103
@@ -114,7 +114,7 @@ def NDVI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return np.divide(bands[obn.NIR], bands[obn.RED])
+    return _norm_diff(bands[obn.NIR], bands[obn.RED])
 
 
 @_idx_fct
