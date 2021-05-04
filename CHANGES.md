@@ -2,6 +2,12 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.3.2 (2021-05-04)
+- In case of DEM bands, checks if the DEM is set and exists and raise an exception if not
+- Setting minimum versions in setup.py and in requirements.txt
+- ReadMe improvement
+- Updating docs
+
 ## 0.3.1-post2 (2021-05-03)
 
 - Bug in NDVI formula, typo when passing to xarray
