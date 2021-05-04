@@ -2,13 +2,13 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.3.2-2 (2021-05-04)
+## 0.3.2.post2 (2021-05-04)
 
 - Bug when reading cloud mask on Linux
 - Log update in `product._check_dem_path()`
 - README & documentation updates
 
-## 0.3.2-1 (2021-05-04)
+## 0.3.2.post1 (2021-05-04)
 
 - Do not use psutil in requirements and setup.py
 - Typo in setup.py
