@@ -306,6 +306,10 @@ class OpticalProduct(Product):
             elif is_clouds(idx_or_band):
                 clouds_list.append(idx_or_band)
 
+        # Check if DEM is set and exists
+        if dem_list:
+            self._check_dem_path()
+
         # Get all bands to be open
         bands_to_load = band_list.copy()
         for idx in index_list:

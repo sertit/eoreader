@@ -20,10 +20,11 @@ setuptools.setup(
     install_requires=[
         "lxml",
         "netCDF4",
-        "rioxarray",
-        "geopandas",
-        "sertit[full]>=1.3.10",
+        "rasterio>= 1.2.2" "rioxarray>=0.3.1",
+        "geopandas>=0.9.0",
+        "sertit[full]>=1.3.11.post1",
         "rtree",
+        "psutil",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",

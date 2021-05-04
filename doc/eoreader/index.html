@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1"/>
+<meta name="generator" content="pdoc 0.9.2"/>
+<title>eoreader API documentation</title>
+<meta name="description" content="**Source Code**: https://github.com/sertit/eoreader …"/>
+<link rel="preload stylesheet" as="style"
+href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css"
+integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style"
+href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css"
+integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style"
+href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/darcula.min.css"
+crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}#lunr-search{width:100%;font-size:1em;padding:6px 9px 5px 9px;border:1px solid silver}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100%;padding:3em 4em;border-left:1px solid #ddd;overflow-x:hidden}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}table{display:block;overflow-x:auto;word-break:keep-all;border-collapse:separate;border-spacing:0}th{background-color:#c4d5e780;padding:5px;border-bottom:0.1px solid gray;border-right:0.1px solid gray;border-top:0.1px solid gray}td,th{margin:0}td{white-space:nowrap;border-bottom:0.1px solid gray;border-right:0.1px solid gray}td:empty{background-color:#ececec}th:nth-child(1){border-left:0.1px solid gray}td:nth-child(1){border-left:0.1px solid gray;border-right:0.1px solid gray}th:nth-child(1),td:nth-child(1){background-color:#c4d5e7;position:-webkit-sticky;position:sticky;left:0}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML"
+integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"
+integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<a href=https://www.github.com/sertit/eoreader/ class="gitbutton pill">
+<span class="icon medium">
+{% include git-logo.html %}
+</span>
+Edit on GitHub!
+</a>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>eoreader</code></h1>
+</header>
+<section id="section-intro">
+<p><strong>Source Code</strong>: <a href="https://github.com/sertit/eoreader">https://github.com/sertit/eoreader</a></p>
+<p><a href="https://pypi.python.org/pypi/eareader"><img alt="pypi" src="https://img.shields.io/pypi/v/eoreader.svg"></a>
+<a href="https://anaconda.org/conda-forge/eoreader"><img alt="Conda" src="https://img.shields.io/conda/vn/conda-forge/eoreader.svg"></a>
+<a href="https://github.com/sertit/eoreader/actions/workflows/test.yml"><img alt="Tests" src="https://github.com/sertit/eoreader/actions/workflows/test.yml/badge.svg"></a>
+<a href="https://gitter.im/eoreader/community?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img alt="Gitter" src="https://badges.gitter.im/eoreader/community.svg"></a>
+<a href="https://github.com/pre-commit/pre-commit"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&amp;logoColor=white"></a>
+<a href="https://github.com/python/black"><img alt="black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+<a href="https://github.com/sertit/eoreader/blob/master/LICENSE"><img alt="Apache" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"></a></p>
+<h1 id="eoreader"><img alt="eoreader_logo" src="https://raw.githubusercontent.com/sertit/eoreader/master/docs/eoreader_small.png"> EOReader</h1>
+<p><strong>EOReader</strong> is a <strong>multi-satellite reader</strong> allowing you to open
+<a href="https://sertit.github.io/eoreader/eoreader#implemented-optical-satellites">optical</a>
+and <a href="https://sertit.github.io/eoreader/eoreader#implemented-sar-satellites">SAR</a> data.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Optical</strong></th>
+<th><strong>SAR</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sensors</td>
+<td>+ Sentinel-2 &amp; Theia<br>+ Sentinel-3 OLCI &amp; SLSTR<br>+ Landsats 1 - 8</td>
+<td>+ Sentinel-1<br>+ COSMO-Skymed<br>+ TerraSAR-X<br>+ RADARSAT-2</td>
+</tr>
+</tbody>
+</table>
+<p>It also implements additional <strong>sensor-agnostic</strong> features:</p>
+<ul>
+<li><code><a title="eoreader.products.product.Product.load" href="products/product.html#eoreader.products.product.Product.load">Product.load()</a></code>: Load many band types:<ul>
+<li>satellite bands (<a href="https://sertit.github.io/eoreader/eoreader#band-mapping">optical</a> or <a href="https://sertit.github.io/eoreader/eoreader#sar-bands">SAR</a>)</li>
+<li><a href="https://sertit.github.io/eoreader/eoreader#available-index">index</a></li>
+<li><a href="https://sertit.github.io/eoreader/eoreader#cloud-bands">cloud bands</a></li>
+<li><a href="https://sertit.github.io/eoreader/eoreader#dem-bands">DEM bands</a></li>
+</ul>
+</li>
+<li><code><a title="eoreader.products.product.Product.stack" href="products/product.html#eoreader.products.product.Product.stack">Product.stack()</a></code>: Stack all these type of bands</li>
+</ul>
+<p>EOReader works with <a href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray"><code>xarrays.DataArray</code></a>
+and <a href="https://geopandas.org/docs/user_guide/data_structures.html#geodataframe"><code>geopandas.GeoDataFrames</code></a></p>
+<h2 id="python-quickstart">Python Quickstart</h2>
+<p>The main features of EOReader are gathered hereunder.
+For optical data:</p>
+<pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
+&gt;&gt;&gt; from eoreader.bands.alias import *
+
+&gt;&gt;&gt; # Your variables
+&gt;&gt;&gt; l5_path = &quot;D:/eoreader/CI/DATA/LM05_L1TP_200029_19841014_20200902_02_T2.tar&quot;
+
+&gt;&gt;&gt; # Create the reader object and open satellite data
+&gt;&gt;&gt; eoreader = Reader()
+&gt;&gt;&gt; l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its name
+
+&gt;&gt;&gt; # Get the footprint of the product (usable data) and its extent (envelope of the tile)
+&gt;&gt;&gt; footprint = l5_prod.footprint
+&gt;&gt;&gt; extent = l5_prod.extent
+
+&gt;&gt;&gt; # Load some bands and index: they will all share the same metadata
+&gt;&gt;&gt; bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS]
+
+&gt;&gt;&gt; # Create a stack with some other bands
+&gt;&gt;&gt; stack = l5_prod.stack([NDWI, RED, SLOPE])
+
+&gt;&gt;&gt; # Read Metadata
+&gt;&gt;&gt; mtd, namespace = l5_prod.read_mtd()
+</code></pre>
+<p>For SAR data:</p>
+<pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
+&gt;&gt;&gt; from eoreader.bands.alias import *
+
+&gt;&gt;&gt; # Your variables
+&gt;&gt;&gt; s1_path = &quot;D:/eoreader/S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip&quot;  # Not in the package
+
+&gt;&gt;&gt; # Create the reader object and open satellite data
+&gt;&gt;&gt; eoreader = Reader()
+&gt;&gt;&gt; s1_prod = eoreader.open(s1_path)  # The Reader will recognize the satellite type from its name
+
+&gt;&gt;&gt; # Get the footprint of the product (usable data) and its extent (envelope of the tile)
+&gt;&gt;&gt; footprint = s1_prod.footprint
+&gt;&gt;&gt; extent = s1_prod.extent
+
+&gt;&gt;&gt; # Load some bands and index: they will all share the same metadata
+&gt;&gt;&gt; bands = s1_prod.load([VV, VV_DSPK, DEM]
+
+&gt;&gt;&gt; # Create a stack with some other bands
+&gt;&gt;&gt; stack = s1_prod.stack([VV, VV_DSPK, SLOPE])
+
+&gt;&gt;&gt; # Read Metadata
+&gt;&gt;&gt; mtd, namespace = s1_prod.read_mtd()
+</code></pre>
+<p>Sentinel-3 and SAR products need <a href="https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph"><code>SNAP gpt</code></a> to be geocoded.
+Ensure that you have the folder containing your <code>gpt.exe</code> in your <code>PATH</code>.</p>
+<h2 id="documentation">Documentation</h2>
+<p>The API documentation can be found <a href="https://sertit.github.io/eoreader/eoreader/">here</a>.</p>
+<h2 id="examples">Examples</h2>
+<p>Available notebooks provided as examples:</p>
+<ul>
+<li><a href="https://sertit.github.io/eoreader/examples/base.html">Basic tutorial</a></li>
+<li><a href="https://sertit.github.io/eoreader/examples/water_detection.html">Water detection</a></li>
+</ul>
+<h2 id="installation">Installation</h2>
+<p><code>pip install <a title="eoreader" href="#eoreader">eoreader</a></code> or <code>conda install <a title="eoreader" href="#eoreader">eoreader</a></code></p>
+<p>EOReader depends mainly on <code>geopandas</code> and <code>rasterio</code>.</p>
+<p>On Windows and with pip, you may face installation issues due to GDAL.
+The well known workaround of installing from <a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio">Gohlke's wheels</a>
+also applies here.
+Please look at the <a href="https://rasterio.readthedocs.io/en/latest/installation.html">rasterio page</a>
+to learn more about that.</p>
+<h2 id="license">License</h2>
+<p><strong>EOReader</strong> is licensed under Apache License v2.0. See LICENSE file for details.</p>
+<h2 id="authors">Authors</h2>
+<p><strong>EOReader</strong> has been created by <a href="https://sertit.unistra.fr/">ICube-SERTIT</a>.</p>
+<h2 id="credits">Credits</h2>
+<p><strong>EOReader</strong> is built on top of amazing libs, without which it couldn't have been coded:</p>
+<ul>
+<li><a href="https://geopandas.org/"><code>geopandas</code></a></li>
+<li><a href="https://rasterio.readthedocs.io/en/latest/"><code>rasterio</code></a></li>
+<li><a href="http://xarray.pydata.org/en/stable/"><code>xarray</code></a></li>
+<li><a href="https://corteva.github.io/rioxarray/stable/"><code>rioxarray</code></a></li>
+</ul>
+<hr>
+<h1 id="main-features">Main features</h1>
+<p>These features can be seen in <a href="/eoreader/examples/base.html">this</a> example.</p>
+<h2 id="read">Read</h2>
+<p>The reader singleton is your unique entry.
+It will create for you the product object corresponding to your satellite data.</p>
+<pre><code class="language-python">&gt;&gt;&gt; import os
+&gt;&gt;&gt; from eoreader.reader import Reader
+
+&gt;&gt;&gt; # Path to your satellite data, ie. Sentinel-2
+&gt;&gt;&gt; path = r'S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip'  # You can work with the archive for S2 data
+
+&gt;&gt;&gt; # Path to your output directory (if not set, it will work in a temp directory)
+&gt;&gt;&gt; output = os.path.abspath('.')
+
+&gt;&gt;&gt; # Create the reader singleton
+&gt;&gt;&gt; eoreader = Reader()
+&gt;&gt;&gt; prod = eoreader.open(path, output_path=output)
+
+&gt;&gt;&gt; # NOTE: you can set the output directory after the creation, that allows you to use the product condensed name
+&gt;&gt;&gt; prod.output = os.path.join(output, prod.condensed_name)  # It will automatically create it if needed
+</code></pre>
+<p>From there you have access to a lot of information on your product:</p>
+<pre><code class="language-python">&gt;&gt;&gt; # Product CRS (always in UTM)
+&gt;&gt;&gt; prod.crs
+CRS.from_epsg(32630)
+
+&gt;&gt;&gt; # Full extent of the bands as a geopandas GeoDataFrame (always in UTM)
+&gt;&gt;&gt; prod.extent()
+                                            geometry
+0   POLYGON((309780.000 4390200.000, 309780.000 4...
+
+&gt;&gt;&gt; # Footprint: extent of the useful pixels (minus nodata) as a geopandas GeoDataFrame (always in UTM)
+&gt;&gt;&gt; prod.footprint()
+   index                                           geometry
+0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
+
+&gt;&gt;&gt; # Default resolution (20m for S2)
+&gt;&gt;&gt; prod.resolution
+20.
+
+&gt;&gt;&gt; # Acquisition date and datetime
+&gt;&gt;&gt; prod.date
+datetime.date(2020, 8, 24)
+&gt;&gt;&gt; prod.datetime
+datetime.datetime(2020, 8, 24, 11, 6, 31)
+
+&gt;&gt;&gt; # Access the raw metadata as an lxml.etree._Element:
+&gt;&gt;&gt; prod.read_mtd()
+</code></pre>
+<h2 id="load">Load</h2>
+<p><code><a title="eoreader.products.product.Product.load" href="products/product.html#eoreader.products.product.Product.load">Product.load()</a></code> is the function for accessing to product-related bands.
+It can load satellite bands, index, DEM bands and cloud bands according to this workflow:
+<img alt="load_workflow" src="https://zupimages.net/up/21/14/vtnc.png"></p>
+<pre><code class="language-python">&gt;&gt;&gt; import os
+&gt;&gt;&gt; from eoreader.reader import Reader
+&gt;&gt;&gt; from eoreader.bands.alias import *
+
+&gt;&gt;&gt; path = r&quot;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip&quot;
+&gt;&gt;&gt; output = os.path.abspath(&quot;./output&quot;)
+&gt;&gt;&gt;  # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
+&gt;&gt;&gt;  # and you won't be able to retrieve what's has been written on disk
+&gt;&gt;&gt; prod = Reader().open(path, output_path=output)
+
+&gt;&gt;&gt; # Get the wanted bands and check if the product can produce them
+&gt;&gt;&gt; band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
+&gt;&gt;&gt; ok_bands = [band for band in band_list if prod.has_band(band)]
+[GREEN, NDVI, HILLSHADE]
+&gt;&gt;&gt; # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
+
+&gt;&gt;&gt; # Load bands
+&gt;&gt;&gt; bands = prod.load(ok_bands)  # resolution not specified -&gt; load at default resolution (20.0 m for S2 data)
+&gt;&gt; &gt;  # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
+&gt;&gt; &gt;  # (important for DEM data as they may have different grids)
+
+&gt;&gt;&gt; bands
+&quot;&quot;&quot;
+{&lt;function NDVI at 0x000001C47FF05E18&gt;: &lt;xarray.DataArray 'NDVI' (band: 1, y: 5490, x: 5490)&gt;
+array([[[0.94786006, 0.92717856, 0.92240528, ..., 1.73572724,
+         1.55314477, 1.63242706],
+        [1.04147187, 0.93668633, 0.91499688, ..., 1.59941784,
+         1.52895995, 1.51386761],
+        [2.86996677, 1.69360304, 1.2413562 , ..., 1.61172353,
+         1.55742907, 1.50568275],
+        ...,
+        [1.45807257, 1.61071344, 1.64620751, ..., 1.25498441,
+         1.42998927, 1.70447076],
+        [1.57802352, 1.77086658, 1.69901482, ..., 1.19999853,
+         1.27813254, 1.52287237],
+        [1.63569594, 1.66751277, 1.63474646, ..., 1.27617084,
+         1.22456033, 1.27022877]]])
+Coordinates:
+  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+  * band         (band) int32 1
+    spatial_ref  int32 0,
+&lt;OpticalBandNames.GREEN: 'GREEN'&gt;: &lt;xarray.DataArray 'T30TTK_20200824T110631_B03' (band: 1, y: 5490, x: 5490)&gt;
+array([[[0.06146327, 0.06141786, 0.06100179, ..., 0.11880179,
+         0.12087143, 0.11468571],
+        [0.06123214, 0.06071094, 0.06029063, ..., 0.11465781,
+         0.11858906, 0.11703929],
+        [0.06494643, 0.06226562, 0.06169219, ..., 0.11174062,
+         0.11434844, 0.11491964],
+        ...,
+        [0.1478125 , 0.13953906, 0.13751719, ..., 0.15949688,
+         0.14200781, 0.12982321],
+        [0.14091429, 0.12959531, 0.13144844, ..., 0.17246719,
+         0.156175  , 0.13453036],
+        [0.13521429, 0.13274286, 0.13084821, ..., 0.16064821,
+         0.16847143, 0.16009592]]])
+Coordinates:
+  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+  * band         (band) int32 1
+    spatial_ref  int32 0,
+&lt;DemBandNames.HILLSHADE: 'HILLSHADE'&gt;: &lt;xarray.DataArray '20200824T110631_S2_T30TTK_L1C_150432_HILLSHADE' (band: 1, y: 5490, x: 5490)&gt;
+array([[[220., 221., 221., ..., 210., 210., 210.],
+        [222., 222., 221., ..., 210., 210., 210.],
+        [221., 221., 220., ..., 210., 210., 210.],
+        ...,
+        [215., 214., 212., ..., 207., 207., 207.],
+        [214., 212., 211., ..., 206., 205., 205.],
+        [213., 211., 209., ..., 205., 204., 205.]]])
+Coordinates:
+  * band         (band) int32 1
+  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+    spatial_ref  int32 0
+Attributes:
+    grid_mapping:    spatial_ref
+    original_dtype:  uint8}
+&quot;&quot;&quot;
+</code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Index and bands are opened as <a href="http://xarray.pydata.org/en/stable/"><code>xarrays</code></a>
+with <a href="https://corteva.github.io/rioxarray/stable/"><code>rioxarray</code></a>, in <code>float</code> with the nodata set to <code>np.nan</code>.
+The nodata written back on disk is by convention:</p>
+<ul>
+<li><code>-9999</code> for optical bands (saved in <code>float32</code>)</li>
+<li><code>65535</code> for optical bands (saved in <code>uint16</code>)</li>
+<li><code>0</code> for SAR bands (saved in <code>float32</code>), to be compliant with SNAP default nodata</li>
+<li><code>255</code> for masks (saved in <code>uint8</code>)</li>
+</ul>
+</div>
+<h2 id="stack">Stack</h2>
+<p><code><a title="eoreader.products.product.Product.stack" href="products/product.html#eoreader.products.product.Product.stack">Product.stack()</a></code> is the function stacking all possible bands.
+It is based on the load function and then just stacks the bands and write it on disk if needed.</p>
+<pre><code class="language-python">&gt;&gt;&gt; # Create a stack with the previous OK bands
+&gt;&gt;&gt; stack = prod.stack(ok_bands, resolution=300., stack_path=os.path.join(prod.output, &quot;stack.tif&quot;)
+&quot;&quot;&quot;
+&lt;xarray.DataArray 'NDVI_GREEN_HILLSHADE' (z: 3, y: 5490, x: 5490)&gt;
+array([[[9.47860062e-01, 9.27178562e-01, 9.22405303e-01, ...,
+         1.73572719e+00, 1.55314481e+00, 1.63242710e+00],
+        [1.04147184e+00, 9.36686337e-01, 9.14996862e-01, ...,
+         1.59941781e+00, 1.52895999e+00, 1.51386762e+00],
+        [2.86996675e+00, 1.69360304e+00, 1.24135625e+00, ...,
+         1.61172354e+00, 1.55742908e+00, 1.50568271e+00],
+        ...,
+        [1.45807254e+00, 1.61071348e+00, 1.64620745e+00, ...,
+         1.25498438e+00, 1.42998922e+00, 1.70447075e+00],
+        [1.57802355e+00, 1.77086663e+00, 1.69901478e+00, ...,
+         1.19999850e+00, 1.27813256e+00, 1.52287233e+00],
+        [1.63569593e+00, 1.66751277e+00, 1.63474643e+00, ...,
+         1.27617085e+00, 1.22456038e+00, 1.27022874e+00]],
+       [[6.14632666e-02, 6.14178553e-02, 6.10017851e-02, ...,
+         1.18801787e-01, 1.20871432e-01, 1.14685714e-01],
+        [6.12321422e-02, 6.07109368e-02, 6.02906235e-02, ...,
+         1.14657812e-01, 1.18589066e-01, 1.17039286e-01],
+        [6.49464279e-02, 6.22656234e-02, 6.16921857e-02, ...,
+         1.11740626e-01, 1.14348434e-01, 1.14919640e-01],
+        [1.47812501e-01, 1.39539063e-01, 1.37517184e-01, ...,
+         1.59496874e-01, 1.42007813e-01, 1.29823208e-01],
+        [1.40914291e-01, 1.29595309e-01, 1.31448433e-01, ...,
+         1.72467187e-01, 1.56175002e-01, 1.34530351e-01],
+        [1.35214284e-01, 1.32742852e-01, 1.30848214e-01, ...,
+         1.60648212e-01, 1.68471426e-01, 1.60095915e-01]],
+       [[2.20000000e+02, 2.21000000e+02, 2.21000000e+02, ...,
+         2.10000000e+02, 2.10000000e+02, 2.10000000e+02],
+        [2.22000000e+02, 2.22000000e+02, 2.21000000e+02, ...,
+         2.10000000e+02, 2.10000000e+02, 2.10000000e+02],
+        [2.21000000e+02, 2.21000000e+02, 2.20000000e+02, ...,
+         2.10000000e+02, 2.10000000e+02, 2.10000000e+02],
+        ...,
+        [2.15000000e+02, 2.14000000e+02, 2.12000000e+02, ...,
+         2.07000000e+02, 2.07000000e+02, 2.07000000e+02],
+        [2.14000000e+02, 2.12000000e+02, 2.11000000e+02, ...,
+         2.06000000e+02, 2.05000000e+02, 2.05000000e+02],
+        [2.13000000e+02, 2.11000000e+02, 2.09000000e+02, ...,
+         2.05000000e+02, 2.04000000e+02, 2.05000000e+02]]], dtype=float32)
+Coordinates:
+  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+    spatial_ref  int32 0
+  * z            (z) MultiIndex
+  - variable     (z) object 'NDVI' 'GREEN' 'HILLSHADE'
+  - band         (z) int64 1 1 1
+Attributes:
+    long_name:  ['NDVI', 'GREEN', 'HILLSHADE']
+&quot;&quot;&quot;
+</code></pre>
+<hr>
+<h1 id="optical-data">Optical data</h1>
+<h2 id="implemented-optical-satellites">Implemented optical satellites</h2>
+<table>
+<thead>
+<tr>
+<th>Satellites</th>
+<th>Class</th>
+<th>Product Types</th>
+<th>Use archive</th>
+<th>Default Resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sentinel-2</td>
+<td><code><a title="eoreader.products.optical.s2_product.S2Product" href="products/optical/s2_product.html#eoreader.products.optical.s2_product.S2Product">S2Product</a></code></td>
+<td>L1C &amp; L2A</td>
+<td>Yes</td>
+<td>20m</td>
+</tr>
+<tr>
+<td>Sentinel-2 Theia</td>
+<td><code><a title="eoreader.products.optical.s2_theia_product.S2TheiaProduct" href="products/optical/s2_theia_product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct">S2TheiaProduct</a></code></td>
+<td>L2A</td>
+<td>Yes</td>
+<td>20m</td>
+</tr>
+<tr>
+<td>Sentinel-3 SLSTR</td>
+<td><code><a title="eoreader.products.optical.s3_product.S3Product" href="products/optical/s3_product.html#eoreader.products.optical.s3_product.S3Product">S3Product</a></code></td>
+<td>RBT</td>
+<td>No</td>
+<td>300m</td>
+</tr>
+<tr>
+<td>Sentinel-3 OLCI</td>
+<td><code><a title="eoreader.products.optical.s3_product.S3Product" href="products/optical/s3_product.html#eoreader.products.optical.s3_product.S3Product">S3Product</a></code></td>
+<td>EFR</td>
+<td>No</td>
+<td>500m</td>
+</tr>
+<tr>
+<td>Landsat-8 OLCI</td>
+<td><code><a title="eoreader.products.optical.l8_product.L8Product" href="products/optical/l8_product.html#eoreader.products.optical.l8_product.L8Product">L8Product</a></code></td>
+<td>Level 1</td>
+<td>Collection 1: No, Collection 2: Yes</td>
+<td>30m</td>
+</tr>
+<tr>
+<td>Landsat-7 ETM</td>
+<td><code><a title="eoreader.products.optical.l7_product.L7Product" href="products/optical/l7_product.html#eoreader.products.optical.l7_product.L7Product">L7Product</a></code></td>
+<td>Level 1</td>
+<td>Collection 1: No, Collection 2: Yes</td>
+<td>30m</td>
+</tr>
+<tr>
+<td>Landsat-5 TM</td>
+<td><code><a title="eoreader.products.optical.l5_product.L5Product" href="products/optical/l5_product.html#eoreader.products.optical.l5_product.L5Product">L5Product</a></code></td>
+<td>Level 1</td>
+<td>Collection 1: No, Collection 2: Yes</td>
+<td>30m</td>
+</tr>
+<tr>
+<td>Landsat-4 TM</td>
+<td><code><a title="eoreader.products.optical.l4_product.L4Product" href="products/optical/l4_product.html#eoreader.products.optical.l4_product.L4Product">L4Product</a></code></td>
+<td>Level 1</td>
+<td>Collection 1: No, Collection 2: Yes</td>
+<td>30m</td>
+</tr>
+<tr>
+<td>Landsat-5 MSS</td>
+<td><code><a title="eoreader.products.optical.l5_product.L5Product" href="products/optical/l5_product.html#eoreader.products.optical.l5_product.L5Product">L5Product</a></code></td>
+<td>Level 1</td>
+<td>Collection 1: No, Collection 2: Yes</td>
+<td>60m</td>
+</tr>
+<tr>
+<td>Landsat-4 MSS</td>
+<td><code><a title="eoreader.products.optical.l4_product.L4Product" href="products/optical/l4_product.html#eoreader.products.optical.l4_product.L4Product">L4Product</a></code></td>
+<td>Level 1</td>
+<td>Collection 1: No, Collection 2: Yes</td>
+<td>60m</td>
+</tr>
+<tr>
+<td>Landsat-3 MSS</td>
+<td><code><a title="eoreader.products.optical.l3_product.L3Product" href="products/optical/l3_product.html#eoreader.products.optical.l3_product.L3Product">L3Product</a></code></td>
+<td>Level 1</td>
+<td>Collection 1: No, Collection 2: Yes</td>
+<td>60m</td>
+</tr>
+<tr>
+<td>Landsat-2 MSS</td>
+<td><code><a title="eoreader.products.optical.l2_product.L2Product" href="products/optical/l2_product.html#eoreader.products.optical.l2_product.L2Product">L2Product</a></code></td>
+<td>Level 1</td>
+<td>Collection 1: No, Collection 2: Yes</td>
+<td>60m</td>
+</tr>
+<tr>
+<td>Landsat-1 MSS</td>
+<td><code><a title="eoreader.products.optical.l1_product.L1Product" href="products/optical/l1_product.html#eoreader.products.optical.l1_product.L1Product">L1Product</a></code></td>
+<td>Level 1</td>
+<td>Collection 1: No, Collection 2: Yes</td>
+<td>60m</td>
+</tr>
+</tbody>
+</table>
+<p>Satellites products that cannot be used as archived have to be extracted before use.</p>
+<h2 id="optical-bands">Optical bands</h2>
+<p>The following bands are available in <code>EOReader</code>, but may not be available for all sensors.</p>
+<h3 id="satellite-bands">Satellite bands</h3>
+<p>These bands are mainly based on Sentinel-2 bands with some additions:</p>
+<ul>
+<li><code>CA</code>: Coastal Aerosol</li>
+<li><code>BLUE</code></li>
+<li><code>GREEN</code></li>
+<li><code>RED</code></li>
+<li><code>VRE_1</code>: Vegetation Red Edge 1</li>
+<li><code>VRE_2</code>: Vegetation Red Edge 2</li>
+<li><code>VRE_3</code>: Vegetation Red Edge 3</li>
+<li><code>NIR</code>: Near Infrared</li>
+<li><code>NARROW_NIR</code>: Narrow Near Infrared (band <code>8A</code> for <code>Sentinel-2</code>)</li>
+<li><code>WP</code>: Water vapour</li>
+<li><code>SWIR_CIRRUS</code></li>
+<li><code>SWIR_1</code></li>
+<li><code>SWIR_2</code></li>
+<li><code>PAN</code>: Panchromatic</li>
+<li><code>TIR_1</code>: Thermal Infrared 1</li>
+<li><code>TIR_2</code>: Thermal Infrared 2</li>
+</ul>
+<p>See <a href="https://sertit.github.io/eoreader/eoreader/products/optical/index.html#optical-band-mapping-between-sensors">here</a> for more information.</p>
+<h3 id="index">Index</h3>
+<ul>
+<li><code>AFRI_1_6</code></li>
+<li><code>AFRI_2_1</code></li>
+<li><code>AWEInsh</code></li>
+<li><code>AWEIsh</code></li>
+<li><code>BAI</code></li>
+<li><code>BSI</code></li>
+<li><code>CIG</code></li>
+<li><code>DSWI</code></li>
+<li><code>GLI</code></li>
+<li><code>GNDVI</code></li>
+<li><code>MNDWI</code></li>
+<li><code>NBR</code></li>
+<li><code>NDGRI</code></li>
+<li><code>NDMI</code></li>
+<li><code>NDRE2</code></li>
+<li><code>NDRE3</code></li>
+<li><code>NDVI</code></li>
+<li><code>NDWI</code></li>
+<li><code>RDI</code></li>
+<li><code>RGI</code></li>
+<li><code>RI</code></li>
+<li><code>SRSWIR</code></li>
+<li><code>TCBRI</code></li>
+<li><code>TCGRE</code></li>
+<li><code>TCWET</code></li>
+<li><code>WI</code></li>
+</ul>
+<p>See <a href="https://sertit.github.io/eoreader/eoreader/products/optical/index.html#available-index">here</a> for more information.</p>
+<h3 id="cloud-bands">Cloud bands</h3>
+<p>Maximum 5 cloud bands are available, according to the files provided in the data. All the bands are rasterized and
+orthorectified if needed (for Sentinel-2 or 3 data for example), ready to be stacked.</p>
+<ul>
+<li><code>RAW_CLOUDS</code>: Raw Cloud file as provided (the only changes are the orthorectification and rasterization). Can provide
+other flags, or cloud probability.</li>
+<li><code>CLOUDS</code>: Cloud presence (1) or absence (0).</li>
+<li><code>CIRRUS</code>: Cirrus presence (1) or absence (0).</li>
+<li><code>SHADOWS</code>: Shadows presence (1) or absence (0).</li>
+<li><code>ALL_CLOUDS</code>: Cloud <strong>OR</strong> Cirrus <strong>OR</strong> Shadows presence (1) or absence (0). Do not take into account missing bands (
+ie. for Landsat MSS sensors, <code>ALL_CLOUDS</code> == <code>CLOUDS</code>)</li>
+</ul>
+<p>See <a href="https://sertit.github.io/eoreader/eoreader/products/optical/index.html#cloud-bands-specifications">here</a> for more information.</p>
+<h3 id="dem-bands">DEM bands</h3>
+<p>These bands need a valid worldwide DEM path positioned thanks to the environment variable <code>EOREADER_SAR_DEFAULT_RES</code></p>
+<ul>
+<li><code>DEM</code></li>
+<li><code>SLOPE</code></li>
+<li><code>HILLSHADE</code></li>
+</ul>
+<p>See <a href="https://sertit.github.io/eoreader/eoreader/products/optical/index.html#dem-bands-specifications">here</a> for more information.</p>
+<hr>
+<h1 id="sar-data">SAR data</h1>
+<h2 id="implemented-sar-satellites">Implemented SAR satellites</h2>
+<table>
+<thead>
+<tr>
+<th>Satellites</th>
+<th>Class</th>
+<th>Product Types</th>
+<th>Use archive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sentinel-1</td>
+<td><code><a title="eoreader.products.sar.s1_product.S1Product" href="products/sar/s1_product.html#eoreader.products.sar.s1_product.S1Product">S1Product</a></code></td>
+<td>SLC &amp; GRD</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>COSMO-Skymed</td>
+<td><code><a title="eoreader.products.sar.csk_product.CskProduct" href="products/sar/csk_product.html#eoreader.products.sar.csk_product.CskProduct">CskProduct</a></code></td>
+<td>DGM &amp; SCS, (others should also be OK)</td>
+<td>No</td>
+</tr>
+<tr>
+<td>TerraSAR-X</td>
+<td><code><a title="eoreader.products.sar.tsx_product.TsxProduct" href="products/sar/tsx_product.html#eoreader.products.sar.tsx_product.TsxProduct">TsxProduct</a></code></td>
+<td>MGD (SSC should be OK)</td>
+<td>No</td>
+</tr>
+<tr>
+<td>RADARSAT-2</td>
+<td><code><a title="eoreader.products.sar.rs2_product.Rs2Product" href="products/sar/rs2_product.html#eoreader.products.sar.rs2_product.Rs2Product">Rs2Product</a></code></td>
+<td>SGF (SLC should be OK)</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Satellites products that cannot be used as archived have to be extracted before use.</p>
+</div>
+<h2 id="sar-bands">SAR Bands</h2>
+<p>According to what contains the products, allowed SAR bands are:</p>
+<ul>
+<li><code>VV</code> (<code><a title="eoreader.bands.bands.SarBandNames.VV" href="bands/bands.html#eoreader.bands.bands.SarBandNames.VV">SarBandNames.VV</a></code>)</li>
+<li><code>VH</code> (<code><a title="eoreader.bands.bands.SarBandNames.VH" href="bands/bands.html#eoreader.bands.bands.SarBandNames.VH">SarBandNames.VH</a></code>)</li>
+<li><code>HH</code> (<code><a title="eoreader.bands.bands.SarBandNames.HH" href="bands/bands.html#eoreader.bands.bands.SarBandNames.HH">SarBandNames.HH</a></code>)</li>
+<li><code>HV</code> (<code><a title="eoreader.bands.bands.SarBandNames.HV" href="bands/bands.html#eoreader.bands.bands.SarBandNames.HV">SarBandNames.HV</a></code>)</li>
+</ul>
+<p>You also can load despeckled bands:</p>
+<ul>
+<li><code>VV_DSPK</code> (<code><a title="eoreader.bands.bands.SarBandNames.VV_DSPK" href="bands/bands.html#eoreader.bands.bands.SarBandNames.VV_DSPK">SarBandNames.VV_DSPK</a></code>)</li>
+<li><code>VH_DSPK</code> (<code><a title="eoreader.bands.bands.SarBandNames.VH_DSPK" href="bands/bands.html#eoreader.bands.bands.SarBandNames.VH_DSPK">SarBandNames.VH_DSPK</a></code>)</li>
+<li><code>HH_DSPK</code> (<code><a title="eoreader.bands.bands.SarBandNames.HH_DSPK" href="bands/bands.html#eoreader.bands.bands.SarBandNames.HH_DSPK">SarBandNames.HH_DSPK</a></code>)</li>
+<li><code>HV_DSPK</code> (<code><a title="eoreader.bands.bands.SarBandNames.HV_DSPK" href="bands/bands.html#eoreader.bands.bands.SarBandNames.HV_DSPK">SarBandNames.HV_DSPK</a></code>)</li>
+</ul>
+<h2 id="dem-bands_1">DEM bands</h2>
+<p>These bands need a valid worldwide DEM path positioned thanks to the environment variable <code>EOREADER_SAR_DEFAULT_RES</code></p>
+<ul>
+<li><code>DEM</code></li>
+<li><code>SLOPE</code></li>
+</ul>
+<p>See <a href="https://sertit.github.io/eoreader/eoreader/products/sar/index.html#dem-bands">here</a> for more information.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># -*- coding: utf-8 -*-
+# Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/
+# This file is part of eoreader project
+#     https://github.com/sertit/eoreader
+#
+# Licensed under the Apache License, Version 2.0 (the &#34;License&#34;);
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an &#34;AS IS&#34; BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+&#34;&#34;&#34;
+**Source Code**: https://github.com/sertit/eoreader
+
+.. include:: ../documentation/index.md
+
+_____
+
+.. include:: ../documentation/main_features.md
+
+_____
+
+.. include:: ../documentation/optical.md
+
+_____
+
+.. include:: ../documentation/sar.md
+
+&#34;&#34;&#34;
+
+__pdoc__ = {
+    &#34;eoreader.data&#34;: False,
+}
+
+__version__ = &#34;0.3.1-2&#34;</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="eoreader.bands" href="bands/index.html">eoreader.bands</a></code></dt>
+<dd>
+<div class="desc"><p>Band module containing: …</p></div>
+</dd>
+<dt><code class="name"><a title="eoreader.env_vars" href="env_vars.html">eoreader.env_vars</a></code></dt>
+<dd>
+<div class="desc"><p>Environment variables that can change the processes</p></div>
+</dd>
+<dt><code class="name"><a title="eoreader.exceptions" href="exceptions.html">eoreader.exceptions</a></code></dt>
+<dd>
+<div class="desc"><p>EOReader exceptions</p></div>
+</dd>
+<dt><code class="name"><a title="eoreader.products" href="products/index.html">eoreader.products</a></code></dt>
+<dd>
+<div class="desc"><p>SAR and Optical products …</p></div>
+</dd>
+<dt><code class="name"><a title="eoreader.reader" href="reader.html">eoreader.reader</a></code></dt>
+<dd>
+<div class="desc"><p>Product Factory, class creating products according to their names</p></div>
+</dd>
+<dt><code class="name"><a title="eoreader.utils" href="utils.html">eoreader.utils</a></code></dt>
+<dd>
+<div class="desc"><p>Utils: mostly getting directories relative to the project</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="Home" href="/eoreader/">
+<img src="https://github.com/sertit/eoreader/blob/master/docs/eoreader.png?raw=True"
+alt="logo"
+style="width:40%;"/>
+</a>
+</header>
+<form>
+<input id="lunr-search" name="q" placeholder="🔎 Search ..." aria-label="Search"
+disabled minlength="2">
+</form>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.css" integrity="sha512-j1u8eUJ4f23xPPxwOrLUPQaCD2dwzNqqmDDcWS4deWsMv2ohLqmXXuP3hU7g8TyzbMSakP/mMqoNBYWj8AEIFg==" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.js" integrity="sha512-plGUER9JkeEWPPqQBE4sdLqBoQug5Ap+BCGMc7bJ8BXkm+VVj6QzkpBz5Yv2yPkkq+cqg9IpkBaGCas6uDbW8g==" crossorigin></script>
+<style>
+.modal-dialog iframe {
+width: 100vw;
+height: calc(100vh - 80px);
+}
+@media screen and (min-width: 700px) {
+.modal-dialog iframe {
+width: 70vw;
+height: 80vh;
+}
+}
+.modal-dialog .tingle-modal-box {width: auto;}
+.modal-dialog .tingle-modal-box__content {padding: 0;}
+</style>
+<script>
+const input = document.getElementById('lunr-search');
+input.disabled = false;
+input.form.addEventListener('submit', (ev) => {
+ev.preventDefault();
+const url = new URL(window.location);
+url.searchParams.set('q', input.value);
+history.replaceState({}, null, url.toString());
+search(input.value);
+});
+const query = new URL(window.location).searchParams.get('q');
+if (query)
+search(query);
+function search(query) {
+const url = '../doc-search.html#' + encodeURIComponent(query);
+new tingle.modal({
+cssClass: ['modal-dialog'],
+onClose: () => {
+const url = new URL(window.location);
+url.searchParams.delete('q');
+history.replaceState({}, null, url.toString());
+setTimeout(() => input.focus(), 100);
+}
+}).setContent('<iframe src="' + url + '"></iframe>').open();
+}
+</script>
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#eoreader">EOReader</a><ul>
+<li><a href="#python-quickstart">Python Quickstart</a></li>
+<li><a href="#documentation">Documentation</a></li>
+<li><a href="#examples">Examples</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#authors">Authors</a></li>
+<li><a href="#credits">Credits</a></li>
+</ul>
+</li>
+<li><a href="#main-features">Main features</a><ul>
+<li><a href="#read">Read</a></li>
+<li><a href="#load">Load</a></li>
+<li><a href="#stack">Stack</a></li>
+</ul>
+</li>
+<li><a href="#optical-data">Optical data</a><ul>
+<li><a href="#implemented-optical-satellites">Implemented optical satellites</a></li>
+<li><a href="#optical-bands">Optical bands</a><ul>
+<li><a href="#satellite-bands">Satellite bands</a></li>
+<li><a href="#index">Index</a></li>
+<li><a href="#cloud-bands">Cloud bands</a></li>
+<li><a href="#dem-bands">DEM bands</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#sar-data">SAR data</a><ul>
+<li><a href="#implemented-sar-satellites">Implemented SAR satellites</a></li>
+<li><a href="#sar-bands">SAR Bands</a></li>
+<li><a href="#dem-bands_1">DEM bands</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><strong><a title="eoreader.env_vars" href="env_vars.html">eoreader.env_vars</a></strong></code></li>
+<li><code><strong><a title="eoreader.exceptions" href="exceptions.html">eoreader.exceptions</a></strong></code></li>
+<li><code><strong><a title="eoreader.reader" href="reader.html">eoreader.reader</a></strong></code></li>
+<li><code><strong><a title="eoreader.utils" href="utils.html">eoreader.utils</a></strong></code></li>
+<li><code><i><a title="eoreader.bands" href="bands/index.html">eoreader.bands</a></i></code></li>
+<li><code><i><a title="eoreader.products" href="products/index.html">eoreader.products</a></i></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

@@ -6,7 +6,6 @@
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 [![Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/sertit/eoreader/blob/master/LICENSE)
 
-
 # ![eoreader_logo](https://raw.githubusercontent.com/sertit/eoreader/master/docs/eoreader_small.png) EOReader
 
 **EOReader** is a **multi-satellite reader** allowing you to open
@@ -32,31 +31,59 @@ and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_struc
 
 ## Python Quickstart
 
-The main features of EOReader are gathered hereunder:
+The main features of EOReader are gathered hereunder.
+For optical data:
 
 ```python
 >>> from eoreader.reader import Reader
 >>> from eoreader.bands.alias import *
 
 >>> # Your variables
->>> path = r"path/to/your/satellite/product"  # Optical in this example
+>>> l5_path = "D:/eoreader/CI/DATA/LM05_L1TP_200029_19841014_20200902_02_T2.tar"
 
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()
->>> prod = eoreader.open(path)  # The Reader will recognize the satellite type from its name
+>>> l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its name
 
 >>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
->>> footprint = prod.footprint
->>> extent = prod.extent
+>>> footprint = l5_prod.footprint
+>>> extent = l5_prod.extent
 
 >>> # Load some bands and index: they will all share the same metadata
->>> bands = prod.load([NDVI, GREEN, HILLSHADE, CLOUDS]
+>>> bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS]
 
 >>> # Create a stack with some other bands
->>> stack = prod.stack([NDVI, MNDWI, GREEN, SLOPE, CIRRUS])
+>>> stack = l5_prod.stack([NDWI, RED, SLOPE])
 
 >>> # Read Metadata
->>> mtd, namespace = prod.read_mtd()
+>>> mtd, namespace = l5_prod.read_mtd()
+```
+
+For SAR data:
+
+```python
+>>> from eoreader.reader import Reader
+>>> from eoreader.bands.alias import *
+
+>>> # Your variables
+>>> s1_path = "D:/eoreader/S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip"  # Not in the package
+
+>>> # Create the reader object and open satellite data
+>>> eoreader = Reader()
+>>> s1_prod = eoreader.open(s1_path)  # The Reader will recognize the satellite type from its name
+
+>>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
+>>> footprint = s1_prod.footprint
+>>> extent = s1_prod.extent
+
+>>> # Load some bands and index: they will all share the same metadata
+>>> bands = s1_prod.load([VV, VV_DSPK, DEM]
+
+>>> # Create a stack with some other bands
+>>> stack = s1_prod.stack([VV, VV_DSPK, SLOPE])
+
+>>> # Read Metadata
+>>> mtd, namespace = s1_prod.read_mtd()
 ```
 
 Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.
@@ -74,12 +101,15 @@ Available notebooks provided as examples:
 
 ## Installation
 
-`pip install eoreader`
+`pip install eoreader` or `conda install eoreader`
 
 EOReader depends mainly on `geopandas` and `rasterio`.
-(with GDAL installation issues on Windows, so please install them from wheels that you can
-find [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio)).
 
+On Windows and with pip, you may face installation issues due to GDAL.
+The well known workaround of installing from [Gohlke's wheels](https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio)
+also applies here.
+Please look at the [rasterio page](https://rasterio.readthedocs.io/en/latest/installation.html)
+to learn more about that.
 
 ## License
 

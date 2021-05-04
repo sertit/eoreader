@@ -572,33 +572,23 @@ class Product:
         """
         dem_bands = {}
         if band_list:
-            dem_path = os.environ.get(DEM_PATH)
-            if not dem_path:
-                LOGGER.warning(
-                    f"Dem path not set, unable to compute DEM bands ! "
-                    f"Please set the environment variable {DEM_PATH}."
-                )
-            else:
-                for band in band_list:
-                    assert is_dem(band)
-                    if band == DEM:
-                        path = self._warp_dem(
-                            dem_path, resolution=resolution, size=size
-                        )
-                    elif band == SLOPE:
-                        path = self._compute_slope(
-                            dem_path, resolution=resolution, size=size
-                        )
-                    elif band == HILLSHADE:
-                        path = self._compute_hillshade(
-                            dem_path, resolution=resolution, size=size
-                        )
-                    else:
-                        raise InvalidTypeError(f"Unknown DEM band: {band}")
-
-                    dem_bands[band] = rasters.read(
-                        path, resolution=resolution, size=size
+            dem_path = os.environ.get(DEM_PATH)  # We already checked if it exists
+            for band in band_list:
+                assert is_dem(band)
+                if band == DEM:
+                    path = self._warp_dem(dem_path, resolution=resolution, size=size)
+                elif band == SLOPE:
+                    path = self._compute_slope(
+                        dem_path, resolution=resolution, size=size
                     )
+                elif band == HILLSHADE:
+                    path = self._compute_hillshade(
+                        dem_path, resolution=resolution, size=size
+                    )
+                else:
+                    raise InvalidTypeError(f"Unknown DEM band: {band}")
+
+                dem_bands[band] = rasters.read(path, resolution=resolution, size=size)
 
         return dem_bands
 
@@ -1235,3 +1225,19 @@ class Product:
             val.close()
 
         return stack
+
+    @staticmethod
+    def _check_dem_path() -> None:
+        """ Check if DEM is set and exists"""
+        if DEM_PATH not in os.environ:
+            raise ValueError(
+                f"Dem path not set, unable to compute DEM bands ! "
+                f"Please set the environment variable {DEM_PATH}."
+            )
+        else:
+            dem_path = os.environ.get(DEM_PATH)
+            if not os.path.isfile(dem_path):
+                raise FileNotFoundError(
+                    f"Dem path is not a file, unable to compute DEM bands ! "
+                    f"Please set the environment variable {DEM_PATH} to an existing file."
+                )

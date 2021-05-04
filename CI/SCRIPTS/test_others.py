@@ -8,6 +8,7 @@ from lxml import etree
 from eoreader import utils
 from eoreader.bands.alias import *
 from eoreader.bands.bands import OpticalBands, SarBandNames
+from eoreader.env_vars import DEM_PATH
 
 from .scripts_utils import OPT_PATH, READER
 
@@ -91,6 +92,15 @@ def test_products():
     green2 = prod1.load([GREEN], size=(green[GREEN].rio.width, green[GREEN].rio.height))
 
     xr.testing.assert_equal(green[GREEN], green2[GREEN])
+
+    # Test without a DEM set:
+    if DEM_PATH in os.environ:
+        os.environ.pop(DEM_PATH)
+    with pytest.raises(ValueError):
+        prod1.load([DEM])
+    with pytest.raises(FileNotFoundError):
+        os.environ[DEM_PATH] = "fczergg"
+        prod1.load([DEM])
 
 
 def test_bands():
