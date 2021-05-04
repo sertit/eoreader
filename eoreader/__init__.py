@@ -37,4 +37,4 @@ __pdoc__ = {
     "eoreader.data": False,
 }
 
-__version__ = "0.3.1-2"
+__version__ = "0.3.2"
