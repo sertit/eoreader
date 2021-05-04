@@ -1231,13 +1231,13 @@ class Product:
         """ Check if DEM is set and exists"""
         if DEM_PATH not in os.environ:
             raise ValueError(
-                f"Dem path not set, unable to compute DEM bands ! "
+                f"Dem path not set, unable to compute DEM bands! "
                 f"Please set the environment variable {DEM_PATH}."
             )
         else:
             dem_path = os.environ.get(DEM_PATH)
             if not os.path.isfile(dem_path):
                 raise FileNotFoundError(
-                    f"Dem path is not a file, unable to compute DEM bands ! "
+                    f"Dem path is not a file, unable to compute DEM bands! "
                     f"Please set the environment variable {DEM_PATH} to an existing file."
                 )

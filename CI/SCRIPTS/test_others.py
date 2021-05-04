@@ -94,13 +94,17 @@ def test_products():
     xr.testing.assert_equal(green[GREEN], green2[GREEN])
 
     # Test without a DEM set:
+    old_dem = None
     if DEM_PATH in os.environ:
-        os.environ.pop(DEM_PATH)
+        old_dem = os.environ.pop(DEM_PATH)
     with pytest.raises(ValueError):
         prod1.load([DEM])
     with pytest.raises(FileNotFoundError):
         os.environ[DEM_PATH] = "fczergg"
         prod1.load([DEM])
+
+    if old_dem is not None:
+        os.environ[DEM_PATH] = old_dem
 
 
 def test_bands():
