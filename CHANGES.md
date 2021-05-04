@@ -2,6 +2,11 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.3.2-1 (2021-05-04)
+
+- Do not use psutil in requirements and setup.py
+- Typo in setup.py
+
 ## 0.3.2 (2021-05-04)
 - In case of DEM bands, checks if the DEM is set and exists and raise an exception if not
 - Setting minimum versions in setup.py and in requirements.txt
