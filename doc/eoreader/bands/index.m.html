@@ -1,0 +1,1932 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1"/>
+<meta name="generator" content="pdoc 0.9.2"/>
+<title>eoreader.bands.index API documentation</title>
+<meta name="description" content="Set of usual optical index …"/>
+<link rel="preload stylesheet" as="style"
+href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css"
+integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style"
+href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css"
+integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style"
+href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/darcula.min.css"
+crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}#lunr-search{width:100%;font-size:1em;padding:6px 9px 5px 9px;border:1px solid silver}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100%;padding:3em 4em;border-left:1px solid #ddd;overflow-x:hidden}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}table{display:block;overflow-x:auto;word-break:keep-all;border-collapse:separate;border-spacing:0}th{background-color:#c4d5e780;padding:5px;border-bottom:0.1px solid gray;border-right:0.1px solid gray;border-top:0.1px solid gray}td,th{margin:0}td{white-space:nowrap;border-bottom:0.1px solid gray;border-right:0.1px solid gray}td:empty{background-color:#ececec}th:nth-child(1){border-left:0.1px solid gray}td:nth-child(1){border-left:0.1px solid gray;border-right:0.1px solid gray}th:nth-child(1),td:nth-child(1){background-color:#c4d5e7;position:-webkit-sticky;position:sticky;left:0}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML"
+integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"
+integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<a href=https://www.github.com/sertit/eoreader/ class="gitbutton pill">
+<span class="icon medium">
+{% include git-logo.html %}
+</span>
+Edit on GitHub!
+</a>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>eoreader.bands.index</code></h1>
+</header>
+<section id="section-intro">
+<p>Set of usual optical index.</p>
+<p><strong>Note</strong>: The nodata is always considered to be set to 0.
+If this changes, it will become mandatory to use the NODATA mask everywhere !</p>
+<p><strong>Note 2</strong>: This is easier to manage index as raw functions in a file rather than stored in a class</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># -*- coding: utf-8 -*-
+# Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/
+# This file is part of eoreader project
+#     https://github.com/sertit/eoreader
+#
+# Licensed under the Apache License, Version 2.0 (the &#34;License&#34;);
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an &#34;AS IS&#34; BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+&#34;&#34;&#34;
+Set of usual optical index.
+
+**Note**: The nodata is always considered to be set to 0.
+If this changes, it will become mandatory to use the NODATA mask everywhere !
+
+**Note 2**: This is easier to manage index as raw functions in a file rather than stored in a class
+&#34;&#34;&#34;
+# Index not snake case
+# pylint: disable=C0103
+import inspect
+import logging
+import re
+import sys
+from functools import wraps
+from typing import Callable
+
+import numpy as np
+import xarray as xr
+
+from eoreader.bands.bands import OpticalBandNames as obn
+from eoreader.utils import EOREADER_NAME
+from sertit import rasters
+
+LOGGER = logging.getLogger(EOREADER_NAME)
+
+np.seterr(divide=&#34;ignore&#34;, invalid=&#34;ignore&#34;)
+
+
+def _idx_fct(function: Callable) -&gt; Callable:
+    &#34;&#34;&#34;
+    Decorator of index functions
+    &#34;&#34;&#34;
+
+    @wraps(function)
+    def _idx_fct_wrapper(bands: dict) -&gt; xr.DataArray:
+        &#34;&#34;&#34;
+        Index functions wrapper
+        Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+        Returns:
+            xr.DataArray: Computed index
+        &#34;&#34;&#34;
+        # WARNING: for performance issues, use numpy arrays here to speed up computation !
+        out_np = function({key: val.data for key, val in bands.items()})
+
+        # Take the first band as a template for xarray
+        first_xda = list(bands.values())[0]
+        out_xda = first_xda.copy(data=out_np)
+
+        out = rasters.set_metadata(out_xda, first_xda, new_name=str(function.__name__))
+        return out
+
+    return _idx_fct_wrapper
+
+
+def _norm_diff(band_1: xr.DataArray, band_2: xr.DataArray) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Get normalized difference index between band 1 and band 2:
+    (band_1 - band_2)/(band_1 + band_2)
+
+    Args:
+        band_1 (xr.DataArray): Band 1
+        band_2 (xr.DataArray): Band 2
+
+    Returns:
+        xr.DataArray: Normalized Difference between band 1 and band 2
+    &#34;&#34;&#34;
+    norm = np.divide(band_1 - band_2, band_1 + band_2)
+    return norm
+
+
+@_idx_fct
+def RGI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Relative Greenness Index: https://www.indexdatabase.de/db/i-single.php?id=326
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return np.divide(bands[obn.RED], bands[obn.GREEN])
+
+
+@_idx_fct
+def NDVI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Difference Vegetation Index: https://www.indexdatabase.de/db/i-single.php?id=59
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], bands[obn.RED])
+
+
+@_idx_fct
+def TCBRI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Tasseled Cap Brightness:
+    https://en.wikipedia.org/wiki/Tasseled_cap_transformation
+    https://www.indexdatabase.de/db/r-single.php?id=723
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return (
+        0.3037 * bands[obn.BLUE]
+        + 0.2793 * bands[obn.GREEN]
+        + 0.4743 * bands[obn.RED]
+        + 0.5585 * bands[obn.NIR]
+        + 0.5082 * bands[obn.SWIR_1]
+        + 0.1863 * bands[obn.SWIR_2]
+    )
+
+
+@_idx_fct
+def TCGRE(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Tasseled Cap Greenness:
+    https://en.wikipedia.org/wiki/Tasseled_cap_transformation
+    https://www.indexdatabase.de/db/r-single.php?id=723
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return (
+        -0.2848 * bands[obn.BLUE]
+        - 0.2435 * bands[obn.GREEN]
+        - 0.5436 * bands[obn.RED]
+        + 0.7243 * bands[obn.NIR]
+        + 0.0840 * bands[obn.SWIR_1]
+        - 0.1800 * bands[obn.SWIR_2]
+    )
+
+
+@_idx_fct
+def TCWET(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Tasseled Cap Wetness:
+    https://en.wikipedia.org/wiki/Tasseled_cap_transformation
+    https://www.indexdatabase.de/db/r-single.php?id=723
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return (
+        0.1509 * bands[obn.BLUE]
+        + 0.1973 * bands[obn.GREEN]
+        + 0.3279 * bands[obn.RED]
+        + 0.3406 * bands[obn.NIR]
+        - 0.7112 * bands[obn.SWIR_1]
+        - 0.4572 * bands[obn.SWIR_2]
+    )
+
+
+@_idx_fct
+def NDRE2(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Difference Red-Edge: https://www.indexdatabase.de/db/i-single.php?id=223
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], bands[obn.VRE_1])
+
+
+@_idx_fct
+def NDRE3(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Difference Red-Edge: https://www.indexdatabase.de/db/i-single.php?id=223
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], bands[obn.VRE_2])
+
+
+@_idx_fct
+def GLI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Green leaf index: https://www.indexdatabase.de/db/i-single.php?id=375
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return np.divide(
+        2 * (bands[obn.GREEN] - bands[obn.RED] - bands[obn.BLUE]),
+        2 * (bands[obn.GREEN] + bands[obn.RED] + bands[obn.BLUE]),
+    )
+
+
+@_idx_fct
+def GNDVI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Green NDVI: https://www.indexdatabase.de/db/i-single.php?id=401
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], bands[obn.GREEN])
+
+
+@_idx_fct
+def RI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Difference RED/GREEN Redness Index: https://www.indexdatabase.de/db/i-single.php?id=74
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.VRE_1], +bands[obn.GREEN])
+
+
+@_idx_fct
+def NDGRI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Difference GREEN/RED Index: https://www.indexdatabase.de/db/i-single.php?id=390
+
+    Also known as NDGR.
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.GREEN], bands[obn.RED])
+
+
+@_idx_fct
+def CIG(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Chlorophyll Index Green: https://www.indexdatabase.de/db/i-single.php?id=128
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return np.divide(bands[obn.NIR], bands[obn.GREEN]) - 1
+
+
+@_idx_fct
+def NDMI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Difference Moisture Index: https://www.indexdatabase.de/db/i-single.php?id=56
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], +bands[obn.SWIR_1])
+
+
+@_idx_fct
+def DSWI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Disease water stress index: https://www.indexdatabase.de/db/i-single.php?id=106
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return np.divide(
+        bands[obn.NIR] + bands[obn.GREEN], bands[obn.SWIR_1] + bands[obn.RED]
+    )
+
+
+@_idx_fct
+def SRSWIR(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Simple Ratio SWIR_1/SWIR_2 Clay Minerals: https://www.indexdatabase.de/db/i-single.php?id=204
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return np.divide(bands[obn.SWIR_1], bands[obn.SWIR_2])
+
+
+@_idx_fct
+def RDI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Ratio Drought Index: https://www.indexdatabase.de/db/i-single.php?id=71
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return np.divide(bands[obn.SWIR_2], bands[obn.NARROW_NIR])
+
+
+@_idx_fct
+def NDWI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Simple Ratio MIR/NIR Ratio Drought Index: https://www.indexdatabase.de/db/i-single.php?id=71
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.GREEN], bands[obn.NIR])
+
+
+@_idx_fct
+def BAI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Burn Area Index: https://www.harrisgeospatial.com/docs/BackgroundBurnIndices.html
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    &#34;&#34;&#34;
+    return np.divide(1.0, (0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)
+
+
+@_idx_fct
+def NBR(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Burn Ratio: https://www.indexdatabase.de/db/i-single.php?id=53
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NARROW_NIR], bands[obn.SWIR_2])
+
+
+@_idx_fct
+def MNDWI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Modified Normalised Difference Water Index : https://wiki.orfeo-toolbox.org/index.php/MNDWI
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.GREEN], bands[obn.SWIR_1])
+
+
+@_idx_fct
+def AWEInsh(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Automated Water Extraction Index not shadow: Feyisa et al. (2014)
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return 4 * (bands[obn.GREEN] - bands[obn.SWIR_1]) - (
+        0.25 * bands[obn.NIR] + 2.75 * bands[obn.SWIR_2]
+    )
+
+
+@_idx_fct
+def AWEIsh(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Automated Water Extraction Index shadow: Feyisa et al. (2014)
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return (
+        bands[obn.BLUE]
+        + 2.5 * bands[obn.GREEN]
+        - 1.5 * (bands[obn.NIR] + bands[obn.SWIR_1])
+        - 0.25 * bands[obn.SWIR_2]
+    )
+
+
+@_idx_fct
+def WI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Water Index (2015): Fisher et al. (2016)
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    &#34;&#34;&#34;
+    return (
+        1.7204
+        + 171 * bands[obn.GREEN]
+        + 3 * bands[obn.RED]
+        - 70 * bands[obn.NIR]
+        - 45 * bands[obn.SWIR_1]
+        - 71 * bands[obn.SWIR_2]
+    )
+
+
+@_idx_fct
+def AFRI_1_6(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Aerosol free vegetation index 1600: https://www.indexdatabase.de/db/i-single.php?id=393
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], 0.66 * bands[obn.SWIR_1])
+
+
+@_idx_fct
+def AFRI_2_1(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Aerosol free vegetation index 2100: https://www.indexdatabase.de/db/i-single.php?id=395
+
+    .. WARNING::
+        There is an error in the formula, go see the papers to get the right one (0.56 instead of 0.5):
+        https://core.ac.uk/download/pdf/130673386.pdf
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], 0.5 * bands[obn.SWIR_2])
+
+
+@_idx_fct
+def BSI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Barren Soil Index:
+    Rikimaru et al., 2002. Tropical forest cover density mapping.
+    http://tropecol.com/pdf/open/PDF_43_1/43104.pdf
+
+    BSI = ((RED+SWIR) – (NIR+BLUE)) / ((RED+SWIR) + (NIR+BLUE))
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    &#34;&#34;&#34;
+    return _norm_diff(
+        bands[obn.RED] + bands[obn.SWIR_1], bands[obn.NIR] + bands[obn.BLUE]
+    )
+
+
+def get_all_index_names() -&gt; list:
+    &#34;&#34;&#34;
+    Get all index names contained in this file
+
+    ```python
+    &gt;&gt;&gt; from eoreader.bands import index
+    &gt;&gt;&gt; index.get_all_index_names()
+    [&#39;AFRI_1_6&#39;, &#39;AFRI_2_1&#39;, &#39;AWEInsh&#39;, &#39;AWEIsh&#39;, &#39;BAI&#39;, ..., &#39;WI&#39;]
+    ```
+
+    Returns:
+        list: Index names
+
+    &#34;&#34;&#34;
+    return [idx_fct.__name__ for idx_fct in get_all_index()]
+
+
+def get_all_index() -&gt; list:
+    &#34;&#34;&#34;
+    Get all index functions contained in this file
+
+    ```python
+    &gt;&gt;&gt; from eoreader.bands import index
+    &gt;&gt;&gt; index.get_all_index()
+    [&lt;function AFRI_1_6 at 0x00000118FFFB51E0&gt;, ..., &lt;function WI at 0x00000118FFFB5158&gt;]
+    ```
+
+    Returns:
+        list: Index functions
+
+    &#34;&#34;&#34;
+    idx = []
+    functions = inspect.getmembers(sys.modules[__name__], predicate=inspect.isfunction)
+
+    for (name, fct) in functions:
+        # Do not gather this fct nor np.divide
+        if name[0].isupper():
+            idx.append(fct)
+
+    return idx
+
+
+def get_needed_bands(index: Callable) -&gt; list:
+    &#34;&#34;&#34;
+    Gather all the needed bands for the specified index function
+
+    ```python
+    &gt;&gt;&gt; index.get_needed_bands(NDVI)
+    [&lt;OpticalBandNames.NIR: &#39;NIR&#39;&gt;, &lt;OpticalBandNames.RED: &#39;RED&#39;&gt;]
+    ```
+    Returns:
+        list: Needed bands for the index function
+    &#34;&#34;&#34;
+    # Get source code from this fct
+    code = inspect.getsource(index)
+
+    # Parse band&#39;s signature
+    b_regex = r&#34;obn\.\w+&#34;
+
+    return [getattr(obn, b.split(&#34;.&#34;)[-1]) for b in re.findall(b_regex, code)]
+
+
+def get_all_needed_bands() -&gt; dict:
+    &#34;&#34;&#34;
+    Gather all the needed bands for all index functions
+
+    ```python
+    &gt;&gt;&gt; index.get_all_needed_bands()
+    {
+        &lt;function AFRI_1_6 at 0x00000261F6FF36A8&gt;: [&lt;OpticalBandNames.NIR: &#39;NIR&#39;&gt;, &lt;OpticalBandNames.SWIR_2: &#39;SWIR_2&#39;&gt;],
+        ...
+        &lt;function WI at 0x00000261F6FF3620&gt;: [&lt;OpticalBandNames.NIR: &#39;NIR&#39;&gt;, &lt;OpticalBandNames.SWIR_1: &#39;SWIR_1&#39;&gt;]
+    }
+
+    &gt;&gt;&gt; # Or written in a more readable fashion:
+    &gt;&gt;&gt; {idx.__name__: [band.value for band in bands] for idx, bands in index.get_all_needed_bands().items()}
+    {
+        &#39;AFRI_1_6&#39;: [&#39;NIR&#39;, &#39;SWIR_2&#39;],
+        ...,
+        &#39;WI&#39;: [&#39;NIR&#39;, &#39;SWIR_1&#39;]
+    }
+    ```
+
+    Returns:
+        dict: Needed bands for all index functions
+
+    &#34;&#34;&#34;
+    needed_bands = {}
+
+    # Get all function from this file
+    functions = inspect.getmembers(sys.modules[__name__], predicate=inspect.isfunction)
+
+    for (name, function) in functions:
+        # Do not gather this fct nor np.divide
+        if name[0].isupper():
+            needed_bands[function] = get_needed_bands(function)
+
+    return needed_bands
+
+
+NEEDED_BANDS = get_all_needed_bands()</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="eoreader.bands.index.RGI"><code class="name flex">
+<p>def <span class="ident">RGI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Relative Greenness Index: <a href="https://www.indexdatabase.de/db/i-single.php?id=326">https://www.indexdatabase.de/db/i-single.php?id=326</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def RGI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Relative Greenness Index: https://www.indexdatabase.de/db/i-single.php?id=326
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return np.divide(bands[obn.RED], bands[obn.GREEN])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.NDVI"><code class="name flex">
+<p>def <span class="ident">NDVI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Normalized Difference Vegetation Index: <a href="https://www.indexdatabase.de/db/i-single.php?id=59">https://www.indexdatabase.de/db/i-single.php?id=59</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def NDVI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Difference Vegetation Index: https://www.indexdatabase.de/db/i-single.php?id=59
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], bands[obn.RED])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.TCBRI"><code class="name flex">
+<p>def <span class="ident">TCBRI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Tasseled Cap Brightness:
+<a href="https://en.wikipedia.org/wiki/Tasseled_cap_transformation">https://en.wikipedia.org/wiki/Tasseled_cap_transformation</a>
+<a href="https://www.indexdatabase.de/db/r-single.php?id=723">https://www.indexdatabase.de/db/r-single.php?id=723</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def TCBRI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Tasseled Cap Brightness:
+    https://en.wikipedia.org/wiki/Tasseled_cap_transformation
+    https://www.indexdatabase.de/db/r-single.php?id=723
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return (
+        0.3037 * bands[obn.BLUE]
+        + 0.2793 * bands[obn.GREEN]
+        + 0.4743 * bands[obn.RED]
+        + 0.5585 * bands[obn.NIR]
+        + 0.5082 * bands[obn.SWIR_1]
+        + 0.1863 * bands[obn.SWIR_2]
+    )</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.TCGRE"><code class="name flex">
+<p>def <span class="ident">TCGRE</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Tasseled Cap Greenness:
+<a href="https://en.wikipedia.org/wiki/Tasseled_cap_transformation">https://en.wikipedia.org/wiki/Tasseled_cap_transformation</a>
+<a href="https://www.indexdatabase.de/db/r-single.php?id=723">https://www.indexdatabase.de/db/r-single.php?id=723</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def TCGRE(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Tasseled Cap Greenness:
+    https://en.wikipedia.org/wiki/Tasseled_cap_transformation
+    https://www.indexdatabase.de/db/r-single.php?id=723
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return (
+        -0.2848 * bands[obn.BLUE]
+        - 0.2435 * bands[obn.GREEN]
+        - 0.5436 * bands[obn.RED]
+        + 0.7243 * bands[obn.NIR]
+        + 0.0840 * bands[obn.SWIR_1]
+        - 0.1800 * bands[obn.SWIR_2]
+    )</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.TCWET"><code class="name flex">
+<p>def <span class="ident">TCWET</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Tasseled Cap Wetness:
+<a href="https://en.wikipedia.org/wiki/Tasseled_cap_transformation">https://en.wikipedia.org/wiki/Tasseled_cap_transformation</a>
+<a href="https://www.indexdatabase.de/db/r-single.php?id=723">https://www.indexdatabase.de/db/r-single.php?id=723</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def TCWET(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Tasseled Cap Wetness:
+    https://en.wikipedia.org/wiki/Tasseled_cap_transformation
+    https://www.indexdatabase.de/db/r-single.php?id=723
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return (
+        0.1509 * bands[obn.BLUE]
+        + 0.1973 * bands[obn.GREEN]
+        + 0.3279 * bands[obn.RED]
+        + 0.3406 * bands[obn.NIR]
+        - 0.7112 * bands[obn.SWIR_1]
+        - 0.4572 * bands[obn.SWIR_2]
+    )</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.NDRE2"><code class="name flex">
+<p>def <span class="ident">NDRE2</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Normalized Difference Red-Edge: <a href="https://www.indexdatabase.de/db/i-single.php?id=223">https://www.indexdatabase.de/db/i-single.php?id=223</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def NDRE2(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Difference Red-Edge: https://www.indexdatabase.de/db/i-single.php?id=223
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], bands[obn.VRE_1])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.NDRE3"><code class="name flex">
+<p>def <span class="ident">NDRE3</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Normalized Difference Red-Edge: <a href="https://www.indexdatabase.de/db/i-single.php?id=223">https://www.indexdatabase.de/db/i-single.php?id=223</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def NDRE3(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Difference Red-Edge: https://www.indexdatabase.de/db/i-single.php?id=223
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], bands[obn.VRE_2])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.GLI"><code class="name flex">
+<p>def <span class="ident">GLI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Green leaf index: <a href="https://www.indexdatabase.de/db/i-single.php?id=375">https://www.indexdatabase.de/db/i-single.php?id=375</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def GLI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Green leaf index: https://www.indexdatabase.de/db/i-single.php?id=375
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return np.divide(
+        2 * (bands[obn.GREEN] - bands[obn.RED] - bands[obn.BLUE]),
+        2 * (bands[obn.GREEN] + bands[obn.RED] + bands[obn.BLUE]),
+    )</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.GNDVI"><code class="name flex">
+<p>def <span class="ident">GNDVI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Green NDVI: <a href="https://www.indexdatabase.de/db/i-single.php?id=401">https://www.indexdatabase.de/db/i-single.php?id=401</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def GNDVI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Green NDVI: https://www.indexdatabase.de/db/i-single.php?id=401
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], bands[obn.GREEN])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.RI"><code class="name flex">
+<p>def <span class="ident">RI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Normalized Difference RED/GREEN Redness Index: <a href="https://www.indexdatabase.de/db/i-single.php?id=74">https://www.indexdatabase.de/db/i-single.php?id=74</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def RI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Difference RED/GREEN Redness Index: https://www.indexdatabase.de/db/i-single.php?id=74
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.VRE_1], +bands[obn.GREEN])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.NDGRI"><code class="name flex">
+<p>def <span class="ident">NDGRI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Normalized Difference GREEN/RED Index: <a href="https://www.indexdatabase.de/db/i-single.php?id=390">https://www.indexdatabase.de/db/i-single.php?id=390</a></p>
+<p>Also known as NDGR.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def NDGRI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Difference GREEN/RED Index: https://www.indexdatabase.de/db/i-single.php?id=390
+
+    Also known as NDGR.
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.GREEN], bands[obn.RED])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.CIG"><code class="name flex">
+<p>def <span class="ident">CIG</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Chlorophyll Index Green: <a href="https://www.indexdatabase.de/db/i-single.php?id=128">https://www.indexdatabase.de/db/i-single.php?id=128</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def CIG(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Chlorophyll Index Green: https://www.indexdatabase.de/db/i-single.php?id=128
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return np.divide(bands[obn.NIR], bands[obn.GREEN]) - 1</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.NDMI"><code class="name flex">
+<p>def <span class="ident">NDMI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Normalized Difference Moisture Index: <a href="https://www.indexdatabase.de/db/i-single.php?id=56">https://www.indexdatabase.de/db/i-single.php?id=56</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def NDMI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Difference Moisture Index: https://www.indexdatabase.de/db/i-single.php?id=56
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], +bands[obn.SWIR_1])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.DSWI"><code class="name flex">
+<p>def <span class="ident">DSWI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Disease water stress index: <a href="https://www.indexdatabase.de/db/i-single.php?id=106">https://www.indexdatabase.de/db/i-single.php?id=106</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def DSWI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Disease water stress index: https://www.indexdatabase.de/db/i-single.php?id=106
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return np.divide(
+        bands[obn.NIR] + bands[obn.GREEN], bands[obn.SWIR_1] + bands[obn.RED]
+    )</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.SRSWIR"><code class="name flex">
+<p>def <span class="ident">SRSWIR</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Simple Ratio SWIR_1/SWIR_2 Clay Minerals: <a href="https://www.indexdatabase.de/db/i-single.php?id=204">https://www.indexdatabase.de/db/i-single.php?id=204</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def SRSWIR(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Simple Ratio SWIR_1/SWIR_2 Clay Minerals: https://www.indexdatabase.de/db/i-single.php?id=204
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return np.divide(bands[obn.SWIR_1], bands[obn.SWIR_2])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.RDI"><code class="name flex">
+<p>def <span class="ident">RDI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Ratio Drought Index: <a href="https://www.indexdatabase.de/db/i-single.php?id=71">https://www.indexdatabase.de/db/i-single.php?id=71</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def RDI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Ratio Drought Index: https://www.indexdatabase.de/db/i-single.php?id=71
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return np.divide(bands[obn.SWIR_2], bands[obn.NARROW_NIR])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.NDWI"><code class="name flex">
+<p>def <span class="ident">NDWI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Simple Ratio MIR/NIR Ratio Drought Index: <a href="https://www.indexdatabase.de/db/i-single.php?id=71">https://www.indexdatabase.de/db/i-single.php?id=71</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def NDWI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Simple Ratio MIR/NIR Ratio Drought Index: https://www.indexdatabase.de/db/i-single.php?id=71
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.GREEN], bands[obn.NIR])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.BAI"><code class="name flex">
+<p>def <span class="ident">BAI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Burn Area Index: <a href="https://www.harrisgeospatial.com/docs/BackgroundBurnIndices.html">https://www.harrisgeospatial.com/docs/BackgroundBurnIndices.html</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def BAI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Burn Area Index: https://www.harrisgeospatial.com/docs/BackgroundBurnIndices.html
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    &#34;&#34;&#34;
+    return np.divide(1.0, (0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.NBR"><code class="name flex">
+<p>def <span class="ident">NBR</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Normalized Burn Ratio: <a href="https://www.indexdatabase.de/db/i-single.php?id=53">https://www.indexdatabase.de/db/i-single.php?id=53</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def NBR(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Normalized Burn Ratio: https://www.indexdatabase.de/db/i-single.php?id=53
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NARROW_NIR], bands[obn.SWIR_2])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.MNDWI"><code class="name flex">
+<p>def <span class="ident">MNDWI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Modified Normalised Difference Water Index : <a href="https://wiki.orfeo-toolbox.org/index.php/MNDWI">https://wiki.orfeo-toolbox.org/index.php/MNDWI</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def MNDWI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Modified Normalised Difference Water Index : https://wiki.orfeo-toolbox.org/index.php/MNDWI
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.GREEN], bands[obn.SWIR_1])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.AWEInsh"><code class="name flex">
+<p>def <span class="ident">AWEInsh</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Automated Water Extraction Index not shadow: Feyisa et al. (2014)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def AWEInsh(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Automated Water Extraction Index not shadow: Feyisa et al. (2014)
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return 4 * (bands[obn.GREEN] - bands[obn.SWIR_1]) - (
+        0.25 * bands[obn.NIR] + 2.75 * bands[obn.SWIR_2]
+    )</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.AWEIsh"><code class="name flex">
+<p>def <span class="ident">AWEIsh</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Automated Water Extraction Index shadow: Feyisa et al. (2014)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def AWEIsh(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Automated Water Extraction Index shadow: Feyisa et al. (2014)
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    &#34;&#34;&#34;
+    return (
+        bands[obn.BLUE]
+        + 2.5 * bands[obn.GREEN]
+        - 1.5 * (bands[obn.NIR] + bands[obn.SWIR_1])
+        - 0.25 * bands[obn.SWIR_2]
+    )</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.WI"><code class="name flex">
+<p>def <span class="ident">WI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Water Index (2015): Fisher et al. (2016)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def WI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Water Index (2015): Fisher et al. (2016)
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    &#34;&#34;&#34;
+    return (
+        1.7204
+        + 171 * bands[obn.GREEN]
+        + 3 * bands[obn.RED]
+        - 70 * bands[obn.NIR]
+        - 45 * bands[obn.SWIR_1]
+        - 71 * bands[obn.SWIR_2]
+    )</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.AFRI_1_6"><code class="name flex">
+<p>def <span class="ident">AFRI_1_6</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Aerosol free vegetation index 1600: <a href="https://www.indexdatabase.de/db/i-single.php?id=393">https://www.indexdatabase.de/db/i-single.php?id=393</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def AFRI_1_6(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Aerosol free vegetation index 1600: https://www.indexdatabase.de/db/i-single.php?id=393
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], 0.66 * bands[obn.SWIR_1])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.AFRI_2_1"><code class="name flex">
+<p>def <span class="ident">AFRI_2_1</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Aerosol free vegetation index 2100: <a href="https://www.indexdatabase.de/db/i-single.php?id=395">https://www.indexdatabase.de/db/i-single.php?id=395</a></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>There is an error in the formula, go see the papers to get the right one (0.56 instead of 0.5):
+<a href="https://core.ac.uk/download/pdf/130673386.pdf">https://core.ac.uk/download/pdf/130673386.pdf</a></p>
+</div>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def AFRI_2_1(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Aerosol free vegetation index 2100: https://www.indexdatabase.de/db/i-single.php?id=395
+
+    .. WARNING::
+        There is an error in the formula, go see the papers to get the right one (0.56 instead of 0.5):
+        https://core.ac.uk/download/pdf/130673386.pdf
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    &#34;&#34;&#34;
+    return _norm_diff(bands[obn.NIR], 0.5 * bands[obn.SWIR_2])</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.BSI"><code class="name flex">
+<p>def <span class="ident">BSI</span>(</p><p>bands)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Barren Soil Index:
+Rikimaru et al., 2002. Tropical forest cover density mapping.
+<a href="http://tropecol.com/pdf/open/PDF_43_1/43104.pdf">http://tropecol.com/pdf/open/PDF_43_1/43104.pdf</a></p>
+<p>BSI = ((RED+SWIR) – (NIR+BLUE)) / ((RED+SWIR) + (NIR+BLUE))</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bands</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Bands as {band_name: xr.DataArray}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.DataArray</code></dt>
+<dd>Computed index</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@_idx_fct
+def BSI(bands: dict) -&gt; xr.DataArray:
+    &#34;&#34;&#34;
+    Barren Soil Index:
+    Rikimaru et al., 2002. Tropical forest cover density mapping.
+    http://tropecol.com/pdf/open/PDF_43_1/43104.pdf
+
+    BSI = ((RED+SWIR) – (NIR+BLUE)) / ((RED+SWIR) + (NIR+BLUE))
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    &#34;&#34;&#34;
+    return _norm_diff(
+        bands[obn.RED] + bands[obn.SWIR_1], bands[obn.NIR] + bands[obn.BLUE]
+    )</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.get_all_index_names"><code class="name flex">
+<p>def <span class="ident">get_all_index_names</span>(</p><p>)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Get all index names contained in this file</p>
+<pre><code class="language-python">&gt;&gt;&gt; from eoreader.bands import index
+&gt;&gt;&gt; index.get_all_index_names()
+['AFRI_1_6', 'AFRI_2_1', 'AWEInsh', 'AWEIsh', 'BAI', ..., 'WI']
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>Index names</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_all_index_names() -&gt; list:
+    &#34;&#34;&#34;
+    Get all index names contained in this file
+
+    ```python
+    &gt;&gt;&gt; from eoreader.bands import index
+    &gt;&gt;&gt; index.get_all_index_names()
+    [&#39;AFRI_1_6&#39;, &#39;AFRI_2_1&#39;, &#39;AWEInsh&#39;, &#39;AWEIsh&#39;, &#39;BAI&#39;, ..., &#39;WI&#39;]
+    ```
+
+    Returns:
+        list: Index names
+
+    &#34;&#34;&#34;
+    return [idx_fct.__name__ for idx_fct in get_all_index()]</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.get_all_index"><code class="name flex">
+<p>def <span class="ident">get_all_index</span>(</p><p>)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Get all index functions contained in this file</p>
+<pre><code class="language-python">&gt;&gt;&gt; from eoreader.bands import index
+&gt;&gt;&gt; index.get_all_index()
+[&lt;function AFRI_1_6 at 0x00000118FFFB51E0&gt;, ..., &lt;function WI at 0x00000118FFFB5158&gt;]
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>Index functions</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_all_index() -&gt; list:
+    &#34;&#34;&#34;
+    Get all index functions contained in this file
+
+    ```python
+    &gt;&gt;&gt; from eoreader.bands import index
+    &gt;&gt;&gt; index.get_all_index()
+    [&lt;function AFRI_1_6 at 0x00000118FFFB51E0&gt;, ..., &lt;function WI at 0x00000118FFFB5158&gt;]
+    ```
+
+    Returns:
+        list: Index functions
+
+    &#34;&#34;&#34;
+    idx = []
+    functions = inspect.getmembers(sys.modules[__name__], predicate=inspect.isfunction)
+
+    for (name, fct) in functions:
+        # Do not gather this fct nor np.divide
+        if name[0].isupper():
+            idx.append(fct)
+
+    return idx</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.get_needed_bands"><code class="name flex">
+<p>def <span class="ident">get_needed_bands</span>(</p><p>index)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Gather all the needed bands for the specified index function</p>
+<pre><code class="language-python">&gt;&gt;&gt; index.get_needed_bands(NDVI)
+[&lt;OpticalBandNames.NIR: 'NIR'&gt;, &lt;OpticalBandNames.RED: 'RED'&gt;]
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>Needed bands for the index function</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_needed_bands(index: Callable) -&gt; list:
+    &#34;&#34;&#34;
+    Gather all the needed bands for the specified index function
+
+    ```python
+    &gt;&gt;&gt; index.get_needed_bands(NDVI)
+    [&lt;OpticalBandNames.NIR: &#39;NIR&#39;&gt;, &lt;OpticalBandNames.RED: &#39;RED&#39;&gt;]
+    ```
+    Returns:
+        list: Needed bands for the index function
+    &#34;&#34;&#34;
+    # Get source code from this fct
+    code = inspect.getsource(index)
+
+    # Parse band&#39;s signature
+    b_regex = r&#34;obn\.\w+&#34;
+
+    return [getattr(obn, b.split(&#34;.&#34;)[-1]) for b in re.findall(b_regex, code)]</code></pre>
+</details>
+</dd>
+<dt id="eoreader.bands.index.get_all_needed_bands"><code class="name flex">
+<p>def <span class="ident">get_all_needed_bands</span>(</p><p>)</p>
+</code></dt>
+<dd>
+<div class="desc"><p>Gather all the needed bands for all index functions</p>
+<pre><code class="language-python">&gt;&gt;&gt; index.get_all_needed_bands()
+{
+    &lt;function AFRI_1_6 at 0x00000261F6FF36A8&gt;: [&lt;OpticalBandNames.NIR: 'NIR'&gt;, &lt;OpticalBandNames.SWIR_2: 'SWIR_2'&gt;],
+    ...
+    &lt;function WI at 0x00000261F6FF3620&gt;: [&lt;OpticalBandNames.NIR: 'NIR'&gt;, &lt;OpticalBandNames.SWIR_1: 'SWIR_1'&gt;]
+}
+
+&gt;&gt;&gt; # Or written in a more readable fashion:
+&gt;&gt;&gt; {idx.__name__: [band.value for band in bands] for idx, bands in index.get_all_needed_bands().items()}
+{
+    'AFRI_1_6': ['NIR', 'SWIR_2'],
+    ...,
+    'WI': ['NIR', 'SWIR_1']
+}
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dict</code></dt>
+<dd>Needed bands for all index functions</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_all_needed_bands() -&gt; dict:
+    &#34;&#34;&#34;
+    Gather all the needed bands for all index functions
+
+    ```python
+    &gt;&gt;&gt; index.get_all_needed_bands()
+    {
+        &lt;function AFRI_1_6 at 0x00000261F6FF36A8&gt;: [&lt;OpticalBandNames.NIR: &#39;NIR&#39;&gt;, &lt;OpticalBandNames.SWIR_2: &#39;SWIR_2&#39;&gt;],
+        ...
+        &lt;function WI at 0x00000261F6FF3620&gt;: [&lt;OpticalBandNames.NIR: &#39;NIR&#39;&gt;, &lt;OpticalBandNames.SWIR_1: &#39;SWIR_1&#39;&gt;]
+    }
+
+    &gt;&gt;&gt; # Or written in a more readable fashion:
+    &gt;&gt;&gt; {idx.__name__: [band.value for band in bands] for idx, bands in index.get_all_needed_bands().items()}
+    {
+        &#39;AFRI_1_6&#39;: [&#39;NIR&#39;, &#39;SWIR_2&#39;],
+        ...,
+        &#39;WI&#39;: [&#39;NIR&#39;, &#39;SWIR_1&#39;]
+    }
+    ```
+
+    Returns:
+        dict: Needed bands for all index functions
+
+    &#34;&#34;&#34;
+    needed_bands = {}
+
+    # Get all function from this file
+    functions = inspect.getmembers(sys.modules[__name__], predicate=inspect.isfunction)
+
+    for (name, function) in functions:
+        # Do not gather this fct nor np.divide
+        if name[0].isupper():
+            needed_bands[function] = get_needed_bands(function)
+
+    return needed_bands</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<header>
+<a class="homelink" rel="home" title="Home" href="/eoreader/">
+<img src="https://github.com/sertit/eoreader/blob/master/docs/eoreader.png?raw=True"
+alt="logo"
+style="width:40%;"/>
+</a>
+</header>
+<form>
+<input id="lunr-search" name="q" placeholder="🔎 Search ..." aria-label="Search"
+disabled minlength="2">
+</form>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.css" integrity="sha512-j1u8eUJ4f23xPPxwOrLUPQaCD2dwzNqqmDDcWS4deWsMv2ohLqmXXuP3hU7g8TyzbMSakP/mMqoNBYWj8AEIFg==" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.js" integrity="sha512-plGUER9JkeEWPPqQBE4sdLqBoQug5Ap+BCGMc7bJ8BXkm+VVj6QzkpBz5Yv2yPkkq+cqg9IpkBaGCas6uDbW8g==" crossorigin></script>
+<style>
+.modal-dialog iframe {
+width: 100vw;
+height: calc(100vh - 80px);
+}
+@media screen and (min-width: 700px) {
+.modal-dialog iframe {
+width: 70vw;
+height: 80vh;
+}
+}
+.modal-dialog .tingle-modal-box {width: auto;}
+.modal-dialog .tingle-modal-box__content {padding: 0;}
+</style>
+<script>
+const input = document.getElementById('lunr-search');
+input.disabled = false;
+input.form.addEventListener('submit', (ev) => {
+ev.preventDefault();
+const url = new URL(window.location);
+url.searchParams.set('q', input.value);
+history.replaceState({}, null, url.toString());
+search(input.value);
+});
+const query = new URL(window.location).searchParams.get('q');
+if (query)
+search(query);
+function search(query) {
+const url = '../../doc-search.html#' + encodeURIComponent(query);
+new tingle.modal({
+cssClass: ['modal-dialog'],
+onClose: () => {
+const url = new URL(window.location);
+url.searchParams.delete('q');
+history.replaceState({}, null, url.toString());
+setTimeout(() => input.focus(), 100);
+}
+}).setContent('<iframe src="' + url + '"></iframe>').open();
+}
+</script>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="eoreader.bands" href="index.html">eoreader.bands</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="eoreader.bands.index.RGI" href="#eoreader.bands.index.RGI">RGI</a></code></li>
+<li><code><a title="eoreader.bands.index.NDVI" href="#eoreader.bands.index.NDVI">NDVI</a></code></li>
+<li><code><a title="eoreader.bands.index.TCBRI" href="#eoreader.bands.index.TCBRI">TCBRI</a></code></li>
+<li><code><a title="eoreader.bands.index.TCGRE" href="#eoreader.bands.index.TCGRE">TCGRE</a></code></li>
+<li><code><a title="eoreader.bands.index.TCWET" href="#eoreader.bands.index.TCWET">TCWET</a></code></li>
+<li><code><a title="eoreader.bands.index.NDRE2" href="#eoreader.bands.index.NDRE2">NDRE2</a></code></li>
+<li><code><a title="eoreader.bands.index.NDRE3" href="#eoreader.bands.index.NDRE3">NDRE3</a></code></li>
+<li><code><a title="eoreader.bands.index.GLI" href="#eoreader.bands.index.GLI">GLI</a></code></li>
+<li><code><a title="eoreader.bands.index.GNDVI" href="#eoreader.bands.index.GNDVI">GNDVI</a></code></li>
+<li><code><a title="eoreader.bands.index.RI" href="#eoreader.bands.index.RI">RI</a></code></li>
+<li><code><a title="eoreader.bands.index.NDGRI" href="#eoreader.bands.index.NDGRI">NDGRI</a></code></li>
+<li><code><a title="eoreader.bands.index.CIG" href="#eoreader.bands.index.CIG">CIG</a></code></li>
+<li><code><a title="eoreader.bands.index.NDMI" href="#eoreader.bands.index.NDMI">NDMI</a></code></li>
+<li><code><a title="eoreader.bands.index.DSWI" href="#eoreader.bands.index.DSWI">DSWI</a></code></li>
+<li><code><a title="eoreader.bands.index.SRSWIR" href="#eoreader.bands.index.SRSWIR">SRSWIR</a></code></li>
+<li><code><a title="eoreader.bands.index.RDI" href="#eoreader.bands.index.RDI">RDI</a></code></li>
+<li><code><a title="eoreader.bands.index.NDWI" href="#eoreader.bands.index.NDWI">NDWI</a></code></li>
+<li><code><a title="eoreader.bands.index.BAI" href="#eoreader.bands.index.BAI">BAI</a></code></li>
+<li><code><a title="eoreader.bands.index.NBR" href="#eoreader.bands.index.NBR">NBR</a></code></li>
+<li><code><a title="eoreader.bands.index.MNDWI" href="#eoreader.bands.index.MNDWI">MNDWI</a></code></li>
+<li><code><a title="eoreader.bands.index.AWEInsh" href="#eoreader.bands.index.AWEInsh">AWEInsh</a></code></li>
+<li><code><a title="eoreader.bands.index.AWEIsh" href="#eoreader.bands.index.AWEIsh">AWEIsh</a></code></li>
+<li><code><a title="eoreader.bands.index.WI" href="#eoreader.bands.index.WI">WI</a></code></li>
+<li><code><a title="eoreader.bands.index.AFRI_1_6" href="#eoreader.bands.index.AFRI_1_6">AFRI_1_6</a></code></li>
+<li><code><a title="eoreader.bands.index.AFRI_2_1" href="#eoreader.bands.index.AFRI_2_1">AFRI_2_1</a></code></li>
+<li><code><a title="eoreader.bands.index.BSI" href="#eoreader.bands.index.BSI">BSI</a></code></li>
+<li><code><a title="eoreader.bands.index.get_all_index_names" href="#eoreader.bands.index.get_all_index_names">get_all_index_names</a></code></li>
+<li><code><a title="eoreader.bands.index.get_all_index" href="#eoreader.bands.index.get_all_index">get_all_index</a></code></li>
+<li><code><a title="eoreader.bands.index.get_needed_bands" href="#eoreader.bands.index.get_needed_bands">get_needed_bands</a></code></li>
+<li><code><a title="eoreader.bands.index.get_all_needed_bands" href="#eoreader.bands.index.get_all_needed_bands">get_all_needed_bands</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

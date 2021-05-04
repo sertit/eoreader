@@ -609,6 +609,10 @@ class SarProduct(Product):
             else:
                 raise InvalidTypeError(f"{band} is neither a band nor an index !")
 
+        # Check if DEM is set and exists
+        if dem_list:
+            self._check_dem_path()
+
         # Load bands
         bands = self._load_bands(band_list, resolution=resolution, size=size)
 
