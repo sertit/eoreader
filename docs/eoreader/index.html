@@ -32,6 +32,13 @@ integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></sc
 </header>
 <section id="section-intro">
 <p><strong>Source Code</strong>: <a href="https://github.com/sertit/eoreader">https://github.com/sertit/eoreader</a></p>
+<p><a href="https://pypi.python.org/pypi/eareader"><img alt="pypi" src="https://img.shields.io/pypi/v/eoreader.svg"></a>
+<a href="https://anaconda.org/conda-forge/eoreader"><img alt="Conda" src="https://img.shields.io/conda/vn/conda-forge/eoreader.svg"></a>
+<a href="https://github.com/sertit/eoreader/actions/workflows/test.yml"><img alt="Tests" src="https://github.com/sertit/eoreader/actions/workflows/test.yml/badge.svg"></a>
+<a href="https://gitter.im/eoreader/community?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img alt="Gitter" src="https://badges.gitter.im/eoreader/community.svg"></a>
+<a href="https://github.com/pre-commit/pre-commit"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&amp;logoColor=white"></a>
+<a href="https://github.com/python/black"><img alt="black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+<a href="https://github.com/sertit/eoreader/blob/master/LICENSE"><img alt="Apache" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"></a></p>
 <h1 id="eoreader"><img alt="eoreader_logo" src="https://raw.githubusercontent.com/sertit/eoreader/master/docs/eoreader_small.png"> EOReader</h1>
 <p><strong>EOReader</strong> is a <strong>multi-satellite reader</strong> allowing you to open
 <a href="https://sertit.github.io/eoreader/eoreader#implemented-optical-satellites">optical</a>
@@ -66,29 +73,54 @@ and <a href="https://sertit.github.io/eoreader/eoreader#implemented-sar-satellit
 <p>EOReader works with <a href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray"><code>xarrays.DataArray</code></a>
 and <a href="https://geopandas.org/docs/user_guide/data_structures.html#geodataframe"><code>geopandas.GeoDataFrames</code></a></p>
 <h2 id="python-quickstart">Python Quickstart</h2>
-<p>The main features of EOReader are gathered hereunder:</p>
+<p>The main features of EOReader are gathered hereunder.
+For optical data:</p>
 <pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
 &gt;&gt;&gt; from eoreader.bands.alias import *
 
 &gt;&gt;&gt; # Your variables
-&gt;&gt;&gt; path = r&quot;path/to/your/satellite/product&quot;  # Optical in this example
+&gt;&gt;&gt; l5_path = &quot;D:/eoreader/CI/DATA/LM05_L1TP_200029_19841014_20200902_02_T2.tar&quot;
 
 &gt;&gt;&gt; # Create the reader object and open satellite data
 &gt;&gt;&gt; eoreader = Reader()
-&gt;&gt;&gt; prod = eoreader.open(path)  # The Reader will recognize the satellite type from its name
+&gt;&gt;&gt; l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its name
 
 &gt;&gt;&gt; # Get the footprint of the product (usable data) and its extent (envelope of the tile)
-&gt;&gt;&gt; footprint = prod.footprint
-&gt;&gt;&gt; extent = prod.extent
+&gt;&gt;&gt; footprint = l5_prod.footprint
+&gt;&gt;&gt; extent = l5_prod.extent
 
 &gt;&gt;&gt; # Load some bands and index: they will all share the same metadata
-&gt;&gt;&gt; bands = prod.load([NDVI, GREEN, HILLSHADE, CLOUDS]
+&gt;&gt;&gt; bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS]
 
 &gt;&gt;&gt; # Create a stack with some other bands
-&gt;&gt;&gt; stack = prod.stack([NDVI, MNDWI, GREEN, SLOPE, CIRRUS])
+&gt;&gt;&gt; stack = l5_prod.stack([NDWI, RED, SLOPE])
 
 &gt;&gt;&gt; # Read Metadata
-&gt;&gt;&gt; mtd, namespace = prod.read_mtd()
+&gt;&gt;&gt; mtd, namespace = l5_prod.read_mtd()
+</code></pre>
+<p>For SAR data:</p>
+<pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
+&gt;&gt;&gt; from eoreader.bands.alias import *
+
+&gt;&gt;&gt; # Your variables
+&gt;&gt;&gt; s1_path = &quot;D:/eoreader/S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip&quot;  # Not in the package
+
+&gt;&gt;&gt; # Create the reader object and open satellite data
+&gt;&gt;&gt; eoreader = Reader()
+&gt;&gt;&gt; s1_prod = eoreader.open(s1_path)  # The Reader will recognize the satellite type from its name
+
+&gt;&gt;&gt; # Get the footprint of the product (usable data) and its extent (envelope of the tile)
+&gt;&gt;&gt; footprint = s1_prod.footprint
+&gt;&gt;&gt; extent = s1_prod.extent
+
+&gt;&gt;&gt; # Load some bands and index: they will all share the same metadata
+&gt;&gt;&gt; bands = s1_prod.load([VV, VV_DSPK, DEM]
+
+&gt;&gt;&gt; # Create a stack with some other bands
+&gt;&gt;&gt; stack = s1_prod.stack([VV, VV_DSPK, SLOPE])
+
+&gt;&gt;&gt; # Read Metadata
+&gt;&gt;&gt; mtd, namespace = s1_prod.read_mtd()
 </code></pre>
 <p>Sentinel-3 and SAR products need <a href="https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph"><code>SNAP gpt</code></a> to be geocoded.
 Ensure that you have the folder containing your <code>gpt.exe</code> in your <code>PATH</code>.</p>
@@ -101,10 +133,13 @@ Ensure that you have the folder containing your <code>gpt.exe</code> in your <co
 <li><a href="https://sertit.github.io/eoreader/examples/water_detection.html">Water detection</a></li>
 </ul>
 <h2 id="installation">Installation</h2>
-<p><code>pip install <a title="eoreader" href="#eoreader">eoreader</a></code></p>
-<p>EOReader depends mainly on <code>geopandas</code> and <code>rasterio</code>.
-(with GDAL installation issues on Windows, so please install them from wheels that you can
-find <a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio">here</a>).</p>
+<p><code>pip install <a title="eoreader" href="#eoreader">eoreader</a></code> or <code>conda install <a title="eoreader" href="#eoreader">eoreader</a></code></p>
+<p>EOReader mainly relies on <code>geopandas</code> and <code>rasterio</code> (through <code>rioxarray</code>).</p>
+<p>On Windows and with pip, you may face installation issues due to GDAL.
+The well known workaround of installing from <a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio">Gohlke's wheels</a>
+also applies here.
+Please look at the <a href="https://rasterio.readthedocs.io/en/latest/installation.html">rasterio page</a>
+to learn more about that.</p>
 <h2 id="license">License</h2>
 <p><strong>EOReader</strong> is licensed under Apache License v2.0. See LICENSE file for details.</p>
 <h2 id="authors">Authors</h2>
@@ -608,7 +643,7 @@ __pdoc__ = {
     &#34;eoreader.data&#34;: False,
 }
 
-__version__ = &#34;0.3.1-2&#34;</code></pre>
+__version__ = &#34;0.3.2&#34;</code></pre>
 </details>
 </section>
 <section>
