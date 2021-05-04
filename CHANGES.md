@@ -2,6 +2,9 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+- Log update in `product._check_dem_path()`
+- README updates
+
 ## 0.3.2-1 (2021-05-04)
 
 - Do not use psutil in requirements and setup.py

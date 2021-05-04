@@ -38,19 +38,19 @@ For optical data:
 >>> from eoreader.reader import Reader
 >>> from eoreader.bands.alias import *
 
->>> # Your variables
->>> l5_path = "D:/eoreader/CI/DATA/LM05_L1TP_200029_19841014_20200902_02_T2.tar"
+>>> # Landsat-5 MSS path, can be found in CI/DATA
+>>> l5_path = r"D:/eoreader/CI/DATA/LM05_L1TP_200029_19841014_20200902_02_T2.tar"
 
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()
->>> l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its name
+>>> l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its structure
 
 >>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
 >>> footprint = l5_prod.footprint
 >>> extent = l5_prod.extent
 
 >>> # Load some bands and index: they will all share the same metadata
->>> bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS]
+>>> bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])
 
 >>> # Create a stack with some other bands
 >>> stack = l5_prod.stack([NDWI, RED, SLOPE])
@@ -65,8 +65,8 @@ For SAR data:
 >>> from eoreader.reader import Reader
 >>> from eoreader.bands.alias import *
 
->>> # Your variables
->>> s1_path = "D:/eoreader/S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip"  # Not in the package
+>>> # Sentinel-1 GRD path, not provided in package
+>>> s1_path = r"D:/eoreader/S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip"
 
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()
@@ -77,7 +77,7 @@ For SAR data:
 >>> extent = s1_prod.extent
 
 >>> # Load some bands and index: they will all share the same metadata
->>> bands = s1_prod.load([VV, VV_DSPK, DEM]
+>>> bands = s1_prod.load([VV, VV_DSPK, DEM])
 
 >>> # Create a stack with some other bands
 >>> stack = s1_prod.stack([VV, VV_DSPK, SLOPE])
