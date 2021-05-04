@@ -1019,7 +1019,7 @@ class S3Product(OpticalProduct):
                 size=size,
                 resampling=Resampling.nearest,
                 masked=False,
-            )
+            ).astype(np.uint16)
 
             # Get nodata mask
             # nodata = np.where(np.isnan(clouds_array), 1, 0)
