@@ -23,12 +23,6 @@ integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></sc
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"
 integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
-<a href=https://www.github.com/sertit/eoreader/ class="gitbutton pill">
-<span class="icon medium">
-{% include git-logo.html %}
-</span>
-Edit on GitHub!
-</a>
 </head>
 <body>
 <main>
@@ -84,19 +78,19 @@ For optical data:</p>
 <pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
 &gt;&gt;&gt; from eoreader.bands.alias import *
 
-&gt;&gt;&gt; # Your variables
-&gt;&gt;&gt; l5_path = &quot;D:/eoreader/CI/DATA/LM05_L1TP_200029_19841014_20200902_02_T2.tar&quot;
+&gt;&gt;&gt; # Landsat-5 MSS path, can be found in CI/DATA
+&gt;&gt;&gt; l5_path = r&quot;D:/eoreader/CI/DATA/LM05_L1TP_200029_19841014_20200902_02_T2.tar&quot;
 
 &gt;&gt;&gt; # Create the reader object and open satellite data
 &gt;&gt;&gt; eoreader = Reader()
-&gt;&gt;&gt; l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its name
+&gt;&gt;&gt; l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its structure
 
 &gt;&gt;&gt; # Get the footprint of the product (usable data) and its extent (envelope of the tile)
 &gt;&gt;&gt; footprint = l5_prod.footprint
 &gt;&gt;&gt; extent = l5_prod.extent
 
 &gt;&gt;&gt; # Load some bands and index: they will all share the same metadata
-&gt;&gt;&gt; bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS]
+&gt;&gt;&gt; bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])
 
 &gt;&gt;&gt; # Create a stack with some other bands
 &gt;&gt;&gt; stack = l5_prod.stack([NDWI, RED, SLOPE])
@@ -108,8 +102,8 @@ For optical data:</p>
 <pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
 &gt;&gt;&gt; from eoreader.bands.alias import *
 
-&gt;&gt;&gt; # Your variables
-&gt;&gt;&gt; s1_path = &quot;D:/eoreader/S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip&quot;  # Not in the package
+&gt;&gt;&gt; # Sentinel-1 GRD path, not provided in package
+&gt;&gt;&gt; s1_path = r&quot;D:/eoreader/S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip&quot;
 
 &gt;&gt;&gt; # Create the reader object and open satellite data
 &gt;&gt;&gt; eoreader = Reader()
@@ -120,7 +114,7 @@ For optical data:</p>
 &gt;&gt;&gt; extent = s1_prod.extent
 
 &gt;&gt;&gt; # Load some bands and index: they will all share the same metadata
-&gt;&gt;&gt; bands = s1_prod.load([VV, VV_DSPK, DEM]
+&gt;&gt;&gt; bands = s1_prod.load([VV, VV_DSPK, DEM])
 
 &gt;&gt;&gt; # Create a stack with some other bands
 &gt;&gt;&gt; stack = s1_prod.stack([VV, VV_DSPK, SLOPE])
@@ -140,7 +134,7 @@ Ensure that you have the folder containing your <code>gpt.exe</code> in your <co
 </ul>
 <h2 id="installation">Installation</h2>
 <p><code>pip install <a title="eoreader" href="#eoreader">eoreader</a></code> or <code>conda install <a title="eoreader" href="#eoreader">eoreader</a></code></p>
-<p>EOReader depends mainly on <code>geopandas</code> and <code>rasterio</code>.</p>
+<p>EOReader mainly relies on <code>geopandas</code> and <code>rasterio</code> (through <code>rioxarray</code>).</p>
 <p>On Windows and with pip, you may face installation issues due to GDAL.
 The well known workaround of installing from <a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio">Gohlke's wheels</a>
 also applies here.
@@ -649,7 +643,7 @@ __pdoc__ = {
     &#34;eoreader.data&#34;: False,
 }
 
-__version__ = &#34;0.3.1-2&#34;</code></pre>
+__version__ = &#34;0.3.2-1&#34;</code></pre>
 </details>
 </section>
 <section>

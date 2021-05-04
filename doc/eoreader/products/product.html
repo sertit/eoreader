@@ -23,12 +23,6 @@ integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></sc
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"
 integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
-<a href=https://www.github.com/sertit/eoreader/ class="gitbutton pill">
-<span class="icon medium">
-{% include git-logo.html %}
-</span>
-Edit on GitHub!
-</a>
 </head>
 <body>
 <main>
@@ -122,7 +116,7 @@ def path_or_dst(method: Callable) -&gt; Callable:
 
     @wraps(method)
     def path_or_dst_wrapper(
-            self, path_or_ds: Union[str, rasterio.DatasetReader], *args, **kwargs
+        self, path_or_ds: Union[str, rasterio.DatasetReader], *args, **kwargs
     ) -&gt; Any:
         &#34;&#34;&#34;
         Path or dataset wrapper
@@ -162,7 +156,7 @@ class Product:
     &#34;&#34;&#34;Super class of EOReader Products&#34;&#34;&#34;
 
     def __init__(
-            self, product_path: str, archive_path: str = None, output_path: str = None
+        self, product_path: str, archive_path: str = None, output_path: str = None
     ) -&gt; None:
         self.name = files.get_filename(product_path)
         &#34;&#34;&#34;Product name (its filename without any extension).&#34;&#34;&#34;
@@ -564,10 +558,10 @@ class Product:
     # pylint: disable=W0613
     @path_or_dst
     def _read_band(
-            self,
-            dataset,
-            resolution: Union[tuple, list, float] = None,
-            size: Union[list, tuple] = None,
+        self,
+        dataset,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
     ) -&gt; XDS_TYPE:
         &#34;&#34;&#34;
         Read band from disk.
@@ -587,7 +581,7 @@ class Product:
 
     @abstractmethod
     def _load_bands(
-            self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
+        self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
     ) -&gt; dict:
         &#34;&#34;&#34;
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -602,7 +596,7 @@ class Product:
         raise NotImplementedError(&#34;This method should be implemented by a child class&#34;)
 
     def _load_dem(
-            self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
+        self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
     ) -&gt; dict:
         &#34;&#34;&#34;
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -620,9 +614,7 @@ class Product:
             for band in band_list:
                 assert is_dem(band)
                 if band == DEM:
-                    path = self._warp_dem(
-                        dem_path, resolution=resolution, size=size
-                    )
+                    path = self._warp_dem(dem_path, resolution=resolution, size=size)
                 elif band == SLOPE:
                     path = self._compute_slope(
                         dem_path, resolution=resolution, size=size
@@ -634,17 +626,15 @@ class Product:
                 else:
                     raise InvalidTypeError(f&#34;Unknown DEM band: {band}&#34;)
 
-                dem_bands[band] = rasters.read(
-                    path, resolution=resolution, size=size
-                )
+                dem_bands[band] = rasters.read(path, resolution=resolution, size=size)
 
         return dem_bands
 
     def load(
-            self,
-            bands: Union[list, BandNames, Callable],
-            resolution: float = None,
-            size: Union[list, tuple] = None,
+        self,
+        bands: Union[list, BandNames, Callable],
+        resolution: float = None,
+        size: Union[list, tuple] = None,
     ) -&gt; dict:
         &#34;&#34;&#34;
         Open the bands and compute the wanted index.
@@ -737,7 +727,7 @@ class Product:
 
     @abstractmethod
     def _load(
-            self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
     ) -&gt; dict:
         &#34;&#34;&#34;
         Core function loading data bands
@@ -934,11 +924,11 @@ class Product:
             os.makedirs(self._output, exist_ok=True)
 
     def _warp_dem(
-            self,
-            dem_path: str = &#34;&#34;,
-            resolution: Union[float, tuple] = None,
-            size: Union[list, tuple] = None,
-            resampling: Resampling = Resampling.bilinear,
+        self,
+        dem_path: str = &#34;&#34;,
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
     ) -&gt; str:
         &#34;&#34;&#34;
         Get this products DEM, warped to this products footprint and CRS.
@@ -1056,11 +1046,11 @@ class Product:
 
     @abstractmethod
     def _compute_hillshade(
-            self,
-            dem_path: str = &#34;&#34;,
-            resolution: Union[float, tuple] = None,
-            size: Union[list, tuple] = None,
-            resampling: Resampling = Resampling.bilinear,
+        self,
+        dem_path: str = &#34;&#34;,
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
     ) -&gt; str:
         &#34;&#34;&#34;
         Compute Hillshade mask
@@ -1078,11 +1068,11 @@ class Product:
         raise NotImplementedError(&#34;This method should be implemented by a child class&#34;)
 
     def _compute_slope(
-            self,
-            dem_path: str = &#34;&#34;,
-            resolution: Union[float, tuple] = None,
-            size: Union[list, tuple] = None,
-            resampling: Resampling = Resampling.bilinear,
+        self,
+        dem_path: str = &#34;&#34;,
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
     ) -&gt; str:
         &#34;&#34;&#34;
         Compute slope mask
@@ -1157,11 +1147,11 @@ class Product:
     # pylint: disable=R0913
     # Too many arguments (6/5)
     def stack(
-            self,
-            bands: list,
-            resolution: float = None,
-            stack_path: str = None,
-            save_as_int: bool = False,
+        self,
+        bands: list,
+        resolution: float = None,
+        stack_path: str = None,
+        save_as_int: bool = False,
     ) -&gt; xr.DataArray:
         &#34;&#34;&#34;
         Stack bands and index of a products.
@@ -1279,14 +1269,14 @@ class Product:
         &#34;&#34;&#34; Check if DEM is set and exists&#34;&#34;&#34;
         if DEM_PATH not in os.environ:
             raise ValueError(
-                f&#34;Dem path not set, unable to compute DEM bands ! &#34;
+                f&#34;Dem path not set, unable to compute DEM bands! &#34;
                 f&#34;Please set the environment variable {DEM_PATH}.&#34;
             )
         else:
             dem_path = os.environ.get(DEM_PATH)
             if not os.path.isfile(dem_path):
                 raise FileNotFoundError(
-                    f&#34;Dem path is not a file, unable to compute DEM bands ! &#34;
+                    f&#34;{dem_path} is not a file! &#34;
                     f&#34;Please set the environment variable {DEM_PATH} to an existing file.&#34;
                 )</code></pre>
 </details>
@@ -1359,7 +1349,7 @@ True
 
     @wraps(method)
     def path_or_dst_wrapper(
-            self, path_or_ds: Union[str, rasterio.DatasetReader], *args, **kwargs
+        self, path_or_ds: Union[str, rasterio.DatasetReader], *args, **kwargs
     ) -&gt; Any:
         &#34;&#34;&#34;
         Path or dataset wrapper
@@ -1441,7 +1431,7 @@ True
     &#34;&#34;&#34;Super class of EOReader Products&#34;&#34;&#34;
 
     def __init__(
-            self, product_path: str, archive_path: str = None, output_path: str = None
+        self, product_path: str, archive_path: str = None, output_path: str = None
     ) -&gt; None:
         self.name = files.get_filename(product_path)
         &#34;&#34;&#34;Product name (its filename without any extension).&#34;&#34;&#34;
@@ -1843,10 +1833,10 @@ True
     # pylint: disable=W0613
     @path_or_dst
     def _read_band(
-            self,
-            dataset,
-            resolution: Union[tuple, list, float] = None,
-            size: Union[list, tuple] = None,
+        self,
+        dataset,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
     ) -&gt; XDS_TYPE:
         &#34;&#34;&#34;
         Read band from disk.
@@ -1866,7 +1856,7 @@ True
 
     @abstractmethod
     def _load_bands(
-            self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
+        self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
     ) -&gt; dict:
         &#34;&#34;&#34;
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -1881,7 +1871,7 @@ True
         raise NotImplementedError(&#34;This method should be implemented by a child class&#34;)
 
     def _load_dem(
-            self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
+        self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
     ) -&gt; dict:
         &#34;&#34;&#34;
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -1899,9 +1889,7 @@ True
             for band in band_list:
                 assert is_dem(band)
                 if band == DEM:
-                    path = self._warp_dem(
-                        dem_path, resolution=resolution, size=size
-                    )
+                    path = self._warp_dem(dem_path, resolution=resolution, size=size)
                 elif band == SLOPE:
                     path = self._compute_slope(
                         dem_path, resolution=resolution, size=size
@@ -1913,17 +1901,15 @@ True
                 else:
                     raise InvalidTypeError(f&#34;Unknown DEM band: {band}&#34;)
 
-                dem_bands[band] = rasters.read(
-                    path, resolution=resolution, size=size
-                )
+                dem_bands[band] = rasters.read(path, resolution=resolution, size=size)
 
         return dem_bands
 
     def load(
-            self,
-            bands: Union[list, BandNames, Callable],
-            resolution: float = None,
-            size: Union[list, tuple] = None,
+        self,
+        bands: Union[list, BandNames, Callable],
+        resolution: float = None,
+        size: Union[list, tuple] = None,
     ) -&gt; dict:
         &#34;&#34;&#34;
         Open the bands and compute the wanted index.
@@ -2016,7 +2002,7 @@ True
 
     @abstractmethod
     def _load(
-            self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
     ) -&gt; dict:
         &#34;&#34;&#34;
         Core function loading data bands
@@ -2213,11 +2199,11 @@ True
             os.makedirs(self._output, exist_ok=True)
 
     def _warp_dem(
-            self,
-            dem_path: str = &#34;&#34;,
-            resolution: Union[float, tuple] = None,
-            size: Union[list, tuple] = None,
-            resampling: Resampling = Resampling.bilinear,
+        self,
+        dem_path: str = &#34;&#34;,
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
     ) -&gt; str:
         &#34;&#34;&#34;
         Get this products DEM, warped to this products footprint and CRS.
@@ -2335,11 +2321,11 @@ True
 
     @abstractmethod
     def _compute_hillshade(
-            self,
-            dem_path: str = &#34;&#34;,
-            resolution: Union[float, tuple] = None,
-            size: Union[list, tuple] = None,
-            resampling: Resampling = Resampling.bilinear,
+        self,
+        dem_path: str = &#34;&#34;,
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
     ) -&gt; str:
         &#34;&#34;&#34;
         Compute Hillshade mask
@@ -2357,11 +2343,11 @@ True
         raise NotImplementedError(&#34;This method should be implemented by a child class&#34;)
 
     def _compute_slope(
-            self,
-            dem_path: str = &#34;&#34;,
-            resolution: Union[float, tuple] = None,
-            size: Union[list, tuple] = None,
-            resampling: Resampling = Resampling.bilinear,
+        self,
+        dem_path: str = &#34;&#34;,
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        resampling: Resampling = Resampling.bilinear,
     ) -&gt; str:
         &#34;&#34;&#34;
         Compute slope mask
@@ -2436,11 +2422,11 @@ True
     # pylint: disable=R0913
     # Too many arguments (6/5)
     def stack(
-            self,
-            bands: list,
-            resolution: float = None,
-            stack_path: str = None,
-            save_as_int: bool = False,
+        self,
+        bands: list,
+        resolution: float = None,
+        stack_path: str = None,
+        save_as_int: bool = False,
     ) -&gt; xr.DataArray:
         &#34;&#34;&#34;
         Stack bands and index of a products.
@@ -2558,14 +2544,14 @@ True
         &#34;&#34;&#34; Check if DEM is set and exists&#34;&#34;&#34;
         if DEM_PATH not in os.environ:
             raise ValueError(
-                f&#34;Dem path not set, unable to compute DEM bands ! &#34;
+                f&#34;Dem path not set, unable to compute DEM bands! &#34;
                 f&#34;Please set the environment variable {DEM_PATH}.&#34;
             )
         else:
             dem_path = os.environ.get(DEM_PATH)
             if not os.path.isfile(dem_path):
                 raise FileNotFoundError(
-                    f&#34;Dem path is not a file, unable to compute DEM bands ! &#34;
+                    f&#34;{dem_path} is not a file! &#34;
                     f&#34;Please set the environment variable {DEM_PATH} to an existing file.&#34;
                 )</code></pre>
 </details>
@@ -3291,10 +3277,10 @@ This can be broken if you load data separately. Its is best to always load DEM d
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def load(
-        self,
-        bands: Union[list, BandNames, Callable],
-        resolution: float = None,
-        size: Union[list, tuple] = None,
+    self,
+    bands: Union[list, BandNames, Callable],
+    resolution: float = None,
+    size: Union[list, tuple] = None,
 ) -&gt; dict:
     &#34;&#34;&#34;
     Open the bands and compute the wanted index.
@@ -3559,11 +3545,11 @@ Coordinates:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def stack(
-        self,
-        bands: list,
-        resolution: float = None,
-        stack_path: str = None,
-        save_as_int: bool = False,
+    self,
+    bands: list,
+    resolution: float = None,
+    stack_path: str = None,
+    save_as_int: bool = False,
 ) -&gt; xr.DataArray:
     &#34;&#34;&#34;
     Stack bands and index of a products.
