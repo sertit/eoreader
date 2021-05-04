@@ -103,7 +103,7 @@ Available notebooks provided as examples:
 
 `pip install eoreader` or `conda install eoreader`
 
-EOReader depends mainly on `geopandas` and `rasterio`.
+EOReader mainly relies on `geopandas` and `rasterio` (through `rioxarray`).
 
 On Windows and with pip, you may face installation issues due to GDAL.
 The well known workaround of installing from [Gohlke's wheels](https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio)
