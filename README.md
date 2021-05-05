@@ -120,6 +120,7 @@ to learn more about that.
 You can install EOReader via conda:
 
 `conda config --env --set channel_priority strict`
+
 `conda install -c conda-forge eoreader`
 
 ## License
