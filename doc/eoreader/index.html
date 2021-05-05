@@ -86,8 +86,8 @@ For optical data:</p>
 &gt;&gt;&gt; l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its structure
 
 &gt;&gt;&gt; # Get the footprint of the product (usable data) and its extent (envelope of the tile)
-&gt;&gt;&gt; footprint = l5_prod.footprint
-&gt;&gt;&gt; extent = l5_prod.extent
+&gt;&gt;&gt; footprint = l5_prod.footprint()
+&gt;&gt;&gt; extent = l5_prod.extent()
 
 &gt;&gt;&gt; # Load some bands and index: they will all share the same metadata
 &gt;&gt;&gt; bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])
@@ -110,8 +110,8 @@ For optical data:</p>
 &gt;&gt;&gt; s1_prod = eoreader.open(s1_path)  # The Reader will recognize the satellite type from its name
 
 &gt;&gt;&gt; # Get the footprint of the product (usable data) and its extent (envelope of the tile)
-&gt;&gt;&gt; footprint = s1_prod.footprint
-&gt;&gt;&gt; extent = s1_prod.extent
+&gt;&gt;&gt; footprint = s1_prod.footprint()
+&gt;&gt;&gt; extent = s1_prod.extent()
 
 &gt;&gt;&gt; # Load some bands and index: they will all share the same metadata
 &gt;&gt;&gt; bands = s1_prod.load([VV, VV_DSPK, DEM])
@@ -643,7 +643,7 @@ __pdoc__ = {
     &#34;eoreader.data&#34;: False,
 }
 
-__version__ = &#34;0.3.2-1&#34;</code></pre>
+__version__ = &#34;0.3.2-2&#34;</code></pre>
 </details>
 </section>
 <section>
