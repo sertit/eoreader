@@ -101,7 +101,11 @@ Available notebooks provided as examples:
 
 ## Installation
 
-`pip install eoreader` or `conda install eoreader`
+### Pip
+
+You can install EOReader via pip:
+
+`pip install eoreader`
 
 EOReader mainly relies on `geopandas` and `rasterio` (through `rioxarray`).
 
@@ -110,6 +114,13 @@ The well known workaround of installing from [Gohlke's wheels](https://www.lfd.u
 also applies here.
 Please look at the [rasterio page](https://rasterio.readthedocs.io/en/latest/installation.html)
 to learn more about that.
+
+### Conda
+
+You can install EOReader via conda:
+
+`conda config --env --set channel_priority strict`
+`conda install -c conda-forge eoreader`
 
 ## License
 
