@@ -46,8 +46,8 @@ For optical data:
 >>> l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its structure
 
 >>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
->>> footprint = l5_prod.footprint
->>> extent = l5_prod.extent
+>>> footprint = l5_prod.footprint()
+>>> extent = l5_prod.extent()
 
 >>> # Load some bands and index: they will all share the same metadata
 >>> bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])
@@ -73,8 +73,8 @@ For SAR data:
 >>> s1_prod = eoreader.open(s1_path)  # The Reader will recognize the satellite type from its name
 
 >>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
->>> footprint = s1_prod.footprint
->>> extent = s1_prod.extent
+>>> footprint = s1_prod.footprint()
+>>> extent = s1_prod.extent()
 
 >>> # Load some bands and index: they will all share the same metadata
 >>> bands = s1_prod.load([VV, VV_DSPK, DEM])
