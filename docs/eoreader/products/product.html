@@ -1276,7 +1276,7 @@ class Product:
             dem_path = os.environ.get(DEM_PATH)
             if not os.path.isfile(dem_path):
                 raise FileNotFoundError(
-                    f&#34;Dem path is not a file, unable to compute DEM bands! &#34;
+                    f&#34;{dem_path} is not a file! &#34;
                     f&#34;Please set the environment variable {DEM_PATH} to an existing file.&#34;
                 )</code></pre>
 </details>
@@ -2551,7 +2551,7 @@ True
             dem_path = os.environ.get(DEM_PATH)
             if not os.path.isfile(dem_path):
                 raise FileNotFoundError(
-                    f&#34;Dem path is not a file, unable to compute DEM bands! &#34;
+                    f&#34;{dem_path} is not a file! &#34;
                     f&#34;Please set the environment variable {DEM_PATH} to an existing file.&#34;
                 )</code></pre>
 </details>

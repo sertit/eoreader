@@ -78,19 +78,19 @@ For optical data:</p>
 <pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
 &gt;&gt;&gt; from eoreader.bands.alias import *
 
-&gt;&gt;&gt; # Your variables
-&gt;&gt;&gt; l5_path = &quot;D:/eoreader/CI/DATA/LM05_L1TP_200029_19841014_20200902_02_T2.tar&quot;
+&gt;&gt;&gt; # Landsat-5 MSS path, can be found in CI/DATA
+&gt;&gt;&gt; l5_path = r&quot;D:/eoreader/CI/DATA/LM05_L1TP_200029_19841014_20200902_02_T2.tar&quot;
 
 &gt;&gt;&gt; # Create the reader object and open satellite data
 &gt;&gt;&gt; eoreader = Reader()
-&gt;&gt;&gt; l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its name
+&gt;&gt;&gt; l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its structure
 
 &gt;&gt;&gt; # Get the footprint of the product (usable data) and its extent (envelope of the tile)
-&gt;&gt;&gt; footprint = l5_prod.footprint
-&gt;&gt;&gt; extent = l5_prod.extent
+&gt;&gt;&gt; footprint = l5_prod.footprint()
+&gt;&gt;&gt; extent = l5_prod.extent()
 
 &gt;&gt;&gt; # Load some bands and index: they will all share the same metadata
-&gt;&gt;&gt; bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS]
+&gt;&gt;&gt; bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])
 
 &gt;&gt;&gt; # Create a stack with some other bands
 &gt;&gt;&gt; stack = l5_prod.stack([NDWI, RED, SLOPE])
@@ -102,19 +102,19 @@ For optical data:</p>
 <pre><code class="language-python">&gt;&gt;&gt; from eoreader.reader import Reader
 &gt;&gt;&gt; from eoreader.bands.alias import *
 
-&gt;&gt;&gt; # Your variables
-&gt;&gt;&gt; s1_path = &quot;D:/eoreader/S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip&quot;  # Not in the package
+&gt;&gt;&gt; # Sentinel-1 GRD path, not provided in package
+&gt;&gt;&gt; s1_path = r&quot;D:/eoreader/S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip&quot;
 
 &gt;&gt;&gt; # Create the reader object and open satellite data
 &gt;&gt;&gt; eoreader = Reader()
 &gt;&gt;&gt; s1_prod = eoreader.open(s1_path)  # The Reader will recognize the satellite type from its name
 
 &gt;&gt;&gt; # Get the footprint of the product (usable data) and its extent (envelope of the tile)
-&gt;&gt;&gt; footprint = s1_prod.footprint
-&gt;&gt;&gt; extent = s1_prod.extent
+&gt;&gt;&gt; footprint = s1_prod.footprint()
+&gt;&gt;&gt; extent = s1_prod.extent()
 
 &gt;&gt;&gt; # Load some bands and index: they will all share the same metadata
-&gt;&gt;&gt; bands = s1_prod.load([VV, VV_DSPK, DEM]
+&gt;&gt;&gt; bands = s1_prod.load([VV, VV_DSPK, DEM])
 
 &gt;&gt;&gt; # Create a stack with some other bands
 &gt;&gt;&gt; stack = s1_prod.stack([VV, VV_DSPK, SLOPE])
@@ -643,7 +643,7 @@ __pdoc__ = {
     &#34;eoreader.data&#34;: False,
 }
 
-__version__ = &#34;0.3.2-1&#34;</code></pre>
+__version__ = &#34;0.3.2-2&#34;</code></pre>
 </details>
 </section>
 <section>
