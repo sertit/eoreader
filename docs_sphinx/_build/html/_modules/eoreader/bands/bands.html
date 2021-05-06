@@ -1,0 +1,808 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>eoreader.bands.bands</title>
+
+  <link href="../../../_static/css/theme.css" rel="stylesheet" />
+  <link href="../../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+
+
+
+
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/sphinx-book-theme.acff12b8f9c144ce68a297486a2fa670.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css" />
+
+  <link rel="preload" as="script" href="../../../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/clipboard.min.js"></script>
+    <script src="../../../_static/copybutton.js"></script>
+    <script src="../../../_static/togglebutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../../../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <link rel="shortcut icon" href="../../../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+
+    <div class="container-fluid" id="banner"></div>
+
+
+
+    <div class="container-xl">
+      <div class="row">
+
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../../index.html">
+
+      <img src="../../../_static/eoreader.png" class="logo" alt="logo">
+
+
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <div class="bd-toc-item active">
+        <p class="caption">
+ <span class="caption-text">
+  For Users
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../main_features.html">
+   Main features
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../optical.html">
+   Optical data
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../sar.html">
+   SAR data
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../notebooks/base.html">
+   Basic example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../notebooks/water_detection.html">
+   Water detection
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../api/eoreader.html">
+   eoreader package
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../../../api/eoreader.bands.html">
+     eoreader.bands package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../api/eoreader.bands.alias.html">
+       eoreader.bands.alias module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../api/eoreader.bands.bands.html">
+       eoreader.bands.bands module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../api/eoreader.bands.index.html">
+       eoreader.bands.index module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../api/eoreader.data.html">
+     eoreader.data package
+    </a>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../../../api/eoreader.products.html">
+     eoreader.products package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="../../../api/eoreader.products.optical.html">
+       eoreader.products.optical package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+      <label for="toctree-checkbox-4">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.l1_product.html">
+         eoreader.products.optical.l1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.l2_product.html">
+         eoreader.products.optical.l2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.l3_product.html">
+         eoreader.products.optical.l3_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.l4_product.html">
+         eoreader.products.optical.l4_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.l5_product.html">
+         eoreader.products.optical.l5_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.l7_product.html">
+         eoreader.products.optical.l7_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.l8_product.html">
+         eoreader.products.optical.l8_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.landsat_product.html">
+         eoreader.products.optical.landsat_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.optical_product.html">
+         eoreader.products.optical.optical_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.s2_product.html">
+         eoreader.products.optical.s2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.s2_theia_product.html">
+         eoreader.products.optical.s2_theia_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.s3_product.html">
+         eoreader.products.optical.s3_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="../../../api/eoreader.products.sar.html">
+       eoreader.products.sar package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+      <label for="toctree-checkbox-5">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.sar.csk_product.html">
+         eoreader.products.sar.csk_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.sar.rs2_product.html">
+         eoreader.products.sar.rs2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.sar.s1_product.html">
+         eoreader.products.sar.s1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.sar.sar_product.html">
+         eoreader.products.sar.sar_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.sar.tsx_product.html">
+         eoreader.products.sar.tsx_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../api/eoreader.products.product.html">
+       eoreader.products.product module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../api/eoreader.env_vars.html">
+     eoreader.env_vars module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../api/eoreader.exceptions.html">
+     eoreader.exceptions module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../api/eoreader.reader.html">
+     eoreader.reader module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../api/eoreader.utils.html">
+     eoreader.utils module
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+</div>
+
+
+
+
+
+
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/sertit/eoreader"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/sertit/eoreader/issues/new?title=Issue%20on%20page%20%2F_modules/eoreader/bands/bands.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+
+              <div>
+
+  <h1>Source code for eoreader.bands.bands</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/</span>
+<span class="c1"># This file is part of eoreader project</span>
+<span class="c1">#     https://github.com/sertit/eoreader</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot; Optical Bands &quot;&quot;&quot;</span>
+<span class="c1"># Lines too long</span>
+<span class="c1"># pylint: disable=C0301</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">MutableMapping</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">unique</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">eoreader.exceptions</span> <span class="kn">import</span> <span class="n">InvalidTypeError</span>
+<span class="kn">from</span> <span class="nn">sertit.misc</span> <span class="kn">import</span> <span class="n">ListEnum</span>
+
+
+<span class="k">class</span> <span class="nc">_Bands</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Super bands class, used as a dict&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_band_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>  <span class="c1"># use the free update to set keys</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_band_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_band_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_band_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_band_map</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_band_map</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BandNames"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.BandNames">[docs]</a><span class="k">class</span> <span class="nc">BandNames</span><span class="p">(</span><span class="n">ListEnum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Super class for band names, **do not use it**.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BandNames.from_list"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.BandNames.from_list">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_list</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name_list</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the band enums from list of band names</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; SarBandNames.from_list(&quot;VV&quot;)</span>
+<span class="sd">        [&lt;SarBandNames.VV: &#39;VV&#39;&gt;]</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name_list (Union[list, str]): List of names</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: List of enums</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">name_list</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">band_names</span> <span class="o">=</span> <span class="p">[</span><span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">name_list</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidTypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Band names (</span><span class="si">{</span><span class="n">name_list</span><span class="si">}</span><span class="s2">) should be chosen among: </span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">list_names</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
+
+        <span class="k">return</span> <span class="n">band_names</span></div>
+
+<div class="viewcode-block" id="BandNames.to_value_list"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.BandNames.to_value_list">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">to_value_list</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a list from the values of the bands</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; SarBandNames.to_name_list([SarBandNames.HV_DSPK, SarBandNames.VV])</span>
+<span class="sd">        [&#39;HV_DSPK&#39;, &#39;VV&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; SarBandNames.to_name_list()</span>
+<span class="sd">        [&#39;VV&#39;, &#39;VV_DSPK&#39;, &#39;HH&#39;, &#39;HH_DSPK&#39;, &#39;VH&#39;, &#39;VH_DSPK&#39;, &#39;HV&#39;, &#39;HV_DSPK&#39;]</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name_list (list): List of band names</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: List of band values</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name_list</span><span class="p">:</span>
+            <span class="n">out_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">name_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+                    <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">InvalidTypeError</span><span class="p">(</span>
+                        <span class="s2">&quot;The list should either contain strings or SarBandNames&quot;</span>
+                    <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out_list</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">list_values</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">out_list</span></div></div>
+
+
+<span class="c1"># ---------------------- SAR ----------------------</span>
+<div class="viewcode-block" id="SarBandNames"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.SarBandNames">[docs]</a><span class="nd">@unique</span>
+<span class="k">class</span> <span class="nc">SarBandNames</span><span class="p">(</span><span class="n">BandNames</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;SAR Band names&quot;&quot;&quot;</span>
+
+    <span class="n">VV</span> <span class="o">=</span> <span class="s2">&quot;VV&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Vertical Transmit-Vertical Receive Polarisation &quot;&quot;&quot;</span>
+
+    <span class="n">VV_DSPK</span> <span class="o">=</span> <span class="s2">&quot;VV_DSPK&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Vertical Transmit-Vertical Receive Polarisation Despeckled &quot;&quot;&quot;</span>
+
+    <span class="n">HH</span> <span class="o">=</span> <span class="s2">&quot;HH&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Horizontal Transmit-Horizontal Receive Polarisation &quot;&quot;&quot;</span>
+
+    <span class="n">HH_DSPK</span> <span class="o">=</span> <span class="s2">&quot;HH_DSPK&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Horizontal Transmit-Horizontal Receive Polarisation Despeckled &quot;&quot;&quot;</span>
+
+    <span class="n">VH</span> <span class="o">=</span> <span class="s2">&quot;VH&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Vertical Transmit-Horizontal Receive Polarisation &quot;&quot;&quot;</span>
+
+    <span class="n">VH_DSPK</span> <span class="o">=</span> <span class="s2">&quot;VH_DSPK&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Vertical Transmit-Horizontal Receive Polarisatio Despeckled &quot;&quot;&quot;</span>
+
+    <span class="n">HV</span> <span class="o">=</span> <span class="s2">&quot;HV&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Horizontal Transmit-Vertical Receive Polarisation &quot;&quot;&quot;</span>
+
+    <span class="n">HV_DSPK</span> <span class="o">=</span> <span class="s2">&quot;HV_DSPK&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Horizontal Transmit-Vertical Receive Polarisation Despeckled &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SarBandNames.corresponding_despeckle"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.SarBandNames.corresponding_despeckle">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">corresponding_despeckle</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">band</span><span class="p">:</span> <span class="s2">&quot;SarBandNames&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Corresponding despeckled band.</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; SarBandNames.corresponding_despeckle(SarBandNames.VV)</span>
+<span class="sd">        &lt;SarBandNames.VV_DSPK: &#39;VV_DSPK&#39;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; SarBandNames.corresponding_despeckle(SarBandNames.VV_DSPK)</span>
+<span class="sd">        &lt;SarBandNames.VV_DSPK: &#39;VV_DSPK&#39;&gt;</span>
+<span class="sd">        ```</span>
+<span class="sd">        Args:</span>
+<span class="sd">            band (SarBandNames): Noisy (speckle) band</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SarBandNames: Despeckled band</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">is_despeckle</span><span class="p">(</span><span class="n">band</span><span class="p">):</span>
+            <span class="n">dspk</span> <span class="o">=</span> <span class="n">band</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dspk</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_value</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">band</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_DSPK&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dspk</span></div>
+
+<div class="viewcode-block" id="SarBandNames.corresponding_speckle"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.SarBandNames.corresponding_speckle">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">corresponding_speckle</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">band</span><span class="p">:</span> <span class="s2">&quot;SarBandNames&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Corresponding speckle (noisy) band.</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; SarBandNames.corresponding_speckle(SarBandNames.VV)</span>
+<span class="sd">        &lt;SarBandNames.VV: &#39;VV&#39;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; SarBandNames.corresponding_speckle(SarBandNames.VV_DSPK)</span>
+<span class="sd">        &lt;SarBandNames.VV: &#39;VV&#39;&gt;</span>
+<span class="sd">        ```</span>
+<span class="sd">        Args:</span>
+<span class="sd">            band (SarBandNames): Noisy (speckle) band</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SarBandNames: Despeckled band</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_value</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">band</span><span class="o">.</span><span class="n">name</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SarBandNames.is_despeckle"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.SarBandNames.is_despeckle">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">is_despeckle</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">band</span><span class="p">:</span> <span class="s2">&quot;SarBandNames&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns True if the band corresponds to a despeckled one.</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; SarBandNames.is_despeckle(SarBandNames.VV)</span>
+<span class="sd">        False</span>
+<span class="sd">        &gt;&gt;&gt; SarBandNames.is_despeckle(SarBandNames.VV_DSPK)</span>
+<span class="sd">        True</span>
+<span class="sd">        ```</span>
+<span class="sd">        Args:</span>
+<span class="sd">            band (SarBandNames): Band to test</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SarBandNames: Despeckled band</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;DSPK&quot;</span> <span class="ow">in</span> <span class="n">band</span><span class="o">.</span><span class="n">name</span></div></div>
+
+
+<span class="c1"># too many ancestors</span>
+<span class="c1"># pylint: disable=R0901</span>
+<div class="viewcode-block" id="SarBands"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.SarBands">[docs]</a><span class="k">class</span> <span class="nc">SarBands</span><span class="p">(</span><span class="n">_Bands</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;SAR bands class&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">({</span><span class="n">band_name</span><span class="p">:</span> <span class="n">band_name</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">band_name</span> <span class="ow">in</span> <span class="n">SarBandNames</span><span class="p">})</span></div>
+
+
+<span class="c1"># ---------------------- OPTICAL ----------------------</span>
+<div class="viewcode-block" id="OpticalBandNames"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.OpticalBandNames">[docs]</a><span class="k">class</span> <span class="nc">OpticalBandNames</span><span class="p">(</span><span class="n">BandNames</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class aims to regroup equivalent bands under the same nomenclature.</span>
+<span class="sd">    Each products will set their band number in regard to their corresponding name.</span>
+
+<span class="sd">    **Note**: The mapping is based on Sentinel-2 bands.</span>
+<span class="sd">    Satellites can have not mapped bands (such as Sentinel-3)</span>
+
+<span class="sd">    More information can be retrieved here:</span>
+
+<span class="sd">    - [Overall comparison](http://blog.imagico.de/wp-content/uploads/2016/11/sat_spectra_full4a.png)</span>
+<span class="sd">    - L8/S2:</span>
+<span class="sd">        - [Resource 1](https://reader.elsevier.com/reader/sd/pii/S0034425718301883)</span>
+<span class="sd">        - [Resource 2](https://landsat.gsfc.nasa.gov/wp-content/uploads/2015/06/Landsat.v.Sentinel-2.png)</span>
+<span class="sd">    - [L4/L5, MSS-TM](https://landsat.gsfc.nasa.gov/the-multispectral-scanner-system/)</span>
+<span class="sd">    - [All Landsats](https://landsat.gsfc.nasa.gov/wp-content/uploads/2016/10/all_Landsat_bands.png)</span>
+<span class="sd">    - [S2](https://discovery.creodias.eu/dataset/72181b08-a577-4d55-8ece-d8485167beb7/resource/d8f5dd92-b35c-46ee-98a2-0879dad03fce/download/res_band_s2_1.png)</span>
+<span class="sd">    - [S3 OLCI](https://discovery.creodias.eu/dataset/a0960a9b-c9c4-46db-bca5-ec79d0dda32b/resource/de8300a4-08cd-41aa-96ec-d9813115cc08/download/s3_res_band_ol.png)</span>
+<span class="sd">    - [S3 SLSTR](https://discovery.creodias.eu/dataset/ea8f247e-d193-4368-8cf6-8687a03a5306/resource/8e5c485a-d832-42be-ad9c-af500b468f29/download/s3_slcs.png)</span>
+<span class="sd">    - [Index consistency](https://www.indexdatabase.de/)</span>
+
+<span class="sd">    This classification allows index computation and algorithms to run without knowing the band nb of every satellite.</span>
+<span class="sd">    If None, then the band does not exist for the satellite.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CA</span> <span class="o">=</span> <span class="s2">&quot;COASTAL_AEROSOL&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Coastal aerosol&quot;&quot;&quot;</span>
+
+    <span class="n">BLUE</span> <span class="o">=</span> <span class="s2">&quot;BLUE&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Blue&quot;&quot;&quot;</span>
+
+    <span class="n">GREEN</span> <span class="o">=</span> <span class="s2">&quot;GREEN&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Green&quot;&quot;&quot;</span>
+
+    <span class="n">RED</span> <span class="o">=</span> <span class="s2">&quot;RED&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Red&quot;&quot;&quot;</span>
+
+    <span class="n">VRE_1</span> <span class="o">=</span> <span class="s2">&quot;VEGETATION_RED_EDGE_1&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Vegetation red edge, Band 1&quot;&quot;&quot;</span>
+
+    <span class="n">VRE_2</span> <span class="o">=</span> <span class="s2">&quot;VEGETATION_RED_EDGE_2&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Vegetation red edge, Band 2&quot;&quot;&quot;</span>
+
+    <span class="n">VRE_3</span> <span class="o">=</span> <span class="s2">&quot;VEGETATION_RED_EDGE_3&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Vegetation red edge, Band 3&quot;&quot;&quot;</span>
+
+    <span class="n">NIR</span> <span class="o">=</span> <span class="s2">&quot;NIR&quot;</span>
+    <span class="sd">&quot;&quot;&quot;NIR&quot;&quot;&quot;</span>
+
+    <span class="n">NARROW_NIR</span> <span class="o">=</span> <span class="s2">&quot;NARROW_NIR&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Narrow NIR&quot;&quot;&quot;</span>
+
+    <span class="n">WV</span> <span class="o">=</span> <span class="s2">&quot;WATER_VAPOUR&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Water vapour&quot;&quot;&quot;</span>
+
+    <span class="n">FAR_NIR</span> <span class="o">=</span> <span class="s2">&quot;FAR_NIR&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Far NIR&quot;&quot;&quot;</span>
+
+    <span class="n">SWIR_CIRRUS</span> <span class="o">=</span> <span class="s2">&quot;CIRRUS&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Cirrus&quot;&quot;&quot;</span>
+
+    <span class="n">SWIR_1</span> <span class="o">=</span> <span class="s2">&quot;SWIR_1&quot;</span>
+    <span class="sd">&quot;&quot;&quot;SWIR, Band 1&quot;&quot;&quot;</span>
+
+    <span class="n">SWIR_2</span> <span class="o">=</span> <span class="s2">&quot;SWIR_2&quot;</span>
+    <span class="sd">&quot;&quot;&quot;SWIR, Band 2&quot;&quot;&quot;</span>
+
+    <span class="n">MIR</span> <span class="o">=</span> <span class="s2">&quot;MIR&quot;</span>
+    <span class="sd">&quot;&quot;&quot;MIR&quot;&quot;&quot;</span>
+
+    <span class="n">TIR_1</span> <span class="o">=</span> <span class="s2">&quot;THERMAL_IR_1&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Thermal IR, Band 1&quot;&quot;&quot;</span>
+
+    <span class="n">TIR_2</span> <span class="o">=</span> <span class="s2">&quot;THERMAL_IR_2&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Thermal IR, Band 2&quot;&quot;&quot;</span>
+
+    <span class="n">PAN</span> <span class="o">=</span> <span class="s2">&quot;PANCHROMATIC&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Panchromatic&quot;&quot;&quot;</span></div>
+
+
+<span class="c1"># too many ancestors</span>
+<span class="c1"># pylint: disable=R0901</span>
+<div class="viewcode-block" id="OpticalBands"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.OpticalBands">[docs]</a><span class="k">class</span> <span class="nc">OpticalBands</span><span class="p">(</span><span class="n">_Bands</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Optical bands class&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">({</span><span class="n">band_name</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">band_name</span> <span class="ow">in</span> <span class="n">OpticalBandNames</span><span class="p">})</span>
+
+<div class="viewcode-block" id="OpticalBands.map_bands"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.OpticalBands.map_bands">[docs]</a>    <span class="k">def</span> <span class="nf">map_bands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">band_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Mapping band names to specific satellite band numbers, as strings.</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; # Example for Sentinel-2 L1C data</span>
+<span class="sd">        &gt;&gt;&gt; ob = OpticalBands()</span>
+<span class="sd">        &gt;&gt;&gt; ob.map_bands({</span>
+<span class="sd">                CA: &#39;01&#39;,</span>
+<span class="sd">                BLUE: &#39;02&#39;,</span>
+<span class="sd">                GREEN: &#39;03&#39;,</span>
+<span class="sd">                RED: &#39;04&#39;,</span>
+<span class="sd">                VRE_1: &#39;05&#39;,</span>
+<span class="sd">                VRE_2: &#39;06&#39;,</span>
+<span class="sd">                VRE_3: &#39;07&#39;,</span>
+<span class="sd">                NIR: &#39;08&#39;,</span>
+<span class="sd">                NNIR: &#39;8A&#39;,</span>
+<span class="sd">                WV: &#39;09&#39;,</span>
+<span class="sd">                SWIR_1: &#39;11&#39;,</span>
+<span class="sd">                SWIR_2: &#39;12&#39;</span>
+<span class="sd">            })</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            band_map (dict): Band mapping as {OpticalBandNames: Band number for loading band}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">band_name</span><span class="p">,</span> <span class="n">band_nb</span> <span class="ow">in</span> <span class="n">band_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">band_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_band_map</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">band_name</span><span class="p">,</span> <span class="n">OpticalBandNames</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="n">InvalidTypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">band_name</span><span class="si">}</span><span class="s2"> should be an OpticalBandNames object&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Set number</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_band_map</span><span class="p">[</span><span class="n">band_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">band_nb</span></div></div>
+
+
+<span class="c1"># ---------------------- DEM ----------------------</span>
+<div class="viewcode-block" id="DemBandNames"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.DemBandNames">[docs]</a><span class="nd">@unique</span>
+<span class="k">class</span> <span class="nc">DemBandNames</span><span class="p">(</span><span class="n">BandNames</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;DEM Band names&quot;&quot;&quot;</span>
+
+    <span class="n">DEM</span> <span class="o">=</span> <span class="s2">&quot;DEM&quot;</span>
+    <span class="sd">&quot;&quot;&quot; DEM &quot;&quot;&quot;</span>
+
+    <span class="n">SLOPE</span> <span class="o">=</span> <span class="s2">&quot;SLOPE&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Slope &quot;&quot;&quot;</span>
+
+    <span class="n">HILLSHADE</span> <span class="o">=</span> <span class="s2">&quot;HILLSHADE&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Hillshade &quot;&quot;&quot;</span></div>
+
+
+<span class="c1"># too many ancestors</span>
+<span class="c1"># pylint: disable=R0901</span>
+<div class="viewcode-block" id="DemBands"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.DemBands">[docs]</a><span class="k">class</span> <span class="nc">DemBands</span><span class="p">(</span><span class="n">_Bands</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;DEM bands class&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">({</span><span class="n">band_name</span><span class="p">:</span> <span class="n">band_name</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">band_name</span> <span class="ow">in</span> <span class="n">DemBandNames</span><span class="p">})</span></div>
+
+
+<span class="c1"># ---------------------- DEM ----------------------</span>
+<div class="viewcode-block" id="CloudsBandNames"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.CloudsBandNames">[docs]</a><span class="nd">@unique</span>
+<span class="k">class</span> <span class="nc">CloudsBandNames</span><span class="p">(</span><span class="n">BandNames</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clouds Band names&quot;&quot;&quot;</span>
+
+    <span class="n">RAW_CLOUDS</span> <span class="o">=</span> <span class="s2">&quot;RAW CLOUDS&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Raw cloud raster (can be either QA raster, rasterized cloud vectors...) &quot;&quot;&quot;</span>
+
+    <span class="n">CLOUDS</span> <span class="o">=</span> <span class="s2">&quot;CLOUDS&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Binary mask of clouds (High confidence) &quot;&quot;&quot;</span>
+
+    <span class="n">SHADOWS</span> <span class="o">=</span> <span class="s2">&quot;SHADOWS&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Binary mask of shadows (High confidence) &quot;&quot;&quot;</span>
+
+    <span class="n">CIRRUS</span> <span class="o">=</span> <span class="s2">&quot;CIRRUS&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Binary mask of cirrus (High confidence) &quot;&quot;&quot;</span>
+
+    <span class="n">ALL_CLOUDS</span> <span class="o">=</span> <span class="s2">&quot;ALL CLOUDS&quot;</span>
+    <span class="sd">&quot;&quot;&quot; All clouds (Including all high confidence clouds, shadows and cirrus) &quot;&quot;&quot;</span></div>
+
+
+<span class="c1"># too many ancestors</span>
+<span class="c1"># pylint: disable=R0901</span>
+<div class="viewcode-block" id="CloudsBands"><a class="viewcode-back" href="../../../api/eoreader.bands.bands.html#eoreader.bands.bands.CloudsBands">[docs]</a><span class="k">class</span> <span class="nc">CloudsBands</span><span class="p">(</span><span class="n">_Bands</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clouds bands class&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">({</span><span class="n">band_name</span><span class="p">:</span> <span class="n">band_name</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">band_name</span> <span class="ow">in</span> <span class="n">CloudsBandNames</span><span class="p">})</span></div>
+</pre></div>
+
+              </div>
+
+
+        <div class='prev-next-bottom'>
+
+
+        </div>
+
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+
+          By ICube-SERTIT<br/>
+
+            &copy; Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/.<br/>
+          Last updated on 2021-05-06.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+  <script src="../../../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+
+  </body>
+</html>

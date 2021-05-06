@@ -1,0 +1,1043 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>eoreader.products.optical.s2_theia_product</title>
+
+  <link href="../../../../_static/css/theme.css" rel="stylesheet" />
+  <link href="../../../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+
+
+
+
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/sphinx-book-theme.acff12b8f9c144ce68a297486a2fa670.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css" />
+
+  <link rel="preload" as="script" href="../../../../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../_static/copybutton.js"></script>
+    <script src="../../../../_static/togglebutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../../../../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <link rel="shortcut icon" href="../../../../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+
+    <div class="container-fluid" id="banner"></div>
+
+
+
+    <div class="container-xl">
+      <div class="row">
+
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../../../index.html">
+
+      <img src="../../../../_static/eoreader.png" class="logo" alt="logo">
+
+
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <div class="bd-toc-item active">
+        <p class="caption">
+ <span class="caption-text">
+  For Users
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../main_features.html">
+   Main features
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../optical.html">
+   Optical data
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../sar.html">
+   SAR data
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../notebooks/base.html">
+   Basic example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../notebooks/water_detection.html">
+   Water detection
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../../api/eoreader.html">
+   eoreader package
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../../../../api/eoreader.bands.html">
+     eoreader.bands package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../../api/eoreader.bands.alias.html">
+       eoreader.bands.alias module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../../api/eoreader.bands.bands.html">
+       eoreader.bands.bands module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../../api/eoreader.bands.index.html">
+       eoreader.bands.index module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.data.html">
+     eoreader.data package
+    </a>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../../../../api/eoreader.products.html">
+     eoreader.products package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="../../../../api/eoreader.products.optical.html">
+       eoreader.products.optical package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+      <label for="toctree-checkbox-4">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l1_product.html">
+         eoreader.products.optical.l1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l2_product.html">
+         eoreader.products.optical.l2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l3_product.html">
+         eoreader.products.optical.l3_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l4_product.html">
+         eoreader.products.optical.l4_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l5_product.html">
+         eoreader.products.optical.l5_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l7_product.html">
+         eoreader.products.optical.l7_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l8_product.html">
+         eoreader.products.optical.l8_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.landsat_product.html">
+         eoreader.products.optical.landsat_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.optical_product.html">
+         eoreader.products.optical.optical_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.s2_product.html">
+         eoreader.products.optical.s2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.s2_theia_product.html">
+         eoreader.products.optical.s2_theia_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.s3_product.html">
+         eoreader.products.optical.s3_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="../../../../api/eoreader.products.sar.html">
+       eoreader.products.sar package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+      <label for="toctree-checkbox-5">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.csk_product.html">
+         eoreader.products.sar.csk_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.rs2_product.html">
+         eoreader.products.sar.rs2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.s1_product.html">
+         eoreader.products.sar.s1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.sar_product.html">
+         eoreader.products.sar.sar_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.tsx_product.html">
+         eoreader.products.sar.tsx_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../../api/eoreader.products.product.html">
+       eoreader.products.product module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.env_vars.html">
+     eoreader.env_vars module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.exceptions.html">
+     eoreader.exceptions module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.reader.html">
+     eoreader.reader module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.utils.html">
+     eoreader.utils module
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+</div>
+
+
+
+
+
+
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/sertit/eoreader"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/sertit/eoreader/issues/new?title=Issue%20on%20page%20%2F_modules/eoreader/products/optical/s2_theia_product.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+
+              <div>
+
+  <h1>Source code for eoreader.products.optical.s2_theia_product</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/</span>
+<span class="c1"># This file is part of eoreader project</span>
+<span class="c1">#     https://github.com/sertit/eoreader</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Sentinel-2 Theia products</span>
+<span class="sd">See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more information.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+<span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span>
+<span class="kn">from</span> <span class="nn">rasterio.enums</span> <span class="kn">import</span> <span class="n">Resampling</span>
+
+<span class="kn">from</span> <span class="nn">eoreader.bands.alias</span> <span class="kn">import</span> <span class="n">ALL_CLOUDS</span><span class="p">,</span> <span class="n">CIRRUS</span><span class="p">,</span> <span class="n">CLOUDS</span><span class="p">,</span> <span class="n">RAW_CLOUDS</span><span class="p">,</span> <span class="n">SHADOWS</span>
+<span class="kn">from</span> <span class="nn">eoreader.bands.bands</span> <span class="kn">import</span> <span class="n">BandNames</span>
+<span class="kn">from</span> <span class="nn">eoreader.bands.bands</span> <span class="kn">import</span> <span class="n">OpticalBandNames</span> <span class="k">as</span> <span class="n">obn</span>
+<span class="kn">from</span> <span class="nn">eoreader.exceptions</span> <span class="kn">import</span> <span class="n">InvalidProductError</span><span class="p">,</span> <span class="n">InvalidTypeError</span>
+<span class="kn">from</span> <span class="nn">eoreader.products.optical.optical_product</span> <span class="kn">import</span> <span class="n">OpticalProduct</span>
+<span class="kn">from</span> <span class="nn">eoreader.products.optical.s2_product</span> <span class="kn">import</span> <span class="n">S2ProductType</span>
+<span class="kn">from</span> <span class="nn">eoreader.utils</span> <span class="kn">import</span> <span class="n">DATETIME_FMT</span><span class="p">,</span> <span class="n">EOREADER_NAME</span>
+<span class="kn">from</span> <span class="nn">sertit</span> <span class="kn">import</span> <span class="n">files</span><span class="p">,</span> <span class="n">rasters</span><span class="p">,</span> <span class="n">rasters_rio</span><span class="p">,</span> <span class="n">vectors</span>
+<span class="kn">from</span> <span class="nn">sertit.rasters</span> <span class="kn">import</span> <span class="n">XDS_TYPE</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">EOREADER_NAME</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="S2TheiaProduct"><a class="viewcode-back" href="../../../../api/eoreader.products.optical.s2_theia_product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct">[docs]</a><span class="k">class</span> <span class="nc">S2TheiaProduct</span><span class="p">(</span><span class="n">OpticalProduct</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class of Sentinel-2 Theia Products.</span>
+<span class="sd">    See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_post_init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function used to post_init the products</span>
+<span class="sd">        (setting sensor type, band names and so on)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tile_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_tile_name</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">needs_extraction</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Post init done by the super class</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_post_init</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_set_resolution</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set product default resolution (in meters)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># S2: use 20m resolution, even if we have 60m and 10m resolution</span>
+        <span class="c1"># In the future maybe set one resolution per band ?</span>
+        <span class="k">return</span> <span class="mf">20.0</span>
+
+    <span class="k">def</span> <span class="nf">_get_tile_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve tile name</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Tile name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_name</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_set_product_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get products type&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">product_type</span> <span class="o">=</span> <span class="n">S2ProductType</span><span class="o">.</span><span class="n">L2A</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">band_names</span><span class="o">.</span><span class="n">map_bands</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="n">obn</span><span class="o">.</span><span class="n">BLUE</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+                <span class="n">obn</span><span class="o">.</span><span class="n">GREEN</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span>
+                <span class="n">obn</span><span class="o">.</span><span class="n">RED</span><span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>
+                <span class="n">obn</span><span class="o">.</span><span class="n">VRE_1</span><span class="p">:</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span>
+                <span class="n">obn</span><span class="o">.</span><span class="n">VRE_2</span><span class="p">:</span> <span class="s2">&quot;6&quot;</span><span class="p">,</span>
+                <span class="n">obn</span><span class="o">.</span><span class="n">VRE_3</span><span class="p">:</span> <span class="s2">&quot;7&quot;</span><span class="p">,</span>
+                <span class="n">obn</span><span class="o">.</span><span class="n">NIR</span><span class="p">:</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span>
+                <span class="n">obn</span><span class="o">.</span><span class="n">NARROW_NIR</span><span class="p">:</span> <span class="s2">&quot;8A&quot;</span><span class="p">,</span>
+                <span class="n">obn</span><span class="o">.</span><span class="n">SWIR_1</span><span class="p">:</span> <span class="s2">&quot;11&quot;</span><span class="p">,</span>
+                <span class="n">obn</span><span class="o">.</span><span class="n">SWIR_2</span><span class="p">:</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="c1"># TODO: bands 1 and 9 are in ATB_R1 (10m) and ATB_R2 (20m)</span>
+        <span class="c1"># B1 to be divided by 20</span>
+        <span class="c1"># B9 to be divided by 200</span>
+
+<div class="viewcode-block" id="S2TheiaProduct.footprint"><a class="viewcode-back" href="../../../../api/eoreader.products.optical.s2_theia_product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.footprint">[docs]</a>    <span class="k">def</span> <span class="nf">footprint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get real footprint of the products (without nodata, in french == emprise utile)</span>
+
+<span class="sd">        .. WARNING::</span>
+<span class="sd">            As Landsat 7 is broken (with nodata stripes all over the bands),</span>
+<span class="sd">            the footprint is not easily computed and may take some time to be delivered.</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;LC08_L1GT_023030_20200518_20200527_01_T2&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.footprint()</span>
+<span class="sd">           index                                           geometry</span>
+<span class="sd">        0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.</span>
+<span class="sd">        Indeed, nodata pixels vary according to the band sensor footprint,</span>
+<span class="sd">        whereas QA nodata is where at least one band has nodata.</span>
+
+<span class="sd">        We chose to keep QA nodata values for the footprint in order to show where all bands are valid.</span>
+
+<span class="sd">        **TL;DR: We use the QA nodata value to determine the product&#39;s footprint**.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            gpd.GeoDataFrame: Footprint as a GeoDataFrame</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">edg_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mask_path</span><span class="p">(</span><span class="s2">&quot;EDG&quot;</span><span class="p">,</span> <span class="s2">&quot;R2&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Open SAT band</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">rasters</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">edg_path</span><span class="p">,</span> <span class="n">masked</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Vectorize the nodata band</span>
+        <span class="n">footprint</span> <span class="o">=</span> <span class="n">rasters</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">default_nodata</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">footprint</span> <span class="o">=</span> <span class="n">vectors</span><span class="o">.</span><span class="n">get_wider_exterior</span><span class="p">(</span><span class="n">footprint</span><span class="p">)</span><span class="o">.</span><span class="n">convex_hull</span>
+
+        <span class="k">return</span> <span class="n">footprint</span></div>
+
+<div class="viewcode-block" id="S2TheiaProduct.get_datetime"><a class="viewcode-back" href="../../../../api/eoreader.products.optical.s2_theia_product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_datetime">[docs]</a>    <span class="k">def</span> <span class="nf">get_datetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_datetime</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the product&#39;s acquisition datetime, with format `YYYYMMDDTHHMMSS` &lt;-&gt; `%Y%m%dT%H%M%S`</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.get_datetime(as_datetime=True)</span>
+<span class="sd">        datetime.datetime(2019, 6, 25, 10, 57, 28, 756000), fetched from metadata, so we have the ms</span>
+<span class="sd">        &gt;&gt;&gt; prod.get_datetime(as_datetime=False)</span>
+<span class="sd">        &#39;20190625T105728&#39;</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">             Union[str, datetime.datetime]: Its acquisition datetime</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 20200624-105726-971</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">split_name</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">-%H%M%S-</span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">as_datetime</span><span class="p">:</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">DATETIME_FMT</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">date</span></div>
+
+<div class="viewcode-block" id="S2TheiaProduct.get_band_paths"><a class="viewcode-back" href="../../../../api/eoreader.products.optical.s2_theia_product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_band_paths">[docs]</a>    <span class="k">def</span> <span class="nf">get_band_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">band_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">resolution</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the paths of required bands.</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.bands.alias import *</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.get_band_paths([GREEN, RED])</span>
+<span class="sd">        {</span>
+<span class="sd">            &lt;OpticalBandNames.GREEN: &#39;GREEN&#39;&gt;: &#39;SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2\\SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B3.tif&#39;,</span>
+<span class="sd">            &lt;OpticalBandNames.RED: &#39;RED&#39;&gt;: &#39;SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2\\SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B4.tif&#39;</span>
+<span class="sd">        }</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            band_list (list): List of the wanted bands</span>
+<span class="sd">            resolution (float): Band resolution</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Dictionary containing the path of each queried band</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">band_paths</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">band_list</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_archived</span><span class="p">:</span>
+                    <span class="n">band_paths</span><span class="p">[</span><span class="n">band</span><span class="p">]</span> <span class="o">=</span> <span class="n">files</span><span class="o">.</span><span class="n">get_archived_rio_path</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;.*FRE_B</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">band_names</span><span class="p">[</span><span class="n">band</span><span class="p">]</span><span class="si">}</span><span class="s2">\.tif&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">band_paths</span><span class="p">[</span><span class="n">band</span><span class="p">]</span> <span class="o">=</span> <span class="n">files</span><span class="o">.</span><span class="n">get_file_in_dir</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;FRE_B</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">band_names</span><span class="p">[</span><span class="n">band</span><span class="p">]</span><span class="si">}</span><span class="s2">.tif&quot;</span>
+                    <span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidProductError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Non existing </span><span class="si">{</span><span class="n">band</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">band_names</span><span class="p">[</span><span class="n">band</span><span class="p">]</span><span class="si">}</span><span class="s2">) band for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
+
+        <span class="k">return</span> <span class="n">band_paths</span></div>
+
+    <span class="k">def</span> <span class="nf">_read_band</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">resolution</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XDS_TYPE</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read band from a dataset</span>
+
+<span class="sd">        .. WARNING::</span>
+<span class="sd">            Invalid pixels are not managed here!</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            path (str): Band path</span>
+<span class="sd">            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)</span>
+<span class="sd">            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            XDS_TYPE: Radiometrically coherent band, saved as float 32</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Read band</span>
+        <span class="n">band</span> <span class="o">=</span> <span class="n">rasters</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+            <span class="n">path</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">resampling</span><span class="o">=</span><span class="n">Resampling</span><span class="o">.</span><span class="n">bilinear</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Compute the correct radiometry of the band</span>
+        <span class="n">band</span> <span class="o">=</span> <span class="n">band</span> <span class="o">/</span> <span class="mf">10000.0</span>
+
+        <span class="k">return</span> <span class="n">band</span>
+
+    <span class="c1"># pylint: disable=R0913</span>
+    <span class="c1"># R0913: Too many arguments (6/5) (too-many-arguments)</span>
+    <span class="k">def</span> <span class="nf">_manage_invalid_pixels</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">band_arr</span><span class="p">:</span> <span class="n">XDS_TYPE</span><span class="p">,</span>
+        <span class="n">band</span><span class="p">:</span> <span class="n">obn</span><span class="p">,</span>
+        <span class="n">resolution</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XDS_TYPE</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Manage invalid pixels (Nodata, saturated, defective...)</span>
+<span class="sd">        See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more</span>
+<span class="sd">        information.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            band_arr (XDS_TYPE): Band array</span>
+<span class="sd">            band (obn): Band name as an OpticalBandNames</span>
+<span class="sd">            resolution (float): Band resolution in meters</span>
+<span class="sd">            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            XDS_TYPE: Cleaned band array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nodata_true</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">nodata_false</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># -- Manage nodata from Theia band array</span>
+        <span class="c1"># Theia nodata is already processed</span>
+        <span class="n">theia_nodata</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+        <span class="n">no_data_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">band_arr</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="n">theia_nodata</span><span class="p">,</span> <span class="n">nodata_true</span><span class="p">,</span> <span class="n">nodata_false</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+        <span class="c1"># Open NODATA pixels mask</span>
+        <span class="n">edg_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_mask</span><span class="p">(</span><span class="s2">&quot;EDG&quot;</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="c1"># Open saturated pixels</span>
+        <span class="n">sat_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_mask</span><span class="p">(</span><span class="s2">&quot;SAT&quot;</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="c1"># Combine masks</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">no_data_mask</span> <span class="o">|</span> <span class="n">edg_mask</span> <span class="o">|</span> <span class="n">sat_mask</span>
+
+        <span class="c1"># Open defective pixels (optional mask)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">def_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_mask</span><span class="p">(</span><span class="s2">&quot;DFP&quot;</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span> <span class="o">|</span> <span class="n">def_mask</span>
+        <span class="k">except</span> <span class="n">InvalidProductError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># -- Merge masks</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_nodata_mask</span><span class="p">(</span><span class="n">band_arr</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+
+<div class="viewcode-block" id="S2TheiaProduct.get_mask_path"><a class="viewcode-back" href="../../../../api/eoreader.products.optical.s2_theia_product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_mask_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_mask_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">res_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get mask path from its id and file_id (`R1` for 10m resolution, `R2` for 20m resolution)</span>
+
+<span class="sd">        Accepted mask IDs:</span>
+
+<span class="sd">        - `DFP`: Defective pixels (do not always exist ! Will raise `InvalidProductError` if not)</span>
+<span class="sd">        - `EDG`: Nodata pixels mask</span>
+<span class="sd">        - `SAT`: Saturated pixels mask</span>
+<span class="sd">        - `MG2`: Geophysical mask (classification)</span>
+<span class="sd">        - `IAB`: Mask where water vapor and TOA pixels have been interpolated</span>
+<span class="sd">        - `CLM`: Cloud mask</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mask_id (str): Mask ID</span>
+<span class="sd">            res_id (str): Resolution ID (`R1` or `R2`)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Mask path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">res_id</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;R1&quot;</span><span class="p">,</span> <span class="s2">&quot;R2&quot;</span><span class="p">]</span>
+
+        <span class="n">mask_regex</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;*</span><span class="si">{</span><span class="n">mask_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">res_id</span><span class="si">}</span><span class="s2">.tif&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_archived</span><span class="p">:</span>
+                <span class="n">mask_path</span> <span class="o">=</span> <span class="n">files</span><span class="o">.</span><span class="n">get_archived_rio_path</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mask_regex</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot;.*&quot;</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mask_path</span> <span class="o">=</span> <span class="n">files</span><span class="o">.</span><span class="n">get_file_in_dir</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;MASKS&quot;</span><span class="p">),</span> <span class="n">mask_regex</span><span class="p">,</span> <span class="n">exact_name</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidProductError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Non existing mask </span><span class="si">{</span><span class="n">mask_regex</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
+
+        <span class="k">return</span> <span class="n">mask_path</span></div>
+
+<div class="viewcode-block" id="S2TheiaProduct.open_mask"><a class="viewcode-back" href="../../../../api/eoreader.products.optical.s2_theia_product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.open_mask">[docs]</a>    <span class="k">def</span> <span class="nf">open_mask</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">mask_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">band</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">obn</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+        <span class="n">resolution</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Open a Sentinel-2 THEIA mask.</span>
+
+<span class="sd">        - Opens the saturation and defective mask to the correct bit ID corresponding to the given band.</span>
+<span class="sd">        - Opens the nodata binary mask</span>
+<span class="sd">        - Opens the other masks as is</span>
+
+<span class="sd">        Do not open cloud mask with this function. Use `load` instead.</span>
+
+<span class="sd">        See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more</span>
+<span class="sd">        information.</span>
+
+<span class="sd">        Accepted mask IDs:</span>
+
+<span class="sd">        - `DFP`: Defective pixels</span>
+<span class="sd">        - `EDG`: Nodata pixels mask</span>
+<span class="sd">        - `SAT`: Saturated pixels mask</span>
+<span class="sd">        - `MG2`: Geophysical mask (classification)</span>
+<span class="sd">        - `IAB`: Mask where water vapor and TOA pixels have been interpolated</span>
+
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.bands.alias import *</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.open_mask(&quot;EDG&quot;, GREEN)</span>
+<span class="sd">        array([[[0, ..., 0]]], dtype=uint8)</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mask_id: Mask ID</span>
+<span class="sd">            band (Union[obn, str]): Band name as an OpticalBandNames or resolution ID: [`R1`, `R2`]</span>
+<span class="sd">            resolution (float): Band resolution in meters</span>
+<span class="sd">            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: Mask array</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/</span>
+        <span class="c1"># For r_1, the band order is: B2, B3, B4, B8 and for r_2: B5, B6, B7, B8a, B11, B12</span>
+        <span class="n">res_10m</span> <span class="o">=</span> <span class="p">[</span><span class="n">obn</span><span class="o">.</span><span class="n">BLUE</span><span class="p">,</span> <span class="n">obn</span><span class="o">.</span><span class="n">GREEN</span><span class="p">,</span> <span class="n">obn</span><span class="o">.</span><span class="n">RED</span><span class="p">,</span> <span class="n">obn</span><span class="o">.</span><span class="n">NIR</span><span class="p">,</span> <span class="s2">&quot;R1&quot;</span><span class="p">]</span>
+        <span class="n">res_20m</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">obn</span><span class="o">.</span><span class="n">VRE_1</span><span class="p">,</span>
+            <span class="n">obn</span><span class="o">.</span><span class="n">VRE_2</span><span class="p">,</span>
+            <span class="n">obn</span><span class="o">.</span><span class="n">VRE_3</span><span class="p">,</span>
+            <span class="n">obn</span><span class="o">.</span><span class="n">NARROW_NIR</span><span class="p">,</span>
+            <span class="n">obn</span><span class="o">.</span><span class="n">SWIR_1</span><span class="p">,</span>
+            <span class="n">obn</span><span class="o">.</span><span class="n">SWIR_2</span><span class="p">,</span>
+            <span class="s2">&quot;R2&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">res_10m</span><span class="p">:</span>
+            <span class="n">bit_id</span> <span class="o">=</span> <span class="n">res_10m</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">band</span><span class="p">)</span>
+            <span class="n">res_id</span> <span class="o">=</span> <span class="s2">&quot;R1&quot;</span>
+        <span class="k">elif</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">res_20m</span><span class="p">:</span>
+            <span class="n">res_id</span> <span class="o">=</span> <span class="s2">&quot;R2&quot;</span>
+            <span class="n">bit_id</span> <span class="o">=</span> <span class="n">res_20m</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">band</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidProductError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid band: </span><span class="si">{</span><span class="n">band</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">mask_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mask_path</span><span class="p">(</span><span class="n">mask_id</span><span class="p">,</span> <span class="n">res_id</span><span class="p">)</span>
+
+        <span class="c1"># Open SAT band</span>
+        <span class="n">mask</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">rasters_rio</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+            <span class="n">mask_path</span><span class="p">,</span>
+            <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+            <span class="n">resampling</span><span class="o">=</span><span class="n">Resampling</span><span class="o">.</span><span class="n">nearest</span><span class="p">,</span>  <span class="c1"># Nearest to keep the flags</span>
+            <span class="n">masked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">mask_id</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;SAT&quot;</span><span class="p">,</span> <span class="s2">&quot;DFP&quot;</span><span class="p">]:</span>
+            <span class="n">bit_mask</span> <span class="o">=</span> <span class="n">rasters_rio</span><span class="o">.</span><span class="n">read_bit_array</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">bit_id</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bit_mask</span> <span class="o">=</span> <span class="n">mask</span>
+
+        <span class="k">return</span> <span class="n">bit_mask</span></div>
+
+    <span class="k">def</span> <span class="nf">_load_bands</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bands</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">resolution</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load bands as numpy arrays with the same resolution (and same metadata).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bands list: List of the wanted bands</span>
+<span class="sd">            resolution (float): Band resolution in meters</span>
+<span class="sd">            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Dictionary {band_name, band_xarray}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Return empty if no band are specified</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">bands</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Get band paths</span>
+        <span class="n">band_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_band_paths</span><span class="p">(</span><span class="n">bands</span><span class="p">)</span>
+
+        <span class="c1"># Open bands and get array (resampled if needed)</span>
+        <span class="n">band_arrays</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open_bands</span><span class="p">(</span><span class="n">band_paths</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">band_arrays</span>
+
+    <span class="k">def</span> <span class="nf">_get_condensed_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get S2 products condensed name ({date}_S2_{tile]_{product_type}).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Condensed S2 name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_datetime</span><span class="p">()</span><span class="si">}</span><span class="s2">_S2THEIA_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tile_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">product_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="S2TheiaProduct.get_mean_sun_angles"><a class="viewcode-back" href="../../../../api/eoreader.products.optical.s2_theia_product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.get_mean_sun_angles">[docs]</a>    <span class="k">def</span> <span class="nf">get_mean_sun_angles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get Mean Sun angles (Azimuth and Zenith angles)</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.get_mean_sun_angles()</span>
+<span class="sd">        (154.554755774838, 27.5941391571236)</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (float, float): Mean Azimuth and Zenith angle</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Init angles</span>
+        <span class="n">zenith_angle</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">azimuth_angle</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Get MTD XML file</span>
+        <span class="n">root</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_mtd</span><span class="p">()</span>
+
+        <span class="c1"># Open zenith and azimuth angle</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">root</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;Geometric_Informations&quot;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">element</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;Mean_Value_List&quot;</span><span class="p">:</span>
+                        <span class="n">mean_sun_angles</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;Sun_Angles&quot;</span><span class="p">)</span>
+                        <span class="n">zenith_angle</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mean_sun_angles</span><span class="o">.</span><span class="n">findtext</span><span class="p">(</span><span class="s2">&quot;ZENITH_ANGLE&quot;</span><span class="p">))</span>
+                        <span class="n">azimuth_angle</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mean_sun_angles</span><span class="o">.</span><span class="n">findtext</span><span class="p">(</span><span class="s2">&quot;AZIMUTH_ANGLE&quot;</span><span class="p">))</span>
+                        <span class="k">break</span>  <span class="c1"># Only one Mean_Sun_Angle</span>
+                <span class="k">break</span>  <span class="c1"># Only one Geometric_Info</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">zenith_angle</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">azimuth_angle</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidProductError</span><span class="p">(</span><span class="s2">&quot;Azimuth or Zenith angles not found&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">azimuth_angle</span><span class="p">,</span> <span class="n">zenith_angle</span></div>
+
+<div class="viewcode-block" id="S2TheiaProduct.read_mtd"><a class="viewcode-back" href="../../../../api/eoreader.products.optical.s2_theia_product.html#eoreader.products.optical.s2_theia_product.S2TheiaProduct.read_mtd">[docs]</a>    <span class="k">def</span> <span class="nf">read_mtd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">_Element</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read metadata and outputs the metadata XML root and its namespace</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.read_mtd()</span>
+<span class="sd">        (&lt;Element Muscate_Metadata_Document at 0x252d2071e88&gt;, &#39;&#39;)</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (etree._Element, str): Metadata XML root and its namespace</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get MTD XML file</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_archived</span><span class="p">:</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="n">files</span><span class="o">.</span><span class="n">read_archived_xml</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;.*MTD_ALL\.xml&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Open metadata file</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mtd_xml</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;*MTD_ALL.xml&quot;</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="c1"># pylint: disable=I1101:</span>
+                <span class="c1"># Module &#39;lxml.etree&#39; has no &#39;parse&#39; member, but source is unavailable.</span>
+                <span class="n">xml_tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">mtd_xml</span><span class="p">)</span>
+                <span class="n">root</span> <span class="o">=</span> <span class="n">xml_tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidProductError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Metadata file not found in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
+
+        <span class="c1"># Get namespace</span>
+        <span class="n">namespace</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">root</span><span class="p">,</span> <span class="n">namespace</span></div>
+
+    <span class="k">def</span> <span class="nf">_has_cloud_band</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">band</span><span class="p">:</span> <span class="n">BandNames</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Does this products has the specified cloud band ?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">_load_clouds</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bands</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">resolution</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load cloud files as numpy arrays with the same resolution (and same metadata).</span>
+
+<span class="sd">        Read S2 Theia cloud mask:</span>
+<span class="sd">        https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/</span>
+
+<span class="sd">        &gt; A cloud mask for each resolution (CLM_R1.tif ou CLM_R2.tif):</span>
+<span class="sd">            - bit 0 (1) : all clouds except the thinnest and all shadows</span>
+<span class="sd">            - bit 1 (2) : all clouds (except the thinnest)</span>
+<span class="sd">            - bit 2 (4) : clouds detected via mono-temporal thresholds</span>
+<span class="sd">            - bit 3 (8) : clouds detected via multi-temporal thresholds</span>
+<span class="sd">            - bit 4 (16) : thinnest clouds</span>
+<span class="sd">            - bit 5 (32) : cloud shadows cast by a detected cloud</span>
+<span class="sd">            - bit 6 (64) : cloud shadows cast by a cloud outside image</span>
+<span class="sd">            - bit 7 (128) : high clouds detected by 1.38 µm</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bands (list): List of the wanted bands</span>
+<span class="sd">            resolution (int): Band resolution in meters</span>
+<span class="sd">            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Dictionary {band_name, band_xarray}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">band_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">bands</span><span class="p">:</span>
+            <span class="c1"># Open 20m cloud file if resolution &gt;= 20m</span>
+            <span class="n">res_id</span> <span class="o">=</span> <span class="s2">&quot;R2&quot;</span> <span class="k">if</span> <span class="n">resolution</span> <span class="o">&gt;=</span> <span class="mi">20</span> <span class="k">else</span> <span class="s2">&quot;R1&quot;</span>
+
+            <span class="n">cloud_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mask_path</span><span class="p">(</span><span class="s2">&quot;CLM&quot;</span><span class="p">,</span> <span class="n">res_id</span><span class="p">)</span>
+            <span class="n">clouds_mask</span> <span class="o">=</span> <span class="n">rasters</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+                <span class="n">cloud_path</span><span class="p">,</span>
+                <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+                <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+                <span class="n">resampling</span><span class="o">=</span><span class="n">Resampling</span><span class="o">.</span><span class="n">nearest</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Get nodata mask</span>
+            <span class="n">nodata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_mask</span><span class="p">(</span><span class="s2">&quot;EDG&quot;</span><span class="p">,</span> <span class="n">res_id</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+
+            <span class="c1"># Bit ids</span>
+            <span class="n">clouds_shadows_id</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">clouds_id</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">cirrus_id</span> <span class="o">=</span> <span class="mi">4</span>
+            <span class="n">shadows_in_id</span> <span class="o">=</span> <span class="mi">5</span>
+            <span class="n">shadows_out_id</span> <span class="o">=</span> <span class="mi">6</span>
+
+            <span class="k">for</span> <span class="n">res_id</span> <span class="ow">in</span> <span class="n">bands</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">res_id</span> <span class="o">==</span> <span class="n">ALL_CLOUDS</span><span class="p">:</span>
+                    <span class="n">band_dict</span><span class="p">[</span><span class="n">res_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_mask</span><span class="p">(</span>
+                        <span class="n">clouds_mask</span><span class="p">,</span> <span class="p">[</span><span class="n">clouds_shadows_id</span><span class="p">,</span> <span class="n">cirrus_id</span><span class="p">],</span> <span class="n">nodata</span>
+                    <span class="p">)</span>
+                <span class="k">elif</span> <span class="n">res_id</span> <span class="o">==</span> <span class="n">SHADOWS</span><span class="p">:</span>
+                    <span class="n">band_dict</span><span class="p">[</span><span class="n">res_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_mask</span><span class="p">(</span>
+                        <span class="n">clouds_mask</span><span class="p">,</span> <span class="p">[</span><span class="n">shadows_in_id</span><span class="p">,</span> <span class="n">shadows_out_id</span><span class="p">],</span> <span class="n">nodata</span>
+                    <span class="p">)</span>
+                <span class="k">elif</span> <span class="n">res_id</span> <span class="o">==</span> <span class="n">CLOUDS</span><span class="p">:</span>
+                    <span class="n">band_dict</span><span class="p">[</span><span class="n">res_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_mask</span><span class="p">(</span>
+                        <span class="n">clouds_mask</span><span class="p">,</span> <span class="n">clouds_id</span><span class="p">,</span> <span class="n">nodata</span>
+                    <span class="p">)</span>
+                <span class="k">elif</span> <span class="n">res_id</span> <span class="o">==</span> <span class="n">CIRRUS</span><span class="p">:</span>
+                    <span class="n">band_dict</span><span class="p">[</span><span class="n">res_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_mask</span><span class="p">(</span>
+                        <span class="n">clouds_mask</span><span class="p">,</span> <span class="n">cirrus_id</span><span class="p">,</span> <span class="n">nodata</span>
+                    <span class="p">)</span>
+                <span class="k">elif</span> <span class="n">res_id</span> <span class="o">==</span> <span class="n">RAW_CLOUDS</span><span class="p">:</span>
+                    <span class="n">band_dict</span><span class="p">[</span><span class="n">res_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">clouds_mask</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">InvalidTypeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Non existing cloud band for Sentinel-2 THEIA: </span><span class="si">{</span><span class="n">res_id</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">band_dict</span>
+
+    <span class="k">def</span> <span class="nf">_create_mask</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bit_array</span><span class="p">:</span> <span class="n">XDS_TYPE</span><span class="p">,</span> <span class="n">bit_ids</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span> <span class="n">nodata</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a mask masked array (uint8) from a bit array, bit IDs and a nodata mask.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bit_array (XDS_TYPE): Conditional array</span>
+<span class="sd">            bit_ids (Union[int, list]): Bit IDs</span>
+<span class="sd">            nodata (np.ndarray): Nodata mask</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            xr.DataArray: Mask masked array</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bit_ids</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">bit_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">bit_ids</span><span class="p">]</span>
+        <span class="n">conds</span> <span class="o">=</span> <span class="n">rasters</span><span class="o">.</span><span class="n">read_bit_array</span><span class="p">(</span><span class="n">bit_array</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span> <span class="n">bit_ids</span><span class="p">)</span>
+        <span class="n">cond</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">|</span> <span class="n">y</span><span class="p">,</span> <span class="n">conds</span><span class="p">)</span>  <span class="c1"># Use every conditions (bitwise or)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_create_mask</span><span class="p">(</span><span class="n">bit_array</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">nodata</span><span class="p">)</span></div>
+</pre></div>
+
+              </div>
+
+
+        <div class='prev-next-bottom'>
+
+
+        </div>
+
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+
+          By ICube-SERTIT<br/>
+
+            &copy; Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/.<br/>
+          Last updated on 2021-05-06.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+  <script src="../../../../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+
+  </body>
+</html>
