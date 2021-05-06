@@ -18,7 +18,7 @@ and [SAR](https://sertit.github.io/eoreader/eoreader#implemented-sar-satellites)
 
 It also implements additional **sensor-agnostic** features:
 
-- `eoreader.products.product.Product.load`: Load many band types:
+- {meth}`~eoreader.products.product.Product.load`: Load many band types:
     - satellite bands ([optical](https://sertit.github.io/eoreader/eoreader#band-mapping) or [SAR](https://sertit.github.io/eoreader/eoreader#sar-bands))
     - [index](https://sertit.github.io/eoreader/eoreader#available-index)
     - [cloud bands](https://sertit.github.io/eoreader/eoreader#cloud-bands)

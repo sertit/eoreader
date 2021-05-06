@@ -1,0 +1,1144 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>eoreader.products.product module</title>
+
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+
+
+
+
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.acff12b8f9c144ce68a297486a2fa670.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  <link rel="preload" as="script" href="../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/togglebutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="eoreader.env_vars module" href="eoreader.env_vars.html" />
+    <link rel="prev" title="eoreader.products.sar.tsx_product module" href="eoreader.products.sar.tsx_product.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+
+    <div class="container-fluid" id="banner"></div>
+
+
+
+    <div class="container-xl">
+      <div class="row">
+
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+
+      <img src="../_static/eoreader.png" class="logo" alt="logo">
+
+
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <div class="bd-toc-item active">
+        <p class="caption">
+ <span class="caption-text">
+  For Users
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../main_features.html">
+   Main features
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../optical.html">
+   Optical data
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../sar.html">
+   SAR data
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../notebooks/base.html">
+   Basic example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../notebooks/water_detection.html">
+   Water detection
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API
+ </span>
+</p>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="eoreader.html">
+   eoreader package
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="eoreader.bands.html">
+     eoreader.bands package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="eoreader.bands.alias.html">
+       eoreader.bands.alias module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="eoreader.bands.bands.html">
+       eoreader.bands.bands module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="eoreader.bands.index.html">
+       eoreader.bands.index module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="eoreader.data.html">
+     eoreader.data package
+    </a>
+   </li>
+   <li class="toctree-l2 current active has-children">
+    <a class="reference internal" href="eoreader.products.html">
+     eoreader.products package
+    </a>
+    <input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul class="current">
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="eoreader.products.optical.html">
+       eoreader.products.optical package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+      <label for="toctree-checkbox-4">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l1_product.html">
+         eoreader.products.optical.l1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l2_product.html">
+         eoreader.products.optical.l2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l3_product.html">
+         eoreader.products.optical.l3_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l4_product.html">
+         eoreader.products.optical.l4_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l5_product.html">
+         eoreader.products.optical.l5_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l7_product.html">
+         eoreader.products.optical.l7_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l8_product.html">
+         eoreader.products.optical.l8_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.landsat_product.html">
+         eoreader.products.optical.landsat_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.optical_product.html">
+         eoreader.products.optical.optical_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.s2_product.html">
+         eoreader.products.optical.s2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.s2_theia_product.html">
+         eoreader.products.optical.s2_theia_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.s3_product.html">
+         eoreader.products.optical.s3_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="eoreader.products.sar.html">
+       eoreader.products.sar package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+      <label for="toctree-checkbox-5">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.sar.csk_product.html">
+         eoreader.products.sar.csk_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.sar.rs2_product.html">
+         eoreader.products.sar.rs2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.sar.s1_product.html">
+         eoreader.products.sar.s1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.sar.sar_product.html">
+         eoreader.products.sar.sar_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.sar.tsx_product.html">
+         eoreader.products.sar.tsx_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       eoreader.products.product module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="eoreader.env_vars.html">
+     eoreader.env_vars module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="eoreader.exceptions.html">
+     eoreader.exceptions module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="eoreader.reader.html">
+     eoreader.reader module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="eoreader.utils.html">
+     eoreader.utils module
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+</div>
+
+
+
+
+
+
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/api/eoreader.products.product.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/sertit/eoreader"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/sertit/eoreader/issues/new?title=Issue%20on%20page%20%2Fapi/eoreader.products.product.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/sertit/eoreader/edit/develop/docs/api/eoreader.products.product.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+
+              <div>
+
+  <div class="section" id="module-eoreader.products.product">
+<span id="eoreader-products-product-module"></span><h1>eoreader.products.product module<a class="headerlink" href="#module-eoreader.products.product" title="Permalink to this headline">¶</a></h1>
+<p>Product, superclass of all EOReader satellites products</p>
+<dl class="py class">
+<dt id="eoreader.products.product.Product">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">eoreader.products.product.</span></code><code class="sig-name descname"><span class="pre">Product</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">archive_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/eoreader/products/product.html#Product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Super class of EOReader Products</p>
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.archive_path">
+<code class="sig-name descname"><span class="pre">archive_path</span></code><a class="headerlink" href="#eoreader.products.product.Product.archive_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Archive path, same as the product path if not specified.
+Useful when you want to know where both the extracted and archived version of your product are stored.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.band_names">
+<code class="sig-name descname"><span class="pre">band_names</span></code><a class="headerlink" href="#eoreader.products.product.Product.band_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Band mapping between band wrapping names such as <cite>GREEN</cite> and band real number such as <cite>03</cite> for Sentinel-2.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.condensed_name">
+<code class="sig-name descname"><span class="pre">condensed_name</span></code><a class="headerlink" href="#eoreader.products.product.Product.condensed_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Condensed name, the filename with only useful data to keep the name unique
+(ie. <cite>20191215T110441_S2_30TXP_L2A_122756</cite>).
+Used to shorten names and paths.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.corresponding_ref">
+<code class="sig-name descname"><span class="pre">corresponding_ref</span></code><a class="headerlink" href="#eoreader.products.product.Product.corresponding_ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>The corresponding reference products to the current one
+(if the product is not a reference but has a reference data corresponding to it).
+A list because of multiple ref in case of non-stackable products (S3, S1…)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.crs">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">crs</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">rasterio.crs.CRS</span><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.crs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.crs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get UTM projection of the tile</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.reader</span> <span class="pre">import</span> <span class="pre">Reader</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">path</span> <span class="pre">=</span> <span class="pre">r&quot;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&quot;</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod</span> <span class="pre">=</span> <span class="pre">Reader().open(path)</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.utm_crs()</span>
+<span class="pre">CRS.from_epsg(32630)</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>CRS object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>crs.CRS</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.date">
+<code class="sig-name descname"><span class="pre">date</span></code><a class="headerlink" href="#eoreader.products.product.Product.date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acquisition date.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.datetime">
+<code class="sig-name descname"><span class="pre">datetime</span></code><a class="headerlink" href="#eoreader.products.product.Product.datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acquisition datetime.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.extent">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">extent</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">geopandas.geodataframe.GeoDataFrame</span><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.extent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.extent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get UTM extent of the tile</p>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
+&gt;&gt;&gt; from eoreader.reader import Reader
+&gt;&gt;&gt; path = r”S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip”
+&gt;&gt;&gt; prod = Reader().open(path)
+&gt;&gt;&gt; prod.utm_extent()</p>
+<blockquote>
+<div><p>geometry</p>
+</div></blockquote>
+<p>0  POLYGON ((309780.000 4390200.000, 309780.000 4…
+<a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Footprint in UTM</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>gpd.GeoDataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.footprint">
+<code class="sig-name descname"><span class="pre">footprint</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">geopandas.geodataframe.GeoDataFrame</span><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.footprint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.footprint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get UTM footprint of the products (without nodata, <em>in french == emprise utile</em>)</p>
+<p><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>python
+&gt;&gt;&gt; from eoreader.reader import Reader
+&gt;&gt;&gt; path = r”S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip”
+&gt;&gt;&gt; prod = Reader().open(path)
+&gt;&gt;&gt; prod.footprint()</p>
+<blockquote>
+<div><p>index                                           geometry</p>
+</div></blockquote>
+<p>0      0  POLYGON ((199980.000 4500000.000, 199980.000 4…
+<a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Footprint as a GeoDataFrame</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>gpd.GeoDataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.get_band_paths">
+<code class="sig-name descname"><span class="pre">get_band_paths</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">band_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><span class="pre">dict</span></a><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.get_band_paths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.get_band_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the paths of required bands.</p>
+<p><a href="#id17"><span class="problematic" id="id18">``</span></a><a href="#id19"><span class="problematic" id="id20">`</span></a>python
+&gt;&gt;&gt; from eoreader.reader import Reader
+&gt;&gt;&gt; from eoreader.bands.alias import *
+&gt;&gt;&gt; path = r”S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip”
+&gt;&gt;&gt; prod = Reader().open(path)
+&gt;&gt;&gt; prod.get_band_paths([GREEN, RED])
+{</p>
+<blockquote>
+<div><p>&lt;OpticalBandNames.GREEN: ‘GREEN’&gt;: ‘zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2’,
+&lt;OpticalBandNames.RED: ‘RED’&gt;: ‘zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2’</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>band_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – List of the wanted bands</p></li>
+<li><p><strong>resolution</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Band resolution</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dictionary containing the path of each queried band</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.get_date">
+<code class="sig-name descname"><span class="pre">get_date</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">as_date</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.date" title="(in Python v3.9)"><span class="pre">datetime.date</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.get_date"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.get_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the product’s acquisition date.</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.reader</span> <span class="pre">import</span> <span class="pre">Reader</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">path</span> <span class="pre">=</span> <span class="pre">r&quot;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&quot;</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod</span> <span class="pre">=</span> <span class="pre">Reader().open(path)</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.get_date(as_date=True)</span>
+<span class="pre">datetime.datetime(2020,</span> <span class="pre">8,</span> <span class="pre">24,</span> <span class="pre">0,</span> <span class="pre">0)</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.get_date(as_date=False)</span>
+<span class="pre">'20200824'</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>as_date</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Return the date as a datetime.date. If false, returns a string.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Its acquisition date</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.get_datetime">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_datetime</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">as_datetime</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.9)"><span class="pre">datetime.datetime</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.get_datetime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.get_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the product’s acquisition datetime, with format <cite>YYYYMMDDTHHMMSS</cite> &lt;-&gt; <cite>%Y%m%dT%H%M%S</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.reader</span> <span class="pre">import</span> <span class="pre">Reader</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">path</span> <span class="pre">=</span> <span class="pre">r&quot;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&quot;</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod</span> <span class="pre">=</span> <span class="pre">Reader().open(path)</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.get_datetime(as_datetime=True)</span>
+<span class="pre">datetime.datetime(2020,</span> <span class="pre">8,</span> <span class="pre">24,</span> <span class="pre">11,</span> <span class="pre">6,</span> <span class="pre">31)</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.get_datetime(as_datetime=False)</span>
+<span class="pre">'20200824T110631'</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>as_datetime</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Return the date as a datetime.datetime. If false, returns a string.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Its acquisition datetime</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Union[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.9)">datetime.datetime</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.get_default_band">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_default_band</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="eoreader.bands.bands.html#eoreader.bands.bands.BandNames" title="eoreader.bands.bands.BandNames"><span class="pre">eoreader.bands.bands.BandNames</span></a><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.get_default_band"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.get_default_band" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get default band:
+Usually <cite>GREEN</cite> band for optical data and the first existing one between <cite>VV</cite> and <cite>HH</cite> for SAR data.</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.reader</span> <span class="pre">import</span> <span class="pre">Reader</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">path</span> <span class="pre">=</span> <span class="pre">r&quot;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&quot;</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod</span> <span class="pre">=</span> <span class="pre">Reader().open(path)</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.get_default_band()</span>
+<span class="pre">&lt;OpticalBandNames.GREEN:</span> <span class="pre">'GREEN'&gt;</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Default band</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.get_default_band_path">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_default_band_path</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.get_default_band_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.get_default_band_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get default band path (among the existing ones).</p>
+<p>Usually <cite>GREEN</cite> band for optical data and the first existing one between <cite>VV</cite> and <cite>HH</cite> for SAR data.</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.reader</span> <span class="pre">import</span> <span class="pre">Reader</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">path</span> <span class="pre">=</span> <span class="pre">r&quot;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&quot;</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod</span> <span class="pre">=</span> <span class="pre">Reader().open(path)</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.get_default_band_path()</span>
+<span class="pre">'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'</span>
+<span class="pre">`</span></code>
+:returns: Default band path
+:rtype: str</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.get_existing_band_paths">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_existing_band_paths</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><span class="pre">dict</span></a><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.get_existing_band_paths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.get_existing_band_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the existing band paths.</p>
+<p><a href="#id21"><span class="problematic" id="id22">``</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a>python
+&gt;&gt;&gt; from eoreader.reader import Reader
+&gt;&gt;&gt; path = r”S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip”
+&gt;&gt;&gt; prod = Reader().open(path)
+&gt;&gt;&gt; prod.get_existing_band_paths()
+{</p>
+<blockquote>
+<div><p>&lt;OpticalBandNames.CA: ‘COASTAL_AEROSOL’&gt;: ‘zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2’,
+…,
+&lt;OpticalBandNames.SWIR_2: ‘SWIR_2’&gt;: ‘zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2’</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary containing the path of each queried band</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.get_existing_bands">
+<code class="sig-name descname"><span class="pre">get_existing_bands</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.get_existing_bands"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.get_existing_bands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the existing bands.</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.reader</span> <span class="pre">import</span> <span class="pre">Reader</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">path</span> <span class="pre">=</span> <span class="pre">r&quot;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&quot;</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod</span> <span class="pre">=</span> <span class="pre">Reader().open(path)</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.get_existing_bands()</span>
+<span class="pre">[&lt;OpticalBandNames.CA:</span> <span class="pre">'COASTAL_AEROSOL'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.BLUE:</span> <span class="pre">'BLUE'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.GREEN:</span> <span class="pre">'GREEN'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.RED:</span> <span class="pre">'RED'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.VRE_1:</span> <span class="pre">'VEGETATION_RED_EDGE_1'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.VRE_2:</span> <span class="pre">'VEGETATION_RED_EDGE_2'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.VRE_3:</span> <span class="pre">'VEGETATION_RED_EDGE_3'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.NIR:</span> <span class="pre">'NIR'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.NNIR:</span> <span class="pre">'NARROW_NIR'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.WV:</span> <span class="pre">'WATER_VAPOUR'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.CIRRUS:</span> <span class="pre">'CIRRUS'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.SWIR_1:</span> <span class="pre">'SWIR_1'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.SWIR_2:</span> <span class="pre">'SWIR_2'&gt;]</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of existing bands in the products</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.has_band">
+<code class="sig-name descname"><span class="pre">has_band</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="eoreader.bands.bands.html#eoreader.bands.bands.BandNames" title="eoreader.bands.bands.BandNames"><span class="pre">eoreader.bands.bands.BandNames</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.has_band"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.has_band" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this products has the specified band ?</p>
+<p>By band, we mean:</p>
+<ul class="simple">
+<li><p>satellite band</p></li>
+<li><p>index</p></li>
+<li><p>DEM band</p></li>
+<li><p>cloud band</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.reader</span> <span class="pre">import</span> <span class="pre">Reader</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.bands.alias</span> <span class="pre">import</span> <span class="pre">*</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">path</span> <span class="pre">=</span> <span class="pre">r&quot;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&quot;</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod</span> <span class="pre">=</span> <span class="pre">Reader().open(path)</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.has_band(GREEN)</span>
+<span class="pre">True</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.has_band(TIR_2)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.has_band(NDVI)</span>
+<span class="pre">True</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.has_band(SHADOWS)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.has_band(HILLSHADE)</span>
+<span class="pre">True</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>band</strong> (<em>Union</em><em>[</em><em>obn</em><em>, </em><em>sbn</em><em>]</em>) – Optical or SAR band</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the products has the specified band</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.is_archived">
+<code class="sig-name descname"><span class="pre">is_archived</span></code><a class="headerlink" href="#eoreader.products.product.Product.is_archived" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the archived product is processed
+(a products is considered as archived if its products path is a directory).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.is_reference">
+<code class="sig-name descname"><span class="pre">is_reference</span></code><a class="headerlink" href="#eoreader.products.product.Product.is_reference" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the product is a reference, used for algorithms that need pre and post data, such as fire detection.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.load">
+<code class="sig-name descname"><span class="pre">load</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bands</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="eoreader.bands.bands.html#eoreader.bands.bands.BandNames" title="eoreader.bands.bands.BandNames"><span class="pre">eoreader.bands.bands.BandNames</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><span class="pre">tuple</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><span class="pre">dict</span></a><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open the bands and compute the wanted index.</p>
+<p>The bands will be purged of nodata and invalid pixels,
+the nodata will be set to 0 and the bands will be masked arrays in float.</p>
+<p>Bands that come out this function at the same time are collocated and therefore have the same shapes.
+This can be broken if you load data separately. Its is best to always load DEM data with some real bands.</p>
+<p><a href="#id25"><span class="problematic" id="id26">``</span></a><a href="#id27"><span class="problematic" id="id28">`</span></a>python
+&gt;&gt;&gt; from eoreader.reader import Reader
+&gt;&gt;&gt; from eoreader.bands.alias import *
+&gt;&gt;&gt; path = r”S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip”
+&gt;&gt;&gt; prod = Reader().open(path)
+&gt;&gt;&gt; bands = prod.load([GREEN, NDVI], resolution=20)
+&gt;&gt;&gt; bands
+‘’’
+{</p>
+<blockquote>
+<div><p>&lt;function NDVI at 0x000001EFFFF5DD08&gt;: &lt;xarray.DataArray ‘NDVI’ (band: 1, y: 5490, x: 5490)&gt;
+array([[[0.949506  , 0.92181516, 0.9279379 , …, 1.8002278 ,</p>
+<blockquote>
+<div><blockquote>
+<div><p>1.5424857 , 1.6747767 ],</p>
+</div></blockquote>
+<dl class="simple">
+<dt>[0.95369846, 0.91685396, 0.8957871 , …, 1.5847116 ,</dt><dd><p>1.5248713 , 1.5011379 ],</p>
+</dd>
+<dt>[2.9928885 , 1.3031474 , 1.0076253 , …, 1.5969834 ,</dt><dd><p>1.5590671 , 1.5018653 ],</p>
+</dd>
+</dl>
+<p>…,
+[1.4245619 , 1.6115025 , 1.6201663 , …, 1.2387121 ,</p>
+<blockquote>
+<div><p>1.4025431 , 1.800678  ],</p>
+</div></blockquote>
+<dl class="simple">
+<dt>[1.5627214 , 1.822388  , 1.7245892 , …, 1.1694248 ,</dt><dd><p>1.2573677 , 1.5767351 ],</p>
+</dd>
+<dt>[1.653781  , 1.6424649 , 1.5923225 , …, 1.3072611 ,</dt><dd><p>1.2181134 , 1.2478763 ]]], dtype=float32)</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="simple">
+<dt>Coordinates:</dt><dd><ul class="simple">
+<li><p>band         (band) int32 1</p></li>
+<li><p>y            (y) float64 4.5e+06 4.5e+06 4.5e+06 … 4.39e+06 4.39e+06</p></li>
+<li><p>x            (x) float64 2e+05 2e+05 2e+05 … 3.097e+05 3.098e+05 3.098e+05
+spatial_ref  int32 0,</p></li>
+</ul>
+</dd>
+</dl>
+<p>&lt;OpticalBandNames.GREEN: ‘GREEN’&gt;: &lt;xarray.DataArray (band: 1, y: 5490, x: 5490)&gt;
+array([[[0.0615  , 0.061625, 0.061   , …, 0.12085 , 0.120225,</p>
+<blockquote>
+<div><blockquote>
+<div><p>0.113575],</p>
+</div></blockquote>
+<dl class="simple">
+<dt>[0.061075, 0.06045 , 0.06025 , …, 0.114625, 0.119625,</dt><dd><p>0.117625],</p>
+</dd>
+<dt>[0.06475 , 0.06145 , 0.060925, …, 0.111475, 0.114925,</dt><dd><p>0.115175],</p>
+</dd>
+</dl>
+<p>…,
+[0.1516  , 0.14195 , 0.1391  , …, 0.159975, 0.14145 ,</p>
+<blockquote>
+<div><p>0.127075],</p>
+</div></blockquote>
+<dl class="simple">
+<dt>[0.140325, 0.125975, 0.131875, …, 0.18245 , 0.1565  ,</dt><dd><p>0.13015 ],</p>
+</dd>
+<dt>[0.133475, 0.1341  , 0.13345 , …, 0.15565 , 0.170675,</dt><dd><p>0.16405 ]]], dtype=float32)</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="simple">
+<dt>Coordinates:</dt><dd><ul class="simple">
+<li><p>band         (band) int32 1</p></li>
+<li><p>y            (y) float64 4.5e+06 4.5e+06 4.5e+06 … 4.39e+06 4.39e+06</p></li>
+<li><p>x            (x) float64 2e+05 2e+05 2e+05 … 3.097e+05 3.098e+05 3.098e+05
+spatial_ref  int32 0</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<p><a href="#id29"><span class="problematic" id="id30">``</span></a><a href="#id31"><span class="problematic" id="id32">`</span></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bands</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>, </em><a class="reference internal" href="eoreader.bands.bands.html#eoreader.bands.bands.BandNames" title="eoreader.bands.bands.BandNames"><em>BandNames</em></a><em>, </em><em>Callable</em><em>]</em>) – Band list</p></li>
+<li><p><strong>resolution</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Resolution of the band, in meters</p></li>
+<li><p><strong>size</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>]</em>) – Size of the array (width, height). Not used if resolution is provided.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>{band_name, band xarray}</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.name">
+<code class="sig-name descname"><span class="pre">name</span></code><a class="headerlink" href="#eoreader.products.product.Product.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Product name (its filename without any extension).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.needs_extraction">
+<code class="sig-name descname"><span class="pre">needs_extraction</span></code><a class="headerlink" href="#eoreader.products.product.Product.needs_extraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this products needs to be extracted to be processed ? (<cite>True</cite> by default).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.nodata">
+<code class="sig-name descname"><span class="pre">nodata</span></code><a class="headerlink" href="#eoreader.products.product.Product.nodata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Product nodata, set to 0 by default. Please do not touch this or all index will fail.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.output">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">output</span></code><a class="headerlink" href="#eoreader.products.product.Product.output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output directory of the product, to write orthorectified data for example.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.path">
+<code class="sig-name descname"><span class="pre">path</span></code><a class="headerlink" href="#eoreader.products.product.Product.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Usable path to the product, either extracted or archived path, according to the satellite.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.platform">
+<code class="sig-name descname"><span class="pre">platform</span></code><a class="headerlink" href="#eoreader.products.product.Product.platform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Product platform, such as Sentinel-2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.product_type">
+<code class="sig-name descname"><span class="pre">product_type</span></code><a class="headerlink" href="#eoreader.products.product.Product.product_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Product type, satellite-related field, such as L1C or L2A for Sentinel-2 data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.read_mtd">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">read_mtd</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Any</span><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.read_mtd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.read_mtd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read metadata and outputs the metadata XML root and its namespace most of the time,
+except from L8-collection 1 data which outputs a pandas DataFrame</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.reader</span> <span class="pre">import</span> <span class="pre">Reader</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">path</span> <span class="pre">=</span> <span class="pre">r&quot;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&quot;</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod</span> <span class="pre">=</span> <span class="pre">Reader().open(path)</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">prod.read_mtd()</span>
+<span class="pre">(&lt;Element</span> <span class="pre">product</span> <span class="pre">at</span> <span class="pre">0x1832895d788&gt;,</span> <span class="pre">'')</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Metadata XML root and its namespace or pd.DataFrame</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.resolution">
+<code class="sig-name descname"><span class="pre">resolution</span></code><a class="headerlink" href="#eoreader.products.product.Product.resolution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default resolution in meters of the current product.
+For SAR product, we use Ground Range resolution as we will automatically orthorectify the tiles.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.sat_id">
+<code class="sig-name descname"><span class="pre">sat_id</span></code><a class="headerlink" href="#eoreader.products.product.Product.sat_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Satellite ID, i.e. <cite>S2</cite> for Sentinel-2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.sensor_type">
+<code class="sig-name descname"><span class="pre">sensor_type</span></code><a class="headerlink" href="#eoreader.products.product.Product.sensor_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sensor type, SAR or optical.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.split_name">
+<code class="sig-name descname"><span class="pre">split_name</span></code><a class="headerlink" href="#eoreader.products.product.Product.split_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split name, to retrieve every information from its filename (dates, tile, product type…).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="eoreader.products.product.Product.stack">
+<code class="sig-name descname"><span class="pre">stack</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bands</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_as_int</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">xarray.core.dataarray.DataArray</span><a class="reference internal" href="../_modules/eoreader/products/product.html#Product.stack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.Product.stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stack bands and index of a products.</p>
+<p><a href="#id33"><span class="problematic" id="id34">``</span></a><a href="#id35"><span class="problematic" id="id36">`</span></a>python
+&gt;&gt;&gt; from eoreader.reader import Reader
+&gt;&gt;&gt; from eoreader.bands.alias import *
+&gt;&gt;&gt; path = r”S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip”
+&gt;&gt;&gt; prod = Reader().open(path)
+&gt;&gt;&gt; stack = prod.stack([NDVI, MNDWI, GREEN], resolution=20)  # In meters
+&gt;&gt;&gt; stack
+‘’’
+&lt;xarray.DataArray ‘NDVI_MNDWI_GREEN’ (z: 3, y: 5490, x: 5490)&gt;
+array([[[ 0.949506  ,  0.92181516,  0.9279379 , …,  1.8002278 ,</p>
+<blockquote>
+<div><blockquote>
+<div><blockquote>
+<div><p>1.5424857 ,  1.6747767 ],</p>
+</div></blockquote>
+<dl class="simple">
+<dt>[ 0.95369846,  0.91685396,  0.8957871 , …,  1.5847116 ,</dt><dd><p>1.5248713 ,  1.5011379 ],</p>
+</dd>
+<dt>[ 2.9928885 ,  1.3031474 ,  1.0076253 , …,  1.5969834 ,</dt><dd><p>1.5590671 ,  1.5018653 ],</p>
+</dd>
+</dl>
+<p>…,
+[ 1.4245619 ,  1.6115025 ,  1.6201663 , …,  1.2387121 ,</p>
+<blockquote>
+<div><p>1.4025431 ,  1.800678  ],</p>
+</div></blockquote>
+<dl class="simple">
+<dt>[ 1.5627214 ,  1.822388  ,  1.7245892 , …,  1.1694248 ,</dt><dd><p>1.2573677 ,  1.5767351 ],</p>
+</dd>
+<dt>[ 1.653781  ,  1.6424649 ,  1.5923225 , …,  1.3072611 ,</dt><dd><p>1.2181134 ,  1.2478763 ]],</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl>
+<dt>[[ 0.27066118,  0.23466069,  0.18792598, …, -0.4611526 ,</dt><dd><blockquote>
+<div><p>-0.49751845, -0.4865216 ],</p>
+</div></blockquote>
+<dl class="simple">
+<dt>[ 0.22425456,  0.28004232,  0.27851456, …, -0.5032771 ,</dt><dd><p>-0.501796  , -0.502669  ],</p>
+</dd>
+<dt>[-0.07466951,  0.06360884,  0.1207174 , …, -0.50617427,</dt><dd><p>-0.50219285, -0.5034222 ],</p>
+</dd>
+<dt>[-0.47076276, -0.4705828 , -0.4747971 , …, -0.32138503,</dt><dd><p>-0.36619243, -0.37428448],</p>
+</dd>
+<dt>[-0.4826967 , -0.5032287 , -0.48544118, …, -0.278925  ,</dt><dd><p>-0.31404778, -0.36052078],</p>
+</dd>
+<dt>[-0.488381  , -0.48253912, -0.4697526 , …, -0.38105175,</dt><dd><p>-0.30813277, -0.27739233]],</p>
+</dd>
+</dl>
+</dd>
+<dt>[[ 0.0615    ,  0.061625  ,  0.061     , …,  0.12085   ,</dt><dd><blockquote>
+<div><p>0.120225  ,  0.113575  ],</p>
+</div></blockquote>
+<dl class="simple">
+<dt>[ 0.061075  ,  0.06045   ,  0.06025   , …,  0.114625  ,</dt><dd><p>0.119625  ,  0.117625  ],</p>
+</dd>
+<dt>[ 0.06475   ,  0.06145   ,  0.060925  , …,  0.111475  ,</dt><dd><p>0.114925  ,  0.115175  ],</p>
+</dd>
+</dl>
+<p>…,
+[ 0.1516    ,  0.14195   ,  0.1391    , …,  0.159975  ,</p>
+<blockquote>
+<div><p>0.14145   ,  0.127075  ],</p>
+</div></blockquote>
+<dl class="simple">
+<dt>[ 0.140325  ,  0.125975  ,  0.131875  , …,  0.18245   ,</dt><dd><p>0.1565    ,  0.13015   ],</p>
+</dd>
+<dt>[ 0.133475  ,  0.1341    ,  0.13345   , …,  0.15565   ,</dt><dd><p>0.170675  ,  0.16405   ]]], dtype=float32)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+<dl>
+<dt>Coordinates:</dt><dd><ul class="simple">
+<li><p>y            (y) float64 4.5e+06 4.5e+06 4.5e+06 … 4.39e+06 4.39e+06</p></li>
+<li><p>x            (x) float64 2e+05 2e+05 2e+05 … 3.097e+05 3.098e+05 3.098e+05
+spatial_ref  int32 0</p></li>
+<li><p>z            (z) MultiIndex</p></li>
+</ul>
+<ul class="simple">
+<li><p>variable     (z) object ‘NDVI’ ‘MNDWI’ ‘GREEN’</p></li>
+<li><p>band         (z) int64 1 1 1</p></li>
+</ul>
+</dd>
+<dt>-Attributes:</dt><dd><p>long_name:  [‘NDVI’, ‘MNDWI’, ‘GREEN’]</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bands</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – Bands and index combination</p></li>
+<li><p><strong>resolution</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Stack resolution. . If not specified, use the product resolution.</p></li>
+<li><p><strong>stack_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Stack path</p></li>
+<li><p><strong>save_as_int</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Save stack as integers (uint16 and therefore multiply the values by 10.000)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Stack as a DataArray</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>xr.DataArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.Product.tile_name">
+<code class="sig-name descname"><span class="pre">tile_name</span></code><a class="headerlink" href="#eoreader.products.product.Product.tile_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tile if possible (for data that can be piled, for example S2 and Landsats).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="eoreader.products.product.SensorType">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">eoreader.products.product.</span></code><code class="sig-name descname"><span class="pre">SensorType</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/eoreader/products/product.html#SensorType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.SensorType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sertit.misc.ListEnum</span></code></p>
+<p>Sensor type of the products, optical or SAR</p>
+<dl class="py attribute">
+<dt id="eoreader.products.product.SensorType.OPTICAL">
+<code class="sig-name descname"><span class="pre">OPTICAL</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'Optical'</span></em><a class="headerlink" href="#eoreader.products.product.SensorType.OPTICAL" title="Permalink to this definition">¶</a></dt>
+<dd><p>For optical data</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="eoreader.products.product.SensorType.SAR">
+<code class="sig-name descname"><span class="pre">SAR</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'SAR'</span></em><a class="headerlink" href="#eoreader.products.product.SensorType.SAR" title="Permalink to this definition">¶</a></dt>
+<dd><p>For SAR data</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="eoreader.products.product.path_or_dst">
+<code class="sig-prename descclassname"><span class="pre">eoreader.products.product.</span></code><code class="sig-name descname"><span class="pre">path_or_dst</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Callable</span><a class="reference internal" href="../_modules/eoreader/products/product.html#path_or_dst"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.products.product.path_or_dst" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path or dataset decorator: allows a function to ingest a path or a rasterio dataset</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">#</span> <span class="pre">Create</span> <span class="pre">mock</span> <span class="pre">function</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">&#64;path_or_dst</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">def</span> <span class="pre">fct(dst):</span>
+<span class="pre">&gt;&gt;&gt;</span>&#160;&#160;&#160;&#160; <span class="pre">read(dst)</span>
+<span class="pre">&gt;&gt;&gt;</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">#</span> <span class="pre">Test</span> <span class="pre">the</span> <span class="pre">two</span> <span class="pre">ways</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">read1</span> <span class="pre">=</span> <span class="pre">fct(&quot;path\to\raster.tif&quot;)</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">with</span> <span class="pre">rasterio.open(&quot;path\to\raster.tif&quot;)</span> <span class="pre">as</span> <span class="pre">dst:</span>
+<span class="pre">&gt;&gt;&gt;</span>&#160;&#160;&#160;&#160; <span class="pre">read2</span> <span class="pre">=</span> <span class="pre">fct(dst)</span>
+<span class="pre">&gt;&gt;&gt;</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">#</span> <span class="pre">Test</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">read1</span> <span class="pre">==</span> <span class="pre">read2</span>
+<span class="pre">True</span>
+<span class="pre">`</span></code>
+:param method: Function to decorate
+:type method: Callable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>decorated function</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+              </div>
+
+
+        <div class='prev-next-bottom'>
+
+    <a class='left-prev' id="prev-link" href="eoreader.products.sar.tsx_product.html" title="previous page">eoreader.products.sar.tsx_product module</a>
+    <a class='right-next' id="next-link" href="eoreader.env_vars.html" title="next page">eoreader.env_vars module</a>
+
+        </div>
+
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+
+          By ICube-SERTIT<br/>
+
+            &copy; Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/.<br/>
+          Last updated on 2021-05-06.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+  <script src="../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+
+  </body>
+</html>

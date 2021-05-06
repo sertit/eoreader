@@ -1,0 +1,654 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>eoreader.bands.alias module</title>
+
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+
+
+
+
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.acff12b8f9c144ce68a297486a2fa670.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  <link rel="preload" as="script" href="../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/togglebutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="eoreader.bands.bands module" href="eoreader.bands.bands.html" />
+    <link rel="prev" title="eoreader.bands package" href="eoreader.bands.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+
+    <div class="container-fluid" id="banner"></div>
+
+
+
+    <div class="container-xl">
+      <div class="row">
+
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+
+      <img src="../_static/eoreader.png" class="logo" alt="logo">
+
+
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <div class="bd-toc-item active">
+        <p class="caption">
+ <span class="caption-text">
+  For Users
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../main_features.html">
+   Main features
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../optical.html">
+   Optical data
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../sar.html">
+   SAR data
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../notebooks/base.html">
+   Basic example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../notebooks/water_detection.html">
+   Water detection
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API
+ </span>
+</p>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="eoreader.html">
+   eoreader package
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2 current active has-children">
+    <a class="reference internal" href="eoreader.bands.html">
+     eoreader.bands package
+    </a>
+    <input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul class="current">
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       eoreader.bands.alias module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="eoreader.bands.bands.html">
+       eoreader.bands.bands module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="eoreader.bands.index.html">
+       eoreader.bands.index module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="eoreader.data.html">
+     eoreader.data package
+    </a>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="eoreader.products.html">
+     eoreader.products package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="eoreader.products.optical.html">
+       eoreader.products.optical package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+      <label for="toctree-checkbox-4">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l1_product.html">
+         eoreader.products.optical.l1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l2_product.html">
+         eoreader.products.optical.l2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l3_product.html">
+         eoreader.products.optical.l3_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l4_product.html">
+         eoreader.products.optical.l4_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l5_product.html">
+         eoreader.products.optical.l5_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l7_product.html">
+         eoreader.products.optical.l7_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.l8_product.html">
+         eoreader.products.optical.l8_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.landsat_product.html">
+         eoreader.products.optical.landsat_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.optical_product.html">
+         eoreader.products.optical.optical_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.s2_product.html">
+         eoreader.products.optical.s2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.s2_theia_product.html">
+         eoreader.products.optical.s2_theia_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.optical.s3_product.html">
+         eoreader.products.optical.s3_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="eoreader.products.sar.html">
+       eoreader.products.sar package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+      <label for="toctree-checkbox-5">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.sar.csk_product.html">
+         eoreader.products.sar.csk_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.sar.rs2_product.html">
+         eoreader.products.sar.rs2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.sar.s1_product.html">
+         eoreader.products.sar.s1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.sar.sar_product.html">
+         eoreader.products.sar.sar_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="eoreader.products.sar.tsx_product.html">
+         eoreader.products.sar.tsx_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="eoreader.products.product.html">
+       eoreader.products.product module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="eoreader.env_vars.html">
+     eoreader.env_vars module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="eoreader.exceptions.html">
+     eoreader.exceptions module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="eoreader.reader.html">
+     eoreader.reader module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="eoreader.utils.html">
+     eoreader.utils module
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+</div>
+
+
+
+
+
+
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/api/eoreader.bands.alias.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/sertit/eoreader"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/sertit/eoreader/issues/new?title=Issue%20on%20page%20%2Fapi/eoreader.bands.alias.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/sertit/eoreader/edit/develop/docs/api/eoreader.bands.alias.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+
+              <div>
+
+  <div class="section" id="module-eoreader.bands.alias">
+<span id="eoreader-bands-alias-module"></span><h1>eoreader.bands.alias module<a class="headerlink" href="#module-eoreader.bands.alias" title="Permalink to this headline">¶</a></h1>
+<p>Aliases for bands and index, created in order to import just this file and not <cite>OpticalBandNames</cite>, <cite>SarBandNames</cite> and <cite>index</cite>.</p>
+<p>To use it, simply type:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.bands.alias</span> <span class="pre">import</span> <span class="pre">*</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">GREEN</span>
+<span class="pre">&lt;OpticalBandNames.GREEN:</span> <span class="pre">'GREEN'&gt;</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">HH</span>
+<span class="pre">&lt;SarBandNames.HH:</span> <span class="pre">'HH'&gt;</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">NDVI</span>
+<span class="pre">&lt;function</span> <span class="pre">NDVI</span> <span class="pre">at</span> <span class="pre">0x00000261F6FFA950&gt;</span>
+<span class="pre">`</span></code></p>
+<dl class="py function">
+<dt id="eoreader.bands.alias.is_band">
+<code class="sig-prename descclassname"><span class="pre">eoreader.bands.alias.</span></code><code class="sig-name descname"><span class="pre">is_band</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><a class="reference internal" href="../_modules/eoreader/bands/alias.html#is_band"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.bands.alias.is_band" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if is a band (from both <cite>SarBandNames</cite> or <cite>OpticalBandNames</cite>)</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.bands.alias</span> <span class="pre">import</span> <span class="pre">*</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_band(NDVI)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_band(HH)</span>
+<span class="pre">True</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_band(GREEN)</span>
+<span class="pre">True</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_band(SLOPE)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_band(CLOUDS)</span>
+<span class="pre">False</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>band</strong> (<em>Any</em>) – Anything that could be a band</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the band asked is a band</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="eoreader.bands.alias.is_clouds">
+<code class="sig-prename descclassname"><span class="pre">eoreader.bands.alias.</span></code><code class="sig-name descname"><span class="pre">is_clouds</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classif</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><a class="reference internal" href="../_modules/eoreader/bands/alias.html#is_clouds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.bands.alias.is_clouds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if we have a Clouds-related keyword</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.bands.alias</span> <span class="pre">import</span> <span class="pre">*</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_clouds(NDVI)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_clouds(HH)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_clouds(GREEN)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_clouds(SLOPE)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_clouds(CLOUDS)</span>
+<span class="pre">True</span>
+<span class="pre">`</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="eoreader.bands.alias.is_dem">
+<code class="sig-prename descclassname"><span class="pre">eoreader.bands.alias.</span></code><code class="sig-name descname"><span class="pre">is_dem</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dem</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><a class="reference internal" href="../_modules/eoreader/bands/alias.html#is_dem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.bands.alias.is_dem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if we have a DEM-related keyword</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.bands.alias</span> <span class="pre">import</span> <span class="pre">*</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_dem(NDVI)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_dem(HH)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_dem(GREEN)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_dem(SLOPE)</span>
+<span class="pre">True</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_dem(CLOUDS)</span>
+<span class="pre">False</span>
+<span class="pre">`</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="eoreader.bands.alias.is_index">
+<code class="sig-prename descclassname"><span class="pre">eoreader.bands.alias.</span></code><code class="sig-name descname"><span class="pre">is_index</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><a class="reference internal" href="../_modules/eoreader/bands/alias.html#is_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.bands.alias.is_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if is an index function from the <cite>bands.index</cite> module</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.bands.alias</span> <span class="pre">import</span> <span class="pre">*</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_index(NDVI)</span>
+<span class="pre">True</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_index(HH)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_index(GREEN)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_index(SLOPE)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_index(CLOUDS)</span>
+<span class="pre">False</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>idx</strong> (<em>Any</em>) – Anything that could be an index</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the index asked is an index function (such as <cite>index.NDVI</cite>)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="eoreader.bands.alias.is_optical_band">
+<code class="sig-prename descclassname"><span class="pre">eoreader.bands.alias.</span></code><code class="sig-name descname"><span class="pre">is_optical_band</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><a class="reference internal" href="../_modules/eoreader/bands/alias.html#is_optical_band"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.bands.alias.is_optical_band" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if is an optical band (from <cite>OpticalBandNames</cite>)</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.bands.alias</span> <span class="pre">import</span> <span class="pre">*</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_optical_band(NDVI)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_optical_band(HH)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_optical_band(GREEN)</span>
+<span class="pre">True</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_optical_band(SLOPE)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_optical_band(CLOUDS)</span>
+<span class="pre">False</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>band</strong> (<em>Any</em>) – Anything that could be an optical band</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the band asked is an optical band</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="eoreader.bands.alias.is_sar_band">
+<code class="sig-prename descclassname"><span class="pre">eoreader.bands.alias.</span></code><code class="sig-name descname"><span class="pre">is_sar_band</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><a class="reference internal" href="../_modules/eoreader/bands/alias.html#is_sar_band"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.bands.alias.is_sar_band" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if is a SAR band (from <cite>SarBandNames</cite>)</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">eoreader.bands.alias</span> <span class="pre">import</span> <span class="pre">*</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_sar_band(NDVI)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_sar_band(HH)</span>
+<span class="pre">True</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_sar_band(GREEN)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_sar_band(SLOPE)</span>
+<span class="pre">False</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">is_sar_band(CLOUDS)</span>
+<span class="pre">False</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>band</strong> (<em>Any</em>) – Anything that could be a SAR band</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the band asked is a SAR band</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="eoreader.bands.alias.to_band">
+<code class="sig-prename descclassname"><span class="pre">eoreader.bands.alias.</span></code><code class="sig-name descname"><span class="pre">to_band</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_convert</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a><a class="reference internal" href="../_modules/eoreader/bands/alias.html#to_band"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.bands.alias.to_band" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a string (or real value) to any alias, band or index.</p>
+<p>You can pass the name or the value of the bands.</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">to_band([&quot;NDVI&quot;,</span> <span class="pre">&quot;GREEN&quot;,</span> <span class="pre">RED,</span> <span class="pre">&quot;VH_DSPK&quot;,</span> <span class="pre">&quot;SLOPE&quot;,</span> <span class="pre">DEM,</span> <span class="pre">&quot;CLOUDS&quot;,</span> <span class="pre">CLOUDS])</span>
+<span class="pre">[&lt;function</span> <span class="pre">NDVI</span> <span class="pre">at</span> <span class="pre">0x00000154DDB12488&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.GREEN:</span> <span class="pre">'GREEN'&gt;,</span>
+<span class="pre">&lt;OpticalBandNames.RED:</span> <span class="pre">'RED'&gt;,</span>
+<span class="pre">&lt;SarBandNames.VH_DSPK:</span> <span class="pre">'VH_DSPK'&gt;,</span>
+<span class="pre">&lt;DemBandNames.SLOPE:</span> <span class="pre">'SLOPE'&gt;,</span>
+<span class="pre">&lt;DemBandNames.DEM:</span> <span class="pre">'DEM'&gt;,</span>
+<span class="pre">&lt;ClassifBandNames.CLOUDS:</span> <span class="pre">'CLOUDS'&gt;,</span>
+<span class="pre">&lt;ClassifBandNames.CLOUDS:</span> <span class="pre">'CLOUDS'&gt;]</span>
+<span class="pre">`</span></code>
+:param to_convert: Values to convert into band objects
+:type to_convert: list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>converted values</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="eoreader.bands.alias.to_str">
+<code class="sig-prename descclassname"><span class="pre">eoreader.bands.alias.</span></code><code class="sig-name descname"><span class="pre">to_str</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_convert</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><span class="pre">list</span></a><a class="reference internal" href="../_modules/eoreader/bands/alias.html#to_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#eoreader.bands.alias.to_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a string (or real value) to any alias, band or index.</p>
+<p>You can pass the name or the value of the bands.</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">to_str([&quot;NDVI&quot;,</span> <span class="pre">&quot;GREEN&quot;,</span> <span class="pre">RED,</span> <span class="pre">&quot;VH_DSPK&quot;,</span> <span class="pre">&quot;SLOPE&quot;,</span> <span class="pre">DEM,</span> <span class="pre">&quot;CLOUDS&quot;,</span> <span class="pre">CLOUDS])</span>
+<span class="pre">['NDVI',</span> <span class="pre">'GREEN',</span> <span class="pre">'RED',</span> <span class="pre">'VH_DSPK',</span> <span class="pre">'SLOPE',</span> <span class="pre">'DEM',</span> <span class="pre">'CLOUDS',</span> <span class="pre">'CLOUDS']</span>
+<span class="pre">`</span></code>
+:param to_convert: Values to convert into str
+:type to_convert: list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>str bands</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+              </div>
+
+
+        <div class='prev-next-bottom'>
+
+    <a class='left-prev' id="prev-link" href="eoreader.bands.html" title="previous page">eoreader.bands package</a>
+    <a class='right-next' id="next-link" href="eoreader.bands.bands.html" title="next page">eoreader.bands.bands module</a>
+
+        </div>
+
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+
+          By ICube-SERTIT<br/>
+
+            &copy; Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/.<br/>
+          Last updated on 2021-05-06.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+  <script src="../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+
+  </body>
+</html>

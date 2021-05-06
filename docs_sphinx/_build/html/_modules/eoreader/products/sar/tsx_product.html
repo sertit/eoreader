@@ -1,0 +1,718 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>eoreader.products.sar.tsx_product</title>
+
+  <link href="../../../../_static/css/theme.css" rel="stylesheet" />
+  <link href="../../../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+
+
+
+
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/sphinx-book-theme.acff12b8f9c144ce68a297486a2fa670.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css" />
+
+  <link rel="preload" as="script" href="../../../../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../_static/copybutton.js"></script>
+    <script src="../../../../_static/togglebutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../../../../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <link rel="shortcut icon" href="../../../../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+
+    <div class="container-fluid" id="banner"></div>
+
+
+
+    <div class="container-xl">
+      <div class="row">
+
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../../../index.html">
+
+      <img src="../../../../_static/eoreader.png" class="logo" alt="logo">
+
+
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <div class="bd-toc-item active">
+        <p class="caption">
+ <span class="caption-text">
+  For Users
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../main_features.html">
+   Main features
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../optical.html">
+   Optical data
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../sar.html">
+   SAR data
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../notebooks/base.html">
+   Basic example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../notebooks/water_detection.html">
+   Water detection
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../../api/eoreader.html">
+   eoreader package
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../../../../api/eoreader.bands.html">
+     eoreader.bands package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../../api/eoreader.bands.alias.html">
+       eoreader.bands.alias module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../../api/eoreader.bands.bands.html">
+       eoreader.bands.bands module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../../api/eoreader.bands.index.html">
+       eoreader.bands.index module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.data.html">
+     eoreader.data package
+    </a>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../../../../api/eoreader.products.html">
+     eoreader.products package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="../../../../api/eoreader.products.optical.html">
+       eoreader.products.optical package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+      <label for="toctree-checkbox-4">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l1_product.html">
+         eoreader.products.optical.l1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l2_product.html">
+         eoreader.products.optical.l2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l3_product.html">
+         eoreader.products.optical.l3_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l4_product.html">
+         eoreader.products.optical.l4_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l5_product.html">
+         eoreader.products.optical.l5_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l7_product.html">
+         eoreader.products.optical.l7_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l8_product.html">
+         eoreader.products.optical.l8_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.landsat_product.html">
+         eoreader.products.optical.landsat_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.optical_product.html">
+         eoreader.products.optical.optical_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.s2_product.html">
+         eoreader.products.optical.s2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.s2_theia_product.html">
+         eoreader.products.optical.s2_theia_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.s3_product.html">
+         eoreader.products.optical.s3_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="../../../../api/eoreader.products.sar.html">
+       eoreader.products.sar package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+      <label for="toctree-checkbox-5">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.csk_product.html">
+         eoreader.products.sar.csk_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.rs2_product.html">
+         eoreader.products.sar.rs2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.s1_product.html">
+         eoreader.products.sar.s1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.sar_product.html">
+         eoreader.products.sar.sar_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.tsx_product.html">
+         eoreader.products.sar.tsx_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../../api/eoreader.products.product.html">
+       eoreader.products.product module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.env_vars.html">
+     eoreader.env_vars module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.exceptions.html">
+     eoreader.exceptions module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.reader.html">
+     eoreader.reader module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.utils.html">
+     eoreader.utils module
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+</div>
+
+
+
+
+
+
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/sertit/eoreader"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/sertit/eoreader/issues/new?title=Issue%20on%20page%20%2F_modules/eoreader/products/sar/tsx_product.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+
+              <div>
+
+  <h1>Source code for eoreader.products.sar.tsx_product</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/</span>
+<span class="c1"># This file is part of eoreader project</span>
+<span class="c1">#     https://github.com/sertit/eoreader</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TerraSAR-X products.</span>
+<span class="sd">More info [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">unique</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+<span class="kn">import</span> <span class="nn">rasterio</span>
+<span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span>
+
+<span class="kn">from</span> <span class="nn">eoreader.exceptions</span> <span class="kn">import</span> <span class="n">InvalidProductError</span><span class="p">,</span> <span class="n">InvalidTypeError</span>
+<span class="kn">from</span> <span class="nn">eoreader.products.sar.sar_product</span> <span class="kn">import</span> <span class="n">SarProduct</span>
+<span class="kn">from</span> <span class="nn">eoreader.utils</span> <span class="kn">import</span> <span class="n">DATETIME_FMT</span><span class="p">,</span> <span class="n">EOREADER_NAME</span>
+<span class="kn">from</span> <span class="nn">sertit</span> <span class="kn">import</span> <span class="n">vectors</span>
+<span class="kn">from</span> <span class="nn">sertit.misc</span> <span class="kn">import</span> <span class="n">ListEnum</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">EOREADER_NAME</span><span class="p">)</span>
+
+<span class="c1"># Disable georef warnings here as the SAR products are not georeferenced</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">rasterio</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">NotGeoreferencedWarning</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="TsxProductType"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.tsx_product.html#eoreader.products.sar.tsx_product.TsxProductType">[docs]</a><span class="nd">@unique</span>
+<span class="k">class</span> <span class="nc">TsxProductType</span><span class="p">(</span><span class="n">ListEnum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TerraSAR-X projection identifier.</span>
+<span class="sd">    Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SSC</span> <span class="o">=</span> <span class="s2">&quot;SSC&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Single Look Slant Range, Complex representation&quot;&quot;&quot;</span>
+
+    <span class="n">MGD</span> <span class="o">=</span> <span class="s2">&quot;MGD&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Multi Look Ground Range, Detected representation&quot;&quot;&quot;</span>
+
+    <span class="n">GEC</span> <span class="o">=</span> <span class="s2">&quot;GEC&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Geocoded Ellipsoid Corrected, Detected representation&quot;&quot;&quot;</span>
+
+    <span class="n">EEC</span> <span class="o">=</span> <span class="s2">&quot;EEC&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Enhanced Ellipsoid Corrected, Detected representation&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="TsxSensorMode"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.tsx_product.html#eoreader.products.sar.tsx_product.TsxSensorMode">[docs]</a><span class="nd">@unique</span>
+<span class="k">class</span> <span class="nc">TsxSensorMode</span><span class="p">(</span><span class="n">ListEnum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TerraSAR-X sensor mode.</span>
+<span class="sd">    Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">HS</span> <span class="o">=</span> <span class="s2">&quot;HS&quot;</span>
+    <span class="sd">&quot;&quot;&quot;High Resolution Spotlight&quot;&quot;&quot;</span>
+
+    <span class="n">SL</span> <span class="o">=</span> <span class="s2">&quot;SL&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Spotlight&quot;&quot;&quot;</span>
+
+    <span class="n">ST</span> <span class="o">=</span> <span class="s2">&quot;ST&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Staring Spotlight&quot;&quot;&quot;</span>
+
+    <span class="n">SM</span> <span class="o">=</span> <span class="s2">&quot;SM&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Stripmap&quot;&quot;&quot;</span>
+
+    <span class="n">SC</span> <span class="o">=</span> <span class="s2">&quot;SC&quot;</span>
+    <span class="sd">&quot;&quot;&quot;ScanSAR&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="TsxPolarization"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.tsx_product.html#eoreader.products.sar.tsx_product.TsxPolarization">[docs]</a><span class="nd">@unique</span>
+<span class="k">class</span> <span class="nc">TsxPolarization</span><span class="p">(</span><span class="n">ListEnum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TerraSAR-X polarization mode.</span>
+<span class="sd">    Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SINGLE</span> <span class="o">=</span> <span class="s2">&quot;S&quot;</span>
+    <span class="sd">&quot;&quot;&quot;&quot;Single Polarization&quot;&quot;&quot;</span>
+
+    <span class="n">DUAL</span> <span class="o">=</span> <span class="s2">&quot;D&quot;</span>
+    <span class="sd">&quot;&quot;&quot;&quot;Dual Polarization&quot;&quot;&quot;</span>
+
+    <span class="n">QUAD</span> <span class="o">=</span> <span class="s2">&quot;Q&quot;</span>
+    <span class="sd">&quot;&quot;&quot;&quot;Quad Polarization&quot;&quot;&quot;</span>
+
+    <span class="n">TWIN</span> <span class="o">=</span> <span class="s2">&quot;T&quot;</span>
+    <span class="sd">&quot;&quot;&quot;&quot;Twin Polarization&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="TsxProduct"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.tsx_product.html#eoreader.products.sar.tsx_product.TsxProduct">[docs]</a><span class="k">class</span> <span class="nc">TsxProduct</span><span class="p">(</span><span class="n">SarProduct</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class for TerraSAR-X Products&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_set_resolution</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set product default resolution (in meters)</span>
+
+<span class="sd">        .. WARNING::</span>
+<span class="sd">            - We assume being in High Resolution (except for WV where we must be in medium resolution)</span>
+<span class="sd">            - Incidence angle: we consider the best option, around 55 degrees</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">def_res</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Read metadata</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">root</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_mtd</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">root</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;productInfo&quot;</span><span class="p">:</span>
+                    <span class="n">image_data</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;imageDataInfo&quot;</span><span class="p">)</span>
+                    <span class="n">image_raster</span> <span class="o">=</span> <span class="n">image_data</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;imageRaster&quot;</span><span class="p">)</span>
+                    <span class="n">def_res</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                        <span class="n">image_raster</span><span class="o">.</span><span class="n">findtext</span><span class="p">(</span><span class="s2">&quot;rowSpacing&quot;</span><span class="p">)</span>
+                    <span class="p">)</span>  <span class="c1"># Square pixels</span>
+                    <span class="k">break</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">InvalidProductError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># If we cannot read it in MTD, initiate survival mode</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">def_res</span><span class="p">:</span>
+            <span class="c1"># Get if we are in spatially enhanced mode or radiometrically enhanced mode</span>
+            <span class="n">se</span> <span class="o">=</span> <span class="s2">&quot;SE&quot;</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_name</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+            <span class="c1"># Polarization mode</span>
+            <span class="n">pol_mode</span> <span class="o">=</span> <span class="n">TsxPolarization</span><span class="o">.</span><span class="n">from_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">split_name</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
+
+            <span class="c1"># We suppose we are close to 55 degrees of incidence angle (best resolution)</span>
+            <span class="k">if</span> <span class="n">pol_mode</span> <span class="o">==</span> <span class="n">TsxPolarization</span><span class="o">.</span><span class="n">SINGLE</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensor_mode</span> <span class="o">==</span> <span class="n">TsxSensorMode</span><span class="o">.</span><span class="n">SM</span><span class="p">:</span>
+                    <span class="n">def_res</span> <span class="o">=</span> <span class="mf">1.25</span> <span class="k">if</span> <span class="n">se</span> <span class="k">else</span> <span class="mf">3.25</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensor_mode</span> <span class="o">==</span> <span class="n">TsxSensorMode</span><span class="o">.</span><span class="n">HS</span><span class="p">:</span>
+                    <span class="n">def_res</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="k">if</span> <span class="n">se</span> <span class="k">else</span> <span class="mf">1.5</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensor_mode</span> <span class="o">==</span> <span class="n">TsxSensorMode</span><span class="o">.</span><span class="n">SL</span><span class="p">:</span>
+                    <span class="n">def_res</span> <span class="o">=</span> <span class="mf">0.75</span> <span class="k">if</span> <span class="n">se</span> <span class="k">else</span> <span class="mf">1.75</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensor_mode</span> <span class="o">==</span> <span class="n">TsxSensorMode</span><span class="o">.</span><span class="n">ST</span><span class="p">:</span>
+                    <span class="n">def_res</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="k">if</span> <span class="n">se</span> <span class="k">else</span> <span class="mf">0.4</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># ScanSAR: assert 4 beams</span>
+                    <span class="n">def_res</span> <span class="o">=</span> <span class="mf">8.25</span>
+            <span class="k">elif</span> <span class="n">pol_mode</span> <span class="o">==</span> <span class="n">TsxPolarization</span><span class="o">.</span><span class="n">DUAL</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensor_mode</span> <span class="o">==</span> <span class="n">TsxSensorMode</span><span class="o">.</span><span class="n">SM</span><span class="p">:</span>
+                    <span class="n">def_res</span> <span class="o">=</span> <span class="mf">3.0</span> <span class="k">if</span> <span class="n">se</span> <span class="k">else</span> <span class="mf">4.5</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensor_mode</span> <span class="o">==</span> <span class="n">TsxSensorMode</span><span class="o">.</span><span class="n">HS</span><span class="p">:</span>
+                    <span class="n">def_res</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">se</span> <span class="k">else</span> <span class="mf">2.0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># self.sensor_mode == TsxSensorMode.SL:</span>
+                    <span class="n">def_res</span> <span class="o">=</span> <span class="mf">3.4</span> <span class="k">if</span> <span class="n">se</span> <span class="k">else</span> <span class="mf">5.5</span>
+            <span class="k">elif</span> <span class="n">pol_mode</span> <span class="o">==</span> <span class="n">TsxPolarization</span><span class="o">.</span><span class="n">QUAD</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Quadratic polarization is not implemented yet: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># if pol_mode == TsxPolarization.TWIN</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Twin polarization is not implemented yet: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">def_res</span>
+
+    <span class="k">def</span> <span class="nf">_post_init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function used to post_init the products</span>
+<span class="sd">        (setting product-type, band names and so on)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Private attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_raw_band_regex</span> <span class="o">=</span> <span class="s2">&quot;IMAGE_</span><span class="si">{}</span><span class="s2">_*.tif&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_band_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;IMAGEDATA&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_snap_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.xml&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Zipped and SNAP can process its archive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">needs_extraction</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Post init done by the super class</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_post_init</span><span class="p">()</span>
+
+<div class="viewcode-block" id="TsxProduct.wgs84_extent"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.tsx_product.html#eoreader.products.sar.tsx_product.TsxProduct.wgs84_extent">[docs]</a>    <span class="k">def</span> <span class="nf">wgs84_extent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the WGS84 extent of the file before any reprojection.</span>
+<span class="sd">        This is useful when the SAR pre-process has not been done yet.</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.wgs84_extent()</span>
+<span class="sd">                                                    geometry</span>
+<span class="sd">        0  POLYGON ((106.65491 -6.39693, 106.96233 -6.396...</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Open extent KML file</span>
+        <span class="n">vectors</span><span class="o">.</span><span class="n">set_kml_driver</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">extent_file</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;SUPPORT&quot;</span><span class="p">,</span> <span class="s2">&quot;GEARTH_POLY.kml&quot;</span><span class="p">)</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidProductError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Extent file (products.kml) not found in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
+
+        <span class="n">extent_wgs84</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">extent_file</span><span class="p">)</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="n">vectors</span><span class="o">.</span><span class="n">WGS84</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">extent_wgs84</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">extent_wgs84</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_set_product_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get products type&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_sar_product_type</span><span class="p">(</span>
+            <span class="n">prod_type_pos</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">gdrg_types</span><span class="o">=</span><span class="n">TsxProductType</span><span class="o">.</span><span class="n">MGD</span><span class="p">,</span>
+            <span class="n">cplx_types</span><span class="o">=</span><span class="n">TsxProductType</span><span class="o">.</span><span class="n">SSC</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_type</span> <span class="o">!=</span> <span class="n">TsxProductType</span><span class="o">.</span><span class="n">MGD</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Other products type than MGD has not been tested for </span><span class="si">%s</span><span class="s2"> data. &quot;</span>
+                <span class="s2">&quot;Use it at your own risks !&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_sensor_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get products type from TerraSAR-X products name (could check the metadata too)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get sensor mode</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sensor_mode</span> <span class="o">=</span> <span class="n">TsxSensorMode</span><span class="o">.</span><span class="n">from_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">split_name</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid sensor mode for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
+
+<div class="viewcode-block" id="TsxProduct.get_datetime"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.tsx_product.html#eoreader.products.sar.tsx_product.TsxProduct.get_datetime">[docs]</a>    <span class="k">def</span> <span class="nf">get_datetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_datetime</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the product&#39;s acquisition datetime, with format `YYYYMMDDTHHMMSS` &lt;-&gt; `%Y%m%dT%H%M%S`</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.get_datetime(as_datetime=True)</span>
+<span class="sd">        datetime.datetime(2016, 2, 29, 22, 30, 18)</span>
+<span class="sd">        &gt;&gt;&gt; prod.get_datetime(as_datetime=False)</span>
+<span class="sd">        &#39;20160229T223018&#39;</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">             Union[str, datetime.datetime]: Its acquisition datetime</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_name</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">as_datetime</span><span class="p">:</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">DATETIME_FMT</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">date</span></div>
+
+<div class="viewcode-block" id="TsxProduct.read_mtd"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.tsx_product.html#eoreader.products.sar.tsx_product.TsxProduct.read_mtd">[docs]</a>    <span class="k">def</span> <span class="nf">read_mtd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">_Element</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read metadata and outputs the metadata XML root and its namespace</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;TSX1_SAR__MGD_SE___SM_S_SRA_20200605T042203_20200605T042211&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.read_mtd()</span>
+<span class="sd">        (&lt;Element level1Product at 0x1b845b7ab88&gt;, &#39;&#39;)</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (etree._Element, str): Metadata XML root and its namespace</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mtd_file</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.xml&quot;</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># pylint: disable=I1101:</span>
+            <span class="c1"># Module &#39;lxml.etree&#39; has no &#39;parse&#39; member, but source is unavailable.</span>
+            <span class="n">xml_tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">mtd_file</span><span class="p">)</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="n">xml_tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidProductError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Metadata file (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.xml) not found in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
+
+        <span class="c1"># Get namespace</span>
+        <span class="n">namespace</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># No namespace here</span>
+
+        <span class="k">return</span> <span class="n">root</span><span class="p">,</span> <span class="n">namespace</span></div></div>
+</pre></div>
+
+              </div>
+
+
+        <div class='prev-next-bottom'>
+
+
+        </div>
+
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+
+          By ICube-SERTIT<br/>
+
+            &copy; Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/.<br/>
+          Last updated on 2021-05-06.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+  <script src="../../../../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+
+  </body>
+</html>

@@ -1,0 +1,1212 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>eoreader.products.sar.sar_product</title>
+
+  <link href="../../../../_static/css/theme.css" rel="stylesheet" />
+  <link href="../../../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+
+
+
+
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/sphinx-book-theme.acff12b8f9c144ce68a297486a2fa670.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css" />
+
+  <link rel="preload" as="script" href="../../../../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../_static/copybutton.js"></script>
+    <script src="../../../../_static/togglebutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../../../../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <link rel="shortcut icon" href="../../../../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+
+    <div class="container-fluid" id="banner"></div>
+
+
+
+    <div class="container-xl">
+      <div class="row">
+
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../../../index.html">
+
+      <img src="../../../../_static/eoreader.png" class="logo" alt="logo">
+
+
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <div class="bd-toc-item active">
+        <p class="caption">
+ <span class="caption-text">
+  For Users
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../main_features.html">
+   Main features
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../optical.html">
+   Optical data
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../sar.html">
+   SAR data
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../notebooks/base.html">
+   Basic example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../notebooks/water_detection.html">
+   Water detection
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../../api/eoreader.html">
+   eoreader package
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../../../../api/eoreader.bands.html">
+     eoreader.bands package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../../api/eoreader.bands.alias.html">
+       eoreader.bands.alias module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../../api/eoreader.bands.bands.html">
+       eoreader.bands.bands module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../../api/eoreader.bands.index.html">
+       eoreader.bands.index module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.data.html">
+     eoreader.data package
+    </a>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../../../../api/eoreader.products.html">
+     eoreader.products package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="../../../../api/eoreader.products.optical.html">
+       eoreader.products.optical package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+      <label for="toctree-checkbox-4">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l1_product.html">
+         eoreader.products.optical.l1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l2_product.html">
+         eoreader.products.optical.l2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l3_product.html">
+         eoreader.products.optical.l3_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l4_product.html">
+         eoreader.products.optical.l4_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l5_product.html">
+         eoreader.products.optical.l5_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l7_product.html">
+         eoreader.products.optical.l7_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.l8_product.html">
+         eoreader.products.optical.l8_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.landsat_product.html">
+         eoreader.products.optical.landsat_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.optical_product.html">
+         eoreader.products.optical.optical_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.s2_product.html">
+         eoreader.products.optical.s2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.s2_theia_product.html">
+         eoreader.products.optical.s2_theia_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.optical.s3_product.html">
+         eoreader.products.optical.s3_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="../../../../api/eoreader.products.sar.html">
+       eoreader.products.sar package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+      <label for="toctree-checkbox-5">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.csk_product.html">
+         eoreader.products.sar.csk_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.rs2_product.html">
+         eoreader.products.sar.rs2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.s1_product.html">
+         eoreader.products.sar.s1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.sar_product.html">
+         eoreader.products.sar.sar_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../../api/eoreader.products.sar.tsx_product.html">
+         eoreader.products.sar.tsx_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../../../api/eoreader.products.product.html">
+       eoreader.products.product module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.env_vars.html">
+     eoreader.env_vars module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.exceptions.html">
+     eoreader.exceptions module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.reader.html">
+     eoreader.reader module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../../api/eoreader.utils.html">
+     eoreader.utils module
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+</div>
+
+
+
+
+
+
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/sertit/eoreader"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/sertit/eoreader/issues/new?title=Issue%20on%20page%20%2F_modules/eoreader/products/sar/sar_product.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+
+              <div>
+
+  <h1>Source code for eoreader.products.sar.sar_product</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/</span>
+<span class="c1"># This file is part of eoreader project</span>
+<span class="c1">#     https://github.com/sertit/eoreader</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot; Super class for SAR products &quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">unique</span>
+<span class="kn">from</span> <span class="nn">string</span> <span class="kn">import</span> <span class="n">Formatter</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">rasterio</span> <span class="kn">import</span> <span class="n">crs</span>
+<span class="kn">from</span> <span class="nn">rasterio.enums</span> <span class="kn">import</span> <span class="n">Resampling</span>
+
+<span class="kn">from</span> <span class="nn">eoreader</span> <span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">eoreader.bands.alias</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">is_clouds</span><span class="p">,</span>
+    <span class="n">is_dem</span><span class="p">,</span>
+    <span class="n">is_index</span><span class="p">,</span>
+    <span class="n">is_optical_band</span><span class="p">,</span>
+    <span class="n">is_sar_band</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">eoreader.bands.bands</span> <span class="kn">import</span> <span class="n">BandNames</span>
+<span class="kn">from</span> <span class="nn">eoreader.bands.bands</span> <span class="kn">import</span> <span class="n">SarBandNames</span> <span class="k">as</span> <span class="n">sbn</span>
+<span class="kn">from</span> <span class="nn">eoreader.bands.bands</span> <span class="kn">import</span> <span class="n">SarBands</span>
+<span class="kn">from</span> <span class="nn">eoreader.env_vars</span> <span class="kn">import</span> <span class="n">DSPK_GRAPH</span><span class="p">,</span> <span class="n">PP_GRAPH</span><span class="p">,</span> <span class="n">SAR_DEF_RES</span>
+<span class="kn">from</span> <span class="nn">eoreader.exceptions</span> <span class="kn">import</span> <span class="n">InvalidBandError</span><span class="p">,</span> <span class="n">InvalidProductError</span><span class="p">,</span> <span class="n">InvalidTypeError</span>
+<span class="kn">from</span> <span class="nn">eoreader.products.product</span> <span class="kn">import</span> <span class="n">Product</span><span class="p">,</span> <span class="n">SensorType</span><span class="p">,</span> <span class="n">path_or_dst</span>
+<span class="kn">from</span> <span class="nn">eoreader.reader</span> <span class="kn">import</span> <span class="n">Platform</span>
+<span class="kn">from</span> <span class="nn">eoreader.utils</span> <span class="kn">import</span> <span class="n">EOREADER_NAME</span>
+<span class="kn">from</span> <span class="nn">sertit</span> <span class="kn">import</span> <span class="n">files</span><span class="p">,</span> <span class="n">misc</span><span class="p">,</span> <span class="n">rasters</span><span class="p">,</span> <span class="n">snap</span><span class="p">,</span> <span class="n">strings</span><span class="p">,</span> <span class="n">vectors</span>
+<span class="kn">from</span> <span class="nn">sertit.misc</span> <span class="kn">import</span> <span class="n">ListEnum</span>
+<span class="kn">from</span> <span class="nn">sertit.rasters</span> <span class="kn">import</span> <span class="n">XDS_TYPE</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">EOREADER_NAME</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SarProductType"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.sar_product.html#eoreader.products.sar.sar_product.SarProductType">[docs]</a><span class="nd">@unique</span>
+<span class="k">class</span> <span class="nc">SarProductType</span><span class="p">(</span><span class="n">ListEnum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generic products types, used to chose a SNAP graph.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CPLX</span> <span class="o">=</span> <span class="s2">&quot;COMPLEX&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Single Look Complex&quot;&quot;&quot;</span>
+
+    <span class="n">GDRG</span> <span class="o">=</span> <span class="s2">&quot;GROUND&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Ground Range&quot;&quot;&quot;</span>
+
+    <span class="n">OTHER</span> <span class="o">=</span> <span class="s2">&quot;OTHER&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Other products types, no used in EOReader&quot;&quot;&quot;</span></div>
+    <span class="c1"># Add ortho products ?</span>
+
+
+<span class="k">class</span> <span class="nc">_ExtendedFormatter</span><span class="p">(</span><span class="n">Formatter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An extended format string formatter</span>
+
+<span class="sd">    Formatter with extended conversion symbol</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">convert_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">conversion</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extend conversion symbol</span>
+<span class="sd">        Following additional symbol has been added</span>
+<span class="sd">        * l: convert to string and low case</span>
+<span class="sd">        * u: convert to string and up case</span>
+
+<span class="sd">        default are:</span>
+<span class="sd">        * s: convert with str()</span>
+<span class="sd">        * r: convert with repr()</span>
+<span class="sd">        * a: convert with ascii()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">conversion</span> <span class="o">==</span> <span class="s2">&quot;u&quot;</span><span class="p">:</span>
+            <span class="n">cv_field</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">conversion</span> <span class="o">==</span> <span class="s2">&quot;l&quot;</span><span class="p">:</span>
+            <span class="n">cv_field</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cv_field</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">convert_field</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">conversion</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">cv_field</span>
+
+
+<div class="viewcode-block" id="SarProduct"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.sar_product.html#eoreader.products.sar.sar_product.SarProduct">[docs]</a><span class="k">class</span> <span class="nc">SarProduct</span><span class="p">(</span><span class="n">Product</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Super class for SAR Products&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">product_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">archive_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sar_prod_type</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="sd">&quot;&quot;&quot;SAR product type, either Single Look Complex or Ground Range&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sensor_mode</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="sd">&quot;&quot;&quot;Sensor Mode of the current product&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pol_channels</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="sd">&quot;&quot;&quot;Polarization Channels stored in the current product&quot;&quot;&quot;</span>
+
+        <span class="c1"># Private attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_band_folder</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_snap_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_raw_band_regex</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_snap_no_data</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Initialization from the super class</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">product_path</span><span class="p">,</span> <span class="n">archive_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_post_init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function used to post_init the products</span>
+<span class="sd">        (setting product-type, band names and so on)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tile_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sensor_type</span> <span class="o">=</span> <span class="n">SensorType</span><span class="o">.</span><span class="n">SAR</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">band_names</span> <span class="o">=</span> <span class="n">SarBands</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_sensor_mode</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pol_channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_raw_bands</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SarProduct.footprint"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.sar_product.html#eoreader.products.sar.sar_product.SarProduct.footprint">[docs]</a>    <span class="k">def</span> <span class="nf">footprint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get UTM footprint of the products (without nodata, *in french == emprise utile*)</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.footprint()</span>
+<span class="sd">           index                                           geometry</span>
+<span class="sd">        0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            gpd.GeoDataFrame: Footprint as a GeoDataFrame</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">rasters</span><span class="o">.</span><span class="n">get_footprint</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_default_band_path</span><span class="p">()</span>
+        <span class="p">)</span>  <span class="c1"># Processed by SNAP: the nodata is set</span></div>
+
+<div class="viewcode-block" id="SarProduct.get_default_band"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.sar_product.html#eoreader.products.sar.sar_product.SarProduct.get_default_band">[docs]</a>    <span class="k">def</span> <span class="nf">get_default_band</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BandNames</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get default band:</span>
+<span class="sd">        The first existing one between `VV` and `HH` for SAR data.</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.get_default_band()</span>
+<span class="sd">        &lt;SarBandNames.VV: &#39;VV&#39;&gt;</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Default band</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">existing_bands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_raw_bands</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">existing_bands</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidProductError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No band exists for products: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># The order matters, as we almost always prefer VV and HH</span>
+        <span class="k">if</span> <span class="n">sbn</span><span class="o">.</span><span class="n">VV</span> <span class="ow">in</span> <span class="n">existing_bands</span><span class="p">:</span>
+            <span class="n">default_band</span> <span class="o">=</span> <span class="n">sbn</span><span class="o">.</span><span class="n">VV</span>
+        <span class="k">elif</span> <span class="n">sbn</span><span class="o">.</span><span class="n">HH</span> <span class="ow">in</span> <span class="n">existing_bands</span><span class="p">:</span>
+            <span class="n">default_band</span> <span class="o">=</span> <span class="n">sbn</span><span class="o">.</span><span class="n">HH</span>
+        <span class="k">elif</span> <span class="n">sbn</span><span class="o">.</span><span class="n">VH</span> <span class="ow">in</span> <span class="n">existing_bands</span><span class="p">:</span>
+            <span class="n">default_band</span> <span class="o">=</span> <span class="n">sbn</span><span class="o">.</span><span class="n">VH</span>
+        <span class="k">elif</span> <span class="n">sbn</span><span class="o">.</span><span class="n">HV</span> <span class="ow">in</span> <span class="n">existing_bands</span><span class="p">:</span>
+            <span class="n">default_band</span> <span class="o">=</span> <span class="n">sbn</span><span class="o">.</span><span class="n">HV</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid bands for products: </span><span class="si">{</span><span class="n">existing_bands</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">default_band</span></div>
+
+    <span class="c1"># Parameters differ from overridden &#39;get_default_band_path&#39; method (arguments-differ)</span>
+    <span class="c1"># pylint: disable=W0221</span>
+<div class="viewcode-block" id="SarProduct.get_default_band_path"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.sar_product.html#eoreader.products.sar.sar_product.SarProduct.get_default_band_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_default_band_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get default band path (the first existing one between `VV` and `HH` for SAR data), ready to use (orthorectified)</span>
+
+<span class="sd">        .. WARNING:: This functions orthorectifies SAR bands if not existing !</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.get_default_band_path()</span>
+<span class="sd">        Executing processing graph</span>
+<span class="sd">        ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.</span>
+<span class="sd">        &#39;20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif&#39;</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Default band path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">default_band</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_band</span><span class="p">()</span>
+        <span class="n">band_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_band_paths</span><span class="p">([</span><span class="n">default_band</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">band_path</span><span class="p">[</span><span class="n">default_band</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="SarProduct.wgs84_extent"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.sar_product.html#eoreader.products.sar.sar_product.SarProduct.wgs84_extent">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">wgs84_extent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the WGS84 extent of the file before any reprojection.</span>
+<span class="sd">        This is useful when the SAR pre-process has not been done yet.</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.wgs84_extent()</span>
+<span class="sd">                               Name  ...                                           geometry</span>
+<span class="sd">        0  Sentinel-1 Image Overlay  ...  POLYGON ((0.85336 42.24660, -2.32032 42.65493,...</span>
+<span class="sd">        [1 rows x 12 columns]</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;This method should be implemented by a child class&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SarProduct.extent"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.sar_product.html#eoreader.products.sar.sar_product.SarProduct.extent">[docs]</a>    <span class="k">def</span> <span class="nf">extent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get UTM extent of the tile</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.utm_extent()</span>
+<span class="sd">                               Name  ...                                           geometry</span>
+<span class="sd">        0  Sentinel-1 Image Overlay  ...  POLYGON ((817914.501 4684349.823, 555708.624 4...</span>
+<span class="sd">        [1 rows x 12 columns]</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            gpd.GeoDataFrame: Footprint in UTM</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get WGS84 extent</span>
+        <span class="n">extent_wgs84</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wgs84_extent</span><span class="p">()</span>
+
+        <span class="c1"># Get upper-left corner and deduce UTM proj from it</span>
+        <span class="n">utm</span> <span class="o">=</span> <span class="n">vectors</span><span class="o">.</span><span class="n">corresponding_utm_projection</span><span class="p">(</span>
+            <span class="n">extent_wgs84</span><span class="o">.</span><span class="n">bounds</span><span class="o">.</span><span class="n">minx</span><span class="p">,</span> <span class="n">extent_wgs84</span><span class="o">.</span><span class="n">bounds</span><span class="o">.</span><span class="n">maxy</span>
+        <span class="p">)</span>
+        <span class="n">extent</span> <span class="o">=</span> <span class="n">extent_wgs84</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="n">utm</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">extent</span></div>
+
+<div class="viewcode-block" id="SarProduct.crs"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.sar_product.html#eoreader.products.sar.sar_product.SarProduct.crs">[docs]</a>    <span class="k">def</span> <span class="nf">crs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">crs</span><span class="o">.</span><span class="n">CRS</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get UTM projection</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.utm_crs()</span>
+<span class="sd">        CRS.from_epsg(32630)</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            crs.CRS: CRS object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get WGS84 extent</span>
+        <span class="n">extent_wgs84</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wgs84_extent</span><span class="p">()</span>
+
+        <span class="c1"># Get upper-left corner and deduce UTM proj from it</span>
+        <span class="n">crs_str</span> <span class="o">=</span> <span class="n">vectors</span><span class="o">.</span><span class="n">corresponding_utm_projection</span><span class="p">(</span>
+            <span class="n">extent_wgs84</span><span class="o">.</span><span class="n">bounds</span><span class="o">.</span><span class="n">minx</span><span class="p">,</span> <span class="n">extent_wgs84</span><span class="o">.</span><span class="n">bounds</span><span class="o">.</span><span class="n">maxy</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">crs</span><span class="o">.</span><span class="n">CRS</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">crs_str</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_sar_product_type</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">prod_type_pos</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">gdrg_types</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ListEnum</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+        <span class="n">cplx_types</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ListEnum</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get products type, special function for SAR satellites.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            prod_type_pos (int): Position of the products type in the file name</span>
+<span class="sd">            gdrg_types (Union[ListEnum, list]): Ground Range products types</span>
+<span class="sd">            cplx_types (Union[ListEnum, list]): Complex products types</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get and check products type class</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gdrg_types</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">gdrg_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">gdrg_types</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cplx_types</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">cplx_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">cplx_types</span><span class="p">]</span>
+
+        <span class="n">all_types</span> <span class="o">=</span> <span class="n">gdrg_types</span> <span class="o">+</span> <span class="n">cplx_types</span>
+        <span class="n">prod_type_class</span> <span class="o">=</span> <span class="n">all_types</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__class__</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">prod_type</span><span class="p">,</span> <span class="n">prod_type_class</span><span class="p">)</span> <span class="k">for</span> <span class="n">prod_type</span> <span class="ow">in</span> <span class="n">all_types</span><span class="p">)</span>
+
+        <span class="c1"># Get products type</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># All products types can be found in the filename and are 3 characters long</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">product_type</span> <span class="o">=</span> <span class="n">prod_type_class</span><span class="o">.</span><span class="n">from_value</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">split_name</span><span class="p">[</span><span class="n">prod_type_pos</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid products type for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">ex</span>
+
+        <span class="c1"># Link to SAR generic products types</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_type</span> <span class="ow">in</span> <span class="n">gdrg_types</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sar_prod_type</span> <span class="o">=</span> <span class="n">SarProductType</span><span class="o">.</span><span class="n">GDRG</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_type</span> <span class="ow">in</span> <span class="n">cplx_types</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sar_prod_type</span> <span class="o">=</span> <span class="n">SarProductType</span><span class="o">.</span><span class="n">CPLX</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sar_prod_type</span> <span class="o">=</span> <span class="n">SarProductType</span><span class="o">.</span><span class="n">OTHER</span>
+
+        <span class="c1"># Discard invalid products types</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sar_prod_type</span> <span class="o">==</span> <span class="n">SarProductType</span><span class="o">.</span><span class="n">OTHER</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">product_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> product type is not available (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_set_sensor_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set SAR sensor mode</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;This method should be implemented by a child class&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SarProduct.get_band_paths"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.sar_product.html#eoreader.products.sar.sar_product.SarProduct.get_band_paths">[docs]</a>    <span class="k">def</span> <span class="nf">get_band_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">band_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">resolution</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the paths of required bands.</span>
+
+<span class="sd">        .. WARNING:: This functions orthorectifies SAR bands if not existing !</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.bands.alias import *</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.get_band_paths([VV, HH])</span>
+<span class="sd">        {</span>
+<span class="sd">            &lt;SarBandNames.VV: &#39;VV&#39;&gt;: &#39;20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif&#39;  # HH doesn&#39;t exist</span>
+<span class="sd">        }</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            band_list (list): List of the wanted bands</span>
+<span class="sd">            resolution (float): Band resolution</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Dictionary containing the path of each queried band</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">band_paths</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">band_list</span><span class="p">:</span>
+            <span class="n">bname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">band_names</span><span class="p">[</span><span class="n">band</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">bname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidProductError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Non existing band (</span><span class="si">{</span><span class="n">band</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">) for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Try to load orthorectified bands</span>
+                <span class="n">band_paths</span><span class="p">[</span><span class="n">band</span><span class="p">]</span> <span class="o">=</span> <span class="n">files</span><span class="o">.</span><span class="n">get_file_in_dir</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_band_folder</span><span class="p">(),</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">condensed_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bname</span><span class="si">}</span><span class="s2">.tif&quot;</span><span class="p">,</span>
+                    <span class="n">exact_name</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                <span class="n">speckle_band</span> <span class="o">=</span> <span class="n">sbn</span><span class="o">.</span><span class="n">corresponding_speckle</span><span class="p">(</span><span class="n">band</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">speckle_band</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pol_channels</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">sbn</span><span class="o">.</span><span class="n">is_despeckle</span><span class="p">(</span><span class="n">band</span><span class="p">):</span>
+                        <span class="c1"># Despeckle the noisy band</span>
+                        <span class="n">band_paths</span><span class="p">[</span><span class="n">band</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_despeckle_sar</span><span class="p">(</span><span class="n">speckle_band</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">all_band_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_process_sar</span><span class="p">(</span><span class="n">resolution</span><span class="p">)</span>
+                        <span class="n">band_paths</span> <span class="o">=</span> <span class="p">{</span>
+                            <span class="n">band</span><span class="p">:</span> <span class="n">path</span>
+                            <span class="k">for</span> <span class="n">band</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">all_band_paths</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                            <span class="k">if</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">band_list</span>
+                        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">band_paths</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_raw_band_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the existing band paths (as they come with th archived products).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Dictionary containing the path of every band existing in the raw products</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">extended_fmt</span> <span class="o">=</span> <span class="n">_ExtendedFormatter</span><span class="p">()</span>
+        <span class="n">band_paths</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">band</span><span class="p">,</span> <span class="n">band_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">band_names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">band_regex</span> <span class="o">=</span> <span class="n">extended_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_raw_band_regex</span><span class="p">,</span> <span class="n">band_name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_archived</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.zip&quot;</span><span class="p">):</span>
+                    <span class="c1"># Open the zip file</span>
+                    <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_ds</span><span class="p">:</span>
+                        <span class="c1"># Get the correct band path</span>
+                        <span class="n">regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">band_regex</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot;.*&quot;</span><span class="p">))</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">band_paths</span><span class="p">[</span><span class="n">band</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                                <span class="nb">filter</span><span class="p">(</span>
+                                    <span class="n">regex</span><span class="o">.</span><span class="n">match</span><span class="p">,</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">filename</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">zip_ds</span><span class="o">.</span><span class="n">filelist</span><span class="p">]</span>
+                                <span class="p">)</span>
+                            <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                            <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">InvalidProductError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Only zipped products can be processed without extraction: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">band_paths</span><span class="p">[</span><span class="n">band</span><span class="p">]</span> <span class="o">=</span> <span class="n">files</span><span class="o">.</span><span class="n">get_file_in_dir</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_band_folder</span><span class="p">,</span> <span class="n">band_regex</span><span class="p">,</span> <span class="n">exact_name</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">get_list</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+        <span class="k">return</span> <span class="n">band_paths</span>
+
+    <span class="k">def</span> <span class="nf">_get_raw_bands</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the existing band paths (as they come with th archived products).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: List of existing bands in the raw products (vv, hh, vh, hv)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">band_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_raw_band_paths</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">band_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+<div class="viewcode-block" id="SarProduct.get_existing_band_paths"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.sar_product.html#eoreader.products.sar.sar_product.SarProduct.get_existing_band_paths">[docs]</a>    <span class="k">def</span> <span class="nf">get_existing_band_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the existing orthorectified band paths (including despeckle bands).</span>
+
+<span class="sd">        .. WARNING:: This functions orthorectifies SAR bands if not existing !</span>
+
+<span class="sd">        .. WARNING:: This functions despeckles SAR bands if not existing !</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.bands.alias import *</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.get_existing_band_paths()</span>
+<span class="sd">        Executing processing graph</span>
+<span class="sd">        ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.</span>
+<span class="sd">        Executing processing graph</span>
+<span class="sd">        ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.</span>
+<span class="sd">        {</span>
+<span class="sd">            &lt;SarBandNames.VV: &#39;VV&#39;&gt;: &#39;20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif&#39;,</span>
+<span class="sd">            &lt;SarBandNames.VH: &#39;VH&#39;&gt;: &#39;20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VH.tif&#39;,</span>
+<span class="sd">            &lt;SarBandNames.VV_DSPK: &#39;VV_DSPK&#39;&gt;: &#39;20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV_DSPK.tif&#39;,</span>
+<span class="sd">            &lt;SarBandNames.VH_DSPK: &#39;VH_DSPK&#39;&gt;: &#39;20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VH_DSPK.tif&#39;</span>
+<span class="sd">        }</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Dictionary containing the path of every orthorectified bands</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get raw bands (maximum number of bands)</span>
+        <span class="n">raw_bands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_raw_bands</span><span class="p">()</span>
+        <span class="n">possible_bands</span> <span class="o">=</span> <span class="n">raw_bands</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="n">sbn</span><span class="o">.</span><span class="n">corresponding_despeckle</span><span class="p">(</span><span class="n">band</span><span class="p">)</span> <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">raw_bands</span>
+        <span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_band_paths</span><span class="p">(</span><span class="n">possible_bands</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SarProduct.get_existing_bands"><a class="viewcode-back" href="../../../../api/eoreader.products.sar.sar_product.html#eoreader.products.sar.sar_product.SarProduct.get_existing_bands">[docs]</a>    <span class="k">def</span> <span class="nf">get_existing_bands</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the existing orthorectified bands (including despeckle bands).</span>
+
+<span class="sd">        .. WARNING:: This functions orthorectifies SAR bands if not existing !</span>
+
+<span class="sd">        .. WARNING:: This functions despeckles SAR bands if not existing !</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.bands.alias import *</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.get_existing_bands()</span>
+<span class="sd">        [&lt;SarBandNames.VV: &#39;VV&#39;&gt;,</span>
+<span class="sd">        &lt;SarBandNames.VH: &#39;VH&#39;&gt;,</span>
+<span class="sd">        &lt;SarBandNames.VV_DSPK: &#39;VV_DSPK&#39;&gt;,</span>
+<span class="sd">        &lt;SarBandNames.VH_DSPK: &#39;VH_DSPK&#39;&gt;]</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: List of existing bands in the products</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">band_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_existing_band_paths</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">band_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+    <span class="c1"># unused band_name (compatibility reasons)</span>
+    <span class="c1"># pylint: disable=W0613</span>
+    <span class="nd">@path_or_dst</span>
+    <span class="k">def</span> <span class="nf">_read_band</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">resolution</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XDS_TYPE</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read band from disk.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            path (str): Band path</span>
+<span class="sd">            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)</span>
+<span class="sd">            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            XDS_TYPE: Band xarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">rasters</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+            <span class="n">path</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">resampling</span><span class="o">=</span><span class="n">Resampling</span><span class="o">.</span><span class="n">bilinear</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_load_bands</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">bands</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">BandNames</span><span class="p">],</span>
+        <span class="n">resolution</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load bands as numpy arrays with the same resolution (and same metadata).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bands (list, BandNames): List of the wanted bands</span>
+<span class="sd">            resolution (float): Band resolution in meters</span>
+<span class="sd">            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Dictionary {band_name, band_xarray}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Return empty if no band are specified</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">bands</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Get band paths</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bands</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">bands</span> <span class="o">=</span> <span class="p">[</span><span class="n">bands</span><span class="p">]</span>
+        <span class="n">band_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_band_paths</span><span class="p">(</span><span class="n">bands</span><span class="p">,</span> <span class="n">resolution</span><span class="p">)</span>
+
+        <span class="c1"># Open bands and get array (resampled if needed)</span>
+        <span class="n">band_arrays</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">band_name</span><span class="p">,</span> <span class="n">band_path</span> <span class="ow">in</span> <span class="n">band_paths</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># Read CSK band</span>
+            <span class="n">band_arrays</span><span class="p">[</span><span class="n">band_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_band</span><span class="p">(</span>
+                <span class="n">band_path</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">band_arrays</span>
+
+    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bands</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">resolution</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Core function loading SAR data bands</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bands (list): Band list</span>
+<span class="sd">            resolution (float): Resolution of the band, in meters</span>
+<span class="sd">            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary {band_name, band_xarray}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">band_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dem_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">bands</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_index</span><span class="p">(</span><span class="n">band</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                    <span class="s2">&quot;For now, no index is implemented for SAR data.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">is_optical_band</span><span class="p">(</span><span class="n">band</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;You should ask for SAR bands as </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> is a SAR product.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">is_sar_band</span><span class="p">(</span><span class="n">band</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_band</span><span class="p">(</span><span class="n">band</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">InvalidBandError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">band</span><span class="si">}</span><span class="s2"> cannot be retrieved from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">condensed_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">band_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">band</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">is_dem</span><span class="p">(</span><span class="n">band</span><span class="p">):</span>
+                <span class="n">dem_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">band</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">is_clouds</span><span class="p">(</span><span class="n">band</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Clouds cannot be retrieved from SAR data (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">condensed_name</span><span class="si">}</span><span class="s2">).&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">band</span><span class="si">}</span><span class="s2"> is neither a band nor an index !&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check if DEM is set and exists</span>
+        <span class="k">if</span> <span class="n">dem_list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_dem_path</span><span class="p">()</span>
+
+        <span class="c1"># Load bands</span>
+        <span class="n">bands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_bands</span><span class="p">(</span><span class="n">band_list</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="c1"># Add DEM</span>
+        <span class="n">bands</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_load_dem</span><span class="p">(</span><span class="n">dem_list</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">bands</span>
+
+    <span class="k">def</span> <span class="nf">_pre_process_sar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resolution</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pre-process SAR data (geocoding...)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            resolution (float): Resolution</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Dictionary containing {band: path}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Create target dir (tmp dir)</span>
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp_dir</span><span class="p">:</span>
+            <span class="c1"># Set command as a list</span>
+            <span class="n">target_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">condensed_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Use dimap for speed and security (ie. GeoTiff&#39;s broken georef)</span>
+            <span class="n">pp_target</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">target_file</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">pp_dim</span> <span class="o">=</span> <span class="n">pp_target</span> <span class="o">+</span> <span class="s2">&quot;.dim&quot;</span>
+
+            <span class="c1"># Pre-process graph</span>
+            <span class="k">if</span> <span class="n">PP_GRAPH</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+                <span class="n">sat</span> <span class="o">=</span> <span class="s2">&quot;s1&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sat_id</span> <span class="o">==</span> <span class="n">Platform</span><span class="o">.</span><span class="n">S1</span><span class="o">.</span><span class="n">name</span> <span class="k">else</span> <span class="s2">&quot;sar&quot;</span>
+                <span class="n">spt</span> <span class="o">=</span> <span class="s2">&quot;grd&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sar_prod_type</span> <span class="o">==</span> <span class="n">SarProductType</span><span class="o">.</span><span class="n">GDRG</span> <span class="k">else</span> <span class="s2">&quot;cplx&quot;</span>
+                <span class="n">pp_graph</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="n">utils</span><span class="o">.</span><span class="n">get_data_dir</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">spt</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">sat</span><span class="si">}</span><span class="s2">_preprocess_default.xml&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pp_graph</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">PP_GRAPH</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">pp_graph</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">pp_graph</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.xml&quot;</span><span class="p">):</span>
+                    <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pp_graph</span><span class="si">}</span><span class="s2"> cannot be found.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Command line</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">pp_dim</span><span class="p">):</span>
+                <span class="n">def_res</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SAR_DEF_RES</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="p">))</span>
+                <span class="n">res_m</span> <span class="o">=</span> <span class="n">resolution</span> <span class="k">if</span> <span class="n">resolution</span> <span class="k">else</span> <span class="n">def_res</span>
+                <span class="n">res_deg</span> <span class="o">=</span> <span class="n">res_m</span> <span class="o">/</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="mf">8.983152841195215e-5</span>  <span class="c1"># Approx</span>
+                <span class="n">cmd_list</span> <span class="o">=</span> <span class="n">snap</span><span class="o">.</span><span class="n">get_gpt_cli</span><span class="p">(</span>
+                    <span class="n">pp_graph</span><span class="p">,</span>
+                    <span class="p">[</span>
+                        <span class="sa">f</span><span class="s2">&quot;-Pfile=</span><span class="si">{</span><span class="n">strings</span><span class="o">.</span><span class="n">to_cmd_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_snap_path</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;-Pout=</span><span class="si">{</span><span class="n">pp_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;-Pcrs=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;-Pres_m=</span><span class="si">{</span><span class="n">res_m</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;-Pres_deg=</span><span class="si">{</span><span class="n">res_deg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="p">],</span>
+                    <span class="n">display_snap_opt</span><span class="o">=</span><span class="n">LOGGER</span><span class="o">.</span><span class="n">level</span> <span class="o">==</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Pre-process SAR images according to the given graph</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Pre-process SAR image&quot;</span><span class="p">)</span>
+                <span class="n">misc</span><span class="o">.</span><span class="n">run_cli</span><span class="p">(</span><span class="n">cmd_list</span><span class="p">)</span>
+
+            <span class="c1"># Convert DIMAP images to GeoTiff</span>
+            <span class="k">for</span> <span class="n">pol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pol_channels</span><span class="p">:</span>
+                <span class="c1"># Speckle image</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">sbn</span><span class="o">.</span><span class="n">from_value</span><span class="p">(</span><span class="n">pol</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_sar</span><span class="p">(</span><span class="n">pp_dim</span><span class="p">,</span> <span class="n">pol</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">def</span> <span class="nf">_despeckle_sar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">band</span><span class="p">:</span> <span class="n">sbn</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pre-process SAR data (geocode...)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            band (sbn): Band to despeckle</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Despeckled path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Create target dir (tmp dir)</span>
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp_dir</span><span class="p">:</span>
+            <span class="c1"># Out files</span>
+            <span class="n">target_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">condensed_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">dspk_dim</span> <span class="o">=</span> <span class="n">target_file</span> <span class="o">+</span> <span class="s2">&quot;.dim&quot;</span>
+
+            <span class="c1"># Despeckle graph</span>
+            <span class="k">if</span> <span class="n">DSPK_GRAPH</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+                <span class="n">dspk_graph</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="n">utils</span><span class="o">.</span><span class="n">get_data_dir</span><span class="p">(),</span> <span class="s2">&quot;sar_despeckle_default.xml&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dspk_graph</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">DSPK_GRAPH</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">dspk_graph</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dspk_graph</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.xml&quot;</span><span class="p">):</span>
+                    <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dspk_graph</span><span class="si">}</span><span class="s2"> cannot be found.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Create command line and run it</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">dspk_dim</span><span class="p">):</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_band_paths</span><span class="p">([</span><span class="n">band</span><span class="p">])[</span><span class="n">band</span><span class="p">]</span>
+                <span class="n">cmd_list</span> <span class="o">=</span> <span class="n">snap</span><span class="o">.</span><span class="n">get_gpt_cli</span><span class="p">(</span>
+                    <span class="n">dspk_graph</span><span class="p">,</span>
+                    <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;-Pfile=</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;-Pout=</span><span class="si">{</span><span class="n">dspk_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">],</span>
+                    <span class="n">display_snap_opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Pre-process SAR images according to the given graph</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Despeckle SAR image&quot;</span><span class="p">)</span>
+                <span class="n">misc</span><span class="o">.</span><span class="n">run_cli</span><span class="p">(</span><span class="n">cmd_list</span><span class="p">)</span>
+
+            <span class="c1"># Convert DIMAP images to GeoTiff</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_sar</span><span class="p">(</span><span class="n">dspk_dim</span><span class="p">,</span> <span class="n">band</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">dspk</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">def</span> <span class="nf">_write_sar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pol_up</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dspk</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write SAR image on disk.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dim_path (str): DIMAP path</span>
+<span class="sd">            pol_up (str): Polarization name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pol_up</span> <span class="o">=</span> <span class="n">pol_up</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>  <span class="c1"># To be sure</span>
+
+        <span class="c1"># Get .img file path (readable by rasterio)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">rasters</span><span class="o">.</span><span class="n">get_dim_img_path</span><span class="p">(</span><span class="n">dim_path</span><span class="p">,</span> <span class="n">pol_up</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">rasters</span><span class="o">.</span><span class="n">get_dim_img_path</span><span class="p">(</span><span class="n">dim_path</span><span class="p">)</span>  <span class="c1"># Maybe not the good name</span>
+
+        <span class="c1"># Open SAR image</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">rasters</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">arr</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snap_no_data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+        <span class="c1"># Save the file as the terrain-corrected image</span>
+        <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">files</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">dim_path</span><span class="p">)</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">pol_up</span><span class="si">}{</span><span class="s1">&#39;_DSPK&#39;</span> <span class="k">if</span> <span class="n">dspk</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="si">}</span><span class="s2">.tif&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># WARNING: Set nodata to 0 here as it is the value wanted by SNAP !</span>
+        <span class="n">rasters</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">nodata</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">file_path</span>
+
+    <span class="k">def</span> <span class="nf">_compute_hillshade</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dem_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">resolution</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">resampling</span><span class="p">:</span> <span class="n">Resampling</span> <span class="o">=</span> <span class="n">Resampling</span><span class="o">.</span><span class="n">bilinear</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute Hillshade mask</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dem_path (str): DEM path, using EUDEM/MERIT DEM if none</span>
+<span class="sd">            resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.</span>
+<span class="sd">            resampling (Resampling): Resampling method</span>
+<span class="sd">            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Hillshade mask path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="n">InvalidProductError</span><span class="p">(</span><span class="s2">&quot;Impossible to compute hillshade mask for SAR data.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_has_cloud_band</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">band</span><span class="p">:</span> <span class="n">BandNames</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Does this products has the specified cloud band ?</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.reader import Reader</span>
+<span class="sd">        &gt;&gt;&gt; from eoreader.bands.alias import *</span>
+<span class="sd">        &gt;&gt;&gt; path = r&quot;S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip&quot;</span>
+<span class="sd">        &gt;&gt;&gt; prod = Reader().open(path)</span>
+<span class="sd">        &gt;&gt;&gt; prod.has_cloud_band(CLOUDS)</span>
+<span class="sd">        False</span>
+<span class="sd">        ```</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_get_condensed_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Condensed S1 name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_datetime</span><span class="p">()</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sensor_mode</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">product_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span></div>
+</pre></div>
+
+              </div>
+
+
+        <div class='prev-next-bottom'>
+
+
+        </div>
+
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+
+          By ICube-SERTIT<br/>
+
+            &copy; Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/.<br/>
+          Last updated on 2021-05-06.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+  <script src="../../../../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+
+  </body>
+</html>

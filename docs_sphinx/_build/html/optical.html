@@ -1,0 +1,1210 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Optical data</title>
+
+  <link href="_static/css/theme.css" rel="stylesheet" />
+  <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+
+
+
+
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinx-book-theme.acff12b8f9c144ce68a297486a2fa670.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+
+  <link rel="preload" as="script" href="_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script src="_static/togglebutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="SAR data" href="sar.html" />
+    <link rel="prev" title="Main features" href="main_features.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+
+    <div class="container-fluid" id="banner"></div>
+
+
+
+    <div class="container-xl">
+      <div class="row">
+
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="index.html">
+
+      <img src="_static/eoreader.png" class="logo" alt="logo">
+
+
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <div class="bd-toc-item active">
+        <p class="caption">
+ <span class="caption-text">
+  For Users
+ </span>
+</p>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="main_features.html">
+   Main features
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Optical data
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="sar.html">
+   SAR data
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="notebooks/base.html">
+   Basic example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="notebooks/water_detection.html">
+   Water detection
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="api/eoreader.html">
+   eoreader package
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="api/eoreader.bands.html">
+     eoreader.bands package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="api/eoreader.bands.alias.html">
+       eoreader.bands.alias module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="api/eoreader.bands.bands.html">
+       eoreader.bands.bands module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="api/eoreader.bands.index.html">
+       eoreader.bands.index module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/eoreader.data.html">
+     eoreader.data package
+    </a>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="api/eoreader.products.html">
+     eoreader.products package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="api/eoreader.products.optical.html">
+       eoreader.products.optical package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+      <label for="toctree-checkbox-4">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.optical.l1_product.html">
+         eoreader.products.optical.l1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.optical.l2_product.html">
+         eoreader.products.optical.l2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.optical.l3_product.html">
+         eoreader.products.optical.l3_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.optical.l4_product.html">
+         eoreader.products.optical.l4_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.optical.l5_product.html">
+         eoreader.products.optical.l5_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.optical.l7_product.html">
+         eoreader.products.optical.l7_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.optical.l8_product.html">
+         eoreader.products.optical.l8_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.optical.landsat_product.html">
+         eoreader.products.optical.landsat_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.optical.optical_product.html">
+         eoreader.products.optical.optical_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.optical.s2_product.html">
+         eoreader.products.optical.s2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.optical.s2_theia_product.html">
+         eoreader.products.optical.s2_theia_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.optical.s3_product.html">
+         eoreader.products.optical.s3_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="api/eoreader.products.sar.html">
+       eoreader.products.sar package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+      <label for="toctree-checkbox-5">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.sar.csk_product.html">
+         eoreader.products.sar.csk_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.sar.rs2_product.html">
+         eoreader.products.sar.rs2_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.sar.s1_product.html">
+         eoreader.products.sar.s1_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.sar.sar_product.html">
+         eoreader.products.sar.sar_product module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="api/eoreader.products.sar.tsx_product.html">
+         eoreader.products.sar.tsx_product module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="api/eoreader.products.product.html">
+       eoreader.products.product module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/eoreader.env_vars.html">
+     eoreader.env_vars module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/eoreader.exceptions.html">
+     eoreader.exceptions module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/eoreader.reader.html">
+     eoreader.reader module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/eoreader.utils.html">
+     eoreader.utils module
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+</div>
+
+
+
+
+
+
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="_sources/optical.md.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.md</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/sertit/eoreader"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/sertit/eoreader/issues/new?title=Issue%20on%20page%20%2Foptical.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/sertit/eoreader/edit/develop/docs/optical.md"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+
+            <div class="tocsection onthispage pt-5 pb-3">
+                <i class="fas fa-list"></i> Contents
+            </div>
+            <nav id="bd-toc-nav">
+                <ul class="visible nav section-nav flex-column">
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#">
+   Optical data
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#implemented-optical-satellites">
+     Implemented optical satellites
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#optical-bands">
+     Optical bands
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#satellite-bands">
+       Satellite bands
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#index">
+       Index
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#cloud-bands">
+       Cloud bands
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#dem-bands">
+       DEM bands
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#specifications">
+     Specifications
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#optical-band-mapping-between-sensors">
+       Optical band mapping between sensors
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#cloud-bands-specifications">
+       Cloud bands specifications
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#dem-bands-specifications">
+       DEM bands specifications
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#available-index">
+       Available index
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#default-snap-resolution">
+     Default SNAP resolution
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#documentary-sources">
+   Documentary Sources
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#landsat">
+     Landsat
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#sentinel-2">
+     Sentinel-2
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#sentinel-2-theia">
+     Sentinel-2 Theia
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#sentinel-3">
+     Sentinel-3
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#planetscope">
+     PlanetScope
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#band-mapping">
+     Band mapping
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id1">
+     Index
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+
+              <div>
+
+  <div class="section" id="optical-data">
+<h1>Optical data<a class="headerlink" href="#optical-data" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="implemented-optical-satellites">
+<h2>Implemented optical satellites<a class="headerlink" href="#implemented-optical-satellites" title="Permalink to this headline">¶</a></h2>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Satellites</p></th>
+<th class="head"><p>Class</p></th>
+<th class="head"><p>Product Types</p></th>
+<th class="head"><p>Use archive</p></th>
+<th class="head"><p>Default Resolution</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sentinel-2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.s2_product.S2Product</span></code></p></td>
+<td><p>L1C &amp; L2A</p></td>
+<td><p>Yes</p></td>
+<td><p>20m</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sentinel-2 Theia</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.s2_theia_product.S2TheiaProduct</span></code></p></td>
+<td><p>L2A</p></td>
+<td><p>Yes</p></td>
+<td><p>20m</p></td>
+</tr>
+<tr class="row-even"><td><p>Sentinel-3 SLSTR</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.s3_product.S3Product</span></code></p></td>
+<td><p>RBT</p></td>
+<td><p>No</p></td>
+<td><p>300m</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sentinel-3 OLCI</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.s3_product.S3Product</span></code></p></td>
+<td><p>EFR</p></td>
+<td><p>No</p></td>
+<td><p>500m</p></td>
+</tr>
+<tr class="row-even"><td><p>Landsat-8 OLCI</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.l8_product.L8Product</span></code></p></td>
+<td><p>Level 1</p></td>
+<td><p>Collection 1: No, Collection 2: Yes</p></td>
+<td><p>30m</p></td>
+</tr>
+<tr class="row-odd"><td><p>Landsat-7 ETM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.l7_product.L7Product</span></code></p></td>
+<td><p>Level 1</p></td>
+<td><p>Collection 1: No, Collection 2: Yes</p></td>
+<td><p>30m</p></td>
+</tr>
+<tr class="row-even"><td><p>Landsat-5 TM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.l5_product.L5Product</span></code></p></td>
+<td><p>Level 1</p></td>
+<td><p>Collection 1: No, Collection 2: Yes</p></td>
+<td><p>30m</p></td>
+</tr>
+<tr class="row-odd"><td><p>Landsat-4 TM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.l4_product.L4Product</span></code></p></td>
+<td><p>Level 1</p></td>
+<td><p>Collection 1: No, Collection 2: Yes</p></td>
+<td><p>30m</p></td>
+</tr>
+<tr class="row-even"><td><p>Landsat-5 MSS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.l5_product.L5Product</span></code></p></td>
+<td><p>Level 1</p></td>
+<td><p>Collection 1: No, Collection 2: Yes</p></td>
+<td><p>60m</p></td>
+</tr>
+<tr class="row-odd"><td><p>Landsat-4 MSS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.l4_product.L4Product</span></code></p></td>
+<td><p>Level 1</p></td>
+<td><p>Collection 1: No, Collection 2: Yes</p></td>
+<td><p>60m</p></td>
+</tr>
+<tr class="row-even"><td><p>Landsat-3 MSS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.l3_product.L3Product</span></code></p></td>
+<td><p>Level 1</p></td>
+<td><p>Collection 1: No, Collection 2: Yes</p></td>
+<td><p>60m</p></td>
+</tr>
+<tr class="row-odd"><td><p>Landsat-2 MSS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.l2_product.L2Product</span></code></p></td>
+<td><p>Level 1</p></td>
+<td><p>Collection 1: No, Collection 2: Yes</p></td>
+<td><p>60m</p></td>
+</tr>
+<tr class="row-even"><td><p>Landsat-1 MSS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eoreader.products.optical.l1_product.L1Product</span></code></p></td>
+<td><p>Level 1</p></td>
+<td><p>Collection 1: No, Collection 2: Yes</p></td>
+<td><p>60m</p></td>
+</tr>
+</tbody>
+</table>
+<p>Satellites products that cannot be used as archived have to be extracted before use.</p>
+</div>
+<div class="section" id="optical-bands">
+<h2>Optical bands<a class="headerlink" href="#optical-bands" title="Permalink to this headline">¶</a></h2>
+<p>The following bands are available in <code class="docutils literal notranslate"><span class="pre">EOReader</span></code>, but may not be available for all sensors.</p>
+<div class="section" id="satellite-bands">
+<h3>Satellite bands<a class="headerlink" href="#satellite-bands" title="Permalink to this headline">¶</a></h3>
+<p>These bands are mainly based on Sentinel-2 bands with some additions:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CA</span></code>: Coastal Aerosol</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BLUE</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RED</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">VRE_1</span></code>: Vegetation Red Edge 1</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">VRE_2</span></code>: Vegetation Red Edge 2</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">VRE_3</span></code>: Vegetation Red Edge 3</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NIR</span></code>: Near Infrared</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NARROW_NIR</span></code>: Narrow Near Infrared (band <code class="docutils literal notranslate"><span class="pre">8A</span></code> for <code class="docutils literal notranslate"><span class="pre">Sentinel-2</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WP</span></code>: Water vapour</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SWIR_CIRRUS</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SWIR_2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PAN</span></code>: Panchromatic</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TIR_1</span></code>: Thermal Infrared 1</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TIR_2</span></code>: Thermal Infrared 2</p></li>
+</ul>
+<p>See <a class="reference external" href="https://sertit.github.io/eoreader/eoreader/products/optical/index.html#optical-band-mapping-between-sensors">here</a>
+for more information.</p>
+</div>
+<div class="section" id="index">
+<h3>Index<a class="headerlink" href="#index" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">AFRI_1_6</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AFRI_2_1</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AWEInsh</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AWEIsh</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BAI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BSI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CIG</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DSWI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GLI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GNDVI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MNDWI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NBR</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NDGRI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NDMI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NDRE2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NDRE3</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NDVI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NDWI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RDI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RGI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SRSWIR</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TCBRI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TCGRE</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TCWET</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WI</span></code></p></li>
+</ul>
+<p>See <a class="reference external" href="https://sertit.github.io/eoreader/eoreader/products/optical/index.html#available-index">here</a> for more information.</p>
+</div>
+<div class="section" id="cloud-bands">
+<h3>Cloud bands<a class="headerlink" href="#cloud-bands" title="Permalink to this headline">¶</a></h3>
+<p>Maximum 5 cloud bands are available, according to the files provided in the data. All the bands are rasterized and
+orthorectified if needed (for Sentinel-2 or 3 data for example), ready to be stacked.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>: Raw Cloud file as provided (the only changes are the orthorectification and rasterization). Can provide
+other flags, or cloud probability.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>: Cloud presence (1) or absence (0).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CIRRUS</span></code>: Cirrus presence (1) or absence (0).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHADOWS</span></code>: Shadows presence (1) or absence (0).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code>: Cloud <strong>OR</strong> Cirrus <strong>OR</strong> Shadows presence (1) or absence (0). Do not take into account missing bands (
+ie. for Landsat MSS sensors, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code> == <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>)</p></li>
+</ul>
+<p>See <a class="reference external" href="https://sertit.github.io/eoreader/eoreader/products/optical/index.html#cloud-bands-specifications">here</a> for more
+information.</p>
+</div>
+<div class="section" id="dem-bands">
+<h3>DEM bands<a class="headerlink" href="#dem-bands" title="Permalink to this headline">¶</a></h3>
+<p>These bands need a valid worldwide DEM path positioned thanks to the environment variable <code class="docutils literal notranslate"><span class="pre">EOREADER_SAR_DEFAULT_RES</span></code></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DEM</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SLOPE</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HILLSHADE</span></code></p></li>
+</ul>
+<p>See <a class="reference external" href="https://sertit.github.io/eoreader/eoreader/products/optical/index.html#dem-bands-specifications">here</a> for more
+information.</p>
+</div>
+</div>
+<div class="section" id="specifications">
+<h2>Specifications<a class="headerlink" href="#specifications" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="optical-band-mapping-between-sensors">
+<h3>Optical band mapping between sensors<a class="headerlink" href="#optical-band-mapping-between-sensors" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Bands (names)</p></th>
+<th class="head"><p>Coastal aerosol</p></th>
+<th class="head"><p>Blue</p></th>
+<th class="head"><p>Green</p></th>
+<th class="head"><p>Red</p></th>
+<th class="head"><p>Vegetation red edge</p></th>
+<th class="head"><p>Vegetation red edge</p></th>
+<th class="head"><p>Vegetation red edge</p></th>
+<th class="head"><p>NIR</p></th>
+<th class="head"><p>Narrow NIR</p></th>
+<th class="head"><p>Water vapor</p></th>
+<th class="head"><p>SWIR – Cirrus</p></th>
+<th class="head"><p>SWIR</p></th>
+<th class="head"><p>SWIR</p></th>
+<th class="head"><p>Panchromatic</p></th>
+<th class="head"><p>Thermal IR</p></th>
+<th class="head"><p>Thermal IR</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Band alias</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CA</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BLUE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">VRE_1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">VRE_2</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">VRE_3</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NIR</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NARROW_NIR</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WP</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SWIR_CIRRUS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SWIR_2</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PAN</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TIR_1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TIR_2</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Sentinel-2</p></td>
+<td><p><strong>1</strong> (60m)</p></td>
+<td><p><strong>2</strong> (10m)</p></td>
+<td><p><strong>3</strong> (10m)</p></td>
+<td><p><strong>4</strong> (10m)</p></td>
+<td><p><strong>5</strong> (20m)</p></td>
+<td><p><strong>6</strong> (20m)</p></td>
+<td><p><strong>7</strong> (20m)</p></td>
+<td><p><strong>8</strong> (10m)</p></td>
+<td><p><strong>8A</strong> (20m)</p></td>
+<td><p><strong>9</strong> (60m)</p></td>
+<td><p><strong>10</strong> (60m)</p></td>
+<td><p><strong>11</strong> (20m)</p></td>
+<td><p><strong>12</strong> (20m)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>Sentinel-2 Theia</p></td>
+<td><p><em>Not available</em></p></td>
+<td><p><strong>2</strong> (10m)</p></td>
+<td><p><strong>3</strong> (10m)</p></td>
+<td><p><strong>4</strong> (10m)</p></td>
+<td><p><strong>5</strong> (20m)</p></td>
+<td><p><strong>6</strong> (20m)</p></td>
+<td><p><strong>7</strong> (20m)</p></td>
+<td><p><strong>8</strong> (10m)</p></td>
+<td><p><strong>8A</strong> (20m)</p></td>
+<td><p><em>Not available</em></p></td>
+<td><p><strong>10</strong> (60m)</p></td>
+<td><p><strong>11</strong> (20m)</p></td>
+<td><p><strong>12</strong> (20m)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>Sentinel-3 OLCI*</p></td>
+<td><p><strong>2</strong> (300m)</p></td>
+<td><p><strong>3</strong> (300m)</p></td>
+<td><p><strong>6</strong> (300m)</p></td>
+<td><p><strong>8</strong> (300m)</p></td>
+<td><p><strong>11</strong> (300m)</p></td>
+<td><p><strong>12</strong> (300m)</p></td>
+<td><p><strong>16</strong> (300m)</p></td>
+<td><p><strong>17</strong> (300m)</p></td>
+<td><p><strong>17</strong> (300m)</p></td>
+<td><p><strong>20</strong> (300m)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>Sentinel-3 SLSTR*</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><strong>1</strong> (500m)</p></td>
+<td><p><strong>2</strong> (500m)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><strong>3</strong> (500m)</p></td>
+<td><p><strong>3</strong> (500m)</p></td>
+<td><p></p></td>
+<td><p><strong>4</strong> (500m)</p></td>
+<td><p><strong>5</strong> (500m)</p></td>
+<td><p><strong>6</strong> (500m)</p></td>
+<td><p></p></td>
+<td><p><strong>8</strong> (1km)</p></td>
+<td><p><strong>9</strong> (1km)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Landsat OLCI (8)</p></td>
+<td><p><strong>1</strong> (30m)</p></td>
+<td><p><strong>2</strong> (30m)</p></td>
+<td><p><strong>3</strong> (30m)</p></td>
+<td><p><strong>4</strong> (30m)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><strong>5</strong> (30m)</p></td>
+<td><p><strong>5</strong> (30m)</p></td>
+<td><p></p></td>
+<td><p><strong>9</strong> (30m)</p></td>
+<td><p><strong>6</strong> (30m)</p></td>
+<td><p><strong>7</strong> (30m)</p></td>
+<td><p><strong>8</strong> (15m)</p></td>
+<td><p><strong>10</strong> (100m)</p></td>
+<td><p><strong>11</strong> (100m)</p></td>
+</tr>
+<tr class="row-even"><td><p>Landsat ETM (7)</p></td>
+<td><p></p></td>
+<td><p><strong>1</strong> (30m)</p></td>
+<td><p><strong>2</strong> (30m)</p></td>
+<td><p><strong>3</strong> (30m)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><strong>4</strong> (30m)</p></td>
+<td><p><strong>4</strong> (30m)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><strong>5</strong> (30m)</p></td>
+<td><p><strong>7</strong> (30m)</p></td>
+<td><p><strong>8</strong> (15m)</p></td>
+<td><p><strong>6</strong> (60m)</p></td>
+<td><p><strong>6</strong> (60m)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Landsat TM (5-4)</p></td>
+<td><p></p></td>
+<td><p><strong>1</strong> (30m)</p></td>
+<td><p><strong>2</strong> (30m)</p></td>
+<td><p><strong>3</strong> (30m)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><strong>4</strong>(30m)</p></td>
+<td><p><strong>4</strong> (30m)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><strong>5</strong> (30m)</p></td>
+<td><p><strong>7</strong> (30m)</p></td>
+<td><p></p></td>
+<td><p><strong>6</strong> (120m)</p></td>
+<td><p><strong>6</strong> (120m)</p></td>
+</tr>
+<tr class="row-even"><td><p>Landsat MSS (5-4)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><strong>1</strong> (60m)</p></td>
+<td><p><strong>2</strong> (60m)</p></td>
+<td><p><strong>3</strong> (60m)</p></td>
+<td><p><strong>3</strong> (60m)</p></td>
+<td><p><strong>3</strong> (60m)</p></td>
+<td><p><strong>4</strong> (60m)</p></td>
+<td><p><strong>4</strong> (60m)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>Landsat MSS (1-3)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><strong>4</strong> (60m)</p></td>
+<td><p><strong>5</strong> (60m)</p></td>
+<td><p><strong>6</strong> (60m)</p></td>
+<td><p><strong>6</strong> (60m)</p></td>
+<td><p><strong>6</strong> (60m)</p></td>
+<td><p><strong>7</strong> (60m)</p></td>
+<td><p><strong>7</strong> (60m)</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><strong>8</strong> (240m)<br><em>only for Landsat-3</em></p></td>
+<td><p><strong>8</strong> (240m)<br><em>only for Landsat-3</em></p></td>
+</tr>
+</tbody>
+</table>
+<p>* Not all bands of this satellite are used in EOReader</p>
+</div>
+<div class="section" id="cloud-bands-specifications">
+<h3>Cloud bands specifications<a class="headerlink" href="#cloud-bands-specifications" title="Permalink to this headline">¶</a></h3>
+<p>Maximum 5 cloud bands are available, according to the files provided in the data. All the bands are rasterized and
+orthorectified if needed (for Sentinel-2 or 3 data for example), ready to be stacked.</p>
+<p>The only difference with the other bands is that the cloud bands are provided in <code class="docutils literal notranslate"><span class="pre">uint8</span></code> and have a nodata equal to 255.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.bands.CloudsBandNames.RAW_CLOUDS</span></code>: Raw Cloud file as provided (the only changes are the
+orthorectification and rasterization). Can provide other flags, or cloud probability.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.bands.CloudsBandNames.CLOUDS</span></code>: Cloud presence (1) or absence (0). If clouds are provided in
+probabilities, their presence is determined according to Landsat definition (proba&gt; 67%)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.bands.CloudsBandNames.CIRRUS</span></code>: Cirrus presence (1) or absence (0). If clouds are provided in
+probabilities, their presence is determined according to Landsat definition (proba&gt; 67%)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.bands.CloudsBandNames.SHADOWS</span></code>: Shadows presence (1) or absence (0). If clouds are provided in
+probabilities, their presence is determined according to Landsat definition (proba&gt; 67%)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.bands.CloudsBandNames.ALL_CLOUDS</span></code>: Cloud <strong>OR</strong> Cirrus <strong>OR</strong> Shadows presence (1) or absence (0). Do
+not take into account missing bands (ie. for Landsat MSS sensors, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code> == <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>)</p></li>
+</ul>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Satellites</p></th>
+<th class="head"><p>Clouds Bands</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sentinel-2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CIRRUS</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Sentinel-2 Theia</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">SHADOWS</span></code>, <code class="docutils literal notranslate"><span class="pre">CIRRUS</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Sentinel-3 OLCI</p></td>
+<td><p><em>No cloud file available for S3-OLCI data</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>Sentinel-3 SLSTR</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CIRRUS</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Landsat-8</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">SHADOWS</span></code>, <code class="docutils literal notranslate"><span class="pre">CIRRUS</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Landsat-7</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">SHADOWS</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Landsat-5 TM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">SHADOWS</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Landsat-4 TM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">SHADOWS</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Landsat-5 MSS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Landsat-4 MSS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Landsat-3</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Landsat-2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Landsat-1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RAW_CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">CLOUDS</span></code>, <code class="docutils literal notranslate"><span class="pre">ALL_CLOUDS</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="dem-bands-specifications">
+<h3>DEM bands specifications<a class="headerlink" href="#dem-bands-specifications" title="Permalink to this headline">¶</a></h3>
+<p>Optical satellites can all load <code class="docutils literal notranslate"><span class="pre">eoreader.bands.bands.DemBandNames.DEM</span></code>, <code class="docutils literal notranslate"><span class="pre">eoreader.bands.bands.DemBandNames.SLOPE</span></code>
+and <code class="docutils literal notranslate"><span class="pre">eoreader.bands.bands.DemBandNames.HILLSHADE</span></code> bands. The <code class="docutils literal notranslate"><span class="pre">SLOPE</span></code> and <code class="docutils literal notranslate"><span class="pre">HILLSHADE</span></code> bands are computed with
+the <a class="reference external" href="https://gdal.org/programs/gdaldem.html"><code class="docutils literal notranslate"><span class="pre">gdaldem</span></code></a> tool.</p>
+<p>Use the environment variable <code class="docutils literal notranslate"><span class="pre">EOREADER_SAR_DEFAULT_RES</span></code> to position your worldwide DEM.</p>
+</div>
+<div class="section" id="available-index">
+<h3>Available index<a class="headerlink" href="#available-index" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Index</p></th>
+<th class="head"><p>Needed bands</p></th>
+<th class="head"><p>Accepted satellites</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.AFRI_1_6</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.AFRI_2_1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_2</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.AWEInsh</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BLUE</span></code>, <code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_2</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.AWEIsh</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_2</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.BAI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RED</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code></p></td>
+<td><p>All optical satellites</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.BSI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BLUE</span></code>, <code class="docutils literal notranslate"><span class="pre">RED</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.CIG</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code></p></td>
+<td><p>All optical satellites</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.DSWI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">RED</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.GLI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">RED</span></code>, <code class="docutils literal notranslate"><span class="pre">BLUE</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.GNDVI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code></p></td>
+<td><p>All optical satellites</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.MNDWI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.NBR</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NNIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_2</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.NDGRI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">RED</span></code></p></td>
+<td><p>All optical satellites</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.NDMI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.NDRE2</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">VRE_1</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 OLCI, Landsat MSS</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.NDRE3</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">VRE_2</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 OLCI, Landsat MSS</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.NDVI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RED</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code></p></td>
+<td><p>All optical satellites</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.NDWI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code></p></td>
+<td><p>All optical satellites</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.RDI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NNIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_2</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.RGI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">RED</span></code></p></td>
+<td><p>All optical satellites</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.RI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">VRE_1</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 OLCI, Landsat MSS</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.SRSWIR</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_2</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.TCBRI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BLUE</span></code>, <code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">RED</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_2</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.TCGRE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BLUE</span></code>, <code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">RED</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_2</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.TCWET</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BLUE</span></code>, <code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">RED</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_2</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eoreader.bands.index.WI</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GREEN</span></code>, <code class="docutils literal notranslate"><span class="pre">RED</span></code>, <code class="docutils literal notranslate"><span class="pre">NIR</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_1</span></code>, <code class="docutils literal notranslate"><span class="pre">SWIR_2</span></code></p></td>
+<td><p>Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="default-snap-resolution">
+<h2>Default SNAP resolution<a class="headerlink" href="#default-snap-resolution" title="Permalink to this headline">¶</a></h2>
+<p>You can override default SNAP resolution (in meters) when orthorecifying SAR and S3 bands by setting the following
+environment variables:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">EOREADER_S3_DEFAULT_RES</span></code> (500m for SLSTR and 300m for OLCI data by default)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="documentary-sources">
+<h1>Documentary Sources<a class="headerlink" href="#documentary-sources" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="landsat">
+<h2>Landsat<a class="headerlink" href="#landsat" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.usgs.gov/media/files/landsat-collection-1-vs-collection-2-summary">Collection 1 vs Collection 2</a></p></li>
+<li><p><a class="reference external" href="https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band">Quality assessment Collection 1</a></p></li>
+<li><p><a class="reference external" href="https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands">Quality assessment Collection 2</a></p></li>
+<li><p><a class="reference external" href="https://www.usgs.gov/media/files/landsat-1-5-mss-collection-2-level-1-data-format-control-book">MSS Collection 2 Data Format</a></p></li>
+<li><p><a class="reference external" href="https://www.usgs.gov/media/files/landsat-4-5-tm-collection-2-level-1-data-format-control-book">TM Collection 2 Data Format</a></p></li>
+<li><p><a class="reference external" href="https://www.usgs.gov/media/files/landsat-7-etm-collection-2-level-1-data-format-control-book">ETM Collection 2 Data Format</a></p></li>
+<li><p><a class="reference external" href="https://www.usgs.gov/media/files/landsat-8-level-1-data-format-control-book">OLCI Collection 2 Data Format</a></p></li>
+</ul>
+</div>
+<div class="section" id="sentinel-2">
+<h2>Sentinel-2<a class="headerlink" href="#sentinel-2" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks">Cloud masks</a></p></li>
+<li><p><a class="reference external" href="https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf">Product Specification</a></p></li>
+</ul>
+</div>
+<div class="section" id="sentinel-2-theia">
+<h2>Sentinel-2 Theia<a class="headerlink" href="#sentinel-2-theia" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/">Product Format</a></p></li>
+</ul>
+</div>
+<div class="section" id="sentinel-3">
+<h2>Sentinel-3<a class="headerlink" href="#sentinel-3" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://sentinel.esa.int/documents/247904/1872756/Sentinel-3-OLCI-Product-Data-Format-Specification-OLCI-Level-1">OLCI Product Format</a></p></li>
+<li><p><a class="reference external" href="https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/cloud-identification">SLSTR Clouds</a></p></li>
+</ul>
+</div>
+<div class="section" id="planetscope">
+<h2>PlanetScope<a class="headerlink" href="#planetscope" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf">Product Specification</a></p></li>
+<li><p><a class="reference external" href="https://medium.com/geoplexing/getting-started-with-planet-imagery-part-3-items-and-ordering-476a1a21618c">On Medium</a></p></li>
+</ul>
+</div>
+<div class="section" id="band-mapping">
+<h2>Band mapping<a class="headerlink" href="#band-mapping" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>You can find a magnificent band comparison chart on the <a class="reference external" href="http://blog.imagico.de/satellite-comparison-update/">Imagico</a>
+blog.</p></li>
+<li><p><a class="reference external" href="https://reader.elsevier.com/reader/sd/pii/S0034425718301883">L8-S2</a></p></li>
+<li><p><a class="reference external" href="https://landsat.gsfc.nasa.gov/wp-content/uploads/2015/06/Landsat.v.Sentinel-2.png">L8-S2</a></p></li>
+<li><p><a class="reference external" href="https://landsat.gsfc.nasa.gov/the-multispectral-scanner-system/">L4/L5, MSS-TM</a></p></li>
+<li><p><a class="reference external" href="https://landsat.gsfc.nasa.gov/wp-content/uploads/2016/10/all_Landsat_bands.png">All Landsats</a></p></li>
+<li><p><a class="reference external" href="https://discovery.creodias.eu/dataset/72181b08-a577-4d55-8ece-d8485167beb7/resource/d8f5dd92-b35c-46ee-98a2-0879dad03fce/download/res_band_s2_1.png">S2</a></p></li>
+<li><p><a class="reference external" href="https://discovery.creodias.eu/dataset/a0960a9b-c9c4-46db-bca5-ec79d0dda32b/resource/de8300a4-08cd-41aa-96ec-d9813115cc08/download/s3_res_band_ol.png">S3 OLCI</a></p></li>
+<li><p><a class="reference external" href="https://discovery.creodias.eu/dataset/ea8f247e-d193-4368-8cf6-8687a03a5306/resource/8e5c485a-d832-42be-ad9c-af500b468f29/download/s3_slcs.png">S3 SLSTR</a></p></li>
+</ul>
+</div>
+<div class="section" id="id1">
+<h2>Index<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.indexdatabase.de/">Index consistency</a></p></li>
+<li><p>Specific sources inside the index function documentation in <code class="docutils literal notranslate"><span class="pre">eoreader.bands.index</span></code></p></li>
+</ul>
+</div>
+</div>
+
+
+              </div>
+
+
+        <div class='prev-next-bottom'>
+
+    <a class='left-prev' id="prev-link" href="main_features.html" title="previous page">Main features</a>
+    <a class='right-next' id="next-link" href="sar.html" title="next page">SAR data</a>
+
+        </div>
+
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+
+          By ICube-SERTIT<br/>
+
+            &copy; Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/.<br/>
+          Last updated on 2021-05-06.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+  <script src="_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+
+  </body>
+</html>
