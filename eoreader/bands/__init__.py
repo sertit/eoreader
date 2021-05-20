@@ -23,13 +23,13 @@ Band module containing:
 
 To use it, simply type:
 
-```python
->>> from eoreader.bands.alias import *
->>> GREEN
-<OpticalBandNames.GREEN: 'GREEN'>
->>> HH
-<SarBandNames.HH: 'HH'>
->>> NDVI
-<function NDVI at 0x00000261F6FFA950>
-```
+.. code-block:: python
+
+    >>> from eoreader.bands.alias import *
+    >>> GREEN
+    <OpticalBandNames.GREEN: 'GREEN'>
+    >>> HH
+    <SarBandNames.HH: 'HH'>
+    >>> NDVI
+    <function NDVI at 0x00000261F6FFA950>
 """

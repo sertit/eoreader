@@ -151,15 +151,15 @@ class S1Product(SarProduct):
         Get the WGS84 extent of the file before any reprojection.
         This is useful when the SAR pre-process has not been done yet.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.wgs84_extent()
-                               Name  ...                                           geometry
-        0  Sentinel-1 Image Overlay  ...  POLYGON ((0.85336 42.24660, -2.32032 42.65493,...
-        [1 rows x 12 columns]
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.wgs84_extent()
+                                   Name  ...                                           geometry
+            0  Sentinel-1 Image Overlay  ...  POLYGON ((0.85336 42.24660, -2.32032 42.65493,...
+            [1 rows x 12 columns]
 
         Returns:
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
@@ -248,15 +248,15 @@ class S1Product(SarProduct):
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_datetime(as_datetime=True)
-        datetime.datetime(2019, 12, 15, 6, 9, 6)
-        >>> prod.get_datetime(as_datetime=False)
-        '20191215T060906'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_datetime(as_datetime=True)
+            datetime.datetime(2019, 12, 15, 6, 9, 6)
+            >>> prod.get_datetime(as_datetime=False)
+            '20191215T060906'
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -275,13 +275,13 @@ class S1Product(SarProduct):
         """
         Read metadata and outputs the metadata XML root and its namespace
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.read_mtd()
-        (<Element product at 0x1832895d788>, '')
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.read_mtd()
+            (<Element product at 0x1832895d788>, '')
 
         Returns:
             (etree._Element, str): Metadata XML root and its namespace

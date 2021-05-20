@@ -213,12 +213,12 @@ class Reader:
         """
         Open the product.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> Reader().open(path)
-        <eoreader.products.optical.s2_product.S2Product object at 0x000001984986FAC8>
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> Reader().open(path)
+            <eoreader.products.optical.s2_product.S2Product object at 0x000001984986FAC8>
 
         Args:
             product_path (str): Product path
@@ -268,27 +268,28 @@ class Reader:
         """
         Check if the product's name is valid for the given satellite
 
-        ```python
-        >>> from eoreader.reader import Reader, Platform
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> With IDs
-        >>> Reader().valid_name(path, "S1")
-        False
-        >>> Reader().valid_name(path, "S2")
-        True
 
-        >>> # With names
-        >>> Reader().valid_name(path, "Sentinel-1")
-        False
-        >>> Reader().valid_name(path, "Sentinel-2")
-        True
+        .. code-block:: python
 
-        >>> # With Platform
-        >>> Reader().valid_name(path, Platform.S1)
-        False
-        >>> Reader().valid_name(path, Platform.S2)
-        True
-        ```
+            >>> from eoreader.reader import Reader, Platform
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> With IDs
+            >>> Reader().valid_name(path, "S1")
+            False
+            >>> Reader().valid_name(path, "S2")
+            True
+
+            >>> # With names
+            >>> Reader().valid_name(path, "Sentinel-1")
+            False
+            >>> Reader().valid_name(path, "Sentinel-2")
+            True
+
+            >>> # With Platform
+            >>> Reader().valid_name(path, Platform.S1)
+            False
+            >>> Reader().valid_name(path, Platform.S2)
+            True
 
         Args:
             product_path (str): Product path
@@ -306,27 +307,27 @@ class Reader:
         """
         Check if the product's mtd is in the product folder/archive
 
-        ```python
-        >>> from eoreader.reader import Reader, Platform
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> With IDs
-        >>> Reader().valid_mtd(path, "S1")
-        False
-        >>> Reader().valid_mtd(path, "S2")
-        True
+        .. code-block:: python
 
-        >>> # With names
-        >>> Reader().valid_mtd(path, "Sentinel-1")
-        False
-        >>> Reader().valid_mtd(path, "Sentinel-2")
-        True
+            >>> from eoreader.reader import Reader, Platform
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> With IDs
+            >>> Reader().valid_mtd(path, "S1")
+            False
+            >>> Reader().valid_mtd(path, "S2")
+            True
 
-        >>> # With Platform
-        >>> Reader().valid_mtd(path, Platform.S1)
-        False
-        >>> Reader().valid_mtd(path, Platform.S2)
-        True
-        ```
+            >>> # With names
+            >>> Reader().valid_mtd(path, "Sentinel-1")
+            False
+            >>> Reader().valid_mtd(path, "Sentinel-2")
+            True
+
+            >>> # With Platform
+            >>> Reader().valid_mtd(path, Platform.S1)
+            False
+            >>> Reader().valid_mtd(path, Platform.S2)
+            True
 
         Args:
             product_path (str): Product path

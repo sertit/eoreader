@@ -14,16 +14,16 @@ and [SAR](https://sertit.github.io/eoreader/eoreader#implemented-sar-satellites)
 
 ||**Optical** | **SAR**|
 |--- | --- | ---|
-|Sensors|+ Sentinel-2 & Theia<br>+ Sentinel-3 OLCI & SLSTR<br>+ Landsats 1 - 8| + Sentinel-1<br>+ COSMO-Skymed<br>+ TerraSAR-X<br>+ RADARSAT-2|
+|**Sensors**|+ Sentinel-2 & Theia<br>+ Sentinel-3 OLCI & SLSTR<br>+ Landsats 1 - 8| + Sentinel-1<br>+ COSMO-Skymed<br>+ TerraSAR-X<br>+ RADARSAT-2|
 
 It also implements additional **sensor-agnostic** features:
 
-- `eoreader.products.product.Product.load`: Load many band types:
+- {meth}`~eoreader.products.product.Product.load`: Load many band types:
     - satellite bands ([optical](https://sertit.github.io/eoreader/eoreader#band-mapping) or [SAR](https://sertit.github.io/eoreader/eoreader#sar-bands))
     - [index](https://sertit.github.io/eoreader/eoreader#available-index)
     - [cloud bands](https://sertit.github.io/eoreader/eoreader#cloud-bands)
     - [DEM bands](https://sertit.github.io/eoreader/eoreader#dem-bands)
-- `eoreader.products.product.Product.stack`: Stack all these type of bands
+- {meth}`~eoreader.products.product.Product.stack`: Stack all these type of bands
 
 EOReader works with [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray)
 and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_structures.html#geodataframe)
@@ -87,7 +87,7 @@ For SAR data:
 ```
 
 Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.
-Ensure that you have the folder containing your `gpt.exe` in your `PATH`.
+Ensure that you have the folder containing your `gpt` executable in your `PATH`.
 
 ## Documentation
 The API documentation can be found [here](https://sertit.github.io/eoreader/eoreader/).

@@ -110,14 +110,14 @@ class S2TheiaProduct(OpticalProduct):
             As Landsat 7 is broken (with nodata stripes all over the bands),
             the footprint is not easily computed and may take some time to be delivered.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
-        >>> prod = Reader().open(path)
-        >>> prod.footprint()
-           index                                           geometry
-        0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint()
+               index                                           geometry
+            0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
         Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
         Indeed, nodata pixels vary according to the band sensor footprint,
@@ -145,15 +145,15 @@ class S2TheiaProduct(OpticalProduct):
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
-        >>> prod = Reader().open(path)
-        >>> prod.get_datetime(as_datetime=True)
-        datetime.datetime(2019, 6, 25, 10, 57, 28, 756000), fetched from metadata, so we have the ms
-        >>> prod.get_datetime(as_datetime=False)
-        '20190625T105728'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+            >>> prod = Reader().open(path)
+            >>> prod.get_datetime(as_datetime=True)
+            datetime.datetime(2019, 6, 25, 10, 57, 28, 756000), fetched from metadata, so we have the ms
+            >>> prod.get_datetime(as_datetime=False)
+            '20190625T105728'
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -173,17 +173,17 @@ class S2TheiaProduct(OpticalProduct):
         """
         Return the paths of required bands.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
-        >>> prod = Reader().open(path)
-        >>> prod.get_band_paths([GREEN, RED])
-        {
-            <OpticalBandNames.GREEN: 'GREEN'>: 'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2\\SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B3.tif',
-            <OpticalBandNames.RED: 'RED'>: 'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2\\SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B4.tif'
-        }
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+            >>> prod = Reader().open(path)
+            >>> prod.get_band_paths([GREEN, RED])
+            {
+                <OpticalBandNames.GREEN: 'GREEN'>: 'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2\\SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B3.tif',
+                <OpticalBandNames.RED: 'RED'>: 'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2\\SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B4.tif'
+            }
 
         Args:
             band_list (list): List of the wanted bands
@@ -357,15 +357,14 @@ class S2TheiaProduct(OpticalProduct):
         - `MG2`: Geophysical mask (classification)
         - `IAB`: Mask where water vapor and TOA pixels have been interpolated
 
+        .. code-block:: python
 
-        ```python
-        >>> from eoreader.bands.alias import *
-        >>> from eoreader.reader import Reader
-        >>> path = r"SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.open_mask("EDG", GREEN)
-        array([[[0, ..., 0]]], dtype=uint8)
-        ```
+            >>> from eoreader.bands.alias import *
+            >>> from eoreader.reader import Reader
+            >>> path = r"SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.open_mask("EDG", GREEN)
+            array([[[0, ..., 0]]], dtype=uint8)
 
         Args:
             mask_id: Mask ID
@@ -456,13 +455,13 @@ class S2TheiaProduct(OpticalProduct):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
-        >>> prod = Reader().open(path)
-        >>> prod.get_mean_sun_angles()
-        (154.554755774838, 27.5941391571236)
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_sun_angles()
+            (154.554755774838, 27.5941391571236)
 
         Returns:
             (float, float): Mean Azimuth and Zenith angle
@@ -494,13 +493,13 @@ class S2TheiaProduct(OpticalProduct):
         """
         Read metadata and outputs the metadata XML root and its namespace
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.read_mtd()
-        (<Element Muscate_Metadata_Document at 0x252d2071e88>, '')
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.read_mtd()
+            (<Element Muscate_Metadata_Document at 0x252d2071e88>, '')
 
         Returns:
             (etree._Element, str): Metadata XML root and its namespace
