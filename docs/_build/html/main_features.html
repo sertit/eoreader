@@ -1,0 +1,1060 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Main features</title>
+    
+  <link href="_static/css/theme.css" rel="stylesheet" />
+  <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinx-book-theme.acff12b8f9c144ce68a297486a2fa670.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+    
+  <link rel="preload" as="script" href="_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script src="_static/togglebutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Optical data" href="optical.html" />
+    <link rel="prev" title="EOReader" href="index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="index.html">
+      
+      <img src="_static/eoreader.png" class="logo" alt="logo">
+      
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <div class="bd-toc-item active">
+        <p class="caption">
+ <span class="caption-text">
+  For Users
+ </span>
+</p>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Main features
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="optical.html">
+   Optical data
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="sar.html">
+   SAR data
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="notebooks/base.html">
+   Basic example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="notebooks/water_detection.html">
+   Water detection
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="_autosummary/eoreader.html">
+   eoreader
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="_autosummary/eoreader.bands.html">
+     eoreader.bands
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="_autosummary/eoreader.bands.alias.html">
+       eoreader.bands.alias
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+      <label for="toctree-checkbox-3">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.alias.is_band.html">
+         eoreader.bands.alias.is_band
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.alias.is_clouds.html">
+         eoreader.bands.alias.is_clouds
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.alias.is_dem.html">
+         eoreader.bands.alias.is_dem
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.alias.is_index.html">
+         eoreader.bands.alias.is_index
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.alias.is_optical_band.html">
+         eoreader.bands.alias.is_optical_band
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.alias.is_sar_band.html">
+         eoreader.bands.alias.is_sar_band
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.alias.to_band.html">
+         eoreader.bands.alias.to_band
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.alias.to_str.html">
+         eoreader.bands.alias.to_str
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="_autosummary/eoreader.bands.bands.html">
+       eoreader.bands.bands
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+      <label for="toctree-checkbox-4">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.bands.BandNames.html">
+         eoreader.bands.bands.BandNames
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.bands.CloudsBandNames.html">
+         eoreader.bands.bands.CloudsBandNames
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.bands.CloudsBands.html">
+         eoreader.bands.bands.CloudsBands
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.bands.DemBandNames.html">
+         eoreader.bands.bands.DemBandNames
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.bands.DemBands.html">
+         eoreader.bands.bands.DemBands
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.bands.OpticalBandNames.html">
+         eoreader.bands.bands.OpticalBandNames
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.bands.OpticalBands.html">
+         eoreader.bands.bands.OpticalBands
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.bands.SarBandNames.html">
+         eoreader.bands.bands.SarBandNames
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.bands.SarBands.html">
+         eoreader.bands.bands.SarBands
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="_autosummary/eoreader.bands.index.html">
+       eoreader.bands.index
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+      <label for="toctree-checkbox-5">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.AFRI_1_6.html">
+         eoreader.bands.index.AFRI_1_6
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.AFRI_2_1.html">
+         eoreader.bands.index.AFRI_2_1
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.AWEInsh.html">
+         eoreader.bands.index.AWEInsh
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.AWEIsh.html">
+         eoreader.bands.index.AWEIsh
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.BAI.html">
+         eoreader.bands.index.BAI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.BSI.html">
+         eoreader.bands.index.BSI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.CIG.html">
+         eoreader.bands.index.CIG
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.DSWI.html">
+         eoreader.bands.index.DSWI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.GLI.html">
+         eoreader.bands.index.GLI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.GNDVI.html">
+         eoreader.bands.index.GNDVI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.MNDWI.html">
+         eoreader.bands.index.MNDWI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.NBR.html">
+         eoreader.bands.index.NBR
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.NDGRI.html">
+         eoreader.bands.index.NDGRI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.NDMI.html">
+         eoreader.bands.index.NDMI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.NDRE2.html">
+         eoreader.bands.index.NDRE2
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.NDRE3.html">
+         eoreader.bands.index.NDRE3
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.NDVI.html">
+         eoreader.bands.index.NDVI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.NDWI.html">
+         eoreader.bands.index.NDWI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.RDI.html">
+         eoreader.bands.index.RDI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.RGI.html">
+         eoreader.bands.index.RGI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.RI.html">
+         eoreader.bands.index.RI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.SRSWIR.html">
+         eoreader.bands.index.SRSWIR
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.TCBRI.html">
+         eoreader.bands.index.TCBRI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.TCGRE.html">
+         eoreader.bands.index.TCGRE
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.TCWET.html">
+         eoreader.bands.index.TCWET
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.WI.html">
+         eoreader.bands.index.WI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.get_all_index.html">
+         eoreader.bands.index.get_all_index
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.get_all_index_names.html">
+         eoreader.bands.index.get_all_index_names
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.get_all_needed_bands.html">
+         eoreader.bands.index.get_all_needed_bands
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.bands.index.get_needed_bands.html">
+         eoreader.bands.index.get_needed_bands
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="_autosummary/eoreader.data.html">
+     eoreader.data
+    </a>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="_autosummary/eoreader.env_vars.html">
+     eoreader.env_vars
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
+    <label for="toctree-checkbox-6">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.env_vars.PP_GRAPH.html">
+       eoreader.env_vars.PP_GRAPH
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.env_vars.DSPK_GRAPH.html">
+       eoreader.env_vars.DSPK_GRAPH
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.env_vars.SAR_DEF_RES.html">
+       eoreader.env_vars.SAR_DEF_RES
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.env_vars.S3_DEF_RES.html">
+       eoreader.env_vars.S3_DEF_RES
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.env_vars.DEM_PATH.html">
+       eoreader.env_vars.DEM_PATH
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.env_vars.CI_EOREADER_BAND_FOLDER.html">
+       eoreader.env_vars.CI_EOREADER_BAND_FOLDER
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="_autosummary/eoreader.exceptions.html">
+     eoreader.exceptions
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/>
+    <label for="toctree-checkbox-7">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.exceptions.EoReaderError.html">
+       eoreader.exceptions.EoReaderError
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.exceptions.InvalidBandError.html">
+       eoreader.exceptions.InvalidBandError
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.exceptions.InvalidIndexError.html">
+       eoreader.exceptions.InvalidIndexError
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.exceptions.InvalidProductError.html">
+       eoreader.exceptions.InvalidProductError
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.exceptions.InvalidTypeError.html">
+       eoreader.exceptions.InvalidTypeError
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="_autosummary/eoreader.products.html">
+     eoreader.products
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/>
+    <label for="toctree-checkbox-8">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="_autosummary/eoreader.products.optical.html">
+       eoreader.products.optical
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
+      <label for="toctree-checkbox-9">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.optical.l1_product.html">
+         eoreader.products.optical.l1_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.optical.l2_product.html">
+         eoreader.products.optical.l2_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.optical.l3_product.html">
+         eoreader.products.optical.l3_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.optical.l4_product.html">
+         eoreader.products.optical.l4_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.optical.l5_product.html">
+         eoreader.products.optical.l5_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.optical.l7_product.html">
+         eoreader.products.optical.l7_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.optical.l8_product.html">
+         eoreader.products.optical.l8_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.optical.landsat_product.html">
+         eoreader.products.optical.landsat_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.optical.optical_product.html">
+         eoreader.products.optical.optical_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.optical.s2_product.html">
+         eoreader.products.optical.s2_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.optical.s2_theia_product.html">
+         eoreader.products.optical.s2_theia_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.optical.s3_product.html">
+         eoreader.products.optical.s3_product
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="_autosummary/eoreader.products.product.html">
+       eoreader.products.product
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
+      <label for="toctree-checkbox-10">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.product.path_or_dst.html">
+         eoreader.products.product.path_or_dst
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.product.Product.html">
+         eoreader.products.product.Product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.product.SensorType.html">
+         eoreader.products.product.SensorType
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="_autosummary/eoreader.products.sar.html">
+       eoreader.products.sar
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
+      <label for="toctree-checkbox-11">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.sar.csk_product.html">
+         eoreader.products.sar.csk_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.sar.rs2_product.html">
+         eoreader.products.sar.rs2_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.sar.s1_product.html">
+         eoreader.products.sar.s1_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.sar.sar_product.html">
+         eoreader.products.sar.sar_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="_autosummary/eoreader.products.sar.tsx_product.html">
+         eoreader.products.sar.tsx_product
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="_autosummary/eoreader.reader.html">
+     eoreader.reader
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/>
+    <label for="toctree-checkbox-12">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.reader.MTD_REGEX.html">
+       eoreader.reader.MTD_REGEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.reader.CheckMethod.html">
+       eoreader.reader.CheckMethod
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.reader.Platform.html">
+       eoreader.reader.Platform
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.reader.Reader.html">
+       eoreader.reader.Reader
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="_autosummary/eoreader.utils.html">
+     eoreader.utils
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/>
+    <label for="toctree-checkbox-13">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.utils.get_data_dir.html">
+       eoreader.utils.get_data_dir
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.utils.get_root_dir.html">
+       eoreader.utils.get_root_dir
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="_autosummary/eoreader.utils.get_src_dir.html">
+       eoreader.utils.get_src_dir
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="_sources/main_features.md.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.md</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/sertit/eoreader"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/sertit/eoreader/issues/new?title=Issue%20on%20page%20%2Fmain_features.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/sertit/eoreader/edit/master/docs/main_features.md"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+            <div class="tocsection onthispage pt-5 pb-3">
+                <i class="fas fa-list"></i> Contents
+            </div>
+            <nav id="bd-toc-nav">
+                <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#read">
+   Read
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#load">
+   Load
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#stack">
+   Stack
+  </a>
+ </li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="main-features">
+<h1>Main features<a class="headerlink" href="#main-features" title="Permalink to this headline">¶</a></h1>
+<p>These features can be seen in the <span class="xref myst">basic tutorial</span>.</p>
+<div class="section" id="read">
+<h2>Read<a class="headerlink" href="#read" title="Permalink to this headline">¶</a></h2>
+<p>The reader singleton is your unique entry.
+It will create for you the product object corresponding to your satellite data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reader</span> <span class="kn">import</span> <span class="n">Reader</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Path to your satellite data, ie. Sentinel-2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip&#39;</span>  <span class="c1"># You can work with the archive for S2 data</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Path to your output directory (if not set, it will work in a temp directory)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create the reader singleton</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eoreader</span> <span class="o">=</span> <span class="n">Reader</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prod</span> <span class="o">=</span> <span class="n">eoreader</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: you can set the output directory after the creation, that allows you to use the product condensed name</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prod</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">prod</span><span class="o">.</span><span class="n">condensed_name</span><span class="p">)</span>  <span class="c1"># It will automatically create it if needed</span>
+</pre></div>
+</div>
+<p>From there you have access to a lot of information on your product:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Product CRS (always in UTM)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prod</span><span class="o">.</span><span class="n">crs</span>
+<span class="go">CRS.from_epsg(32630)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Full extent of the bands as a geopandas GeoDataFrame (always in UTM)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prod</span><span class="o">.</span><span class="n">extent</span><span class="p">()</span>
+<span class="go">                                            geometry</span>
+<span class="go">0   POLYGON((309780.000 4390200.000, 309780.000 4...</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Footprint: extent of the useful pixels (minus nodata) as a geopandas GeoDataFrame (always in UTM)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prod</span><span class="o">.</span><span class="n">footprint</span><span class="p">()</span>
+<span class="go">   index                                           geometry</span>
+<span class="go">0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Default resolution (20m for S2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prod</span><span class="o">.</span><span class="n">resolution</span>
+<span class="go">20.</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Acquisition date and datetime</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prod</span><span class="o">.</span><span class="n">date</span>
+<span class="go">datetime.date(2020, 8, 24)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prod</span><span class="o">.</span><span class="n">datetime</span>
+<span class="go">datetime.datetime(2020, 8, 24, 11, 6, 31)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Access the raw metadata as an lxml.etree._Element:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prod</span><span class="o">.</span><span class="n">read_mtd</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="load">
+<h2>Load<a class="headerlink" href="#load" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="_autosummary/eoreader.products.product.Product.html#eoreader.products.product.Product.load" title="eoreader.products.product.Product.load"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load</span></code></a> is the function for accessing to product-related bands.
+It can load satellite bands, index, DEM bands and cloud bands according to this workflow:
+<img alt="load_workflow" src="https://zupimages.net/up/21/14/vtnc.png" /></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">eoreader.reader</span> <span class="kn">import</span> <span class="n">Reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">eoreader.bands.alias</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s2">&quot;./output&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span> <span class="c1"># WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory</span>
+<span class="gp">&gt;&gt;&gt; </span> <span class="c1"># and you won&#39;t be able to retrieve what&#39;s has been written on disk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prod</span> <span class="o">=</span> <span class="n">Reader</span><span class="p">()</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get the wanted bands and check if the product can produce them</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">band_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">GREEN</span><span class="p">,</span> <span class="n">NDVI</span><span class="p">,</span> <span class="n">TIR_1</span><span class="p">,</span> <span class="n">SHADOWS</span><span class="p">,</span> <span class="n">HILLSHADE</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ok_bands</span> <span class="o">=</span> <span class="p">[</span><span class="n">band</span> <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">band_list</span> <span class="k">if</span> <span class="n">prod</span><span class="o">.</span><span class="n">has_band</span><span class="p">(</span><span class="n">band</span><span class="p">)]</span>
+<span class="go">[GREEN, NDVI, HILLSHADE]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Load bands</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bands</span> <span class="o">=</span> <span class="n">prod</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ok_bands</span><span class="p">)</span>  <span class="c1"># resolution not specified -&gt; load at default resolution (20.0 m for S2 data)</span>
+<span class="go">&gt;&gt; &gt;  # NOTE: every array that comes out `load` are collocated, which isn&#39;t the case if you load arrays separately</span>
+<span class="go">&gt;&gt; &gt;  # (important for DEM data as they may have different grids)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bands</span>
+<span class="go">{&lt;function NDVI at 0x000001C47FF05E18&gt;: &lt;xarray.DataArray &#39;NDVI&#39; (band: 1, y: 5490, x: 5490)&gt;</span>
+<span class="go">array([[[0.94786006, 0.92717856, 0.92240528, ..., 1.73572724,</span>
+<span class="go">         1.55314477, 1.63242706],</span>
+<span class="go">        [1.04147187, 0.93668633, 0.91499688, ..., 1.59941784,</span>
+<span class="go">         1.52895995, 1.51386761],</span>
+<span class="go">        [2.86996677, 1.69360304, 1.2413562 , ..., 1.61172353,</span>
+<span class="go">         1.55742907, 1.50568275],</span>
+<span class="go">        ...,</span>
+<span class="go">        [1.45807257, 1.61071344, 1.64620751, ..., 1.25498441,</span>
+<span class="go">         1.42998927, 1.70447076],</span>
+<span class="go">        [1.57802352, 1.77086658, 1.69901482, ..., 1.19999853,</span>
+<span class="go">         1.27813254, 1.52287237],</span>
+<span class="go">        [1.63569594, 1.66751277, 1.63474646, ..., 1.27617084,</span>
+<span class="go">         1.22456033, 1.27022877]]])</span>
+<span class="go">Coordinates:</span>
+<span class="go">  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05</span>
+<span class="go">  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06</span>
+<span class="go">  * band         (band) int32 1</span>
+<span class="go">    spatial_ref  int32 0,</span>
+<span class="go">&lt;OpticalBandNames.GREEN: &#39;GREEN&#39;&gt;: &lt;xarray.DataArray &#39;T30TTK_20200824T110631_B03&#39; (band: 1, y: 5490, x: 5490)&gt;</span>
+<span class="go">array([[[0.06146327, 0.06141786, 0.06100179, ..., 0.11880179,</span>
+<span class="go">         0.12087143, 0.11468571],</span>
+<span class="go">        [0.06123214, 0.06071094, 0.06029063, ..., 0.11465781,</span>
+<span class="go">         0.11858906, 0.11703929],</span>
+<span class="go">        [0.06494643, 0.06226562, 0.06169219, ..., 0.11174062,</span>
+<span class="go">         0.11434844, 0.11491964],</span>
+<span class="go">        ...,</span>
+<span class="go">        [0.1478125 , 0.13953906, 0.13751719, ..., 0.15949688,</span>
+<span class="go">         0.14200781, 0.12982321],</span>
+<span class="go">        [0.14091429, 0.12959531, 0.13144844, ..., 0.17246719,</span>
+<span class="go">         0.156175  , 0.13453036],</span>
+<span class="go">        [0.13521429, 0.13274286, 0.13084821, ..., 0.16064821,</span>
+<span class="go">         0.16847143, 0.16009592]]])</span>
+<span class="go">Coordinates:</span>
+<span class="go">  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05</span>
+<span class="go">  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06</span>
+<span class="go">  * band         (band) int32 1</span>
+<span class="go">    spatial_ref  int32 0,</span>
+<span class="go">&lt;DemBandNames.HILLSHADE: &#39;HILLSHADE&#39;&gt;: &lt;xarray.DataArray &#39;20200824T110631_S2_T30TTK_L1C_150432_HILLSHADE&#39; (band: 1, y: 5490, x: 5490)&gt;</span>
+<span class="go">array([[[220., 221., 221., ..., 210., 210., 210.],</span>
+<span class="go">        [222., 222., 221., ..., 210., 210., 210.],</span>
+<span class="go">        [221., 221., 220., ..., 210., 210., 210.],</span>
+<span class="go">        ...,</span>
+<span class="go">        [215., 214., 212., ..., 207., 207., 207.],</span>
+<span class="go">        [214., 212., 211., ..., 206., 205., 205.],</span>
+<span class="go">        [213., 211., 209., ..., 205., 204., 205.]]])</span>
+<span class="go">Coordinates:</span>
+<span class="go">  * band         (band) int32 1</span>
+<span class="go">  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06</span>
+<span class="go">  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05</span>
+<span class="go">    spatial_ref  int32 0</span>
+<span class="go">Attributes:</span>
+<span class="go">    grid_mapping:    spatial_ref</span>
+<span class="go">    original_dtype:  uint8}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Index and bands are opened as <a class="reference external" href="http://xarray.pydata.org/en/stable/"><code class="docutils literal notranslate"><span class="pre">xarrays</span></code></a>
+with <a class="reference external" href="https://corteva.github.io/rioxarray/stable/"><code class="docutils literal notranslate"><span class="pre">rioxarray</span></code></a>, in <code class="docutils literal notranslate"><span class="pre">float</span></code> with the nodata set to <code class="docutils literal notranslate"><span class="pre">np.nan</span></code>.
+The nodata written back on disk is by convention:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-9999</span></code> for optical bands (saved in <code class="docutils literal notranslate"><span class="pre">float32</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">65535</span></code> for optical bands (saved in <code class="docutils literal notranslate"><span class="pre">uint16</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code> for SAR bands (saved in <code class="docutils literal notranslate"><span class="pre">float32</span></code>), to be compliant with SNAP default nodata</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">255</span></code> for masks (saved in <code class="docutils literal notranslate"><span class="pre">uint8</span></code>)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="stack">
+<h2>Stack<a class="headerlink" href="#stack" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="_autosummary/eoreader.products.product.Product.html#eoreader.products.product.Product.stack" title="eoreader.products.product.Product.stack"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stack</span></code></a> is the function stacking all possible bands.
+It is based on the load function and then just stacks the bands and write it on disk if needed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a stack with the previous OK bands</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span> <span class="o">=</span> <span class="n">prod</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">ok_bands</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="mf">300.</span><span class="p">,</span> <span class="n">stack_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prod</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="s2">&quot;stack.tif&quot;</span><span class="p">)</span>
+<span class="go">&lt;xarray.DataArray &#39;NDVI_GREEN_HILLSHADE&#39; (z: 3, y: 5490, x: 5490)&gt;</span>
+<span class="go">array([[[9.47860062e-01, 9.27178562e-01, 9.22405303e-01, ...,</span>
+<span class="go">         1.73572719e+00, 1.55314481e+00, 1.63242710e+00],</span>
+<span class="go">        [1.04147184e+00, 9.36686337e-01, 9.14996862e-01, ...,</span>
+<span class="go">         1.59941781e+00, 1.52895999e+00, 1.51386762e+00],</span>
+<span class="go">        [2.86996675e+00, 1.69360304e+00, 1.24135625e+00, ...,</span>
+<span class="go">         1.61172354e+00, 1.55742908e+00, 1.50568271e+00],</span>
+<span class="go">        ...,</span>
+<span class="go">        [1.45807254e+00, 1.61071348e+00, 1.64620745e+00, ...,</span>
+<span class="go">         1.25498438e+00, 1.42998922e+00, 1.70447075e+00],</span>
+<span class="go">        [1.57802355e+00, 1.77086663e+00, 1.69901478e+00, ...,</span>
+<span class="go">         1.19999850e+00, 1.27813256e+00, 1.52287233e+00],</span>
+<span class="go">        [1.63569593e+00, 1.66751277e+00, 1.63474643e+00, ...,</span>
+<span class="go">         1.27617085e+00, 1.22456038e+00, 1.27022874e+00]],</span>
+<span class="go">       [[6.14632666e-02, 6.14178553e-02, 6.10017851e-02, ...,</span>
+<span class="go">         1.18801787e-01, 1.20871432e-01, 1.14685714e-01],</span>
+<span class="go">        [6.12321422e-02, 6.07109368e-02, 6.02906235e-02, ...,</span>
+<span class="go">         1.14657812e-01, 1.18589066e-01, 1.17039286e-01],</span>
+<span class="go">        [6.49464279e-02, 6.22656234e-02, 6.16921857e-02, ...,</span>
+<span class="go">         1.11740626e-01, 1.14348434e-01, 1.14919640e-01],</span>
+<span class="go">        [1.47812501e-01, 1.39539063e-01, 1.37517184e-01, ...,</span>
+<span class="go">         1.59496874e-01, 1.42007813e-01, 1.29823208e-01],</span>
+<span class="go">        [1.40914291e-01, 1.29595309e-01, 1.31448433e-01, ...,</span>
+<span class="go">         1.72467187e-01, 1.56175002e-01, 1.34530351e-01],</span>
+<span class="go">        [1.35214284e-01, 1.32742852e-01, 1.30848214e-01, ...,</span>
+<span class="go">         1.60648212e-01, 1.68471426e-01, 1.60095915e-01]],</span>
+<span class="go">       [[2.20000000e+02, 2.21000000e+02, 2.21000000e+02, ...,</span>
+<span class="go">         2.10000000e+02, 2.10000000e+02, 2.10000000e+02],</span>
+<span class="go">        [2.22000000e+02, 2.22000000e+02, 2.21000000e+02, ...,</span>
+<span class="go">         2.10000000e+02, 2.10000000e+02, 2.10000000e+02],</span>
+<span class="go">        [2.21000000e+02, 2.21000000e+02, 2.20000000e+02, ...,</span>
+<span class="go">         2.10000000e+02, 2.10000000e+02, 2.10000000e+02],</span>
+<span class="go">        ...,</span>
+<span class="go">        [2.15000000e+02, 2.14000000e+02, 2.12000000e+02, ...,</span>
+<span class="go">         2.07000000e+02, 2.07000000e+02, 2.07000000e+02],</span>
+<span class="go">        [2.14000000e+02, 2.12000000e+02, 2.11000000e+02, ...,</span>
+<span class="go">         2.06000000e+02, 2.05000000e+02, 2.05000000e+02],</span>
+<span class="go">        [2.13000000e+02, 2.11000000e+02, 2.09000000e+02, ...,</span>
+<span class="go">         2.05000000e+02, 2.04000000e+02, 2.05000000e+02]]], dtype=float32)</span>
+<span class="go">Coordinates:</span>
+<span class="go">  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05</span>
+<span class="go">  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06</span>
+<span class="go">    spatial_ref  int32 0</span>
+<span class="go">  * z            (z) MultiIndex</span>
+<span class="go">  - variable     (z) object &#39;NDVI&#39; &#39;GREEN&#39; &#39;HILLSHADE&#39;</span>
+<span class="go">  - band         (z) int64 1 1 1</span>
+<span class="go">Attributes:</span>
+<span class="go">    long_name:  [&#39;NDVI&#39;, &#39;GREEN&#39;, &#39;HILLSHADE&#39;]</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+        
+        <div class='prev-next-bottom'>
+            
+    <a class='left-prev' id="prev-link" href="index.html" title="previous page"> EOReader</a>
+    <a class='right-next' id="next-link" href="optical.html" title="next page">Optical data</a>
+
+        </div>
+        
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By ICube-SERTIT<br/>
+        
+            &copy; Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/.<br/>
+          Last updated on 2021-05-20.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+  
+  <script src="_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+  
+  </body>
+</html>

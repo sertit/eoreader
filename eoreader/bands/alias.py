@@ -19,15 +19,15 @@ Aliases for bands and index, created in order to import just this file and not `
 
 To use it, simply type:
 
-```python
->>> from eoreader.bands.alias import *
->>> GREEN
-<OpticalBandNames.GREEN: 'GREEN'>
->>> HH
-<SarBandNames.HH: 'HH'>
->>> NDVI
-<function NDVI at 0x00000261F6FFA950>
-```
+.. code-block:: python
+
+    >>> from eoreader.bands.alias import *
+    >>> GREEN
+    <OpticalBandNames.GREEN: 'GREEN'>
+    >>> HH
+    <SarBandNames.HH: 'HH'>
+    >>> NDVI
+    <function NDVI at 0x00000261F6FFA950>
 """
 # Module name begins with _ to not be imported with *
 import typing as _tp
@@ -114,19 +114,19 @@ def is_clouds(classif: _tp.Any) -> bool:
     """
     Returns True if we have a Clouds-related keyword
 
-    ```python
-    >>> from eoreader.bands.alias import *
-    >>> is_clouds(NDVI)
-    False
-    >>> is_clouds(HH)
-    False
-    >>> is_clouds(GREEN)
-    False
-    >>> is_clouds(SLOPE)
-    False
-    >>> is_clouds(CLOUDS)
-    True
-    ```
+    .. code-block:: python
+
+        >>> from eoreader.bands.alias import *
+        >>> is_clouds(NDVI)
+        False
+        >>> is_clouds(HH)
+        False
+        >>> is_clouds(GREEN)
+        False
+        >>> is_clouds(SLOPE)
+        False
+        >>> is_clouds(CLOUDS)
+        True
     """
     try:
         is_valid = classif in _clouds
@@ -139,19 +139,19 @@ def is_dem(dem: _tp.Any) -> bool:
     """
     Returns True if we have a DEM-related keyword
 
-    ```python
-    >>> from eoreader.bands.alias import *
-    >>> is_dem(NDVI)
-    False
-    >>> is_dem(HH)
-    False
-    >>> is_dem(GREEN)
-    False
-    >>> is_dem(SLOPE)
-    True
-    >>> is_dem(CLOUDS)
-    False
-    ```
+    .. code-block:: python
+
+        >>> from eoreader.bands.alias import *
+        >>> is_dem(NDVI)
+        False
+        >>> is_dem(HH)
+        False
+        >>> is_dem(GREEN)
+        False
+        >>> is_dem(SLOPE)
+        True
+        >>> is_dem(CLOUDS)
+        False
     """
     try:
         is_valid = dem in _dem
@@ -164,19 +164,19 @@ def is_index(idx: _tp.Any) -> bool:
     """
     Returns True if is an index function from the `bands.index` module
 
-    ```python
-    >>> from eoreader.bands.alias import *
-    >>> is_index(NDVI)
-    True
-    >>> is_index(HH)
-    False
-    >>> is_index(GREEN)
-    False
-    >>> is_index(SLOPE)
-    False
-    >>> is_index(CLOUDS)
-    False
-    ```
+    .. code-block:: python
+
+        >>> from eoreader.bands.alias import *
+        >>> is_index(NDVI)
+        True
+        >>> is_index(HH)
+        False
+        >>> is_index(GREEN)
+        False
+        >>> is_index(SLOPE)
+        False
+        >>> is_index(CLOUDS)
+        False
 
     Args:
         idx (Any): Anything that could be an index
@@ -192,19 +192,19 @@ def is_optical_band(band: _tp.Any) -> bool:
     """
     Returns True if is an optical band (from `OpticalBandNames`)
 
-    ```python
-    >>> from eoreader.bands.alias import *
-    >>> is_optical_band(NDVI)
-    False
-    >>> is_optical_band(HH)
-    False
-    >>> is_optical_band(GREEN)
-    True
-    >>> is_optical_band(SLOPE)
-    False
-    >>> is_optical_band(CLOUDS)
-    False
-    ```
+    .. code-block:: python
+
+        >>> from eoreader.bands.alias import *
+        >>> is_optical_band(NDVI)
+        False
+        >>> is_optical_band(HH)
+        False
+        >>> is_optical_band(GREEN)
+        True
+        >>> is_optical_band(SLOPE)
+        False
+        >>> is_optical_band(CLOUDS)
+        False
 
     Args:
         band (Any): Anything that could be an optical band
@@ -224,19 +224,19 @@ def is_sar_band(band: _tp.Any) -> bool:
     """
     Returns True if is a SAR band (from `SarBandNames`)
 
-    ```python
-    >>> from eoreader.bands.alias import *
-    >>> is_sar_band(NDVI)
-    False
-    >>> is_sar_band(HH)
-    True
-    >>> is_sar_band(GREEN)
-    False
-    >>> is_sar_band(SLOPE)
-    False
-    >>> is_sar_band(CLOUDS)
-    False
-    ```
+    .. code-block:: python
+
+        >>> from eoreader.bands.alias import *
+        >>> is_sar_band(NDVI)
+        False
+        >>> is_sar_band(HH)
+        True
+        >>> is_sar_band(GREEN)
+        False
+        >>> is_sar_band(SLOPE)
+        False
+        >>> is_sar_band(CLOUDS)
+        False
 
     Args:
         band (Any): Anything that could be a SAR band
@@ -256,19 +256,19 @@ def is_band(band: _tp.Any) -> bool:
     """
     Returns True if is a band (from both `SarBandNames` or `OpticalBandNames`)
 
-    ```python
-    >>> from eoreader.bands.alias import *
-    >>> is_band(NDVI)
-    False
-    >>> is_band(HH)
-    True
-    >>> is_band(GREEN)
-    True
-    >>> is_band(SLOPE)
-    False
-    >>> is_band(CLOUDS)
-    False
-    ```
+    .. code-block:: python
+
+        >>> from eoreader.bands.alias import *
+        >>> is_band(NDVI)
+        False
+        >>> is_band(HH)
+        True
+        >>> is_band(GREEN)
+        True
+        >>> is_band(SLOPE)
+        False
+        >>> is_band(CLOUDS)
+        False
 
     Args:
         band (Any): Anything that could be a band
@@ -286,17 +286,18 @@ def to_band(to_convert: list) -> list:
 
     You can pass the name or the value of the bands.
 
-    ```python
-    >>> to_band(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
-    [<function NDVI at 0x00000154DDB12488>,
-    <OpticalBandNames.GREEN: 'GREEN'>,
-    <OpticalBandNames.RED: 'RED'>,
-    <SarBandNames.VH_DSPK: 'VH_DSPK'>,
-    <DemBandNames.SLOPE: 'SLOPE'>,
-    <DemBandNames.DEM: 'DEM'>,
-    <ClassifBandNames.CLOUDS: 'CLOUDS'>,
-    <ClassifBandNames.CLOUDS: 'CLOUDS'>]
-    ```
+    .. code-block:: python
+
+        >>> to_band(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
+        [<function NDVI at 0x00000154DDB12488>,
+        <OpticalBandNames.GREEN: 'GREEN'>,
+        <OpticalBandNames.RED: 'RED'>,
+        <SarBandNames.VH_DSPK: 'VH_DSPK'>,
+        <DemBandNames.SLOPE: 'SLOPE'>,
+        <DemBandNames.DEM: 'DEM'>,
+        <ClassifBandNames.CLOUDS: 'CLOUDS'>,
+        <ClassifBandNames.CLOUDS: 'CLOUDS'>]
+
     Args:
         to_convert (list): Values to convert into band objects
 
@@ -348,10 +349,11 @@ def to_str(to_convert: list) -> list:
 
     You can pass the name or the value of the bands.
 
-    ```python
-    >>> to_str(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
-    ['NDVI', 'GREEN', 'RED', 'VH_DSPK', 'SLOPE', 'DEM', 'CLOUDS', 'CLOUDS']
-    ```
+    .. code-block:: python
+
+        >>> to_str(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
+        ['NDVI', 'GREEN', 'RED', 'VH_DSPK', 'SLOPE', 'DEM', 'CLOUDS', 'CLOUDS']
+
     Args:
         to_convert (list): Values to convert into str
 

@@ -64,13 +64,13 @@ class OpticalProduct(Product):
         """
         Get default band: `GREEN` for optical data as every optical satellite has a GREEN band.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_default_band()
-        <OpticalBandNames.GREEN: 'GREEN'>
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_default_band()
+            <OpticalBandNames.GREEN: 'GREEN'>
 
         Returns:
             str: Default band
@@ -81,13 +81,13 @@ class OpticalProduct(Product):
         """
         Get default band (`GREEN` for optical data) path.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_default_band_path()
-        'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_default_band_path()
+            'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'
 
         Returns:
             str: Default band path
@@ -99,13 +99,13 @@ class OpticalProduct(Product):
         """
         Get UTM projection of the tile
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.utm_crs()
-        CRS.from_epsg(32630)
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.utm_crs()
+            CRS.from_epsg(32630)
 
         Returns:
             rasterio.crs.CRS: CRS object
@@ -120,14 +120,14 @@ class OpticalProduct(Product):
         """
         Get UTM extent of the tile
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.utm_extent()
-                                                    geometry
-        0  POLYGON ((309780.000 4390200.000, 309780.000 4...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.utm_extent()
+                                                        geometry
+            0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
@@ -139,25 +139,25 @@ class OpticalProduct(Product):
         """
         Return the existing band paths.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_existing_bands()
-        [<OpticalBandNames.CA: 'COASTAL_AEROSOL'>,
-        <OpticalBandNames.BLUE: 'BLUE'>,
-        <OpticalBandNames.GREEN: 'GREEN'>,
-        <OpticalBandNames.RED: 'RED'>,
-        <OpticalBandNames.VRE_1: 'VEGETATION_RED_EDGE_1'>,
-        <OpticalBandNames.VRE_2: 'VEGETATION_RED_EDGE_2'>,
-        <OpticalBandNames.VRE_3: 'VEGETATION_RED_EDGE_3'>,
-        <OpticalBandNames.NIR: 'NIR'>,
-        <OpticalBandNames.NNIR: 'NARROW_NIR'>,
-        <OpticalBandNames.WV: 'WATER_VAPOUR'>,
-        <OpticalBandNames.CIRRUS: 'CIRRUS'>,
-        <OpticalBandNames.SWIR_1: 'SWIR_1'>,
-        <OpticalBandNames.SWIR_2: 'SWIR_2'>]
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_existing_bands()
+            [<OpticalBandNames.CA: 'COASTAL_AEROSOL'>,
+            <OpticalBandNames.BLUE: 'BLUE'>,
+            <OpticalBandNames.GREEN: 'GREEN'>,
+            <OpticalBandNames.RED: 'RED'>,
+            <OpticalBandNames.VRE_1: 'VEGETATION_RED_EDGE_1'>,
+            <OpticalBandNames.VRE_2: 'VEGETATION_RED_EDGE_2'>,
+            <OpticalBandNames.VRE_3: 'VEGETATION_RED_EDGE_3'>,
+            <OpticalBandNames.NIR: 'NIR'>,
+            <OpticalBandNames.NNIR: 'NARROW_NIR'>,
+            <OpticalBandNames.WV: 'WATER_VAPOUR'>,
+            <OpticalBandNames.CIRRUS: 'CIRRUS'>,
+            <OpticalBandNames.SWIR_1: 'SWIR_1'>,
+            <OpticalBandNames.SWIR_2: 'SWIR_2'>]
 
         Returns:
             list: List of existing bands in the products
@@ -168,17 +168,17 @@ class OpticalProduct(Product):
         """
         Return the existing band paths.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_existing_band_paths()
-        {
-            <OpticalBandNames.CA: 'COASTAL_AEROSOL'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2',
-            ...,
-            <OpticalBandNames.SWIR_2: 'SWIR_2'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2'
-        }
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_existing_band_paths()
+            {
+                <OpticalBandNames.CA: 'COASTAL_AEROSOL'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2',
+                ...,
+                <OpticalBandNames.SWIR_2: 'SWIR_2'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2'
+            }
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -341,13 +341,13 @@ class OpticalProduct(Product):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_mean_sun_angles()
-        (149.148155074489, 32.6627897525474)
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_sun_angles()
+            (149.148155074489, 32.6627897525474)
 
         Returns:
             (float, float): Mean Azimuth and Zenith angle

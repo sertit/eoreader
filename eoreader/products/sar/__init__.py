@@ -16,6 +16,4 @@
 # limitations under the License.
 """
 SAR products.
-
-.. include:: ../../../documentation/sar_detailed.md
 """

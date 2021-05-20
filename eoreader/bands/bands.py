@@ -56,10 +56,10 @@ class BandNames(ListEnum):
         """
         Get the band enums from list of band names
 
-        ```python
-        >>> SarBandNames.from_list("VV")
-        [<SarBandNames.VV: 'VV'>]
-        ```
+        .. code-block:: python
+
+            >>> SarBandNames.from_list("VV")
+            [<SarBandNames.VV: 'VV'>]
 
         Args:
             name_list (Union[list, str]): List of names
@@ -83,12 +83,12 @@ class BandNames(ListEnum):
         """
         Get a list from the values of the bands
 
-        ```python
-        >>> SarBandNames.to_name_list([SarBandNames.HV_DSPK, SarBandNames.VV])
-        ['HV_DSPK', 'VV']
-        >>> SarBandNames.to_name_list()
-        ['VV', 'VV_DSPK', 'HH', 'HH_DSPK', 'VH', 'VH_DSPK', 'HV', 'HV_DSPK']
-        ```
+        .. code-block:: python
+
+             >>> SarBandNames.to_name_list([SarBandNames.HV_DSPK, SarBandNames.VV])
+            ['HV_DSPK', 'VV']
+            >>> SarBandNames.to_name_list()
+            ['VV', 'VV_DSPK', 'HH', 'HH_DSPK', 'VH', 'VH_DSPK', 'HV', 'HV_DSPK']
 
         Args:
             name_list (list): List of band names
@@ -148,12 +148,13 @@ class SarBandNames(BandNames):
         """
         Corresponding despeckled band.
 
-        ```python
-        >>> SarBandNames.corresponding_despeckle(SarBandNames.VV)
-        <SarBandNames.VV_DSPK: 'VV_DSPK'>
-        >>> SarBandNames.corresponding_despeckle(SarBandNames.VV_DSPK)
-        <SarBandNames.VV_DSPK: 'VV_DSPK'>
-        ```
+        .. code-block:: python
+
+            >>> SarBandNames.corresponding_despeckle(SarBandNames.VV)
+            <SarBandNames.VV_DSPK: 'VV_DSPK'>
+            >>> SarBandNames.corresponding_despeckle(SarBandNames.VV_DSPK)
+            <SarBandNames.VV_DSPK: 'VV_DSPK'>
+
         Args:
             band (SarBandNames): Noisy (speckle) band
 
@@ -172,12 +173,13 @@ class SarBandNames(BandNames):
         """
         Corresponding speckle (noisy) band.
 
-        ```python
-        >>> SarBandNames.corresponding_speckle(SarBandNames.VV)
-        <SarBandNames.VV: 'VV'>
-        >>> SarBandNames.corresponding_speckle(SarBandNames.VV_DSPK)
-        <SarBandNames.VV: 'VV'>
-        ```
+        .. code-block:: python
+
+            >>> SarBandNames.corresponding_speckle(SarBandNames.VV)
+            <SarBandNames.VV: 'VV'>
+            >>> SarBandNames.corresponding_speckle(SarBandNames.VV_DSPK)
+            <SarBandNames.VV: 'VV'>
+
         Args:
             band (SarBandNames): Noisy (speckle) band
 
@@ -191,12 +193,13 @@ class SarBandNames(BandNames):
         """
         Returns True if the band corresponds to a despeckled one.
 
-        ```python
-        >>> SarBandNames.is_despeckle(SarBandNames.VV)
-        False
-        >>> SarBandNames.is_despeckle(SarBandNames.VV_DSPK)
-        True
-        ```
+        .. code-block:: python
+
+            >>> SarBandNames.is_despeckle(SarBandNames.VV)
+            False
+            >>> SarBandNames.is_despeckle(SarBandNames.VV_DSPK)
+            True
+
         Args:
             band (SarBandNames): Band to test
 
@@ -309,24 +312,24 @@ class OpticalBands(_Bands):
         """
         Mapping band names to specific satellite band numbers, as strings.
 
-        ```python
-        >>> # Example for Sentinel-2 L1C data
-        >>> ob = OpticalBands()
-        >>> ob.map_bands({
-                CA: '01',
-                BLUE: '02',
-                GREEN: '03',
-                RED: '04',
-                VRE_1: '05',
-                VRE_2: '06',
-                VRE_3: '07',
-                NIR: '08',
-                NNIR: '8A',
-                WV: '09',
-                SWIR_1: '11',
-                SWIR_2: '12'
-            })
-        ```
+        .. code-block:: python
+
+            >>> # Example for Sentinel-2 L1C data
+            >>> ob = OpticalBands()
+            >>> ob.map_bands({
+                    CA: '01',
+                    BLUE: '02',
+                    GREEN: '03',
+                    RED: '04',
+                    VRE_1: '05',
+                    VRE_2: '06',
+                    VRE_3: '07',
+                    NIR: '08',
+                    NNIR: '8A',
+                    WV: '09',
+                    SWIR_1: '11',
+                    SWIR_2: '12'
+                })
 
         Args:
             band_map (dict): Band mapping as {OpticalBandNames: Band number for loading band}

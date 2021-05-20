@@ -15,22 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-**Source Code**: https://github.com/sertit/eoreader
-
-.. include:: ../documentation/index.md
-
-_____
-
-.. include:: ../documentation/main_features.md
-
-_____
-
-.. include:: ../documentation/optical.md
-
-_____
-
-.. include:: ../documentation/sar.md
-
+*EOReader* library
 """
 
 __pdoc__ = {

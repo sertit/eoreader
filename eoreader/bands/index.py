@@ -533,11 +533,11 @@ def get_all_index_names() -> list:
     """
     Get all index names contained in this file
 
-    ```python
-    >>> from eoreader.bands import index
-    >>> index.get_all_index_names()
-    ['AFRI_1_6', 'AFRI_2_1', 'AWEInsh', 'AWEIsh', 'BAI', ..., 'WI']
-    ```
+    .. code-block:: python
+
+        >>> from eoreader.bands import index
+        >>> index.get_all_index_names()
+        ['AFRI_1_6', 'AFRI_2_1', 'AWEInsh', 'AWEIsh', 'BAI', ..., 'WI']
 
     Returns:
         list: Index names
@@ -550,11 +550,11 @@ def get_all_index() -> list:
     """
     Get all index functions contained in this file
 
-    ```python
-    >>> from eoreader.bands import index
-    >>> index.get_all_index()
-    [<function AFRI_1_6 at 0x00000118FFFB51E0>, ..., <function WI at 0x00000118FFFB5158>]
-    ```
+    .. code-block:: python
+
+        >>> from eoreader.bands import index
+        >>> index.get_all_index()
+        [<function AFRI_1_6 at 0x00000118FFFB51E0>, ..., <function WI at 0x00000118FFFB5158>]
 
     Returns:
         list: Index functions
@@ -575,10 +575,11 @@ def get_needed_bands(index: Callable) -> list:
     """
     Gather all the needed bands for the specified index function
 
-    ```python
-    >>> index.get_needed_bands(NDVI)
-    [<OpticalBandNames.NIR: 'NIR'>, <OpticalBandNames.RED: 'RED'>]
-    ```
+    .. code-block:: python
+
+        >>> index.get_needed_bands(NDVI)
+        [<OpticalBandNames.NIR: 'NIR'>, <OpticalBandNames.RED: 'RED'>]
+
     Returns:
         list: Needed bands for the index function
     """
@@ -595,22 +596,22 @@ def get_all_needed_bands() -> dict:
     """
     Gather all the needed bands for all index functions
 
-    ```python
-    >>> index.get_all_needed_bands()
-    {
-        <function AFRI_1_6 at 0x00000261F6FF36A8>: [<OpticalBandNames.NIR: 'NIR'>, <OpticalBandNames.SWIR_2: 'SWIR_2'>],
-        ...
-        <function WI at 0x00000261F6FF3620>: [<OpticalBandNames.NIR: 'NIR'>, <OpticalBandNames.SWIR_1: 'SWIR_1'>]
-    }
+    .. code-block:: python
 
-    >>> # Or written in a more readable fashion:
-    >>> {idx.__name__: [band.value for band in bands] for idx, bands in index.get_all_needed_bands().items()}
-    {
-        'AFRI_1_6': ['NIR', 'SWIR_2'],
-        ...,
-        'WI': ['NIR', 'SWIR_1']
-    }
-    ```
+        >>> index.get_all_needed_bands()
+        {
+            <function AFRI_1_6 at 0x00000261F6FF36A8>: [<OpticalBandNames.NIR: 'NIR'>, <OpticalBandNames.SWIR_2: 'SWIR_2'>],
+            ...
+            <function WI at 0x00000261F6FF3620>: [<OpticalBandNames.NIR: 'NIR'>, <OpticalBandNames.SWIR_1: 'SWIR_1'>]
+        }
+
+        >>> # Or written in a more readable fashion:
+        >>> {idx.__name__: [band.value for band in bands] for idx, bands in index.get_all_needed_bands().items()}
+        {
+            'AFRI_1_6': ['NIR', 'SWIR_2'],
+            ...,
+            'WI': ['NIR', 'SWIR_1']
+        }
 
     Returns:
         dict: Needed bands for all index functions
