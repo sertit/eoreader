@@ -2,6 +2,11 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.3.3 (2021-05-20)
+
+- Migrating docs to sphinx and readthedocs
+-
+
 ## 0.3.2.post2 (2021-05-04)
 
 - Bug when reading cloud mask on Linux
