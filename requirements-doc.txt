@@ -1,0 +1,15 @@
+# Doc
+sphinx
+sphinx-book-theme
+sphinx-copybutton
+myst-nb
+myst-parser
+linkify-it-py
+
+jupyter
+matplotlib
+
+
+-r requirements.txt
+-e .
+--extra-index-url ${WINDOWS_WHEELS}
