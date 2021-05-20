@@ -28,6 +28,7 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import xarray as xr
+from fiona.errors import UnsupportedGeometryTypeError
 from lxml import etree
 from rasterio import features
 from rasterio.enums import Resampling
@@ -397,7 +398,7 @@ class S2Product(OpticalProduct):
 
                 # Set fiona logger back to what it was
                 fiona_logger.setLevel(logging.INFO)
-            except ValueError:
+            except (ValueError, UnsupportedGeometryTypeError):
                 mask = gpd.GeoDataFrame(geometry=[], crs=self.crs())
 
             return mask
