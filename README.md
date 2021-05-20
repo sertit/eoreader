@@ -96,8 +96,8 @@ The API documentation can be found [here](https://eoreader.readthedocs.io/en/lat
 
 Available notebooks provided as examples:
 
-- [Basic tutorial](https://eoreader.readthedocs.io/en/latest/base.html)
-- [Water detection](https://eoreader.readthedocs.io/en/latest/water_detection.html)
+- [Basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html)
+- [Water detection](https://eoreader.readthedocs.io/en/latest/notebooks/water_detection.html)
 
 ## Installation
 
