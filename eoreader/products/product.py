@@ -54,21 +54,22 @@ def path_or_dst(method: Callable) -> Callable:
     """
     Path or dataset decorator: allows a function to ingest a path or a rasterio dataset
 
-    ```python
-    >>> # Create mock function
-    >>> @path_or_dst
-    >>> def fct(dst):
-    >>>     read(dst)
-    >>>
-    >>> # Test the two ways
-    >>> read1 = fct("path\\to\\raster.tif")
-    >>> with rasterio.open("path\\to\\raster.tif") as dst:
-    >>>     read2 = fct(dst)
-    >>>
-    >>> # Test
-    >>> read1 == read2
-    True
-    ```
+    .. code-block:: python
+
+        >>> # Create mock function
+        >>> @path_or_dst
+        >>> def fct(dst):
+        >>>     read(dst)
+        >>>
+        >>> # Test the two ways
+        >>> read1 = fct("path\\to\\raster.tif")
+        >>> with rasterio.open("path\\to\\raster.tif") as dst:
+        >>>     read2 = fct(dst)
+        >>>
+        >>> # Test
+        >>> read1 == read2
+        True
+
     Args:
         method (Callable): Function to decorate
 
@@ -228,14 +229,14 @@ class Product:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.footprint()
-           index                                           geometry
-        0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint()
+               index                                           geometry
+            0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
@@ -251,14 +252,14 @@ class Product:
         """
         Get UTM extent of the tile
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.utm_extent()
-                                                    geometry
-        0  POLYGON ((309780.000 4390200.000, 309780.000 4...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.utm_extent()
+                                                        geometry
+            0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
@@ -270,13 +271,13 @@ class Product:
         """
         Get UTM projection of the tile
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.utm_crs()
-        CRS.from_epsg(32630)
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.utm_crs()
+            CRS.from_epsg(32630)
 
         Returns:
             crs.CRS: CRS object
@@ -339,15 +340,15 @@ class Product:
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_datetime(as_datetime=True)
-        datetime.datetime(2020, 8, 24, 11, 6, 31)
-        >>> prod.get_datetime(as_datetime=False)
-        '20200824T110631'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_datetime(as_datetime=True)
+            datetime.datetime(2020, 8, 24, 11, 6, 31)
+            >>> prod.get_datetime(as_datetime=False)
+            '20200824T110631'
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -361,15 +362,15 @@ class Product:
         """
         Get the product's acquisition date.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_date(as_date=True)
-        datetime.datetime(2020, 8, 24, 0, 0)
-        >>> prod.get_date(as_date=False)
-        '20200824'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_date(as_date=True)
+            datetime.datetime(2020, 8, 24, 0, 0)
+            >>> prod.get_date(as_date=False)
+            '20200824'
 
         Args:
             as_date (bool): Return the date as a datetime.date. If false, returns a string.
@@ -391,13 +392,14 @@ class Product:
 
         Usually `GREEN` band for optical data and the first existing one between `VV` and `HH` for SAR data.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_default_band_path()
-        'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_default_band_path()
+            'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'
+
         Returns:
             str: Default band path
         """
@@ -409,13 +411,14 @@ class Product:
         Get default band:
         Usually `GREEN` band for optical data and the first existing one between `VV` and `HH` for SAR data.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_default_band()
-        <OpticalBandNames.GREEN: 'GREEN'>
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_default_band()
+            <OpticalBandNames.GREEN: 'GREEN'>
+
 
         Returns:
             str: Default band
@@ -426,25 +429,25 @@ class Product:
         """
         Return the existing bands.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_existing_bands()
-        [<OpticalBandNames.CA: 'COASTAL_AEROSOL'>,
-        <OpticalBandNames.BLUE: 'BLUE'>,
-        <OpticalBandNames.GREEN: 'GREEN'>,
-        <OpticalBandNames.RED: 'RED'>,
-        <OpticalBandNames.VRE_1: 'VEGETATION_RED_EDGE_1'>,
-        <OpticalBandNames.VRE_2: 'VEGETATION_RED_EDGE_2'>,
-        <OpticalBandNames.VRE_3: 'VEGETATION_RED_EDGE_3'>,
-        <OpticalBandNames.NIR: 'NIR'>,
-        <OpticalBandNames.NNIR: 'NARROW_NIR'>,
-        <OpticalBandNames.WV: 'WATER_VAPOUR'>,
-        <OpticalBandNames.CIRRUS: 'CIRRUS'>,
-        <OpticalBandNames.SWIR_1: 'SWIR_1'>,
-        <OpticalBandNames.SWIR_2: 'SWIR_2'>]
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_existing_bands()
+            [<OpticalBandNames.CA: 'COASTAL_AEROSOL'>,
+            <OpticalBandNames.BLUE: 'BLUE'>,
+            <OpticalBandNames.GREEN: 'GREEN'>,
+            <OpticalBandNames.RED: 'RED'>,
+            <OpticalBandNames.VRE_1: 'VEGETATION_RED_EDGE_1'>,
+            <OpticalBandNames.VRE_2: 'VEGETATION_RED_EDGE_2'>,
+            <OpticalBandNames.VRE_3: 'VEGETATION_RED_EDGE_3'>,
+            <OpticalBandNames.NIR: 'NIR'>,
+            <OpticalBandNames.NNIR: 'NARROW_NIR'>,
+            <OpticalBandNames.WV: 'WATER_VAPOUR'>,
+            <OpticalBandNames.CIRRUS: 'CIRRUS'>,
+            <OpticalBandNames.SWIR_1: 'SWIR_1'>,
+            <OpticalBandNames.SWIR_2: 'SWIR_2'>]
 
         Returns:
             list: List of existing bands in the products
@@ -456,17 +459,17 @@ class Product:
         """
         Return the existing band paths.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_existing_band_paths()
-        {
-            <OpticalBandNames.CA: 'COASTAL_AEROSOL'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2',
-            ...,
-            <OpticalBandNames.SWIR_2: 'SWIR_2'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2'
-        }
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_existing_band_paths()
+            {
+                <OpticalBandNames.CA: 'COASTAL_AEROSOL'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2',
+                ...,
+                <OpticalBandNames.SWIR_2: 'SWIR_2'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2'
+            }
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -477,17 +480,17 @@ class Product:
         """
         Return the paths of required bands.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_band_paths([GREEN, RED])
-        {
-            <OpticalBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
-            <OpticalBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
-        }
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_band_paths([GREEN, RED])
+            {
+                <OpticalBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
+                <OpticalBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
+            }
 
         Args:
             band_list (list): List of the wanted bands
@@ -504,13 +507,13 @@ class Product:
         Read metadata and outputs the metadata XML root and its namespace most of the time,
         except from L8-collection 1 data which outputs a pandas DataFrame
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.read_mtd()
-        (<Element product at 0x1832895d788>, '')
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.read_mtd()
+            (<Element product at 0x1832895d788>, '')
 
         Returns:
             Any: Metadata XML root and its namespace or pd.DataFrame
@@ -607,56 +610,54 @@ class Product:
         Bands that come out this function at the same time are collocated and therefore have the same shapes.
         This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> bands = prod.load([GREEN, NDVI], resolution=20)
-        >>> bands
-        '''
-        {
-            <function NDVI at 0x000001EFFFF5DD08>: <xarray.DataArray 'NDVI' (band: 1, y: 5490, x: 5490)>
-            array([[[0.949506  , 0.92181516, 0.9279379 , ..., 1.8002278 ,
-                     1.5424857 , 1.6747767 ],
-                    [0.95369846, 0.91685396, 0.8957871 , ..., 1.5847116 ,
-                     1.5248713 , 1.5011379 ],
-                    [2.9928885 , 1.3031474 , 1.0076253 , ..., 1.5969834 ,
-                     1.5590671 , 1.5018653 ],
-                    ...,
-                    [1.4245619 , 1.6115025 , 1.6201663 , ..., 1.2387121 ,
-                     1.4025431 , 1.800678  ],
-                    [1.5627214 , 1.822388  , 1.7245892 , ..., 1.1694248 ,
-                     1.2573677 , 1.5767351 ],
-                    [1.653781  , 1.6424649 , 1.5923225 , ..., 1.3072611 ,
-                     1.2181134 , 1.2478763 ]]], dtype=float32)
-            Coordinates:
-              * band         (band) int32 1
-              * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-              * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-                spatial_ref  int32 0,
-            <OpticalBandNames.GREEN: 'GREEN'>: <xarray.DataArray (band: 1, y: 5490, x: 5490)>
-            array([[[0.0615  , 0.061625, 0.061   , ..., 0.12085 , 0.120225,
-                     0.113575],
-                    [0.061075, 0.06045 , 0.06025 , ..., 0.114625, 0.119625,
-                     0.117625],
-                    [0.06475 , 0.06145 , 0.060925, ..., 0.111475, 0.114925,
-                     0.115175],
-                    ...,
-                    [0.1516  , 0.14195 , 0.1391  , ..., 0.159975, 0.14145 ,
-                     0.127075],
-                    [0.140325, 0.125975, 0.131875, ..., 0.18245 , 0.1565  ,
-                     0.13015 ],
-                    [0.133475, 0.1341  , 0.13345 , ..., 0.15565 , 0.170675,
-                     0.16405 ]]], dtype=float32)
-            Coordinates:
-              * band         (band) int32 1
-              * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-              * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-                spatial_ref  int32 0
-        }
-        '''
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> bands = prod.load([GREEN, NDVI], resolution=20)
+            >>> bands
+            {
+                <function NDVI at 0x000001EFFFF5DD08>: <xarray.DataArray 'NDVI' (band: 1, y: 5490, x: 5490)>
+                array([[[0.949506  , 0.92181516, 0.9279379 , ..., 1.8002278 ,
+                         1.5424857 , 1.6747767 ],
+                        [0.95369846, 0.91685396, 0.8957871 , ..., 1.5847116 ,
+                         1.5248713 , 1.5011379 ],
+                        [2.9928885 , 1.3031474 , 1.0076253 , ..., 1.5969834 ,
+                         1.5590671 , 1.5018653 ],
+                        ...,
+                        [1.4245619 , 1.6115025 , 1.6201663 , ..., 1.2387121 ,
+                         1.4025431 , 1.800678  ],
+                        [1.5627214 , 1.822388  , 1.7245892 , ..., 1.1694248 ,
+                         1.2573677 , 1.5767351 ],
+                        [1.653781  , 1.6424649 , 1.5923225 , ..., 1.3072611 ,
+                         1.2181134 , 1.2478763 ]]], dtype=float32)
+                Coordinates:
+                  * band         (band) int32 1
+                  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+                  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+                    spatial_ref  int32 0,
+                <OpticalBandNames.GREEN: 'GREEN'>: <xarray.DataArray (band: 1, y: 5490, x: 5490)>
+                array([[[0.0615  , 0.061625, 0.061   , ..., 0.12085 , 0.120225,
+                         0.113575],
+                        [0.061075, 0.06045 , 0.06025 , ..., 0.114625, 0.119625,
+                         0.117625],
+                        [0.06475 , 0.06145 , 0.060925, ..., 0.111475, 0.114925,
+                         0.115175],
+                        ...,
+                        [0.1516  , 0.14195 , 0.1391  , ..., 0.159975, 0.14145 ,
+                         0.127075],
+                        [0.140325, 0.125975, 0.131875, ..., 0.18245 , 0.1565  ,
+                         0.13015 ],
+                        [0.133475, 0.1341  , 0.13345 , ..., 0.15565 , 0.170675,
+                         0.16405 ]]], dtype=float32)
+                Coordinates:
+                  * band         (band) int32 1
+                  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+                  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+                    spatial_ref  int32 0
+            }
 
         Args:
             bands (Union[list, BandNames, Callable]): Band list
@@ -715,22 +716,22 @@ class Product:
         - DEM band
         - cloud band
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.has_band(GREEN)
-        True
-        >>> prod.has_band(TIR_2)
-        False
-        >>> prod.has_band(NDVI)
-        True
-        >>> prod.has_band(SHADOWS)
-        False
-        >>> prod.has_band(HILLSHADE)
-        True
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.has_band(GREEN)
+            True
+            >>> prod.has_band(TIR_2)
+            False
+            >>> prod.has_band(NDVI)
+            True
+            >>> prod.has_band(SHADOWS)
+            False
+            >>> prod.has_band(HILLSHADE)
+            True
 
         Args:
             band (Union[obn, sbn]): Optical or SAR band
@@ -756,14 +757,14 @@ class Product:
         """
         Does this products has the specified cloud band ?
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.has_cloud_band(CLOUDS)
-        True
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.has_cloud_band(CLOUDS)
+            True
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
@@ -771,14 +772,14 @@ class Product:
         """
         Cen the specified index be computed from this products ?
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.has_index(NDVI)
-        True
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.has_index(NDVI)
+            True
 
         Args:
             idx (Callable): Index
@@ -900,14 +901,14 @@ class Product:
         - Using EUDEM over Europe
         - Using MERIT DEM everwhere else
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.warp_dem(resolution=20)  # In meters
-        '/path/to/20200824T110631_S2_T30TTK_L1C_150432_DEM.tif'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.warp_dem(resolution=20)  # In meters
+            '/path/to/20200824T110631_S2_T30TTK_L1C_150432_DEM.tif'
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
@@ -1118,64 +1119,62 @@ class Product:
         """
         Stack bands and index of a products.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> stack = prod.stack([NDVI, MNDWI, GREEN], resolution=20)  # In meters
-        >>> stack
-        '''
-        <xarray.DataArray 'NDVI_MNDWI_GREEN' (z: 3, y: 5490, x: 5490)>
-        array([[[ 0.949506  ,  0.92181516,  0.9279379 , ...,  1.8002278 ,
-                  1.5424857 ,  1.6747767 ],
-                [ 0.95369846,  0.91685396,  0.8957871 , ...,  1.5847116 ,
-                  1.5248713 ,  1.5011379 ],
-                [ 2.9928885 ,  1.3031474 ,  1.0076253 , ...,  1.5969834 ,
-                  1.5590671 ,  1.5018653 ],
-                ...,
-                [ 1.4245619 ,  1.6115025 ,  1.6201663 , ...,  1.2387121 ,
-                  1.4025431 ,  1.800678  ],
-                [ 1.5627214 ,  1.822388  ,  1.7245892 , ...,  1.1694248 ,
-                  1.2573677 ,  1.5767351 ],
-                [ 1.653781  ,  1.6424649 ,  1.5923225 , ...,  1.3072611 ,
-                  1.2181134 ,  1.2478763 ]],
-               [[ 0.27066118,  0.23466069,  0.18792598, ..., -0.4611526 ,
-                 -0.49751845, -0.4865216 ],
-                [ 0.22425456,  0.28004232,  0.27851456, ..., -0.5032771 ,
-                 -0.501796  , -0.502669  ],
-                [-0.07466951,  0.06360884,  0.1207174 , ..., -0.50617427,
-                 -0.50219285, -0.5034222 ],
-                [-0.47076276, -0.4705828 , -0.4747971 , ..., -0.32138503,
-                 -0.36619243, -0.37428448],
-                [-0.4826967 , -0.5032287 , -0.48544118, ..., -0.278925  ,
-                 -0.31404778, -0.36052078],
-                [-0.488381  , -0.48253912, -0.4697526 , ..., -0.38105175,
-                 -0.30813277, -0.27739233]],
-               [[ 0.0615    ,  0.061625  ,  0.061     , ...,  0.12085   ,
-                  0.120225  ,  0.113575  ],
-                [ 0.061075  ,  0.06045   ,  0.06025   , ...,  0.114625  ,
-                  0.119625  ,  0.117625  ],
-                [ 0.06475   ,  0.06145   ,  0.060925  , ...,  0.111475  ,
-                  0.114925  ,  0.115175  ],
-                ...,
-                [ 0.1516    ,  0.14195   ,  0.1391    , ...,  0.159975  ,
-                  0.14145   ,  0.127075  ],
-                [ 0.140325  ,  0.125975  ,  0.131875  , ...,  0.18245   ,
-                  0.1565    ,  0.13015   ],
-                [ 0.133475  ,  0.1341    ,  0.13345   , ...,  0.15565   ,
-                  0.170675  ,  0.16405   ]]], dtype=float32)
-        Coordinates:
-          * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-          * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-            spatial_ref  int32 0
-          * z            (z) MultiIndex
-          - variable     (z) object 'NDVI' 'MNDWI' 'GREEN'
-          - band         (z) int64 1 1 1
-        -Attributes:
-            long_name:  ['NDVI', 'MNDWI', 'GREEN']
-        '''
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> stack = prod.stack([NDVI, MNDWI, GREEN], resolution=20)  # In meters
+            >>> stack
+            <xarray.DataArray 'NDVI_MNDWI_GREEN' (z: 3, y: 5490, x: 5490)>
+            array([[[ 0.949506  ,  0.92181516,  0.9279379 , ...,  1.8002278 ,
+                      1.5424857 ,  1.6747767 ],
+                    [ 0.95369846,  0.91685396,  0.8957871 , ...,  1.5847116 ,
+                      1.5248713 ,  1.5011379 ],
+                    [ 2.9928885 ,  1.3031474 ,  1.0076253 , ...,  1.5969834 ,
+                      1.5590671 ,  1.5018653 ],
+                    ...,
+                    [ 1.4245619 ,  1.6115025 ,  1.6201663 , ...,  1.2387121 ,
+                      1.4025431 ,  1.800678  ],
+                    [ 1.5627214 ,  1.822388  ,  1.7245892 , ...,  1.1694248 ,
+                      1.2573677 ,  1.5767351 ],
+                    [ 1.653781  ,  1.6424649 ,  1.5923225 , ...,  1.3072611 ,
+                      1.2181134 ,  1.2478763 ]],
+                   [[ 0.27066118,  0.23466069,  0.18792598, ..., -0.4611526 ,
+                     -0.49751845, -0.4865216 ],
+                    [ 0.22425456,  0.28004232,  0.27851456, ..., -0.5032771 ,
+                     -0.501796  , -0.502669  ],
+                    [-0.07466951,  0.06360884,  0.1207174 , ..., -0.50617427,
+                     -0.50219285, -0.5034222 ],
+                    [-0.47076276, -0.4705828 , -0.4747971 , ..., -0.32138503,
+                     -0.36619243, -0.37428448],
+                    [-0.4826967 , -0.5032287 , -0.48544118, ..., -0.278925  ,
+                     -0.31404778, -0.36052078],
+                    [-0.488381  , -0.48253912, -0.4697526 , ..., -0.38105175,
+                     -0.30813277, -0.27739233]],
+                   [[ 0.0615    ,  0.061625  ,  0.061     , ...,  0.12085   ,
+                      0.120225  ,  0.113575  ],
+                    [ 0.061075  ,  0.06045   ,  0.06025   , ...,  0.114625  ,
+                      0.119625  ,  0.117625  ],
+                    [ 0.06475   ,  0.06145   ,  0.060925  , ...,  0.111475  ,
+                      0.114925  ,  0.115175  ],
+                    ...,
+                    [ 0.1516    ,  0.14195   ,  0.1391    , ...,  0.159975  ,
+                      0.14145   ,  0.127075  ],
+                    [ 0.140325  ,  0.125975  ,  0.131875  , ...,  0.18245   ,
+                      0.1565    ,  0.13015   ],
+                    [ 0.133475  ,  0.1341    ,  0.13345   , ...,  0.15565   ,
+                      0.170675  ,  0.16405   ]]], dtype=float32)
+            Coordinates:
+              * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
+              * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
+                spatial_ref  int32 0
+              * z            (z) MultiIndex
+              - variable     (z) object 'NDVI' 'MNDWI' 'GREEN'
+              - band         (z) int64 1 1 1
+            -Attributes:
+                long_name:  ['NDVI', 'MNDWI', 'GREEN']
 
         Args:
             bands (list): Bands and index combination

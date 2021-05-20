@@ -122,13 +122,14 @@ class CskPolarization(ListEnum):
 class CskProduct(SarProduct):
     """
     Class for COSMO-SkyMed Products
-    ```python
-    >>> from eoreader.reader import Reader
-    >>> # CSK products could have any folder but needs to have a .h5 file correctly formatted
-    >>> # ie. "CSKS1_SCS_B_HI_15_HH_RA_SF_20201028224625_20201028224632.h5"
-    >>> path = r"1011117-766193"
-    >>> prod = Reader().open(path)
-    ```
+
+    .. code-block:: python
+
+        >>> from eoreader.reader import Reader
+        >>> # CSK products could have any folder but needs to have a .h5 file correctly formatted
+        >>> # ie. "CSKS1_SCS_B_HI_15_HH_RA_SF_20201028224625_20201028224632.h5"
+        >>> path = r"1011117-766193"
+        >>> prod = Reader().open(path)
     """
 
     def __init__(
@@ -198,14 +199,14 @@ class CskProduct(SarProduct):
         Get the WGS84 extent of the file before any reprojection.
         This is useful when the SAR pre-process has not been done yet.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"1011117-766193"
-        >>> prod = Reader().open(path)
-        >>> prod.wgs84_extent()
-                                                    geometry
-        0  POLYGON ((108.09797 15.61011, 108.48224 15.678...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"1011117-766193"
+            >>> prod = Reader().open(path)
+            >>> prod.wgs84_extent()
+                                                        geometry
+            0  POLYGON ((108.09797 15.61011, 108.48224 15.678...
 
         Returns:
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
@@ -275,15 +276,15 @@ class CskProduct(SarProduct):
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"1011117-766193"
-        >>> prod = Reader().open(path)
-        >>> prod.get_datetime(as_datetime=True)
-        datetime.datetime(2020, 10, 28, 22, 46, 25)
-        >>> prod.get_datetime(as_datetime=False)
-        '20201028T224625'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"1011117-766193"
+            >>> prod = Reader().open(path)
+            >>> prod.get_datetime(as_datetime=True)
+            datetime.datetime(2020, 10, 28, 22, 46, 25)
+            >>> prod.get_datetime(as_datetime=False)
+            '20201028T224625'
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -313,13 +314,13 @@ class CskProduct(SarProduct):
         """
         Read metadata and outputs the metadata XML root and its namespace
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"1001513-735093"
-        >>> prod = Reader().open(path)
-        >>> prod.read_mtd()
-        (<Element DeliveryNote at 0x2454ad4ee88>, '')
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"1001513-735093"
+            >>> prod = Reader().open(path)
+            >>> prod.read_mtd()
+            (<Element DeliveryNote at 0x2454ad4ee88>, '')
 
         Returns:
             (etree._Element, str): Metadata XML root and its namespace

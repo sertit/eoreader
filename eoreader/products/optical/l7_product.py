@@ -48,14 +48,14 @@ class L7Product(LandsatProduct):
             As Landsat 7 is broken (with nodata stripes all over the bands),
             the footprint is not easily computed and may take some time to be delivered.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
-        >>> prod = Reader().open(path)
-        >>> prod.footprint()
-           index                                           geometry
-        0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint()
+               index                                           geometry
+            0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
         Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
         Indeed, nodata pixels vary according to the band sensor footprint,

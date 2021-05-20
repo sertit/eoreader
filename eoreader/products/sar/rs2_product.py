@@ -260,14 +260,14 @@ class Rs2Product(SarProduct):
         Get the WGS84 extent of the file before any reprojection.
         This is useful when the SAR pre-process has not been done yet.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.wgs84_extent()
-                                                    geometry
-        1  POLYGON ((106.57999 -6.47363, 107.06926 -6.473...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.wgs84_extent()
+                                                        geometry
+            1  POLYGON ((106.57999 -6.47363, 107.06926 -6.473...
 
         Returns:
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
@@ -339,15 +339,15 @@ class Rs2Product(SarProduct):
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_datetime(as_datetime=True)
-        datetime.datetime(2016, 2, 28, 11, 24, 18)
-        >>> prod.get_datetime(as_datetime=False)
-        '20160228T112418'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_datetime(as_datetime=True)
+            datetime.datetime(2016, 2, 28, 11, 24, 18)
+            >>> prod.get_datetime(as_datetime=False)
+            '20160228T112418'
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -368,14 +368,14 @@ class Rs2Product(SarProduct):
         """
         Read metadata and outputs the metadata XML root and its namespace
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
-        >>> prod = Reader().open(path)
-        >>> prod.read_mtd()
-        (<Element {http://www.rsi.ca/rs2/prod/xml/schemas}product at 0x1c0efbd37c8>,
-        '{http://www.rsi.ca/rs2/prod/xml/schemas}')
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+            >>> prod = Reader().open(path)
+            >>> prod.read_mtd()
+            (<Element {http://www.rsi.ca/rs2/prod/xml/schemas}product at 0x1c0efbd37c8>,
+            '{http://www.rsi.ca/rs2/prod/xml/schemas}')
 
         Returns:
             (etree._Element, str): Metadata XML root and its namespace

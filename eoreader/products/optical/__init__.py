@@ -16,6 +16,4 @@
 # limitations under the License.
 """
 Optical products.
-
-.. include:: ../../../documentation/optical_detailed.md
 """

@@ -195,14 +195,14 @@ class TsxProduct(SarProduct):
         Get the WGS84 extent of the file before any reprojection.
         This is useful when the SAR pre-process has not been done yet.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023"
-        >>> prod = Reader().open(path)
-        >>> prod.wgs84_extent()
-                                                    geometry
-        0  POLYGON ((106.65491 -6.39693, 106.96233 -6.396...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023"
+            >>> prod = Reader().open(path)
+            >>> prod.wgs84_extent()
+                                                        geometry
+            0  POLYGON ((106.65491 -6.39693, 106.96233 -6.396...
 
         Returns:
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
@@ -251,15 +251,15 @@ class TsxProduct(SarProduct):
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023"
-        >>> prod = Reader().open(path)
-        >>> prod.get_datetime(as_datetime=True)
-        datetime.datetime(2016, 2, 29, 22, 30, 18)
-        >>> prod.get_datetime(as_datetime=False)
-        '20160229T223018'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023"
+            >>> prod = Reader().open(path)
+            >>> prod.get_datetime(as_datetime=True)
+            datetime.datetime(2016, 2, 29, 22, 30, 18)
+            >>> prod.get_datetime(as_datetime=False)
+            '20160229T223018'
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -278,13 +278,13 @@ class TsxProduct(SarProduct):
         """
         Read metadata and outputs the metadata XML root and its namespace
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20200605T042203_20200605T042211"
-        >>> prod = Reader().open(path)
-        >>> prod.read_mtd()
-        (<Element level1Product at 0x1b845b7ab88>, '')
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20200605T042203_20200605T042211"
+            >>> prod = Reader().open(path)
+            >>> prod.read_mtd()
+            (<Element level1Product at 0x1b845b7ab88>, '')
 
         Returns:
             (etree._Element, str): Metadata XML root and its namespace

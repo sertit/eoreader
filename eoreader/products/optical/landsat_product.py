@@ -141,14 +141,14 @@ class LandsatProduct(OpticalProduct):
         """
         Get real footprint of the products (without nodata, in french == emprise utile)
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
-        >>> prod = Reader().open(path)
-        >>> prod.footprint()
-           index                                           geometry
-        0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint()
+               index                                           geometry
+            0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
         Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
         Indeed, nodata pixels vary according to the band sensor footprint,
@@ -174,13 +174,13 @@ class LandsatProduct(OpticalProduct):
         """
         Retrieve tile name
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
-        >>> prod = Reader().open(path)
-        >>> prod.get_tile_name()
-        '023030'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+            >>> prod = Reader().open(path)
+            >>> prod.get_tile_name()
+            '023030'
 
         Returns:
             str: Tile name
@@ -278,15 +278,15 @@ class LandsatProduct(OpticalProduct):
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
-        >>> prod = Reader().open(path)
-        >>> prod.get_datetime(as_datetime=True)
-        datetime.datetime(2020, 5, 18, 16, 34, 7)
-        >>> prod.get_datetime(as_datetime=False)
-        '20200518T163407'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+            >>> prod = Reader().open(path)
+            >>> prod.get_datetime(as_datetime=True)
+            datetime.datetime(2020, 5, 18, 16, 34, 7)
+            >>> prod.get_datetime(as_datetime=False)
+            '20200518T163407'
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -318,20 +318,19 @@ class LandsatProduct(OpticalProduct):
         """
         Return the paths of required bands.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_band_paths([GREEN, RED])
-        {
-            <OpticalBandNames.GREEN: 'GREEN'>:
-                'LC08_L1GT_023030_20200518_20200527_01_T2\\LC08_L1GT_023030_20200518_20200527_01_T2_B3.TIF',
-            <OpticalBandNames.RED: 'RED'>:
-                'LC08_L1GT_023030_20200518_20200527_01_T2\\LC08_L1GT_023030_20200518_20200527_01_T2_B4.TIF'
-        }
+        .. code-block:: python
 
-        ```
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_band_paths([GREEN, RED])
+            {
+                <OpticalBandNames.GREEN: 'GREEN'>:
+                    'LC08_L1GT_023030_20200518_20200527_01_T2\\LC08_L1GT_023030_20200518_20200527_01_T2_B3.TIF',
+                <OpticalBandNames.RED: 'RED'>:
+                    'LC08_L1GT_023030_20200518_20200527_01_T2\\LC08_L1GT_023030_20200518_20200527_01_T2_B4.TIF'
+            }
 
         Args:
             band_list (list): List of the wanted bands
@@ -367,29 +366,30 @@ class LandsatProduct(OpticalProduct):
          - a `pandas.DataFrame` whatever its collection is (by default for collection 1)
          - a XML root + its namespace if the product is retrieved from the 2nd collection (by default for collection 2)
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
-        >>> prod = Reader().open(path)
+        .. code-block:: python
 
-        >>> # COLLECTION 1 : Open metadata as panda DataFrame
-        >>> prod.read_mtd()
-        NAME                                           ORIGIN  ...    RESAMPLING_OPTION
-        value  "Image courtesy of the U.S. Geological Survey"  ...  "CUBIC_CONVOLUTION"
-        [1 rows x 197 columns]
+            >>> from eoreader.reader import Reader
+            >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+            >>> prod = Reader().open(path)
 
-        >>> # COLLECTION 2 : Open metadata as XML
-        >>> path = r"LC08_L1TP_200030_20201220_20210310_02_T1"  # Collection 2
-        >>> prod = Reader().open(path)
-        >>> prod.read_mtd()
-        (<Element LANDSAT_METADATA_FILE at 0x19229016048>, '')
+            >>> # COLLECTION 1 : Open metadata as panda DataFrame
+            >>> prod.read_mtd()
+            NAME                                           ORIGIN  ...    RESAMPLING_OPTION
+            value  "Image courtesy of the U.S. Geological Survey"  ...  "CUBIC_CONVOLUTION"
+            [1 rows x 197 columns]
 
-        >>> # COLLECTION 2 : Force to pandas.DataFrame
-        >>> prod.read_mtd(force_pd=True)
-        NAME                                           ORIGIN  ...    RESAMPLING_OPTION
-        value  "Image courtesy of the U.S. Geological Survey"  ...  "CUBIC_CONVOLUTION"
-        [1 rows x 263 columns]
-        ```
+            >>> # COLLECTION 2 : Open metadata as XML
+            >>> path = r"LC08_L1TP_200030_20201220_20210310_02_T1"  # Collection 2
+            >>> prod = Reader().open(path)
+            >>> prod.read_mtd()
+            (<Element LANDSAT_METADATA_FILE at 0x19229016048>, '')
+
+            >>> # COLLECTION 2 : Force to pandas.DataFrame
+            >>> prod.read_mtd(force_pd=True)
+            NAME                                           ORIGIN  ...    RESAMPLING_OPTION
+            value  "Image courtesy of the U.S. Geological Survey"  ...  "CUBIC_CONVOLUTION"
+            [1 rows x 263 columns]
+
         Args:
             force_pd (bool): If collection 2, return a pandas.DataFrame instead of a XML root + namespace
         Returns:
@@ -637,13 +637,13 @@ class LandsatProduct(OpticalProduct):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_mean_sun_angles()
-        (140.80752656, 61.93065805)
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_sun_angles()
+            (140.80752656, 61.93065805)
 
         Returns:
             (float, float): Mean Azimuth and Zenith angle
@@ -671,8 +671,6 @@ class LandsatProduct(OpticalProduct):
 
         - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
         - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
-        True
-        ```
         """
         if self.product_type == LandsatProductType.L1_OLCI:
             has_band = True
@@ -689,7 +687,6 @@ class LandsatProduct(OpticalProduct):
     def _mss_has_cloud_band(band: BandNames) -> bool:
         """
         Does this products has the specified cloud band ?
-        ```
         """
         if band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS]:
             has_band = True
@@ -701,7 +698,6 @@ class LandsatProduct(OpticalProduct):
     def _e_tm_has_cloud_band(band: BandNames) -> bool:
         """
         Does this products has the specified cloud band ?
-        ```
         """
         if band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS, SHADOWS]:
             has_band = True

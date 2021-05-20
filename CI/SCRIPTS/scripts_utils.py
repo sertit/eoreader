@@ -50,12 +50,12 @@ def assert_raster_almost_equal(path_1: str, path_2: str, decimal=5) -> None:
 
     -> Useful for pytests.
 
-    ```python
-    >>> path = r"CI\DATA\rasters\raster.tif"
-    >>> path2 = r"CI\DATA\rasters\raster_almost.tif"
-    >>> assert_raster_equal(path, path2)
-    >>> # Raises AssertionError if sth goes wrong
-    ```
+    .. code-block:: python
+
+        >>> path = r"CI\DATA\rasters\raster.tif"
+        >>> path2 = r"CI\DATA\rasters\raster_almost.tif"
+        >>> assert_raster_equal(path, path2)
+        >>> # Raises AssertionError if sth goes wrong
 
     Args:
         path_1 (str): Raster 1

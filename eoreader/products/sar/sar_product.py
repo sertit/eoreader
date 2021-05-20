@@ -137,14 +137,14 @@ class SarProduct(Product):
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.footprint()
-           index                                           geometry
-        0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint()
+               index                                           geometry
+            0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
@@ -158,13 +158,13 @@ class SarProduct(Product):
         Get default band:
         The first existing one between `VV` and `HH` for SAR data.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_default_band()
-        <SarBandNames.VV: 'VV'>
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_default_band()
+            <SarBandNames.VV: 'VV'>
 
         Returns:
             str: Default band
@@ -195,15 +195,15 @@ class SarProduct(Product):
 
         .. WARNING:: This functions orthorectifies SAR bands if not existing !
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_default_band_path()
-        Executing processing graph
-        ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.
-        '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_default_band_path()
+            Executing processing graph
+            ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.
+            '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif'
 
         Returns:
             str: Default band path
@@ -219,15 +219,15 @@ class SarProduct(Product):
         Get the WGS84 extent of the file before any reprojection.
         This is useful when the SAR pre-process has not been done yet.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.wgs84_extent()
-                               Name  ...                                           geometry
-        0  Sentinel-1 Image Overlay  ...  POLYGON ((0.85336 42.24660, -2.32032 42.65493,...
-        [1 rows x 12 columns]
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.wgs84_extent()
+                                   Name  ...                                           geometry
+            0  Sentinel-1 Image Overlay  ...  POLYGON ((0.85336 42.24660, -2.32032 42.65493,...
+            [1 rows x 12 columns]
 
         Returns:
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
@@ -239,15 +239,15 @@ class SarProduct(Product):
         """
         Get UTM extent of the tile
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.utm_extent()
-                               Name  ...                                           geometry
-        0  Sentinel-1 Image Overlay  ...  POLYGON ((817914.501 4684349.823, 555708.624 4...
-        [1 rows x 12 columns]
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.utm_extent()
+                                   Name  ...                                           geometry
+            0  Sentinel-1 Image Overlay  ...  POLYGON ((817914.501 4684349.823, 555708.624 4...
+            [1 rows x 12 columns]
 
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
@@ -267,13 +267,13 @@ class SarProduct(Product):
         """
         Get UTM projection
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.utm_crs()
-        CRS.from_epsg(32630)
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.utm_crs()
+            CRS.from_epsg(32630)
 
         Returns:
             crs.CRS: CRS object
@@ -348,16 +348,16 @@ class SarProduct(Product):
 
         .. WARNING:: This functions orthorectifies SAR bands if not existing !
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_band_paths([VV, HH])
-        {
-            <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif'  # HH doesn't exist
-        }
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_band_paths([VV, HH])
+            {
+                <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif'  # HH doesn't exist
+            }
 
         Args:
             band_list (list): List of the wanted bands
@@ -454,23 +454,23 @@ class SarProduct(Product):
 
         .. WARNING:: This functions despeckles SAR bands if not existing !
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_existing_band_paths()
-        Executing processing graph
-        ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.
-        Executing processing graph
-        ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.
-        {
-            <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif',
-            <SarBandNames.VH: 'VH'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VH.tif',
-            <SarBandNames.VV_DSPK: 'VV_DSPK'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV_DSPK.tif',
-            <SarBandNames.VH_DSPK: 'VH_DSPK'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VH_DSPK.tif'
-        }
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_existing_band_paths()
+            Executing processing graph
+            ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.
+            Executing processing graph
+            ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.
+            {
+                <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif',
+                <SarBandNames.VH: 'VH'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VH.tif',
+                <SarBandNames.VV_DSPK: 'VV_DSPK'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV_DSPK.tif',
+                <SarBandNames.VH_DSPK: 'VH_DSPK'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VH_DSPK.tif'
+            }
 
         Returns:
             dict: Dictionary containing the path of every orthorectified bands
@@ -491,17 +491,17 @@ class SarProduct(Product):
 
         .. WARNING:: This functions despeckles SAR bands if not existing !
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_existing_bands()
-        [<SarBandNames.VV: 'VV'>,
-        <SarBandNames.VH: 'VH'>,
-        <SarBandNames.VV_DSPK: 'VV_DSPK'>,
-        <SarBandNames.VH_DSPK: 'VH_DSPK'>]
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_existing_bands()
+            [<SarBandNames.VV: 'VV'>,
+            <SarBandNames.VH: 'VH'>,
+            <SarBandNames.VV_DSPK: 'VV_DSPK'>,
+            <SarBandNames.VH_DSPK: 'VH_DSPK'>]
 
         Returns:
             list: List of existing bands in the products
@@ -780,14 +780,14 @@ class SarProduct(Product):
         """
         Does this products has the specified cloud band ?
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.has_cloud_band(CLOUDS)
-        False
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.has_cloud_band(CLOUDS)
+            False
         """
         return False
 
