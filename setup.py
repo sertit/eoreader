@@ -21,9 +21,10 @@ setuptools.setup(
         "lxml",
         "netCDF4",
         "rasterio>= 1.2.2",
-        "rioxarray>=0.3.1",
+        "xarray>=0.18.0",
+        "rioxarray>=0.4.0",
         "geopandas>=0.9.0",
-        "sertit[full]>=1.3.11.post3",
+        "sertit[full]>=1.3.12",
         "rtree",
     ],
     classifiers=[
