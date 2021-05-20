@@ -12,4 +12,3 @@ matplotlib
 
 -r requirements.txt
 -e .
---extra-index-url ${WINDOWS_WHEELS}
