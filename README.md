@@ -6,7 +6,7 @@
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 [![Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/sertit/eoreader/blob/master/LICENSE)
 
-# ![eoreader_logo](https://raw.githubusercontent.com/sertit/eoreader/master/docs/eoreader_small.png) EOReader
+# ![eoreader_logo](https://eoreader.readthedocs.io/en/latest/_static/favicon.png) EOReader
 
 **EOReader** is a **multi-satellite reader** allowing you to open
 [optical](https://sertit.github.io/eoreader/eoreader#implemented-optical-satellites)
