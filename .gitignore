@@ -23,7 +23,9 @@ build/
 *.egg-info/
 dist/
 
-# Notebooks
+# Docs & Notebooks
+docs/_build
+docs/_autosummary
 .ipynb_checkpoints
 
 # Other files

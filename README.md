@@ -9,8 +9,8 @@
 # ![eoreader_logo](https://eoreader.readthedocs.io/en/latest/_static/favicon.png) EOReader
 
 **EOReader** is a **multi-satellite reader** allowing you to open
-[optical](https://sertit.github.io/eoreader/eoreader#implemented-optical-satellites)
-and [SAR](https://sertit.github.io/eoreader/eoreader#implemented-sar-satellites) data.
+[optical](https://eoreader.readthedocs.io/en/latest/optical.html)
+and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) data.
 
 ||**Optical** | **SAR**|
 |--- | --- | ---|
@@ -19,10 +19,10 @@ and [SAR](https://sertit.github.io/eoreader/eoreader#implemented-sar-satellites)
 It also implements additional **sensor-agnostic** features:
 
 - {meth}`~eoreader.products.product.Product.load`: Load many band types:
-    - satellite bands ([optical](https://sertit.github.io/eoreader/eoreader#band-mapping) or [SAR](https://sertit.github.io/eoreader/eoreader#sar-bands))
-    - [index](https://sertit.github.io/eoreader/eoreader#available-index)
-    - [cloud bands](https://sertit.github.io/eoreader/eoreader#cloud-bands)
-    - [DEM bands](https://sertit.github.io/eoreader/eoreader#dem-bands)
+    - satellite bands ([optical](https://eoreader.readthedocs.io/en/latest/optical.html#satellite-bands) or [SAR](https://eoreader.readthedocs.io/en/latest/sar.html#sar-bands))
+    - [index](https://eoreader.readthedocs.io/en/latest/optical.html#available-index)
+    - [cloud bands](https://eoreader.readthedocs.io/en/latest/optical.html#cloud-bands)
+    - [DEM bands](https://eoreader.readthedocs.io/en/latest/optical.html#dem-bands)
 - {meth}`~eoreader.products.product.Product.stack`: Stack all these type of bands
 
 EOReader works with [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray)
@@ -90,14 +90,14 @@ Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/
 Ensure that you have the folder containing your `gpt` executable in your `PATH`.
 
 ## Documentation
-The API documentation can be found [here](https://sertit.github.io/eoreader/eoreader/).
+The API documentation can be found [here](https://eoreader.readthedocs.io/en/latest/).
 
 ## Examples
 
 Available notebooks provided as examples:
 
-- [Basic tutorial](https://sertit.github.io/eoreader/examples/base.html)
-- [Water detection](https://sertit.github.io/eoreader/examples/water_detection.html)
+- [Basic tutorial](https://eoreader.readthedocs.io/en/latest/base.html)
+- [Water detection](https://eoreader.readthedocs.io/en/latest/water_detection.html)
 
 ## Installation
 

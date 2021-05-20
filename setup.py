@@ -46,7 +46,7 @@ setuptools.setup(
     python_requires=">=3.7",
     project_urls={
         "Bug Tracker": "https://github.com/sertit/eoreader/issues/",
-        "Documentation": "https://sertit.github.io/eoreader/",
+        "Documentation": "https://eoreader.readthedocs.io",
         "Source Code": "https://github.com/sertit/eoreader",
     },
 )
