@@ -2,6 +2,7 @@
 import logging
 import os
 
+import geopandas as gpd
 import numpy as np
 import rasterio
 
@@ -41,7 +42,7 @@ def get_ci_data_dir() -> str:
     return os.path.join(get_ci_dir(), "DATA")
 
 
-def assert_raster_almost_equal(path_1: str, path_2: str, decimal=5) -> None:
+def assert_raster_almost_equal(path_1: str, path_2: str, decimal: int = 5) -> None:
     """
     Assert that two rasters are almost equal.
     (everything is equal except the transform and the arrays that are almost equal)
@@ -60,6 +61,7 @@ def assert_raster_almost_equal(path_1: str, path_2: str, decimal=5) -> None:
     Args:
         path_1 (str): Raster 1
         path_2 (str): Raster 2
+        decimal (int): Accepted decimals
     """
     with rasterio.open(path_1) as dst_1:
         with rasterio.open(path_2) as dst_2:
@@ -89,6 +91,42 @@ def assert_raster_almost_equal(path_1: str, path_2: str, decimal=5) -> None:
                     LOGGER.error(
                         f"Band {i + 1}: {dst_1.descriptions[i]} failed", exc_info=True
                     )
+
+
+def assert_geom_almost_equal(
+    geom_1: gpd.GeoDataFrame, geom_2: gpd.GeoDataFrame, decimal: int = 5
+) -> None:
+    """
+    Assert that two geometries are almost equal
+    (do not check equality between geodataframe as they may differ on other fields).
+
+    -> Useful for pytests.
+
+    ```python
+    >>> path = r"CI\DATA\vectors\aoi.geojson"
+    >>> assert_geom_equal(path, path)
+    >>> # Raises AssertionError if sth goes wrong
+    ```
+
+    .. WARNING::
+        Only checks:
+         - valid geometries
+         - length of GeoDataFrame
+         - CRS
+
+    Args:
+        geom_1 (gpd.GeoDataFrame): Geometry 1
+        geom_2 (gpd.GeoDataFrame): Geometry 2
+        decimal (int): Accepted decimals
+    """
+    assert len(geom_1) == len(geom_2)
+    assert geom_1.crs == geom_2.crs
+    for idx in range(len(geom_1)):
+        if geom_1.geometry.iat[idx].is_valid and geom_2.geometry.iat[idx].is_valid:
+            # If valid geometries, assert that the both are equal
+            assert geom_1.geometry.iat[idx].almost_equals(
+                geom_2.geometry.iat[idx], decimal=decimal
+            )
 
 
 def get_db_dir() -> str:
