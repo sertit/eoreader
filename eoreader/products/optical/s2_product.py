@@ -153,14 +153,14 @@ class S2Product(OpticalProduct):
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.footprint()
-           index                                           geometry
-        0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint()
+               index                                           geometry
+            0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
@@ -174,15 +174,15 @@ class S2Product(OpticalProduct):
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_datetime(as_datetime=True)
-        datetime.datetime(2020, 8, 24, 11, 6, 31)
-        >>> prod.get_datetime(as_datetime=False)
-        '20200824T110631'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_datetime(as_datetime=True)
+            datetime.datetime(2020, 8, 24, 11, 6, 31)
+            >>> prod.get_datetime(as_datetime=False)
+            '20200824T110631'
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -265,17 +265,17 @@ class S2Product(OpticalProduct):
         """
         Return the paths of required bands.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_band_paths([GREEN, RED])
-        {
-            <OpticalBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
-            <OpticalBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
-        }
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_band_paths([GREEN, RED])
+            {
+                <OpticalBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
+                <OpticalBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
+            }
 
         Args:
             band_list (list): List of the wanted bands
@@ -350,28 +350,28 @@ class S2Product(OpticalProduct):
         - `DEFECT`: Defective pixels
         - `CLOUDS`, **only with `00` as a band !**
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod.open_mask("NODATA", GREEN)
-        Empty GeoDataFrame
-        Columns: [geometry]
-        Index: []
-        >>> prod.open_mask("SATURA", GREEN)
-        Empty GeoDataFrame
-        Columns: [geometry]
-        Index: []
-        >>> prod.open_mask("DETFOO", GREEN)
-                                gml_id  ...                                           geometry
-        0  detector_footprint-B03-02-0  ...  POLYGON Z ((199980.000 4500000.000 0.000, 1999...
-        1  detector_footprint-B03-03-1  ...  POLYGON Z ((222570.000 4500000.000 0.000, 2225...
-        2  detector_footprint-B03-05-2  ...  POLYGON Z ((273050.000 4500000.000 0.000, 2730...
-        3  detector_footprint-B03-07-3  ...  POLYGON Z ((309770.000 4453710.000 0.000, 3097...
-        4  detector_footprint-B03-04-4  ...  POLYGON Z ((248080.000 4500000.000 0.000, 2480...
-        5  detector_footprint-B03-06-5  ...  POLYGON Z ((297980.000 4500000.000 0.000, 2979...
-        [6 rows x 3 columns]
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod.open_mask("NODATA", GREEN)
+            Empty GeoDataFrame
+            Columns: [geometry]
+            Index: []
+            >>> prod.open_mask("SATURA", GREEN)
+            Empty GeoDataFrame
+            Columns: [geometry]
+            Index: []
+            >>> prod.open_mask("DETFOO", GREEN)
+                                    gml_id  ...                                           geometry
+            0  detector_footprint-B03-02-0  ...  POLYGON Z ((199980.000 4500000.000 0.000, 1999...
+            1  detector_footprint-B03-03-1  ...  POLYGON Z ((222570.000 4500000.000 0.000, 2225...
+            2  detector_footprint-B03-05-2  ...  POLYGON Z ((273050.000 4500000.000 0.000, 2730...
+            3  detector_footprint-B03-07-3  ...  POLYGON Z ((309770.000 4453710.000 0.000, 3097...
+            4  detector_footprint-B03-04-4  ...  POLYGON Z ((248080.000 4500000.000 0.000, 2480...
+            5  detector_footprint-B03-06-5  ...  POLYGON Z ((297980.000 4500000.000 0.000, 2979...
+            [6 rows x 3 columns]
 
         Args:
             mask_str (str): Mask name, such as DEFECT, NODATA, SATURA...
@@ -545,13 +545,13 @@ class S2Product(OpticalProduct):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.get_mean_sun_angles()
-        (149.148155074489, 32.6627897525474)
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_sun_angles()
+            (149.148155074489, 32.6627897525474)
 
         Returns:
             (float, float): Mean Azimuth and Zenith angle
@@ -583,15 +583,14 @@ class S2Product(OpticalProduct):
         """
         Read metadata and outputs the metadata XML root and its namespace
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.read_mtd()
-        (<Element {https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}Level-2A_Tile_ID at ...>,
-        '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}')
+        .. code-block:: python
 
-        ```
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.read_mtd()
+            (<Element {https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}Level-2A_Tile_ID at ...>,
+            '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}')
 
         Returns:
             (etree._Element, str): Metadata XML root and its namespace

@@ -189,14 +189,14 @@ class S3Product(OpticalProduct):
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-        >>> prod = Reader().open(path)
-        >>> prod.footprint()
-           index                                           geometry
-        0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint()
+               index                                           geometry
+            0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
@@ -209,15 +209,15 @@ class S3Product(OpticalProduct):
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
-        >>> prod = Reader().open(path)
-        >>> prod.get_datetime(as_datetime=True)
-        datetime.datetime(2019, 11, 15, 23, 37, 22)
-        >>> prod.get_datetime(as_datetime=False)
-        '20191115T233722'
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
+            >>> prod = Reader().open(path)
+            >>> prod.get_datetime(as_datetime=True)
+            datetime.datetime(2019, 11, 15, 23, 37, 22)
+            >>> prod.get_datetime(as_datetime=False)
+            '20191115T233722'
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -351,19 +351,19 @@ class S3Product(OpticalProduct):
 
         .. WARNING:: If not existing, this function will orthorectify your bands !
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> from eoreader.bands.alias import *
-        >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
-        >>> prod = Reader().open(path)
-        >>> prod.get_band_paths([GREEN, RED])
-        Executing processing graph
-        ...11%...21%...31%...42%...52%...62%...73%...83%... done.
-        {
-            <OpticalBandNames.GREEN: 'GREEN'>: '20191115T233722_S3_SLSTR_RBT\\S1_reflectance.tif',
-            <OpticalBandNames.RED: 'RED'>: '20191115T233722_S3_SLSTR_RBT\\S2_reflectance.tif',
-        }
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands.alias import *
+            >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
+            >>> prod = Reader().open(path)
+            >>> prod.get_band_paths([GREEN, RED])
+            Executing processing graph
+            ...11%...21%...31%...42%...52%...62%...73%...83%... done.
+            {
+                <OpticalBandNames.GREEN: 'GREEN'>: '20191115T233722_S3_SLSTR_RBT\\S1_reflectance.tif',
+                <OpticalBandNames.RED: 'RED'>: '20191115T233722_S3_SLSTR_RBT\\S2_reflectance.tif',
+            }
 
         Args:
             band_list (list): List of the wanted bands
@@ -763,14 +763,14 @@ class S3Product(OpticalProduct):
         """
         Get UTM extent of the tile, managing the case with not orthorectified bands.
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
-        >>> prod = Reader().open(path)
-        >>> prod.utm_extent()
-                                                    geometry
-        0  POLYGON ((1488846.028 6121896.451, 1488846.028...
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
+            >>> prod = Reader().open(path)
+            >>> prod.utm_extent()
+                                                        geometry
+            0  POLYGON ((1488846.028 6121896.451, 1488846.028...
 
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
@@ -865,13 +865,13 @@ class S3Product(OpticalProduct):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
-        >>> prod = Reader().open(path)
-        >>> prod.get_mean_sun_angles()
-        (78.55043955912154, 31.172127033319388)
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_sun_angles()
+            (78.55043955912154, 31.172127033319388)
 
         Returns:
             (float, float): Mean Azimuth and Zenith angle
@@ -916,13 +916,13 @@ class S3Product(OpticalProduct):
         """
         Read metadata and outputs the metadata XML root and its namespace
 
-        ```python
-        >>> from eoreader.reader import Reader
-        >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
-        >>> prod = Reader().open(path)
-        >>> prod.read_mtd()
-        (<Element level1Product at 0x1b845b7ab88>, '')
-        ```
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
+            >>> prod = Reader().open(path)
+            >>> prod.read_mtd()
+            (<Element level1Product at 0x1b845b7ab88>, '')
 
         Returns:
             (etree._Element, str): Metadata XML root and its namespace
@@ -938,7 +938,6 @@ class S3Product(OpticalProduct):
 
         - SLSTR does
         - OLCI does not provide any cloud mask
-        ```
         """
         if self._instrument_name == S3Instrument.SLSTR and band in [
             RAW_CLOUDS,

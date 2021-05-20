@@ -58,9 +58,9 @@ pages:
   stage: docs
   script:
     - python -m pip install --upgrade pip
-    - pip install -r requirements.txt --ignore-installed PyYAML
-    - pdoc eoreader -o docs -f --html --template-dir doc_template
-    - mv docs/ public/
+    - pip install -r requirements-doc.txt --ignore-installed PyYAML
+    - sphinx-build docs/ docs/_build/html/
+    - mv docs/_build/html/ public/
   artifacts:
     paths:
       - public
@@ -68,23 +68,3 @@ pages:
     - linux
   only:
     - master
-
-pages-github:
-  image:
-    name: docker.sertit.unistra.fr/sertit/eo-containers/python:3.7
-    entrypoint: [ "" ]
-  stage: docs
-  script:
-    - python -m pip install --upgrade pip
-    - pip install pre-commit -r requirements.txt --ignore-installed PyYAML
-    - pdoc eoreader -o docs -f --html --template-dir doc_template
-    - git config user.email "remi.braun@unistra.fr"
-    - git config user.name "CI"
-    - git add .
-    - git diff-index --quiet HEAD || git commit -m "Documentating and linting" --allow-empty  # ACHTUNG FOR NOW ALLOW-EMPTY IS SET BUT CREATES EMPTY COMMITS !!! WHY DOES IT FAILS NOW ? DONT KNOW
-    - git remote set-url origin https://gitlab-ci-token:${CI_PUSH_PASSWORD}@code.sertit.unistra.fr/extracteo/eoreader.git
-    - git push origin HEAD:master -o ci.skip
-  tags:
-    - linux
-  only:
-    - tags
