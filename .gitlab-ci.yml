@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - weekly_tests
   - publish
   - docs
 
@@ -34,6 +35,32 @@ pytest:
     changes:
       - "*.html"
       - docs/*
+
+tox-linux:on-schedule:
+  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  stage: weekly_tests
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install -r requirements.txt --ignore-installed PyYAML
+    - pip install -e .
+  script:
+    - tox -c tox.ini
+  tags:
+    - linux
+
+tox-windows:on-schedule:
+  stage: weekly_tests
+  before_script:
+    - conda init
+    - conda env create -f environment.yml
+    - source ~/.bashrc  # <- !!!
+    - export PYTHONPATH="$PYTHONPATH:."
+    - conda activate eoreader
+  script:
+    - tox -c tox-conda.ini
+  tags:
+    - windows
+
 
 upload_wheel:linux:
   image: python:3.7-buster
