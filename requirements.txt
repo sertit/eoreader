@@ -12,9 +12,6 @@ pylint
 # Deploy
 twine
 
-# Doc
-pdoc3
-
 # Libs for all platforms
 tqdm
 lxml
