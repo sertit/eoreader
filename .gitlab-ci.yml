@@ -10,16 +10,13 @@ lint:
   script:
     - python -m pip install --upgrade pip
     - pip install flake8
-    - flake8 .
+    - flake8 eoreader
   tags:
     - linux
   except:
     changes:
       - "*.html"
-      - doc_template/*
-      - documentation/*
       - docs/*
-      - examples/*
 
 pytest:
   image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
@@ -36,10 +33,7 @@ pytest:
   except:
     changes:
       - "*.html"
-      - doc_template/*
-      - documentation/*
       - docs/*
-      - examples/*
 
 upload_wheel:linux:
   image: python:3.7-buster
