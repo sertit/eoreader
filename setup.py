@@ -2,18 +2,26 @@ import os
 
 import setuptools
 
-from eoreader import __version__
+from eoreader import (
+    __author__,
+    __author_email__,
+    __description__,
+    __documentation__,
+    __title__,
+    __url__,
+    __version__,
+)
 
 BASEDIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 with open(os.path.join(BASEDIR, "README.md"), "r") as f:
     readme = f.read()
 
 setuptools.setup(
-    name="eoreader",
+    name=__title__,
     version=__version__,
-    author="Rémi BRAUN",
-    author_email="dev-sertit@unistra.fr",
-    description="Multi satellite reader allowing you to load bands and index and stack them.",
+    author=__author__,
+    author_email=__author_email__,
+    description=__description__,
     long_description=readme,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
@@ -45,8 +53,8 @@ setuptools.setup(
     include_package_data=True,
     python_requires=">=3.7",
     project_urls={
-        "Bug Tracker": "https://github.com/sertit/eoreader/issues/",
-        "Documentation": "https://eoreader.readthedocs.io",
-        "Source Code": "https://github.com/sertit/eoreader",
+        "Bug Tracker": f"{__url__}/issues/",
+        "Documentation": __documentation__,
+        "Source Code": __url__,
     },
 )
