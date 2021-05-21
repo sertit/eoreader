@@ -54,6 +54,7 @@ tox-windows:on-schedule:
   stage: weekly_tests
   before_script:
     - conda init
+    - conda env remove -n eoreader -y
     - conda env create -f environment.yml
     - conda install conda-build  # To use conda develop
     - conda develop . -n eoreader
