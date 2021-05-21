@@ -48,7 +48,7 @@ tox-linux:on-schedule:
   tags:
     - linux
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
 
 tox-windows:on-schedule:
   stage: weekly_tests
@@ -63,7 +63,7 @@ tox-windows:on-schedule:
     - windows
     - conda
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
 
 
 upload_wheel:linux:
