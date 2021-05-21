@@ -43,7 +43,7 @@ from eoreader.bands.bands import SarBandNames as sbn
 from eoreader.bands.bands import SarBands
 from eoreader.env_vars import DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
-from eoreader.products.product import Product, SensorType, path_or_dst
+from eoreader.products.product import Product, SensorType, _path_or_dst
 from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
 from sertit import files, misc, rasters, snap, strings, vectors
@@ -511,7 +511,7 @@ class SarProduct(Product):
 
     # unused band_name (compatibility reasons)
     # pylint: disable=W0613
-    @path_or_dst
+    @_path_or_dst
     def _read_band(
         self,
         path: str,

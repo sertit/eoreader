@@ -50,7 +50,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
 
 
-def path_or_dst(method: Callable) -> Callable:
+def _path_or_dst(method: Callable) -> Callable:
     """
     Path or dataset decorator: allows a function to ingest a path or a rasterio dataset
 
@@ -78,7 +78,7 @@ def path_or_dst(method: Callable) -> Callable:
     """
 
     @wraps(method)
-    def path_or_dst_wrapper(
+    def _path_or_dst_wrapper(
         self, path_or_ds: Union[str, rasterio.DatasetReader], *args, **kwargs
     ) -> Any:
         """
@@ -99,7 +99,7 @@ def path_or_dst(method: Callable) -> Callable:
             out = method(self, path_or_ds, *args, **kwargs)
         return out
 
-    return path_or_dst_wrapper
+    return _path_or_dst_wrapper
 
 
 @unique
@@ -505,7 +505,7 @@ class Product:
     def read_mtd(self) -> Any:
         """
         Read metadata and outputs the metadata XML root and its namespace most of the time,
-        except from L8-collection 1 data which outputs a pandas DataFrame
+        except from L8-collection 1 data which outputs a `pandas.DataFrame`
 
         .. code-block:: python
 
@@ -521,7 +521,7 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     # pylint: disable=W0613
-    @path_or_dst
+    @_path_or_dst
     def _read_band(
         self,
         dataset,
@@ -785,7 +785,7 @@ class Product:
             idx (Callable): Index
 
         Returns:
-            bool: True if the specified index can be computed with this products's bands
+            bool: True if the specified index can be computed with this product's bands
         """
         index_bands = index.get_needed_bands(idx)
         return all(np.isin(index_bands, self.get_existing_bands()))
