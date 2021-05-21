@@ -60,6 +60,7 @@ tox-windows:on-schedule:
     - conda env create -f environment.yml
     - conda develop . -n eoreader
     - conda activate eoreader
+    - conda install tox tox-conda
   script:
     - tox -c tox-conda.ini
   tags:
