@@ -57,7 +57,7 @@ tox-windows:on-schedule:
     - conda update conda
     - conda install conda-build  # To use conda develop
     - conda env remove -n eoreader_tox -y
-    - conda env create -n eoreader_tox --python=3.7 -y
+    - conda env create -n eoreader_tox python=3.7 -y
     - conda develop . -n eoreader_tox
     - conda activate eoreader_tox
     - conda install tox tox-conda
