@@ -41,8 +41,7 @@ tox-linux:on-schedule:
   stage: weekly_tests
   before_script:
     - python -m pip install --upgrade pip
-    - pip install -r requirements.txt --ignore-installed PyYAML --extra-index-url ${WINDOWS_WHEELS}
-    - pip install -e . --extra-index-url ${WINDOWS_WHEELS}
+    - pip install tox
   script:
     - tox -c tox.ini
   tags:
@@ -54,8 +53,7 @@ tox-windows:on-schedule:
   stage: weekly_tests
   before_script:
     - python -m pip install --upgrade pip
-    - pip install tox tox-conda
-    - pip install -e .
+    - pip install tox
   script:
     - tox -c tox-conda.ini
   tags:
