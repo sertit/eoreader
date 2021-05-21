@@ -37,11 +37,11 @@ pytest:
       - docs/*
 
 tox-linux:on-schedule:
-  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  image: python:3.9-buster
   stage: weekly_tests
   before_script:
     - python -m pip install --upgrade pip
-    - pip install -r requirements.txt --ignore-installed PyYAML
+    - pip install tox
     - pip install -e .
   script:
     - tox -c tox.ini
@@ -53,15 +53,11 @@ tox-linux:on-schedule:
 tox-windows:on-schedule:
   stage: weekly_tests
   before_script:
-    - conda init
-    - conda update conda
-    - conda install conda-build  # To use conda develop
-    - conda env remove -n eoreader_tox -y
-    - conda create -n eoreader_tox -y -c conda-forge --strict-channel-priority python=3.7 tox tox-conda
-    - conda develop . -n eoreader_tox
-    - conda activate eoreader_tox
+    - python -m pip install --upgrade pip
+    - pip install tox tox-conda
+    - pip install -e .
   script:
-    - python -m tox -c tox-conda.ini
+    - tox -c tox-conda.ini
   tags:
     - windows
     - conda
