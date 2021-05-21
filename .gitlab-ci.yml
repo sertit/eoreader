@@ -53,13 +53,13 @@ tox-windows:on-schedule:
   before_script:
     - conda init
     - conda env create -f environment.yml
-    - source ~/.bashrc  # <- !!!
-    - export PYTHONPATH="$PYTHONPATH:."
+    - conda develop . -n eoreader
     - conda activate eoreader
   script:
     - tox -c tox-conda.ini
   tags:
     - windows
+    - conda
 
 
 upload_wheel:linux:
