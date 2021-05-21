@@ -41,8 +41,8 @@ tox-linux:on-schedule:
   stage: weekly_tests
   before_script:
     - python -m pip install --upgrade pip
-    - pip install tox
-    - pip install -e .
+    - pip install -r requirements.txt --ignore-installed PyYAML --extra-index-url ${WINDOWS_WHEELS}
+    - pip install -e . --extra-index-url ${WINDOWS_WHEELS}
   script:
     - tox -c tox.ini
   tags:
