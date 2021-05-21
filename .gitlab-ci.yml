@@ -61,7 +61,7 @@ tox-windows:on-schedule:
     - conda develop . -n eoreader_tox
     - conda activate eoreader_tox
   script:
-    - tox -c tox-conda.ini
+    - python -m tox -c tox-conda.ini
   tags:
     - windows
     - conda
