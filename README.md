@@ -17,12 +17,12 @@ and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) data.
 
 It also implements additional **sensor-agnostic** features:
 
-- {meth}`~eoreader.products.product.Product.load`: Load many band types:
+- [`eoreader.products.product.Product.load`](https://eoreader.readthedocs.io/en/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.load): Load many band types:
     - satellite bands ([optical](https://eoreader.readthedocs.io/en/latest/optical.html#satellite-bands) or [SAR](https://eoreader.readthedocs.io/en/latest/sar.html#sar-bands))
     - [index](https://eoreader.readthedocs.io/en/latest/optical.html#available-index)
     - [cloud bands](https://eoreader.readthedocs.io/en/latest/optical.html#cloud-bands)
     - [DEM bands](https://eoreader.readthedocs.io/en/latest/optical.html#dem-bands)
-- {meth}`~eoreader.products.product.Product.stack`: Stack all these type of bands
+- [`eoreader.products.product.Product.stack`](https://eoreader.readthedocs.io/en/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.stack): Stack all these type of bands
 
 EOReader works with [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray)
 and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_structures.html#geodataframe)
