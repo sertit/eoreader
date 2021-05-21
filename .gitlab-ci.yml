@@ -55,6 +55,7 @@ tox-windows:on-schedule:
   before_script:
     - conda init
     - conda env create -f environment.yml
+    - conda install conda-build  # To use conda develop
     - conda develop . -n eoreader
     - conda activate eoreader
   script:
