@@ -36,14 +36,40 @@ pytest:
       - "*.html"
       - docs/*
 
-tox-linux:on-schedule:
+tox-linux-3.7:on-schedule:
+  image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.7
+  stage: weekly_tests
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install tox
+  script:
+    - tox -c tox.ini -e py37
+  tags:
+    - linux
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+
+tox-linux-3.8:on-schedule:
+  image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.8
+  stage: weekly_tests
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install tox
+  script:
+    - tox -c tox.ini -e py38
+  tags:
+    - linux
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+
+tox-linux-3.9:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.9
   stage: weekly_tests
   before_script:
     - python -m pip install --upgrade pip
     - pip install tox
   script:
-    - tox -c tox.ini
+    - tox -c tox.ini -e py39
   tags:
     - linux
   rules:
