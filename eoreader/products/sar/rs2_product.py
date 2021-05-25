@@ -180,7 +180,8 @@ class Rs2Product(SarProduct):
 
         # Read metadata
         try:
-            root, namespace = self.read_mtd()
+            root, nsmap = self.read_mtd()
+            namespace = nsmap[None]
 
             for element in root:
                 if element.tag == namespace + "imageAttributes":
@@ -293,7 +294,7 @@ class Rs2Product(SarProduct):
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         self._get_sar_product_type(
             prod_type_pos=-1,
             gdrg_types=Rs2ProductType.SGF,
@@ -311,17 +312,18 @@ class Rs2Product(SarProduct):
         Get products type from RADARSAT-2 products name (could check the metadata too)
         """
         # Get metadata
-        root, namespace = self.read_mtd()
+        root, nsmap = self.read_mtd()
+        namespace = nsmap[None]
 
         # Get sensor mode
         sensor_mode_xml = None
         for element in root:
-            if element.tag == namespace + "sourceAttributes":
-                radar_param = element.find(namespace + "radarParameters")
+            if element.tag == f"{namespace}sourceAttributes":
+                radar_param = element.find(f"{namespace}radarParameters")
 
                 # WARNING: this word may differ from the Enum !!! (no docs available)
                 # Get the closest match
-                sensor_mode_xml = radar_param.findtext(namespace + "acquisitionType")
+                sensor_mode_xml = radar_param.findtext(f"{namespace}acquisitionType")
                 break
 
         if sensor_mode_xml:
@@ -364,9 +366,9 @@ class Rs2Product(SarProduct):
 
         return date
 
-    def read_mtd(self) -> (etree._Element, str):
+    def read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespace
+        Read metadata and outputs the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -375,30 +377,12 @@ class Rs2Product(SarProduct):
             >>> prod = Reader().open(path)
             >>> prod.read_mtd()
             (<Element {http://www.rsi.ca/rs2/prod/xml/schemas}product at 0x1c0efbd37c8>,
-            '{http://www.rsi.ca/rs2/prod/xml/schemas}')
+            {None: '{http://www.rsi.ca/rs2/prod/xml/schemas}'})
 
         Returns:
-            (etree._Element, str): Metadata XML root and its namespace
+            (etree._Element, dict): Metadata XML root and its namespace
         """
-        # Get MTD XML file
-        if self.is_archived:
-            root = files.read_archived_xml(self.path, ".*product\.xml")
-        else:
-            # Open metadata file
-            try:
-                mtd_file = glob.glob(os.path.join(self.path, "product.xml"))[0]
+        mtd_from_path = "product.xml"
+        mtd_archived = ".*product\.xml"
 
-                # pylint: disable=I1101:
-                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                xml_tree = etree.parse(mtd_file)
-                root = xml_tree.getroot()
-            except IndexError as ex:
-                raise InvalidProductError(
-                    f"Metadata file (product.xml) not found in {self.path}"
-                ) from ex
-
-        # Get namespace
-        idx = root.tag.rindex("}")
-        namespace = root.tag[: idx + 1]
-
-        return root, namespace
+        return self._read_mtd(mtd_from_path, mtd_archived)

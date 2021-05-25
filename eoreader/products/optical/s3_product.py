@@ -120,7 +120,7 @@ class S3Product(OpticalProduct):
         return def_res
 
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         # Product type
         if self.name[7] != "1":
             raise InvalidTypeError("Only L1 products are used for Sentinel-3 data.")
@@ -914,7 +914,7 @@ class S3Product(OpticalProduct):
 
     def read_mtd(self) -> (etree._Element, str):
         """
-        Read metadata and outputs the metadata XML root and its namespace
+        Read metadata and outputs the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 

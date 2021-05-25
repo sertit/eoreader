@@ -16,7 +16,6 @@
 # limitations under the License.
 """ Sentinel-2 products """
 
-import glob
 import logging
 import os
 import re
@@ -109,7 +108,7 @@ class S2Product(OpticalProduct):
         return self.split_name[-2]
 
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         if "MSIL2A" in self.name:
             self.product_type = S2ProductType.L2A
             self.band_names.map_bands(
@@ -562,7 +561,8 @@ class S2Product(OpticalProduct):
         azimuth_angle = None
 
         # Read metadata
-        root, namespace = self.read_mtd()
+        root, nsmap = self.read_mtd()
+        namespace = nsmap["n1"]
 
         # Open zenith and azimuth angle
         for element in root:
@@ -580,9 +580,9 @@ class S2Product(OpticalProduct):
 
         return azimuth_angle, zenith_angle
 
-    def read_mtd(self) -> (etree._Element, str):
+    def read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespace
+        Read metadata and outputs the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -591,35 +591,15 @@ class S2Product(OpticalProduct):
             >>> prod = Reader().open(path)
             >>> prod.read_mtd()
             (<Element {https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}Level-2A_Tile_ID at ...>,
-            '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}')
+            {'nl': '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}'})
 
         Returns:
-            (etree._Element, str): Metadata XML root and its namespace
+            (etree._Element, dict): Metadata XML root and its namespaces
         """
-        # Get MTD XML file
-        if self.is_archived:
-            root = files.read_archived_xml(self.path, ".*GRANULE.*\.xml")
-        else:
-            # Open metadata file
-            try:
-                mtd_file = glob.glob(os.path.join(self.path, "GRANULE", "*", "*.xml"))[
-                    0
-                ]
+        mtd_from_path = os.path.join("GRANULE", "*", "*.xml")
+        mtd_archived = ".*GRANULE.*\.xml"
 
-                # pylint: disable=I1101:
-                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                xml_tree = etree.parse(mtd_file)
-                root = xml_tree.getroot()
-            except IndexError as ex:
-                raise InvalidProductError(
-                    f"Metadata file not found in {self.path}"
-                ) from ex
-
-        # Get namespace
-        idx = root.tag.rindex("}")
-        namespace = root.tag[: idx + 1]
-
-        return root, namespace
+        return self._read_mtd(mtd_from_path, mtd_archived)
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """

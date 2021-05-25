@@ -29,5 +29,5 @@ class L8Product(LandsatProduct):
         return 30.0
 
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         self._set_olci_product_type()

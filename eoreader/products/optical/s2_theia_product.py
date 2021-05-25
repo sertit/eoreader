@@ -15,12 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Sentinel-2 Theia products`Index consistency
+Sentinel-2 Theia products.
 See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_ for more information.
 """
 
 import datetime
-import glob
 import logging
 import os
 from functools import reduce
@@ -48,7 +47,8 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class S2TheiaProduct(OpticalProduct):
     """
     Class of Sentinel-2 Theia Products.
-    See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_ for more information.
+    See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_
+    for more information.
     """
 
     def _post_init(self) -> None:
@@ -81,7 +81,7 @@ class S2TheiaProduct(OpticalProduct):
         return self.split_name[3]
 
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         self.product_type = S2ProductType.L2A
         self.band_names.map_bands(
             {
@@ -489,9 +489,9 @@ class S2TheiaProduct(OpticalProduct):
 
         return azimuth_angle, zenith_angle
 
-    def read_mtd(self) -> (etree._Element, str):
+    def read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespace
+        Read metadata and outputs the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -499,32 +499,15 @@ class S2TheiaProduct(OpticalProduct):
             >>> path = r"SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip"
             >>> prod = Reader().open(path)
             >>> prod.read_mtd()
-            (<Element Muscate_Metadata_Document at 0x252d2071e88>, '')
+            (<Element Muscate_Metadata_Document at 0x252d2071e88>, {})
 
         Returns:
-            (etree._Element, str): Metadata XML root and its namespace
+            (etree._Element, dict): Metadata XML root and its namespaces
         """
-        # Get MTD XML file
-        if self.is_archived:
-            root = files.read_archived_xml(self.path, ".*MTD_ALL\.xml")
-        else:
-            # Open metadata file
-            try:
-                mtd_xml = glob.glob(os.path.join(self.path, "*MTD_ALL.xml"))[0]
+        mtd_from_path = "*MTD_ALL.xml"
+        mtd_archived = ".*MTD_ALL\.xml"
 
-                # pylint: disable=I1101:
-                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                xml_tree = etree.parse(mtd_xml)
-                root = xml_tree.getroot()
-            except IndexError as ex:
-                raise InvalidProductError(
-                    f"Metadata file not found in {self.path}"
-                ) from ex
-
-        # Get namespace
-        namespace = ""
-
-        return root, namespace
+        return self._read_mtd(mtd_from_path, mtd_archived)
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
