@@ -37,7 +37,7 @@ pytest:
       - docs/*
 
 tox-linux:on-schedule:
-  image: python:3.9-buster
+  image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.9
   stage: weekly_tests
   before_script:
     - python -m pip install --upgrade pip
