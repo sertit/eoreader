@@ -15,7 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Landsat products """
-import glob
 import logging
 import os
 import tarfile
@@ -189,7 +188,7 @@ class LandsatProduct(OpticalProduct):
 
     @abstractmethod
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         raise NotImplementedError("This method should be implemented by a child class")
 
     def _set_mss_product_type(self, version: int) -> None:
@@ -382,7 +381,7 @@ class LandsatProduct(OpticalProduct):
             >>> path = r"LC08_L1TP_200030_20201220_20210310_02_T1"  # Collection 2
             >>> prod = Reader().open(path)
             >>> prod.read_mtd()
-            (<Element LANDSAT_METADATA_FILE at 0x19229016048>, '')
+            (<Element LANDSAT_METADATA_FILE at 0x19229016048>, {})
 
             >>> # COLLECTION 2 : Force to pandas.DataFrame
             >>> prod.read_mtd(force_pd=True)
@@ -393,7 +392,7 @@ class LandsatProduct(OpticalProduct):
         Args:
             force_pd (bool): If collection 2, return a pandas.DataFrame instead of a XML root + namespace
         Returns:
-            pd.DataFrame: Metadata as a Pandas DataFrame
+            Any: Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
         """
         # WARNING: always use force_pd in this class !
         as_pd = (self._collection == LandsatCollection.COL_1) or force_pd
@@ -444,28 +443,10 @@ class LandsatProduct(OpticalProduct):
             if tar_ds:
                 tar_ds.close()
         else:
-            if self.is_archived:
-                root = files.read_archived_xml(self.path, f".*{self.name}_MTL.xml")
-            else:
-                # ONLY FOR COLLECTION 2
-                try:
-                    mtd_file = glob.glob(
-                        os.path.join(self.path, f"{self.name}_MTL.xml")
-                    )[0]
-
-                    # pylint: disable=I1101:
-                    # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                    xml_tree = etree.parse(mtd_file)
-                    root = xml_tree.getroot()
-                except IndexError as ex:
-                    raise InvalidProductError(
-                        f"Metadata file ({self.name}.xml) not found in {self.path}"
-                    ) from ex
-
-            # Get namespace
-            namespace = ""  # No namespace here
-
-            mtd_data = (root, namespace)
+            # Open XML metadata
+            mtd_from_path = f"{self.name}_MTL.xml"
+            mtd_archived = f".*{self.name}_MTL.xml"
+            mtd_data = self._read_mtd(mtd_from_path, mtd_archived)
 
         return mtd_data
 

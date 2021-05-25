@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import glob
 import logging
 import os
 import tempfile
@@ -31,6 +32,7 @@ import geopandas as gpd
 import numpy as np
 import rasterio
 import xarray as xr
+from lxml import etree
 from rasterio import crs as riocrs
 from rasterio import warp
 from rasterio.enums import Resampling
@@ -39,6 +41,7 @@ from eoreader.bands import index
 from eoreader.bands.alias import *
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
+from eoreader.exceptions import InvalidProductError
 from eoreader.reader import Platform, Reader
 from eoreader.utils import EOREADER_NAME
 from sertit import files, misc, rasters, strings
@@ -504,7 +507,7 @@ class Product:
     @abstractmethod
     def read_mtd(self) -> Any:
         """
-        Read metadata and outputs the metadata XML root and its namespace most of the time,
+        Read metadata and outputs the metadata XML root and its namespaces as a dict most of the time,
         except from L8-collection 1 data which outputs a `pandas.DataFrame`
 
         .. code-block:: python
@@ -1240,3 +1243,40 @@ class Product:
                     f"{dem_path} is not a file! "
                     f"Please set the environment variable {DEM_PATH} to an existing file."
                 )
+
+    def _read_mtd(self, mtd_from_path: str, mtd_archived: str = None):
+        """
+        Read metadata and outputs the metadata XML root and its namespaces as a dicts as a dict
+
+        Args:
+            mtd_from_path (str): Metadata regex (glob style) to find from extracted product
+            mtd_archived (str): Metadata regex (re style) to find from archived product
+
+        Returns:
+            (etree._Element, dict): Metadata XML root and its namespaces
+
+        """
+        if self.is_archived:
+            root = files.read_archived_xml(self.path, mtd_archived)
+        else:
+            # ONLY FOR COLLECTION 2
+            try:
+                mtd_file = glob.glob(os.path.join(self.path, mtd_from_path))[0]
+
+                # pylint: disable=I1101:
+                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                xml_tree = etree.parse(mtd_file)
+                root = xml_tree.getroot()
+            except IndexError as ex:
+                raise InvalidProductError(
+                    f"Metadata file ({mtd_from_path}) not found in {self.path}"
+                ) from ex
+
+        # Get namespaces map (only useful ones)
+        nsmap = {key: f"{{{ns}}}" for key, ns in root.nsmap.items()}
+        pop_list = ["xsi", "xs", "xlink"]
+        for ns in pop_list:
+            if ns in nsmap.keys():
+                nsmap.pop(ns)
+
+        return root, nsmap
