@@ -632,7 +632,7 @@ class LandsatProduct(OpticalProduct):
         # Retrieve angles
         mtd_data = self.read_mtd(force_pd=True)
         azimuth_angle = float(mtd_data.SUN_AZIMUTH.value)
-        zenith_angle = float(mtd_data.SUN_ELEVATION.value)
+        zenith_angle = 90.0 - float(mtd_data.SUN_ELEVATION.value)
 
         return azimuth_angle, zenith_angle
 

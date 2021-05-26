@@ -390,8 +390,9 @@ class OpticalProduct(Product):
 
             # Get angles
             mean_azimuth_angle, mean_zenith_angle = self.get_mean_sun_angles()
-            zenith = 90.0 - mean_zenith_angle
-            azimuth = mean_azimuth_angle
+
+            # Altitude of the light, in degrees. 90 if the light comes from above the DEM, 0 if it is raking light.
+            alt = 90 - mean_zenith_angle
 
             # Run cmd
             cmd_hillshade = [
@@ -405,9 +406,9 @@ class OpticalProduct(Product):
                 "-z",
                 "1",
                 "-az",
-                azimuth,
+                mean_azimuth_angle,
                 "-alt",
-                zenith,
+                alt,
                 "-of",
                 "GTiff",
                 strings.to_cmd_string(hillshade_dem),
