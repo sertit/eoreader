@@ -1261,7 +1261,9 @@ class Product:
         else:
             # ONLY FOR COLLECTION 2
             try:
-                mtd_file = glob.glob(os.path.join(self.path, mtd_from_path))[0]
+                mtd_file = glob.glob(
+                    os.path.join(self.path, mtd_from_path), recursive=True
+                )[0]
 
                 # pylint: disable=I1101:
                 # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
