@@ -422,7 +422,7 @@ class OpticalProduct(Product):
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
     ) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Args:
             bands (list): List of the wanted bands
