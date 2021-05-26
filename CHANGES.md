@@ -6,6 +6,7 @@
 
 - Adding weekly CI tests (`tox` on Python 3.7, 3.8, 3.9 on Linux and Windows)
 - read_mtd() returns a dict for the namespace map in order to manage multi namespace XMLs
+- Bug resolution in Landsat Zenith angle computation (mixing elevation and zenith angle)
 
 ## 0.3.3 (2021-05-21)
 
