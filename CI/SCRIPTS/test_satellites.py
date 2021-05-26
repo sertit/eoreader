@@ -39,7 +39,9 @@ if os.environ.get("USE_UNISTRA_S3") not in ("Y", "YES", "TRUE", "T"):
         LOGGER.debug("Non available default DEM: %s", ex)
         pass
 else:
-    os.environ[DEM_PATH] = "https://s3.unistra.fr/sertit-geodatastore/GLOBAL/MERIT_Hydrologically_Adjusted_Elevations/MERIT_DEM.vrt"
+    os.environ[
+        DEM_PATH
+    ] = "https://s3.unistra.fr/sertit-geodatastore/GLOBAL/MERIT_Hydrologically_Adjusted_Elevations/MERIT_DEM.vrt"
     LOGGER.info(f"Using DEM provided through Unistra S3 ({os.environ[DEM_PATH]})")
 
 
