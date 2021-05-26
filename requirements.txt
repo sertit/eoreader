@@ -8,7 +8,6 @@ coverage
 pytest-cov
 flake8
 pylint
-tempenv
 
 # Deploy
 twine

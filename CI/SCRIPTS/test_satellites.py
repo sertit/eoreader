@@ -3,8 +3,6 @@ import glob
 import logging
 import os
 import tempfile
-import platform
-from tempenv import TemporaryEnvironment
 
 import geopandas as gpd
 import xarray as xr
