@@ -4,6 +4,7 @@
 
 ## 0.3.3 (2021-05-XX)
 
+- Introduced support for DEM files from web urls (starting with http(s)://)
 - Migrating docs to sphinx and readthedocs
 - Bug correction when loading invalid masks for S2 sensor (fiona.errors.UnsupportedGeometryTypeError)
 
