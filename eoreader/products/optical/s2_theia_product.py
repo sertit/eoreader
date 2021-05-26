@@ -338,7 +338,7 @@ class S2TheiaProduct(OpticalProduct):
         size: Union[list, tuple] = None,
     ) -> np.ndarray:
         """
-        Open a Sentinel-2 THEIA mask.
+        Open a Sentinel-2 THEIA mask as a numpy array.
 
         - Opens the saturation and defective mask to the correct bit ID corresponding to the given band.
         - Opens the nodata binary mask
@@ -519,7 +519,7 @@ class S2TheiaProduct(OpticalProduct):
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
     ) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Read S2 Theia cloud mask:
         https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/

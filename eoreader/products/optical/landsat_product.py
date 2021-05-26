@@ -690,7 +690,7 @@ class LandsatProduct(OpticalProduct):
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
     ) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Read Landsat clouds from QA mask.
         See here for clouds_values:
@@ -729,7 +729,7 @@ class LandsatProduct(OpticalProduct):
 
     def _load_mss_clouds(self, qa_arr: XDS_TYPE, band_list: list) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Read Landsat-MSS clouds from QA mask.
         See here for clouds_values:
@@ -775,7 +775,7 @@ class LandsatProduct(OpticalProduct):
         self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
     ) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Read Landsat-(E)TM clouds from QA mask.
         See here for clouds_values:
@@ -837,7 +837,7 @@ class LandsatProduct(OpticalProduct):
         self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
     ) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Read Landsat-OLCI clouds from QA mask.
         See here for clouds_values:
