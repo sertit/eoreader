@@ -21,20 +21,18 @@ from __future__ import annotations
 import datetime as dt
 import logging
 import os
+import platform
 import tempfile
 from abc import abstractmethod
 from enum import unique
 from functools import wraps
 from typing import Any, Callable, Union
 
-import platform
-import validators
-
 import geopandas as gpd
 import numpy as np
 import rasterio
+import validators
 import xarray as xr
-
 from rasterio import crs as riocrs
 from rasterio import warp
 from rasterio.enums import Resampling
@@ -932,8 +930,10 @@ class Product:
             LOGGER.debug("Warping DEM for %s", self.name)
 
             # Check existence (SRTM)
-            if validators.url(dem_path) and platform.system() == 'Windows':
-                raise Exception(f"URLs to DEM like {dem_path} are not supported on Windows! Use Docker or Linux instead")
+            if validators.url(dem_path) and platform.system() == "Windows":
+                raise Exception(
+                    f"URLs to DEM like {dem_path} are not supported on Windows! Use Docker or Linux instead"
+                )
 
             if not validators.url(dem_path) and not os.path.isfile(dem_path):
                 raise FileNotFoundError(f"DEM file does not exist here: {dem_path}")
