@@ -27,10 +27,14 @@ from enum import unique
 from functools import wraps
 from typing import Any, Callable, Union
 
+import platform
+import validators
+
 import geopandas as gpd
 import numpy as np
 import rasterio
 import xarray as xr
+
 from rasterio import crs as riocrs
 from rasterio import warp
 from rasterio.enums import Resampling
@@ -928,7 +932,10 @@ class Product:
             LOGGER.debug("Warping DEM for %s", self.name)
 
             # Check existence (SRTM)
-            if not os.path.isfile(dem_path):
+            if validators.url(dem_path) and platform.system() == 'Windows':
+                raise Exception(f"URLs to DEM like {dem_path} are not supported on Windows! Use Docker or Linux instead")
+
+            if not validators.url(dem_path) and not os.path.isfile(dem_path):
                 raise FileNotFoundError(f"DEM file does not exist here: {dem_path}")
 
             # Reproject DEM into products CRS
@@ -1235,7 +1242,7 @@ class Product:
             )
         else:
             dem_path = os.environ.get(DEM_PATH)
-            if not os.path.isfile(dem_path):
+            if not validators.url(dem_path) and not os.path.isfile(dem_path):
                 raise FileNotFoundError(
                     f"{dem_path} is not a file! "
                     f"Please set the environment variable {DEM_PATH} to an existing file."
