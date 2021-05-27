@@ -157,7 +157,6 @@ MTD_REGEX = {
         r"imagery_[HV]{2}.tif",
     ],
 }
-"""Platform XML regex, mapping every metadata XML to a regex allowing the reader to recognize them (as a fallback)."""
 
 
 class Reader:

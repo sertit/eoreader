@@ -64,7 +64,7 @@ class LandsatProductType(ListEnum):
 class LandsatCollection(ListEnum):
     """
     Landsat collection number.
-    See [here](https://www.usgs.gov/media/files/landsat-collection-1-vs-collection-2-summary) for more information
+    See `here <https://www.usgs.gov/media/files/landsat-collection-1-vs-collection-2-summary>`_ for more information
     """
 
     COL_1 = "01"

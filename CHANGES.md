@@ -2,10 +2,11 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.3.3 (2021-05-XX)
+## 0.3.3 (2021-05-21)
 
 - Introduced support for DEM files from web urls (starting with http(s)://)
-- Migrating docs to sphinx and readthedocs
+- Migrating documentation to sphinx and readthedocs
+- Refactoring documentation and ReadMe
 - Bug correction when loading invalid masks for S2 sensor (fiona.errors.UnsupportedGeometryTypeError)
 
 ## 0.3.2.post2 (2021-05-04)

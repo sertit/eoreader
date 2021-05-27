@@ -24,10 +24,11 @@
 
 ```{eval-rst}
 .. autosummary::
-    :toctree: _autosummary
+    :toctree: api
     :caption: API
     :template: custom-module-template.rst
     :recursive:
 
     eoreader
 ```
+

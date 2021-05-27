@@ -64,7 +64,7 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 |Landsat MSS (5-4)|  |  | **1** (60m) | **2** (60m) | **3** (60m) | **3** (60m) | **3** (60m) | **4** (60m) | **4** (60m) |  |  |  |  |  |  | |
 |Landsat MSS (1-3)|  |  | **4** (60m) | **5** (60m) | **6** (60m) | **6** (60m) | **6** (60m) | **7** (60m) | **7** (60m) |  |  |  |  |  |**8** (240m)<br>*only for Landsat-3* |**8** (240m)<br>*only for Landsat-3*|
 
-\* Not all bands of this sensor are used in EOReader
+\* *Not all bands of this sensor are used in EOReader*
 
 ### Cloud bands
 
@@ -146,9 +146,9 @@ environment variables:
 
 - `EOREADER_S3_DEFAULT_RES` (500m for SLSTR and 300m for OLCI data by default)
 
-# Documentary Sources
+## Documentary Sources
 
-## Landsat
+### Landsat
 
 - [Collection 1 vs Collection 2](https://www.usgs.gov/media/files/landsat-collection-1-vs-collection-2-summary)
 - [Quality assessment Collection 1](https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band)
@@ -158,26 +158,26 @@ environment variables:
 - [ETM Collection 2 Data Format](https://www.usgs.gov/media/files/landsat-7-etm-collection-2-level-1-data-format-control-book)
 - [OLCI Collection 2 Data Format](https://www.usgs.gov/media/files/landsat-8-level-1-data-format-control-book)
 
-## Sentinel-2
+### Sentinel-2
 
 - [Cloud masks](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks)
 - [Product Specification](https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf)
 
-## Sentinel-2 Theia
+### Sentinel-2 Theia
 
 - [Product Format](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/)
 
-## Sentinel-3
+### Sentinel-3
 
 - [OLCI Product Format](https://sentinel.esa.int/documents/247904/1872756/Sentinel-3-OLCI-Product-Data-Format-Specification-OLCI-Level-1)
 - [SLSTR Clouds](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/cloud-identification)
 
-## PlanetScope
+### PlanetScope
 
 - [Product Specification](https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf)
 - [On Medium](https://medium.com/geoplexing/getting-started-with-planet-imagery-part-3-items-and-ordering-476a1a21618c)
 
-## Band mapping
+### Band mapping
 
 - You can find a magnificent band comparison chart on the [Imagico](http://blog.imagico.de/satellite-comparison-update/)
   blog.
@@ -189,7 +189,7 @@ environment variables:
 - [S3 OLCI](https://discovery.creodias.eu/dataset/a0960a9b-c9c4-46db-bca5-ec79d0dda32b/resource/de8300a4-08cd-41aa-96ec-d9813115cc08/download/s3_res_band_ol.png)
 - [S3 SLSTR](https://discovery.creodias.eu/dataset/ea8f247e-d193-4368-8cf6-8687a03a5306/resource/8e5c485a-d832-42be-ad9c-af500b468f29/download/s3_slcs.png)
 
-## Index
+### Index
 
 - [Index consistency](https://www.indexdatabase.de/)
 - Specific sources inside the index function documentation in {meth}`~eoreader.bands.index`

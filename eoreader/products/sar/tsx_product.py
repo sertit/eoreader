@@ -16,7 +16,7 @@
 # limitations under the License.
 """
 TerraSAR-X products.
-More info [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf).
+More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
 """
 import glob
 import logging
@@ -46,7 +46,8 @@ warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarni
 class TsxProductType(ListEnum):
     """
     TerraSAR-X projection identifier.
-    Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
+    Take a look
+    `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
 
     SSC = "SSC"
@@ -66,7 +67,8 @@ class TsxProductType(ListEnum):
 class TsxSensorMode(ListEnum):
     """
     TerraSAR-X sensor mode.
-    Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
+    Take a look
+    `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
 
     HS = "HS"
@@ -89,7 +91,8 @@ class TsxSensorMode(ListEnum):
 class TsxPolarization(ListEnum):
     """
     TerraSAR-X polarization mode.
-    Take a look [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
+    Take a look
+    `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
 
     SINGLE = "S"

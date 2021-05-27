@@ -16,7 +16,7 @@
 # limitations under the License.
 """
 COSMO-SkyMed products.
-More info [here](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description).
+More info `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
 """
 import datetime
 import glob
@@ -48,7 +48,7 @@ warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarni
 class CskProductType(ListEnum):
     """
     COSMO-SkyMed products types.
-    Take a look [here](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description).
+    Take a look `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
     """
 
     RAW = "RAW"
@@ -71,7 +71,7 @@ class CskProductType(ListEnum):
 class CskSensorMode(ListEnum):
     """
     COSMO-SkyMed sensor mode.
-    Take a look [here](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description)
+    Take a look `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
     """
 
     HI = "HI"
@@ -94,7 +94,7 @@ class CskSensorMode(ListEnum):
 class CskPolarization(ListEnum):
     """
     COSMO-SkyMed polarizations used during the acquisition.
-    Take a look [here](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description).
+    Take a look `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
     """
 
     HH = "HH"
