@@ -212,7 +212,7 @@ class OpticalProduct(Product):
                 band_path, band=band, resolution=resolution, size=size
             )
             band_arrays[band] = self._manage_invalid_pixels(
-                band_arrays[band], band, resolution=resolution, size=size
+                band_arrays[band], band=band, resolution=resolution, size=size
             )
 
         return band_arrays
