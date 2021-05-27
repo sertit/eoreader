@@ -929,12 +929,13 @@ class Product:
         else:
             LOGGER.debug("Warping DEM for %s", self.name)
 
-            # Check existence (SRTM)
+            # Allow S3 HTTP Urls only on Linux because rasterio bugs on Windows
             if validators.url(dem_path) and platform.system() == "Windows":
                 raise Exception(
                     f"URLs to DEM like {dem_path} are not supported on Windows! Use Docker or Linux instead"
                 )
 
+            # Check existence (SRTM)
             if not validators.url(dem_path) and not os.path.isfile(dem_path):
                 raise FileNotFoundError(f"DEM file does not exist here: {dem_path}")
 
