@@ -476,18 +476,11 @@ class S2TheiaProduct(OpticalProduct):
         # Get MTD XML file
         root, _ = self.read_mtd()
 
-        # Open zenith and azimuth angle
-        for element in root:
-            if element.tag == "Geometric_Informations":
-                for node in element:
-                    if node.tag == "Mean_Value_List":
-                        mean_sun_angles = node.find("Sun_Angles")
-                        zenith_angle = float(mean_sun_angles.findtext("ZENITH_ANGLE"))
-                        azimuth_angle = float(mean_sun_angles.findtext("AZIMUTH_ANGLE"))
-                        break  # Only one Mean_Sun_Angle
-                break  # Only one Geometric_Info
-
-        if not zenith_angle or not azimuth_angle:
+        try:
+            mean_sun_angles = root.find(".//Sun_Angles")
+            zenith_angle = float(mean_sun_angles.findtext("ZENITH_ANGLE"))
+            azimuth_angle = float(mean_sun_angles.findtext("AZIMUTH_ANGLE"))
+        except TypeError:
             raise InvalidProductError("Azimuth or Zenith angles not found")
 
         return azimuth_angle, zenith_angle

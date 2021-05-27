@@ -152,15 +152,11 @@ class CskProduct(SarProduct):
         """
         def_res = None
 
-        # Read metadata
+        # Read metadata for default resolution
         try:
             root, _ = self.read_mtd()
-
-            for element in root:
-                if element.tag == "ProductCharacteristics":
-                    def_res = float(element.findtext("GroundRangeGeometricResolution"))
-                    break
-        except (InvalidProductError, AttributeError):
+            def_res = float(root.findtext(".//GroundRangeGeometricResolution"))
+        except (InvalidProductError, TypeError):
             pass
 
         # If we cannot read it in MTD, initiate survival mode
@@ -229,14 +225,10 @@ class CskProduct(SarProduct):
         def from_str_to_arr(geo_coord: str):
             return np.array(strings.str_to_list(geo_coord), dtype=float)[:2][::-1]
 
-        bl_corner = br_corner = tr_corner = tl_corner = None
-        for element in root:
-            if element.tag == "ProductDefinitionData":
-                bl_corner = from_str_to_arr(element.findtext("GeoCoordBottomLeft"))
-                br_corner = from_str_to_arr(element.findtext("GeoCoordBottomRight"))
-                tl_corner = from_str_to_arr(element.findtext("GeoCoordTopLeft"))
-                tr_corner = from_str_to_arr(element.findtext("GeoCoordTopRight"))
-                break
+        bl_corner = from_str_to_arr(root.findtext(".//GeoCoordBottomLeft"))
+        br_corner = from_str_to_arr(root.findtext(".//GeoCoordBottomRight"))
+        tl_corner = from_str_to_arr(root.findtext(".//GeoCoordTopLeft"))
+        tr_corner = from_str_to_arr(root.findtext(".//GeoCoordTopRight"))
 
         if bl_corner is None:
             raise InvalidProductError("Invalid XML: missing extent.")
