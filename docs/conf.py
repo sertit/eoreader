@@ -217,6 +217,7 @@ intersphinx_mapping = {
 add_function_parentheses = False
 add_module_names = False
 
+
 def _html_page_context(app, pagename, templatename, context, doctree):
     # Disable edit button for docstring generated pages
     if "generated" in pagename:
