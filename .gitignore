@@ -27,6 +27,7 @@ dist/
 docs/_build
 docs/api
 .ipynb_checkpoints
+/docs/notebooks/test.ipynb
 
 # Other files
 /CI/SCRIPTS/test.py
