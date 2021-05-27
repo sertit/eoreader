@@ -857,12 +857,12 @@ class S3Product(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
+        Get S3 products condensed name ({date}_S3_{tile]_{product_type}).
 
         Returns:
-            str: Condensed S2 name
+            str: Condensed name
         """
-        return f"{self.get_datetime()}_S3_{self.product_type.name}"
+        return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """
