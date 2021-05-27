@@ -4,9 +4,10 @@
 
 ## 0.3.4 (2021-MM-DD)
 
-- Adding weekly CI tests (`tox` on Python 3.7, 3.8, 3.9 on Linux and Windows)
-- read_mtd() returns a dict for the namespace map in order to manage multi namespace XMLs
-- Bug resolution in Landsat Zenith angle computation (mixing elevation and zenith angle)
+- **Bug resolution**: Landsat Zenith angle computation (mixing elevation and zenith angle)
+- **API change**: `read_mtd()` returns a dict for the namespace map in order to manage multi namespace XMLs
+- **Signature change (invisible)**: Adding the band name in `_read_band()` to allow loading stacked bands
+- **CI**: Adding weekly tests (`tox` on Python 3.7, 3.8, 3.9 on Linux and Windows)
 
 ## 0.3.3 (2021-05-21)
 

@@ -43,7 +43,7 @@ from eoreader.bands.bands import SarBandNames as sbn
 from eoreader.bands.bands import SarBands
 from eoreader.env_vars import DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
-from eoreader.products.product import Product, SensorType, _path_or_dst
+from eoreader.products.product import Product, SensorType
 from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
 from sertit import files, misc, rasters, snap, strings, vectors
@@ -511,24 +511,28 @@ class SarProduct(Product):
 
     # unused band_name (compatibility reasons)
     # pylint: disable=W0613
-    @_path_or_dst
     def _read_band(
         self,
         path: str,
+        band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
     ) -> XDS_TYPE:
         """
         Read band from disk.
 
+        .. WARNING::
+            Invalid pixels are not managed here
+
         Args:
             path (str): Band path
+            band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
             XDS_TYPE: Band xarray
-        """
 
+        """
         return rasters.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
         )
