@@ -85,7 +85,7 @@ def test_products():
     mtd_pd = prod1.read_mtd(force_pd=True)
     assert isinstance(mtd_pd, pd.DataFrame)
     assert isinstance(mtd_xml, etree._Element)
-    assert nmsp == ""
+    assert nmsp == {}
 
     # Check size
     green = prod1.load([GREEN], resolution=300)

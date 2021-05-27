@@ -120,7 +120,7 @@ class S3Product(OpticalProduct):
         return def_res
 
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         # Product type
         if self.name[7] != "1":
             raise InvalidTypeError("Only L1 products are used for Sentinel-3 data.")
@@ -394,20 +394,23 @@ class S3Product(OpticalProduct):
         return band_paths
 
     # pylint: disable=W0613
+
     def _read_band(
         self,
         path: str,
+        band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
     ) -> XDS_TYPE:
         """
-        Read band from a dataset.
+        Read band from disk.
 
         .. WARNING::
-            Invalid pixels are not managed here !
+            Invalid pixels are not managed here
 
         Args:
-            path (str): Band dataset
+            path (str): Band path
+            band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
@@ -914,7 +917,7 @@ class S3Product(OpticalProduct):
 
     def read_mtd(self) -> (etree._Element, str):
         """
-        Read metadata and outputs the metadata XML root and its namespace
+        Read metadata and outputs the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -955,7 +958,7 @@ class S3Product(OpticalProduct):
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
     ) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Read S3 SLSTR clouds from the flags file:cloud netcdf file.
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/cloud-identification

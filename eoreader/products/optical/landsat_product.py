@@ -15,7 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Landsat products """
-import glob
 import logging
 import os
 import tarfile
@@ -123,6 +122,7 @@ class LandsatProduct(OpticalProduct):
 
         Returns:
             str: band path
+            str: band path
 
         """
         if self.is_archived:
@@ -189,7 +189,7 @@ class LandsatProduct(OpticalProduct):
 
     @abstractmethod
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         raise NotImplementedError("This method should be implemented by a child class")
 
     def _set_mss_product_type(self, version: int) -> None:
@@ -382,7 +382,7 @@ class LandsatProduct(OpticalProduct):
             >>> path = r"LC08_L1TP_200030_20201220_20210310_02_T1"  # Collection 2
             >>> prod = Reader().open(path)
             >>> prod.read_mtd()
-            (<Element LANDSAT_METADATA_FILE at 0x19229016048>, '')
+            (<Element LANDSAT_METADATA_FILE at 0x19229016048>, {})
 
             >>> # COLLECTION 2 : Force to pandas.DataFrame
             >>> prod.read_mtd(force_pd=True)
@@ -393,7 +393,7 @@ class LandsatProduct(OpticalProduct):
         Args:
             force_pd (bool): If collection 2, return a pandas.DataFrame instead of a XML root + namespace
         Returns:
-            pd.DataFrame: Metadata as a Pandas DataFrame
+            Any: Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
         """
         # WARNING: always use force_pd in this class !
         as_pd = (self._collection == LandsatCollection.COL_1) or force_pd
@@ -444,49 +444,33 @@ class LandsatProduct(OpticalProduct):
             if tar_ds:
                 tar_ds.close()
         else:
-            if self.is_archived:
-                root = files.read_archived_xml(self.path, f".*{self.name}_MTL.xml")
-            else:
-                # ONLY FOR COLLECTION 2
-                try:
-                    mtd_file = glob.glob(
-                        os.path.join(self.path, f"{self.name}_MTL.xml")
-                    )[0]
-
-                    # pylint: disable=I1101:
-                    # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                    xml_tree = etree.parse(mtd_file)
-                    root = xml_tree.getroot()
-                except IndexError as ex:
-                    raise InvalidProductError(
-                        f"Metadata file ({self.name}.xml) not found in {self.path}"
-                    ) from ex
-
-            # Get namespace
-            namespace = ""  # No namespace here
-
-            mtd_data = (root, namespace)
+            # Open XML metadata
+            mtd_from_path = f"{self.name}_MTL.xml"
+            mtd_archived = f".*{self.name}_MTL.xml"
+            mtd_data = self._read_mtd(mtd_from_path, mtd_archived)
 
         return mtd_data
 
     def _read_band(
         self,
         path: str,
+        band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
     ) -> XDS_TYPE:
         """
-        Read band from a dataset.
+        Read band from disk.
 
         .. WARNING::
-            Invalid pixels are not managed here !
+            Invalid pixels are not managed here
 
         Args:
             path (str): Band path
+            band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            XDS_TYPE: Radiometrically coherent band, saved as float 32 and its metadata
+            XDS_TYPE: Band xarray
 
         """
         # Get band name: the last number of the filename:
@@ -498,7 +482,7 @@ class LandsatProduct(OpticalProduct):
 
         band_name = filename[-1]
         if self._quality_id in filename or self._nodata_band_id in filename:
-            band = rasters.read(
+            band_xda = rasters.read(
                 path,
                 resolution=resolution,
                 size=size,
@@ -507,7 +491,7 @@ class LandsatProduct(OpticalProduct):
             ).astype(np.uint16)
         else:
             # Read band (call superclass generic method)
-            band = rasters.read(
+            band_xda = rasters.read(
                 path, resolution=resolution, size=size, resampling=Resampling.bilinear
             ).astype(np.float32)
 
@@ -533,9 +517,9 @@ class LandsatProduct(OpticalProduct):
                 c_add = 0
 
             # Compute the correct radiometry of the band and set no data to 0
-            band = c_mul * band + c_add  # Already in float
+            band_xda = c_mul * band_xda + c_add  # Already in float
 
-        return band
+        return band_xda
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
@@ -651,7 +635,7 @@ class LandsatProduct(OpticalProduct):
         # Retrieve angles
         mtd_data = self.read_mtd(force_pd=True)
         azimuth_angle = float(mtd_data.SUN_AZIMUTH.value)
-        zenith_angle = float(mtd_data.SUN_ELEVATION.value)
+        zenith_angle = 90.0 - float(mtd_data.SUN_ELEVATION.value)
 
         return azimuth_angle, zenith_angle
 
@@ -709,7 +693,7 @@ class LandsatProduct(OpticalProduct):
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
     ) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Read Landsat clouds from QA mask.
         See here for clouds_values:
@@ -748,7 +732,7 @@ class LandsatProduct(OpticalProduct):
 
     def _load_mss_clouds(self, qa_arr: XDS_TYPE, band_list: list) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Read Landsat-MSS clouds from QA mask.
         See here for clouds_values:
@@ -794,7 +778,7 @@ class LandsatProduct(OpticalProduct):
         self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
     ) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Read Landsat-(E)TM clouds from QA mask.
         See here for clouds_values:
@@ -856,7 +840,7 @@ class LandsatProduct(OpticalProduct):
         self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
     ) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Read Landsat-OLCI clouds from QA mask.
         See here for clouds_values:

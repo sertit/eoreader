@@ -32,7 +32,7 @@ setuptools.setup(
         "xarray>=0.18.0",
         "rioxarray>=0.4.0",
         "geopandas>=0.9.0",
-        "sertit[full]>=1.3.12",
+        "sertit[full]>=1.3.13.post0",
         "rtree",
     ],
     classifiers=[

@@ -34,7 +34,7 @@ class L4Product(LandsatProduct):
         return def_res
 
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         if "LT04" in self.name:
             self._set_tm_product_type()
         elif "LM04" in self.name:

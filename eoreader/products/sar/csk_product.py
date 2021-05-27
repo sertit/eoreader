@@ -249,7 +249,7 @@ class CskProduct(SarProduct):
         return extent_wgs84
 
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         self._get_sar_product_type(
             prod_type_pos=1,
             gdrg_types=CskProductType.DGM,
@@ -310,9 +310,9 @@ class CskProduct(SarProduct):
         # Use the real name
         return [x for x in self._real_name.split("_") if x]
 
-    def read_mtd(self) -> (etree._Element, str):
+    def read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespace
+        Read metadata and outputs the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -320,25 +320,11 @@ class CskProduct(SarProduct):
             >>> path = r"1001513-735093"
             >>> prod = Reader().open(path)
             >>> prod.read_mtd()
-            (<Element DeliveryNote at 0x2454ad4ee88>, '')
+            (<Element DeliveryNote at 0x2454ad4ee88>, {})
 
         Returns:
-            (etree._Element, str): Metadata XML root and its namespace
+            (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_name = f"DFDN_{self._real_name}.h5.xml"
-        try:
-            mtd_file = glob.glob(os.path.join(self.path, mtd_name))[0]
+        mtd_from_path = f"DFDN_{self._real_name}.h5.xml"
 
-            # pylint: disable=I1101:
-            # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-            xml_tree = etree.parse(mtd_file)
-            root = xml_tree.getroot()
-        except IndexError as ex:
-            raise InvalidProductError(
-                f"Metadata file ({mtd_name}) not found in {self.path}"
-            ) from ex
-
-        # Get namespace
-        namespace = ""  # No namespace here
-
-        return root, namespace
+        return self._read_mtd(mtd_from_path)
