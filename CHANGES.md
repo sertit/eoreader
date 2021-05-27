@@ -8,6 +8,7 @@
 - **API change**: `read_mtd()` returns a dict for the namespace map in order to manage multi namespace XMLs
 - **Signature change (invisible)**: Adding the band name in `_read_band()` to allow loading stacked bands
 - **CI**: Adding weekly tests (`tox` on Python 3.7, 3.8, 3.9 on Linux and Windows)
+- **Doc**: Updating documentation, setting DEM path as an environment variable
 
 ## 0.3.3 (2021-05-21)
 

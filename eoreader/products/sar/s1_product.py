@@ -102,13 +102,8 @@ class S1Product(SarProduct):
         # Read metadata
         try:
             root, _ = self.read_mtd()
-
-            for element in root:
-                if element.tag == "imageAnnotation":
-                    image_info = element.find("imageInformation")
-                    def_res = float(image_info.findtext("rangePixelSpacing"))
-                    break
-        except (InvalidProductError, AttributeError):
+            def_res = float(root.findtext(".//rangePixelSpacing"))
+        except (InvalidProductError, TypeError):
             pass
 
         # If we cannot read it in MTD, initiate survival mode
