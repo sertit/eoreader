@@ -38,7 +38,7 @@ For optical data:
 >>> from eoreader.bands.alias import *
 
 >>> # Landsat-5 MSS path, can be found in CI/DATA
->>> l5_path = r"D:/eoreader/CI/DATA/LM05_L1TP_200029_19841014_20200902_02_T2.tar"
+>>> l5_path = "LM05_L1TP_200029_19841014_20200902_02_T2.tar"
 
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()
@@ -47,6 +47,11 @@ For optical data:
 >>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
 >>> footprint = l5_prod.footprint()
 >>> extent = l5_prod.extent()
+
+>>> # Specify a DEM to load DEM bands
+>>> import os
+>>> from eoreader.env_vars import DEM_PATH
+>>> os.environ[DEM_PATH] = "my_dem.tif"
 
 >>> # Load some bands and index: they will all share the same metadata
 >>> bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])
@@ -65,7 +70,7 @@ For SAR data:
 >>> from eoreader.bands.alias import *
 
 >>> # Sentinel-1 GRD path, not provided in package
->>> s1_path = r"D:/eoreader/S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip"
+>>> s1_path = "S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip"
 
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()
@@ -74,6 +79,11 @@ For SAR data:
 >>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
 >>> footprint = s1_prod.footprint()
 >>> extent = s1_prod.extent()
+
+>>>  # Specify a DEM to load DEM bands
+>>> import os
+>>> from eoreader.env_vars import DEM_PATH
+>>> os.environ[DEM_PATH] = "my_dem.tif"
 
 >>> # Load some bands and index: they will all share the same metadata
 >>> bands = s1_prod.load([VV, VV_DSPK, DEM])

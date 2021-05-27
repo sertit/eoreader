@@ -559,26 +559,14 @@ class S2Product(OpticalProduct):
         Returns:
             (float, float): Mean Azimuth and Zenith angle
         """
-        # Init angles
-        zenith_angle = None
-        azimuth_angle = None
-
         # Read metadata
-        root, nsmap = self.read_mtd()
-        namespace = nsmap["n1"]
+        root, _ = self.read_mtd()
 
-        # Open zenith and azimuth angle
-        for element in root:
-            if element.tag == namespace + "Geometric_Info":
-                for node in element:
-                    if node.tag == "Tile_Angles":
-                        mean_sun_angles = node.find("Mean_Sun_Angle")
-                        zenith_angle = float(mean_sun_angles.findtext("ZENITH_ANGLE"))
-                        azimuth_angle = float(mean_sun_angles.findtext("AZIMUTH_ANGLE"))
-                        break  # Only one Mean_Sun_Angle
-                break  # Only one Geometric_Info
-
-        if not zenith_angle or not azimuth_angle:
+        try:
+            mean_sun_angles = root.find(".//Mean_Sun_Angle")
+            zenith_angle = float(mean_sun_angles.findtext("ZENITH_ANGLE"))
+            azimuth_angle = float(mean_sun_angles.findtext("AZIMUTH_ANGLE"))
+        except TypeError:
             raise InvalidProductError("Azimuth or Zenith angles not found")
 
         return azimuth_angle, zenith_angle

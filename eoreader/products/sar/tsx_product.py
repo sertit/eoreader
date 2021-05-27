@@ -124,16 +124,9 @@ class TsxProduct(SarProduct):
         # Read metadata
         try:
             root, _ = self.read_mtd()
-
-            for element in root:
-                if element.tag == "productInfo":
-                    image_data = element.find("imageDataInfo")
-                    image_raster = image_data.find("imageRaster")
-                    def_res = float(
-                        image_raster.findtext("rowSpacing")
-                    )  # Square pixels
-                    break
-        except (InvalidProductError, AttributeError):
+            image_data = root.find(".//imageDataInfo")
+            def_res = float(image_data.findtext(".//rowSpacing"))  # Square pixels
+        except (InvalidProductError, TypeError):
             pass
 
         # If we cannot read it in MTD, initiate survival mode
