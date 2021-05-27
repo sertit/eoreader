@@ -37,7 +37,7 @@ class L7Product(LandsatProduct):
         return 30.0
 
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         self._set_etm_product_type()
 
     def footprint(self) -> gpd.GeoDataFrame:
