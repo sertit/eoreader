@@ -15,7 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Sentinel-1 products """
-import glob
 import logging
 import os
 import re
@@ -33,7 +32,7 @@ from lxml import etree
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, misc, strings, vectors
+from sertit import misc, strings, vectors
 from sertit.misc import ListEnum
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -218,7 +217,7 @@ class S1Product(SarProduct):
         return extent_wgs84
 
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         self._get_sar_product_type(
             prod_type_pos=2, gdrg_types=S1ProductType.GRD, cplx_types=S1ProductType.SLC
         )
@@ -271,9 +270,9 @@ class S1Product(SarProduct):
 
         return date
 
-    def read_mtd(self) -> (etree._Element, str):
+    def read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespace
+        Read metadata and outputs the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -281,29 +280,12 @@ class S1Product(SarProduct):
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
             >>> prod.read_mtd()
-            (<Element product at 0x1832895d788>, '')
+            (<Element product at 0x1832895d788>, {})
 
         Returns:
-            (etree._Element, str): Metadata XML root and its namespace
+            (etree._Element, dict): Metadata XML root and its namespaces
         """
-        # Get MTD XML file
-        if self.is_archived:
-            root = files.read_archived_xml(self.path, ".*annotation.*\.xml")
-        else:
-            # Open metadata file
-            try:
-                mtd_file = glob.glob(os.path.join(self.path, "annotation", "*.xml"))[0]
+        mtd_from_path = os.path.join("annotation", "*.xml")
+        mtd_archived = ".*annotation.*\.xml"
 
-                # pylint: disable=I1101:
-                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                xml_tree = etree.parse(mtd_file)
-                root = xml_tree.getroot()
-            except IndexError as ex:
-                raise InvalidProductError(
-                    f"Metadata file (product.xml) not found in {self.path}"
-                ) from ex
-
-        # Get namespace
-        namespace = ""
-
-        return root, namespace
+        return self._read_mtd(mtd_from_path, mtd_archived)

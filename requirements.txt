@@ -25,4 +25,4 @@ rtree
 validators
 
 # SERTIT libs
-sertit[full] >=1.3.12
+sertit[full] >=1.3.13.post0

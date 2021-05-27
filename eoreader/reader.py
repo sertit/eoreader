@@ -154,7 +154,7 @@ MTD_REGEX = {
     Platform.TSX: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
     Platform.RS2: [
         r"product\.xml",  # Too generic name, check also a band
-        r"imagery_[HV]{2}.tif",
+        r"imagery_[HV]{2}\.tif",
     ],
 }
 

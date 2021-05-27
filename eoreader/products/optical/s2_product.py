@@ -16,7 +16,6 @@
 # limitations under the License.
 """ Sentinel-2 products """
 
-import glob
 import logging
 import os
 import re
@@ -41,7 +40,7 @@ from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 from sertit import files, rasters
 from sertit.misc import ListEnum
-from sertit.rasters import ORIGIN_DTYPE, XDS_TYPE
+from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -109,7 +108,7 @@ class S2Product(OpticalProduct):
         return self.split_name[-2]
 
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         if "MSIL2A" in self.name:
             self.product_type = S2ProductType.L2A
             self.band_names.map_bands(
@@ -310,33 +309,36 @@ class S2Product(OpticalProduct):
     def _read_band(
         self,
         path: str,
+        band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
     ) -> XDS_TYPE:
         """
-        Read band from a dataset.
+        Read band from disk.
 
         .. WARNING::
-            Invalid pixels are not managed here !
+            Invalid pixels are not managed here
 
         Args:
             path (str): Band path
+            band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            XDS_TYPE: Radiometrically coherent band, saved as float 32
+            XDS_TYPE: Band xarray
 
         """
         # Read band
-        band = rasters.read(
+        band_xda = rasters.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
         )
 
         # Compute the correct radiometry of the band
-        if band.attrs[ORIGIN_DTYPE] == "uint16":
-            band /= 10000.0
+        original_dtype = band_xda.encoding.get("dtype", band_xda.dtype)
+        if original_dtype == "uint16":
+            band_xda /= 10000.0
 
-        return band
+        return band_xda
 
     def open_mask(self, mask_str: str, band: Union[obn, str]) -> gpd.GeoDataFrame:
         """
@@ -562,7 +564,8 @@ class S2Product(OpticalProduct):
         azimuth_angle = None
 
         # Read metadata
-        root, namespace = self.read_mtd()
+        root, nsmap = self.read_mtd()
+        namespace = nsmap["n1"]
 
         # Open zenith and azimuth angle
         for element in root:
@@ -580,9 +583,9 @@ class S2Product(OpticalProduct):
 
         return azimuth_angle, zenith_angle
 
-    def read_mtd(self) -> (etree._Element, str):
+    def read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespace
+        Read metadata and outputs the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -591,35 +594,15 @@ class S2Product(OpticalProduct):
             >>> prod = Reader().open(path)
             >>> prod.read_mtd()
             (<Element {https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}Level-2A_Tile_ID at ...>,
-            '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}')
+            {'nl': '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}'})
 
         Returns:
-            (etree._Element, str): Metadata XML root and its namespace
+            (etree._Element, dict): Metadata XML root and its namespaces
         """
-        # Get MTD XML file
-        if self.is_archived:
-            root = files.read_archived_xml(self.path, ".*GRANULE.*\.xml")
-        else:
-            # Open metadata file
-            try:
-                mtd_file = glob.glob(os.path.join(self.path, "GRANULE", "*", "*.xml"))[
-                    0
-                ]
+        mtd_from_path = os.path.join("GRANULE", "*", "*.xml")
+        mtd_archived = ".*GRANULE.*\.xml"
 
-                # pylint: disable=I1101:
-                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                xml_tree = etree.parse(mtd_file)
-                root = xml_tree.getroot()
-            except IndexError as ex:
-                raise InvalidProductError(
-                    f"Metadata file not found in {self.path}"
-                ) from ex
-
-        # Get namespace
-        idx = root.tag.rindex("}")
-        namespace = root.tag[: idx + 1]
-
-        return root, namespace
+        return self._read_mtd(mtd_from_path, mtd_archived)
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
@@ -636,7 +619,7 @@ class S2Product(OpticalProduct):
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
     ) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Read S2 cloud mask .GML files (both valid for L2A and L1C products).
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks

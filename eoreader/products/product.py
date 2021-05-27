@@ -19,13 +19,13 @@
 from __future__ import annotations
 
 import datetime as dt
+import glob
 import logging
 import os
 import platform
 import tempfile
 from abc import abstractmethod
 from enum import unique
-from functools import wraps
 from typing import Any, Callable, Union
 
 import geopandas as gpd
@@ -33,6 +33,7 @@ import numpy as np
 import rasterio
 import validators
 import xarray as xr
+from lxml import etree
 from rasterio import crs as riocrs
 from rasterio import warp
 from rasterio.enums import Resampling
@@ -41,6 +42,7 @@ from eoreader.bands import index
 from eoreader.bands.alias import *
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
+from eoreader.exceptions import InvalidProductError
 from eoreader.reader import Platform, Reader
 from eoreader.utils import EOREADER_NAME
 from sertit import files, misc, rasters, strings
@@ -50,58 +52,6 @@ from sertit.snap import MAX_CORES
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
-
-
-def _path_or_dst(method: Callable) -> Callable:
-    """
-    Path or dataset decorator: allows a function to ingest a path or a rasterio dataset
-
-    .. code-block:: python
-
-        >>> # Create mock function
-        >>> @path_or_dst
-        >>> def fct(dst):
-        >>>     read(dst)
-        >>>
-        >>> # Test the two ways
-        >>> read1 = fct("path\\to\\raster.tif")
-        >>> with rasterio.open("path\\to\\raster.tif") as dst:
-        >>>     read2 = fct(dst)
-        >>>
-        >>> # Test
-        >>> read1 == read2
-        True
-
-    Args:
-        method (Callable): Function to decorate
-
-    Returns:
-        Callable: decorated function
-    """
-
-    @wraps(method)
-    def _path_or_dst_wrapper(
-        self, path_or_ds: Union[str, rasterio.DatasetReader], *args, **kwargs
-    ) -> Any:
-        """
-        Path or dataset wrapper
-        Args:
-            self: Class
-            path_or_ds (Union[str, rasterio.DatasetReader]): Raster path or its dataset
-            *args: args
-            **kwargs: kwargs
-
-        Returns:
-            Any: regular output
-        """
-        if isinstance(path_or_ds, str):
-            with rasterio.open(path_or_ds) as dst:
-                out = method(self, dst, *args, **kwargs)
-        else:
-            out = method(self, path_or_ds, *args, **kwargs)
-        return out
-
-    return _path_or_dst_wrapper
 
 
 @unique
@@ -506,7 +456,7 @@ class Product:
     @abstractmethod
     def read_mtd(self) -> Any:
         """
-        Read metadata and outputs the metadata XML root and its namespace most of the time,
+        Read metadata and outputs the metadata XML root and its namespaces as a dict most of the time,
         except from L8-collection 1 data which outputs a `pandas.DataFrame`
 
         .. code-block:: python
@@ -523,10 +473,10 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     # pylint: disable=W0613
-    @_path_or_dst
     def _read_band(
         self,
-        dataset,
+        path: str,
+        band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
     ) -> XDS_TYPE:
@@ -537,7 +487,8 @@ class Product:
             For optical data, invalid pixels are not managed here
 
         Args:
-            dataset (Dataset): Band dataset
+            path (str): Band path
+            band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
@@ -1248,3 +1199,42 @@ class Product:
                     f"{dem_path} is not a file! "
                     f"Please set the environment variable {DEM_PATH} to an existing file."
                 )
+
+    def _read_mtd(self, mtd_from_path: str, mtd_archived: str = None):
+        """
+        Read metadata and outputs the metadata XML root and its namespaces as a dicts as a dict
+
+        Args:
+            mtd_from_path (str): Metadata regex (glob style) to find from extracted product
+            mtd_archived (str): Metadata regex (re style) to find from archived product
+
+        Returns:
+            (etree._Element, dict): Metadata XML root and its namespaces
+
+        """
+        if self.is_archived:
+            root = files.read_archived_xml(self.path, mtd_archived)
+        else:
+            # ONLY FOR COLLECTION 2
+            try:
+                mtd_file = glob.glob(
+                    os.path.join(self.path, mtd_from_path), recursive=True
+                )[0]
+
+                # pylint: disable=I1101:
+                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                xml_tree = etree.parse(mtd_file)
+                root = xml_tree.getroot()
+            except IndexError as ex:
+                raise InvalidProductError(
+                    f"Metadata file ({mtd_from_path}) not found in {self.path}"
+                ) from ex
+
+        # Get namespaces map (only useful ones)
+        nsmap = {key: f"{{{ns}}}" for key, ns in root.nsmap.items()}
+        pop_list = ["xsi", "xs", "xlink"]
+        for ns in pop_list:
+            if ns in nsmap.keys():
+                nsmap.pop(ns)
+
+        return root, nsmap
