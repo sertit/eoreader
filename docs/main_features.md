@@ -73,6 +73,11 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 >>>  # and you won't be able to retrieve what's has been written on disk
 >>> prod = Reader().open(path, output_path=output)
 
+>>>  # Specify a DEM to load DEM bands
+>>> import os
+>>> from eoreader.env_vars import DEM_PATH
+>>> os.environ[DEM_PATH] = r"my_dem.tif"
+
 >>> # Get the wanted bands and check if the product can produce them
 >>> band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
 >>> ok_bands = [band for band in band_list if prod.has_band(band)]
@@ -81,8 +86,8 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 
 >>> # Load bands
 >>> bands = prod.load(ok_bands)  # resolution not specified -> load at default resolution (20.0 m for S2 data)
->> >  # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
->> >  # (important for DEM data as they may have different grids)
+>>> # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
+>>> # (important for DEM data as they may have different grids)
 
 >>> bands
 {<function NDVI at 0x000001C47FF05E18>: <xarray.DataArray 'NDVI' (band: 1, y: 5490, x: 5490)>
