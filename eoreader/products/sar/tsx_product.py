@@ -227,7 +227,7 @@ class TsxProduct(SarProduct):
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
     def _set_product_type(self) -> None:
-        """Get products type"""
+        """Set products type"""
         self._get_sar_product_type(
             prod_type_pos=2,
             gdrg_types=TsxProductType.MGD,
@@ -277,9 +277,9 @@ class TsxProduct(SarProduct):
 
         return date
 
-    def read_mtd(self) -> (etree._Element, str):
+    def read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespace
+        Read metadata and outputs the metadata XML root and its namespaces as a dict
 
         .. code-block:: python
 
@@ -287,24 +287,11 @@ class TsxProduct(SarProduct):
             >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20200605T042203_20200605T042211"
             >>> prod = Reader().open(path)
             >>> prod.read_mtd()
-            (<Element level1Product at 0x1b845b7ab88>, '')
+            (<Element level1Product at 0x1b845b7ab88>, {})
 
         Returns:
-            (etree._Element, str): Metadata XML root and its namespace
+            (etree._Element, dict): Metadata XML root and its namespaces
         """
-        try:
-            mtd_file = glob.glob(os.path.join(self.path, f"{self.name}.xml"))[0]
+        mtd_from_path = f"{self.name}.xml"
 
-            # pylint: disable=I1101:
-            # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-            xml_tree = etree.parse(mtd_file)
-            root = xml_tree.getroot()
-        except IndexError as ex:
-            raise InvalidProductError(
-                f"Metadata file ({self.name}.xml) not found in {self.path}"
-            ) from ex
-
-        # Get namespace
-        namespace = ""  # No namespace here
-
-        return root, namespace
+        return self._read_mtd(mtd_from_path)

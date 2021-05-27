@@ -206,13 +206,13 @@ class OpticalProduct(Product):
         """
         # Open bands and get array (resampled if needed)
         band_arrays = {}
-        for band_name, band_path in band_paths.items():
+        for band, band_path in band_paths.items():
             # Read band
-            band_arrays[band_name] = self._read_band(
-                band_path, resolution=resolution, size=size
+            band_arrays[band] = self._read_band(
+                band_path, band=band, resolution=resolution, size=size
             )
-            band_arrays[band_name] = self._manage_invalid_pixels(
-                band_arrays[band_name], band_name, resolution=resolution, size=size
+            band_arrays[band] = self._manage_invalid_pixels(
+                band_arrays[band], band, resolution=resolution, size=size
             )
 
         return band_arrays
@@ -390,8 +390,9 @@ class OpticalProduct(Product):
 
             # Get angles
             mean_azimuth_angle, mean_zenith_angle = self.get_mean_sun_angles()
-            zenith = 90.0 - mean_zenith_angle
-            azimuth = mean_azimuth_angle
+
+            # Altitude of the light, in degrees. 90 if the light comes from above the DEM, 0 if it is raking light.
+            alt = 90 - mean_zenith_angle
 
             # Run cmd
             cmd_hillshade = [
@@ -405,9 +406,9 @@ class OpticalProduct(Product):
                 "-z",
                 "1",
                 "-az",
-                azimuth,
+                mean_azimuth_angle,
                 "-alt",
-                zenith,
+                alt,
                 "-of",
                 "GTiff",
                 strings.to_cmd_string(hillshade_dem),
@@ -421,7 +422,7 @@ class OpticalProduct(Product):
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
     ) -> dict:
         """
-        Load cloud files as numpy arrays with the same resolution (and same metadata).
+        Load cloud files as xarrays.
 
         Args:
             bands (list): List of the wanted bands
