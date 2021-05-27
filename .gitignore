@@ -25,7 +25,7 @@ dist/
 
 # Docs & Notebooks
 docs/_build
-docs/_autosummary
+docs/api
 .ipynb_checkpoints
 
 # Other files

@@ -1,6 +1,6 @@
 # Tests & lint
 tox
-tox-conda
+tox-conda; platform_system == "Windows"
 pre-commit
 black
 pytest
@@ -11,9 +11,6 @@ pylint
 
 # Deploy
 twine
-
-# Doc
-pdoc3
 
 # Libs for all platforms
 tqdm

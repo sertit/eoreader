@@ -15,14 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-*EOReader* library
+**EOReader** library
 """
-
-__pdoc__ = {
-    "eoreader.data": False,
-}
-
-__version__ = "0.3.2-2"
+__version__ = "0.3.3"
 __title__ = "eoreader"
 __description__ = (
     "Remote-sensing opensource python library reading optical and SAR sensors, "
@@ -33,3 +28,4 @@ __author_email__ = "dev-sertit@unistra.fr"
 __url__ = "https://github.com/sertit/eoreader"
 __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/"
+__documentation__ = "https://eoreader.readthedocs.io"

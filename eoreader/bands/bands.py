@@ -230,16 +230,16 @@ class OpticalBandNames(BandNames):
 
     More information can be retrieved here:
 
-    - [Overall comparison](http://blog.imagico.de/wp-content/uploads/2016/11/sat_spectra_full4a.png)
+    - `Overall comparison <http://blog.imagico.de/wp-content/uploads/2016/11/sat_spectra_full4a.png>`_
     - L8/S2:
-        - [Resource 1](https://reader.elsevier.com/reader/sd/pii/S0034425718301883)
-        - [Resource 2](https://landsat.gsfc.nasa.gov/wp-content/uploads/2015/06/Landsat.v.Sentinel-2.png)
-    - [L4/L5, MSS-TM](https://landsat.gsfc.nasa.gov/the-multispectral-scanner-system/)
-    - [All Landsats](https://landsat.gsfc.nasa.gov/wp-content/uploads/2016/10/all_Landsat_bands.png)
-    - [S2](https://discovery.creodias.eu/dataset/72181b08-a577-4d55-8ece-d8485167beb7/resource/d8f5dd92-b35c-46ee-98a2-0879dad03fce/download/res_band_s2_1.png)
-    - [S3 OLCI](https://discovery.creodias.eu/dataset/a0960a9b-c9c4-46db-bca5-ec79d0dda32b/resource/de8300a4-08cd-41aa-96ec-d9813115cc08/download/s3_res_band_ol.png)
-    - [S3 SLSTR](https://discovery.creodias.eu/dataset/ea8f247e-d193-4368-8cf6-8687a03a5306/resource/8e5c485a-d832-42be-ad9c-af500b468f29/download/s3_slcs.png)
-    - [Index consistency](https://www.indexdatabase.de/)
+        - `Resource 1 <https://reader.elsevier.com/reader/sd/pii/S0034425718301883>`_
+        - `Resource 2 <https://landsat.gsfc.nasa.gov/wp-content/uploads/2015/06/Landsat.v.Sentinel-2.png>`_
+    - `L4/L5, MSS-TM <https://landsat.gsfc.nasa.gov/the-multispectral-scanner-system/>`_
+    - `All Landsats <https://landsat.gsfc.nasa.gov/wp-content/uploads/2016/10/all_Landsat_bands.png>`_
+    - `S2 <https://discovery.creodias.eu/dataset/72181b08-a577-4d55-8ece-d8485167beb7/resource/d8f5dd92-b35c-46ee-98a2-0879dad03fce/download/res_band_s2_1.png>`_
+    - `S3 OLCI <https://discovery.creodias.eu/dataset/a0960a9b-c9c4-46db-bca5-ec79d0dda32b/resource/de8300a4-08cd-41aa-96ec-d9813115cc08/download/s3_res_band_ol.png>`_
+    - `S3 SLSTR <https://discovery.creodias.eu/dataset/ea8f247e-d193-4368-8cf6-8687a03a5306/resource/8e5c485a-d832-42be-ad9c-af500b468f29/download/s3_slcs.png>`_
+    - `Index consistency <https://www.indexdatabase.de/>`_
 
     This classification allows index computation and algorithms to run without knowing the band nb of every satellite.
     If None, then the band does not exist for the satellite.

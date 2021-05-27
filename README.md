@@ -3,7 +3,6 @@
 [![Tests](https://github.com/sertit/eoreader/actions/workflows/test.yml/badge.svg)](https://github.com/sertit/eoreader/actions/workflows/test.yml)
 [![Gitter](https://badges.gitter.im/eoreader/community.svg)](https://gitter.im/eoreader/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
-[![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 [![Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/sertit/eoreader/blob/master/LICENSE)
 
 # ![eoreader_logo](https://eoreader.readthedocs.io/en/latest/_static/favicon.png) EOReader
@@ -18,12 +17,12 @@ and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) data.
 
 It also implements additional **sensor-agnostic** features:
 
-- {meth}`~eoreader.products.product.Product.load`: Load many band types:
+- [`load`](https://eoreader.readthedocs.io/en/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.load): Load many band types:
     - satellite bands ([optical](https://eoreader.readthedocs.io/en/latest/optical.html#satellite-bands) or [SAR](https://eoreader.readthedocs.io/en/latest/sar.html#sar-bands))
     - [index](https://eoreader.readthedocs.io/en/latest/optical.html#available-index)
     - [cloud bands](https://eoreader.readthedocs.io/en/latest/optical.html#cloud-bands)
     - [DEM bands](https://eoreader.readthedocs.io/en/latest/optical.html#dem-bands)
-- {meth}`~eoreader.products.product.Product.stack`: Stack all these type of bands
+- [`stack`](https://eoreader.readthedocs.io/en/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.stack): Stack all these type of bands
 
 EOReader works with [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray)
 and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_structures.html#geodataframe)

@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Sentinel-2 Theia products
-See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more information.
+Sentinel-2 Theia products`Index consistency
+See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_ for more information.
 """
 
 import datetime
@@ -48,7 +48,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class S2TheiaProduct(OpticalProduct):
     """
     Class of Sentinel-2 Theia Products.
-    See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more information.
+    See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_ for more information.
     """
 
     def _post_init(self) -> None:
@@ -250,7 +250,7 @@ class S2TheiaProduct(OpticalProduct):
     ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
-        See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
+        See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_ for more
         information.
 
         Args:
@@ -346,7 +346,7 @@ class S2TheiaProduct(OpticalProduct):
 
         Do not open cloud mask with this function. Use `load` instead.
 
-        See [here](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/) for more
+        See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_ for more
         information.
 
         Accepted mask IDs:

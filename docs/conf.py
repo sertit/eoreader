@@ -125,10 +125,10 @@ html_theme_options = {
     "repository_url": eoreader.__url__,
     "use_repository_button": True,
     "use_issues_button": True,
-    "use_edit_page_button": True,
+    "use_edit_page_button": False,
     "repository_branch": "master",
     "path_to_docs": "docs",
-    "use_download_button": True,
+    "use_download_button": False,
     "extra_navbar": "",
 }
 

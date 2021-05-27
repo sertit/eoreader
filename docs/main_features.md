@@ -1,6 +1,6 @@
 # Main features
 
-These features can be seen in the [basic tutorial](/notebooks/base.html).
+These features can be seen in the [basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html).
 
 ## Read
 
@@ -58,7 +58,7 @@ datetime.datetime(2020, 8, 24, 11, 6, 31)
 
 ## Load
 
-{meth}`~eoreader.products.product.Product.load` is the function for accessing to product-related bands.
+{meth}`~eoreader.products.product.Product.load` is the function for accessing product-related bands.
 It can load satellite bands, index, DEM bands and cloud bands according to this workflow:
 ![load_workflow](https://zupimages.net/up/21/14/vtnc.png)
 
