@@ -213,31 +213,34 @@ class S2TheiaProduct(OpticalProduct):
     def _read_band(
         self,
         path: str,
+        band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
     ) -> XDS_TYPE:
         """
-        Read band from a dataset
+        Read band from disk.
 
         .. WARNING::
-            Invalid pixels are not managed here!
+            Invalid pixels are not managed here
 
         Args:
             path (str): Band path
+            band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            XDS_TYPE: Radiometrically coherent band, saved as float 32
+            XDS_TYPE: Band xarray
+
         """
         # Read band
-        band = rasters.read(
+        band_xda = rasters.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
         )
 
         # Compute the correct radiometry of the band
-        band = band / 10000.0
+        band_xda = band_xda / 10000.0
 
-        return band
+        return band_xda
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)

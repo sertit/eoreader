@@ -206,13 +206,13 @@ class OpticalProduct(Product):
         """
         # Open bands and get array (resampled if needed)
         band_arrays = {}
-        for band_name, band_path in band_paths.items():
+        for band, band_path in band_paths.items():
             # Read band
-            band_arrays[band_name] = self._read_band(
-                band_path, resolution=resolution, size=size
+            band_arrays[band] = self._read_band(
+                band_path, band=band, resolution=resolution, size=size
             )
-            band_arrays[band_name] = self._manage_invalid_pixels(
-                band_arrays[band_name], band_name, resolution=resolution, size=size
+            band_arrays[band] = self._manage_invalid_pixels(
+                band_arrays[band], band, resolution=resolution, size=size
             )
 
         return band_arrays

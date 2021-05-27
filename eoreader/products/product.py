@@ -25,7 +25,6 @@ import os
 import tempfile
 from abc import abstractmethod
 from enum import unique
-from functools import wraps
 from typing import Any, Callable, Union
 
 import geopandas as gpd
@@ -51,58 +50,6 @@ from sertit.snap import MAX_CORES
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
-
-
-def _path_or_dst(method: Callable) -> Callable:
-    """
-    Path or dataset decorator: allows a function to ingest a path or a rasterio dataset
-
-    .. code-block:: python
-
-        >>> # Create mock function
-        >>> @path_or_dst
-        >>> def fct(dst):
-        >>>     read(dst)
-        >>>
-        >>> # Test the two ways
-        >>> read1 = fct("path\\to\\raster.tif")
-        >>> with rasterio.open("path\\to\\raster.tif") as dst:
-        >>>     read2 = fct(dst)
-        >>>
-        >>> # Test
-        >>> read1 == read2
-        True
-
-    Args:
-        method (Callable): Function to decorate
-
-    Returns:
-        Callable: decorated function
-    """
-
-    @wraps(method)
-    def _path_or_dst_wrapper(
-        self, path_or_ds: Union[str, rasterio.DatasetReader], *args, **kwargs
-    ) -> Any:
-        """
-        Path or dataset wrapper
-        Args:
-            self: Class
-            path_or_ds (Union[str, rasterio.DatasetReader]): Raster path or its dataset
-            *args: args
-            **kwargs: kwargs
-
-        Returns:
-            Any: regular output
-        """
-        if isinstance(path_or_ds, str):
-            with rasterio.open(path_or_ds) as dst:
-                out = method(self, dst, *args, **kwargs)
-        else:
-            out = method(self, path_or_ds, *args, **kwargs)
-        return out
-
-    return _path_or_dst_wrapper
 
 
 @unique
@@ -524,10 +471,10 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     # pylint: disable=W0613
-    @_path_or_dst
     def _read_band(
         self,
-        dataset,
+        path: str,
+        band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
     ) -> XDS_TYPE:
@@ -538,7 +485,8 @@ class Product:
             For optical data, invalid pixels are not managed here
 
         Args:
-            dataset (Dataset): Band dataset
+            path (str): Band path
+            band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:

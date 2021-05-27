@@ -40,7 +40,7 @@ from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 from sertit import files, rasters
 from sertit.misc import ListEnum
-from sertit.rasters import ORIGIN_DTYPE, XDS_TYPE
+from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -309,33 +309,36 @@ class S2Product(OpticalProduct):
     def _read_band(
         self,
         path: str,
+        band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
     ) -> XDS_TYPE:
         """
-        Read band from a dataset.
+        Read band from disk.
 
         .. WARNING::
-            Invalid pixels are not managed here !
+            Invalid pixels are not managed here
 
         Args:
             path (str): Band path
+            band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            XDS_TYPE: Radiometrically coherent band, saved as float 32
+            XDS_TYPE: Band xarray
 
         """
         # Read band
-        band = rasters.read(
+        band_xda = rasters.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
         )
 
         # Compute the correct radiometry of the band
-        if band.attrs[ORIGIN_DTYPE] == "uint16":
-            band /= 10000.0
+        original_dtype = band_xda.encoding.get("dtype", band_xda.dtype)
+        if original_dtype == "uint16":
+            band_xda /= 10000.0
 
-        return band
+        return band_xda
 
     def open_mask(self, mask_str: str, band: Union[obn, str]) -> gpd.GeoDataFrame:
         """

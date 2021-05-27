@@ -122,6 +122,7 @@ class LandsatProduct(OpticalProduct):
 
         Returns:
             str: band path
+            str: band path
 
         """
         if self.is_archived:
@@ -453,21 +454,23 @@ class LandsatProduct(OpticalProduct):
     def _read_band(
         self,
         path: str,
+        band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
     ) -> XDS_TYPE:
         """
-        Read band from a dataset.
+        Read band from disk.
 
         .. WARNING::
-            Invalid pixels are not managed here !
+            Invalid pixels are not managed here
 
         Args:
             path (str): Band path
+            band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            XDS_TYPE: Radiometrically coherent band, saved as float 32 and its metadata
+            XDS_TYPE: Band xarray
 
         """
         # Get band name: the last number of the filename:
@@ -479,7 +482,7 @@ class LandsatProduct(OpticalProduct):
 
         band_name = filename[-1]
         if self._quality_id in filename or self._nodata_band_id in filename:
-            band = rasters.read(
+            band_xda = rasters.read(
                 path,
                 resolution=resolution,
                 size=size,
@@ -488,7 +491,7 @@ class LandsatProduct(OpticalProduct):
             ).astype(np.uint16)
         else:
             # Read band (call superclass generic method)
-            band = rasters.read(
+            band_xda = rasters.read(
                 path, resolution=resolution, size=size, resampling=Resampling.bilinear
             ).astype(np.float32)
 
@@ -514,9 +517,9 @@ class LandsatProduct(OpticalProduct):
                 c_add = 0
 
             # Compute the correct radiometry of the band and set no data to 0
-            band = c_mul * band + c_add  # Already in float
+            band_xda = c_mul * band_xda + c_add  # Already in float
 
-        return band
+        return band_xda
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
