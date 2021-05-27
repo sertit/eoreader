@@ -17,6 +17,7 @@
 |Landsat-3 MSS | {meth}`~eoreader.products.optical.l3_product.L3Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
 |Landsat-2 MSS | {meth}`~eoreader.products.optical.l2_product.L2Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
 |Landsat-1 MSS | {meth}`~eoreader.products.optical.l1_product.L1Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|PlanetScope | {meth}`~eoreader.products.optical.pla_product.PlaProduct` | L3A & L3B | Yes | 3m|
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
@@ -63,6 +64,8 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 |Landsat TM (5-4)|  | **1** (30m) | **2** (30m) | **3** (30m) |  |  |  | **4**(30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |  |**6** (120m) |**6** (120m)|
 |Landsat MSS (5-4)|  |  | **1** (60m) | **2** (60m) | **3** (60m) | **3** (60m) | **3** (60m) | **4** (60m) | **4** (60m) |  |  |  |  |  |  | |
 |Landsat MSS (1-3)|  |  | **4** (60m) | **5** (60m) | **6** (60m) | **6** (60m) | **6** (60m) | **7** (60m) | **7** (60m) |  |  |  |  |  |**8** (240m)<br>*only for Landsat-3* |**8** (240m)<br>*only for Landsat-3*|
+|PlanetScope (4 band)|  |  | **1** (3m) | **2** (3m) | **3** (3m) | |  | **4** (3m) | **4** (3m) |  |  |  |  |  | | |
+|PlanetScope (5 band)|  |  | **1** (3m) | **2** (3m) | **3** (3m) |**4** (3m)|  | **5** (3m) | **5** (3m) |  |  |  |  |  | | |
 
 \* *Not all bands of this sensor are used in EOReader*
 
@@ -99,6 +102,7 @@ The only difference with the other bands is that the cloud bands are provided in
 |Landsat-3 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
 |Landsat-2 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
 |Landsat-1 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|PlanetScope | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
 
 ### DEM bands
 
@@ -120,7 +124,7 @@ Use the environment variable `EOREADER_SAR_DEFAULT_RES` to position your worldwi
 |{meth}`~eoreader.bands.index.BSI` | `BLUE`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.CIG` | `GREEN`, `NIR` | All optical satellites|
 |{meth}`~eoreader.bands.index.DSWI` | `GREEN`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|{meth}`~eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, (E)TM|
+|{meth}`~eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, (E)TM, PlanetScope|
 |{meth}`~eoreader.bands.index.GNDVI` | `GREEN`, `NIR` | All optical satellites|
 |{meth}`~eoreader.bands.index.MNDWI` | `GREEN`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.NBR` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
@@ -132,7 +136,7 @@ Use the environment variable `EOREADER_SAR_DEFAULT_RES` to position your worldwi
 |{meth}`~eoreader.bands.index.NDWI` | `GREEN`, `NIR` | All optical satellites|
 |{meth}`~eoreader.bands.index.RDI` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.RGI` | `GREEN`, `RED` | All optical satellites|
-|{meth}`~eoreader.bands.index.RI` | `GREEN`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
+|{meth}`~eoreader.bands.index.RI` | `GREEN`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS, PlanetScope (5 bands)|
 |{meth}`~eoreader.bands.index.SRSWIR` | `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCBRI` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCGRE` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
@@ -175,6 +179,8 @@ environment variables:
 ### PlanetScope
 
 - [Product Specification](https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf)
+- [Instruments](https://developers.planet.com/docs/apis/data/sensors/)
+- [Usable Data Mask](https://developers.planet.com/docs/data/udm-2/)
 - [On Medium](https://medium.com/geoplexing/getting-started-with-planet-imagery-part-3-items-and-ordering-476a1a21618c)
 
 ### Band mapping
@@ -188,6 +194,7 @@ environment variables:
 - [S2](https://discovery.creodias.eu/dataset/72181b08-a577-4d55-8ece-d8485167beb7/resource/d8f5dd92-b35c-46ee-98a2-0879dad03fce/download/res_band_s2_1.png)
 - [S3 OLCI](https://discovery.creodias.eu/dataset/a0960a9b-c9c4-46db-bca5-ec79d0dda32b/resource/de8300a4-08cd-41aa-96ec-d9813115cc08/download/s3_res_band_ol.png)
 - [S3 SLSTR](https://discovery.creodias.eu/dataset/ea8f247e-d193-4368-8cf6-8687a03a5306/resource/8e5c485a-d832-42be-ad9c-af500b468f29/download/s3_slcs.png)
+- [S2 and PlanetScope](https://developers.planet.com/docs/apis/data/sensors/#the-psbsd-instrument)
 
 ### Index
 

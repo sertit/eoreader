@@ -131,6 +131,10 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                         get_ci_data_dir(), prod.condensed_name, "extent.geojson"
                     )
                     if not os.path.isfile(extent_path):
+                        os.makedirs(
+                            os.path.join(get_ci_data_dir(), prod.condensed_name),
+                            exist_ok=True,
+                        )
                         extent.to_file(extent_path, driver="GeoJSON")
 
                     try:
@@ -178,7 +182,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     ci_data = os.path.join(
                         get_ci_data_dir(), prod.condensed_name, "stack.tif"
                     )
-                    if debug:
+                    if debug or not os.path.isfile(ci_data):
                         curr_path = os.path.join(
                             get_ci_data_dir(), prod.condensed_name, "stack.tif"
                         )
@@ -262,6 +266,11 @@ def test_l2_mss():
 def test_l1_mss():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LM01*")
+
+
+def test_pla():
+    """Function testing the correct functioning of the optical satellites"""
+    _test_core_optical("202*")
 
 
 def test_s1():

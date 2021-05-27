@@ -149,7 +149,7 @@ MTD_REGEX = {
     Platform.L3: f"{PLATFORM_REGEX[Platform.L3]}_MTL\.txt",
     Platform.L2: f"{PLATFORM_REGEX[Platform.L2]}_MTL\.txt",
     Platform.L1: f"{PLATFORM_REGEX[Platform.L1]}_MTL\.txt",
-    Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*\.xml",
+    Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*metadata.*\.xml",
     Platform.CSK: f"{PLATFORM_REGEX[Platform.CSK][1]}\.xml",
     Platform.TSX: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
     Platform.RS2: [
