@@ -182,15 +182,8 @@ class Rs2Product(SarProduct):
         try:
             root, nsmap = self.read_mtd()
             namespace = nsmap[None]
-
-            for element in root:
-                if element.tag == namespace + "imageAttributes":
-                    raster_attr = element.find(namespace + "rasterAttributes")
-                    def_res = float(
-                        raster_attr.findtext(namespace + "sampledPixelSpacing")
-                    )
-                    break
-        except (InvalidProductError, AttributeError):
+            def_res = float(root.findtext(f"{namespace}sampledPixelSpacing"))
+        except (InvalidProductError, TypeError):
             pass
 
         # If we cannot read it in MTD, initiate survival mode
@@ -316,15 +309,9 @@ class Rs2Product(SarProduct):
         namespace = nsmap[None]
 
         # Get sensor mode
-        sensor_mode_xml = None
-        for element in root:
-            if element.tag == f"{namespace}sourceAttributes":
-                radar_param = element.find(f"{namespace}radarParameters")
-
-                # WARNING: this word may differ from the Enum !!! (no docs available)
-                # Get the closest match
-                sensor_mode_xml = radar_param.findtext(f"{namespace}acquisitionType")
-                break
+        # WARNING: this word may differ from the Enum !!! (no docs available)
+        # Get the closest match
+        sensor_mode_xml = root.findtext(f".//{namespace}acquisitionType")
 
         if sensor_mode_xml:
             sensor_mode = difflib.get_close_matches(
