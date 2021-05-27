@@ -538,11 +538,11 @@ class S2Product(OpticalProduct):
         Get S2 products condensed name ({date}_S2_{tile}_{product_type}_{processed_hours}).
 
         Returns:
-            str: Condensed S2 name
+            str: Condensed name
         """
         # Used to make the difference between 2 products acquired on the same tile at the same date but cut differently
         proc_time = self.split_name[-1].split("T")[-1]
-        return f"{self.get_datetime()}_S2_{self.tile_name}_{self.product_type.value}_{proc_time}"
+        return f"{self.get_datetime()}_{self.platform.name}_{self.tile_name}_{self.product_type.value}_{proc_time}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """
