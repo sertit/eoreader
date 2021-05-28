@@ -9,6 +9,7 @@
 - **Signature change (invisible)**: Adding the band name in `_read_band()` to allow loading stacked bands
 - **CI**: Adding weekly tests (`tox` on Python 3.7, 3.8, 3.9 on Linux and Windows)
 - **Doc**: Updating documentation, setting DEM path as an environment variable
+- **Feature**: Introduced support for DEM files from web urls (starting with http(s)://)
 
 ## 0.3.3 (2021-05-21)
 
