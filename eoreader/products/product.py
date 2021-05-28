@@ -1194,6 +1194,7 @@ class Product:
             )
         else:
             dem_path = os.environ.get(DEM_PATH)
+            # URLs and file paths are required
             if not validators.url(dem_path) and not os.path.isfile(dem_path):
                 raise FileNotFoundError(
                     f"{dem_path} is not a file! "
