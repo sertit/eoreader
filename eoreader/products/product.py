@@ -22,6 +22,7 @@ import datetime as dt
 import glob
 import logging
 import os
+import platform
 import tempfile
 from abc import abstractmethod
 from enum import unique
@@ -30,6 +31,7 @@ from typing import Any, Callable, Union
 import geopandas as gpd
 import numpy as np
 import rasterio
+import validators
 import xarray as xr
 from lxml import etree
 from rasterio import crs as riocrs
@@ -878,8 +880,14 @@ class Product:
         else:
             LOGGER.debug("Warping DEM for %s", self.name)
 
+            # Allow S3 HTTP Urls only on Linux because rasterio bugs on Windows
+            if validators.url(dem_path) and platform.system() == "Windows":
+                raise Exception(
+                    f"URLs to DEM like {dem_path} are not supported on Windows! Use Docker or Linux instead"
+                )
+
             # Check existence (SRTM)
-            if not os.path.isfile(dem_path):
+            if not validators.url(dem_path) and not os.path.isfile(dem_path):
                 raise FileNotFoundError(f"DEM file does not exist here: {dem_path}")
 
             # Reproject DEM into products CRS
@@ -1186,7 +1194,8 @@ class Product:
             )
         else:
             dem_path = os.environ.get(DEM_PATH)
-            if not os.path.isfile(dem_path):
+            # URLs and file paths are required
+            if not validators.url(dem_path) and not os.path.isfile(dem_path):
                 raise FileNotFoundError(
                     f"{dem_path} is not a file! "
                     f"Please set the environment variable {DEM_PATH} to an existing file."

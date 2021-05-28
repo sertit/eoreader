@@ -34,6 +34,7 @@ setuptools.setup(
         "geopandas>=0.9.0",
         "sertit[full]>=1.3.13.post0",
         "rtree",
+        "validators",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",

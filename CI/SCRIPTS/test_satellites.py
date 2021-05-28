@@ -25,18 +25,24 @@ from .scripts_utils import (
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-try:
-    merit_dem = os.path.join(
-        get_db_dir(),
-        "GLOBAL",
-        "MERIT_Hydrologically_Adjusted_Elevations",
-        "MERIT_DEM.vrt",
-    )
-    # eudem_path = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
-    os.environ[DEM_PATH] = merit_dem
-except NotADirectoryError as ex:
-    LOGGER.debug("Non available default DEM: %s", ex)
-    pass
+if os.environ.get("USE_UNISTRA_S3") not in ("Y", "YES", "TRUE", "T"):
+    try:
+        merit_dem = os.path.join(
+            get_db_dir(),
+            "GLOBAL",
+            "MERIT_Hydrologically_Adjusted_Elevations",
+            "MERIT_DEM.vrt",
+        )
+        # eudem_path = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
+        os.environ[DEM_PATH] = merit_dem
+    except NotADirectoryError as ex:
+        LOGGER.debug("Non available default DEM: %s", ex)
+        pass
+else:
+    os.environ[
+        DEM_PATH
+    ] = "https://s3.unistra.fr/sertit-geodatastore/GLOBAL/MERIT_Hydrologically_Adjusted_Elevations/MERIT_DEM.vrt"
+    LOGGER.info(f"Using DEM provided through Unistra S3 ({os.environ[DEM_PATH]})")
 
 
 def remove_dem(prod):
