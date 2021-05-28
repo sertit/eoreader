@@ -166,9 +166,12 @@ class LandsatProduct(OpticalProduct):
         # Vectorize the nodata band (rasters_rio is faster)
         footprint = rasters_rio.vectorize(
             nodata_band, values=1, keep_values=False, dissolve=True
-        ).convex_hull
+        )
 
-        return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)
+        # Keep only the convex hull
+        footprint.geometry = footprint.geometry.convex_hull
+
+        return footprint
 
     def _get_tile_name(self) -> str:
         """

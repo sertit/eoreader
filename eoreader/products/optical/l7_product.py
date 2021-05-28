@@ -86,7 +86,7 @@ class L7Product(LandsatProduct):
             gap_msk, values=1, keep_values=False, dissolve=True
         )
 
-        # Needs a dataframe to be dissolved
-        footprint = footprint.convex_hull
+        # Keep only the convex hull
+        footprint.geometry = footprint.geometry.convex_hull
 
-        return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)
+        return footprint
