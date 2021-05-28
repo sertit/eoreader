@@ -8,7 +8,14 @@ import geopandas as gpd
 import xarray as xr
 
 from eoreader.bands.alias import *
-from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH, S3_DEF_RES, SAR_DEF_RES
+from eoreader.env_vars import (
+    CI_EOREADER_BAND_FOLDER,
+    DEM_PATH,
+    S3_DB_URL_ROOT,
+    S3_DEF_RES,
+    SAR_DEF_RES,
+    TEST_USING_S3_DB,
+)
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod, Platform
 from eoreader.utils import EOREADER_NAME
@@ -25,23 +32,26 @@ from .scripts_utils import (
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-if os.environ.get("USE_UNISTRA_S3") not in ("Y", "YES", "TRUE", "T"):
+MERIT_DEM_SUB_DIR_PATH = [
+    "GLOBAL",
+    "MERIT_Hydrologically_Adjusted_Elevations",
+    "MERIT_DEM.vrt",
+]
+if os.environ.get(TEST_USING_S3_DB) not in ("Y", "YES", "TRUE", "T"):
     try:
-        merit_dem = os.path.join(
-            get_db_dir(),
-            "GLOBAL",
-            "MERIT_Hydrologically_Adjusted_Elevations",
-            "MERIT_DEM.vrt",
-        )
+        merit_dem = os.path.join(get_db_dir(), *MERIT_DEM_SUB_DIR_PATH)
         # eudem_path = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
         os.environ[DEM_PATH] = merit_dem
     except NotADirectoryError as ex:
         LOGGER.debug("Non available default DEM: %s", ex)
         pass
 else:
-    os.environ[
-        DEM_PATH
-    ] = "https://s3.unistra.fr/sertit-geodatastore/GLOBAL/MERIT_Hydrologically_Adjusted_Elevations/MERIT_DEM.vrt"
+    if S3_DB_URL_ROOT not in os.environ:
+        raise Exception(
+            f"You must specify the S3 db root using env variable {S3_DB_URL_ROOT} if you activate S3_DB"
+        )
+    merit_dem = "/".join([os.environ.get(S3_DB_URL_ROOT), *MERIT_DEM_SUB_DIR_PATH])
+    os.environ[DEM_PATH] = merit_dem
     LOGGER.info(f"Using DEM provided through Unistra S3 ({os.environ[DEM_PATH]})")
 
 

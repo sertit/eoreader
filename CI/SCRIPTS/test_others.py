@@ -1,16 +1,18 @@
 import os
+import sys
 
 import pandas as pd
 import pytest
+import tempenv
 import xarray as xr
 from lxml import etree
 
 from eoreader import utils
 from eoreader.bands.alias import *
 from eoreader.bands.bands import OpticalBands, SarBandNames
-from eoreader.env_vars import DEM_PATH
+from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
 
-from .scripts_utils import OPT_PATH, READER
+from .scripts_utils import OPT_PATH, READER, get_db_dir
 
 
 @pytest.mark.xfail
@@ -105,6 +107,35 @@ def test_products():
 
     if old_dem is not None:
         os.environ[DEM_PATH] = old_dem
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="rasterio bugs with http urls")
+def test_dems():
+    if S3_DB_URL_ROOT not in os.environ:
+        raise Exception(f"Environment variable {S3_DB_URL_ROOT} is not set")
+
+    # Get paths
+    prod_path = os.path.join(OPT_PATH, "LC08_L1TP_200030_20201220_20210310_02_T1")
+
+    # Open prods
+    prod = READER.open(prod_path)
+
+    # Test two different DEM source
+    dem_sub_dir_path = [
+        "GLOBAL",
+        "MERIT_Hydrologically_Adjusted_Elevations",
+        "MERIT_DEM.vrt",
+    ]
+    local_path = os.path.join(get_db_dir(), *dem_sub_dir_path)
+    remote_path = "/".join([os.environ.get(S3_DB_URL_ROOT), *dem_sub_dir_path])
+
+    # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
+    with tempenv.TemporaryEnvironment({DEM_PATH: local_path}):  # Local DEM
+        dem_local = prod.load([DEM], resolution=30)
+    with tempenv.TemporaryEnvironment({DEM_PATH: remote_path}):  # Remote DEM
+        dem_remote = prod.load([DEM], resolution=30)
+
+    xr.testing.assert_equal(dem_local[DEM], dem_remote[DEM])
 
 
 def test_bands():
