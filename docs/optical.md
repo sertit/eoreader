@@ -109,7 +109,7 @@ the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
 Use the environment variable `EOREADER_SAR_DEFAULT_RES` to position your worldwide DEM. You can
 use both a local path e.g. `/mnt/dataserver/dems/srtm_30_v4/index.vrt` or `\\dataserver\DEMS\srtm_30_v4\index.vrt` or
 a URL pointing to a web resources hosted on a S3 compatible storage e.g. 
-`https://s3.storage.com/dem-bucket/srtm_cog.tif`.
+`https://s3.storage.com/dem-bucket/srtm_cog.tif` (not available on Windows for now).
 
 ### Available index
 
