@@ -4,7 +4,7 @@
     <operator>Read</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$file</file>
+      <file>${file}</file>
     </parameters>
   </node>
   <node id="SRGR">
@@ -38,15 +38,15 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
-      <demName>GETASSE30</demName>
-      <externalDEMFile/>
+      <demName>${dem_name}</demName>
+      <externalDEMFile>${dem_path}</externalDEMFile>
       <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
       <externalDEMApplyEGM>true</externalDEMApplyEGM>
       <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
       <imgResamplingMethod>BILINEAR_INTERPOLATION</imgResamplingMethod>
-      <pixelSpacingInMeter>$res_m</pixelSpacingInMeter>
-      <pixelSpacingInDegree>$res_deg</pixelSpacingInDegree>
-      <mapProjection>$crs</mapProjection>
+      <pixelSpacingInMeter>${res_m}</pixelSpacingInMeter>
+      <pixelSpacingInDegree>${res_deg}</pixelSpacingInDegree>
+      <mapProjection>${crs}</mapProjection>
       <alignToStandardGrid>false</alignToStandardGrid>
       <standardGridOriginX>0.0</standardGridOriginX>
       <standardGridOriginY>0.0</standardGridOriginY>
@@ -83,7 +83,7 @@
       <sourceProduct refid="Terrain-Correction"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$out</file>
+      <file>${out}</file>
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>

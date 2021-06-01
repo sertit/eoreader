@@ -4,8 +4,8 @@
     <operator>Read</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$in</file>
-      <formatName>$format</formatName>
+      <file>${in}</file>
+      <formatName>${format}</formatName>
     </parameters>
   </node>
   <node id="Rad2Refl">
@@ -14,7 +14,7 @@
       <sourceProduct refid="Read"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <sensor>$sensor</sensor>
+      <sensor>${sensor}</sensor>
       <conversionMode>RAD_TO_REFL</conversionMode>
       <copyTiePointGrids>false</copyTiePointGrids>
       <copyFlagBandsAndMasks>true</copyFlagBandsAndMasks>
@@ -27,7 +27,7 @@
       <sourceProduct refid="Rad2Refl"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <bandNames>$bands</bandNames>
+      <bandNames>${bands}</bandNames>
       <region/>
       <geoRegion/>
       <subSamplingX>1</subSamplingX>
@@ -51,15 +51,15 @@
       <easting/>
       <northing/>
       <orientation/>
-      <pixelSizeX>$res_m</pixelSizeX>
-      <pixelSizeY>$res_m</pixelSizeY>
+      <pixelSizeX>${res_m}</pixelSizeX>
+      <pixelSizeY>${res_m}</pixelSizeY>
       <width/>
       <height/>
       <tileSizeX/>
       <tileSizeY/>
       <orthorectify>true</orthorectify>
       <elevationModelName/>
-      <noDataValue>$no_data</noDataValue>
+      <noDataValue>${no_data}</noDataValue>
       <includeTiePointGrids>true</includeTiePointGrids>
       <addDeltaBands>false</addDeltaBands>
     </parameters>
@@ -70,7 +70,7 @@
       <sourceProduct refid="Reproject"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$out</file>
+      <file>${out}</file>
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>

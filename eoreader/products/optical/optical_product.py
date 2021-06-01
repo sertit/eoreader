@@ -414,7 +414,10 @@ class OpticalProduct(Product):
                 strings.to_cmd_string(hillshade_dem),
             ]
             # Run command
-            misc.run_cli(cmd_hillshade)
+            try:
+                misc.run_cli(cmd_hillshade)
+            except RuntimeError as ex:
+                raise RuntimeError("Something went wrong with gdaldem!") from ex
 
         return hillshade_dem
 

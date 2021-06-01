@@ -758,7 +758,10 @@ class S3Product(OpticalProduct):
             display_snap_opt=LOGGER.level == logging.DEBUG,
         )
         LOGGER.debug("Converting %s", self.name)
-        misc.run_cli(cmd_list)
+        try:
+            misc.run_cli(cmd_list)
+        except RuntimeError as ex:
+            raise RuntimeError("Something went wrong with SNAP!") from ex
 
         return snap_bands.split(",")
 

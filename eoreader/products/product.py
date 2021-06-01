@@ -1033,7 +1033,10 @@ class Product:
             ]
 
             # Run command
-            misc.run_cli(cmd_slope)
+            try:
+                misc.run_cli(cmd_slope)
+            except RuntimeError as ex:
+                raise RuntimeError("Something went wrong with gdaldem!") from ex
 
         return slope_dem
 
