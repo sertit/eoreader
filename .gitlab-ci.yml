@@ -47,7 +47,7 @@ tox-linux-3.7:on-schedule:
   tags:
     - linux
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
 
 tox-linux-3.8:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.8
@@ -60,7 +60,7 @@ tox-linux-3.8:on-schedule:
   tags:
     - linux
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
 
 tox-linux-3.9:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.9
@@ -73,7 +73,7 @@ tox-linux-3.9:on-schedule:
   tags:
     - linux
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
 
 tox-windows:on-schedule:
   stage: weekly_tests
@@ -86,8 +86,21 @@ tox-windows:on-schedule:
     - windows
     - conda
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
 
+
+tox-linux-3.7-snap:on-schedule:
+  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  stage: weekly_tests
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install tox
+  script:
+    - tox -c tox-snap.ini -e py37
+  tags:
+    - linux
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "SNAP"'
 
 upload_wheel:linux:
   image: python:3.7-buster
