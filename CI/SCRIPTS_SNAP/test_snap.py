@@ -8,11 +8,20 @@ import xarray as xr
 from eoreader.bands.alias import *
 from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES
 from eoreader.products.product import Product, SensorType
-from eoreader.reader import CheckMethod
+from eoreader.reader import CheckMethod, Reader
 from eoreader.utils import EOREADER_NAME
-from sertit import files, logs
+from sertit import ci, files, logs
 
-from ..SCRIPTS.scripts_utils import OPT_PATH, READER, SAR_PATH
+READER = Reader()
+try:
+    # CI
+    CI_PATH = os.path.join(ci.get_db3_path(), "CI", "eoreader")
+except NotADirectoryError:
+    # Windows
+    CI_PATH = os.path.join(r"\\ds2", "database03", "CI", "eoreader")
+
+OPT_PATH = os.path.join(CI_PATH, "optical")
+SAR_PATH = os.path.join(CI_PATH, "sar")
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
