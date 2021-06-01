@@ -41,7 +41,7 @@ from eoreader.bands.alias import (
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import SarBandNames as sbn
 from eoreader.bands.bands import SarBands
-from eoreader.env_vars import DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES
+from eoreader.env_vars import DEM_PATH, DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES, SNAP_DEM_NAME
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import Platform
@@ -51,6 +51,59 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
+
+
+@unique
+class SnapDems(ListEnum):
+    """
+    DEM available in SNAP for the Terrain Correction module
+    """
+
+    ACE2_5Min = "ACE2_5Min"
+    """
+    ACE2_5Min, Altimeter Corrected Elevations, Version 2
+    """
+
+    ACE30 = "ACE30"
+    """
+    ACE30:  Altimeter Corrected Elevations
+    """
+
+    ASTER = "ASTER 1sec GDEM"
+    """
+    ASTER 1sec GDEM: Advanced Spaceborne Thermal Emission and Reflection Radiometer
+
+    """
+
+    GLO_30 = "Copernicus 30m Global DEM"
+    """
+    Copernicus 30m Global DEM
+    """
+
+    GLO_90 = "Copernicus 90m Global DEM"
+    """
+    Copernicus 90m Global DEM
+    """
+
+    GETASSE30 = "GETASSE30"
+    """
+    GETASSE30: Global Earth Topography And Sea Surface Elevation at 30 arc second resolution
+    """
+
+    SRTM_1SEC = "SRTM 1Sec HGT"
+    """
+    SRTM 1Sec HGT: Shuttle Radar Topography Mission
+    """
+
+    SRTM_3SEC = "SRTM 3Sec"
+    """
+    SRTM 3Sec: Shuttle Radar Topography Mission
+    """
+
+    EXT_DEM = "External DEM"
+    f"""
+    External DEM, needs `{DEM_PATH}` to be correctly positioned
+    """
 
 
 @unique
@@ -663,21 +716,57 @@ class SarProduct(Product):
                 def_res = float(os.environ.get(SAR_DEF_RES, self.resolution))
                 res_m = resolution if resolution else def_res
                 res_deg = res_m / 10.0 * 8.983152841195215e-5  # Approx
+
+                # Manage DEM name
+                try:
+                    dem_name = SnapDems.from_value(
+                        os.environ.get(SNAP_DEM_NAME, SnapDems.GETASSE30)
+                    )
+                except AttributeError as ex:
+                    raise ValueError(
+                        f"{SNAP_DEM_NAME} should be chosen among {SnapDems.list_values()}"
+                    ) from ex
+
+                # Manage DEM path
+                if dem_name == SnapDems.EXT_DEM:
+                    dem_path = os.environ.get(DEM_PATH)
+                    if not dem_path:
+                        raise ValueError(
+                            f"You specified '{dem_name.value}' but you didn't give any DEM path. "
+                            f"Please set the environment variable {DEM_PATH} "
+                            f"or change {SNAP_DEM_NAME} to an acceptable SNAP DEM."
+                        )
+                elif dem_name in [SnapDems.GLO_30, SnapDems.GLO_90]:
+                    LOGGER.warning(
+                        "For now, SNAP cannot use Copernicus DEM "
+                        "(see https://forum.step.esa.int/t/terrain-correction-with-copernicus-dem/29025/11). "
+                        "Using GETASSE30 instead."
+                    )
+                    dem_name = SnapDems.GETASSE30
+                else:
+                    dem_path = ""
+
+                # Create SNAP CLI
                 cmd_list = snap.get_gpt_cli(
                     pp_graph,
                     [
                         f"-Pfile={strings.to_cmd_string(self._snap_path)}",
-                        f"-Pout={pp_dim}",
+                        f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
+                        f"-Pdem_path={strings.to_cmd_string(dem_path)}",
                         f"-Pcrs={self.crs()}",
                         f"-Pres_m={res_m}",
                         f"-Pres_deg={res_deg}",
+                        f"-Pout={strings.to_cmd_string(pp_dim)}",
                     ],
                     display_snap_opt=LOGGER.level == logging.DEBUG,
                 )
 
                 # Pre-process SAR images according to the given graph
                 LOGGER.debug("Pre-process SAR image")
-                misc.run_cli(cmd_list)
+                try:
+                    misc.run_cli(cmd_list)
+                except RuntimeError as ex:
+                    raise RuntimeError("Something went wrong with SNAP!") from ex
 
             # Convert DIMAP images to GeoTiff
             for pol in self.pol_channels:
@@ -723,7 +812,10 @@ class SarProduct(Product):
 
                 # Pre-process SAR images according to the given graph
                 LOGGER.debug("Despeckle SAR image")
-                misc.run_cli(cmd_list)
+                try:
+                    misc.run_cli(cmd_list)
+                except RuntimeError as ex:
+                    raise RuntimeError("Something went wrong with SNAP!") from ex
 
             # Convert DIMAP images to GeoTiff
             out = self._write_sar(dspk_dim, band.value, dspk=True)

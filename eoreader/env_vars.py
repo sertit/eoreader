@@ -31,6 +31,15 @@ S3_DEF_RES = "EOREADER_S3_DEFAULT_RES"
 DEM_PATH = "EOREADER_DEM_PATH"
 """Environment variable for overriding default DEM path"""
 
+SNAP_DEM_NAME = "EOREADER_SNAP_DEM_NAME"
+"""
+Environment variable for overriding default DEM name used in SNAP.
+Default is `Copernicus 30m Global DEM`.
+Can be `GETASSE30`, `SRTM 3Sec`, `External DEM`...
+If `EOREADER_SNAP_DEM_NAME` is set to `External DEM`,
+SNAP will use your DEM stored in `EOREADER_DEM_PATH` as an external DEM.
+"""
+
 S3_DB_URL_ROOT = "S3_DB_URL_ROOT"
 """Environment variable used for specify DB base url (e.g. https://s3.unistra.fr/bucket_name/) """
 

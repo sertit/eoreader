@@ -545,7 +545,7 @@ class PlaProduct(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get PlanetScope products condensed name ({date}_PLA_{tile]_{product_type}).
+        Get PlanetScope products condensed name ({date}_PLA_{product_type}).
 
         Returns:
             str: Condensed name
@@ -608,8 +608,8 @@ class PlaProduct(OpticalProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
-        mtd_from_path = os.path.join("files", "**", "*metadata*.xml")
-        mtd_archived = ".*files.*metadata.*\.xml"
+        mtd_from_path = os.path.join("**", "*metadata*.xml")
+        mtd_archived = ".*metadata.*\.xml"
 
         return self._read_mtd(mtd_from_path, mtd_archived)
 
@@ -690,7 +690,7 @@ class PlaProduct(OpticalProduct):
                     )
                 else:
                     raise InvalidTypeError(
-                        f"Non existing cloud band for Sentinel-2 THEIA: {res_id}"
+                        f"Non existing cloud band for Planet: {res_id}"
                     )
 
         return band_dict
