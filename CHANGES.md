@@ -11,6 +11,12 @@
     - **Pleiades**
 - [SAR] Better handling of SNAP DEMs (using External DEM and other available SNAP DEMs)
 
+### Fix
+- More robust way of looking for `data` directory
+
+### CI
+- Adding a bimonthly test for SNAP
+
 ## 0.3.4 (2021-05-28)
 
 - **Feature**: Introduced support for DEM files from web urls (starting with http(s)://)
