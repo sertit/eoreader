@@ -133,7 +133,7 @@ class OpticalProduct(Product):
             gpd.GeoDataFrame: Footprint in UTM
         """
         # Get extent
-        return rasters.get_extent(self.get_default_band_path())
+        return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
 
     def get_existing_bands(self) -> list:
         """
