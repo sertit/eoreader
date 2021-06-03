@@ -682,7 +682,9 @@ class S3Product(OpticalProduct):
                     files.remove(out_tif)
 
                 # Convert to geotiffs and set no data with only keeping the first band
-                arr = rasters.read(rasters.get_dim_img_path(out_dim, snap_band_name))
+                arr = rasters.read(
+                    rasters.get_dim_img_path(out_dim, snap_band_name), masked=False
+                )
                 arr = arr.where(arr != self._snap_no_data, np.nan)
                 rasters.write(arr, out_tif, dtype=np.float32)
 

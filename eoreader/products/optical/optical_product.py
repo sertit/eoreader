@@ -260,7 +260,7 @@ class OpticalProduct(Product):
             mask = np.expand_dims(mask, axis=0)
 
         # Set masked values to nodata
-        return band_arr.where(mask == 0, np.nan)
+        return band_arr.where(mask == 0)
 
     def _load(
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None

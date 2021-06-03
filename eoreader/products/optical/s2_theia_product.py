@@ -235,7 +235,7 @@ class S2TheiaProduct(OpticalProduct):
         # Read band
         band_xda = rasters.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
-        )
+        ).astype(np.float32)
 
         # Compute the correct radiometry of the band
         band_xda = band_xda / 10000.0
@@ -549,7 +549,7 @@ class S2TheiaProduct(OpticalProduct):
                 resolution=resolution,
                 size=size,
                 resampling=Resampling.nearest,
-            )
+            ).astype(np.float32)
 
             # Get nodata mask
             nodata = self.open_mask("EDG", res_id, resolution=resolution, size=size)
