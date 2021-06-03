@@ -588,7 +588,7 @@ class SarProduct(Product):
         """
         return rasters.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
-        )
+        ).astype(np.float32)
 
     def _load_bands(
         self,
@@ -715,7 +715,9 @@ class SarProduct(Product):
             if not os.path.isfile(pp_dim):
                 def_res = float(os.environ.get(SAR_DEF_RES, self.resolution))
                 res_m = resolution if resolution else def_res
-                res_deg = res_m / 10.0 * 8.983152841195215e-5  # Approx
+                res_deg = (
+                    res_m / 10.0 * 8.983152841195215e-5
+                )  # Approx, shouldn't be used
 
                 # Manage DEM name
                 try:
@@ -839,7 +841,7 @@ class SarProduct(Product):
             img = rasters.get_dim_img_path(dim_path)  # Maybe not the good name
 
         # Open SAR image
-        arr = rasters.read(img)
+        arr = rasters.read(img, masked=False)
         arr = arr.where(arr != self._snap_no_data, np.nan)
 
         # Save the file as the terrain-corrected image
