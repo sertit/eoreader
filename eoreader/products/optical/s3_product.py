@@ -187,7 +187,7 @@ class S3Product(OpticalProduct):
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+        Get UTM footprint in UTM of the products (without nodata, *in french == emprise utile*)
 
         .. code-block:: python
 
@@ -375,21 +375,26 @@ class S3Product(OpticalProduct):
         band_paths = {}
         use_snap = False
         for band in band_list:
-            # Get standard band names
-            band_name = self._get_band_filename(band)
+            # Get clean band path
+            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            if os.path.isfile(clean_band):
+                band_paths[band] = clean_band
+            else:
+                # Get standard band names
+                band_name = self._get_band_filename(band)
 
-            try:
-                # Try to open converted images
-                band_paths[band] = files.get_file_in_dir(
-                    self._get_band_folder(), band_name + ".tif"
-                )
-            except (FileNotFoundError, TypeError):
-                use_snap = True
+                try:
+                    # Try to open converted images
+                    band_paths[band] = files.get_file_in_dir(
+                        self._get_band_folder(), band_name + ".tif"
+                    )
+                except (FileNotFoundError, TypeError):
+                    use_snap = True
 
-        # If not existing (file or output), convert them
-        if use_snap:
-            all_band_paths = self._preprocess_s3(resolution)
-            band_paths = {band: all_band_paths[band] for band in band_list}
+            # If not existing (file or output), convert them
+            if use_snap:
+                all_band_paths = self._preprocess_s3(resolution)
+                band_paths = {band: all_band_paths[band] for band in band_list}
 
         return band_paths
 
@@ -682,7 +687,9 @@ class S3Product(OpticalProduct):
                     files.remove(out_tif)
 
                 # Convert to geotiffs and set no data with only keeping the first band
-                arr = rasters.read(rasters.get_dim_img_path(out_dim, snap_band_name))
+                arr = rasters.read(
+                    rasters.get_dim_img_path(out_dim, snap_band_name), masked=False
+                )
                 arr = arr.where(arr != self._snap_no_data, np.nan)
                 rasters.write(arr, out_tif, dtype=np.float32)
 
@@ -758,7 +765,10 @@ class S3Product(OpticalProduct):
             display_snap_opt=LOGGER.level == logging.DEBUG,
         )
         LOGGER.debug("Converting %s", self.name)
-        misc.run_cli(cmd_list)
+        try:
+            misc.run_cli(cmd_list)
+        except RuntimeError as ex:
+            raise RuntimeError("Something went wrong with SNAP!") from ex
 
         return snap_bands.split(",")
 

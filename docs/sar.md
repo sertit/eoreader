@@ -124,6 +124,20 @@ if this is not the regular way of handling SAR data, this shouldn't really affec
 after that.
 ```
 
+You can change the DEM used for the Terrain Correction step by positioning the `EOREADER_SNAP_DEM_NAME` environment variable. 
+Available DEMs are:
+- `ACE2_5Min` 
+- `ACE30`
+- `ASTER 1sec GDEM`
+- `Copernicus 30m Global DEM` ([buggy](https://forum.step.esa.int/t/terrain-correction-with-copernicus-dem/29025/11) for now, do not use it)
+- `Copernicus 90m Global DEM` ([buggy](https://forum.step.esa.int/t/terrain-correction-with-copernicus-dem/29025/11) for now, do not use it)
+- `GETASSE30`
+- `SRTM 1Sec HGT`
+- `SRTM 3Sec`
+- `External DEM`
+
+If `External DEM` is set, you must specify the DEM you want by positioning the `EOREADER_DEM_PATH` to a DEM that can be read by SNAP.
+
 
 ### What to know if you are changing a graph
 

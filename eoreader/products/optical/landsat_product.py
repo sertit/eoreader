@@ -139,7 +139,7 @@ class LandsatProduct(OpticalProduct):
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint of the products (without nodata, in french == emprise utile)
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
 
         .. code-block:: python
 
@@ -338,6 +338,7 @@ class LandsatProduct(OpticalProduct):
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Useless here
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -351,12 +352,17 @@ class LandsatProduct(OpticalProduct):
                 )
             band_nb = self.band_names[band]
 
-            try:
-                band_paths[band] = self._get_path(f"_B{band_nb}")
-            except FileNotFoundError as ex:
-                raise InvalidProductError(
-                    f"Non existing {band} ({band_nb}) band for {self.path}"
-                ) from ex
+            # Get clean band path
+            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            if os.path.isfile(clean_band):
+                band_paths[band] = clean_band
+            else:
+                try:
+                    band_paths[band] = self._get_path(f"_B{band_nb}")
+                except FileNotFoundError as ex:
+                    raise InvalidProductError(
+                        f"Non existing {band} ({band_nb}) band for {self.path}"
+                    ) from ex
 
         return band_paths
 

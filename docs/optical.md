@@ -186,6 +186,11 @@ environment variables:
 - [Usable Data Mask](https://developers.planet.com/docs/data/udm-2/)
 - [On Medium](https://medium.com/geoplexing/getting-started-with-planet-imagery-part-3-items-and-ordering-476a1a21618c)
 
+### Pleiades
+- [DIMAP V2 Format](https://www.intelligence-airbusds.com/en/8723-pleiades-and-spot-6-7-format-delivery)
+- [Pleiades User Guide (2019)](www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf)
+- [Request Form(2017)](https://www.intelligence-airbusds.com/files/pmedia/public/r44226_9_airbus_data_request_form_may_2017.pdf)
+
 ### Band mapping
 
 - You can find a magnificent band comparison chart on the [Imagico](http://blog.imagico.de/satellite-comparison-update/)

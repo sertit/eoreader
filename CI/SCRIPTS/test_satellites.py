@@ -289,6 +289,11 @@ def test_pla():
     _test_core_optical("202*")
 
 
+def test_pld():
+    """Function testing the correct functioning of the optical satellites"""
+    _test_core_optical("IMG_PHR*")
+
+
 def test_s1():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("S1*_IW*")
