@@ -245,10 +245,10 @@ class PldProduct(OpticalProduct):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.utm_crs()
-            CRS.from_epsg(32630)
+            >>> prod.crs()
+            CRS.from_epsg(32618)
 
         Returns:
             rasterio.crs.CRS: CRS object
@@ -278,13 +278,17 @@ class PldProduct(OpticalProduct):
         """
         Get default band (`GREEN` for optical data) path.
 
+        .. WARNING:
+            If you are using a non orthorectified product, this function will orthorectify the stack.
+            To do so, you **MUST** provide a DEM trough the EOREADER_DEM_PATH environment variable
+
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
             >>> prod.get_default_band_path()
-            'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'
+            'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML'
 
         Returns:
             str: Default band path
@@ -296,24 +300,17 @@ class PldProduct(OpticalProduct):
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint of the products (without nodata, in french == emprise utile)
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
 
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
+            >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
             >>> prod.footprint()
-               index                                           geometry
-            0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
-
-        Overload of the generic function because landsat nodata seems to be different in QA than in regular bands.
-        Indeed, nodata pixels vary according to the band sensor footprint,
-        whereas QA nodata is where at least one band has nodata.
-
-        We chose to keep QA nodata values for the footprint in order to show where all bands are valid.
-
-        **TL;DR: We use the QA nodata value to determine the product's footprint**.
+                                                         gml_id  ...                                           geometry
+            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
+            [1 rows x 3 columns]
 
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
@@ -327,12 +324,12 @@ class PldProduct(OpticalProduct):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+            >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
             >>> prod.get_datetime(as_datetime=True)
-            datetime.datetime(2019, 6, 25, 10, 57, 28, 756000), fetched from metadata, so we have the ms
+            datetime.datetime(2020, 5, 11, 2, 31, 58)
             >>> prod.get_datetime(as_datetime=False)
-            '20190625T105728'
+            '20200511T023158'
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -368,14 +365,14 @@ class PldProduct(OpticalProduct):
 
             >>> from eoreader.reader import Reader
             >>> from eoreader.bands.alias import *
-            >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+            >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])
             {
                 <OpticalBandNames.GREEN: 'GREEN'>:
-                'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2\\SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B3.tif',
+                'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML',
                 <OpticalBandNames.RED: 'RED'>:
-                'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2\\SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B4.tif'
+                'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML'
             }
 
         Args:
@@ -444,7 +441,7 @@ class PldProduct(OpticalProduct):
         if not dem_path:
             raise ValueError(
                 f"You are using a non orthorectified Pleiades product {self.path}, "
-                f"you must provide a valid DEM throught the {DEM_PATH} environment variable"
+                f"you must provide a valid DEM through the {DEM_PATH} environment variable"
             )
 
         # Set RPC keywords
@@ -665,10 +662,10 @@ class PldProduct(OpticalProduct):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+            >>> path = r"IMG_PHR1A_PMS_001"
             >>> prod = Reader().open(path)
             >>> prod.get_mean_sun_angles()
-            (154.554755774838, 27.5941391571236)
+            (45.6624568841367, 30.219881316357643)
 
         Returns:
             (float, float): Mean Azimuth and Zenith angle
@@ -700,17 +697,10 @@ class PldProduct(OpticalProduct):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> path = r"20210406_015904_37_2407.zip"
+            >>> path = r"IMG_PHR1A_PMS_001"
             >>> prod = Reader().open(path)
             >>> prod.read_mtd()
-            (<Element {http://schemas.planet.com/ps/v1/planet_product_metadata_geocorrected_level}
-            EarthObservation at 0x1a2621f03c8>,
-            {
-                'opt': '{http://earth.esa.int/opt}',
-                'gml': '{http://www.opengis.net/gml}',
-                'eop': '{http://earth.esa.int/eop}',
-                'ps': '{http://schemas.planet.com/ps/v1/planet_product_metadata_geocorrected_level}'
-            })
+            (<Element Dimap_Document at 0x1d6d241c608>, {})
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
@@ -816,24 +806,11 @@ class PldProduct(OpticalProduct):
 
             >>> from eoreader.reader import Reader
             >>> from eoreader.bands.alias import *
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-            >>> prod.open_mask("NODATA", GREEN)
-            Empty GeoDataFrame
-            Columns: [geometry]
-            Index: []
-            >>> prod.open_mask("SATURA", GREEN)
-            Empty GeoDataFrame
-            Columns: [geometry]
-            Index: []
-            >>> prod.open_mask("DETFOO", GREEN)
-                                    gml_id  ...                                           geometry
-            0  detector_footprint-B03-02-0  ...  POLYGON Z ((199980.000 4500000.000 0.000, 1999...
-            1  detector_footprint-B03-03-1  ...  POLYGON Z ((222570.000 4500000.000 0.000, 2225...
-            2  detector_footprint-B03-05-2  ...  POLYGON Z ((273050.000 4500000.000 0.000, 2730...
-            3  detector_footprint-B03-07-3  ...  POLYGON Z ((309770.000 4453710.000 0.000, 3097...
-            4  detector_footprint-B03-04-4  ...  POLYGON Z ((248080.000 4500000.000 0.000, 2480...
-            5  detector_footprint-B03-06-5  ...  POLYGON Z ((297980.000 4500000.000 0.000, 2979...
-            [6 rows x 3 columns]
+            >>> path = r"IMG_PHR1A_PMS_001"
+            >>> prod.open_mask("ROI")
+                                                         gml_id  ...                                           geometry
+            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((118.86239 -2.81569, 118.86255 -2.815...
+            [1 rows x 3 columns]
 
         Args:
             mask_str (str): Mask name, such as CLD, DET, ROI...

@@ -104,7 +104,7 @@ class S2TheiaProduct(OpticalProduct):
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint of the products (without nodata, in french == emprise utile)
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
 
         .. WARNING::
             As Landsat 7 is broken (with nodata stripes all over the bands),
