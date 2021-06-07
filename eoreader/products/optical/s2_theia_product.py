@@ -193,20 +193,24 @@ class S2TheiaProduct(OpticalProduct):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
-        for band in band_list:
-            try:
-                if self.is_archived:
-                    band_paths[band] = files.get_archived_rio_path(
-                        self.path, f".*FRE_B{self.band_names[band]}\.tif"
-                    )
-                else:
-                    band_paths[band] = files.get_file_in_dir(
-                        self.path, f"FRE_B{self.band_names[band]}.tif"
-                    )
-            except (FileNotFoundError, IndexError) as ex:
-                raise InvalidProductError(
-                    f"Non existing {band} ({self.band_names[band]}) band for {self.path}"
-                ) from ex
+        for band in band_list:  # Get clean band path
+            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            if os.path.isfile(clean_band):
+                band_paths[band] = clean_band
+            else:
+                try:
+                    if self.is_archived:
+                        band_paths[band] = files.get_archived_rio_path(
+                            self.path, f".*FRE_B{self.band_names[band]}\.tif"
+                        )
+                    else:
+                        band_paths[band] = files.get_file_in_dir(
+                            self.path, f"FRE_B{self.band_names[band]}.tif"
+                        )
+                except (FileNotFoundError, IndexError) as ex:
+                    raise InvalidProductError(
+                        f"Non existing {band} ({self.band_names[band]}) band for {self.path}"
+                    ) from ex
 
         return band_paths
 

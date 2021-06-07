@@ -34,6 +34,7 @@ from eoreader.bands.alias import (
     is_index,
     is_optical_band,
     is_sar_band,
+    to_str,
 )
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -208,12 +209,24 @@ class OpticalProduct(Product):
         band_arrays = {}
         for band, band_path in band_paths.items():
             # Read band
+            LOGGER.debug(f"Read {band.name}")
             band_arrays[band] = self._read_band(
                 band_path, band=band, resolution=resolution, size=size
             )
-            band_arrays[band] = self._manage_invalid_pixels(
-                band_arrays[band], band=band, resolution=resolution, size=size
-            )
+
+            # Write on disk in order not to reprocess band everytime
+            # (invalid pix management can be time consuming)
+            if not resolution:
+                resolution = band_arrays[band].rio.resolution()[0]
+            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            if not os.path.isfile(clean_band):
+                # Manage invalid pixels
+                LOGGER.debug(f"Manage invalid pixels for band {band.name}")
+                band_arrays[band] = self._manage_invalid_pixels(
+                    band_arrays[band], band=band, resolution=resolution, size=size
+                )
+
+                rasters.write(band_arrays[band], clean_band)
 
         return band_arrays
 
@@ -316,20 +329,23 @@ class OpticalProduct(Product):
             bands_to_load += index.NEEDED_BANDS[idx]
 
         # Load band arrays (only keep unique bands: open them only one time !)
-        bands = self._load_bands(
-            list(set(bands_to_load)), resolution=resolution, size=size
-        )
+        unique_bands = list(set(bands_to_load))
+        LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
+        bands = self._load_bands(unique_bands, resolution=resolution, size=size)
 
         # Compute index (they conserve the nodata)
+        LOGGER.debug(f"Loading index {to_str(index_list)}")
         bands_dict = {idx: idx(bands) for idx in index_list}
 
         # Add bands
         bands_dict.update({band: bands[band] for band in band_list})
 
         # Add DEM
+        LOGGER.debug(f"Loading DEM bands {to_str(dem_list)}")
         bands_dict.update(self._load_dem(dem_list, resolution=resolution, size=size))
 
         # Add Clouds
+        LOGGER.debug(f"Loading Cloud bands {to_str(clouds_list)}")
         bands_dict.update(
             self._load_clouds(clouds_list, resolution=resolution, size=size)
         )
@@ -454,3 +470,32 @@ class OpticalProduct(Product):
         mask = mask.where(nodata == 0, np.nan)
 
         return mask
+
+    def _get_clean_band_path(self, band: obn, resolution: float = None):
+        """
+        Get clean band path.
+
+        The clean band is the opened band where invalid pixels have been managed.
+
+        Args:
+            band (OpticalBandNames): Wanted band
+            resolution (float): Band resolution in meters
+
+        Returns:
+            str: Clean band path
+        """
+        if resolution is not None:
+            if isinstance(resolution, (list, tuple)):
+                res_str = "_".join(str([round(resolution, 2)])) + "m"
+            else:
+                res_str = f"{resolution:.2f}m"
+        else:
+            try:
+                res_str = f"{self.resolution:.2f}m"
+            except ValueError:
+                res_str = ""
+
+        return os.path.join(
+            self.output,
+            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_clean.tif",
+        )

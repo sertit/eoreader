@@ -375,21 +375,26 @@ class S3Product(OpticalProduct):
         band_paths = {}
         use_snap = False
         for band in band_list:
-            # Get standard band names
-            band_name = self._get_band_filename(band)
+            # Get clean band path
+            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            if os.path.isfile(clean_band):
+                band_paths[band] = clean_band
+            else:
+                # Get standard band names
+                band_name = self._get_band_filename(band)
 
-            try:
-                # Try to open converted images
-                band_paths[band] = files.get_file_in_dir(
-                    self._get_band_folder(), band_name + ".tif"
-                )
-            except (FileNotFoundError, TypeError):
-                use_snap = True
+                try:
+                    # Try to open converted images
+                    band_paths[band] = files.get_file_in_dir(
+                        self._get_band_folder(), band_name + ".tif"
+                    )
+                except (FileNotFoundError, TypeError):
+                    use_snap = True
 
-        # If not existing (file or output), convert them
-        if use_snap:
-            all_band_paths = self._preprocess_s3(resolution)
-            band_paths = {band: all_band_paths[band] for band in band_list}
+            # If not existing (file or output), convert them
+            if use_snap:
+                all_band_paths = self._preprocess_s3(resolution)
+                band_paths = {band: all_band_paths[band] for band in band_list}
 
         return band_paths
 
