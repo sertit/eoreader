@@ -523,7 +523,7 @@ class PldProduct(OpticalProduct):
                     band_xda = self._warp_band(
                         path,
                         band,
-                        crs=dst.rio.crs,
+                        crs=self.crs(),
                         reproj_path=reproj_path,
                         resolution=resolution,
                     )
@@ -753,7 +753,7 @@ class PldProduct(OpticalProduct):
         transform = def_xarr.rio.transform()
 
         # Load nodata
-        nodata = self._load_nodata(width, height, transform).data
+        nodata = self._load_nodata(width, height, transform)
 
         if bands:
             for res_id in bands:
@@ -913,7 +913,7 @@ class PldProduct(OpticalProduct):
         width: int,
         height: int,
         transform: affine.Affine,
-    ) -> Union[xarray.DataArray, None]:
+    ) -> Union[np.ndarray, None]:
         """
         Load nodata (unimaged pixels) as a numpy array.
 
@@ -923,7 +923,7 @@ class PldProduct(OpticalProduct):
             transform (affine.Affine): Transform to georeference array
 
         Returns:
-            Union[xarray.DataArray, None]: Nodata array
+            Union[np.ndarray, None]: Nodata array
 
         """
         nodata_det = self.open_mask("ROI")
