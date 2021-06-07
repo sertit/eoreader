@@ -23,6 +23,7 @@ def test_index():
         OPT_PATH, r"S2B_MSIL2A_20200114T065229_N0213_R020_T40REQ_20200114T094749.SAFE"
     )
     prod = READER.open(s2_path)
+    failed_idx = []
     with tempfile.TemporaryDirectory() as tmp_dir:
         # tmp_dir = os.path.join(get_ci_data_dir(), "OUTPUT")
         prod.output = os.path.join(tmp_dir, prod.condensed_name)
@@ -44,4 +45,12 @@ def test_index():
             rasters.write(idx_arr, curr_path, dtype=np.float32)
 
             # Test
-            ci.assert_raster_almost_equal(curr_path, ci_data, decimal=4)
+            try:
+                ci.assert_raster_almost_equal(curr_path, ci_data, decimal=4)
+            except AssertionError:
+                failed_idx.append(idx_name)
+
+        # Read the results
+        # Do like that to check all existing index
+        if failed_idx:
+            raise AssertionError(f"Failed index: {failed_idx}")

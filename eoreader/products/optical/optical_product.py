@@ -467,7 +467,7 @@ class OpticalProduct(Product):
             XDS_TYPE: Mask as xarray
         """
         mask = xds.copy(data=np.where(cond, self._mask_true, self._mask_false))
-        mask = mask.where(nodata == 0, np.nan)
+        mask = mask.where(nodata == 0)
 
         return mask
 
