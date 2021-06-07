@@ -13,9 +13,15 @@
 
 ### Fix
 - More robust way of looking for `data` directory
+- Bug fix in `stack` that causes some bands to be inexplicably empty sometimes
+- Bug fix in `alias.isindex`
+- Forcing extent to UTM
+
+### Optimizations
+- Write clean bands on disk to avoid multi invalid pixel research
 
 ### CI
-- Adding a bimonthly test for SNAP
+- Adding a bimonthly test for SNAP processes
 
 ## 0.3.4 (2021-05-28)
 

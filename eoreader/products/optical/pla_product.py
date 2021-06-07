@@ -258,6 +258,18 @@ class PlaProduct(OpticalProduct):
     The scaling factor to retrieve the calibrated radiance is 0.01.
     """
 
+    # def __init__(
+    #         self, product_path: str, archive_path: str = None, output_path=None
+    # ) -> None:
+    #     self.ortho_path = None
+    #     """
+    #     Orthorectified path.
+    #     Can be set to use manually orthorectified data, especially useful for VHR data on steep terrain.
+    #     """
+    #
+    #     # Initialization from the super class
+    #     super().__init__(product_path, archive_path, output_path)
+
     def _post_init(self) -> None:
         """
         Function used to post_init the products
@@ -411,7 +423,9 @@ class PlaProduct(OpticalProduct):
 
         return date
 
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+    def get_band_paths(
+        self, band_list: list, resolution: float = None, size=None
+    ) -> dict:
         """
         Return the paths of required bands.
 
@@ -430,6 +444,7 @@ class PlaProduct(OpticalProduct):
             }
 
         Args:
+            size:
             band_list (list): List of the wanted bands
             resolution (float): Band resolution
 

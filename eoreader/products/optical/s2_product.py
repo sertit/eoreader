@@ -27,7 +27,6 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import xarray as xr
-from fiona.errors import UnsupportedGeometryTypeError
 from lxml import etree
 from rasterio import features
 from rasterio.enums import Resampling
@@ -38,7 +37,7 @@ from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, rasters
+from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
@@ -287,22 +286,27 @@ class S2Product(OpticalProduct):
         band_folders = self._get_res_band_folder(band_list, resolution)
         band_paths = {}
         for band in band_list:
-            try:
-                if self.is_archived:
-                    band_paths[band] = files.get_archived_rio_path(
-                        self.path,
-                        f".*{band_folders[band]}.*_B{self.band_names[band]}.*.jp2",
-                    )
-                else:
-                    band_paths[band] = files.get_file_in_dir(
-                        band_folders[band],
-                        "_B" + self.band_names[band],
-                        extension="jp2",
-                    )
-            except (FileNotFoundError, IndexError) as ex:
-                raise InvalidProductError(
-                    f"Non existing {band} ({self.band_names[band]}) band for {self.path}"
-                ) from ex
+            # Get clean band path
+            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            if os.path.isfile(clean_band):
+                band_paths[band] = clean_band
+            else:
+                try:
+                    if self.is_archived:
+                        band_paths[band] = files.get_archived_rio_path(
+                            self.path,
+                            f".*{band_folders[band]}.*_B{self.band_names[band]}.*.jp2",
+                        )
+                    else:
+                        band_paths[band] = files.get_file_in_dir(
+                            band_folders[band],
+                            "_B" + self.band_names[band],
+                            extension="jp2",
+                        )
+                except (FileNotFoundError, IndexError) as ex:
+                    raise InvalidProductError(
+                        f"Non existing {band} ({self.band_names[band]}) band for {self.path}"
+                    ) from ex
 
         return band_paths
 
@@ -338,7 +342,7 @@ class S2Product(OpticalProduct):
         if original_dtype == "uint16":
             band_xda /= 10000.0
 
-        return band_xda
+        return band_xda.astype(np.float32)
 
     def open_mask(self, mask_str: str, band: Union[obn, str]) -> gpd.GeoDataFrame:
         """
@@ -388,23 +392,6 @@ class S2Product(OpticalProduct):
         if mask_str == "CLOUDS":
             band = "00"
 
-        def _open_mask(fct, *args, **kwargs):
-            # Read the GML file
-            try:
-                # Discard some weird error concerning a NULL pointer that outputs a ValueError (as we already except it)
-                fiona_logger = logging.getLogger("fiona._env")
-                fiona_logger.setLevel(logging.CRITICAL)
-
-                # Read mask
-                mask = fct(*args, **kwargs)
-
-                # Set fiona logger back to what it was
-                fiona_logger.setLevel(logging.INFO)
-            except (ValueError, UnsupportedGeometryTypeError):
-                mask = gpd.GeoDataFrame(geometry=[], crs=self.crs())
-
-            return mask
-
         # Get QI_DATA path
         if isinstance(band, obn):
             band_name = self.band_names[band]
@@ -420,11 +407,7 @@ class S2Product(OpticalProduct):
                     f".*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml"
                 )
                 with zip_ds.open(list(filter(regex.match, filenames))[0]) as mask_path:
-                    mask = _open_mask(gpd.read_file, mask_path)
-
-            # mask = _open_mask(files.read_archived_vector,
-            #                   self.path,
-            #                   f".*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}\.gml")
+                    mask = vectors.open_gml(mask_path, crs=self.crs())
         else:
             qi_data_path = os.path.join(self.path, "GRANULE", "*", "QI_DATA")
 
@@ -433,7 +416,7 @@ class S2Product(OpticalProduct):
                 qi_data_path, f"MSK_{mask_str}_B{band_name}.gml", exact_name=True
             )
 
-            mask = _open_mask(gpd.read_file, mask_path)
+            mask = vectors.open_gml(mask_path, crs=self.crs())
 
         return mask
 
@@ -470,7 +453,7 @@ class S2Product(OpticalProduct):
         # Rasterize nodata
         mask = features.rasterize(
             nodata_det.geometry,
-            out_shape=(band_arr.rio.width, band_arr.rio.height),
+            out_shape=(band_arr.rio.height, band_arr.rio.width),
             fill=nodata_true,  # Outside detector = nodata
             default_value=nodata_false,  # Inside detector = acceptable value
             transform=band_arr.rio.transform(),
@@ -498,7 +481,7 @@ class S2Product(OpticalProduct):
             # Rasterize mask
             mask_pix = features.rasterize(
                 nodata_pix.geometry,
-                out_shape=(band_arr.rio.width, band_arr.rio.height),
+                out_shape=(band_arr.rio.height, band_arr.rio.width),
                 fill=nodata_false,  # OK pixels = OK value
                 default_value=nodata_true,  # Discarded pixels = nodata
                 transform=band_arr.rio.transform(),
