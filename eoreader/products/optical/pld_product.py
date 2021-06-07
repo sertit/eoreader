@@ -841,8 +841,9 @@ class PldProduct(OpticalProduct):
                     regex = re.compile(f".*MASKS.*{mask_str}_PHR.*_MSK\.GML")
                     try:
                         mask_path_zip = list(filter(regex.match, filenames))[0]
-                        with zip_ds.open(mask_path_zip) as mask_zip_path:
-                            mask = vectors.open_gml(mask_zip_path, crs=crs)
+                        mask = vectors.open_gml(
+                            f"zip://{self.path}!{mask_path_zip}", crs=crs
+                        )
                     except IndexError:
                         if mask_str in optional_masks:
                             mask = gpd.GeoDataFrame(geometry=[], crs=crs)
