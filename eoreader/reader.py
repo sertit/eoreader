@@ -107,6 +107,9 @@ class Platform(ListEnum):
     RS2 = "RADARSAT-2"
     """RADARSAT-2"""
 
+    PLD = "Pleiades"
+    """Pléiades"""
+
 
 PLATFORM_REGEX = {
     Platform.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
@@ -128,6 +131,7 @@ PLATFORM_REGEX = {
     ],
     Platform.TSX: r"T[SD]X1_SAR__(SSC|MGD|GEC|EEC)_[SR]E___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Platform.RS2: r"RS2_OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)",
+    Platform.PLD: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
 }
 
 # Not used for now
@@ -156,6 +160,8 @@ MTD_REGEX = {
         r"product\.xml",  # Too generic name, check also a band
         r"imagery_[HV]{2}\.tif",
     ],
+    Platform.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
+    # IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}_R\dC\d
 }
 
 
