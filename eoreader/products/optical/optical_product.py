@@ -105,7 +105,7 @@ class OpticalProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.utm_crs()
+            >>> prod.crs()
             CRS.from_epsg(32630)
 
         Returns:
@@ -126,7 +126,7 @@ class OpticalProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.utm_extent()
+            >>> prod.extent()
                                                         geometry
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 

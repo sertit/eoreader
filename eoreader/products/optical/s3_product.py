@@ -187,7 +187,7 @@ class S3Product(OpticalProduct):
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get UTM footprint of the products (without nodata, *in french == emprise utile*)
+        Get UTM footprint in UTM of the products (without nodata, *in french == emprise utile*)
 
         .. code-block:: python
 
