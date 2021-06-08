@@ -13,7 +13,7 @@ and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) data.
 
 ||**Optical** | **SAR**|
 |--- | --- | ---|
-|**Sensors**|+ Sentinel-2 & Theia<br>+ Sentinel-3 OLCI & SLSTR<br>+ Landsats 1 - 8<br>+ PlanetScope| + Sentinel-1<br>+ COSMO-Skymed<br>+ TerraSAR-X<br>+ RADARSAT-2|
+|**Sensors**|+ Sentinel-2 & Theia<br>+ Sentinel-3 OLCI & SLSTR<br>+ Landsats 1 - 8<br>+ PlanetScope<br>+ Pleiades<br>+ SPOT6-7| + Sentinel-1<br>+ COSMO-Skymed<br>+ TerraSAR-X<br>+ RADARSAT-2|
 
 It also implements additional **sensor-agnostic** features:
 

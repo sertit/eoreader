@@ -226,7 +226,11 @@ class OpticalProduct(Product):
                     band_arrays[band], band=band, resolution=resolution, size=size
                 )
 
-                rasters.write(band_arrays[band], clean_band)
+                # Write on disk
+
+                rasters.write(
+                    band_arrays[band].rename(f"{to_str(band)[0]} CLEAN"), clean_band
+                )
 
         return band_arrays
 
