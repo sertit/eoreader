@@ -9,6 +9,7 @@
 - Adding **THR** data support:
     - **PlanetScope**
     - **Pleiades**
+    - **SPOT 6-7**
 - [SAR] Better handling of SNAP DEMs (using External DEM and other available SNAP DEMs)
 
 ### Fix

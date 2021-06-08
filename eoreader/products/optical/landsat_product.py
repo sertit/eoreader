@@ -489,7 +489,6 @@ class LandsatProduct(OpticalProduct):
         else:
             filename = files.get_filename(path)
 
-        band_name = filename[-1]
         if self._quality_id in filename or self._nodata_band_id in filename:
             band_xda = rasters.read(
                 path,
@@ -499,6 +498,14 @@ class LandsatProduct(OpticalProduct):
                 masked=False,
             ).astype(np.uint16)
         else:
+            # Manage to get the band_name as a number
+            # Original band name
+            band_name = filename[-1]
+            if not band_name.isdigit():
+                # Clean band name: {self.condensed_name}_{band.name}_{res_str}_clean.tif",
+                band_name = filename.split("_")[-3]
+                band_name = str(self.band_names[getattr(obn, band_name)])
+
             # Read band (call superclass generic method)
             band_xda = rasters.read(
                 path, resolution=resolution, size=size, resampling=Resampling.bilinear

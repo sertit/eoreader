@@ -129,6 +129,15 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     # tmp_dir = os.path.join(get_ci_data_dir(), "OUTPUT")
                     prod.output = tmp_dir
+
+                    # Speed up SPOT-7 (and test ortho_path)
+                    # NB: cannot, ortho is too heavy (> 200 Mo)
+                    # if "SPOT7" in prod.sat_id:
+                    #     prod.ortho_path = os.path.join(
+                    #         get_ci_data_dir(), prod.condensed_name, "ortho.tif"
+                    #     )
+
+                    # Env var
                     if (
                         prod.platform == Platform.S3
                         or prod.sensor_type == SensorType.SAR
@@ -139,7 +148,6 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     else:
                         if CI_EOREADER_BAND_FOLDER in os.environ:
                             os.environ.pop(CI_EOREADER_BAND_FOLDER)
-
                     # Extent
                     LOGGER.info("Checking extent")
                     extent = prod.extent()
@@ -292,6 +300,16 @@ def test_pla():
 def test_pld():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("IMG_PHR*")
+
+
+def test_spot6():
+    """Function testing the correct functioning of the optical satellites"""
+    _test_core_optical("IMG_SPOT6*")
+
+
+def test_spot7():
+    """Function testing the correct functioning of the optical satellites"""
+    _test_core_optical("IMG_SPOT7*")
 
 
 def test_s1():
