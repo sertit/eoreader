@@ -148,6 +148,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     else:
                         if CI_EOREADER_BAND_FOLDER in os.environ:
                             os.environ.pop(CI_EOREADER_BAND_FOLDER)
+
                     # Extent
                     LOGGER.info("Checking extent")
                     extent = prod.extent()
