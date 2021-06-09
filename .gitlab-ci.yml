@@ -31,10 +31,11 @@ pytest:
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - linux
-  except:
+  only:
     changes:
-      - "*.html"
-      - docs/*
+      - "*.yml"
+      - CI/*
+      - eoreader/*
 
 tox-linux-3.7:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.7
