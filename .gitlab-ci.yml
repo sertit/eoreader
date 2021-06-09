@@ -14,10 +14,11 @@ lint:
     - flake8 eoreader
   tags:
     - linux
-  except:
+  only:
     changes:
-      - "*.html"
-      - docs/*
+      - "*.yml"
+      - "CI/*"
+      - "eoreader/*"
 
 pytest:
   image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
@@ -34,8 +35,8 @@ pytest:
   only:
     changes:
       - "*.yml"
-      - CI/*
-      - eoreader/*
+      - "CI/*"
+      - "eoreader/*"
 
 tox-linux-3.7:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.7
