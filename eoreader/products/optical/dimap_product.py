@@ -36,7 +36,6 @@ import geopandas as gpd
 import numpy as np
 import rasterio
 import rioxarray
-import xarray
 from lxml import etree
 from rasterio import crs as riocrs
 from rasterio import features, rpc, warp
@@ -517,21 +516,20 @@ class DimapProduct(OpticalProduct):
             if not dst_crs.is_projected:
                 if not os.path.isfile(reproj_path):
                     # Warp band if needed
-                    band_xda = self._warp_band(
+                    self._warp_band(
                         path,
                         band,
-                        crs=self.crs(),
                         reproj_path=reproj_path,
                         resolution=resolution,
                     )
-                else:
-                    # Read band
-                    band_xda = rasters.read(
-                        reproj_path,
-                        resolution=resolution,
-                        size=size,
-                        resampling=Resampling.bilinear,
-                    )
+
+                # Read band
+                band_xda = rasters.read(
+                    reproj_path,
+                    resolution=resolution,
+                    size=size,
+                    resampling=Resampling.bilinear,
+                )
 
             # Manage the case if we open a simple band (EOReader processed bands)
             elif dst.count == 1:
@@ -1028,53 +1026,58 @@ class DimapProduct(OpticalProduct):
         self,
         path: str,
         band: obn,
-        crs: riocrs.CRS,
         reproj_path: str,
         resolution: float = None,
-    ) -> xarray.DataArray:
+    ) -> None:
         """
         Warp band to UTM
 
         Args:
             path (str): Band path to warp
             band (band): Band to warp
-            crs (CRS): CRS to warp to
             reproj_path (str): Path where to write the reprojected band
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
-        Returns:
-            str: Warped band path
         """
         LOGGER.info(
             f"Reprojecting band {band.name} to UTM with a {resolution} m resolution."
         )
 
         # Read band
-        band_xda = rasters.read(path, indexes=[self.band_names[band]]).astype(
-            np.float32
-        )
+        with rasterio.open(path) as src:
+            band_nb = self.band_names[band]
+            meta = src.meta.copy()
 
-        # If nodata not set, set it here
-        if not band_xda.rio.encoded_nodata:
-            band_xda = rasters.set_nodata(band_xda, 0)
+            utm_tr, utm_w, utm_h = warp.calculate_default_transform(
+                src.crs,
+                self.crs(),
+                src.width,
+                src.height,
+                *src.bounds,
+                resolution=resolution,
+            )
 
-        # If the CRS is not in UTM, reproject it
-        band_xda_reproj = band_xda.rio.reproject(crs, resolution=resolution).astype(
-            np.float32
-        )
+            # If nodata not set, set it here
+            meta["nodata"] = 0
 
-        # Bug workaround
-        # ValueError: failed to prevent overwriting existing key _FillValue in attrs.
-        # This is probably an encoding field used by xarray to describe how a variable is serialized
-        # To proceed, remove this key from the variable's attributes manually.
-        try:
-            rasters.write(band_xda_reproj, reproj_path)
-        except ValueError:
-            band_xda_reproj.attrs.pop("_FillValue")
-            rasters.write(band_xda_reproj, reproj_path)
+            # If the CRS is not in UTM, reproject it
+            out_arr = np.empty((1, utm_h, utm_w), dtype=meta["dtype"])
+            warp.reproject(
+                source=src.read(band_nb),
+                destination=out_arr,
+                src_crs=src.crs,
+                dst_crs=self.crs(),
+                src_transform=src.transform,
+                dst_transform=utm_tr,
+                src_nodata=0,
+                dst_nodata=0,  # input data should be in integer
+                num_threads=MAX_CORES,
+            )
+            meta["transform"] = utm_tr
+            meta["crs"] = self.crs()
 
-        return band_xda_reproj
+            rasters_rio.write(out_arr, meta, reproj_path)
 
     def _get_default_utm_band(
         self, resolution: float = None, size: Union[list, tuple] = None
@@ -1116,7 +1119,6 @@ class DimapProduct(OpticalProduct):
                         self._warp_band(
                             def_path,
                             def_band,
-                            crs=self.crs(),
                             reproj_path=path,
                             resolution=resolution,
                         )
