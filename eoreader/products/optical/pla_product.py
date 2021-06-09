@@ -86,7 +86,8 @@ class PlaProductType(ListEnum):
 
     L1B = "Basic Scene Product"
     """
-    PlanetScope Basic Scene Product (Level 1B):
+    **PlanetScope Basic Scene Product (Level 1B)**
+
     Scaled Top of Atmosphere Radiance(at sensor) and sensor corrected product.
     This product has scene based framing and is not projected to a cartographic projection.
     Radiometric and sensor corrections are applied to the data.
@@ -94,12 +95,14 @@ class PlaProductType(ListEnum):
 
     L3B = "Ortho Scene Product"
     """
-    PlanetScope Ortho Scene Product (Level 3B):
+    **PlanetScope Ortho Scene Product (Level 3B)**
+
     Orthorectified, scaled Top of Atmosphere Radiance (at sensor) or Surface Reflectance image product
     suitable for analytic and visual applications.
     This product has scene based framing and projected to a cartographic projection.
 
-    # PSScene3Band
+    **PSScene3Band**
+
     PlanetScope 3-band multispectral basic and orthorectified scenes.
     This data set includes imagery from PlanetScope-0 and PlanetScope-1 sensors
     as well as full-frame and split-frame PlanetScope-2 sensors.
@@ -107,82 +110,17 @@ class PlaProductType(ListEnum):
 
     Resampled to 3.0m.
 
-    Product band order:
+    **PSScene4Band**
 
-        Band 1 = Red
-        Band 2 = Green
-        Band 3 = Blue
-
-    Naming: <acq date>_<acq time>_<acq time seconds ms>_<satellite_id>_<productLevel>_<bandProduct>.<ext>
-
-    Asset Types:
-    analytic                Radiometrically calibrated GeoTiff product suitable for analytic applications.
-    analytic_dn             Non-radiometrically calibrated GeoTiff product suitable for analytic applications.
-    analytic_dn_xml         Analytic DN asset XML metadata file.
-    analytic_xml            Analytic asset XML metadata file.
-    basic_analytic          Top of atmosphere radiance (at-sensor) and sensor-corrected GeoTiff product.
-                            Scene based framing and not projected to a cartographic projection.
-    basic_analytic_dn       Basic sensor corrected scene GeoTiff.
-                            Scene based framing and not projected to a cartographic projection.
-    basic_analytic_dn_rpc   Bational Polynomial Coefficients text file used to orthorectify basic_analytic_dn asset.
-    basic_analytic_dn_xml   Basic analytic DN asset XML metadata file.
-    basic_analytic_rpc      Rational Polynomial Coefficients text file used to orthorectify the basic_analytic asset.
-    basic_analytic_xml      Basic analytic asset XML metadata file.
-    basic_udm               Unusable Data Mask: Unusable data bit mask in GeoTIFF format for the basic scene assets.
-    basic_udm2              Usable Data Mask 2.0. Read more about this new asset here.
-    udm                     Unusable Data Mask:
-                            Unusable data bit mask in GeoTIFF format for the visual and analytic scene assets.
-    udm2                    Usable Data Mask 2.0. Read more about this new asset here.
-    visual                  Color corrected GeoTiff for visual applications.
-    visual_xml              Visual asset XML metadata file.
-
-    # PSScene4Band
     PlanetScope 4-band multispectral basic and orthorectified scenes.
     This data set includes imagery from all PlanetScope sensors.
     All PSScene4Band items have a corresponding PSScene3Band item.
 
     Resampled to 3.0m.
-
-    Naming: <acq date>_<acq time>_<acq time seconds ms>_<satellite_id>_<productLevel>_<bandProduct>.<ext>
-
-    Product band order:
-
-        Band 1 = Red
-        Band 2 = Green
-        Band 3 = Blue
-        Band 4 = Near-infrared
-
-    Asset Types:
-    analytic                    Radiometrically calibrated GeoTiff product suitable for analytic applications.
-    analytic_dn                 Non-radiometrically calibrated GeoTiff product suitable for analytic applications.
-    analytic_dn_xml             Analytic DN asset XML metadata file.
-    analytic_sr                 Atmospherically corrected surface reflectance product.
-    analytic_xml                Analytic asset XML metadata file.
-    basic_analytic              Top of atmosphere radiance (at sensor) and sensor corrected GeoTiff product.
-                                Scene based framing and not projected to a cartographic projection.
-    basic_analytic_dn           Basic sensor corrected scene GeoTiff product.
-                                Scene based framing and not projected to a cartographic projection.
-    basic_analytic_dn_nitf      Basic sensor corrected scene NITF product.
-                                Scene based framing and not projected to a cartographic projection.
-    basic_analytic_dn_rpc       Rational Polynomial Coefficients text file used to orthorectify basic_analytic_dn asset.
-    basic_analytic_dn_rpc_nitf  RPC text file used to orthorectify basic_analytic_dn_nitf asset.
-    basic_analytic_dn_xml       Basic analytic DN asset XML metadata file.
-    basic_analytic_dn_xml_nitf  Basic analytic DN XML metadata file.
-    basic_analytic_nitf         Top of atmosphere radiance (at sensor) and sensor corrected NITF product.
-                                Scene based framing and not projected to a cartographic projection.
-    basic_analytic_rpc          RPC text file used to orthorectify the basic_analytic asset.
-    basic_analytic_rpc_nitf     RPC text file used to orthorectify the basic_analytic asset.
-    basic_analytic_xml          Basic analytic asset XML metadata file.
-    basic_analytic_xml_nitf     Basic analytic XML metadata file.
-    basic_udm                   Usable Data Mask:
-                                Usable data bit mask in GeoTIFF format for the basic analytic scene assets.
-    basic_udm2                  Usable Data Mask 2.0. Read more about this new asset here.
-    udm                         Unusable Data Mask:
-                                Unusable data bit mask in GeoTIFF format for the visual and analytic scene assets.
-    udm2                        Usable Data Mask 2.0. Read more about this new asset here.
     """
     """
-    # PSScene (Not found anwhere else)
+    **PSScene (Not found anywhere else)**
+
     PlanetScope 8-band multispectral basic and orthorectified scenes.
     This data set includes imagery from all PlanetScope sensors.
 
@@ -207,11 +145,13 @@ class PlaProductType(ListEnum):
 
     L3A = "Ortho Tile Product"
     """
-    PlanetScope Ortho Tile Product (Level 3A):
+    **PlanetScope Ortho Tile Product (Level 3A)**
+
     Radiometric and sensor corrections applied to the data.
     Imagery is orthorectified and projected to a UTM projection.
 
-    # PSOrthoTile
+    **PSOrthoTile**
+
     PlanetScope Ortho Tiles as 25 km x 25 km UTM tiles. This data set includes imagery from all PlanetScope sensors.
     Resampled to 3.125m.
 
@@ -219,33 +159,18 @@ class PlaProductType(ListEnum):
 
     Product band order:
 
-        Band 1 = Blue
-        Band 2 = Green
-        Band 3 = Red
-        Band 4 = Near-infrared (analytic products only)
+    - Band 1 = Blue
+    - Band 2 = Green
+    - Band 3 = Red
+    - Band 4 = Near-infrared (analytic products only)
 
     Analytic 5B Product band order:
 
-        Band 1 = Blue
-        Band 2 = Green
-        Band 3 = Red
-        Band 4 = Red-Edge
-        Band 5 = Near-infrared
-
-
-    Asset Types:
-    analytic            Radiometrically calibrated GeoTiff product suitable for analytic applications.
-    analytic_5b         Radiometrically calibrated GeoTiff product suitable for analytic applications.
-                        Has 5 analytic bands, including red-edge. Supported only for the PlanetScope PSB.SD instrument.
-    analytic_5b_xml     Analytic 5B asset XML metadata file. Supported only for the PlanetScope PSB.SD instrument.
-    analytic_dn         Non-radiometrically calibrated GeoTiff product suitable for analytic applications.
-    analytic_dn_xml     Analytic DN asset XML metadata file.
-    analytic_sr         Atmospherically corrected surface reflectance GeoTiff product.
-    analytic_xml        Analytic asset XML metadata file.
-    visual              Color-corrected GeoTiff product for visual applications.
-    visual_xml          Visual asset XML metadata file.
-    udm                 Usable Data Mask - Usable data bit mask GeoTIFF for visual and analytic assets.
-    udm2                Usable Data Mask 2.0. Read more about this new asset here.
+    - Band 1 = Blue
+    - Band 2 = Green
+    - Band 3 = Red
+    - Band 4 = Red-Edge
+    - Band 5 = Near-infrared
     """
 
 

@@ -8,19 +8,19 @@
 |Sentinel-2 Theia | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | Yes | 20m|
 |Sentinel-3 SLSTR | {meth}`~eoreader.products.optical.s3_product.S3Product` | RBT | No | 300m|
 |Sentinel-3 OLCI | {meth}`~eoreader.products.optical.s3_product.S3Product` | EFR | No | 500m|
-|Landsat-8 OLCI | {meth}`~eoreader.products.optical.l8_product.L8Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat-7 ETM | {meth}`~eoreader.products.optical.l7_product.L7Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat-5 TM | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat-4 TM | {meth}`~eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat-5 MSS | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat-4 MSS | {meth}`~eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat-3 MSS | {meth}`~eoreader.products.optical.l3_product.L3Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat-2 MSS | {meth}`~eoreader.products.optical.l2_product.L2Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat-1 MSS | {meth}`~eoreader.products.optical.l1_product.L1Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat 8 OLCI | {meth}`~eoreader.products.optical.l8_product.L8Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat 7 ETM | {meth}`~eoreader.products.optical.l7_product.L7Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat 5 TM | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat 4 TM | {meth}`~eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat 5 MSS | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat 4 MSS | {meth}`~eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat 3 MSS | {meth}`~eoreader.products.optical.l3_product.L3Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat 2 MSS | {meth}`~eoreader.products.optical.l2_product.L2Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat 1 MSS | {meth}`~eoreader.products.optical.l1_product.L1Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
 |PlanetScope | {meth}`~eoreader.products.optical.pla_product.PlaProduct` | L3A & L3B | Yes | 3m|
-|Pleiades | {meth}`~eoreader.products.optical.pla_product.PldProduct` | SEN, PRJ, ORT & MOS | Yes | 0.5 or 2m|
-|SPOT7 | {meth}`~eoreader.products.optical.pla_product.Spot7Product` | SEN, PRJ, ORT & MOS | Yes | 1.5 or 6m|
-|SPOT6 | {meth}`~eoreader.products.optical.pla_product.Spot6Product` | SEN, PRJ, ORT & MOS | Yes | 1.5 or 6m|
+|Pleiades | {meth}`~eoreader.products.optical.pld_product.PldProduct` | SEN, PRJ, ORT & MOS | Yes | 0.5 or 2m|
+|SPOT 7 | {meth}`~eoreader.products.optical.spot7_product.Spot7Product` | SEN, PRJ, ORT & MOS | Yes | 1.5 or 6m|
+|SPOT 6 | {meth}`~eoreader.products.optical.spot6_product.Spot6Product` | SEN, PRJ, ORT & MOS | Yes | 1.5 or 6m|
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
@@ -66,14 +66,14 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 |Landsat ETM (7)|  | **1** (30m) | **2** (30m) | **3** (30m) |  |  |  | **4** (30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |**8** (15m) |**6** (60m) |**6** (60m)|
 |Landsat TM (5-4)|  | **1** (30m) | **2** (30m) | **3** (30m) |  |  |  | **4**(30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |  |**6** (120m) |**6** (120m)|
 |Landsat MSS (5-4)|  |  | **1** (60m) | **2** (60m) | **3** (60m) | **3** (60m) | **3** (60m) | **4** (60m) | **4** (60m) |  |  |  |  |  |  | |
-|Landsat MSS (1-3)|  |  | **4** (60m) | **5** (60m) | **6** (60m) | **6** (60m) | **6** (60m) | **7** (60m) | **7** (60m) |  |  |  |  |  |**8** (240m)<br>*only for Landsat-3* |**8** (240m)<br>*only for Landsat-3*|
-|PlanetScope (4 band)|  |  | **1** (3m) | **2** (3m) | **3** (3m) | |  | **4** (3m) | **4** (3m) |  |  |  |  |  | | |
-|PlanetScope (5 band)|  |  | **1** (3m) | **2** (3m) | **3** (3m) |**4** (3m)|  | **5** (3m) | **5** (3m) |  |  |  |  |  | | |
-|Pleiades** (PMS/MS)|  |  | **1** (0.5/2m) | **2** (0.5/2m) | **3** (0.5/2m) |**4** (0.5/2m)|  | **5** (0.5/2m) | **5** (0.5/2m) |  |  |  |  |  | | |
-|SPOT6-7** (PMS/MS)|  |  | **1** (1.5/6m) | **2** (1.5/6m) | **3** (1.5/6m) |**4** (1.5/6m)|  | **5** (1.5/6m) | **5** (1.5/6m) |  |  |  |  |  | | |
+|Landsat MSS (1-3)|  |  | **4** (60m) | **5** (60m) | **6** (60m) | **6** (60m) | **6** (60m) | **7** (60m) | **7** (60m) |  |  |  |  |  |**8** (240m)<br>*only for Landsat 3* |**8** (240m)<br>*only for Landsat 3*|
+|PlanetScope (4 band)|  | **1** (3m) | **2** (3m) | **3** (3m) | |  | | **4** (3m) | **4** (3m) |  |  |  |  |  | | |
+|PlanetScope (5 band)|  | **1** (3m) | **2** (3m) | **3** (3m) |**4** (3m)|  || **5** (3m) | **5** (3m) |  |  |  |  |  | | |
+|Pleiades** (PMS/MS)|  | **3** (0.5/2m) | **2** (0.5/2m) | **1** (0.5/2m) | | | | **4** (0.5/2m) | **4** (0.5/2m) |  |  |  |  |  | | |
+|SPOT6-7** (PMS/MS)|  | **3** (1.5/6m) | **2** (1.5/6m) | **1** (1.5/6m) | | | | **4** (1.5/6m) | **4** (1.5/6m) |  |  |  |  |  | | |
 
-\* *Not all bands of this sensor are used in EOReader*
-\*\* *P(panchro) have only one panchromatic band, (P)MS-N have 3 bands (BGR), and (P)MS-X also have 3 bands in false color (GRNIR)*
+\* *Not all bands of this sensor are used in EOReader*  
+\*\* *P(panchro) have only one panchromatic band, P/MS-N have 3 bands (BGR), and P/MS-X also have 3 bands in false color (GRNIR)*
 
 ### Cloud bands
 
@@ -99,15 +99,15 @@ The only difference with the other bands is that the cloud bands are provided in
 |Sentinel-2 Theia | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
 |Sentinel-3 OLCI | *No cloud file available for S3-OLCI data* |
 |Sentinel-3 SLSTR | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`|
-|Landsat-8 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
-|Landsat-7 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
-|Landsat-5 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
-|Landsat-4 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
-|Landsat-5 MSS | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Landsat-4 MSS | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Landsat-3 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Landsat-2 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Landsat-1 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 8 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
+|Landsat 7 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
+|Landsat 5 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
+|Landsat 4 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
+|Landsat 5 MSS | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 4 MSS | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 3 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 2 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 1 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
 |PlanetScope | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
 |Pleiades | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
 |SPOT6-7 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
@@ -196,7 +196,7 @@ environment variables:
 
 ### DIMAP V2: Pleiades, SPOT6-7
 - [DIMAP V2 Format](https://www.intelligence-airbusds.com/en/8723-pleiades-and-spot-6-7-format-delivery)
-- [Pleiades User Guide (2019)](www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf)
+- [Pleiades User Guide (2019)](https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf)
 - [SPOT6-7 User Guide (2019)](https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf)
 - [Request Form(2017)](https://www.intelligence-airbusds.com/files/pmedia/public/r44226_9_airbus_data_request_form_may_2017.pdf)
 
