@@ -70,7 +70,7 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 |PlanetScope (4 band)|  | **1** (3m) | **2** (3m) | **3** (3m) | |  | | **4** (3m) | **4** (3m) |  |  |  |  |  | | |
 |PlanetScope (5 band)|  | **1** (3m) | **2** (3m) | **3** (3m) |**4** (3m)|  || **5** (3m) | **5** (3m) |  |  |  |  |  | | |
 |Pleiades** (PMS/MS)|  | **3** (0.5/2m) | **2** (0.5/2m) | **1** (0.5/2m) | | | | **4** (0.5/2m) | **4** (0.5/2m) |  |  |  |  |  | | |
-|SPOT6-7** (PMS/MS)|  | **3** (1.5/6m) | **2** (1.5/6m) | **1** (1.5/6m) | | | | **4** (1.5/6m) | **4** (1.5/6m) |  |  |  |  |  | | |
+|SPOT 6-7** (PMS/MS)|  | **3** (1.5/6m) | **2** (1.5/6m) | **1** (1.5/6m) | | | | **4** (1.5/6m) | **4** (1.5/6m) |  |  |  |  |  | | |
 
 \* *Not all bands of this sensor are used in EOReader*  
 \*\* *P(panchro) have only one panchromatic band, P/MS-N have 3 bands (BGR), and P/MS-X also have 3 bands in false color (GRNIR)*
@@ -110,7 +110,7 @@ The only difference with the other bands is that the cloud bands are provided in
 |Landsat 1 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
 |PlanetScope | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
 |Pleiades | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|SPOT6-7 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|SPOT 6-7 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
 
 ### DEM bands
 
@@ -135,7 +135,7 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 |{meth}`~eoreader.bands.index.BSI` | `BLUE`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.CIG` | `GREEN`, `NIR` | All optical satellites|
 |{meth}`~eoreader.bands.index.DSWI` | `GREEN`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|{meth}`~eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, (E)TM, PlanetScope, Pleiades, SPOT6-7|
+|{meth}`~eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, (E)TM, PlanetScope, Pleiades, SPOT 6-7|
 |{meth}`~eoreader.bands.index.GNDVI` | `GREEN`, `NIR` | All optical satellites|
 |{meth}`~eoreader.bands.index.MNDWI` | `GREEN`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.NBR` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
@@ -194,10 +194,10 @@ environment variables:
 - [Usable Data Mask](https://developers.planet.com/docs/data/udm-2/)
 - [On Medium](https://medium.com/geoplexing/getting-started-with-planet-imagery-part-3-items-and-ordering-476a1a21618c)
 
-### DIMAP V2: Pleiades, SPOT6-7
+### DIMAP V2: Pleiades, SPOT 6-7
 - [DIMAP V2 Format](https://www.intelligence-airbusds.com/en/8723-pleiades-and-spot-6-7-format-delivery)
 - [Pleiades User Guide (2019)](https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf)
-- [SPOT6-7 User Guide (2019)](https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf)
+- [SPOT 6-7 User Guide (2019)](https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf)
 - [Request Form(2017)](https://www.intelligence-airbusds.com/files/pmedia/public/r44226_9_airbus_data_request_form_may_2017.pdf)
 
 ### Band mapping
