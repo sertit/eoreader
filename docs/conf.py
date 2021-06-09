@@ -53,7 +53,7 @@ myst_enable_extensions = [
 ]
 
 # Notebook integration parameters
-nbsphinx_execute = "auto"
+nbsphinx_execute = "never"
 
 # This is going to generate a banner on top of each notebook
 nbsphinx_prolog = ""
