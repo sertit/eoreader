@@ -40,7 +40,7 @@ SAR satellites can only load {meth}`~eoreader.bands.bands.DemBandNames.DEM` and 
 bands as the sun position does not impact SAR data. The `SLOPE` band is computed with
 the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
 
-These bands need a valid worldwide DEM path positioned thanks to the environment variable `EOREADER_SAR_DEFAULT_RES`.
+These bands need a valid worldwide DEM path positioned thanks to the environment variable `EOREADER_DEM_PATH`.
 You can use both a local path e.g. `/mnt/dataserver/dems/srtm_30_v4/index.vrt` or `\\dataserver\DEMS\srtm_30_v4\index.vrt` or
 a URL pointing to a web resources hosted on a S3 compatible storage e.g. 
 `https://s3.storage.com/dem-bucket/srtm_cog.tif` (not available on Windows for now).
@@ -131,7 +131,7 @@ Available DEMs are:
 - `ASTER 1sec GDEM`
 - `Copernicus 30m Global DEM` ([buggy](https://forum.step.esa.int/t/terrain-correction-with-copernicus-dem/29025/11) for now, do not use it)
 - `Copernicus 90m Global DEM` ([buggy](https://forum.step.esa.int/t/terrain-correction-with-copernicus-dem/29025/11) for now, do not use it)
-- `GETASSE30`
+- `GETASSE30` (by default)
 - `SRTM 1Sec HGT`
 - `SRTM 3Sec`
 - `External DEM`
