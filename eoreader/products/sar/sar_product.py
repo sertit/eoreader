@@ -27,6 +27,7 @@ from typing import Union
 
 import geopandas as gpd
 import numpy as np
+import rioxarray
 from rasterio import crs
 from rasterio.enums import Resampling
 
@@ -399,7 +400,7 @@ class SarProduct(Product):
         """
         Return the paths of required bands.
 
-        .. WARNING:: This functions orthorectifies SAR bands if not existing !
+        .. WARNING:: This functions orthorectifies and despeckles SAR bands if not existing !
 
         .. code-block:: python
 
@@ -409,13 +410,13 @@ class SarProduct(Product):
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([VV, HH])
             {
-                <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif'  # HH doesn't exist
+                <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif'
             }
+            >>> # HH doesn't exist
 
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Band resolution
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -529,21 +530,11 @@ class SarProduct(Product):
         Returns:
             dict: Dictionary containing the path of every orthorectified bands
         """
-        # Get raw bands (maximum number of bands)
-        raw_bands = self._get_raw_bands()
-        possible_bands = raw_bands + [
-            sbn.corresponding_despeckle(band) for band in raw_bands
-        ]
-
-        return self.get_band_paths(possible_bands)
+        return self.get_band_paths(self.get_existing_bands())
 
     def get_existing_bands(self) -> list:
         """
         Return the existing orthorectified bands (including despeckle bands).
-
-        .. WARNING:: This functions orthorectifies SAR bands if not existing !
-
-        .. WARNING:: This functions despeckles SAR bands if not existing !
 
         .. code-block:: python
 
@@ -560,8 +551,13 @@ class SarProduct(Product):
         Returns:
             list: List of existing bands in the products
         """
-        band_paths = self.get_existing_band_paths()
-        return list(band_paths.keys())
+        # Get raw bands (maximum number of bands)
+        raw_bands = self._get_raw_bands()
+        existing_bands = raw_bands + [
+            sbn.corresponding_despeckle(band) for band in raw_bands
+        ]
+
+        return existing_bands
 
     # unused band_name (compatibility reasons)
     # pylint: disable=W0613
@@ -814,7 +810,7 @@ class SarProduct(Product):
                 )
 
                 # Pre-process SAR images according to the given graph
-                LOGGER.debug("Despeckle SAR image")
+                LOGGER.debug(f"Despeckling {band.name}")
                 try:
                     misc.run_cli(cmd_list)
                 except RuntimeError as ex:
@@ -842,16 +838,16 @@ class SarProduct(Product):
             img = rasters.get_dim_img_path(dim_path)  # Maybe not the good name
 
         # Open SAR image
-        arr = rasters.read(img, masked=False)
-        arr = arr.where(arr != self._snap_no_data, np.nan)
+        with rioxarray.open_rasterio(img) as arr:
+            arr = arr.where(arr != self._snap_no_data, np.nan)
 
-        # Save the file as the terrain-corrected image
-        file_path = os.path.join(
-            self.output,
-            f"{files.get_filename(dim_path)}_{pol_up}{'_DSPK' if dspk else ''}.tif",
-        )
-        # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
-        rasters.write(arr, file_path, dtype=np.float32, nodata=0)
+            # Save the file as the terrain-corrected image
+            file_path = os.path.join(
+                self.output,
+                f"{files.get_filename(dim_path)}_{pol_up}{'_DSPK' if dspk else ''}.tif",
+            )
+            # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
+            rasters.write(arr, file_path, dtype=np.float32, nodata=0)
 
         return file_path
 

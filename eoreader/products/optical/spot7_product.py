@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Pleiades products.
-See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+SPOT-7 products.
+See `here <https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf>`_
 for more information.
 """
 import logging
@@ -27,10 +27,10 @@ from eoreader.utils import EOREADER_NAME
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 
-class PldProduct(DimapProduct):
+class Spot7Product(DimapProduct):
     """
-    Class of Pleiades products.
-    See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+    Class of SPOT-7 products.
+    See `here <https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf>`_
     for more information.
     """
 
@@ -44,7 +44,7 @@ class PldProduct(DimapProduct):
             DimapBandCombination.MS_X,
             DimapBandCombination.MS_N,
         ]:
-            return 2.0
+            return 6.0
         # Pansharpened images
         else:
-            return 0.5
+            return 1.5
