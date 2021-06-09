@@ -19,10 +19,15 @@
 - Forcing extent to UTM
 
 ### Optimizations
-- Write clean bands on disk to avoid multi invalid pixel research
+- Write clean bands on disk to avoid redoing invalid pixel computation
+- `prod.has_bands` / `prod.get_existing_bands` do not orthorectify/despeckle SAR bands anymore
 
 ### CI
 - Adding a bimonthly test for SNAP processes
+
+### Documentation
+- Adding two new notebooks (SAR and VHR data)
+- Completing the documentation
 
 ## 0.3.4 (2021-05-28)
 

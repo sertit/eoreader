@@ -106,6 +106,8 @@ The API documentation can be found [here](https://eoreader.readthedocs.io/en/lat
 Available notebooks provided as examples:
 
 - [Basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html)
+- [SAR data](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html)
+- [VHR data](https://eoreader.readthedocs.io/en/latest/notebooks/VHR.html)
 - [Water detection](https://eoreader.readthedocs.io/en/latest/notebooks/water_detection.html)
 
 ## Installation
