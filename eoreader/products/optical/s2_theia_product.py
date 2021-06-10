@@ -104,7 +104,7 @@ class S2TheiaProduct(OpticalProduct):
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint of the products (without nodata, in french == emprise utile)
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
 
         .. WARNING::
             As Landsat 7 is broken (with nodata stripes all over the bands),
@@ -193,20 +193,24 @@ class S2TheiaProduct(OpticalProduct):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
-        for band in band_list:
-            try:
-                if self.is_archived:
-                    band_paths[band] = files.get_archived_rio_path(
-                        self.path, f".*FRE_B{self.band_names[band]}\.tif"
-                    )
-                else:
-                    band_paths[band] = files.get_file_in_dir(
-                        self.path, f"FRE_B{self.band_names[band]}.tif"
-                    )
-            except (FileNotFoundError, IndexError) as ex:
-                raise InvalidProductError(
-                    f"Non existing {band} ({self.band_names[band]}) band for {self.path}"
-                ) from ex
+        for band in band_list:  # Get clean band path
+            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            if os.path.isfile(clean_band):
+                band_paths[band] = clean_band
+            else:
+                try:
+                    if self.is_archived:
+                        band_paths[band] = files.get_archived_rio_path(
+                            self.path, f".*FRE_B{self.band_names[band]}\.tif"
+                        )
+                    else:
+                        band_paths[band] = files.get_file_in_dir(
+                            self.path, f"FRE_B{self.band_names[band]}.tif"
+                        )
+                except (FileNotFoundError, IndexError) as ex:
+                    raise InvalidProductError(
+                        f"Non existing {band} ({self.band_names[band]}) band for {self.path}"
+                    ) from ex
 
         return band_paths
 
@@ -235,7 +239,7 @@ class S2TheiaProduct(OpticalProduct):
         # Read band
         band_xda = rasters.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
-        )
+        ).astype(np.float32)
 
         # Compute the correct radiometry of the band
         band_xda = band_xda / 10000.0
@@ -445,10 +449,10 @@ class S2TheiaProduct(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get S2 products condensed name ({date}_S2_{tile]_{product_type}).
+        Get products condensed name ({date}_S2THEIA_{tile]_{product_type}).
 
         Returns:
-            str: Condensed S2 name
+            str: Condensed name
         """
         return (
             f"{self.get_datetime()}_S2THEIA_{self.tile_name}_{self.product_type.value}"
@@ -549,7 +553,7 @@ class S2TheiaProduct(OpticalProduct):
                 resolution=resolution,
                 size=size,
                 resampling=Resampling.nearest,
-            )
+            ).astype(np.float32)
 
             # Get nodata mask
             nodata = self.open_mask("EDG", res_id, resolution=resolution, size=size)

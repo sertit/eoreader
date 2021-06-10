@@ -117,7 +117,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
             LOGGER.info(os.path.basename(path))
 
             # Open product and set output
-            prod: Product = READER.open(path, method=CheckMethod.MTD)
+            prod: Product = READER.open(path, method=CheckMethod.MTD, remove_tmp=True)
             prod_name = READER.open(path, method=CheckMethod.NAME)
             prod_both = READER.open(path, method=CheckMethod.BOTH)
             assert prod is not None
@@ -127,8 +127,10 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
             # Discard the case where an invalid file/directory is in the CI folder
             if prod is not None:
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    # tmp_dir = os.path.join(get_ci_data_dir(), "OUTPUT")
+                    tmp_dir = os.path.join(get_ci_data_dir(), "OUTPUT")
                     prod.output = tmp_dir
+
+                    # Env var
                     if (
                         prod.platform == Platform.S3
                         or prod.sensor_type == SensorType.SAR
@@ -147,6 +149,10 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                         get_ci_data_dir(), prod.condensed_name, "extent.geojson"
                     )
                     if not os.path.isfile(extent_path):
+                        os.makedirs(
+                            os.path.join(get_ci_data_dir(), prod.condensed_name),
+                            exist_ok=True,
+                        )
                         extent.to_file(extent_path, driver="GeoJSON")
 
                     try:
@@ -194,7 +200,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     ci_data = os.path.join(
                         get_ci_data_dir(), prod.condensed_name, "stack.tif"
                     )
-                    if debug:
+                    if debug or not os.path.isfile(ci_data):
                         curr_path = os.path.join(
                             get_ci_data_dir(), prod.condensed_name, "stack.tif"
                         )
@@ -278,6 +284,26 @@ def test_l2_mss():
 def test_l1_mss():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("LM01*")
+
+
+def test_pla():
+    """Function testing the correct functioning of the optical satellites"""
+    _test_core_optical("202*")
+
+
+def test_pld():
+    """Function testing the correct functioning of the optical satellites"""
+    _test_core_optical("IMG_PHR*")
+
+
+def test_spot6():
+    """Function testing the correct functioning of the optical satellites"""
+    _test_core_optical("IMG_SPOT6*")
+
+
+def test_spot7():
+    """Function testing the correct functioning of the optical satellites"""
+    _test_core_optical("IMG_SPOT7*")
 
 
 def test_s1():

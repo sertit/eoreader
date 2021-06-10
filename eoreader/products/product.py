@@ -71,7 +71,11 @@ class Product:
     """Super class of EOReader Products"""
 
     def __init__(
-        self, product_path: str, archive_path: str = None, output_path: str = None
+        self,
+        product_path: str,
+        archive_path: str = None,
+        output_path: str = None,
+        remove_tmp: bool = False,
     ) -> None:
         self.name = files.get_filename(product_path)
         """Product name (its filename without any extension)."""
@@ -95,12 +99,11 @@ class Product:
 
         # The output will be given later
         if output_path:
-            self._tmp = None
+            self._tmp_output = None
             self._output = output_path
-            os.makedirs(output_path, exist_ok=True)
         else:
-            self._tmp = tempfile.TemporaryDirectory()
-            self._output = self._tmp.name
+            self._tmp_output = tempfile.TemporaryDirectory()
+            self._output = self._tmp_output.name
         """Output directory of the product, to write orthorectified data for example."""
 
         # Get the products date and datetime
@@ -162,12 +165,20 @@ class Product:
         self.sat_id = self.platform.name
         """Satellite ID, i.e. `S2` for Sentinel-2"""
 
+        # Temporary files path (private)
+        self._tmp_process = os.path.join(self._output, f"tmp_{self.condensed_name}")
+        os.makedirs(self._tmp_process, exist_ok=True)
+        self._remove_tmp_process = remove_tmp
+
         # TODO: manage self.needs_extraction
 
     def __del__(self):
         """Cleaning up _tmp directory"""
-        if self._tmp:
-            self._tmp.cleanup()
+        if self._tmp_output:
+            self._tmp_output.cleanup()
+
+        elif self._remove_tmp_process:
+            files.remove(self._tmp_process)
 
     @abstractmethod
     def _post_init(self) -> None:
@@ -197,7 +208,7 @@ class Product:
         default_xda = self.load(def_band)[
             def_band
         ]  # Forced to load as the nodata may not be positioned by default
-        return rasters.get_footprint(default_xda)
+        return rasters.get_footprint(default_xda).to_crs(self.crs())
 
     @abstractmethod
     def extent(self) -> gpd.GeoDataFrame:
@@ -244,7 +255,7 @@ class Product:
         if ci_band_folder and os.path.isdir(ci_band_folder):
             band_folder = ci_band_folder
         else:
-            band_folder = self.output
+            band_folder = self._tmp_process
 
         return band_folder
 
@@ -447,6 +458,7 @@ class Product:
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Band resolution
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -544,7 +556,9 @@ class Product:
                 else:
                     raise InvalidTypeError(f"Unknown DEM band: {band}")
 
-                dem_bands[band] = rasters.read(path, resolution=resolution, size=size)
+                dem_bands[band] = rasters.read(
+                    path, resolution=resolution, size=size
+                ).astype(np.float32)
 
         return dem_bands
 
@@ -835,9 +849,18 @@ class Product:
     @output.setter
     def output(self, value: str):
         """Output directory of the product, to write orthorectified data for example."""
-        self._output = value
-        if not os.path.isdir(self._output):
-            os.makedirs(self._output, exist_ok=True)
+        # Remove old output if existing
+        if self._tmp_output:
+            self._tmp_output.cleanup()
+            self._tmp_output = None
+
+        if os.path.exists(self._output) and self._remove_tmp_process:
+            files.remove(self._tmp_process)
+
+        # Set the new output
+        self._output = os.path.abspath(value)
+        self._tmp_process = os.path.join(self._output, f"tmp_{self.condensed_name}")
+        os.makedirs(self._tmp_process, exist_ok=True)
 
     def _warp_dem(
         self,
@@ -930,27 +953,44 @@ class Product:
                         )
 
                         # Get destination transform
-                        dst_tr = prod_dst.transform
+                        if prod_dst.crs.is_projected:
+                            dst_tr = prod_dst.transform
+                            width = prod_dst.width
+                            height = prod_dst.height
+                        else:
+                            (
+                                dst_tr,
+                                width,
+                                height,
+                            ) = rasterio.warp.calculate_default_transform(
+                                prod_dst.crs,
+                                self.crs(),
+                                prod_dst.width,
+                                prod_dst.height,
+                                *prod_dst.bounds,
+                                resolution=resolution,
+                            )
+
                         coeff_x = np.abs(res_x / dst_tr.a)
                         coeff_y = np.abs(res_y / dst_tr.e)
                         dst_tr *= dst_tr.scale(coeff_x, coeff_y)
 
                         # Get destination transform
-                        out_w = int(np.round(prod_dst.width / coeff_x))
-                        out_h = int(np.round(prod_dst.height / coeff_y))
+                        out_w = int(np.round(width / coeff_x))
+                        out_h = int(np.round(height / coeff_y))
 
                     # Get empty output
-                    reprojected_array = np.zeros(
-                        (prod_dst.count, out_h, out_w), dtype=np.float32
-                    )
+                    reprojected_array = np.zeros((1, out_h, out_w), dtype=np.float32)
 
                     # Write reprojected DEM: here do not use utils.write()
                     out_meta = prod_dst.meta.copy()
                     out_meta["dtype"] = reprojected_array.dtype
+                    out_meta["crs"] = self.crs()
                     out_meta["transform"] = dst_tr
                     out_meta["driver"] = "GTiff"
                     out_meta["width"] = out_w
                     out_meta["height"] = out_h
+                    out_meta["count"] = 1
                     with rasterio.open(warped_dem_path, "w", **out_meta) as out_dst:
                         out_dst.write(reprojected_array)
 
@@ -962,6 +1002,10 @@ class Product:
                             ),
                             resampling=resampling,
                             num_threads=MAX_CORES,
+                            dst_transform=dst_tr,
+                            dst_crs=self.crs(),
+                            src_crs=dem_ds.crs,
+                            src_transform=dem_ds.meta["transform"],
                         )
 
         return warped_dem_path
@@ -1013,7 +1057,7 @@ class Product:
         warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
         # Get slope path
-        slope_dem = os.path.join(self.output, f"{self.condensed_name}_SLOPE.tif")
+        slope_dem = os.path.join(self._tmp_process, f"{self.condensed_name}_SLOPE.tif")
         if os.path.isfile(slope_dem):
             LOGGER.debug(
                 "Already existing slope DEM for %s. Skipping process.", self.name
@@ -1033,7 +1077,10 @@ class Product:
             ]
 
             # Run command
-            misc.run_cli(cmd_slope)
+            try:
+                misc.run_cli(cmd_slope)
+            except RuntimeError as ex:
+                raise RuntimeError("Something went wrong with gdaldem!") from ex
 
         return slope_dem
 
@@ -1152,7 +1199,10 @@ class Product:
 
         # Convert into dataset with str as names
         xds = xr.Dataset(
-            data_vars={to_str(key)[0]: val for key, val in band_dict.items()},
+            data_vars={
+                to_str(key)[0]: (val.coords.dims, val.data)
+                for key, val in band_dict.items()
+            },
             coords=band_dict[bands[0]].coords,
         )
 
@@ -1164,12 +1214,13 @@ class Product:
         if save_as_int:
             dtype = np.uint16
             stack = (stack * 10000).astype(dtype)
+            stack = stack.fillna(65535)
         else:
             dtype = np.float32
             stack = stack.astype(dtype)
+            stack = rasters.set_nodata(stack, self.nodata)
 
         # Some updates
-        stack = rasters.set_nodata(stack, self.nodata)
         band_list = to_str(list(band_dict.keys()))
         stack.attrs["long_name"] = band_list
         stack = stack.rename("_".join(band_list))

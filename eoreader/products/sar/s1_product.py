@@ -189,7 +189,10 @@ class S1Product(SarProduct):
                         strings.to_cmd_string(gj_preview_overlay),
                         strings.to_cmd_string(preview_overlay),
                     ]
-                    misc.run_cli(cmd_line)
+                    try:
+                        misc.run_cli(cmd_line)
+                    except RuntimeError as ex:
+                        raise RuntimeError("Something went wrong with ogr2ogr!") from ex
 
                     # Open the geojson
                     extent_wgs84 = gpd.read_file(gj_preview_overlay)
