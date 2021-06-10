@@ -53,8 +53,7 @@ myst_enable_extensions = [
 ]
 
 # Notebook integration parameters
-nbsphinx_timeout = 3600
-nbsphinx_execute = "auto"
+jupyter_execute_notebooks = "cache"
 execution_timeout = 3600
 
 # This is going to generate a banner on top of each notebook
