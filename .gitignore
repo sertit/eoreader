@@ -24,7 +24,8 @@ build/
 dist/
 
 # Docs & Notebooks
-docs/_build
+docs/_build/*
+!docs/_build/.jupyter_cache
 docs/api
 .ipynb_checkpoints
 /docs/notebooks/test.ipynb
