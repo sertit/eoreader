@@ -19,6 +19,8 @@ lint:
       - "*.yml"
       - "CI/*"
       - "eoreader/*"
+  except:
+    - tags
 
 pytest:
   image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
@@ -37,6 +39,8 @@ pytest:
       - "*.yml"
       - "CI/*"
       - "eoreader/*"
+  except:
+    - tags
 
 tox-linux-3.7:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.7
