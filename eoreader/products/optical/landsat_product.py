@@ -81,14 +81,18 @@ class LandsatProduct(OpticalProduct):
     """
 
     def __init__(
-        self, product_path: str, archive_path: str = None, output_path=None
+        self,
+        product_path: str,
+        archive_path: str = None,
+        output_path: str = None,
+        remove_tmp: bool = False,
     ) -> None:
         # Private
         self._collection = None
         self._quality_id = None
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path)
+        super().__init__(product_path, archive_path, output_path, remove_tmp)
 
     def _set_collection(self):
         """Set Landsat collection"""

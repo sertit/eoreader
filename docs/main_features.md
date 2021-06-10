@@ -19,7 +19,10 @@ It will create for you the product object corresponding to your satellite data.
 
 >>> # Create the reader singleton
 >>> eoreader = Reader()
->>> prod = eoreader.open(path, output_path=output)
+>>> prod = eoreader.open(path, output_path=output, remove_tmp=True)
+>>> # remove_tmp allows you to automatically delete processing files 
+>>> # such as cleaned or orthorectified bands when the product is deleted
+>>> # False by default to speed up the computation if you want to use the same product in several part of your code
 
 >>> # NOTE: you can set the output directory after the creation, that allows you to use the product condensed name
 >>> prod.output = os.path.join(output, prod.condensed_name)  # It will automatically create it if needed

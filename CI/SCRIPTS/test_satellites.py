@@ -117,7 +117,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
             LOGGER.info(os.path.basename(path))
 
             # Open product and set output
-            prod: Product = READER.open(path, method=CheckMethod.MTD)
+            prod: Product = READER.open(path, method=CheckMethod.MTD, remove_tmp=True)
             prod_name = READER.open(path, method=CheckMethod.NAME)
             prod_both = READER.open(path, method=CheckMethod.BOTH)
             assert prod is not None
@@ -127,15 +127,8 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
             # Discard the case where an invalid file/directory is in the CI folder
             if prod is not None:
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    # tmp_dir = os.path.join(get_ci_data_dir(), "OUTPUT")
+                    tmp_dir = os.path.join(get_ci_data_dir(), "OUTPUT")
                     prod.output = tmp_dir
-
-                    # Speed up SPOT-7 (and test ortho_path)
-                    # NB: cannot, ortho is too heavy (> 200 Mo)
-                    # if "SPOT7" in prod.sat_id:
-                    #     prod.ortho_path = os.path.join(
-                    #         get_ci_data_dir(), prod.condensed_name, "ortho.tif"
-                    #     )
 
                     # Env var
                     if (

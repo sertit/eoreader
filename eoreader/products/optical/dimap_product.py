@@ -164,7 +164,11 @@ class DimapProduct(OpticalProduct):
     """
 
     def __init__(
-        self, product_path: str, archive_path: str = None, output_path=None
+        self,
+        product_path: str,
+        archive_path: str = None,
+        output_path: str = None,
+        remove_tmp: bool = False,
     ) -> None:
         self.ortho_path = None
         """
@@ -175,7 +179,7 @@ class DimapProduct(OpticalProduct):
         self._empty_mask = []
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path)
+        super().__init__(product_path, archive_path, output_path, remove_tmp)
 
     def _post_init(self) -> None:
         """
@@ -377,7 +381,7 @@ class DimapProduct(OpticalProduct):
         Returns:
             dict: Dictionary containing the path of each queried band
         """
-        ortho_path = os.path.join(self.output, f"{self.condensed_name}_ortho.tif")
+        ortho_path = os.path.join(self._tmp_process, f"{self.condensed_name}_ortho.tif")
         if not self.ortho_path:
             if self.product_type in [DimapProductType.SEN, DimapProductType.PRJ]:
                 self.ortho_path = ortho_path
@@ -828,7 +832,7 @@ class DimapProduct(OpticalProduct):
         crs = self.crs()
 
         mask_path = os.path.join(
-            self.output, f"{self.condensed_name}_MSK_{mask_str}.geojson"
+            self._tmp_process, f"{self.condensed_name}_MSK_{mask_str}.geojson"
         )
         if os.path.isfile(mask_path):
             mask = gpd.read_file(mask_path)
@@ -1018,7 +1022,7 @@ class DimapProduct(OpticalProduct):
             pass
 
         return os.path.join(
-            self.output,
+            self._tmp_process,
             f"{self.condensed_name}_{band}_{str(resolution).replace('.', '-')}m.tif",
         )
 

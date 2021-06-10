@@ -19,7 +19,7 @@
 - Forcing extent to UTM
 
 ### Optimizations
-- Write clean bands on disk to avoid redoing invalid pixel computation
+- Write clean bands on disk to avoid redoing invalid pixel computation and allow the user to remove them on deletion
 - `prod.has_bands` / `prod.get_existing_bands` do not orthorectify/despeckle SAR bands anymore
 
 ### CI

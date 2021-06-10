@@ -222,7 +222,8 @@ class Reader:
         product_path: str,
         archive_path: str = None,
         output_path: str = None,
-        method=CheckMethod.MTD,
+        method: CheckMethod = CheckMethod.MTD,
+        remove_tmp: bool = False,
     ) -> "Product":  # noqa: F821
         """
         Open the product.
@@ -238,7 +239,8 @@ class Reader:
             product_path (str): Product path
             archive_path (str): Archive path
             output_path (str): Output Path
-            look_for_mtd (bool): Look for the metadata. If false, only check the
+            method (CheckMethod): Checking method used to recognize the products
+            remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
 
         Returns:
             Product: Correct products
@@ -267,7 +269,12 @@ class Reader:
                     )
 
                 class_ = getattr(mod, strings.snake_to_camel_case(sat_class))
-                prod = class_(product_path, archive_path, output_path)
+                prod = class_(
+                    product_path=product_path,
+                    archive_path=archive_path,
+                    output_path=output_path,
+                    remove_tmp=remove_tmp,
+                )
                 break
 
         if not prod:

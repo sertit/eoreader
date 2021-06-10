@@ -156,7 +156,11 @@ class SarProduct(Product):
     """Super class for SAR Products"""
 
     def __init__(
-        self, product_path: str, archive_path: str = None, output_path=None
+        self,
+        product_path: str,
+        archive_path: str = None,
+        output_path: str = None,
+        remove_tmp: bool = False,
     ) -> None:
         self.sar_prod_type = None
         """SAR product type, either Single Look Complex or Ground Range"""
@@ -174,7 +178,7 @@ class SarProduct(Product):
         self._snap_no_data = 0
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path)
+        super().__init__(product_path, archive_path, output_path, remove_tmp)
 
     def _post_init(self) -> None:
         """
@@ -843,7 +847,7 @@ class SarProduct(Product):
 
             # Save the file as the terrain-corrected image
             file_path = os.path.join(
-                self.output,
+                self._tmp_process,
                 f"{files.get_filename(dim_path)}_{pol_up}{'_DSPK' if dspk else ''}.tif",
             )
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
