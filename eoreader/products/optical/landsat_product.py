@@ -81,14 +81,18 @@ class LandsatProduct(OpticalProduct):
     """
 
     def __init__(
-        self, product_path: str, archive_path: str = None, output_path=None
+        self,
+        product_path: str,
+        archive_path: str = None,
+        output_path: str = None,
+        remove_tmp: bool = False,
     ) -> None:
         # Private
         self._collection = None
         self._quality_id = None
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path)
+        super().__init__(product_path, archive_path, output_path, remove_tmp)
 
     def _set_collection(self):
         """Set Landsat collection"""
@@ -139,7 +143,7 @@ class LandsatProduct(OpticalProduct):
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
-        Get real footprint of the products (without nodata, in french == emprise utile)
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
 
         .. code-block:: python
 
@@ -338,6 +342,7 @@ class LandsatProduct(OpticalProduct):
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Useless here
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -351,12 +356,17 @@ class LandsatProduct(OpticalProduct):
                 )
             band_nb = self.band_names[band]
 
-            try:
-                band_paths[band] = self._get_path(f"_B{band_nb}")
-            except FileNotFoundError as ex:
-                raise InvalidProductError(
-                    f"Non existing {band} ({band_nb}) band for {self.path}"
-                ) from ex
+            # Get clean band path
+            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            if os.path.isfile(clean_band):
+                band_paths[band] = clean_band
+            else:
+                try:
+                    band_paths[band] = self._get_path(f"_B{band_nb}")
+                except FileNotFoundError as ex:
+                    raise InvalidProductError(
+                        f"Non existing {band} ({band_nb}) band for {self.path}"
+                    ) from ex
 
         return band_paths
 
@@ -483,7 +493,6 @@ class LandsatProduct(OpticalProduct):
         else:
             filename = files.get_filename(path)
 
-        band_name = filename[-1]
         if self._quality_id in filename or self._nodata_band_id in filename:
             band_xda = rasters.read(
                 path,
@@ -493,6 +502,14 @@ class LandsatProduct(OpticalProduct):
                 masked=False,
             ).astype(np.uint16)
         else:
+            # Manage to get the band_name as a number
+            # Original band name
+            band_name = filename[-1]
+            if not band_name.isdigit():
+                # Clean band name: {self.condensed_name}_{band.name}_{res_str}_clean.tif",
+                band_name = filename.split("_")[-3]
+                band_name = str(self.band_names[getattr(obn, band_name)])
+
             # Read band (call superclass generic method)
             band_xda = rasters.read(
                 path, resolution=resolution, size=size, resampling=Resampling.bilinear

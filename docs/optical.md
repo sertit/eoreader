@@ -8,15 +8,19 @@
 |Sentinel-2 Theia | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | Yes | 20m|
 |Sentinel-3 SLSTR | {meth}`~eoreader.products.optical.s3_product.S3Product` | RBT | No | 300m|
 |Sentinel-3 OLCI | {meth}`~eoreader.products.optical.s3_product.S3Product` | EFR | No | 500m|
-|Landsat-8 OLCI | {meth}`~eoreader.products.optical.l8_product.L8Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat-7 ETM | {meth}`~eoreader.products.optical.l7_product.L7Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat-5 TM | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat-4 TM | {meth}`~eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat-5 MSS | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat-4 MSS | {meth}`~eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat-3 MSS | {meth}`~eoreader.products.optical.l3_product.L3Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat-2 MSS | {meth}`~eoreader.products.optical.l2_product.L2Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat-1 MSS | {meth}`~eoreader.products.optical.l1_product.L1Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat 8 OLCI | {meth}`~eoreader.products.optical.l8_product.L8Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat 7 ETM | {meth}`~eoreader.products.optical.l7_product.L7Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat 5 TM | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat 4 TM | {meth}`~eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
+|Landsat 5 MSS | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat 4 MSS | {meth}`~eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat 3 MSS | {meth}`~eoreader.products.optical.l3_product.L3Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat 2 MSS | {meth}`~eoreader.products.optical.l2_product.L2Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|Landsat 1 MSS | {meth}`~eoreader.products.optical.l1_product.L1Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
+|PlanetScope | {meth}`~eoreader.products.optical.pla_product.PlaProduct` | L3A & L3B | Yes | 3m|
+|Pleiades | {meth}`~eoreader.products.optical.pld_product.PldProduct` | SEN, PRJ, ORT & MOS | Yes | 0.5 or 2m|
+|SPOT 7 | {meth}`~eoreader.products.optical.spot7_product.Spot7Product` | SEN, PRJ, ORT & MOS | Yes | 1.5 or 6m|
+|SPOT 6 | {meth}`~eoreader.products.optical.spot6_product.Spot6Product` | SEN, PRJ, ORT & MOS | Yes | 1.5 or 6m|
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
@@ -62,9 +66,14 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 |Landsat ETM (7)|  | **1** (30m) | **2** (30m) | **3** (30m) |  |  |  | **4** (30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |**8** (15m) |**6** (60m) |**6** (60m)|
 |Landsat TM (5-4)|  | **1** (30m) | **2** (30m) | **3** (30m) |  |  |  | **4**(30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |  |**6** (120m) |**6** (120m)|
 |Landsat MSS (5-4)|  |  | **1** (60m) | **2** (60m) | **3** (60m) | **3** (60m) | **3** (60m) | **4** (60m) | **4** (60m) |  |  |  |  |  |  | |
-|Landsat MSS (1-3)|  |  | **4** (60m) | **5** (60m) | **6** (60m) | **6** (60m) | **6** (60m) | **7** (60m) | **7** (60m) |  |  |  |  |  |**8** (240m)<br>*only for Landsat-3* |**8** (240m)<br>*only for Landsat-3*|
+|Landsat MSS (1-3)|  |  | **4** (60m) | **5** (60m) | **6** (60m) | **6** (60m) | **6** (60m) | **7** (60m) | **7** (60m) |  |  |  |  |  |**8** (240m)<br>*only for Landsat 3* |**8** (240m)<br>*only for Landsat 3*|
+|PlanetScope (4 band)|  | **1** (3m) | **2** (3m) | **3** (3m) | |  | | **4** (3m) | **4** (3m) |  |  |  |  |  | | |
+|PlanetScope (5 band)|  | **1** (3m) | **2** (3m) | **3** (3m) |**4** (3m)|  || **5** (3m) | **5** (3m) |  |  |  |  |  | | |
+|Pleiades** (PMS/MS)|  | **3** (0.5/2m) | **2** (0.5/2m) | **1** (0.5/2m) | | | | **4** (0.5/2m) | **4** (0.5/2m) |  |  |  |  |  | | |
+|SPOT 6-7** (PMS/MS)|  | **3** (1.5/6m) | **2** (1.5/6m) | **1** (1.5/6m) | | | | **4** (1.5/6m) | **4** (1.5/6m) |  |  |  |  |  | | |
 
-\* *Not all bands of this sensor are used in EOReader*
+\* *Not all bands of this sensor are used in EOReader*  
+\*\* *P(panchro) have only one panchromatic band, P/MS-N have 3 bands (BGR), and P/MS-X also have 3 bands in false color (GRNIR)*
 
 ### Cloud bands
 
@@ -90,15 +99,18 @@ The only difference with the other bands is that the cloud bands are provided in
 |Sentinel-2 Theia | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
 |Sentinel-3 OLCI | *No cloud file available for S3-OLCI data* |
 |Sentinel-3 SLSTR | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`|
-|Landsat-8 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
-|Landsat-7 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
-|Landsat-5 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
-|Landsat-4 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
-|Landsat-5 MSS | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Landsat-4 MSS | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Landsat-3 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Landsat-2 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Landsat-1 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 8 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
+|Landsat 7 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
+|Landsat 5 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
+|Landsat 4 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
+|Landsat 5 MSS | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 4 MSS | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 3 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 2 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 1 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|PlanetScope | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
+|Pleiades | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|SPOT 6-7 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
 
 ### DEM bands
 
@@ -106,7 +118,7 @@ Optical satellites can all load {meth}`~eoreader.bands.bands.DemBandNames.DEM`, 
 and {meth}`~eoreader.bands.bands.DemBandNames.HILLSHADE` bands. The `SLOPE` and `HILLSHADE` bands are computed with
 the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
 
-Use the environment variable `EOREADER_SAR_DEFAULT_RES` to position your worldwide DEM. You can
+Use the environment variable `EOREADER_DEM_PATH` to position your worldwide DEM. You can
 use both a local path e.g. `/mnt/dataserver/dems/srtm_30_v4/index.vrt` or `\\dataserver\DEMS\srtm_30_v4\index.vrt` or
 a URL pointing to a web resources hosted on a S3 compatible storage e.g. 
 `https://s3.storage.com/dem-bucket/srtm_cog.tif` (not available on Windows for now).
@@ -123,7 +135,7 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 |{meth}`~eoreader.bands.index.BSI` | `BLUE`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.CIG` | `GREEN`, `NIR` | All optical satellites|
 |{meth}`~eoreader.bands.index.DSWI` | `GREEN`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|{meth}`~eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, (E)TM|
+|{meth}`~eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, (E)TM, PlanetScope, Pleiades, SPOT 6-7|
 |{meth}`~eoreader.bands.index.GNDVI` | `GREEN`, `NIR` | All optical satellites|
 |{meth}`~eoreader.bands.index.MNDWI` | `GREEN`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.NBR` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
@@ -135,7 +147,7 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 |{meth}`~eoreader.bands.index.NDWI` | `GREEN`, `NIR` | All optical satellites|
 |{meth}`~eoreader.bands.index.RDI` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.RGI` | `GREEN`, `RED` | All optical satellites|
-|{meth}`~eoreader.bands.index.RI` | `GREEN`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
+|{meth}`~eoreader.bands.index.RI` | `GREEN`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS, PlanetScope (5 bands)|
 |{meth}`~eoreader.bands.index.SRSWIR` | `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCBRI` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCGRE` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
@@ -178,7 +190,15 @@ environment variables:
 ### PlanetScope
 
 - [Product Specification](https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf)
+- [Instruments](https://developers.planet.com/docs/apis/data/sensors/)
+- [Usable Data Mask](https://developers.planet.com/docs/data/udm-2/)
 - [On Medium](https://medium.com/geoplexing/getting-started-with-planet-imagery-part-3-items-and-ordering-476a1a21618c)
+
+### DIMAP V2: Pleiades, SPOT 6-7
+- [DIMAP V2 Format](https://www.intelligence-airbusds.com/en/8723-pleiades-and-spot-6-7-format-delivery)
+- [Pleiades User Guide (2019)](https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf)
+- [SPOT 6-7 User Guide (2019)](https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf)
+- [Request Form(2017)](https://www.intelligence-airbusds.com/files/pmedia/public/r44226_9_airbus_data_request_form_may_2017.pdf)
 
 ### Band mapping
 
@@ -191,6 +211,7 @@ environment variables:
 - [S2](https://discovery.creodias.eu/dataset/72181b08-a577-4d55-8ece-d8485167beb7/resource/d8f5dd92-b35c-46ee-98a2-0879dad03fce/download/res_band_s2_1.png)
 - [S3 OLCI](https://discovery.creodias.eu/dataset/a0960a9b-c9c4-46db-bca5-ec79d0dda32b/resource/de8300a4-08cd-41aa-96ec-d9813115cc08/download/s3_res_band_ol.png)
 - [S3 SLSTR](https://discovery.creodias.eu/dataset/ea8f247e-d193-4368-8cf6-8687a03a5306/resource/8e5c485a-d832-42be-ad9c-af500b468f29/download/s3_slcs.png)
+- [S2 and PlanetScope](https://developers.planet.com/docs/apis/data/sensors/#the-psbsd-instrument)
 
 ### Index
 

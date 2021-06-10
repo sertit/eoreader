@@ -107,6 +107,15 @@ class Platform(ListEnum):
     RS2 = "RADARSAT-2"
     """RADARSAT-2"""
 
+    PLD = "Pleiades"
+    """Pléiades"""
+
+    SPOT7 = "Spot-7"
+    """SPOT-7"""
+
+    SPOT6 = "Spot-6"
+    """SPOT-6"""
+
 
 PLATFORM_REGEX = {
     Platform.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
@@ -128,6 +137,9 @@ PLATFORM_REGEX = {
     ],
     Platform.TSX: r"T[SD]X1_SAR__(SSC|MGD|GEC|EEC)_[SR]E___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Platform.RS2: r"RS2_OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)",
+    Platform.PLD: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
+    Platform.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
+    Platform.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
 }
 
 # Not used for now
@@ -149,13 +161,16 @@ MTD_REGEX = {
     Platform.L3: f"{PLATFORM_REGEX[Platform.L3]}_MTL\.txt",
     Platform.L2: f"{PLATFORM_REGEX[Platform.L2]}_MTL\.txt",
     Platform.L1: f"{PLATFORM_REGEX[Platform.L1]}_MTL\.txt",
-    Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*\.xml",
+    Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*metadata.*\.xml",
     Platform.CSK: f"{PLATFORM_REGEX[Platform.CSK][1]}\.xml",
     Platform.TSX: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
     Platform.RS2: [
         r"product\.xml",  # Too generic name, check also a band
         r"imagery_[HV]{2}\.tif",
     ],
+    Platform.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
+    Platform.SPOT7: r"DIM_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
+    Platform.SPOT6: r"DIM_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
 }
 
 
@@ -207,7 +222,8 @@ class Reader:
         product_path: str,
         archive_path: str = None,
         output_path: str = None,
-        method=CheckMethod.MTD,
+        method: CheckMethod = CheckMethod.MTD,
+        remove_tmp: bool = False,
     ) -> "Product":  # noqa: F821
         """
         Open the product.
@@ -223,7 +239,8 @@ class Reader:
             product_path (str): Product path
             archive_path (str): Archive path
             output_path (str): Output Path
-            look_for_mtd (bool): Look for the metadata. If false, only check the
+            method (CheckMethod): Checking method used to recognize the products
+            remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
 
         Returns:
             Product: Correct products
@@ -252,7 +269,12 @@ class Reader:
                     )
 
                 class_ = getattr(mod, strings.snake_to_camel_case(sat_class))
-                prod = class_(product_path, archive_path, output_path)
+                prod = class_(
+                    product_path=product_path,
+                    archive_path=archive_path,
+                    output_path=output_path,
+                    remove_tmp=remove_tmp,
+                )
                 break
 
         if not prod:

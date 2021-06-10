@@ -19,6 +19,8 @@
    :caption: Examples
 
    notebooks/base
+   notebooks/SAR
+   notebooks/VHR
    notebooks/water_detection
 ```
 

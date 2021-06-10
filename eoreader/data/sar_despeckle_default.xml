@@ -4,7 +4,7 @@
     <operator>Read</operator>
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$file</file>
+      <file>${file}</file>
     </parameters>
   </node>
   <node id="Speckle-Filter">
@@ -33,7 +33,7 @@
       <sourceProduct refid="Speckle-Filter"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>$out</file>
+      <file>${out}</file>
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>

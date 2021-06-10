@@ -2,6 +2,33 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.4.0. (2021-MM-DD)
+
+### Features
+
+- Adding **THR** data support:
+    - **PlanetScope**
+    - **Pleiades**
+    - **SPOT 6-7**
+- [SAR] Better handling of SNAP DEMs (using External DEM and other available SNAP DEMs)
+
+### Fix
+- More robust way of looking for `data` directory
+- Bug fix in `stack` that causes some bands to be inexplicably empty sometimes
+- Bug fix in `alias.isindex`
+- Forcing extent to UTM
+
+### Optimizations
+- Write clean bands on disk to avoid redoing invalid pixel computation and allow the user to remove them on deletion
+- `prod.has_bands` / `prod.get_existing_bands` do not orthorectify/despeckle SAR bands anymore
+
+### CI
+- Adding a bimonthly test for SNAP processes
+
+### Documentation
+- Adding two new notebooks (SAR and VHR data)
+- Completing the documentation
+
 ## 0.3.4 (2021-05-28)
 
 - **Feature**: Introduced support for DEM files from web urls (starting with http(s)://)
