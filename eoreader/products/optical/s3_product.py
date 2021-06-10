@@ -92,13 +92,17 @@ class S3Product(OpticalProduct):
     """
 
     def __init__(
-        self, product_path: str, archive_path: str = None, output_path=None
+        self,
+        product_path: str,
+        archive_path: str = None,
+        output_path: str = None,
+        remove_tmp: bool = False,
     ) -> None:
         self._instrument_name = None
         self._data_type = None
         self._snap_no_data = -1
         super().__init__(
-            product_path, archive_path, output_path
+            product_path, archive_path, output_path, remove_tmp
         )  # Order is important here
 
     def _post_init(self) -> None:
@@ -682,7 +686,7 @@ class S3Product(OpticalProduct):
 
                 # Remove tif if already existing
                 # (if we are here, sth has failed when creating them, so delete them all)
-                out_tif = os.path.join(self.output, band_name + ".tif")
+                out_tif = os.path.join(self._tmp_process, band_name + ".tif")
                 if os.path.isfile(out_tif):
                     files.remove(out_tif)
 
@@ -697,7 +701,7 @@ class S3Product(OpticalProduct):
         for band in processed_bands:
             filename = self._get_band_filename(band)
             if "exception" not in filename:
-                out_tif = os.path.join(self.output, filename + ".tif")
+                out_tif = os.path.join(self._tmp_process, filename + ".tif")
                 if not os.path.isfile(out_tif):
                     raise FileNotFoundError(
                         f"Error when processing S3 bands with SNAP. Couldn't find {out_tif}"
@@ -1017,7 +1021,7 @@ class S3Product(OpticalProduct):
                 )
             except FileNotFoundError:
                 self._preprocess_s3(resolution)
-                cloud_path = files.get_file_in_dir(self.output, "cloud_RAD.tif")
+                cloud_path = files.get_file_in_dir(self._tmp_process, "cloud_RAD.tif")
 
             if not cloud_path:
                 raise FileNotFoundError(

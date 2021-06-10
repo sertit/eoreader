@@ -71,7 +71,11 @@ class Product:
     """Super class of EOReader Products"""
 
     def __init__(
-        self, product_path: str, archive_path: str = None, output_path: str = None
+        self,
+        product_path: str,
+        archive_path: str = None,
+        output_path: str = None,
+        remove_tmp: bool = False,
     ) -> None:
         self.name = files.get_filename(product_path)
         """Product name (its filename without any extension)."""
@@ -95,12 +99,11 @@ class Product:
 
         # The output will be given later
         if output_path:
-            self._tmp = None
+            self._tmp_output = None
             self._output = output_path
-            os.makedirs(output_path, exist_ok=True)
         else:
-            self._tmp = tempfile.TemporaryDirectory()
-            self._output = self._tmp.name
+            self._tmp_output = tempfile.TemporaryDirectory()
+            self._output = self._tmp_output.name
         """Output directory of the product, to write orthorectified data for example."""
 
         # Get the products date and datetime
@@ -162,12 +165,20 @@ class Product:
         self.sat_id = self.platform.name
         """Satellite ID, i.e. `S2` for Sentinel-2"""
 
+        # Temporary files path (private)
+        self._tmp_process = os.path.join(self._output, f"tmp_{self.condensed_name}")
+        os.makedirs(self._tmp_process, exist_ok=True)
+        self._remove_tmp_process = remove_tmp
+
         # TODO: manage self.needs_extraction
 
     def __del__(self):
         """Cleaning up _tmp directory"""
-        if self._tmp:
-            self._tmp.cleanup()
+        if self._tmp_output:
+            self._tmp_output.cleanup()
+
+        elif self._remove_tmp_process:
+            files.remove(self._tmp_process)
 
     @abstractmethod
     def _post_init(self) -> None:
@@ -244,7 +255,7 @@ class Product:
         if ci_band_folder and os.path.isdir(ci_band_folder):
             band_folder = ci_band_folder
         else:
-            band_folder = self.output
+            band_folder = self._tmp_process
 
         return band_folder
 
@@ -838,9 +849,18 @@ class Product:
     @output.setter
     def output(self, value: str):
         """Output directory of the product, to write orthorectified data for example."""
+        # Remove old output if existing
+        if self._tmp_output:
+            self._tmp_output.cleanup()
+            self._tmp_output = None
+
+        if os.path.exists(self._output) and self._remove_tmp_process:
+            files.remove(self._tmp_process)
+
+        # Set the new output
         self._output = os.path.abspath(value)
-        if not os.path.isdir(self._output):
-            os.makedirs(self._output, exist_ok=True)
+        self._tmp_process = os.path.join(self._output, f"tmp_{self.condensed_name}")
+        os.makedirs(self._tmp_process, exist_ok=True)
 
     def _warp_dem(
         self,
@@ -1037,7 +1057,7 @@ class Product:
         warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
         # Get slope path
-        slope_dem = os.path.join(self.output, f"{self.condensed_name}_SLOPE.tif")
+        slope_dem = os.path.join(self._tmp_process, f"{self.condensed_name}_SLOPE.tif")
         if os.path.isfile(slope_dem):
             LOGGER.debug(
                 "Already existing slope DEM for %s. Skipping process.", self.name

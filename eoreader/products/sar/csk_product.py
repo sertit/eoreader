@@ -133,7 +133,11 @@ class CskProduct(SarProduct):
     """
 
     def __init__(
-        self, product_path: str, archive_path: str = None, output_path=None
+        self,
+        product_path: str,
+        archive_path: str = None,
+        output_path: str = None,
+        remove_tmp: bool = False,
     ) -> None:
         try:
             self._img_path = glob.glob(os.path.join(product_path, "*.h5"))[0]
@@ -144,7 +148,7 @@ class CskProduct(SarProduct):
         self._real_name = files.get_filename(self._img_path)
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path)
+        super().__init__(product_path, archive_path, output_path, remove_tmp)
 
     def _set_resolution(self) -> float:
         """

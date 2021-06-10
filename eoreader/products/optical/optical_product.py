@@ -399,7 +399,7 @@ class OpticalProduct(Product):
 
         # Get Hillshade path
         hillshade_dem = os.path.join(
-            self.output, f"{self.condensed_name}_HILLSHADE.tif"
+            self._tmp_process, f"{self.condensed_name}_HILLSHADE.tif"
         )
         if os.path.isfile(hillshade_dem):
             LOGGER.debug(
@@ -500,6 +500,6 @@ class OpticalProduct(Product):
                 res_str = ""
 
         return os.path.join(
-            self.output,
+            self._tmp_process,
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_clean.tif",
         )
