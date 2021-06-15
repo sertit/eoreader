@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-SPOT7 products.
+DIMAP V2 super class.
 See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
 for more information.
 """
@@ -1041,7 +1041,6 @@ class DimapProduct(OpticalProduct):
             band (band): Band to warp
             reproj_path (str): Path where to write the reprojected band
             resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         """
         LOGGER.info(

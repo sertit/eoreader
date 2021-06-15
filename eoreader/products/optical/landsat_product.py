@@ -342,7 +342,6 @@ class LandsatProduct(OpticalProduct):
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Useless here
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             dict: Dictionary containing the path of each queried band

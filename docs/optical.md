@@ -91,7 +91,7 @@ The only difference with the other bands is that the cloud bands are provided in
 - {meth}`~eoreader.bands.bands.CloudsBandNames.SHADOWS`: Shadows presence (1) or absence (0). If clouds are provided in
   probabilities, their presence is determined according to Landsat definition (proba> 67%)
 - {meth}`~eoreader.bands.bands.CloudsBandNames.ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (
-  0). Do not take into account missing bands (ie. for Landsat MSS sensors, `ALL_CLOUDS` == `CLOUDS`)
+  0). Do not take into account missing bands (i.e. for Landsat MSS sensors, `ALL_CLOUDS` == `CLOUDS`)
 
 |Satellites | Clouds Bands|
 |--- | ---|
