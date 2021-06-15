@@ -1185,7 +1185,7 @@ class Product:
             bands (list): Bands and index combination
             resolution (float): Stack resolution. . If not specified, use the product resolution.
             stack_path (str): Stack path
-            save_as_int (bool): Save stack as integers (uint16 and therefore multiply the values by 10.000)
+            save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
 
         Returns:
             xr.DataArray: Stack as a DataArray
@@ -1210,14 +1210,37 @@ class Product:
         stack = stack.transpose("z", "y", "x")
 
         # Save as integer
+        dtype = np.float32
         if save_as_int:
-            dtype = np.uint16
-            stack = (stack * 10000).astype(dtype)
-            stack = stack.fillna(65535)
-        else:
-            dtype = np.float32
-            stack = stack.astype(dtype)
-            stack = rasters.set_nodata(stack, self.nodata)
+            if np.min(stack) < 0:
+                LOGGER.warning(
+                    "Cannot convert the stack to uint16 as it has negative values. Keeping it in float32."
+                )
+            else:
+                # SCALING
+                # NOT ALL bands need to be scaled, only:
+                # - Satellite bands
+                # - index
+                for id, band in enumerate(band_dict.keys()):
+                    if is_band(band) or is_index(band):
+                        stack[id, ...] = stack[id, ...] * 10000
+
+                # CONVERSION
+                dtype = np.uint16
+                stack = stack.fillna(65535).astype(
+                    dtype
+                )  # Scale to uint16, fill nan and convert to uint16
+
+        if dtype == np.float32:
+            # Convert dtype if needed
+            if stack.dtype != dtype:
+                stack = stack.astype(dtype)
+
+            # Set nodata if needed
+            if stack.rio.encoded_nodata != self.nodata:
+                stack = stack.rio.write_nodata(
+                    self.nodata, encoded=True, inplace=True
+                )  # NaN values are already set
 
         # Some updates
         band_list = to_str(list(band_dict.keys()))

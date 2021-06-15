@@ -4,6 +4,10 @@
 
 ## 0.4.1 (2021-06-XX)
 
+- Improving stacks saved as uint16:
+  - Only satellite bands and index are scaled (*10.000)
+  - DEM bands are just rounded
+  - Cloud bands (booleans) are saved as is
 - Minor updates in documentation and code
 
 ## 0.4.0 (2021-06-10)
