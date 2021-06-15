@@ -193,7 +193,8 @@ class Reader:
         for platform, regex in MTD_REGEX.items():
             self._mtd_regex[platform] = self._compile(regex, prefix=".*", suffix="")
 
-    def _compile(self, regex: Union[str, list], prefix="^", suffix="&") -> list:
+    @staticmethod
+    def _compile(regex: Union[str, list], prefix="^", suffix="&") -> list:
         """
         Compile regex or list of regex
 

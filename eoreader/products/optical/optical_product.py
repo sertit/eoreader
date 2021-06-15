@@ -258,7 +258,8 @@ class OpticalProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _set_nodata_mask(self, band_arr: XDS_TYPE, mask: np.ndarray) -> XDS_TYPE:
+    @staticmethod
+    def _set_nodata_mask(band_arr: XDS_TYPE, mask: np.ndarray) -> XDS_TYPE:
         """
         Create the correct xarray with well positioned nodata
 

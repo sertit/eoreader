@@ -2,6 +2,10 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.4.1 (2021-06-XX)
+
+- Minor updates in documentation and code
+
 ## 0.4.0 (2021-06-10)
 
 ### Features
