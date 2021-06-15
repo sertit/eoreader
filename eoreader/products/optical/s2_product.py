@@ -605,11 +605,15 @@ class S2Product(OpticalProduct):
         band_dict = {}
 
         if bands:
-            def_band = self.get_default_band()
             cloud_vec = self.open_mask("CLOUDS", "00")
 
             # Open a bands to mask it
-            def_band = self.load(def_band, resolution=resolution)[def_band]
+            def_band = self._read_band(
+                self.get_default_band_path(),
+                self.get_default_band(),
+                resolution=resolution,
+                size=size,
+            )
             nodata = np.where(np.isnan(def_band), 1, 0)
 
             for band in bands:
