@@ -89,7 +89,7 @@ class LandsatProduct(OpticalProduct):
     ) -> None:
         # Private
         self._collection = None
-        self._quality_id = None
+        self._pixel_quality_id = None
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
@@ -106,12 +106,12 @@ class LandsatProduct(OpticalProduct):
         self.tile_name = self._get_tile_name()
         self._collection = self._set_collection()
         if self._collection == LandsatCollection.COL_1:
-            self._quality_id = "_BQA"
-            self._nodata_band_id = "_BQA"
+            self._pixel_quality_id = "_BQA"
+            self._radsat_id = "_BQA"
             self.needs_extraction = True  # Too slow to read directly tar.gz files
         else:
-            self._quality_id = "_QA_RADSAT"
-            self._nodata_band_id = "_QA_PIXEL"
+            self._pixel_quality_id = "_QA_PIXEL"
+            self._radsat_id = "_QA_RADSAT"
             self.needs_extraction = False  # Fine to read .tar files
 
         # Warning if GS or GT
@@ -174,7 +174,7 @@ class LandsatProduct(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        nodata_band = self._get_path(self._nodata_band_id)
+        nodata_band = self._get_path(self._pixel_quality_id)
 
         # Vectorize the nodata band (rasters_rio is faster)
         footprint = rasters_rio.vectorize(
@@ -501,7 +501,7 @@ class LandsatProduct(OpticalProduct):
         else:
             filename = files.get_filename(path)
 
-        if self._quality_id in filename or self._nodata_band_id in filename:
+        if self._pixel_quality_id in filename or self._radsat_id in filename:
             band_xda = rasters.read(
                 path,
                 resolution=resolution,
@@ -571,7 +571,7 @@ class LandsatProduct(OpticalProduct):
             XDS_TYPE: Cleaned band array
         """
         # Open QA band
-        landsat_qa_path = self._get_path(self._quality_id)
+        landsat_qa_path = self._get_path(self._radsat_id)
         qa_arr = self._read_band(
             landsat_qa_path, resolution=resolution, size=size
         ).data  # To np array
@@ -605,7 +605,7 @@ class LandsatProduct(OpticalProduct):
             sat, other = rasters.read_bit_array(qa_arr, [sat_id, other_id])
 
             # If collection 2, nodata has to be found in pixel QA file
-            landsat_stat_path = self._get_path(self._nodata_band_id)
+            landsat_stat_path = self._get_path(self._pixel_quality_id)
             pixel_arr = self._read_band(
                 landsat_stat_path, resolution=resolution, size=size
             ).data
@@ -741,7 +741,7 @@ class LandsatProduct(OpticalProduct):
 
         if bands:
             # Open QA band
-            landsat_qa_path = self._get_path(self._quality_id)
+            landsat_qa_path = self._get_path(self._pixel_quality_id)
             qa_arr = self._read_band(landsat_qa_path, resolution=resolution, size=size)
 
             if self.product_type == LandsatProductType.L1_OLCI:

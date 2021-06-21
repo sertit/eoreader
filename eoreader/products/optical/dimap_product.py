@@ -598,9 +598,6 @@ class DimapProduct(OpticalProduct):
         Returns:
             XDS_TYPE: Cleaned band array
         """
-        nodata_true = 1
-        nodata_false = 0
-
         # array data
         width = band_arr.rio.width
         height = band_arr.rio.height
@@ -621,14 +618,16 @@ class DimapProduct(OpticalProduct):
             mask = features.rasterize(
                 nodata_vec.geometry,
                 out_shape=(height, width),
-                fill=nodata_false,  # OK pixels = OK value
-                default_value=nodata_true,  # Discarded pixels = nodata
+                fill=self._mask_false,  # Outside vector
+                default_value=self._mask_true,  # Inside vector
                 transform=vec_tr,
                 dtype=np.uint8,
             )
             nodata = nodata | mask
         else:
-            nodata = np.full(band_arr.shape, fill_value=nodata_false, dtype=np.uint8)
+            nodata = np.full(
+                band_arr.shape, fill_value=self._mask_false, dtype=np.uint8
+            )
 
         return self._set_nodata_mask(band_arr, nodata)
 
@@ -776,8 +775,8 @@ class DimapProduct(OpticalProduct):
                         cld_arr = features.rasterize(
                             cld_vec.geometry,
                             out_shape=(height, width),
-                            fill=0,  # Outside cloud = nodata
-                            default_value=1,  # Inside cloud = cloud value
+                            fill=self._mask_false,  # Outside vector
+                            default_value=self._mask_true,  # Inside vector
                             transform=vec_tr,
                             dtype=np.uint8,
                         )
@@ -886,16 +885,13 @@ class DimapProduct(OpticalProduct):
             ]:
                 LOGGER.info(f"Orthorectifying {mask_str}")
                 with rasterio.open(self._get_dimap_path()) as dim_dst:
-                    in_mask = 1
-                    out_mask = 0
-
                     # Rasterize mask (no transform as we have teh vector in image geometry)
                     LOGGER.debug(f"\tRasterizing {mask_str}")
                     mask_raster = features.rasterize(
                         mask.geometry,
                         out_shape=(dim_dst.height, dim_dst.width),
-                        fill=out_mask,
-                        default_value=in_mask,
+                        fill=self._mask_false,  # Outside vector
+                        default_value=self._mask_true,  # Inside vector
                         dtype=np.uint8,
                     )
 
@@ -908,7 +904,9 @@ class DimapProduct(OpticalProduct):
                     # Vectorize mask raster
                     LOGGER.debug(f"\tRevectorizing {mask_str}")
                     mask = rasters_rio.vectorize(
-                        reproj_data, values=in_mask, default_nodata=out_mask
+                        reproj_data,
+                        values=self._mask_true,
+                        default_nodata=self._mask_false,
                     )
 
             # Sometimes the GML mask lacks crs (why ?)
@@ -960,8 +958,8 @@ class DimapProduct(OpticalProduct):
         return features.rasterize(
             nodata_det.geometry,
             out_shape=(height, width),
-            fill=1,  # Outside ROI = nodata
-            default_value=0,  # Inside ROI = acceptable value
+            fill=self._mask_true,  # Outside ROI = nodata (inverted compared to the usual)
+            default_value=self._mask_false,  # Inside ROI = not nodata
             transform=transform,
             dtype=np.uint8,
         )

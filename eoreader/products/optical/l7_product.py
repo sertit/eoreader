@@ -75,7 +75,7 @@ class L7Product(LandsatProduct):
 
         # Read the file with a very low resolution -> use raster_rio that is faster !
         gap_msk = rasters.read(
-            self._get_path(self._nodata_band_id),
+            self._get_path(self._pixel_quality_id),
             resolution=self.resolution * 50,
             masked=False,
         )
