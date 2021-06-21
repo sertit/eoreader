@@ -114,6 +114,15 @@ class LandsatProduct(OpticalProduct):
             self._nodata_band_id = "_QA_PIXEL"
             self.needs_extraction = False  # Fine to read .tar files
 
+        # Warning if GS or GT
+        if "GS" in self.name:
+            LOGGER.warning(
+                "This Landsat product %s could be badly georeferenced "
+                "as only systematic geometric corrections have been applied "
+                "(using the spacecraft ephemeris data).",
+                self.name,
+            )
+
         # Post init done by the super class
         super()._post_init()
 

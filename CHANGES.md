@@ -8,8 +8,9 @@
   - Only satellite bands and index are scaled (*10.000)
   - DEM bands are just rounded
   - Cloud bands (booleans) are saved as is
-- Minor updates in documentation and code
 - Fixing a rasterization bug affecting S2 and DIMAP masks, happening when the vectors have another size than the image
+- Adding a warning on bad georeferencing when using GS and GT Landsat products
+- Minor updates in documentation and code
 
 
 ## 0.4.0 (2021-06-10)
