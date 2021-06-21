@@ -442,9 +442,6 @@ class S2Product(OpticalProduct):
         Returns:
             XDS_TYPE: Cleaned band array
         """
-        nodata_true = 1
-        nodata_false = 0
-
         # Get detector footprint to deduce the outside nodata
         nodata_det = self.open_mask(
             "DETFOO", band
@@ -454,8 +451,8 @@ class S2Product(OpticalProduct):
         mask = features.rasterize(
             nodata_det.geometry,
             out_shape=(band_arr.rio.height, band_arr.rio.width),
-            fill=nodata_true,  # Outside detector = nodata
-            default_value=nodata_false,  # Inside detector = acceptable value
+            fill=self._mask_true,  # Outside detector = nodata (inverted compared to the usual)
+            default_value=self._mask_false,  # Inside detector = not nodata
             transform=transform.from_bounds(
                 *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
             ),
@@ -484,15 +481,15 @@ class S2Product(OpticalProduct):
             mask_pix = features.rasterize(
                 nodata_pix.geometry,
                 out_shape=(band_arr.rio.height, band_arr.rio.width),
-                fill=nodata_false,  # OK pixels = OK value
-                default_value=nodata_true,  # Discarded pixels = nodata
+                fill=self._mask_false,  # Outside vector
+                default_value=self._mask_true,  # Inside vector
                 transform=transform.from_bounds(
                     *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
                 ),
                 dtype=np.uint8,
             )
 
-            mask[mask_pix] = nodata_true
+            mask[mask_pix] = self._mask_true
 
         return self._set_nodata_mask(band_arr, mask)
 
@@ -665,18 +662,12 @@ class S2Product(OpticalProduct):
             if geometry.crs != xds.rio.crs:
                 geometry = geometry.to_crs(xds.rio.crs)
 
-            # # Mask the file -> do not use rasterize to get a correct nodata mask !
-            # rstrzd = rasters.mask(xds, geometry.geometry, nodata=xds.rio.encoded_nodata)
-            #
-            # # Get cloud raster
-            # cond = np.where(rstrzd.data > 0, self._mask_true, self._mask_false)
-
             # Rasterize mask
             cond = features.rasterize(
                 geometry.geometry,
                 out_shape=(xds.rio.height, xds.rio.width),
-                fill=self._mask_true,  # OK pixels = OK value
-                default_value=self._mask_false,  # Discarded pixels = nodata
+                fill=self._mask_false,  # Pixels outside mask
+                default_value=self._mask_true,  # Pixels inside mask
                 transform=transform.from_bounds(
                     *xds.rio.bounds(), xds.rio.width, xds.rio.height
                 ),

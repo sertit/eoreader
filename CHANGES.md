@@ -2,6 +2,10 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.4.1.post0 (2021-06-21)
+- Bug fix: cloud mask values were inverted in Sentinel-2 cloud masks
+- Bug fix: Landsat collection 2 cloud masks are now OK
+
 ## 0.4.1 (2021-06-21)
 
 - Improving stacks saved as uint16:
