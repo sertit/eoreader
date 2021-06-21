@@ -501,6 +501,6 @@ class OpticalProduct(Product):
                 res_str = ""
 
         return os.path.join(
-            self._tmp_process,
+            self._get_band_folder(),
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_clean.tif",
         )
