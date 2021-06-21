@@ -38,7 +38,7 @@ import rasterio
 import rioxarray
 from lxml import etree
 from rasterio import crs as riocrs
-from rasterio import features, rpc, warp
+from rasterio import features, rpc, transform, warp
 from rasterio.enums import Resampling
 
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
@@ -604,10 +604,12 @@ class DimapProduct(OpticalProduct):
         # array data
         width = band_arr.rio.width
         height = band_arr.rio.height
-        transform = band_arr.rio.transform()
+        vec_tr = transform.from_bounds(
+            *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
+        )
 
         # Get detector footprint to deduce the outside nodata
-        nodata = self._load_nodata(width, height, transform)
+        nodata = self._load_nodata(width, height, vec_tr)
 
         #  Load masks and merge them into the nodata
         nodata_vec = self.open_mask("DET")  # Out of order detectors
@@ -621,7 +623,7 @@ class DimapProduct(OpticalProduct):
                 out_shape=(height, width),
                 fill=nodata_false,  # OK pixels = OK value
                 default_value=nodata_true,  # Discarded pixels = nodata
-                transform=transform,
+                transform=vec_tr,
                 dtype=np.uint8,
             )
             nodata = nodata | mask
@@ -759,10 +761,12 @@ class DimapProduct(OpticalProduct):
 
         width = def_xarr.rio.width
         height = def_xarr.rio.height
-        transform = def_xarr.rio.transform()
+        vec_tr = transform.from_bounds(
+            *def_xarr.rio.bounds(), def_xarr.rio.width, def_xarr.rio.height
+        )
 
         # Load nodata
-        nodata = self._load_nodata(width, height, transform)
+        nodata = self._load_nodata(width, height, vec_tr)
 
         if bands:
             for res_id in bands:
@@ -774,7 +778,7 @@ class DimapProduct(OpticalProduct):
                             out_shape=(height, width),
                             fill=0,  # Outside cloud = nodata
                             default_value=1,  # Inside cloud = cloud value
-                            transform=transform,
+                            transform=vec_tr,
                             dtype=np.uint8,
                         )
 
@@ -885,7 +889,7 @@ class DimapProduct(OpticalProduct):
                     in_mask = 1
                     out_mask = 0
 
-                    # Rasterize mask
+                    # Rasterize mask (no transform as we have teh vector in image geometry)
                     LOGGER.debug(f"\tRasterizing {mask_str}")
                     mask_raster = features.rasterize(
                         mask.geometry,
