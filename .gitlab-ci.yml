@@ -14,11 +14,6 @@ lint:
     - flake8 eoreader
   tags:
     - linux
-  only:
-    changes:
-      - "*.yml"
-      - "CI/*"
-      - "eoreader/*"
   except:
     - tags
 
@@ -34,11 +29,6 @@ pytest:
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - linux
-  only:
-    changes:
-      - "*.yml"
-      - "CI/*"
-      - "eoreader/*"
   except:
     - tags
 
