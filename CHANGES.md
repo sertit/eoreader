@@ -2,6 +2,9 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.4.2 (2021-06-21)
+- CI: Use pre-computed cleaned band if existing
+
 ## 0.4.1.post0 (2021-06-21)
 - Bug fix: cloud mask values were inverted in Sentinel-2 cloud masks
 - Bug fix: Landsat collection 2 cloud masks are now OK
