@@ -9,6 +9,8 @@
   - DEM bands are just rounded
   - Cloud bands (booleans) are saved as is
 - Minor updates in documentation and code
+- Fixing a rasterization bug affecting S2 and DIMAP masks, happening when the vectors have another size than the image
+
 
 ## 0.4.0 (2021-06-10)
 

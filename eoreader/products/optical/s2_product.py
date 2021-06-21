@@ -28,7 +28,7 @@ import geopandas as gpd
 import numpy as np
 import xarray as xr
 from lxml import etree
-from rasterio import features
+from rasterio import features, transform
 from rasterio.enums import Resampling
 
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
@@ -456,7 +456,9 @@ class S2Product(OpticalProduct):
             out_shape=(band_arr.rio.height, band_arr.rio.width),
             fill=nodata_true,  # Outside detector = nodata
             default_value=nodata_false,  # Inside detector = acceptable value
-            transform=band_arr.rio.transform(),
+            transform=transform.from_bounds(
+                *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
+            ),
             dtype=np.uint8,
         )
 
@@ -484,7 +486,9 @@ class S2Product(OpticalProduct):
                 out_shape=(band_arr.rio.height, band_arr.rio.width),
                 fill=nodata_false,  # OK pixels = OK value
                 default_value=nodata_true,  # Discarded pixels = nodata
-                transform=band_arr.rio.transform(),
+                transform=transform.from_bounds(
+                    *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
+                ),
                 dtype=np.uint8,
             )
 
@@ -661,11 +665,25 @@ class S2Product(OpticalProduct):
             if geometry.crs != xds.rio.crs:
                 geometry = geometry.to_crs(xds.rio.crs)
 
-            # Mask the file -> do not use rasterize to get a correct nodata mask !
-            rstrzd = rasters.mask(xds, geometry.geometry, nodata=xds.rio.encoded_nodata)
+            # # Mask the file -> do not use rasterize to get a correct nodata mask !
+            # rstrzd = rasters.mask(xds, geometry.geometry, nodata=xds.rio.encoded_nodata)
+            #
+            # # Get cloud raster
+            # cond = np.where(rstrzd.data > 0, self._mask_true, self._mask_false)
 
-            # Get cloud raster
-            cond = np.where(rstrzd.data > 0, self._mask_true, self._mask_false)
+            # Rasterize mask
+            cond = features.rasterize(
+                geometry.geometry,
+                out_shape=(xds.rio.height, xds.rio.width),
+                fill=self._mask_true,  # OK pixels = OK value
+                default_value=self._mask_false,  # Discarded pixels = nodata
+                transform=transform.from_bounds(
+                    *xds.rio.bounds(), xds.rio.width, xds.rio.height
+                ),
+                dtype=np.uint8,
+            )
+            cond = np.expand_dims(cond, axis=0)
+
         else:
             # If empty geometry, just
             cond = np.full(
