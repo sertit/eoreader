@@ -2,7 +2,7 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.4.1 (2021-06-XX)
+## 0.4.1 (2021-06-21)
 
 - Improving stacks saved as uint16:
   - Only satellite bands and index are scaled (*10.000)
@@ -11,7 +11,6 @@
 - Fixing a rasterization bug affecting S2 and DIMAP masks, happening when the vectors have another size than the image
 - Adding a warning on bad georeferencing when using GS and GT Landsat products
 - Minor updates in documentation and code
-
 
 ## 0.4.0 (2021-06-10)
 
