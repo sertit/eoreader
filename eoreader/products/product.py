@@ -1056,7 +1056,9 @@ class Product:
         warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
         # Get slope path
-        slope_dem = os.path.join(self._tmp_process, f"{self.condensed_name}_SLOPE.tif")
+        slope_dem = os.path.join(
+            self._get_band_folder(), f"{self.condensed_name}_SLOPE.tif"
+        )
         if os.path.isfile(slope_dem):
             LOGGER.debug(
                 "Already existing slope DEM for %s. Skipping process.", self.name
