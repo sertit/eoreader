@@ -381,7 +381,9 @@ class DimapProduct(OpticalProduct):
         Returns:
             dict: Dictionary containing the path of each queried band
         """
-        ortho_path = os.path.join(self._tmp_process, f"{self.condensed_name}_ortho.tif")
+        ortho_path = os.path.join(
+            self._get_band_folder(), f"{self.condensed_name}_ortho.tif"
+        )
         if not self.ortho_path:
             if self.product_type in [DimapProductType.SEN, DimapProductType.PRJ]:
                 self.ortho_path = ortho_path
@@ -835,7 +837,7 @@ class DimapProduct(OpticalProduct):
         crs = self.crs()
 
         mask_path = os.path.join(
-            self._tmp_process, f"{self.condensed_name}_MSK_{mask_str}.geojson"
+            self._get_band_folder(), f"{self.condensed_name}_MSK_{mask_str}.geojson"
         )
         if os.path.isfile(mask_path):
             mask = gpd.read_file(mask_path)
@@ -1024,7 +1026,7 @@ class DimapProduct(OpticalProduct):
             pass
 
         return os.path.join(
-            self._tmp_process,
+            self._get_band_folder(),
             f"{self.condensed_name}_{band}_{str(resolution).replace('.', '-')}m.tif",
         )
 

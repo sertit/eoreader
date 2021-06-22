@@ -400,7 +400,7 @@ class OpticalProduct(Product):
 
         # Get Hillshade path
         hillshade_dem = os.path.join(
-            self._tmp_process, f"{self.condensed_name}_HILLSHADE.tif"
+            self._get_band_folder(), f"{self.condensed_name}_HILLSHADE.tif"
         )
         if os.path.isfile(hillshade_dem):
             LOGGER.debug(
