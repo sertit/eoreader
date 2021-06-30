@@ -132,8 +132,8 @@ def test_dems():
         "MERIT_Hydrologically_Adjusted_Elevations",
         "MERIT_DEM.vrt",
     ]
-    local_path = get_db_dir().joinpath(*dem_sub_dir_path)
-    remote_path = "/".join([os.environ.get(S3_DB_URL_ROOT), *dem_sub_dir_path])
+    local_path = str(get_db_dir().joinpath(*dem_sub_dir_path))
+    remote_path = "/".join([os.environ.get(S3_DB_URL_ROOT, ""), *dem_sub_dir_path])
 
     # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
     with tempenv.TemporaryEnvironment({DEM_PATH: local_path}):  # Local DEM
