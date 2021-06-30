@@ -438,7 +438,7 @@ class SarProduct(Product):
                 # Try to load orthorectified bands
                 band_paths[band] = files.get_file_in_dir(
                     self._get_band_folder(),
-                    f"{self.condensed_name}_{bname}.tif",
+                    f"*{self.condensed_name}_{bname}.tif",
                     exact_name=True,
                 )
             except FileNotFoundError:

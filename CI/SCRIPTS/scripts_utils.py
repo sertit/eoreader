@@ -64,7 +64,10 @@ def get_ci_data_dir() -> Union[CloudPath, Path]:
     Returns:
         str: CI DATA directory
     """
-    return get_ci_dir().joinpath("DATA")
+    if len(os.getenv(AWS_ACCESS_KEY_ID, "")) > 0:
+        return get_ci_db_dir().joinpath("DATA")
+    else:
+        return get_ci_dir().joinpath("DATA")
 
 
 def assert_raster_almost_equal(path_1: str, path_2: str, decimal: int = 5) -> None:
