@@ -176,7 +176,7 @@ class TsxProduct(SarProduct):
         # Private attributes
         self._raw_band_regex = "*IMAGE_{}_*.tif"
         self._band_folder = self.path.joinpath("IMAGEDATA")
-        self._snap_path = self.path.joinpath(self.name + ".xml")
+        self._snap_path = self.name + ".xml"
 
         # Zipped and SNAP can process its archive
         self.needs_extraction = False

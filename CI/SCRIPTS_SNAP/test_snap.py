@@ -4,8 +4,9 @@ import os
 import tempfile
 
 import xarray as xr
+from cloudpathlib import AnyPath
 
-from CI.SCRIPTS.scripts_utils import OPT_PATH, SAR_PATH
+from CI.SCRIPTS.scripts_utils import CI_EOREADER_S3, opt_path, s3_env, sar_path
 from eoreader.bands.alias import *
 from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES
 from eoreader.products.product import Product, SensorType
@@ -26,7 +27,7 @@ def _test_core_optical(pattern: str, debug=False):
         debug (bool): Debug option
     """
     possible_bands = [RED]
-    _test_core(pattern, OPT_PATH, possible_bands, debug)
+    _test_core(pattern, opt_path(), possible_bands, debug)
 
 
 def _test_core_sar(pattern: str, debug=False):
@@ -37,7 +38,7 @@ def _test_core_sar(pattern: str, debug=False):
         debug (bool): Debug option
     """
     possible_bands = [VV, VV_DSPK, HH, HH_DSPK]
-    _test_core(pattern, SAR_PATH, possible_bands, debug)
+    _test_core(pattern, sar_path(), possible_bands, debug)
 
 
 def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
@@ -52,6 +53,12 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
     with xr.set_options(warn_for_unclosed_files=debug):
         # Init logger
         logs.init_logger(LOGGER)
+        logging.getLogger("boto3").setLevel(
+            logging.WARNING
+        )  # BOTO has way too much verbosity
+        logging.getLogger("botocore").setLevel(
+            logging.WARNING
+        )  # BOTO has way too much verbosity
 
         # DATA paths
         pattern_paths = files.get_file_in_dir(
@@ -59,7 +66,16 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
         )
 
         for path in pattern_paths:
-            LOGGER.info(path.name)
+            # WORKAROUND
+            if str(path).endswith("/"):
+                path = AnyPath(str(path)[:-1])
+
+            LOGGER.info(
+                "%s on drive %s (CI_EOREADER_S3: %s)",
+                path.name,
+                path.drive,
+                os.getenv(CI_EOREADER_S3),
+            )
 
             # Open product and set output
             prod: Product = READER.open(path, method=CheckMethod.MTD)
@@ -89,33 +105,38 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     prod.load(stack_bands, resolution=res)
 
 
+@s3_env
 def test_s3_olci():
     """Function testing the correct functioning of the optical satellites"""
     # Init logger
-    _test_core_optical("S3*_OL_1_*")
+    _test_core_optical("*S3*_OL_1_*")
 
 
+@s3_env
 def test_s3_slstr():
     """Function testing the correct functioning of the optical satellites"""
     # Init logger
-    _test_core_optical("S3*_SL_1_*")
+    _test_core_optical("*S3*_SL_1_*")
 
 
+@s3_env
 def test_s1():
     """Function testing the correct functioning of the optical satellites"""
-    _test_core_sar("S1*_IW*")
+    _test_core_sar("*S1*_IW*")
 
 
+@s3_env
 def test_csk():
     """Function testing the correct functioning of the optical satellites"""
-    _test_core_sar("csk_*")
+    _test_core_sar("*csk_*")
 
 
+@s3_env
 def test_tsx():
     """Function testing the correct functioning of the optical satellites"""
-    _test_core_sar("TSX*")
+    _test_core_sar("*TSX*")
 
 
 def test_rs2():
     """Function testing the correct functioning of the optical satellites"""
-    _test_core_sar("RS2_*")
+    _test_core_sar("*RS2_*")

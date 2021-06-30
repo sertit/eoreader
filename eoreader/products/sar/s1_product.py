@@ -132,7 +132,7 @@ class S1Product(SarProduct):
         self._raw_band_regex = "*-{!l}-*.tiff"  # Just get the SLC-iw1 image for now
 
         self._band_folder = self.path.joinpath("measurement")
-        self._snap_path = self.path
+        self._snap_path = ""
 
         # Zipped and SNAP can process its archive
         self.needs_extraction = False

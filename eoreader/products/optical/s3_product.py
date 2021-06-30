@@ -29,6 +29,7 @@ import numpy as np
 import rasterio
 import rioxarray
 import xarray as xr
+from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import features
 from rasterio.enums import Resampling
@@ -754,11 +755,24 @@ class S3Product(OpticalProduct):
             )
             snap_bands += f",{exception_bands},cloud_an,cloud_in"
 
+        # Download cloud path to cache
+        if isinstance(self.path, CloudPath):
+            if self.path.is_dir():
+                LOGGER.debug(f"Caching {self.path}")
+                prod_path = os.path.join(os.path.dirname(out_dim), self.path.name)
+                self.path.download_to(prod_path)
+            else:
+                raise InvalidProductError(
+                    "Sentinel-3 data must be extracted, as NetCDF data cannot be read through zip."
+                )
+        else:
+            prod_path = self.path
+
         # Run GPT graph
         cmd_list = snap.get_gpt_cli(
             graph_path,
             [
-                f"-Pin={strings.to_cmd_string(self.path)}",
+                f"-Pin={strings.to_cmd_string(prod_path)}",
                 f"-Pbands={snap_bands}",
                 f"-Psensor={sensor}",
                 f"-Pformat={fmt}",

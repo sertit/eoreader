@@ -695,7 +695,6 @@ class SarProduct(Product):
 
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
-
             # Use dimap for speed and security (ie. GeoTiff's broken georef)
             pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
             pp_dim = pp_target + ".dim"
@@ -749,11 +748,26 @@ class SarProduct(Product):
                 else:
                     dem_path = ""
 
+                # Download cloud path to cache
+                if isinstance(self.path, CloudPath):
+                    LOGGER.debug(
+                        f"Caching {self.path} to {os.path.join(tmp_dir, self.path.name)}"
+                    )
+                    if self.path.is_dir():
+                        prod_path = os.path.join(
+                            tmp_dir, self.path.name, self._snap_path
+                        )
+                        self.path.download_to(os.path.join(tmp_dir, self.path.name))
+                    else:
+                        prod_path = self.path.fspath
+                else:
+                    prod_path = self.path.joinpath(self._snap_path)
+
                 # Create SNAP CLI
                 cmd_list = snap.get_gpt_cli(
                     pp_graph,
                     [
-                        f"-Pfile={strings.to_cmd_string(self._snap_path)}",
+                        f"-Pfile={strings.to_cmd_string(prod_path)}",
                         f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
                         f"-Pdem_path={strings.to_cmd_string(dem_path)}",
                         f"-Pcrs={self.crs()}",
@@ -772,10 +786,17 @@ class SarProduct(Product):
                     raise RuntimeError("Something went wrong with SNAP!") from ex
 
             # Convert DIMAP images to GeoTiff
-            for pol in self.pol_channels:
-                # Speckle image
-                out[sbn.from_value(pol)] = self._write_sar(pp_dim, pol.value)
-
+            try:
+                for pol in self.pol_channels:
+                    # Speckle image
+                    out[sbn.from_value(pol)] = self._write_sar(pp_dim, pol.value)
+            except AssertionError:
+                if isinstance(self.path, CloudPath):
+                    raise InvalidProductError(
+                        "For now, TerraSAR-X data cannot be processed while being stored in the cloud."
+                        "A bug when caching directories prevents that, see here: "
+                        "https://github.com/drivendataorg/cloudpathlib/issues/148"
+                    )
         return out
 
     def _despeckle_sar(self, band: sbn) -> str:
