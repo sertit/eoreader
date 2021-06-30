@@ -19,13 +19,13 @@
 from __future__ import annotations
 
 import datetime as dt
-import glob
 import logging
 import os
 import platform
 import tempfile
 from abc import abstractmethod
 from enum import unique
+from pathlib import Path
 from typing import Any, Callable, Union
 
 import geopandas as gpd
@@ -33,6 +33,7 @@ import numpy as np
 import rasterio
 import validators
 import xarray as xr
+from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
 from rasterio import warp
@@ -72,25 +73,25 @@ class Product:
 
     def __init__(
         self,
-        product_path: str,
-        archive_path: str = None,
-        output_path: str = None,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
     ) -> None:
-        self.name = files.get_filename(product_path)
+        self.path = AnyPath(product_path)
+        """Usable path to the product, either extracted or archived path, according to the satellite."""
+
+        self.name = files.get_filename(self.path)
         """Product name (its filename without any extension)."""
 
         self.split_name = self._get_split_name()
         """Split name, to retrieve every information from its filename (dates, tile, product type...)."""
 
-        self.archive_path = archive_path if archive_path else product_path
+        self.archive_path = AnyPath(archive_path) if archive_path else self.path
         """Archive path, same as the product path if not specified.
         Useful when you want to know where both the extracted and archived version of your product are stored."""
 
-        self.path = product_path
-        """Usable path to the product, either extracted or archived path, according to the satellite."""
-
-        self.is_archived = os.path.isfile(self.path)
+        self.is_archived = self.path.is_file()
         """ Is the archived product is processed
         (a products is considered as archived if its products path is a directory)."""
 
@@ -100,10 +101,10 @@ class Product:
         # The output will be given later
         if output_path:
             self._tmp_output = None
-            self._output = output_path
+            self._output = AnyPath(output_path)
         else:
             self._tmp_output = tempfile.TemporaryDirectory()
-            self._output = self._tmp_output.name
+            self._output = AnyPath(self._tmp_output.name)
         """Output directory of the product, to write orthorectified data for example."""
 
         # Get the products date and datetime
@@ -166,7 +167,7 @@ class Product:
         """Satellite ID, i.e. `S2` for Sentinel-2"""
 
         # Temporary files path (private)
-        self._tmp_process = os.path.join(self._output, f"tmp_{self.condensed_name}")
+        self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
         os.makedirs(self._tmp_process, exist_ok=True)
         self._remove_tmp_process = remove_tmp
 
@@ -247,15 +248,21 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _get_band_folder(self):
-        """Manage the case of CI SNAP Bands"""
+    def _get_band_folder(self) -> Union[CloudPath, Path]:
+        """
+        Manage the case of CI SNAP Bands
+
+        Returns:
+            Union[CloudPath, Path]: Band folder
+        """
+        band_folder = self._tmp_process
 
         # Manage CI SNAP band
         ci_band_folder = os.environ.get(CI_EOREADER_BAND_FOLDER)
-        if ci_band_folder and os.path.isdir(ci_band_folder):
-            band_folder = ci_band_folder
-        else:
-            band_folder = self._tmp_process
+        if ci_band_folder:
+            ci_band_folder = AnyPath(ci_band_folder)
+            if ci_band_folder.is_dir():
+                band_folder = ci_band_folder
 
         return band_folder
 
@@ -652,6 +659,13 @@ class Product:
         # Sort bands to the asked order
         # xds.reindex({"band": bands})
 
+        # Rename all bands
+        for key, val in band_dict.items():
+            band_name = to_str(key)[0]
+            renamed_val = val.rename(band_name)
+            renamed_val.attrs["long_name"] = band_name
+            band_dict[key] = renamed_val
+
         return band_dict
 
     @abstractmethod
@@ -841,7 +855,7 @@ class Product:
         return self.date < other.date
 
     @property
-    def output(self) -> str:
+    def output(self) -> Union[CloudPath, Path]:
         """Output directory of the product, to write orthorectified data for example."""
         return self._output
 
@@ -853,12 +867,15 @@ class Product:
             self._tmp_output.cleanup()
             self._tmp_output = None
 
-        if os.path.exists(self._output) and self._remove_tmp_process:
+        if self._output.exists() and self._remove_tmp_process:
             files.remove(self._tmp_process)
 
         # Set the new output
-        self._output = os.path.abspath(value)
-        self._tmp_process = os.path.join(self._output, f"tmp_{self.condensed_name}")
+        self._output = AnyPath(value)
+        if not isinstance(self._output, CloudPath):
+            self._output = self._output.resolve()
+
+        self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
         os.makedirs(self._tmp_process, exist_ok=True)
 
     def _warp_dem(
@@ -894,10 +911,10 @@ class Product:
         Returns:
             str: DEM path (as a VRT)
         """
-        warped_dem_path = os.path.join(
-            self._get_band_folder(), f"{self.condensed_name}_DEM.tif"
+        warped_dem_path = self._get_band_folder().joinpath(
+            f"{self.condensed_name}_DEM.tif"
         )
-        if os.path.isfile(warped_dem_path):
+        if warped_dem_path.is_file():
             LOGGER.debug("Already existing DEM for %s. Skipping process.", self.name)
         else:
             LOGGER.debug("Warping DEM for %s", self.name)
@@ -913,9 +930,9 @@ class Product:
                 raise FileNotFoundError(f"DEM file does not exist here: {dem_path}")
 
             # Reproject DEM into products CRS
-            with rasterio.open(self.get_default_band_path()) as prod_dst:
+            with rasterio.open(str(self.get_default_band_path())) as prod_dst:
                 LOGGER.debug("Using DEM: %s", dem_path)
-                with rasterio.open(dem_path) as dem_ds:
+                with rasterio.open(str(dem_path)) as dem_ds:
                     # Get adjusted transform and shape (with new resolution)
                     if size is not None and resolution is None:
                         try:
@@ -990,7 +1007,9 @@ class Product:
                     out_meta["width"] = out_w
                     out_meta["height"] = out_h
                     out_meta["count"] = 1
-                    with rasterio.open(warped_dem_path, "w", **out_meta) as out_dst:
+                    with rasterio.open(
+                        str(warped_dem_path), "w", **out_meta
+                    ) as out_dst:
                         out_dst.write(reprojected_array)
 
                         # Reproject
@@ -1056,10 +1075,8 @@ class Product:
         warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
         # Get slope path
-        slope_dem = os.path.join(
-            self._get_band_folder(), f"{self.condensed_name}_SLOPE.tif"
-        )
-        if os.path.isfile(slope_dem):
+        slope_dem = self._get_band_folder().joinpath(f"{self.condensed_name}_SLOPE.tif")
+        if slope_dem.is_file():
             LOGGER.debug(
                 "Already existing slope DEM for %s. Skipping process.", self.name
             )
@@ -1289,13 +1306,15 @@ class Product:
 
         """
         if self.is_archived:
-            root = files.read_archived_xml(self.path, mtd_archived)
+            root = files.read_archived_xml(self.path, f".*{mtd_archived}")
         else:
             # ONLY FOR COLLECTION 2
             try:
-                mtd_file = glob.glob(
-                    os.path.join(self.path, mtd_from_path), recursive=True
-                )[0]
+                mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
+                if isinstance(mtd_file, CloudPath):
+                    mtd_file = mtd_file.fspath
+                else:
+                    mtd_file = str(mtd_file)
 
                 # pylint: disable=I1101:
                 # Module 'lxml.etree' has no 'parse' member, but source is unavailable.

@@ -18,9 +18,7 @@
 TerraSAR-X products.
 More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
 """
-import glob
 import logging
-import os
 import warnings
 from datetime import datetime
 from enum import unique
@@ -176,9 +174,9 @@ class TsxProduct(SarProduct):
         (setting product-type, band names and so on)
         """
         # Private attributes
-        self._raw_band_regex = "IMAGE_{}_*.tif"
-        self._band_folder = os.path.join(self.path, "IMAGEDATA")
-        self._snap_path = os.path.join(self.path, self.name + ".xml")
+        self._raw_band_regex = "*IMAGE_{}_*.tif"
+        self._band_folder = self.path.joinpath("IMAGEDATA")
+        self._snap_path = self.path.joinpath(self.name + ".xml")
 
         # Zipped and SNAP can process its archive
         self.needs_extraction = False
@@ -205,17 +203,14 @@ class TsxProduct(SarProduct):
 
         """
         # Open extent KML file
-        vectors.set_kml_driver()
         try:
-            extent_file = glob.glob(
-                os.path.join(self.path, "SUPPORT", "GEARTH_POLY.kml")
-            )[0]
+            extent_file = next(self.path.glob("**/*SUPPORT/GEARTH_POLY.kml"))
         except IndexError as ex:
             raise InvalidProductError(
                 f"Extent file (products.kml) not found in {self.path}"
             ) from ex
 
-        extent_wgs84 = gpd.read_file(extent_file).envelope.to_crs(vectors.WGS84)
+        extent_wgs84 = vectors.read(extent_file).envelope
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 

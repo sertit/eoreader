@@ -5,23 +5,15 @@ import tempfile
 
 import xarray as xr
 
+from CI.SCRIPTS.scripts_utils import OPT_PATH, SAR_PATH
 from eoreader.bands.alias import *
 from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod, Reader
 from eoreader.utils import EOREADER_NAME
-from sertit import ci, files, logs
+from sertit import files, logs
 
 READER = Reader()
-try:
-    # CI
-    CI_PATH = os.path.join(ci.get_db3_path(), "CI", "eoreader")
-except NotADirectoryError:
-    # Windows
-    CI_PATH = os.path.join(r"\\ds2", "database03", "CI", "eoreader")
-
-OPT_PATH = os.path.join(CI_PATH, "optical")
-SAR_PATH = os.path.join(CI_PATH, "sar")
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -67,7 +59,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
         )
 
         for path in pattern_paths:
-            LOGGER.info(os.path.basename(path))
+            LOGGER.info(path.name)
 
             # Open product and set output
             prod: Product = READER.open(path, method=CheckMethod.MTD)

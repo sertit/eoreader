@@ -19,9 +19,7 @@ RADARSAT-2 products.
 More info `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs>`_.
 """
 import difflib
-import glob
 import logging
-import os
 import warnings
 from datetime import datetime
 from enum import unique
@@ -34,7 +32,7 @@ from lxml import etree
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, vectors
+from sertit import vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 
@@ -270,11 +268,10 @@ class Rs2Product(SarProduct):
         # Open extent KML file
         try:
             if self.is_archived:
-                product_kml = files.read_archived_vector(self.path, ".*product\.kml")
+                product_kml = vectors.read(self.path, archive_regex=".*product\.kml")
             else:
-                extent_file = glob.glob(os.path.join(self.path, "product.kml"))[0]
-                vectors.set_kml_driver()
-                product_kml = gpd.read_file(extent_file)
+                extent_file = next(self.path.glob("*product.kml"))
+                product_kml = vectors.read(extent_file)
         except IndexError as ex:
             raise InvalidProductError(
                 f"Extent file (product.kml) not found in {self.path}"
@@ -370,6 +367,6 @@ class Rs2Product(SarProduct):
             (etree._Element, dict): Metadata XML root and its namespace
         """
         mtd_from_path = "product.xml"
-        mtd_archived = ".*product\.xml"
+        mtd_archived = "product\.xml"
 
         return self._read_mtd(mtd_from_path, mtd_archived)

@@ -1,45 +1,70 @@
 """ Utils module for scripts """
 import logging
 import os
+import sys
+from functools import wraps
+from pathlib import Path
+from typing import Callable, Union
 
 import geopandas as gpd
 import numpy as np
 import rasterio
+from cloudpathlib import AnyPath, CloudPath, S3Client
 
 from eoreader.reader import Reader
 from eoreader.utils import EOREADER_NAME
 from sertit import ci
-from sertit.ci import get_db2_path
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 READER = Reader()
-try:
-    # CI
-    CI_PATH = os.path.join(ci.get_db3_path(), "CI", "eoreader")
-except NotADirectoryError:
-    # Windows
-    CI_PATH = os.path.join(r"\\ds2", "database03", "CI", "eoreader")
 
-OPT_PATH = os.path.join(CI_PATH, "optical")
-SAR_PATH = os.path.join(CI_PATH, "sar")
+AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID"
+AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY"
+AWS_S3_ENDPOINT = "s3.unistra.fr"
+CI_EOREADER_S3 = "CI_EOREADER_USE_S3"
 
 
-def get_ci_dir() -> str:
+def get_ci_dir() -> Union[CloudPath, Path]:
     """
     Get CI DATA directory
     Returns:
         str: CI DATA directory
     """
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    return AnyPath(__file__).parent.parent
 
 
-def get_ci_data_dir() -> str:
+def get_ci_db_dir() -> Union[CloudPath, Path]:
     """
-    Get CI DATA directory
+    Get CI database directory (S3 bucket)
+    Returns:
+        str: CI database directory
+    """
+    if int(os.getenv(CI_EOREADER_S3, 0)):
+        # ON S3
+        client = S3Client(
+            endpoint_url=f"https://{AWS_S3_ENDPOINT}",
+            aws_access_key_id=os.getenv(AWS_ACCESS_KEY_ID),
+            aws_secret_access_key=os.getenv(AWS_SECRET_ACCESS_KEY),
+        )
+        client.set_as_default_client()
+        return AnyPath("s3://sertit-eoreader-ci")
+    else:
+        # ON DISK
+        try:
+            # CI
+            return AnyPath(os.path.join(ci.get_db3_path(), "CI", "eoreader"))
+        except NotADirectoryError:
+            # Windows
+            return AnyPath(os.path.join(r"\\ds2", "database03", "CI", "eoreader"))
+
+
+def get_ci_data_dir() -> Union[CloudPath, Path]:
+    """
+    Get CI DATA directory (S3 bucket)
     Returns:
         str: CI DATA directory
     """
-    return os.path.join(get_ci_dir(), "DATA")
+    return get_ci_dir().joinpath("DATA")
 
 
 def assert_raster_almost_equal(path_1: str, path_2: str, decimal: int = 5) -> None:
@@ -63,8 +88,8 @@ def assert_raster_almost_equal(path_1: str, path_2: str, decimal: int = 5) -> No
         path_2 (str): Raster 2
         decimal (int): Accepted decimals
     """
-    with rasterio.open(path_1) as dst_1:
-        with rasterio.open(path_2) as dst_2:
+    with rasterio.open(str(path_1)) as dst_1:
+        with rasterio.open(str(path_2)) as dst_2:
             assert dst_1.meta["driver"] == dst_2.meta["driver"]
             assert dst_1.meta["dtype"] == dst_2.meta["dtype"]
             assert dst_1.meta["nodata"] == dst_2.meta["nodata"]
@@ -129,7 +154,7 @@ def assert_geom_almost_equal(
             )
 
 
-def get_db_dir() -> str:
+def get_db_dir() -> Union[CloudPath, Path]:
     """
     Get database directory in the DS2
 
@@ -140,11 +165,52 @@ def get_db_dir() -> str:
 
     if not os.path.isdir(db_dir):
         try:
-            db_dir = os.path.join(get_db2_path(), "BASES_DE_DONNEES")
+            db_dir = os.path.join(ci.get_db2_path(), "BASES_DE_DONNEES")
         except NotADirectoryError:
             db_dir = os.path.join("/home", "ds2_db2", "BASES_DE_DONNEES")
 
     if not os.path.isdir(db_dir):
         raise NotADirectoryError("Impossible to open database directory !")
 
-    return db_dir
+    return AnyPath(db_dir)
+
+
+def s3_env(function: Callable):
+    """
+    Create S3 compatible storage environment
+    Args:
+        function (Callable): Function to decorate
+
+    Returns:
+        Callable: decorated function
+    """
+
+    @wraps(function)
+    def s3_env_wrapper():
+        """ S3 environment wrapper """
+        os.environ[CI_EOREADER_S3] = "0"
+        print("Using on disk files")
+        function()
+
+        if os.getenv(AWS_SECRET_ACCESS_KEY) and sys.platform != "win32":
+            os.environ[CI_EOREADER_S3] = "1"
+            print("Using S3 files")
+            with rasterio.Env(
+                CPL_CURL_VERBOSE=False,
+                AWS_VIRTUAL_HOSTING=False,
+                AWS_S3_ENDPOINT=AWS_S3_ENDPOINT,
+                GDAL_DISABLE_READDIR_ON_OPEN=False,
+            ):
+                function()
+
+            os.environ[CI_EOREADER_S3] = "0"
+
+    return s3_env_wrapper
+
+
+def opt_path():
+    return get_ci_db_dir().joinpath("optical")
+
+
+def sar_path():
+    return get_ci_db_dir().joinpath("sar")

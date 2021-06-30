@@ -15,15 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Super class for optical products """
-
 import logging
-import os
 from abc import abstractmethod
+from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import rasterio
+from cloudpathlib import CloudPath
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 
@@ -112,7 +112,7 @@ class OpticalProduct(Product):
             rasterio.crs.CRS: CRS object
         """
         band_path = self.get_default_band_path()
-        with rasterio.open(band_path) as dst:
+        with rasterio.open(str(band_path)) as dst:
             utm = dst.crs
 
         return utm
@@ -219,7 +219,7 @@ class OpticalProduct(Product):
             if not resolution:
                 resolution = band_arrays[band].rio.resolution()[0]
             clean_band = self._get_clean_band_path(band, resolution=resolution)
-            if not os.path.isfile(clean_band):
+            if not clean_band.is_file():
                 # Manage invalid pixels
                 LOGGER.debug(f"Manage invalid pixels for band {band.name}")
                 band_arrays[band] = self._manage_invalid_pixels(
@@ -399,10 +399,10 @@ class OpticalProduct(Product):
         warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
         # Get Hillshade path
-        hillshade_dem = os.path.join(
-            self._get_band_folder(), f"{self.condensed_name}_HILLSHADE.tif"
+        hillshade_dem = self._get_band_folder().joinpath(
+            f"{self.condensed_name}_HILLSHADE.tif"
         )
-        if os.path.isfile(hillshade_dem):
+        if hillshade_dem.is_file():
             LOGGER.debug(
                 "Already existing hillshade DEM for %s. Skipping process.", self.name
             )
@@ -476,7 +476,9 @@ class OpticalProduct(Product):
 
         return mask
 
-    def _get_clean_band_path(self, band: obn, resolution: float = None):
+    def _get_clean_band_path(
+        self, band: obn, resolution: float = None
+    ) -> Union[CloudPath, Path]:
         """
         Get clean band path.
 
@@ -487,7 +489,7 @@ class OpticalProduct(Product):
             resolution (float): Band resolution in meters
 
         Returns:
-            str: Clean band path
+            Union[CloudPath, Path]: Clean band path
         """
         if resolution is not None:
             if isinstance(resolution, (list, tuple)):
@@ -500,7 +502,6 @@ class OpticalProduct(Product):
             except ValueError:
                 res_str = ""
 
-        return os.path.join(
-            self._get_band_folder(),
+        return self._get_band_folder().joinpath(
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_clean.tif",
         )

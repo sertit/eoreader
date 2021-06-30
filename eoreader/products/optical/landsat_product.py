@@ -16,7 +16,6 @@
 # limitations under the License.
 """ Landsat products """
 import logging
-import os
 import tarfile
 from abc import abstractmethod
 from datetime import datetime
@@ -366,7 +365,7 @@ class LandsatProduct(OpticalProduct):
 
             # Get clean band path
             clean_band = self._get_clean_band_path(band, resolution=resolution)
-            if os.path.isfile(clean_band):
+            if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
                 try:
@@ -429,9 +428,9 @@ class LandsatProduct(OpticalProduct):
             else:
                 # FOR COLLECTION 1 AND 2
                 tar_ds = None
-                mtd_path = os.path.join(self.path, mtd_name)
+                mtd_path = self.path.joinpath(mtd_name)
 
-                if not os.path.isfile(mtd_path):
+                if not mtd_path.is_file():
                     raise FileNotFoundError(
                         f"Unable to find the metadata file associated with {self.path}"
                     )
@@ -467,7 +466,7 @@ class LandsatProduct(OpticalProduct):
         else:
             # Open XML metadata
             mtd_from_path = f"{self.name}_MTL.xml"
-            mtd_archived = f".*{self.name}_MTL.xml"
+            mtd_archived = f"{self.name}_MTL\.xml"
             mtd_data = self._read_mtd(mtd_from_path, mtd_archived)
 
         return mtd_data

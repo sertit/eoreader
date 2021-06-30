@@ -27,6 +27,7 @@ import geopandas as gpd
 import netCDF4
 import numpy as np
 import rasterio
+import rioxarray
 import xarray as xr
 from lxml import etree
 from rasterio import features
@@ -381,7 +382,7 @@ class S3Product(OpticalProduct):
         for band in band_list:
             # Get clean band path
             clean_band = self._get_clean_band_path(band, resolution=resolution)
-            if os.path.isfile(clean_band):
+            if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
                 # Get standard band names
@@ -543,8 +544,8 @@ class S3Product(OpticalProduct):
         sat_band_id = band_bit_id[band]
 
         # Open quality flags
-        qual_flags_path = os.path.join(self._get_band_folder(), "quality_flags.tif")
-        if not os.path.isfile(qual_flags_path):
+        qual_flags_path = self._get_band_folder().joinpath("quality_flags.tif")
+        if not qual_flags_path.is_file():
             LOGGER.warning(
                 "Impossible to open quality flags %s. Taking the band as is.",
                 qual_flags_path,
@@ -599,11 +600,10 @@ class S3Product(OpticalProduct):
         nodata_false = 0
 
         # Open quality flags (discard _an/_in)
-        qual_flags_path = os.path.join(
-            self._get_band_folder(),
-            self._get_slstr_quality_flags_name(band)[:-3] + ".tif",
+        qual_flags_path = self._get_band_folder().joinpath(
+            self._get_slstr_quality_flags_name(band)[:-3] + ".tif"
         )
-        if not os.path.isfile(qual_flags_path):
+        if not qual_flags_path.is_file():
             LOGGER.warning(
                 "Impossible to open quality flags %s. Taking the band as is.",
                 qual_flags_path,
@@ -686,23 +686,23 @@ class S3Product(OpticalProduct):
 
                 # Remove tif if already existing
                 # (if we are here, sth has failed when creating them, so delete them all)
-                out_tif = os.path.join(self._tmp_process, band_name + ".tif")
-                if os.path.isfile(out_tif):
+                out_tif = self._tmp_process.joinpath(band_name + ".tif")
+                if out_tif.is_file():
                     files.remove(out_tif)
 
                 # Convert to geotiffs and set no data with only keeping the first band
-                arr = rasters.read(
-                    rasters.get_dim_img_path(out_dim, snap_band_name), masked=False
-                )
-                arr = arr.where(arr != self._snap_no_data, np.nan)
-                rasters.write(arr, out_tif, dtype=np.float32)
+                with rioxarray.open_rasterio(
+                    str(rasters.get_dim_img_path(out_dim, snap_band_name))
+                ) as arr:
+                    arr = arr.where(arr != self._snap_no_data)
+                    rasters.write(arr, out_tif, dtype=np.float32)
 
         # Get the wanted bands (not the quality flags here !)
         for band in processed_bands:
             filename = self._get_band_filename(band)
             if "exception" not in filename:
-                out_tif = os.path.join(self._tmp_process, filename + ".tif")
-                if not os.path.isfile(out_tif):
+                out_tif = self._tmp_process.joinpath(filename + ".tif")
+                if not out_tif.is_file():
                     raise FileNotFoundError(
                         f"Error when processing S3 bands with SNAP. Couldn't find {out_tif}"
                     )
@@ -730,7 +730,7 @@ class S3Product(OpticalProduct):
         def_res = os.environ.get(S3_DEF_RES, self.resolution)
 
         # Construct GPT graph
-        graph_path = os.path.join(utils.get_data_dir(), "preprocess_s3.xml")
+        graph_path = utils.get_data_dir().joinpath("preprocess_s3.xml")
         snap_bands = ",".join(
             [
                 self._get_snap_band_name(band)
@@ -808,7 +808,7 @@ class S3Product(OpticalProduct):
                     float, float: min/max of the subdataset
                 """
                 path = [path for path in subdatasets if substr in path][0]
-                with rasterio.open(path, "r") as sub_ds:
+                with rasterio.open(str(path), "r") as sub_ds:
                     # Open the 4 corners of the array
                     height = sub_ds.height
                     width = sub_ds.width
@@ -831,21 +831,19 @@ class S3Product(OpticalProduct):
 
             if self.product_type == S3ProductType.OLCI_EFR:
                 # Open geodetic_an.nc
-                geom_file = os.path.join(
-                    self.path, "geo_coordinates.nc"
+                geom_file = self.path.joinpath(
+                    "geo_coordinates.nc"
                 )  # Only use nadir files
 
-                with rasterio.open(geom_file, "r") as geom_ds:
+                with rasterio.open(str(geom_file), "r") as geom_ds:
                     lat_min, lat_max = get_min_max("latitude", geom_ds.subdatasets)
                     lon_min, lon_max = get_min_max("longitude", geom_ds.subdatasets)
 
             elif self.product_type == S3ProductType.SLSTR_RBT:
                 # Open geodetic_an.nc
-                geom_file = os.path.join(
-                    self.path, "geodetic_an.nc"
-                )  # Only use nadir files
+                geom_file = self.path.joinpath("geodetic_an.nc")  # Only use nadir files
 
-                with rasterio.open(geom_file, "r") as geom_ds:
+                with rasterio.open(str(geom_file), "r") as geom_ds:
                     lat_min, lat_max = get_min_max("latitude_an", geom_ds.subdatasets)
                     lon_min, lon_max = get_min_max("longitude_an", geom_ds.subdatasets)
             else:
@@ -894,13 +892,11 @@ class S3Product(OpticalProduct):
             (float, float): Mean Azimuth and Zenith angle
         """
         if self._data_type == S3DataTypes.EFR:
-            geom_file = os.path.join(self.path, "tie_geometries.nc")
+            geom_file = self.path.joinpath("tie_geometries.nc")
             sun_az = "SAA"
             sun_ze = "SZA"
         elif self._data_type == S3DataTypes.RBT:
-            geom_file = os.path.join(
-                self.path, "geometry_tn.nc"
-            )  # Only use nadir files
+            geom_file = self.path.joinpath("geometry_tn.nc")  # Only use nadir files
             sun_az = "solar_azimuth_tn"
             sun_ze = "solar_zenith_tn"
         else:
@@ -909,7 +905,7 @@ class S3Product(OpticalProduct):
             )
 
         # Open file
-        if os.path.isfile(geom_file):
+        if geom_file.is_file():
             # Bug pylint with netCDF4
             # pylint: disable=E1101
             netcdf_ds = netCDF4.Dataset(geom_file)

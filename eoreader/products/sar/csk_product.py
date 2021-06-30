@@ -19,16 +19,16 @@ COSMO-SkyMed products.
 More info `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
 """
 import datetime
-import glob
 import logging
-import os
 import warnings
 from enum import unique
+from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import rasterio
+from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from shapely.geometry import Polygon
 
@@ -134,13 +134,14 @@ class CskProduct(SarProduct):
 
     def __init__(
         self,
-        product_path: str,
-        archive_path: str = None,
-        output_path: str = None,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
     ) -> None:
         try:
-            self._img_path = glob.glob(os.path.join(product_path, "*.h5"))[0]
+            product_path = AnyPath(product_path)
+            self._img_path = next(product_path.glob("*.h5"))
         except IndexError as ex:
             raise InvalidProductError(
                 f"Image file (*.h5) not found in {product_path}"
@@ -212,18 +213,7 @@ class CskProduct(SarProduct):
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
 
         """
-        # Open metadata file
-        try:
-            mtd_file = glob.glob(os.path.join(self.path, "*.h5.xml"))[0]
-        except IndexError as ex:
-            raise InvalidProductError(
-                f"Metadata file ({self._real_name}.h5.xml) not found in {self.path}"
-            ) from ex
-
-        # Open and parse XML
-        # pylint: disable=I1101
-        xml_tree = etree.parse(mtd_file)
-        root = xml_tree.getroot()
+        root, _ = self.read_mtd()
 
         # Open zenith and azimuth angle
         def from_str_to_arr(geo_coord: str):
