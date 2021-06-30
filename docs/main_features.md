@@ -7,6 +7,11 @@ These features can be seen in the [basic tutorial](https://eoreader.readthedocs.
 The reader singleton is your unique entry.
 It will create for you the product object corresponding to your satellite data.
 
+You can load products from the cloud, see 
+[this tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/s3_compatible_storage.html).
+S3 and S3 Compatible Storage are working and maybe Google and Azure if `rasterio` supports it, 
+but they have not been tested.
+
 ```python
 >>> import os
 >>> from reader import Reader
