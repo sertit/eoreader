@@ -22,6 +22,7 @@
    notebooks/SAR
    notebooks/VHR
    notebooks/water_detection
+   notebooks/s3_compatible_storage
 ```
 
 ```{eval-rst}
