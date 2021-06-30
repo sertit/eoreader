@@ -190,7 +190,7 @@ class CskProduct(SarProduct):
         # Private attributes
         self._raw_band_regex = "*_{}_*.h5"
         self._band_folder = self.path
-        self._snap_path = self._img_path
+        self._snap_path = self._img_path.name
 
         # Post init done by the super class
         super()._post_init()

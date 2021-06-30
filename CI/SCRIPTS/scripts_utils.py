@@ -191,9 +191,9 @@ def s3_env(function: Callable):
     @wraps(function)
     def s3_env_wrapper():
         """ S3 environment wrapper """
-        os.environ[CI_EOREADER_S3] = "0"
-        print("Using on disk files")
-        function()
+        # os.environ[CI_EOREADER_S3] = "0"
+        # print("Using on disk files")
+        # function()
 
         if os.getenv(AWS_SECRET_ACCESS_KEY) and sys.platform != "win32":
             os.environ[CI_EOREADER_S3] = "1"

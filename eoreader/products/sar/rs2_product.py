@@ -239,7 +239,7 @@ class Rs2Product(SarProduct):
         # Private attributes
         self._raw_band_regex = "*imagery_{}.tif"
         self._band_folder = self.path
-        self._snap_path = self.path
+        self._snap_path = ""
 
         # Zipped and SNAP can process its archive
         self.needs_extraction = False
