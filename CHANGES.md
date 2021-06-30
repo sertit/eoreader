@@ -2,8 +2,13 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.4.2 (2021-06-21)
+## 0.4.2 (2021-06-XX)
+- Feature: Enabling the use of products stored in the cloud
+  (S3, S3 compatible storage, Google, Azure...) through [`cloudpathlib`](https://cloudpathlib.drivendata.org/)
+- Enhancement: Using correct band names in long_name
 - CI: Use pre-computed cleaned band if existing
+- Doc: Adding examples for using S3 data, especially for S3 compatible storage
+
 
 ## 0.4.1.post0 (2021-06-21)
 - Bug fix: cloud mask values were inverted in Sentinel-2 cloud masks

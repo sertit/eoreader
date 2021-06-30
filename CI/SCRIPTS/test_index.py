@@ -9,18 +9,19 @@ from eoreader.bands.index import get_all_index
 from eoreader.utils import EOREADER_NAME
 from sertit import ci, rasters
 
-from .scripts_utils import OPT_PATH, READER, get_ci_data_dir
+from .scripts_utils import READER, get_ci_data_dir, opt_path, s3_env
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 RES = 2000.0  # 400 meters
 
 
+@s3_env
 def test_index():
     """Function testing the correct functioning of the index"""
     # Load S2 products as it can load every index
-    s2_path = os.path.join(
-        OPT_PATH, r"S2B_MSIL2A_20200114T065229_N0213_R020_T40REQ_20200114T094749.SAFE"
+    s2_path = opt_path().joinpath(
+        r"S2B_MSIL2A_20200114T065229_N0213_R020_T40REQ_20200114T094749.SAFE"
     )
     prod = READER.open(s2_path)
     failed_idx = []
@@ -30,6 +31,12 @@ def test_index():
 
         # Load every index
         LOGGER.info("Load all index")
+        logging.getLogger("boto3").setLevel(
+            logging.WARNING
+        )  # BOTO has way too much verbosity
+        logging.getLogger("botocore").setLevel(
+            logging.WARNING
+        )  # BOTO has way too much verbosity
         idx = prod.load(get_all_index(), resolution=RES)
 
         for idx_fct, idx_arr in idx.items():
@@ -39,9 +46,7 @@ def test_index():
             # Write on disk
             curr_path = os.path.join(prod.output, idx_name + ".tif")
             # curr_path = os.path.join(get_ci_data_dir(), prod.condensed_name, idx_name + ".tif")  # Debug
-            ci_data = os.path.join(
-                get_ci_data_dir(), prod.condensed_name, idx_name + ".tif"
-            )
+            ci_data = get_ci_data_dir().joinpath(prod.condensed_name, idx_name + ".tif")
             rasters.write(idx_arr, curr_path, dtype=np.float32)
 
             # Test

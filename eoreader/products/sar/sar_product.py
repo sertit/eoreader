@@ -22,12 +22,14 @@ import tempfile
 import zipfile
 from abc import abstractmethod
 from enum import unique
+from pathlib import Path
 from string import Formatter
 from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import rioxarray
+from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs
 from rasterio.enums import Resampling
 
@@ -157,9 +159,9 @@ class SarProduct(Product):
 
     def __init__(
         self,
-        product_path: str,
-        archive_path: str = None,
-        output_path: str = None,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
     ) -> None:
         self.sar_prod_type = None
@@ -468,7 +470,7 @@ class SarProduct(Product):
             band_regex = extended_fmt.format(self._raw_band_regex, band_name)
 
             if self.is_archived:
-                if self.path.endswith(".zip"):
+                if self.path.suffix == ".zip":
                     # Open the zip file
                     with zipfile.ZipFile(self.path, "r") as zip_ds:
                         # Get the correct band path
@@ -693,23 +695,21 @@ class SarProduct(Product):
 
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
-            # Set command as a list
-            target_file = os.path.join(tmp_dir, f"{self.condensed_name}")
 
             # Use dimap for speed and security (ie. GeoTiff's broken georef)
-            pp_target = f"{target_file}"
+            pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
             pp_dim = pp_target + ".dim"
 
             # Pre-process graph
             if PP_GRAPH not in os.environ:
                 sat = "s1" if self.sat_id == Platform.S1.name else "sar"
                 spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
-                pp_graph = os.path.join(
-                    utils.get_data_dir(), f"{spt}_{sat}_preprocess_default.xml"
+                pp_graph = utils.get_data_dir().joinpath(
+                    f"{spt}_{sat}_preprocess_default.xml"
                 )
             else:
-                pp_graph = os.environ[PP_GRAPH]
-                if not os.path.isfile(pp_graph) or not pp_graph.endswith(".xml"):
+                pp_graph = AnyPath(os.environ[PP_GRAPH])
+                if not pp_graph.is_file() or not pp_graph.suffix == ".xml":
                     FileNotFoundError(f"{pp_graph} cannot be found.")
 
             # Command line
@@ -796,12 +796,10 @@ class SarProduct(Product):
 
             # Despeckle graph
             if DSPK_GRAPH not in os.environ:
-                dspk_graph = os.path.join(
-                    utils.get_data_dir(), "sar_despeckle_default.xml"
-                )
+                dspk_graph = utils.get_data_dir().joinpath("sar_despeckle_default.xml")
             else:
-                dspk_graph = os.environ[DSPK_GRAPH]
-                if not os.path.isfile(dspk_graph) or not dspk_graph.endswith(".xml"):
+                dspk_graph = AnyPath(os.environ[DSPK_GRAPH])
+                if not dspk_graph.is_file() or not dspk_graph.suffix == ".xml":
                     FileNotFoundError(f"{dspk_graph} cannot be found.")
 
             # Create command line and run it
@@ -842,7 +840,7 @@ class SarProduct(Product):
             img = rasters.get_dim_img_path(dim_path)  # Maybe not the good name
 
         # Open SAR image
-        with rioxarray.open_rasterio(img) as arr:
+        with rioxarray.open_rasterio(str(img)) as arr:
             arr = arr.where(arr != self._snap_no_data, np.nan)
 
             # Save the file as the terrain-corrected image

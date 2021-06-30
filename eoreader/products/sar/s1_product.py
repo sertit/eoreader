@@ -32,7 +32,7 @@ from lxml import etree
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import misc, strings, vectors
+from sertit import vectors
 from sertit.misc import ListEnum
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -131,7 +131,7 @@ class S1Product(SarProduct):
         # Private attributes
         self._raw_band_regex = "*-{!l}-*.tiff"  # Just get the SLC-iw1 image for now
 
-        self._band_folder = os.path.join(self.path, "measurement")
+        self._band_folder = self.path.joinpath("measurement")
         self._snap_path = self.path
 
         # Zipped and SNAP can process its archive
@@ -172,35 +172,15 @@ class S1Product(SarProduct):
                         list(filter(regex.match, filenames))[0], tmp_dir.name
                     )
             else:
-                preview_overlay = os.path.join(self.path, "preview", "map-overlay.kml")
+                preview_overlay = self.path.joinpath("preview", "map-overlay.kml")
 
             if os.path.isfile(preview_overlay):
                 # Open the KML file
-                vectors.set_kml_driver()
-                extent_wgs84 = gpd.read_file(preview_overlay)
-
+                extent_wgs84 = vectors.read(preview_overlay)
                 if extent_wgs84.empty:
-                    # Convert KML to GeoJSON
-                    gj_preview_overlay = preview_overlay.replace("kml", "geojson")
-                    cmd_line = [
-                        "ogr2ogr",
-                        "-fieldTypeToString DateTime",  # Disable warning
-                        "-f GeoJSON",
-                        strings.to_cmd_string(gj_preview_overlay),
-                        strings.to_cmd_string(preview_overlay),
-                    ]
-                    try:
-                        misc.run_cli(cmd_line)
-                    except RuntimeError as ex:
-                        raise RuntimeError("Something went wrong with ogr2ogr!") from ex
-
-                    # Open the geojson
-                    extent_wgs84 = gpd.read_file(gj_preview_overlay)
-
-                    if extent_wgs84.empty:
-                        raise InvalidProductError(
-                            f"Cannot determine the WGS84 extent of {self.name}"
-                        )
+                    raise InvalidProductError(
+                        f"Cannot determine the WGS84 extent of {self.name}"
+                    )
             else:
                 raise InvalidProductError(
                     f"Impossible to find the map-overlay.kml in {self.path}"
@@ -283,7 +263,7 @@ class S1Product(SarProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = os.path.join("annotation", "*.xml")
-        mtd_archived = ".*annotation.*\.xml"
+        mtd_from_path = "annotation/*.xml"
+        mtd_archived = "annotation.*\.xml"
 
         return self._read_mtd(mtd_from_path, mtd_archived)

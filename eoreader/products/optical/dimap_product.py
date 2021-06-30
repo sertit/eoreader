@@ -23,12 +23,11 @@ import glob
 import logging
 import math
 import os
-import re
 import time
-import zipfile
 from abc import abstractmethod
 from datetime import date, datetime
 from enum import unique
+from pathlib import Path
 from typing import Union
 
 import affine
@@ -36,6 +35,7 @@ import geopandas as gpd
 import numpy as np
 import rasterio
 import rioxarray
+from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
 from rasterio import features, rpc, transform, warp
@@ -251,7 +251,7 @@ class DimapProduct(OpticalProduct):
         """
         if self.product_type in [DimapProductType.MOS, DimapProductType.ORT]:
             band_path = self.get_default_band_path()
-            with rioxarray.open_rasterio(band_path) as dst:
+            with rioxarray.open_rasterio(str(band_path)) as dst:
                 utm = dst.rio.estimate_utm_crs()
         else:
             # Open metadata
@@ -381,13 +381,13 @@ class DimapProduct(OpticalProduct):
         Returns:
             dict: Dictionary containing the path of each queried band
         """
-        ortho_path = os.path.join(
-            self._get_band_folder(), f"{self.condensed_name}_ortho.tif"
+        ortho_path = self._get_band_folder().joinpath(
+            f"{self.condensed_name}_ortho.tif"
         )
         if not self.ortho_path:
             if self.product_type in [DimapProductType.SEN, DimapProductType.PRJ]:
                 self.ortho_path = ortho_path
-                if not os.path.isfile(self.ortho_path):
+                if not self.ortho_path.is_file():
                     LOGGER.info(
                         f"Manually orthorectified stack not given by the user. "
                         f"Reprojecting data here: {self.ortho_path} "
@@ -395,7 +395,7 @@ class DimapProduct(OpticalProduct):
                     )
 
                     # Reproject and write on disk data
-                    with rasterio.open(self._get_dimap_path()) as src:
+                    with rasterio.open(str(self._get_dimap_path())) as src:
                         out_arr, meta = self._reproject(src.read(), src.meta, src.rpcs)
                         rasters_rio.write(out_arr, meta, self.ortho_path)
 
@@ -407,14 +407,14 @@ class DimapProduct(OpticalProduct):
         for band in band_list:
             # Get clean band path
             clean_band = self._get_clean_band_path(band, resolution=resolution)
-            if os.path.isfile(clean_band):
+            if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
                 # First look for reprojected bands
                 reproj_path = self._create_utm_band_path(
                     band=band.name, resolution=resolution
                 )
-                if not os.path.isfile(reproj_path):
+                if not reproj_path.is_file():
                     # Then for original data
                     path = self.ortho_path
                 else:
@@ -506,7 +506,7 @@ class DimapProduct(OpticalProduct):
         Returns:
             XDS_TYPE: Band xarray
         """
-        with rasterio.open(path) as dst:
+        with rasterio.open(str(path)) as dst:
             dst_crs = dst.crs
 
             # Compute resolution from size (if needed)
@@ -520,7 +520,7 @@ class DimapProduct(OpticalProduct):
 
             # Manage the case if we got a LAT LON product
             if not dst_crs.is_projected:
-                if not os.path.isfile(reproj_path):
+                if not reproj_path.is_file():
                     # Warp band if needed
                     self._warp_band(
                         path,
@@ -717,8 +717,8 @@ class DimapProduct(OpticalProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
-        mtd_from_path = os.path.join("DIM_*.XML")
-        mtd_archived = ".*DIM_.*\.XML"
+        mtd_from_path = "DIM_*.XML"
+        mtd_archived = "DIM_.*\.XML"
 
         return self._read_mtd(mtd_from_path, mtd_archived)
 
@@ -752,7 +752,7 @@ class DimapProduct(OpticalProduct):
         # Load default xarray as a template
         def_utm_path = self._get_default_utm_band(resolution=resolution)
 
-        with rasterio.open(def_utm_path) as dst:
+        with rasterio.open(str(def_utm_path)) as dst:
             if dst.count > 1:
                 def_xarr = rasters.read(
                     dst, indexes=[self.band_names[self.get_default_band()]]
@@ -836,42 +836,39 @@ class DimapProduct(OpticalProduct):
         assert mask_str in mandatory_masks + optional_masks
         crs = self.crs()
 
-        mask_path = os.path.join(
-            self._get_band_folder(), f"{self.condensed_name}_MSK_{mask_str}.geojson"
+        mask_path = self._get_band_folder().joinpath(
+            f"{self.condensed_name}_MSK_{mask_str}.geojson"
         )
-        if os.path.isfile(mask_path):
-            mask = gpd.read_file(mask_path)
+        if mask_path.is_file():
+            mask = vectors.read(mask_path)
         elif mask_str in self._empty_mask:
             # Empty mask cannot be written on file
             mask = gpd.GeoDataFrame(geometry=[], crs=crs)
         else:
             if self.is_archived:
                 # Open the zip file
-                # WE DON'T KNOW WHY BUT DO NOT USE files.read_archived_vector HERE !!!
-                with zipfile.ZipFile(self.path, "r") as zip_ds:
-                    filenames = [f.filename for f in zip_ds.filelist]
-                    regex = re.compile(f".*MASKS.*{mask_str}.*_MSK\.GML")
-                    try:
-                        mask_path_zip = list(filter(regex.match, filenames))[0]
-                        mask = vectors.open_gml(
-                            f"zip://{self.path}!{mask_path_zip}", crs=crs
+                try:
+                    mask = vectors.read(
+                        self.path,
+                        archive_regex=f".*MASKS.*{mask_str}.*_MSK\.GML",
+                        crs=crs,
+                    )
+                except Exception:
+                    if mask_str in optional_masks:
+                        mask = gpd.GeoDataFrame(geometry=[], crs=crs)
+                    else:
+                        raise InvalidProductError(
+                            f"Mask {mask_str} not found for {self.path}"
                         )
-                    except IndexError:
-                        if mask_str in optional_masks:
-                            mask = gpd.GeoDataFrame(geometry=[], crs=crs)
-                        else:
-                            raise InvalidProductError(
-                                f"Mask {mask_str} not found for {self.path}"
-                            )
             else:
                 try:
                     mask_gml_path = files.get_file_in_dir(
-                        os.path.join(self.path, "MASKS"),
-                        f"{mask_str}*_MSK.GML",
+                        self.path.joinpath("MASKS"),
+                        f"*{mask_str}*_MSK.GML",
                         exact_name=True,
                     )
 
-                    mask = vectors.open_gml(mask_gml_path, crs=crs)
+                    mask = vectors.read(mask_gml_path, crs=crs)
                 except FileNotFoundError:
                     if mask_str in optional_masks:
                         mask = gpd.GeoDataFrame(geometry=[], crs=crs)
@@ -886,7 +883,7 @@ class DimapProduct(OpticalProduct):
                 DimapProductType.PRJ,
             ]:
                 LOGGER.info(f"Orthorectifying {mask_str}")
-                with rasterio.open(self._get_dimap_path()) as dim_dst:
+                with rasterio.open(str(self._get_dimap_path())) as dim_dst:
                     # Rasterize mask (no transform as we have teh vector in image geometry)
                     LOGGER.debug(f"\tRasterizing {mask_str}")
                     mask_raster = features.rasterize(
@@ -921,7 +918,7 @@ class DimapProduct(OpticalProduct):
                     DimapProductType.MOS,
                 ]
             ):
-                with rasterio.open(self._get_dimap_path()) as dim_dst:
+                with rasterio.open(str(self._get_dimap_path())) as dim_dst:
                     mask.crs = dim_dst.crs
 
                 # Convert to target CRS
@@ -966,7 +963,7 @@ class DimapProduct(OpticalProduct):
             dtype=np.uint8,
         )
 
-    def _get_path(self, filename: str, extension: str) -> str:
+    def _get_path(self, filename: str, extension: str) -> Union[CloudPath, Path]:
         """
         Get either the archived path of the normal path of an asset
 
@@ -975,7 +972,7 @@ class DimapProduct(OpticalProduct):
             extension (str): Extension
 
         Returns:
-            Union[list, str]: Path or list of paths (needs this because of potential mosaic)
+            Union[list, CloudPath, Path]: Path or list of paths (needs this because of potential mosaic)
 
         """
         path = []
@@ -986,9 +983,7 @@ class DimapProduct(OpticalProduct):
                     f".*{filename}.*\.{extension}",
                 )
             else:
-                path = glob.glob(os.path.join(self.path, f"*{filename}*.{extension}"))[
-                    0
-                ]
+                path = next(self.path.glob(f"*{filename}*.{extension}"))
 
         except (FileNotFoundError, IndexError):
             LOGGER.warning(
@@ -997,19 +992,19 @@ class DimapProduct(OpticalProduct):
 
         return path
 
-    def _get_dimap_path(self) -> str:
+    def _get_dimap_path(self) -> Union[CloudPath, Path]:
         """
         Get the DIMAP filepath
 
         Returns:
-            str: DIMAP filepath
+            Union[CloudPath, Path]: DIMAP filepath
 
         """
         return self._get_path("DIM_", "XML")
 
     def _create_utm_band_path(
         self, band: str, resolution: Union[float, tuple, list]
-    ) -> str:
+    ) -> Union[CloudPath, Path]:
         """
         Create the UTM band path
 
@@ -1018,32 +1013,31 @@ class DimapProduct(OpticalProduct):
             resolution (Union[float, tuple, list]): Resolution of the wanted UTM band
 
         Returns:
-            str: UTM band path
+            Union[CloudPath, Path]: UTM band path
         """
         try:
             resolution = resolution[0]
         except TypeError:
             pass
 
-        return os.path.join(
-            self._get_band_folder(),
-            f"{self.condensed_name}_{band}_{str(resolution).replace('.', '-')}m.tif",
+        return self._get_band_folder().joinpath(
+            f"{self.condensed_name}_{band}_{str(resolution).replace('.', '-')}m.tif"
         )
 
     def _warp_band(
         self,
-        path: str,
+        path: Union[str, CloudPath, Path],
         band: obn,
-        reproj_path: str,
+        reproj_path: Union[str, CloudPath, Path],
         resolution: float = None,
     ) -> None:
         """
         Warp band to UTM
 
         Args:
-            path (str): Band path to warp
+            path (Union[str, CloudPath, Path]): Band path to warp
             band (band): Band to warp
-            reproj_path (str): Path where to write the reprojected band
+            reproj_path (Union[str, CloudPath, Path]): Path where to write the reprojected band
             resolution (int): Band resolution in meters
 
         """
@@ -1052,7 +1046,7 @@ class DimapProduct(OpticalProduct):
         )
 
         # Read band
-        with rasterio.open(path) as src:
+        with rasterio.open(str(path)) as src:
             band_nb = self.band_names[band]
             meta = src.meta.copy()
 
@@ -1102,7 +1096,7 @@ class DimapProduct(OpticalProduct):
             str: Default UTM path
         """
         def_path = self.get_default_band_path()
-        with rioxarray.open_rasterio(def_path) as dst:
+        with rioxarray.open_rasterio(str(def_path)) as dst:
             # Compute resolution from size
             if resolution is None and size is not None:
                 resolution = self.resolution_from_size(dst, size)
@@ -1110,7 +1104,7 @@ class DimapProduct(OpticalProduct):
             # First look for reprojected bands
             reproj_regex = self._create_utm_band_path(band="*", resolution=resolution)
 
-            reproj_bands = glob.glob(reproj_regex)
+            reproj_bands = glob.glob(str(reproj_regex))
 
             if len(reproj_bands) == 0:
                 # Manage the case if we got a LAT LON product
@@ -1122,7 +1116,7 @@ class DimapProduct(OpticalProduct):
                     )
 
                     # Warp band if needed
-                    if not os.path.isfile(path):
+                    if not path.is_file():
                         self._warp_band(
                             def_path,
                             def_band,
@@ -1132,7 +1126,7 @@ class DimapProduct(OpticalProduct):
                 else:
                     path = def_path
             else:
-                path = reproj_bands[0]
+                path = AnyPath(reproj_bands[0])
 
         return path
 

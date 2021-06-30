@@ -20,9 +20,7 @@ See `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined
 and `here <https://developers.planet.com/docs/data/planetscope/>`_
 for more information.
 """
-import glob
 import logging
-import os
 from datetime import datetime
 from enum import unique
 from typing import Union
@@ -378,7 +376,9 @@ class PlaProduct(OpticalProduct):
         """
         band_paths = {}
         for band in band_list:
-            band_paths[band] = self._get_path("AnalyticMS", "tif")
+            band_paths[band] = self._get_path(
+                "AnalyticMS", "tif", invalid_lookahead="_DN_"
+            )
 
         return band_paths
 
@@ -548,8 +548,8 @@ class PlaProduct(OpticalProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
-        mtd_from_path = os.path.join("**", "*metadata*.xml")
-        mtd_archived = ".*metadata.*\.xml"
+        mtd_from_path = "metadata*.xml"
+        mtd_archived = "metadata.*\.xml"
 
         return self._read_mtd(mtd_from_path, mtd_archived)
 
@@ -729,7 +729,7 @@ class PlaProduct(OpticalProduct):
         nodata = udm.copy(data=rasters.read_bit_array(udm, 0))
         return nodata.rename("NODATA")
 
-    def _get_path(self, filename: str, extension: str) -> str:
+    def _get_path(self, filename: str, extension: str, invalid_lookahead=None) -> str:
         """
         Get either the archived path of the normal path of an asset
 
@@ -748,10 +748,12 @@ class PlaProduct(OpticalProduct):
                     self.path, f".*{filename}\w*[_]*\.{extension}"
                 )
             else:
-                path = glob.glob(
-                    os.path.join(self.path, "**", f"*{filename}*.{extension}"),
-                    recursive=True,
-                )[0]
+                paths = list(self.path.glob(f"**/*{filename}*.{extension}"))
+                if invalid_lookahead:
+                    paths = [
+                        path for path in paths if invalid_lookahead not in str(path)
+                    ]
+                path = paths[0]
         except (FileNotFoundError, IndexError):
             LOGGER.warning(
                 f"No file corresponding to *{filename}*.{extension} found in {self.path}"

@@ -15,56 +15,56 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Utils: mostly getting directories relative to the project """
-import glob
 import logging
 import os
 import platform
+from pathlib import Path
+from typing import Union
+
+from cloudpathlib import AnyPath, CloudPath
 
 EOREADER_NAME = "eoreader"
 DATETIME_FMT = "%Y%m%dT%H%M%S"
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 
-def get_src_dir() -> str:
+def get_src_dir() -> Union[CloudPath, Path]:
     """
     Get src directory.
 
     Returns:
         str: Root directory
     """
-    return os.path.abspath(os.path.dirname(__file__))
+    return AnyPath(__file__).parent
 
 
-def get_root_dir() -> str:
+def get_root_dir() -> Union[CloudPath, Path]:
     """
     Get root directory.
 
     Returns:
         str: Root directory
     """
-    return os.path.abspath(os.path.join(get_src_dir(), ".."))
+    return get_src_dir().parent
 
 
-def get_data_dir() -> str:
+def get_data_dir() -> Union[CloudPath, Path]:
     """
     Get data directory.
 
     Returns:
         str: Data directory
     """
-    data_dir = os.path.abspath(os.path.join(get_src_dir(), "data"))
-    if not os.path.isdir(data_dir) or not os.listdir(data_dir):
+    data_dir = get_src_dir().joinpath("data")
+    if not data_dir.is_dir() or not list(data_dir.iterdir()):
         data_dir = None
         # Last resort try
         if platform.system() == "Linux":
-            data_dirs = glob.glob(
-                os.path.join("/usr", "local", "lib", "**", "eoreader", "data"),
-                recursive=True,
+            data_dirs = (
+                AnyPath("/usr").joinpath("local", "lib").glob("**/eoreader/data")
             )
         else:
-            data_dirs = glob.glob(
-                os.path.join("**", "eoreader", "data"), recursive=True
-            )
+            data_dirs = AnyPath("/").glob("**/eoreader/data")
 
         # Look for non empty directories
         for ddir in data_dirs:

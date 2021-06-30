@@ -247,10 +247,7 @@ class S2Product(OpticalProduct):
                     ][0]
             else:
                 # Search for the name of the folder into the S2 products
-                for root, folders, _ in os.walk(os.path.abspath(self.path)):
-                    for folder in folders:
-                        if folder == dir_name:
-                            s2_bands_folder[band] = os.path.join(root, folder)
+                s2_bands_folder[band] = next(self.path.glob(f"**/*/{dir_name}"))
 
         for band in band_list:
             if band not in s2_bands_folder:
@@ -288,7 +285,7 @@ class S2Product(OpticalProduct):
         for band in band_list:
             # Get clean band path
             clean_band = self._get_clean_band_path(band, resolution=resolution)
-            if os.path.isfile(clean_band):
+            if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
                 try:
@@ -407,16 +404,16 @@ class S2Product(OpticalProduct):
                     f".*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml"
                 )
                 with zip_ds.open(list(filter(regex.match, filenames))[0]) as mask_path:
-                    mask = vectors.open_gml(mask_path, crs=self.crs())
+                    mask = vectors.read(mask_path, crs=self.crs())
         else:
-            qi_data_path = os.path.join(self.path, "GRANULE", "*", "QI_DATA")
-
             # Get mask path
             mask_path = files.get_file_in_dir(
-                qi_data_path, f"MSK_{mask_str}_B{band_name}.gml", exact_name=True
+                self.path,
+                f"**/*GRANULE/*/QI_DATA/MSK_{mask_str}_B{band_name}.gml",
+                exact_name=True,
             )
 
-            mask = vectors.open_gml(mask_path, crs=self.crs())
+            mask = vectors.read(mask_path, crs=self.crs())
 
         return mask
 
@@ -571,8 +568,8 @@ class S2Product(OpticalProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = os.path.join("GRANULE", "*", "*.xml")
-        mtd_archived = ".*GRANULE.*\.xml"
+        mtd_from_path = "GRANULE/*/*.xml"
+        mtd_archived = "GRANULE.*\.xml"
 
         return self._read_mtd(mtd_from_path, mtd_archived)
 

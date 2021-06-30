@@ -21,7 +21,6 @@ See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-pr
 
 import datetime
 import logging
-import os
 from functools import reduce
 from typing import Union
 
@@ -195,7 +194,7 @@ class S2TheiaProduct(OpticalProduct):
         band_paths = {}
         for band in band_list:  # Get clean band path
             clean_band = self._get_clean_band_path(band, resolution=resolution)
-            if os.path.isfile(clean_band):
+            if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
                 try:
@@ -328,7 +327,7 @@ class S2TheiaProduct(OpticalProduct):
                 )
             else:
                 mask_path = files.get_file_in_dir(
-                    os.path.join(self.path, "MASKS"), mask_regex, exact_name=True
+                    self.path.joinpath("MASKS"), mask_regex, exact_name=True
                 )
         except (FileNotFoundError, IndexError) as ex:
             raise InvalidProductError(
@@ -473,10 +472,6 @@ class S2TheiaProduct(OpticalProduct):
         Returns:
             (float, float): Mean Azimuth and Zenith angle
         """
-        # Init angles
-        zenith_angle = None
-        azimuth_angle = None
-
         # Get MTD XML file
         root, _ = self.read_mtd()
 
@@ -504,8 +499,8 @@ class S2TheiaProduct(OpticalProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = "*MTD_ALL.xml"
-        mtd_archived = ".*MTD_ALL\.xml"
+        mtd_from_path = "MTD_ALL.xml"
+        mtd_archived = "MTD_ALL\.xml"
 
         return self._read_mtd(mtd_from_path, mtd_archived)
 

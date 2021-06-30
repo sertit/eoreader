@@ -20,10 +20,12 @@ from __future__ import annotations
 
 import importlib
 import logging
-import os
 import re
 from enum import unique
+from pathlib import Path
 from typing import Union
+
+from cloudpathlib import AnyPath, CloudPath
 
 from eoreader.utils import EOREADER_NAME
 from sertit import files, strings
@@ -325,7 +327,9 @@ class Reader:
         regex = self._platform_regex[platform]
         return self._is_filename_valid(product_path, regex)
 
-    def valid_mtd(self, product_path: str, platform: Union[str, Platform]) -> bool:
+    def valid_mtd(
+        self, product_path: Union[str, CloudPath, Path], platform: Union[str, Platform]
+    ) -> bool:
         """
         Check if the product's mtd is in the product folder/archive
 
@@ -352,13 +356,15 @@ class Reader:
             True
 
         Args:
-            product_path (str): Product path
-            platform (str): Platform's name or ID
+            product_path (Union[str, CloudPath, Path]): Product path
+            platform (Union[str, Platform]): Platform's name or ID
 
         Returns:
             bool: True if valid name
 
         """
+        product_path = AnyPath(product_path)
+
         platform = Platform.convert_from(platform)[0]
 
         # Here the list is a check of several files
@@ -369,16 +375,15 @@ class Reader:
 
         for idx, regex in enumerate(regex_list):
             # Folder
-            if os.path.isdir(product_path):
-                for root, dirs, fls in os.walk(product_path):
-                    for fle in fls:
-                        if regex.match(fle):
-                            is_valid[idx] = True
-                            break
+            if product_path.is_dir():
+                for fle in product_path.glob("**/*.*"):
+                    if regex.match(str(fle)):
+                        is_valid[idx] = True
+                        break
 
             # Archive
             else:
-                if os.path.isfile(product_path):
+                if product_path.is_file():
                     fls = files.get_archived_file_list(product_path)
                     for fle in fls:
                         if regex.match(fle):
@@ -388,7 +393,9 @@ class Reader:
         return all(is_valid)
 
     @staticmethod
-    def _is_filename_valid(product_path: str, regex: Union[list, re.Pattern]) -> bool:
+    def _is_filename_valid(
+        product_path: Union[str, CloudPath, Path], regex: Union[list, re.Pattern]
+    ) -> bool:
         """
         Check if the filename corresponds to the given satellite regex.
 
@@ -398,12 +405,13 @@ class Reader:
             Two level max for the moment
 
         Args:
-            product_path (str): Product path
+            product_path (Union[str, CloudPath, Path]): Product path
             regex (Union[list, re.Pattern]): Regex or list of regex
 
         Returns:
             bool: True if the filename corresponds to the given satellite regex
         """
+        product_path = AnyPath(product_path)
         product_file_name = files.get_filename(product_path)
 
         # Case folder is not enough to identify the products (ie. COSMO Skymed)
@@ -411,10 +419,10 @@ class Reader:
         is_valid = bool(regex[0].match(product_file_name))
         if is_valid and len(regex) > 1:
             is_valid = False  # Reset
-            if os.path.isdir(product_path):
-                file_list = os.listdir(product_path)
+            if product_path.is_dir():
+                file_list = product_path.iterdir()
                 for file in file_list:
-                    if regex[1].match(file):
+                    if regex[1].match(file.name):
                         is_valid = True
                         break
             else:
