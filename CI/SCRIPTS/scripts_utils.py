@@ -52,10 +52,10 @@ def get_ci_db_dir() -> Union[CloudPath, Path]:
         # ON DISK
         try:
             # CI
-            return AnyPath(os.path.join(ci.get_db3_path(), "CI", "eoreader"))
+            return AnyPath(ci.get_db3_path(), "CI", "eoreader")
         except NotADirectoryError:
             # Windows
-            return AnyPath(os.path.join(r"\\ds2", "database03", "CI", "eoreader"))
+            return AnyPath(r"\\ds2", "database03", "CI", "eoreader")
 
 
 def get_ci_data_dir() -> Union[CloudPath, Path]:

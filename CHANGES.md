@@ -3,23 +3,24 @@
 ## X.Y.Z (YYYY-MM-DD)
 
 ## 0.4.2 (2021-07-01)
+
 - Feature: Enabling the use of products stored in the cloud
   (S3, S3 compatible storage, Google, Azure...) through [`cloudpathlib`](https://cloudpathlib.drivendata.org/)
 - Enhancement: Using correct band names in long_name
 - CI: Use pre-computed cleaned band if existing
 - Doc: Adding examples for using S3 data, especially for S3 compatible storage
 
-
 ## 0.4.1.post0 (2021-06-21)
+
 - Bug fix: cloud mask values were inverted in Sentinel-2 cloud masks
 - Bug fix: Landsat collection 2 cloud masks are now OK
 
 ## 0.4.1 (2021-06-21)
 
 - Improving stacks saved as uint16:
-  - Only satellite bands and index are scaled (*10.000)
-  - DEM bands are just rounded
-  - Cloud bands (booleans) are saved as is
+    - Only satellite bands and index are scaled (*10.000)
+    - DEM bands are just rounded
+    - Cloud bands (booleans) are saved as is
 - Fixing a rasterization bug affecting S2 and DIMAP masks, happening when the vectors have another size than the image
 - Adding a warning on bad georeferencing when using GS and GT Landsat products
 - Minor updates in documentation and code
@@ -35,19 +36,23 @@
 - [SAR] Better handling of SNAP DEMs (using External DEM and other available SNAP DEMs)
 
 ### Fix
+
 - More robust way of looking for `data` directory
 - Bug fix in `stack` that causes some bands to be inexplicably empty sometimes
 - Bug fix in `alias.isindex`
 - Forcing extent to UTM
 
 ### Optimizations
+
 - Write clean bands on disk to avoid redoing invalid pixel computation and allow the user to remove them on deletion
 - `prod.has_bands` / `prod.get_existing_bands` do not orthorectify/despeckle SAR bands anymore
 
 ### CI
+
 - Adding a bimonthly test for SNAP processes
 
 ### Documentation
+
 - Adding two new notebooks (SAR and VHR data)
 - Completing the documentation
 
