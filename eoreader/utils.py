@@ -60,9 +60,7 @@ def get_data_dir() -> Union[CloudPath, Path]:
         data_dir = None
         # Last resort try
         if platform.system() == "Linux":
-            data_dirs = (
-                AnyPath("/usr").joinpath("local", "lib").glob("**/eoreader/data")
-            )
+            data_dirs = AnyPath("/usr", "local", "lib").glob("**/eoreader/data")
         else:
             data_dirs = AnyPath("/").glob("**/eoreader/data")
 
