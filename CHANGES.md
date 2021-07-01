@@ -2,7 +2,7 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.4.2 (2021-06-XX)
+## 0.4.2 (2021-07-01)
 - Feature: Enabling the use of products stored in the cloud
   (S3, S3 compatible storage, Google, Azure...) through [`cloudpathlib`](https://cloudpathlib.drivendata.org/)
 - Enhancement: Using correct band names in long_name
