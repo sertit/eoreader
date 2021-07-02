@@ -165,9 +165,9 @@ class DimapProduct(OpticalProduct):
 
     def __init__(
         self,
-        product_path: str,
-        archive_path: str = None,
-        output_path: str = None,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
     ) -> None:
         self.ortho_path = None
@@ -749,47 +749,53 @@ class DimapProduct(OpticalProduct):
         """
         band_dict = {}
 
-        # Load default xarray as a template
-        def_utm_path = self._get_default_utm_band(resolution=resolution)
-
-        with rasterio.open(str(def_utm_path)) as dst:
-            if dst.count > 1:
-                def_xarr = rasters.read(
-                    dst, indexes=[self.band_names[self.get_default_band()]]
-                )
-            else:
-                def_xarr = rasters.read(dst)
-
-        width = def_xarr.rio.width
-        height = def_xarr.rio.height
-        vec_tr = transform.from_bounds(
-            *def_xarr.rio.bounds(), def_xarr.rio.width, def_xarr.rio.height
-        )
-
-        # Load nodata
-        nodata = self._load_nodata(width, height, vec_tr)
-
         if bands:
+            # Load cloud vector
+            cld_vec = self.open_mask("CLD")
+            has_vec = len(cld_vec) > 0
+
+            # Load default xarray as a template
+            def_utm_path = self._get_default_utm_band(resolution=resolution, size=size)
+
+            with rasterio.open(str(def_utm_path)) as dst:
+                if dst.count > 1:
+                    def_xarr = rasters.read(
+                        dst,
+                        resolution=resolution,
+                        size=size,
+                        indexes=[self.band_names[self.get_default_band()]],
+                    )
+                else:
+                    def_xarr = rasters.read(dst, resolution=resolution, size=size)
+
+                # Load nodata
+                width = def_xarr.rio.width
+                height = def_xarr.rio.height
+                vec_tr = transform.from_bounds(
+                    *def_xarr.rio.bounds(), def_xarr.rio.width, def_xarr.rio.height
+                )
+                nodata = self._load_nodata(width, height, vec_tr)
+
+                # Rasterize features if existing vector
+                if has_vec:
+                    cld_arr = features.rasterize(
+                        cld_vec.geometry,
+                        out_shape=(height, width),
+                        fill=self._mask_false,  # Outside vector
+                        default_value=self._mask_true,  # Inside vector
+                        transform=vec_tr,
+                        dtype=np.uint8,
+                    )
+
+                    # Rasterize gives a 2D array, we want a 3D array
+                    cld_arr = np.expand_dims(cld_arr, axis=0)
+                else:
+                    cld_arr = np.zeros(
+                        (1, def_xarr.rio.height, def_xarr.rio.width), dtype=np.uint8
+                    )
+
             for res_id in bands:
                 if res_id in [ALL_CLOUDS, CLOUDS, RAW_CLOUDS]:
-                    cld_vec = self.open_mask("CLD")
-                    if len(cld_vec) > 0:
-                        cld_arr = features.rasterize(
-                            cld_vec.geometry,
-                            out_shape=(height, width),
-                            fill=self._mask_false,  # Outside vector
-                            default_value=self._mask_true,  # Inside vector
-                            transform=vec_tr,
-                            dtype=np.uint8,
-                        )
-
-                        # Rasterize gives a 2D array, we want a 3D array
-                        cld_arr = np.expand_dims(cld_arr, axis=0)
-                    else:
-                        cld_arr = np.zeros(
-                            (1, def_xarr.rio.height, def_xarr.rio.width), dtype=np.uint8
-                        )
-
                     band_dict[res_id] = self._create_mask(
                         def_xarr.rename(res_id.name),
                         cld_arr,
@@ -1096,7 +1102,7 @@ class DimapProduct(OpticalProduct):
             str: Default UTM path
         """
         def_path = self.get_default_band_path()
-        with rioxarray.open_rasterio(str(def_path)) as dst:
+        with rasterio.open(str(def_path)) as dst:
             # Compute resolution from size
             if resolution is None and size is not None:
                 resolution = self.resolution_from_size(dst, size)
@@ -1108,7 +1114,7 @@ class DimapProduct(OpticalProduct):
 
             if len(reproj_bands) == 0:
                 # Manage the case if we got a LAT LON product
-                dst_crs = dst.rio.crs
+                dst_crs = dst.crs
                 if not dst_crs.is_projected:
                     def_band = self.get_default_band()
                     path = self._create_utm_band_path(
