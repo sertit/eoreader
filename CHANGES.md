@@ -2,7 +2,8 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.4. (2021-07-XX)
+## 0.4.3 (2021-07-XX)
+- [DIMAP Products] Optimizing clouds loading
 - `stack` accepts **kwargs in order to pass options to `rioxarray.to_raster()`
 - [CI] BUG: Fixing network directories with pathlib
 - Fixing some type hints
