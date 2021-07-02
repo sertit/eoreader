@@ -1137,8 +1137,9 @@ class Product:
         self,
         bands: list,
         resolution: float = None,
-        stack_path: str = None,
+        stack_path: Union[str, CloudPath, Path] = None,
         save_as_int: bool = False,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Stack bands and index of a products.
@@ -1203,8 +1204,9 @@ class Product:
         Args:
             bands (list): Bands and index combination
             resolution (float): Stack resolution. . If not specified, use the product resolution.
-            stack_path (str): Stack path
+            stack_path (Union[str, CloudPath, Path]): Stack path
             save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
+            **kwargs: Other arguments passed to `rioxarray.to_raster()` such as `compress`
 
         Returns:
             xr.DataArray: Stack as a DataArray
@@ -1268,7 +1270,7 @@ class Product:
 
         # Write on disk
         if stack_path:
-            rasters.write(stack, stack_path, dtype=dtype)
+            rasters.write(stack, stack_path, dtype=dtype, **kwargs)
 
         # Close datasets
         for val in band_dict.values():

@@ -222,9 +222,9 @@ class Reader:
 
     def open(
         self,
-        product_path: str,
-        archive_path: str = None,
-        output_path: str = None,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
         method: CheckMethod = CheckMethod.MTD,
         remove_tmp: bool = False,
     ) -> "Product":  # noqa: F821
@@ -239,9 +239,9 @@ class Reader:
             <eoreader.products.optical.s2_product.S2Product object at 0x000001984986FAC8>
 
         Args:
-            product_path (str): Product path
-            archive_path (str): Archive path
-            output_path (str): Output Path
+            product_path (Union[str, CloudPath, Path]): Product path
+            archive_path (Union[str, CloudPath, Path]): Archive path
+            output_path (Union[str, CloudPath, Path]): Output Path
             method (CheckMethod): Checking method used to recognize the products
             remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
 
@@ -288,7 +288,9 @@ class Reader:
 
         return prod
 
-    def valid_name(self, product_path: str, platform: Union[str, Platform]) -> bool:
+    def valid_name(
+        self, product_path: Union[str, CloudPath, Path], platform: Union[str, Platform]
+    ) -> bool:
         """
         Check if the product's name is valid for the given satellite
 
@@ -316,7 +318,7 @@ class Reader:
             True
 
         Args:
-            product_path (str): Product path
+            product_path (Union[str, CloudPath, Path]): Product path
             platform (str): Platform's name or ID
 
         Returns:
