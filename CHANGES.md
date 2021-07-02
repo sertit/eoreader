@@ -3,8 +3,9 @@
 ## X.Y.Z (YYYY-MM-DD)
 
 ## 0.4.3 (2021-07-XX)
-- [DIMAP Products] Optimizing clouds loading
-- `stack` accepts **kwargs in order to pass options to `rioxarray.to_raster()`
+- [DIMAP Products] Optimizing loading cloud bands
+- `stack` accepts `**kwargs` in order to pass options to `rioxarray.to_raster()`
+- Fixing not found masks with S3+zip Sentinel-2 products
 - [CI] BUG: Fixing network directories with pathlib
 - Fixing some type hints
 

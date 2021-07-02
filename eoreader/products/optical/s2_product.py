@@ -19,6 +19,7 @@
 import logging
 import os
 import re
+import tempfile
 import zipfile
 from datetime import datetime
 from enum import unique
@@ -395,25 +396,35 @@ class S2Product(OpticalProduct):
         else:
             band_name = band
 
-        if self.is_archived:
-            # Open the zip file
-            # WE DON'T KNOW WHY BUT DO NOT USE files.read_archived_vector HERE !!!
-            with zipfile.ZipFile(self.path, "r") as zip_ds:
-                filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(
-                    f".*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml"
+        tmp_dir = tempfile.TemporaryDirectory()
+        try:
+            if self.is_archived:
+                # Open the zip file
+                # WE DON'T KNOW WHY BUT DO NOT USE files.read_archived_vector HERE !!!
+                with zipfile.ZipFile(self.path, "r") as zip_ds:
+                    filenames = [f.filename for f in zip_ds.filelist]
+                    regex = re.compile(
+                        f".*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml"
+                    )
+                    mask_path = zip_ds.extract(
+                        list(filter(regex.match, filenames))[0], tmp_dir.name
+                    )
+            else:
+                # Get mask path
+                mask_path = files.get_file_in_dir(
+                    self.path,
+                    f"**/*GRANULE/*/QI_DATA/MSK_{mask_str}_B{band_name}.gml",
+                    exact_name=True,
                 )
-                with zip_ds.open(list(filter(regex.match, filenames))[0]) as mask_path:
-                    mask = vectors.read(mask_path, crs=self.crs())
-        else:
-            # Get mask path
-            mask_path = files.get_file_in_dir(
-                self.path,
-                f"**/*GRANULE/*/QI_DATA/MSK_{mask_str}_B{band_name}.gml",
-                exact_name=True,
-            )
 
+            # Read vector
             mask = vectors.read(mask_path, crs=self.crs())
+
+        except Exception as ex:
+            raise InvalidProductError(ex) from ex
+
+        finally:
+            tmp_dir.cleanup()
 
         return mask
 
