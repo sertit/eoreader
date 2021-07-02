@@ -20,11 +20,13 @@ import tarfile
 from abc import abstractmethod
 from datetime import datetime
 from enum import unique
+from pathlib import Path
 from typing import Tuple, Union
 
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
 
@@ -81,9 +83,9 @@ class LandsatProduct(OpticalProduct):
 
     def __init__(
         self,
-        product_path: str,
-        archive_path: str = None,
-        output_path: str = None,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
     ) -> None:
         # Private

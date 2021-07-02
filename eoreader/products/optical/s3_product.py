@@ -21,6 +21,7 @@ import tempfile
 from datetime import datetime
 from enum import unique
 from functools import reduce
+from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
@@ -95,9 +96,9 @@ class S3Product(OpticalProduct):
 
     def __init__(
         self,
-        product_path: str,
-        archive_path: str = None,
-        output_path: str = None,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
     ) -> None:
         self._instrument_name = None
