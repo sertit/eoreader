@@ -2,6 +2,9 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.4. (2021-07-XX)
+- [CI] BUG: Fixing network directories with pathlib
+
 ## 0.4.2 (2021-07-01)
 
 - Feature: Enabling the use of products stored in the cloud

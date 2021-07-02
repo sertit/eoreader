@@ -55,7 +55,11 @@ def get_ci_db_dir() -> Union[CloudPath, Path]:
             return AnyPath(ci.get_db3_path(), "CI", "eoreader")
         except NotADirectoryError:
             # Windows
-            return AnyPath(r"\\ds2", "database03", "CI", "eoreader")
+            path = AnyPath(r"//ds2/database03/CI/eoreader")
+            if not path.is_dir():
+                raise NotADirectoryError("Impossible to find get_ci_db_dir")
+
+            return path
 
 
 def get_ci_data_dir() -> Union[CloudPath, Path]:
@@ -164,18 +168,18 @@ def get_db_dir() -> Union[CloudPath, Path]:
     Returns:
         str: Database directory
     """
-    db_dir = os.path.join(r"\\ds2", "database02", "BASES_DE_DONNEES")
+    db_dir = AnyPath(r"//ds2/database02/BASES_DE_DONNEES")
 
-    if not os.path.isdir(db_dir):
+    if not db_dir.is_dir():
         try:
-            db_dir = os.path.join(ci.get_db2_path(), "BASES_DE_DONNEES")
+            db_dir = AnyPath(ci.get_db2_path(), "BASES_DE_DONNEES")
         except NotADirectoryError:
-            db_dir = os.path.join("/home", "ds2_db2", "BASES_DE_DONNEES")
+            db_dir = AnyPath("/home", "ds2_db2", "BASES_DE_DONNEES")
 
-    if not os.path.isdir(db_dir):
+    if not db_dir.is_dir():
         raise NotADirectoryError("Impossible to open database directory !")
 
-    return AnyPath(db_dir)
+    return db_dir
 
 
 def s3_env(function: Callable):
@@ -191,10 +195,6 @@ def s3_env(function: Callable):
     @wraps(function)
     def s3_env_wrapper():
         """ S3 environment wrapper """
-        # os.environ[CI_EOREADER_S3] = "0"
-        # print("Using on disk files")
-        # function()
-
         if os.getenv(AWS_SECRET_ACCESS_KEY) and sys.platform != "win32":
             os.environ[CI_EOREADER_S3] = "1"
             print("Using S3 files")
@@ -206,7 +206,10 @@ def s3_env(function: Callable):
             ):
                 function()
 
+        else:
             os.environ[CI_EOREADER_S3] = "0"
+            print("Using on disk files")
+            function()
 
     return s3_env_wrapper
 
