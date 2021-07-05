@@ -18,12 +18,12 @@ tqdm
 lxml
 colorlog
 netCDF4
-rasterio >= 1.2.2
-xarray >= 0.18.0
-rioxarray >= 0.4.0
+rasterio>=1.2.2
+xarray>=0.18.0
+rioxarray>=0.4.0
 geopandas>=0.9.0
 rtree
 validators
 
 # SERTIT libs
-sertit[full] >=1.4.2
+sertit[full]>=1.4.3
