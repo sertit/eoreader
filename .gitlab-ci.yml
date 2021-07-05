@@ -18,7 +18,7 @@ lint:
     - tags
 
 pytest:
-  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest --cov-config=.coveragerc
   stage: test
   before_script:
     - python -m pip install --upgrade pip
