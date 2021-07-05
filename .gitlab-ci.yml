@@ -18,14 +18,14 @@ lint:
     - tags
 
 pytest:
-  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest --cov-config=.coveragerc
+  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
   stage: test
   before_script:
     - python -m pip install --upgrade pip
     - pip install -r requirements.txt --ignore-installed PyYAML
     - pip install -e .
   script:
-    - pytest -v --durations=0 --cov-report term --cov-report xml:cov.xml --cov=eoreader CI/SCRIPTS
+    - pytest -v --durations=0 --cov-report term --cov-report xml:cov.xml --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - linux
