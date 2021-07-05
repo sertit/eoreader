@@ -227,7 +227,6 @@ class OpticalProduct(Product):
                 )
 
                 # Write on disk
-
                 rasters.write(
                     band_arrays[band].rename(f"{to_str(band)[0]} CLEAN"), clean_band
                 )
