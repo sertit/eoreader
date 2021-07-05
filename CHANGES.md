@@ -2,7 +2,7 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.4.3 (2021-07-XX)
+## 0.4.3 (2021-07-05)
 - [DIMAP Products] Optimizing loading cloud bands
 - `stack` accepts `**kwargs` in order to pass options to `rioxarray.to_raster()`
 - Fixing not found masks with S3+zip Sentinel-2 products
