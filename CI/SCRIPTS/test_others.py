@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 import tempenv
 import xarray as xr
-from cloudpathlib import AnyPath
+from cloudpathlib import AnyPath, S3Client
 from lxml import etree
 
 from eoreader import utils
@@ -13,7 +13,15 @@ from eoreader.bands.alias import *
 from eoreader.bands.bands import OpticalBands, SarBandNames
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
 
-from .scripts_utils import READER, get_db_dir, opt_path, s3_env
+from .scripts_utils import (
+    AWS_ACCESS_KEY_ID,
+    AWS_S3_ENDPOINT,
+    AWS_SECRET_ACCESS_KEY,
+    READER,
+    get_db_dir,
+    opt_path,
+    s3_env,
+)
 
 
 @pytest.mark.xfail
@@ -111,15 +119,11 @@ def test_products():
         os.environ[DEM_PATH] = old_dem
 
 
-@s3_env
 @pytest.mark.skipif(
     S3_DB_URL_ROOT not in os.environ or sys.platform == "win32",
     reason="S3 DB not set or Rasterio bugs with http urls",
 )
-def test_dems():
-    if S3_DB_URL_ROOT not in os.environ:
-        raise Exception(f"Environment variable {S3_DB_URL_ROOT} is not set")
-
+def test_dems_https():
     # Get paths
     prod_path = opt_path().joinpath("LC08_L1TP_200030_20201220_20210310_02_T1")
 
@@ -137,11 +141,53 @@ def test_dems():
 
     # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
     with tempenv.TemporaryEnvironment({DEM_PATH: local_path}):  # Local DEM
-        dem_local = prod.load([DEM], resolution=30)
+        dem_local = prod.load(
+            [DEM], resolution=30
+        )  # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
     with tempenv.TemporaryEnvironment({DEM_PATH: remote_path}):  # Remote DEM
         dem_remote = prod.load([DEM], resolution=30)
 
     xr.testing.assert_equal(dem_local[DEM], dem_remote[DEM])
+
+
+@s3_env
+@pytest.mark.skipif(
+    AWS_ACCESS_KEY_ID not in os.environ,
+    reason="AWS S3 Compatible Storage IDs not set",
+)
+def test_dems_S3():
+    # Get paths
+    prod_path = opt_path().joinpath("LC08_L1TP_200030_20201220_20210310_02_T1")
+
+    # Open prods
+    prod = READER.open(prod_path)
+
+    # Test two different DEM source
+    dem_sub_dir_path = [
+        "GLOBAL",
+        "MERIT_Hydrologically_Adjusted_Elevations",
+        "MERIT_DEM.vrt",
+    ]
+    local_path = str(get_db_dir().joinpath(*dem_sub_dir_path))
+
+    # ON S3
+    client = S3Client(
+        endpoint_url=f"https://{AWS_S3_ENDPOINT}",
+        aws_access_key_id=os.getenv(AWS_ACCESS_KEY_ID),
+        aws_secret_access_key=os.getenv(AWS_SECRET_ACCESS_KEY),
+    )
+    client.set_as_default_client()
+    s3_path = str(AnyPath("s3://sertit-geodatastore").joinpath(*dem_sub_dir_path))
+
+    # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
+    with tempenv.TemporaryEnvironment({DEM_PATH: local_path}):  # Local DEM
+        dem_local = prod.load(
+            [DEM], resolution=30
+        )  # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
+    with tempenv.TemporaryEnvironment({DEM_PATH: s3_path}):  # S3 DEM
+        dem_s3 = prod.load([DEM], resolution=30)
+
+    xr.testing.assert_equal(dem_local[DEM], dem_s3[DEM])
 
 
 def test_bands():

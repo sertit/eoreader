@@ -2,6 +2,9 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.4.3.post0 (2021-07-08)
+- BUG: Fixing DEM_PATH using S3 Paths
+
 ## 0.4.3 (2021-07-05)
 - [DIMAP Products] Optimizing loading cloud bands
 - `stack` accepts `**kwargs` in order to pass options to `rioxarray.to_raster()`
