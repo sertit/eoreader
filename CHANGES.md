@@ -4,6 +4,7 @@
 
 ## 0.4.3.post1 (2021-07-08)
 - BUG: Fixing another bug for DEM_PATH using S3 Paths
+- Add a DOI
 
 ## 0.4.3.post0 (2021-07-08)
 - BUG: Fixing DEM_PATH using S3 Paths
