@@ -926,8 +926,10 @@ class Product:
                 )
 
             # Check existence (SRTM)
-            if not validators.url(dem_path) and not os.path.isfile(dem_path):
-                raise FileNotFoundError(f"DEM file does not exist here: {dem_path}")
+            if not validators.url(dem_path):
+                dem_path = AnyPath(dem_path)
+                if not dem_path.is_file():
+                    raise FileNotFoundError(f"DEM file does not exist here: {dem_path}")
 
             # Reproject DEM into products CRS
             with rasterio.open(str(self.get_default_band_path())) as prod_dst:
