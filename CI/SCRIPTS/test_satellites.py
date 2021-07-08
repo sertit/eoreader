@@ -145,7 +145,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
             # Discard the case where an invalid file/directory is in the CI folder
             if prod is not None:
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    # tmp_dir = os.path.join(get_ci_data_dir(), "OUTPUT")
+                    # tmp_dir = os.path.join("/opt", "project", "EOREADER_OUTPUT")
                     prod.output = tmp_dir
 
                     # Env var
@@ -219,7 +219,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                         prod.condensed_name, "stack.tif"
                     )
                     if debug or not ci_data.is_file():
-                        curr_path = get_ci_data_dir().joinpath(
+                        curr_path = prod.output.joinpath(
                             prod.condensed_name, "stack.tif"
                         )
                     else:
