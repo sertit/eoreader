@@ -1289,11 +1289,13 @@ class Product:
         else:
             dem_path = os.environ.get(DEM_PATH)
             # URLs and file paths are required
-            if not validators.url(dem_path) and not os.path.isfile(dem_path):
-                raise FileNotFoundError(
-                    f"{dem_path} is not a file! "
-                    f"Please set the environment variable {DEM_PATH} to an existing file."
-                )
+            if not validators.url(dem_path):
+                dem_path = AnyPath(dem_path)
+                if not dem_path.is_file():
+                    raise FileNotFoundError(
+                        f"{dem_path} is not a file! "
+                        f"Please set the environment variable {DEM_PATH} to an existing file."
+                    )
 
     def _read_mtd(self, mtd_from_path: str, mtd_archived: str = None):
         """
