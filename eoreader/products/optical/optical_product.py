@@ -334,22 +334,26 @@ class OpticalProduct(Product):
 
         # Load band arrays (only keep unique bands: open them only one time !)
         unique_bands = list(set(bands_to_load))
-        LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
+        if unique_bands:
+            LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
         bands = self._load_bands(unique_bands, resolution=resolution, size=size)
 
         # Compute index (they conserve the nodata)
-        LOGGER.debug(f"Loading index {to_str(index_list)}")
+        if index_list:
+            LOGGER.debug(f"Loading index {to_str(index_list)}")
         bands_dict = {idx: idx(bands) for idx in index_list}
 
         # Add bands
         bands_dict.update({band: bands[band] for band in band_list})
 
         # Add DEM
-        LOGGER.debug(f"Loading DEM bands {to_str(dem_list)}")
+        if dem_list:
+            LOGGER.debug(f"Loading DEM bands {to_str(dem_list)}")
         bands_dict.update(self._load_dem(dem_list, resolution=resolution, size=size))
 
         # Add Clouds
-        LOGGER.debug(f"Loading Cloud bands {to_str(clouds_list)}")
+        if clouds_list:
+            LOGGER.debug(f"Loading Cloud bands {to_str(clouds_list)}")
         bands_dict.update(
             self._load_clouds(clouds_list, resolution=resolution, size=size)
         )
