@@ -2,6 +2,9 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.4.X (2021-YY-ZZ)
+- Adding condensed name in the search when loading S3-SLSTR clouds
+
 ## 0.4.4 (2021-07-13)
 - Do not verbose empty lists when loading optical bands
 - Sentinel-3: Bands processed by SNAP are written with the condensed name as suffix
