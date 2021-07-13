@@ -10,7 +10,7 @@ from CI.SCRIPTS.scripts_utils import CI_EOREADER_S3, opt_path, s3_env, sar_path
 from eoreader.bands.alias import *
 from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES
 from eoreader.products.product import Product, SensorType
-from eoreader.reader import CheckMethod, Reader
+from eoreader.reader import Reader
 from eoreader.utils import EOREADER_NAME
 from sertit import files, logs
 
@@ -78,12 +78,12 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
             )
 
             # Open product and set output
-            prod: Product = READER.open(path, method=CheckMethod.MTD)
+            prod: Product = READER.open(path)
 
             # Discard the case where an invalid file/directory is in the CI folder
             if prod is not None:
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    # tmp_dir = os.path.join(get_ci_data_dir(), "OUTPUT")
+                    # tmp_dir = os.path.join("/home", "data", "OUTPUT")
                     prod.output = tmp_dir
 
                     # Get stack bands

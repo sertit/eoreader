@@ -1272,6 +1272,9 @@ class Product:
 
         # Write on disk
         if stack_path:
+            stack_path = AnyPath(stack_path)
+            if not stack_path.parent.exists():
+                os.makedirs(str(stack_path.parent), exist_ok=True)
             rasters.write(stack, stack_path, dtype=dtype, **kwargs)
 
         # Close datasets
