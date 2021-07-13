@@ -701,8 +701,16 @@ class S3Product(OpticalProduct):
                 with rioxarray.open_rasterio(
                     str(rasters.get_dim_img_path(out_dim, snap_band_name))
                 ) as arr:
-                    arr = arr.where(arr != self._snap_no_data)
-                    rasters.write(arr, out_tif, dtype=np.float32)
+                    if arr.dtype == np.uint8:
+                        nodata_val = 255  # Exceptions
+                    elif arr.dtype == np.uint16:
+                        nodata_val = 65535  # Clouds
+                    elif arr.dtype == np.int32:
+                        nodata_val = 2147483647  # Quality flags
+                    else:
+                        nodata_val = self._snap_no_data
+                    arr = arr.where(arr != nodata_val)
+                    rasters.write(arr, out_tif)
 
         # Get the wanted bands (not the quality flags here !)
         for band in processed_bands:
