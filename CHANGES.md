@@ -4,6 +4,7 @@
 
 ## 0.4.4 (2021-07-XX)
 - Do not verbose empty lists when loading optical bands
+- Sentinel-3: Bands processed by SNAP are written with the condensed name as suffix
 
 ## 0.4.3.post1 (2021-07-08)
 - BUG: Fixing another bug for DEM_PATH using S3 Paths

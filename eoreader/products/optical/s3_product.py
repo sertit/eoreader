@@ -393,7 +393,8 @@ class S3Product(OpticalProduct):
                 try:
                     # Try to open converted images
                     band_paths[band] = files.get_file_in_dir(
-                        self._get_band_folder(), band_name + ".tif"
+                        self._get_band_folder(),
+                        f"{self.condensed_name}_{band_name}.tif",
                     )
                 except (FileNotFoundError, TypeError):
                     use_snap = True
@@ -546,7 +547,9 @@ class S3Product(OpticalProduct):
         sat_band_id = band_bit_id[band]
 
         # Open quality flags
-        qual_flags_path = self._get_band_folder().joinpath("quality_flags.tif")
+        qual_flags_path = self._get_band_folder().joinpath(
+            f"{self.condensed_name}_quality_flags.tif"
+        )
         if not qual_flags_path.is_file():
             LOGGER.warning(
                 "Impossible to open quality flags %s. Taking the band as is.",
@@ -603,7 +606,7 @@ class S3Product(OpticalProduct):
 
         # Open quality flags (discard _an/_in)
         qual_flags_path = self._get_band_folder().joinpath(
-            self._get_slstr_quality_flags_name(band)[:-3] + ".tif"
+            f"{self.condensed_name}_{self._get_slstr_quality_flags_name(band)[:-3]}.tif"
         )
         if not qual_flags_path.is_file():
             LOGGER.warning(
@@ -688,7 +691,9 @@ class S3Product(OpticalProduct):
 
                 # Remove tif if already existing
                 # (if we are here, sth has failed when creating them, so delete them all)
-                out_tif = self._tmp_process.joinpath(band_name + ".tif")
+                out_tif = self._tmp_process.joinpath(
+                    f"{self.condensed_name}_{band_name}.tif"
+                )
                 if out_tif.is_file():
                     files.remove(out_tif)
 
@@ -703,7 +708,9 @@ class S3Product(OpticalProduct):
         for band in processed_bands:
             filename = self._get_band_filename(band)
             if "exception" not in filename:
-                out_tif = self._tmp_process.joinpath(filename + ".tif")
+                out_tif = self._tmp_process.joinpath(
+                    f"{self.condensed_name}_{band_name}.tif"
+                )
                 if not out_tif.is_file():
                     raise FileNotFoundError(
                         f"Error when processing S3 bands with SNAP. Couldn't find {out_tif}"
