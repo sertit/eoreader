@@ -2,7 +2,7 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.4.4 (2021-07-XX)
+## 0.4.4 (2021-07-13)
 - Do not verbose empty lists when loading optical bands
 - Sentinel-3: Bands processed by SNAP are written with the condensed name as suffix
 
