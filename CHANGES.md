@@ -2,7 +2,7 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.4.X (2021-YY-ZZ)
+## 0.4.5 (2021-07-13)
 - Adding condensed name in the search when loading S3-SLSTR clouds
 - FIX: Fixing no data for Sentinel-3 bands processed by SNAP
 - FIX: Fix bug when stack path's directory doesn't exist

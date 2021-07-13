@@ -17,7 +17,7 @@
 """
 **EOReader** library
 """
-__version__ = "0.4.4"
+__version__ = "0.4.5"
 __title__ = "eoreader"
 __description__ = (
     "Remote-sensing opensource python library reading optical and SAR sensors, "
