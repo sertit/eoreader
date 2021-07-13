@@ -26,7 +26,7 @@ def _test_core_optical(pattern: str, debug=False):
         pattern (str): Pattern of the satellite
         debug (bool): Debug option
     """
-    possible_bands = [RED]
+    possible_bands = [RED, CLOUDS]
     _test_core(pattern, opt_path(), possible_bands, debug)
 
 

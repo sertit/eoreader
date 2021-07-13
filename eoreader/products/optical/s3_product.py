@@ -1035,11 +1035,13 @@ class S3Product(OpticalProduct):
 
             try:
                 cloud_path = files.get_file_in_dir(
-                    self._get_band_folder(), "cloud_RAD.tif"
+                    self._get_band_folder(), f"{self.condensed_name}_cloud_RAD.tif"
                 )
             except FileNotFoundError:
                 self._preprocess_s3(resolution)
-                cloud_path = files.get_file_in_dir(self._tmp_process, "cloud_RAD.tif")
+                cloud_path = files.get_file_in_dir(
+                    self._tmp_process, f"{self.condensed_name}_cloud_RAD.tif"
+                )
 
             if not cloud_path:
                 raise FileNotFoundError(
