@@ -2,6 +2,11 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.4.6 (2021-07-XX)
+- FIX: Fixing no data for Sentinel-3 cloud bands
+- CI: Set default S3 client to point to unistra's bucket
+- CI: Tox SNAP relay S3_DB_URL_ROOT
+
 ## 0.4.5 (2021-07-13)
 - Adding condensed name in the search when loading S3-SLSTR clouds
 - FIX: Fixing no data for Sentinel-3 bands processed by SNAP

@@ -41,12 +41,7 @@ def get_ci_db_dir() -> Union[CloudPath, Path]:
     """
     if int(os.getenv(CI_EOREADER_S3, 0)):
         # ON S3
-        client = S3Client(
-            endpoint_url=f"https://{AWS_S3_ENDPOINT}",
-            aws_access_key_id=os.getenv(AWS_ACCESS_KEY_ID),
-            aws_secret_access_key=os.getenv(AWS_SECRET_ACCESS_KEY),
-        )
-        client.set_as_default_client()
+        define_s3_client()
         return AnyPath("s3://sertit-eoreader-ci")
     else:
         # ON DISK
@@ -196,6 +191,8 @@ def s3_env(function: Callable):
     def s3_env_wrapper():
         """ S3 environment wrapper """
         if os.getenv(AWS_SECRET_ACCESS_KEY) and sys.platform != "win32":
+            # Define S3 client for S3 paths
+            define_s3_client()
             os.environ[CI_EOREADER_S3] = "1"
             print("Using S3 files")
             with rasterio.Env(
@@ -212,6 +209,19 @@ def s3_env(function: Callable):
             function()
 
     return s3_env_wrapper
+
+
+def define_s3_client():
+    """
+    Define S3 client
+    """
+    # ON S3
+    client = S3Client(
+        endpoint_url=f"https://{AWS_S3_ENDPOINT}",
+        aws_access_key_id=os.getenv(AWS_ACCESS_KEY_ID),
+        aws_secret_access_key=os.getenv(AWS_SECRET_ACCESS_KEY),
+    )
+    client.set_as_default_client()
 
 
 def opt_path():

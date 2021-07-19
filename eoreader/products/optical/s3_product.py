@@ -1066,8 +1066,7 @@ class S3Product(OpticalProduct):
             ).astype(np.uint16)
 
             # Get nodata mask
-            # nodata = np.where(np.isnan(clouds_array), 1, 0)
-            nodata = np.where(clouds_array == 65535, 1, 0)
+            nodata = np.where(np.isnan(clouds_array), 1, 0)
 
             for band in bands:
                 if band == ALL_CLOUDS:
