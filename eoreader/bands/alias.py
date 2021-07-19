@@ -110,7 +110,7 @@ CIRRUS = _clouds.CIRRUS  # Cirrus detected
 ALL_CLOUDS = _clouds.ALL_CLOUDS
 
 
-def is_clouds(classif: _tp.Any) -> bool:
+def is_clouds(clouds: _tp.Any) -> bool:
     """
     Returns True if we have a Clouds-related keyword
 
@@ -129,8 +129,8 @@ def is_clouds(classif: _tp.Any) -> bool:
         True
     """
     try:
-        is_valid = classif in _clouds
-    except TypeError:
+        is_valid = _clouds(clouds)
+    except ValueError:
         is_valid = False
     return is_valid
 
@@ -154,8 +154,8 @@ def is_dem(dem: _tp.Any) -> bool:
         False
     """
     try:
-        is_valid = dem in _dem
-    except TypeError:
+        is_valid = _dem(dem)
+    except ValueError:
         is_valid = False
     return is_valid
 
@@ -220,8 +220,8 @@ def is_optical_band(band: _tp.Any) -> bool:
 
     """
     try:
-        is_valid = band in _obn
-    except TypeError:
+        is_valid = _obn(band)
+    except ValueError:
         is_valid = False
     return is_valid
 
@@ -252,8 +252,8 @@ def is_sar_band(band: _tp.Any) -> bool:
 
     """
     try:
-        is_valid = band in _sbn
-    except TypeError:
+        is_valid = _sbn(band)
+    except ValueError:
         is_valid = False
     return is_valid
 
