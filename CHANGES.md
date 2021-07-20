@@ -7,6 +7,7 @@
 - FIX: Some typehints fixes
 - CI: Do not reinstall everything if not needed (only PyYAML)
 - CI: renaming `build` stage into `lint`
+- CI: simplifying geometry comparison
 
 ## 0.4.6 (2021-07-19)
 - FIX: Fixing no data for Sentinel-3 cloud bands

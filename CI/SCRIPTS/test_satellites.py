@@ -18,7 +18,7 @@ from eoreader.env_vars import (
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod, Platform
 from eoreader.utils import EOREADER_NAME
-from sertit import ci, files, logs, vectors
+from sertit import ci, files, logs
 
 from .scripts_utils import (
     CI_EOREADER_S3,
@@ -133,9 +133,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
             )
 
             # Open product and set output
-            prod: Product = READER.open(
-                path, method=CheckMethod.MTD, remove_tmp=not debug
-            )
+            prod: Product = READER.open(path, method=CheckMethod.MTD, remove_tmp=False)
             prod_name = READER.open(path, method=CheckMethod.NAME)
             prod_both = READER.open(path, method=CheckMethod.BOTH)
             assert prod is not None
@@ -145,7 +143,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
             # Discard the case where an invalid file/directory is in the CI folder
             if prod is not None:
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    # tmp_dir = os.path.join("/opt", "project", "EOREADER_OUTPUT")
+                    # tmp_dir = os.path.join("/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT")
                     prod.output = tmp_dir
 
                     # Env var
@@ -174,19 +172,12 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     extent_path = get_ci_data_dir().joinpath(
                         prod.condensed_name, "extent.geojson"
                     )
-                    if not extent_path.is_file():
-                        os.makedirs(
-                            get_ci_data_dir().joinpath(prod.condensed_name),
-                            exist_ok=True,
-                        )
-                        extent.to_file(extent_path, driver="GeoJSON")
-
                     try:
-                        ci.assert_geom_equal(extent, vectors.read(extent_path))
+                        ci.assert_geom_equal(extent, extent_path)
                     except AssertionError:
-                        assert_geom_almost_equal(
-                            extent, vectors.read(extent_path)
-                        )  # TODO: WHY ???
+                        # TODO: WHY ???
+                        LOGGER.warning("Extent not equal, trying almost equal.")
+                        assert_geom_almost_equal(extent, extent_path)
 
                     # Footprint
                     LOGGER.info("Checking footprint")
@@ -194,15 +185,13 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     footprint_path = get_ci_data_dir().joinpath(
                         prod.condensed_name, "footprint.geojson"
                     )
-                    if not footprint_path.is_file():
-                        footprint.to_file(footprint_path, driver="GeoJSON")
 
                     try:
-                        ci.assert_geom_equal(footprint, vectors.read(footprint_path))
+                        ci.assert_geom_equal(footprint, footprint_path)
                     except AssertionError:
-                        assert_geom_almost_equal(
-                            footprint, vectors.read(footprint_path)
-                        )  # Has not happen for now
+                        # Has not happened for now
+                        LOGGER.warning("Extent not equal, trying almost equal.")
+                        assert_geom_almost_equal(footprint, footprint_path)
 
                     # Remove DEM tifs if existing
                     remove_dem(prod)
@@ -218,7 +207,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     ci_data = get_ci_data_dir().joinpath(
                         prod.condensed_name, "stack.tif"
                     )
-                    if debug or not ci_data.is_file():
+                    if debug:
                         curr_path = prod.output.joinpath(
                             prod.condensed_name, "stack.tif"
                         )
