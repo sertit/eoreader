@@ -13,7 +13,7 @@ from cloudpathlib import AnyPath, CloudPath, S3Client
 
 from eoreader.reader import Reader
 from eoreader.utils import EOREADER_NAME
-from sertit import ci
+from sertit import ci, vectors
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 READER = Reader()
@@ -121,7 +121,9 @@ def assert_raster_almost_equal(path_1: str, path_2: str, decimal: int = 5) -> No
 
 
 def assert_geom_almost_equal(
-    geom_1: gpd.GeoDataFrame, geom_2: gpd.GeoDataFrame, decimal: int = 5
+    geom_1: Union[str, CloudPath, Path, gpd.GeoDataFrame],
+    geom_2: Union[str, CloudPath, Path, gpd.GeoDataFrame],
+    decimal: int = 5,
 ) -> None:
     """
     Assert that two geometries are almost equal
@@ -142,10 +144,15 @@ def assert_geom_almost_equal(
          - CRS
 
     Args:
-        geom_1 (gpd.GeoDataFrame): Geometry 1
-        geom_2 (gpd.GeoDataFrame): Geometry 2
+        geom_1 (Union[str, CloudPath, Path, gpd.GeoDataFrame]): Geometry 1
+        geom_2 (Union[str, CloudPath, Path, gpd.GeoDataFrame]): Geometry 2
         decimal (int): Accepted decimals
     """
+    if not isinstance(geom_1, gpd.GeoDataFrame):
+        geom_1 = vectors.read(geom_1)
+    if not isinstance(geom_2, gpd.GeoDataFrame):
+        geom_2 = vectors.read(geom_2)
+
     assert len(geom_1) == len(geom_2)
     assert geom_1.crs == geom_2.crs
     for idx in range(len(geom_1)):
