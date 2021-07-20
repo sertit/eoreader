@@ -22,7 +22,7 @@ pytest:
   stage: test
   before_script:
     - python -m pip install --upgrade pip
-    - pip install -r requirements.txt --ignore-installed PyYAML
+    - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
     - pytest -v --durations=0 --cov-report term --cov-report xml:cov.xml --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS
