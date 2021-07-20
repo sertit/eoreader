@@ -249,7 +249,7 @@ class SarProduct(Product):
 
     # Parameters differ from overridden 'get_default_band_path' method (arguments-differ)
     # pylint: disable=W0221
-    def get_default_band_path(self) -> str:
+    def get_default_band_path(self) -> Union[CloudPath, Path]:
         """
         Get default band path (the first existing one between `VV` and `HH` for SAR data), ready to use (orthorectified)
 
@@ -266,7 +266,7 @@ class SarProduct(Product):
             '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif'
 
         Returns:
-            str: Default band path
+            Union[CloudPath, Path]: Default band path
         """
         default_band = self.get_default_band()
         band_path = self.get_band_paths([default_band])
