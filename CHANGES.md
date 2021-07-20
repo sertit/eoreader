@@ -3,6 +3,10 @@
 ## X.Y.Z (YYYY-MM-DD)
 
 ## 0.4.6 (2021-07-19)
+- FIX: `DIMAP` products return always projected (in UTM) default bands (`get_default_band_path` uses `_get_default_utm_band`)
+- FIX: Some typehints fixes
+
+## 0.4.6 (2021-07-19)
 - FIX: Fixing no data for Sentinel-3 cloud bands
 - FIX: In alias: `DeprecationWarning: using non-Enums in containment checks will raise TypeError in Python 3.8`
 - CI: Set default S3 client to point to unistra's bucket

@@ -261,8 +261,8 @@ class DimapProduct(OpticalProduct):
             vertices = [v for v in root.iterfind(".//Vertex")]
 
             # Get the mean lon lat
-            lon = np.mean([float(v.findtext("LON")) for v in vertices])
-            lat = np.mean([float(v.findtext("LAT")) for v in vertices])
+            lon = float(np.mean([float(v.findtext("LON")) for v in vertices]))
+            lat = float(np.mean([float(v.findtext("LAT")) for v in vertices]))
 
             # Compute UTM crs from center long/lat
             utm = vectors.corresponding_utm_projection(lon, lat)
@@ -270,13 +270,16 @@ class DimapProduct(OpticalProduct):
 
         return utm
 
-    def get_default_band_path(self) -> str:
+    def get_default_band_path(self) -> Union[CloudPath, Path]:
         """
         Get default band (`GREEN` for optical data) path.
 
         .. WARNING:
             If you are using a non orthorectified product, this function will orthorectify the stack.
             To do so, you **MUST** provide a DEM trough the EOREADER_DEM_PATH environment variable
+
+        .. WARNING:
+            If you are using a non projected product, this function will reproject the stack.
 
         .. code-block:: python
 
@@ -287,12 +290,9 @@ class DimapProduct(OpticalProduct):
             'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML'
 
         Returns:
-            str: Default band path
+            Union[CloudPath, Path]: Default band path
         """
-        default_band = self.get_default_band()
-        return self.get_band_paths([default_band], resolution=self.resolution)[
-            default_band
-        ]
+        return self._get_default_utm_band(self.resolution)
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
@@ -1033,7 +1033,7 @@ class DimapProduct(OpticalProduct):
     def _warp_band(
         self,
         path: Union[str, CloudPath, Path],
-        band: obn,
+        band: BandNames,
         reproj_path: Union[str, CloudPath, Path],
         resolution: float = None,
     ) -> None:
@@ -1088,7 +1088,7 @@ class DimapProduct(OpticalProduct):
 
     def _get_default_utm_band(
         self, resolution: float = None, size: Union[list, tuple] = None
-    ) -> str:
+    ) -> Union[CloudPath, Path]:
         """
         Get the default UTM band:
         - If one already exists, get it
@@ -1101,7 +1101,10 @@ class DimapProduct(OpticalProduct):
         Returns:
             str: Default UTM path
         """
-        def_path = self.get_default_band_path()
+        default_band = self.get_default_band()
+        def_path = self.get_band_paths([default_band], resolution=self.resolution)[
+            default_band
+        ]
         with rasterio.open(str(def_path)) as dst:
             # Compute resolution from size
             if resolution is None and size is not None:

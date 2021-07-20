@@ -356,7 +356,7 @@ class Product:
         return date
 
     @abstractmethod
-    def get_default_band_path(self) -> str:
+    def get_default_band_path(self) -> Union[CloudPath, Path]:
         """
         Get default band path (among the existing ones).
 
@@ -371,7 +371,7 @@ class Product:
             'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'
 
         Returns:
-            str: Default band path
+            Union[CloudPath, Path]: Default band path
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
