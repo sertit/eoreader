@@ -1,5 +1,5 @@
 stages:
-  - build
+  - lint
   - test
   - weekly_tests
   - publish
@@ -7,7 +7,7 @@ stages:
 
 lint:
   image: python:3.7-buster
-  stage: build
+  stage: lint
   script:
     - python -m pip install --upgrade pip
     - pip install flake8

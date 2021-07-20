@@ -6,6 +6,7 @@
 - FIX: `DIMAP` products return always projected (in UTM) default bands (`get_default_band_path` uses `_get_default_utm_band`)
 - FIX: Some typehints fixes
 - CI: Do not reinstall everything if not needed (only PyYAML)
+- CI: renaming `build` stage into `lint`
 
 ## 0.4.6 (2021-07-19)
 - FIX: Fixing no data for Sentinel-3 cloud bands
