@@ -2,12 +2,18 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.4.7 (2021-07-20)
+## 0.4.7 (2021-07-22)
+- ENH: Adding a `default_transform` function returning data from default band (without warping it) -> *mapping `calculate_default_transform` from `rasterio`*
+- ENH: Simplifying DEM warping code
 - FIX: `DIMAP` products return always projected (in UTM) default bands (`get_default_band_path` uses `_get_default_utm_band`)
+- FIX: Theia Footprint returns a `GeoDataFrame` instead of a `GeoSeries`
+- FIX: Better management of the `size` keyword with `load` and `stack` functions
+- FIX: Landsat retrieval of multipart cleaned bands (like `SWIR_1`)
 - FIX: Some typehints fixes
 - CI: Do not reinstall everything if not needed (only PyYAML)
 - CI: renaming `build` stage into `lint`
 - CI: simplifying geometry comparison
+- CI: Testing the `size` keyword for every sensor
 
 ## 0.4.6 (2021-07-19)
 - FIX: Fixing no data for Sentinel-3 cloud bands

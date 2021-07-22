@@ -32,6 +32,9 @@ import rioxarray
 from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs
 from rasterio.enums import Resampling
+from sertit import files, misc, rasters, snap, strings, vectors
+from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
 
 from eoreader import utils
 from eoreader.bands.alias import (
@@ -49,9 +52,6 @@ from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTy
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
-from sertit import files, misc, rasters, snap, strings, vectors
-from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -616,6 +616,9 @@ class SarProduct(Product):
         # Get band paths
         if not isinstance(bands, list):
             bands = [bands]
+
+        if resolution is None and size is not None:
+            resolution = self._resolution_from_size(size)
         band_paths = self.get_band_paths(bands, resolution)
 
         # Open bands and get array (resampled if needed)

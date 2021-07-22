@@ -75,7 +75,7 @@ def test_alias():
 def test_products():
     # Get paths
     prod1_path = opt_path().joinpath(
-        "LC08_L1TP_200030_20201220_20210310_02_T1"
+        "LC08_L1TP_200030_20201220_20210310_02_T1.tar"
     )  # Newer
     prod2_path = opt_path().joinpath(
         "LM03_L1GS_033028_19820906_20180414_01_T2"
@@ -98,12 +98,6 @@ def test_products():
     assert isinstance(mtd_pd, pd.DataFrame)
     assert isinstance(mtd_xml, etree._Element)
     assert nmsp == {}
-
-    # Check size
-    green = prod1.load([GREEN], resolution=300)
-    green2 = prod1.load([GREEN], size=(green[GREEN].rio.width, green[GREEN].rio.height))
-
-    xr.testing.assert_equal(green[GREEN], green2[GREEN])
 
     # Test without a DEM set:
     old_dem = None
@@ -157,7 +151,7 @@ def test_dems_https():
 )
 def test_dems_S3():
     # Get paths
-    prod_path = opt_path().joinpath("LC08_L1TP_200030_20201220_20210310_02_T1")
+    prod_path = opt_path().joinpath("LC08_L1TP_200030_20201220_20210310_02_T1.tar")
 
     # Open prods
     prod = READER.open(prod_path)

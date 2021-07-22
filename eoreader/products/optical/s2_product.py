@@ -31,6 +31,9 @@ import xarray as xr
 from lxml import etree
 from rasterio import features, transform
 from rasterio.enums import Resampling
+from sertit import files, rasters, vectors
+from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
 
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
@@ -38,9 +41,6 @@ from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, rasters, vectors
-from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -211,6 +211,10 @@ class S2Product(OpticalProduct):
         Returns:
             dict: Dictionary containing the folder path for each queried band
         """
+        if resolution is not None:
+            if isinstance(resolution, (list, tuple)):
+                resolution = resolution[0]
+
         # Open the band directory names
         s2_bands_folder = {}
 
@@ -518,7 +522,9 @@ class S2Product(OpticalProduct):
         if not bands:
             return {}
 
-        band_paths = self.get_band_paths(bands, resolution)
+        if resolution is None and size is not None:
+            resolution = self._resolution_from_size(size)
+        band_paths = self.get_band_paths(bands, resolution=resolution)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)

@@ -33,11 +33,17 @@ import numpy as np
 import rasterio
 import validators
 import xarray as xr
+from affine import Affine
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from rasterio import warp
+from rasterio import transform, warp
+from rasterio.crs import CRS
 from rasterio.enums import Resampling
+from sertit import files, misc, rasters, strings
+from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
+from sertit.snap import MAX_CORES
 
 from eoreader.bands import index
 from eoreader.bands.alias import *
@@ -46,10 +52,6 @@ from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
 from eoreader.exceptions import InvalidProductError
 from eoreader.reader import Platform, Reader
 from eoreader.utils import EOREADER_NAME
-from sertit import files, misc, rasters, strings
-from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
-from sertit.snap import MAX_CORES
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
@@ -932,101 +934,74 @@ class Product:
                     raise FileNotFoundError(f"DEM file does not exist here: {dem_path}")
 
             # Reproject DEM into products CRS
-            with rasterio.open(str(self.get_default_band_path())) as prod_dst:
-                LOGGER.debug("Using DEM: %s", dem_path)
-                with rasterio.open(str(dem_path)) as dem_ds:
-                    # Get adjusted transform and shape (with new resolution)
-                    if size is not None and resolution is None:
-                        try:
-
-                            # Get destination transform
-                            out_h = size[1]
-                            out_w = size[0]
-
-                            # Get destination transform
-                            coeff_x = prod_dst.width / out_w
-                            coeff_y = prod_dst.height / out_h
-                            dst_tr = prod_dst.transform
-                            dst_tr *= dst_tr.scale(coeff_x, coeff_y)
-
-                        except (TypeError, KeyError):
-                            raise ValueError(
-                                f"Size should exist (as resolution is None)"
-                                f" and castable to a list: {size}"
-                            )
-
-                    else:
-                        # Refine resolution
-                        if resolution is None:
-                            resolution = self.resolution
-                        res_x = (
-                            resolution[0]
-                            if isinstance(resolution, (tuple, list))
-                            else resolution
-                        )
-                        res_y = (
-                            resolution[1]
-                            if isinstance(resolution, (tuple, list))
-                            else resolution
-                        )
+            LOGGER.debug("Using DEM: %s", dem_path)
+            def_tr, def_w, def_h, def_crs = self.default_transform()
+            with rasterio.open(str(dem_path)) as dem_ds:
+                # Get adjusted transform and shape (with new resolution)
+                if size is not None and resolution is None:
+                    try:
 
                         # Get destination transform
-                        if prod_dst.crs.is_projected:
-                            dst_tr = prod_dst.transform
-                            width = prod_dst.width
-                            height = prod_dst.height
-                        else:
-                            (
-                                dst_tr,
-                                width,
-                                height,
-                            ) = rasterio.warp.calculate_default_transform(
-                                prod_dst.crs,
-                                self.crs(),
-                                prod_dst.width,
-                                prod_dst.height,
-                                *prod_dst.bounds,
-                                resolution=resolution,
-                            )
+                        out_h = size[1]
+                        out_w = size[0]
 
-                        coeff_x = np.abs(res_x / dst_tr.a)
-                        coeff_y = np.abs(res_y / dst_tr.e)
+                        # Get destination transform
+                        coeff_x = def_w / out_w
+                        coeff_y = def_h / out_h
+                        dst_tr = def_tr
                         dst_tr *= dst_tr.scale(coeff_x, coeff_y)
 
-                        # Get destination transform
-                        out_w = int(np.round(width / coeff_x))
-                        out_h = int(np.round(height / coeff_y))
-
-                    # Get empty output
-                    reprojected_array = np.zeros((1, out_h, out_w), dtype=np.float32)
-
-                    # Write reprojected DEM: here do not use utils.write()
-                    out_meta = prod_dst.meta.copy()
-                    out_meta["dtype"] = reprojected_array.dtype
-                    out_meta["crs"] = self.crs()
-                    out_meta["transform"] = dst_tr
-                    out_meta["driver"] = "GTiff"
-                    out_meta["width"] = out_w
-                    out_meta["height"] = out_h
-                    out_meta["count"] = 1
-                    with rasterio.open(
-                        str(warped_dem_path), "w", **out_meta
-                    ) as out_dst:
-                        out_dst.write(reprojected_array)
-
-                        # Reproject
-                        warp.reproject(
-                            source=rasterio.band(dem_ds, range(1, dem_ds.count + 1)),
-                            destination=rasterio.band(
-                                out_dst, range(1, out_dst.count + 1)
-                            ),
-                            resampling=resampling,
-                            num_threads=MAX_CORES,
-                            dst_transform=dst_tr,
-                            dst_crs=self.crs(),
-                            src_crs=dem_ds.crs,
-                            src_transform=dem_ds.meta["transform"],
+                    except (TypeError, KeyError):
+                        raise ValueError(
+                            f"Size should exist (as resolution is None)"
+                            f" and castable to a list: {size}"
                         )
+
+                else:
+                    # Refine resolution
+                    if resolution is None:
+                        resolution = self.resolution
+
+                    bounds = transform.array_bounds(def_h, def_w, def_tr)
+                    dst_tr, out_w, out_h = rasterio.warp.calculate_default_transform(
+                        def_crs,
+                        self.crs(),
+                        def_w,
+                        def_h,
+                        *bounds,
+                        resolution=resolution,
+                    )
+
+                # Get empty output
+                reprojected_array = np.zeros(
+                    (dem_ds.count, out_h, out_w), dtype=np.float32
+                )
+
+                # Write reprojected DEM: here do not use utils.write()
+                out_meta = {
+                    "driver": "GTiff",
+                    "dtype": reprojected_array.dtype,
+                    "nodata": self.nodata,
+                    "width": out_w,
+                    "height": out_h,
+                    "count": dem_ds.count,
+                    "crs": self.crs(),
+                    "transform": dst_tr,
+                }
+                with rasterio.open(str(warped_dem_path), "w", **out_meta) as out_dst:
+                    out_dst.write(reprojected_array)
+
+                    # Reproject
+                    warp.reproject(
+                        source=rasterio.band(dem_ds, range(1, dem_ds.count + 1)),
+                        destination=rasterio.band(out_dst, range(1, out_dst.count + 1)),
+                        resampling=resampling,
+                        num_threads=MAX_CORES,
+                        dst_transform=dst_tr,
+                        dst_crs=self.crs(),
+                        src_crs=dem_ds.crs,
+                        src_transform=dem_ds.transform,
+                    )
 
         return warped_dem_path
 
@@ -1139,6 +1114,7 @@ class Product:
         self,
         bands: list,
         resolution: float = None,
+        size: Union[list, tuple] = None,
         stack_path: Union[str, CloudPath, Path] = None,
         save_as_int: bool = False,
         **kwargs,
@@ -1206,6 +1182,7 @@ class Product:
         Args:
             bands (list): Bands and index combination
             resolution (float): Stack resolution. . If not specified, use the product resolution.
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             stack_path (Union[str, CloudPath, Path]): Stack path
             save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
             **kwargs: Other arguments passed to `rioxarray.to_raster()` such as `compress`
@@ -1213,11 +1190,11 @@ class Product:
         Returns:
             xr.DataArray: Stack as a DataArray
         """
-        if not resolution:
+        if not resolution and not size:
             resolution = self.resolution
 
         # Create the analysis stack
-        band_dict = self.load(bands, resolution)
+        band_dict = self.load(bands, resolution=resolution, size=size)
 
         # Convert into dataset with str as names
         xds = xr.Dataset(
@@ -1342,3 +1319,64 @@ class Product:
                 nsmap.pop(ns)
 
         return root, nsmap
+
+    def default_transform(self) -> (Affine, int, int, CRS):
+        """
+        Returns default transform data of the default band (UTM),
+        as the `rasterio.warp.calculate_default_transform` does:
+        - transform
+        - width
+        - height
+        - crs
+
+        Returns:
+            Affine, int, int: transform, width, height
+
+        """
+        with rasterio.open(str(self.get_default_band_path())) as dst:
+            return dst.transform, dst.width, dst.height, dst.crs
+
+    def _resolution_from_size(self, size: Union[list, tuple] = None) -> tuple:
+        """
+        Compute the corresponding resolution to a given size (positive resolution)
+
+        Args:
+            dst (rasterio.DatasetReader): Dataset
+            size (Union[list, tuple]): Size
+
+        Returns:
+            tuple: Resolution as a tuple (x, y)
+        """
+        def_tr, def_w, def_h, def_crs = self.default_transform()
+        bounds = transform.array_bounds(def_h, def_w, def_tr)
+
+        # Manage WGS84 case
+        if not def_crs.is_projected:
+            utm_tr, utm_w, utm_h = warp.calculate_default_transform(
+                def_crs,
+                self.crs(),
+                def_w,
+                def_h,
+                *bounds,
+                resolution=self.resolution,
+            )
+            resolution = (
+                abs(utm_tr.a * utm_w / size[0]),
+                abs(utm_tr.e * utm_h / size[1]),
+            )
+        # Manage UTM case
+        else:
+            resolution = (
+                abs(def_tr.a * def_w / size[0]),
+                abs(def_tr.e * def_h / size[1]),
+            )
+
+        return resolution
+
+    def clean_tmp(self):
+        """
+        Clean the temporary directory
+        """
+        if self._tmp_process.exists():
+            for tmp_file in self._tmp_process.glob("*"):
+                files.remove(tmp_file)

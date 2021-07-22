@@ -35,6 +35,9 @@ from lxml import etree
 from rasterio import features
 from rasterio.enums import Resampling
 from rasterio.windows import Window
+from sertit import files, misc, rasters, rasters_rio, snap, strings, vectors
+from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
 
 from eoreader import utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS
@@ -44,9 +47,6 @@ from eoreader.env_vars import S3_DEF_RES
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, misc, rasters, rasters_rio, snap, strings, vectors
-from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 BT_BANDS = [obn.MIR, obn.TIR_1, obn.TIR_2]
@@ -656,7 +656,10 @@ class S3Product(OpticalProduct):
         # Get band paths
         if not isinstance(bands, list):
             bands = [bands]
-        band_paths = self.get_band_paths(bands)
+
+        if resolution is None and size is not None:
+            resolution = self._resolution_from_size(size)
+        band_paths = self.get_band_paths(bands, resolution=resolution)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
