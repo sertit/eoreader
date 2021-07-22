@@ -34,12 +34,18 @@ import affine
 import geopandas as gpd
 import numpy as np
 import rasterio
-import rioxarray
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
 from rasterio import features, rpc, transform, warp
+from rasterio.crs import CRS
 from rasterio.enums import Resampling
+from sertit import files, rasters, rasters_rio, vectors
+from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
+from sertit.snap import MAX_CORES
+from sertit.vectors import WGS84
+from shapely.geometry import box
 
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
@@ -48,11 +54,6 @@ from eoreader.env_vars import DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, rasters, rasters_rio, vectors
-from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
-from sertit.snap import MAX_CORES
-from sertit.vectors import WGS84
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -249,24 +250,19 @@ class DimapProduct(OpticalProduct):
         Returns:
             rasterio.crs.CRS: CRS object
         """
-        if self.product_type in [DimapProductType.MOS, DimapProductType.ORT]:
-            band_path = self.get_default_band_path()
-            with rioxarray.open_rasterio(str(band_path)) as dst:
-                utm = dst.rio.estimate_utm_crs()
-        else:
-            # Open metadata
-            root, _ = self.read_mtd()
+        # Open metadata
+        root, _ = self.read_mtd()
 
-            # Open the Bounding_Polygon
-            vertices = [v for v in root.iterfind(".//Vertex")]
+        # Open the Bounding_Polygon
+        vertices = [v for v in root.iterfind(".//Vertex")]
 
-            # Get the mean lon lat
-            lon = float(np.mean([float(v.findtext("LON")) for v in vertices]))
-            lat = float(np.mean([float(v.findtext("LAT")) for v in vertices]))
+        # Get the mean lon lat
+        lon = float(np.mean([float(v.findtext("LON")) for v in vertices]))
+        lat = float(np.mean([float(v.findtext("LAT")) for v in vertices]))
 
-            # Compute UTM crs from center long/lat
-            utm = vectors.corresponding_utm_projection(lon, lat)
-            utm = riocrs.CRS.from_string(utm)
+        # Compute UTM crs from center long/lat
+        utm = vectors.corresponding_utm_projection(lon, lat)
+        utm = riocrs.CRS.from_string(utm)
 
         return utm
 
@@ -312,6 +308,26 @@ class DimapProduct(OpticalProduct):
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
         return self.open_mask("ROI").to_crs(self.crs())
+
+    def extent(self) -> gpd.GeoDataFrame:
+        """
+        Get UTM extent of the tile
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.utm_extent()
+                                                        geometry
+            0  POLYGON ((309780.000 4390200.000, 309780.000 4...
+
+        Returns:
+            gpd.GeoDataFrame: Footprint in UTM
+        """
+        def_tr, def_w, def_h, def_crs = self.default_transform()
+        bounds = transform.array_bounds(def_h, def_w, def_tr)
+        return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs)
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -511,7 +527,7 @@ class DimapProduct(OpticalProduct):
 
             # Compute resolution from size (if needed)
             if resolution is None and size is not None:
-                resolution = self.resolution_from_size(dst, size)
+                resolution = self._resolution_from_size(size)
 
             # Reproj path in case
             reproj_path = self._create_utm_band_path(
@@ -651,7 +667,9 @@ class DimapProduct(OpticalProduct):
             return {}
 
         # Get band paths
-        band_paths = self.get_band_paths(bands)
+        if resolution is None and size is not None:
+            resolution = self._resolution_from_size(size)
+        band_paths = self.get_band_paths(bands, resolution=resolution)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
@@ -1009,7 +1027,7 @@ class DimapProduct(OpticalProduct):
         return self._get_path("DIM_", "XML")
 
     def _create_utm_band_path(
-        self, band: str, resolution: Union[float, tuple, list]
+        self, band: str, resolution: Union[float, tuple, list] = None
     ) -> Union[CloudPath, Path]:
         """
         Create the UTM band path
@@ -1021,13 +1039,17 @@ class DimapProduct(OpticalProduct):
         Returns:
             Union[CloudPath, Path]: UTM band path
         """
-        try:
-            resolution = resolution[0]
-        except TypeError:
-            pass
+        if resolution:
+            try:
+                resolution = str(resolution).replace(".", "-")
+            except TypeError:
+                pass
+            res_str = f"_{str(resolution).replace('.', '-')}m"
+        else:
+            res_str = ""
 
         return self._get_band_folder().joinpath(
-            f"{self.condensed_name}_{band}_{str(resolution).replace('.', '-')}m.tif"
+            f"{self.condensed_name}_{band}{res_str}.tif"
         )
 
     def _warp_band(
@@ -1047,6 +1069,9 @@ class DimapProduct(OpticalProduct):
             resolution (int): Band resolution in meters
 
         """
+        if not resolution:
+            resolution = self.resolution
+
         LOGGER.info(
             f"Reprojecting band {band.name} to UTM with a {resolution} m resolution."
         )
@@ -1101,15 +1126,16 @@ class DimapProduct(OpticalProduct):
         Returns:
             str: Default UTM path
         """
-        default_band = self.get_default_band()
-        def_path = self.get_band_paths([default_band], resolution=self.resolution)[
-            default_band
-        ]
-        with rasterio.open(str(def_path)) as dst:
-            # Compute resolution from size
-            if resolution is None and size is not None:
-                resolution = self.resolution_from_size(dst, size)
+        # Manage resolution
+        if resolution is None and size is not None:
+            resolution = self._resolution_from_size(size)
+        def_res = resolution if resolution else self.resolution
 
+        # Get default band path
+        default_band = self.get_default_band()
+        def_path = self.get_band_paths([default_band], resolution=def_res)[default_band]
+
+        with rasterio.open(str(def_path)) as dst:
             # First look for reprojected bands
             reproj_regex = self._create_utm_band_path(band="*", resolution=resolution)
 
@@ -1139,35 +1165,24 @@ class DimapProduct(OpticalProduct):
 
         return path
 
-    def resolution_from_size(
-        self, dst: rasterio.DatasetReader, size: Union[list, tuple] = None
-    ) -> tuple:
+    def default_transform(self) -> (affine.Affine, int, int, CRS):
         """
-        Compute the corresponding resolution to a given size
+        Returns default transform data of the default band (UTM),
+        as the `rasterio.warp.calculate_default_transform` does:
+        - transform
+        - width
+        - height
+        - CRS
 
-        Args:
-            dst (rasterio.DatasetReader): Dataset
-            size (Union[list, tuple]): Size
+        Overload in order not to reproject WGS84 data
 
         Returns:
-            tuple: Resolution as a tuple (x, y)
-        """
-        # Manage WGS84 case
-        if not dst.crs.is_projected:
-            utm_tr, utm_w, utm_h = warp.calculate_default_transform(
-                dst.crs,
-                self.crs(),
-                dst.width,
-                dst.height,
-                *dst.bounds,
-                resolution=self.resolution,
-            )
-            resolution = (utm_tr.a * utm_w / size[0], utm_tr.e * utm_h / size[1])
-        # Manage UTM case
-        else:
-            resolution = (
-                dst.res[0] * dst.width / size[0],
-                dst.res[1] * dst.height / size[1],
-            )
+            Affine, int, int: transform, width, height
 
-        return resolution
+        """
+        default_band = self.get_default_band()
+        def_path = self.get_band_paths([default_band], resolution=self.resolution)[
+            default_band
+        ]
+        with rasterio.open(str(def_path)) as dst:
+            return dst.transform, dst.width, dst.height, dst.crs

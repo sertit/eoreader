@@ -4,10 +4,10 @@ import os
 import tempfile
 
 import numpy as np
+from sertit import ci, rasters
 
 from eoreader.bands.index import get_all_index
 from eoreader.utils import EOREADER_NAME
-from sertit import ci, rasters
 
 from .scripts_utils import READER, get_ci_data_dir, opt_path, s3_env
 
@@ -26,7 +26,7 @@ def test_index():
     prod = READER.open(s2_path)
     failed_idx = []
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # tmp_dir = os.path.join(get_ci_data_dir(), "OUTPUT")
+        # tmp_dir = os.path.join("/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT")
         prod.output = os.path.join(tmp_dir, prod.condensed_name)
 
         # Load every index
@@ -45,13 +45,16 @@ def test_index():
 
             # Write on disk
             curr_path = os.path.join(prod.output, idx_name + ".tif")
-            # curr_path = os.path.join(get_ci_data_dir(), prod.condensed_name, idx_name + ".tif")  # Debug
-            ci_data = get_ci_data_dir().joinpath(prod.condensed_name, idx_name + ".tif")
+            ci_idx = get_ci_data_dir().joinpath(prod.condensed_name, idx_name + ".tif")
             rasters.write(idx_arr, curr_path, dtype=np.float32)
+
+            # Write to path if needed
+            if not ci_idx.exists():
+                ci_idx = curr_path
 
             # Test
             try:
-                ci.assert_raster_almost_equal(curr_path, ci_data, decimal=4)
+                ci.assert_raster_almost_equal(curr_path, ci_idx, decimal=4)
             except AssertionError:
                 failed_idx.append(idx_name)
 

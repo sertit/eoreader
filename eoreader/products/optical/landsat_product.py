@@ -29,6 +29,9 @@ import pandas as pd
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
+from sertit import files, rasters, rasters_rio
+from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
 
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
@@ -36,9 +39,6 @@ from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, rasters, rasters_rio
-from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -498,7 +498,7 @@ class LandsatProduct(OpticalProduct):
         # Get band name: the last number of the filename:
         # ie: 'LC08_L1TP_200030_20191218_20191226_01_T1_B1'
         if self.is_archived:
-            filename = files.get_filename(path.split("!")[-1])
+            filename = files.get_filename(str(path).split("!")[-1])
         else:
             filename = files.get_filename(path)
 
@@ -516,8 +516,13 @@ class LandsatProduct(OpticalProduct):
             band_name = filename[-1]
             if not band_name.isdigit():
                 # Clean band name: {self.condensed_name}_{band.name}_{res_str}_clean.tif",
-                band_name = filename.split("_")[-3]
-                band_name = str(self.band_names[getattr(obn, band_name)])
+                band_name = filename.split("_")[4]
+                try:
+                    band_name = str(self.band_names[getattr(obn, band_name)])
+                except AttributeError:
+                    # Manage bands in 2 parts like SWIR_2, VRE_2...
+                    band_name = f'{band_name}_{filename.split("_")[5]}'
+                    band_name = str(self.band_names[getattr(obn, band_name)])
 
             # Read band (call superclass generic method)
             band_xda = rasters.read(
@@ -639,7 +644,10 @@ class LandsatProduct(OpticalProduct):
         # Get band paths
         if not isinstance(band_list, list):
             band_list = [band_list]
-        band_paths = self.get_band_paths(band_list)
+
+        if resolution is None and size is not None:
+            resolution = self._resolution_from_size(size)
+        band_paths = self.get_band_paths(band_list, resolution=resolution)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)

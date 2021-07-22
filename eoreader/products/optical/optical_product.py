@@ -26,6 +26,9 @@ import rasterio
 from cloudpathlib import CloudPath
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
+from sertit import misc, rasters, strings
+from sertit.rasters import XDS_TYPE
+from sertit.snap import MAX_CORES
 
 from eoreader.bands import index
 from eoreader.bands.alias import (
@@ -42,9 +45,6 @@ from eoreader.bands.bands import OpticalBands
 from eoreader.exceptions import InvalidBandError, InvalidIndexError
 from eoreader.products.product import Product, SensorType
 from eoreader.utils import EOREADER_NAME
-from sertit import misc, rasters, strings
-from sertit.rasters import XDS_TYPE
-from sertit.snap import MAX_CORES
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -496,7 +496,7 @@ class OpticalProduct(Product):
         """
         if resolution is not None:
             if isinstance(resolution, (list, tuple)):
-                res_str = "_".join(str([round(resolution, 2)])) + "m"
+                res_str = "_".join(str([round(res, 2) for res in resolution])) + "m"
             else:
                 res_str = f"{resolution:.2f}m"
         else:

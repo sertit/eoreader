@@ -29,6 +29,8 @@ import numpy as np
 import xarray as xr
 from lxml import etree
 from rasterio.enums import Resampling
+from sertit import files, rasters, rasters_rio, vectors
+from sertit.rasters import XDS_TYPE
 
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
@@ -37,8 +39,6 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.products.optical.s2_product import S2ProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, rasters, rasters_rio, vectors
-from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -136,7 +136,8 @@ class S2TheiaProduct(OpticalProduct):
 
         # Vectorize the nodata band
         footprint = rasters.vectorize(mask, values=0, default_nodata=-1)
-        footprint = vectors.get_wider_exterior(footprint).convex_hull
+        footprint = vectors.get_wider_exterior(footprint)
+        footprint.geometry = footprint.geometry.convex_hull
 
         return footprint
 
@@ -439,7 +440,9 @@ class S2TheiaProduct(OpticalProduct):
             return {}
 
         # Get band paths
-        band_paths = self.get_band_paths(bands)
+        if resolution is None and size is not None:
+            resolution = self._resolution_from_size(size)
+        band_paths = self.get_band_paths(bands, resolution=resolution)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
