@@ -119,7 +119,7 @@ def test_products():
 )
 def test_dems_https():
     # Get paths
-    prod_path = opt_path().joinpath("LC08_L1TP_200030_20201220_20210310_02_T1")
+    prod_path = opt_path().joinpath("LC08_L1TP_200030_20201220_20210310_02_T1.tar")
 
     # Open prods
     prod = READER.open(prod_path)
