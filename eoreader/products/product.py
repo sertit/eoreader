@@ -1375,7 +1375,7 @@ class Product:
 
     def clean_tmp(self):
         """
-        Clean the temporary directory
+        Clean the temporary directory of the current product
         """
         if self._tmp_process.exists():
             for tmp_file in self._tmp_process.glob("*"):
