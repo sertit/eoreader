@@ -5,6 +5,7 @@ import tempfile
 
 import xarray as xr
 from cloudpathlib import AnyPath
+from sertit import files, logs
 
 from CI.SCRIPTS.scripts_utils import CI_EOREADER_S3, opt_path, s3_env, sar_path
 from eoreader.bands.alias import *
@@ -12,7 +13,6 @@ from eoreader.env_vars import S3_DEF_RES, SAR_DEF_RES
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import Reader
 from eoreader.utils import EOREADER_NAME
-from sertit import files, logs
 
 READER = Reader()
 

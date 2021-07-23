@@ -28,13 +28,13 @@ from typing import Union
 import geopandas as gpd
 import rasterio
 from lxml import etree
+from sertit import vectors
+from sertit.misc import ListEnum
+from sertit.vectors import WGS84
 
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import vectors
-from sertit.misc import ListEnum
-from sertit.vectors import WGS84
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

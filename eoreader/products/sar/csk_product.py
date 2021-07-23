@@ -30,13 +30,13 @@ import numpy as np
 import rasterio
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
+from sertit import files, strings, vectors
+from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, strings, vectors
-from sertit.misc import ListEnum
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
