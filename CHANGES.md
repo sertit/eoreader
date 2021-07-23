@@ -4,6 +4,7 @@
 
 ## 0.4.7 (2021-07-22)
 - ENH: Adding a `default_transform` function returning data from default band (without warping it) -> *mapping `calculate_default_transform` from `rasterio`*
+- ENH: Adding a `clean_tmp` function allowing the user to clean the product's temporary output by hand
 - ENH: Simplifying DEM warping code
 - FIX: `DIMAP` products return always projected (in UTM) default bands (`get_default_band_path` uses `_get_default_utm_band`)
 - FIX: Theia Footprint returns a `GeoDataFrame` instead of a `GeoSeries`
