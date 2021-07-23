@@ -511,48 +511,39 @@ class LandsatProduct(OpticalProduct):
                 masked=False,
             ).astype(np.uint16)
         else:
-            # Manage to get the band_name as a number
-            # Original band name
-            if filename.startswith(self.condensed_name):
-                # Clean band name: {self.condensed_name}_{band.name}_{res_str}_clean.tif",
-                band_name = filename.split("_")[4]
-                try:
-                    band_name = str(self.band_names[getattr(obn, band_name)])
-                except AttributeError:
-                    # Manage bands in 2 parts like SWIR_2, VRE_2...
-                    band_name = f'{filename.split("_")[4]}_{filename.split("_")[5]}'
-                    band_name = str(self.band_names[getattr(obn, band_name)])
-            else:
-                band_name = filename[-1]
-
             # Read band (call superclass generic method)
             band_xda = rasters.read(
                 path, resolution=resolution, size=size, resampling=Resampling.bilinear
             ).astype(np.float32)
 
-            # Open mtd
-            mtd_data = self.read_mtd(force_pd=True)
+            # Convert raw bands from DN to correct reflectance
+            if not filename.startswith(self.condensed_name):
+                # Original band name
+                band_name = filename[-1]
 
-            # Get band nb and corresponding coeff
-            c_mul_str = "REFLECTANCE_MULT_BAND_" + band_name
-            c_add_str = "REFLECTANCE_ADD_BAND_" + band_name
+                # Open mtd
+                mtd_data = self.read_mtd(force_pd=True)
 
-            # Get coeffs to convert DN to reflectance
-            c_mul = mtd_data[c_mul_str].value
-            c_add = mtd_data[c_add_str].value
+                # Get band nb and corresponding coeff
+                c_mul_str = "REFLECTANCE_MULT_BAND_" + band_name
+                c_add_str = "REFLECTANCE_ADD_BAND_" + band_name
 
-            # Manage NULL values
-            try:
-                c_mul = float(c_mul)
-            except ValueError:
-                c_mul = 1
-            try:
-                c_add = float(c_add)
-            except ValueError:
-                c_add = 0
+                # Get coeffs to convert DN to reflectance
+                c_mul = mtd_data[c_mul_str].value
+                c_add = mtd_data[c_add_str].value
 
-            # Compute the correct radiometry of the band and set no data to 0
-            band_xda = c_mul * band_xda + c_add  # Already in float
+                # Manage NULL values
+                try:
+                    c_mul = float(c_mul)
+                except ValueError:
+                    c_mul = 1
+                try:
+                    c_add = float(c_add)
+                except ValueError:
+                    c_add = 0
+
+                # Compute the correct reflectance of the band and set no data to 0
+                band_xda = c_mul * band_xda + c_add  # Already in float
 
         return band_xda
 

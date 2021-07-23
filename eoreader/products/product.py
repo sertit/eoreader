@@ -1190,6 +1190,9 @@ class Product:
         Returns:
             xr.DataArray: Stack as a DataArray
         """
+        if not isinstance(bands, list):
+            bands = [bands]
+
         if not resolution and not size:
             resolution = self.resolution
 
