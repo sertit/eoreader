@@ -210,30 +210,32 @@ class OpticalProduct(Product):
         for band, band_path in band_paths.items():
             # Read band
             LOGGER.debug(f"Read {band.name}")
-            band_arrays[band] = self._read_band(
+            band_arr = self._read_band(
                 band_path, band=band, resolution=resolution, size=size
             )
-
             # Write on disk in order not to reprocess band everytime
             # (invalid pix management can be time consuming)
-            if not resolution:
-                resolution = band_arrays[band].rio.resolution()[0]
-            clean_band = self._get_clean_band_path(band, resolution=resolution)
-            if not clean_band.is_file():
+            if not str(band_path).endswith("clean.tif"):
                 # Manage invalid pixels
                 LOGGER.debug(f"Manage invalid pixels for band {band.name}")
-                band_arrays[band] = self._manage_invalid_pixels(
-                    band_arrays[band], band=band, resolution=resolution, size=size
+                band_arr = self._manage_invalid_pixels(
+                    band_arr, band=band, resolution=resolution, size=size
                 )
 
                 # Write on disk
                 try:
+                    if not resolution:
+                        resolution = band_arr.rio.resolution()[0]
+                    clean_band = self._get_clean_band_path(band, resolution=resolution)
                     rasters.write(
-                        band_arrays[band].rename(f"{to_str(band)[0]} CLEAN"), clean_band
+                        band_arr.rename(f"{to_str(band)[0]} CLEAN"), clean_band
                     )
                 except Exception:
                     # Not important if we cannot write it
                     pass
+
+            # Save band array
+            band_arrays[band] = band_arr
 
         return band_arrays
 

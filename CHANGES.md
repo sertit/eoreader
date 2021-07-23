@@ -2,14 +2,22 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.4.7.post1 (2021-07-23)
+- Allowing `stack` to take single band in input instead of a list
+- Fixing a regression loading Landsat bands which have been previously cleaned (again)
+
 ## 0.4.7.post0 (2021-07-23)
+
 - Fixing a regression loading Landsat bands which have been previously cleaned
 
 ## 0.4.7 (2021-07-23)
-- ENH: Adding a `default_transform` function returning data from default band (without warping it) -> *mapping `calculate_default_transform` from `rasterio`*
+
+- ENH: Adding a `default_transform` function returning data from default band (without warping it) -> *
+  mapping `calculate_default_transform` from `rasterio`*
 - ENH: Adding a `clean_tmp` function allowing the user to clean the product's temporary output by hand
 - ENH: Simplifying DEM warping code
-- FIX: `DIMAP` products return always projected (in UTM) default bands (`get_default_band_path` uses `_get_default_utm_band`)
+- FIX: `DIMAP` products return always projected (in UTM) default bands (`get_default_band_path`
+  uses `_get_default_utm_band`)
 - FIX: Theia Footprint returns a `GeoDataFrame` instead of a `GeoSeries`
 - FIX: Better management of the `size` keyword with `load` and `stack` functions
 - FIX: Landsat retrieval of multipart cleaned bands (like `SWIR_1`)
@@ -22,28 +30,34 @@
 - CI: Testing the `size` keyword for every sensor
 
 ## 0.4.6 (2021-07-19)
+
 - FIX: Fixing no data for Sentinel-3 cloud bands
 - FIX: In alias: `DeprecationWarning: using non-Enums in containment checks will raise TypeError in Python 3.8`
 - CI: Set default S3 client to point to unistra's bucket
 - CI: Tox SNAP relay S3_DB_URL_ROOT
 
 ## 0.4.5 (2021-07-13)
+
 - Adding condensed name in the search when loading S3-SLSTR clouds
 - FIX: Fixing no data for Sentinel-3 bands processed by SNAP
 - FIX: Fix bug when stack path's directory doesn't exist
 
 ## 0.4.4 (2021-07-13)
+
 - Do not verbose empty lists when loading optical bands
 - Sentinel-3: Bands processed by SNAP are written with the condensed name as suffix
 
 ## 0.4.3.post1 (2021-07-08)
+
 - BUG: Fixing another bug for DEM_PATH using S3 Paths
 - Add a DOI
 
 ## 0.4.3.post0 (2021-07-08)
+
 - BUG: Fixing DEM_PATH using S3 Paths
 
 ## 0.4.3 (2021-07-05)
+
 - [DIMAP Products] Optimizing loading cloud bands
 - `stack` accepts `**kwargs` in order to pass options to `rioxarray.to_raster()`
 - Fixing not found masks with S3+zip Sentinel-2 products
