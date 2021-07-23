@@ -941,7 +941,10 @@ class S3Product(OpticalProduct):
         if geom_file.is_file():
             # Bug pylint with netCDF4
             # pylint: disable=E1101
-            netcdf_ds = netCDF4.Dataset(geom_file)
+            if isinstance(geom_file, CloudPath):
+                netcdf_ds = netCDF4.Dataset(geom_file.fspath)
+            else:
+                netcdf_ds = netCDF4.Dataset(geom_file)
 
             # Get variables
             sun_az_var = netcdf_ds.variables[sun_az]

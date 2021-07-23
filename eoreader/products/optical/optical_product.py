@@ -227,9 +227,13 @@ class OpticalProduct(Product):
                 )
 
                 # Write on disk
-                rasters.write(
-                    band_arrays[band].rename(f"{to_str(band)[0]} CLEAN"), clean_band
-                )
+                try:
+                    rasters.write(
+                        band_arrays[band].rename(f"{to_str(band)[0]} CLEAN"), clean_band
+                    )
+                except Exception:
+                    # Not important if we cannot write it
+                    pass
 
         return band_arrays
 
@@ -496,7 +500,7 @@ class OpticalProduct(Product):
         """
         if resolution is not None:
             if isinstance(resolution, (list, tuple)):
-                res_str = "_".join(str([round(res, 2) for res in resolution])) + "m"
+                res_str = "_".join([str(round(res, 2)) for res in resolution]) + "m"
             else:
                 res_str = f"{resolution:.2f}m"
         else:

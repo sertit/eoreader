@@ -10,10 +10,10 @@ import geopandas as gpd
 import numpy as np
 import rasterio
 from cloudpathlib import AnyPath, CloudPath, S3Client
+from sertit import ci, vectors
 
 from eoreader.reader import Reader
 from eoreader.utils import EOREADER_NAME
-from sertit import ci, vectors
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 READER = Reader()
@@ -102,22 +102,23 @@ def assert_raster_almost_equal(path_1: str, path_2: str, decimal: int = 5) -> No
             dst_1.meta["transform"].almost_equals(
                 dst_1.meta["transform"], precision=1e-7
             )
+            errors = []
             for i in range(dst_1.count):
 
                 LOGGER.info(f"Band {i + 1}: {dst_1.descriptions[i]}")
                 try:
-                    marr_1 = dst_1.read(i + 1, masked=True)
-                    arr_1 = np.where(marr_1.mask, 0, marr_1.data)
-                    arr_1 = np.where(arr_1 == 255.0, 0, arr_1)
-
-                    marr_2 = dst_2.read(i + 1, masked=True)
-                    arr_2 = np.where(marr_2.mask, 0, marr_2.data)
-                    arr_2 = np.where(arr_2 == 255.0, 0, arr_2)
-                    np.testing.assert_array_almost_equal(arr_1, arr_2, decimal=decimal)
-                except AssertionError:
-                    LOGGER.error(
-                        f"Band {i + 1}: {dst_1.descriptions[i]} failed", exc_info=True
+                    marr_1 = dst_1.read(i + 1)
+                    marr_2 = dst_2.read(i + 1)
+                    np.testing.assert_array_almost_equal(
+                        marr_1, marr_2, decimal=decimal
                     )
+                except AssertionError:
+                    text = f"Band {i + 1}: {dst_1.descriptions[i]} failed"
+                    errors.append(text)
+                    LOGGER.error(text, exc_info=True)
+
+            if errors:
+                raise AssertionError(errors)
 
 
 def assert_geom_almost_equal(

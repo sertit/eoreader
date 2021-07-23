@@ -25,6 +25,7 @@ from .scripts_utils import (
     CI_EOREADER_S3,
     READER,
     assert_geom_almost_equal,
+    assert_raster_almost_equal,
     get_ci_data_dir,
     get_db_dir,
     opt_path,
@@ -236,9 +237,10 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                         ci_stack = curr_path
 
                     # Test
-                    ci.assert_raster_almost_equal(curr_path, ci_stack, decimal=4)
+                    assert_raster_almost_equal(curr_path, ci_stack, decimal=4)
 
                     # Load a band with the size option
+                    LOGGER.info("Checking load with size keyword")
                     band = stack_bands[0]
                     ci_band = get_ci_data_dir().joinpath(
                         prod.condensed_name,
@@ -254,7 +256,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                         band, size=(stack.rio.width, stack.rio.height)
                     )[band]
                     rasters.write(band_arr, curr_path_band)
-                    ci.assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
+                    assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
 
                 # CRS
                 LOGGER.info("Checking CRS")
@@ -262,6 +264,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
 
                 # Clean temp
                 if not debug:
+                    LOGGER.info("Cleaning tmp")
                     prod.clean_tmp()
                     assert len(list(prod._tmp_process.glob("*"))) == 0
 
