@@ -2,9 +2,11 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.4.7.post1 (2021-07-23)
-- Allowing `stack` to take single band in input instead of a list
-- Fixing a regression loading Landsat bands which have been previously cleaned (again)
+## 0.4.8 (2021-07-23)
+- ENH: Allowing `stack` to take single band in input instead of a list
+- FIX: Fixing a regression loading optical bands which have been previously cleaned (Landsat, Theia, possibly PlanetScope)
+- FIX: `load` and `stack` always returns `float32` arrays
+- CI: Testing if loading 2 times a band gives the same result
 
 ## 0.4.7.post0 (2021-07-23)
 

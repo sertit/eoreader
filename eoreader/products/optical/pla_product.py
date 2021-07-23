@@ -414,7 +414,13 @@ class PlaProduct(OpticalProduct):
         )
 
         # Compute the correct radiometry of the band
-        band_xda = band_xda / 10000.0
+        original_dtype = band_xda.encoding.get("dtype", band_xda.dtype)
+        if original_dtype == "uint16":
+            band_xda /= 10000.0
+
+        # Convert type if needed
+        if band_xda.dtype != np.float32:
+            band_xda = band_xda.astype(np.float32)
 
         return band_xda
 

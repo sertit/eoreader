@@ -3,6 +3,7 @@ import logging
 import os
 import tempfile
 
+import numpy as np
 import xarray as xr
 from cloudpathlib import AnyPath
 from geopandas import gpd
@@ -213,13 +214,22 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     # Remove DEM tifs if existing
                     remove_dem(prod)
 
-                    # Get stack bands
+                    # BAND TESTS
                     LOGGER.info("Checking load and stack")
                     # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
                     stack_bands = [
                         band for band in possible_bands if prod.has_band(band)
                     ]
+                    first_band = stack_bands[0]
 
+                    # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
+                    band_arr1 = prod.load(first_band, resolution=res)[first_band]
+                    band_arr2 = prod.load(first_band, resolution=res)[first_band]
+                    np.testing.assert_array_almost_equal(band_arr1, band_arr2)
+                    assert band_arr1.dtype == np.float32
+                    assert band_arr2.dtype == np.float32
+
+                    # Get stack bands
                     # Stack data
                     ci_stack = get_ci_data_dir().joinpath(
                         prod.condensed_name, f"{prod.condensed_name}_stack.tif"
@@ -231,6 +241,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                     stack = prod.stack(
                         stack_bands, resolution=res, stack_path=curr_path
                     )
+                    assert stack.dtype == np.float32
 
                     # Write to path if needed
                     if not ci_stack.exists():
@@ -241,20 +252,19 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
 
                     # Load a band with the size option
                     LOGGER.info("Checking load with size keyword")
-                    band = stack_bands[0]
                     ci_band = get_ci_data_dir().joinpath(
                         prod.condensed_name,
-                        f"{prod.condensed_name}_{band.name}_test.tif",
+                        f"{prod.condensed_name}_{first_band.name}_test.tif",
                     )
                     curr_path_band = os.path.join(
-                        tmp_dir, f"{prod.condensed_name}_{band.name}_test.tif"
+                        tmp_dir, f"{prod.condensed_name}_{first_band.name}_test.tif"
                     )
                     if not ci_band.exists():
                         ci_band = curr_path_band
 
                     band_arr = prod.load(
-                        band, size=(stack.rio.width, stack.rio.height)
-                    )[band]
+                        first_band, size=(stack.rio.width, stack.rio.height)
+                    )[first_band]
                     rasters.write(band_arr, curr_path_band)
                     assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
 
