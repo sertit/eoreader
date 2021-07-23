@@ -239,10 +239,16 @@ class S2TheiaProduct(OpticalProduct):
         # Read band
         band_xda = rasters.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
-        ).astype(np.float32)
+        )
 
-        # Compute the correct radiometry of the band
-        band_xda = band_xda / 10000.0
+        # Compute the correct radiometry of the band (Theia product are stored into int16 bits)
+        original_dtype = band_xda.encoding.get("dtype", band_xda.dtype)
+        if original_dtype == "int16":
+            band_xda /= 10000.0
+
+        # Convert type if needed
+        if band_xda.dtype != np.float32:
+            band_xda = band_xda.astype(np.float32)
 
         return band_xda
 

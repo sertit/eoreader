@@ -433,7 +433,7 @@ class S3Product(OpticalProduct):
         # Read band
         return rasters.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
-        )
+        ).astype(np.float32)
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
