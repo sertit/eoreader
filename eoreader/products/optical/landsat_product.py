@@ -513,16 +513,17 @@ class LandsatProduct(OpticalProduct):
         else:
             # Manage to get the band_name as a number
             # Original band name
-            band_name = filename[-1]
-            if not band_name.isdigit():
+            if filename.startswith(self.condensed_name):
                 # Clean band name: {self.condensed_name}_{band.name}_{res_str}_clean.tif",
                 band_name = filename.split("_")[4]
                 try:
                     band_name = str(self.band_names[getattr(obn, band_name)])
                 except AttributeError:
                     # Manage bands in 2 parts like SWIR_2, VRE_2...
-                    band_name = f'{band_name}_{filename.split("_")[5]}'
+                    band_name = f'{filename.split("_")[4]}_{filename.split("_")[5]}'
                     band_name = str(self.band_names[getattr(obn, band_name)])
+            else:
+                band_name = filename[-1]
 
             # Read band (call superclass generic method)
             band_xda = rasters.read(
