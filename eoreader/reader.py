@@ -26,10 +26,10 @@ from pathlib import Path
 from typing import Union
 
 from cloudpathlib import AnyPath, CloudPath
-
-from eoreader.utils import EOREADER_NAME
 from sertit import files, strings
 from sertit.misc import ListEnum
+
+from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

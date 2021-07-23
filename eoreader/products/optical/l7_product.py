@@ -18,10 +18,10 @@
 import logging
 
 import geopandas as gpd
+from sertit import rasters
 
 from eoreader.products.optical.landsat_product import LandsatProduct
 from eoreader.utils import EOREADER_NAME
-from sertit import rasters
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

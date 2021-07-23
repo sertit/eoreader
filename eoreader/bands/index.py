@@ -33,10 +33,10 @@ from typing import Callable
 
 import numpy as np
 import xarray as xr
+from sertit import rasters
 
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.utils import EOREADER_NAME
-from sertit import rasters
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

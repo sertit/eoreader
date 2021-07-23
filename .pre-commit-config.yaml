@@ -1,5 +1,5 @@
 exclude: |
-  (?x)^(docs/.*|docs_sphinx/.*)$
+  (?x)^(docs/.*)$
 fail_fast: false
 repos:
 

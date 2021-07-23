@@ -30,6 +30,9 @@ import numpy as np
 import xarray
 from lxml import etree
 from rasterio.enums import Resampling
+from sertit import files, rasters
+from sertit.misc import ListEnum
+from sertit.rasters import XDS_TYPE
 
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
@@ -37,9 +40,6 @@ from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.optical.optical_product import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
-from sertit import files, rasters
-from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

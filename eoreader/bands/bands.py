@@ -21,8 +21,9 @@ from collections.abc import MutableMapping
 from enum import unique
 from typing import Union
 
-from eoreader.exceptions import InvalidTypeError
 from sertit.misc import ListEnum
+
+from eoreader.exceptions import InvalidTypeError
 
 
 class _Bands(MutableMapping):
