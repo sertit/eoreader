@@ -2,7 +2,10 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.4.7 (2021-07-22)
+## 0.4.7.post0 (2021-07-23)
+- Fixing a regression loading Landsat bands which have been previously cleaned
+
+## 0.4.7 (2021-07-23)
 - ENH: Adding a `default_transform` function returning data from default band (without warping it) -> *mapping `calculate_default_transform` from `rasterio`*
 - ENH: Adding a `clean_tmp` function allowing the user to clean the product's temporary output by hand
 - ENH: Simplifying DEM warping code
