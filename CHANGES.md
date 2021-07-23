@@ -10,6 +10,8 @@
 - FIX: Better management of the `size` keyword with `load` and `stack` functions
 - FIX: Landsat retrieval of multipart cleaned bands (like `SWIR_1`)
 - FIX: Some typehints fixes
+- FIX: Sentinel-3 open sun angles with NetCDF files stored in the cloud
+- FIX: Silently pass the writing of clean bands if we cannot (like if permission error)
 - CI: Do not reinstall everything if not needed (only PyYAML)
 - CI: renaming `build` stage into `lint`
 - CI: simplifying geometry comparison
