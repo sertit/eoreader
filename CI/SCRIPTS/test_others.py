@@ -117,6 +117,7 @@ def test_products():
     S3_DB_URL_ROOT not in os.environ or sys.platform == "win32",
     reason="S3 DB not set or Rasterio bugs with http urls",
 )
+@s3_env
 def test_dems_https():
     # Get paths
     prod_path = opt_path().joinpath("LC08_L1TP_200030_20201220_20210310_02_T1.tar")
