@@ -110,7 +110,8 @@ def test_products():
         prod1.load([DEM])
 
     # Reset DEM
-    os.environ[DEM_PATH] = old_dem
+    if old_dem:
+        os.environ[DEM_PATH] = old_dem
 
 
 @pytest.mark.skipif(
