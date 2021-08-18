@@ -2,6 +2,10 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.4.8 (2021-0X-XX)
+- FIX: `environment.yml` to respect the stricter use of `file:` syntax. See [here](https://stackoverflow.com/questions/68571543/using-a-pip-requirements-file-in-a-conda-yml-file-throws-attributeerror-fileno) for more information.
+- CI: Fixing `test_dems_https`
+
 ## 0.4.8 (2021-07-23)
 - ENH: Allowing `stack` to take single band in input instead of a list
 - FIX: Fixing a regression loading optical bands which have been previously cleaned (Landsat, Theia, possibly PlanetScope)
