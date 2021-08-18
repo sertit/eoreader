@@ -100,7 +100,7 @@ def test_products():
     assert nmsp == {}
 
     # Test without a DEM set:
-    old_dem = "None"
+    old_dem = ""
     if DEM_PATH in os.environ:
         old_dem = os.environ.pop(DEM_PATH)
     with pytest.raises(ValueError):
