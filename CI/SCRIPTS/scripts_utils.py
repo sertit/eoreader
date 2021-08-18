@@ -171,16 +171,23 @@ def get_db_dir() -> Union[CloudPath, Path]:
     Returns:
         str: Database directory
     """
-    db_dir = AnyPath(r"//ds2/database02/BASES_DE_DONNEES")
 
-    if not db_dir.is_dir():
-        try:
-            db_dir = AnyPath(ci.get_db2_path(), "BASES_DE_DONNEES")
-        except NotADirectoryError:
-            db_dir = AnyPath("/home", "ds2_db2", "BASES_DE_DONNEES")
+    if int(os.getenv(CI_EOREADER_S3, 0)):
+        # ON S3
+        define_s3_client()
+        return AnyPath("s3://sertit-geodatastore")
+    else:
+        # ON DISK
+        db_dir = AnyPath(r"//ds2/database02/BASES_DE_DONNEES")
 
-    if not db_dir.is_dir():
-        raise NotADirectoryError("Impossible to open database directory !")
+        if not db_dir.is_dir():
+            try:
+                db_dir = AnyPath(ci.get_db2_path(), "BASES_DE_DONNEES")
+            except NotADirectoryError:
+                db_dir = AnyPath("/home", "ds2_db2", "BASES_DE_DONNEES")
+
+        if not db_dir.is_dir():
+            raise NotADirectoryError("Impossible to open database directory !")
 
     return db_dir
 
