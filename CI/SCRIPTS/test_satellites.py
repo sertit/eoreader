@@ -43,24 +43,34 @@ MERIT_DEM_SUB_DIR_PATH = [
 ]
 
 
-def set_dem():
+def set_dem(dem_path):
     """ Set DEM"""
-    if os.environ.get(TEST_USING_S3_DB) not in ("Y", "YES", "TRUE", "T", "1"):
-        try:
-            merit_dem = get_db_dir().joinpath(*MERIT_DEM_SUB_DIR_PATH)
-            # eudem_path = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
-            os.environ[DEM_PATH] = str(merit_dem)
-        except NotADirectoryError as ex:
-            LOGGER.debug("Non available default DEM: %s", ex)
-            pass
+    if dem_path:
+        dem_path = AnyPath(dem_path)
+        if not dem_path.is_file():
+            raise FileNotFoundError(f"Not existing DEM: {dem_path}")
+        os.environ[DEM_PATH] = str(dem_path)
     else:
-        if S3_DB_URL_ROOT not in os.environ:
-            raise Exception(
-                f"You must specify the S3 db root using env variable {S3_DB_URL_ROOT} if you activate S3_DB"
+        if os.environ.get(TEST_USING_S3_DB) not in ("Y", "YES", "TRUE", "T", "1"):
+            try:
+                merit_dem = get_db_dir().joinpath(*MERIT_DEM_SUB_DIR_PATH)
+                # eudem_path = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
+                os.environ[DEM_PATH] = str(merit_dem)
+            except NotADirectoryError as ex:
+                LOGGER.debug("Non available default DEM: %s", ex)
+                pass
+        else:
+            if S3_DB_URL_ROOT not in os.environ:
+                raise Exception(
+                    f"You must specify the S3 db root using env variable {S3_DB_URL_ROOT} if you activate S3_DB"
+                )
+            merit_dem = "/".join(
+                [os.environ.get(S3_DB_URL_ROOT), *MERIT_DEM_SUB_DIR_PATH]
             )
-        merit_dem = "/".join([os.environ.get(S3_DB_URL_ROOT), *MERIT_DEM_SUB_DIR_PATH])
-        os.environ[DEM_PATH] = merit_dem
-        LOGGER.info(f"Using DEM provided through Unistra S3 ({os.environ[DEM_PATH]})")
+            os.environ[DEM_PATH] = merit_dem
+            LOGGER.info(
+                f"Using DEM provided through Unistra S3 ({os.environ[DEM_PATH]})"
+            )
 
 
 def remove_dem_files(prod):
@@ -80,7 +90,7 @@ def test_invalid():
     assert not READER.valid_name(wrong_path, "S2")
 
 
-def _test_core_optical(pattern: str, debug=False):
+def _test_core_optical(pattern: str, dem_path=None, debug=False):
     """
     Core function testing optical data
     Args:
@@ -88,10 +98,10 @@ def _test_core_optical(pattern: str, debug=False):
         debug (bool): Debug option
     """
     possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
-    _test_core(pattern, opt_path(), possible_bands, debug)
+    _test_core(pattern, opt_path(), possible_bands, dem_path, debug)
 
 
-def _test_core_sar(pattern: str, debug=False):
+def _test_core_sar(pattern: str, dem_path=None, debug=False):
     """
     Core function testing SAR data
     Args:
@@ -102,7 +112,9 @@ def _test_core_sar(pattern: str, debug=False):
     _test_core(pattern, sar_path(), possible_bands, debug)
 
 
-def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
+def _test_core(
+    pattern: str, prod_dir: str, possible_bands: list, dem_path=None, debug=False
+):
     """
     Core function testing all data
     Args:
@@ -112,7 +124,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
         debug (bool): Debug option
     """
     # Set DEM
-    set_dem()
+    set_dem(dem_path)
 
     with xr.set_options(warn_for_unclosed_files=debug):
 
@@ -388,7 +400,11 @@ def test_spot6():
 @s3_env
 def test_spot7():
     """Function testing the correct functioning of the optical satellites"""
-    _test_core_optical("*IMG_SPOT7*")
+    # This test orthorectifies DIMAP data, so we need a DEM stored on disk
+    dem_path = os.path.join(
+        ci.get_db2_path(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
+    )
+    _test_core_optical("*IMG_SPOT7*", dem_path=dem_path)
 
 
 @s3_env

@@ -461,6 +461,14 @@ class DimapProduct(OpticalProduct):
                 f"You are using a non orthorectified Pleiades product {self.path}, "
                 f"you must provide a valid DEM through the {DEM_PATH} environment variable"
             )
+        else:
+            dem_path = AnyPath(dem_path)
+            if isinstance(dem_path, CloudPath):
+                raise TypeError(
+                    "gdalwarp cannot process DEM stored on cloud with 'RPC_DEM' argument, "
+                    "hence cloud-stored DEM cannot be used with non orthorectified DIMAP data."
+                    f"(DEM: {dem_path}, DIMAP data: {self.name})"
+                )
 
         # Set RPC keywords
         kwargs = {"RPC_DEM": dem_path, "RPC_DEM_MISSING_VALUE": 0}
