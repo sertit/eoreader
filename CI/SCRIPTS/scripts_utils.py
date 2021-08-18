@@ -105,7 +105,7 @@ def assert_raster_almost_equal(path_1: str, path_2: str, decimal: int = 5) -> No
             errors = []
             for i in range(dst_1.count):
 
-                LOGGER.info(f"Band {i + 1}: {dst_1.descriptions[i]}")
+                LOGGER.info(f"Checking Band {i + 1}: {dst_1.descriptions[i]}")
                 try:
                     marr_1 = dst_1.read(i + 1)
                     marr_2 = dst_2.read(i + 1)
