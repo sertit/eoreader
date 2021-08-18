@@ -41,25 +41,29 @@ MERIT_DEM_SUB_DIR_PATH = [
     "MERIT_Hydrologically_Adjusted_Elevations",
     "MERIT_DEM.vrt",
 ]
-if os.environ.get(TEST_USING_S3_DB) not in ("Y", "YES", "TRUE", "T"):
-    try:
-        merit_dem = get_db_dir().joinpath(*MERIT_DEM_SUB_DIR_PATH)
-        # eudem_path = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
-        os.environ[DEM_PATH] = str(merit_dem)
-    except NotADirectoryError as ex:
-        LOGGER.debug("Non available default DEM: %s", ex)
-        pass
-else:
-    if S3_DB_URL_ROOT not in os.environ:
-        raise Exception(
-            f"You must specify the S3 db root using env variable {S3_DB_URL_ROOT} if you activate S3_DB"
-        )
-    merit_dem = "/".join([os.environ.get(S3_DB_URL_ROOT), *MERIT_DEM_SUB_DIR_PATH])
-    os.environ[DEM_PATH] = merit_dem
-    LOGGER.info(f"Using DEM provided through Unistra S3 ({os.environ[DEM_PATH]})")
 
 
-def remove_dem(prod):
+def set_dem():
+    """ Set DEM"""
+    if os.environ.get(TEST_USING_S3_DB) not in ("Y", "YES", "TRUE", "T", "1"):
+        try:
+            merit_dem = get_db_dir().joinpath(*MERIT_DEM_SUB_DIR_PATH)
+            # eudem_path = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
+            os.environ[DEM_PATH] = str(merit_dem)
+        except NotADirectoryError as ex:
+            LOGGER.debug("Non available default DEM: %s", ex)
+            pass
+    else:
+        if S3_DB_URL_ROOT not in os.environ:
+            raise Exception(
+                f"You must specify the S3 db root using env variable {S3_DB_URL_ROOT} if you activate S3_DB"
+            )
+        merit_dem = "/".join([os.environ.get(S3_DB_URL_ROOT), *MERIT_DEM_SUB_DIR_PATH])
+        os.environ[DEM_PATH] = merit_dem
+        LOGGER.info(f"Using DEM provided through Unistra S3 ({os.environ[DEM_PATH]})")
+
+
+def remove_dem_files(prod):
     """Remove DEM from product output"""
     to_del = [
         prod.output.joinpath(f"{prod.condensed_name}_DEM.tif"),
@@ -107,6 +111,9 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
         possible_bands(list): Possible bands
         debug (bool): Debug option
     """
+    # Set DEM
+    set_dem()
+
     with xr.set_options(warn_for_unclosed_files=debug):
 
         # Init logger
@@ -212,7 +219,7 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
                         assert_geom_almost_equal(footprint, footprint_path)
 
                     # Remove DEM tifs if existing
-                    remove_dem(prod)
+                    remove_dem_files(prod)
 
                     # BAND TESTS
                     LOGGER.info("Checking load and stack")

@@ -8,6 +8,7 @@
   See [here](https://stackoverflow.com/questions/68571543/using-a-pip-requirements-file-in-a-conda-yml-file-throws-attributeerror-fileno)
   for more information.
 - CI: Fixing `test_dems_https` and resetting DEM afterwards
+- CI: Fixing DEM and ds2 database management
 
 ## 0.4.8 (2021-07-23)
 
