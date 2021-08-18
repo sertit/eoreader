@@ -44,7 +44,7 @@ S3_DB_URL_ROOT = "S3_DB_URL_ROOT"
 """Environment variable used for specify DB base url (e.g. https://s3.unistra.fr/bucket_name/) """
 
 TEST_USING_S3_DB = "TESTING_USING_S3_DB"
-"""Environment variable to specify to use external DB as a opposed to local one. (For testing puposes only)"""
+"""Environment variable to specify to use external DB as a opposed to local one. (For testing purposes only)"""
 
 CI_EOREADER_BAND_FOLDER = "CI_EOREADER_BAND_FOLDER"
 """
