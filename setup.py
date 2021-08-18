@@ -28,7 +28,7 @@ setuptools.setup(
     install_requires=[
         "lxml",
         "netCDF4",
-        "rasterio>= 1.2.2",
+        "rasterio>=1.2.2",
         "xarray>=0.18.0",
         "rioxarray>=0.4.0",
         "geopandas>=0.9.0",
