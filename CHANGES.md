@@ -2,8 +2,9 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.4.8 (2021-0X-XX)
+## 0.4.9 (2021-0X-XX)
 
+- DOC: Adding a FAQ page (#3)
 - FIX: Better handling of cloud-stored DEM (raising an exception for non-ortho DIMAP data as GDAL and rasterio does not handle that case)
 - FIX: `environment.yml` to respect the stricter use of `file:` syntax.
   See [here](https://stackoverflow.com/questions/68571543/using-a-pip-requirements-file-in-a-conda-yml-file-throws-attributeerror-fileno)
