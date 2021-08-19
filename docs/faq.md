@@ -28,14 +28,15 @@ This does **not** interfere with the DEM provided to load a DEM band for example
 However, you can force SNAP to use your own DEM (stored in `EOREADER_DEM_PATH`, providing your DEM is compatible) 
 by setting the environment variable `EOREADER_SNAP_DEM_NAME` to `External DEM`.
 
-# What SNAP's GPT optimizations are you using ?
+### What SNAP's GPT optimizations are you using ?
 We are using some optimizations in order to optimize SNAP's GPT speed, as specified [here](https://sertit.github.io/sertit-utils/sertit/snap.html#sertit.snap.get_gpt_cli)
 - **Memory**: We are allowing GPT to use 95% of your max virtual memory
 - **CPU**: We are allowing GPT to use `max_core` - 2 cores of your computer (i.e. 14 cores out of 16)
 - **Tiles**: Width and height are set to 2048 pixels (instead of 512x512) and cache to 50% of your max memory (instead of 1024Mo)
 
-### SNAP process return `Feature 'http://javax.xml.XMLConstants/feature/secure-processing' is not recognized.`
+### Known SNAP bugs
 
+Sometimes SNAP process returns `Feature 'http://javax.xml.XMLConstants/feature/secure-processing' is not recognized.` 
 This is a known SNAP bug. 
 Just add the line `-Djavax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl` to your `gpt.vmoptions` file.
 Please look at [this issue](https://forum.step.esa.int/t/xmlfactory-error-using-snap-8/26566) for more information.
