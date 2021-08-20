@@ -2,7 +2,7 @@
 
 These features can be seen in the [basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html).
 
-## Read
+## Open
 
 The reader singleton is your unique entry.
 It will create for you the product object corresponding to your satellite data.
@@ -33,36 +33,16 @@ but they have not been tested.
 >>> prod.output = os.path.join(output, prod.condensed_name)  # It will automatically create it if needed
 ```
 
-From there you have access to a lot of information on your product:
+The recognized paths for products directories are:
 
-```python
->>> # Product CRS (always in UTM)
->>> prod.crs
-CRS.from_epsg(32630)
-
->>> # Full extent of the bands as a geopandas GeoDataFrame (always in UTM)
->>> prod.extent()
-                                            geometry
-0   POLYGON((309780.000 4390200.000, 309780.000 4...
-
->>> # Footprint: extent of the useful pixels (minus nodata) as a geopandas GeoDataFrame (always in UTM)
->>> prod.footprint()
-   index                                           geometry
-0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
-
->>> # Default resolution (20m for S2)
->>> prod.resolution
-20.
-
->>> # Acquisition date and datetime
->>> prod.date
-datetime.date(2020, 8, 24)
->>> prod.datetime
-datetime.datetime(2020, 8, 24, 11, 6, 31)
-
->>> # Access the raw metadata as an lxml.etree._Element:
->>> prod.read_mtd()
-```
+- `Sentinel`: Main directory, `.SAFE`, `.SEN3` or `.zip`, i.e. `S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE`
+- `Theia`:  Main directory containing the `.tif` image, i.e. `SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2`
+- `Landsat`: Main directory extracted or archived if Collection 2 (`.tar`), i.e. `LC08_L1TP_200030_20201220_20210310_02_T1.tar`
+- `Planet`: Directory containing the `files` directory, i.e. `20210406_015904_37_2407`
+- `DIMAP`: Directory containing the `.JP2` files, i.e. `IMG_PHR1B_PMS_001`
+- `COSMO-Skymed`: Directory containing the `.h5` image, i.e. `1011117-766193`
+- `RADARSAT-2`: Main directory containing the `.tif` image, i.e. `RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip`
+- `TerraSAR-X`: Directory containing the `IMAGEDATA` directory, i.e. `TDX1_SAR__MGD_SE___SM_S_SRA_20201016T231611_20201016T231616`
 
 ## Load
 
@@ -222,3 +202,34 @@ Coordinates:
 Attributes:
     long_name:  ['NDVI', 'GREEN', 'HILLSHADE']
 ```
+
+## Other features
+
+```python
+>>> # Product CRS (always in UTM)
+>>> prod.crs()
+CRS.from_epsg(32630)
+
+>>> # Full extent of the bands as a geopandas GeoDataFrame (always in UTM)
+>>> prod.extent()
+                                            geometry
+0   POLYGON((309780.000 4390200.000, 309780.000 4...
+
+>>> # Footprint: extent of the useful pixels (minus nodata) as a geopandas GeoDataFrame (always in UTM)
+>>> prod.footprint()
+                                            geometry
+0 POLYGON Z((199980.000 4390200.000 0.000, 1999...
+
+>>> # Access the raw metadata as an lxml.etree._Element and its namespaces:
+>>> prod.read_mtd()
+(
+    <Element {https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}Level-1C_Tile_ID at 0x1e396036ec8>, 
+    {'n1': '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}'}
+)
+```
+
+Please note the difference between `footprint` and `extent`:
+
+|Without nodata | With nodata|
+|--- | ---|
+| ![without_nodata](https://zupimages.net/up/21/14/69i6.gif) | ![with_nodata](https://zupimages.net/up/21/14/vg6w.gif) |

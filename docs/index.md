@@ -5,7 +5,7 @@
 
 ```{eval-rst}
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: For Users
 
    main_features
