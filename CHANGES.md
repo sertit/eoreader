@@ -11,6 +11,7 @@
   for more information.
 - CI: Fixing `test_dems_https` and resetting DEM afterwards
 - CI: Fixing DEM and ds2 database management
+- DOC: Adding a FAQ page and enhancing the Main Features page (#3)
 
 ## 0.4.8 (2021-07-23)
 
