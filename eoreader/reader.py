@@ -428,6 +428,15 @@ class Reader:
                         is_valid = True
                         break
             else:
-                LOGGER.debug("The product should be a folder.")
+                try:
+                    file_list = files.get_archived_file_list(product_path)
+                    for file in file_list:
+                        if regex[1].match(file):
+                            is_valid = True
+                            break
+                except TypeError:
+                    LOGGER.debug(
+                        f"The product {product_file_name} should be a folder or an archive (.tar or .zip)"
+                    )
 
         return is_valid

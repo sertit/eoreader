@@ -2,15 +2,42 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.4.9 (2021-0X-XX)
+## 0.5.0 (2021-0X-XX)
+- ENH:  Read metadata/namespaces only once and store it as a private member. Keep accessing it through the `read_mtd`
+  function (#9)
+  **WARNING**: Breaking change for Landsat: `read_mtd()` loses the argument `force_pd=True` as it always returns an Etree
+- ENH: Reads Sentinel-3 global attributes as metadata:
+  - `absolute_orbit_number`
+  - `comment`
+  - `contact`
+  - `creation_time`
+  - `history`
+  - `institution`
+  - `netCDF_version`
+  - `product_name`
+  - `references`
+  - `resolution`
+  - `source`
+  - `start_offset`
+  - `start_time`
+  - `stop_time`
+  - `title`
+  - `ac_subsampling_factor` (`OLCI` only)
+  - `al_subsampling_factor` (`OLCI` only)
+  - `track_offset` (`SLSTR` only)
 - ENH: Refining Despeckle Graph (#6) to use a more usual filter (`Refined Lee`)
+- FIX: Decoupling classic metadata reading from the name as EOReader accepts now modified product
+  names (#9)
 - FIX: Better handling of cloud-stored DEM (raising an exception for non-ortho DIMAP data as GDAL and rasterio does not handle that case)
 - FIX: `environment.yml` to respect the stricter use of `file:` syntax.
   See [here](https://stackoverflow.com/questions/68571543/using-a-pip-requirements-file-in-a-conda-yml-file-throws-attributeerror-fileno)
   for more information.
+- FIX: Fixing bug when opening an archive product with `name` mode and nested dictionary (when looking for a filename
+  instead of the directory name)
 - CI: Fixing `test_dems_https` and resetting DEM afterwards
 - CI: Fixing DEM and ds2 database management
 - DOC: Adding a FAQ page and enhancing the Main Features page (#3)
+- DOC: Read Metadata has its own paragraph in Main Features
 
 ## 0.4.8 (2021-07-23)
 

@@ -1,12 +1,10 @@
 import os
 import sys
 
-import pandas as pd
 import pytest
 import tempenv
 import xarray as xr
 from cloudpathlib import AnyPath, S3Client
-from lxml import etree
 
 from eoreader import utils
 from eoreader.bands.alias import *
@@ -91,13 +89,6 @@ def test_products():
     assert prod1 > prod2
     assert prod2 < prod1
     assert prod1 != prod2
-
-    # Read the LANDSAT metadata the two ways
-    mtd_xml, nmsp = prod1.read_mtd(force_pd=False)
-    mtd_pd = prod1.read_mtd(force_pd=True)
-    assert isinstance(mtd_pd, pd.DataFrame)
-    assert isinstance(mtd_xml, etree._Element)
-    assert nmsp == {}
 
     # Test without a DEM set:
     old_dem = None

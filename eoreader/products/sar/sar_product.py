@@ -569,7 +569,7 @@ class SarProduct(Product):
     # pylint: disable=W0613
     def _read_band(
         self,
-        path: str,
+        path: Union[CloudPath, Path],
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -581,7 +581,7 @@ class SarProduct(Product):
             Invalid pixels are not managed here
 
         Args:
-            path (str): Band path
+            path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.

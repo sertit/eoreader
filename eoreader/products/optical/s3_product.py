@@ -32,6 +32,7 @@ import rioxarray
 import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
+from lxml.builder import E
 from rasterio import features
 from rasterio.enums import Resampling
 from rasterio.windows import Window
@@ -232,11 +233,20 @@ class S3Product(OpticalProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
+        # Get MTD XML file
+        root, _ = self.read_mtd()
 
-        date = self.split_name[4]
+        # Open identifier
+        try:
+            acq_date = root.findtext(".//start_time")
+        except TypeError:
+            raise InvalidProductError("start_time not found in metadata !")
 
-        if as_datetime:
-            date = datetime.strptime(date, DATETIME_FMT)
+        # Convert to datetime
+        date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+        if not as_datetime:
+            date = date.strftime(DATETIME_FMT)
 
         return date
 
@@ -410,7 +420,7 @@ class S3Product(OpticalProduct):
 
     def _read_band(
         self,
-        path: str,
+        path: Union[CloudPath, Path],
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -422,7 +432,7 @@ class S3Product(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            path (str): Band path
+            path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
@@ -961,7 +971,7 @@ class S3Product(OpticalProduct):
 
         return azimuth_angle, zenith_angle
 
-    def read_mtd(self) -> (etree._Element, str):
+    def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
 
@@ -974,12 +984,62 @@ class S3Product(OpticalProduct):
             (<Element level1Product at 0x1b845b7ab88>, '')
 
         Returns:
-            (etree._Element, str): Metadata XML root and its namespace
+            (etree._Element, dict): Metadata XML root and its namespace
         """
-        raise NotImplementedError(
-            "Sentinel-3 products don't have XML metadata. "
-            "Please check directly into NetCDF files"
+        # Open first nc file as every file should have the global attributes
+        # Here we don't know which type of product we have
+        geom_file = self.path.joinpath("tie_geometries.nc")
+        if not geom_file.is_file():
+            geom_file = self.path.joinpath("geometry_tn.nc")
+            if not geom_file.is_file():
+                raise InvalidProductError(
+                    "This Sentinel-3 product has no geometry file !"
+                )
+
+        # Open DS
+        if isinstance(geom_file, CloudPath):
+            netcdf_ds = netCDF4.Dataset(geom_file.fspath)
+        else:
+            netcdf_ds = netCDF4.Dataset(geom_file)
+
+        # Parsing global attributes
+        global_attr_names = [
+            "absolute_orbit_number",
+            "comment",
+            "contact",
+            "creation_time",
+            "history",
+            "institution",
+            "netCDF_version",
+            "product_name",
+            "references",
+            "resolution",
+            "source",
+            "start_offset",
+            "start_time",
+            "stop_time",
+            "title",
+            # OLCI
+            "ac_subsampling_factor",
+            "al_subsampling_factor",
+            # SLSTR
+            "track_offset",
+        ]
+
+        global_attr = [
+            E(attr, str(getattr(netcdf_ds, attr)))
+            for attr in global_attr_names
+            if hasattr(netcdf_ds, attr)
+        ]
+
+        mtd = E.s3_global_attributes(*global_attr)
+        mtd_el = etree.fromstring(
+            etree.tostring(
+                mtd, pretty_print=True, xml_declaration=True, encoding="UTF-8"
+            )
         )
+
+        return mtd_el, {}
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """

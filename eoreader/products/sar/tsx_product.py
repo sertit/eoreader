@@ -31,7 +31,7 @@ from sertit import vectors
 from sertit.misc import ListEnum
 
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products.sar.sar_product import SarProduct
+from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -125,46 +125,9 @@ class TsxProduct(SarProduct):
             image_data = root.find(".//imageDataInfo")
             def_res = float(image_data.findtext(".//rowSpacing"))  # Square pixels
         except (InvalidProductError, TypeError):
-            pass
-
-        # If we cannot read it in MTD, initiate survival mode
-        if not def_res:
-            # Get if we are in spatially enhanced mode or radiometrically enhanced mode
-            se = "SE" == self.split_name[3]
-
-            # Polarization mode
-            pol_mode = TsxPolarization.from_value(self.split_name[5])
-
-            # We suppose we are close to 55 degrees of incidence angle (best resolution)
-            if pol_mode == TsxPolarization.SINGLE:
-                if self.sensor_mode == TsxSensorMode.SM:
-                    def_res = 1.25 if se else 3.25
-                elif self.sensor_mode == TsxSensorMode.HS:
-                    def_res = 0.5 if se else 1.5
-                elif self.sensor_mode == TsxSensorMode.SL:
-                    def_res = 0.75 if se else 1.75
-                elif self.sensor_mode == TsxSensorMode.ST:
-                    def_res = 0.2 if se else 0.4
-                else:
-                    # ScanSAR: assert 4 beams
-                    def_res = 8.25
-            elif pol_mode == TsxPolarization.DUAL:
-                if self.sensor_mode == TsxSensorMode.SM:
-                    def_res = 3.0 if se else 4.5
-                elif self.sensor_mode == TsxSensorMode.HS:
-                    def_res = 1.0 if se else 2.0
-                else:
-                    # self.sensor_mode == TsxSensorMode.SL:
-                    def_res = 3.4 if se else 5.5
-            elif pol_mode == TsxPolarization.QUAD:
-                raise NotImplementedError(
-                    f"Quadratic polarization is not implemented yet: {self.name}"
-                )
-            else:
-                # if pol_mode == TsxPolarization.TWIN
-                raise NotImplementedError(
-                    f"Twin polarization is not implemented yet: {self.name}"
-                )
+            raise InvalidProductError(
+                "imageDataInfo or rowSpacing not found in metadata !"
+            )
 
         return def_res
 
@@ -216,11 +179,25 @@ class TsxProduct(SarProduct):
 
     def _set_product_type(self) -> None:
         """Set products type"""
-        self._get_sar_product_type(
-            prod_type_pos=2,
-            gdrg_types=TsxProductType.MGD,
-            cplx_types=TsxProductType.SSC,
-        )
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            prod_type = root.findtext(".//productVariant")
+        except TypeError:
+            raise InvalidProductError("mode not found in metadata !")
+
+        self.product_type = TsxProductType.from_value(prod_type)
+
+        if self.product_type == TsxProductType.MGD:
+            self.sar_prod_type = SarProductType.GDRG
+        elif self.product_type in TsxProductType.SSC:
+            self.sar_prod_type = SarProductType.CPLX
+        else:
+            raise NotImplementedError(
+                f"{self.product_type.value} product type is not available for {self.name}"
+            )
         if self.product_type != TsxProductType.MGD:
             LOGGER.warning(
                 "Other products type than MGD has not been tested for %s data. "
@@ -232,9 +209,18 @@ class TsxProduct(SarProduct):
         """
         Get products type from TerraSAR-X products name (could check the metadata too)
         """
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            imaging_mode = root.findtext(".//imagingMode")
+        except TypeError:
+            raise InvalidProductError("imagingMode not found in metadata !")
+
         # Get sensor mode
         try:
-            self.sensor_mode = TsxSensorMode.from_value(self.split_name[4])
+            self.sensor_mode = TsxSensorMode.from_value(imaging_mode)
         except ValueError as ex:
             raise InvalidTypeError(f"Invalid sensor mode for {self.name}") from ex
 
@@ -258,14 +244,24 @@ class TsxProduct(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        date = self.split_name[7]
+        # Get MTD XML file
+        root, _ = self.read_mtd()
 
-        if as_datetime:
-            date = datetime.strptime(date, DATETIME_FMT)
+        # Open identifier
+        try:
+            acq_date = root.findtext(".//start/timeUTC")
+        except TypeError:
+            raise InvalidProductError("start/timeUTC not found in metadata !")
+
+        # Convert to datetime
+        date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+        if not as_datetime:
+            date = date.strftime(DATETIME_FMT)
 
         return date
 
-    def read_mtd(self) -> (etree._Element, dict):
+    def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
 
@@ -282,4 +278,4 @@ class TsxProduct(SarProduct):
         """
         mtd_from_path = f"{self.name}.xml"
 
-        return self._read_mtd(mtd_from_path)
+        return self._read_mtd_xml(mtd_from_path)

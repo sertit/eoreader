@@ -23,17 +23,20 @@ for more information.
 import logging
 from datetime import datetime
 from enum import unique
+from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import xarray
+from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
 from sertit import files, rasters
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
+from eoreader import utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -181,18 +184,6 @@ class PlaProduct(OpticalProduct):
     The scaling factor to retrieve the calibrated radiance is 0.01.
     """
 
-    # def __init__(
-    #         self, product_path: str, archive_path: str = None, output_path=None
-    # ) -> None:
-    #     self.ortho_path = None
-    #     """
-    #     Orthorectified path.
-    #     Can be set to use manually orthorectified data, especially useful for VHR data on steep terrain.
-    #     """
-    #
-    #     # Initialization from the super class
-    #     super().__init__(product_path, archive_path, output_path)
-
     def _post_init(self) -> None:
         """
         Function used to post_init the products
@@ -202,7 +193,15 @@ class PlaProduct(OpticalProduct):
 
         # Ortho Tiles
         if self.product_type == PlaProductType.L3A:
-            self.tile_name = self.split_name[1]  # TODO: test that !
+            # Get MTD XML file
+            root, nsmap = self.read_mtd()
+
+            # Open identifier
+            try:
+                name = root.findtext(f".//{nsmap['eop']}identifier")
+            except TypeError:
+                raise InvalidProductError("Product identifier not found in metadata !")
+            self.tile_name = utils.get_split_name(name)[1]  # TODO: test that !
 
         # Post init done by the super class
         super()._post_init()
@@ -384,7 +383,7 @@ class PlaProduct(OpticalProduct):
 
     def _read_band(
         self,
-        path: str,
+        path: Union[CloudPath, Path],
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -396,7 +395,7 @@ class PlaProduct(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            path (str): Band path
+            path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
@@ -525,14 +524,16 @@ class PlaProduct(OpticalProduct):
                 root.findtext(f".//{nsmap['opt']}illuminationAzimuthAngle")
             )
         except TypeError:
-            raise InvalidProductError("Azimuth or Zenith angles not found")
+            raise InvalidProductError(
+                "Azimuth or Zenith angles not found in metadata !"
+            )
 
         # From elevation to zenith
         zenith_angle = 90.0 - elev_angle
 
         return azimuth_angle, zenith_angle
 
-    def read_mtd(self) -> (etree._Element, dict):
+    def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
 
@@ -557,7 +558,7 @@ class PlaProduct(OpticalProduct):
         mtd_from_path = "metadata*.xml"
         mtd_archived = "metadata.*\.xml"
 
-        return self._read_mtd(mtd_from_path, mtd_archived)
+        return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
