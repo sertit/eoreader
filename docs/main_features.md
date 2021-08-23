@@ -203,6 +203,53 @@ Attributes:
     long_name:  ['NDVI', 'GREEN', 'HILLSHADE']
 ```
 
+## Read Metadata
+EOReader gives you the access to the metadata of your product as a `lxml.etree._Element` followed by the namespace you may need to read them 
+
+```python
+
+>>> # Access the raw metadata as an lxml.etree._Element and its namespaces as a dict:
+>>> mtd, nmsp = prod.read_mtd()
+(
+    <Element {https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}Level-1C_Tile_ID at 0x1e396036ec8>, 
+    {'n1': '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}'}
+)
+
+>>> # You can access a field like that: 
+>>> datastrip_id = mtd.findtext(".//DATASTRIP_ID")
+
+>>> # Pay attention, for some products you will need a namespace, i.e. for planet data:
+>>> # name = mtd.findtext(f".//{nsmap['eop']}identifier")
+```
+
+```{note}
+Landsat Collection 1 have no metadata with XML format, so the XML is simulated from the text file.
+```
+
+```{note}
+Sentinel-3 sensors have no metadata file but have global attributes repeated in every NetCDF files.
+This is what you will have when calling this function:
+
+- `absolute_orbit_number`
+- `comment`
+- `contact`
+- `creation_time`
+- `history`
+- `institution`
+- `netCDF_version`
+- `product_name`
+- `references`
+- `resolution`
+- `source`
+- `start_offset`
+- `start_time`
+- `stop_time`
+- `title`
+- `ac_subsampling_factor` (`OLCI` only)
+- `al_subsampling_factor` (`OLCI` only)
+- `track_offset` (`SLSTR` only)
+```
+
 ## Other features
 
 ```python
@@ -219,13 +266,6 @@ CRS.from_epsg(32630)
 >>> prod.footprint()
                                             geometry
 0 POLYGON Z((199980.000 4390200.000 0.000, 1999...
-
->>> # Access the raw metadata as an lxml.etree._Element and its namespaces:
->>> prod.read_mtd()
-(
-    <Element {https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}Level-1C_Tile_ID at 0x1e396036ec8>, 
-    {'n1': '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}'}
-)
 ```
 
 Please note the difference between `footprint` and `extent`:

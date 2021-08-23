@@ -18,9 +18,9 @@
 COSMO-SkyMed products.
 More info `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
 """
-import datetime
 import logging
 import warnings
+from datetime import datetime
 from enum import unique
 from pathlib import Path
 from typing import Union
@@ -34,8 +34,9 @@ from sertit import files, strings, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
-from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products.sar.sar_product import SarProduct
+from eoreader import utils
+from eoreader.exceptions import InvalidProductError
+from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -74,20 +75,20 @@ class CskSensorMode(ListEnum):
     Take a look `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
     """
 
-    HI = "HI"
+    HI = "HIMAGE"
     """Himage"""
 
-    PP = "PP"
+    PP = "PINGPONG"
     """PingPong"""
 
-    WR = "WR"
+    WR = "WIDEREGION"
     """Wide Region"""
 
-    HR = "HR"
+    HR = "HUGEREGION"
     """Huge Region"""
 
-    S2 = "S2"
-    """Spotlight 2"""
+    S2 = "ENHANCED SPOTLIGHT"
+    """Enhanced Spotlight"""
 
 
 @unique
@@ -162,22 +163,9 @@ class CskProduct(SarProduct):
             root, _ = self.read_mtd()
             def_res = float(root.findtext(".//GroundRangeGeometricResolution"))
         except (InvalidProductError, TypeError):
-            pass
-
-        # If we cannot read it in MTD, initiate survival mode
-        if not def_res:
-            if self.sensor_mode == CskSensorMode.S2:
-                def_res = 1.0
-            elif self.sensor_mode == CskSensorMode.HI:
-                def_res = 5.0
-            elif self.sensor_mode == CskSensorMode.PP:
-                def_res = 20.0
-            elif self.sensor_mode == CskSensorMode.WR:
-                def_res = 30.0
-            elif self.sensor_mode == CskSensorMode.HR:
-                def_res = 100.0
-            else:
-                raise InvalidTypeError(f"Unknown sensor mode {self.sensor_mode}")
+            raise InvalidProductError(
+                "GroundRangeGeometricResolution or rowSpacing not found in metadata !"
+            )
 
         return def_res
 
@@ -236,29 +224,49 @@ class CskProduct(SarProduct):
 
     def _set_product_type(self) -> None:
         """Set products type"""
-        self._get_sar_product_type(
-            prod_type_pos=1,
-            gdrg_types=CskProductType.DGM,
-            cplx_types=CskProductType.SCS,
-        )
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            # DGM_B, or SCS_B -> remove last 2 characters
+            prod_type = root.findtext(".//ProductType")[:-2]
+        except TypeError:
+            raise InvalidProductError("mode not found in metadata !")
+
+        self.product_type = CskProductType.from_value(prod_type)
+
+        if self.product_type == CskProductType.DGM:
+            self.sar_prod_type = SarProductType.GDRG
+        elif self.product_type in CskProductType.SCS:
+            self.sar_prod_type = SarProductType.CPLX
+        else:
+            raise NotImplementedError(
+                f"{self.product_type.value} product type is not available for {self.name}"
+            )
 
     def _set_sensor_mode(self) -> None:
         """
         Get products type from S2 products name (could check the metadata too)
         """
-        sensor_mode_name = self.split_name[3]
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            acq_mode = root.findtext(".//AcquisitionMode")
+        except TypeError:
+            raise InvalidProductError("AcquisitionMode not found in metadata !")
 
         # Get sensor mode
-        for sens_mode in CskSensorMode:
-            if sens_mode.value in sensor_mode_name:
-                self.sensor_mode = sens_mode
+        self.sensor_mode = CskSensorMode.from_value(acq_mode)
 
         if not self.sensor_mode:
             raise InvalidProductError(
                 f"Invalid {self.platform.value} name: {self._real_name}"
             )
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime.datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
 
@@ -278,8 +286,19 @@ class CskProduct(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # 20201008224018
-        date = datetime.datetime.strptime(self.split_name[8], "%Y%m%d%H%M%S")
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            acq_date = root.findtext(".//SceneSensingStartUTC")
+        except TypeError:
+            raise InvalidProductError("SceneSensingStartUTC not found in metadata !")
+
+        # Convert to datetime
+        # 2020-10-28 22:46:24.808662850
+        # To many milliseconds (strptime accepts max 6 digits) -> needs to be cropped
+        date = datetime.strptime(acq_date[:-3], "%Y-%m-%d %H:%M:%S.%f")
 
         if not as_datetime:
             date = date.strftime(DATETIME_FMT)
@@ -294,9 +313,9 @@ class CskProduct(SarProduct):
             list: Split products name
         """
         # Use the real name
-        return [x for x in self._real_name.split("_") if x]
+        return utils.get_split_name(self._real_name)
 
-    def read_mtd(self) -> (etree._Element, dict):
+    def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
 
@@ -313,4 +332,4 @@ class CskProduct(SarProduct):
         """
         mtd_from_path = f"DFDN_{self._real_name}.h5.xml"
 
-        return self._read_mtd(mtd_from_path)
+        return self._read_mtd_xml(mtd_from_path)

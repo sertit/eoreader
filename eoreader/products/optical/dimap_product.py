@@ -511,7 +511,7 @@ class DimapProduct(OpticalProduct):
 
     def _read_band(
         self,
-        path: str,
+        path: Union[CloudPath, Path],
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -523,7 +523,7 @@ class DimapProduct(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            path (str): Band path
+            path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
@@ -721,24 +721,18 @@ class DimapProduct(OpticalProduct):
             elev_angle = float(center_vals.findtext(".//SUN_ELEVATION"))
             azimuth_angle = float(center_vals.findtext(".//SUN_AZIMUTH"))
         except TypeError:
-            raise InvalidProductError("Azimuth or Zenith angles not found")
+            raise InvalidProductError(
+                "Azimuth or Zenith angles not found in metadata !"
+            )
 
         # From elevation to zenith
         zenith_angle = 90.0 - elev_angle
 
         return azimuth_angle, zenith_angle
 
-    def read_mtd(self) -> (etree._Element, dict):
+    def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1A_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.read_mtd()
-            (<Element Dimap_Document at 0x1d6d241c608>, {})
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
@@ -746,7 +740,7 @@ class DimapProduct(OpticalProduct):
         mtd_from_path = "DIM_*.XML"
         mtd_archived = "DIM_.*\.XML"
 
-        return self._read_mtd(mtd_from_path, mtd_archived)
+        return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """

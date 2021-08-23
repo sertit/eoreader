@@ -28,11 +28,13 @@ import numpy as np
 import pandas as pd
 from cloudpathlib import CloudPath
 from lxml import etree
+from lxml.builder import E
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
+from eoreader import utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -97,7 +99,15 @@ class LandsatProduct(OpticalProduct):
 
     def _set_collection(self):
         """Set Landsat collection"""
-        return LandsatCollection.from_value(self.split_name[-2])
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            col_nb = mtd.findtext(".//COLLECTION_NUMBER")
+        except TypeError:
+            raise InvalidProductError("COLLECTION_NUMBER not found in metadata !")
+
+        return LandsatCollection.from_value(col_nb)
 
     def _post_init(self) -> None:
         """
@@ -127,7 +137,7 @@ class LandsatProduct(OpticalProduct):
         # Post init done by the super class
         super()._post_init()
 
-    def _get_path(self, band_id: str) -> str:
+    def _get_path(self, band_id: str) -> Union[CloudPath, Path]:
         """
         Get either the archived path of the normal path of a tif file
 
@@ -135,8 +145,7 @@ class LandsatProduct(OpticalProduct):
             band_id (str): Band ID
 
         Returns:
-            str: band path
-            str: band path
+            Union[CloudPath, Path]: band path
 
         """
         if self.is_archived:
@@ -202,7 +211,15 @@ class LandsatProduct(OpticalProduct):
         Returns:
             str: Tile name
         """
-        return self.split_name[2]
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            true_name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        except TypeError:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
+
+        return utils.get_split_name(true_name)[2]
 
     @abstractmethod
     def _set_product_type(self) -> None:
@@ -311,20 +328,18 @@ class LandsatProduct(OpticalProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        try:
-            mtd = self.read_mtd(force_pd=True)
-            date = mtd["DATE_ACQUIRED"].value  # 1982-09-06
-            # "16:47:09.5990000Z": needs max 6 digits for ms
-            hours = mtd["SCENE_CENTER_TIME"].value.replace('"', "")[:-3]
+        mtd_data, _ = self._read_mtd()
 
-            date = (
-                f"{datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')}"
-                f"T{datetime.strptime(hours, '%H:%M:%S.%f').strftime('%H%M%S')}"
-            )
-        except (FileNotFoundError, KeyError):
-            date = datetime.strptime(self.split_name[3], "%Y%m%d").strftime(
-                DATETIME_FMT
-            )
+        try:
+            date = mtd_data.findtext(".//DATE_ACQUIRED")
+            hours = mtd_data.findtext(".//SCENE_CENTER_TIME").replace('"', "")[:-3]
+        except TypeError:
+            raise InvalidProductError("ACQUISITION_DATE not found in metadata !")
+
+        date = (
+            f"{datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')}"
+            f"T{datetime.strptime(hours, '%H:%M:%S.%f').strftime('%H%M%S')}"
+        )
 
         if as_datetime:
             date = datetime.strptime(date, DATETIME_FMT)
@@ -379,48 +394,28 @@ class LandsatProduct(OpticalProduct):
 
         return band_paths
 
-    def read_mtd(
+    def _read_mtd(
         self, force_pd=False
-    ) -> Union[pd.DataFrame, Tuple[etree._Element, str]]:
+    ) -> Tuple[Union[pd.DataFrame, etree._Element], dict]:
         """
         Read Landsat metadata as:
 
          - a `pandas.DataFrame` whatever its collection is (by default for collection 1)
          - a XML root + its namespace if the product is retrieved from the 2nd collection (by default for collection 2)
 
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
-            >>> prod = Reader().open(path)
-
-            >>> # COLLECTION 1 : Open metadata as panda DataFrame
-            >>> prod.read_mtd()
-            NAME                                           ORIGIN  ...    RESAMPLING_OPTION
-            value  "Image courtesy of the U.S. Geological Survey"  ...  "CUBIC_CONVOLUTION"
-            [1 rows x 197 columns]
-
-            >>> # COLLECTION 2 : Open metadata as XML
-            >>> path = r"LC08_L1TP_200030_20201220_20210310_02_T1"  # Collection 2
-            >>> prod = Reader().open(path)
-            >>> prod.read_mtd()
-            (<Element LANDSAT_METADATA_FILE at 0x19229016048>, {})
-
-            >>> # COLLECTION 2 : Force to pandas.DataFrame
-            >>> prod.read_mtd(force_pd=True)
-            NAME                                           ORIGIN  ...    RESAMPLING_OPTION
-            value  "Image courtesy of the U.S. Geological Survey"  ...  "CUBIC_CONVOLUTION"
-            [1 rows x 263 columns]
-
         Args:
             force_pd (bool): If collection 2, return a pandas.DataFrame instead of a XML root + namespace
         Returns:
-            Any: Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
+            Tuple[Union[pd.DataFrame, etree._Element], dict]:
+                Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
         """
-        # WARNING: always use force_pd in this class !
-        as_pd = (self._collection == LandsatCollection.COL_1) or force_pd
-
-        if as_pd:
+        # Try with XML (we don't know what collection it is)
+        try:
+            # Open XML metadata
+            mtd_from_path = f"{self.name}_MTL.xml"
+            mtd_archived = f"{self.name}_MTL\.xml"
+            mtd_data = self._read_mtd_xml(mtd_from_path, mtd_archived)
+        except (InvalidProductError, FileNotFoundError):
             mtd_name = f"{self.name}_MTL.txt"
             if self.is_archived:
                 # We need to extract the file in memory to be used with pandas
@@ -433,8 +428,8 @@ class LandsatProduct(OpticalProduct):
                 mtd_path = self.path.joinpath(mtd_name)
 
                 if not mtd_path.is_file():
-                    raise FileNotFoundError(
-                        f"Unable to find the metadata file associated with {self.path}"
+                    raise InvalidProductError(
+                        f"No metadata file found in {self.name} !"
                     )
 
             # Parse
@@ -462,20 +457,28 @@ class LandsatProduct(OpticalProduct):
             # Set index
             mtd_data = mtd_data.set_index("NAME").T
 
+            # Create XML
+            attr_names = mtd_data.columns.to_list()
+            global_attr = [
+                E(str(attr), str(mtd_data[attr].iat[0])) for attr in attr_names
+            ]
+            mtd = E.s3_global_attributes(*global_attr)
+            mtd_el = etree.fromstring(
+                etree.tostring(
+                    mtd, pretty_print=True, xml_declaration=True, encoding="UTF-8"
+                )
+            )
+            mtd_data = (mtd_el, {})
+
             # Close if needed
             if tar_ds:
                 tar_ds.close()
-        else:
-            # Open XML metadata
-            mtd_from_path = f"{self.name}_MTL.xml"
-            mtd_archived = f"{self.name}_MTL\.xml"
-            mtd_data = self._read_mtd(mtd_from_path, mtd_archived)
 
         return mtd_data
 
     def _read_band(
         self,
-        path: str,
+        path: Union[CloudPath, Path],
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -487,7 +490,7 @@ class LandsatProduct(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            path (str): Band path
+            path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
@@ -522,15 +525,20 @@ class LandsatProduct(OpticalProduct):
                 band_name = filename[-1]
 
                 # Open mtd
-                mtd_data = self.read_mtd(force_pd=True)
+                mtd_data, _ = self._read_mtd()
 
                 # Get band nb and corresponding coeff
                 c_mul_str = "REFLECTANCE_MULT_BAND_" + band_name
                 c_add_str = "REFLECTANCE_ADD_BAND_" + band_name
 
                 # Get coeffs to convert DN to reflectance
-                c_mul = mtd_data[c_mul_str].value
-                c_add = mtd_data[c_add_str].value
+                try:
+                    c_mul = float(mtd_data.findtext(f".//{c_mul_str}"))
+                    c_add = float(mtd_data.findtext(f".//{c_add_str}"))
+                except TypeError:
+                    raise InvalidProductError(
+                        "ACQUISITION_DATE not found in metadata !"
+                    )
 
                 # Manage NULL values
                 try:
@@ -662,9 +670,12 @@ class LandsatProduct(OpticalProduct):
             (float, float): Mean Azimuth and Zenith angle
         """
         # Retrieve angles
-        mtd_data = self.read_mtd(force_pd=True)
-        azimuth_angle = float(mtd_data.SUN_AZIMUTH.value)
-        zenith_angle = 90.0 - float(mtd_data.SUN_ELEVATION.value)
+        mtd_data, _ = self._read_mtd()
+        try:
+            azimuth_angle = float(mtd_data.findtext(".//SUN_AZIMUTH"))
+            zenith_angle = 90.0 - float(mtd_data.findtext(".//SUN_ELEVATION"))
+        except TypeError:
+            raise InvalidProductError("ACQUISITION_DATE not found in metadata !")
 
         return azimuth_angle, zenith_angle
 

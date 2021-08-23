@@ -45,6 +45,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 
+from eoreader import utils
 from eoreader.bands import index
 from eoreader.bands.alias import *
 from eoreader.bands.bands import BandNames
@@ -87,7 +88,10 @@ class Product:
         """Product name (its filename without any extension)."""
 
         self.split_name = self._get_split_name()
-        """Split name, to retrieve every information from its filename (dates, tile, product type...)."""
+        """
+        Split name, to retrieve every information from its filename (dates, tile, product type...).
+        **WARNING**: Use it with caution as EOReader accepts products with modified names !
+        """
 
         self.archive_path = AnyPath(archive_path) if archive_path else self.path
         """Archive path, same as the product path if not specified.
@@ -108,6 +112,11 @@ class Product:
             self._tmp_output = tempfile.TemporaryDirectory()
             self._output = AnyPath(self._tmp_output.name)
         """Output directory of the product, to write orthorectified data for example."""
+
+        # Store metadata
+        metadata, namespaces = self._read_mtd()
+        self._metadata = metadata
+        self._namespaces = namespaces
 
         # Get the products date and datetime
         self.date = self.get_date(as_date=True)
@@ -305,7 +314,7 @@ class Product:
         Returns:
             list: Split products name
         """
-        return [x for x in self.name.split("_") if x]
+        return utils.get_split_name(self.name)
 
     @abstractmethod
     def get_datetime(self, as_datetime: bool = False) -> Union[str, dt.datetime]:
@@ -474,6 +483,57 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
+    def _read_mtd(self) -> Any:
+        """
+        Read metadata and outputs the metadata XML root and its namespaces as a dict most of the time,
+        except from L8-collection 1 data which outputs a `pandas.DataFrame`
+
+        Returns:
+            Any: Metadata XML root and its namespace or pd.DataFrame
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
+
+    def _read_mtd_xml(self, mtd_from_path: str, mtd_archived: str = None):
+        """
+        Read metadata and outputs the metadata XML root and its namespaces as a dicts as a dict
+
+        Args:
+            mtd_from_path (str): Metadata regex (glob style) to find from extracted product
+            mtd_archived (str): Metadata regex (re style) to find from archived product
+
+        Returns:
+            (etree._Element, dict): Metadata XML root and its namespaces
+
+        """
+        if self.is_archived:
+            root = files.read_archived_xml(self.path, f".*{mtd_archived}")
+        else:
+            # ONLY FOR COLLECTION 2
+            try:
+                mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
+                if isinstance(mtd_file, CloudPath):
+                    mtd_file = mtd_file.fspath
+                else:
+                    mtd_file = str(mtd_file)
+
+                # pylint: disable=I1101:
+                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                xml_tree = etree.parse(mtd_file)
+                root = xml_tree.getroot()
+            except StopIteration as ex:
+                raise InvalidProductError(
+                    f"Metadata file ({mtd_from_path}) not found in {self.path}"
+                ) from ex
+
+        # Get namespaces map (only useful ones)
+        nsmap = {key: f"{{{ns}}}" for key, ns in root.nsmap.items()}
+        pop_list = ["xsi", "xs", "xlink"]
+        for ns in pop_list:
+            if ns in nsmap.keys():
+                nsmap.pop(ns)
+
+        return root, nsmap
+
     def read_mtd(self) -> Any:
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict most of the time,
@@ -490,12 +550,15 @@ class Product:
         Returns:
             Any: Metadata XML root and its namespace or pd.DataFrame
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        if self._metadata is not None:
+            return (self._metadata, self._namespaces)
+        else:
+            return self._read_mtd()
 
     # pylint: disable=W0613
     def _read_band(
         self,
-        path: str,
+        path: Union[CloudPath, Path],
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -507,7 +570,7 @@ class Product:
             For optical data, invalid pixels are not managed here
 
         Args:
-            path (str): Band path
+            path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
@@ -1281,47 +1344,6 @@ class Product:
                         f"{dem_path} is not a file! "
                         f"Please set the environment variable {DEM_PATH} to an existing file."
                     )
-
-    def _read_mtd(self, mtd_from_path: str, mtd_archived: str = None):
-        """
-        Read metadata and outputs the metadata XML root and its namespaces as a dicts as a dict
-
-        Args:
-            mtd_from_path (str): Metadata regex (glob style) to find from extracted product
-            mtd_archived (str): Metadata regex (re style) to find from archived product
-
-        Returns:
-            (etree._Element, dict): Metadata XML root and its namespaces
-
-        """
-        if self.is_archived:
-            root = files.read_archived_xml(self.path, f".*{mtd_archived}")
-        else:
-            # ONLY FOR COLLECTION 2
-            try:
-                mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
-                if isinstance(mtd_file, CloudPath):
-                    mtd_file = mtd_file.fspath
-                else:
-                    mtd_file = str(mtd_file)
-
-                # pylint: disable=I1101:
-                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                xml_tree = etree.parse(mtd_file)
-                root = xml_tree.getroot()
-            except IndexError as ex:
-                raise InvalidProductError(
-                    f"Metadata file ({mtd_from_path}) not found in {self.path}"
-                ) from ex
-
-        # Get namespaces map (only useful ones)
-        nsmap = {key: f"{{{ns}}}" for key, ns in root.nsmap.items()}
-        pop_list = ["xsi", "xs", "xlink"]
-        for ns in pop_list:
-            if ns in nsmap.keys():
-                nsmap.pop(ns)
-
-        return root, nsmap
 
     def default_transform(self) -> (Affine, int, int, CRS):
         """

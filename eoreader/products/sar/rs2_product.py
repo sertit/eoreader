@@ -33,7 +33,7 @@ from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products.sar.sar_product import SarProduct
+from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -174,60 +174,15 @@ class Rs2Product(SarProduct):
         """
         Set product default resolution (in meters)
         """
-        def_res = None
-
         # Read metadata
         try:
             root, nsmap = self.read_mtd()
             namespace = nsmap[None]
-            def_res = float(root.findtext(f"{namespace}sampledPixelSpacing"))
+            def_res = float(root.findtext(f".//{namespace}sampledPixelSpacing"))
         except (InvalidProductError, TypeError):
-            pass
-
-        # If we cannot read it in MTD, initiate survival mode
-        if not def_res:
-            if self.sensor_mode == Rs2SensorMode.SLA:
-                def_res = 1.0 if self.product_type == Rs2ProductType.SGX else 0.5
-            elif self.sensor_mode in [Rs2SensorMode.U, Rs2SensorMode.WU]:
-                def_res = 1.0 if self.product_type == Rs2ProductType.SGX else 1.56
-            elif self.sensor_mode in [
-                Rs2SensorMode.MF,
-                Rs2SensorMode.WMF,
-                Rs2SensorMode.F,
-                Rs2SensorMode.WF,
-            ]:
-                def_res = 3.13 if self.product_type == Rs2ProductType.SGX else 6.25
-            elif self.sensor_mode == Rs2SensorMode.XF:
-                def_res = 2.0 if self.product_type == Rs2ProductType.SGX else 3.13
-                if self.product_type in [Rs2ProductType.SGF, Rs2ProductType.SGX]:
-                    LOGGER.debug(
-                        "This product is considered to have one look (not checked in metadata)"
-                    )  # TODO
-            elif self.sensor_mode in [Rs2SensorMode.S, Rs2SensorMode.EH]:
-                def_res = 8.0 if self.product_type == Rs2ProductType.SGX else 12.5
-            elif self.sensor_mode in [Rs2SensorMode.W, Rs2SensorMode.EL]:
-                def_res = 10.0 if self.product_type == Rs2ProductType.SGX else 12.5
-            elif self.sensor_mode in [Rs2SensorMode.FQ, Rs2SensorMode.WQ]:
-                def_res = 3.13
-            elif self.sensor_mode in [Rs2SensorMode.SQ, Rs2SensorMode.WSQ]:
-                raise NotImplementedError(
-                    "Not squared pixels management are not implemented in EOReader."
-                )
-            elif self.sensor_mode == Rs2SensorMode.SCN:
-                def_res = 25.0
-            elif self.sensor_mode == Rs2SensorMode.SCW:
-                def_res = 50.0
-            elif self.sensor_mode == Rs2SensorMode.DVWF:
-                def_res = 40.0 if self.product_type == Rs2ProductType.SCF else 20.0
-            elif self.sensor_mode == Rs2SensorMode.SCW:
-                if self.product_type == Rs2ProductType.SCF:
-                    def_res = 50.0
-                else:
-                    raise NotImplementedError(
-                        "Not squared pixels management are not implemented in EOReader."
-                    )
-            else:
-                raise InvalidTypeError(f"Unknown sensor mode {self.sensor_mode}")
+            raise InvalidProductError(
+                "sampledPixelSpacing or rowSpacing not found in metadata !"
+            )
 
         return def_res
 
@@ -285,11 +240,27 @@ class Rs2Product(SarProduct):
 
     def _set_product_type(self) -> None:
         """Set products type"""
-        self._get_sar_product_type(
-            prod_type_pos=-1,
-            gdrg_types=Rs2ProductType.SGF,
-            cplx_types=Rs2ProductType.SLC,
-        )
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+        namespace = nsmap[None]
+
+        # Open identifier
+        try:
+            prod_type = root.findtext(f".//{namespace}productType")
+        except TypeError:
+            raise InvalidProductError("mode not found in metadata !")
+
+        self.product_type = Rs2ProductType.from_value(prod_type)
+
+        if self.product_type == Rs2ProductType.SGF:
+            self.sar_prod_type = SarProductType.GDRG
+        elif self.product_type in Rs2ProductType.SLC:
+            self.sar_prod_type = SarProductType.CPLX
+        else:
+            raise NotImplementedError(
+                f"{self.product_type.value} product type is not available for {self.name}"
+            )
+
         if self.product_type != Rs2ProductType.SGF:
             LOGGER.warning(
                 "Other products type than SGF has not been tested for %s data. "
@@ -341,16 +312,25 @@ class Rs2Product(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        split_name = self.split_name
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+        namespace = nsmap[None]
 
-        date = f"{split_name[5]}T{split_name[6]}"
+        # Open identifier
+        try:
+            acq_date = root.findtext(f".//{namespace}rawDataStartTime")
+        except TypeError:
+            raise InvalidProductError("rawDataStartTime not found in metadata !")
 
-        if as_datetime:
-            date = datetime.strptime(date, DATETIME_FMT)
+        # Convert to datetime
+        date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+        if not as_datetime:
+            date = date.strftime(DATETIME_FMT)
 
         return date
 
-    def read_mtd(self) -> (etree._Element, dict):
+    def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
 
@@ -369,4 +349,4 @@ class Rs2Product(SarProduct):
         mtd_from_path = "product.xml"
         mtd_archived = "product\.xml"
 
-        return self._read_mtd(mtd_from_path, mtd_archived)
+        return self._read_mtd_xml(mtd_from_path, mtd_archived)

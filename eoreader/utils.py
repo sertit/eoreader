@@ -74,3 +74,16 @@ def get_data_dir() -> Union[CloudPath, Path]:
             raise FileNotFoundError("Impossible to find the data directory.")
 
     return data_dir
+
+
+def get_split_name(name: str) -> list:
+    """
+    Get split name (with _). Removes empty index.
+
+    Args:
+        name (str): Name to split
+
+    Returns:
+        list: Split name
+    """
+    return [x for x in name.split("_") if x]

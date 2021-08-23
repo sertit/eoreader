@@ -23,11 +23,13 @@ import tempfile
 import zipfile
 from datetime import datetime
 from enum import unique
+from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import xarray as xr
+from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import features, transform
 from rasterio.enums import Resampling
@@ -35,6 +37,7 @@ from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
+from eoreader import utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -105,7 +108,15 @@ class S2Product(OpticalProduct):
         Returns:
             str: Tile name
         """
-        return self.split_name[-2]
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            tile_id = root.findtext(".//TILE_ID")
+        except TypeError:
+            raise InvalidProductError("TILE_ID not found in metadata !")
+        return utils.get_split_name(tile_id)[-2]
 
     def _set_product_type(self) -> None:
         """Set products type"""
@@ -191,10 +202,20 @@ class S2Product(OpticalProduct):
              Union[str, datetime.datetime]: Its acquisition datetime
         """
 
-        date = self.split_name[2]
+        # Get MTD XML file
+        root, _ = self.read_mtd()
 
-        if as_datetime:
-            date = datetime.strptime(date, DATETIME_FMT)
+        # Open identifier
+        try:
+            sensing_time = root.findtext(".//SENSING_TIME")
+        except TypeError:
+            raise InvalidProductError("SENSING_TIME not found in metadata !")
+
+        # Convert to datetime
+        date = datetime.strptime(sensing_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+        if not as_datetime:
+            date = date.strftime(DATETIME_FMT)
 
         return date
 
@@ -314,7 +335,7 @@ class S2Product(OpticalProduct):
 
     def _read_band(
         self,
-        path: str,
+        path: Union[CloudPath, Path],
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -326,7 +347,7 @@ class S2Product(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            path (str): Band path
+            path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
@@ -539,7 +560,15 @@ class S2Product(OpticalProduct):
             str: Condensed name
         """
         # Used to make the difference between 2 products acquired on the same tile at the same date but cut differently
-        proc_time = self.split_name[-1].split("T")[-1]
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            datastrip_id = root.findtext(".//DATASTRIP_ID")
+        except TypeError:
+            raise InvalidProductError("DATASTRIP_ID not found in metadata !")
+        proc_time = utils.get_split_name(datastrip_id)[-1].split("T")[-1]
         return f"{self.get_datetime()}_{self.platform.name}_{self.tile_name}_{self.product_type.value}_{proc_time}"
 
     def get_mean_sun_angles(self) -> (float, float):
@@ -565,11 +594,13 @@ class S2Product(OpticalProduct):
             zenith_angle = float(mean_sun_angles.findtext("ZENITH_ANGLE"))
             azimuth_angle = float(mean_sun_angles.findtext("AZIMUTH_ANGLE"))
         except TypeError:
-            raise InvalidProductError("Azimuth or Zenith angles not found")
+            raise InvalidProductError(
+                "Azimuth or Zenith angles not found in metadata !"
+            )
 
         return azimuth_angle, zenith_angle
 
-    def read_mtd(self) -> (etree._Element, dict):
+    def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
 
@@ -588,7 +619,7 @@ class S2Product(OpticalProduct):
         mtd_from_path = "GRANULE/*/*.xml"
         mtd_archived = "GRANULE.*\.xml"
 
-        return self._read_mtd(mtd_from_path, mtd_archived)
+        return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """

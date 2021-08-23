@@ -7,6 +7,7 @@ import numpy as np
 import xarray as xr
 from cloudpathlib import AnyPath
 from geopandas import gpd
+from lxml import etree
 from sertit import ci, files, logs, rasters
 
 from eoreader.bands.alias import *
@@ -109,7 +110,7 @@ def _test_core_sar(pattern: str, dem_path=None, debug=False):
         debug (bool): Debug option
     """
     possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
-    _test_core(pattern, sar_path(), possible_bands, debug)
+    _test_core(pattern, sar_path(), possible_bands, dem_path, debug)
 
 
 def _test_core(
@@ -290,6 +291,11 @@ def _test_core(
                 # CRS
                 LOGGER.info("Checking CRS")
                 assert prod.crs().is_projected
+
+                # MTD
+                mtd_xml, nmsp = prod.read_mtd()
+                assert isinstance(mtd_xml, etree._Element)
+                assert isinstance(nmsp, dict)
 
                 # Clean temp
                 if not debug:

@@ -31,8 +31,8 @@ from lxml import etree
 from sertit import vectors
 from sertit.misc import ListEnum
 
-from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products.sar.sar_product import SarProduct
+from eoreader.exceptions import InvalidProductError
+from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -104,21 +104,8 @@ class S1Product(SarProduct):
             root, _ = self.read_mtd()
             def_res = float(root.findtext(".//rangePixelSpacing"))
         except (InvalidProductError, TypeError):
-            pass
-
-        # If we cannot read it in MTD, initiate survival mode
-        if not def_res:
-            if self.sensor_mode in [S1SensorMode.SM, S1SensorMode.IW]:
-                def_res = 10.0
-            elif self.sensor_mode in [S1SensorMode.EW, S1SensorMode.WV]:
-                def_res = 25.0
-            else:
-                raise InvalidTypeError(f"Unknown sensor mode {self.sensor_mode}")
-
-            LOGGER.debug(
-                f"Default resolution is set to {def_res}. "
-                f"The product is considered being in "
-                f"{'Medium' if self.sensor_mode == S1SensorMode.WV else 'High'}-Resolution"
+            raise InvalidProductError(
+                "rangePixelSpacing or rowSpacing not found in metadata !"
             )
 
         return def_res
@@ -196,20 +183,41 @@ class S1Product(SarProduct):
 
     def _set_product_type(self) -> None:
         """Set products type"""
-        self._get_sar_product_type(
-            prod_type_pos=2, gdrg_types=S1ProductType.GRD, cplx_types=S1ProductType.SLC
-        )
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            prod_type = root.findtext(".//productType")
+        except TypeError:
+            raise InvalidProductError("mode not found in metadata !")
+
+        self.product_type = S1ProductType.from_value(prod_type)
+
+        if self.product_type == S1ProductType.GRD:
+            self.sar_prod_type = SarProductType.GDRG
+        elif self.product_type in S1ProductType.SLC:
+            self.sar_prod_type = SarProductType.CPLX
+        else:
+            raise NotImplementedError(
+                f"{self.product_type.value} product type is not available for {self.name}"
+            )
 
     def _set_sensor_mode(self) -> None:
         """
         Get products type from S1 products name (could check the metadata too)
         """
-        sensor_mode_name = self.split_name[1]
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            mode = root.findtext(".//mode")
+        except TypeError:
+            raise InvalidProductError("mode not found in metadata !")
 
         # Get sensor mode
-        for sens_mode in S1SensorMode:
-            if sens_mode.value in sensor_mode_name:
-                self.sensor_mode = sens_mode
+        self.sensor_mode = S1SensorMode.from_value(mode)
 
         # Discard invalid sensor mode
         if self.sensor_mode != S1SensorMode.IW:
@@ -241,14 +249,24 @@ class S1Product(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        date = self.split_name[4]
+        # Get MTD XML file
+        root, _ = self.read_mtd()
 
-        if as_datetime:
-            date = datetime.strptime(date, DATETIME_FMT)
+        # Open identifier
+        try:
+            acq_date = root.findtext(".//startTime")
+        except TypeError:
+            raise InvalidProductError("startTime not found in metadata !")
+
+        # Convert to datetime
+        date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%f")
+
+        if not as_datetime:
+            date = date.strftime(DATETIME_FMT)
 
         return date
 
-    def read_mtd(self) -> (etree._Element, dict):
+    def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
 
@@ -266,4 +284,4 @@ class S1Product(SarProduct):
         mtd_from_path = "annotation/*.xml"
         mtd_archived = "annotation.*\.xml"
 
-        return self._read_mtd(mtd_from_path, mtd_archived)
+        return self._read_mtd_xml(mtd_from_path, mtd_archived)
