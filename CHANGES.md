@@ -2,7 +2,7 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.5.0 (2021-0X-XX)
+## 0.5.0 (2021-08-23)
 - ENH:  Read metadata/namespaces only once and store it as a private member. Keep accessing it through the `read_mtd`
   function (#9)
   **WARNING**: Breaking change for Landsat: `read_mtd()` loses the argument `force_pd=True` as it always returns an Etree
