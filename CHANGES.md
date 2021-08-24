@@ -2,7 +2,7 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.5.0 (2021-08-23)
+## 0.5.0 (2021-08-24)
 - ENH: Adding the [BAIS2](https://www.researchgate.net/publication/323964124_BAIS2_Burned_Area_Index_for_Sentinel-2) index
 - ENH: Read metadata/namespaces only once and store it as a private member. Keep accessing it through the `read_mtd`
   function (#9)
