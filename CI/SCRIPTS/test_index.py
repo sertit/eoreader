@@ -50,7 +50,8 @@ def test_index():
 
             # Write to path if needed
             if not ci_idx.exists():
-                ci_idx = curr_path
+                raise FileNotFoundError(f"{ci_idx} not found !")
+                # ci_idx = curr_path
 
             # Test
             try:
