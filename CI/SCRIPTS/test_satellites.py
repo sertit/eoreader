@@ -265,7 +265,8 @@ def _test_core(
 
                     # Write to path if needed
                     if not ci_stack.exists():
-                        ci_stack = curr_path
+                        raise FileNotFoundError(f"{ci_stack} not found !")
+                        # ci_stack = curr_path
 
                     # Test
                     assert_raster_almost_equal(curr_path, ci_stack, decimal=4)

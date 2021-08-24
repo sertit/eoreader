@@ -109,13 +109,13 @@ class S2Product(OpticalProduct):
             str: Tile name
         """
         # Get MTD XML file
-        root, _ = self.read_mtd()
+        root, _ = self.read_datatake_mtd()
 
         # Open identifier
         try:
-            tile_id = root.findtext(".//TILE_ID")
+            tile_id = root.findtext(".//PRODUCT_URI")
         except TypeError:
-            raise InvalidProductError("TILE_ID not found in metadata !")
+            raise InvalidProductError("PRODUCT_URI not found in datatake metadata !")
         return utils.get_split_name(tile_id)[-2]
 
     def _set_product_type(self) -> None:
@@ -185,6 +185,10 @@ class S2Product(OpticalProduct):
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
 
+        .. WARNING::
+            Sentinel-2 datetime is the datatake sensing time, not the granule sensing time !
+            (the one displayed in the product's name)
+
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
@@ -203,13 +207,16 @@ class S2Product(OpticalProduct):
         """
 
         # Get MTD XML file
-        root, _ = self.read_mtd()
+        root, _ = self.read_datatake_mtd()
 
         # Open identifier
         try:
-            sensing_time = root.findtext(".//SENSING_TIME")
+            # Sentinel-2 datetime is the datatake sensing time, not the granule sensing time !
+            sensing_time = root.findtext(".//PRODUCT_START_TIME")
         except TypeError:
-            raise InvalidProductError("SENSING_TIME not found in metadata !")
+            raise InvalidProductError(
+                "PRODUCT_START_TIME not found in datatake metadata !"
+            )
 
         # Convert to datetime
         date = datetime.strptime(sensing_time, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -554,22 +561,27 @@ class S2Product(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get S2 products condensed name ({date}_S2_{tile}_{product_type}_{processed_hours}).
+        Get S2 products condensed name ({date}_S2_{tile}_{product_type}_{generation_time}).
 
         Returns:
             str: Condensed name
         """
         # Used to make the difference between 2 products acquired on the same tile at the same date but cut differently
         # Get MTD XML file
-        root, _ = self.read_mtd()
+        root, _ = self.read_datatake_mtd()
 
         # Open identifier
         try:
-            datastrip_id = root.findtext(".//DATASTRIP_ID")
+            gen_time = root.findtext(".//GENERATION_TIME")
         except TypeError:
-            raise InvalidProductError("DATASTRIP_ID not found in metadata !")
-        proc_time = utils.get_split_name(datastrip_id)[-1].split("T")[-1]
-        return f"{self.get_datetime()}_{self.platform.name}_{self.tile_name}_{self.product_type.value}_{proc_time}"
+            raise InvalidProductError(
+                "GENERATION_TIME not found in datatake metadata !"
+            )
+
+        gen_time = datetime.strptime(gen_time, "%Y-%m-%dT%H:%M:%S.%fZ").strftime(
+            "%H%M%S"
+        )
+        return f"{self.get_datetime()}_{self.platform.name}_{self.tile_name}_{self.product_type.value}_{gen_time}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """
@@ -618,6 +630,28 @@ class S2Product(OpticalProduct):
         """
         mtd_from_path = "GRANULE/*/*.xml"
         mtd_archived = "GRANULE.*\.xml"
+
+        return self._read_mtd_xml(mtd_from_path, mtd_archived)
+
+    def read_datatake_mtd(self) -> (etree._Element, dict):
+        """
+        Read datatake metadata and outputs the metadata XML root and its namespaces as a dict
+        (datatake metadata is the file in the root directory named `MTD_MSI(L1C/L2A).xml`)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.read_mtd()
+            (<Element {https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}Level-2A_Tile_ID at ...>,
+            {'nl': '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}'})
+
+        Returns:
+            (etree._Element, dict): Metadata XML root and its namespaces
+        """
+        mtd_from_path = "MTD_MSI*.xml"
+        mtd_archived = "MTD_MSI.*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 

@@ -390,6 +390,26 @@ def BAI(bands: dict) -> xr.DataArray:
 
 
 @_idx_fct
+def BAIS2(bands: dict) -> xr.DataArray:
+    """
+    Burn Area Index for Sentinel-2:
+    https://www.researchgate.net/publication/323964124_BAIS2_Burned_Area_Index_for_Sentinel-2
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    # (1-((B06*B07*B8A)/B04)**0.5)*((B12-B8A)/((B12+B8A)**0.5)+1);
+    a = np.divide(
+        bands[obn.VRE_2] * bands[obn.VRE_3] * bands[obn.NARROW_NIR], bands[obn.RED]
+    )
+    b = _norm_diff(bands[obn.SWIR_2], bands[obn.NARROW_NIR])
+    return (1 - a ** 0.5) * (1 + b)
+
+
+@_idx_fct
 def NBR(bands: dict) -> xr.DataArray:
     """
     Normalized Burn Ratio: https://www.indexdatabase.de/db/i-single.php?id=53
