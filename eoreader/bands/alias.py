@@ -88,6 +88,7 @@ SRSWIR = _idx.SRSWIR
 RDI = _idx.RDI
 NDWI = _idx.NDWI
 BAI = _idx.BAI
+BAIS2 = _idx.BAIS2
 NBR = _idx.NBR
 MNDWI = _idx.MNDWI
 AWEInsh = _idx.AWEInsh

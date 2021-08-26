@@ -402,11 +402,16 @@ def BAIS2(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
     """
     # (1-((B06*B07*B8A)/B04)**0.5)*((B12-B8A)/((B12+B8A)**0.5)+1);
-    a = np.divide(
-        bands[obn.VRE_2] * bands[obn.VRE_3] * bands[obn.NARROW_NIR], bands[obn.RED]
+    a = np.sqrt(
+        np.divide(
+            bands[obn.VRE_2] * bands[obn.VRE_3] * bands[obn.NARROW_NIR], bands[obn.RED]
+        )
     )
-    b = _norm_diff(bands[obn.SWIR_2], bands[obn.NARROW_NIR])
-    return (1 - a ** 0.5) * (1 + b)
+    b = np.divide(
+        bands[obn.SWIR_2] - bands[obn.NARROW_NIR],
+        np.sqrt(bands[obn.SWIR_2] + bands[obn.NARROW_NIR]),
+    )
+    return (1 - a) * (1 + b)
 
 
 @_idx_fct
