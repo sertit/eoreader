@@ -31,5 +31,8 @@ docs/api
 .ipynb_checkpoints
 /docs/notebooks/test.ipynb
 
+# Dask
+dask-worker-space/*
+
 # Other files
 /CI/SCRIPTS/test.py

@@ -9,14 +9,15 @@ from sertit import ci, rasters
 from eoreader.bands.index import get_all_index
 from eoreader.utils import EOREADER_NAME
 
-from .scripts_utils import READER, get_ci_data_dir, opt_path, s3_env
+from .scripts_utils import READER, dask_env, get_ci_data_dir, opt_path, s3_env
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-RES = 2000.0  # 400 meters
+RES = 2000.0  # 2000 meters
 
 
 @s3_env
+@dask_env
 def test_index():
     """Function testing the correct functioning of the index"""
     # Load S2 products as it can load every index
@@ -26,7 +27,7 @@ def test_index():
     prod = READER.open(s2_path)
     failed_idx = []
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # tmp_dir = os.path.join("/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT")
+        tmp_dir = os.path.join("/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT")
         prod.output = os.path.join(tmp_dir, prod.condensed_name)
 
         # Load every index
