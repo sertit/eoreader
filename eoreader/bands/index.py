@@ -39,7 +39,6 @@ from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
 np.seterr(divide="ignore", invalid="ignore")
 
 
@@ -83,7 +82,7 @@ def _norm_diff(band_1: xr.DataArray, band_2: xr.DataArray) -> xr.DataArray:
     Returns:
         xr.DataArray: Normalized Difference between band 1 and band 2
     """
-    norm = np.divide(band_1 - band_2, band_1 + band_2)
+    norm = (band_1 - band_2) / (band_1 + band_2)
     return norm
 
 
@@ -99,7 +98,7 @@ def RGI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return np.divide(bands[obn.RED], bands[obn.GREEN])
+    return bands[obn.RED] / bands[obn.GREEN]
 
 
 @_idx_fct
@@ -230,9 +229,8 @@ def GLI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return np.divide(
-        2 * (bands[obn.GREEN] - bands[obn.RED] - bands[obn.BLUE]),
-        2 * (bands[obn.GREEN] + bands[obn.RED] + bands[obn.BLUE]),
+    return (2 * bands[obn.GREEN] - bands[obn.RED] - bands[obn.BLUE]) / (
+        2 * bands[obn.GREEN] + bands[obn.RED] + bands[obn.BLUE]
     )
 
 
@@ -295,7 +293,7 @@ def CIG(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return np.divide(bands[obn.NIR], bands[obn.GREEN]) - 1
+    return (bands[obn.NIR] / bands[obn.GREEN]) - 1
 
 
 @_idx_fct
@@ -325,9 +323,7 @@ def DSWI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return np.divide(
-        bands[obn.NIR] + bands[obn.GREEN], bands[obn.SWIR_1] + bands[obn.RED]
-    )
+    return (bands[obn.NIR] + bands[obn.GREEN]) / (bands[obn.SWIR_1] + bands[obn.RED])
 
 
 @_idx_fct
@@ -342,7 +338,7 @@ def SRSWIR(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return np.divide(bands[obn.SWIR_1], bands[obn.SWIR_2])
+    return bands[obn.SWIR_1] / bands[obn.SWIR_2]
 
 
 @_idx_fct
@@ -357,7 +353,7 @@ def RDI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return np.divide(bands[obn.SWIR_2], bands[obn.NARROW_NIR])
+    return bands[obn.SWIR_2] / bands[obn.NARROW_NIR]
 
 
 @_idx_fct
@@ -386,7 +382,7 @@ def BAI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return np.divide(1.0, (0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)
+    return 1.0 / ((0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)
 
 
 @_idx_fct
@@ -402,14 +398,11 @@ def BAIS2(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
     """
     # (1-((B06*B07*B8A)/B04)**0.5)*((B12-B8A)/((B12+B8A)**0.5)+1);
-    a = np.sqrt(
-        np.divide(
-            bands[obn.VRE_2] * bands[obn.VRE_3] * bands[obn.NARROW_NIR], bands[obn.RED]
-        )
-    )
-    b = np.divide(
-        bands[obn.SWIR_2] - bands[obn.NARROW_NIR],
-        np.sqrt(bands[obn.SWIR_2] + bands[obn.NARROW_NIR]),
+    a = (
+        (bands[obn.VRE_2] * bands[obn.VRE_3] * bands[obn.NARROW_NIR]) / bands[obn.RED]
+    ) ** 0.5
+    b = (bands[obn.SWIR_2] - bands[obn.NARROW_NIR]) / (
+        (bands[obn.SWIR_2] + bands[obn.NARROW_NIR]) ** 0.5
     )
     return (1 - a) * (1 + b)
 
@@ -589,7 +582,7 @@ def get_all_index() -> list:
     functions = inspect.getmembers(sys.modules[__name__], predicate=inspect.isfunction)
 
     for (name, fct) in functions:
-        # Do not gather this fct nor np.divide
+        # Do not gather this fct nor da.true_divide
         if name[0].isupper():
             idx.append(fct)
 
@@ -648,7 +641,7 @@ def get_all_needed_bands() -> dict:
     functions = inspect.getmembers(sys.modules[__name__], predicate=inspect.isfunction)
 
     for (name, function) in functions:
-        # Do not gather this fct nor np.divide
+        # Do not gather this fct nor da.true_divide
         if name[0].isupper():
             needed_bands[function] = get_needed_bands(function)
 

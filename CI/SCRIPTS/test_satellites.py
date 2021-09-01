@@ -28,6 +28,7 @@ from .scripts_utils import (
     READER,
     assert_geom_almost_equal,
     assert_raster_almost_equal,
+    dask_env,
     get_ci_data_dir,
     get_db_dir,
     opt_path,
@@ -306,18 +307,21 @@ def _test_core(
 
 
 @s3_env
+@dask_env
 def test_s2():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*S2*_MSI*")
 
 
 @s3_env
+@dask_env
 def test_s2_theia():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*SENTINEL2*")
 
 
 @s3_env
+@dask_env
 def test_s3_olci():
     """Function testing the correct functioning of the optical satellites"""
     # Init logger
@@ -325,6 +329,7 @@ def test_s3_olci():
 
 
 @s3_env
+@dask_env
 def test_s3_slstr():
     """Function testing the correct functioning of the optical satellites"""
     # Init logger
@@ -332,6 +337,7 @@ def test_s3_slstr():
 
 
 @s3_env
+@dask_env
 def test_l8():
     """Function testing the correct functioning of the optical satellites"""
     # Init logger
@@ -339,72 +345,84 @@ def test_l8():
 
 
 @s3_env
+@dask_env
 def test_l7():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*LE07*")
 
 
 @s3_env
+@dask_env
 def test_l5_tm():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*LT05*")
 
 
 @s3_env
+@dask_env
 def test_l4_tm():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*LT04*")
 
 
 @s3_env
+@dask_env
 def test_l5_mss():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*LM05*")
 
 
 @s3_env
+@dask_env
 def test_l4_mss():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*LM04*")
 
 
 @s3_env
+@dask_env
 def test_l3_mss():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*LM03*")
 
 
 @s3_env
+@dask_env
 def test_l2_mss():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*LM02*")
 
 
 @s3_env
+@dask_env
 def test_l1_mss():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*LM01*")
 
 
 @s3_env
+@dask_env
 def test_pla():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*202*1014*")
 
 
 @s3_env
+@dask_env
 def test_pld():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*IMG_PHR*")
 
 
 @s3_env
+@dask_env
 def test_spot6():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_optical("*IMG_SPOT6*")
 
 
 @s3_env
+@dask_env
 def test_spot7():
     """Function testing the correct functioning of the optical satellites"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
@@ -415,12 +433,14 @@ def test_spot7():
 
 
 @s3_env
+@dask_env
 def test_s1():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("*S1*_IW*")
 
 
 @s3_env
+@dask_env
 def test_csk():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("*csk_*")
@@ -433,6 +453,7 @@ def test_tsx():
 
 
 @s3_env
+@dask_env
 def test_rs2():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("*RS2_*")

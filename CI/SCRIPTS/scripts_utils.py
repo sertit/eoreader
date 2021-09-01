@@ -192,6 +192,34 @@ def get_db_dir() -> Union[CloudPath, Path]:
     return db_dir
 
 
+def dask_env(function: Callable):
+    """
+    Create dask-using environment
+    Args:
+        function (Callable): Function to decorate
+
+    Returns:
+        Callable: decorated function
+    """
+
+    @wraps(function)
+    def dask_env_wrapper():
+        """ S3 environment wrapper """
+        try:
+            from dask.distributed import Client, LocalCluster
+
+            with LocalCluster(
+                n_workers=4, threads_per_worker=4, processes=True
+            ) as cluster, Client(cluster):
+                LOGGER.info("Using DASK")
+                function()
+        except ImportError:
+            LOGGER.info("Using NUMPY")
+            function()
+
+    return dask_env_wrapper
+
+
 def s3_env(function: Callable):
     """
     Create S3 compatible storage environment
@@ -209,7 +237,7 @@ def s3_env(function: Callable):
             # Define S3 client for S3 paths
             define_s3_client()
             os.environ[CI_EOREADER_S3] = "1"
-            print("Using S3 files")
+            LOGGER.info("Using S3 files")
             with rasterio.Env(
                 CPL_CURL_VERBOSE=False,
                 AWS_VIRTUAL_HOSTING=False,
@@ -220,7 +248,7 @@ def s3_env(function: Callable):
 
         else:
             os.environ[CI_EOREADER_S3] = "0"
-            print("Using on disk files")
+            LOGGER.info("Using on disk files")
             function()
 
     return s3_env_wrapper

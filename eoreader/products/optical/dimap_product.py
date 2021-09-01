@@ -472,6 +472,8 @@ class DimapProduct(OpticalProduct):
 
         # Set RPC keywords
         kwargs = {"RPC_DEM": dem_path, "RPC_DEM_MISSING_VALUE": 0}
+        # TODO:  add "refine_gcps" ? With which tolerance ? (ie. '-refine_gcps 500 1.9')
+        #  (https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-refine_gcps)
 
         # Reproject
         # WARNING: may not give correct output resolution
@@ -484,6 +486,7 @@ class DimapProduct(OpticalProduct):
             src_nodata=0,
             dst_nodata=0,  # input data should be in integer
             num_threads=MAX_CORES,
+            resampling=Resampling.bilinear,
             **kwargs,
         )
         # Get dims
@@ -1110,6 +1113,7 @@ class DimapProduct(OpticalProduct):
             )
             meta["transform"] = utm_tr
             meta["crs"] = self.crs()
+            meta["driver"] = "GTiff"
 
             rasters_rio.write(out_arr, meta, reproj_path)
 

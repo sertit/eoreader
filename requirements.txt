@@ -22,8 +22,9 @@ rasterio>=1.2.2
 xarray>=0.18.0
 rioxarray>=0.4.0
 geopandas>=0.9.0
+dask[complete]==2021.08.1
 rtree
 validators
 
 # SERTIT libs
-sertit[full]>=1.4.6
+sertit[full]>=1.6.0
