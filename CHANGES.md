@@ -7,7 +7,9 @@
 - FIX: Fixing and adding BAIS2 index in alias
 - FIX: Fixing GLI index
 - FIX: Fixing a bug when writing reprojected DIMAP band
+- FIX: Fixing a bug with SCS Cosmo-SkyMed data
 - DOC: Adding a DASK notebook
+- DOC: Updating notebooks
 
 ## 0.5.0 (2021-08-24)
 - ENH: Adding the [BAIS2](https://www.researchgate.net/publication/323964124_BAIS2_Burned_Area_Index_for_Sentinel-2) index
