@@ -2,11 +2,12 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.5.1 (2021-XX-XX)
-- FIX: Ensuring EOreader supports Dask
+## 0.6.0 (2021-09-02)
+- ENH: Ensuring EOreader supports Dask
 - FIX: Fixing and adding BAIS2 index in alias
 - FIX: Fixing GLI index
 - FIX: Fixing a bug when writing reprojected DIMAP band
+- DOC: Adding a DASK notebook
 
 ## 0.5.0 (2021-08-24)
 - ENH: Adding the [BAIS2](https://www.researchgate.net/publication/323964124_BAIS2_Burned_Area_Index_for_Sentinel-2) index

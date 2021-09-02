@@ -441,7 +441,7 @@ class S3Product(OpticalProduct):
 
         """
         # Read band
-        return rasters.read(
+        return utils.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
         ).astype(np.float32)
 
@@ -1123,7 +1123,7 @@ class S3Product(OpticalProduct):
                 )
 
             # Open cloud file
-            clouds_array = rasters.read(
+            clouds_array = utils.read(
                 cloud_path,
                 resolution=resolution,
                 size=size,
@@ -1175,7 +1175,11 @@ class S3Product(OpticalProduct):
 
         cond_arr = np.where(cond, self._mask_true, self._mask_false).astype(np.uint8)
         cond_arr = np.squeeze(cond_arr)
-        cond_arr = features.sieve(cond_arr, size=10, connectivity=4)
+        try:
+            cond_arr = features.sieve(cond_arr, size=10, connectivity=4)
+        except TypeError:
+            # Manage dask arrays that fails with rasterio sieve
+            cond_arr = features.sieve(cond_arr.compute(), size=10, connectivity=4)
         cond_arr = np.expand_dims(cond_arr, axis=0)
 
         return super()._create_mask(bit_array, cond_arr, nodata)

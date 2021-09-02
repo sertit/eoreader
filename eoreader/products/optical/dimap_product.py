@@ -47,6 +47,7 @@ from sertit.snap import MAX_CORES
 from sertit.vectors import WGS84
 from shapely.geometry import box
 
+from eoreader import utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -557,7 +558,7 @@ class DimapProduct(OpticalProduct):
                     )
 
                 # Read band
-                band_xda = rasters.read(
+                band_xda = utils.read(
                     reproj_path,
                     resolution=resolution,
                     size=size,
@@ -567,7 +568,7 @@ class DimapProduct(OpticalProduct):
             # Manage the case if we open a simple band (EOReader processed bands)
             elif dst.count == 1:
                 # Read band
-                band_xda = rasters.read(
+                band_xda = utils.read(
                     path,
                     resolution=resolution,
                     size=size,
@@ -577,7 +578,7 @@ class DimapProduct(OpticalProduct):
             # Manage the case if we open a stack (native DIMAP bands)
             else:
                 # Read band
-                band_xda = rasters.read(
+                band_xda = utils.read(
                     path,
                     resolution=resolution,
                     size=size,
@@ -782,14 +783,14 @@ class DimapProduct(OpticalProduct):
 
             with rasterio.open(str(def_utm_path)) as dst:
                 if dst.count > 1:
-                    def_xarr = rasters.read(
+                    def_xarr = utils.read(
                         dst,
                         resolution=resolution,
                         size=size,
                         indexes=[self.band_names[self.get_default_band()]],
                     )
                 else:
-                    def_xarr = rasters.read(dst, resolution=resolution, size=size)
+                    def_xarr = utils.read(dst, resolution=resolution, size=size)
 
                 # Load nodata
                 width = def_xarr.rio.width

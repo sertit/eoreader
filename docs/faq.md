@@ -19,6 +19,20 @@ EOReader always loads projected bands (in UTM). This may be an issue for:
 
 If needed, we could change this to allow WGS84 representation. If so, do not hesitate to open an issue on GitHub !
 
+### I want to use Dask with EOReader, what should I do ?
+First of all, be sure to have `dask[distributed]` installed in your environment.
+Then set the environment variable `EOREADER_USE_DASK` to 1.
+
+The bands will be read and written using `rioxarray`'s dask functionalities, 
+see [here](https://corteva.github.io/rioxarray/stable/examples/dask_read_write.html) for more information.
+
+However, EOReader still relies a lot on `rasterio` (to orthorectify DIMAP products for example) or on SNAP, 
+and these functions cannot be daskified. A lot of optimizations are left to do, do not hesitate to help us on that !
+
+```{warning}
+Dask is a functionality not really tested on EOReader, use it at your own risk
+```
+
 ## SNAP
 
 ### SNAP DEM vs other DEM

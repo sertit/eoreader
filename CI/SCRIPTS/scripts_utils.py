@@ -12,8 +12,9 @@ import rasterio
 from cloudpathlib import AnyPath, CloudPath, S3Client
 from sertit import ci, vectors
 
+from eoreader.env_vars import USE_DASK
 from eoreader.reader import Reader
-from eoreader.utils import EOREADER_NAME
+from eoreader.utils import EOREADER_NAME, use_dask
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 READER = Reader()
@@ -205,7 +206,8 @@ def dask_env(function: Callable):
     @wraps(function)
     def dask_env_wrapper():
         """ S3 environment wrapper """
-        try:
+        os.environ[USE_DASK] = "1"
+        if use_dask():
             from dask.distributed import Client, LocalCluster
 
             with LocalCluster(
@@ -213,7 +215,7 @@ def dask_env(function: Callable):
             ) as cluster, Client(cluster):
                 LOGGER.info("Using DASK")
                 function()
-        except ImportError:
+        else:
             LOGGER.info("Using NUMPY")
             function()
 

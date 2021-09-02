@@ -627,7 +627,7 @@ class Product:
                 else:
                     raise InvalidTypeError(f"Unknown DEM band: {band}")
 
-                dem_bands[band] = rasters.read(
+                dem_bands[band] = utils.read(
                     path, resolution=resolution, size=size
                 ).astype(np.float32)
 

@@ -506,7 +506,7 @@ class LandsatProduct(OpticalProduct):
             filename = files.get_filename(path)
 
         if self._pixel_quality_id in filename or self._radsat_id in filename:
-            band_xda = rasters.read(
+            band_xda = utils.read(
                 path,
                 resolution=resolution,
                 size=size,
@@ -515,7 +515,7 @@ class LandsatProduct(OpticalProduct):
             ).astype(np.uint16)
         else:
             # Read band (call superclass generic method)
-            band_xda = rasters.read(
+            band_xda = utils.read(
                 path, resolution=resolution, size=size, resampling=Resampling.bilinear
             ).astype(np.float32)
 

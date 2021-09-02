@@ -33,7 +33,7 @@ from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import features, transform
 from rasterio.enums import Resampling
-from sertit import files, rasters, vectors
+from sertit import files, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
@@ -363,7 +363,7 @@ class S2Product(OpticalProduct):
 
         """
         # Read band
-        band_xda = rasters.read(
+        band_xda = utils.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
         )
 

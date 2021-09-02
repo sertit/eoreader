@@ -34,6 +34,7 @@ from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio, vectors
 from sertit.rasters import XDS_TYPE
 
+from eoreader import utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -142,7 +143,7 @@ class S2TheiaProduct(OpticalProduct):
         edg_path = self.get_mask_path("EDG", "R2")
 
         # Open SAT band
-        mask = rasters.read(edg_path, masked=False)
+        mask = utils.read(edg_path, masked=False)
 
         # Vectorize the nodata band
         footprint = rasters.vectorize(mask, values=0, default_nodata=-1)
@@ -256,7 +257,7 @@ class S2TheiaProduct(OpticalProduct):
 
         """
         # Read band
-        band_xda = rasters.read(
+        band_xda = utils.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
         )
 
@@ -573,7 +574,7 @@ class S2TheiaProduct(OpticalProduct):
             res_id = "R2" if resolution >= 20 else "R1"
 
             cloud_path = self.get_mask_path("CLM", res_id)
-            clouds_mask = rasters.read(
+            clouds_mask = utils.read(
                 cloud_path,
                 resolution=resolution,
                 size=size,

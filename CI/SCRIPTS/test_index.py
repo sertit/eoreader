@@ -27,7 +27,7 @@ def test_index():
     prod = READER.open(s2_path)
     failed_idx = []
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_dir = os.path.join("/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT")
+        # tmp_dir = os.path.join("/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT")
         prod.output = os.path.join(tmp_dir, prod.condensed_name)
 
         # Load every index
