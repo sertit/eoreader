@@ -9,6 +9,7 @@ __pycache__/
 .tox
 .coverage
 cov.xml
+*.lock
 
 # Discard CI/OUTPUTS
 CI/OUTPUT/*

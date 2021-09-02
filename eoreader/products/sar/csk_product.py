@@ -238,7 +238,7 @@ class CskProduct(SarProduct):
 
         if self.product_type == CskProductType.DGM:
             self.sar_prod_type = SarProductType.GDRG
-        elif self.product_type in CskProductType.SCS:
+        elif self.product_type == CskProductType.SCS:
             self.sar_prod_type = SarProductType.CPLX
         else:
             raise NotImplementedError(
