@@ -6,4 +6,4 @@ dependencies:         # everything under this, installed by conda
   - pip
   - pip:                # everything under this, installed by pip
       - --extra-index-url ${WINDOWS_WHEELS}  # Use windows wheels on windows
-      - -r file:./requirements-doc.txt
+      - -r ./requirements-doc.txt
