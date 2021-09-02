@@ -51,3 +51,8 @@ CI_EOREADER_BAND_FOLDER = "CI_EOREADER_BAND_FOLDER"
 Environment variable used in CI to override the existing band path
 in order to bypass SNAP process and DEM reprojection.
 """
+
+USE_DASK = "EOREADER_USE_DASK"
+"""
+If set and `dask` is installed, EOReader will read products as dask arrays instead of numpy arrays.
+"""

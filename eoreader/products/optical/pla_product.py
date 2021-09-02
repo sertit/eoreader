@@ -404,7 +404,7 @@ class PlaProduct(OpticalProduct):
 
         """
         # Read band
-        band_xda = rasters.read(
+        band_xda = utils.read(
             path,
             resolution=resolution,
             size=size,
@@ -632,7 +632,7 @@ class PlaProduct(OpticalProduct):
                         nodata,
                     )
                 elif res_id == RAW_CLOUDS:
-                    band_dict[res_id] = rasters.read(
+                    band_dict[res_id] = utils.read(
                         self._get_path("udm2", "tif"), resolution, size
                     )
                 else:
@@ -701,7 +701,7 @@ class PlaProduct(OpticalProduct):
         mask_path = self._get_path("udm2", "tif")
 
         # Open mask band
-        mask = rasters.read(
+        mask = utils.read(
             mask_path,
             resolution=resolution,
             size=size,

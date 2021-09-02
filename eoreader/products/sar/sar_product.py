@@ -589,7 +589,7 @@ class SarProduct(Product):
             XDS_TYPE: Band xarray
 
         """
-        return rasters.read(
+        return utils.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
         ).astype(np.float32)
 

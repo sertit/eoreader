@@ -20,6 +20,7 @@ import logging
 import geopandas as gpd
 from sertit import rasters
 
+from eoreader import utils
 from eoreader.products.optical.landsat_product import LandsatProduct
 from eoreader.utils import EOREADER_NAME
 
@@ -74,7 +75,7 @@ class L7Product(LandsatProduct):
         )
 
         # Read the file with a very low resolution -> use raster_rio that is faster !
-        gap_msk = rasters.read(
+        gap_msk = utils.read(
             self._get_path(self._pixel_quality_id),
             resolution=self.resolution * 50,
             masked=False,
