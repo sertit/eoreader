@@ -206,7 +206,9 @@ def dask_env(function: Callable):
     @wraps(function)
     def dask_env_wrapper():
         """ S3 environment wrapper """
-        os.environ[USE_DASK] = "1"
+        os.environ[
+            USE_DASK
+        ] = "0"  # For now, our CI cannot create a cluster (memory insufficient)
         if use_dask():
             from dask.distributed import Client, LocalCluster
 
