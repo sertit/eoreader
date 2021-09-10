@@ -524,7 +524,7 @@ class S3Product(OpticalProduct):
         | 26 |   bright             |
         | 27 |   tidal_region       |
         | 28 |   fresh_inland_water |
-        | 19 |   coastline          |
+        | 29 |   coastline          |
         | 30 |   land               |
 
         Args:
@@ -727,8 +727,8 @@ class S3Product(OpticalProduct):
 
         # Get the wanted bands (not the quality flags here !)
         for band in processed_bands:
-            filename = self._get_band_filename(band)
-            if "exception" not in filename:
+            band_name = self._get_band_filename(band)
+            if "exception" not in band_name:
                 out_tif = self._tmp_process.joinpath(
                     f"{self.condensed_name}_{band_name}.tif"
                 )
@@ -739,7 +739,7 @@ class S3Product(OpticalProduct):
 
                 # Quality flags will crash here
                 try:
-                    band_paths[self._get_band_from_filename(filename)] = out_tif
+                    band_paths[self._get_band_from_filename(band_name)] = out_tif
                 except ValueError:
                     pass
 
