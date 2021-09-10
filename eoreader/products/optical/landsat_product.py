@@ -109,6 +109,21 @@ class LandsatProduct(OpticalProduct):
 
         return LandsatCollection.from_value(col_nb)
 
+    def _pre_init(self) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        # Collections are not set yet
+        # Collection 2 do not need to be extracted. Set True by default
+        if self.split_name[-2] == "02":
+            self.needs_extraction = False  # Fine to read .tar files
+        else:
+            self.needs_extraction = True  # Too slow to read directly tar.gz files
+
+        # Post init done by the super class
+        super()._pre_init()
+
     def _post_init(self) -> None:
         """
         Function used to post_init the products
@@ -119,11 +134,9 @@ class LandsatProduct(OpticalProduct):
         if self._collection == LandsatCollection.COL_1:
             self._pixel_quality_id = "_BQA"
             self._radsat_id = "_BQA"
-            self.needs_extraction = True  # Too slow to read directly tar.gz files
         else:
             self._pixel_quality_id = "_QA_PIXEL"
             self._radsat_id = "_QA_RADSAT"
-            self.needs_extraction = False  # Fine to read .tar files
 
         # Warning if GS or GT
         if "GS" in self.name:

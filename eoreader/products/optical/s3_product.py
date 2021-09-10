@@ -117,6 +117,16 @@ class S3Product(OpticalProduct):
         # Post init done by the super class
         super()._post_init()
 
+    def _pre_init(self) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        self.needs_extraction = True
+
+        # Post init done by the super class
+        super()._pre_init()
+
     def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)

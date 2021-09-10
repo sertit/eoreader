@@ -52,14 +52,20 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class OpticalProduct(Product):
     """Super class for optical products"""
 
+    def _pre_init(self) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        self.band_names = OpticalBands()
+        self.sensor_type = SensorType.OPTICAL
+
     def _post_init(self) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
         """
-        self.band_names = OpticalBands()
         self._set_product_type()
-        self.sensor_type = SensorType.OPTICAL
 
     def get_default_band(self) -> BandNames:
         """

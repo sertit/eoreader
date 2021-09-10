@@ -184,13 +184,21 @@ class PlaProduct(OpticalProduct):
     The scaling factor to retrieve the calibrated radiance is 0.01.
     """
 
+    def _pre_init(self) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        self.needs_extraction = False
+
+        # Post init done by the super class
+        super()._pre_init()
+
     def _post_init(self) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
         """
-        self.needs_extraction = False
-
         # Ortho Tiles
         if self.product_type == PlaProductType.L3A:
             # Get MTD XML file
