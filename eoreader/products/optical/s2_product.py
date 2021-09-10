@@ -82,13 +82,22 @@ class S2Product(OpticalProduct):
     You can use directly the .zip file
     """
 
+    def _pre_init(self) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        self.needs_extraction = False
+
+        # Post init done by the super class
+        super()._pre_init()
+
     def _post_init(self) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
         """
         self.tile_name = self._get_tile_name()
-        self.needs_extraction = False
 
         # Post init done by the super class
         super()._post_init()

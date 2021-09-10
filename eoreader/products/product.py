@@ -81,6 +81,9 @@ class Product:
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
     ) -> None:
+        self.needs_extraction = True
+        """Does this products needs to be extracted to be processed ? (`True` by default)."""
+
         self.path = AnyPath(product_path)
         """Usable path to the product, either extracted or archived path, according to the satellite."""
 
@@ -101,27 +104,19 @@ class Product:
         """ Is the archived product is processed
         (a products is considered as archived if its products path is a directory)."""
 
-        self.needs_extraction = True
-        """Does this products needs to be extracted to be processed ? (`True` by default)."""
-
         # The output will be given later
-        if output_path:
-            self._tmp_output = None
-            self._output = AnyPath(output_path)
-        else:
-            self._tmp_output = tempfile.TemporaryDirectory()
-            self._output = AnyPath(self._tmp_output.name)
-        """Output directory of the product, to write orthorectified data for example."""
+        self._tmp_output = None
+        self._output = None
 
         # Store metadata
-        metadata, namespaces = self._read_mtd()
-        self._metadata = metadata
-        self._namespaces = namespaces
+        self._metadata = None
+        self._namespaces = None
 
         # Get the products date and datetime
-        self.date = self.get_date(as_date=True)
+        self.date = None
         """Acquisition date."""
-        self.datetime = self.get_datetime(as_datetime=True)
+
+        self.datetime = None
         """Acquisition datetime."""
 
         self.tile_name = None
@@ -145,44 +140,82 @@ class Product:
          A list because of multiple ref in case of non-stackable products (S3, S1...)"""
 
         self.nodata = -9999
-        """ Product nodata, set to 0 by default. Please do not touch this or all index will fail. """
+        """ Product nodata, set to -999 by default """
 
         # Mask values
         self._mask_true = 1
         self._mask_false = 0
 
-        self.platform = self._get_platform()
+        self.platform = None
         """Product platform, such as Sentinel-2"""
 
-        # Post initialization
-        self._post_init()
-
         # Set product type, needs to be done after the post-initialization
-        self._set_product_type()
+        self.product_type = None
+        """
+        Type of this product (i.e. L2A or SLC)
+        """
 
         # Set the resolution, needs to be done when knowing the product type
-        self.resolution = self._set_resolution()
+        self.resolution = None
         """
         Default resolution in meters of the current product.
         For SAR product, we use Ground Range resolution as we will automatically orthorectify the tiles.
         """
 
-        self.condensed_name = self._get_condensed_name()
+        self.condensed_name = None
         """
         Condensed name, the filename with only useful data to keep the name unique
         (ie. `20191215T110441_S2_30TXP_L2A_122756`).
         Used to shorten names and paths.
         """
 
-        self.sat_id = self.platform.name
+        self.sat_id = None
         """Satellite ID, i.e. `S2` for Sentinel-2"""
 
-        # Temporary files path (private)
-        self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
-        os.makedirs(self._tmp_process, exist_ok=True)
-        self._remove_tmp_process = remove_tmp
+        # Pre initialization
+        self._pre_init()
 
-        # TODO: manage self.needs_extraction
+        # Only compute data if OK (for now OK is extracted if needed)
+        if self.is_archived and self.needs_extraction:
+            LOGGER.warning(f"{self.name} needs to be extracted to be used !")
+        else:
+            # Manage output
+            if output_path:
+                self._tmp_output = None
+                self._output = AnyPath(output_path)
+            else:
+                self._tmp_output = tempfile.TemporaryDirectory()
+                self._output = AnyPath(self._tmp_output.name)
+
+            # Store metadata
+            metadata, namespaces = self._read_mtd()
+            self._metadata = metadata
+            self._namespaces = namespaces
+
+            # Get the products date and datetime
+            self.date = self.get_date(as_date=True)
+            self.datetime = self.get_datetime(as_datetime=True)
+
+            # Platform and satellite ID
+            self.platform = self._get_platform()
+            self.sat_id = self.platform.name
+
+            # Post initialization
+            self._post_init()
+
+            # Set product type, needs to be done after the post-initialization
+            self._set_product_type()
+
+            # Set the resolution, needs to be done when knowing the product type
+            self.resolution = self._set_resolution()
+
+            # Condensed name
+            self.condensed_name = self._get_condensed_name()
+
+            # Temporary files path (private)
+            self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
+            os.makedirs(self._tmp_process, exist_ok=True)
+            self._remove_tmp_process = remove_tmp
 
     def __del__(self):
         """Cleaning up _tmp directory"""
@@ -191,6 +224,14 @@ class Product:
 
         elif self._remove_tmp_process:
             files.remove(self._tmp_process)
+
+    @abstractmethod
+    def _pre_init(self) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
     def _post_init(self) -> None:
