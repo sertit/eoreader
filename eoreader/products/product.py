@@ -107,6 +107,7 @@ class Product:
         # The output will be given later
         self._tmp_output = None
         self._output = None
+        self._remove_tmp_process = remove_tmp
 
         # Store metadata
         self._metadata = None
@@ -215,7 +216,6 @@ class Product:
             # Temporary files path (private)
             self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
             os.makedirs(self._tmp_process, exist_ok=True)
-            self._remove_tmp_process = remove_tmp
 
     def __del__(self):
         """Cleaning up _tmp directory"""
@@ -753,7 +753,8 @@ class Product:
         if not isinstance(bands, list):
             bands = [bands]
 
-        band_dict = self._load(bands, resolution, size)
+        # Load bands (and convert the bands to be loaded to correct format)
+        band_dict = self._load(to_band(bands), resolution, size)
 
         # Manage the case of arrays of different size -> collocate arrays if needed
         band_dict = self._collocate_bands(band_dict)
