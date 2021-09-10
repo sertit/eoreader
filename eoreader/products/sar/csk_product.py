@@ -169,16 +169,27 @@ class CskProduct(SarProduct):
 
         return def_res
 
+    def _pre_init(self) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        # Private attributes
+        self._raw_band_regex = "*_{}_*.h5"
+        self._band_folder = self.path
+        self._snap_path = self._img_path.name
+
+        # SNAP cannot process its archive
+        self.needs_extraction = True
+
+        # Post init done by the super class
+        super()._pre_init()
+
     def _post_init(self) -> None:
         """
         Function used to post_init the products
         (setting product-type, band names and so on)
         """
-
-        # Private attributes
-        self._raw_band_regex = "*_{}_*.h5"
-        self._band_folder = self.path
-        self._snap_path = self._img_path.name
 
         # Post init done by the super class
         super()._post_init()

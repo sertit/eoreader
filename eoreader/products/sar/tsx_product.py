@@ -131,19 +131,27 @@ class TsxProduct(SarProduct):
 
         return def_res
 
-    def _post_init(self) -> None:
+    def _pre_init(self) -> None:
         """
-        Function used to post_init the products
-        (setting product-type, band names and so on)
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
         """
         # Private attributes
         self._raw_band_regex = "*IMAGE_{}_*.tif"
         self._band_folder = self.path.joinpath("IMAGEDATA")
         self._snap_path = self.name + ".xml"
 
-        # Zipped and SNAP can process its archive
-        self.needs_extraction = False
+        # SNAP cannot process its archive
+        self.needs_extraction = True
 
+        # Post init done by the super class
+        super()._pre_init()
+
+    def _post_init(self) -> None:
+        """
+        Function used to post_init the products
+        (setting product-type, band names and so on)
+        """
         # Post init done by the super class
         super()._post_init()
 

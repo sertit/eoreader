@@ -2,6 +2,11 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.6.2 (2021-09-10)
+
+- FIX: Better handling of archives for products that needs extraction
+- FIX: TerraSAR-X products need to be extracted to be processed by SNAP !
+
 ## 0.6.1 (2021-09-10)
 - FIX: Fixing critical bug for Sentinel-3 (mapping between clean bands and SNAP bands)
 

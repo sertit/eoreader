@@ -182,14 +182,20 @@ class SarProduct(Product):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
 
+    def _pre_init(self) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        self.tile_name = None
+        self.sensor_type = SensorType.SAR
+        self.band_names = SarBands()
+
     def _post_init(self) -> None:
         """
         Function used to post_init the products
         (setting product-type, band names and so on)
         """
-        self.tile_name = None
-        self.sensor_type = SensorType.SAR
-        self.band_names = SarBands()
         self._set_sensor_mode()
         self.pol_channels = self._get_raw_bands()
 
