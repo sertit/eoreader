@@ -400,7 +400,6 @@ class S3Product(OpticalProduct):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
-        use_snap = False
         for band in band_list:
             # Get clean band path
             clean_band = self._get_clean_band_path(band, resolution=resolution)
@@ -417,12 +416,9 @@ class S3Product(OpticalProduct):
                         f"{self.condensed_name}_{band_name}.tif",
                     )
                 except (FileNotFoundError, TypeError):
-                    use_snap = True
-
-            # If not existing (file or output), convert them
-            if use_snap:
-                all_band_paths = self._preprocess_s3(resolution)
-                band_paths = {band: all_band_paths[band] for band in band_list}
+                    # If not existing (file or output), convert them
+                    all_band_paths = self._preprocess_s3(resolution)
+                    band_paths = {band: all_band_paths[band] for band in band_list}
 
         return band_paths
 

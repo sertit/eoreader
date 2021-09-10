@@ -2,6 +2,12 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.6.3 (2021-09-10)
+
+- ENH: Load works with string bands (`prod.load('BLUE')`)
+- FIX: Fixing missing `_remove_tmp_process` for products needing extraction
+- FIX: Remove multi converting for Sentinel-3
+
 ## 0.6.2 (2021-09-10)
 
 - FIX: Better handling of archives for products that needs extraction
