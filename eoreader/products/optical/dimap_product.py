@@ -183,13 +183,21 @@ class DimapProduct(OpticalProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
 
+    def _pre_init(self) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        self.needs_extraction = False
+
+        # Post init done by the super class
+        super()._pre_init()
+
     def _post_init(self) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
         """
-        self.needs_extraction = False
-
         # Band combination
         root, _ = self.read_mtd()
         band_combi = root.findtext(".//SPECTRAL_PROCESSING")
