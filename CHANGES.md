@@ -2,6 +2,9 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.6.1 (2021-09-XX)
+- FIX: Fixing critical bug for Sentinel-3 (mapping between clean bands and SNAP bands)
+
 ## 0.6.0 (2021-09-02)
 - ENH: Ensuring EOreader supports Dask
 - FIX: Fixing and adding BAIS2 index in alias
