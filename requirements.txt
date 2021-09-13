@@ -27,4 +27,4 @@ rtree
 validators
 
 # SERTIT libs
-sertit[full]>=1.6.0
+sertit[full]>=1.7.3
