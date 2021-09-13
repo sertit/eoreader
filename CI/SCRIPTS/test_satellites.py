@@ -167,7 +167,9 @@ def _test_core(
             # Discard the case where an invalid file/directory is in the CI folder
             if prod is not None:
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    # tmp_dir = os.path.join("/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT")
+                    tmp_dir = os.path.join(
+                        "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
+                    )
                     prod.output = tmp_dir
 
                     # Env var
@@ -457,6 +459,13 @@ def test_tsx():
 def test_rs2():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("*RS2_*")
+
+
+@s3_env
+@dask_env
+def test_rcm():
+    """Function testing the correct functioning of the optical satellites"""
+    _test_core_sar("*RCM*")
 
 
 # TODO:

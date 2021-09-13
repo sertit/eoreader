@@ -118,6 +118,9 @@ class Platform(ListEnum):
     SPOT6 = "Spot-6"
     """SPOT-6"""
 
+    RCM = "RADARSAT-Constellation Mission"
+    """RADARSAT-Constellation Mission"""
+
 
 PLATFORM_REGEX = {
     Platform.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
@@ -142,6 +145,7 @@ PLATFORM_REGEX = {
     Platform.PLD: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
     Platform.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
+    Platform.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
 }
 
 # Not used for now
@@ -173,6 +177,10 @@ MTD_REGEX = {
     Platform.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Platform.SPOT7: r"DIM_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Platform.SPOT6: r"DIM_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
+    Platform.RCM: [
+        r"product\.xml",  # Too generic name, check also a band
+        r"\d+_[RHV]{2}\.tif",
+    ],
 }
 
 

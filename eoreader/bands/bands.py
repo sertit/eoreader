@@ -124,25 +124,37 @@ class SarBandNames(BandNames):
     """ Vertical Transmit-Vertical Receive Polarisation """
 
     VV_DSPK = "VV_DSPK"
-    """ Vertical Transmit-Vertical Receive Polarisation Despeckled """
+    """ Vertical Transmit-Vertical Receive Polarisation (Despeckled) """
 
     HH = "HH"
     """ Horizontal Transmit-Horizontal Receive Polarisation """
 
     HH_DSPK = "HH_DSPK"
-    """ Horizontal Transmit-Horizontal Receive Polarisation Despeckled """
+    """ Horizontal Transmit-Horizontal Receive Polarisation (Despeckled) """
 
     VH = "VH"
     """ Vertical Transmit-Horizontal Receive Polarisation """
 
     VH_DSPK = "VH_DSPK"
-    """ Vertical Transmit-Horizontal Receive Polarisatio Despeckled """
+    """ Vertical Transmit-Horizontal Receive Polarisation (Despeckled) """
 
     HV = "HV"
     """ Horizontal Transmit-Vertical Receive Polarisation """
 
     HV_DSPK = "HV_DSPK"
-    """ Horizontal Transmit-Vertical Receive Polarisation Despeckled """
+    """ Horizontal Transmit-Vertical Receive Polarisation (Despeckled) """
+
+    RH = "RH"
+    """ Compact polarization: right circular transmit, horizontal receive """
+
+    RH_DSPK = "RH_DSPK"
+    """ Compact polarization: right circular transmit, horizontal receive """
+
+    RV = "RV"
+    """ Compact polarization: right circular transmit, vertical receive (Despeckled) """
+
+    RV_DSPK = "RV_DSPK"
+    """ Compact polarization: right circular transmit, horizontal receive (Despeckled) """
 
     @classmethod
     def corresponding_despeckle(cls, band: "SarBandNames"):

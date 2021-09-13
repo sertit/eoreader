@@ -849,23 +849,21 @@ class SarProduct(Product):
                     raise RuntimeError("Something went wrong with SNAP!") from ex
 
             # Convert DIMAP images to GeoTiff
-            out = self._write_sar(dspk_dim, band.value, dspk=True)
+            out = self._write_sar(dspk_dim, band.value.upper(), dspk=True)
 
         return out
 
-    def _write_sar(self, dim_path: str, pol_up: str, dspk=False):
+    def _write_sar(self, dim_path: str, pol: str, dspk=False):
         """
         Write SAR image on disk.
 
         Args:
             dim_path (str): DIMAP path
-            pol_up (str): Polarization name
+            pol (str): Polarization name
         """
-        pol_up = pol_up.upper()  # To be sure
-
         # Get .img file path (readable by rasterio)
         try:
-            img = rasters.get_dim_img_path(dim_path, pol_up)
+            img = rasters.get_dim_img_path(dim_path, f"*{pol}*")
         except FileNotFoundError:
             img = rasters.get_dim_img_path(dim_path)  # Maybe not the good name
 
@@ -876,7 +874,7 @@ class SarProduct(Product):
             # Save the file as the terrain-corrected image
             file_path = os.path.join(
                 self._tmp_process,
-                f"{files.get_filename(dim_path)}_{pol_up}{'_DSPK' if dspk else ''}.tif",
+                f"{files.get_filename(dim_path)}_{pol}{'_DSPK' if dspk else ''}.tif",
             )
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
             rasters.write(arr, file_path, dtype=np.float32, nodata=0)
