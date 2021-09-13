@@ -167,9 +167,9 @@ def _test_core(
             # Discard the case where an invalid file/directory is in the CI folder
             if prod is not None:
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    tmp_dir = os.path.join(
-                        "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                    )
+                    # tmp_dir = os.path.join(
+                    #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
+                    # )
                     prod.output = tmp_dir
 
                     # Env var
