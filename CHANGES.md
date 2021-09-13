@@ -17,10 +17,12 @@
 - FIX: TerraSAR-X products need to be extracted to be processed by SNAP !
 
 ## 0.6.1 (2021-09-10)
+
 - FIX: Fixing critical bug for Sentinel-3 (mapping between clean bands and SNAP bands)
 
 ## 0.6.0 (2021-09-02)
-- ENH: Ensuring EOreader supports Dask
+
+- ENH: Ensuring EOReader supports Dask
 - FIX: Fixing and adding BAIS2 index in alias
 - FIX: Fixing GLI index
 - FIX: Fixing a bug when writing reprojected DIMAP band
@@ -29,34 +31,37 @@
 - DOC: Updating notebooks
 
 ## 0.5.0 (2021-08-24)
-- ENH: Adding the [BAIS2](https://www.researchgate.net/publication/323964124_BAIS2_Burned_Area_Index_for_Sentinel-2) index
+
+- ENH: Adding the [BAIS2](https://www.researchgate.net/publication/323964124_BAIS2_Burned_Area_Index_for_Sentinel-2)
+  index
 - ENH: Read metadata/namespaces only once and store it as a private member. Keep accessing it through the `read_mtd`
   function (#9)
-  **WARNING**: Breaking change for Landsat: `read_mtd()` loses the argument `force_pd=True` as it always returns an Etree
+  **WARNING**: Breaking change for Landsat: `read_mtd()` loses the argument `force_pd=True` as it always returns an
+  Etree
 - ENH: Reads Sentinel-3 global attributes as metadata:
-  - `absolute_orbit_number`
-  - `comment`
-  - `contact`
-  - `creation_time`
-  - `history`
-  - `institution`
-  - `netCDF_version`
-  - `product_name`
-  - `references`
-  - `resolution`
-  - `source`
-  - `start_offset`
-  - `start_time`
-  - `stop_time`
-  - `title`
-  - `ac_subsampling_factor` (`OLCI` only)
-  - `al_subsampling_factor` (`OLCI` only)
-  - `track_offset` (`SLSTR` only)
+    - `absolute_orbit_number`
+    - `comment`
+    - `contact`
+    - `creation_time`
+    - `history`
+    - `institution`
+    - `netCDF_version`
+    - `product_name`
+    - `references`
+    - `resolution`
+    - `source`
+    - `start_offset`
+    - `start_time`
+    - `stop_time`
+    - `title`
+    - `ac_subsampling_factor` (`OLCI` only)
+    - `al_subsampling_factor` (`OLCI` only)
+    - `track_offset` (`SLSTR` only)
 - ENH: Refining Despeckle Graph (#6) to use a more usual filter (`Refined Lee`)
 - ENH: Allowing the user to open the datatake metadata for Sentinel-2 products
-- FIX: Decoupling classic metadata reading from the name as EOReader accepts now modified product
-  names (#9)
-- FIX: Better handling of cloud-stored DEM (raising an exception for non-ortho DIMAP data as GDAL and rasterio does not handle that case)
+- FIX: Decoupling classic metadata reading from the name as EOReader accepts now modified product names (#9)
+- FIX: Better handling of cloud-stored DEM (raising an exception for non-ortho DIMAP data as GDAL and rasterio does not
+  handle that case)
 - FIX: `environment.yml` to respect the stricter use of `file:` syntax.
   See [here](https://stackoverflow.com/questions/68571543/using-a-pip-requirements-file-in-a-conda-yml-file-throws-attributeerror-fileno)
   for more information.
