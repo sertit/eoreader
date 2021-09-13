@@ -3,6 +3,7 @@
 ## X.Y.Z (YYYY-MM-DD)
 
 - FIX: Fixing python version in environment.yml
+- CI: Adding a test loading invalid band name
 
 ## 0.6.3 (2021-09-10)
 

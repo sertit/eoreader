@@ -109,6 +109,10 @@ def test_products():
         else:
             os.environ[DEM_PATH] = old_dem
 
+    # Test invalid band
+    with pytest.raises(InvalidTypeError):
+        prod1.load("TEST")
+
 
 @pytest.mark.skipif(
     S3_DB_URL_ROOT not in os.environ or sys.platform == "win32",
