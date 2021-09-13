@@ -238,7 +238,7 @@ def s3_env(function: Callable):
     def s3_env_wrapper():
         """ S3 environment wrapper """
         if (
-            int(os.getenv(CI_EOREADER_S3, 0))
+            int(os.getenv(CI_EOREADER_S3, 1))
             and os.getenv(AWS_SECRET_ACCESS_KEY)
             and sys.platform != "win32"
         ):
