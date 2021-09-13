@@ -237,7 +237,11 @@ def s3_env(function: Callable):
     @wraps(function)
     def s3_env_wrapper():
         """ S3 environment wrapper """
-        if os.getenv(AWS_SECRET_ACCESS_KEY) and sys.platform != "win32":
+        if (
+            int(os.getenv(CI_EOREADER_S3, 0))
+            and os.getenv(AWS_SECRET_ACCESS_KEY)
+            and sys.platform != "win32"
+        ):
             # Define S3 client for S3 paths
             define_s3_client()
             os.environ[CI_EOREADER_S3] = "1"

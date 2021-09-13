@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-RADARSAT-2 products.
-More info `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs>`_.
+RADARSAT-Constellation Mission products.
+More info `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT_Constellation.html>`_.
 """
 import difflib
 import logging
@@ -43,129 +43,97 @@ warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarni
 
 
 @unique
-class Rs2ProductType(ListEnum):
+class RcmProductType(ListEnum):
     """
-    RADARSAT-2 projection identifier.
+    RADARSAT-Constellation projection identifier.
     Take a look `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html>`_.
     """
 
     SLC = "SLC"
-    """Single-look complex"""
+    """ Georeferenced. Single look complex data in slant range. """
 
-    SGX = "SGX"
-    """SAR georeferenced extra"""
+    GRC = "GRC"
+    """ Georeferenced. Multilook complex data in ground range. """
 
-    SGF = "SGF"
-    """SAR georeferenced fine"""
+    GRD = "GRD"
+    """ Georeferenced. Multilook detected data in ground range. """
 
-    SCN = "SCN"
-    """ScanSAR narrow beam"""
+    GCC = "GCC"
+    """
+    Geocoded to a map projection.
+    Complex data.
+    Data commonly projected to Universal Transverse Mercator Projection (UTM)
+    or Universal Polar Stereographic (UPS) north of 84N or south of 80S.
+    """
 
-    SCW = "SCW"
-    """ScanSAR wide beam"""
-
-    SCF = "SCF"
-    """ScanSAR fine"""
-
-    SCS = "SCS"
-    """ScanSAR sampled"""
-
-    SSG = "SSG"
-    """SAR systematic geocorrected"""
-
-    SPG = "SPG"
-    """SAR precision geocorrected"""
+    GCD = "GCD"
+    """
+    Geocoded to a map projection.
+    Detected data.
+    Data commonly projected to Universal Transverse Mercator (UTM)
+    or Universal Polar Stereographic (UPS) north of 84N or south of 80S.
+    """
 
 
 @unique
-class Rs2SensorMode(ListEnum):
+class RcmSensorMode(ListEnum):
     """
-    RADARSAT-2 sensor mode.
-    Take a look `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html>`_.
+    RADARSAT-Constellation sensor mode.
+    Take a look `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT_Constellation.html>`_.
 
     .. WARNING:: The name in the metadata may vary !
     """
 
-    # Single Beam Modes
-    S = "Standard"
-    """Standard Mode"""
+    THREE_M = "Very High Resolution 3m"
+    """" Very-High Resolution, 3 meters [3M] """
 
-    W = "Wide"
-    """Spotlight Mode"""
+    FIVE_M = "High Resolution 5m"
+    """" High Resolution, 5 meters [5M] """
 
-    F = "Fine"
-    """Wide Mode"""
+    QP = "Quad-Polarization"
+    """" Quad-Polarization [QP] """
 
-    WF = "Wide Fine"
-    """Wide Fine Mode"""
+    SIXTEEN_M = "Medium Resolution 16m"
+    """" Medium Resolution, 16 meters [16M] """
 
-    MF = "Multi-Look Fine"
-    """Multi-Look Fine Mode"""
+    THIRTY_M = "Medium Resolution 30m"
+    """" Medium Resolution, 30 meters [SC30] """
 
-    WMF = "Wide Multi-Look Fine"
-    """Wide Multi-Look Fine Mode"""
+    FIFTY_M = "Medium Resolution 50m"
+    """" Medium Resolution, 50 meters [SC50] """
 
-    XF = "Extra-Fine"
-    """Extra-Fine Mode"""
+    SCLN = "Low Noise"
+    """" Low Noise [SCLN] """
 
-    U = "Ultra-Fine"
-    """Ultra-Fine Mode"""
+    HUNDRED_M = "Low Resolution 100m"
+    """ Low Resolution, 100 meters [SC100] """
 
-    WU = "Wide Ultra-Fine"
-    """Wide Ultra-Fine Mode"""
-
-    EH = "Extended High"
-    """Extended High Mode"""
-
-    EL = "Extended Low"
-    """Extended Low Mode"""
-
-    SQ = "Standard Quad-Pol"
-    """Standard Quad-Pol Mode"""
-
-    WSQ = "Wide Standard Quad-Pol"
-    """Wide Standard Quad-Pol Mode"""
-
-    FQ = "Fine Quad-Pol"
-    """Fine Quad-Pol Mode"""
-
-    WFQ = "Wide Fine Quad-Pol"
-    """Spotlight Mode"""
-
-    # ScanSAR Modes
-    SCN = "ScanSAR Narrow"
-    """Spotlight Mode"""
-
-    SCW = "ScanSAR Wide"
-    """Spotlight Mode"""
-
-    OSVN = "Ocean Surveillance"
-    """Ocean Surveillance Mode"""
-
-    DVWF = "Ship Detection"
-    """Ship Detection Mode"""
+    SD = "Ship Detection"
+    """ Ship Detection Mode """
 
     # Spotlight Mode
-    SLA = "Spotlight"
-    """Spotlight Mode"""
+    FSL = "Spotlight Mode"
+    """ Spotlight Mode [FSL] """
 
 
 @unique
-class Rs2Polarization(ListEnum):
+class RcmPolarization(ListEnum):
     """
-    RADARSAT-2 polarization mode.
-    Take a look `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs>`_
+    RADARSAT-Constellation polarization mode.
+    Take a look `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT_Constellation.html>`_.
     """
 
+    RH = "RH"
+    RV = "RV"
     HH = "HH"
     VV = "VV"
     VH = "VH"
     HV = "HV"
 
 
-class Rs2Product(SarProduct):
+class RcmProduct(SarProduct):
     """
-    Class for RADARSAT-2 Products
+    Class for RADARSAT-Constellation Products
 
     You can use directly the .zip file
     """
@@ -191,13 +159,8 @@ class Rs2Product(SarProduct):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
-        # Private attributes
-        self._raw_band_regex = "*imagery_{}.tif"
-        self._band_folder = self.path
-        self._snap_path = ""
-
-        # Zipped and SNAP can process its archive
-        self.needs_extraction = False
+        # SNAP cannot process zipped RCM
+        self.needs_extraction = True
 
         # Post init done by the super class
         super()._pre_init()
@@ -207,6 +170,13 @@ class Rs2Product(SarProduct):
         Function used to post_init the products
         (setting product-type, band names and so on)
         """
+        # Private attributes
+        self._raw_band_regex = "*_{}.tif"
+        self._band_folder = self.path / "imagery"
+        self._snap_path = ""
+
+        # Zipped and SNAP can process its archive
+        self.needs_extraction = False
 
         # Post init done by the super class
         super()._post_init()
@@ -232,9 +202,11 @@ class Rs2Product(SarProduct):
         # Open extent KML file
         try:
             if self.is_archived:
-                product_kml = vectors.read(self.path, archive_regex=".*product\.kml")
+                product_kml = vectors.read(self.path, archive_regex=".*mapOverlay\.kml")
             else:
-                extent_file = next(self.path.glob("*product.kml"))
+                extent_file = next(
+                    self.path.joinpath("preview").glob("*mapOverlay.kml")
+                )
                 product_kml = vectors.read(extent_file)
         except IndexError as ex:
             raise InvalidProductError(
@@ -259,18 +231,22 @@ class Rs2Product(SarProduct):
         except TypeError:
             raise InvalidProductError("mode not found in metadata !")
 
-        self.product_type = Rs2ProductType.from_value(prod_type)
+        self.product_type = RcmProductType.from_value(prod_type)
 
-        if self.product_type == Rs2ProductType.SGF:
+        if self.product_type in [RcmProductType.GRD, RcmProductType.GCD]:
             self.sar_prod_type = SarProductType.GDRG
-        elif self.product_type == Rs2ProductType.SLC:
+        elif self.product_type in [
+            RcmProductType.SLC,
+            RcmProductType.GRC,
+            RcmProductType.GCC,
+        ]:
             self.sar_prod_type = SarProductType.CPLX
         else:
             raise NotImplementedError(
                 f"{self.product_type.value} product type is not available for {self.name}"
             )
 
-        if self.product_type != Rs2ProductType.SGF:
+        if self.product_type != RcmProductType.GRD:
             LOGGER.warning(
                 "Other products type than SGF has not been tested for %s data. "
                 "Use it at your own risks !",
@@ -292,10 +268,10 @@ class Rs2Product(SarProduct):
 
         if sensor_mode_xml:
             sensor_mode = difflib.get_close_matches(
-                sensor_mode_xml, Rs2SensorMode.list_values()
+                sensor_mode_xml, RcmSensorMode.list_values()
             )[0]
             try:
-                self.sensor_mode = Rs2SensorMode.from_value(sensor_mode)
+                self.sensor_mode = RcmSensorMode.from_value(sensor_mode)
             except ValueError as ex:
                 raise InvalidTypeError(f"Invalid sensor mode for {self.name}") from ex
         else:
@@ -355,7 +331,32 @@ class Rs2Product(SarProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespace
         """
-        mtd_from_path = "product.xml"
-        mtd_archived = "product\.xml"
+        mtd_from_path = "metadata/product.xml"
+        mtd_archived = "metadata.*product\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
+
+    def _get_condensed_name(self) -> str:
+        """
+        Get products condensed name ({acq_datetime}_RCM_{sensor_mode}_{product_type}).
+
+        Returns:
+            str: Condensed RCM name
+        """
+        # Get back the correct sensor name
+        if self.sensor_mode == RcmSensorMode.THREE_M:
+            mode_name = "3M"
+        elif self.sensor_mode == RcmSensorMode.FIVE_M:
+            mode_name = "5M"
+        elif self.sensor_mode == RcmSensorMode.SIXTEEN_M:
+            mode_name = "16M"
+        elif self.sensor_mode == RcmSensorMode.THIRTY_M:
+            mode_name = "SC30"
+        elif self.sensor_mode == RcmSensorMode.FIFTY_M:
+            mode_name = "SC50"
+        elif self.sensor_mode == RcmSensorMode.HUNDRED_M:
+            mode_name = "SC100"
+        else:
+            mode_name = self.sensor_mode.name
+
+        return f"{self.get_datetime()}_{self.platform.name}_{mode_name}_{self.product_type.value}"
