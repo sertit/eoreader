@@ -2,6 +2,8 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+- FIX: Fixing python version in environment.yml
+
 ## 0.6.3 (2021-09-10)
 
 - ENH: Load works with string bands (`prod.load('BLUE')`)
