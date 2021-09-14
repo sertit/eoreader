@@ -1054,16 +1054,20 @@ class DimapProduct(OpticalProduct):
             Union[CloudPath, Path]: UTM band path
         """
         if resolution:
-            try:
-                resolution = str(resolution).replace(".", "-")
-            except TypeError:
-                pass
-            res_str = f"_{str(resolution).replace('.', '-')}m"
+            if isinstance(resolution, (tuple, list)):
+                res_x = f"{resolution[0]:.2f}"
+                res_y = f"{resolution[1]:.2f}"
+                if res_x == res_y:
+                    res_str = f"{res_x}m".replace(".", "-")
+                else:
+                    res_str = f"{res_x}_{res_y}m".replace(".", "-")
+            else:
+                res_str = f"{resolution:.2f}m".replace(".", "-")
         else:
             res_str = ""
 
         return self._get_band_folder().joinpath(
-            f"{self.condensed_name}_{band}{res_str}.tif"
+            f"{self.condensed_name}_{band}_{res_str}.tif"
         )
 
     def _warp_band(

@@ -133,11 +133,10 @@ def assert_geom_almost_equal(
 
     -> Useful for pytests.
 
-    ```python
-    >>> path = r"CI\DATA\vectors\aoi.geojson"
-    >>> assert_geom_equal(path, path)
-    >>> # Raises AssertionError if sth goes wrong
-    ```
+    .. code-block:: python
+        >>> path = r"CI\DATA\vectors\aoi.geojson"
+        >>> assert_geom_equal(path, path)
+        >>> # Raises AssertionError if sth goes wrong
 
     .. WARNING::
         Only checks:
@@ -215,10 +214,10 @@ def dask_env(function: Callable):
             with LocalCluster(
                 n_workers=4, threads_per_worker=4, processes=True
             ) as cluster, Client(cluster):
-                LOGGER.info("Using DASK")
+                LOGGER.info("Using DASK Local Cluster")
                 function()
         else:
-            LOGGER.info("Using NUMPY")
+            LOGGER.info("Using DASK Threading")
             function()
 
     return dask_env_wrapper

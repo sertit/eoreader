@@ -304,8 +304,8 @@ def _test_core(
                 # Clean temp
                 if not debug:
                     LOGGER.info("Cleaning tmp")
-                    prod.clean_tmp()
-                    assert len(list(prod._tmp_process.glob("*"))) == 0
+                    # prod.clean_tmp()
+                    # assert len(list(prod._tmp_process.glob("*"))) == 0
 
 
 @s3_env

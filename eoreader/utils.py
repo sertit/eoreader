@@ -124,15 +124,15 @@ def read(
     """
     Overload of `sertit.rasters.read()` managing  DASK in EOReader's way.
 
-    ```python
-    >>> raster_path = "path\\to\\raster.tif"
-    >>> xds1 = read(raster_path)
-    >>> # or
-    >>> with rasterio.open(raster_path) as dst:
-    >>>    xds2 = read(dst)
-    >>> xds1 == xds2
-    True
-    ```
+    .. code-block:: python
+
+        >>> raster_path = "path\\to\\raster.tif"
+        >>> xds1 = read(raster_path)
+        >>> # or
+        >>> with rasterio.open(raster_path) as dst:
+        >>>    xds2 = read(dst)
+        >>> xds1 == xds2
+        True
 
     Args:
         path (Union[str, CloudPath, Path]): Path to the raster
