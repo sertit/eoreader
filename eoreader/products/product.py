@@ -1427,18 +1427,24 @@ class Product:
                 *bounds,
                 resolution=self.resolution,
             )
-            resolution = (
-                abs(utm_tr.a * utm_w / size[0]),
-                abs(utm_tr.e * utm_h / size[1]),
-            )
+            res_x = abs(utm_tr.a * utm_w / size[0])
+            res_y = abs(utm_tr.e * utm_h / size[1])
         # Manage UTM case
         else:
-            resolution = (
-                abs(def_tr.a * def_w / size[0]),
-                abs(def_tr.e * def_h / size[1]),
-            )
+            res_x = abs(def_tr.a * def_w / size[0])
+            res_y = abs(def_tr.e * def_h / size[1])
 
-        return resolution
+        # Round resolution to the closest meter (under 1 meter, allow centimetric resolution)
+        if res_x < 1.0:
+            res_x = np.round(res_x, 1)
+        else:
+            res_x = np.round(res_x, 0)
+        if res_y < 1.0:
+            res_y = np.round(res_y, 1)
+        else:
+            res_y = np.round(res_y, 0)
+
+        return res_x, res_y
 
     def clean_tmp(self):
         """

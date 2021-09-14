@@ -506,16 +506,18 @@ class OpticalProduct(Product):
         Returns:
             Union[CloudPath, Path]: Clean band path
         """
-        if resolution is not None:
-            if isinstance(resolution, (list, tuple)):
-                res_str = "_".join([str(round(res, 2)) for res in resolution]) + "m"
+        if resolution:
+            if isinstance(resolution, (tuple, list)):
+                res_x = f"{resolution[0]:.2f}"
+                res_y = f"{resolution[1]:.2f}"
+                if res_x == res_y:
+                    res_str = f"{res_x}m".replace(".", "-")
+                else:
+                    res_str = f"{res_x}_{res_y}m".replace(".", "-")
             else:
-                res_str = f"{resolution:.2f}m"
+                res_str = f"{resolution:.2f}m".replace(".", "-")
         else:
-            try:
-                res_str = f"{self.resolution:.2f}m"
-            except ValueError:
-                res_str = ""
+            res_str = ""
 
         return self._get_band_folder().joinpath(
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_clean.tif",
