@@ -308,7 +308,7 @@ def NDMI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NIR], +bands[obn.SWIR_1])
+    return _norm_diff(bands[obn.NIR], bands[obn.SWIR_1])
 
 
 @_idx_fct
@@ -359,7 +359,12 @@ def RDI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def NDWI(bands: dict) -> xr.DataArray:
     """
-    Simple Ratio MIR/NIR Ratio Drought Index: https://www.indexdatabase.de/db/i-single.php?id=71
+    Normalized Difference Water Index (GREEN Version):
+    https://pro.arcgis.com/fr/pro-app/2.7/arcpy/image-analyst/ndwi.htm
+
+    NDWI = (Green - NIR) / (Green + NIR)
+
+    For the SWIR version, see the NDMI.
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
