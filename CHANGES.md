@@ -13,6 +13,11 @@
 - FIX: Fixing python version in environment.yml
 - CI: Adding a test loading invalid band name
 
+## 0.6.4 (2021-09-15)
+
+- FIX: Sentinel-3 band mapping (`Coastal Aerosol` <-> `03`, `BLUE` <-> `04`)
+- DOC: Adding an interactive graph for optical band mapping
+
 ## 0.6.3 (2021-09-10)
 
 - ENH: Load works with string bands (`prod.load('BLUE')`)
