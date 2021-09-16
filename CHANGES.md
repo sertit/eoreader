@@ -7,6 +7,7 @@
 - ENH: Implementing RADARSAT-Constellation products (as `RCM`)
 - ENH: Adding `RH`, `RV`, `RH_DSPK` and `RV_DSPK` SAR bands
 - ENH: Loading by size -> round resolution to the closest meter (or decimeter for resolution < 1.0m)
+- FIX: Fixing reading PlanetScope archived products (error in read band)
 - FIX: Fix band name with complex resolutions
 - FIX: Fixing minor bug in RADARSAT-2 data when looking for product type
 - FIX: Fixing SAR band search in BEAM-DIMAP files
