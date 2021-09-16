@@ -14,6 +14,7 @@
 - FIX: Discard unused MIR and FNIR bands
 - FIX: Check for existence of given path when reading any product
 - DOC: Fix documentation of the NDWI index
+- DOC: Update graph for optical band mapping
 - CI: Adding a test loading invalid band name
 
 ## 0.6.4 (2021-09-15)
