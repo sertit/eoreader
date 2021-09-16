@@ -12,6 +12,7 @@
 - FIX: Fixing SAR band search in BEAM-DIMAP files
 - FIX: Fixing python version in environment.yml
 - FIX: Discard unused MIR and FNIR bands
+- FIX: Check for existence of given path when reading any product
 - DOC: Fix documentation of the NDWI index
 - CI: Adding a test loading invalid band name
 

@@ -257,6 +257,9 @@ class Reader:
             Product: Correct products
 
         """
+        if not AnyPath(product_path).exists():
+            FileNotFoundError(f"Non existing product: {product_path}")
+
         prod = None
         for platform in Platform.list_names():
             if method == CheckMethod.MTD:
