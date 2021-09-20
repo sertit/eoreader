@@ -43,6 +43,7 @@ from eoreader.exceptions import InvalidTypeError
 CA = _obn.CA  # Coastal aerosol
 BLUE = _obn.BLUE
 GREEN = _obn.GREEN
+YELLOW = _obn.YELLOW
 RED = _obn.RED
 VRE_1 = _obn.VRE_1
 VRE_2 = _obn.VRE_2

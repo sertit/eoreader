@@ -7,6 +7,7 @@
 - ENH: Implementing RADARSAT-Constellation products (as `RCM`)
 - ENH: Adding `RH`, `RV`, `RH_DSPK` and `RV_DSPK` SAR bands
 - ENH: Loading by size -> round resolution to the closest meter (or decimeter for resolution < 1.0m)
+- ENH: Adding the YELLOW optical band (for `WorldView-2`, `WorldView-3` and `Sentinel-3 OLCI`)
 - FIX: Fixing reading PlanetScope archived products (error in read band)
 - FIX: Fix band name with complex resolutions
 - FIX: Fixing minor bug in RADARSAT-2 data when looking for product type
@@ -15,6 +16,7 @@
 - FIX: Discard unused MIR and FNIR bands
 - FIX: Check for existence of given path when reading any product
 - FIX: Workaround for a bug involving some downloaded but badly formatted archives for Sentinel-2
+- FIX: Allow NARROW_NIR for and DIMAP data (== NIR)
 - DOC: Fix documentation of the NDWI index
 - DOC: Update graph for optical band mapping
 - CI: Adding a test loading invalid band name
