@@ -152,17 +152,19 @@ class MaxarBandId(ListEnum):
     RGB = "RGB"
     """
     Red + Green + Blue
+    Pan-sharpened color images, stored at the panchromatic spatial resolution.
     """
 
     NRG = "NRG"
     """
     Near-IR + Red + Green
+    Pan-sharpened color images, stored at the panchromatic spatial resolution.
     """
 
     BGRN = "BGRN Pan-Sharpened"
     """
-    Blue + Green + Red + Near-IR RGB, NRG, and BGRN are pan-sharpened color images,
-    stored at the panchromatic spatial resolution.
+    Blue + Green + Red + Near-IR
+    Pan-sharpened color images, stored at the panchromatic spatial resolution.
     """
 
     # Only for WorldView-2 and WorldView-3
@@ -276,12 +278,12 @@ class MaxarProduct(OpticalProduct):
         """
         # Band combination
         root, _ = self.read_mtd()
-        band_combi = root.findtext(".//SPECTRAL_PROCESSING")
+        band_combi = root.findtext(".//BANDID")
         if not band_combi:
             raise InvalidProductError(
-                "Cannot find the band combination (from SPECTRAL_PROCESSING) type in the metadata file"
+                "Cannot find the band combination (from BANDID) type in the metadata file"
             )
-        self.band_combi = getattr(MaxarBandId, band_combi.replace("-", "_"))
+        self.band_combi = getattr(MaxarBandId, band_combi)
 
         # Post init done by the super class
         super()._post_init()
@@ -297,33 +299,67 @@ class MaxarProduct(OpticalProduct):
         """Set products type"""
         # Get MTD XML file
         root, _ = self.read_mtd()
-        prod_type = root.find(".//DATASET_QL_PATH").attrib["href"].split("_")[4]
+        prod_type = root.find(".//PRODUCTTYPE")
         if not prod_type:
             raise InvalidProductError(
-                "Cannot find the product type (from PROCESSING_LEVEL) type in the metadata file"
+                "Cannot find the product type (from PRODUCTTYPE) type in the metadata file"
             )
         self.product_type = getattr(MaxarProductType, prod_type)
 
         # Manage bands of the product
-        if self.band_combi == MaxarBandId.P:
+        if self.band_combi in [
+            MaxarBandId.P,
+            MaxarBandId.N,
+            MaxarBandId.R,
+            MaxarBandId.G,
+            MaxarBandId.B,
+            MaxarBandId.N2,
+            MaxarBandId.RE,
+            MaxarBandId.Y,
+            MaxarBandId.C,
+        ]:
             self.band_names.map_bands({obn.PAN: 1})
-        elif self.band_combi in [
-            MaxarBandId.MS,
-            MaxarBandId.PMS,
-        ]:
+        elif self.band_combi == MaxarBandId.RGB:
+            self.band_names.map_bands({obn.RED: 1, obn.GREEN: 2, obn.BLUE: 3})
+        elif self.band_combi == MaxarBandId.NRG:
             self.band_names.map_bands(
-                {obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1, obn.NIR: 4}
+                {obn.NIR: 1, obn.NARROW_NIR: 1, obn.RED: 2, obn.GREEN: 3}
             )
-        elif self.band_combi in [
-            MaxarBandId.MS_N,
-            MaxarBandId.PMS_N,
-        ]:
-            self.band_names.map_bands({obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1})
-        elif self.band_combi in [
-            MaxarBandId.MS_X,
-            MaxarBandId.PMS_X,
-        ]:
-            self.band_names.map_bands({obn.GREEN: 1, obn.RED: 2, obn.NIR: 3})
+        elif self.band_combi == MaxarBandId.BGRN:
+            self.band_names.map_bands(
+                {obn.BLUE: 1, obn.GREEN: 2, obn.RED: 3, obn.NIR: 4, obn.NARROW_NIR: 4}
+            )
+        elif self.band_combi == MaxarBandId.MS1:
+            self.band_names.map_bands(
+                {obn.NIR: 1, obn.NARROW_NIR: 1, obn.RED: 2, obn.GREEN: 3, obn.BLUE: 4}
+            )
+        elif self.band_combi == MaxarBandId.MS2:
+            self.band_names.map_bands({obn.WV: 1, obn.RE: 2, obn.YELLOW: 3, obn.CA: 4})
+        elif self.band_combi == MaxarBandId.Multi:
+            if self.sat_id in (MaxarSatId.WV02, MaxarSatId.WV03):
+                self.band_names.map_bands(
+                    {
+                        obn.NIR: 1,
+                        obn.NARROW_NIR: 1,
+                        obn.RED: 2,
+                        obn.GREEN: 3,
+                        obn.BLUE: 4,
+                    }
+                )
+            else:
+                self.band_names.map_bands(
+                    {
+                        obn.NIR: 1,
+                        obn.NARROW_NIR: 1,
+                        obn.RED: 2,
+                        obn.GREEN: 3,
+                        obn.BLUE: 4,
+                        obn.WV: 5,
+                        obn.RE: 6,
+                        obn.YELLOW: 7,
+                        obn.CA: 8,
+                    }
+                )
         else:
             raise InvalidProductError(
                 f"Unusual band combination: {self.band_combi.name}"

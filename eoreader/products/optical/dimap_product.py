@@ -233,12 +233,14 @@ class DimapProduct(OpticalProduct):
             self.band_names.map_bands({obn.PAN: 1})
         elif self.band_combi in [DimapBandCombination.MS, DimapBandCombination.PMS]:
             self.band_names.map_bands(
-                {obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1, obn.NIR: 4}
+                {obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1, obn.NIR: 4, obn.NARROW_NIR: 4}
             )
         elif self.band_combi in [DimapBandCombination.MS_N, DimapBandCombination.PMS_N]:
             self.band_names.map_bands({obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1})
         elif self.band_combi in [DimapBandCombination.MS_X, DimapBandCombination.PMS_X]:
-            self.band_names.map_bands({obn.GREEN: 1, obn.RED: 2, obn.NIR: 3})
+            self.band_names.map_bands(
+                {obn.GREEN: 1, obn.RED: 2, obn.NIR: 3, obn.NARROW_NIR: 3}
+            )
         else:
             raise InvalidProductError(
                 f"Unusual band combination: {self.band_combi.name}"
