@@ -14,6 +14,7 @@
 - FIX: Fixing python version in environment.yml
 - FIX: Discard unused MIR and FNIR bands
 - FIX: Check for existence of given path when reading any product
+- FIX: Workaround for a bug involving some downloaded but badly formatted archives for Sentinel-2
 - DOC: Fix documentation of the NDWI index
 - DOC: Update graph for optical band mapping
 - CI: Adding a test loading invalid band name
