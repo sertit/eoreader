@@ -131,7 +131,7 @@ def _test_core(
     with xr.set_options(warn_for_unclosed_files=debug):
 
         # Init logger
-        logs.init_logger(LOGGER)
+        logs.init_logger(LOGGER, log_lvl=logging.DEBUG)
         logging.getLogger("boto3").setLevel(
             logging.WARNING
         )  # BOTO has way too much verbosity
