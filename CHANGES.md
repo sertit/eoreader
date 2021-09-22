@@ -2,15 +2,15 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.7.0 (2021-MM-DD)
+## 0.7.0 (2021-09-DD)
 
-- ENH: Implementing RADARSAT-Constellation products (as `RCM`)
-- ENH: Implementing Maxar products (such as `GE01, WV02, WV03, WV04`, but others should be supported too)
-- ENH: Adding `RH`, `RV`, `RH_DSPK` and `RV_DSPK` SAR bands
-- ENH: Adding the `YELLOW` optical band (for `WorldView-2`, `WorldView-3` and `Sentinel-3 OLCI`)
-- ENH: Adding [WorldView index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide) (without the ones using SWIR)
-- ENH: Loading by size -> round resolution to the closest meter (or decimeter for resolution < 1.0m)
-- ENH: Super class for VHR data
+- **ENH: Implementing RADARSAT-Constellation products (as `RCM`)**
+- **ENH: Implementing Maxar products (such as `GE01, WV02, WV03, WV04`, but others should be supported too)**
+- **ENH: Adding `RH`, `RV`, `RH_DSPK` and `RV_DSPK` SAR bands**
+- **ENH: Adding the `YELLOW` optical band (for `WorldView-2`, `WorldView-3` and `Sentinel-3 OLCI`)**
+- **ENH: Adding [WorldView index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide) (without the ones using SWIR)**
+- **ENH: Loading by size -> round resolution to the closest meter (or decimeter for resolution < 1.0m)**
+- **ENH: Super class for VHR data**
 - FIX: Fixing reading PlanetScope archived products (error in read band)
 - FIX: Fix band name with complex resolutions
 - FIX: Fixing minor bug in RADARSAT-2 data when looking for product type
@@ -31,7 +31,7 @@
 
 ## 0.6.3 (2021-09-10)
 
-- ENH: Load works with string bands (`prod.load('BLUE')`)
+- **ENH: Load works with string bands (`prod.load('BLUE')`)**
 - FIX: Fixing missing `_remove_tmp_process` for products needing extraction
 - FIX: Remove multi converting for Sentinel-3
 
@@ -46,7 +46,7 @@
 
 ## 0.6.0 (2021-09-02)
 
-- ENH: Ensuring EOReader supports Dask
+- **ENH: Ensuring EOReader supports Dask**
 - FIX: Fixing and adding BAIS2 index in alias
 - FIX: Fixing GLI index
 - FIX: Fixing a bug when writing reprojected DIMAP band
@@ -56,13 +56,13 @@
 
 ## 0.5.0 (2021-08-24)
 
-- ENH: Adding the [BAIS2](https://www.researchgate.net/publication/323964124_BAIS2_Burned_Area_Index_for_Sentinel-2)
-  index
-- ENH: Read metadata/namespaces only once and store it as a private member. Keep accessing it through the `read_mtd`
-  function (#9)
+- **ENH: Adding the [BAIS2](https://www.researchgate.net/publication/323964124_BAIS2_Burned_Area_Index_for_Sentinel-2)
+  index**
+- **ENH: Read metadata/namespaces only once and store it as a private member. Keep accessing it through the `read_mtd`
+  function (#9)**
   **WARNING**: Breaking change for Landsat: `read_mtd()` loses the argument `force_pd=True` as it always returns an
   Etree
-- ENH: Reads Sentinel-3 global attributes as metadata:
+- **ENH: Reads Sentinel-3 global attributes as metadata:**
     - `absolute_orbit_number`
     - `comment`
     - `contact`
@@ -81,8 +81,8 @@
     - `ac_subsampling_factor` (`OLCI` only)
     - `al_subsampling_factor` (`OLCI` only)
     - `track_offset` (`SLSTR` only)
-- ENH: Refining Despeckle Graph (#6) to use a more usual filter (`Refined Lee`)
-- ENH: Allowing the user to open the datatake metadata for Sentinel-2 products
+- **ENH: Refining Despeckle Graph (#6) to use a more usual filter (`Refined Lee`)**
+- **ENH: Allowing the user to open the datatake metadata for Sentinel-2 products**
 - FIX: Decoupling classic metadata reading from the name as EOReader accepts now modified product names (#9)
 - FIX: Better handling of cloud-stored DEM (raising an exception for non-ortho DIMAP data as GDAL and rasterio does not
   handle that case)
@@ -98,7 +98,7 @@
 
 ## 0.4.8 (2021-07-23)
 
-- ENH: Allowing `stack` to take single band in input instead of a list
+- **ENH: Allowing `stack` to take single band in input instead of a list**
 - FIX: Fixing a regression loading optical bands which have been previously cleaned (Landsat, Theia, possibly
   PlanetScope)
 - FIX: `load` and `stack` always returns `float32` arrays
@@ -110,10 +110,10 @@
 
 ## 0.4.7 (2021-07-23)
 
-- ENH: Adding a `default_transform` function returning data from default band (without warping it) -> *
-  mapping `calculate_default_transform` from `rasterio`*
-- ENH: Adding a `clean_tmp` function allowing the user to clean the product's temporary output by hand
-- ENH: Simplifying DEM warping code
+- **ENH: Adding a `default_transform` function returning data from default band (without warping it)**
+  -> *mapping `calculate_default_transform` from `rasterio`*
+- **ENH: Adding a `clean_tmp` function allowing the user to clean the product's temporary output by hand**
+- **ENH: Simplifying DEM warping code**
 - FIX: `DIMAP` products return always projected (in UTM) default bands (`get_default_band_path`
   uses `_get_default_utm_band`)
 - FIX: Theia Footprint returns a `GeoDataFrame` instead of a `GeoSeries`
@@ -156,44 +156,44 @@
 
 ## 0.4.3 (2021-07-05)
 
-- [DIMAP Products] Optimizing loading cloud bands
+- **ENH: Optimizing loading cloud bands for DIMAP Products**
 - `stack` accepts `**kwargs` in order to pass options to `rioxarray.to_raster()`
-- Fixing not found masks with S3+zip Sentinel-2 products
-- [CI] BUG: Fixing network directories with pathlib
-- Fixing some type hints
+- FIX: Fixing not found masks with S3+zip Sentinel-2 products
+- FIX: Fixing some type hints
+- CI: Fixing network directories with pathlib
 
 ## 0.4.2 (2021-07-01)
 
-- Feature: Enabling the use of products stored in the cloud
-  (S3, S3 compatible storage, Google, Azure...) through [`cloudpathlib`](https://cloudpathlib.drivendata.org/)
-- Enhancement: Using correct band names in long_name
+- **ENH: Enabling the use of products stored in the cloud
+  (S3, S3 compatible storage, Google, Azure...) through [`cloudpathlib`](https://cloudpathlib.drivendata.org/)**
+- **ENH: Using correct band names in long_name**
 - CI: Use pre-computed cleaned band if existing
-- Doc: Adding examples for using S3 data, especially for S3 compatible storage
+- DOC: Adding examples for using S3 data, especially for S3 compatible storage
 
 ## 0.4.1.post0 (2021-06-21)
 
-- Bug fix: cloud mask values were inverted in Sentinel-2 cloud masks
-- Bug fix: Landsat collection 2 cloud masks are now OK
+- FIX: cloud mask values were inverted in Sentinel-2 cloud masks
+- FIX: Landsat collection 2 cloud masks are now OK
 
 ## 0.4.1 (2021-06-21)
 
-- Improving stacks saved as uint16:
+- FIX: Improving stacks saved as uint16:
     - Only satellite bands and index are scaled (*10.000)
     - DEM bands are just rounded
     - Cloud bands (booleans) are saved as is
-- Fixing a rasterization bug affecting S2 and DIMAP masks, happening when the vectors have another size than the image
-- Adding a warning on bad georeferencing when using GS and GT Landsat products
-- Minor updates in documentation and code
+- FIX: Fixing a rasterization bug affecting S2 and DIMAP masks, happening when the vectors have another size than the image
+- FIX: Adding a warning on bad georeferencing when using GS and GT Landsat products
+- CI: Minor updates in documentation and code
 
 ## 0.4.0 (2021-06-10)
 
 ### Features
 
-- Adding **THR** data support:
+- **ENH: Adding THR data support:**
     - **PlanetScope**
     - **Pleiades**
     - **SPOT 6-7**
-- [SAR] Better handling of SNAP DEMs (using External DEM and other available SNAP DEMs)
+- **ENH: Better handling of SNAP DEMs (using External DEM and other available SNAP DEMs)**
 
 ### Fix
 
