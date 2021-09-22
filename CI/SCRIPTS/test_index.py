@@ -38,7 +38,8 @@ def test_index():
         logging.getLogger("botocore").setLevel(
             logging.WARNING
         )  # BOTO has way too much verbosity
-        idx = prod.load(get_all_index(), resolution=RES)
+        idx_list = [idx for idx in get_all_index() if prod.has_band(idx)]
+        idx = prod.load(idx_list, resolution=RES)
 
         for idx_fct, idx_arr in idx.items():
             idx_name = idx_fct.__name__
