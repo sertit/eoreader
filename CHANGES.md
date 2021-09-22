@@ -24,6 +24,7 @@
 - DOC: Fix documentation of the NDWI index
 - DOC: Update graph for optical band mapping
 - CI: Adding a test loading invalid band name
+- CI: Setting CI log level to DEBUG
 
 ## 0.6.4 (2021-09-15)
 
