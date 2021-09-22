@@ -5,9 +5,12 @@
 ## 0.7.0 (2021-MM-DD)
 
 - ENH: Implementing RADARSAT-Constellation products (as `RCM`)
+- ENH: Implementing Maxar products (such as `GE01, WV02, WV03, WV04`, but others should be supported too)
 - ENH: Adding `RH`, `RV`, `RH_DSPK` and `RV_DSPK` SAR bands
+- ENH: Adding the `YELLOW` optical band (for `WorldView-2`, `WorldView-3` and `Sentinel-3 OLCI`)
+- ENH: Adding [WorldView index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide) (without the ones using SWIR)
 - ENH: Loading by size -> round resolution to the closest meter (or decimeter for resolution < 1.0m)
-- ENH: Adding the YELLOW optical band (for `WorldView-2`, `WorldView-3` and `Sentinel-3 OLCI`)
+- ENH: Super class for VHR data
 - FIX: Fixing reading PlanetScope archived products (error in read band)
 - FIX: Fix band name with complex resolutions
 - FIX: Fixing minor bug in RADARSAT-2 data when looking for product type

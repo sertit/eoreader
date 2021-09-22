@@ -19,10 +19,7 @@ DIMAP V2 super class.
 See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
 for more information.
 """
-import glob
 import logging
-import math
-import os
 import time
 from abc import abstractmethod
 from datetime import date, datetime
@@ -34,26 +31,20 @@ import affine
 import geopandas as gpd
 import numpy as np
 import rasterio
-from cloudpathlib import AnyPath, CloudPath
+from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from rasterio import features, rpc, transform, warp
-from rasterio.crs import CRS
-from rasterio.enums import Resampling
-from sertit import files, rasters, rasters_rio, vectors
+from rasterio import features, transform
+from sertit import files, rasters_rio, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
-from sertit.snap import MAX_CORES
-from sertit.vectors import WGS84
-from shapely.geometry import box
 
 from eoreader import utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
-from eoreader.env_vars import DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products.optical.optical_product import OpticalProduct
+from eoreader.products.optical.vhr_product import VhrProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -158,7 +149,7 @@ class DimapBandCombination(ListEnum):
     """
 
 
-class DimapProduct(OpticalProduct):
+class DimapProduct(VhrProduct):
     """
     Super Class of DIMAP V2 products.
     See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
@@ -246,6 +237,14 @@ class DimapProduct(OpticalProduct):
                 f"Unusual band combination: {self.band_combi.name}"
             )
 
+    def _get_raw_crs(self) -> riocrs.CRS:
+        """
+        Get raw CRS of the tile
+
+        Returns:
+            rasterio.crs.CRS: CRS object
+        """
+
     def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
@@ -277,30 +276,6 @@ class DimapProduct(OpticalProduct):
 
         return utm
 
-    def get_default_band_path(self) -> Union[CloudPath, Path]:
-        """
-        Get default band (`GREEN` for optical data) path.
-
-        .. WARNING:
-            If you are using a non orthorectified product, this function will orthorectify the stack.
-            To do so, you **MUST** provide a DEM trough the EOREADER_DEM_PATH environment variable
-
-        .. WARNING:
-            If you are using a non projected product, this function will reproject the stack.
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1B_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.get_default_band_path()
-            'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML'
-
-        Returns:
-            Union[CloudPath, Path]: Default band path
-        """
-        return self._get_default_utm_band(self.resolution)
-
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -319,26 +294,6 @@ class DimapProduct(OpticalProduct):
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
         return self.open_mask("ROI").to_crs(self.crs())
-
-    def extent(self) -> gpd.GeoDataFrame:
-        """
-        Get UTM extent of the tile
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.utm_extent()
-                                                        geometry
-            0  POLYGON ((309780.000 4390200.000, 309780.000 4...
-
-        Returns:
-            gpd.GeoDataFrame: Footprint in UTM
-        """
-        def_tr, def_w, def_h, def_crs = self.default_transform()
-        bounds = transform.array_bounds(def_h, def_w, def_tr)
-        return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs)
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -383,236 +338,33 @@ class DimapProduct(OpticalProduct):
 
         return date_str
 
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+    def _get_ortho_path(self) -> Union[CloudPath, Path]:
         """
-        Return the paths of required bands.
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
-            >>> path = r"IMG_PHR1B_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.get_band_paths([GREEN, RED])
-            {
-                <OpticalBandNames.GREEN: 'GREEN'>:
-                'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML',
-                <OpticalBandNames.RED: 'RED'>:
-                'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML'
-            }
-
-        Args:
-            band_list (list): List of the wanted bands
-            resolution (float): Band resolution
+        Get the orthorectified path of the bands.
 
         Returns:
-            dict: Dictionary containing the path of each queried band
+            Union[CloudPath, Path]: Orthorectified path
         """
-        ortho_path = self._get_band_folder().joinpath(
-            f"{self.condensed_name}_ortho.tif"
-        )
-        if not self.ortho_path:
-            if self.product_type in [DimapProductType.SEN, DimapProductType.PRJ]:
-                self.ortho_path = ortho_path
-                if not self.ortho_path.is_file():
-                    LOGGER.info(
-                        f"Manually orthorectified stack not given by the user. "
-                        f"Reprojecting data here: {self.ortho_path} "
-                        "(May be inaccurate on steep terrain, depending on the DEM resolution.)"
-                    )
-
-                    # Reproject and write on disk data
-                    with rasterio.open(str(self._get_dimap_path())) as src:
-                        out_arr, meta = self._reproject(src.read(), src.meta, src.rpcs)
-                        rasters_rio.write(out_arr, meta, self.ortho_path)
-
-            else:
-                self.ortho_path = self._get_dimap_path()
-
-        # Processed path names
-        band_paths = {}
-        for band in band_list:
-            # Get clean band path
-            clean_band = self._get_clean_band_path(band, resolution=resolution)
-            if clean_band.is_file():
-                band_paths[band] = clean_band
-            else:
-                # First look for reprojected bands
-                reproj_path = self._create_utm_band_path(
-                    band=band.name, resolution=resolution
-                )
-                if not reproj_path.is_file():
-                    # Then for original data
-                    path = self.ortho_path
-                else:
-                    path = reproj_path
-
-                band_paths[band] = path
-
-        return band_paths
-
-    def _reproject(
-        self, src_arr: np.ndarray, src_meta: dict, rpcs: rpc.RPC
-    ) -> (np.ndarray, dict):
-        """
-        Reproject using RPCs
-
-        Args:
-            src_arr (np.ndarray): Array to reproject
-            src_meta (dict): Metadata
-            rpcs (rpc.RPC): RPCs
-
-        Returns:
-            (np.ndarray, dict): Reprojected array and its metadata
-        """
-        # Get DEM path
-        dem_path = os.environ.get(DEM_PATH)
-        if not dem_path:
-            raise ValueError(
-                f"You are using a non orthorectified Pleiades product {self.path}, "
-                f"you must provide a valid DEM through the {DEM_PATH} environment variable"
+        if self.product_type in [DimapProductType.SEN, DimapProductType.PRJ]:
+            ortho_path = self._get_band_folder().joinpath(
+                f"{self.condensed_name}_ortho.tif"
             )
+            if not ortho_path.is_file():
+                LOGGER.info(
+                    f"Manually orthorectified stack not given by the user. "
+                    f"Reprojecting data here: {ortho_path} "
+                    "(May be inaccurate on steep terrain, depending on the DEM resolution.)"
+                )
+
+                # Reproject and write on disk data
+                with rasterio.open(str(self._get_dimap_path())) as src:
+                    out_arr, meta = self._reproject(src.read(), src.meta, src.rpcs)
+                    rasters_rio.write(out_arr, meta, ortho_path)
+
         else:
-            dem_path = AnyPath(dem_path)
-            if isinstance(dem_path, CloudPath):
-                raise TypeError(
-                    "gdalwarp cannot process DEM stored on cloud with 'RPC_DEM' argument, "
-                    "hence cloud-stored DEM cannot be used with non orthorectified DIMAP data."
-                    f"(DEM: {dem_path}, DIMAP data: {self.name})"
-                )
+            ortho_path = self._get_dimap_path()
 
-        # Set RPC keywords
-        kwargs = {"RPC_DEM": dem_path, "RPC_DEM_MISSING_VALUE": 0}
-        # TODO:  add "refine_gcps" ? With which tolerance ? (ie. '-refine_gcps 500 1.9')
-        #  (https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-refine_gcps)
-
-        # Reproject
-        # WARNING: may not give correct output resolution
-        out_arr, dst_transform = warp.reproject(
-            src_arr,
-            rpcs=rpcs,
-            src_crs=WGS84,
-            dst_crs=self.crs(),
-            resolution=self.resolution,
-            src_nodata=0,
-            dst_nodata=0,  # input data should be in integer
-            num_threads=MAX_CORES,
-            resampling=Resampling.bilinear,
-            **kwargs,
-        )
-        # Get dims
-        count, height, width = out_arr.shape
-
-        # Update metadata
-        meta = src_meta.copy()
-        meta["transform"] = dst_transform
-        meta["driver"] = "GTiff"
-        meta["compress"] = "lzw"
-        meta["nodata"] = 0
-        meta["crs"] = self.crs()
-        meta["width"] = width
-        meta["height"] = height
-        meta["count"] = count
-
-        # Just in case, read the array with the most appropriate resolution
-        # as the warping sometimes gives not the closest resolution possible to the wanted one
-        if not math.isclose(dst_transform.a, self.resolution, rel_tol=1e-4):
-            out_arr, meta = rasters_rio.read(
-                (out_arr, meta), resolution=self.resolution
-            )
-
-        return out_arr, meta
-
-    def _read_band(
-        self,
-        path: Union[CloudPath, Path],
-        band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
-    ) -> XDS_TYPE:
-        """
-        Read band from disk.
-
-        .. WARNING::
-            Invalid pixels are not managed here
-
-        Args:
-            path (Union[CloudPath, Path]): Band path
-            band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-        Returns:
-            XDS_TYPE: Band xarray
-        """
-        with rasterio.open(str(path)) as dst:
-            dst_crs = dst.crs
-
-            # Compute resolution from size (if needed)
-            if resolution is None and size is not None:
-                resolution = self._resolution_from_size(size)
-
-            # Reproj path in case
-            reproj_path = self._create_utm_band_path(
-                band=band.name, resolution=resolution
-            )
-
-            # Manage the case if we got a LAT LON product
-            if not dst_crs.is_projected:
-                if not reproj_path.is_file():
-                    # Warp band if needed
-                    self._warp_band(
-                        path,
-                        band,
-                        reproj_path=reproj_path,
-                        resolution=resolution,
-                    )
-
-                # Read band
-                band_xda = utils.read(
-                    reproj_path,
-                    resolution=resolution,
-                    size=size,
-                    resampling=Resampling.bilinear,
-                )
-
-            # Manage the case if we open a simple band (EOReader processed bands)
-            elif dst.count == 1:
-                # Read band
-                band_xda = utils.read(
-                    path,
-                    resolution=resolution,
-                    size=size,
-                    resampling=Resampling.bilinear,
-                )
-
-            # Manage the case if we open a stack (native DIMAP bands)
-            else:
-                # Read band
-                band_xda = utils.read(
-                    path,
-                    resolution=resolution,
-                    size=size,
-                    resampling=Resampling.bilinear,
-                    indexes=[self.band_names[band]],
-                )
-
-            # If nodata not set, set it here
-            if not band_xda.rio.encoded_nodata:
-                band_xda = rasters.set_nodata(band_xda, 0)
-
-            # Compute the correct radiometry of the band
-            if dst.meta["dtype"] == "uint16":
-                band_xda /= 10000.0
-
-            # Pop useless long name
-            if "long_name" in band_xda.attrs:
-                band_xda.attrs.pop("long_name")
-
-            # To float32
-            if band_xda.dtype != np.float32:
-                band_xda = band_xda.astype(np.float32)
-
-        return band_xda
+        return ortho_path
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
@@ -670,33 +422,6 @@ class DimapProduct(OpticalProduct):
             )
 
         return self._set_nodata_mask(band_arr, nodata)
-
-    def _load_bands(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
-    ) -> dict:
-        """
-        Load bands as numpy arrays with the same resolution (and same metadata).
-
-        Args:
-            bands list: List of the wanted bands
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-        Returns:
-            dict: Dictionary {band_name, band_xarray}
-        """
-        # Return empty if no band are specified
-        if not bands:
-            return {}
-
-        # Get band paths
-        if resolution is None and size is not None:
-            resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution=resolution)
-
-        # Open bands and get array (resampled if needed)
-        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
-
-        return band_arrays
 
     def _get_condensed_name(self) -> str:
         """
@@ -1003,35 +728,6 @@ class DimapProduct(OpticalProduct):
             dtype=np.uint8,
         )
 
-    def _get_path(self, filename: str, extension: str) -> Union[CloudPath, Path]:
-        """
-        Get either the archived path of the normal path of an asset
-
-        Args:
-            filename (str): Filename with wildcards
-            extension (str): Extension
-
-        Returns:
-            Union[list, CloudPath, Path]: Path or list of paths (needs this because of potential mosaic)
-
-        """
-        path = []
-        try:
-            if self.is_archived:
-                path = files.get_archived_rio_path(
-                    self.path,
-                    f".*{filename}.*\.{extension}",
-                )
-            else:
-                path = next(self.path.glob(f"*{filename}*.{extension}"))
-
-        except (FileNotFoundError, IndexError):
-            LOGGER.warning(
-                f"No file corresponding to *{filename}*.{extension} found in {self.path}"
-            )
-
-        return path
-
     def _get_dimap_path(self) -> Union[CloudPath, Path]:
         """
         Get the DIMAP filepath
@@ -1041,169 +737,3 @@ class DimapProduct(OpticalProduct):
 
         """
         return self._get_path("DIM_", "XML")
-
-    def _create_utm_band_path(
-        self, band: str, resolution: Union[float, tuple, list] = None
-    ) -> Union[CloudPath, Path]:
-        """
-        Create the UTM band path
-
-        Args:
-            band (str): Band in string as written on the filepath
-            resolution (Union[float, tuple, list]): Resolution of the wanted UTM band
-
-        Returns:
-            Union[CloudPath, Path]: UTM band path
-        """
-        if resolution:
-            if isinstance(resolution, (tuple, list)):
-                res_x = f"{resolution[0]:.2f}"
-                res_y = f"{resolution[1]:.2f}"
-                if res_x == res_y:
-                    res_str = f"{res_x}m".replace(".", "-")
-                else:
-                    res_str = f"{res_x}_{res_y}m".replace(".", "-")
-            else:
-                res_str = f"{resolution:.2f}m".replace(".", "-")
-        else:
-            res_str = ""
-
-        return self._get_band_folder().joinpath(
-            f"{self.condensed_name}_{band}_{res_str}.tif"
-        )
-
-    def _warp_band(
-        self,
-        path: Union[str, CloudPath, Path],
-        band: BandNames,
-        reproj_path: Union[str, CloudPath, Path],
-        resolution: float = None,
-    ) -> None:
-        """
-        Warp band to UTM
-
-        Args:
-            path (Union[str, CloudPath, Path]): Band path to warp
-            band (band): Band to warp
-            reproj_path (Union[str, CloudPath, Path]): Path where to write the reprojected band
-            resolution (int): Band resolution in meters
-
-        """
-        if not resolution:
-            resolution = self.resolution
-
-        LOGGER.info(
-            f"Reprojecting band {band.name} to UTM with a {resolution} m resolution."
-        )
-
-        # Read band
-        with rasterio.open(str(path)) as src:
-            band_nb = self.band_names[band]
-            meta = src.meta.copy()
-
-            utm_tr, utm_w, utm_h = warp.calculate_default_transform(
-                src.crs,
-                self.crs(),
-                src.width,
-                src.height,
-                *src.bounds,
-                resolution=resolution,
-            )
-
-            # If nodata not set, set it here
-            meta["nodata"] = 0
-
-            # If the CRS is not in UTM, reproject it
-            out_arr = np.empty((1, utm_h, utm_w), dtype=meta["dtype"])
-            warp.reproject(
-                source=src.read(band_nb),
-                destination=out_arr,
-                src_crs=src.crs,
-                dst_crs=self.crs(),
-                src_transform=src.transform,
-                dst_transform=utm_tr,
-                src_nodata=0,
-                dst_nodata=0,  # input data should be in integer
-                num_threads=MAX_CORES,
-            )
-            meta["transform"] = utm_tr
-            meta["crs"] = self.crs()
-            meta["driver"] = "GTiff"
-
-            rasters_rio.write(out_arr, meta, reproj_path)
-
-    def _get_default_utm_band(
-        self, resolution: float = None, size: Union[list, tuple] = None
-    ) -> Union[CloudPath, Path]:
-        """
-        Get the default UTM band:
-        - If one already exists, get it
-        - If not, create reproject (if needed) the GREEN band
-
-        Args:
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-
-        Returns:
-            str: Default UTM path
-        """
-        # Manage resolution
-        if resolution is None and size is not None:
-            resolution = self._resolution_from_size(size)
-        def_res = resolution if resolution else self.resolution
-
-        # Get default band path
-        default_band = self.get_default_band()
-        def_path = self.get_band_paths([default_band], resolution=def_res)[default_band]
-
-        with rasterio.open(str(def_path)) as dst:
-            # First look for reprojected bands
-            reproj_regex = self._create_utm_band_path(band="*", resolution=resolution)
-
-            reproj_bands = glob.glob(str(reproj_regex))
-
-            if len(reproj_bands) == 0:
-                # Manage the case if we got a LAT LON product
-                dst_crs = dst.crs
-                if not dst_crs.is_projected:
-                    def_band = self.get_default_band()
-                    path = self._create_utm_band_path(
-                        band=def_band.name, resolution=resolution
-                    )
-
-                    # Warp band if needed
-                    if not path.is_file():
-                        self._warp_band(
-                            def_path,
-                            def_band,
-                            reproj_path=path,
-                            resolution=resolution,
-                        )
-                else:
-                    path = def_path
-            else:
-                path = AnyPath(reproj_bands[0])
-
-        return path
-
-    def default_transform(self) -> (affine.Affine, int, int, CRS):
-        """
-        Returns default transform data of the default band (UTM),
-        as the `rasterio.warp.calculate_default_transform` does:
-        - transform
-        - width
-        - height
-        - CRS
-
-        Overload in order not to reproject WGS84 data
-
-        Returns:
-            Affine, int, int: transform, width, height
-
-        """
-        default_band = self.get_default_band()
-        def_path = self.get_band_paths([default_band], resolution=self.resolution)[
-            default_band
-        ]
-        with rasterio.open(str(def_path)) as dst:
-            return dst.transform, dst.width, dst.height, dst.crs
