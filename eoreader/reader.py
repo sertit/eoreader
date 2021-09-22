@@ -106,6 +106,9 @@ class Platform(ListEnum):
     TSX = "TerraSAR-X"
     """TerraSAR-X"""
 
+    TDX = "TanDEM-X"
+    """TanDEM-X"""
+
     RS2 = "RADARSAT-2"
     """RADARSAT-2"""
 
