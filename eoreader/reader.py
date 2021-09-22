@@ -121,6 +121,12 @@ class Platform(ListEnum):
     RCM = "RADARSAT-Constellation Mission"
     """RADARSAT-Constellation Mission"""
 
+    MAXAR = "Maxar"
+    """Maxar (not a real platform, but used as a template for every Maxar products)"""
+
+    QB = "QuickBird"
+    """QuickBird"""
+
     GE01 = "GeoEye-1"
     """GeoEye-1"""
 
@@ -161,7 +167,7 @@ PLATFORM_REGEX = {
     Platform.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
-    "maxar": r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
 }
 
 # Not used for now
@@ -197,7 +203,7 @@ MTD_REGEX = {
         r"product\.xml",  # Too generic name, check also a band
         r"\d+_[RHV]{2}\.tif",
     ],
-    "maxar": r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
 }
 
 
@@ -289,7 +295,7 @@ class Reader:
                 )
 
             if is_valid:
-                sat_class = platform.lower() + "_product"
+                sat_class = platform.name.lower() + "_product"
 
                 # Manage both optical and SAR
                 try:
