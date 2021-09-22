@@ -438,7 +438,11 @@ def test_spot7():
 @dask_env
 def test_wv02_wv03():
     """Function testing the correct functioning of the optical satellites"""
-    _test_core_optical("*P001_MUL*")
+    # This test orthorectifies DIMAP data, so we need a DEM stored on disk
+    dem_path = os.path.join(
+        ci.get_db2_path(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
+    )
+    _test_core_optical("*P001_MUL*", dem_path=dem_path)
 
 
 @s3_env
