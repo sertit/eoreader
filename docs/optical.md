@@ -21,6 +21,12 @@
 |Pleiades | {meth}`~eoreader.products.optical.pld_product.PldProduct` | SEN, PRJ, ORT & MOS | Yes | 0.5 or 2m|
 |SPOT 7 | {meth}`~eoreader.products.optical.spot7_product.Spot7Product` | SEN, PRJ, ORT & MOS | Yes | 1.5 or 6m|
 |SPOT 6 | {meth}`~eoreader.products.optical.spot6_product.Spot6Product` | SEN, PRJ, ORT & MOS | Yes | 1.5 or 6m|
+|GeoEye-1* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | Yes | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
+|WorldView-2* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | Yes | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
+|WorldView-3* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | Yes | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
+|WorldView-4* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | Yes | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
+
+\* *Other Maxar satellites (such as WorldView-1, QuickBird...) with the same file format should be supported.*
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
@@ -29,6 +35,11 @@ Satellites products that cannot be used as archived have to be extracted before 
 ## Optical bands
 
 The following bands are available in **EOReader**, but may not be available for all sensors.
+
+```{warning}
+EOReader loads bands in UTM. VHR bands can be orthorectified but EOReader needs a DEM for that.
+Be sure to position the environment variable `EOREADER_DEM_PATH` to the DEM you want.
+```
 
 ### Satellite bands
 
@@ -39,6 +50,7 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 - {meth}`~eoreader.bands.bands.OpticalBandNames.CA`: Coastal Aerosol
 - {meth}`~eoreader.bands.bands.OpticalBandNames.BLUE`
 - {meth}`~eoreader.bands.bands.OpticalBandNames.GREEN`
+- {meth}`~eoreader.bands.bands.OpticalBandNames.YELLOW`
 - {meth}`~eoreader.bands.bands.OpticalBandNames.RED`
 - {meth}`~eoreader.bands.bands.OpticalBandNames.VRE_1`: Vegetation Red Edge 1
 - {meth}`~eoreader.bands.bands.OpticalBandNames.VRE_2`: Vegetation Red Edge 2
@@ -55,22 +67,22 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 
 #### Optical band mapping between sensors
 
-|Bands (names) | Coastal aerosol | Blue | Green | Red | Vegetation red edge | Vegetation red edge | Vegetation red edge | NIR | Narrow NIR | Water vapor | SWIR – Cirrus | SWIR | SWIR | Panchromatic | Thermal IR | Thermal IR|
-|--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---|
-|**Bands (alias)** | `CA` | `BLUE` | `GREEN` | `RED` | `VRE_1` | `VRE_2` | `VRE_3` | `NIR` | `NARROW_NIR` | `WV` | `SWIR_CIRRUS` | `SWIR_1` | `SWIR_2` | `PAN` | `TIR_1` | `TIR_2`|
-|Sentinel-2 | **1** (60m) | **2** (10m) | **3** (10m) | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8** (10m) | **8A** (20m) |**9** (60m) |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
-|Sentinel-2 Theia | *Not available* | **2** (10m) |**3** (10m) | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8** (10m) | **8A** (20m) | *Not available* |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
-|Sentinel-3 OLCI* | **2** (300m) | **3** (300m) |**6** (300m) |**8** (300m) |**11** (300m) |**12** (300m) | **16** (300m) | **17** (300m) | **17** (300m) | **20** (300m) |  |  |  |  |  | |
-|Sentinel-3 SLSTR* | | | **1** (500m) | **2** (500m) |  |  |  |**3** (500m) |**3** (500m) |  | **4** (500m) | **5** (500m) |**6** (500m) | |**8** (1km) |**9** (1km)|
-|Landsat OLCI (8) | **1** (30m) | **2** (30m) | **3** (30m) | **4** (30m) |  |  |  | **5** (30m) | **5** (30m) |  |**9** (30m) |**6** (30m) |**7** (30m) |**8** (15m) |**10** (100m) |**11** (100m)|
-|Landsat ETM (7)|  | **1** (30m) | **2** (30m) | **3** (30m) |  |  |  | **4** (30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |**8** (15m) |**6** (60m) |**6** (60m)|
-|Landsat TM (5-4)|  | **1** (30m) | **2** (30m) | **3** (30m) |  |  |  | **4**(30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |  |**6** (120m) |**6** (120m)|
-|Landsat MSS (5-4)|  |  | **1** (60m) | **2** (60m) | **3** (60m) | **3** (60m) | **3** (60m) | **4** (60m) | **4** (60m) |  |  |  |  |  |  | |
-|Landsat MSS (1-3)|  |  | **4** (60m) | **5** (60m) | **6** (60m) | **6** (60m) | **6** (60m) | **7** (60m) | **7** (60m) |  |  |  |  |  |**8** (240m)<br>*only for Landsat 3* |**8** (240m)<br>*only for Landsat 3*|
-|PlanetScope (4 band)|  | **1** (3m) | **2** (3m) | **3** (3m) | |  | | **4** (3m) | **4** (3m) |  |  |  |  |  | | |
-|PlanetScope (5 band)|  | **1** (3m) | **2** (3m) | **3** (3m) |**4** (3m)|  || **5** (3m) | **5** (3m) |  |  |  |  |  | | |
-|Pleiades** (PMS/MS)|  | **3** (0.5/2m) | **2** (0.5/2m) | **1** (0.5/2m) | | | | **4** (0.5/2m) | **4** (0.5/2m) |  |  |  |  |  | | |
-|SPOT 6-7** (PMS/MS)|  | **3** (1.5/6m) | **2** (1.5/6m) | **1** (1.5/6m) | | | | **4** (1.5/6m) | **4** (1.5/6m) |  |  |  |  |  | | |
+|Bands (names) | Coastal aerosol | Blue | Green | Yellow | Red | Vegetation red edge | Vegetation red edge | Vegetation red edge | NIR | Narrow NIR | Water vapor | SWIR – Cirrus | SWIR | SWIR | Panchromatic | Thermal IR | Thermal IR|
+|--- | --- | --- | --- | --- | --- | --- | --- | --- | --- |  --- | --- | --- | --- | --- | --- | --- | ---|
+|**Bands (alias)** | `CA` | `BLUE` | `GREEN` | `YELLOW` | `RED` | `VRE_1` | `VRE_2` | `VRE_3` | `NIR` | `NARROW_NIR` | `WV` | `SWIR_CIRRUS` | `SWIR_1` | `SWIR_2` | `PAN` | `TIR_1` | `TIR_2`|
+|Sentinel-2 | **1** (60m) | **2** (10m) | **3** (10m) | | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8** (10m) | **8A** (20m) |**9** (60m) |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
+|Sentinel-2 Theia | *Not available* | **2** (10m) |**3** (10m)  | | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8** (10m) | **8A** (20m) | *Not available* |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
+|Sentinel-3 OLCI* | **2** (300m) | **3** (300m) |**6** (300m)  | |**8** (300m) |**11** (300m) |**12** (300m) | **16** (300m) | **17** (300m) | **17** (300m) | **20** (300m) |  |  |  |  |  | |
+|Sentinel-3 SLSTR* | | | **1** (500m)  | | **2** (500m) |  |  |  |**3** (500m) |**3** (500m) |  | **4** (500m) | **5** (500m) |**6** (500m) | |**8** (1km) |**9** (1km)|
+|Landsat OLCI (8) | **1** (30m) | **2** (30m) | **3** (30m)  | | **4** (30m) |  |  |  | **5** (30m) | **5** (30m) |  |**9** (30m) |**6** (30m) |**7** (30m) |**8** (15m) |**10** (100m) |**11** (100m)|
+|Landsat ETM (7)|  | **1** (30m) | **2** (30m)  | | **3** (30m) |  |  |  | **4** (30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |**8** (15m) |**6** (60m) |**6** (60m)|
+|Landsat TM (5-4)|  | **1** (30m) | **2** (30m) |  | **3** (30m) |  |  |  | **4**(30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |  |**6** (120m) |**6** (120m)|
+|Landsat MSS (5-4)|  |  | **1** (60m)  | | **2** (60m) | **3** (60m) | **3** (60m) | **3** (60m) | **4** (60m) | **4** (60m) |  |  |  |  |  |  | |
+|Landsat MSS (1-3)|  |  | **4** (60m)  | | **5** (60m) | **6** (60m) | **6** (60m) | **6** (60m) | **7** (60m) | **7** (60m) |  |  |  |  |  |**8** (240m)<br>*only for Landsat 3* |**8** (240m)<br>*only for Landsat 3*|
+|PlanetScope (4 band)|  | **1** (3m) | **2** (3m) |  | **3** (3m) | |  | | **4** (3m) | **4** (3m) |  |  |  |  |  | | |
+|PlanetScope (5 band)|  | **1** (3m) | **2** (3m) |  | **3** (3m) |**4** (3m)|  || **5** (3m) | **5** (3m) |  |  |  |  |  | | |
+|Pleiades** (PMS/MS)|  | **3** (0.5/2m) | **2** (0.5/2m)  | | **1** (0.5/2m) | | | | **4** (0.5/2m) | **4** (0.5/2m) |  |  |  |  |  | | |
+|SPOT 6-7** (PMS/MS)|  | **3** (1.5/6m) | **2** (1.5/6m)  | | **1** (1.5/6m) | | | | **4** (1.5/6m) | **4** (1.5/6m) |  |  |  |  |  | | |
 
 \* *Not all bands of this sensor are used in EOReader*  
 \*\* *P(panchro) have only one panchromatic band, P/MS-N have 3 bands (BGR), and P/MS-X also have 3 bands in false color (GRNIR)*
@@ -117,6 +129,7 @@ The only difference with the other bands is that the cloud bands are provided in
 |PlanetScope | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
 |Pleiades | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
 |SPOT 6-7 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Maxar (GeoEye-1, WorldViews) | *No cloud file available for Maxar data* |
 
 ### DEM bands
 
@@ -138,10 +151,11 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 |{meth}`~eoreader.bands.index.AWEInsh` | `BLUE`, `GREEN`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.AWEIsh` | `GREEN`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.BAI` | `RED`, `NIR` | All optical satellites|
+|{meth}`~eoreader.bands.index.BAIS2` | `RED`, `NIR`, `VRE_1`, `VRE_2`, `VRE_3`, `SWIR_2` | Sentinel-2 |
 |{meth}`~eoreader.bands.index.BSI` | `BLUE`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.CIG` | `GREEN`, `NIR` | All optical satellites|
 |{meth}`~eoreader.bands.index.DSWI` | `GREEN`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|{meth}`~eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, (E)TM, PlanetScope, Pleiades, SPOT 6-7|
+|{meth}`~eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | All optical satellites except for Landsat MSS|
 |{meth}`~eoreader.bands.index.GNDVI` | `GREEN`, `NIR` | All optical satellites|
 |{meth}`~eoreader.bands.index.MNDWI` | `GREEN`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.NBR` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
@@ -153,12 +167,16 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 |{meth}`~eoreader.bands.index.NDWI` | `GREEN`, `NIR` | All optical satellites|
 |{meth}`~eoreader.bands.index.RDI` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.RGI` | `GREEN`, `RED` | All optical satellites|
-|{meth}`~eoreader.bands.index.RI` | `GREEN`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS, PlanetScope (5 bands)|
+|{meth}`~eoreader.bands.index.RI` | `GREEN`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS, PlanetScope (5 bands), WorldView-2/3 (8 bands)|
 |{meth}`~eoreader.bands.index.SRSWIR` | `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCBRI` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCGRE` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCWET` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.WI` | `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|{meth}`~eoreader.bands.index.WV_BI` | `VRE_1`, `CA` | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, WorldView-2/3 (8 bands)|
+|{meth}`~eoreader.bands.index.WV_SI` | `YELLOW`, `GREEN` | Sentinel-3 OLCI, WorldView-2/3 (8 bands)|
+|{meth}`~eoreader.bands.index.WV_VI` | `WV`, `RED` | Sentinel-2, Sentinel-3 OLCI, WorldView-2/3 (8 bands)|
+|{meth}`~eoreader.bands.index.WV_WI` | `WV`, `CA` | Sentinel-2, Sentinel-3 OLCI, WorldView-2/3 (8 bands)|
 
 ## Default SNAP resolution
 
@@ -229,4 +247,5 @@ environment variables:
 ### Index
 
 - [Index consistency](https://www.indexdatabase.de/)
+- [WorldView Index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide)
 - Specific sources inside the index function documentation in {meth}`~eoreader.bands.index`

@@ -436,6 +436,20 @@ def test_spot7():
 
 @s3_env
 @dask_env
+def test_wv02_wv03():
+    """Function testing the correct functioning of the optical satellites"""
+    _test_core_optical("*P001_MUL*")
+
+
+@s3_env
+@dask_env
+def test_ge01_wv04():
+    """Function testing the correct functioning of the optical satellites"""
+    _test_core_optical("*P001_PSH*")
+
+
+@s3_env
+@dask_env
 def test_s1():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("*S1*_IW*")

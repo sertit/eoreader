@@ -552,6 +552,82 @@ def BSI(bands: dict) -> xr.DataArray:
     )
 
 
+# WorldView index (without the ones with SWIR)
+# https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+
+
+@_idx_fct
+def WV_WI(bands: dict) -> xr.DataArray:
+    """
+    WorldView-Water (WV-WI)
+    Useful for detecting standing, flowing water, or shadow in VNIR imagery
+    WV_WI = ((B8-B1)/(B8+B1))
+
+    https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return _norm_diff(bands[obn.WV], bands[obn.CA])
+
+
+@_idx_fct
+def WV_VI(bands: dict) -> xr.DataArray:
+    """
+    WorldView – Vegetation (WV-VI)
+    Useful for detecting vegetation and assessing vegetation health
+    WV_VI = ((B8-B5)/(B8+B5))
+
+    https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return _norm_diff(bands[obn.WV], bands[obn.RED])
+
+
+@_idx_fct
+def WV_SI(bands: dict) -> xr.DataArray:
+    """
+    WorldView – Soil (WV-SI)
+    Useful for detecting and differentiating exposed soil
+    WV_SI = ((B4-B3)/(B4+B3))
+
+    https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return _norm_diff(bands[obn.YELLOW], bands[obn.GREEN])
+
+
+@_idx_fct
+def WV_BI(bands: dict) -> xr.DataArray:
+    """
+    WorldView – Built-up (WV-BI)
+    Useful for detecting impervious surfaces such as buildings and roads
+    WV_BI = ((B6-B1)/(B6+B1))
+
+    https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return _norm_diff(bands[obn.VRE_1], bands[obn.CA])
+
+
 def get_all_index_names() -> list:
     """
     Get all index names contained in this file

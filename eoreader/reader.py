@@ -121,6 +121,21 @@ class Platform(ListEnum):
     RCM = "RADARSAT-Constellation Mission"
     """RADARSAT-Constellation Mission"""
 
+    GE01 = "GeoEye-1"
+    """GeoEye-1"""
+
+    WV01 = "WorldView-1"
+    """WorldView-1"""
+
+    WV02 = "WorldView-2"
+    """WorldView-2"""
+
+    WV03 = "WorldView-3"
+    """WorldView-3"""
+
+    WV04 = "WorldView-4"
+    """WorldView-4"""
+
 
 PLATFORM_REGEX = {
     Platform.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
@@ -146,6 +161,7 @@ PLATFORM_REGEX = {
     Platform.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
+    "maxar": r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
 }
 
 # Not used for now
@@ -181,6 +197,7 @@ MTD_REGEX = {
         r"product\.xml",  # Too generic name, check also a band
         r"\d+_[RHV]{2}\.tif",
     ],
+    "maxar": r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
 }
 
 
@@ -261,7 +278,7 @@ class Reader:
             FileNotFoundError(f"Non existing product: {product_path}")
 
         prod = None
-        for platform in Platform.list_names():
+        for platform in PLATFORM_REGEX.keys():
             if method == CheckMethod.MTD:
                 is_valid = self.valid_mtd(product_path, platform)
             elif method == CheckMethod.NAME:
@@ -377,8 +394,6 @@ class Reader:
 
         """
         product_path = AnyPath(product_path)
-
-        platform = Platform.convert_from(platform)[0]
 
         # Here the list is a check of several files
         regex_list = self._mtd_regex[platform]
