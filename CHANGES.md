@@ -6,6 +6,7 @@
 
 - **ENH: Implementing RADARSAT-Constellation products (as `RCM`)**
 - **ENH: Implementing Maxar products (such as `GE01, WV02, WV03, WV04`, but others should be supported too)**
+- **ENH: Implementing TanDEM-X products (as `TDX`)**
 - **ENH: Adding `RH`, `RV`, `RH_DSPK` and `RV_DSPK` SAR bands**
 - **ENH: Adding the `YELLOW` optical band (for `WorldView-2`, `WorldView-3` and `Sentinel-3 OLCI`)**
 - **ENH: Adding [WorldView index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide) (without the ones using SWIR)**
