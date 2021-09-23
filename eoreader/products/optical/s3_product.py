@@ -159,8 +159,8 @@ class S3Product(OpticalProduct):
             # Bands
             self.band_names.map_bands(
                 {
-                    obn.CA: "02",
-                    obn.BLUE: "03",
+                    obn.CA: "03",
+                    obn.BLUE: "04",
                     obn.GREEN: "06",
                     obn.RED: "08",
                     obn.VRE_1: "11",
@@ -195,7 +195,7 @@ class S3Product(OpticalProduct):
                     obn.SWIR_CIRRUS: "4",  # radiance, 500m
                     obn.SWIR_1: "5",  # radiance, 500m
                     obn.SWIR_2: "6",  # radiance, 500m
-                    obn.MIR: "7",  # brilliance temperature, 1km
+                    # obn.MIR: "7",  # brilliance temperature, 1km
                     obn.TIR_1: "8",  # brilliance temperature, 1km
                     obn.TIR_2: "9",  # brilliance temperature, 1km
                 }

@@ -8,7 +8,7 @@ import xarray as xr
 from cloudpathlib import AnyPath
 from geopandas import gpd
 from lxml import etree
-from sertit import ci, files, logs, rasters
+from sertit import ci, files, rasters
 
 from eoreader.bands.alias import *
 from eoreader.env_vars import (
@@ -20,7 +20,7 @@ from eoreader.env_vars import (
     TEST_USING_S3_DB,
 )
 from eoreader.products.product import Product, SensorType
-from eoreader.reader import CheckMethod, Platform
+from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
 
 from .scripts_utils import (
@@ -131,7 +131,6 @@ def _test_core(
     with xr.set_options(warn_for_unclosed_files=debug):
 
         # Init logger
-        logs.init_logger(LOGGER)
         logging.getLogger("boto3").setLevel(
             logging.WARNING
         )  # BOTO has way too much verbosity
@@ -173,16 +172,19 @@ def _test_core(
                     prod.output = tmp_dir
 
                     # Env var
-                    if (
-                        prod.platform == Platform.S3
-                        or prod.sensor_type == SensorType.SAR
-                    ):
-                        os.environ[CI_EOREADER_BAND_FOLDER] = str(
-                            get_ci_data_dir().joinpath(prod.condensed_name)
-                        )
-                    else:
-                        if CI_EOREADER_BAND_FOLDER in os.environ:
-                            os.environ.pop(CI_EOREADER_BAND_FOLDER)
+                    # if (
+                    #     prod.platform == Platform.S3
+                    #     or prod.sensor_type == SensorType.SAR
+                    # ):
+                    #     os.environ[CI_EOREADER_BAND_FOLDER] = str(
+                    #         get_ci_data_dir().joinpath(prod.condensed_name)
+                    #     )
+                    # else:
+                    #     if CI_EOREADER_BAND_FOLDER in os.environ:
+                    #         os.environ.pop(CI_EOREADER_BAND_FOLDER)
+                    os.environ[CI_EOREADER_BAND_FOLDER] = str(
+                        get_ci_data_dir().joinpath(prod.condensed_name)
+                    )
 
                     # Manage S3 resolution to speed up processes
                     if prod.sensor_type == SensorType.SAR:
@@ -304,8 +306,8 @@ def _test_core(
                 # Clean temp
                 if not debug:
                     LOGGER.info("Cleaning tmp")
-                    # prod.clean_tmp()
-                    # assert len(list(prod._tmp_process.glob("*"))) == 0
+                    prod.clean_tmp()
+                    assert len(list(prod._tmp_process.glob("*"))) == 0
 
 
 @s3_env
@@ -432,6 +434,24 @@ def test_spot7():
         ci.get_db2_path(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
     )
     _test_core_optical("*IMG_SPOT7*", dem_path=dem_path)
+
+
+@s3_env
+@dask_env
+def test_wv02_wv03():
+    """Function testing the correct functioning of the optical satellites"""
+    # This test orthorectifies DIMAP data, so we need a DEM stored on disk
+    dem_path = os.path.join(
+        ci.get_db2_path(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
+    )
+    _test_core_optical("*P001_MUL*", dem_path=dem_path)
+
+
+@s3_env
+@dask_env
+def test_ge01_wv04():
+    """Function testing the correct functioning of the optical satellites"""
+    _test_core_optical("*P001_PSH*")
 
 
 @s3_env

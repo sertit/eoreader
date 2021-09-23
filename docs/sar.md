@@ -6,7 +6,7 @@
 |--- | --- | --- | ---|
 |Sentinel-1 | {meth}`~eoreader.products.sar.s1_product.S1Product` | SLC & GRD | Yes|
 |COSMO-Skymed | {meth}`~eoreader.products.sar.csk_product.CskProduct` | DGM & SCS, (others should also be OK) | No|
-|TerraSAR-X | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | MGD (SSC should be OK) | No|
+|TerraSAR-X & TanDEM-X | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | MGD (SSC should be OK) | No|
 |RADARSAT-2 | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | SGF (SLC should be OK) | Yes|
 |RADARSAT-Constellation | {meth}`~eoreader.products.sar.rs2_product.RcmProduct` | GRD (others should be OK) | No|
 
@@ -77,9 +77,9 @@ The product resolution is read in the metadata file if possible, so the followin
 |**ScanSAR**<br>Wide Region (WR) | 13.5x23m | 30.0m|
 |**ScanSAR**<br>Huge Region (HR) | 13.5x38.0m | 100.0m|
 
-### TerraSAR-X
+### TerraSAR-X & TanDEM-X
 
-|**TerraSAR-X** | Single-look Slant Range (SSC) | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
+|**TerraSAR-X & TanDEM-X** | Single-look Slant Range (SSC) | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
 |--- | --- | --- | ---|
 |**StripMap (SM)**<br>Single-Pol | 0.9x2.0m | 1.5m or 1.25m | 4.0m or 3.25m|
 |**StripMap (SM)**<br>Dual-Pol | 0.9x2.5m | 3.0m | 5.5m or 4.5m|
@@ -271,4 +271,4 @@ variable:
 ### Others
 
 - [COSMO-Skymed Product Description](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description)
-- [TerraSAR-X Product Description](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
+- [TerraSAR-X & TanDEM-X Product Description](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)

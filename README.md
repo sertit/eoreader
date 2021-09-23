@@ -8,13 +8,13 @@
 
 # ![eoreader_logo](https://eoreader.readthedocs.io/en/latest/_static/favicon.png) EOReader
 
-**EOReader** is a **multi-satellite reader** allowing you to open
-[optical](https://eoreader.readthedocs.io/en/latest/optical.html)
-and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) data.
+**EOReader** is a remote-sensing opensource python library reading [optical](https://eoreader.readthedocs.io/en/latest/optical.html)
+and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) sensors, loading and stacking bands,
+clouds, DEM and index in a sensor-agnostic way.
 
 |**Optical sensors** | **SAR sensors**|
 | --- | ---|
-|Sentinel-2 and Sentinel-2 Theia<br>Sentinel-3 OLCI and Sentinel-3 SLSTR<br>Landsat 1 to 8 (MSS, TM, ETM and OLCI)<br>PlanetScope<br>Pleiades<br>SPOT 6-7| Sentinel-1<br>COSMO-Skymed<br>TerraSAR-X<br>RADARSAT-2<br>RADARSAT-Constellation|
+|Sentinel-2 and Sentinel-2 Theia<br>Sentinel-3 OLCI and Sentinel-3 SLSTR<br>Landsat 1 to 8 (MSS, TM, ETM and OLCI)<br>PlanetScope<br>Pleiades<br>SPOT 6-7<br>WorldView-2 to 4, GeoEye-1 and other Maxar satellites| Sentinel-1<br>COSMO-Skymed<br>TerraSAR-X & TanDEM-X<br>RADARSAT-2<br>RADARSAT-Constellation|
 
 It also implements additional **sensor-agnostic** features:
 
@@ -45,10 +45,6 @@ For optical data:
 >>> eoreader = Reader()
 >>> l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its structure
 
->>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
->>> footprint = l5_prod.footprint()
->>> extent = l5_prod.extent()
-
 >>> # Specify a DEM to load DEM bands
 >>> import os
 >>> from eoreader.env_vars import DEM_PATH
@@ -76,10 +72,6 @@ For SAR data:
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()
 >>> s1_prod = eoreader.open(s1_path)  # The Reader will recognize the satellite type from its name
-
->>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
->>> footprint = s1_prod.footprint()
->>> extent = s1_prod.extent()
 
 >>>  # Specify a DEM to load DEM bands
 >>> import os
