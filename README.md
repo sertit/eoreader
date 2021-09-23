@@ -45,10 +45,6 @@ For optical data:
 >>> eoreader = Reader()
 >>> l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its structure
 
->>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
->>> footprint = l5_prod.footprint()
->>> extent = l5_prod.extent()
-
 >>> # Specify a DEM to load DEM bands
 >>> import os
 >>> from eoreader.env_vars import DEM_PATH
@@ -76,10 +72,6 @@ For SAR data:
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()
 >>> s1_prod = eoreader.open(s1_path)  # The Reader will recognize the satellite type from its name
-
->>> # Get the footprint of the product (usable data) and its extent (envelope of the tile)
->>> footprint = s1_prod.footprint()
->>> extent = s1_prod.extent()
 
 >>>  # Specify a DEM to load DEM bands
 >>> import os

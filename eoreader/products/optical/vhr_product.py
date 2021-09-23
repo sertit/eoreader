@@ -531,7 +531,9 @@ class VhrProduct(OpticalProduct):
 
             if len(reproj_bands) == 0:
                 # Manage the case if we got a LAT LON product
-                dst_crs = self._get_raw_crs()
+                with rasterio.open(str(def_path)) as dst:
+                    dst_crs = dst.crs
+
                 if not dst_crs.is_projected:
                     def_band = self.get_default_band()
                     path = self._create_utm_band_path(
@@ -549,8 +551,10 @@ class VhrProduct(OpticalProduct):
                             reproj_path=path,
                             resolution=resolution,
                         )
+                else:
+                    path = def_path
             else:
-                path = def_path
+                path = AnyPath(reproj_bands[0])
         else:
             path = AnyPath(reproj_bands[0])
 
