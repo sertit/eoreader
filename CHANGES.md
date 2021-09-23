@@ -21,10 +21,12 @@
 - FIX: Check for existence of given path when reading any product
 - FIX: Workaround for a bug involving some downloaded but badly formatted archives for Sentinel-2
 - FIX: Allow NARROW_NIR for and DIMAP data (== NIR)
+- FIX: Better management of writeable band folder
 - DOC: Fix documentation of the NDWI index
 - DOC: Update graph for optical band mapping
 - CI: Adding a test loading invalid band name
 - CI: Setting CI log level to DEBUG
+- CI: Accelerating the CI processes
 
 ## 0.6.4 (2021-09-15)
 

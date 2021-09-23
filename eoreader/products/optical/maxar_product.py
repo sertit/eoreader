@@ -318,7 +318,7 @@ class MaxarProduct(VhrProduct):
         prod_type = root.findtext(".//IMD/PRODUCTTYPE")
         if not prod_type:
             raise InvalidProductError(
-                "Cannot find the product type (from PRODUCTTYPE) type in the metadata file"
+                "Cannot find the PRODUCTTYPE in the metadata file"
             )
         self.product_type = getattr(MaxarProductType, prod_type)
         if self.product_type not in (MaxarProductType.Ortho, MaxarProductType.Standard):
@@ -400,9 +400,7 @@ class MaxarProduct(VhrProduct):
         # Get CRS
         map_proj_name = root.findtext(".//MAPPROJNAME")
         if not map_proj_name:
-            raise InvalidProductError(
-                "Cannot find the product type (from MAPPROJNAME) type in the metadata file"
-            )
+            raise InvalidProductError("Cannot find MAPPROJNAME in the metadata file")
         if map_proj_name == "Geographic (Lat/Long)":
             crs = riocrs.CRS.from_string("EPSG:4326")
         elif map_proj_name == "UTM":
@@ -523,11 +521,10 @@ class MaxarProduct(VhrProduct):
         """
 
         if self.product_type == MaxarProductType.Standard:
-            ortho_path = self._get_band_folder().joinpath(
-                f"{self.condensed_name}_ortho.tif"
-            )
-
+            ortho_name = f"{self.condensed_name}_ortho.tif"
+            ortho_path = self._get_band_folder().joinpath(ortho_name)
             if not ortho_path.is_file():
+                ortho_path = self._get_band_folder(writable=True).joinpath(ortho_name)
                 LOGGER.info(
                     f"Manually orthorectified stack not given by the user. "
                     f"Reprojecting data here: {ortho_path} "
