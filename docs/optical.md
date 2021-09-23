@@ -43,6 +43,10 @@ Be sure to position the environment variable `EOREADER_DEM_PATH` to the DEM you 
 
 ### Satellite bands
 
+```{note}
+Optical bands are loaded in reflectance.
+```
+
 #### Band names
 
 These bands are mainly based on Sentinel-2 bands with some additions:

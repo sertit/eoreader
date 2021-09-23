@@ -215,7 +215,7 @@ class DimapProduct(VhrProduct):
         prod_type = root.find(".//DATASET_QL_PATH").attrib["href"].split("_")[4]
         if not prod_type:
             raise InvalidProductError(
-                "Cannot find the product type (from PROCESSING_LEVEL) type in the metadata file"
+                "Cannot find DATASET_QL_PATH in the metadata file"
             )
         self.product_type = getattr(DimapProductType, prod_type)
 
@@ -244,6 +244,19 @@ class DimapProduct(VhrProduct):
         Returns:
             rasterio.crs.CRS: CRS object
         """
+        # Open metadata
+        root, _ = self.read_mtd()
+
+        # Get CRS
+        crs_name = root.findtext(".//GEODETIC_CRS_NAME")
+        if not crs_name:
+            crs_name = root.findtext(".//PROJECTED_CRS_CODE")
+            if not crs_name:
+                raise InvalidProductError(
+                    "Cannot find the CRS name (from GEODETIC_CRS_NAME or PROJECTED_CRS_CODE) type in the metadata file"
+                )
+
+        return riocrs.CRS.from_string(crs_name)
 
     def crs(self) -> riocrs.CRS:
         """
@@ -346,10 +359,10 @@ class DimapProduct(VhrProduct):
             Union[CloudPath, Path]: Orthorectified path
         """
         if self.product_type in [DimapProductType.SEN, DimapProductType.PRJ]:
-            ortho_path = self._get_band_folder().joinpath(
-                f"{self.condensed_name}_ortho.tif"
-            )
+            ortho_name = f"{self.condensed_name}_ortho.tif"
+            ortho_path = self._get_band_folder().joinpath(ortho_name)
             if not ortho_path.is_file():
+                ortho_path = self._get_band_folder(writable=True).joinpath(ortho_name)
                 LOGGER.info(
                     f"Manually orthorectified stack not given by the user. "
                     f"Reprojecting data here: {ortho_path} "
@@ -601,9 +614,8 @@ class DimapProduct(VhrProduct):
         assert mask_str in mandatory_masks + optional_masks
         crs = self.crs()
 
-        mask_path = self._get_band_folder().joinpath(
-            f"{self.condensed_name}_MSK_{mask_str}.geojson"
-        )
+        mask_name = f"{self.condensed_name}_MSK_{mask_str}.geojson"
+        mask_path = self._get_band_folder().joinpath(mask_name)
         if mask_path.is_file():
             mask = vectors.read(mask_path)
         elif mask_str in self._empty_mask:
@@ -683,10 +695,8 @@ class DimapProduct(VhrProduct):
                     DimapProductType.MOS,
                 ]
             ):
-                with rasterio.open(str(self._get_dimap_path())) as dim_dst:
-                    mask.crs = dim_dst.crs
-
                 # Convert to target CRS
+                mask.crs = self._get_raw_crs()
                 mask = mask.to_crs(self.crs())
 
             # Save to file
@@ -694,7 +704,8 @@ class DimapProduct(VhrProduct):
                 # Empty mask cannot be written on file
                 self._empty_mask.append(mask_str)
             else:
-                mask.to_file(mask_path, driver="GeoJSON")
+                mask_path = self._get_band_folder(writable=True).joinpath(mask_name)
+                mask.to_file(str(mask_path), driver="GeoJSON")
 
         return mask
 

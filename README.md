@@ -8,9 +8,9 @@
 
 # ![eoreader_logo](https://eoreader.readthedocs.io/en/latest/_static/favicon.png) EOReader
 
-**EOReader** is a **multi-satellite reader** allowing you to open
-[optical](https://eoreader.readthedocs.io/en/latest/optical.html)
-and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) data.
+**EOReader** is a remote-sensing opensource python library reading [optical](https://eoreader.readthedocs.io/en/latest/optical.html)
+and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) sensors, loading and stacking bands,
+clouds, DEM and index in a sensor-agnostic way.
 
 |**Optical sensors** | **SAR sensors**|
 | --- | ---|

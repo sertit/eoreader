@@ -19,7 +19,6 @@ Maxar super class.
 See `here <https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-Standard-Imagery.pdf>`_
 for more information.
 """
-import glob
 import logging
 import math
 import os
@@ -74,6 +73,15 @@ class VhrProduct(OpticalProduct):
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
+
+    def _get_raw_crs(self) -> CRS:
+        """
+        Get raw CRS of the tile
+
+        Returns:
+            rasterio.crs.CRS: CRS object
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
 
     def get_default_band_path(self) -> Union[CloudPath, Path]:
         """
@@ -287,6 +295,9 @@ class VhrProduct(OpticalProduct):
             # Manage the case if we got a LAT LON product
             if not dst_crs.is_projected:
                 if not reproj_path.is_file():
+                    reproj_path = self._create_utm_band_path(
+                        band=band.name, resolution=resolution, writable=True
+                    )
                     # Warp band if needed
                     self._warp_band(
                         path,
@@ -399,7 +410,10 @@ class VhrProduct(OpticalProduct):
         return path
 
     def _create_utm_band_path(
-        self, band: str, resolution: Union[float, tuple, list] = None
+        self,
+        band: str,
+        resolution: Union[float, tuple, list] = None,
+        writable: bool = False,
     ) -> Union[CloudPath, Path]:
         """
         Create the UTM band path
@@ -411,20 +425,9 @@ class VhrProduct(OpticalProduct):
         Returns:
             Union[CloudPath, Path]: UTM band path
         """
-        if resolution:
-            if isinstance(resolution, (tuple, list)):
-                res_x = f"{resolution[0]:.2f}"
-                res_y = f"{resolution[1]:.2f}"
-                if res_x == res_y:
-                    res_str = f"{res_x}m".replace(".", "-")
-                else:
-                    res_str = f"{res_x}_{res_y}m".replace(".", "-")
-            else:
-                res_str = f"{resolution:.2f}m".replace(".", "-")
-        else:
-            res_str = ""
+        res_str = self._resolution_to_str(resolution)
 
-        return self._get_band_folder().joinpath(
+        return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{band}_{res_str}.tif"
         )
 
@@ -445,6 +448,10 @@ class VhrProduct(OpticalProduct):
             resolution (int): Band resolution in meters
 
         """
+        # Do not warp if existing file
+        if reproj_path.is_file():
+            return
+
         if not resolution:
             resolution = self.resolution
 
@@ -512,15 +519,19 @@ class VhrProduct(OpticalProduct):
         default_band = self.get_default_band()
         def_path = self.get_band_paths([default_band], resolution=def_res)[default_band]
 
-        with rasterio.open(str(def_path)) as dst:
-            # First look for reprojected bands
-            reproj_regex = self._create_utm_band_path(band="*", resolution=resolution)
+        # First look for reprojected bands
+        res_str = self._resolution_to_str(resolution)
+        warped_regex = f"*{self.condensed_name}_*_{res_str}.tif"
+        reproj_bands = list(self._get_band_folder().glob(warped_regex))
 
-            reproj_bands = glob.glob(str(reproj_regex))
+        if len(reproj_bands) == 0:
+
+            # Check in the writeable band folder
+            reproj_bands = list(self._get_band_folder(writable=True).glob(warped_regex))
 
             if len(reproj_bands) == 0:
                 # Manage the case if we got a LAT LON product
-                dst_crs = dst.crs
+                dst_crs = self._get_raw_crs()
                 if not dst_crs.is_projected:
                     def_band = self.get_default_band()
                     path = self._create_utm_band_path(
@@ -529,16 +540,19 @@ class VhrProduct(OpticalProduct):
 
                     # Warp band if needed
                     if not path.is_file():
+                        path = self._create_utm_band_path(
+                            band=def_band.name, resolution=resolution, writable=True
+                        )
                         self._warp_band(
                             def_path,
                             def_band,
                             reproj_path=path,
                             resolution=resolution,
                         )
-                else:
-                    path = def_path
             else:
-                path = AnyPath(reproj_bands[0])
+                path = def_path
+        else:
+            path = AnyPath(reproj_bands[0])
 
         return path
 
