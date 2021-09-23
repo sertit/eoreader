@@ -41,6 +41,30 @@ th:nth-child(1), td:nth-child(1) {
     left: 0;
 }
 
+/* two items */
+th:first-child:nth-last-child(2),
+th:first-child:nth-last-child(2) ~ th {
+    background-color: #c4d5e780 !important;
+}
+
+td:first-child:nth-last-child(2),
+td:first-child:nth-last-child(2) ~ td {
+    background-color: white !important;
+    position: inherit;
+    left: inherit;
+}
+
+/* one items */
+th:first-child:nth-last-child(1) {
+    background-color: #c4d5e780 !important;
+}
+
+td:first-child:nth-last-child(1) {
+    background-color: white !important;
+    position: inherit;
+    left: inherit;
+}
+
 td:nth-child(1) code, th:nth-child(1) code {
     background: none !important;
 }

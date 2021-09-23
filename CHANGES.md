@@ -2,14 +2,19 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.7.0 (2021-09-DD)
+## 0.Y.Z (YYYY-MM-DD)
+
+- DOC: Updating CSS and readme
+
+## 0.7.0 (2021-09-23)
 
 - **ENH: Implementing RADARSAT-Constellation products (as `RCM`)**
 - **ENH: Implementing Maxar products (such as `GE01, WV02, WV03, WV04`, but others should be supported too)**
 - **ENH: Implementing TanDEM-X products (as `TDX`)**
 - **ENH: Adding `RH`, `RV`, `RH_DSPK` and `RV_DSPK` SAR bands**
 - **ENH: Adding the `YELLOW` optical band (for `WorldView-2`, `WorldView-3` and `Sentinel-3 OLCI`)**
-- **ENH: Adding [WorldView index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide) (without the ones using SWIR)**
+- **ENH: Adding [WorldView index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide) (without
+  the ones using SWIR)**
 - **ENH: Loading by size -> round resolution to the closest meter (or decimeter for resolution < 1.0m)**
 - **ENH: Super class for VHR data**
 - FIX: Fixing reading PlanetScope archived products (error in read band)
@@ -185,7 +190,8 @@
     - Only satellite bands and index are scaled (*10.000)
     - DEM bands are just rounded
     - Cloud bands (booleans) are saved as is
-- FIX: Fixing a rasterization bug affecting S2 and DIMAP masks, happening when the vectors have another size than the image
+- FIX: Fixing a rasterization bug affecting S2 and DIMAP masks, happening when the vectors have another size than the
+  image
 - FIX: Adding a warning on bad georeferencing when using GS and GT Landsat products
 - CI: Minor updates in documentation and code
 

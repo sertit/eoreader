@@ -14,7 +14,7 @@ clouds, DEM and index in a sensor-agnostic way.
 
 |**Optical sensors** | **SAR sensors**|
 | --- | ---|
-|Sentinel-2 and Sentinel-2 Theia<br>Sentinel-3 OLCI and Sentinel-3 SLSTR<br>Landsat 1 to 8 (MSS, TM, ETM and OLCI)<br>PlanetScope<br>Pleiades<br>SPOT 6-7<br>WorldView-2 to 4, GeoEye-1 and other Maxar satellites| Sentinel-1<br>COSMO-Skymed<br>TerraSAR-X & TanDEM-X<br>RADARSAT-2<br>RADARSAT-Constellation|
+|Sentinel-2 and Sentinel-2 Theia<br>Sentinel-3 OLCI and Sentinel-3 SLSTR<br>Landsat 1 to 8 (MSS, TM, ETM and OLCI)<br>PlanetScope<br>Pleiades<br>SPOT 6-7<br>WorldView-2 to 4, GeoEye-1 (and other Maxar sensors)| Sentinel-1<br>COSMO-Skymed<br>TerraSAR-X & TanDEM-X<br>RADARSAT-2<br>RADARSAT-Constellation|
 
 It also implements additional **sensor-agnostic** features:
 
