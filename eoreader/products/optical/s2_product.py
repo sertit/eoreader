@@ -282,11 +282,16 @@ class S2Product(OpticalProduct):
                 # Open the zip file
                 with zipfile.ZipFile(self.path, "r") as zip_ds:
                     # Get the band folder (use dirname is the first of the list is a band)
-                    s2_bands_folder[band] = [
+                    band_path = [
                         os.path.dirname(f.filename)
                         for f in zip_ds.filelist
                         if dir_name in f.filename
                     ][0]
+
+                    # Workaround for a bug involving some bad archives
+                    if band_path.startswith("/"):
+                        band_path = band_path[1:]
+                    s2_bands_folder[band] = band_path
             else:
                 # Search for the name of the folder into the S2 products
                 s2_bands_folder[band] = next(self.path.glob(f"**/*/{dir_name}"))

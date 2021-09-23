@@ -308,7 +308,7 @@ def NDMI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NIR], +bands[obn.SWIR_1])
+    return _norm_diff(bands[obn.NIR], bands[obn.SWIR_1])
 
 
 @_idx_fct
@@ -359,7 +359,12 @@ def RDI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def NDWI(bands: dict) -> xr.DataArray:
     """
-    Simple Ratio MIR/NIR Ratio Drought Index: https://www.indexdatabase.de/db/i-single.php?id=71
+    Normalized Difference Water Index (GREEN Version):
+    https://pro.arcgis.com/fr/pro-app/2.7/arcpy/image-analyst/ndwi.htm
+
+    NDWI = (Green - NIR) / (Green + NIR)
+
+    For the SWIR version, see the NDMI.
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -545,6 +550,82 @@ def BSI(bands: dict) -> xr.DataArray:
     return _norm_diff(
         bands[obn.RED] + bands[obn.SWIR_1], bands[obn.NIR] + bands[obn.BLUE]
     )
+
+
+# WorldView index (without the ones with SWIR)
+# https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+
+
+@_idx_fct
+def WV_WI(bands: dict) -> xr.DataArray:
+    """
+    WorldView-Water (WV-WI)
+    Useful for detecting standing, flowing water, or shadow in VNIR imagery
+    WV_WI = ((B8-B1)/(B8+B1))
+
+    https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return _norm_diff(bands[obn.WV], bands[obn.CA])
+
+
+@_idx_fct
+def WV_VI(bands: dict) -> xr.DataArray:
+    """
+    WorldView – Vegetation (WV-VI)
+    Useful for detecting vegetation and assessing vegetation health
+    WV_VI = ((B8-B5)/(B8+B5))
+
+    https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return _norm_diff(bands[obn.WV], bands[obn.RED])
+
+
+@_idx_fct
+def WV_SI(bands: dict) -> xr.DataArray:
+    """
+    WorldView – Soil (WV-SI)
+    Useful for detecting and differentiating exposed soil
+    WV_SI = ((B4-B3)/(B4+B3))
+
+    https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return _norm_diff(bands[obn.YELLOW], bands[obn.GREEN])
+
+
+@_idx_fct
+def WV_BI(bands: dict) -> xr.DataArray:
+    """
+    WorldView – Built-up (WV-BI)
+    Useful for detecting impervious surfaces such as buildings and roads
+    WV_BI = ((B6-B1)/(B6+B1))
+
+    https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return _norm_diff(bands[obn.VRE_1], bands[obn.CA])
 
 
 def get_all_index_names() -> list:

@@ -300,7 +300,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _get_band_folder(self) -> Union[CloudPath, Path]:
+    def _get_band_folder(self, writable: bool = False) -> Union[CloudPath, Path]:
         """
         Manage the case of CI SNAP Bands
 
@@ -314,7 +314,9 @@ class Product:
         if ci_band_folder:
             ci_band_folder = AnyPath(ci_band_folder)
             if ci_band_folder.is_dir():
-                band_folder = ci_band_folder
+                # If we need a writable directory, check it
+                if (writable and files.is_writable(ci_band_folder)) or not writable:
+                    band_folder = ci_band_folder
 
         return band_folder
 
@@ -1018,12 +1020,12 @@ class Product:
         Returns:
             str: DEM path (as a VRT)
         """
-        warped_dem_path = self._get_band_folder().joinpath(
-            f"{self.condensed_name}_DEM.tif"
-        )
+        dem_name = f"{self.condensed_name}_DEM.tif"
+        warped_dem_path = self._get_band_folder().joinpath(dem_name)
         if warped_dem_path.is_file():
             LOGGER.debug("Already existing DEM for %s. Skipping process.", self.name)
         else:
+            warped_dem_path = self._get_band_folder(writable=True).joinpath(dem_name)
             LOGGER.debug("Warping DEM for %s", self.name)
 
             # Allow S3 HTTP Urls only on Linux because rasterio bugs on Windows
@@ -1157,12 +1159,14 @@ class Product:
         warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
         # Get slope path
-        slope_dem = self._get_band_folder().joinpath(f"{self.condensed_name}_SLOPE.tif")
+        slope_name = f"{self.condensed_name}_SLOPE.tif"
+        slope_dem = self._get_band_folder().joinpath(slope_name)
         if slope_dem.is_file():
             LOGGER.debug(
                 "Already existing slope DEM for %s. Skipping process.", self.name
             )
         else:
+            slope_dem = self._get_band_folder(writable=True).joinpath(slope_name)
             LOGGER.debug("Computing slope for %s", self.name)
             cmd_slope = [
                 "gdaldem",
@@ -1453,3 +1457,28 @@ class Product:
         if self._tmp_process.exists():
             for tmp_file in self._tmp_process.glob("*"):
                 files.remove(tmp_file)
+
+    def _resolution_to_str(self, resolution: Union[float, tuple, list] = None):
+        """
+        Convert a resolution to a normalized string
+
+        Args:
+            resolution (Union[float, tuple, list]): Resolution
+
+        Returns:
+            str: Resolution as a string
+        """
+        if resolution:
+            if isinstance(resolution, (tuple, list)):
+                res_x = f"{resolution[0]:.2f}"
+                res_y = f"{resolution[1]:.2f}"
+                if res_x == res_y:
+                    res_str = f"{res_x}m".replace(".", "-")
+                else:
+                    res_str = f"{res_x}_{res_y}m".replace(".", "-")
+            else:
+                res_str = f"{resolution:.2f}m".replace(".", "-")
+        else:
+            res_str = ""
+
+        return res_str

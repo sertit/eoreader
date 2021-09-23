@@ -232,9 +232,11 @@ class OpticalProduct(Product):
                 try:
                     if not resolution:
                         resolution = band_arr.rio.resolution()[0]
-                    clean_band = self._get_clean_band_path(band, resolution=resolution)
+                    clean_band_path = self._get_clean_band_path(
+                        band, resolution=resolution, writable=True
+                    )
                     rasters.write(
-                        band_arr.rename(f"{to_str(band)[0]} CLEAN"), clean_band
+                        band_arr.rename(f"{to_str(band)[0]} CLEAN"), clean_band_path
                     )
                 except Exception:
                     # Not important if we cannot write it
@@ -414,14 +416,16 @@ class OpticalProduct(Product):
         warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
         # Get Hillshade path
-        hillshade_dem = self._get_band_folder().joinpath(
-            f"{self.condensed_name}_HILLSHADE.tif"
-        )
+        hillshade_name = f"{self.condensed_name}_HILLSHADE.tif"
+        hillshade_dem = self._get_band_folder().joinpath(hillshade_name)
         if hillshade_dem.is_file():
             LOGGER.debug(
                 "Already existing hillshade DEM for %s. Skipping process.", self.name
             )
         else:
+            hillshade_dem = self._get_band_folder(writable=True).joinpath(
+                hillshade_name
+            )
             LOGGER.debug("Computing hillshade DEM for %s", self.name)
 
             # Get angles
@@ -492,7 +496,7 @@ class OpticalProduct(Product):
         return mask
 
     def _get_clean_band_path(
-        self, band: obn, resolution: float = None
+        self, band: obn, resolution: float = None, writable: bool = False
     ) -> Union[CloudPath, Path]:
         """
         Get clean band path.
@@ -506,19 +510,8 @@ class OpticalProduct(Product):
         Returns:
             Union[CloudPath, Path]: Clean band path
         """
-        if resolution:
-            if isinstance(resolution, (tuple, list)):
-                res_x = f"{resolution[0]:.2f}"
-                res_y = f"{resolution[1]:.2f}"
-                if res_x == res_y:
-                    res_str = f"{res_x}m".replace(".", "-")
-                else:
-                    res_str = f"{res_x}_{res_y}m".replace(".", "-")
-            else:
-                res_str = f"{resolution:.2f}m".replace(".", "-")
-        else:
-            res_str = ""
+        res_str = self._resolution_to_str(resolution)
 
-        return self._get_band_folder().joinpath(
+        return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_clean.tif",
         )

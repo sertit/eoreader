@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-TerraSAR-X products.
+TerraSAR-X & TanDEM-X products.
 More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
 """
 import logging
@@ -32,6 +32,7 @@ from sertit.misc import ListEnum
 
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
+from eoreader.reader import Platform
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -43,7 +44,7 @@ warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarni
 @unique
 class TsxProductType(ListEnum):
     """
-    TerraSAR-X projection identifier.
+    TerraSAR-X & TanDEM-X projection identifier.
     Take a look
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
@@ -64,7 +65,7 @@ class TsxProductType(ListEnum):
 @unique
 class TsxSensorMode(ListEnum):
     """
-    TerraSAR-X sensor mode.
+    TerraSAR-X & TanDEM-X sensor mode.
     Take a look
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
@@ -88,7 +89,7 @@ class TsxSensorMode(ListEnum):
 @unique
 class TsxPolarization(ListEnum):
     """
-    TerraSAR-X polarization mode.
+    TerraSAR-X & TanDEM-X polarization mode.
     Take a look
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
@@ -106,8 +107,27 @@ class TsxPolarization(ListEnum):
     """"Twin Polarization"""
 
 
+@unique
+class TsxSatId(ListEnum):
+    """
+    TerraSAR-X products satellite IDs
+
+    See `here <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 29)
+    """
+
+    TDX = "TanDEM-X"
+    """
+    TanDEM-X
+    """
+
+    TSX = "TerraSAR-X"
+    """
+    TerraSAR-X
+    """
+
+
 class TsxProduct(SarProduct):
-    """Class for TerraSAR-X Products"""
+    """Class for TerraSAR-X & TanDEM-X Products"""
 
     def _set_resolution(self) -> float:
         """
@@ -117,8 +137,6 @@ class TsxProduct(SarProduct):
             - We assume being in High Resolution (except for WV where we must be in medium resolution)
             - Incidence angle: we consider the best option, around 55 degrees
         """
-        def_res = None
-
         # Read metadata
         try:
             root, _ = self.read_mtd()
@@ -146,6 +164,16 @@ class TsxProduct(SarProduct):
 
         # Post init done by the super class
         super()._pre_init()
+
+    def _get_platform(self) -> Platform:
+        """ Getter of the platform """
+        # TerraSAR-X & TanDEM-X products are all similar, we must check into the metadata to know the sensor
+        root, _ = self.read_mtd()
+        sat_id = root.findtext(".//mission")
+        if not sat_id:
+            raise InvalidProductError("Cannot find mission in the metadata file")
+        sat_id = getattr(TsxSatId, sat_id.split("-")[0]).name
+        return getattr(Platform, sat_id)
 
     def _post_init(self) -> None:
         """

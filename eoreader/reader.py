@@ -106,6 +106,9 @@ class Platform(ListEnum):
     TSX = "TerraSAR-X"
     """TerraSAR-X"""
 
+    TDX = "TanDEM-X"
+    """TanDEM-X"""
+
     RS2 = "RADARSAT-2"
     """RADARSAT-2"""
 
@@ -120,6 +123,27 @@ class Platform(ListEnum):
 
     RCM = "RADARSAT-Constellation Mission"
     """RADARSAT-Constellation Mission"""
+
+    MAXAR = "Maxar"
+    """Maxar (not a real platform, but used as a template for every Maxar products)"""
+
+    QB = "QuickBird"
+    """QuickBird"""
+
+    GE01 = "GeoEye-1"
+    """GeoEye-1"""
+
+    WV01 = "WorldView-1"
+    """WorldView-1"""
+
+    WV02 = "WorldView-2"
+    """WorldView-2"""
+
+    WV03 = "WorldView-3"
+    """WorldView-3"""
+
+    WV04 = "WorldView-4"
+    """WorldView-4"""
 
 
 PLATFORM_REGEX = {
@@ -146,6 +170,7 @@ PLATFORM_REGEX = {
     Platform.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
+    Platform.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
 }
 
 # Not used for now
@@ -181,6 +206,7 @@ MTD_REGEX = {
         r"product\.xml",  # Too generic name, check also a band
         r"\d+_[RHV]{2}\.tif",
     ],
+    Platform.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
 }
 
 
@@ -257,8 +283,11 @@ class Reader:
             Product: Correct products
 
         """
+        if not AnyPath(product_path).exists():
+            FileNotFoundError(f"Non existing product: {product_path}")
+
         prod = None
-        for platform in Platform.list_names():
+        for platform in PLATFORM_REGEX.keys():
             if method == CheckMethod.MTD:
                 is_valid = self.valid_mtd(product_path, platform)
             elif method == CheckMethod.NAME:
@@ -269,7 +298,7 @@ class Reader:
                 )
 
             if is_valid:
-                sat_class = platform.lower() + "_product"
+                sat_class = platform.name.lower() + "_product"
 
                 # Manage both optical and SAR
                 try:
@@ -374,8 +403,6 @@ class Reader:
 
         """
         product_path = AnyPath(product_path)
-
-        platform = Platform.convert_from(platform)[0]
 
         # Here the list is a check of several files
         regex_list = self._mtd_regex[platform]

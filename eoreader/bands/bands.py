@@ -267,6 +267,9 @@ class OpticalBandNames(BandNames):
     GREEN = "GREEN"
     """Green"""
 
+    YELLOW = "YELLOW"
+    """Yellow"""
+
     RED = "RED"
     """Red"""
 

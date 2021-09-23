@@ -456,14 +456,18 @@ class PlaProduct(OpticalProduct):
             XDS_TYPE: Cleaned band array
         """
         # Nodata
-        no_data_mask = self._load_nodata(resolution=resolution, size=size).data
+        no_data_mask = self._load_nodata(resolution=resolution, size=size).values
 
         # Dubious pixels mapping
         dubious_bands = {
             key: val + 1 for key, val in self.band_names.items() if val is not None
         }
         udm = self.open_mask("UNUSABLE", resolution, size)
-        dubious_mask = rasters.read_bit_array(udm, dubious_bands[band])
+        # Workaround:
+        # FutureWarning: The `numpy.expand_dims` function is not implemented by Dask array.
+        # You may want to use the da.map_blocks function or something similar to silence this warning.
+        # Your code may stop working in a future release.
+        dubious_mask = rasters.read_bit_array(udm.values, dubious_bands[band])
 
         # Combine masks
         mask = no_data_mask | dubious_mask
@@ -741,7 +745,7 @@ class PlaProduct(OpticalProduct):
 
         """
         udm = self.open_mask("UNUSABLE", resolution, size)
-        nodata = udm.copy(data=rasters.read_bit_array(udm, 0))
+        nodata = udm.copy(data=rasters.read_bit_array(udm.compute(), 0))
         return nodata.rename("NODATA")
 
     def _get_path(self, filename: str, extension: str, invalid_lookahead=None) -> str:
@@ -759,9 +763,12 @@ class PlaProduct(OpticalProduct):
         path = ""
         try:
             if self.is_archived:
-                path = files.get_archived_rio_path(
-                    self.path, f".*{filename}\w*[_]*\.{extension}"
-                )
+                if invalid_lookahead:
+                    regex = f".*{filename}(?!{invalid_lookahead})\w*[_]*\.{extension}"
+                else:
+                    regex = f".*{filename}\w*[_]*\.{extension}"
+
+                path = files.get_archived_rio_path(self.path, regex)
             else:
                 paths = list(self.path.glob(f"**/*{filename}*.{extension}"))
                 if invalid_lookahead:
