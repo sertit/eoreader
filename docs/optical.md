@@ -138,8 +138,9 @@ The only difference with the other bands is that the cloud bands are provided in
 ### DEM bands
 
 Optical satellites can all load {meth}`~eoreader.bands.bands.DemBandNames.DEM`, {meth}`~eoreader.bands.bands.DemBandNames.SLOPE`
-and {meth}`~eoreader.bands.bands.DemBandNames.HILLSHADE` bands. The `SLOPE` and `HILLSHADE` bands are computed with
-the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
+and {meth}`~eoreader.bands.bands.DemBandNames.HILLSHADE` bands. 
+The `SLOPE` band is given in degrees. 
+Please post an issue if you need this band in `percent`.
 
 Use the environment variable `EOREADER_DEM_PATH` to position your worldwide DEM. You can
 use both a local path e.g. `/mnt/dataserver/dems/srtm_30_v4/index.vrt` or `\\dataserver\DEMS\srtm_30_v4\index.vrt` or

@@ -40,7 +40,7 @@ from rasterio import crs as riocrs
 from rasterio import transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
-from sertit import files, misc, rasters, strings
+from sertit import files, rasters, strings
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
@@ -1160,33 +1160,20 @@ class Product:
 
         # Get slope path
         slope_name = f"{self.condensed_name}_SLOPE.tif"
-        slope_dem = self._get_band_folder().joinpath(slope_name)
-        if slope_dem.is_file():
+        slope_path = self._get_band_folder().joinpath(slope_name)
+        if slope_path.is_file():
             LOGGER.debug(
                 "Already existing slope DEM for %s. Skipping process.", self.name
             )
         else:
-            slope_dem = self._get_band_folder(writable=True).joinpath(slope_name)
+            slope_path = self._get_band_folder(writable=True).joinpath(slope_name)
             LOGGER.debug("Computing slope for %s", self.name)
-            cmd_slope = [
-                "gdaldem",
-                "--config",
-                "NUM_THREADS",
-                MAX_CORES,
-                "slope",
-                "-compute_edges",
-                strings.to_cmd_string(warped_dem_path),
-                strings.to_cmd_string(slope_dem),
-                "-p",
-            ]
 
-            # Run command
-            try:
-                misc.run_cli(cmd_slope)
-            except RuntimeError as ex:
-                raise RuntimeError("Something went wrong with gdaldem!") from ex
+            # Compute slope
+            slope = rasters.slope(warped_dem_path)
+            rasters.write(slope, slope_path)
 
-        return slope_dem
+        return slope_path
 
     @staticmethod
     def _collocate_bands(bands: dict, master_xds: XDS_TYPE = None) -> dict:
