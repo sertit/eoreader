@@ -2,8 +2,11 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.Y.Z (YYYY-MM-DD)
+## 0.8.0 (2021-MM-DD)
 
+- ENH: Removing raw `gdal` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !) #10
+- ENH: `HILLSHADE` is given in `float32` instead of `uint8`
+- FIX: `SLOPE` is given in degrees instead of percents
 - DOC: Updating CSS and readme
 
 ## 0.7.0 (2021-09-23)

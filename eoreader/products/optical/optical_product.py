@@ -26,9 +26,8 @@ import rasterio
 from cloudpathlib import CloudPath
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
-from sertit import misc, rasters, strings
+from sertit import rasters
 from sertit.rasters import XDS_TYPE
-from sertit.snap import MAX_CORES
 
 from eoreader.bands import index
 from eoreader.bands.alias import (
@@ -417,13 +416,13 @@ class OpticalProduct(Product):
 
         # Get Hillshade path
         hillshade_name = f"{self.condensed_name}_HILLSHADE.tif"
-        hillshade_dem = self._get_band_folder().joinpath(hillshade_name)
-        if hillshade_dem.is_file():
+        hillshade_path = self._get_band_folder().joinpath(hillshade_name)
+        if hillshade_path.is_file():
             LOGGER.debug(
                 "Already existing hillshade DEM for %s. Skipping process.", self.name
             )
         else:
-            hillshade_dem = self._get_band_folder(writable=True).joinpath(
+            hillshade_path = self._get_band_folder(writable=True).joinpath(
                 hillshade_name
             )
             LOGGER.debug("Computing hillshade DEM for %s", self.name)
@@ -431,35 +430,13 @@ class OpticalProduct(Product):
             # Get angles
             mean_azimuth_angle, mean_zenith_angle = self.get_mean_sun_angles()
 
-            # Altitude of the light, in degrees. 90 if the light comes from above the DEM, 0 if it is raking light.
-            alt = 90 - mean_zenith_angle
+            # Compute hillshade
+            hillshade = rasters.hillshade(
+                warped_dem_path, mean_azimuth_angle, mean_zenith_angle
+            )
+            rasters.write(hillshade, hillshade_path)
 
-            # Run cmd
-            cmd_hillshade = [
-                "gdaldem",
-                "--config",
-                "NUM_THREADS",
-                MAX_CORES,
-                "hillshade",
-                strings.to_cmd_string(warped_dem_path),
-                "-compute_edges",
-                "-z",
-                "1",
-                "-az",
-                mean_azimuth_angle,
-                "-alt",
-                alt,
-                "-of",
-                "GTiff",
-                strings.to_cmd_string(hillshade_dem),
-            ]
-            # Run command
-            try:
-                misc.run_cli(cmd_hillshade)
-            except RuntimeError as ex:
-                raise RuntimeError("Something went wrong with gdaldem!") from ex
-
-        return hillshade_dem
+        return hillshade_path
 
     def _load_clouds(
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
