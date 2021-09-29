@@ -97,13 +97,12 @@ class S1Product(SarProduct):
 
         .. WARNING:: We assume being in High Resolution (except for WV where we must be in medium resolution)
         """
-        def_res = None
+        root, _ = self.read_mtd()
 
         # Read metadata
         try:
-            root, _ = self.read_mtd()
             def_res = float(root.findtext(".//rangePixelSpacing"))
-        except (InvalidProductError, TypeError):
+        except TypeError:
             raise InvalidProductError(
                 "rangePixelSpacing or rowSpacing not found in metadata !"
             )
@@ -290,6 +289,8 @@ class S1Product(SarProduct):
             (etree._Element, dict): Metadata XML root and its namespaces
         """
         mtd_from_path = "annotation/*.xml"
-        mtd_archived = "annotation.*\.xml"
+
+        # When archived, other XML (in calibration folder) can be found
+        mtd_archived = "annotation/(?!cal)(?!noise).*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
