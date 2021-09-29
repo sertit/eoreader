@@ -7,6 +7,10 @@
 - ENH: Removing raw `gdal` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !) #10
 - ENH: `HILLSHADE` is given in `float32` instead of `uint8`
 - FIX: `SLOPE` is given in degrees instead of percents
+
+## 0.7.1 (2021-09-29)
+
+- FIX: Fixing a bug when opening archived Sentinel-1 (wrong metadata file found)
 - DOC: Updating CSS and readme
 
 ## 0.7.0 (2021-09-23)
