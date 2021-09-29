@@ -7,6 +7,8 @@
 - ENH: Removing raw `gdal` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !) #10
 - ENH: `HILLSHADE` is given in `float32` instead of `uint8`
 - FIX: `SLOPE` is given in degrees instead of percents
+- FIX: Add .xml files from `eoreader/data` in the MANIFEST.in
+- DOC: Add a Conda x SNAP question in the FAQ
 
 ## 0.7.1 (2021-09-29)
 
