@@ -23,7 +23,6 @@ from typing import Union
 
 import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
-from distributed import Lock
 from rasterio.enums import Resampling
 from sertit import rasters
 
@@ -178,7 +177,7 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
         **kwargs: Overloading metadata, ie `nodata=255` or `dtype=np.uint8`
     """
     if use_dask():
-        from distributed import get_client
+        from distributed import Lock, get_client
 
         lock = Lock("rio", client=get_client())
     else:
