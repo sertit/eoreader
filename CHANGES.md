@@ -4,6 +4,9 @@
 
 ## 0.Y.Z (YYYY-MM-DD)
 
+## 0.7.1 (2021-09-29)
+
+- FIX: Fixing a bug when opening archived Sentinel-1 (wrong metadata file found)
 - DOC: Updating CSS and readme
 
 ## 0.7.0 (2021-09-23)
