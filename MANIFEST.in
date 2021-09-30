@@ -1,4 +1,3 @@
-include README.md LICENSE NOTICE requirements.txt
-include eoreader/data/*.xml
+include README.md LICENSE NOTICE requirements.txt eoreader/data/*.xml
 recursive-include docs *
 prune CI
