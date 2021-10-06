@@ -877,7 +877,7 @@ class SarProduct(Product):
                 f"{files.get_filename(dim_path)}_{pol}{'_DSPK' if dspk else ''}.tif",
             )
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
-            rasters.write(arr, file_path, dtype=np.float32, nodata=0)
+            utils.write(arr, file_path, dtype=np.float32, nodata=0)
 
         return file_path
 
