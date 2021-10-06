@@ -29,6 +29,7 @@ from rasterio.enums import Resampling
 from sertit import rasters
 from sertit.rasters import XDS_TYPE
 
+from eoreader import utils
 from eoreader.bands import index
 from eoreader.bands.alias import (
     is_clouds,
@@ -234,7 +235,7 @@ class OpticalProduct(Product):
                     clean_band_path = self._get_clean_band_path(
                         band, resolution=resolution, writable=True
                     )
-                    rasters.write(
+                    utils.write(
                         band_arr.rename(f"{to_str(band)[0]} CLEAN"), clean_band_path
                     )
                 except Exception:
@@ -434,7 +435,7 @@ class OpticalProduct(Product):
             hillshade = rasters.hillshade(
                 warped_dem_path, mean_azimuth_angle, mean_zenith_angle
             )
-            rasters.write(hillshade, hillshade_path)
+            utils.write(hillshade, hillshade_path)
 
         return hillshade_path
 

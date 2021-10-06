@@ -1171,7 +1171,7 @@ class Product:
 
             # Compute slope
             slope = rasters.slope(warped_dem_path)
-            rasters.write(slope, slope_path)
+            utils.write(slope, slope_path)
 
         return slope_path
 
@@ -1351,7 +1351,7 @@ class Product:
             stack_path = AnyPath(stack_path)
             if not stack_path.parent.exists():
                 os.makedirs(str(stack_path.parent), exist_ok=True)
-            rasters.write(stack, stack_path, dtype=dtype, **kwargs)
+            utils.write(stack, stack_path, dtype=dtype, **kwargs)
 
         # Close datasets
         for val in band_dict.values():

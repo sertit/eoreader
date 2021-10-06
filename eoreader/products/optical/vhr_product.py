@@ -421,6 +421,7 @@ class VhrProduct(OpticalProduct):
         Args:
             band (str): Band in string as written on the filepath
             resolution (Union[float, tuple, list]): Resolution of the wanted UTM band
+            writable (bool): Do we need to write the UTM band ?
 
         Returns:
             Union[CloudPath, Path]: UTM band path
