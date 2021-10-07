@@ -183,4 +183,4 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
     else:
         lock = None
 
-    return rasters.write(xds=xds, path=path, lock=lock, **kwargs)
+    return rasters.write(xds, path=path, lock=lock, **kwargs)
