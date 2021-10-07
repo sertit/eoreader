@@ -1457,14 +1457,14 @@ class Product:
         """
         if resolution:
             if isinstance(resolution, (tuple, list)):
-                res_x = f"{resolution[0]:.2f}"
-                res_y = f"{resolution[1]:.2f}"
+                res_x = f"{abs(resolution[0]):.2f}"
+                res_y = f"{abs(resolution[1]):.2f}"
                 if res_x == res_y:
                     res_str = f"{res_x}m".replace(".", "-")
                 else:
                     res_str = f"{res_x}_{res_y}m".replace(".", "-")
             else:
-                res_str = f"{resolution:.2f}m".replace(".", "-")
+                res_str = f"{abs(resolution):.2f}m".replace(".", "-")
         else:
             res_str = ""
 
