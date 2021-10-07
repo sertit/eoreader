@@ -570,21 +570,13 @@ class LandsatProduct(OpticalProduct):
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-    ) -> XDS_TYPE:
+    def _manage_invalid_pixels(self, band_arr: XDS_TYPE, band: obn) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             XDS_TYPE: Cleaned band array
@@ -592,7 +584,8 @@ class LandsatProduct(OpticalProduct):
         # Open QA band
         landsat_qa_path = self._get_path(self._radsat_id)
         qa_arr = self._read_band(
-            landsat_qa_path, resolution=resolution, size=size
+            landsat_qa_path,
+            size=(band_arr.rio.width, band_arr.rio.height),
         ).data  # To np array
 
         if self._collection == LandsatCollection.COL_1:
@@ -626,7 +619,7 @@ class LandsatProduct(OpticalProduct):
             # If collection 2, nodata has to be found in pixel QA file
             landsat_stat_path = self._get_path(self._pixel_quality_id)
             pixel_arr = self._read_band(
-                landsat_stat_path, resolution=resolution, size=size
+                landsat_stat_path, size=(band_arr.rio.width, band_arr.rio.height)
             ).data
             nodata = np.where(pixel_arr == 1, 1, 0)
 

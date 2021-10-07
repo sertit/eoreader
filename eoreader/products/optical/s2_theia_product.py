@@ -283,13 +283,7 @@ class S2TheiaProduct(OpticalProduct):
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-    ) -> XDS_TYPE:
+    def _manage_invalid_pixels(self, band_arr: XDS_TYPE, band: obn) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_ for more
@@ -298,8 +292,6 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             XDS_TYPE: Cleaned band array
@@ -315,17 +307,23 @@ class S2TheiaProduct(OpticalProduct):
         ).astype(np.uint8)
 
         # Open NODATA pixels mask
-        edg_mask = self.open_mask("EDG", band, resolution=resolution, size=size)
+        edg_mask = self.open_mask(
+            "EDG", band, size=(band_arr.rio.width, band_arr.rio.height)
+        )
 
         # Open saturated pixels
-        sat_mask = self.open_mask("SAT", band, resolution=resolution, size=size)
+        sat_mask = self.open_mask(
+            "SAT", band, size=(band_arr.rio.width, band_arr.rio.height)
+        )
 
         # Combine masks
         mask = no_data_mask | edg_mask | sat_mask
 
         # Open defective pixels (optional mask)
         try:
-            def_mask = self.open_mask("DFP", band, resolution=resolution, size=size)
+            def_mask = self.open_mask(
+                "DFP", band, size=(band_arr.rio.width, band_arr.rio.height)
+            )
             mask = mask | def_mask
         except InvalidProductError:
             pass

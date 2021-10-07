@@ -7,6 +7,7 @@
 - ENH: Removing raw `gdal` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !) #10
 - ENH: `HILLSHADE` is given in `float32` instead of `uint8`
 - **ENH: Better management of `fspath` for cloud-stored products (download the files only once)**
+- **ENH: Use band size for cleaning optical pixel (instead of user resolution/size)**
 - FIX: Always take the absolute value of the resolution when converting it to strings (for filenames)
 - FIX: Always use `utils.read/write` instead of `rasters.read/write` (for Dask management)
 - FIX: Fixing a bug in `utils.write`
