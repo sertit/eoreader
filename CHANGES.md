@@ -13,6 +13,7 @@
 - FIX: Fixing a bug in `utils.write`
 - FIX: `SLOPE` is given in degrees instead of percents
 - FIX: Add .xml files from `eoreader/data` in the MANIFEST.in
+- FIX: Add forgotten `@abstractmethod` where needed
 - DOC: Add a Conda x SNAP question in the FAQ
 
 ## 0.7.1 (2021-09-29)
