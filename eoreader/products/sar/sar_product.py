@@ -768,7 +768,9 @@ class SarProduct(Product):
                         )
                         self.path.download_to(os.path.join(tmp_dir, self.path.name))
                     else:
-                        prod_path = self.path.fspath
+                        prod_path = (
+                            self.path.fspath
+                        )  # In tmp file, no need to download_to
                 else:
                     prod_path = self.path.joinpath(self._snap_path)
 

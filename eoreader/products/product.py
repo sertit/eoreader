@@ -551,11 +551,10 @@ class Product:
         if self.is_archived:
             root = files.read_archived_xml(self.path, f".*{mtd_archived}")
         else:
-            # ONLY FOR COLLECTION 2
             try:
                 mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
                 if isinstance(mtd_file, CloudPath):
-                    mtd_file = mtd_file.fspath
+                    mtd_file = mtd_file.download_to(self.output)
                 else:
                     mtd_file = str(mtd_file)
 
