@@ -433,13 +433,7 @@ class PlaProduct(OpticalProduct):
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-    ) -> XDS_TYPE:
+    def _manage_invalid_pixels(self, band_arr: XDS_TYPE, band: obn) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See
@@ -449,20 +443,20 @@ class PlaProduct(OpticalProduct):
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             XDS_TYPE: Cleaned band array
         """
         # Nodata
-        no_data_mask = self._load_nodata(resolution=resolution, size=size).values
+        no_data_mask = self._load_nodata(
+            size=(band_arr.rio.width, band_arr.rio.height)
+        ).values
 
         # Dubious pixels mapping
         dubious_bands = {
             key: val + 1 for key, val in self.band_names.items() if val is not None
         }
-        udm = self.open_mask("UNUSABLE", resolution, size)
+        udm = self.open_mask("UNUSABLE", size=(band_arr.rio.width, band_arr.rio.height))
         # Workaround:
         # FutureWarning: The `numpy.expand_dims` function is not implemented by Dask array.
         # You may want to use the da.map_blocks function or something similar to silence this warning.

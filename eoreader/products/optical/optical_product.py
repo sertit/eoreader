@@ -224,9 +224,7 @@ class OpticalProduct(Product):
             if not str(band_path).endswith("clean.tif"):
                 # Manage invalid pixels
                 LOGGER.debug(f"Manage invalid pixels for band {band.name}")
-                band_arr = self._manage_invalid_pixels(
-                    band_arr, band=band, resolution=resolution, size=size
-                )
+                band_arr = self._manage_invalid_pixels(band_arr, band=band)
 
                 # Write on disk
                 try:
@@ -250,21 +248,13 @@ class OpticalProduct(Product):
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     @abstractmethod
-    def _manage_invalid_pixels(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-    ) -> XDS_TYPE:
+    def _manage_invalid_pixels(self, band_arr: XDS_TYPE, band: obn) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             XDS_TYPE: Cleaned band array
