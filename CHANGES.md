@@ -6,6 +6,7 @@
 
 - ENH: Removing raw `gdal` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !) #10
 - ENH: `HILLSHADE` is given in `float32` instead of `uint8`
+- FIX: Always take the absolute value of the resolution when converting it to strings (for filenames)
 - FIX: Always use `utils.read/write` instead of `rasters.read/write` (for Dask management)
 - FIX: `SLOPE` is given in degrees instead of percents
 - FIX: Add .xml files from `eoreader/data` in the MANIFEST.in
