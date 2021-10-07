@@ -8,6 +8,7 @@
 - ENH: `HILLSHADE` is given in `float32` instead of `uint8`
 - FIX: Always take the absolute value of the resolution when converting it to strings (for filenames)
 - FIX: Always use `utils.read/write` instead of `rasters.read/write` (for Dask management)
+- FIX: Fixing a bug in `utils.write`
 - FIX: `SLOPE` is given in degrees instead of percents
 - FIX: Add .xml files from `eoreader/data` in the MANIFEST.in
 - DOC: Add a Conda x SNAP question in the FAQ
