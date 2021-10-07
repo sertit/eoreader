@@ -429,6 +429,7 @@ class OpticalProduct(Product):
 
         return hillshade_path
 
+    @abstractmethod
     def _load_clouds(
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
     ) -> dict:

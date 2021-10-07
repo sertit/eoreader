@@ -449,6 +449,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @abstractmethod
     def get_existing_bands(self) -> list:
         """
         Return the existing bands.
@@ -500,6 +501,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @abstractmethod
     def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
         """
         Return the paths of required bands.
@@ -598,6 +600,7 @@ class Product:
             return self._read_mtd()
 
     # pylint: disable=W0613
+    @abstractmethod
     def _read_band(
         self,
         path: Union[CloudPath, Path],
@@ -841,6 +844,7 @@ class Product:
 
         return has_band
 
+    @abstractmethod
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
         Does this products has the specified cloud band ?

@@ -22,6 +22,7 @@ for more information.
 import logging
 import math
 import os
+from abc import abstractmethod
 from pathlib import Path
 from typing import Union
 
@@ -74,6 +75,7 @@ class VhrProduct(OpticalProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
 
+    @abstractmethod
     def _get_raw_crs(self) -> CRS:
         """
         Get raw CRS of the tile
@@ -127,6 +129,7 @@ class VhrProduct(OpticalProduct):
         bounds = transform.array_bounds(def_h, def_w, def_tr)
         return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs)
 
+    @abstractmethod
     def _get_ortho_path(self) -> Union[CloudPath, Path]:
         """
         Get the orthorectified path of the bands.
