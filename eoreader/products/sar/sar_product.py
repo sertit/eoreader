@@ -875,7 +875,7 @@ class SarProduct(Product):
 
             # Save the file as the terrain-corrected image
             file_path = os.path.join(
-                self._tmp_process,
+                self._get_band_folder(writable=True),
                 f"{files.get_filename(dim_path)}_{pol}{'_DSPK' if dspk else ''}.tif",
             )
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
