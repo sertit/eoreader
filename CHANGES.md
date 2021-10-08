@@ -9,6 +9,7 @@
 - **ENH: Better management of `fspath` for cloud-stored products (download the files only once)**
 - **ENH: Use band size for cleaning optical pixel (instead of user resolution/size)**
 - FIX: Always take the absolute value of the resolution when converting it to strings (for filenames)
+- FIX: Take the default resolution if nothing is given when converting it to strings (for filenames)
 - FIX: Always use `utils.read/write` instead of `rasters.read/write` (for Dask management)
 - FIX: Fixing a bug in `utils.write`
 - FIX: `SLOPE` is given in degrees instead of percents

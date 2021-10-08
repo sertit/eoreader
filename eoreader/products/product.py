@@ -1460,17 +1460,21 @@ class Product:
         Returns:
             str: Resolution as a string
         """
+
+        def _res_to_str(res):
+            return f"{abs(res):.2f}m".replace(".", "-")
+
         if resolution:
             if isinstance(resolution, (tuple, list)):
-                res_x = f"{abs(resolution[0]):.2f}"
-                res_y = f"{abs(resolution[1]):.2f}"
+                res_x = _res_to_str(resolution[0])
+                res_y = _res_to_str(resolution[1])
                 if res_x == res_y:
-                    res_str = f"{res_x}m".replace(".", "-")
+                    res_str = res_x
                 else:
-                    res_str = f"{res_x}_{res_y}m".replace(".", "-")
+                    res_str = f"{res_x}_{res_y}"
             else:
-                res_str = f"{abs(resolution):.2f}m".replace(".", "-")
+                res_str = _res_to_str(resolution)
         else:
-            res_str = ""
+            res_str = _res_to_str(self.resolution)
 
         return res_str
