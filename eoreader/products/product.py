@@ -173,6 +173,18 @@ class Product:
         self.sat_id = None
         """Satellite ID, i.e. `S2` for Sentinel-2"""
 
+        # Manage output
+        if output_path:
+            self._tmp_output = None
+            self._output = AnyPath(output_path)
+        else:
+            self._tmp_output = tempfile.TemporaryDirectory()
+            self._output = AnyPath(self._tmp_output.name)
+
+        # Temporary files path (private)
+        self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
+        os.makedirs(self._tmp_process, exist_ok=True)
+
         # Pre initialization
         self._pre_init()
 
@@ -180,13 +192,6 @@ class Product:
         if self.is_archived and self.needs_extraction:
             LOGGER.warning(f"{self.name} needs to be extracted to be used !")
         else:
-            # Manage output
-            if output_path:
-                self._tmp_output = None
-                self._output = AnyPath(output_path)
-            else:
-                self._tmp_output = tempfile.TemporaryDirectory()
-                self._output = AnyPath(self._tmp_output.name)
 
             # Store metadata
             metadata, namespaces = self._read_mtd()
@@ -212,10 +217,6 @@ class Product:
 
             # Condensed name
             self.condensed_name = self._get_condensed_name()
-
-            # Temporary files path (private)
-            self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
-            os.makedirs(self._tmp_process, exist_ok=True)
 
     def __del__(self):
         """Cleaning up _tmp directory"""
@@ -556,7 +557,9 @@ class Product:
             try:
                 mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
                 if isinstance(mtd_file, CloudPath):
-                    mtd_file = mtd_file.download_to(self.output)
+                    mtd_file = mtd_file.download_to(
+                        self._get_band_folder(writable=True)
+                    )
                 else:
                     mtd_file = str(mtd_file)
 
@@ -595,7 +598,7 @@ class Product:
             Any: Metadata XML root and its namespace or pd.DataFrame
         """
         if self._metadata is not None:
-            return (self._metadata, self._namespaces)
+            return self._metadata, self._namespaces
         else:
             return self._read_mtd()
 
@@ -1323,9 +1326,9 @@ class Product:
                 # NOT ALL bands need to be scaled, only:
                 # - Satellite bands
                 # - index
-                for id, band in enumerate(band_dict.keys()):
+                for b_id, band in enumerate(band_dict.keys()):
                     if is_band(band) or is_index(band):
-                        stack[id, ...] = stack[id, ...] * 10000
+                        stack[b_id, ...] = stack[b_id, ...] * 10000
 
                 # CONVERSION
                 dtype = np.uint16
@@ -1402,7 +1405,6 @@ class Product:
         Compute the corresponding resolution to a given size (positive resolution)
 
         Args:
-            dst (rasterio.DatasetReader): Dataset
             size (Union[list, tuple]): Size
 
         Returns:

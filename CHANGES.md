@@ -14,6 +14,7 @@
 - FIX: `SLOPE` is given in degrees instead of percents
 - FIX: Add .xml files from `eoreader/data` in the MANIFEST.in
 - FIX: Add forgotten `@abstractmethod` where needed
+- FIX: Better management of `_tmp_process`
 - DOC: Add a Conda x SNAP question in the FAQ
 
 ## 0.7.1 (2021-09-29)
