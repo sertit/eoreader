@@ -415,6 +415,26 @@
         </a>
        </li>
        <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.bands.index.WV_BI.html">
+         eoreader.bands.index.WV_BI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.bands.index.WV_SI.html">
+         eoreader.bands.index.WV_SI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.bands.index.WV_VI.html">
+         eoreader.bands.index.WV_VI
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.bands.index.WV_WI.html">
+         eoreader.bands.index.WV_WI
+        </a>
+       </li>
+       <li class="toctree-l4">
         <a class="reference internal" href="../../../api/eoreader.bands.index.get_all_index.html">
          eoreader.bands.index.get_all_index
         </a>
@@ -466,11 +486,6 @@
      <li class="toctree-l3">
       <a class="reference internal" href="../../../api/eoreader.env_vars.SAR_DEF_RES.html">
        eoreader.env_vars.SAR_DEF_RES
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../../../api/eoreader.env_vars.S3_DEF_RES.html">
-       eoreader.env_vars.S3_DEF_RES
       </a>
      </li>
      <li class="toctree-l3">
@@ -608,6 +623,11 @@
         </a>
        </li>
        <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.maxar_product.html">
+         maxar_product
+        </a>
+       </li>
+       <li class="toctree-l4">
         <a class="reference internal" href="../../../api/eoreader.products.optical.optical_product.html">
          optical_product
         </a>
@@ -633,8 +653,18 @@
         </a>
        </li>
        <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.s3_olci_product.html">
+         s3_olci_product
+        </a>
+       </li>
+       <li class="toctree-l4">
         <a class="reference internal" href="../../../api/eoreader.products.optical.s3_product.html">
          s3_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.s3_slstr_product.html">
+         s3_slstr_product
         </a>
        </li>
        <li class="toctree-l4">
@@ -645,6 +675,11 @@
        <li class="toctree-l4">
         <a class="reference internal" href="../../../api/eoreader.products.optical.spot7_product.html">
          spot7_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.optical.vhr_product.html">
+         vhr_product
         </a>
        </li>
       </ul>
@@ -684,6 +719,11 @@
        <li class="toctree-l4">
         <a class="reference internal" href="../../../api/eoreader.products.sar.csk_product.html">
          csk_product
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../../../api/eoreader.products.sar.rcm_product.html">
+         rcm_product
         </a>
        </li>
        <li class="toctree-l4">
@@ -826,7 +866,7 @@
                 data-toggle="tooltip" data-placement="left" title="Source repository"><i
                     class="fab fa-github"></i>repository</button></a>
         <a class="issues-button"
-            href="https://github.com/sertit/eoreader/issues/new?title=Issue%20on%20page%20%2F.jupyter_cache/executed/d077e8fe9ba13149d5f1190fc80763fd/base.html&body=Your%20issue%20content%20here."><button
+            href="https://github.com/sertit/eoreader/issues/new?title=Issue%20on%20page%20%2F.jupyter_cache/executed/54541ac70a0899b39d7cfcac02c86f99/base.html&body=Your%20issue%20content%20here."><button
                 type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
                 title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
         
@@ -865,89 +905,42 @@
                 
   <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Imports</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">dask.distributed</span> <span class="kn">import</span> <span class="n">Client</span><span class="p">,</span> <span class="n">LocalCluster</span>
+<span class="kn">from</span> <span class="nn">eoreader.reader</span> <span class="kn">import</span> <span class="n">Reader</span>
+<span class="kn">from</span> <span class="nn">eoreader.bands.alias</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">eoreader.env_vars</span> <span class="kn">import</span> <span class="n">USE_DASK</span>
 
-<span class="c1"># First of all, we need some satellite data. </span>
-<span class="c1"># Let&#39;s open a lightweight a Landsat-5 MSS collection 2 tile.</span>
-<span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;/home&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;DATA&quot;</span><span class="p">,</span> <span class="s2">&quot;PRODS&quot;</span><span class="p">,</span> <span class="s2">&quot;LANDSATS_COL2&quot;</span><span class="p">,</span> <span class="s2">&quot;LM05_L1TP_200029_19841014_20200902_02_T2.tar&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">eoreader.reader</span> <span class="kn">import</span> <span class="n">Reader</span>
+<span class="c1"># Ensure EOReader uses dask</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">USE_DASK</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
 
-<span class="c1"># Create the reader</span>
-<span class="n">eoreader</span> <span class="o">=</span> <span class="n">Reader</span><span class="p">()</span>
+<span class="c1"># Create local cluster</span>
+<span class="k">with</span> <span class="n">LocalCluster</span><span class="p">(</span>
+        <span class="n">n_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">threads_per_worker</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">processes</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span> <span class="k">as</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">Client</span><span class="p">(</span><span class="n">cluster</span><span class="p">):</span>
 
-<span class="c1"># This reader is a singleton can be called once and then open all your data.</span>
-<span class="c1"># Use it like a logging.getLogger() instance</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">eoreader.bands.alias</span> <span class="kn">import</span> <span class="o">*</span>
+    <span class="c1"># Create the reader</span>
+    <span class="n">eoreader</span> <span class="o">=</span> <span class="n">Reader</span><span class="p">()</span>
 
-<span class="c1"># Open your product</span>
-<span class="n">prod</span> <span class="o">=</span> <span class="n">eoreader</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">remove_tmp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># No need to unarchive here</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load those bands as a dict of xarray.DataArray</span>
-<span class="n">band_dict</span> <span class="o">=</span> <span class="n">prod</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">NDWI</span><span class="p">)</span>
-<span class="n">ndwi</span> <span class="o">=</span> <span class="n">band_dict</span><span class="p">[</span><span class="n">NDWI</span><span class="p">]</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The nan corresponds to the nodata you see on the footprint</span>
-<span class="o">%</span><span class="k">matplotlib</span> inline
+    <span class="c1"># Open your product</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;/home&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;DATA&quot;</span><span class="p">,</span> <span class="s2">&quot;PRODS&quot;</span><span class="p">,</span> <span class="s2">&quot;LANDSATS_COL2&quot;</span><span class="p">,</span> <span class="s2">&quot;LM05_L1TP_200029_19841014_20200902_02_T2.tar&quot;</span><span class="p">)</span>
+    <span class="n">prod</span> <span class="o">=</span> <span class="n">eoreader</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">remove_tmp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="c1"># Plot a subsampled version</span>
-<span class="n">ndwi</span><span class="o">.</span><span class="n">copy</span><span class="p">()[:,</span> <span class="p">::</span><span class="mi">10</span><span class="p">,</span> <span class="p">::</span><span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+    <span class="c1"># Load this band</span>
+    <span class="n">band_dict</span> <span class="o">=</span> <span class="n">prod</span><span class="o">.</span><span class="n">load</span><span class="p">([</span><span class="n">RED</span><span class="p">])</span>
+
+<span class="c1"># Plot band</span>
+<span class="n">band_dict</span><span class="p">[</span><span class="n">RED</span><span class="p">][:,</span> <span class="p">::</span><span class="mi">10</span><span class="p">,</span> <span class="p">::</span><span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.collections.QuadMesh at 0x7f8236a1bc10&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.collections.QuadMesh at 0x7f4bd2450670&gt;
 </pre></div>
 </div>
-<img alt="../../../_images/base_4_1.png" src="../../../_images/base_4_1.png" />
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-<span class="c1"># Assert water bodies when NDWI index &gt; 0.2</span>
-<span class="n">water</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ndwi</span> <span class="o">&gt;</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-
-<span class="c1"># Set nodata where ndwi is nan.</span>
-<span class="c1"># WARNING: the function xr.DataArray.where sets by default np.nan where the condition is false !</span>
-<span class="c1"># See here: http://xarray.pydata.org/en/stable/generated/xarray.DataArray.where.html</span>
-<span class="n">water</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ndwi</span><span class="p">))</span>
-
-<span class="c1"># Plot a subsampled version</span>
-<span class="n">water</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;WATER&quot;</span><span class="p">)</span>
-<span class="n">water</span><span class="p">[:,</span> <span class="p">::</span><span class="mi">10</span><span class="p">,</span> <span class="p">::</span><span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.collections.QuadMesh at 0x7f82368b7040&gt;
-</pre></div>
-</div>
-<img alt="../../../_images/base_5_1.png" src="../../../_images/base_5_1.png" />
+<img alt="../../../_images/base_0_1.png" src="../../../_images/base_0_1.png" />
 </div>
 </div>
 
@@ -973,7 +966,7 @@
           By ICube-SERTIT<br/>
         
             &copy; Copyright 2021, SERTIT-ICube - France, https://sertit.unistra.fr/.<br/>
-          Last updated on 2021-09-02.<br/>
+          Last updated on 2021-10-11.<br/>
       </p>
     </div>
   </footer>

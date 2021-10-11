@@ -252,17 +252,25 @@ This is what you will have when calling this function:
 
 ## Other features
 
+### CRS
+Get the product CRS, always in UTM
 ```python
 >>> # Product CRS (always in UTM)
 >>> prod.crs()
 CRS.from_epsg(32630)
+```
 
->>> # Full extent of the bands as a geopandas GeoDataFrame (always in UTM)
+### Extent and footprint
+
+Get the product extent and footprint, always in UTM as a `gpd.GeoDataFrame`
+
+```python
+>>> # Full extent of the bands as a geopandas GeoDataFrame
 >>> prod.extent()
                                             geometry
 0   POLYGON((309780.000 4390200.000, 309780.000 4...
 
->>> # Footprint: extent of the useful pixels (minus nodata) as a geopandas GeoDataFrame (always in UTM)
+>>> # Footprint: extent of the useful pixels (minus nodata) as a geopandas GeoDataFrame
 >>> prod.footprint()
                                             geometry
 0 POLYGON Z((199980.000 4390200.000 0.000, 1999...
@@ -273,3 +281,13 @@ Please note the difference between `footprint` and `extent`:
 |Without nodata | With nodata|
 |--- | ---|
 | ![without_nodata](https://zupimages.net/up/21/14/69i6.gif) | ![with_nodata](https://zupimages.net/up/21/14/vg6w.gif) |
+
+## Optical data
+Get product azimuth (between [0, 360] degrees) and 
+[zenith solar angles](https://en.wikipedia.org/wiki/Solar_zenith_angle), useful for computing the Hillshade for example.
+
+```python
+>>> # Get azimuth and zenith solar angles
+>>> prod.get_mean_sun_angles()
+(151.750970396115, 35.4971906983449)
+```
