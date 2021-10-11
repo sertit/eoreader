@@ -153,12 +153,13 @@ def read(
         masked=masked,
         indexes=indexes,
         chunks=True,
+        **kwargs,
     )
 
 
 def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> None:
     """
-    Overload of `sertit.rasters.write()` managing  DASK in EOReader's way.
+    Overload of `sertit.rasters.write()` managing DASK in EOReader's way.
 
     ```python
     >>> raster_path = "path\\to\\raster.tif"
