@@ -560,12 +560,10 @@ class Product:
                     mtd_file = mtd_file.download_to(
                         self._get_band_folder(writable=True)
                     )
-                else:
-                    mtd_file = str(mtd_file)
 
                 # pylint: disable=I1101:
                 # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                xml_tree = etree.parse(mtd_file)
+                xml_tree = etree.parse(str(mtd_file))
                 root = xml_tree.getroot()
             except StopIteration as ex:
                 raise InvalidProductError(
