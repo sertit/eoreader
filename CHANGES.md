@@ -16,6 +16,7 @@
 - FIX: Add .xml files from `eoreader/data` in the MANIFEST.in
 - FIX: Add forgotten `@abstractmethod` where needed
 - FIX: Better management of `_tmp_process`
+- FIX: Fixing minor bug when trying to read metadata with a POSIX path
 - DOC: Add a Conda x SNAP question in the FAQ
 - DOC: Numerous updates
 
