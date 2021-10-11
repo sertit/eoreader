@@ -18,6 +18,7 @@
 - FIX: Better management of `_tmp_process`
 - FIX: Fixing minor bug when trying to read metadata with a POSIX path
 - FIX: Fixing the `**kwargs` omission in `utils.read`
+- DOC: Add a Context paragraph in the README
 - DOC: Add a Conda x SNAP question in the FAQ
 - DOC: Numerous updates
 
