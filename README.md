@@ -129,6 +129,24 @@ You can install EOReader via conda:
 
 `conda install -c conda-forge eoreader`
 
+## Context
+
+SERTIT is part of the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/)
+rapid mapping and risk and recovery teams.
+
+In these activations, we need to deliver information (such as flood or fire delineations, landslides mapping, etc.)
+based on various sensors (more than 10 optical and 5 SAR). As every minute counts in production,
+it seemed crucial to harmonize the ground on which are built our production tools, in order to make them
+as sensor-agnostic as possible.
+
+Thus, thanks to **EOReader**, these tools are made independent to the sensor:
+- the algorithm (and its developer) can focus on its core tasks (such as extraction)
+without taking into account the sensor characteristics
+(how to load a band, which band correspond to which band number, which band to use for this index...)
+- the addition of a new sensor is done effortlessly (if existing in **EOReader**) and without any modification of the algorithm
+- the maintenance is simplified and the code is way more readable (no more ifs regarding the sensor type!)
+- the testing is also simplified as the sensor-related parts are tested in this library
+
 ## License
 
 **EOReader** is licensed under Apache License v2.0. See LICENSE file for details.
