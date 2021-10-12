@@ -25,9 +25,6 @@ DSPK_GRAPH = "EOREADER_DSPK_GRAPH"
 SAR_DEF_RES = "EOREADER_SAR_DEFAULT_RES"
 """Environment variable for SAR default resolution, used for SNAP orthorectification to override default resolution."""
 
-S3_DEF_RES = "EOREADER_S3_DEFAULT_RES"
-"""Environment variable for S3 default resolution, used for SNAP orthorectification to override default resolution."""
-
 DEM_PATH = "EOREADER_DEM_PATH"
 """Environment variable for overriding default DEM path"""
 

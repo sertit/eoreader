@@ -15,7 +15,6 @@ from eoreader.env_vars import (
     CI_EOREADER_BAND_FOLDER,
     DEM_PATH,
     S3_DB_URL_ROOT,
-    S3_DEF_RES,
     SAR_DEF_RES,
     TEST_USING_S3_DB,
 )
@@ -192,7 +191,6 @@ def _test_core(
                         os.environ[SAR_DEF_RES] = str(res)
                     else:
                         res = prod.resolution * 50
-                        os.environ[S3_DEF_RES] = str(res)
 
                     # Extent
                     LOGGER.info("Checking extent")
