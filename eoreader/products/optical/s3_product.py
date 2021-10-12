@@ -17,10 +17,9 @@
 """ Sentinel-3 products """
 import logging
 import os
-import tempfile
+from abc import abstractmethod
 from datetime import datetime
 from enum import unique
-from functools import reduce
 from pathlib import Path
 from typing import Union
 
@@ -33,24 +32,24 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from lxml.builder import E
-from rasterio import features
+from rasterio import crs as riocrs
+from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
-from rasterio.windows import Window
-from sertit import files, misc, rasters, rasters_rio, snap, strings, vectors
+from sertit import rasters_rio, vectors
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
+from sertit.rasters import MAX_CORES, XDS_TYPE
+from sertit.vectors import WGS84
+from shapely.geometry import Polygon, box
 
 from eoreader import utils
-from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
-from eoreader.env_vars import S3_DEF_RES
-from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.exceptions import InvalidProductError
 from eoreader.products.optical.optical_product import OpticalProduct
+from eoreader.reader import Platform
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-BT_BANDS = [obn.MIR, obn.TIR_1, obn.TIR_2]
 
 
 @unique
@@ -68,15 +67,15 @@ class S3ProductType(ListEnum):
 class S3Instrument(ListEnum):
     """Sentinel-3 products types"""
 
-    OLCI = "OLCI"
+    OLCI = "S3_OLCI"
     """OLCI Instrument"""
 
-    SLSTR = "SLSTR"
+    SLSTR = "S3_SLSTR"
     """SLSTR Instrument"""
 
 
 @unique
-class S3DataTypes(ListEnum):
+class S3DataType(ListEnum):
     """Sentinel-3 data types -> only considering useful ones"""
 
     EFR = "EFR___"
@@ -88,11 +87,7 @@ class S3DataTypes(ListEnum):
 
 class S3Product(OpticalProduct):
     """
-    Class of Sentinel-3 Products
-
-    **Note**: All S3-OLCI bands won't be used in EOReader !
-
-    **Note**: We only use NADIR rasters for S3-SLSTR bands
+    Super-Class of Sentinel-3 Products
     """
 
     def __init__(
@@ -102,12 +97,39 @@ class S3Product(OpticalProduct):
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
     ) -> None:
-        self._instrument_name = None
         self._data_type = None
-        self._snap_no_data = -1
+
+        # Geocoding
+        self._gcps = []
+        self._geo_file = None
+        self._lat_nc_name = None
+        self._lon_nc_name = None
+        self._alt_nc_name = None
+
+        # Tie geocoding
+        self._tie_geo_file = None
+        self._tie_lat_nc_name = None
+        self._tie_lon_nc_name = None
+
+        # Mean Sun angles
+        self._geom_file = None
+        self._sza_name = None
+        self._sze_name = None
+
+        # Rad 2 Refl
+        self._misc_file = None
+        self._solar_flux_name = None
+
+        self._set_preprocess_members()
+
         super().__init__(
             product_path, archive_path, output_path, remove_tmp
         )  # Order is important here
+
+    @abstractmethod
+    def _set_preprocess_members(self):
+        """ Set pre-process members """
+        raise NotImplementedError("This method should be implemented by a child class")
 
     def _post_init(self) -> None:
         """
@@ -117,91 +139,53 @@ class S3Product(OpticalProduct):
         # Post init done by the super class
         super()._post_init()
 
-    def _pre_init(self) -> None:
+    def extent(self) -> gpd.GeoDataFrame:
         """
-        Function used to pre_init the products
-        (setting needs_extraction and so on)
+        Get UTM extent of the tile, managing the case with not orthorectified bands.
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
+            >>> prod = Reader().open(path)
+            >>> prod.utm_extent()
+                                                        geometry
+            0  POLYGON ((1488846.028 6121896.451, 1488846.028...
+
+        Returns:
+            gpd.GeoDataFrame: Footprint in UTM
         """
-        self.needs_extraction = True
+        # --- EXTENT IN UTM ---
+        extent = gpd.GeoDataFrame(
+            geometry=[box(*self.footprint().geometry.total_bounds)],
+            crs=self.crs(),
+        )
 
-        # Post init done by the super class
-        super()._pre_init()
+        # --- EXTENT IN WGS84 ---
+        # # Open lon/lat/alt files
+        # lat = rioxarray.open_rasterio(self._get_nc_file_str(self._tie_geo_file, self._tie_lat_nc_name))
+        # lon = rioxarray.open_rasterio(self._get_nc_file_str(self._tie_geo_file, self._tie_lon_nc_name))
+        #
+        # assert lat.data.shape == lon.data.shape
+        #
+        # # Get min/max of lat/lon
+        # def _get_min_max(xds: xr.DataArray) -> tuple:
+        #     corners = [xds.data[0, 0, 0], xds.data[0, 0, -1], xds.data[0, -1, 0], xds.data[0, -1, -1]]
+        #     return np.min(corners) * xds.scale_factor, np.max(corners) * xds.scale_factor
+        #
+        # lat_min, lat_max = _get_min_max(lat)
+        # lon_min, lon_max = _get_min_max(lon)
+        #
+        # # Create wgs84 extent (left, bottom, right, top)
+        # extent_wgs84 = gpd.GeoDataFrame(
+        #     geometry=[
+        #         vectors.from_bounds_to_polygon(lon_min, lat_min, lon_max, lat_max)
+        #     ],
+        #     crs=vectors.WGS84,
+        # )
+        # # TODO: set CRS here also (in order not to reopen lat/lon) ?
 
-    def _set_resolution(self) -> float:
-        """
-        Set product default resolution (in meters)
-        """
-        if self._instrument_name == S3Instrument.OLCI:
-            def_res = 300.0
-        else:
-            def_res = 500.0
-        return def_res
-
-    def _set_product_type(self) -> None:
-        """Set products type"""
-        # Product type
-        if self.name[7] != "1":
-            raise InvalidTypeError("Only L1 products are used for Sentinel-3 data.")
-
-        if "OL" in self.name:
-            # Instrument
-            self._instrument_name = S3Instrument.OLCI
-
-            # Data type
-            if S3DataTypes.EFR.value in self.name:
-                self._data_type = S3DataTypes.EFR
-                self.product_type = S3ProductType.OLCI_EFR
-            else:
-                raise InvalidTypeError(
-                    "Only EFR data type is used for Sentinel-3 OLCI data."
-                )
-
-            # Bands
-            self.band_names.map_bands(
-                {
-                    obn.CA: "03",
-                    obn.BLUE: "04",
-                    obn.GREEN: "06",
-                    obn.RED: "08",
-                    obn.VRE_1: "11",
-                    obn.VRE_2: "12",
-                    obn.VRE_3: "16",
-                    obn.NIR: "17",
-                    obn.NARROW_NIR: "17",
-                    obn.WV: "20",
-                    obn.FAR_NIR: "21",
-                }
-            )
-        elif "SL" in self.name:
-            # Instrument
-            self._instrument_name = S3Instrument.SLSTR
-
-            # Data type
-            if S3DataTypes.RBT.value in self.name:
-                self._data_type = S3DataTypes.RBT
-                self.product_type = S3ProductType.SLSTR_RBT
-            else:
-                raise InvalidTypeError(
-                    "Only RBT data type is used for Sentinel-3 SLSTR data."
-                )
-
-            # Bands
-            self.band_names.map_bands(
-                {
-                    obn.GREEN: "1",  # radiance, 500m
-                    obn.RED: "2",  # radiance, 500m
-                    obn.NIR: "3",  # radiance, 500m
-                    obn.NARROW_NIR: "3",  # radiance, 500m
-                    obn.SWIR_CIRRUS: "4",  # radiance, 500m
-                    obn.SWIR_1: "5",  # radiance, 500m
-                    obn.SWIR_2: "6",  # radiance, 500m
-                    # obn.MIR: "7",  # brilliance temperature, 1km
-                    obn.TIR_1: "8",  # brilliance temperature, 1km
-                    obn.TIR_2: "9",  # brilliance temperature, 1km
-                }
-            )
-        else:
-            raise InvalidProductError(f"Invalid Sentinel-3 name: {self.name}")
+        return extent
 
     def footprint(self) -> gpd.GeoDataFrame:
         """
@@ -219,9 +203,66 @@ class S3Product(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        return rasters.get_footprint(
-            self.get_default_band_path()
-        )  # Processed by SNAP: the nodata is set
+
+        # Open lon/lat/alt files
+        lat = self._read_nc(self._tie_geo_file, self._tie_lat_nc_name)
+        lon = self._read_nc(self._tie_geo_file, self._tie_lon_nc_name)
+
+        assert lat.data.shape == lon.data.shape
+
+        # Get WGS84 vertices
+        vertex = [
+            (lonv, latv) for lonv, latv in zip(lon.data[0, 0, :], lat.data[0, 0, :])
+        ]
+        vertex += [
+            (lonv, latv) for lonv, latv in zip(lon.data[0, :, -1], lat.data[0, :, -1])
+        ]
+        vertex += [
+            (lonv, latv)
+            for lonv, latv in zip(lon.data[0, -1, ::-1], lat.data[0, -1, ::-1])
+        ]
+        vertex += [
+            (lonv, latv)
+            for lonv, latv in zip(lon.data[0, ::-1, 0], lat.data[0, ::-1, 0])
+        ]
+
+        # Create wgs84 extent (left, bottom, right, top)
+        extent_wgs84 = gpd.GeoDataFrame(geometry=[Polygon(vertex)], crs=vectors.WGS84)
+        # TODO: set CRS here also (in order not to reopen lat/lon) ?
+
+        return extent_wgs84.to_crs(self.crs())
+
+    def crs(self) -> riocrs.CRS:
+        """
+        Get UTM projection of the tile
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.crs()
+            CRS.from_epsg(32630)
+
+        Returns:
+            rasterio.crs.CRS: CRS object
+        """
+        # Open lon/lat/alt files
+        lat = self._read_nc(self._tie_geo_file, self._tie_lat_nc_name)
+        lon = self._read_nc(self._tie_geo_file, self._tie_lon_nc_name)
+
+        assert lat.data.shape == lon.data.shape
+
+        # Get lon/lat in the middle of the band
+        mid_x = int(lat.x.size / 2)
+        mid_y = int(lat.y.size / 2)
+        mid_lat = lat[0, mid_y, mid_x].data
+        mid_lon = lon[0, mid_y, mid_x].data
+
+        # Deduce UTM proj from the central lon/lat
+        utm = vectors.corresponding_utm_projection(mid_lat, mid_lon)
+
+        return riocrs.CRS.from_string(utm)
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -260,117 +301,62 @@ class S3Product(OpticalProduct):
 
         return date
 
-    def _get_snap_band_name(self, band: obn) -> str:
+    @abstractmethod
+    def _get_raw_band_path(self, band: Union[obn, str], subdataset: str = None) -> str:
         """
-        Get SNAP band name.
+        Return the paths of raw band.
+
         Args:
-            band (obn): Band as an OpticalBandNames
+            band (Union[obn, str]): Wanted raw bands
+            subdataset (str): Subdataset
 
         Returns:
-            str: Band name with SNAP format
+            str: Raw band path
         """
-        # Get band number
-        band_nb = self.band_names[band]
-        if band_nb is None:
+        raise NotImplementedError("This method should be implemented by a child class")
+
+    def _get_preprocessed_band_path(
+        self,
+        band: Union[obn, str],
+        resolution: Union[float, tuple, list] = None,
+        writable=True,
+    ) -> Union[CloudPath, Path]:
+        """
+        Create the pre-processed band path
+
+        Args:
+            band (band: Union[obn, str]): Wanted band (quality flags accepted)
+            resolution (Union[float, tuple, list]): Resolution of the wanted UTM band
+            writable (bool): Do we need to write the pre-processed band ?
+
+        Returns:
+            Union[CloudPath, Path]: Pre-processed band path
+        """
+        res_str = self._resolution_to_str(resolution)
+        band_str = band.name if isinstance(band, obn) else band
+
+        return self._get_band_folder(writable=True).joinpath(
+            f"{self.condensed_name}_{band_str}_{res_str}.tif"
+        )
+
+    def _get_platform(self) -> Platform:
+        """ Getter of the platform """
+        # look in the MTD to be sure
+        root, _ = self.read_mtd()
+        name = root.findtext(".//product_name")
+
+        if "OL" in name:
+            # Instrument
+            sat_id = S3Instrument.OLCI.value
+        elif "SL" in name:
+            # Instrument
+            sat_id = S3Instrument.SLSTR.value
+        else:
             raise InvalidProductError(
-                f"Non existing band ({band.name}) for S3-{self._data_type.name} products"
+                f"Only OLCI and SLSTR are valid Sentinel-3 instruments : {self.name}"
             )
 
-        # Get band name
-        if self._data_type == S3DataTypes.EFR:
-            snap_bn = f"Oa{band_nb}_reflectance"  # Converted into reflectance previously in the graph
-        elif self._data_type == S3DataTypes.RBT:
-            if band in BT_BANDS:
-                snap_bn = f"S{band_nb}_BT_in"
-            else:
-                snap_bn = f"S{band_nb}_reflectance_an"  # Conv into reflectance previously in the graph
-        else:
-            raise InvalidTypeError(
-                f"Unknown data type for Sentinel-3 data: {self._data_type}"
-            )
-
-        return snap_bn
-
-    def _get_band_from_filename(self, band_filename: str) -> obn:
-        """
-        Get band from filename
-        Args:
-            band_filename (str): Band filename
-
-        Returns:
-            obn: Band name with SNAP format
-        """
-        # Get band name
-        if self._data_type == S3DataTypes.EFR:
-            band_nb = band_filename[2:4]
-        elif self._data_type == S3DataTypes.RBT:
-            band_nb = band_filename[1]
-        else:
-            raise InvalidTypeError(f"Invalid Sentinel-3 datatype: {self._data_type}")
-
-        # Get band
-        band = list(self.band_names.keys())[
-            list(self.band_names.values()).index(band_nb)
-        ]
-
-        return band
-
-    def _get_slstr_quality_flags_name(self, band: obn) -> str:
-        """
-        Get SNAP band name.
-        Args:
-            band (obn): Band as an OpticalBandNames
-
-        Returns:
-            str: Quality flag name with SNAP format
-        """
-        # Get band number
-        band_nb = self.band_names[band]
-        if band_nb is None:
-            raise InvalidProductError(
-                f"Non existing band ({band.name}) for S3-{self._data_type.name} products"
-            )
-
-        # Get quality flag name
-        if self._data_type == S3DataTypes.RBT:
-            snap_bn = f"S{band_nb}_exception_{'i' if band in BT_BANDS else 'a'}n"
-        else:
-            raise InvalidTypeError(
-                f"This function only works for Sentinel-3 SLSTR data: {self._data_type}"
-            )
-
-        return snap_bn
-
-    def _get_band_filename(self, band: Union[obn, str]) -> str:
-        """
-        Get band filename from its band type
-
-        Args:
-            band ( Union[obn, str]): Band as an OpticalBandNames or directly the snap_name
-
-        Returns:
-            str: Band name
-        """
-        if isinstance(band, obn):
-            snap_name = self._get_snap_band_name(band)
-        elif isinstance(band, str):
-            snap_name = band
-        else:
-            raise InvalidTypeError(
-                "The given band should be an OpticalBandNames or directly the snap_name"
-            )
-
-        # Remove _an/_in for SLSTR products
-        if self._data_type == S3DataTypes.RBT:
-            if "cloud" not in snap_name:
-                snap_name = snap_name[:-3]
-            elif "an" in snap_name:
-                snap_name = snap_name[:-3] + "_RAD"
-            else:
-                # in
-                snap_name = snap_name[:-3] + "_BT"
-
-        return snap_name
+        return getattr(Platform, sat_id)
 
     def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
         """
@@ -406,24 +392,12 @@ class S3Product(OpticalProduct):
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
-                # Get standard band names
-                band_name = self._get_band_filename(band)
-
-                try:
-                    # Try to open converted images
-                    band_paths[band] = files.get_file_in_dir(
-                        self._get_band_folder(),
-                        f"{self.condensed_name}_{band_name}.tif",
-                    )
-                except (FileNotFoundError, TypeError):
-                    # If not existing (file or output), convert them
-                    all_band_paths = self._preprocess_s3(resolution)
-                    band_paths = {band: all_band_paths[band] for band in band_list}
+                # Pre-process the wanted band (does nothing if existing)
+                band_paths[band] = self._preprocess(band, resolution=resolution)
 
         return band_paths
 
     # pylint: disable=W0613
-
     def _read_band(
         self,
         path: Union[CloudPath, Path],
@@ -446,211 +420,28 @@ class S3Product(OpticalProduct):
             XDS_TYPE: Band xarray
 
         """
-        # Read band
-        return utils.read(
+        band = utils.read(
             path, resolution=resolution, size=size, resampling=Resampling.bilinear
-        ).astype(np.float32)
+        )
+
+        # Read band
+        return band.astype(np.float32) * band.scale_factor
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-    ) -> XDS_TYPE:
+    @abstractmethod
+    def _manage_invalid_pixels(self, band_arr: XDS_TYPE, band: obn) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
         Returns:
             XDS_TYPE: Cleaned band array
         """
-        if self._instrument_name == S3Instrument.OLCI:
-            band_arr_mask = self._manage_invalid_pixels_olci(
-                band_arr, band, resolution=resolution, size=size
-            )
-        else:
-            band_arr_mask = self._manage_invalid_pixels_slstr(
-                band_arr, band, resolution=resolution, size=size
-            )
-
-        return band_arr_mask
-
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels_olci(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-    ) -> XDS_TYPE:
-        """
-        Manage invalid pixels (Nodata, saturated, defective...) for OLCI data.
-        See there:
-        https://sentinel.esa.int/documents/247904/1872756/Sentinel-3-OLCI-Product-Data-Format-Specification-OLCI-Level-1
-
-        QUALITY FLAGS (From end to start of the 32 bits):
-        | Bit |  Flag               |
-        |----|----------------------|
-        | 0  |   saturated21        |
-        | 1  |   saturated20        |
-        | 2  |   saturated19        |
-        | 3  |   saturated18        |
-        | 4  |   saturated17        |
-        | 5  |   saturated16        |
-        | 6  |   saturated15        |
-        | 7  |   saturated14        |
-        | 8  |   saturated13        |
-        | 9  |   saturated12        |
-        | 10 |   saturated11        |
-        | 11 |   saturated10        |
-        | 11 |   saturated09        |
-        | 12 |   saturated08        |
-        | 13 |   saturated07        |
-        | 14 |   saturated06        |
-        | 15 |   saturated05        |
-        | 16 |   saturated04        |
-        | 17 |   saturated03        |
-        | 18 |   saturated02        |
-        | 19 |   saturated01        |
-        | 20 |   dubious            |
-        | 21 |   sun-glint_risk     |
-        | 22 |   duplicated         |
-        | 23 |   cosmetic           |
-        | 24 |   invalid            |
-        | 25 |   straylight_risk    |
-        | 26 |   bright             |
-        | 27 |   tidal_region       |
-        | 28 |   fresh_inland_water |
-        | 29 |   coastline          |
-        | 30 |   land               |
-
-        Args:
-            band_arr (XDS_TYPE): Band array
-            band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-
-        Returns:
-            XDS_TYPE: Cleaned band array
-        """
-        nodata_true = 1
-        nodata_false = 0
-
-        # Bit ids
-        band_bit_id = {
-            obn.CA: 18,  # Band 2
-            obn.BLUE: 17,  # Band 3
-            obn.GREEN: 14,  # Band 6
-            obn.RED: 12,  # Band 8
-            obn.VRE_1: 10,  # Band 11
-            obn.VRE_2: 9,  # Band 12
-            obn.VRE_3: 5,  # Band 16
-            obn.NIR: 4,  # Band 17
-            obn.NARROW_NIR: 4,  # Band 17
-            obn.WV: 1,  # Band 20
-            obn.FAR_NIR: 0,  # Band 21
-        }
-        invalid_id = 24
-        sat_band_id = band_bit_id[band]
-
-        # Open quality flags
-        qual_flags_path = self._get_band_folder().joinpath(
-            f"{self.condensed_name}_quality_flags.tif"
-        )
-        if not qual_flags_path.is_file():
-            LOGGER.warning(
-                "Impossible to open quality flags %s. Taking the band as is.",
-                qual_flags_path,
-            )
-            return band_arr
-
-        # Open flag file
-        qual_arr, _ = rasters_rio.read(
-            qual_flags_path,
-            resolution=resolution,
-            size=size,
-            resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
-        )
-        invalid, sat = rasters.read_bit_array(
-            qual_arr.astype(np.uint32), [invalid_id, sat_band_id]
-        )
-
-        # Get nodata mask
-        no_data = np.where(np.isnan(band_arr), nodata_true, nodata_false)
-
-        # Combine masks
-        mask = no_data | invalid | sat
-
-        # DO not set 0 to epsilons as they are a part of the
-        return self._set_nodata_mask(band_arr, mask)
-
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels_slstr(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-    ) -> XDS_TYPE:
-        """
-        Manage invalid pixels (Nodata, saturated, defective...)
-
-        ISP_absent pixel_absent not_decompressed no_signal saturation invalid_radiance no_parameters unfilled_pixel"
-
-        Args:
-            band_arr (XDS_TYPE): Band array
-            band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-
-        Returns:
-            XDS_TYPE: Cleaned band array
-        """
-        nodata_true = 1
-        nodata_false = 0
-
-        # Open quality flags (discard _an/_in)
-        qual_flags_path = self._get_band_folder().joinpath(
-            f"{self.condensed_name}_{self._get_slstr_quality_flags_name(band)[:-3]}.tif"
-        )
-        if not qual_flags_path.is_file():
-            LOGGER.warning(
-                "Impossible to open quality flags %s. Taking the band as is.",
-                qual_flags_path,
-            )
-            return band_arr
-
-        # Open flag file
-        qual_arr, _ = rasters_rio.read(
-            qual_flags_path,
-            resolution=resolution,
-            size=size,
-            resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
-        )
-
-        # Set no data for everything (except ISP) that caused an exception
-        exception = np.where(qual_arr > 2, nodata_true, nodata_false)
-
-        # Get nodata mask
-        no_data = np.where(np.isnan(band_arr.data), nodata_true, nodata_false)
-
-        # Combine masks
-        mask = no_data | exception
-
-        # DO not set 0 to epsilons as they are a part of the
-        return self._set_nodata_mask(band_arr, mask)
+        raise NotImplementedError("This method should be implemented by a child class")
 
     def _load_bands(
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
@@ -682,239 +473,177 @@ class S3Product(OpticalProduct):
 
         return band_arrays
 
-    def _preprocess_s3(self, resolution: float = None):
+    def _preprocess(
+        self,
+        band: Union[obn, str],
+        resolution: float = None,
+        to_reflectance: bool = True,
+        subdataset: str = None,
+    ) -> Union[CloudPath, Path]:
         """
-        pre-process S3 bands (orthorectify...)
+        Pre-process S3 bands:
+        - Geocode
+        - Convert radiance to reflectance
 
         Args:
+            band (Union[obn, str]): Band to preprocess (quality flags or others are accepted)
             resolution (float): Resolution
+            to_reflectance (bool): Convert band to reflectance
+            subdataset (str): Subdataset
 
         Returns:
             dict: Dictionary containing {band: path}
         """
+        path = self._get_preprocessed_band_path(band, resolution=resolution)
 
-        band_paths = {}
+        if not path.is_file():
+            path = self._get_preprocessed_band_path(
+                band, resolution=resolution, writable=True
+            )
 
-        # DIM in tmp files
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            # out_dim = os.path.join(self.output, self.condensed_name + ".dim")  # DEBUG OPTION
-            out_dim = os.path.join(tmp_dir, self.condensed_name + ".dim")
+            # Get raw band
+            # "\\sertit6\s6_dat1\_EXTRACTEO\DS3\CI\eoreader\optical\S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3\S2_radiance_an.nc"
+            raw_band_path = self._get_raw_band_path(band, subdataset)
+            band_arr = utils.read(raw_band_path).astype(np.float32)
+            band_arr *= band_arr.scale_factor
 
-            # Run GPT graph
-            processed_bands = self._run_s3_gpt_cli(out_dim, resolution)
-
-            # Save all processed bands and quality flags into GeoTIFFs
-            for snap_band_name in processed_bands:
-                # Get standard band names
-                band_name = self._get_band_filename(snap_band_name)
-
-                # Remove tif if already existing
-                # (if we are here, sth has failed when creating them, so delete them all)
-                out_tif = self._tmp_process.joinpath(
-                    f"{self.condensed_name}_{band_name}.tif"
+            # Convert radiance to reflectances if needed
+            # Convert first pixel by pixel before reprojection !
+            if to_reflectance:
+                LOGGER.debug(
+                    f"Converting {os.path.basename(raw_band_path)} to reflectance"
                 )
-                if out_tif.is_file():
-                    files.remove(out_tif)
+                band_arr = self._rad_2_refl(band_arr, band)
 
-                # Convert to geotiffs and set no data with only keeping the first band
-                with rioxarray.open_rasterio(
-                    str(rasters.get_dim_img_path(out_dim, snap_band_name))
-                ) as arr:
-                    if arr.dtype == np.uint8:
-                        nodata_val = 255  # Exceptions
-                    elif arr.dtype == np.uint16:
-                        nodata_val = 65535  # Clouds
-                    elif arr.dtype == np.int32:
-                        nodata_val = 2147483647  # Quality flags
-                    else:
-                        nodata_val = self._snap_no_data
-                    arr = arr.where(arr != nodata_val)
-                    rasters.write(arr, out_tif)
+            # Geocode
+            LOGGER.debug(f"Geocoding {os.path.basename(raw_band_path)}")
+            pp_arr = self._geocode(band_arr, resolution=resolution)
 
-        # Get the wanted bands (not the quality flags here !)
-        for band in processed_bands:
-            band_name = self._get_band_filename(band)
-            if "exception" not in band_name:
-                out_tif = self._tmp_process.joinpath(
-                    f"{self.condensed_name}_{band_name}.tif"
-                )
-                if not out_tif.is_file():
-                    raise FileNotFoundError(
-                        f"Error when processing S3 bands with SNAP. Couldn't find {out_tif}"
-                    )
+            # Write on disk
+            utils.write(pp_arr, path)
 
-                # Quality flags will crash here
-                try:
-                    band_paths[self._get_band_from_filename(band_name)] = out_tif
-                except ValueError:
-                    pass
+        return path
 
-        return band_paths
-
-    def _run_s3_gpt_cli(self, out_dim: str, resolution: float = None) -> list:
+    def _create_gcps(self):
         """
-        Construct GPT command line to reproject S3 images and quality flags
+        Create the GCPs sequence
+        """
+        # Open lon/lat/alt files to populate the GCPs
+        lat = self._read_nc(self._geo_file, self._lat_nc_name)
+        lon = self._read_nc(self._geo_file, self._lon_nc_name)
+        alt = self._read_nc(self._geo_file, self._alt_nc_name)
+
+        assert lat.data.shape == lon.data.shape == alt.data.shape
+
+        # Get the GCPs coordinates
+        nof_gcp_x = np.linspace(0, lat.x.size - 1, dtype=int)
+        nof_gcp_y = np.linspace(0, lat.y.size - 1, dtype=int)
+
+        # Create the GCP sequence
+        id = 0
+        for x in nof_gcp_x:
+            for y in nof_gcp_y:
+                self._gcps.append(
+                    GroundControlPoint(
+                        row=y,
+                        col=x,
+                        x=lon.data[0, y, x],
+                        y=lat.data[0, y, x],
+                        z=alt.data[0, y, x],
+                        id=id,
+                    )
+                )
+                id += 1
+
+    def _geocode(
+        self, band_arr: xr.DataArray, resolution: float = None
+    ) -> xr.DataArray:
+        """
+        Geocode Sentinel-3 bands
 
         Args:
-            out_dim (str): Out DIMAP name
+            band_arr (xr.DataArray): Band array
             resolution (float): Resolution
 
         Returns:
-            list: Processed band name
+            xr.DataArray: Geocoded DataArray
         """
-        # Default resolution
-        def_res = os.environ.get(S3_DEF_RES, self.resolution)
+        # Create GCPs if not existing
+        if not self._gcps:
+            self._create_gcps()
 
-        # Construct GPT graph
-        graph_path = utils.get_data_dir().joinpath("preprocess_s3.xml")
-        snap_bands = ",".join(
-            [
-                self._get_snap_band_name(band)
-                for band, band_nb in self.band_names.items()
-                if band_nb
-            ]
+        # Assign a projection
+        band_arr.rio.write_crs(WGS84, inplace=True)
+
+        return band_arr.rio.reproject(
+            dst_crs=self.crs(),
+            resolution=resolution,
+            gcps=self._gcps,
+            nodata=self.nodata,
+            num_threads=MAX_CORES,
+            **{"SRC_METHOD": "GCP_TPS"},
         )
-        if self._instrument_name == S3Instrument.OLCI:
-            sensor = "OLCI"
-            fmt = "Sen3"
-            snap_bands += ",quality_flags"
-        else:
-            sensor = "SLSTR_500m"
-            fmt = "Sen3_SLSTRL1B_500m"
-            exception_bands = ",".join(
-                [
-                    self._get_slstr_quality_flags_name(band)
-                    for band, band_nb in self.band_names.items()
-                    if band_nb
-                ]
-            )
-            snap_bands += f",{exception_bands},cloud_an,cloud_in"
 
-        # Download cloud path to cache
-        if isinstance(self.path, CloudPath):
-            if self.path.is_dir():
-                LOGGER.debug(f"Caching {self.path}")
-                prod_path = os.path.join(os.path.dirname(out_dim), self.path.name)
-                self.path.download_to(prod_path)
-            else:
-                raise InvalidProductError(
-                    "Sentinel-3 data must be extracted, as NetCDF data cannot be read through zip."
-                )
-        else:
-            prod_path = self.path
-
-        # Run GPT graph
-        cmd_list = snap.get_gpt_cli(
-            graph_path,
-            [
-                f"-Pin={strings.to_cmd_string(prod_path)}",
-                f"-Pbands={snap_bands}",
-                f"-Psensor={sensor}",
-                f"-Pformat={fmt}",
-                f"-Pno_data={self._snap_no_data}",
-                f"-Pres_m={resolution if resolution else def_res}",
-                f"-Pout={strings.to_cmd_string(out_dim)}",
-            ],
-            display_snap_opt=LOGGER.level == logging.DEBUG,
-        )
-        LOGGER.debug("Converting %s", self.name)
-        try:
-            misc.run_cli(cmd_list)
-        except RuntimeError as ex:
-            raise RuntimeError("Something went wrong with SNAP!") from ex
-
-        return snap_bands.split(",")
-
-    def extent(self) -> gpd.GeoDataFrame:
+    def _rad_2_refl(self, band_arr: xr.DataArray, band: obn = None) -> xr.DataArray:
         """
-        Get UTM extent of the tile, managing the case with not orthorectified bands.
+        Convert radiance to reflectance
 
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
-            >>> prod = Reader().open(path)
-            >>> prod.utm_extent()
-                                                        geometry
-            0  POLYGON ((1488846.028 6121896.451, 1488846.028...
+        Args:
+            band_arr (xr.DataArray): Band array
+            band (obn): Optical Band (for SLSTR only)
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            dict: Dictionary containing {band: path}
         """
-        try:
-            extent = super().extent()
+        rad_2_refl_path = self._get_band_folder() / "rad_2_refl.npy"
 
-        except (FileNotFoundError, TypeError) as ex:
+        if not rad_2_refl_path.is_file():
+            rad_2_refl_path = self._get_band_folder(writable=True) / "rad_2_refl.npy"
 
-            def get_min_max(substr: str, subdatasets: list) -> (float, float):
-                """
-                Get min/max of a subdataset array
-                Args:
-                    substr: Substring to identfy the subdataset
-                    subdatasets: List of subdatasets
+            # Open SZA array (resampled to band_arr size)
+            with rasterio.open(
+                self._get_nc_path_str(self._geom_file, self._sze_name)
+            ) as ds_sza:
+                sza, _ = rasters_rio.read(
+                    ds_sza,
+                    size=(band_arr.rio.width, band_arr.rio.height),
+                    resampling=Resampling.bilinear,
+                    masked=False,
+                )
+                sza_scale = ds_sza.scales[0]
+                sza_rad = sza.astype(np.float32) * sza_scale * np.pi / 180.0
 
-                Returns:
-                    float, float: min/max of the subdataset
-                """
-                path = [path for path in subdatasets if substr in path][0]
-                with rasterio.open(str(path), "r") as sub_ds:
-                    # Open the 4 corners of the array
-                    height = sub_ds.height
-                    width = sub_ds.width
-                    scales = sub_ds.scales
-                    pt1 = sub_ds.read(1, window=Window(0, 0, 1, 1)) * scales
-                    pt2 = sub_ds.read(1, window=Window(width - 1, 0, width, 1)) * scales
-                    pt3 = (
-                        sub_ds.read(1, window=Window(0, height - 1, 1, height)) * scales
-                    )
-                    pt4 = (
-                        sub_ds.read(
-                            1, window=Window(width - 1, height - 1, width, height)
-                        )
-                        * scales
-                    )
-                    pt_list = [pt1, pt2, pt3, pt4]
+            # Open solar flux (resampled to band_arr size)
+            misc = self._misc_file.replace(
+                "{}", self.band_names[band]
+            )  # Only for SLSTR
+            solar_flux_name = self._solar_flux_name.replace(
+                "{}", self.band_names[band]
+            )  # Only for SLSTR
+            with rasterio.open(self._get_nc_path_str(misc, solar_flux_name)) as ds_e0:
+                e0, _ = rasters_rio.read(
+                    ds_e0,
+                    size=(band_arr.rio.width, band_arr.rio.height),
+                    resampling=Resampling.bilinear,
+                    masked=False,
+                )
+                e0_scale = ds_e0.scales[0]
+                e0_scaled = e0.astype(np.float32) * e0_scale
+                # TODO: Manage null pixels
 
-                    # Return min and max
-                    return np.min(pt_list), np.max(pt_list)
-
-            if self.product_type == S3ProductType.OLCI_EFR:
-                # Open geodetic_an.nc
-                geom_file = self.path.joinpath(
-                    "geo_coordinates.nc"
-                )  # Only use nadir files
-
-                with rasterio.open(str(geom_file), "r") as geom_ds:
-                    lat_min, lat_max = get_min_max("latitude", geom_ds.subdatasets)
-                    lon_min, lon_max = get_min_max("longitude", geom_ds.subdatasets)
-
-            elif self.product_type == S3ProductType.SLSTR_RBT:
-                # Open geodetic_an.nc
-                geom_file = self.path.joinpath("geodetic_an.nc")  # Only use nadir files
-
-                with rasterio.open(str(geom_file), "r") as geom_ds:
-                    lat_min, lat_max = get_min_max("latitude_an", geom_ds.subdatasets)
-                    lon_min, lon_max = get_min_max("longitude_an", geom_ds.subdatasets)
-            else:
-                raise InvalidTypeError(
-                    f"Invalid products type {self.product_type}"
-                ) from ex
-
-            # Create wgs84 extent (left, bottom, right, top)
-            extent_wgs84 = gpd.GeoDataFrame(
-                geometry=[
-                    vectors.from_bounds_to_polygon(lon_min, lat_min, lon_max, lat_max)
-                ],
-                crs=vectors.WGS84,
+            # Compute rad_2_refl coeff
+            rad_2_refl_coeff = (np.pi / (e0_scaled * np.cos(sza_rad))).astype(
+                np.float32
             )
 
-            # Get upper-left corner and deduce UTM proj from it
-            utm = vectors.corresponding_utm_projection(
-                extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy
-            )
-            extent = extent_wgs84.to_crs(utm)
+            # Write on disk
+            np.save(rad_2_refl_path, rad_2_refl_coeff)
 
-        return extent
+        else:
+            # Open rad_2_refl_coeff (resampled to band_arr size)
+            rad_2_refl_coeff = np.load(rad_2_refl_path)
+
+        return band_arr * rad_2_refl_coeff
 
     def _get_condensed_name(self) -> str:
         """
@@ -923,7 +652,7 @@ class S3Product(OpticalProduct):
         Returns:
             str: Condensed name
         """
-        return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}"
+        return f"{self.get_datetime()}_{self.platform.name}_{self._data_type.name}"
 
     def get_mean_sun_angles(self) -> (float, float):
         """
@@ -940,42 +669,12 @@ class S3Product(OpticalProduct):
         Returns:
             (float, float): Mean Azimuth and Zenith angle
         """
-        if self._data_type == S3DataTypes.EFR:
-            geom_file = self.path.joinpath("tie_geometries.nc")
-            sun_az = "SAA"
-            sun_ze = "SZA"
-        elif self._data_type == S3DataTypes.RBT:
-            geom_file = self.path.joinpath("geometry_tn.nc")  # Only use nadir files
-            sun_az = "solar_azimuth_tn"
-            sun_ze = "solar_zenith_tn"
-        else:
-            raise InvalidTypeError(
-                f"Unknown/Unsupported data type for Sentinel-3 data: {self._data_type}"
-            )
+        # Open sun azimuth and zenith files
+        sun_az = self._read_nc(self._geom_file, self._sza_name)
+        sun_ze = self._read_nc(self._geom_file, self._sze_name)
 
-        # Open file
-        if geom_file.is_file():
-            # Bug pylint with netCDF4
-            # pylint: disable=E1101
-            if isinstance(geom_file, CloudPath):
-                netcdf_ds = netCDF4.Dataset(geom_file.fspath)
-            else:
-                netcdf_ds = netCDF4.Dataset(geom_file)
-
-            # Get variables
-            sun_az_var = netcdf_ds.variables[sun_az]
-            sun_ze_var = netcdf_ds.variables[sun_ze]
-
-            # Get sun angles as the mean of whole arrays
-            azimuth_angle = float(np.mean(sun_az_var[:]))
-            zenith_angle = float(np.mean(sun_ze_var[:]))
-
-            # Close dataset
-            netcdf_ds.close()
-        else:
-            raise InvalidProductError(f"Geometry file {geom_file} not found")
-
-        return azimuth_angle, zenith_angle
+        # Sun azimuth for Sentinel-3 are in [-180, 180] and we want [0,360]
+        return (sun_az.mean().data + 180.0, sun_ze.mean().data)
 
     def _read_mtd(self) -> (etree._Element, dict):
         """
@@ -993,18 +692,16 @@ class S3Product(OpticalProduct):
             (etree._Element, dict): Metadata XML root and its namespace
         """
         # Open first nc file as every file should have the global attributes
-        # Here we don't know which type of product we have
-        geom_file = self.path.joinpath("tie_geometries.nc")
+        # Here in read_mtd we don't know which type of product we have (before we have the correct platform)
+        geom_file = self.path.joinpath(self._tie_geo_file)
         if not geom_file.is_file():
-            geom_file = self.path.joinpath("geometry_tn.nc")
-            if not geom_file.is_file():
-                raise InvalidProductError(
-                    "This Sentinel-3 product has no geometry file !"
-                )
+            raise InvalidProductError("This Sentinel-3 product has no geometry file !")
 
         # Open DS
         if isinstance(geom_file, CloudPath):
-            netcdf_ds = netCDF4.Dataset(geom_file.fspath)
+            netcdf_ds = netCDF4.Dataset(
+                geom_file.download_to(self._get_band_folder(writable=True))
+            )
         else:
             netcdf_ds = netCDF4.Dataset(geom_file)
 
@@ -1047,52 +744,65 @@ class S3Product(OpticalProduct):
 
         return mtd_el, {}
 
-    def _has_cloud_band(self, band: BandNames) -> bool:
+    def _get_nc_path_str(
+        self, filename: Union[Path, CloudPath], subdataset: str = None
+    ) -> str:
         """
-        Does this products has the specified cloud band ?
+        Get NetCDF file path.
 
-        - SLSTR does
-        - OLCI does not provide any cloud mask
+        NetCDF paths are supposed to be at the root of this product.
+
+        Returns a string as it is meant to be opened by rasterio.
+
+        Caches the file if needed (rasterio does not seem to be able to open a netcdf stored in the cloud).
+
+        Args:
+            filename (Union[Path, CloudPath]): Filename
+            subdataset (str): NetCDF subdataset if needed
+
+        Returns:
+            str: NetCDF file path as a string
         """
-        if self._instrument_name == S3Instrument.SLSTR and band in [
-            RAW_CLOUDS,
-            ALL_CLOUDS,
-            CLOUDS,
-            CIRRUS,
-        ]:
-            has_band = True
+        if isinstance(self.path, CloudPath):
+            path = self.path.joinpath(filename).download_to(
+                self._get_band_folder(writable=True)
+            )
         else:
-            has_band = False
+            path = str(self.path.joinpath(filename))
 
-        return has_band
+        # Complete the path
+        path = f"netcdf:{path}"
 
+        if subdataset:
+            path += f":{subdataset}"
+
+        return path
+
+    def _read_nc(
+        self, filename: Union[Path, CloudPath], subdataset: str = None
+    ) -> xr.DataArray:
+        """
+        Read NetCDF file (as float32) and rescaled them to their true values
+
+        NetCDF files are supposed to be at the root of this product.
+
+        Args:
+            filename (Union[Path, CloudPath]): Filename
+            subdataset (str): NetCDF subdataset if needed
+
+        Returns:
+            xr.DataArray: NetCDF file, rescaled
+        """
+        # Open with rioxarray directly as these files are not geocoded
+        nc = rioxarray.open_rasterio(self._get_nc_path_str(filename, subdataset))
+        return nc.astype(np.float32) * nc.scale_factor
+
+    @abstractmethod
     def _load_clouds(
         self, bands: list, resolution: float = None, size: Union[list, tuple] = None
     ) -> dict:
         """
         Load cloud files as xarrays.
-
-        Read S3 SLSTR clouds from the flags file:cloud netcdf file.
-        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/cloud-identification
-
-        bit_id  flag_masks (ushort)     flag_meanings
-        ===     ===                     ===
-        0       1US                     visible
-        1       2US                     1.37_threshold
-        2       4US                     1.6_small_histogram
-        3       8US                     1.6_large_histogram
-        4       16US                    2.25_small_histogram
-        5       32US                    2.25_large_histogram
-        6       64US                    11_spatial_coherence
-        7       128US                   gross_cloud
-        8       256US                   thin_cirrus
-        9       512US                   medium_high
-        10      1024US                  fog_low_stratus
-        11      2048US                  11_12_view_difference
-        12      4096US                  3.7_11_view_difference
-        13      8192US                  thermal_histogram
-        14      16384US                 spare
-        15      32768US                 spare
 
         Args:
             bands (list): List of the wanted bands
@@ -1101,91 +811,18 @@ class S3Product(OpticalProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        band_dict = {}
+        raise NotImplementedError("This method should be implemented by a child class")
 
-        if bands:
-            if self._instrument_name == S3Instrument.OLCI:
-                raise InvalidTypeError(
-                    "Sentinel-3 OLCI sensor does not provide any cloud file."
-                )
-
-            all_ids = list(np.arange(0, 14))
-            cir_id = 8
-            cloud_ids = [id for id in all_ids if id != cir_id]
-
-            try:
-                cloud_path = files.get_file_in_dir(
-                    self._get_band_folder(), f"{self.condensed_name}_cloud_RAD.tif"
-                )
-            except FileNotFoundError:
-                self._preprocess_s3(resolution)
-                cloud_path = files.get_file_in_dir(
-                    self._tmp_process, f"{self.condensed_name}_cloud_RAD.tif"
-                )
-
-            if not cloud_path:
-                raise FileNotFoundError(
-                    f"Unable to find the cloud mask for {self.path}"
-                )
-
-            # Open cloud file
-            clouds_array = utils.read(
-                cloud_path,
-                resolution=resolution,
-                size=size,
-                resampling=Resampling.nearest,
-                masked=False,
-            ).astype(np.uint16)
-
-            # Get nodata mask
-            nodata = np.where(np.isnan(clouds_array), 1, 0)
-
-            for band in bands:
-                if band == ALL_CLOUDS:
-                    band_dict[band] = self._create_mask(clouds_array, all_ids, nodata)
-                elif band == CLOUDS:
-                    band_dict[band] = self._create_mask(clouds_array, cloud_ids, nodata)
-                elif band == CIRRUS:
-                    band_dict[band] = self._create_mask(clouds_array, cir_id, nodata)
-                elif band == RAW_CLOUDS:
-                    band_dict[band] = clouds_array
-                else:
-                    raise InvalidTypeError(
-                        f"Non existing cloud band for Sentinel-3 SLSTR: {band}"
-                    )
-
-        return band_dict
-
-    def _create_mask(
-        self,
-        bit_array: xr.DataArray,
-        bit_ids: Union[int, list],
-        nodata: np.ndarray,
-    ) -> xr.DataArray:
+    @abstractmethod
+    def _set_resolution(self) -> float:
         """
-        Create a mask masked array (uint8) from a bit array, bit IDs and a nodata mask.
-
-        Args:
-            bit_array (xr.DataArray): Conditional array
-            bit_ids (Union[int, list]): Bit IDs
-            nodata (np.ndarray): Nodata mask
-
-        Returns:
-            xr.DataArray: Mask masked array
-
+        Set product default resolution (in meters)
         """
-        if not isinstance(bit_ids, list):
-            bit_ids = [bit_ids]
-        conds = rasters.read_bit_array(bit_array, bit_ids)
-        cond = reduce(lambda x, y: x | y, conds)  # Use every conditions (bitwise or)
+        raise NotImplementedError("This method should be implemented by a child class")
 
-        cond_arr = np.where(cond, self._mask_true, self._mask_false).astype(np.uint8)
-        cond_arr = np.squeeze(cond_arr)
-        try:
-            cond_arr = features.sieve(cond_arr, size=10, connectivity=4)
-        except TypeError:
-            # Manage dask arrays that fails with rasterio sieve
-            cond_arr = features.sieve(cond_arr.compute(), size=10, connectivity=4)
-        cond_arr = np.expand_dims(cond_arr, axis=0)
-
-        return super()._create_mask(bit_array, cond_arr, nodata)
+    @abstractmethod
+    def _set_product_type(self) -> None:
+        """
+        Set product type
+        """
+        raise NotImplementedError("This method should be implemented by a child class")

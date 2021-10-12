@@ -70,6 +70,12 @@ class Platform(ListEnum):
     S3 = "Sentinel-3"
     """Sentinel-3"""
 
+    S3_OLCI = "Sentinel-3 OLCI"
+    """Sentinel-3 OLCI"""
+
+    S3_SLSTR = "Sentinel-3 SLSTR"
+    """Sentinel-3 SLSTR"""
+
     L8 = "Landsat-8"
     """Landsat-8"""
 
@@ -150,7 +156,8 @@ PLATFORM_REGEX = {
     Platform.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
     Platform.S2: r"S2[AB]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
     Platform.S2_THEIA: r"SENTINEL2[AB]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
-    Platform.S3: r"S3[AB]_[OS]L_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
+    Platform.S3_OLCI: r"S3[AB]_OL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
+    Platform.S3_SLSTR: r"S3[AB]_SL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
     Platform.L8: r"LC08_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Platform.L7: r"LE07_L1(GT|TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Platform.L5: r"L[TM]05_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
@@ -181,9 +188,13 @@ MTD_REGEX = {
         r"T\d{2}\w{3}_\d{8}T\d{6}_B\d{2}(_\d0m|).jp2",
     ],
     Platform.S2_THEIA: f"{PLATFORM_REGEX[Platform.S2_THEIA]}_MTD_ALL\.xml",
-    Platform.S3: [
+    Platform.S3_OLCI: [
         r"xfdumanifest\.xml",  # Not the real metadata...
-        r"(S\d|Oa\d{2})_radiance(_an|).nc",
+        r"Oa\d{2}_radiance.nc",
+    ],
+    Platform.S3_SLSTR: [
+        r"xfdumanifest\.xml",  # Not the real metadata...
+        r"S\d_radiance_an.nc",
     ],
     Platform.L8: f"{PLATFORM_REGEX[Platform.L8]}_MTL\.txt",
     Platform.L7: f"{PLATFORM_REGEX[Platform.L7]}_MTL\.txt",
