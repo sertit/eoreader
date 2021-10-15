@@ -126,7 +126,7 @@ class VhrProduct(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
         """
-        def_tr, def_w, def_h, def_crs = self.default_transform
+        def_tr, def_w, def_h, def_crs = self.default_transform()
         bounds = transform.array_bounds(def_h, def_w, def_tr)
         return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs)
 

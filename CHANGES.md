@@ -4,9 +4,9 @@
 
 ## 0.8.0 (2021-MM-DD)
 
-- **BREAKING CHANGE**: `crs`, `footprint`, `extent`, `default_transform`, `wgs84_extent` are now properties !
+- **BREAKING CHANGE**: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties !
 - **ENH**: `crs`, `footprint`, `extent`, `default_transform`, `wgs84_extent` are cached (using `@cached_property`)
-- **ENH**: `get_mean_sun_angles` is now cached (using `@cache`)
+- **ENH**: `get_mean_sun_angles` and `default_transform` are now cached (using `@cache`)
 - **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !**
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
 - **ENH: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !) #10**
