@@ -45,7 +45,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 
-from eoreader import cached_property, utils
+from eoreader import cache, cached_property, utils
 from eoreader.bands import index
 from eoreader.bands.alias import *
 from eoreader.bands.bands import BandNames
@@ -1051,7 +1051,7 @@ class Product:
 
             # Reproject DEM into products CRS
             LOGGER.debug("Using DEM: %s", dem_path)
-            def_tr, def_w, def_h, def_crs = self.default_transform
+            def_tr, def_w, def_h, def_crs = self.default_transform()
             with rasterio.open(str(dem_path)) as dem_ds:
                 # Get adjusted transform and shape (with new resolution)
                 if size is not None and resolution is None:
@@ -1387,7 +1387,7 @@ class Product:
                         f"Please set the environment variable {DEM_PATH} to an existing file."
                     )
 
-    @cached_property
+    @cache
     def default_transform(self) -> (Affine, int, int, CRS):
         """
         Returns default transform data of the default band (UTM),
@@ -1414,7 +1414,7 @@ class Product:
         Returns:
             tuple: Resolution as a tuple (x, y)
         """
-        def_tr, def_w, def_h, def_crs = self.default_transform
+        def_tr, def_w, def_h, def_crs = self.default_transform()
         bounds = transform.array_bounds(def_h, def_w, def_tr)
 
         # Manage WGS84 case
