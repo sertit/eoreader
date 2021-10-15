@@ -36,7 +36,7 @@ from sertit import files, misc, rasters, snap, strings, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
-from eoreader import utils
+from eoreader import cached_property, utils
 from eoreader.bands.alias import (
     is_clouds,
     is_dem,
@@ -199,6 +199,7 @@ class SarProduct(Product):
         self._set_sensor_mode()
         self.pol_channels = self._get_raw_bands()
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
@@ -208,7 +209,7 @@ class SarProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
@@ -279,6 +280,7 @@ class SarProduct(Product):
 
         return band_path[default_band]
 
+    @cached_property
     @abstractmethod
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
@@ -290,7 +292,7 @@ class SarProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent()
+            >>> prod.wgs84_extent
                                    Name  ...                                           geometry
             0  Sentinel-1 Image Overlay  ...  POLYGON ((0.85336 42.24660, -2.32032 42.65493,...
             [1 rows x 12 columns]
@@ -301,6 +303,7 @@ class SarProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @cached_property
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -319,7 +322,7 @@ class SarProduct(Product):
             gpd.GeoDataFrame: Footprint in UTM
         """
         # Get WGS84 extent
-        extent_wgs84 = self.wgs84_extent()
+        extent_wgs84 = self.wgs84_extent
 
         # Get upper-left corner and deduce UTM proj from it
         utm = vectors.corresponding_utm_projection(
@@ -345,7 +348,7 @@ class SarProduct(Product):
             crs.CRS: CRS object
         """
         # Get WGS84 extent
-        extent_wgs84 = self.wgs84_extent()
+        extent_wgs84 = self.wgs84_extent
 
         # Get upper-left corner and deduce UTM proj from it
         crs_str = vectors.corresponding_utm_projection(
@@ -781,7 +784,7 @@ class SarProduct(Product):
                         f"-Pfile={strings.to_cmd_string(prod_path)}",
                         f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
                         f"-Pdem_path={strings.to_cmd_string(dem_path)}",
-                        f"-Pcrs={self.crs()}",
+                        f"-Pcrs={self.crs}",
                         f"-Pres_m={res_m}",
                         f"-Pres_deg={res_deg}",
                         f"-Pout={strings.to_cmd_string(pp_dim)}",

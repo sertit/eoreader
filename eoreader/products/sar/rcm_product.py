@@ -32,6 +32,7 @@ from sertit import vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 
+from eoreader import cached_property
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
@@ -181,6 +182,7 @@ class RcmProduct(SarProduct):
         # Post init done by the super class
         super()._post_init()
 
+    @cached_property
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -191,7 +193,7 @@ class RcmProduct(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent()
+            >>> prod.wgs84_extent
                                                         geometry
             1  POLYGON ((106.57999 -6.47363, 107.06926 -6.473...
 

@@ -29,7 +29,7 @@ from rasterio.enums import Resampling
 from sertit import rasters
 from sertit.rasters import XDS_TYPE
 
-from eoreader import utils
+from eoreader import cache, cached_property, utils
 from eoreader.bands import index
 from eoreader.bands.alias import (
     is_clouds,
@@ -102,6 +102,7 @@ class OpticalProduct(Product):
         default_band = self.get_default_band()
         return self.get_band_paths([default_band])[default_band]
 
+    @cached_property
     def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
@@ -111,7 +112,7 @@ class OpticalProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.crs()
+            >>> prod.crs
             CRS.from_epsg(32630)
 
         Returns:
@@ -123,6 +124,7 @@ class OpticalProduct(Product):
 
         return utm
 
+    @cached_property
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -132,7 +134,7 @@ class OpticalProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.extent()
+            >>> prod.extent
                                                         geometry
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
@@ -140,7 +142,7 @@ class OpticalProduct(Product):
             gpd.GeoDataFrame: Footprint in UTM
         """
         # Get extent
-        return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
+        return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs)
 
     def get_existing_bands(self) -> list:
         """
@@ -365,6 +367,7 @@ class OpticalProduct(Product):
         return bands_dict
 
     @abstractmethod
+    @cache
     def get_mean_sun_angles(self) -> (float, float):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)

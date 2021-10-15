@@ -39,7 +39,7 @@ from sertit import files, rasters_rio, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
-from eoreader import utils
+from eoreader import cache, cached_property, utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -258,6 +258,7 @@ class DimapProduct(VhrProduct):
 
         return riocrs.CRS.from_string(crs_name)
 
+    @cached_property
     def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
@@ -267,7 +268,7 @@ class DimapProduct(VhrProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.crs()
+            >>> prod.crs
             CRS.from_epsg(32618)
 
         Returns:
@@ -289,6 +290,7 @@ class DimapProduct(VhrProduct):
 
         return utm
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -298,7 +300,7 @@ class DimapProduct(VhrProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                                                          gml_id  ...                                           geometry
             0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
             [1 rows x 3 columns]
@@ -306,7 +308,7 @@ class DimapProduct(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        return self.open_mask("ROI").to_crs(self.crs())
+        return self.open_mask("ROI").to_crs(self.crs)
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -437,6 +439,7 @@ class DimapProduct(VhrProduct):
         """
         return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}_{self.band_combi.name}"
 
+    @cache
     def get_mean_sun_angles(self) -> (float, float):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)
@@ -604,7 +607,7 @@ class DimapProduct(VhrProduct):
         mandatory_masks = ["CLD", "DET", "QTE", "ROI", "SLT", "SNW"]
         optional_masks = ["VIS"]
         assert mask_str in mandatory_masks + optional_masks
-        crs = self.crs()
+        crs = self.crs
 
         mask_name = f"{self.condensed_name}_MSK_{mask_str}.geojson"
         mask_path = self._get_band_folder().joinpath(mask_name)
@@ -689,7 +692,7 @@ class DimapProduct(VhrProduct):
             ):
                 # Convert to target CRS
                 mask.crs = self._get_raw_crs()
-                mask = mask.to_crs(self.crs())
+                mask = mask.to_crs(self.crs)
 
             # Save to file
             if mask.empty:

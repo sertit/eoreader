@@ -37,7 +37,7 @@ from sertit import files, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
-from eoreader import utils
+from eoreader import cache, cached_property, utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -169,6 +169,7 @@ class S2Product(OpticalProduct):
         else:
             raise InvalidProductError(f"Invalid Sentinel-2 name: {self.name}")
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint in UTM of the products (without nodata, *in french == emprise utile*)
@@ -178,7 +179,7 @@ class S2Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
@@ -464,7 +465,7 @@ class S2Product(OpticalProduct):
                 )
 
             # Read vector
-            mask = vectors.read(mask_path, crs=self.crs())
+            mask = vectors.read(mask_path, crs=self.crs)
 
         except Exception as ex:
             raise InvalidProductError(ex) from ex
@@ -589,6 +590,7 @@ class S2Product(OpticalProduct):
         )
         return f"{self.get_datetime()}_{self.platform.name}_{self.tile_name}_{self.product_type.value}_{gen_time}"
 
+    @cache
     def get_mean_sun_angles(self) -> (float, float):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)

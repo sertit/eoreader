@@ -45,7 +45,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 
-from eoreader import utils
+from eoreader import cached_property, utils
 from eoreader.bands import index
 from eoreader.bands.alias import *
 from eoreader.bands.bands import BandNames
@@ -242,6 +242,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
@@ -251,7 +252,7 @@ class Product:
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
@@ -262,7 +263,7 @@ class Product:
         default_xda = self.load(def_band)[
             def_band
         ]  # Forced to load as the nodata may not be positioned by default
-        return rasters.get_footprint(default_xda).to_crs(self.crs())
+        return rasters.get_footprint(default_xda).to_crs(self.crs)
 
     @abstractmethod
     def extent(self) -> gpd.GeoDataFrame:
@@ -283,6 +284,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @cached_property
     @abstractmethod
     def crs(self) -> riocrs.CRS:
         """
@@ -967,6 +969,9 @@ class Product:
         """
         return self.date < other.date
 
+    def __hash__(self):
+        return hash(self.condensed_name)
+
     @property
     def output(self) -> Union[CloudPath, Path]:
         """Output directory of the product, to write orthorectified data for example."""
@@ -1046,7 +1051,7 @@ class Product:
 
             # Reproject DEM into products CRS
             LOGGER.debug("Using DEM: %s", dem_path)
-            def_tr, def_w, def_h, def_crs = self.default_transform()
+            def_tr, def_w, def_h, def_crs = self.default_transform
             with rasterio.open(str(dem_path)) as dem_ds:
                 # Get adjusted transform and shape (with new resolution)
                 if size is not None and resolution is None:
@@ -1076,7 +1081,7 @@ class Product:
                     bounds = transform.array_bounds(def_h, def_w, def_tr)
                     dst_tr, out_w, out_h = rasterio.warp.calculate_default_transform(
                         def_crs,
-                        self.crs(),
+                        self.crs,
                         def_w,
                         def_h,
                         *bounds,
@@ -1096,7 +1101,7 @@ class Product:
                     "width": out_w,
                     "height": out_h,
                     "count": dem_ds.count,
-                    "crs": self.crs(),
+                    "crs": self.crs,
                     "transform": dst_tr,
                 }
                 with rasterio.open(str(warped_dem_path), "w", **out_meta) as out_dst:
@@ -1109,7 +1114,7 @@ class Product:
                         resampling=resampling,
                         num_threads=MAX_CORES,
                         dst_transform=dst_tr,
-                        dst_crs=self.crs(),
+                        dst_crs=self.crs,
                         src_crs=dem_ds.crs,
                         src_transform=dem_ds.transform,
                     )
@@ -1382,6 +1387,7 @@ class Product:
                         f"Please set the environment variable {DEM_PATH} to an existing file."
                     )
 
+    @cached_property
     def default_transform(self) -> (Affine, int, int, CRS):
         """
         Returns default transform data of the default band (UTM),
@@ -1408,14 +1414,14 @@ class Product:
         Returns:
             tuple: Resolution as a tuple (x, y)
         """
-        def_tr, def_w, def_h, def_crs = self.default_transform()
+        def_tr, def_w, def_h, def_crs = self.default_transform
         bounds = transform.array_bounds(def_h, def_w, def_tr)
 
         # Manage WGS84 case
         if not def_crs.is_projected:
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
                 def_crs,
-                self.crs(),
+                self.crs,
                 def_w,
                 def_h,
                 *bounds,

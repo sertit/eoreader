@@ -393,7 +393,7 @@ class S3SlstrProduct(S3Product):
         band_arr.rio.write_crs(WGS84, inplace=True)
 
         return band_arr.rio.reproject(
-            dst_crs=self.crs(),
+            dst_crs=self.crs,
             resolution=resolution,
             gcps=self._gcps[suffix],
             nodata=self.nodata,

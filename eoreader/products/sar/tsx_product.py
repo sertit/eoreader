@@ -30,6 +30,7 @@ from lxml import etree
 from sertit import vectors
 from sertit.misc import ListEnum
 
+from eoreader import cached_property
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.reader import Platform
@@ -183,6 +184,7 @@ class TsxProduct(SarProduct):
         # Post init done by the super class
         super()._post_init()
 
+    @cached_property
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -193,7 +195,7 @@ class TsxProduct(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent()
+            >>> prod.wgs84_extent
                                                         geometry
             0  POLYGON ((106.65491 -6.39693, 106.96233 -6.396...
 
