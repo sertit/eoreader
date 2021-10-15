@@ -67,9 +67,6 @@ class Platform(ListEnum):
     S2_THEIA = "Sentinel-2 Theia"
     """Sentinel-2 Theia"""
 
-    S3 = "Sentinel-3"
-    """Sentinel-3"""
-
     S3_OLCI = "Sentinel-3 OLCI"
     """Sentinel-3 OLCI"""
 

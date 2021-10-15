@@ -14,9 +14,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Sentinel-3 products """
+"""
+Sentinel-3 products
+
+.. WARNING:
+    Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio !
+    The rasters are flipped (upside/down, we can use `np.flipud`).
+    This is fixed by reprojecting with GCPs, BUT is still an issue for metadata files.
+    As long as we treat consistent data (geographic rasters???), this should not be problematic
+    BUT pay attention to rasters containing several bands (such as solar irradiance for OLCI products)
+    -> they are inverted as the columns are ordered reversely
+"""
 import logging
-import os
 from abc import abstractmethod
 from datetime import datetime
 from enum import unique
@@ -26,19 +35,15 @@ from typing import Union
 import geopandas as gpd
 import netCDF4
 import numpy as np
-import rasterio
-import rioxarray
 import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from lxml.builder import E
 from rasterio import crs as riocrs
-from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
-from sertit import rasters_rio, vectors
+from sertit import rasters, vectors
 from sertit.misc import ListEnum
-from sertit.rasters import MAX_CORES, XDS_TYPE
-from sertit.vectors import WGS84
+from sertit.rasters import XDS_TYPE
 from shapely.geometry import Polygon, box
 
 from eoreader import utils
@@ -46,7 +51,6 @@ from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.optical.optical_product import OpticalProduct
-from eoreader.reader import Platform
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -98,9 +102,9 @@ class S3Product(OpticalProduct):
         remove_tmp: bool = False,
     ) -> None:
         self._data_type = None
+        self._gcps = None
 
         # Geocoding
-        self._gcps = []
         self._geo_file = None
         self._lat_nc_name = None
         self._lon_nc_name = None
@@ -113,8 +117,8 @@ class S3Product(OpticalProduct):
 
         # Mean Sun angles
         self._geom_file = None
-        self._sza_name = None
-        self._sze_name = None
+        self._saa_name = None  # Azimuth angle
+        self._sza_name = None  # Zenith angle
 
         # Rad 2 Refl
         self._misc_file = None
@@ -183,7 +187,6 @@ class S3Product(OpticalProduct):
         #     ],
         #     crs=vectors.WGS84,
         # )
-        # # TODO: set CRS here also (in order not to reopen lat/lon) ?
 
         return extent
 
@@ -335,28 +338,9 @@ class S3Product(OpticalProduct):
         res_str = self._resolution_to_str(resolution)
         band_str = band.name if isinstance(band, obn) else band
 
-        return self._get_band_folder(writable=True).joinpath(
+        return self._get_band_folder(writable=writable).joinpath(
             f"{self.condensed_name}_{band_str}_{res_str}.tif"
         )
-
-    def _get_platform(self) -> Platform:
-        """ Getter of the platform """
-        # look in the MTD to be sure
-        root, _ = self.read_mtd()
-        name = root.findtext(".//product_name")
-
-        if "OL" in name:
-            # Instrument
-            sat_id = S3Instrument.OLCI.value
-        elif "SL" in name:
-            # Instrument
-            sat_id = S3Instrument.SLSTR.value
-        else:
-            raise InvalidProductError(
-                f"Only OLCI and SLSTR are valid Sentinel-3 instruments : {self.name}"
-            )
-
-        return getattr(Platform, sat_id)
 
     def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
         """
@@ -427,8 +411,6 @@ class S3Product(OpticalProduct):
         # Read band
         return band.astype(np.float32) * band.scale_factor
 
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
     @abstractmethod
     def _manage_invalid_pixels(self, band_arr: XDS_TYPE, band: obn) -> XDS_TYPE:
         """
@@ -473,6 +455,7 @@ class S3Product(OpticalProduct):
 
         return band_arrays
 
+    @abstractmethod
     def _preprocess(
         self,
         band: Union[obn, str],
@@ -494,156 +477,7 @@ class S3Product(OpticalProduct):
         Returns:
             dict: Dictionary containing {band: path}
         """
-        path = self._get_preprocessed_band_path(band, resolution=resolution)
-
-        if not path.is_file():
-            path = self._get_preprocessed_band_path(
-                band, resolution=resolution, writable=True
-            )
-
-            # Get raw band
-            # "\\sertit6\s6_dat1\_EXTRACTEO\DS3\CI\eoreader\optical\S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3\S2_radiance_an.nc"
-            raw_band_path = self._get_raw_band_path(band, subdataset)
-            band_arr = utils.read(raw_band_path).astype(np.float32)
-            band_arr *= band_arr.scale_factor
-
-            # Convert radiance to reflectances if needed
-            # Convert first pixel by pixel before reprojection !
-            if to_reflectance:
-                LOGGER.debug(
-                    f"Converting {os.path.basename(raw_band_path)} to reflectance"
-                )
-                band_arr = self._rad_2_refl(band_arr, band)
-
-            # Geocode
-            LOGGER.debug(f"Geocoding {os.path.basename(raw_band_path)}")
-            pp_arr = self._geocode(band_arr, resolution=resolution)
-
-            # Write on disk
-            utils.write(pp_arr, path)
-
-        return path
-
-    def _create_gcps(self):
-        """
-        Create the GCPs sequence
-        """
-        # Open lon/lat/alt files to populate the GCPs
-        lat = self._read_nc(self._geo_file, self._lat_nc_name)
-        lon = self._read_nc(self._geo_file, self._lon_nc_name)
-        alt = self._read_nc(self._geo_file, self._alt_nc_name)
-
-        assert lat.data.shape == lon.data.shape == alt.data.shape
-
-        # Get the GCPs coordinates
-        nof_gcp_x = np.linspace(0, lat.x.size - 1, dtype=int)
-        nof_gcp_y = np.linspace(0, lat.y.size - 1, dtype=int)
-
-        # Create the GCP sequence
-        id = 0
-        for x in nof_gcp_x:
-            for y in nof_gcp_y:
-                self._gcps.append(
-                    GroundControlPoint(
-                        row=y,
-                        col=x,
-                        x=lon.data[0, y, x],
-                        y=lat.data[0, y, x],
-                        z=alt.data[0, y, x],
-                        id=id,
-                    )
-                )
-                id += 1
-
-    def _geocode(
-        self, band_arr: xr.DataArray, resolution: float = None
-    ) -> xr.DataArray:
-        """
-        Geocode Sentinel-3 bands
-
-        Args:
-            band_arr (xr.DataArray): Band array
-            resolution (float): Resolution
-
-        Returns:
-            xr.DataArray: Geocoded DataArray
-        """
-        # Create GCPs if not existing
-        if not self._gcps:
-            self._create_gcps()
-
-        # Assign a projection
-        band_arr.rio.write_crs(WGS84, inplace=True)
-
-        return band_arr.rio.reproject(
-            dst_crs=self.crs(),
-            resolution=resolution,
-            gcps=self._gcps,
-            nodata=self.nodata,
-            num_threads=MAX_CORES,
-            **{"SRC_METHOD": "GCP_TPS"},
-        )
-
-    def _rad_2_refl(self, band_arr: xr.DataArray, band: obn = None) -> xr.DataArray:
-        """
-        Convert radiance to reflectance
-
-        Args:
-            band_arr (xr.DataArray): Band array
-            band (obn): Optical Band (for SLSTR only)
-
-        Returns:
-            dict: Dictionary containing {band: path}
-        """
-        rad_2_refl_path = self._get_band_folder() / "rad_2_refl.npy"
-
-        if not rad_2_refl_path.is_file():
-            rad_2_refl_path = self._get_band_folder(writable=True) / "rad_2_refl.npy"
-
-            # Open SZA array (resampled to band_arr size)
-            with rasterio.open(
-                self._get_nc_path_str(self._geom_file, self._sze_name)
-            ) as ds_sza:
-                sza, _ = rasters_rio.read(
-                    ds_sza,
-                    size=(band_arr.rio.width, band_arr.rio.height),
-                    resampling=Resampling.bilinear,
-                    masked=False,
-                )
-                sza_scale = ds_sza.scales[0]
-                sza_rad = sza.astype(np.float32) * sza_scale * np.pi / 180.0
-
-            # Open solar flux (resampled to band_arr size)
-            misc = self._misc_file.replace(
-                "{}", self.band_names[band]
-            )  # Only for SLSTR
-            solar_flux_name = self._solar_flux_name.replace(
-                "{}", self.band_names[band]
-            )  # Only for SLSTR
-            with rasterio.open(self._get_nc_path_str(misc, solar_flux_name)) as ds_e0:
-                e0, _ = rasters_rio.read(
-                    ds_e0,
-                    size=(band_arr.rio.width, band_arr.rio.height),
-                    resampling=Resampling.bilinear,
-                    masked=False,
-                )
-                e0_scale = ds_e0.scales[0]
-                e0_scaled = e0.astype(np.float32) * e0_scale
-                # TODO: Manage null pixels
-
-            # Compute rad_2_refl coeff
-            rad_2_refl_coeff = (np.pi / (e0_scaled * np.cos(sza_rad))).astype(
-                np.float32
-            )
-
-            # Write on disk
-            np.save(rad_2_refl_path, rad_2_refl_coeff)
-
-        else:
-            # Open rad_2_refl_coeff (resampled to band_arr size)
-            rad_2_refl_coeff = np.load(rad_2_refl_path)
-
-        return band_arr * rad_2_refl_coeff
+        raise NotImplementedError("This method should be implemented by a child class")
 
     def _get_condensed_name(self) -> str:
         """
@@ -670,11 +504,10 @@ class S3Product(OpticalProduct):
             (float, float): Mean Azimuth and Zenith angle
         """
         # Open sun azimuth and zenith files
-        sun_az = self._read_nc(self._geom_file, self._sza_name)
-        sun_ze = self._read_nc(self._geom_file, self._sze_name)
+        sun_az = self._read_nc(self._geom_file, self._saa_name)
+        sun_ze = self._read_nc(self._geom_file, self._sza_name)
 
-        # Sun azimuth for Sentinel-3 are in [-180, 180] and we want [0,360]
-        return (sun_az.mean().data + 180.0, sun_ze.mean().data)
+        return sun_az.mean().data % 360, sun_ze.mean().data
 
     def _read_mtd(self) -> (etree._Element, dict):
         """
@@ -744,9 +577,7 @@ class S3Product(OpticalProduct):
 
         return mtd_el, {}
 
-    def _get_nc_path_str(
-        self, filename: Union[Path, CloudPath], subdataset: str = None
-    ) -> str:
+    def _get_nc_path_str(self, filename: str, subdataset: str = None) -> str:
         """
         Get NetCDF file path.
 
@@ -757,7 +588,7 @@ class S3Product(OpticalProduct):
         Caches the file if needed (rasterio does not seem to be able to open a netcdf stored in the cloud).
 
         Args:
-            filename (Union[Path, CloudPath]): Filename
+            filename (str): Filename
             subdataset (str): NetCDF subdataset if needed
 
         Returns:
@@ -778,23 +609,26 @@ class S3Product(OpticalProduct):
 
         return path
 
-    def _read_nc(
-        self, filename: Union[Path, CloudPath], subdataset: str = None
-    ) -> xr.DataArray:
+    def _read_nc(self, filename: str, subdataset: str = None) -> xr.DataArray:
         """
         Read NetCDF file (as float32) and rescaled them to their true values
 
         NetCDF files are supposed to be at the root of this product.
 
         Args:
-            filename (Union[Path, CloudPath]): Filename
+            filename (str): Filename
             subdataset (str): NetCDF subdataset if needed
 
         Returns:
             xr.DataArray: NetCDF file, rescaled
         """
         # Open with rioxarray directly as these files are not geocoded
-        nc = rioxarray.open_rasterio(self._get_nc_path_str(filename, subdataset))
+        nc = rasters.read(self._get_nc_path_str(filename, subdataset))
+
+        # NO NEED TO FLIP IF WE STAY VIGILANT
+        # nc = nc.copy(data=np.flipud(nc)).astype(np.float32)
+        # return nc * nc.scale_factor
+
         return nc.astype(np.float32) * nc.scale_factor
 
     @abstractmethod
