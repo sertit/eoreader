@@ -77,7 +77,7 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 |Sentinel-2 | **1** (60m) | **2** (10m) | **3** (10m) | | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8** (10m) | **8A** (20m) |**9** (60m) |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
 |Sentinel-2 Theia | *Not available* | **2** (10m) |**3** (10m)  | | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8** (10m) | **8A** (20m) | *Not available* |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
 |Sentinel-3 OLCI* | **2** (300m) | **3** (300m) |**6** (300m)  | |**8** (300m) |**11** (300m) |**12** (300m) | **16** (300m) | **17** (300m) | **17** (300m) | **20** (300m) |  |  |  |  |  | |
-|Sentinel-3 SLSTR* | | | **1** (500m)  | | **2** (500m) |  |  |  |**3** (500m) |**3** (500m) |  | **4** (500m) | **5** (500m) |**6** (500m) | |**8** (1km) |**9** (1km)|
+|Sentinel-3 SLSTR* | | | **1** (500m)  | | **2** (500m) |  |  |  |**3** (500m) |**3** (500m) |  | **4** (500m) | **5** (500m) |**6** (500m) | |**8** (1km, not managed yet) |**9** (1km, not managed yet)|
 |Landsat OLCI (8) | **1** (30m) | **2** (30m) | **3** (30m)  | | **4** (30m) |  |  |  | **5** (30m) | **5** (30m) |  |**9** (30m) |**6** (30m) |**7** (30m) |**8** (15m) |**10** (100m) |**11** (100m)|
 |Landsat ETM (7)|  | **1** (30m) | **2** (30m)  | | **3** (30m) |  |  |  | **4** (30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |**8** (15m) |**6** (60m) |**6** (60m)|
 |Landsat TM (5-4)|  | **1** (30m) | **2** (30m) |  | **3** (30m) |  |  |  | **4**(30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |  |**6** (120m) |**6** (120m)|
@@ -214,7 +214,10 @@ environment variables:
 ### Sentinel-3
 - [OLCI main page](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-olci)
 - [SLSTR main page](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr)
+- [OLCI Handbook](https://sentinel.esa.int/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91)
+- [SLSTR Handbook](https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a)
 - [OLCI Product Format](https://sentinel.esa.int/documents/247904/1872756/Sentinel-3-OLCI-Product-Data-Format-Specification-OLCI-Level-1)
+- [SLSTR Product Format](https://sentinel.esa.int/documents/247904/0/Sentinel-3_Product_Format_Specification_Product_Structures/27300baa-b594-4a56-9efc-5538c71899d1)
 - [SLSTR Clouds](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/cloud-identification)
 
 ### PlanetScope
