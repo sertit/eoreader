@@ -34,7 +34,7 @@ from sertit import files, strings, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
-from eoreader import utils
+from eoreader import cached_property, utils
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
@@ -194,6 +194,7 @@ class CskProduct(SarProduct):
         # Post init done by the super class
         super()._post_init()
 
+    @cached_property
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -204,7 +205,7 @@ class CskProduct(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"1011117-766193"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent()
+            >>> prod.wgs84_extent
                                                         geometry
             0  POLYGON ((108.09797 15.61011, 108.48224 15.678...
 

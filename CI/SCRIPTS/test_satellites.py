@@ -165,9 +165,9 @@ def _test_core(
             # Discard the case where an invalid file/directory is in the CI folder
             if prod is not None:
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    # tmp_dir = os.path.join(
-                    #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                    # )
+                    tmp_dir = os.path.join(
+                        "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
+                    )
                     prod.output = tmp_dir
 
                     # Env var
@@ -194,7 +194,7 @@ def _test_core(
 
                     # Extent
                     LOGGER.info("Checking extent")
-                    extent = prod.extent()
+                    extent = prod.extent
                     assert isinstance(extent, gpd.GeoDataFrame)
                     extent_path = get_ci_data_dir().joinpath(
                         prod.condensed_name, f"{prod.condensed_name}_extent.geojson"
@@ -215,7 +215,7 @@ def _test_core(
 
                     # Footprint
                     LOGGER.info("Checking footprint")
-                    footprint = prod.footprint()
+                    footprint = prod.footprint
                     assert isinstance(footprint, gpd.GeoDataFrame)
                     footprint_path = get_ci_data_dir().joinpath(
                         prod.condensed_name, f"{prod.condensed_name}_footprint.geojson"
@@ -294,7 +294,7 @@ def _test_core(
 
                 # CRS
                 LOGGER.info("Checking CRS")
-                assert prod.crs().is_projected
+                assert prod.crs.is_projected
 
                 # MTD
                 mtd_xml, nmsp = prod.read_mtd()

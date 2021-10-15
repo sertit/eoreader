@@ -34,7 +34,7 @@ from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
-from eoreader import utils
+from eoreader import cache, cached_property, utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -173,6 +173,7 @@ class LandsatProduct(OpticalProduct):
 
         return path
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -182,7 +183,7 @@ class LandsatProduct(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
@@ -660,6 +661,7 @@ class LandsatProduct(OpticalProduct):
 
         return band_arrays
 
+    @cache
     def get_mean_sun_angles(self) -> (float, float):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)

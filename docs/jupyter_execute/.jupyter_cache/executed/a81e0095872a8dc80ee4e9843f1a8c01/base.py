@@ -72,7 +72,7 @@ os.environ[DEM_PATH] = os.path.join("/home", "data", "DS2", "BASES_DE_DONNEES", 
 
 
 # Open here some more interesting geographical data: extent
-extent = prod.extent()
+extent = prod.extent
 extent.geometry.to_crs("EPSG:4326").iat[0]  # Display
 
 
@@ -80,7 +80,7 @@ extent.geometry.to_crs("EPSG:4326").iat[0]  # Display
 
 
 # Open here some more interesting geographical data: footprint
-footprint = prod.footprint()
+footprint = prod.footprint
 footprint.geometry.to_crs("EPSG:4326").iat[0]  # Display
 
 

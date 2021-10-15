@@ -35,6 +35,7 @@ from sertit import rasters, rasters_rio, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
+from eoreader import cache, cached_property
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
@@ -420,6 +421,7 @@ class MaxarProduct(VhrProduct):
 
         return crs
 
+    @cached_property
     def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
@@ -429,7 +431,7 @@ class MaxarProduct(VhrProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.crs()
+            >>> prod.crs
             CRS.from_epsg(32618)
 
         Returns:
@@ -455,6 +457,7 @@ class MaxarProduct(VhrProduct):
 
         return utm
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -464,7 +467,7 @@ class MaxarProduct(VhrProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                                                          gml_id  ...                                           geometry
             0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
             [1 rows x 3 columns]
@@ -474,7 +477,7 @@ class MaxarProduct(VhrProduct):
         """
         # Get footprint
         # TODO: Optimize that
-        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs())
+        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs)
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -570,6 +573,7 @@ class MaxarProduct(VhrProduct):
         """
         return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}_{self.band_combi.name}"
 
+    @cache
     def get_mean_sun_angles(self) -> (float, float):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)

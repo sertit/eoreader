@@ -40,7 +40,7 @@ from sertit.snap import MAX_CORES
 from sertit.vectors import WGS84
 from shapely.geometry import box
 
-from eoreader import utils
+from eoreader import cached_property, utils
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import DEM_PATH
 from eoreader.products.optical.optical_product import OpticalProduct
@@ -109,6 +109,7 @@ class VhrProduct(OpticalProduct):
         """
         return self._get_default_utm_band(self.resolution)
 
+    @cached_property
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -125,7 +126,7 @@ class VhrProduct(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
         """
-        def_tr, def_w, def_h, def_crs = self.default_transform()
+        def_tr, def_w, def_h, def_crs = self.default_transform
         bounds = transform.array_bounds(def_h, def_w, def_tr)
         return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs)
 
@@ -231,7 +232,7 @@ class VhrProduct(OpticalProduct):
             src_arr,
             rpcs=rpcs,
             src_crs=WGS84,
-            dst_crs=self.crs(),
+            dst_crs=self.crs,
             resolution=self.resolution,
             src_nodata=0,
             dst_nodata=0,  # input data should be in integer
@@ -248,7 +249,7 @@ class VhrProduct(OpticalProduct):
         meta["driver"] = "GTiff"
         meta["compress"] = "lzw"
         meta["nodata"] = 0
-        meta["crs"] = self.crs()
+        meta["crs"] = self.crs
         meta["width"] = width
         meta["height"] = height
         meta["count"] = count
@@ -470,7 +471,7 @@ class VhrProduct(OpticalProduct):
 
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
                 src.crs,
-                self.crs(),
+                self.crs,
                 src.width,
                 src.height,
                 *src.bounds,
@@ -486,7 +487,7 @@ class VhrProduct(OpticalProduct):
                 source=src.read(band_nb),
                 destination=out_arr,
                 src_crs=src.crs,
-                dst_crs=self.crs(),
+                dst_crs=self.crs,
                 src_transform=src.transform,
                 dst_transform=utm_tr,
                 src_nodata=0,
@@ -494,7 +495,7 @@ class VhrProduct(OpticalProduct):
                 num_threads=MAX_CORES,
             )
             meta["transform"] = utm_tr
-            meta["crs"] = self.crs()
+            meta["crs"] = self.crs
             meta["driver"] = "GTiff"
 
             rasters_rio.write(out_arr, meta, reproj_path)
