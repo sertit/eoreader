@@ -109,10 +109,6 @@ class Product:
         self._output = None
         self._remove_tmp_process = remove_tmp
 
-        # Store metadata
-        self._metadata = None
-        self._namespaces = None
-
         # Get the products date and datetime
         self.date = None
         """Acquisition date."""
@@ -192,12 +188,6 @@ class Product:
         if self.is_archived and self.needs_extraction:
             LOGGER.warning(f"{self.name} needs to be extracted to be used !")
         else:
-
-            # Store metadata
-            metadata, namespaces = self._read_mtd()
-            self._metadata = metadata
-            self._namespaces = namespaces
-
             # Get the products date and datetime
             self.date = self.get_date(as_date=True)
             self.datetime = self.get_datetime(as_datetime=True)
@@ -581,6 +571,7 @@ class Product:
 
         return root, nsmap
 
+    @cache
     def read_mtd(self) -> Any:
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict most of the time,
@@ -597,10 +588,7 @@ class Product:
         Returns:
             Any: Metadata XML root and its namespace or pd.DataFrame
         """
-        if self._metadata is not None:
-            return self._metadata, self._namespaces
-        else:
-            return self._read_mtd()
+        return self._read_mtd()
 
     # pylint: disable=W0613
     @abstractmethod

@@ -140,7 +140,8 @@ class S3SlstrProduct(S3Product):
 
         if "SL" in name:
             # Instrument
-            sat_id = S3Instrument.SLSTR.value
+            self._instrument = S3Instrument.SLSTR
+            sat_id = self._instrument.value
         else:
             raise InvalidProductError(
                 f"Only OLCI and SLSTR are valid Sentinel-3 instruments : {self.name}"
@@ -166,15 +167,29 @@ class S3SlstrProduct(S3Product):
         """
         assert new_suffix in SLSTR_SUFFIX
         self._suffix = new_suffix
-        self._set_preprocess_members()
+        self._set_preprocess_members(new_suffix)
 
-    def _set_preprocess_members(self):
-        """ Set pre-process members """
+    def _set_preprocess_members(self, suffix: str = "an"):
+        """
+        Set pre-process members.
+
+        Initialize suffix to an
+
+        Args:
+            suffix (str): Suffix
+
+        Returns:
+
+        """
+        assert suffix in SLSTR_SUFFIX
+        # Radiance bands
+        self._radiance_file = f"{{}}_radiance_{suffix}.nc"
+
         # Geocoding
-        self._geo_file = f"geodetic_{self._suffix}.nc"
-        self._lat_nc_name = f"latitude_{self._suffix}"
-        self._lon_nc_name = f"longitude_{self._suffix}"
-        self._alt_nc_name = f"elevation_{self._suffix}"
+        self._geo_file = f"geodetic_{suffix}.nc"
+        self._lat_nc_name = f"latitude_{suffix}"
+        self._lon_nc_name = f"longitude_{suffix}"
+        self._alt_nc_name = f"elevation_{suffix}"
 
         # Tie geocoding
         self._tie_geo_file = "geodetic_tx.nc"
@@ -182,20 +197,20 @@ class S3SlstrProduct(S3Product):
         self._tie_lon_nc_name = "longitude_tx"
 
         # Mean Sun angles
-        self._geom_file = f"geometry_t{self._suffix[-1]}.nc"
-        self._saa_name = f"solar_azimuth_t{self._suffix[-1]}"
-        self._sza_name = f"solar_zenith_t{self._suffix[-1]}"
+        self._geom_file = f"geometry_t{suffix[-1]}.nc"
+        self._saa_name = f"solar_azimuth_t{suffix[-1]}"
+        self._sza_name = f"solar_zenith_t{suffix[-1]}"
 
         # Rad 2 Refl
-        self._misc_file = f"{{}}_quality_{self._suffix}.nc"
-        self._solar_flux_name = f"{{}}_solar_irradiance_{self._suffix}"
+        self._misc_file = f"{{}}_quality_{suffix}.nc"
+        self._solar_flux_name = f"{{}}_solar_irradiance_{suffix}"
 
         # Clouds
-        self._flags_file = f"flags_{self._suffix}.nc"
-        self._cloud_name = f"cloud_{self._suffix}"
+        self._flags_file = f"flags_{suffix}.nc"
+        self._cloud_name = f"cloud_{suffix}"
 
         # Other
-        self._exception_name = f"{{}}_exception_{self._suffix}"
+        self._exception_name = f"{{}}_exception_{suffix}"
 
     def _set_resolution(self) -> float:
         """
@@ -230,39 +245,6 @@ class S3SlstrProduct(S3Product):
             }
             # TODO: manage F1 and F2 ?
         )
-
-    def _get_raw_band_path(self, band: Union[obn, str], subdataset: str = None) -> str:
-        """
-        Return the paths of raw band.
-
-        Args:
-            band (Union[obn, str]): Wanted raw bands
-            subdataset (str): Subdataset
-
-        Returns:
-            str: Raw band path
-        """
-        # Try to convert to obn if existing
-        try:
-            band = obn.convert_from(band)[0]
-        except TypeError:
-            pass
-
-        # Get band regex
-        if isinstance(band, obn):
-            band_regex = f"{self.band_names[band]}_radiance_{self._suffix}.nc"
-            if not subdataset:
-                subdataset = f"{self.band_names[band]}_radiance_{self._suffix}"
-        else:
-            band_regex = band
-
-        # Get raw band path
-        try:
-            band_path = next(self.path.glob(f"*{band_regex}*"))
-        except StopIteration:
-            raise FileNotFoundError(f"Non existing file {band_regex} in {self.path}")
-
-        return self._get_nc_path_str(band_path.name, subdataset)
 
     def _preprocess(
         self,
