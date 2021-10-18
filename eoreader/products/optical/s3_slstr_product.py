@@ -36,7 +36,6 @@ import numpy as np
 import xarray as xr
 from cloudpathlib import CloudPath
 from rasterio import features
-from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
 from sertit import rasters, rasters_rio
 from sertit.rasters import MAX_CORES, XDS_TYPE
@@ -188,15 +187,15 @@ class S3SlstrProduct(S3Product):
         self._sza_name = f"solar_zenith_t{self._suffix[-1]}"
 
         # Rad 2 Refl
-        self._misc_file = f"S{{}}_quality_{self._suffix}.nc"
-        self._solar_flux_name = f"S{{}}_solar_irradiance_{self._suffix}"
+        self._misc_file = f"{{}}_quality_{self._suffix}.nc"
+        self._solar_flux_name = f"{{}}_solar_irradiance_{self._suffix}"
 
         # Clouds
         self._flags_file = f"flags_{self._suffix}.nc"
         self._cloud_name = f"cloud_{self._suffix}"
 
         # Other
-        self._exception_name = f"S{{}}_exception_{self._suffix}"
+        self._exception_name = f"{{}}_exception_{self._suffix}"
 
     def _set_resolution(self) -> float:
         """
@@ -216,16 +215,18 @@ class S3SlstrProduct(S3Product):
         # Bands
         self.band_names.map_bands(
             {
-                obn.GREEN: "1",  # radiance, 500m
-                obn.RED: "2",  # radiance, 500m
-                obn.NIR: "3",  # radiance, 500m
-                obn.NARROW_NIR: "3",  # radiance, 500m
-                obn.SWIR_CIRRUS: "4",  # radiance, 500m
-                obn.SWIR_1: "5",  # radiance, 500m
-                obn.SWIR_2: "6",  # radiance, 500m
-                # obn.MIR: "7",  # brilliance temperature, 1km
-                # obn.TIR_1: "8",  # brilliance temperature, 1km   # TODO: convert BT to radiance to use it
-                # obn.TIR_2: "9",  # brilliance temperature, 1km   # TODO: convert BT to radiance to use it
+                obn.GREEN: "S1",  # radiance, 500m
+                obn.RED: "S2",  # radiance, 500m
+                obn.NIR: "S3",  # radiance, 500m
+                obn.NARROW_NIR: "S3",  # radiance, 500m
+                obn.SWIR_CIRRUS: "S4",  # radiance, 500m
+                obn.SWIR_1: "S5",  # radiance, 500m
+                obn.SWIR_2: "S6",  # radiance, 500m
+                # "S7": "S7",  # brilliance temperature, 1km   # TODO: convert BT to radiance to use it
+                # obn.TIR_1: "S8",  # brilliance temperature, 1km   # TODO: convert BT to radiance to use it
+                # obn.TIR_2: "S9",  # brilliance temperature, 1km   # TODO: convert BT to radiance to use it
+                # "F1": "F1",  # brilliance temperature, 1km   # TODO: convert BT to radiance to use it
+                # "F2": "F2",  # brilliance temperature, 1km   # TODO: convert BT to radiance to use it
             }
             # TODO: manage F1 and F2 ?
         )
@@ -249,9 +250,9 @@ class S3SlstrProduct(S3Product):
 
         # Get band regex
         if isinstance(band, obn):
-            band_regex = f"S{self.band_names[band]}_radiance_{self._suffix}.nc"
+            band_regex = f"{self.band_names[band]}_radiance_{self._suffix}.nc"
             if not subdataset:
-                subdataset = f"S{self.band_names[band]}_radiance_{self._suffix}"
+                subdataset = f"{self.band_names[band]}_radiance_{self._suffix}"
         else:
             band_regex = band
 
@@ -309,19 +310,11 @@ class S3SlstrProduct(S3Product):
                 )
                 band_arr = self._rad_2_refl(band_arr, band)
 
-                # Debug
-                utils.write(
-                    band_arr,
-                    self._get_band_folder(writable=True).joinpath(
-                        f"{self.condensed_name}_{band.name}_rad2refl.tif"
-                    ),
-                )
-
             # Geocode
             if isinstance(band, str):
-                suffix = band[-2:]
+                suffix = band.split(".")[0][-2:]
             elif subdataset is not None:
-                suffix = subdataset[-2:]
+                suffix = subdataset.split(".")[0][-2:]
             else:
                 suffix = self._suffix
             LOGGER.debug(f"Geocoding {os.path.basename(raw_band_path)}")
@@ -347,27 +340,8 @@ class S3SlstrProduct(S3Product):
             lon = self._read_nc(geo_file, lon_nc_name)
             alt = self._read_nc(geo_file, alt_nc_name)
 
-            assert lat.data.shape == lon.data.shape == alt.data.shape
-
-            # Get the GCPs coordinates
-            nof_gcp_x = np.linspace(0, lat.x.size - 1, dtype=int)
-            nof_gcp_y = np.linspace(0, lat.y.size - 1, dtype=int)
-
-            # Create the GCP sequence
-            gcp_id = 0
-            for x in nof_gcp_x:
-                for y in nof_gcp_y:
-                    self._gcps[suffix].append(
-                        GroundControlPoint(
-                            row=y,
-                            col=x,
-                            x=lon.data[0, y, x],
-                            y=lat.data[0, y, x],
-                            z=alt.data[0, y, x],
-                            id=gcp_id,
-                        )
-                    )
-                    gcp_id += 1
+            # Create GCPs
+            self._gcps[suffix] = utils.create_gcps(lon, lat, alt)
 
     def _geocode(
         self, band_arr: xr.DataArray, resolution: float = None, suffix: str = None

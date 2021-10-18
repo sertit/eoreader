@@ -34,7 +34,6 @@ import numpy as np
 import rasterio
 import xarray as xr
 from cloudpathlib import CloudPath
-from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
 from sertit import rasters, rasters_rio
 from sertit.rasters import MAX_CORES, XDS_TYPE
@@ -80,7 +79,7 @@ OLCI_SOLAR_FLUXES_DEFAULT = {
     "18": 882.8275,  # Not used by EOReader
     "19": 882.8275,  # Not used by EOReader
     obn.WV: 882.8275,
-    obn.FAR_NIR: 882.8275,
+    "21": 882.8275,
 }
 
 
@@ -184,17 +183,28 @@ class S3OlciProduct(S3Product):
         # Bands
         self.band_names.map_bands(
             {
+                # "01": "01",
+                # "02": "02",
                 obn.CA: "03",
                 obn.BLUE: "04",
+                # "05": "05",
                 obn.GREEN: "06",
+                # "07": "07",
                 obn.RED: "08",
+                # "09": "09",
+                # "10": "10",
                 obn.VRE_1: "11",
                 obn.VRE_2: "12",
+                # "13": "13",
+                # "14": "14",
+                # "15": "15",
                 obn.VRE_3: "16",
                 obn.NIR: "17",
                 obn.NARROW_NIR: "17",
+                # "18": "18",
+                # "19": "19",
                 obn.WV: "20",
-                # obn.FAR_NIR: "21",
+                # "21": "21",
             }
         )
 
@@ -241,27 +251,8 @@ class S3OlciProduct(S3Product):
             lon = self._read_nc(self._geo_file, self._lon_nc_name)
             alt = self._read_nc(self._geo_file, self._alt_nc_name)
 
-            assert lat.data.shape == lon.data.shape == alt.data.shape
-
-            # Get the GCPs coordinates
-            nof_gcp_x = np.linspace(0, lat.x.size - 1, dtype=int)
-            nof_gcp_y = np.linspace(0, lat.y.size - 1, dtype=int)
-
-            # Create the GCP sequence
-            gcp_id = 0
-            for x in nof_gcp_x:
-                for y in nof_gcp_y:
-                    self._gcps.append(
-                        GroundControlPoint(
-                            row=y,
-                            col=x,
-                            x=lon.data[0, y, x],
-                            y=lat.data[0, y, x],
-                            z=alt.data[0, y, x],
-                            id=gcp_id,
-                        )
-                    )
-                    gcp_id += 1
+            # Create GCPs
+            self._gcps = utils.create_gcps(lon, lat, alt)
 
     def _preprocess(
         self,
@@ -303,14 +294,6 @@ class S3OlciProduct(S3Product):
                     f"Converting {os.path.basename(raw_band_path)} to reflectance"
                 )
                 band_arr = self._rad_2_refl(band_arr, band)
-
-                # Debug
-                utils.write(
-                    band_arr,
-                    self._get_band_folder(writable=True).joinpath(
-                        f"{self.condensed_name}_{band.name}_rad2refl.tif"
-                    ),
-                )
 
             # Geocode
             LOGGER.debug(f"Geocoding {os.path.basename(raw_band_path)}")
@@ -461,26 +444,26 @@ class S3OlciProduct(S3Product):
         | 9  |   saturated12        |
         | 10 |   saturated11        |
         | 11 |   saturated10        |
-        | 11 |   saturated09        |
-        | 12 |   saturated08        |
-        | 13 |   saturated07        |
-        | 14 |   saturated06        |
-        | 15 |   saturated05        |
-        | 16 |   saturated04        |
-        | 17 |   saturated03        |
-        | 18 |   saturated02        |
-        | 19 |   saturated01        |
-        | 20 |   dubious            |
-        | 21 |   sun-glint_risk     |
-        | 22 |   duplicated         |
-        | 23 |   cosmetic           |
-        | 24 |   invalid            |
-        | 25 |   straylight_risk    |
-        | 26 |   bright             |
-        | 27 |   tidal_region       |
-        | 28 |   fresh_inland_water |
-        | 29 |   coastline          |
-        | 30 |   land               |
+        | 12 |   saturated09        |
+        | 13 |   saturated08        |
+        | 14 |   saturated07        |
+        | 15 |   saturated06        |
+        | 16 |   saturated05        |
+        | 17 |   saturated04        |
+        | 18 |   saturated03        |
+        | 19 |   saturated02        |
+        | 20 |   saturated01        |
+        | 21 |   dubious            |
+        | 22 |   sun-glint_risk     |
+        | 23 |   duplicated         |
+        | 24 |   cosmetic           |
+        | 25 |   invalid            |
+        | 26 |   straylight_risk    |
+        | 27 |   bright             |
+        | 28 |   tidal_region       |
+        | 29 |   fresh_inland_water |
+        | 30 |   coastline          |
+        | 31 |   land               |
 
         Args:
             band_arr (XDS_TYPE): Band array
@@ -491,19 +474,30 @@ class S3OlciProduct(S3Product):
         """
         # Bit ids
         band_bit_id = {
-            obn.CA: 18,  # Band 2
-            obn.BLUE: 17,  # Band 3
-            obn.GREEN: 14,  # Band 6
-            obn.RED: 12,  # Band 8
+            "01": 20,  # Band 1
+            obn.CA: 19,  # Band 2
+            obn.BLUE: 18,  # Band 3
+            "04": 17,  # Band 4
+            "05": 16,  # Band 5
+            obn.GREEN: 15,  # Band 6
+            "07": 14,  # Band 7
+            obn.RED: 13,  # Band 8
+            "09": 12,  # Band 9
+            "10": 11,  # Band 10
             obn.VRE_1: 10,  # Band 11
             obn.VRE_2: 9,  # Band 12
+            "13": 8,  # Band 13
+            "14": 7,  # Band 14
+            "15": 6,  # Band 15
             obn.VRE_3: 5,  # Band 16
             obn.NIR: 4,  # Band 17
             obn.NARROW_NIR: 4,  # Band 17
+            "18": 3,  # Band 18
+            "19": 2,  # Band 19
             obn.WV: 1,  # Band 20
-            obn.FAR_NIR: 0,  # Band 21
+            "21": 0,  # Band 21
         }
-        invalid_id = 24
+        invalid_id = 25
         sat_band_id = band_bit_id[band]
 
         # Open quality flags

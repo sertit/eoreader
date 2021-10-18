@@ -332,6 +332,7 @@ class SarProduct(Product):
 
         return extent
 
+    @cached_property
     def crs(self) -> crs.CRS:
         """
         Get UTM projection

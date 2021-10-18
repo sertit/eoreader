@@ -21,8 +21,10 @@ import platform
 from pathlib import Path
 from typing import Union
 
+import numpy as np
 import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
+from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
 from sertit import rasters
 
@@ -185,3 +187,49 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
         lock = None
 
     return rasters.write(xds, path=path, lock=lock, **kwargs)
+
+
+def create_gcps(lon: xr.DataArray, lat: xr.DataArray, alt: xr.DataArray) -> list:
+    """
+    Create GCPs from an array of longitude, latitude and altitude (based on Sentinel-3 geocoding)
+    Args:
+        lon (xr.DataArray): Longitude array
+        lat (xr.DataArray): Latitude array
+        alt (xr.DataArray): Altitude array
+
+    Returns:
+        list: List of GroundControlPoints
+
+    """
+    gcps = []
+    assert lat.data.shape == lon.data.shape == alt.data.shape
+
+    # Get the GCPs coordinates
+    nof_gcp_x = np.linspace(0, lat.x.size - 1, dtype=int)
+    nof_gcp_y = np.linspace(0, lat.y.size - 1, dtype=int)
+
+    # Create the GCP sequence
+    gcp_id = 0
+    for x in nof_gcp_x:
+        for y in nof_gcp_y:
+            curr_lon = lon.data[0, y, x]
+            curr_lat = lat.data[0, y, x]
+            curr_alt = alt.data[0, y, x]
+            if (
+                not np.isnan(curr_lon)
+                and not np.isnan(curr_lat)
+                and not np.isnan(curr_alt)
+            ):
+                gcps.append(
+                    GroundControlPoint(
+                        row=y,
+                        col=x,
+                        x=lon.data[0, y, x],
+                        y=lat.data[0, y, x],
+                        z=alt.data[0, y, x],
+                        id=gcp_id,
+                    )
+                )
+                gcp_id += 1
+
+    return gcps

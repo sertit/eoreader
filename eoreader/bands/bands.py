@@ -291,9 +291,6 @@ class OpticalBandNames(BandNames):
     WV = "WATER_VAPOUR"
     """Water vapour"""
 
-    FAR_NIR = "FAR_NIR"
-    """Far NIR"""
-
     SWIR_CIRRUS = "CIRRUS"
     """Cirrus"""
 
