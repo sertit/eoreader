@@ -108,6 +108,7 @@ class S3OlciProduct(S3Product):
             "fn" and "fo" refer to the F1 channel 1 km grid
             "tx/n/o" refer to the tie-point grid for agnostic/nadir and oblique view
         """
+        self._suffix = None
 
         super().__init__(
             product_path, archive_path, output_path, remove_tmp
@@ -117,6 +118,8 @@ class S3OlciProduct(S3Product):
 
     def _set_preprocess_members(self):
         """ Set pre-process members """
+        # Radiance bands
+        self._radiance_file = "Oa{}_radiance.nc"
 
         # Geocoding
         self._geo_file = "geo_coordinates.nc"
@@ -157,7 +160,8 @@ class S3OlciProduct(S3Product):
 
         if "OL" in name:
             # Instrument
-            sat_id = S3Instrument.OLCI.value
+            self._instrument = S3Instrument.OLCI
+            sat_id = self._instrument.value
         else:
             raise InvalidProductError(
                 f"Only OLCI and SLSTR are valid Sentinel-3 instruments : {self.name}"
@@ -207,37 +211,6 @@ class S3OlciProduct(S3Product):
                 # "21": "21",
             }
         )
-
-    def _get_raw_band_path(self, band: Union[obn, str], subdataset: str = None) -> str:
-        """
-        Return the paths of raw band.
-
-        Args:
-            band (Union[obn, str]): Wanted raw bands
-            subdataset (str): Subdataset
-
-        Returns:
-            str: Raw band path
-        """
-        # Try to convert to obn if existing
-        try:
-            band = obn.convert_from(band)[0]
-        except TypeError:
-            pass
-
-        # Get band regex
-        if isinstance(band, obn):
-            band_regex = f"Oa{self.band_names[band]}_radiance.nc"
-        else:
-            band_regex = band
-
-        # Get raw band path
-        try:
-            band_path = next(self.path.glob(f"*{band_regex}*"))
-        except StopIteration:
-            raise FileNotFoundError(f"Non existing file {band_regex} in {self.path}")
-
-        return self._get_nc_path_str(band_path.name, subdataset)
 
     def _create_gcps(self) -> None:
         """
@@ -547,4 +520,5 @@ class S3OlciProduct(S3Product):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
+        LOGGER.warning("Sentinel-3 OLCI L1B does not provide any cloud file")
         return {}

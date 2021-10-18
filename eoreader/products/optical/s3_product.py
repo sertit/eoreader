@@ -26,6 +26,8 @@ Sentinel-3 products
     -> they are inverted as the columns are ordered reversely
 """
 import logging
+import re
+import zipfile
 from abc import abstractmethod
 from datetime import datetime
 from enum import unique
@@ -36,7 +38,7 @@ import geopandas as gpd
 import netCDF4
 import numpy as np
 import xarray as xr
-from cloudpathlib import CloudPath
+from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from lxml.builder import E
 from rasterio import crs as riocrs
@@ -101,8 +103,12 @@ class S3Product(OpticalProduct):
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
     ) -> None:
+        self._instrument = None
         self._data_type = None
         self._gcps = None
+
+        # Radiance bands
+        self._radiance_file = None
 
         # Geocoding
         self._geo_file = None
@@ -307,7 +313,6 @@ class S3Product(OpticalProduct):
 
         return date
 
-    @abstractmethod
     def _get_raw_band_path(self, band: Union[obn, str], subdataset: str = None) -> str:
         """
         Return the paths of raw band.
@@ -319,7 +324,49 @@ class S3Product(OpticalProduct):
         Returns:
             str: Raw band path
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        # Try to convert to obn if existing
+        try:
+            band = obn.convert_from(band)[0]
+        except TypeError:
+            pass
+
+        # Get band regex
+        if isinstance(band, obn):
+            band_regex = self._radiance_file.replace("{}", self.band_names[band])
+            if not subdataset and self._instrument == S3Instrument.SLSTR:
+                subdataset = f"{self.band_names[band]}_radiance_{self._suffix}"  # SLSTR has a suffix
+        else:
+            band_regex = band
+
+        # Get raw band path
+        if self.is_archived:
+            if isinstance(self.path, CloudPath):
+                # Download the whole product (sadly)
+                on_disk_path = self.path.download_to(
+                    self._get_band_folder(writable=True)
+                )
+            else:
+                on_disk_path = self.path
+
+            # Cannot read zipped+netcdf files -> we are forced to dezip them
+            with zipfile.ZipFile(on_disk_path, "r") as zip_ds:
+                filenames = [f.filename for f in zip_ds.filelist]
+                regex = re.compile(f".*{band_regex}")
+                band_path = AnyPath(
+                    zip_ds.extract(
+                        list(filter(regex.match, filenames))[0],
+                        self._get_band_folder(writable=True),
+                    )
+                )
+        else:
+            try:
+                band_path = next(self.path.glob(f"*{band_regex}*"))
+            except StopIteration:
+                raise FileNotFoundError(
+                    f"Non existing file {band_regex} in {self.path}"
+                )
+
+        return self._get_nc_path_str(band_path.name, subdataset)
 
     def _get_preprocessed_band_path(
         self,
@@ -530,7 +577,29 @@ class S3Product(OpticalProduct):
         """
         # Open first nc file as every file should have the global attributes
         # Here in read_mtd we don't know which type of product we have (before we have the correct platform)
-        geom_file = self.path.joinpath(self._tie_geo_file)
+        # Manage archives
+        if self.is_archived:
+            if isinstance(self.path, CloudPath):
+                # Download the whole product (sadly)
+                on_disk_path = self.path.download_to(
+                    self._get_band_folder(writable=True)
+                )
+            else:
+                on_disk_path = self.path
+
+            # Cannot read zipped+netcdf files -> we are forced to dezip them
+            with zipfile.ZipFile(on_disk_path, "r") as zip_ds:
+                filenames = [f.filename for f in zip_ds.filelist]
+                regex = re.compile(f".*{self._tie_geo_file}")
+                geom_file = AnyPath(
+                    zip_ds.extract(
+                        list(filter(regex.match, filenames))[0],
+                        self._get_band_folder(writable=True),
+                    )
+                )
+        else:
+            geom_file = self.path.joinpath(self._tie_geo_file)
+
         if not geom_file.is_file():
             raise InvalidProductError("This Sentinel-3 product has no geometry file !")
 
@@ -579,6 +648,9 @@ class S3Product(OpticalProduct):
             )
         )
 
+        # Close dataset
+        netcdf_ds.close()
+
         return mtd_el, {}
 
     def _get_nc_path_str(self, filename: str, subdataset: str = None) -> str:
@@ -598,12 +670,31 @@ class S3Product(OpticalProduct):
         Returns:
             str: NetCDF file path as a string
         """
-        if isinstance(self.path, CloudPath):
-            path = self.path.joinpath(filename).download_to(
-                self._get_band_folder(writable=True)
-            )
+        if self.is_archived:
+            if isinstance(self.path, CloudPath):
+                # Download the whole product (sadly)
+                on_disk_path = self.path.download_to(
+                    self._get_band_folder(writable=True)
+                )
+            else:
+                on_disk_path = self.path
+
+            # Cannot read zipped+netcdf files -> we are forced to dezip them
+            with zipfile.ZipFile(on_disk_path, "r") as zip_ds:
+                filenames = [f.filename for f in zip_ds.filelist]
+                regex = re.compile(f".*{filename}")
+                path = zip_ds.extract(
+                    list(filter(regex.match, filenames))[0],
+                    self._get_band_folder(writable=True),
+                )
+
         else:
-            path = str(self.path.joinpath(filename))
+            if isinstance(self.path, CloudPath):
+                path = self.path.joinpath(filename).download_to(
+                    self._get_band_folder(writable=True)
+                )
+            else:
+                path = str(self.path.joinpath(filename))
 
         # Complete the path
         path = f"netcdf:{path}"
