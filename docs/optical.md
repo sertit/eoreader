@@ -6,8 +6,8 @@
 |--- | --- | --- | --- | ---|
 |Sentinel-2 | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A | Yes | 20m|
 |Sentinel-2 Theia | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | Yes | 20m|
-|Sentinel-3 SLSTR | {meth}`~eoreader.products.optical.s3_product.S3Product` | RBT | No | 300m|
-|Sentinel-3 OLCI | {meth}`~eoreader.products.optical.s3_product.S3Product` | EFR | No | 500m|
+|Sentinel-3 SLSTR | {meth}`~eoreader.products.optical.s3_product.S3Product` | RBT | Yes | 300m|
+|Sentinel-3 OLCI | {meth}`~eoreader.products.optical.s3_product.S3Product` | EFR | Yes | 500m|
 |Landsat 8 OLCI | {meth}`~eoreader.products.optical.l8_product.L8Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
 |Landsat 7 ETM | {meth}`~eoreader.products.optical.l7_product.L7Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
 |Landsat 5 TM | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
@@ -26,6 +26,7 @@
 |WorldView-3* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | Yes | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
 |WorldView-4* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | Yes | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
 
+\* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product.*
 \* *Other Maxar satellites (such as WorldView-1, QuickBird...) with the same file format should be supported.*
 
 ```{warning}

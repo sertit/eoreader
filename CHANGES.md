@@ -9,7 +9,7 @@
 - **ENH**: `get_mean_sun_angles` and `default_transform` are now cached (using `@cache`)
 - **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !**
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
-- **ENH: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !) #10**
+- **ENH: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** #10
 - **ENH: `HILLSHADE` is given in `float32` instead of `uint8`**
 - **ENH: Better management of `fspath` for cloud-stored products (download the files only once)**
 - **ENH: Use band size for cleaning optical pixel (instead of user resolution/size)**
@@ -23,6 +23,7 @@
 - FIX: Better management of `_tmp_process`
 - FIX: Fixing minor bug when trying to read metadata with a POSIX path
 - FIX: Fixing the `**kwargs` omission in `utils.read`
+- DEPR: `FAR_NIR` band is removed
 - DOC: Add a Context paragraph in the README
 - DOC: Add a Conda x SNAP question in the FAQ
 - DOC: Numerous updates
