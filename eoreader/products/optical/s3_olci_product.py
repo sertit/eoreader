@@ -19,14 +19,9 @@ Sentinel-3 OLCI products
 
 .. WARNING:
     Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio !
-    The rasters are flipped (upside/down, we can use `np.flipud`).
-    This is fixed by reprojecting with GCPs, BUT is still an issue for metadata files.
-    As long as we treat consistent data (geographic rasters???), this should not be problematic
-    BUT pay attention to rasters containing several bands (such as solar irradiance for OLCI products)
-    -> they are inverted as the columns are ordered reversely
+    -> use xr.open_dataset that manages that correctly
 """
 import logging
-import os
 from pathlib import Path
 from typing import Union
 
@@ -120,6 +115,7 @@ class S3OlciProduct(S3Product):
         """ Set pre-process members """
         # Radiance bands
         self._radiance_file = "Oa{}_radiance.nc"
+        self._radiance_subds = "Oa{}_radiance"
 
         # Geocoding
         self._geo_file = "geo_coordinates.nc"
@@ -248,6 +244,8 @@ class S3OlciProduct(S3Product):
         Returns:
             dict: Dictionary containing {band: path}
         """
+        band_str = band if isinstance(band, str) else band.value
+
         path = self._get_preprocessed_band_path(band, resolution=resolution)
 
         if not path.is_file():
@@ -256,20 +254,24 @@ class S3OlciProduct(S3Product):
             )
 
             # Get raw band
-            raw_band_path = self._get_raw_band_path(band, subdataset)
-            band_arr = utils.read(raw_band_path).astype(np.float32)
-            band_arr *= band_arr.scale_factor
+            band_arr = self._read_nc(band, subdataset)
 
             # Convert radiance to reflectances if needed
             # Convert first pixel by pixel before reprojection !
             if to_reflectance:
-                LOGGER.debug(
-                    f"Converting {os.path.basename(raw_band_path)} to reflectance"
-                )
+                LOGGER.debug(f"Converting {band_str} to reflectance")
                 band_arr = self._rad_2_refl(band_arr, band)
 
+                # Debug
+                utils.write(
+                    band_arr,
+                    self._get_band_folder(writable=True).joinpath(
+                        f"{self.condensed_name}_{band.name}_rad2refl.tif"
+                    ),
+                )
+
             # Geocode
-            LOGGER.debug(f"Geocoding {os.path.basename(raw_band_path)}")
+            LOGGER.debug(f"Geocoding {band_str}")
             pp_arr = self._geocode(band_arr, resolution=resolution)
 
             # Write on disk
@@ -324,9 +326,12 @@ class S3OlciProduct(S3Product):
             )
 
             # Open SZA array (resampled to band_arr size)
-            with rasterio.open(
-                self._get_nc_path_str(self._geom_file, self._sza_name)
-            ) as ds_sza:
+            sza_path = self._get_band_folder() / "sza.tif"
+            if not sza_path.is_file():
+                sza_nc = self._read_nc(self._geom_file, self._sza_name)
+                utils.write(sza_nc, self._get_band_folder(writable=True) / "sza.tif")
+
+            with rasterio.open(sza_path) as ds_sza:
                 # Values can be easily interpolated at pixels from Tie Points by linear interpolation using the
                 # image column coordinate.
                 sza, _ = rasters_rio.read(
@@ -335,10 +340,7 @@ class S3OlciProduct(S3Product):
                     resampling=Resampling.bilinear,
                     masked=False,
                 )
-                # NO NEED TO FLIP IF WE STAY VIGILANT
-                # sza = np.flipud(sza)
-                sza_scale = ds_sza.scales[0]
-                sza_rad = sza.astype(np.float32) * sza_scale * np.pi / 180.0
+                sza_rad = sza.astype(np.float32) * np.pi / 180.0
 
             # Open solar flux (resampled to band_arr size)
             e0 = self._compute_e0(band)
@@ -377,20 +379,18 @@ class S3OlciProduct(S3Product):
             np.ndarray: Solar Flux
 
         """
+        # Do not convert to int here as we want to keep the nans
         det_idx = self._read_nc(self._misc_file, self._det_index).data
         e0_det = self._read_nc(self._misc_file, self._solar_flux_name).data
 
         # Get band slice and open corresponding e0 for the detectors
-        # Workaround for netcdf bug with rasterio (flipped up/down array)
-        # Instead of: band_slice = int(self.band_names[band]) - 1
-        band_slice = 21 - int(self.band_names[band])
+        band_slice = int(self.band_names[band]) - 1
         e0_det = np.squeeze(e0_det[0, band_slice, :])
-        # NO NEED TO FLIP IF WE STAY VIGILANT
-        # e0_det = np.flipud(e0_det)
 
         # Create e0
         e0 = det_idx
-        e0[~np.isnan(det_idx)] = e0_det[det_idx[~np.isnan(det_idx)].astype(int)]
+        not_nan_idx = ~np.isnan(det_idx)
+        e0[not_nan_idx] = e0_det[det_idx[not_nan_idx].astype(int)]
 
         return e0
 
@@ -476,8 +476,12 @@ class S3OlciProduct(S3Product):
         # Open quality flags
         # NOT OPTIMIZED, MAYBE CHECK INVALID PIXELS ON NOT GEOCODED DATA
         qual_regex = "qualityFlags"
+        subds = "quality_flags"
         qual_flags_path = self._preprocess(
-            qual_regex, resolution=band_arr.rio.resolution(), to_reflectance=False
+            qual_regex,
+            subdataset=subds,
+            resolution=band_arr.rio.resolution(),
+            to_reflectance=False,
         )
 
         # Open flag file
@@ -520,5 +524,6 @@ class S3OlciProduct(S3Product):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        LOGGER.warning("Sentinel-3 OLCI L1B does not provide any cloud file")
+        if bands:
+            LOGGER.warning("Sentinel-3 OLCI L1B does not provide any cloud file")
         return {}

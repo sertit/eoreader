@@ -19,14 +19,9 @@ Sentinel-3 SLSTR products
 
 .. WARNING:
     Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio !
-    The rasters are flipped (upside/down, we can use `np.flipud`).
-    This is fixed by reprojecting with GCPs, BUT is still an issue for metadata files.
-    As long as we treat consistent data (geographic rasters???), this should not be problematic
-    BUT pay attention to rasters containing several bands (such as solar irradiance for OLCI products)
-    -> they are inverted as the columns are ordered reversely
+    -> use xr.open_dataset that manages that correctly
 """
 import logging
-import os
 from collections import defaultdict
 from functools import reduce
 from pathlib import Path
@@ -184,6 +179,7 @@ class S3SlstrProduct(S3Product):
         assert suffix in SLSTR_SUFFIX
         # Radiance bands
         self._radiance_file = f"{{}}_radiance_{suffix}.nc"
+        self._radiance_subds = f"{{}}_radiance_{suffix}"
 
         # Geocoding
         self._geo_file = f"geodetic_{suffix}.nc"
@@ -268,6 +264,7 @@ class S3SlstrProduct(S3Product):
         Returns:
             dict: Dictionary containing {band: path}
         """
+        band_str = band if isinstance(band, str) else band.value
 
         path = self._get_preprocessed_band_path(band, resolution=resolution)
 
@@ -277,9 +274,7 @@ class S3SlstrProduct(S3Product):
             )
 
             # Get raw band
-            raw_band_path = self._get_raw_band_path(band, subdataset)
-            band_arr = utils.read(raw_band_path).astype(np.float32)
-            band_arr *= band_arr.scale_factor
+            band_arr = self._read_nc(band, subdataset)
 
             # Adjust radiance if needed
             band_arr = self._radiance_adjustment(band_arr, band)
@@ -287,10 +282,16 @@ class S3SlstrProduct(S3Product):
             # Convert radiance to reflectances if needed
             # Convert first pixel by pixel before reprojection !
             if to_reflectance:
-                LOGGER.debug(
-                    f"Converting {os.path.basename(raw_band_path)} to reflectance"
-                )
+                LOGGER.debug(f"Converting {band_str} to reflectance")
                 band_arr = self._rad_2_refl(band_arr, band)
+
+                # Debug
+                utils.write(
+                    band_arr,
+                    self._get_band_folder(writable=True).joinpath(
+                        f"{self.condensed_name}_{band.name}_rad2refl.tif"
+                    ),
+                )
 
             # Geocode
             if isinstance(band, str):
@@ -299,7 +300,7 @@ class S3SlstrProduct(S3Product):
                 suffix = subdataset.split(".")[0][-2:]
             else:
                 suffix = self._suffix
-            LOGGER.debug(f"Geocoding {os.path.basename(raw_band_path)}")
+            LOGGER.debug(f"Geocoding {band_str}")
             pp_arr = self._geocode(band_arr, resolution=resolution, suffix=suffix)
 
             # Write on disk
@@ -373,9 +374,9 @@ class S3SlstrProduct(S3Product):
         tx_nc_name = "x_tx"
         ty_nc_name = "y_tx"
 
-        # WARNING: tie_data is flipped and RectBivariateSpline must have increasing values (and 1D inputs)
+        # WARNING: RectBivariateSpline must have increasing values
         tx = np.squeeze(self._read_nc(tie_cart_file, tx_nc_name).data)[0, ::-1]
-        ty = np.squeeze(self._read_nc(tie_cart_file, ty_nc_name).data)[::-1, 0]
+        ty = np.squeeze(self._read_nc(tie_cart_file, ty_nc_name).data)[:, 0]
 
         # Load fill image grid (cartesian)
         geo_file = f"cartesian_{suffix}.nc"
@@ -397,8 +398,7 @@ class S3SlstrProduct(S3Product):
         img_arr = spline_interp.ev(fy, fx)
         img_arr[img_arr == 0] = np.nan
 
-        # Need to flip it here (not sure exactly why)
-        return np.flipud(img_arr)
+        return img_arr
 
     def _bt_2_rad(self, band_arr: xr.DataArray, band: obn = None) -> xr.DataArray:
         """
@@ -520,16 +520,16 @@ class S3SlstrProduct(S3Product):
                 # band_arr *= 0.98
                 pass  # SNAP
             # S4
-            elif band == obn.SWIR_2:
+            elif band == obn.SWIR_CIRRUS:
                 pass
             # S5
             elif band == obn.SWIR_1:
                 # band_arr *= 1.11
-                band_arr *= 1.12  # SNAP
+                band_arr = band_arr * 1.12  # SNAP
             # S6
             elif band == obn.SWIR_2:
                 # band_arr *= 1.13
-                band_arr *= 1.13  # SNAP
+                band_arr = band_arr * 1.13  # SNAP
 
         # Oblique views
         elif self._suffix.endswith("o"):
@@ -546,16 +546,16 @@ class S3SlstrProduct(S3Product):
                 # band_arr *= 0.95
                 pass  # SNAP
             # S4
-            elif band == obn.SWIR_2:
+            elif band == obn.SWIR_CIRRUS:
                 pass
             # S5
             elif band == obn.SWIR_1:
                 # band_arr *= 1.04
-                band_arr *= 1.15  # SNAP
+                band_arr = band_arr * 1.15  # SNAP
             # S6
             elif band == obn.SWIR_2:
                 # band_arr *= 1.07
-                band_arr *= 1.14  # SNAP
+                band_arr = band_arr * 1.14  # SNAP
 
         return band_arr
 
