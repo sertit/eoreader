@@ -669,9 +669,7 @@ class Product:
             for band in band_list:
                 assert is_dem(band)
                 if band == DEM:
-                    path = self._warp_dem(
-                        dem_path, resolution=resolution, size=size, **kwargs
-                    )
+                    path = self._warp_dem(dem_path, resolution=resolution, size=size)
                 elif band == SLOPE:
                     path = self._compute_slope(
                         dem_path, resolution=resolution, size=size
