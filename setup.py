@@ -27,7 +27,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         "lxml",
-        "netCDF4",
+        "h5netcdf",
         "rasterio>=1.2.2",
         "xarray>=0.18.0",
         "rioxarray>=0.4.0",

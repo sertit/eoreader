@@ -17,7 +17,7 @@ twine
 tqdm
 lxml
 colorlog
-netCDF4
+h5netcdf
 rasterio>=1.2.2
 xarray>=0.18.0
 rioxarray>=0.4.0
