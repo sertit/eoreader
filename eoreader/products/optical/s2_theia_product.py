@@ -227,7 +227,9 @@ class S2TheiaProduct(OpticalProduct):
         """
         band_paths = {}
         for band in band_list:  # Get clean band path
-            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            clean_band = self._get_clean_band_path(
+                band, resolution=resolution, **kwargs
+            )
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
@@ -293,7 +295,9 @@ class S2TheiaProduct(OpticalProduct):
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels(self, band_arr: XDS_TYPE, band: obn) -> XDS_TYPE:
+    def _manage_invalid_pixels(
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
+    ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_ for more
@@ -302,6 +306,7 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
 
         Returns:
             XDS_TYPE: Cleaned band array
@@ -567,7 +572,11 @@ class S2TheiaProduct(OpticalProduct):
         return True
 
     def _load_clouds(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -589,6 +598,7 @@ class S2TheiaProduct(OpticalProduct):
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """

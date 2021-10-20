@@ -23,6 +23,7 @@ Sentinel-3 SLSTR products
 """
 import logging
 from collections import defaultdict, namedtuple
+from enum import unique
 from functools import reduce
 from pathlib import Path
 from typing import Union
@@ -37,12 +38,12 @@ from sertit.misc import ListEnum
 from sertit.rasters import MAX_CORES, XDS_TYPE
 from sertit.vectors import WGS84
 
-from eoreader import utils
+from eoreader import cache, utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.keywords import SLSTR_RAD_ADJUST
+from eoreader.keywords import SLSTR_RAD_ADJUST, SLSTR_STRIPE, SLSTR_VIEW
 from eoreader.products.optical.s3_product import (
     S3DataType,
     S3Instrument,
@@ -66,30 +67,70 @@ SLSTR_SOLAR_FLUXES_DEFAULT = {
     obn.SWIR_1: 248.33,
     obn.SWIR_2: 78.33,
 }
-SUFFIX_500m = ["an", "ao", "bn", "bo"]
-"""
-- "an" and "ao" refer to the 500 m grid, stripe A, respectively for nadir view (n) and oblique view (o)
-- "bn" and "bo" refer to the 500 m grid, stripe B
-"""
-
-SUFFIX_1km = ["in", "io", "fn", "fo"]
-"""
-- "in" and "io" refer to the 1 km grid
-- "fn" and "fo" refer to the F1 channel 1 km grid
-"""
-SLSTR_SUFFIX = SUFFIX_500m + SUFFIX_1km
 
 # Create
-SLSTR_RAD_BANDS = ["S1", "S2", "S3", "S4", "S5", "S6"]
+SLSTR_RAD_A_BANDS = ["S1", "S2", "S3"]
+SLSTR_RAD_ABC_BANDS = ["S4", "S5", "S6"]
 SLSTR_BT_BANDS = ["S7", "S8", "S9", "F1", "F2"]
+SLSTR_FIRE_BANDS = ["F1", "F2"]
 
+# Radiance adjustment
 # Nadir and Oblique
-FIELDS = [f"{rad}_n" for rad in SLSTR_RAD_BANDS] + [
-    f"{rad}_o" for rad in SLSTR_RAD_BANDS
+FIELDS = [f"{rad}_n" for rad in SLSTR_RAD_A_BANDS + SLSTR_RAD_ABC_BANDS] + [
+    f"{rad}_o" for rad in SLSTR_RAD_A_BANDS + SLSTR_RAD_ABC_BANDS
 ]
 SlstrRadAdjustTuple = namedtuple(
     "SlstrRadAdjustTuple", FIELDS, defaults=(1.0,) * len(FIELDS)
 )
+
+
+@unique
+class SlstrView(ListEnum):
+    """
+    Sentinel-3 SLSTR views: nadir view (n) and oblique view (o)
+
+    Used in the context:
+        - "an" and "ao" refer to the 500 m grid, stripe A, respectively for nadir view (n) and oblique view (o)
+        - "bn" and "bo" refer to the 500 m grid, stripe B
+        - "cn" and "co" refer to the 500 m grid, stripe C
+        - "in" and "io" refer to the 1 km grid
+        - "fn" and "fo" refer to the F1 channel 1 km grid
+    """
+
+    NADIR = "n"
+    """Nadir view (n)"""
+
+    OBLIQUE = "o"
+    """Oblique view (o)"""
+
+
+@unique
+class SlstrStripe(ListEnum):
+    """
+    Sentinel-3 SLSTR stripes for 500m data: A and B
+
+    Used in the context:
+        - "an" and "ao" refer to the 500 m grid, stripe A, respectively for nadir view (n) and oblique view (o)
+        - "bn" and "bo" refer to the 500 m grid, stripe B
+        - "cn" and "co" refer to the 500 m grid, TDI
+        - "in" and "io" refer to the 1 km grid
+        - "fn" and "fo" refer to the F1 channel 1 km grid
+    """
+
+    A = "a"
+    """Stripe A (a)"""
+
+    B = "b"
+    """Stripe B (b)"""
+
+    TDI = "c"
+    """TDI (c)"""
+
+    I = "i"  # noqa
+    """Not really a stripe, but refers to the 1 km grid"""
+
+    F = "f"
+    """Not really a stripe, but refers to the F1 channel 1 km grid"""
 
 
 class SlstrRadAdjust(ListEnum):
@@ -187,7 +228,11 @@ class S3SlstrProduct(S3Product):
         self._flags_file = None
         self._cloud_name = None
         self._exception_name = None
-        self._suffix = "an"
+
+        # Default stripe (A) and view (NADIR)
+        self._stripe = SlstrStripe.A
+        self._view = SlstrView.NADIR
+        self._rad_adjust = SlstrRadAdjust.S3_PN_SLSTR_L1_08
 
         super().__init__(
             product_path, archive_path, output_path, remove_tmp
@@ -222,48 +267,42 @@ class S3SlstrProduct(S3Product):
 
         return getattr(Platform, sat_id)
 
-    def change_suffix(self, new_suffix: str) -> None:
+    def _get_preprocessed_band_path(
+        self,
+        band: Union[obn, str],
+        suffix: str,
+        resolution: Union[float, tuple, list] = None,
+        writable: bool = True,
+    ) -> Union[CloudPath, Path]:
         """
-        Changing the file [suffix]
-        (https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/observation-mode-desc)
-
-        Note that the name of each netCDF file provides information about it's content.
-        The suffix of each filename is associated with the selected grid:
-        - "an" and "ao" refer to the 500 m grid, stripe A, respectively for nadir view (n) and oblique view (o)
-        - "bn" and "bo" refer to the 500 m grid, stripe B
-        - "in" and "io" refer to the 1 km grid
-        - "fn" and "fo" refer to the F1 channel 1 km grid
-        - "tx/n/o" refer to the tie-point grid for agnostic/nadir and oblique view
+        Create the pre-processed band path
 
         Args:
-            new_suffix (str): New suffix (accepted ones: `an`, `ao`, `bn`, `bo`, `in`, `io`, `fn`, `fo`)
-        """
-        assert new_suffix in SLSTR_SUFFIX
-        self._suffix = new_suffix
-        self._set_preprocess_members(new_suffix)
-
-    def _set_preprocess_members(self, suffix: str = "an"):
-        """
-        Set pre-process members.
-
-        Initialize suffix to an
-
-        Args:
-            suffix (str): Suffix
+            band (band: Union[obn, str]): Wanted band (quality flags accepted)
+            resolution (Union[float, tuple, list]): Resolution of the wanted UTM band
+            writable (bool): Do we need to write the pre-processed band ?
 
         Returns:
-
+            Union[CloudPath, Path]: Pre-processed band path
         """
-        assert suffix in SLSTR_SUFFIX
+        res_str = self._resolution_to_str(resolution)
+        band_str = band.name if isinstance(band, obn) else band
+
+        return self._get_band_folder(writable=writable).joinpath(
+            f"{self.condensed_name}_{band_str}_{suffix}_{res_str}.tif"
+        )
+
+    def _set_preprocess_members(self):
+        """ Set pre-process members """
         # Radiance bands
-        self._radiance_file = f"{{}}_radiance_{suffix}.nc"
-        self._radiance_subds = f"{{}}_radiance_{suffix}"
+        self._radiance_file = "{band}_radiance_{suffix}.nc"
+        self._radiance_subds = "{band}_radiance_{suffix}"
 
         # Geocoding
-        self._geo_file = f"geodetic_{suffix}.nc"
-        self._lat_nc_name = f"latitude_{suffix}"
-        self._lon_nc_name = f"longitude_{suffix}"
-        self._alt_nc_name = f"elevation_{suffix}"
+        self._geo_file = "geodetic_{suffix}.nc"
+        self._lat_nc_name = "latitude_{suffix}"
+        self._lon_nc_name = "longitude_{suffix}"
+        self._alt_nc_name = "elevation_{suffix}"
 
         # Tie geocoding
         self._tie_geo_file = "geodetic_tx.nc"
@@ -271,20 +310,20 @@ class S3SlstrProduct(S3Product):
         self._tie_lon_nc_name = "longitude_tx"
 
         # Mean Sun angles
-        self._geom_file = f"geometry_t{suffix[-1]}.nc"
-        self._saa_name = f"solar_azimuth_t{suffix[-1]}"
-        self._sza_name = f"solar_zenith_t{suffix[-1]}"
+        self._geom_file = "geometry_t{view}.nc"
+        self._saa_name = "solar_azimuth_t{view}"
+        self._sza_name = "solar_zenith_t{view}"
 
         # Rad 2 Refl
-        self._misc_file = f"{{}}_quality_{suffix}.nc"
-        self._solar_flux_name = f"{{}}_solar_irradiance_{suffix}"
+        self._misc_file = "{band}_quality_{suffix}.nc"
+        self._solar_flux_name = "{band}_solar_irradiance_{suffix}"
 
         # Clouds
-        self._flags_file = f"flags_{suffix}.nc"
-        self._cloud_name = f"cloud_{suffix}"
+        self._flags_file = "flags_{suffix}.nc"
+        self._cloud_name = "cloud_{suffix}"
 
         # Other
-        self._exception_name = f"{{}}_exception_{suffix}"
+        self._exception_name = "{band}_exception_{suffix}"
 
     def _set_resolution(self) -> float:
         """
@@ -304,19 +343,19 @@ class S3SlstrProduct(S3Product):
         # Bands
         self.band_names.map_bands(
             {
-                obn.GREEN: SLSTR_RAD_BANDS[0],  # S1, radiance, 500m
-                obn.RED: SLSTR_RAD_BANDS[1],  # S2, radiance, 500m
-                obn.NIR: SLSTR_RAD_BANDS[2],  # S3, radiance, 500m
-                obn.NARROW_NIR: SLSTR_RAD_BANDS[3],  # S3, radiance, 500m
-                obn.SWIR_CIRRUS: SLSTR_RAD_BANDS[3],  # S4, radiance, 500m
-                obn.SWIR_1: SLSTR_RAD_BANDS[4],  # S5, radiance, 500m
-                obn.SWIR_2: SLSTR_RAD_BANDS[5],  # S6, radiance, 500m
+                obn.GREEN: SLSTR_RAD_A_BANDS[0],  # S1, radiance, 500m
+                obn.RED: SLSTR_RAD_A_BANDS[1],  # S2, radiance, 500m
+                obn.NIR: SLSTR_RAD_A_BANDS[2],  # S3, radiance, 500m
+                obn.NARROW_NIR: SLSTR_RAD_ABC_BANDS[0],  # S3, radiance, 500m
+                obn.SWIR_CIRRUS: SLSTR_RAD_ABC_BANDS[0],  # S4, radiance, 500m
+                obn.SWIR_1: SLSTR_RAD_ABC_BANDS[1],  # S5, radiance, 500m
+                obn.SWIR_2: SLSTR_RAD_ABC_BANDS[2],  # S6, radiance, 500m
                 # TODO: convert BT to radiance to use it
                 # SLSTR_BT_BANDS[0]: SLSTR_BT_BANDS[0],  # S7, brilliance temperature, 1km
                 # obn.TIR_1: SLSTR_BT_BANDS[1],  # S8, brilliance temperature, 1km
                 # obn.TIR_2: SLSTR_BT_BANDS[2],  # S9, brilliance temperature, 1km
-                # SLSTR_BT_BANDS[3]: SLSTR_BT_BANDS[3],  # F1, brilliance temperature, 1km
-                # SLSTR_BT_BANDS[4]: "SLSTR_BT_BANDS[4],  # F2, brilliance temperature, 1km
+                # SLSTR_FIRE_BANDS[0]: SLSTR_FIRE_BANDS[0],  # F1, brilliance temperature, 1km
+                # SLSTR_FIRE_BANDS[1]: "SLSTR_FIRE_BANDS[1],  # F2, brilliance temperature, 1km
             }
         )
 
@@ -346,44 +385,47 @@ class S3SlstrProduct(S3Product):
         """
         band_str = band if isinstance(band, str) else band.value
 
-        path = self._get_preprocessed_band_path(band, resolution=resolution)
+        # Get this band's suffix
+        suffix = kwargs.get("suffix")
+        if not suffix:
+            suffix = self._get_suffix(band, **kwargs)
+
+        path = self._get_preprocessed_band_path(
+            band, suffix=suffix, resolution=resolution
+        )
 
         if not path.is_file():
             path = self._get_preprocessed_band_path(
-                band, resolution=resolution, writable=True
+                band, suffix=suffix, resolution=resolution, writable=True
             )
 
             # Get raw band
-            band_arr = self._read_nc(band, subdataset)
+            band_arr = self._read_nc(band, subdataset, suffix)
 
             # Adjust radiance if needed
             # Get the user's radiance adjustment if existing
-            rad_adjust = kwargs.get(SLSTR_RAD_ADJUST, SlstrRadAdjust.S3_PN_SLSTR_L1_08)
-            assert isinstance(rad_adjust, SlstrRadAdjust)
-            band_arr = self._radiance_adjustment(band_arr, band, rad_adjust=rad_adjust)
+            rad_adjust = SlstrRadAdjust.from_value(
+                kwargs.get(SLSTR_RAD_ADJUST, self._rad_adjust)
+            )
+            band_arr = self._radiance_adjustment(
+                band_arr, band, view=suffix[-1], rad_adjust=rad_adjust
+            )
 
             # Convert radiance to reflectances if needed
             # Convert first pixel by pixel before reprojection !
             if to_reflectance:
                 LOGGER.debug(f"Converting {band_str} to reflectance")
-                band_arr = self._rad_2_refl(band_arr, band)
+                band_arr = self._rad_2_refl(band_arr, band, suffix)
 
                 # Debug
-                utils.write(
-                    band_arr,
-                    self._get_band_folder(writable=True).joinpath(
-                        f"{self.condensed_name}_{band.name}_rad2refl.tif"
-                    ),
-                )
+                # utils.write(
+                #     band_arr,
+                #     self._get_band_folder(writable=True).joinpath(
+                #         f"{self.condensed_name}_{band.name}_rad2refl.tif"
+                #     ),
+                # )
 
             # Geocode
-            if isinstance(band, str):
-                suffix = band.split(".")[0][-2:]
-            elif subdataset is not None:
-                suffix = subdataset.split(".")[0][-2:]
-            else:
-                suffix = self._suffix
-            LOGGER.debug(f"Geocoding {band_str}")
             pp_arr = self._geocode(band_arr, resolution=resolution, suffix=suffix)
 
             # Write on disk
@@ -391,15 +433,53 @@ class S3SlstrProduct(S3Product):
 
         return path
 
+    def _get_suffix(self, band: Union[str, obn] = None, **kwargs) -> str:
+        """
+        Get the suffix according to the (given) stripe and view.
+            - "an" and "ao" refer to the 500 m grid, stripe A, respectively for nadir view (n) and oblique view (o)
+            - "bn" and "bo" refer to the 500 m grid, stripe B
+            - "cn" and "co" refer to the 500 m grid, stripe C
+            - "in" and "io" refer to the 1 km grid
+            - "fn" and "fo" refer to the F1 channel 1 km grid
+
+        Args:
+            band (Union[obn, str]): Band from which to get the stripe
+            kwargs: Other arguments
+
+        Returns:
+            str: Suffix (an, bn, cn, in, fn, ao, bo, co, io, fo)
+        """
+        # Get the view
+        view = SlstrView.from_value(kwargs.get(SLSTR_VIEW, self._view))
+
+        if band is not None:
+            # Get the stripe
+            if isinstance(band, obn):
+                band = self.band_names[band]
+
+            if band in SLSTR_BT_BANDS:
+                stripe = SlstrStripe.I
+            elif band in SLSTR_FIRE_BANDS:
+                stripe = SlstrStripe.F
+            elif band in SLSTR_RAD_ABC_BANDS:
+                stripe = SlstrStripe.from_value(kwargs.get(SLSTR_STRIPE, SlstrStripe.A))
+            else:
+                stripe = SlstrStripe.A
+        else:
+            stripe = SlstrStripe.from_value(kwargs.get(SLSTR_STRIPE, SlstrStripe.A))
+
+        # Return the prefix
+        return f"{stripe.value}{view.value}"
+
     def _create_gcps(self, suffix: str) -> None:
         """
         Create the GCPs sequence (WGS84)
         """
         if suffix not in self._gcps and not self._gcps[suffix]:
-            geo_file = f"geodetic_{suffix}.nc"
-            lon_nc_name = f"longitude_{suffix}"
-            lat_nc_name = f"latitude_{suffix}"
-            alt_nc_name = f"elevation_{suffix}"
+            geo_file = self._replace(self._geo_file, suffix=suffix)
+            lon_nc_name = self._replace(self._lon_nc_name, suffix=suffix)
+            lat_nc_name = self._replace(self._lat_nc_name, suffix=suffix)
+            alt_nc_name = self._replace(self._alt_nc_name, suffix=suffix)
 
             # Open cartesian files to populate the GCPs
             lat = self._read_nc(geo_file, lat_nc_name)
@@ -410,22 +490,19 @@ class S3SlstrProduct(S3Product):
             self._gcps[suffix] = utils.create_gcps(lon, lat, alt)
 
     def _geocode(
-        self, band_arr: xr.DataArray, resolution: float = None, suffix: str = None
+        self, band_arr: xr.DataArray, suffix: str, resolution: float = None
     ) -> xr.DataArray:
         """
         Geocode Sentinel-3 SLSTR bands (using cartesian coordinates)
 
         Args:
             band_arr (xr.DataArray): Band array
-            resolution (float): Resolution
             suffix (str): Suffix (for the grid)
+            resolution (float): Resolution
 
         Returns:
             xr.DataArray: Geocoded DataArray
         """
-        if not suffix:
-            suffix = self._suffix
-
         # Create GCPs if not existing
         self._create_gcps(suffix)
 
@@ -504,7 +581,9 @@ class S3SlstrProduct(S3Product):
 
         return band_arr
 
-    def _rad_2_refl(self, band_arr: xr.DataArray, band: obn = None) -> xr.DataArray:
+    def _rad_2_refl(
+        self, band_arr: xr.DataArray, band: obn, suffix: str
+    ) -> xr.DataArray:
         """
         Convert radiance to reflectance
 
@@ -524,22 +603,26 @@ class S3SlstrProduct(S3Product):
         Args:
             band_arr (xr.DataArray): Band array
             band (obn): Optical Band
+            suffix (str): Band suffix
 
         Returns:
             dict: Dictionary containing {band: path}
         """
-        rad_2_refl_path = self._get_band_folder() / f"rad_2_refl_{band.name}.npy"
+        rad_2_refl_path = (
+            self._get_band_folder() / f"rad_2_refl_{band.name}_{suffix}.npy"
+        )
 
         if not rad_2_refl_path.is_file():
             rad_2_refl_path = (
-                self._get_band_folder(writable=True) / f"rad_2_refl_{band.name}.npy"
+                self._get_band_folder(writable=True)
+                / f"rad_2_refl_{band.name}_{suffix}.npy"
             )
 
             # Open SZA array (resampled to band_arr size)
-            sza = self._compute_sza_img_grid()
+            sza = self._compute_sza_img_grid(suffix)
 
             # Open solar flux (resampled to band_arr size)
-            e0 = self._compute_e0(band)
+            e0 = self._compute_e0(band, suffix)
 
             # Compute rad_2_refl coeff
             rad_2_refl_coeff = (np.pi / e0 / np.cos(sza)).astype(np.float32)
@@ -556,7 +639,8 @@ class S3SlstrProduct(S3Product):
     def _radiance_adjustment(
         self,
         band_arr: xr.DataArray,
-        band: obn = None,
+        band: Union[str, obn],
+        view: str,
         rad_adjust: SlstrRadAdjust = SlstrRadAdjust.S3_PN_SLSTR_L1_08,
     ) -> xr.DataArray:
         """
@@ -586,6 +670,7 @@ class S3SlstrProduct(S3Product):
         Args:
             band_arr (xr.DataArray): Band array
             band (obn): Optical Band
+            view (str): View (n or o for Nadir and Oblique)
             rad_adjust (SlstrRadAdjust): Radiance Adjustment
 
         Returns:
@@ -593,8 +678,8 @@ class S3SlstrProduct(S3Product):
         """
         try:
             band_name = self.band_names[band]
-            if band_name in SLSTR_RAD_BANDS:
-                rad_coeff = getattr(rad_adjust.value, f"{band_name}_{self._suffix[-1]}")
+            if band_name in SLSTR_RAD_A_BANDS + SLSTR_RAD_ABC_BANDS:
+                rad_coeff = getattr(rad_adjust.value, f"{band_name}_{view}")
             else:
                 # Brilliance temperature
                 rad_coeff = 1.0
@@ -603,23 +688,26 @@ class S3SlstrProduct(S3Product):
             # Not a band (ie Quality Flags)
             return band_arr
 
-    def _compute_sza_img_grid(self) -> np.ndarray:
+    def _compute_sza_img_grid(self, suffix) -> np.ndarray:
         """
         Compute Sun Zenith Angle (in radian) resampled to the image grid (from the tie point grid)
 
+        Args:
+            suffix (str): Suffix
         Returns:
             np.ndarray: Resampled Sun Zenith Angle as a numpy array
         """
-        sza_img_path = self._get_band_folder() / f"sza_{self._suffix}.npy"
+        sza_img_path = self._get_band_folder() / f"sza_{suffix}.npy"
         if not sza_img_path.exists():
-            sza_img_path = (
-                self._get_band_folder(writable=True) / f"sza_{self._suffix}.npy"
-            )
-            sza = self._read_nc(self._geom_file, self._sza_name)
+            sza_img_path = self._get_band_folder(writable=True) / f"sza_{suffix}.npy"
+
+            geom_file = self._replace(self._geom_file, view=suffix[-1])
+            sza_name = self._replace(self._sza_name, view=suffix[-1])
+            sza = self._read_nc(geom_file, sza_name)
             sza_rad = sza * np.pi / 180.0
 
             # From tie grid to image grid
-            sza_img = self._tie_to_img(sza_rad, self._suffix)
+            sza_img = self._tie_to_img(sza_rad, suffix)
 
             # Write on disk
             np.save(sza_img_path, sza_img)
@@ -630,19 +718,20 @@ class S3SlstrProduct(S3Product):
 
         return sza_img
 
-    def _compute_e0(self, band: obn = None) -> np.ndarray:
+    def _compute_e0(self, band: obn, suffix: str) -> np.ndarray:
         """
         Compute the solar spectral flux in mW / (m^2 * sr * nm)
 
         Args:
             band (obn): Optical Band
+            suffix (str): Suffix
 
         Returns:
             np.ndarray: Solar Flux
 
         """
-        misc = self._misc_file.replace("{}", self.band_names[band])
-        solar_flux_name = self._solar_flux_name.replace("{}", self.band_names[band])
+        misc = self._replace(self._misc_file, band=band, suffix=suffix)
+        solar_flux_name = self._replace(self._solar_flux_name, band=band, suffix=suffix)
 
         e0 = self._read_nc(misc, solar_flux_name).data
         e0 = np.nanmean(e0)
@@ -653,7 +742,9 @@ class S3SlstrProduct(S3Product):
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels(self, band_arr: XDS_TYPE, band: obn) -> XDS_TYPE:
+    def _manage_invalid_pixels(
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
+    ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
@@ -662,6 +753,7 @@ class S3SlstrProduct(S3Product):
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
 
         Returns:
             XDS_TYPE: Cleaned band array
@@ -670,7 +762,8 @@ class S3SlstrProduct(S3Product):
         # NOT OPTIMIZED, MAYBE CHECK INVALID PIXELS ON NOT GEOCODED DATA
         qual_flags_path = self._preprocess(
             band,
-            subdataset=self._exception_name.replace("{}", self.band_names[band]),
+            suffix=self._get_suffix(band, **kwargs),
+            subdataset=self._replace(self._exception_name, band=band),
             resolution=band_arr.rio.resolution(),
             to_reflectance=False,
         )
@@ -713,7 +806,11 @@ class S3SlstrProduct(S3Product):
         return has_band
 
     def _load_clouds(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -744,6 +841,7 @@ class S3SlstrProduct(S3Product):
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -752,13 +850,16 @@ class S3SlstrProduct(S3Product):
         if bands:
             all_ids = list(np.arange(0, 14))
             cir_id = 8
-            cloud_ids = [id for id in all_ids if id != cir_id]
+            cloud_ids = [cid for cid in all_ids if cid != cir_id]
 
             # Open path
-            # TODO
+            suffix = self._get_suffix(**kwargs)
+            flags_file = self._replace(self._flags_file, suffix=suffix)
+            cloud_name = self._replace(self._cloud_name, suffix=suffix)
             cloud_path = self._preprocess(
-                self._flags_file,
-                subdataset=self._cloud_name,
+                flags_file,
+                suffix=suffix,
+                subdataset=cloud_name,
                 resolution=resolution,
                 to_reflectance=False,
             )
@@ -824,3 +925,54 @@ class S3SlstrProduct(S3Product):
         cond_arr = np.expand_dims(cond_arr, axis=0)
 
         return super()._create_mask(bit_array, cond_arr, nodata)
+
+    @cache
+    def get_mean_sun_angles(self, view: SlstrView = SlstrView.NADIR) -> (float, float):
+        """
+        Get Mean Sun angles (Azimuth and Zenith angles)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_sun_angles()
+            (78.55043955912154, 31.172127033319388)
+
+        Args:
+            view (SlstrView): SLSTR View (Nadir or Oblique)
+        Returns:
+            (float, float): Mean Azimuth and Zenith angle
+        """
+        geom_file = self._replace(self._geom_file, view=view.value)
+        saa_name = self._replace(self._saa_name, view=view.value)
+        sza_name = self._replace(self._sza_name, view=view.value)
+
+        # Open sun azimuth and zenith files
+        sun_az = self._read_nc(geom_file, saa_name)
+        sun_ze = self._read_nc(geom_file, sza_name)
+
+        return sun_az.mean().data % 360, sun_ze.mean().data
+
+    def _get_clean_band_path(
+        self, band: obn, resolution: float = None, writable: bool = False, **kwargs
+    ) -> Union[CloudPath, Path]:
+        """
+        Get clean band path.
+
+        The clean band is the opened band where invalid pixels have been managed.
+
+        Args:
+            band (OpticalBandNames): Wanted band
+            resolution (float): Band resolution in meters
+            kwargs: Additional arguments
+
+        Returns:
+            Union[CloudPath, Path]: Clean band path
+        """
+        suffix = self._get_suffix(band, **kwargs)
+        res_str = self._resolution_to_str(resolution)
+
+        return self._get_band_folder(writable).joinpath(
+            f"{self.condensed_name}_{band.name}_{suffix}_{res_str.replace('.', '-')}_clean.tif",
+        )

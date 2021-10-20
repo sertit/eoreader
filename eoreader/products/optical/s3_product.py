@@ -44,7 +44,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from shapely.geometry import Polygon, box
 
-from eoreader import cache, cached_property, utils
+from eoreader import cached_property, utils
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
@@ -273,6 +273,36 @@ class S3Product(OpticalProduct):
 
         return riocrs.CRS.from_string(utm)
 
+    def _replace(
+        self,
+        ppm_to_replace: str,
+        band: Union[str, obn] = None,
+        suffix: str = None,
+        view: str = None,
+    ) -> str:
+        """
+        Replace preprocessed members strings
+
+        Args:
+            ppm_to_replace (str): Preprocessed member to replace
+            band (Union[str, obn]): Replace the band
+            suffix (str): Replace the suffix
+            view (str): Replace the view
+
+        Returns:
+            Completed preprocessed member
+        """
+        substitutions = {
+            "{band}": self.band_names[band] if isinstance(band, obn) else band,
+            "{suffix}": suffix,
+            "{view}": view,
+        }
+        for search, replacement in substitutions.items():
+            if replacement is not None:
+                ppm_to_replace = ppm_to_replace.replace(search, replacement)
+
+        return ppm_to_replace
+
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
@@ -310,30 +340,6 @@ class S3Product(OpticalProduct):
 
         return date
 
-    def _get_preprocessed_band_path(
-        self,
-        band: Union[obn, str],
-        resolution: Union[float, tuple, list] = None,
-        writable=True,
-    ) -> Union[CloudPath, Path]:
-        """
-        Create the pre-processed band path
-
-        Args:
-            band (band: Union[obn, str]): Wanted band (quality flags accepted)
-            resolution (Union[float, tuple, list]): Resolution of the wanted UTM band
-            writable (bool): Do we need to write the pre-processed band ?
-
-        Returns:
-            Union[CloudPath, Path]: Pre-processed band path
-        """
-        res_str = self._resolution_to_str(resolution)
-        band_str = band.name if isinstance(band, obn) else band
-
-        return self._get_band_folder(writable=writable).joinpath(
-            f"{self.condensed_name}_{band_str}_{res_str}.tif"
-        )
-
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
     ) -> dict:
@@ -367,7 +373,9 @@ class S3Product(OpticalProduct):
         band_paths = {}
         for band in band_list:
             # Get clean band path
-            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            clean_band = self._get_clean_band_path(
+                band, resolution=resolution, **kwargs
+            )
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
@@ -415,13 +423,16 @@ class S3Product(OpticalProduct):
         return band.astype(np.float32) * band.scale_factor
 
     @abstractmethod
-    def _manage_invalid_pixels(self, band_arr: XDS_TYPE, band: obn) -> XDS_TYPE:
+    def _manage_invalid_pixels(
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
+    ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
 
         Returns:
             XDS_TYPE: Cleaned band array
@@ -499,28 +510,6 @@ class S3Product(OpticalProduct):
             str: Condensed name
         """
         return f"{self.get_datetime()}_{self.platform.name}_{self._data_type.name}"
-
-    @cache
-    def get_mean_sun_angles(self) -> (float, float):
-        """
-        Get Mean Sun angles (Azimuth and Zenith angles)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
-            >>> prod = Reader().open(path)
-            >>> prod.get_mean_sun_angles()
-            (78.55043955912154, 31.172127033319388)
-
-        Returns:
-            (float, float): Mean Azimuth and Zenith angle
-        """
-        # Open sun azimuth and zenith files
-        sun_az = self._read_nc(self._geom_file, self._saa_name)
-        sun_ze = self._read_nc(self._geom_file, self._sza_name)
-
-        return sun_az.mean().data % 360, sun_ze.mean().data
 
     def _read_mtd(self) -> (etree._Element, dict):
         """
@@ -613,7 +602,7 @@ class S3Product(OpticalProduct):
         return mtd_el, {}
 
     def _read_nc(
-        self, filename: Union[str, obn], subdataset: str = None
+        self, filename: Union[str, obn], subdataset: str = None, suffix: str = None
     ) -> xr.DataArray:
         """
         Read NetCDF file (as float32) and rescaled them to their true values
@@ -627,6 +616,7 @@ class S3Product(OpticalProduct):
         Args:
             filename (Union[str, obn]): Filename or band
             subdataset (str): NetCDF subdataset if needed
+            suffix (str): Suffix for SLSTR data
 
         Returns:
             xr.DataArray: NetCDF file as a xr.DataArray
@@ -643,10 +633,10 @@ class S3Product(OpticalProduct):
         # Get band regex
         if isinstance(filename, obn):
             if not subdataset:
-                subdataset = self._radiance_subds.replace(
-                    "{}", self.band_names[filename]
+                subdataset = self._replace(
+                    self._radiance_subds, band=filename, suffix=suffix
                 )
-            filename = self._radiance_file.replace("{}", self.band_names[filename])
+            filename = self._replace(self._radiance_file, band=filename, suffix=suffix)
 
         # Get raw band path
         if self.is_archived:
@@ -720,7 +710,11 @@ class S3Product(OpticalProduct):
 
     @abstractmethod
     def _load_clouds(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -729,6 +723,7 @@ class S3Product(OpticalProduct):
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
