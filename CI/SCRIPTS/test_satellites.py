@@ -18,6 +18,8 @@ from eoreader.env_vars import (
     SAR_DEF_RES,
     TEST_USING_S3_DB,
 )
+from eoreader.keywords import SLSTR_RAD_ADJUST
+from eoreader.products.optical.s3_slstr_product import SlstrRadAdjust
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
@@ -91,7 +93,7 @@ def test_invalid():
     assert not READER.valid_name(wrong_path, "S2")
 
 
-def _test_core_optical(pattern: str, dem_path=None, debug=False):
+def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
     """
     Core function testing optical data
     Args:
@@ -99,10 +101,10 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False):
         debug (bool): Debug option
     """
     possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
-    _test_core(pattern, opt_path(), possible_bands, dem_path, debug)
+    _test_core(pattern, opt_path(), possible_bands, dem_path, debug, **kwargs)
 
 
-def _test_core_sar(pattern: str, dem_path=None, debug=False):
+def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
     """
     Core function testing SAR data
     Args:
@@ -110,11 +112,16 @@ def _test_core_sar(pattern: str, dem_path=None, debug=False):
         debug (bool): Debug option
     """
     possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
-    _test_core(pattern, sar_path(), possible_bands, dem_path, debug)
+    _test_core(pattern, sar_path(), possible_bands, dem_path, debug, **kwargs)
 
 
 def _test_core(
-    pattern: str, prod_dir: str, possible_bands: list, dem_path=None, debug=False
+    pattern: str,
+    prod_dir: str,
+    possible_bands: list,
+    dem_path=None,
+    debug=False,
+    **kwargs,
 ):
     """
     Core function testing all data
@@ -251,7 +258,7 @@ def _test_core(
                         tmp_dir, f"{prod.condensed_name}_stack.tif"
                     )
                     stack = prod.stack(
-                        stack_bands, resolution=res, stack_path=curr_path
+                        stack_bands, resolution=res, stack_path=curr_path, **kwargs
                     )
                     assert stack.dtype == np.float32
 
@@ -276,7 +283,7 @@ def _test_core(
                         ci_band = curr_path_band
 
                     band_arr = prod.load(
-                        first_band, size=(stack.rio.width, stack.rio.height)
+                        first_band, size=(stack.rio.width, stack.rio.height), **kwargs
                     )[first_band]
                     rasters.write(band_arr, curr_path_band)
                     assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
@@ -324,7 +331,7 @@ def test_s3_olci():
 def test_s3_slstr():
     """Function testing the correct functioning of the optical satellites"""
     # Init logger
-    _test_core_optical("*S3*_SL_1_*")
+    _test_core_optical("*S3*_SL_1_*", **{SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP})
 
 
 @s3_env
