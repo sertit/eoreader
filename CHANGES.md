@@ -13,6 +13,7 @@
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
 - **ENH: Archived Sentinel-3 products can now be processed**
 - **ENH: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** #10
+- **ENH: Allow the use of `kwargs` in `load`, mainly for `rasters.read` (and allowing ie. radiometric adjustment in S3-SLSTR)**
 
 
 - OPTIM: `crs`, `footprint`, `extent`, `default_transform`, `wgs84_extent` are cached (using `@cached_property`)

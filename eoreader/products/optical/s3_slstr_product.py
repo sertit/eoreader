@@ -22,7 +22,7 @@ Sentinel-3 SLSTR products
     -> use xr.open_dataset that manages that correctly
 """
 import logging
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from functools import reduce
 from pathlib import Path
 from typing import Union
@@ -33,6 +33,7 @@ from cloudpathlib import CloudPath
 from rasterio import features
 from rasterio.enums import Resampling
 from sertit import rasters, rasters_rio
+from sertit.misc import ListEnum
 from sertit.rasters import MAX_CORES, XDS_TYPE
 from sertit.vectors import WGS84
 
@@ -51,7 +52,6 @@ from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-BT_BANDS = [obn.MIR, obn.TIR_1, obn.TIR_2]
 
 # FROM SNAP (only for radiance bands, not for brilliance temperatures)
 # https://github.com/senbox-org/s3tbx/blob/197c9a471002eb2ec1fbd54e9a31bfc963446645/s3tbx-rad2refl/src/main/java/org/esa/s3tbx/processor/rad2refl/Rad2ReflConstants.java#L141
@@ -77,6 +77,87 @@ SUFFIX_1km = ["in", "io", "fn", "fo"]
 - "fn" and "fo" refer to the F1 channel 1 km grid
 """
 SLSTR_SUFFIX = SUFFIX_500m + SUFFIX_1km
+
+# Create
+SLSTR_RAD_BANDS = ["S1", "S2", "S3", "S4", "S5", "S6"]
+SLSTR_BT_BANDS = ["S7", "S8", "S9", "F1", "F2"]
+
+# Nadir and Oblique
+FIELDS = [f"{rad}_n" for rad in SLSTR_RAD_BANDS] + [
+    f"{rad}_o" for rad in SLSTR_RAD_BANDS
+]
+SlstrRadiometricAdjustment = namedtuple(
+    "SlstrRadiometricAdjustment", FIELDS, defaults=(1.0,) * len(FIELDS)
+)
+
+
+class SlstrRadiometricAdjustmentEnum(ListEnum):
+    """
+    SLSTR Radiometric Adjustment dictionaries.
+
+    Sentinel-3 SLSTR radiometry is not nominal, therefore a first-order radiometric correction is provided.
+    """
+
+    SNAP = SlstrRadiometricAdjustment(
+        # Nadir
+        S5_n=1.12,
+        S6_n=1.13,
+        # Oblique
+        S5_o=1.15,
+        S6_o=1.14,
+    )
+    """
+    SNAP Radiometric adjustment used in S3MPC Adjustment (optional in SNAP). Coefficients can be seen
+    [here](https://github.com/senbox-org/s3tbx/blob/b10514e399f7a8a436002d2bacdb0c62be72f8f8/s3tbx-sentinel3-reader/src/main/java/org/esa/s3tbx/dataio/s3/slstr/SlstrLevel1ProductFactory.java#L72-L75)
+    """
+
+    S3_PN_SLSTR_L1_06 = SlstrRadiometricAdjustment(
+        # Nadir
+        S5_n=1.12,
+        S6_n=1.15,
+        # Oblique
+        S5_o=1.20,
+        S6_o=1.26,
+    )
+    """
+    Coefficients given in the
+    [Sentinel-3 Product Notice 06](https://www-cdn.eumetsat.int/files/2020-04/pdf_s3a_pn_slstr_l1_06.pdf),
+    edited the 07/11/2018 and reviewed the 19/11/2018
+    """
+
+    S3_PN_SLSTR_L1_07 = S3_PN_SLSTR_L1_06
+    """
+    Coefficients given in the
+    [Sentinel-3 Product Notice 07](https://www-cdn.eumetsat.int/files/2020-06/pdf_s3a_pn_slstr_l1_07_1.1.pdf),
+    edited the 15/01/2020 and reviewed the 09/06/2020, same as the Product Notice 06.
+    """
+
+    S3_PN_SLSTR_L1_08 = SlstrRadiometricAdjustment(
+        # Nadir
+        S1_n=0.97,
+        S2_n=0.98,
+        S3_n=0.98,
+        S5_n=1.11,
+        S6_n=1.13,
+        # Oblique
+        S1_o=0.94,
+        S2_o=0.95,
+        S3_o=0.95,
+        S5_o=1.04,
+        S6_o=1.07,
+    )
+    """
+    Coefficients given in the
+    [Sentinel-3 Product Notice 08](https://www-cdn.eumetsat.int/files/2021-05/S3.PN-SLSTR-L1.08%20-%20i1r0%20-%20SLSTR%20L1%20PB%202.75-A%20and%201.53-B.pdf),
+    edited the 18/05/2021.
+
+    The default one.
+    """
+
+    NONE = SlstrRadiometricAdjustment()
+    """
+    Coefficients set to one.
+    """
 
 
 class S3SlstrProduct(S3Product):
@@ -226,20 +307,20 @@ class S3SlstrProduct(S3Product):
         # Bands
         self.band_names.map_bands(
             {
-                obn.GREEN: "S1",  # radiance, 500m
-                obn.RED: "S2",  # radiance, 500m
-                obn.NIR: "S3",  # radiance, 500m
-                obn.NARROW_NIR: "S3",  # radiance, 500m
-                obn.SWIR_CIRRUS: "S4",  # radiance, 500m
-                obn.SWIR_1: "S5",  # radiance, 500m
-                obn.SWIR_2: "S6",  # radiance, 500m
-                # "S7": "S7",  # brilliance temperature, 1km   # TODO: convert BT to radiance to use it
-                # obn.TIR_1: "S8",  # brilliance temperature, 1km   # TODO: convert BT to radiance to use it
-                # obn.TIR_2: "S9",  # brilliance temperature, 1km   # TODO: convert BT to radiance to use it
-                # "F1": "F1",  # brilliance temperature, 1km   # TODO: convert BT to radiance to use it
-                # "F2": "F2",  # brilliance temperature, 1km   # TODO: convert BT to radiance to use it
+                obn.GREEN: SLSTR_RAD_BANDS[0],  # S1, radiance, 500m
+                obn.RED: SLSTR_RAD_BANDS[1],  # S2, radiance, 500m
+                obn.NIR: SLSTR_RAD_BANDS[2],  # S3, radiance, 500m
+                obn.NARROW_NIR: SLSTR_RAD_BANDS[3],  # S3, radiance, 500m
+                obn.SWIR_CIRRUS: SLSTR_RAD_BANDS[3],  # S4, radiance, 500m
+                obn.SWIR_1: SLSTR_RAD_BANDS[4],  # S5, radiance, 500m
+                obn.SWIR_2: SLSTR_RAD_BANDS[5],  # S6, radiance, 500m
+                # TODO: convert BT to radiance to use it
+                # SLSTR_BT_BANDS[0]: SLSTR_BT_BANDS[0],  # S7, brilliance temperature, 1km
+                # obn.TIR_1: SLSTR_BT_BANDS[1],  # S8, brilliance temperature, 1km
+                # obn.TIR_2: SLSTR_BT_BANDS[2],  # S9, brilliance temperature, 1km
+                # SLSTR_BT_BANDS[3]: SLSTR_BT_BANDS[3],  # F1, brilliance temperature, 1km
+                # SLSTR_BT_BANDS[4]: "SLSTR_BT_BANDS[4],  # F2, brilliance temperature, 1km
             }
-            # TODO: manage F1 and F2 ?
         )
 
     def _preprocess(
@@ -248,6 +329,7 @@ class S3SlstrProduct(S3Product):
         resolution: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
+        **kwargs,
     ) -> Union[CloudPath, Path]:
         """
         Pre-process S3 SLSTR bands:
@@ -260,6 +342,7 @@ class S3SlstrProduct(S3Product):
             resolution (float): Resolution
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing {band: path}
@@ -277,7 +360,11 @@ class S3SlstrProduct(S3Product):
             band_arr = self._read_nc(band, subdataset)
 
             # Adjust radiance if needed
-            band_arr = self._radiance_adjustment(band_arr, band)
+            # Get the user's radiance adjustment if existing
+            rad_adjust = kwargs.get("slstr_radiance_adjustment")
+            if rad_adjust is not None:
+                assert isinstance(rad_adjust, SlstrRadiometricAdjustmentEnum)
+            band_arr = self._radiance_adjustment(band_arr, band, rad_adjust=rad_adjust)
 
             # Convert radiance to reflectances if needed
             # Convert first pixel by pixel before reprojection !
@@ -471,7 +558,10 @@ class S3SlstrProduct(S3Product):
         return band_arr * rad_2_refl_coeff
 
     def _radiance_adjustment(
-        self, band_arr: xr.DataArray, band: obn = None
+        self,
+        band_arr: xr.DataArray,
+        band: obn = None,
+        rad_adjust: SlstrRadiometricAdjustmentEnum = SlstrRadiometricAdjustmentEnum.S3_PN_SLSTR_L1_08,
     ) -> xr.DataArray:
         """
         Applying the radiance adjustment as recommended in the product notice:
@@ -500,64 +590,19 @@ class S3SlstrProduct(S3Product):
         Args:
             band_arr (xr.DataArray): Band array
             band (obn): Optical Band
+            rad_adjust (SlstrRadiometricAdjustmentEnum): Radiance Adjustment
 
         Returns:
             xr.DataArray: Adjusted band array
         """
-        # TODO : allow the user to provide its own coefficients ?
-        # Nadir views
-        if self._suffix.endswith("n"):
-            # S1
-            if band == obn.GREEN:
-                # band_arr *= 0.97
-                pass  # SNAP
-            # S2
-            elif band == obn.RED:
-                # band_arr *= 0.98
-                pass  # SNAP
-            # S3
-            elif band in [obn.NIR, obn.NARROW_NIR]:
-                # band_arr *= 0.98
-                pass  # SNAP
-            # S4
-            elif band == obn.SWIR_CIRRUS:
-                pass
-            # S5
-            elif band == obn.SWIR_1:
-                # band_arr *= 1.11
-                band_arr = band_arr * 1.12  # SNAP
-            # S6
-            elif band == obn.SWIR_2:
-                # band_arr *= 1.13
-                band_arr = band_arr * 1.13  # SNAP
+        band_name = self.band_names[band]
+        if band_name in SLSTR_RAD_BANDS:
+            rad_coeff = getattr(rad_adjust.value, f"{band_name}_{self._suffix[-1]}")
+        else:
+            # Brilliance temperature
+            rad_coeff = 1.0
 
-        # Oblique views
-        elif self._suffix.endswith("o"):
-            # S1
-            if band == obn.GREEN:
-                # band_arr *= 0.94
-                pass  # SNAP
-            # S2
-            elif band == obn.RED:
-                # band_arr *= 0.95
-                pass  # SNAP
-            # S3
-            elif band in [obn.NIR, obn.NARROW_NIR]:
-                # band_arr *= 0.95
-                pass  # SNAP
-            # S4
-            elif band == obn.SWIR_CIRRUS:
-                pass
-            # S5
-            elif band == obn.SWIR_1:
-                # band_arr *= 1.04
-                band_arr = band_arr * 1.15  # SNAP
-            # S6
-            elif band == obn.SWIR_2:
-                # band_arr *= 1.07
-                band_arr = band_arr * 1.14  # SNAP
-
-        return band_arr
+        return band_arr * rad_coeff
 
     def _compute_sza_img_grid(self) -> np.ndarray:
         """

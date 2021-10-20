@@ -496,7 +496,9 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+    def get_band_paths(
+        self, band_list: list, resolution: float = None, **kwargs
+    ) -> dict:
         """
         Return the paths of required bands.
 
@@ -515,6 +517,7 @@ class Product:
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Band resolution
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -606,6 +609,7 @@ class Product:
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> XDS_TYPE:
         """
         Read band from disk.
@@ -618,6 +622,7 @@ class Product:
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             XDS_TYPE: Band xarray
 
@@ -626,15 +631,20 @@ class Product:
 
     @abstractmethod
     def _load_bands(
-        self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (list): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -659,7 +669,9 @@ class Product:
             for band in band_list:
                 assert is_dem(band)
                 if band == DEM:
-                    path = self._warp_dem(dem_path, resolution=resolution, size=size)
+                    path = self._warp_dem(
+                        dem_path, resolution=resolution, size=size, **kwargs
+                    )
                 elif band == SLOPE:
                     path = self._compute_slope(
                         dem_path, resolution=resolution, size=size
@@ -682,6 +694,7 @@ class Product:
         bands: Union[list, BandNames, Callable],
         resolution: float = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Open the bands and compute the wanted index.
@@ -745,6 +758,7 @@ class Product:
             bands (Union[list, BandNames, Callable]): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: {band_name, band xarray}
@@ -757,7 +771,7 @@ class Product:
             bands = [bands]
 
         # Load bands (and convert the bands to be loaded to correct format)
-        band_dict = self._load(to_band(bands), resolution, size)
+        band_dict = self._load(to_band(bands), resolution, size, **kwargs)
 
         # Manage the case of arrays of different size -> collocate arrays if needed
         band_dict = self._collocate_bands(band_dict)
@@ -780,7 +794,11 @@ class Product:
 
     @abstractmethod
     def _load(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Core function loading data bands
@@ -789,6 +807,7 @@ class Product:
             bands (list): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             Dictionary {band_name, band_xarray}
@@ -1286,7 +1305,7 @@ class Product:
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             stack_path (Union[str, CloudPath, Path]): Stack path
             save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
-            **kwargs: Other arguments passed to `rioxarray.to_raster()` such as `compress`
+            **kwargs: Other arguments passed to `load` or `rioxarray.to_raster()` (such as `compress`)
 
         Returns:
             xr.DataArray: Stack as a DataArray
@@ -1298,7 +1317,7 @@ class Product:
             resolution = self.resolution
 
         # Create the analysis stack
-        band_dict = self.load(bands, resolution=resolution, size=size)
+        band_dict = self.load(bands, resolution=resolution, size=size, **kwargs)
 
         # Convert into dataset with str as names
         xds = xr.Dataset(

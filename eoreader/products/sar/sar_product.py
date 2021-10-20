@@ -412,7 +412,9 @@ class SarProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+    def get_band_paths(
+        self, band_list: list, resolution: float = None, **kwargs
+    ) -> dict:
         """
         Return the paths of required bands.
 
@@ -433,6 +435,7 @@ class SarProduct(Product):
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Band resolution
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -583,6 +586,7 @@ class SarProduct(Product):
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> XDS_TYPE:
         """
         Read band from disk.
@@ -595,12 +599,17 @@ class SarProduct(Product):
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             XDS_TYPE: Band xarray
 
         """
         return utils.read(
-            path, resolution=resolution, size=size, resampling=Resampling.bilinear
+            path,
+            resolution=resolution,
+            size=size,
+            resampling=Resampling.bilinear,
+            **kwargs,
         ).astype(np.float32)
 
     def _load_bands(
@@ -608,6 +617,7 @@ class SarProduct(Product):
         bands: Union[list, BandNames],
         resolution: float = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -616,6 +626,7 @@ class SarProduct(Product):
             bands (list, BandNames): List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -636,13 +647,17 @@ class SarProduct(Product):
         for band_name, band_path in band_paths.items():
             # Read CSK band
             band_arrays[band_name] = self._read_band(
-                band_path, resolution=resolution, size=size
+                band_path, resolution=resolution, size=size, **kwargs
             )
 
         return band_arrays
 
     def _load(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Core function loading SAR data bands
@@ -651,6 +666,7 @@ class SarProduct(Product):
             bands (list): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             Dictionary {band_name, band_xarray}
@@ -687,10 +703,12 @@ class SarProduct(Product):
             self._check_dem_path()
 
         # Load bands
-        bands = self._load_bands(band_list, resolution=resolution, size=size)
+        bands = self._load_bands(band_list, resolution=resolution, size=size, **kwargs)
 
         # Add DEM
-        bands.update(self._load_dem(dem_list, resolution=resolution, size=size))
+        bands.update(
+            self._load_dem(dem_list, resolution=resolution, size=size, **kwargs)
+        )
 
         return bands
 

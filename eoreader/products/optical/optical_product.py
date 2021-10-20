@@ -200,6 +200,7 @@ class OpticalProduct(Product):
         band_paths: dict,
         resolution: float = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Open bands from disk.
@@ -208,6 +209,7 @@ class OpticalProduct(Product):
             band_paths (dict): Band dict: {band_enum: band_path}
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -219,7 +221,7 @@ class OpticalProduct(Product):
             # Read band
             LOGGER.debug(f"Read {band.name}")
             band_arr = self._read_band(
-                band_path, band=band, resolution=resolution, size=size
+                band_path, band=band, resolution=resolution, size=size, **kwargs
             )
             # Write on disk in order not to reprocess band everytime
             # (invalid pix management can be time consuming)
@@ -286,7 +288,11 @@ class OpticalProduct(Product):
         return band_arr.where(mask == 0)
 
     def _load(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Core function loading optical data bands
@@ -295,6 +301,7 @@ class OpticalProduct(Product):
             bands (list): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             Dictionary {band_name, band_xarray}
@@ -342,7 +349,9 @@ class OpticalProduct(Product):
         unique_bands = list(set(bands_to_load))
         if unique_bands:
             LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
-        bands = self._load_bands(unique_bands, resolution=resolution, size=size)
+        bands = self._load_bands(
+            unique_bands, resolution=resolution, size=size, **kwargs
+        )
 
         # Compute index (they conserve the nodata)
         if index_list:
