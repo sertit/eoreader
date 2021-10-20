@@ -334,7 +334,9 @@ class S3Product(OpticalProduct):
             f"{self.condensed_name}_{band_str}_{res_str}.tif"
         )
 
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+    def get_band_paths(
+        self, band_list: list, resolution: float = None, **kwargs
+    ) -> dict:
         """
         Return the paths of required bands.
 
@@ -357,6 +359,7 @@ class S3Product(OpticalProduct):
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Useless here
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -369,7 +372,9 @@ class S3Product(OpticalProduct):
                 band_paths[band] = clean_band
             else:
                 # Pre-process the wanted band (does nothing if existing)
-                band_paths[band] = self._preprocess(band, resolution=resolution)
+                band_paths[band] = self._preprocess(
+                    band, resolution=resolution, **kwargs
+                )
 
         return band_paths
 
@@ -380,6 +385,7 @@ class S3Product(OpticalProduct):
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> XDS_TYPE:
         """
         Read band from disk.
@@ -392,12 +398,17 @@ class S3Product(OpticalProduct):
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             XDS_TYPE: Band xarray
 
         """
         band = utils.read(
-            path, resolution=resolution, size=size, resampling=Resampling.bilinear
+            path,
+            resolution=resolution,
+            size=size,
+            resampling=Resampling.bilinear,
+            **kwargs,
         )
 
         # Read band
@@ -418,7 +429,11 @@ class S3Product(OpticalProduct):
         raise NotImplementedError("This method should be implemented by a child class")
 
     def _load_bands(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -427,6 +442,7 @@ class S3Product(OpticalProduct):
             bands (list): List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -440,10 +456,12 @@ class S3Product(OpticalProduct):
 
         if resolution is None and size is not None:
             resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution=resolution)
+        band_paths = self.get_band_paths(bands, resolution=resolution, **kwargs)
 
         # Open bands and get array (resampled if needed)
-        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
+        band_arrays = self._open_bands(
+            band_paths, resolution=resolution, size=size, **kwargs
+        )
 
         return band_arrays
 
@@ -454,6 +472,7 @@ class S3Product(OpticalProduct):
         resolution: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
+        **kwargs,
     ) -> Union[CloudPath, Path]:
         """
         Pre-process S3 bands:
@@ -465,6 +484,7 @@ class S3Product(OpticalProduct):
             resolution (float): Resolution
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing {band: path}
@@ -655,17 +675,18 @@ class S3Product(OpticalProduct):
                 nc_path = str(nc_path)
 
         # Open the netcdf file as a dataset (from bytes)
+        # mask_and_scale=True => offset and scale are automatically applied !
         if bytes_file:
             with io.BytesIO(bytes_file) as bf:
                 # We need to load the dataset as we will do some operations and bf will close
-                nc = xr.open_dataset(bf)
+                nc = xr.open_dataset(bf, mask_and_scale=True)
                 if subdataset:
                     nc = getattr(nc, subdataset)
 
                 nc.load()
         else:
             # No need to load here
-            nc = xr.open_dataset(nc_path, engine="h5netcdf")
+            nc = xr.open_dataset(nc_path, mask_and_scale=True, engine="h5netcdf")
 
             if subdataset:
                 nc = nc[subdataset]

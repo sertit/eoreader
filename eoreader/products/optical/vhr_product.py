@@ -141,7 +141,9 @@ class VhrProduct(OpticalProduct):
 
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+    def get_band_paths(
+        self, band_list: list, resolution: float = None, **kwargs
+    ) -> dict:
         """
         Return the paths of required bands.
 
@@ -162,6 +164,7 @@ class VhrProduct(OpticalProduct):
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Band resolution
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -269,6 +272,7 @@ class VhrProduct(OpticalProduct):
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> XDS_TYPE:
         """
         Read band from disk.
@@ -281,6 +285,7 @@ class VhrProduct(OpticalProduct):
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             XDS_TYPE: Band xarray
         """
@@ -316,6 +321,7 @@ class VhrProduct(OpticalProduct):
                     resolution=resolution,
                     size=size,
                     resampling=Resampling.bilinear,
+                    **kwargs,
                 )
 
             # Manage the case if we open a simple band (EOReader processed bands)
@@ -326,6 +332,7 @@ class VhrProduct(OpticalProduct):
                     resolution=resolution,
                     size=size,
                     resampling=Resampling.bilinear,
+                    **kwargs,
                 )
 
             # Manage the case if we open a stack (native DIMAP bands)
@@ -337,6 +344,7 @@ class VhrProduct(OpticalProduct):
                     size=size,
                     resampling=Resampling.bilinear,
                     indexes=[self.band_names[band]],
+                    **kwargs,
                 )
 
             # If nodata not set, set it here
@@ -358,7 +366,11 @@ class VhrProduct(OpticalProduct):
         return band_xda
 
     def _load_bands(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -367,6 +379,7 @@ class VhrProduct(OpticalProduct):
             bands list: List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -380,7 +393,9 @@ class VhrProduct(OpticalProduct):
         band_paths = self.get_band_paths(bands, resolution=resolution)
 
         # Open bands and get array (resampled if needed)
-        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
+        band_arrays = self._open_bands(
+            band_paths, resolution=resolution, size=size, **kwargs
+        )
 
         return band_arrays
 

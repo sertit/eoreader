@@ -300,9 +300,6 @@ class OpticalBandNames(BandNames):
     SWIR_2 = "SWIR_2"
     """SWIR, Band 2"""
 
-    MIR = "MIR"
-    """MIR"""
-
     TIR_1 = "THERMAL_IR_1"
     """Thermal IR, Band 1"""
 

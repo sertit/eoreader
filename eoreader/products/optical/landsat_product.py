@@ -360,7 +360,9 @@ class LandsatProduct(OpticalProduct):
 
         return date
 
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+    def get_band_paths(
+        self, band_list: list, resolution: float = None, **kwargs
+    ) -> dict:
         """
         Return the paths of required bands.
 
@@ -381,6 +383,7 @@ class LandsatProduct(OpticalProduct):
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Useless here
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -496,6 +499,7 @@ class LandsatProduct(OpticalProduct):
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> XDS_TYPE:
         """
         Read band from disk.
@@ -508,6 +512,7 @@ class LandsatProduct(OpticalProduct):
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             XDS_TYPE: Band xarray
 
@@ -526,11 +531,16 @@ class LandsatProduct(OpticalProduct):
                 size=size,
                 resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
                 masked=False,
+                **kwargs,
             ).astype(np.uint16)
         else:
             # Read band (call superclass generic method)
             band_xda = utils.read(
-                path, resolution=resolution, size=size, resampling=Resampling.bilinear
+                path,
+                resolution=resolution,
+                size=size,
+                resampling=Resampling.bilinear,
+                **kwargs,
             ).astype(np.float32)
 
             # Convert raw bands from DN to correct reflectance
@@ -630,34 +640,38 @@ class LandsatProduct(OpticalProduct):
 
     def _load_bands(
         self,
-        band_list: Union[list, BandNames],
+        bands: Union[list, BandNames],
         resolution: float = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (list, BandNames): List of the wanted bands
+            bands (list, BandNames): List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
         # Return empty if no band are specified
-        if not band_list:
+        if not bands:
             return {}
 
         # Get band paths
-        if not isinstance(band_list, list):
-            band_list = [band_list]
+        if not isinstance(bands, list):
+            bands = [bands]
 
         if resolution is None and size is not None:
             resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(band_list, resolution=resolution)
+        band_paths = self.get_band_paths(bands, resolution=resolution)
 
         # Open bands and get array (resampled if needed)
-        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
+        band_arrays = self._open_bands(
+            band_paths, resolution=resolution, size=size, **kwargs
+        )
 
         return band_arrays
 
