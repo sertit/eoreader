@@ -25,6 +25,7 @@
 - FIX: Fixing minor bug when trying to read metadata with a POSIX path
 - FIX: Fixing the `**kwargs` omission in `utils.read`
 - DEPR: `FAR_NIR` band is removed
+- REQ: Using `h5netcdf` instead of `netCDF4`
 - DOC: Add a Context paragraph in the README
 - DOC: Add a Conda x SNAP question in the FAQ
 - DOC: Numerous updates
