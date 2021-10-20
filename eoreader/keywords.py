@@ -17,3 +17,10 @@
 """ Additional keywords for EOReader used in `load` or `stack`"""
 
 SLSTR_RAD_ADJUST = "slstr_radiance_adjustment"
+""" SLSTR radiance adjustment, please see `eoreader.products.optical.s3_slstr_product.SlstrRadAdjust`"""
+
+SLSTR_STRIPE = "slstr_stripe"
+""" SLSTR stripe, please see `eoreader.products.optical.s3_slstr_product.SlstrStripe`"""
+
+SLSTR_VIEW = "slstr_view"
+""" SLSTR view, please see `eoreader.products.optical.s3_slstr_product.SlstrView`"""

@@ -404,7 +404,7 @@ class Product:
         return date
 
     @abstractmethod
-    def get_default_band_path(self) -> Union[CloudPath, Path]:
+    def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get default band path (among the existing ones).
 
@@ -417,6 +417,9 @@ class Product:
             >>> prod = Reader().open(path)
             >>> prod.get_default_band_path()
             'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'
+
+        Args:
+            kwargs: Additional arguments
 
         Returns:
             Union[CloudPath, Path]: Default band path
@@ -644,6 +647,7 @@ class Product:
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -651,7 +655,11 @@ class Product:
         raise NotImplementedError("This method should be implemented by a child class")
 
     def _load_dem(
-        self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        band_list: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -660,6 +668,7 @@ class Product:
             band_list (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -669,7 +678,9 @@ class Product:
             for band in band_list:
                 assert is_dem(band)
                 if band == DEM:
-                    path = self._warp_dem(dem_path, resolution=resolution, size=size)
+                    path = self._warp_dem(
+                        dem_path, resolution=resolution, size=size, **kwargs
+                    )
                 elif band == SLOPE:
                     path = self._compute_slope(
                         dem_path, resolution=resolution, size=size
@@ -1015,6 +1026,7 @@ class Product:
         resolution: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
+        **kwargs,
     ) -> str:
         """
         Get this products DEM, warped to this products footprint and CRS.
@@ -1038,6 +1050,7 @@ class Product:
             resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
             resampling (Resampling): Resampling method
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             str: DEM path (as a VRT)
@@ -1064,7 +1077,7 @@ class Product:
 
             # Reproject DEM into products CRS
             LOGGER.debug("Using DEM: %s", dem_path)
-            def_tr, def_w, def_h, def_crs = self.default_transform()
+            def_tr, def_w, def_h, def_crs = self.default_transform(**kwargs)
             with rasterio.open(str(dem_path)) as dem_ds:
                 # Get adjusted transform and shape (with new resolution)
                 if size is not None and resolution is None:
@@ -1401,7 +1414,7 @@ class Product:
                     )
 
     @cache
-    def default_transform(self) -> (Affine, int, int, CRS):
+    def default_transform(self, **kwargs) -> (Affine, int, int, CRS):
         """
         Returns default transform data of the default band (UTM),
         as the `rasterio.warp.calculate_default_transform` does:
@@ -1410,11 +1423,13 @@ class Product:
         - height
         - crs
 
+        Args:
+            kwargs: Additional arguments
         Returns:
             Affine, int, int: transform, width, height
 
         """
-        with rasterio.open(str(self.get_default_band_path())) as dst:
+        with rasterio.open(str(self.get_default_band_path(**kwargs))) as dst:
             return dst.transform, dst.width, dst.height, dst.crs
 
     def _resolution_from_size(self, size: Union[list, tuple] = None) -> tuple:

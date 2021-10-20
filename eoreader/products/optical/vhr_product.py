@@ -85,7 +85,7 @@ class VhrProduct(OpticalProduct):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def get_default_band_path(self) -> Union[CloudPath, Path]:
+    def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get default band (`GREEN` for optical data) path.
 
@@ -104,10 +104,12 @@ class VhrProduct(OpticalProduct):
             >>> prod.get_default_band_path()
             'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML'
 
+        Args:
+            kwargs: Additional arguments
         Returns:
             Union[CloudPath, Path]: Default band path
         """
-        return self._get_default_utm_band(self.resolution)
+        return self._get_default_utm_band(self.resolution, **kwargs)
 
     @cached_property
     def extent(self) -> gpd.GeoDataFrame:
@@ -176,7 +178,9 @@ class VhrProduct(OpticalProduct):
         band_paths = {}
         for band in band_list:
             # Get clean band path
-            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            clean_band = self._get_clean_band_path(
+                band, resolution=resolution, **kwargs
+            )
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
@@ -580,7 +584,7 @@ class VhrProduct(OpticalProduct):
 
         return path
 
-    def default_transform(self) -> (affine.Affine, int, int, CRS):
+    def default_transform(self, **kwargs) -> (affine.Affine, int, int, CRS):
         """
         Returns default transform data of the default band (UTM),
         as the `rasterio.warp.calculate_default_transform` does:
@@ -591,13 +595,16 @@ class VhrProduct(OpticalProduct):
 
         Overload in order not to reproject WGS84 data
 
+        Args:
+            kwargs: Additional arguments
+
         Returns:
             Affine, int, int: transform, width, height
 
         """
         default_band = self.get_default_band()
-        def_path = self.get_band_paths([default_band], resolution=self.resolution)[
-            default_band
-        ]
+        def_path = self.get_band_paths(
+            [default_band], resolution=self.resolution, **kwargs
+        )[default_band]
         with rasterio.open(str(def_path)) as dst:
             return dst.transform, dst.width, dst.height, dst.crs

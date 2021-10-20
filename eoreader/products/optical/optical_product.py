@@ -84,7 +84,7 @@ class OpticalProduct(Product):
         """
         return obn.GREEN
 
-    def get_default_band_path(self) -> Union[CloudPath, Path]:
+    def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get default band (`GREEN` for optical data) path.
 
@@ -96,11 +96,13 @@ class OpticalProduct(Product):
             >>> prod.get_default_band_path()
             'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'
 
+        Args:
+            kwargs: Additional arguments
         Returns:
             Union[CloudPath, Path]: Default band path
         """
         default_band = self.get_default_band()
-        return self.get_band_paths([default_band])[default_band]
+        return self.get_band_paths([default_band], **kwargs)[default_band]
 
     @cached_property
     def crs(self) -> riocrs.CRS:
@@ -228,14 +230,14 @@ class OpticalProduct(Product):
             if not str(band_path).endswith("clean.tif"):
                 # Manage invalid pixels
                 LOGGER.debug(f"Manage invalid pixels for band {band.name}")
-                band_arr = self._manage_invalid_pixels(band_arr, band=band)
+                band_arr = self._manage_invalid_pixels(band_arr, band=band, **kwargs)
 
                 # Write on disk
                 try:
                     if not resolution:
                         resolution = band_arr.rio.resolution()[0]
                     clean_band_path = self._get_clean_band_path(
-                        band, resolution=resolution, writable=True
+                        band, resolution=resolution, writable=True, **kwargs
                     )
                     utils.write(
                         band_arr.rename(f"{to_str(band)[0]} CLEAN"), clean_band_path
@@ -252,13 +254,16 @@ class OpticalProduct(Product):
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     @abstractmethod
-    def _manage_invalid_pixels(self, band_arr: XDS_TYPE, band: obn) -> XDS_TYPE:
+    def _manage_invalid_pixels(
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
+    ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
 
         Returns:
             XDS_TYPE: Cleaned band array
@@ -364,13 +369,15 @@ class OpticalProduct(Product):
         # Add DEM
         if dem_list:
             LOGGER.debug(f"Loading DEM bands {to_str(dem_list)}")
-        bands_dict.update(self._load_dem(dem_list, resolution=resolution, size=size))
+        bands_dict.update(
+            self._load_dem(dem_list, resolution=resolution, size=size, **kwargs)
+        )
 
         # Add Clouds
         if clouds_list:
             LOGGER.debug(f"Loading Cloud bands {to_str(clouds_list)}")
         bands_dict.update(
-            self._load_clouds(clouds_list, resolution=resolution, size=size)
+            self._load_clouds(clouds_list, resolution=resolution, size=size, **kwargs)
         )
 
         return bands_dict
@@ -443,7 +450,11 @@ class OpticalProduct(Product):
 
     @abstractmethod
     def _load_clouds(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -452,6 +463,7 @@ class OpticalProduct(Product):
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -477,7 +489,7 @@ class OpticalProduct(Product):
         return mask
 
     def _get_clean_band_path(
-        self, band: obn, resolution: float = None, writable: bool = False
+        self, band: obn, resolution: float = None, writable: bool = False, **kwargs
     ) -> Union[CloudPath, Path]:
         """
         Get clean band path.

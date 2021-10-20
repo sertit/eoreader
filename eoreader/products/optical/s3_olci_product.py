@@ -34,7 +34,7 @@ from sertit import rasters, rasters_rio
 from sertit.rasters import MAX_CORES, XDS_TYPE
 from sertit.vectors import WGS84
 
-from eoreader import utils
+from eoreader import cache, utils
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -101,19 +101,41 @@ class S3OlciProduct(S3Product):
             "fn" and "fo" refer to the F1 channel 1 km grid
             "tx/n/o" refer to the tie-point grid for agnostic/nadir and oblique view
         """
-        self._suffix = None
-
         super().__init__(
             product_path, archive_path, output_path, remove_tmp
         )  # Order is important here
 
         self._gcps = []
 
+    def _get_preprocessed_band_path(
+        self,
+        band: Union[obn, str],
+        resolution: Union[float, tuple, list] = None,
+        writable=True,
+    ) -> Union[CloudPath, Path]:
+        """
+        Create the pre-processed band path
+
+        Args:
+            band (band: Union[obn, str]): Wanted band (quality flags accepted)
+            resolution (Union[float, tuple, list]): Resolution of the wanted UTM band
+            writable (bool): Do we need to write the pre-processed band ?
+
+        Returns:
+            Union[CloudPath, Path]: Pre-processed band path
+        """
+        res_str = self._resolution_to_str(resolution)
+        band_str = band.name if isinstance(band, obn) else band
+
+        return self._get_band_folder(writable=writable).joinpath(
+            f"{self.condensed_name}_{band_str}_{res_str}.tif"
+        )
+
     def _set_preprocess_members(self):
         """ Set pre-process members """
         # Radiance bands
-        self._radiance_file = "Oa{}_radiance.nc"
-        self._radiance_subds = "Oa{}_radiance"
+        self._radiance_file = "Oa{band}_radiance.nc"
+        self._radiance_subds = "Oa{band}_radiance"
 
         # Geocoding
         self._geo_file = "geo_coordinates.nc"
@@ -227,6 +249,7 @@ class S3OlciProduct(S3Product):
         resolution: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
+        **kwargs,
     ) -> Union[CloudPath, Path]:
         """
         Pre-process S3 OLCI bands:
@@ -238,6 +261,7 @@ class S3OlciProduct(S3Product):
             resolution (float): Resolution
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing {band: path}
@@ -395,7 +419,9 @@ class S3OlciProduct(S3Product):
 
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
-    def _manage_invalid_pixels(self, band_arr: XDS_TYPE, band: obn) -> XDS_TYPE:
+    def _manage_invalid_pixels(
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
+    ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...) for OLCI data.
         See there:
@@ -440,6 +466,7 @@ class S3OlciProduct(S3Product):
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
 
         Returns:
             XDS_TYPE: Cleaned band array
@@ -511,7 +538,11 @@ class S3OlciProduct(S3Product):
         return False
 
     def _load_clouds(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Does nothing for OLCI data
@@ -520,9 +551,32 @@ class S3OlciProduct(S3Product):
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
         if bands:
             LOGGER.warning("Sentinel-3 OLCI L1B does not provide any cloud file")
         return {}
+
+    @cache
+    def get_mean_sun_angles(self) -> (float, float):
+        """
+        Get Mean Sun angles (Azimuth and Zenith angles)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_sun_angles()
+            (78.55043955912154, 31.172127033319388)
+
+        Returns:
+            (float, float): Mean Azimuth and Zenith angle
+        """
+        # Open sun azimuth and zenith files
+        sun_az = self._read_nc(self._geom_file, self._saa_name)
+        sun_ze = self._read_nc(self._geom_file, self._sza_name)
+
+        return sun_az.mean().data % 360, sun_ze.mean().data
