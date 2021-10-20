@@ -177,10 +177,6 @@ class Product:
             self._tmp_output = tempfile.TemporaryDirectory()
             self._output = AnyPath(self._tmp_output.name)
 
-        # Temporary files path (private)
-        self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
-        os.makedirs(self._tmp_process, exist_ok=True)
-
         # Pre initialization
         self._pre_init()
 
@@ -188,6 +184,7 @@ class Product:
         if self.is_archived and self.needs_extraction:
             LOGGER.warning(f"{self.name} needs to be extracted to be used !")
         else:
+
             # Get the products date and datetime
             self.date = self.get_date(as_date=True)
             self.datetime = self.get_datetime(as_datetime=True)
@@ -207,6 +204,10 @@ class Product:
 
             # Condensed name
             self.condensed_name = self._get_condensed_name()
+
+            # Temporary files path (private)
+            self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
+            os.makedirs(self._tmp_process, exist_ok=True)
 
     def __del__(self):
         """Cleaning up _tmp directory"""
@@ -531,6 +532,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @cache
     def _read_mtd_xml(self, mtd_from_path: str, mtd_archived: str = None):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dicts as a dict
@@ -549,14 +551,20 @@ class Product:
             try:
                 mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
                 if isinstance(mtd_file, CloudPath):
-                    mtd_file = mtd_file.download_to(
-                        self._get_band_folder(writable=True)
-                    )
-
-                # pylint: disable=I1101:
-                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                xml_tree = etree.parse(str(mtd_file))
-                root = xml_tree.getroot()
+                    try:
+                        # Try using read_text (faster)
+                        root = etree.fromstring(mtd_file.read_text())
+                    except ValueError:
+                        # Try using read_bytes
+                        # Slower but works with:
+                        # {ValueError}Unicode strings with encoding declaration are not supported.
+                        # Please use bytes input or XML fragments without declaration.
+                        root = etree.fromstring(mtd_file.read_bytes())
+                else:
+                    # pylint: disable=I1101:
+                    # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                    xml_tree = etree.parse(str(mtd_file))
+                    root = xml_tree.getroot()
             except StopIteration as ex:
                 raise InvalidProductError(
                     f"Metadata file ({mtd_from_path}) not found in {self.path}"

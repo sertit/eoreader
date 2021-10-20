@@ -170,17 +170,6 @@ def _test_core(
                     # )
                     prod.output = tmp_dir
 
-                    # Env var
-                    # if (
-                    #     prod.platform == Platform.S3
-                    #     or prod.sensor_type == SensorType.SAR
-                    # ):
-                    #     os.environ[CI_EOREADER_BAND_FOLDER] = str(
-                    #         get_ci_data_dir().joinpath(prod.condensed_name)
-                    #     )
-                    # else:
-                    #     if CI_EOREADER_BAND_FOLDER in os.environ:
-                    #         os.environ.pop(CI_EOREADER_BAND_FOLDER)
                     os.environ[CI_EOREADER_BAND_FOLDER] = str(
                         get_ci_data_dir().joinpath(prod.condensed_name)
                     )

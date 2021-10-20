@@ -14,6 +14,7 @@
 - **ENH: `HILLSHADE` is given in `float32` instead of `uint8`**
 - **ENH: Better management of `fspath` for cloud-stored products (download the files only once)**
 - **ENH: Use band size for cleaning optical pixel (instead of user resolution/size)**
+- **ENH: Stop downloading/extracting files if not necessary**
 - FIX: Always take the absolute value of the resolution when converting it to strings (for filenames)
 - FIX: Take the default resolution if nothing is given when converting it to strings (for filenames)
 - FIX: Always use `utils.read/write` instead of `rasters.read/write` (for Dask management)
@@ -24,6 +25,7 @@
 - FIX: Better management of `_tmp_process`
 - FIX: Fixing minor bug when trying to read metadata with a POSIX path
 - FIX: Fixing the `**kwargs` omission in `utils.read`
+- FIX: Better management of `_temp_process` directory
 - DEPR: `FAR_NIR` band is removed
 - REQ: Using `h5netcdf` instead of `netCDF4`
 - DOC: Add a Context paragraph in the README

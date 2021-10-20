@@ -19,12 +19,9 @@ Sentinel-3 products
 
 .. WARNING:
     Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio !
-    The rasters are flipped (upside/down, we can use `np.flipud`).
-    This is fixed by reprojecting with GCPs, BUT is still an issue for metadata files.
-    As long as we treat consistent data (geographic rasters???), this should not be problematic
-    BUT pay attention to rasters containing several bands (such as solar irradiance for OLCI products)
-    -> they are inverted as the columns are ordered reversely
+    -> use xr.open_dataset that manages that correctly
 """
+import io
 import logging
 import re
 import zipfile
@@ -35,15 +32,14 @@ from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
-import netCDF4
 import numpy as np
 import xarray as xr
-from cloudpathlib import AnyPath, CloudPath
+from cloudpathlib import CloudPath
 from lxml import etree
 from lxml.builder import E
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
-from sertit import rasters, vectors
+from sertit import vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from shapely.geometry import Polygon, box
@@ -109,6 +105,7 @@ class S3Product(OpticalProduct):
 
         # Radiance bands
         self._radiance_file = None
+        self._radiance_subds = None
 
         # Geocoding
         self._geo_file = None
@@ -266,8 +263,8 @@ class S3Product(OpticalProduct):
         assert lat.data.shape == lon.data.shape
 
         # Get lon/lat in the middle of the band
-        mid_x = int(lat.x.size / 2)
-        mid_y = int(lat.y.size / 2)
+        mid_x = int(lat.rio.width / 2)
+        mid_y = int(lat.rio.height / 2)
         mid_lat = lat[0, mid_y, mid_x].data
         mid_lon = lon[0, mid_y, mid_x].data
 
@@ -312,61 +309,6 @@ class S3Product(OpticalProduct):
             date = date.strftime(DATETIME_FMT)
 
         return date
-
-    def _get_raw_band_path(self, band: Union[obn, str], subdataset: str = None) -> str:
-        """
-        Return the paths of raw band.
-
-        Args:
-            band (Union[obn, str]): Wanted raw bands
-            subdataset (str): Subdataset
-
-        Returns:
-            str: Raw band path
-        """
-        # Try to convert to obn if existing
-        try:
-            band = obn.convert_from(band)[0]
-        except TypeError:
-            pass
-
-        # Get band regex
-        if isinstance(band, obn):
-            band_regex = self._radiance_file.replace("{}", self.band_names[band])
-            if not subdataset and self._instrument == S3Instrument.SLSTR:
-                subdataset = f"{self.band_names[band]}_radiance_{self._suffix}"  # SLSTR has a suffix
-        else:
-            band_regex = band
-
-        # Get raw band path
-        if self.is_archived:
-            if isinstance(self.path, CloudPath):
-                # Download the whole product (sadly)
-                on_disk_path = self.path.download_to(
-                    self._get_band_folder(writable=True)
-                )
-            else:
-                on_disk_path = self.path
-
-            # Cannot read zipped+netcdf files -> we are forced to dezip them
-            with zipfile.ZipFile(on_disk_path, "r") as zip_ds:
-                filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f".*{band_regex}")
-                band_path = AnyPath(
-                    zip_ds.extract(
-                        list(filter(regex.match, filenames))[0],
-                        self._get_band_folder(writable=True),
-                    )
-                )
-        else:
-            try:
-                band_path = next(self.path.glob(f"*{band_regex}*"))
-            except StopIteration:
-                raise FileNotFoundError(
-                    f"Non existing file {band_regex} in {self.path}"
-                )
-
-        return self._get_nc_path_str(band_path.name, subdataset)
 
     def _get_preprocessed_band_path(
         self,
@@ -581,35 +523,32 @@ class S3Product(OpticalProduct):
         if self.is_archived:
             if isinstance(self.path, CloudPath):
                 # Download the whole product (sadly)
-                on_disk_path = self.path.download_to(
-                    self._get_band_folder(writable=True)
-                )
+                on_disk = io.BytesIO(self.path.read_bytes())
             else:
-                on_disk_path = self.path
+                on_disk = self.path
 
             # Cannot read zipped+netcdf files -> we are forced to dezip them
-            with zipfile.ZipFile(on_disk_path, "r") as zip_ds:
+            with zipfile.ZipFile(on_disk, "r") as zip_ds:
                 filenames = [f.filename for f in zip_ds.filelist]
                 regex = re.compile(f".*{self._tie_geo_file}")
-                geom_file = AnyPath(
-                    zip_ds.extract(
-                        list(filter(regex.match, filenames))[0],
-                        self._get_band_folder(writable=True),
-                    )
-                )
+                with io.BytesIO(
+                    zip_ds.read(list(filter(regex.match, filenames))[0])
+                ) as bf:
+                    netcdf_ds = xr.open_dataset(bf)
         else:
             geom_file = self.path.joinpath(self._tie_geo_file)
 
-        if not geom_file.is_file():
-            raise InvalidProductError("This Sentinel-3 product has no geometry file !")
+            if not geom_file.is_file():
+                raise InvalidProductError(
+                    "This Sentinel-3 product has no geometry file !"
+                )
 
-        # Open DS
-        if isinstance(geom_file, CloudPath):
-            netcdf_ds = netCDF4.Dataset(
-                geom_file.download_to(self._get_band_folder(writable=True))
-            )
-        else:
-            netcdf_ds = netCDF4.Dataset(geom_file)
+            # Open DS
+            if isinstance(geom_file, CloudPath):
+                with io.BytesIO(geom_file.read_bytes()) as bf:
+                    netcdf_ds = xr.open_dataset(bf)
+            else:
+                netcdf_ds = xr.open_dataset(geom_file)
 
         # Parsing global attributes
         global_attr_names = [
@@ -635,11 +574,11 @@ class S3Product(OpticalProduct):
             "track_offset",
         ]
 
-        global_attr = [
-            E(attr, str(getattr(netcdf_ds, attr)))
-            for attr in global_attr_names
-            if hasattr(netcdf_ds, attr)
-        ]
+        # Create XML attributes
+        global_attr = []
+        for attr in global_attr_names:
+            if hasattr(netcdf_ds, attr):
+                global_attr.append(E(attr, str(getattr(netcdf_ds, attr))))
 
         mtd = E.s3_global_attributes(*global_attr)
         mtd_el = etree.fromstring(
@@ -653,78 +592,110 @@ class S3Product(OpticalProduct):
 
         return mtd_el, {}
 
-    def _get_nc_path_str(self, filename: str, subdataset: str = None) -> str:
-        """
-        Get NetCDF file path.
-
-        NetCDF paths are supposed to be at the root of this product.
-
-        Returns a string as it is meant to be opened by rasterio.
-
-        Caches the file if needed (rasterio does not seem to be able to open a netcdf stored in the cloud).
-
-        Args:
-            filename (str): Filename
-            subdataset (str): NetCDF subdataset if needed
-
-        Returns:
-            str: NetCDF file path as a string
-        """
-        if self.is_archived:
-            if isinstance(self.path, CloudPath):
-                # Download the whole product (sadly)
-                on_disk_path = self.path.download_to(
-                    self._get_band_folder(writable=True)
-                )
-            else:
-                on_disk_path = self.path
-
-            # Cannot read zipped+netcdf files -> we are forced to dezip them
-            with zipfile.ZipFile(on_disk_path, "r") as zip_ds:
-                filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f".*{filename}")
-                path = zip_ds.extract(
-                    list(filter(regex.match, filenames))[0],
-                    self._get_band_folder(writable=True),
-                )
-
-        else:
-            if isinstance(self.path, CloudPath):
-                path = self.path.joinpath(filename).download_to(
-                    self._get_band_folder(writable=True)
-                )
-            else:
-                path = str(self.path.joinpath(filename))
-
-        # Complete the path
-        path = f"netcdf:{path}"
-
-        if subdataset:
-            path += f":{subdataset}"
-
-        return path
-
-    def _read_nc(self, filename: str, subdataset: str = None) -> xr.DataArray:
+    def _read_nc(
+        self, filename: Union[str, obn], subdataset: str = None
+    ) -> xr.DataArray:
         """
         Read NetCDF file (as float32) and rescaled them to their true values
 
         NetCDF files are supposed to be at the root of this product.
 
+        Returns a string as it is meant to be opened by rasterio or directly a xr.DataArray (if archived)
+
+        Caches the file if needed (rasterio does not seem to be able to open a netcdf stored in the cloud).
+
         Args:
-            filename (str): Filename
+            filename (Union[str, obn]): Filename or band
             subdataset (str): NetCDF subdataset if needed
 
         Returns:
-            xr.DataArray: NetCDF file, rescaled
+            xr.DataArray: NetCDF file as a xr.DataArray
         """
-        # Open with rioxarray directly as these files are not geocoded
-        nc = rasters.read(self._get_nc_path_str(filename, subdataset))
+        bytes_file = None
+        nc_path = None
 
-        # NO NEED TO FLIP IF WE STAY VIGILANT
-        # nc = nc.copy(data=np.flipud(nc)).astype(np.float32)
-        # return nc * nc.scale_factor
+        # Try to convert to obn if existing
+        try:
+            filename = obn.convert_from(filename)[0]
+        except TypeError:
+            pass
 
-        return nc.astype(np.float32) * nc.scale_factor
+        # Get band regex
+        if isinstance(filename, obn):
+            if not subdataset:
+                subdataset = self._radiance_subds.replace(
+                    "{}", self.band_names[filename]
+                )
+            filename = self._radiance_file.replace("{}", self.band_names[filename])
+
+        # Get raw band path
+        if self.is_archived:
+            if isinstance(self.path, CloudPath):
+                # Download the whole product (sadly)
+                on_disk = io.BytesIO(self.path.read_bytes())
+            else:
+                on_disk = self.path
+
+            # Cannot read zipped+netcdf files -> we are forced to dezip them
+            with zipfile.ZipFile(on_disk, "r") as zip_ds:
+                filenames = [f.filename for f in zip_ds.filelist]
+                regex = re.compile(f".*{filename}")
+                bytes_file = zip_ds.read(list(filter(regex.match, filenames))[0])
+        else:
+            try:
+                nc_path = next(self.path.glob(f"*{filename}*"))
+            except StopIteration:
+                raise FileNotFoundError(f"Non existing file {filename} in {self.path}")
+
+            if isinstance(nc_path, CloudPath):
+                # Cloud paths: instead of downloading them, read them as bytes and directly open the xr.Dataset
+                bytes_file = nc_path.read_bytes()
+            else:
+                # Classic paths
+                nc_path = str(nc_path)
+
+        # Open the netcdf file as a dataset (from bytes)
+        if bytes_file:
+            with io.BytesIO(bytes_file) as bf:
+                # We need to load the dataset as we will do some operations and bf will close
+                nc = xr.open_dataset(bf)
+                if subdataset:
+                    nc = getattr(nc, subdataset)
+
+                nc.load()
+        else:
+            # No need to load here
+            nc = xr.open_dataset(nc_path, engine="h5netcdf")
+
+            if subdataset:
+                nc = nc[subdataset]
+
+        # WARNING: rioxarray doesn't like bytesIO -> open with xarray.h5netcdf engine
+        # BUT the xr.DataArray dimensions wont be correctly formatted !
+        # Align the NetCDF behaviour on rasterio's
+
+        # Read as float32
+        nc = nc.astype(np.float32)
+
+        # Add the band dimension
+        if "band" not in nc.dims:
+            nc = nc.expand_dims(dim="band", axis=0)
+        else:
+            # band dim exists and is set last by default, invert to match rasterio order
+            dims = np.array(nc.dims)
+            nc = nc.swap_dims({dims[0]: "band", "band": dims[0]})
+
+        # Set spatial dims: x = cols, y = rows, rasterio order = count, rows, cols
+        dims = np.array(nc.dims)
+        nc = nc.rename({dims[-1]: "x", dims[-2]: "y"})
+
+        # http://xarray.pydata.org/en/latest/generated/xarray.open_dataset.html
+        # open_dataset opens the file with read-only access.
+        # When you modify values of a Dataset, even one linked to files on disk,
+        # only the in-memory copy you are manipulating in xarray is modified:
+        # the original file on disk is never touched.
+        # -> return a copy() as we will modify it !
+        return nc.copy()
 
     @abstractmethod
     def _load_clouds(

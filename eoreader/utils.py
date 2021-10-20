@@ -205,8 +205,8 @@ def create_gcps(lon: xr.DataArray, lat: xr.DataArray, alt: xr.DataArray) -> list
     assert lat.data.shape == lon.data.shape == alt.data.shape
 
     # Get the GCPs coordinates
-    nof_gcp_x = np.linspace(0, lat.x.size - 1, dtype=int)
-    nof_gcp_y = np.linspace(0, lat.y.size - 1, dtype=int)
+    nof_gcp_x = np.linspace(0, lat.rio.width - 1, dtype=int)
+    nof_gcp_y = np.linspace(0, lat.rio.height - 1, dtype=int)
 
     # Create the GCP sequence
     gcp_id = 0
