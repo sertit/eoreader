@@ -53,26 +53,26 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 # https://github.com/senbox-org/s3tbx/blob/197c9a471002eb2ec1fbd54e9a31bfc963446645/s3tbx-rad2refl/src/main/java/org/esa/s3tbx/processor/rad2refl/Rad2ReflConstants.java#L97
 # Not used for now
 OLCI_SOLAR_FLUXES_DEFAULT = {
-    "01": 1714.9084,  # Not used by EOReader
-    "02": 1872.3961,  # Not used by EOReader
+    "01": 1714.9084,
+    "02": 1872.3961,
     obn.CA: 1926.6102,
     obn.BLUE: 1930.2483,
-    "05": 1804.2762,  # Not used by EOReader
+    "05": 1804.2762,
     obn.GREEN: 1651.5836,
-    "07": 1531.4067,  # Not used by EOReader
+    "07": 1531.4067,
     obn.RED: 1475.615,
-    "09": 1408.9949,  # Not used by EOReader
-    "10": 1265.5425,  # Not used by EOReader
+    "09": 1408.9949,
+    "10": 1265.5425,
     obn.VRE_1: 1255.4227,
     obn.VRE_2: 1178.0286,
-    "13": 955.07043,  # Not used by EOReader
-    "14": 914.18945,  # Not used by EOReader
-    "15": 882.8275,  # Not used by EOReader
+    "13": 955.07043,
+    "14": 914.18945,
+    "15": 882.8275,
     obn.VRE_3: 882.8275,
     obn.NIR: 882.8275,
     obn.NARROW_NIR: 882.8275,
-    "18": 882.8275,  # Not used by EOReader
-    "19": 882.8275,  # Not used by EOReader
+    "18": 882.8275,
+    "19": 882.8275,
     obn.WV: 882.8275,
     "21": 882.8275,
 }
@@ -81,8 +81,6 @@ OLCI_SOLAR_FLUXES_DEFAULT = {
 class S3OlciProduct(S3Product):
     """
     Class of Sentinel-3 OLCI Products
-
-    **Note**: All S3-OLCI bands won't be used in EOReader !
     """
 
     def __init__(
@@ -328,8 +326,9 @@ class S3OlciProduct(S3Product):
             # Open SZA array (resampled to band_arr size)
             sza_path = self._get_band_folder() / "sza.tif"
             if not sza_path.is_file():
+                sza_path = self._get_band_folder(writable=True) / "sza.tif"
                 sza_nc = self._read_nc(self._geom_file, self._sza_name)
-                utils.write(sza_nc, self._get_band_folder(writable=True) / "sza.tif")
+                utils.write(sza_nc, sza_path)
 
             with rasterio.open(sza_path) as ds_sza:
                 # Values can be easily interpolated at pixels from Tie Points by linear interpolation using the

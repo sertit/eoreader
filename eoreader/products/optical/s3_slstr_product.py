@@ -42,6 +42,7 @@ from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products.optical.s3_product import (
     S3DataType,
     S3Instrument,
@@ -86,19 +87,19 @@ SLSTR_BT_BANDS = ["S7", "S8", "S9", "F1", "F2"]
 FIELDS = [f"{rad}_n" for rad in SLSTR_RAD_BANDS] + [
     f"{rad}_o" for rad in SLSTR_RAD_BANDS
 ]
-SlstrRadiometricAdjustment = namedtuple(
-    "SlstrRadiometricAdjustment", FIELDS, defaults=(1.0,) * len(FIELDS)
+SlstrRadAdjustTuple = namedtuple(
+    "SlstrRadAdjustTuple", FIELDS, defaults=(1.0,) * len(FIELDS)
 )
 
 
-class SlstrRadiometricAdjustmentEnum(ListEnum):
+class SlstrRadAdjust(ListEnum):
     """
-    SLSTR Radiometric Adjustment dictionaries.
+    SLSTR Radiance Adjustment dictionaries.
 
     Sentinel-3 SLSTR radiometry is not nominal, therefore a first-order radiometric correction is provided.
     """
 
-    SNAP = SlstrRadiometricAdjustment(
+    SNAP = SlstrRadAdjustTuple(
         # Nadir
         S5_n=1.12,
         S6_n=1.13,
@@ -111,7 +112,7 @@ class SlstrRadiometricAdjustmentEnum(ListEnum):
     [here](https://github.com/senbox-org/s3tbx/blob/b10514e399f7a8a436002d2bacdb0c62be72f8f8/s3tbx-sentinel3-reader/src/main/java/org/esa/s3tbx/dataio/s3/slstr/SlstrLevel1ProductFactory.java#L72-L75)
     """
 
-    S3_PN_SLSTR_L1_06 = SlstrRadiometricAdjustment(
+    S3_PN_SLSTR_L1_06 = SlstrRadAdjustTuple(
         # Nadir
         S5_n=1.12,
         S6_n=1.15,
@@ -132,7 +133,7 @@ class SlstrRadiometricAdjustmentEnum(ListEnum):
     edited the 15/01/2020 and reviewed the 09/06/2020, same as the Product Notice 06.
     """
 
-    S3_PN_SLSTR_L1_08 = SlstrRadiometricAdjustment(
+    S3_PN_SLSTR_L1_08 = SlstrRadAdjustTuple(
         # Nadir
         S1_n=0.97,
         S2_n=0.98,
@@ -154,7 +155,7 @@ class SlstrRadiometricAdjustmentEnum(ListEnum):
     The default one.
     """
 
-    NONE = SlstrRadiometricAdjustment()
+    NONE = SlstrRadAdjustTuple()
     """
     Coefficients set to one.
     """
@@ -162,11 +163,7 @@ class SlstrRadiometricAdjustmentEnum(ListEnum):
 
 class S3SlstrProduct(S3Product):
     """
-    Class of Sentinel-3 Products
-
-    **Note**: All S3-OLCI bands won't be used in EOReader !
-
-    **Note**: We only use NADIR rasters for S3-SLSTR bands
+    Class of Sentinel-3 SLSTR Products
     """
 
     def __init__(
@@ -361,9 +358,8 @@ class S3SlstrProduct(S3Product):
 
             # Adjust radiance if needed
             # Get the user's radiance adjustment if existing
-            rad_adjust = kwargs.get("slstr_radiance_adjustment")
-            if rad_adjust is not None:
-                assert isinstance(rad_adjust, SlstrRadiometricAdjustmentEnum)
+            rad_adjust = kwargs.get(SLSTR_RAD_ADJUST, SlstrRadAdjust.S3_PN_SLSTR_L1_08)
+            assert isinstance(rad_adjust, SlstrRadAdjust)
             band_arr = self._radiance_adjustment(band_arr, band, rad_adjust=rad_adjust)
 
             # Convert radiance to reflectances if needed
@@ -561,7 +557,7 @@ class S3SlstrProduct(S3Product):
         self,
         band_arr: xr.DataArray,
         band: obn = None,
-        rad_adjust: SlstrRadiometricAdjustmentEnum = SlstrRadiometricAdjustmentEnum.S3_PN_SLSTR_L1_08,
+        rad_adjust: SlstrRadAdjust = SlstrRadAdjust.S3_PN_SLSTR_L1_08,
     ) -> xr.DataArray:
         """
         Applying the radiance adjustment as recommended in the product notice:
@@ -590,19 +586,22 @@ class S3SlstrProduct(S3Product):
         Args:
             band_arr (xr.DataArray): Band array
             band (obn): Optical Band
-            rad_adjust (SlstrRadiometricAdjustmentEnum): Radiance Adjustment
+            rad_adjust (SlstrRadAdjust): Radiance Adjustment
 
         Returns:
             xr.DataArray: Adjusted band array
         """
-        band_name = self.band_names[band]
-        if band_name in SLSTR_RAD_BANDS:
-            rad_coeff = getattr(rad_adjust.value, f"{band_name}_{self._suffix[-1]}")
-        else:
-            # Brilliance temperature
-            rad_coeff = 1.0
-
-        return band_arr * rad_coeff
+        try:
+            band_name = self.band_names[band]
+            if band_name in SLSTR_RAD_BANDS:
+                rad_coeff = getattr(rad_adjust.value, f"{band_name}_{self._suffix[-1]}")
+            else:
+                # Brilliance temperature
+                rad_coeff = 1.0
+            return band_arr * rad_coeff
+        except KeyError:
+            # Not a band (ie Quality Flags)
+            return band_arr
 
     def _compute_sza_img_grid(self) -> np.ndarray:
         """
