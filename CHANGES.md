@@ -4,30 +4,42 @@
 
 ## 0.8.0 (2021-MM-DD)
 
-- **BREAKING CHANGE**: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties !
-- **ENH**: `crs`, `footprint`, `extent`, `default_transform`, `wgs84_extent` are cached (using `@cached_property`)
-- **ENH**: `get_mean_sun_angles` and `default_transform` are now cached (using `@cache`)
+- **BREAKING CHANGE: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties !**
+- **BREAKING CHANGE: `HILLSHADE` is given in `float32` instead of `uint8`**
+- **BREAKING CHANGE: `SLOPE` is given in degrees instead of percents**
+
+
 - **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !**
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
 - **ENH: Archived Sentinel-3 products can now be processed**
 - **ENH: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** #10
-- **ENH: `HILLSHADE` is given in `float32` instead of `uint8`**
-- **ENH: Better management of `fspath` for cloud-stored products (download the files only once)**
-- **ENH: Use band size for cleaning optical pixel (instead of user resolution/size)**
-- **ENH: Stop downloading/extracting files if not necessary**
+
+
+- OPTIM: `crs`, `footprint`, `extent`, `default_transform`, `wgs84_extent` are cached (using `@cached_property`)
+- OPTIM: `get_mean_sun_angles` and `default_transform` are now cached (using `@cache`)
+- OPTIM: Better management of `fspath` for cloud-stored products (download the files only once)
+- OPTIM: Stop downloading/extracting files if not necessary
+
+
+- FIX: Use band size for cleaning optical pixel (instead of user resolution/size)
 - FIX: Always take the absolute value of the resolution when converting it to strings (for filenames)
 - FIX: Take the default resolution if nothing is given when converting it to strings (for filenames)
 - FIX: Always use `utils.read/write` instead of `rasters.read/write` (for Dask management)
 - FIX: Fixing a bug in `utils.write`
-- FIX: `SLOPE` is given in degrees instead of percents
 - FIX: Add .xml files from `eoreader/data` in the MANIFEST.in
 - FIX: Add forgotten `@abstractmethod` where needed
 - FIX: Better management of `_tmp_process`
 - FIX: Fixing minor bug when trying to read metadata with a POSIX path
 - FIX: Fixing the `**kwargs` omission in `utils.read`
 - FIX: Better management of `_temp_process` directory
+
+
 - DEPR: `FAR_NIR` band is removed
+
+
 - REQ: Using `h5netcdf` instead of `netCDF4`
+
+
 - DOC: Add a Context paragraph in the README
 - DOC: Add a Conda x SNAP question in the FAQ
 - DOC: Numerous updates
@@ -48,6 +60,8 @@
   the ones using SWIR)**
 - **ENH: Loading by size -> round resolution to the closest meter (or decimeter for resolution < 1.0m)**
 - **ENH: Super class for VHR data**
+
+
 - FIX: Fixing reading PlanetScope archived products (error in read band)
 - FIX: Fix band name with complex resolutions
 - FIX: Fixing minor bug in RADARSAT-2 data when looking for product type
@@ -58,8 +72,12 @@
 - FIX: Workaround for a bug involving some downloaded but badly formatted archives for Sentinel-2
 - FIX: Allow NARROW_NIR for and DIMAP data (== NIR)
 - FIX: Better management of writeable band folder
+
+
 - DOC: Fix documentation of the NDWI index
 - DOC: Update graph for optical band mapping
+
+
 - CI: Adding a test loading invalid band name
 - CI: Setting CI log level to DEBUG
 - CI: Accelerating the CI processes
