@@ -59,7 +59,7 @@ OLCI_SOLAR_FLUXES_DEFAULT = {
     obn.BLUE: 1930.2483,
     obn.Oa05: 1804.2762,
     obn.GREEN: 1651.5836,
-    obn.Oa07: 1531.4067,
+    obn.YELLOW: 1531.4067,
     obn.RED: 1475.615,
     obn.Oa09: 1408.9949,
     obn.Oa10: 1265.5425,
@@ -209,7 +209,7 @@ class S3OlciProduct(S3Product):
                 obn.BLUE: "Oa04",
                 obn.Oa05: "Oa05",
                 obn.GREEN: "Oa06",
-                obn.Oa07: "Oa07",
+                obn.YELLOW: "Oa07",
                 obn.RED: "Oa08",
                 obn.Oa09: "Oa09",
                 obn.Oa10: "Oa10",
@@ -488,7 +488,7 @@ class S3OlciProduct(S3Product):
             obn.BLUE: 17,  # Band 4
             obn.Oa05: 16,  # Band 5
             obn.GREEN: 15,  # Band 6
-            obn.Oa07: 14,  # Band 7
+            obn.YELLOW: 14,  # Band 7
             obn.RED: 13,  # Band 8
             obn.Oa09: 12,  # Band 9
             obn.Oa10: 11,  # Band 10

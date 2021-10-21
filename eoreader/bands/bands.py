@@ -334,42 +334,47 @@ class OpticalBandNames(BandNames):
     """
     Oa02
     """
+
     Oa05 = "Oa05"
     """
     Oa05
     """
-    Oa07 = "Oa07"
-    """
-    Oa07
-    """
+
     Oa09 = "Oa09"
     """
     Oa09
     """
+
     Oa10 = "Oa10"
     """
     Oa10
     """
+
     Oa13 = "Oa13"
     """
     Oa13
     """
+
     Oa14 = "Oa14"
     """
     Oa14
     """
+
     Oa15 = "Oa15"
     """
     Oa15
     """
+
     Oa18 = "Oa18"
     """
     Oa18
     """
+
     Oa19 = "Oa19"
     """
     Oa01
     """
+
     Oa21 = "Oa21"
     """
     Oa01
