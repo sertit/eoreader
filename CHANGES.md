@@ -45,6 +45,7 @@
 
 - DOC: Add a Context paragraph in the README
 - DOC: Add a Conda x SNAP question in the FAQ
+- DOC: Updates of notebooks
 - DOC: Numerous updates
 
 ## 0.7.1 (2021-09-29)
