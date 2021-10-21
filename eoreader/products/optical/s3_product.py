@@ -602,7 +602,7 @@ class S3Product(OpticalProduct):
         return mtd_el, {}
 
     def _read_nc(
-        self, filename: Union[str, obn], subdataset: str = None, suffix: str = None
+        self, filename: Union[str, obn], subdataset: str = None
     ) -> xr.DataArray:
         """
         Read NetCDF file (as float32) and rescaled them to their true values
@@ -629,14 +629,6 @@ class S3Product(OpticalProduct):
             filename = obn.convert_from(filename)[0]
         except TypeError:
             pass
-
-        # Get band regex
-        if isinstance(filename, obn):
-            if not subdataset:
-                subdataset = self._replace(
-                    self._radiance_subds, band=filename, suffix=suffix
-                )
-            filename = self._replace(self._radiance_file, band=filename, suffix=suffix)
 
         # Get raw band path
         if self.is_archived:

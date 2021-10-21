@@ -57,7 +57,9 @@ class OpticalProduct(Product):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
-        self.band_names = OpticalBands()
+        # They may be overloaded
+        if not self.band_names:
+            self.band_names = OpticalBands()
         self.sensor_type = SensorType.OPTICAL
 
     def _post_init(self) -> None:

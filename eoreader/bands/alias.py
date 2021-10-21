@@ -51,14 +51,31 @@ VRE_3 = _obn.VRE_3
 NIR = _obn.NIR
 NARROW_NIR = _obn.NARROW_NIR
 WV = _obn.WV  # Water vapour
-# FNIR = _obn.FAR_NIR
 SWIR_CIRRUS = _obn.SWIR_CIRRUS  # Optical band based on cirrus
 SWIR_1 = _obn.SWIR_1
 SWIR_2 = _obn.SWIR_2
-# MIR = _obn.MIR
 TIR_1 = _obn.TIR_1
 TIR_2 = _obn.TIR_2
 PAN = _obn.PAN
+
+# -- S3-SLSTR Additional bands --
+S7 = _obn.S7
+F1 = _obn.F1
+F2 = _obn.F2
+
+# -- S3-OCLI Additional bands --
+Oa01 = _obn.Oa01
+Oa02 = _obn.Oa02
+Oa05 = _obn.Oa05
+Oa07 = _obn.Oa07
+Oa09 = _obn.Oa09
+Oa10 = _obn.Oa10
+Oa13 = _obn.Oa13
+Oa14 = _obn.Oa14
+Oa15 = _obn.Oa15
+Oa18 = _obn.Oa18
+Oa19 = _obn.Oa19
+Oa21 = _obn.Oa21
 
 # -- SAR BANDS --
 VV = _sbn.VV
@@ -69,6 +86,10 @@ VH = _sbn.VH
 VH_DSPK = _sbn.VH_DSPK
 HV = _sbn.HV
 HV_DSPK = _sbn.HV_DSPK
+RH = _sbn.RH
+RH_DSPK = _sbn.RH_DSPK
+RV = _sbn.RV
+RV_DSPK = _sbn.RV_DSPK
 
 # -- INDEX --
 RGI = _idx.RGI
