@@ -67,7 +67,6 @@ F2 = _obn.F2
 Oa01 = _obn.Oa01
 Oa02 = _obn.Oa02
 Oa05 = _obn.Oa05
-Oa07 = _obn.Oa07
 Oa09 = _obn.Oa09
 Oa10 = _obn.Oa10
 Oa13 = _obn.Oa13
