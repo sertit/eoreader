@@ -68,17 +68,20 @@ SLSTR_SOLAR_FLUXES_DEFAULT = {
     obn.SWIR_2: 78.33,
 }
 
-# Create
-SLSTR_RAD_A_BANDS = ["S1", "S2", "S3"]
-SLSTR_RAD_ABC_BANDS = ["S4", "S5", "S6"]
-SLSTR_BT_BANDS = ["S7", "S8", "S9", "F1", "F2"]
-SLSTR_FIRE_BANDS = ["F1", "F2"]
+# Link band names to their stripe
+SLSTR_A_BANDS = ["S1", "S2", "S3"]
+SLSTR_ABC_BANDS = ["S4", "S5", "S6"]
+SLSTR_I_BANDS = ["S7", "S8", "S9", "F1", "F2"]
+
+# Link band names to their physical quantity (radiance vs brilliance temperature)
+SLSTR_RAD_BANDS = SLSTR_A_BANDS + SLSTR_ABC_BANDS
+SLSTR_BT_BANDS = SLSTR_I_BANDS
 
 # Radiance adjustment
-# Nadir and Oblique
-FIELDS = [f"{rad}_n" for rad in SLSTR_RAD_A_BANDS + SLSTR_RAD_ABC_BANDS] + [
-    f"{rad}_o" for rad in SLSTR_RAD_A_BANDS + SLSTR_RAD_ABC_BANDS
-]
+FIELDS = [f"{rad}_n" for rad in SLSTR_A_BANDS + SLSTR_ABC_BANDS] + [
+    f"{rad}_o" for rad in SLSTR_A_BANDS + SLSTR_ABC_BANDS
+]  # Nadir and Oblique
+
 SlstrRadAdjustTuple = namedtuple(
     "SlstrRadAdjustTuple", FIELDS, defaults=(1.0,) * len(FIELDS)
 )
@@ -234,21 +237,15 @@ class S3SlstrProduct(S3Product):
         self._view = SlstrView.NADIR
         self._rad_adjust = SlstrRadAdjust.S3_PN_SLSTR_L1_08
 
+        # Brilliance temperature
+        self._bt_file = "{band}_BT_{suffix}.nc"
+        self._bt_subds = "{band}_BT_{suffix}"
+
         super().__init__(
             product_path, archive_path, output_path, remove_tmp
         )  # Order is important here
 
         self._gcps = defaultdict(list)
-
-    def _pre_init(self) -> None:
-        """
-        Function used to pre_init the products
-        (setting needs_extraction and so on)
-        """
-        self.needs_extraction = False
-
-        # Post init done by the super class
-        super()._pre_init()
 
     def _get_platform(self) -> Platform:
         """ Getter of the platform """
@@ -269,7 +266,7 @@ class S3SlstrProduct(S3Product):
 
     def _get_preprocessed_band_path(
         self,
-        band: Union[obn, str],
+        filename: str,
         suffix: str,
         resolution: Union[float, tuple, list] = None,
         writable: bool = True,
@@ -278,7 +275,7 @@ class S3SlstrProduct(S3Product):
         Create the pre-processed band path
 
         Args:
-            band (band: Union[obn, str]): Wanted band (quality flags accepted)
+            filename (str): Filename
             resolution (Union[float, tuple, list]): Resolution of the wanted UTM band
             writable (bool): Do we need to write the pre-processed band ?
 
@@ -286,11 +283,12 @@ class S3SlstrProduct(S3Product):
             Union[CloudPath, Path]: Pre-processed band path
         """
         res_str = self._resolution_to_str(resolution)
-        band_str = band.name if isinstance(band, obn) else band
+        if filename.endswith(suffix):
+            pp_name = f"{self.condensed_name}_{filename}_{suffix}_{res_str}.tif"
+        else:
+            pp_name = f"{self.condensed_name}_{filename}_{res_str}.tif"
 
-        return self._get_band_folder(writable=writable).joinpath(
-            f"{self.condensed_name}_{band_str}_{suffix}_{res_str}.tif"
-        )
+        return self._get_band_folder(writable=writable).joinpath(pp_name)
 
     def _set_preprocess_members(self):
         """ Set pre-process members """
@@ -343,19 +341,18 @@ class S3SlstrProduct(S3Product):
         # Bands
         self.band_names.map_bands(
             {
-                obn.GREEN: SLSTR_RAD_A_BANDS[0],  # S1, radiance, 500m
-                obn.RED: SLSTR_RAD_A_BANDS[1],  # S2, radiance, 500m
-                obn.NIR: SLSTR_RAD_A_BANDS[2],  # S3, radiance, 500m
-                obn.NARROW_NIR: SLSTR_RAD_ABC_BANDS[0],  # S3, radiance, 500m
-                obn.SWIR_CIRRUS: SLSTR_RAD_ABC_BANDS[0],  # S4, radiance, 500m
-                obn.SWIR_1: SLSTR_RAD_ABC_BANDS[1],  # S5, radiance, 500m
-                obn.SWIR_2: SLSTR_RAD_ABC_BANDS[2],  # S6, radiance, 500m
-                # TODO: convert BT to radiance to use it
-                # SLSTR_BT_BANDS[0]: SLSTR_BT_BANDS[0],  # S7, brilliance temperature, 1km
-                # obn.TIR_1: SLSTR_BT_BANDS[1],  # S8, brilliance temperature, 1km
-                # obn.TIR_2: SLSTR_BT_BANDS[2],  # S9, brilliance temperature, 1km
-                # SLSTR_FIRE_BANDS[0]: SLSTR_FIRE_BANDS[0],  # F1, brilliance temperature, 1km
-                # SLSTR_FIRE_BANDS[1]: "SLSTR_FIRE_BANDS[1],  # F2, brilliance temperature, 1km
+                obn.GREEN: SLSTR_A_BANDS[0],  # S1, radiance, 500m
+                obn.RED: SLSTR_A_BANDS[1],  # S2, radiance, 500m
+                obn.NIR: SLSTR_A_BANDS[2],  # S3, radiance, 500m
+                obn.NARROW_NIR: SLSTR_A_BANDS[2],  # S3, radiance, 500m
+                obn.SWIR_CIRRUS: SLSTR_ABC_BANDS[0],  # S4, radiance, 500m
+                obn.SWIR_1: SLSTR_ABC_BANDS[1],  # S5, radiance, 500m
+                obn.SWIR_2: SLSTR_ABC_BANDS[2],  # S6, radiance, 500m
+                obn.S7: SLSTR_I_BANDS[0],  # S7, brilliance temperature, 1km
+                obn.TIR_1: SLSTR_I_BANDS[1],  # S8, brilliance temperature, 1km
+                obn.TIR_2: SLSTR_I_BANDS[2],  # S9, brilliance temperature, 1km
+                obn.F1: SLSTR_I_BANDS[3],  # F1, brilliance temperature, 1km
+                obn.F2: SLSTR_I_BANDS[4],  # F2, brilliance temperature, 1km
             }
         )
 
@@ -383,49 +380,71 @@ class S3SlstrProduct(S3Product):
         Returns:
             dict: Dictionary containing {band: path}
         """
-        band_str = band if isinstance(band, str) else band.value
+        if isinstance(band, obn):
+            band_name = self.band_names[band]
+            band_str = band.name
+        else:
+            band_name = band
+            band_str = band
 
         # Get this band's suffix
-        suffix = kwargs.get("suffix")
-        if not suffix:
-            suffix = self._get_suffix(band, **kwargs)
+        suffix = kwargs.get("suffix", self._get_suffix(band, **kwargs))
 
+        # Get band filename and subdataset
+        pp_name = subdataset if subdataset else band_str
+        if band_name in SLSTR_RAD_BANDS:
+            if not subdataset:
+                subdataset = self._replace(
+                    self._radiance_subds, band=band, suffix=suffix
+                )
+            filename = self._replace(self._radiance_file, band=band, suffix=suffix)
+        elif band_name in SLSTR_BT_BANDS:
+            if not subdataset:
+                subdataset = self._replace(self._bt_subds, band=band, suffix=suffix)
+            filename = self._replace(self._bt_file, band=band, suffix=suffix)
+        else:
+            filename = band
+
+        # Get the pre-processed path
         path = self._get_preprocessed_band_path(
-            band, suffix=suffix, resolution=resolution
+            pp_name, suffix=suffix, resolution=resolution
         )
 
         if not path.is_file():
             path = self._get_preprocessed_band_path(
-                band, suffix=suffix, resolution=resolution, writable=True
+                pp_name, suffix=suffix, resolution=resolution, writable=True
             )
 
             # Get raw band
-            band_arr = self._read_nc(band, subdataset, suffix)
+            band_arr = self._read_nc(filename, subdataset)
 
-            # Adjust radiance if needed
-            # Get the user's radiance adjustment if existing
-            rad_adjust = SlstrRadAdjust.from_value(
-                kwargs.get(SLSTR_RAD_ADJUST, self._rad_adjust)
-            )
-            band_arr = self._radiance_adjustment(
-                band_arr, band, view=suffix[-1], rad_adjust=rad_adjust
-            )
+            # Radiance pre process (BT bands are given in BT !)
+            if band_name in SLSTR_RAD_BANDS:
+                # Adjust radiance if needed
+                # Get the user's radiance adjustment if existing
+                rad_adjust = SlstrRadAdjust.from_value(
+                    kwargs.get(SLSTR_RAD_ADJUST, self._rad_adjust)
+                )
+                band_arr = self._radiance_adjustment(
+                    band_arr, band, view=suffix[-1], rad_adjust=rad_adjust
+                )
 
-            # Convert radiance to reflectances if needed
-            # Convert first pixel by pixel before reprojection !
-            if to_reflectance:
-                LOGGER.debug(f"Converting {band_str} to reflectance")
-                band_arr = self._rad_2_refl(band_arr, band, suffix)
+                # Convert radiance to reflectances if needed
+                # Convert first pixel by pixel before reprojection !
+                if to_reflectance:
+                    LOGGER.debug(f"Converting {band_str} to reflectance")
+                    band_arr = self._rad_2_refl(band_arr, band, suffix)
 
-                # Debug
-                # utils.write(
-                #     band_arr,
-                #     self._get_band_folder(writable=True).joinpath(
-                #         f"{self.condensed_name}_{band.name}_rad2refl.tif"
-                #     ),
-                # )
+                    # Debug
+                    # utils.write(
+                    #     band_arr,
+                    #     self._get_band_folder(writable=True).joinpath(
+                    #         f"{self.condensed_name}_{band.name}_rad2refl.tif"
+                    #     ),
+                    # )
 
             # Geocode
+            LOGGER.debug(f"Geocoding {pp_name}")
             pp_arr = self._geocode(band_arr, resolution=resolution, suffix=suffix)
 
             # Write on disk
@@ -457,11 +476,9 @@ class S3SlstrProduct(S3Product):
             if isinstance(band, obn):
                 band = self.band_names[band]
 
-            if band in SLSTR_BT_BANDS:
+            if band in SLSTR_I_BANDS:
                 stripe = SlstrStripe.I
-            elif band in SLSTR_FIRE_BANDS:
-                stripe = SlstrStripe.F
-            elif band in SLSTR_RAD_ABC_BANDS:
+            elif band in SLSTR_ABC_BANDS:
                 stripe = SlstrStripe.from_value(kwargs.get(SLSTR_STRIPE, SlstrStripe.A))
             else:
                 stripe = SlstrStripe.A
@@ -515,6 +532,7 @@ class S3SlstrProduct(S3Product):
             gcps=self._gcps[suffix],
             nodata=self.nodata,
             num_threads=MAX_CORES,
+            resampling=Resampling.nearest,
             **{"SRC_METHOD": "GCP_TPS"},
         )
 
@@ -560,26 +578,26 @@ class S3SlstrProduct(S3Product):
 
         return img_arr
 
-    def _bt_2_rad(self, band_arr: xr.DataArray, band: obn = None) -> xr.DataArray:
-        """
-        Convert brightness temperature to radiance
-
-        The Level-1 brightness temperature measurements provided for the thermal channels (S7-S9, F1 and F2)
-        can be converted to radiance by integrating the Planck function at the BT of interest multiplied over the
-        spectral response of each band. The spectral response functions for SLSTR-A and SLSTR-B are available on
-        the ESA Sentinel Online website (see Section 8.2.10)
-        https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-3-slstr/instrument/measured-spectral-response-function-data
-
-        In https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a
-        Args:
-            band_arr (xr.DataArray): Band array
-            band (obn): Optical Band
-
-        Returns:
-            dict: Dictionary containing {band: path}
-        """
-
-        return band_arr
+    # def _bt_2_rad(self, band_arr: xr.DataArray, band: obn = None) -> xr.DataArray:
+    #     """
+    #     Convert brightness temperature to radiance
+    #
+    #     The Level-1 brightness temperature measurements provided for the thermal channels (S7-S9, F1 and F2)
+    #     can be converted to radiance by integrating the Planck function at the BT of interest multiplied over the
+    #     spectral response of each band. The spectral response functions for SLSTR-A and SLSTR-B are available on
+    #     the ESA Sentinel Online website (see Section 8.2.10)
+    #     https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-3-slstr/instrument/measured-spectral-response-function-data
+    #
+    #     In https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a
+    #     Args:
+    #         band_arr (xr.DataArray): Band array
+    #         band (obn): Optical Band
+    #
+    #     Returns:
+    #         dict: Dictionary containing {band: path}
+    #     """
+    #
+    #     return band_arr
 
     def _rad_2_refl(
         self, band_arr: xr.DataArray, band: obn, suffix: str
@@ -678,7 +696,7 @@ class S3SlstrProduct(S3Product):
         """
         try:
             band_name = self.band_names[band]
-            if band_name in SLSTR_RAD_A_BANDS + SLSTR_RAD_ABC_BANDS:
+            if band_name in SLSTR_RAD_BANDS:
                 rad_coeff = getattr(rad_adjust.value, f"{band_name}_{view}")
             else:
                 # Brilliance temperature
@@ -760,10 +778,11 @@ class S3SlstrProduct(S3Product):
         """
         # Open quality flags
         # NOT OPTIMIZED, MAYBE CHECK INVALID PIXELS ON NOT GEOCODED DATA
+        suffix = self._get_suffix(band, **kwargs)
         qual_flags_path = self._preprocess(
             band,
-            suffix=self._get_suffix(band, **kwargs),
-            subdataset=self._replace(self._exception_name, band=band),
+            suffix=suffix,
+            subdataset=self._replace(self._exception_name, band=band, suffix=suffix),
             resolution=band_arr.rio.resolution(),
             to_reflectance=False,
         )
@@ -776,7 +795,7 @@ class S3SlstrProduct(S3Product):
             masked=False,
         )
 
-        # Set no data for everything (except ISP) that caused an exception
+        # Set no data for everything that caused an exception
         exception = np.where(qual_arr > 2, self._mask_true, self._mask_false)
 
         # Get nodata mask

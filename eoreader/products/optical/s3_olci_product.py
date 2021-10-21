@@ -53,28 +53,28 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 # https://github.com/senbox-org/s3tbx/blob/197c9a471002eb2ec1fbd54e9a31bfc963446645/s3tbx-rad2refl/src/main/java/org/esa/s3tbx/processor/rad2refl/Rad2ReflConstants.java#L97
 # Not used for now
 OLCI_SOLAR_FLUXES_DEFAULT = {
-    "01": 1714.9084,
-    "02": 1872.3961,
+    obn.Oa01: 1714.9084,
+    obn.Oa02: 1872.3961,
     obn.CA: 1926.6102,
     obn.BLUE: 1930.2483,
-    "05": 1804.2762,
+    obn.Oa05: 1804.2762,
     obn.GREEN: 1651.5836,
-    "07": 1531.4067,
+    obn.Oa07: 1531.4067,
     obn.RED: 1475.615,
-    "09": 1408.9949,
-    "10": 1265.5425,
+    obn.Oa09: 1408.9949,
+    obn.Oa10: 1265.5425,
     obn.VRE_1: 1255.4227,
     obn.VRE_2: 1178.0286,
-    "13": 955.07043,
-    "14": 914.18945,
-    "15": 882.8275,
+    obn.Oa13: 955.07043,
+    obn.Oa14: 914.18945,
+    obn.Oa15: 882.8275,
     obn.VRE_3: 882.8275,
     obn.NIR: 882.8275,
     obn.NARROW_NIR: 882.8275,
-    "18": 882.8275,
-    "19": 882.8275,
+    obn.Oa18: 882.8275,
+    obn.Oa19: 882.8275,
     obn.WV: 882.8275,
-    "21": 882.8275,
+    obn.Oa21: 882.8275,
 }
 
 
@@ -134,8 +134,8 @@ class S3OlciProduct(S3Product):
     def _set_preprocess_members(self):
         """ Set pre-process members """
         # Radiance bands
-        self._radiance_file = "Oa{band}_radiance.nc"
-        self._radiance_subds = "Oa{band}_radiance"
+        self._radiance_file = "{band}_radiance.nc"
+        self._radiance_subds = "{band}_radiance"
 
         # Geocoding
         self._geo_file = "geo_coordinates.nc"
@@ -203,28 +203,28 @@ class S3OlciProduct(S3Product):
         # Bands
         self.band_names.map_bands(
             {
-                # "01": "01",
-                # "02": "02",
-                obn.CA: "03",
-                obn.BLUE: "04",
-                # "05": "05",
-                obn.GREEN: "06",
-                # "07": "07",
-                obn.RED: "08",
-                # "09": "09",
-                # "10": "10",
-                obn.VRE_1: "11",
-                obn.VRE_2: "12",
-                # "13": "13",
-                # "14": "14",
-                # "15": "15",
-                obn.VRE_3: "16",
-                obn.NIR: "17",
-                obn.NARROW_NIR: "17",
-                # "18": "18",
-                # "19": "19",
-                obn.WV: "20",
-                # "21": "21",
+                obn.Oa01: "Oa01",
+                obn.Oa02: "Oa02",
+                obn.CA: "Oa03",
+                obn.BLUE: "Oa04",
+                obn.Oa05: "Oa05",
+                obn.GREEN: "Oa06",
+                obn.Oa07: "Oa07",
+                obn.RED: "Oa08",
+                obn.Oa09: "Oa09",
+                obn.Oa10: "Oa10",
+                obn.VRE_1: "Oa11",
+                obn.VRE_2: "Oa12",
+                obn.Oa13: "Oa13",
+                obn.Oa14: "Oa14",
+                obn.Oa15: "Oa15",
+                obn.VRE_3: "Oa16",
+                obn.NIR: "Oa17",
+                obn.NARROW_NIR: "Oa17",
+                obn.Oa18: "Oa18",
+                obn.Oa19: "Oa19",
+                obn.WV: "Oa20",
+                obn.Oa21: "Oa21",
             }
         )
 
@@ -266,7 +266,7 @@ class S3OlciProduct(S3Product):
         Returns:
             dict: Dictionary containing {band: path}
         """
-        band_str = band if isinstance(band, str) else band.value
+        band_str = band if isinstance(band, str) else band.name
 
         path = self._get_preprocessed_band_path(band, resolution=resolution)
 
@@ -275,8 +275,17 @@ class S3OlciProduct(S3Product):
                 band, resolution=resolution, writable=True
             )
 
+            # Get band regex
+            if isinstance(band, obn):
+                band_name = self.band_names[band]
+                if not subdataset:
+                    subdataset = self._replace(self._radiance_subds, band=band_name)
+                filename = self._replace(self._radiance_file, band=band_name)
+            else:
+                filename = band
+
             # Get raw band
-            band_arr = self._read_nc(band, subdataset)
+            band_arr = self._read_nc(filename, subdataset)
 
             # Convert radiance to reflectances if needed
             # Convert first pixel by pixel before reprojection !
@@ -285,12 +294,12 @@ class S3OlciProduct(S3Product):
                 band_arr = self._rad_2_refl(band_arr, band)
 
                 # Debug
-                utils.write(
-                    band_arr,
-                    self._get_band_folder(writable=True).joinpath(
-                        f"{self.condensed_name}_{band.name}_rad2refl.tif"
-                    ),
-                )
+                # utils.write(
+                #     band_arr,
+                #     self._get_band_folder(writable=True).joinpath(
+                #         f"{self.condensed_name}_{band.name}_rad2refl.tif"
+                #     ),
+                # )
 
             # Geocode
             LOGGER.debug(f"Geocoding {band_str}")
@@ -407,7 +416,7 @@ class S3OlciProduct(S3Product):
         e0_det = self._read_nc(self._misc_file, self._solar_flux_name).data
 
         # Get band slice and open corresponding e0 for the detectors
-        band_slice = int(self.band_names[band]) - 1
+        band_slice = int(self.band_names[band][-2:]) - 1
         e0_det = np.squeeze(e0_det[0, band_slice, :])
 
         # Create e0
@@ -473,28 +482,28 @@ class S3OlciProduct(S3Product):
         """
         # Bit ids
         band_bit_id = {
-            "01": 20,  # Band 1
-            obn.CA: 19,  # Band 2
-            obn.BLUE: 18,  # Band 3
-            "04": 17,  # Band 4
-            "05": 16,  # Band 5
+            obn.Oa01: 20,  # Band 1
+            obn.Oa02: 19,  # Band 2
+            obn.CA: 18,  # Band 3
+            obn.BLUE: 17,  # Band 4
+            obn.Oa05: 16,  # Band 5
             obn.GREEN: 15,  # Band 6
-            "07": 14,  # Band 7
+            obn.Oa07: 14,  # Band 7
             obn.RED: 13,  # Band 8
-            "09": 12,  # Band 9
-            "10": 11,  # Band 10
+            obn.Oa09: 12,  # Band 9
+            obn.Oa10: 11,  # Band 10
             obn.VRE_1: 10,  # Band 11
             obn.VRE_2: 9,  # Band 12
-            "13": 8,  # Band 13
-            "14": 7,  # Band 14
-            "15": 6,  # Band 15
+            obn.Oa13: 8,  # Band 13
+            obn.Oa14: 7,  # Band 14
+            obn.Oa15: 6,  # Band 15
             obn.VRE_3: 5,  # Band 16
             obn.NIR: 4,  # Band 17
             obn.NARROW_NIR: 4,  # Band 17
-            "18": 3,  # Band 18
-            "19": 2,  # Band 19
+            obn.Oa18: 3,  # Band 18
+            obn.Oa19: 2,  # Band 19
             obn.WV: 1,  # Band 20
-            "21": 0,  # Band 21
+            obn.Oa21: 0,  # Band 21
         }
         invalid_id = 25
         sat_band_id = band_bit_id[band]
