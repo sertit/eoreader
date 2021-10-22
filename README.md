@@ -101,6 +101,7 @@ Available notebooks provided as examples:
 - [Basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html)
 - [SAR data](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html)
 - [VHR data](https://eoreader.readthedocs.io/en/latest/notebooks/VHR.html)
+- [Sentinel-3 data](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html)
 - [Water detection](https://eoreader.readthedocs.io/en/latest/notebooks/water_detection.html)
 - [S3 Compatible Storage](https://eoreader.readthedocs.io/en/latest/notebooks/s3_compatible_storage.html)
 - [Dask](https://eoreader.readthedocs.io/en/latest/notebooks/dask.html)
