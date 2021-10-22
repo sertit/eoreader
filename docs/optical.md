@@ -33,6 +33,10 @@
 Satellites products that cannot be used as archived have to be extracted before use.
 ```
 
+The goal of **EOReader** is to implement every sensor that can be used in the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/).  
+The sensors that can be used as of 09/2021 are:  
+![cems_sensors](https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2021/09/copernicus_contributing_missions_overview/23461131-1-eng-GB/Copernicus_Contributing_Missions_overview_pillars.jpg)
+
 ## Optical bands
 
 The following bands are available in **EOReader**, but may not be available for all sensors.
