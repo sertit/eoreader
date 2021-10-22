@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-TerraSAR-X & TanDEM-X products.
+TerraSAR-X & TanDEM-X & PAZ products.
 More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
 """
 import logging
@@ -45,7 +45,7 @@ warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarni
 @unique
 class TsxProductType(ListEnum):
     """
-    TerraSAR-X & TanDEM-X projection identifier.
+    TerraSAR-X & TanDEM-X & PAZ projection identifier.
     Take a look
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
@@ -66,7 +66,7 @@ class TsxProductType(ListEnum):
 @unique
 class TsxSensorMode(ListEnum):
     """
-    TerraSAR-X & TanDEM-X sensor mode.
+    TerraSAR-X & TanDEM-X & PAZ sensor mode.
     Take a look
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
@@ -90,7 +90,7 @@ class TsxSensorMode(ListEnum):
 @unique
 class TsxPolarization(ListEnum):
     """
-    TerraSAR-X & TanDEM-X polarization mode.
+    TerraSAR-X & TanDEM-X & PAZ polarization mode.
     Take a look
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
@@ -111,7 +111,7 @@ class TsxPolarization(ListEnum):
 @unique
 class TsxSatId(ListEnum):
     """
-    TerraSAR-X products satellite IDs
+    TerraSAR-X products satellite IDs + PAZ
 
     See `here <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 29)
     """
@@ -126,9 +126,14 @@ class TsxSatId(ListEnum):
     TerraSAR-X
     """
 
+    PAZ = "PAZ"
+    """
+    PAZ
+    """
+
 
 class TsxProduct(SarProduct):
-    """Class for TerraSAR-X & TanDEM-X Products"""
+    """Class for TerraSAR-X & TanDEM-X & PAZ Products"""
 
     def _set_resolution(self) -> float:
         """
@@ -156,7 +161,7 @@ class TsxProduct(SarProduct):
         (setting needs_extraction and so on)
         """
         # Private attributes
-        self._raw_band_regex = "*IMAGE_{}_*.tif"
+        self._raw_band_regex = "*IMAGE_{}_*"
         self._band_folder = self.path.joinpath("IMAGEDATA")
         self._snap_path = self.name + ".xml"
 
@@ -230,7 +235,7 @@ class TsxProduct(SarProduct):
 
         if self.product_type == TsxProductType.MGD:
             self.sar_prod_type = SarProductType.GDRG
-        elif self.product_type in TsxProductType.SSC:
+        elif self.product_type == TsxProductType.SSC:
             self.sar_prod_type = SarProductType.CPLX
         else:
             raise NotImplementedError(
