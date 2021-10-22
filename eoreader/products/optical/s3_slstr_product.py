@@ -422,9 +422,14 @@ class S3SlstrProduct(S3Product):
             if band_name in SLSTR_RAD_BANDS:
                 # Adjust radiance if needed
                 # Get the user's radiance adjustment if existing
-                rad_adjust = SlstrRadAdjust.from_value(
-                    kwargs.get(SLSTR_RAD_ADJUST, self._rad_adjust)
-                )
+                rad_adjust = kwargs.get(SLSTR_RAD_ADJUST, self._rad_adjust)
+                try:
+                    # Try to convert the rad_adjust to the correct enum
+                    rad_adjust = SlstrRadAdjust.from_value(rad_adjust)
+                except ValueError:
+                    # Allow the user to pass a custom SlstrRadAdjustTuple
+                    assert isinstance(rad_adjust, SlstrRadAdjustTuple)
+
                 band_arr = self._radiance_adjustment(
                     band_arr, band, view=suffix[-1], rad_adjust=rad_adjust
                 )
@@ -694,17 +699,27 @@ class S3SlstrProduct(S3Product):
         Returns:
             xr.DataArray: Adjusted band array
         """
+        rad_coeff = None
         try:
             band_name = self.band_names[band]
             if band_name in SLSTR_RAD_BANDS:
-                rad_coeff = getattr(rad_adjust.value, f"{band_name}_{view}")
-            else:
-                # Brilliance temperature
-                rad_coeff = 1.0
-            return band_arr * rad_coeff
+                # Allow the tuple and the enum
+                if isinstance(rad_adjust, SlstrRadAdjust):
+                    rad_adjust_tuple = rad_adjust.value
+                else:
+                    rad_adjust_tuple = rad_adjust
+
+                # Get the band coefficient
+                rad_coeff = getattr(rad_adjust_tuple, f"{band_name}_{view}")
         except KeyError:
-            # Not a band (ie Quality Flags)
-            return band_arr
+            # Not a band (ie Quality Flags) or Brilliance temperature: no adjust needed
+            pass
+
+        # Correct if needed
+        if rad_coeff:
+            band_arr *= rad_coeff
+
+        return band_arr
 
     def _compute_sza_img_grid(self, suffix) -> np.ndarray:
         """

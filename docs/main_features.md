@@ -145,6 +145,9 @@ The nodata written back on disk is by convention:
 - `255` for masks (saved in `uint8`)
 ```
 
+Some additional arguments can be passed to this function, please see `~eoreader.keywords` for the list.
+Sentinel-3 additional keywords use is highlighted in the corresponding notebook.
+
 ## Stack
 
 {meth}`~eoreader.products.product.Product.stack()` is the function stacking all possible bands.
@@ -202,6 +205,9 @@ Coordinates:
 Attributes:
     long_name:  ['NDVI', 'GREEN', 'HILLSHADE']
 ```
+
+Some additional arguments can be passed to this function, please see `~eoreader.keywords` for the list. 
+Sentinel-3 additional keywords use is highlighted in the corresponding notebook.
 
 ## Read Metadata
 EOReader gives you the access to the metadata of your product as a `lxml.etree._Element` followed by the namespace you may need to read them 
