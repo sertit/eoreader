@@ -186,8 +186,8 @@ class Product:
         else:
 
             # Get the products date and datetime
-            self.date = self.get_date(as_date=True)
             self.datetime = self.get_datetime(as_datetime=True)
+            self.date = self.get_date(as_date=True)
 
             # Platform and satellite ID
             self.platform = self._get_platform()

@@ -5,23 +5,23 @@
 ## 0.8.0 (2021-MM-DD)
 
 - **BREAKING CHANGE: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties !**
+- **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** [#10](https://github.com/sertit/eoreader/issues/10)
 - **BREAKING CHANGE: `HILLSHADE` is given in `float32` instead of `uint8`**
 - **BREAKING CHANGE: `SLOPE` is given in degrees instead of percents**
 
 - **ENH: Adding the support of the PAZ SAR sensor**
-- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !**
+- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !** [#12](https://github.com/sertit/eoreader/issues/12)
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
 - **ENH: Thermal bands of Sentinel-3 SLSTR can now be used**
-- **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for OLCI)**
+- **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for OLCI)** [#14](https://github.com/sertit/eoreader/issues/14)
 - **ENH: `YELLOW` band is mapped to `Oa07` band of Sentinel-3 OLCI**
 - **ENH: Zipped Sentinel-3 products can now be processed**
-- **ENH: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** #10
 - **ENH: Allow the use of `kwargs` in `load`, mainly for `rasters.read` (and allowing ie. radiance adjustment in S3-SLSTR)**
 
 
-- OPTIM: `crs`, `footprint`, `extent`, `default_transform`, `wgs84_extent` are cached (using `@cached_property`)
-- OPTIM: `get_mean_sun_angles` and `default_transform` are now cached (using `@cache`)
-- OPTIM: `get_datetime`: Look for the date only if `datetime` attribute is None
+- OPTIM: `crs`, `footprint`, `extent`, `default_transform`, `wgs84_extent` are cached (using `@cached_property`) [#13](https://github.com/sertit/eoreader/issues/13)
+- OPTIM: `get_mean_sun_angles` and `default_transform` are now cached (using `@cache`) [#13](https://github.com/sertit/eoreader/issues/13)
+- OPTIM: `get_datetime`: Look for the date only if `datetime` attribute is None [#13](https://github.com/sertit/eoreader/issues/13)
 - OPTIM: Better management of `fspath` for cloud-stored products (download the files only once)
 - OPTIM: Stop downloading/extracting files if not necessary
 
