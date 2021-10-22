@@ -25,6 +25,8 @@
 - OPTIM: Stop downloading/extracting files if not necessary
 
 
+- FIX: Bands are correctly ordered in stacks
+- FIX: Only load a band once, even if asked several time in the bands
 - FIX: Use band size for cleaning optical pixel (instead of user resolution/size)
 - FIX: Always take the absolute value of the resolution when converting it to strings (for filenames)
 - FIX: Take the default resolution if nothing is given when converting it to strings (for filenames)

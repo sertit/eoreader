@@ -779,8 +779,9 @@ class Product:
         if not isinstance(bands, list):
             bands = [bands]
 
-        # Load bands (and convert the bands to be loaded to correct format)
-        band_dict = self._load(to_band(bands), resolution, size, **kwargs)
+        # Load bands (only once ! and convert the bands to be loaded to correct format)
+        unique_bands = list(set(to_band(bands)))
+        band_dict = self._load(unique_bands, resolution, size, **kwargs)
 
         # Manage the case of arrays of different size -> collocate arrays if needed
         band_dict = self._collocate_bands(band_dict)
@@ -1333,8 +1334,8 @@ class Product:
         # Convert into dataset with str as names
         xds = xr.Dataset(
             data_vars={
-                to_str(key)[0]: (val.coords.dims, val.data)
-                for key, val in band_dict.items()
+                to_str(key)[0]: (band_dict[key].coords.dims, band_dict[key].data)
+                for key in bands
             },
             coords=band_dict[bands[0]].coords,
         )

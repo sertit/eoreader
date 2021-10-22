@@ -153,10 +153,14 @@ Sentinel-3 additional keywords use is highlighted in the corresponding notebook.
 {meth}`~eoreader.products.product.Product.stack()` is the function stacking all possible bands.
 It is based on the load function and then just stacks the bands and write it on disk if needed.
 
+The bands are ordered as asked in the stack.
+However, they cannot be duplicated (the stack cannot contain 2 RED bands for instance)!
+If the same band is asked several time, its order will be the one of the last demand.
+
 ```python
 >>> # Create a stack with the previous OK bands
 >>> stack = prod.stack(ok_bands, resolution=300., stack_path=os.path.join(prod.output, "stack.tif")
-<xarray.DataArray 'NDVI_GREEN_HILLSHADE' (z: 3, y: 5490, x: 5490)>
+<xarray.DataArray 'GREEN_NDVI_HILLSHADE' (z: 3, y: 5490, x: 5490)>
 array([[[9.47860062e-01, 9.27178562e-01, 9.22405303e-01, ...,
          1.73572719e+00, 1.55314481e+00, 1.63242710e+00],
         [1.04147184e+00, 9.36686337e-01, 9.14996862e-01, ...,
@@ -200,10 +204,10 @@ Coordinates:
   * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
     spatial_ref  int32 0
   * z            (z) MultiIndex
-  - variable     (z) object 'NDVI' 'GREEN' 'HILLSHADE'
+  - variable     (z) object 'GREEN' 'NDVI' 'HILLSHADE'
   - band         (z) int64 1 1 1
 Attributes:
-    long_name:  ['NDVI', 'GREEN', 'HILLSHADE']
+    long_name:  ['GREEN', 'NDVI', 'HILLSHADE']
 ```
 
 Some additional arguments can be passed to this function, please see `~eoreader.keywords` for the list. 
