@@ -258,17 +258,20 @@ class S1Product(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
+        if self.datetime is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
 
-        # Open identifier
-        try:
-            acq_date = root.findtext(".//startTime")
-        except TypeError:
-            raise InvalidProductError("startTime not found in metadata !")
+            # Open identifier
+            try:
+                acq_date = root.findtext(".//startTime")
+            except TypeError:
+                raise InvalidProductError("startTime not found in metadata !")
 
-        # Convert to datetime
-        date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%f")
+            # Convert to datetime
+            date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%f")
+        else:
+            date = self.datetime
 
         if not as_datetime:
             date = date.strftime(DATETIME_FMT)

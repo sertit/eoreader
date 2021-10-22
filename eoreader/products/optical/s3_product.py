@@ -323,17 +323,20 @@ class S3Product(OpticalProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
+        if self.datetime is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
 
-        # Open identifier
-        try:
-            acq_date = root.findtext(".//start_time")
-        except TypeError:
-            raise InvalidProductError("start_time not found in metadata !")
+            # Open identifier
+            try:
+                acq_date = root.findtext(".//start_time")
+            except TypeError:
+                raise InvalidProductError("start_time not found in metadata !")
 
-        # Convert to datetime
-        date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+            # Convert to datetime
+            date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+        else:
+            date = self.datetime
 
         if not as_datetime:
             date = date.strftime(DATETIME_FMT)

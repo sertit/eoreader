@@ -298,19 +298,24 @@ class CskProduct(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
+        if self.datetime is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
 
-        # Open identifier
-        try:
-            acq_date = root.findtext(".//SceneSensingStartUTC")
-        except TypeError:
-            raise InvalidProductError("SceneSensingStartUTC not found in metadata !")
+            # Open identifier
+            try:
+                acq_date = root.findtext(".//SceneSensingStartUTC")
+            except TypeError:
+                raise InvalidProductError(
+                    "SceneSensingStartUTC not found in metadata !"
+                )
 
-        # Convert to datetime
-        # 2020-10-28 22:46:24.808662850
-        # To many milliseconds (strptime accepts max 6 digits) -> needs to be cropped
-        date = datetime.strptime(acq_date[:-3], "%Y-%m-%d %H:%M:%S.%f")
+            # Convert to datetime
+            # 2020-10-28 22:46:24.808662850
+            # To many milliseconds (strptime accepts max 6 digits) -> needs to be cropped
+            date = datetime.strptime(acq_date[:-3], "%Y-%m-%d %H:%M:%S.%f")
+        else:
+            date = self.datetime
 
         if not as_datetime:
             date = date.strftime(DATETIME_FMT)

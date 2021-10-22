@@ -342,21 +342,27 @@ class LandsatProduct(OpticalProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        mtd_data, _ = self._read_mtd()
+        if self.datetime is None:
+            mtd_data, _ = self._read_mtd()
 
-        try:
-            date = mtd_data.findtext(".//DATE_ACQUIRED")
-            hours = mtd_data.findtext(".//SCENE_CENTER_TIME").replace('"', "")[:-3]
-        except TypeError:
-            raise InvalidProductError("ACQUISITION_DATE not found in metadata !")
+            try:
+                date = mtd_data.findtext(".//DATE_ACQUIRED")
+                hours = mtd_data.findtext(".//SCENE_CENTER_TIME").replace('"', "")[:-3]
+            except TypeError:
+                raise InvalidProductError("ACQUISITION_DATE not found in metadata !")
 
-        date = (
-            f"{datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')}"
-            f"T{datetime.strptime(hours, '%H:%M:%S.%f').strftime('%H%M%S')}"
-        )
+            date = (
+                f"{datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')}"
+                f"T{datetime.strptime(hours, '%H:%M:%S.%f').strftime('%H%M%S')}"
+            )
 
-        if as_datetime:
-            date = datetime.strptime(date, DATETIME_FMT)
+            if as_datetime:
+                date = datetime.strptime(date, DATETIME_FMT)
+
+        else:
+            date = self.datetime
+            if not as_datetime:
+                date = date.strftime(DATETIME_FMT)
 
         return date
 
