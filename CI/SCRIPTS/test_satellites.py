@@ -462,6 +462,7 @@ def test_csk():
     _test_core_sar("*csk_*")
 
 
+# Assume that tests TSX, TDX and PAZ sensors
 @s3_env
 def test_tsx():
     """Function testing the correct functioning of the optical satellites"""

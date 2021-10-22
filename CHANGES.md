@@ -8,7 +8,7 @@
 - **BREAKING CHANGE: `HILLSHADE` is given in `float32` instead of `uint8`**
 - **BREAKING CHANGE: `SLOPE` is given in degrees instead of percents**
 
-
+- **ENH: Adding the support of the PAZ SAR sensor**
 - **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !**
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
 - **ENH: Thermal bands of Sentinel-3 SLSTR can now be used**
