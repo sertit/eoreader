@@ -45,7 +45,9 @@ Be sure to position the environment variable `EOREADER_DEM_PATH` to the DEM you 
 ### Satellite bands
 
 ```{note}
-Optical bands are loaded in reflectance.
+Optical bands are always loaded in reflectance. 
+For Sentinel-3 SLSTR, radiances are converted to reflectance, 
+expcept for brilliance temperature bands that are left as is.
 ```
 
 #### Band names
@@ -70,6 +72,13 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 - {meth}`~eoreader.bands.bands.OpticalBandNames.TIR_1`: Thermal Infrared 1
 - {meth}`~eoreader.bands.bands.OpticalBandNames.TIR_2`: Thermal Infrared 2
 
+```{note}
+Note that bands that are not mapped can still be used (i.e. for Sentinel-3 OLCI and SLSTR). 
+They will be called by their true name (i.e. `F1` or `Oa05`). However, 
+the mapped band will have to be called with their mapped name, i.e. `BLUE` rather than `Oa04` for Sentinel-3 OLCI.
+But the bands that are not present in the `~eoreader.bands.alias` file won't be recognized.
+```
+
 #### Optical band mapping between sensors
 
 |Bands (names) | Coastal aerosol | Blue | Green | Yellow | Red | Vegetation red edge | Vegetation red edge | Vegetation red edge | NIR | Narrow NIR | Water vapor | SWIR – Cirrus | SWIR | SWIR | Panchromatic | Thermal IR | Thermal IR|
@@ -89,7 +98,7 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 |Pleiades** (PMS/MS)|  | **3** (0.5/2m) | **2** (0.5/2m)  | | **1** (0.5/2m) | | | | **4** (0.5/2m) | **4** (0.5/2m) |  |  |  |  |  | | |
 |SPOT 6-7** (PMS/MS)|  | **3** (1.5/6m) | **2** (1.5/6m)  | | **1** (1.5/6m) | | | | **4** (1.5/6m) | **4** (1.5/6m) |  |  |  |  |  | | |
 
-\* *Not all bands of this sensor are used in EOReader*  
+\* *Not all bands of this sensor are mapped in EOReader. However, they can still be used by using directly their name (i.e. `F1` or `Oa05`)*  
 \*\* *P(panchro) have only one panchromatic band, P/MS-N have 3 bands (BGR), and P/MS-X also have 3 bands in false color (GRNIR)*
 
 <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>

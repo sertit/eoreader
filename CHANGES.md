@@ -14,6 +14,7 @@
 - **ENH: Thermal bands of Sentinel-3 SLSTR can now be used**
 - **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for OLCI)**
 - **ENH: `YELLOW` band is mapped to `Oa07` band of Sentinel-3 OLCI**
+- **ENH: Zipped Sentinel-3 products can now be processed**
 - **ENH: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** #10
 - **ENH: Allow the use of `kwargs` in `load`, mainly for `rasters.read` (and allowing ie. radiance adjustment in S3-SLSTR)**
 
@@ -45,6 +46,7 @@
 
 - DOC: Add a Context paragraph in the README
 - DOC: Add a Conda x SNAP question in the FAQ
+- DOC: Creation of a Sentinel-3 notebook
 - DOC: Updates of notebooks
 - DOC: Numerous updates
 
