@@ -323,18 +323,21 @@ class Rs2Product(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # Get MTD XML file
-        root, nsmap = self.read_mtd()
-        namespace = nsmap[None]
+        if self.datetime is None:
+            # Get MTD XML file
+            root, nsmap = self.read_mtd()
+            namespace = nsmap[None]
 
-        # Open identifier
-        try:
-            acq_date = root.findtext(f".//{namespace}rawDataStartTime")
-        except TypeError:
-            raise InvalidProductError("rawDataStartTime not found in metadata !")
+            # Open identifier
+            try:
+                acq_date = root.findtext(f".//{namespace}rawDataStartTime")
+            except TypeError:
+                raise InvalidProductError("rawDataStartTime not found in metadata !")
 
-        # Convert to datetime
-        date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+            # Convert to datetime
+            date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+        else:
+            date = self.datetime
 
         if not as_datetime:
             date = date.strftime(DATETIME_FMT)

@@ -344,15 +344,29 @@ class PlaProduct(OpticalProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # 20200624-105726-971
-        split_name = self.split_name
+        if self.datetime is None:
+            # Get MTD XML file
+            root, nsmap = self.read_mtd()
+            datetime_str = root.findtext(f".//{nsmap['eop']}acquisitionDate")
+            if not datetime_str:
+                raise InvalidProductError(
+                    "Cannot find EARLIESTACQTIME in the metadata file."
+                )
 
-        date = f"{split_name[0]}T{split_name[1]}"
+            # Convert to datetime
+            datetime_str = datetime.strptime(
+                datetime_str.split("+")[0], "%Y-%m-%dT%H:%M:%S"
+            )
 
-        if as_datetime:
-            date = datetime.strptime(date, DATETIME_FMT)
+            if not as_datetime:
+                datetime_str = datetime_str.strftime(DATETIME_FMT)
 
-        return date
+        else:
+            datetime_str = self.datetime
+            if not as_datetime:
+                datetime_str = datetime_str.strftime(DATETIME_FMT)
+
+        return datetime_str
 
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs

@@ -499,19 +499,25 @@ class MaxarProduct(VhrProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-        datetime_str = root.findtext(".//EARLIESTACQTIME")
-        if not datetime_str:
-            raise InvalidProductError(
-                "Cannot find EARLIESTACQTIME in the metadata file."
-            )
+        if self.datetime is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+            datetime_str = root.findtext(".//EARLIESTACQTIME")
+            if not datetime_str:
+                raise InvalidProductError(
+                    "Cannot find EARLIESTACQTIME in the metadata file."
+                )
 
-        # Convert to datetime
-        datetime_str = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ")
+            # Convert to datetime
+            datetime_str = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ")
 
-        if not as_datetime:
-            datetime_str = datetime_str.strftime(DATETIME_FMT)
+            if not as_datetime:
+                datetime_str = datetime_str.strftime(DATETIME_FMT)
+
+        else:
+            datetime_str = self.datetime
+            if not as_datetime:
+                datetime_str = datetime_str.strftime(DATETIME_FMT)
 
         return datetime_str
 

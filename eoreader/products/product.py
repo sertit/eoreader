@@ -538,7 +538,6 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    @cache
     def _read_mtd_xml(self, mtd_from_path: str, mtd_archived: str = None):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dicts as a dict

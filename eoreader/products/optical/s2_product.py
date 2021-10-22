@@ -215,21 +215,23 @@ class S2Product(OpticalProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
+        if self.datetime is None:
+            # Get MTD XML file
+            root, _ = self.read_datatake_mtd()
 
-        # Get MTD XML file
-        root, _ = self.read_datatake_mtd()
+            # Open identifier
+            try:
+                # Sentinel-2 datetime is the datatake sensing time, not the granule sensing time !
+                sensing_time = root.findtext(".//PRODUCT_START_TIME")
+            except TypeError:
+                raise InvalidProductError(
+                    "PRODUCT_START_TIME not found in datatake metadata !"
+                )
 
-        # Open identifier
-        try:
-            # Sentinel-2 datetime is the datatake sensing time, not the granule sensing time !
-            sensing_time = root.findtext(".//PRODUCT_START_TIME")
-        except TypeError:
-            raise InvalidProductError(
-                "PRODUCT_START_TIME not found in datatake metadata !"
-            )
-
-        # Convert to datetime
-        date = datetime.strptime(sensing_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+            # Convert to datetime
+            date = datetime.strptime(sensing_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+        else:
+            date = self.datetime
 
         if not as_datetime:
             date = date.strftime(DATETIME_FMT)

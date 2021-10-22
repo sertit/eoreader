@@ -21,6 +21,7 @@
 
 - OPTIM: `crs`, `footprint`, `extent`, `default_transform`, `wgs84_extent` are cached (using `@cached_property`)
 - OPTIM: `get_mean_sun_angles` and `default_transform` are now cached (using `@cache`)
+- OPTIM: `get_datetime`: Look for the date only if `datetime` attribute is None
 - OPTIM: Better management of `fspath` for cloud-stored products (download the files only once)
 - OPTIM: Stop downloading/extracting files if not necessary
 

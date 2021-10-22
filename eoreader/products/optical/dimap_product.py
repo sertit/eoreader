@@ -330,26 +330,36 @@ class DimapProduct(VhrProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-        date_str = root.findtext(".//IMAGING_DATE")
-        time_str = root.findtext(".//IMAGING_TIME")
-        if not date_str or not time_str:
-            raise InvalidProductError(
-                "Cannot find the product imaging date and time in the metadata file."
+        if self.datetime is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+            date_str = root.findtext(".//IMAGING_DATE")
+            time_str = root.findtext(".//IMAGING_TIME")
+            if not date_str or not time_str:
+                raise InvalidProductError(
+                    "Cannot find the product imaging date and time in the metadata file."
+                )
+
+            # Convert to datetime
+            date_dt = date.fromisoformat(date_str)
+            try:
+                time_dt = time.strptime(time_str, "%H:%M:%S.%fZ")
+            except ValueError:
+                time_dt = time.strptime(
+                    time_str, "%H:%M:%S.%f"
+                )  # Sometimes without a Z
+
+            date_str = (
+                f"{date_dt.strftime('%Y%m%d')}T{time.strftime('%H%M%S', time_dt)}"
             )
 
-        # Convert to datetime
-        date_dt = date.fromisoformat(date_str)
-        try:
-            time_dt = time.strptime(time_str, "%H:%M:%S.%fZ")
-        except ValueError:
-            time_dt = time.strptime(time_str, "%H:%M:%S.%f")  # Sometimes without a Z
+            if as_datetime:
+                date_str = datetime.strptime(date_str, DATETIME_FMT)
 
-        date_str = f"{date_dt.strftime('%Y%m%d')}T{time.strftime('%H%M%S', time_dt)}"
-
-        if as_datetime:
-            date_str = datetime.strptime(date_str, DATETIME_FMT)
+        else:
+            date_str = self.datetime
+            if not as_datetime:
+                date_str = date_str.strftime(DATETIME_FMT)
 
         return date_str
 
