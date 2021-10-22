@@ -32,7 +32,7 @@ from sertit import vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 
-from eoreader import cached_property
+from eoreader import cache, cached_property
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
@@ -344,6 +344,7 @@ class Rs2Product(SarProduct):
 
         return date
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
