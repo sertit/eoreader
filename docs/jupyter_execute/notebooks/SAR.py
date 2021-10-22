@@ -15,10 +15,9 @@
 
 
 import os
-import glob
 
 # First of all, we need some VHR data, let's use some COSMO-SkyMed data
-path = os.path.join("/home", "data", "DATA", "PRODS", "COSMO", "1st_GEN", "1011117-766193")
+path = os.path.join("/home", "data", "DATA", "PRODS", "COSMO", "1st_GEN", "1001512-735097")
 
 
 # In[2]:
@@ -55,8 +54,6 @@ eoreader = Reader()
 
 # In[4]:
 
-
-from eoreader.bands.alias import *
 
 # Open your product
 prod = eoreader.open(path, remove_tmp=True)
@@ -107,9 +104,11 @@ footprint.geometry.to_crs("EPSG:4326").iat[0]  # Display
 # In[7]:
 
 
-# Set the DEM
+from eoreader.bands.alias import *
 from eoreader.env_vars import DEM_PATH
-os.environ[DEM_PATH] = os.path.join("/home", "data", "DS2", "BASES_DE_DONNEES", "GLOBAL", "SRTM_30m_v4", "index.vrt")
+
+# Set the DEM
+os.environ[DEM_PATH] = os.path.join("/home", "data", "DS2", "BASES_DE_DONNEES", "GLOBAL", "MERIT_Hydrologically_Adjusted_Elevations", "MERIT_DEM.vrt")
 
 # Select the bands you want to load
 bands = [VV, HH, VV_DSPK, HH_DSPK, HILLSHADE, SLOPE]
@@ -122,8 +121,8 @@ print(to_str(ok_bands)) # This product does not have VV band and HILLSHADE band 
 # In[8]:
 
 
-# Load those bands as a dict of xarray.DataArray
-band_dict = prod.load(ok_bands)
+# Load those bands as a dict of xarray.DataArray, with a 20m resolution
+band_dict = prod.load(ok_bands, resolution=20.)
 band_dict[HH]
 
 

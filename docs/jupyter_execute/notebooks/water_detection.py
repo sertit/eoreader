@@ -14,7 +14,6 @@
 
 
 import os
-import glob
 
 # First of all, we need some satellite data. 
 # Let's open a lightweight a Landsat-5 MSS collection 2 tile.
@@ -36,14 +35,14 @@ eoreader = Reader()
 # In[3]:
 
 
-from eoreader.bands.alias import *
-
 # Open your product
 prod = eoreader.open(path, remove_tmp=True) # No need to unarchive here
 
 
 # In[4]:
 
+
+from eoreader.bands.alias import *
 
 # Load those bands as a dict of xarray.DataArray
 band_dict = prod.load(NDWI)

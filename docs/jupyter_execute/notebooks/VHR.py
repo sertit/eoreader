@@ -56,8 +56,6 @@ eoreader = Reader()
 # In[4]:
 
 
-from eoreader.bands.alias import *
-
 # Open your product
 prod = eoreader.open(path, remove_tmp=True)
 print(f"Acquisition datetime: {prod.datetime}")
@@ -70,11 +68,13 @@ print(f"Condensed name: {prod.condensed_name}")
 # In[5]:
 
 
+from eoreader.bands.alias import *
+from eoreader.env_vars import DEM_PATH
+
 # Here, if you want to orthorectify or pansharpen your data manually, you can set your stack here.
 # If you do not provide this stack but you give a non-orthorectified product to EOReader 
 # (ie. SEN or PRJ products for Pleiades), you must provide a DEM to orthorectify correctly the data
 # prod.ortho_stack = ""
-from eoreader.env_vars import DEM_PATH
 os.environ[DEM_PATH] = os.path.join("/home", "data", "DS2", "BASES_DE_DONNEES", "GLOBAL", "MERIT_Hydrologically_Adjusted_Elevations", "MERIT_DEM.vrt")
 
 

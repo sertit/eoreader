@@ -27,7 +27,7 @@
 
 # Imports
 import os
-from cloudpathlib import S3Client, AnyPath, CloudPath
+from cloudpathlib import S3Client, AnyPath
 import matplotlib.pyplot as plt
 
 import rasterio 

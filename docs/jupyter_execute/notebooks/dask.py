@@ -15,7 +15,6 @@
 
 # Imports
 import os
-import glob
 from dask.distributed import Client, LocalCluster
 from eoreader.reader import Reader
 from eoreader.bands.alias import *
@@ -37,7 +36,7 @@ with LocalCluster(
     prod = eoreader.open(path, remove_tmp=True)
 
     # Load this band
-    band_dict = prod.load([RED])
+    band_dict = prod.load(RED)
 
 # Plot band
 band_dict[RED][:, ::10, ::10].plot()
