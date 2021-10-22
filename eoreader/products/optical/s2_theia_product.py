@@ -548,6 +548,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return azimuth_angle, zenith_angle
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict

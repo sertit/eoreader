@@ -44,7 +44,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from shapely.geometry import Polygon, box
 
-from eoreader import cached_property, utils
+from eoreader import cache, cached_property, utils
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
@@ -514,6 +514,7 @@ class S3Product(OpticalProduct):
         """
         return f"{self.get_datetime()}_{self.platform.name}_{self._data_type.name}"
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
@@ -619,7 +620,6 @@ class S3Product(OpticalProduct):
         Args:
             filename (Union[str, obn]): Filename or band
             subdataset (str): NetCDF subdataset if needed
-            suffix (str): Suffix for SLSTR data
 
         Returns:
             xr.DataArray: NetCDF file as a xr.DataArray

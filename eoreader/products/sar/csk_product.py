@@ -34,7 +34,7 @@ from sertit import files, strings, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
-from eoreader import cached_property, utils
+from eoreader import cache, cached_property, utils
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
@@ -332,6 +332,7 @@ class CskProduct(SarProduct):
         # Use the real name
         return utils.get_split_name(self._real_name)
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict

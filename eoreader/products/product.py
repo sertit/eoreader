@@ -19,6 +19,8 @@
 from __future__ import annotations
 
 import datetime as dt
+import functools
+import gc
 import logging
 import os
 import platform
@@ -211,6 +213,19 @@ class Product:
 
     def __del__(self):
         """Cleaning up _tmp directory"""
+        # -- Delete all cached properties and functions
+        gc.collect()
+
+        # All objects collected
+        objects = [
+            i for i in gc.get_objects() if isinstance(i, functools._lru_cache_wrapper)
+        ]
+
+        # All objects cleared
+        for obj in objects:
+            obj.cache_clear()
+
+        # -- Remove temp folders
         if self._tmp_output:
             self._tmp_output.cleanup()
 
@@ -256,6 +271,7 @@ class Product:
         ]  # Forced to load as the nodata may not be positioned by default
         return rasters.get_footprint(default_xda).to_crs(self.crs)
 
+    @cached_property
     @abstractmethod
     def extent(self) -> gpd.GeoDataFrame:
         """
@@ -527,6 +543,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @cache
     @abstractmethod
     def _read_mtd(self) -> Any:
         """
@@ -584,7 +601,6 @@ class Product:
 
         return root, nsmap
 
-    @cache
     def read_mtd(self) -> Any:
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict most of the time,
