@@ -39,7 +39,7 @@ from sertit import files, rasters_rio, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
-from eoreader import utils
+from eoreader import cache, cached_property, utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -258,6 +258,7 @@ class DimapProduct(VhrProduct):
 
         return riocrs.CRS.from_string(crs_name)
 
+    @cached_property
     def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
@@ -267,7 +268,7 @@ class DimapProduct(VhrProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.crs()
+            >>> prod.crs
             CRS.from_epsg(32618)
 
         Returns:
@@ -289,6 +290,7 @@ class DimapProduct(VhrProduct):
 
         return utm
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -298,7 +300,7 @@ class DimapProduct(VhrProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                                                          gml_id  ...                                           geometry
             0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
             [1 rows x 3 columns]
@@ -306,7 +308,7 @@ class DimapProduct(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        return self.open_mask("ROI").to_crs(self.crs())
+        return self.open_mask("ROI").to_crs(self.crs)
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -328,26 +330,36 @@ class DimapProduct(VhrProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-        date_str = root.findtext(".//IMAGING_DATE")
-        time_str = root.findtext(".//IMAGING_TIME")
-        if not date_str or not time_str:
-            raise InvalidProductError(
-                "Cannot find the product imaging date and time in the metadata file."
+        if self.datetime is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+            date_str = root.findtext(".//IMAGING_DATE")
+            time_str = root.findtext(".//IMAGING_TIME")
+            if not date_str or not time_str:
+                raise InvalidProductError(
+                    "Cannot find the product imaging date and time in the metadata file."
+                )
+
+            # Convert to datetime
+            date_dt = date.fromisoformat(date_str)
+            try:
+                time_dt = time.strptime(time_str, "%H:%M:%S.%fZ")
+            except ValueError:
+                time_dt = time.strptime(
+                    time_str, "%H:%M:%S.%f"
+                )  # Sometimes without a Z
+
+            date_str = (
+                f"{date_dt.strftime('%Y%m%d')}T{time.strftime('%H%M%S', time_dt)}"
             )
 
-        # Convert to datetime
-        date_dt = date.fromisoformat(date_str)
-        try:
-            time_dt = time.strptime(time_str, "%H:%M:%S.%fZ")
-        except ValueError:
-            time_dt = time.strptime(time_str, "%H:%M:%S.%f")  # Sometimes without a Z
+            if as_datetime:
+                date_str = datetime.strptime(date_str, DATETIME_FMT)
 
-        date_str = f"{date_dt.strftime('%Y%m%d')}T{time.strftime('%H%M%S', time_dt)}"
-
-        if as_datetime:
-            date_str = datetime.strptime(date_str, DATETIME_FMT)
+        else:
+            date_str = self.datetime
+            if not as_datetime:
+                date_str = date_str.strftime(DATETIME_FMT)
 
         return date_str
 
@@ -382,11 +394,7 @@ class DimapProduct(VhrProduct):
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -397,8 +405,7 @@ class DimapProduct(VhrProduct):
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             XDS_TYPE: Cleaned band array
@@ -445,6 +452,7 @@ class DimapProduct(VhrProduct):
         """
         return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}_{self.band_combi.name}"
 
+    @cache
     def get_mean_sun_angles(self) -> (float, float):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)
@@ -482,6 +490,7 @@ class DimapProduct(VhrProduct):
 
         return azimuth_angle, zenith_angle
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
@@ -505,7 +514,11 @@ class DimapProduct(VhrProduct):
         return has_band
 
     def _load_clouds(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -516,6 +529,7 @@ class DimapProduct(VhrProduct):
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -612,7 +626,7 @@ class DimapProduct(VhrProduct):
         mandatory_masks = ["CLD", "DET", "QTE", "ROI", "SLT", "SNW"]
         optional_masks = ["VIS"]
         assert mask_str in mandatory_masks + optional_masks
-        crs = self.crs()
+        crs = self.crs
 
         mask_name = f"{self.condensed_name}_MSK_{mask_str}.geojson"
         mask_path = self._get_band_folder().joinpath(mask_name)
@@ -697,7 +711,7 @@ class DimapProduct(VhrProduct):
             ):
                 # Convert to target CRS
                 mask.crs = self._get_raw_crs()
-                mask = mask.to_crs(self.crs())
+                mask = mask.to_crs(self.crs)
 
             # Save to file
             if mask.empty:

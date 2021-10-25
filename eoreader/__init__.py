@@ -17,7 +17,40 @@
 """
 **EOReader** library
 """
-__version__ = "0.7.1"
+
+# Python 3.9
+try:
+    from functools import cache  # noqa
+except ImportError:
+    from functools import lru_cache, wraps
+    from typing import Callable
+
+    def cache(func: Callable) -> Callable:
+        @lru_cache(maxsize=None)
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return wrapper
+
+
+# Python 3.8
+try:
+    from functools import cached_property  # noqa
+except ImportError:
+    from typing import Callable
+
+    def cached_property(func: Callable) -> property:
+        @property
+        @lru_cache(maxsize=None)
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return wrapper
+
+
+__version__ = "0.8.0"
 __title__ = "eoreader"
 __description__ = (
     "Remote-sensing opensource python library reading optical and SAR sensors, "

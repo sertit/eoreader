@@ -4,9 +4,9 @@
 
 ### I want to load orthorectified bands, what do I need to do ?
 EOReader always loads orthorectified bands, you cannot get raw bands !
-- For Sentinel-3 data, EOReader uses SNAP to geocode the wanted images.
+- For Sentinel-3 data, EOReader creates GCPs and uses `rasterio.reproject` SNAP to geocode the wanted images. The result is slightly different than the one obtained by SNAP !
 - For SAR images, EOReader uses SNAP to orthorectify the wanted images.
-- For DIMAP data, if not already orthorectified, EOReader will use `gdalwarp` through `rasterio` (with `RPC_DEM` keyword) to orthorectify the DIMAP stack.  
+- For DIMAP data, if not already orthorectified, EOReader will use `rasterio.reproject` (with `RPC_DEM` keyword) to orthorectify the DIMAP stack.  
   However, this comes with several limitations:
   - Pay attention to give a sufficiently resolute DEM (does orthorectifying Pleiades data with a 30m SRTM DEM make sense ?)
   - `gdalwarp` cannot access DEM through S3-compatible storage or https links. Be sure to link a DEM stored on disk.
@@ -48,9 +48,25 @@ We are using some optimizations in order to optimize SNAP's GPT speed, as specif
 - **CPU**: We are allowing GPT to use `max_core` - 2 cores of your computer (i.e. 14 cores out of 16)
 - **Tiles**: Width and height are set to 2048 pixels (instead of 512x512) and cache to 50% of your max memory (instead of 1024Mo)
 
+### I have installed EOReader with Conda and I have troubles with SNAP
+
+- Please remember that conda modifies your `PATH`, so the `gpt` exe can be lost.   
+Do not hesitate to include it once again. For example:  
+```python
+import os
+os.environ["PATH"] += += r";C:\Program Files\snap\bin"
+```
+- Sometimes a weird bug appears with conda and the .xml files stored in `eoreader/data` are not in the conda package.  
+If it happens, please post an issue and in the meantime download them from [Github](https://github.com/sertit/eoreader/tree/master/eoreader/data), then set the graphs by hand:
+```python
+import os
+os.environ["EOREADER_PP_GRAPH"] = r"your/path/to/grd_s1_preprocess_default.xml" # if you are analyzing S1 GRD data
+os.environ["EOREADER_DSPK_GRAPH"] = r"your/path/to/sar_despeckle_default.xml"
+```
+
 ### Known SNAP bugs
 
 Sometimes SNAP process returns `Feature 'http://javax.xml.XMLConstants/feature/secure-processing' is not recognized.` 
-This is a known SNAP bug. 
-Just add the line `-Djavax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl` to your `gpt.vmoptions` file.
+This is a known SNAP bug.  
+Just add the line `-Djavax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl` to your `gpt.vmoptions` file.  
 Please look at [this issue](https://forum.step.esa.int/t/xmlfactory-error-using-snap-8/26566) for more information.

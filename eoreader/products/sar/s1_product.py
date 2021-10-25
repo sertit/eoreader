@@ -31,6 +31,7 @@ from lxml import etree
 from sertit import vectors
 from sertit.misc import ListEnum
 
+from eoreader import cache, cached_property
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
@@ -134,6 +135,7 @@ class S1Product(SarProduct):
         # Post init done by the super class
         super()._post_init()
 
+    @cached_property
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -144,7 +146,7 @@ class S1Product(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent()
+            >>> prod.wgs84_extent
                                    Name  ...                                           geometry
             0  Sentinel-1 Image Overlay  ...  POLYGON ((0.85336 42.24660, -2.32032 42.65493,...
             [1 rows x 12 columns]
@@ -256,23 +258,27 @@ class S1Product(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
+        if self.datetime is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
 
-        # Open identifier
-        try:
-            acq_date = root.findtext(".//startTime")
-        except TypeError:
-            raise InvalidProductError("startTime not found in metadata !")
+            # Open identifier
+            try:
+                acq_date = root.findtext(".//startTime")
+            except TypeError:
+                raise InvalidProductError("startTime not found in metadata !")
 
-        # Convert to datetime
-        date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%f")
+            # Convert to datetime
+            date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%f")
+        else:
+            date = self.datetime
 
         if not as_datetime:
             date = date.strftime(DATETIME_FMT)
 
         return date
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict

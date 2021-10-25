@@ -2,7 +2,47 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.Y.Z (YYYY-MM-DD)
+## 0.8.0 (2021-10-25)
+
+- **BREAKING CHANGE: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties !**
+- **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** [#10](https://github.com/sertit/eoreader/issues/10)
+- **BREAKING CHANGE: `HILLSHADE` is given in `float32` instead of `uint8`**
+- **BREAKING CHANGE: `SLOPE` is given in degrees instead of percents**
+- **ENH: Adding the support of the PAZ SAR sensor**
+- **ENH: Adding the support of the Sentinel-2 processed with the [processing baseline 4.0](https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming)** [#11](https://github.com/sertit/eoreader/issues/11)
+- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !** [#12](https://github.com/sertit/eoreader/issues/12)
+- **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
+- **ENH: Thermal bands of Sentinel-3 SLSTR can now be used**
+- **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for OLCI)** [#14](https://github.com/sertit/eoreader/issues/14)
+- **ENH: `YELLOW` band is mapped to `Oa07` band of Sentinel-3 OLCI**
+- **ENH: Zipped Sentinel-3 products can now be processed**
+- **ENH: Allow the use of `kwargs` in `load`, mainly for `rasters.read` (and allowing ie. radiance adjustment in S3-SLSTR)**
+- OPTIM: `crs`, `footprint`, `extent`, `default_transform`, `wgs84_extent` are cached (using `@cached_property`) [#13](https://github.com/sertit/eoreader/issues/13)
+- OPTIM: `get_mean_sun_angles` and `default_transform` are now cached (using `@cache`) [#13](https://github.com/sertit/eoreader/issues/13)
+- OPTIM: `get_datetime`: Look for the date only if `datetime` attribute is None [#13](https://github.com/sertit/eoreader/issues/13)
+- OPTIM: Better management of `fspath` for cloud-stored products (download the files only once)
+- OPTIM: Stop downloading/extracting files if not necessary
+- FIX: Bands are correctly ordered in stacks
+- FIX: Only load a band once, even if asked several time in the bands
+- FIX: Use band size for cleaning optical pixel (instead of user resolution/size)
+- FIX: Always take the absolute value of the resolution when converting it to strings (for filenames)
+- FIX: Take the default resolution if nothing is given when converting it to strings (for filenames)
+- FIX: Always use `utils.read/write` instead of `rasters.read/write` (for Dask management)
+- FIX: Fixing a bug in `utils.write`
+- FIX: Add .xml files from `eoreader/data` in the MANIFEST.in
+- FIX: Add forgotten `@abstractmethod` where needed
+- FIX: Better management of `_tmp_process`
+- FIX: Fixing minor bug when trying to read metadata with a POSIX path
+- FIX: Fixing the `**kwargs` omission in `utils.read`
+- FIX: Better management of `_temp_process` directory
+- FIX: Landsats and TSX: Can use other filenames now
+- DEPR: `FAR_NIR` band is removed
+- REQ: Using `h5netcdf` instead of `netCDF4`
+- DOC: Add a Context paragraph in the README
+- DOC: Add a Conda x SNAP question in the FAQ
+- DOC: Creation of a Sentinel-3 notebook
+- DOC: Updates of notebooks
+- DOC: Numerous updates
 
 ## 0.7.1 (2021-09-29)
 

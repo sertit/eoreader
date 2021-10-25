@@ -22,6 +22,7 @@
    notebooks/base
    notebooks/SAR
    notebooks/VHR
+   notebooks/sentinel-3
    notebooks/water_detection
    notebooks/s3_compatible_storage
    notebooks/dask

@@ -6,8 +6,8 @@
 |--- | --- | --- | --- | ---|
 |Sentinel-2 | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A | Yes | 20m|
 |Sentinel-2 Theia | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | Yes | 20m|
-|Sentinel-3 SLSTR | {meth}`~eoreader.products.optical.s3_product.S3Product` | RBT | No | 300m|
-|Sentinel-3 OLCI | {meth}`~eoreader.products.optical.s3_product.S3Product` | EFR | No | 500m|
+|Sentinel-3 SLSTR | {meth}`~eoreader.products.optical.s3_product.S3Product` | RBT | Yes | 300m|
+|Sentinel-3 OLCI | {meth}`~eoreader.products.optical.s3_product.S3Product` | EFR | Yes | 500m|
 |Landsat 8 OLCI | {meth}`~eoreader.products.optical.l8_product.L8Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
 |Landsat 7 ETM | {meth}`~eoreader.products.optical.l7_product.L7Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
 |Landsat 5 TM | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
@@ -26,11 +26,16 @@
 |WorldView-3* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | Yes | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
 |WorldView-4* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | Yes | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
 
+\* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product.*
 \* *Other Maxar satellites (such as WorldView-1, QuickBird...) with the same file format should be supported.*
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
 ```
+
+The goal of **EOReader** is to implement every sensor that can be used in the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/).  
+The sensors that can be used as of 09/2021 are:  
+![cems_sensors](https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2021/09/copernicus_contributing_missions_overview/23461131-1-eng-GB/Copernicus_Contributing_Missions_overview_pillars.jpg)
 
 ## Optical bands
 
@@ -44,7 +49,9 @@ Be sure to position the environment variable `EOREADER_DEM_PATH` to the DEM you 
 ### Satellite bands
 
 ```{note}
-Optical bands are loaded in reflectance.
+Optical bands are always loaded in reflectance. 
+For Sentinel-3 SLSTR, radiances are converted to reflectance, 
+expcept for brilliance temperature bands that are left as is.
 ```
 
 #### Band names
@@ -69,6 +76,13 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 - {meth}`~eoreader.bands.bands.OpticalBandNames.TIR_1`: Thermal Infrared 1
 - {meth}`~eoreader.bands.bands.OpticalBandNames.TIR_2`: Thermal Infrared 2
 
+```{note}
+Note that bands that are not mapped can still be used (i.e. for Sentinel-3 OLCI and SLSTR). 
+They will be called by their true name (i.e. `F1` or `Oa05`). However, 
+the mapped band will have to be called with their mapped name, i.e. `BLUE` rather than `Oa04` for Sentinel-3 OLCI.
+But the bands that are not present in the `~eoreader.bands.alias` file won't be recognized.
+```
+
 #### Optical band mapping between sensors
 
 |Bands (names) | Coastal aerosol | Blue | Green | Yellow | Red | Vegetation red edge | Vegetation red edge | Vegetation red edge | NIR | Narrow NIR | Water vapor | SWIR – Cirrus | SWIR | SWIR | Panchromatic | Thermal IR | Thermal IR|
@@ -77,7 +91,7 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 |Sentinel-2 | **1** (60m) | **2** (10m) | **3** (10m) | | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8** (10m) | **8A** (20m) |**9** (60m) |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
 |Sentinel-2 Theia | *Not available* | **2** (10m) |**3** (10m)  | | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8** (10m) | **8A** (20m) | *Not available* |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
 |Sentinel-3 OLCI* | **2** (300m) | **3** (300m) |**6** (300m)  | |**8** (300m) |**11** (300m) |**12** (300m) | **16** (300m) | **17** (300m) | **17** (300m) | **20** (300m) |  |  |  |  |  | |
-|Sentinel-3 SLSTR* | | | **1** (500m)  | | **2** (500m) |  |  |  |**3** (500m) |**3** (500m) |  | **4** (500m) | **5** (500m) |**6** (500m) | |**8** (1km) |**9** (1km)|
+|Sentinel-3 SLSTR* | | | **1** (500m)  | | **2** (500m) |  |  |  |**3** (500m) |**3** (500m) |  | **4** (500m) | **5** (500m) |**6** (500m) | |**8** (1km, not managed yet) |**9** (1km, not managed yet)|
 |Landsat OLCI (8) | **1** (30m) | **2** (30m) | **3** (30m)  | | **4** (30m) |  |  |  | **5** (30m) | **5** (30m) |  |**9** (30m) |**6** (30m) |**7** (30m) |**8** (15m) |**10** (100m) |**11** (100m)|
 |Landsat ETM (7)|  | **1** (30m) | **2** (30m)  | | **3** (30m) |  |  |  | **4** (30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |**8** (15m) |**6** (60m) |**6** (60m)|
 |Landsat TM (5-4)|  | **1** (30m) | **2** (30m) |  | **3** (30m) |  |  |  | **4**(30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |  |**6** (120m) |**6** (120m)|
@@ -88,7 +102,7 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 |Pleiades** (PMS/MS)|  | **3** (0.5/2m) | **2** (0.5/2m)  | | **1** (0.5/2m) | | | | **4** (0.5/2m) | **4** (0.5/2m) |  |  |  |  |  | | |
 |SPOT 6-7** (PMS/MS)|  | **3** (1.5/6m) | **2** (1.5/6m)  | | **1** (1.5/6m) | | | | **4** (1.5/6m) | **4** (1.5/6m) |  |  |  |  |  | | |
 
-\* *Not all bands of this sensor are used in EOReader*  
+\* *Not all bands of this sensor are mapped in EOReader. However, they can still be used by using directly their name (i.e. `F1` or `Oa05`)*  
 \*\* *P(panchro) have only one panchromatic band, P/MS-N have 3 bands (BGR), and P/MS-X also have 3 bands in false color (GRNIR)*
 
 <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
@@ -138,8 +152,9 @@ The only difference with the other bands is that the cloud bands are provided in
 ### DEM bands
 
 Optical satellites can all load {meth}`~eoreader.bands.bands.DemBandNames.DEM`, {meth}`~eoreader.bands.bands.DemBandNames.SLOPE`
-and {meth}`~eoreader.bands.bands.DemBandNames.HILLSHADE` bands. The `SLOPE` and `HILLSHADE` bands are computed with
-the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
+and {meth}`~eoreader.bands.bands.DemBandNames.HILLSHADE` bands. 
+The `SLOPE` band is given in degrees. 
+Please post an issue if you need this band in `percent`.
 
 Use the environment variable `EOREADER_DEM_PATH` to position your worldwide DEM. You can
 use both a local path e.g. `/mnt/dataserver/dems/srtm_30_v4/index.vrt` or `\\dataserver\DEMS\srtm_30_v4\index.vrt` or
@@ -204,15 +219,20 @@ environment variables:
 ### Sentinel-2
 
 - [Cloud masks](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks)
-- [Product Specification](https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf)
+- [Product Specification (Processing Baseline < 4.0)](https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf)
+- [Product Specification (Processing Baseline > 4.0)](https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2-Products-Specification-Document-14_8.pdf)
 
 ### Sentinel-2 Theia
 
 - [Product Format](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/)
 
 ### Sentinel-3
-
+- [OLCI main page](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-olci)
+- [SLSTR main page](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr)
+- [OLCI Handbook](https://sentinel.esa.int/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91)
+- [SLSTR Handbook](https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a)
 - [OLCI Product Format](https://sentinel.esa.int/documents/247904/1872756/Sentinel-3-OLCI-Product-Data-Format-Specification-OLCI-Level-1)
+- [SLSTR Product Format](https://sentinel.esa.int/documents/247904/0/Sentinel-3_Product_Format_Specification_Product_Structures/27300baa-b594-4a56-9efc-5538c71899d1)
 - [SLSTR Clouds](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/cloud-identification)
 
 ### PlanetScope

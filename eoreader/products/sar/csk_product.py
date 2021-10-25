@@ -34,7 +34,7 @@ from sertit import files, strings, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
-from eoreader import utils
+from eoreader import cache, cached_property, utils
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
@@ -194,6 +194,7 @@ class CskProduct(SarProduct):
         # Post init done by the super class
         super()._post_init()
 
+    @cached_property
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -204,7 +205,7 @@ class CskProduct(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"1011117-766193"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent()
+            >>> prod.wgs84_extent
                                                         geometry
             0  POLYGON ((108.09797 15.61011, 108.48224 15.678...
 
@@ -297,19 +298,24 @@ class CskProduct(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
+        if self.datetime is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
 
-        # Open identifier
-        try:
-            acq_date = root.findtext(".//SceneSensingStartUTC")
-        except TypeError:
-            raise InvalidProductError("SceneSensingStartUTC not found in metadata !")
+            # Open identifier
+            try:
+                acq_date = root.findtext(".//SceneSensingStartUTC")
+            except TypeError:
+                raise InvalidProductError(
+                    "SceneSensingStartUTC not found in metadata !"
+                )
 
-        # Convert to datetime
-        # 2020-10-28 22:46:24.808662850
-        # To many milliseconds (strptime accepts max 6 digits) -> needs to be cropped
-        date = datetime.strptime(acq_date[:-3], "%Y-%m-%d %H:%M:%S.%f")
+            # Convert to datetime
+            # 2020-10-28 22:46:24.808662850
+            # To many milliseconds (strptime accepts max 6 digits) -> needs to be cropped
+            date = datetime.strptime(acq_date[:-3], "%Y-%m-%d %H:%M:%S.%f")
+        else:
+            date = self.datetime
 
         if not as_datetime:
             date = date.strftime(DATETIME_FMT)
@@ -326,6 +332,7 @@ class CskProduct(SarProduct):
         # Use the real name
         return utils.get_split_name(self._real_name)
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict

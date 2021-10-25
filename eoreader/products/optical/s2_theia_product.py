@@ -34,7 +34,7 @@ from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio, vectors
 from sertit.rasters import XDS_TYPE
 
-from eoreader import utils
+from eoreader import cache, cached_property, utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -121,6 +121,7 @@ class S2TheiaProduct(OpticalProduct):
         # B1 to be divided by 20
         # B9 to be divided by 200
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -134,7 +135,7 @@ class S2TheiaProduct(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
@@ -181,24 +182,29 @@ class S2TheiaProduct(OpticalProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
+        if self.datetime is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
 
-        # Open identifier
-        try:
-            acq_date = root.findtext(".//ACQUISITION_DATE")
-        except TypeError:
-            raise InvalidProductError("ACQUISITION_DATE not found in metadata !")
+            # Open identifier
+            try:
+                acq_date = root.findtext(".//ACQUISITION_DATE")
+            except TypeError:
+                raise InvalidProductError("ACQUISITION_DATE not found in metadata !")
 
-        # Convert to datetime
-        date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+            # Convert to datetime
+            date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+        else:
+            date = self.datetime
 
         if not as_datetime:
             date = date.strftime(DATETIME_FMT)
 
         return date
 
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+    def get_band_paths(
+        self, band_list: list, resolution: float = None, **kwargs
+    ) -> dict:
         """
         Return the paths of required bands.
 
@@ -217,13 +223,16 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Band resolution
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
         for band in band_list:  # Get clean band path
-            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            clean_band = self._get_clean_band_path(
+                band, resolution=resolution, **kwargs
+            )
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
@@ -249,6 +258,7 @@ class S2TheiaProduct(OpticalProduct):
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> XDS_TYPE:
         """
         Read band from disk.
@@ -261,13 +271,18 @@ class S2TheiaProduct(OpticalProduct):
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             XDS_TYPE: Band xarray
 
         """
         # Read band
         band_xda = utils.read(
-            path, resolution=resolution, size=size, resampling=Resampling.bilinear
+            path,
+            resolution=resolution,
+            size=size,
+            resampling=Resampling.bilinear,
+            **kwargs,
         )
 
         # Compute the correct radiometry of the band (Theia product are stored into int16 bits)
@@ -284,11 +299,7 @@ class S2TheiaProduct(OpticalProduct):
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -298,8 +309,7 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             XDS_TYPE: Cleaned band array
@@ -315,17 +325,23 @@ class S2TheiaProduct(OpticalProduct):
         ).astype(np.uint8)
 
         # Open NODATA pixels mask
-        edg_mask = self.open_mask("EDG", band, resolution=resolution, size=size)
+        edg_mask = self.open_mask(
+            "EDG", band, size=(band_arr.rio.width, band_arr.rio.height)
+        )
 
         # Open saturated pixels
-        sat_mask = self.open_mask("SAT", band, resolution=resolution, size=size)
+        sat_mask = self.open_mask(
+            "SAT", band, size=(band_arr.rio.width, band_arr.rio.height)
+        )
 
         # Combine masks
         mask = no_data_mask | edg_mask | sat_mask
 
         # Open defective pixels (optional mask)
         try:
-            def_mask = self.open_mask("DFP", band, resolution=resolution, size=size)
+            def_mask = self.open_mask(
+                "DFP", band, size=(band_arr.rio.width, band_arr.rio.height)
+            )
             mask = mask | def_mask
         except InvalidProductError:
             pass
@@ -458,7 +474,11 @@ class S2TheiaProduct(OpticalProduct):
         return bit_mask
 
     def _load_bands(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -467,6 +487,7 @@ class S2TheiaProduct(OpticalProduct):
             bands list: List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -480,7 +501,9 @@ class S2TheiaProduct(OpticalProduct):
         band_paths = self.get_band_paths(bands, resolution=resolution)
 
         # Open bands and get array (resampled if needed)
-        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
+        band_arrays = self._open_bands(
+            band_paths, resolution=resolution, size=size, **kwargs
+        )
 
         return band_arrays
 
@@ -495,6 +518,7 @@ class S2TheiaProduct(OpticalProduct):
             f"{self.get_datetime()}_S2THEIA_{self.tile_name}_{self.product_type.value}"
         )
 
+    @cache
     def get_mean_sun_angles(self) -> (float, float):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)
@@ -524,6 +548,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return azimuth_angle, zenith_angle
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
@@ -551,7 +576,11 @@ class S2TheiaProduct(OpticalProduct):
         return True
 
     def _load_clouds(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -573,6 +602,7 @@ class S2TheiaProduct(OpticalProduct):
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """

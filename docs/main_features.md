@@ -145,15 +145,22 @@ The nodata written back on disk is by convention:
 - `255` for masks (saved in `uint8`)
 ```
 
+Some additional arguments can be passed to this function, please see `~eoreader.keywords` for the list.
+Sentinel-3 additional keywords use is highlighted in the corresponding notebook.
+
 ## Stack
 
 {meth}`~eoreader.products.product.Product.stack()` is the function stacking all possible bands.
 It is based on the load function and then just stacks the bands and write it on disk if needed.
 
+The bands are ordered as asked in the stack.
+However, they cannot be duplicated (the stack cannot contain 2 RED bands for instance)!
+If the same band is asked several time, its order will be the one of the last demand.
+
 ```python
 >>> # Create a stack with the previous OK bands
 >>> stack = prod.stack(ok_bands, resolution=300., stack_path=os.path.join(prod.output, "stack.tif")
-<xarray.DataArray 'NDVI_GREEN_HILLSHADE' (z: 3, y: 5490, x: 5490)>
+<xarray.DataArray 'GREEN_NDVI_HILLSHADE' (z: 3, y: 5490, x: 5490)>
 array([[[9.47860062e-01, 9.27178562e-01, 9.22405303e-01, ...,
          1.73572719e+00, 1.55314481e+00, 1.63242710e+00],
         [1.04147184e+00, 9.36686337e-01, 9.14996862e-01, ...,
@@ -197,11 +204,14 @@ Coordinates:
   * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
     spatial_ref  int32 0
   * z            (z) MultiIndex
-  - variable     (z) object 'NDVI' 'GREEN' 'HILLSHADE'
+  - variable     (z) object 'GREEN' 'NDVI' 'HILLSHADE'
   - band         (z) int64 1 1 1
 Attributes:
-    long_name:  ['NDVI', 'GREEN', 'HILLSHADE']
+    long_name:  ['GREEN', 'NDVI', 'HILLSHADE']
 ```
+
+Some additional arguments can be passed to this function, please see `~eoreader.keywords` for the list. 
+Sentinel-3 additional keywords use is highlighted in the corresponding notebook.
 
 ## Read Metadata
 EOReader gives you the access to the metadata of your product as a `lxml.etree._Element` followed by the namespace you may need to read them 
@@ -252,17 +262,25 @@ This is what you will have when calling this function:
 
 ## Other features
 
+### CRS
+Get the product CRS, always in UTM
 ```python
 >>> # Product CRS (always in UTM)
 >>> prod.crs()
 CRS.from_epsg(32630)
+```
 
->>> # Full extent of the bands as a geopandas GeoDataFrame (always in UTM)
+### Extent and footprint
+
+Get the product extent and footprint, always in UTM as a `gpd.GeoDataFrame`
+
+```python
+>>> # Full extent of the bands as a geopandas GeoDataFrame
 >>> prod.extent()
                                             geometry
 0   POLYGON((309780.000 4390200.000, 309780.000 4...
 
->>> # Footprint: extent of the useful pixels (minus nodata) as a geopandas GeoDataFrame (always in UTM)
+>>> # Footprint: extent of the useful pixels (minus nodata) as a geopandas GeoDataFrame
 >>> prod.footprint()
                                             geometry
 0 POLYGON Z((199980.000 4390200.000 0.000, 1999...
@@ -273,3 +291,13 @@ Please note the difference between `footprint` and `extent`:
 |Without nodata | With nodata|
 |--- | ---|
 | ![without_nodata](https://zupimages.net/up/21/14/69i6.gif) | ![with_nodata](https://zupimages.net/up/21/14/vg6w.gif) |
+
+## Optical data
+Get product azimuth (between [0, 360] degrees) and 
+[zenith solar angles](https://en.wikipedia.org/wiki/Solar_zenith_angle), useful for computing the Hillshade for example.
+
+```python
+>>> # Get azimuth and zenith solar angles
+>>> prod.get_mean_sun_angles()
+(151.750970396115, 35.4971906983449)
+```

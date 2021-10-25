@@ -35,6 +35,7 @@ from sertit import rasters, rasters_rio, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
+from eoreader import cache, cached_property
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
@@ -420,6 +421,7 @@ class MaxarProduct(VhrProduct):
 
         return crs
 
+    @cached_property
     def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
@@ -429,7 +431,7 @@ class MaxarProduct(VhrProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.crs()
+            >>> prod.crs
             CRS.from_epsg(32618)
 
         Returns:
@@ -455,6 +457,7 @@ class MaxarProduct(VhrProduct):
 
         return utm
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -464,7 +467,7 @@ class MaxarProduct(VhrProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                                                          gml_id  ...                                           geometry
             0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
             [1 rows x 3 columns]
@@ -474,7 +477,7 @@ class MaxarProduct(VhrProduct):
         """
         # Get footprint
         # TODO: Optimize that
-        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs())
+        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs)
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -496,19 +499,25 @@ class MaxarProduct(VhrProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-        datetime_str = root.findtext(".//EARLIESTACQTIME")
-        if not datetime_str:
-            raise InvalidProductError(
-                "Cannot find EARLIESTACQTIME in the metadata file."
-            )
+        if self.datetime is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+            datetime_str = root.findtext(".//EARLIESTACQTIME")
+            if not datetime_str:
+                raise InvalidProductError(
+                    "Cannot find EARLIESTACQTIME in the metadata file."
+                )
 
-        # Convert to datetime
-        datetime_str = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ")
+            # Convert to datetime
+            datetime_str = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ")
 
-        if not as_datetime:
-            datetime_str = datetime_str.strftime(DATETIME_FMT)
+            if not as_datetime:
+                datetime_str = datetime_str.strftime(DATETIME_FMT)
+
+        else:
+            datetime_str = self.datetime
+            if not as_datetime:
+                datetime_str = datetime_str.strftime(DATETIME_FMT)
 
         return datetime_str
 
@@ -544,11 +553,7 @@ class MaxarProduct(VhrProduct):
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -559,8 +564,7 @@ class MaxarProduct(VhrProduct):
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             XDS_TYPE: Cleaned band array
@@ -578,6 +582,7 @@ class MaxarProduct(VhrProduct):
         """
         return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}_{self.band_combi.name}"
 
+    @cache
     def get_mean_sun_angles(self) -> (float, float):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)
@@ -610,6 +615,7 @@ class MaxarProduct(VhrProduct):
 
         return azimuth_angle, zenith_angle
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
@@ -629,7 +635,11 @@ class MaxarProduct(VhrProduct):
         return False
 
     def _load_clouds(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -640,6 +650,7 @@ class MaxarProduct(VhrProduct):
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """

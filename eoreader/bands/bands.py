@@ -116,7 +116,6 @@ class BandNames(ListEnum):
 
 
 # ---------------------- SAR ----------------------
-@unique
 class SarBandNames(BandNames):
     """SAR Band names"""
 
@@ -291,9 +290,6 @@ class OpticalBandNames(BandNames):
     WV = "WATER_VAPOUR"
     """Water vapour"""
 
-    FAR_NIR = "FAR_NIR"
-    """Far NIR"""
-
     SWIR_CIRRUS = "CIRRUS"
     """Cirrus"""
 
@@ -303,9 +299,6 @@ class OpticalBandNames(BandNames):
     SWIR_2 = "SWIR_2"
     """SWIR, Band 2"""
 
-    MIR = "MIR"
-    """MIR"""
-
     TIR_1 = "THERMAL_IR_1"
     """Thermal IR, Band 1"""
 
@@ -314,6 +307,78 @@ class OpticalBandNames(BandNames):
 
     PAN = "PANCHROMATIC"
     """Panchromatic"""
+
+    # SLSTR additional band names
+    S7 = "S7"
+    """
+    S7
+    """
+
+    F1 = "F1"
+    """
+    F1
+    """
+
+    F2 = "F2"
+    """
+    F2
+    """
+
+    # OLCI additional band names
+    Oa01 = "Oa01"
+    """
+    Oa01
+    """
+
+    Oa02 = "Oa02"
+    """
+    Oa02
+    """
+
+    Oa05 = "Oa05"
+    """
+    Oa05
+    """
+
+    Oa09 = "Oa09"
+    """
+    Oa09
+    """
+
+    Oa10 = "Oa10"
+    """
+    Oa10
+    """
+
+    Oa13 = "Oa13"
+    """
+    Oa13
+    """
+
+    Oa14 = "Oa14"
+    """
+    Oa14
+    """
+
+    Oa15 = "Oa15"
+    """
+    Oa15
+    """
+
+    Oa18 = "Oa18"
+    """
+    Oa18
+    """
+
+    Oa19 = "Oa19"
+    """
+    Oa01
+    """
+
+    Oa21 = "Oa21"
+    """
+    Oa01
+    """
 
 
 # too many ancestors

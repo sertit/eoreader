@@ -19,6 +19,8 @@
 from __future__ import annotations
 
 import datetime as dt
+import functools
+import gc
 import logging
 import os
 import platform
@@ -40,12 +42,12 @@ from rasterio import crs as riocrs
 from rasterio import transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
-from sertit import files, misc, rasters, strings
+from sertit import files, rasters, strings
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 
-from eoreader import utils
+from eoreader import cache, cached_property, utils
 from eoreader.bands import index
 from eoreader.bands.alias import *
 from eoreader.bands.bands import BandNames
@@ -109,10 +111,6 @@ class Product:
         self._output = None
         self._remove_tmp_process = remove_tmp
 
-        # Store metadata
-        self._metadata = None
-        self._namespaces = None
-
         # Get the products date and datetime
         self.date = None
         """Acquisition date."""
@@ -173,6 +171,14 @@ class Product:
         self.sat_id = None
         """Satellite ID, i.e. `S2` for Sentinel-2"""
 
+        # Manage output
+        if output_path:
+            self._tmp_output = None
+            self._output = AnyPath(output_path)
+        else:
+            self._tmp_output = tempfile.TemporaryDirectory()
+            self._output = AnyPath(self._tmp_output.name)
+
         # Pre initialization
         self._pre_init()
 
@@ -180,22 +186,10 @@ class Product:
         if self.is_archived and self.needs_extraction:
             LOGGER.warning(f"{self.name} needs to be extracted to be used !")
         else:
-            # Manage output
-            if output_path:
-                self._tmp_output = None
-                self._output = AnyPath(output_path)
-            else:
-                self._tmp_output = tempfile.TemporaryDirectory()
-                self._output = AnyPath(self._tmp_output.name)
-
-            # Store metadata
-            metadata, namespaces = self._read_mtd()
-            self._metadata = metadata
-            self._namespaces = namespaces
 
             # Get the products date and datetime
-            self.date = self.get_date(as_date=True)
             self.datetime = self.get_datetime(as_datetime=True)
+            self.date = self.get_date(as_date=True)
 
             # Platform and satellite ID
             self.platform = self._get_platform()
@@ -219,6 +213,19 @@ class Product:
 
     def __del__(self):
         """Cleaning up _tmp directory"""
+        # -- Delete all cached properties and functions
+        gc.collect()
+
+        # All objects collected
+        objects = [
+            i for i in gc.get_objects() if isinstance(i, functools._lru_cache_wrapper)
+        ]
+
+        # All objects cleared
+        for obj in objects:
+            obj.cache_clear()
+
+        # -- Remove temp folders
         if self._tmp_output:
             self._tmp_output.cleanup()
 
@@ -241,6 +248,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
@@ -250,7 +258,7 @@ class Product:
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
@@ -261,8 +269,9 @@ class Product:
         default_xda = self.load(def_band)[
             def_band
         ]  # Forced to load as the nodata may not be positioned by default
-        return rasters.get_footprint(default_xda).to_crs(self.crs())
+        return rasters.get_footprint(default_xda).to_crs(self.crs)
 
+    @cached_property
     @abstractmethod
     def extent(self) -> gpd.GeoDataFrame:
         """
@@ -282,6 +291,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @cached_property
     @abstractmethod
     def crs(self) -> riocrs.CRS:
         """
@@ -410,7 +420,7 @@ class Product:
         return date
 
     @abstractmethod
-    def get_default_band_path(self) -> Union[CloudPath, Path]:
+    def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get default band path (among the existing ones).
 
@@ -423,6 +433,9 @@ class Product:
             >>> prod = Reader().open(path)
             >>> prod.get_default_band_path()
             'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'
+
+        Args:
+            kwargs: Additional arguments
 
         Returns:
             Union[CloudPath, Path]: Default band path
@@ -449,6 +462,7 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @abstractmethod
     def get_existing_bands(self) -> list:
         """
         Return the existing bands.
@@ -500,7 +514,10 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+    @abstractmethod
+    def get_band_paths(
+        self, band_list: list, resolution: float = None, **kwargs
+    ) -> dict:
         """
         Return the paths of required bands.
 
@@ -519,12 +536,14 @@ class Product:
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Band resolution
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing the path of each queried band
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @cache
     @abstractmethod
     def _read_mtd(self) -> Any:
         """
@@ -551,18 +570,23 @@ class Product:
         if self.is_archived:
             root = files.read_archived_xml(self.path, f".*{mtd_archived}")
         else:
-            # ONLY FOR COLLECTION 2
             try:
                 mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
                 if isinstance(mtd_file, CloudPath):
-                    mtd_file = mtd_file.fspath
+                    try:
+                        # Try using read_text (faster)
+                        root = etree.fromstring(mtd_file.read_text())
+                    except ValueError:
+                        # Try using read_bytes
+                        # Slower but works with:
+                        # {ValueError}Unicode strings with encoding declaration are not supported.
+                        # Please use bytes input or XML fragments without declaration.
+                        root = etree.fromstring(mtd_file.read_bytes())
                 else:
-                    mtd_file = str(mtd_file)
-
-                # pylint: disable=I1101:
-                # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                xml_tree = etree.parse(mtd_file)
-                root = xml_tree.getroot()
+                    # pylint: disable=I1101:
+                    # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                    xml_tree = etree.parse(str(mtd_file))
+                    root = xml_tree.getroot()
             except StopIteration as ex:
                 raise InvalidProductError(
                     f"Metadata file ({mtd_from_path}) not found in {self.path}"
@@ -593,18 +617,17 @@ class Product:
         Returns:
             Any: Metadata XML root and its namespace or pd.DataFrame
         """
-        if self._metadata is not None:
-            return (self._metadata, self._namespaces)
-        else:
-            return self._read_mtd()
+        return self._read_mtd()
 
     # pylint: disable=W0613
+    @abstractmethod
     def _read_band(
         self,
         path: Union[CloudPath, Path],
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> XDS_TYPE:
         """
         Read band from disk.
@@ -617,6 +640,7 @@ class Product:
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             XDS_TYPE: Band xarray
 
@@ -625,22 +649,32 @@ class Product:
 
     @abstractmethod
     def _load_bands(
-        self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (list): List of the wanted bands
+            bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
     def _load_dem(
-        self, band_list: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        band_list: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -649,6 +683,7 @@ class Product:
             band_list (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -658,7 +693,9 @@ class Product:
             for band in band_list:
                 assert is_dem(band)
                 if band == DEM:
-                    path = self._warp_dem(dem_path, resolution=resolution, size=size)
+                    path = self._warp_dem(
+                        dem_path, resolution=resolution, size=size, **kwargs
+                    )
                 elif band == SLOPE:
                     path = self._compute_slope(
                         dem_path, resolution=resolution, size=size
@@ -681,6 +718,7 @@ class Product:
         bands: Union[list, BandNames, Callable],
         resolution: float = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Open the bands and compute the wanted index.
@@ -744,6 +782,7 @@ class Product:
             bands (Union[list, BandNames, Callable]): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: {band_name, band xarray}
@@ -755,8 +794,9 @@ class Product:
         if not isinstance(bands, list):
             bands = [bands]
 
-        # Load bands (and convert the bands to be loaded to correct format)
-        band_dict = self._load(to_band(bands), resolution, size)
+        # Load bands (only once ! and convert the bands to be loaded to correct format)
+        unique_bands = list(set(to_band(bands)))
+        band_dict = self._load(unique_bands, resolution, size, **kwargs)
 
         # Manage the case of arrays of different size -> collocate arrays if needed
         band_dict = self._collocate_bands(band_dict)
@@ -779,7 +819,11 @@ class Product:
 
     @abstractmethod
     def _load(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Core function loading data bands
@@ -788,6 +832,7 @@ class Product:
             bands (list): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             Dictionary {band_name, band_xarray}
@@ -842,6 +887,7 @@ class Product:
 
         return has_band
 
+    @abstractmethod
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
         Does this products has the specified cloud band ?
@@ -963,6 +1009,9 @@ class Product:
         """
         return self.date < other.date
 
+    def __hash__(self):
+        return hash(self.condensed_name)
+
     @property
     def output(self) -> Union[CloudPath, Path]:
         """Output directory of the product, to write orthorectified data for example."""
@@ -993,6 +1042,7 @@ class Product:
         resolution: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
+        **kwargs,
     ) -> str:
         """
         Get this products DEM, warped to this products footprint and CRS.
@@ -1016,6 +1066,7 @@ class Product:
             resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
             resampling (Resampling): Resampling method
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             str: DEM path (as a VRT)
@@ -1042,7 +1093,7 @@ class Product:
 
             # Reproject DEM into products CRS
             LOGGER.debug("Using DEM: %s", dem_path)
-            def_tr, def_w, def_h, def_crs = self.default_transform()
+            def_tr, def_w, def_h, def_crs = self.default_transform(**kwargs)
             with rasterio.open(str(dem_path)) as dem_ds:
                 # Get adjusted transform and shape (with new resolution)
                 if size is not None and resolution is None:
@@ -1072,7 +1123,7 @@ class Product:
                     bounds = transform.array_bounds(def_h, def_w, def_tr)
                     dst_tr, out_w, out_h = rasterio.warp.calculate_default_transform(
                         def_crs,
-                        self.crs(),
+                        self.crs,
                         def_w,
                         def_h,
                         *bounds,
@@ -1092,7 +1143,7 @@ class Product:
                     "width": out_w,
                     "height": out_h,
                     "count": dem_ds.count,
-                    "crs": self.crs(),
+                    "crs": self.crs,
                     "transform": dst_tr,
                 }
                 with rasterio.open(str(warped_dem_path), "w", **out_meta) as out_dst:
@@ -1105,7 +1156,7 @@ class Product:
                         resampling=resampling,
                         num_threads=MAX_CORES,
                         dst_transform=dst_tr,
-                        dst_crs=self.crs(),
+                        dst_crs=self.crs,
                         src_crs=dem_ds.crs,
                         src_transform=dem_ds.transform,
                     )
@@ -1160,33 +1211,20 @@ class Product:
 
         # Get slope path
         slope_name = f"{self.condensed_name}_SLOPE.tif"
-        slope_dem = self._get_band_folder().joinpath(slope_name)
-        if slope_dem.is_file():
+        slope_path = self._get_band_folder().joinpath(slope_name)
+        if slope_path.is_file():
             LOGGER.debug(
                 "Already existing slope DEM for %s. Skipping process.", self.name
             )
         else:
-            slope_dem = self._get_band_folder(writable=True).joinpath(slope_name)
+            slope_path = self._get_band_folder(writable=True).joinpath(slope_name)
             LOGGER.debug("Computing slope for %s", self.name)
-            cmd_slope = [
-                "gdaldem",
-                "--config",
-                "NUM_THREADS",
-                MAX_CORES,
-                "slope",
-                "-compute_edges",
-                strings.to_cmd_string(warped_dem_path),
-                strings.to_cmd_string(slope_dem),
-                "-p",
-            ]
 
-            # Run command
-            try:
-                misc.run_cli(cmd_slope)
-            except RuntimeError as ex:
-                raise RuntimeError("Something went wrong with gdaldem!") from ex
+            # Compute slope
+            slope = rasters.slope(warped_dem_path)
+            utils.write(slope, slope_path)
 
-        return slope_dem
+        return slope_path
 
     @staticmethod
     def _collocate_bands(bands: dict, master_xds: XDS_TYPE = None) -> dict:
@@ -1294,7 +1332,7 @@ class Product:
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             stack_path (Union[str, CloudPath, Path]): Stack path
             save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
-            **kwargs: Other arguments passed to `rioxarray.to_raster()` such as `compress`
+            **kwargs: Other arguments passed to `load` or `rioxarray.to_raster()` (such as `compress`)
 
         Returns:
             xr.DataArray: Stack as a DataArray
@@ -1306,13 +1344,13 @@ class Product:
             resolution = self.resolution
 
         # Create the analysis stack
-        band_dict = self.load(bands, resolution=resolution, size=size)
+        band_dict = self.load(bands, resolution=resolution, size=size, **kwargs)
 
         # Convert into dataset with str as names
         xds = xr.Dataset(
             data_vars={
-                to_str(key)[0]: (val.coords.dims, val.data)
-                for key, val in band_dict.items()
+                to_str(key)[0]: (band_dict[key].coords.dims, band_dict[key].data)
+                for key in bands
             },
             coords=band_dict[bands[0]].coords,
         )
@@ -1333,9 +1371,9 @@ class Product:
                 # NOT ALL bands need to be scaled, only:
                 # - Satellite bands
                 # - index
-                for id, band in enumerate(band_dict.keys()):
+                for b_id, band in enumerate(bands):
                     if is_band(band) or is_index(band):
-                        stack[id, ...] = stack[id, ...] * 10000
+                        stack[b_id, ...] = stack[b_id, ...] * 10000
 
                 # CONVERSION
                 dtype = np.uint16
@@ -1355,7 +1393,7 @@ class Product:
                 )  # NaN values are already set
 
         # Some updates
-        band_list = to_str(list(band_dict.keys()))
+        band_list = to_str(bands)
         stack.attrs["long_name"] = band_list
         stack = stack.rename("_".join(band_list))
 
@@ -1364,7 +1402,7 @@ class Product:
             stack_path = AnyPath(stack_path)
             if not stack_path.parent.exists():
                 os.makedirs(str(stack_path.parent), exist_ok=True)
-            rasters.write(stack, stack_path, dtype=dtype, **kwargs)
+            utils.write(stack, stack_path, dtype=dtype, **kwargs)
 
         # Close datasets
         for val in band_dict.values():
@@ -1391,7 +1429,8 @@ class Product:
                         f"Please set the environment variable {DEM_PATH} to an existing file."
                     )
 
-    def default_transform(self) -> (Affine, int, int, CRS):
+    @cache
+    def default_transform(self, **kwargs) -> (Affine, int, int, CRS):
         """
         Returns default transform data of the default band (UTM),
         as the `rasterio.warp.calculate_default_transform` does:
@@ -1400,11 +1439,13 @@ class Product:
         - height
         - crs
 
+        Args:
+            kwargs: Additional arguments
         Returns:
             Affine, int, int: transform, width, height
 
         """
-        with rasterio.open(str(self.get_default_band_path())) as dst:
+        with rasterio.open(str(self.get_default_band_path(**kwargs))) as dst:
             return dst.transform, dst.width, dst.height, dst.crs
 
     def _resolution_from_size(self, size: Union[list, tuple] = None) -> tuple:
@@ -1412,7 +1453,6 @@ class Product:
         Compute the corresponding resolution to a given size (positive resolution)
 
         Args:
-            dst (rasterio.DatasetReader): Dataset
             size (Union[list, tuple]): Size
 
         Returns:
@@ -1425,7 +1465,7 @@ class Product:
         if not def_crs.is_projected:
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
                 def_crs,
-                self.crs(),
+                self.crs,
                 def_w,
                 def_h,
                 *bounds,
@@ -1468,17 +1508,21 @@ class Product:
         Returns:
             str: Resolution as a string
         """
+
+        def _res_to_str(res):
+            return f"{abs(res):.2f}m".replace(".", "-")
+
         if resolution:
             if isinstance(resolution, (tuple, list)):
-                res_x = f"{resolution[0]:.2f}"
-                res_y = f"{resolution[1]:.2f}"
+                res_x = _res_to_str(resolution[0])
+                res_y = _res_to_str(resolution[1])
                 if res_x == res_y:
-                    res_str = f"{res_x}m".replace(".", "-")
+                    res_str = res_x
                 else:
-                    res_str = f"{res_x}_{res_y}m".replace(".", "-")
+                    res_str = f"{res_x}_{res_y}"
             else:
-                res_str = f"{resolution:.2f}m".replace(".", "-")
+                res_str = _res_to_str(resolution)
         else:
-            res_str = ""
+            res_str = _res_to_str(self.resolution)
 
         return res_str
