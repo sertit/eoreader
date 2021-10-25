@@ -331,8 +331,16 @@ class S3SlstrProduct(S3Product):
 
     def _set_product_type(self) -> None:
         """Set products type"""
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            name = mtd.findtext(".//product_name")
+        except TypeError:
+            raise InvalidProductError("product_name not found in metadata !")
+
         # Product type
-        if self.name[7] != "1":
+        if name[7] != "1":
             raise InvalidTypeError("Only L1 products are used for Sentinel-3 data.")
 
         self.product_type = S3ProductType.SLSTR_RBT

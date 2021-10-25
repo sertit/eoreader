@@ -139,7 +139,15 @@ class LandsatProduct(OpticalProduct):
             self._radsat_id = "_QA_RADSAT"
 
         # Warning if GS or GT
-        if "GS" in self.name:
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        except TypeError:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
+
+        if "GS" in name:
             LOGGER.warning(
                 "This Landsat product %s could be badly georeferenced "
                 "as only systematic geometric corrections have been applied "
@@ -242,7 +250,15 @@ class LandsatProduct(OpticalProduct):
 
     def _set_mss_product_type(self, version: int) -> None:
         """Set MSS product type and map corresponding bands"""
-        if "L1" in self.name:
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        except TypeError:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
+
+        if "L1" in name:
             self.product_type = LandsatProductType.L1_MSS
             self.band_names.map_bands(
                 {
@@ -260,7 +276,15 @@ class LandsatProduct(OpticalProduct):
 
     def _set_tm_product_type(self) -> None:
         """Set TM product type and map corresponding bands"""
-        if "L1" in self.name:
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        except TypeError:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
+
+        if "L1" in name:
             self.product_type = LandsatProductType.L1_TM
             self.band_names.map_bands(
                 {
@@ -280,7 +304,15 @@ class LandsatProduct(OpticalProduct):
 
     def _set_etm_product_type(self) -> None:
         """Set ETM product type and map corresponding bands"""
-        if "L1" in self.name:
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        except TypeError:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
+
+        if "L1" in name:
             self.product_type = LandsatProductType.L1_ETM
             self.band_names.map_bands(
                 {
@@ -301,7 +333,15 @@ class LandsatProduct(OpticalProduct):
 
     def _set_olci_product_type(self) -> None:
         """Set OLCI product type and map corresponding bands"""
-        if "L1" in self.name:
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        except TypeError:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
+
+        if "L1" in name:
             self.product_type = LandsatProductType.L1_OLCI
             self.band_names.map_bands(
                 {
@@ -437,11 +477,11 @@ class LandsatProduct(OpticalProduct):
         # Try with XML (we don't know what collection it is)
         try:
             # Open XML metadata
-            mtd_from_path = f"{self.name}_MTL.xml"
-            mtd_archived = f"{self.name}_MTL\.xml"
+            mtd_from_path = "*_MTL.xml"
+            mtd_archived = ".*_MTL\.xml"
             mtd_data = self._read_mtd_xml(mtd_from_path, mtd_archived)
         except (InvalidProductError, FileNotFoundError):
-            mtd_name = f"{self.name}_MTL.txt"
+            mtd_name = "**_MTL.txt"
             if self.is_archived:
                 # We need to extract the file in memory to be used with pandas
                 tar_ds = tarfile.open(self.path, "r")
@@ -450,7 +490,7 @@ class LandsatProduct(OpticalProduct):
             else:
                 # FOR COLLECTION 1 AND 2
                 tar_ds = None
-                mtd_path = self.path.joinpath(mtd_name)
+                mtd_path = next(self.path.glob(mtd_name))
 
                 if not mtd_path.is_file():
                     raise InvalidProductError(
