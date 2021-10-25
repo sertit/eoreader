@@ -6,7 +6,7 @@
 |--- | --- | --- | ---|
 |Sentinel-1 | {meth}`~eoreader.products.sar.s1_product.S1Product` | SLC & GRD | Yes|
 |COSMO-Skymed | {meth}`~eoreader.products.sar.csk_product.CskProduct` | DGM & SCS, (others should also be OK) | No|
-|TerraSAR-X & TanDEM-X | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | MGD (SSC should be OK) | No|
+|TerraSAR-X & TanDEM-X & PAZ SAR | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | MGD (SSC should be OK) | No|
 |RADARSAT-2 | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | SGF (SLC should be OK) | Yes|
 |RADARSAT-Constellation | {meth}`~eoreader.products.sar.rs2_product.RcmProduct` | GRD (others should be OK) | No|
 
@@ -14,6 +14,11 @@
 Satellites products that cannot be used as archived have to be extracted before use, 
 mostly because SNAP doesn't handle them.
 ```
+
+The goal of **EOReader** is to implement every sensor that can be used in
+the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/).  
+The sensors that can be used as of 09/2021 are:  
+![cems_sensors](https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2021/09/copernicus_contributing_missions_overview/23461131-1-eng-GB/Copernicus_Contributing_Missions_overview_pillars.jpg)
 
 ## SAR Bands
 According to what contains the products, allowed SAR bands are:
@@ -43,8 +48,8 @@ These bands need a valid worldwide DEM path positioned thanks to the environment
 - `SLOPE`
 
 SAR satellites can only load {meth}`~eoreader.bands.bands.DemBandNames.DEM` and {meth}`~eoreader.bands.bands.DemBandNames.SLOPE`
-bands as the sun position does not impact SAR data. The `SLOPE` band is computed with
-the [`gdaldem`](https://gdal.org/programs/gdaldem.html) tool.
+bands as the sun position does not impact SAR data. The `SLOPE` band is given in degrees. Please post an issue if you
+need this band in `percent`.
 
 These bands need a valid worldwide DEM path positioned thanks to the environment variable `EOREADER_DEM_PATH`.
 You can use both a local path e.g. `/mnt/dataserver/dems/srtm_30_v4/index.vrt` or `\\dataserver\DEMS\srtm_30_v4\index.vrt` or
@@ -77,9 +82,9 @@ The product resolution is read in the metadata file if possible, so the followin
 |**ScanSAR**<br>Wide Region (WR) | 13.5x23m | 30.0m|
 |**ScanSAR**<br>Huge Region (HR) | 13.5x38.0m | 100.0m|
 
-### TerraSAR-X & TanDEM-X
+### TerraSAR-X & TanDEM-X & PAZ SAR
 
-|**TerraSAR-X & TanDEM-X** | Single-look Slant Range (SSC) | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
+|**TerraSAR-X & TanDEM-X & PAZ SAR** | Single-look Slant Range (SSC) | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
 |--- | --- | --- | ---|
 |**StripMap (SM)**<br>Single-Pol | 0.9x2.0m | 1.5m or 1.25m | 4.0m or 3.25m|
 |**StripMap (SM)**<br>Dual-Pol | 0.9x2.5m | 3.0m | 5.5m or 4.5m|
@@ -272,3 +277,4 @@ variable:
 
 - [COSMO-Skymed Product Description](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description)
 - [TerraSAR-X & TanDEM-X Product Description](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
+- [PAZ SAR Image Product Guide](https://www.hisdesat.es/wp-content/uploads/2019/10/PAZ-HDS-GUI-001-PAZ-Image-Product-Guide-issue-1.1-.pdf)

@@ -36,7 +36,7 @@ from sertit import files, rasters
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
-from eoreader import utils
+from eoreader import cache, cached_property, utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -290,6 +290,7 @@ class PlaProduct(OpticalProduct):
                 f"Please check the validity of your product"
             )
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint of the products (without nodata, in french == emprise utile)
@@ -299,7 +300,7 @@ class PlaProduct(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
@@ -343,18 +344,32 @@ class PlaProduct(OpticalProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # 20200624-105726-971
-        split_name = self.split_name
+        if self.datetime is None:
+            # Get MTD XML file
+            root, nsmap = self.read_mtd()
+            datetime_str = root.findtext(f".//{nsmap['eop']}acquisitionDate")
+            if not datetime_str:
+                raise InvalidProductError(
+                    "Cannot find EARLIESTACQTIME in the metadata file."
+                )
 
-        date = f"{split_name[0]}T{split_name[1]}"
+            # Convert to datetime
+            datetime_str = datetime.strptime(
+                datetime_str.split("+")[0], "%Y-%m-%dT%H:%M:%S"
+            )
 
-        if as_datetime:
-            date = datetime.strptime(date, DATETIME_FMT)
+            if not as_datetime:
+                datetime_str = datetime_str.strftime(DATETIME_FMT)
 
-        return date
+        else:
+            datetime_str = self.datetime
+            if not as_datetime:
+                datetime_str = datetime_str.strftime(DATETIME_FMT)
+
+        return datetime_str
 
     def get_band_paths(
-        self, band_list: list, resolution: float = None, size=None
+        self, band_list: list, resolution: float = None, **kwargs
     ) -> dict:
         """
         Return the paths of required bands.
@@ -374,9 +389,9 @@ class PlaProduct(OpticalProduct):
             }
 
         Args:
-            size:
             band_list (list): List of the wanted bands
             resolution (float): Band resolution
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -395,6 +410,7 @@ class PlaProduct(OpticalProduct):
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> XDS_TYPE:
         """
         Read band from disk.
@@ -407,6 +423,7 @@ class PlaProduct(OpticalProduct):
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             XDS_TYPE: Band xarray
 
@@ -418,6 +435,7 @@ class PlaProduct(OpticalProduct):
             size=size,
             resampling=Resampling.bilinear,
             indexes=[self.band_names[band]],
+            **kwargs,
         )
 
         # Compute the correct radiometry of the band
@@ -434,11 +452,7 @@ class PlaProduct(OpticalProduct):
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -449,20 +463,21 @@ class PlaProduct(OpticalProduct):
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             XDS_TYPE: Cleaned band array
         """
         # Nodata
-        no_data_mask = self._load_nodata(resolution=resolution, size=size).values
+        no_data_mask = self._load_nodata(
+            size=(band_arr.rio.width, band_arr.rio.height)
+        ).values
 
         # Dubious pixels mapping
         dubious_bands = {
             key: val + 1 for key, val in self.band_names.items() if val is not None
         }
-        udm = self.open_mask("UNUSABLE", resolution, size)
+        udm = self.open_mask("UNUSABLE", size=(band_arr.rio.width, band_arr.rio.height))
         # Workaround:
         # FutureWarning: The `numpy.expand_dims` function is not implemented by Dask array.
         # You may want to use the da.map_blocks function or something similar to silence this warning.
@@ -476,7 +491,11 @@ class PlaProduct(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _load_bands(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -485,6 +504,7 @@ class PlaProduct(OpticalProduct):
             bands list: List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -496,7 +516,9 @@ class PlaProduct(OpticalProduct):
         band_paths = self.get_band_paths(bands)
 
         # Open bands and get array (resampled if needed)
-        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
+        band_arrays = self._open_bands(
+            band_paths, resolution=resolution, size=size, **kwargs
+        )
 
         return band_arrays
 
@@ -509,6 +531,7 @@ class PlaProduct(OpticalProduct):
         """
         return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}"
 
+    @cache
     def get_mean_sun_angles(self) -> (float, float):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)
@@ -545,6 +568,7 @@ class PlaProduct(OpticalProduct):
 
         return azimuth_angle, zenith_angle
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
@@ -586,7 +610,11 @@ class PlaProduct(OpticalProduct):
         return True
 
     def _load_clouds(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -597,6 +625,7 @@ class PlaProduct(OpticalProduct):
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """

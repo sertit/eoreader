@@ -22,6 +22,7 @@ for more information.
 import logging
 import math
 import os
+from abc import abstractmethod
 from pathlib import Path
 from typing import Union
 
@@ -39,7 +40,7 @@ from sertit.snap import MAX_CORES
 from sertit.vectors import WGS84
 from shapely.geometry import box
 
-from eoreader import utils
+from eoreader import cached_property, utils
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import DEM_PATH
 from eoreader.products.optical.optical_product import OpticalProduct
@@ -74,6 +75,7 @@ class VhrProduct(OpticalProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
 
+    @abstractmethod
     def _get_raw_crs(self) -> CRS:
         """
         Get raw CRS of the tile
@@ -83,7 +85,7 @@ class VhrProduct(OpticalProduct):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def get_default_band_path(self) -> Union[CloudPath, Path]:
+    def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get default band (`GREEN` for optical data) path.
 
@@ -102,11 +104,14 @@ class VhrProduct(OpticalProduct):
             >>> prod.get_default_band_path()
             'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML'
 
+        Args:
+            kwargs: Additional arguments
         Returns:
             Union[CloudPath, Path]: Default band path
         """
-        return self._get_default_utm_band(self.resolution)
+        return self._get_default_utm_band(self.resolution, **kwargs)
 
+    @cached_property
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -127,6 +132,7 @@ class VhrProduct(OpticalProduct):
         bounds = transform.array_bounds(def_h, def_w, def_tr)
         return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs)
 
+    @abstractmethod
     def _get_ortho_path(self) -> Union[CloudPath, Path]:
         """
         Get the orthorectified path of the bands.
@@ -137,7 +143,9 @@ class VhrProduct(OpticalProduct):
 
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+    def get_band_paths(
+        self, band_list: list, resolution: float = None, **kwargs
+    ) -> dict:
         """
         Return the paths of required bands.
 
@@ -158,6 +166,7 @@ class VhrProduct(OpticalProduct):
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Band resolution
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -169,7 +178,9 @@ class VhrProduct(OpticalProduct):
         band_paths = {}
         for band in band_list:
             # Get clean band path
-            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            clean_band = self._get_clean_band_path(
+                band, resolution=resolution, **kwargs
+            )
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
@@ -228,7 +239,7 @@ class VhrProduct(OpticalProduct):
             src_arr,
             rpcs=rpcs,
             src_crs=WGS84,
-            dst_crs=self.crs(),
+            dst_crs=self.crs,
             resolution=self.resolution,
             src_nodata=0,
             dst_nodata=0,  # input data should be in integer
@@ -245,7 +256,7 @@ class VhrProduct(OpticalProduct):
         meta["driver"] = "GTiff"
         meta["compress"] = "lzw"
         meta["nodata"] = 0
-        meta["crs"] = self.crs()
+        meta["crs"] = self.crs
         meta["width"] = width
         meta["height"] = height
         meta["count"] = count
@@ -265,6 +276,7 @@ class VhrProduct(OpticalProduct):
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> XDS_TYPE:
         """
         Read band from disk.
@@ -277,6 +289,7 @@ class VhrProduct(OpticalProduct):
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             XDS_TYPE: Band xarray
         """
@@ -312,6 +325,7 @@ class VhrProduct(OpticalProduct):
                     resolution=resolution,
                     size=size,
                     resampling=Resampling.bilinear,
+                    **kwargs,
                 )
 
             # Manage the case if we open a simple band (EOReader processed bands)
@@ -322,6 +336,7 @@ class VhrProduct(OpticalProduct):
                     resolution=resolution,
                     size=size,
                     resampling=Resampling.bilinear,
+                    **kwargs,
                 )
 
             # Manage the case if we open a stack (native DIMAP bands)
@@ -333,6 +348,7 @@ class VhrProduct(OpticalProduct):
                     size=size,
                     resampling=Resampling.bilinear,
                     indexes=[self.band_names[band]],
+                    **kwargs,
                 )
 
             # If nodata not set, set it here
@@ -354,7 +370,11 @@ class VhrProduct(OpticalProduct):
         return band_xda
 
     def _load_bands(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -363,6 +383,7 @@ class VhrProduct(OpticalProduct):
             bands list: List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -376,7 +397,9 @@ class VhrProduct(OpticalProduct):
         band_paths = self.get_band_paths(bands, resolution=resolution)
 
         # Open bands and get array (resampled if needed)
-        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
+        band_arrays = self._open_bands(
+            band_paths, resolution=resolution, size=size, **kwargs
+        )
 
         return band_arrays
 
@@ -421,6 +444,7 @@ class VhrProduct(OpticalProduct):
         Args:
             band (str): Band in string as written on the filepath
             resolution (Union[float, tuple, list]): Resolution of the wanted UTM band
+            writable (bool): Do we need to write the UTM band ?
 
         Returns:
             Union[CloudPath, Path]: UTM band path
@@ -466,7 +490,7 @@ class VhrProduct(OpticalProduct):
 
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
                 src.crs,
-                self.crs(),
+                self.crs,
                 src.width,
                 src.height,
                 *src.bounds,
@@ -482,7 +506,7 @@ class VhrProduct(OpticalProduct):
                 source=src.read(band_nb),
                 destination=out_arr,
                 src_crs=src.crs,
-                dst_crs=self.crs(),
+                dst_crs=self.crs,
                 src_transform=src.transform,
                 dst_transform=utm_tr,
                 src_nodata=0,
@@ -490,7 +514,7 @@ class VhrProduct(OpticalProduct):
                 num_threads=MAX_CORES,
             )
             meta["transform"] = utm_tr
-            meta["crs"] = self.crs()
+            meta["crs"] = self.crs
             meta["driver"] = "GTiff"
 
             rasters_rio.write(out_arr, meta, reproj_path)
@@ -560,7 +584,7 @@ class VhrProduct(OpticalProduct):
 
         return path
 
-    def default_transform(self) -> (affine.Affine, int, int, CRS):
+    def default_transform(self, **kwargs) -> (affine.Affine, int, int, CRS):
         """
         Returns default transform data of the default band (UTM),
         as the `rasterio.warp.calculate_default_transform` does:
@@ -571,13 +595,16 @@ class VhrProduct(OpticalProduct):
 
         Overload in order not to reproject WGS84 data
 
+        Args:
+            kwargs: Additional arguments
+
         Returns:
             Affine, int, int: transform, width, height
 
         """
         default_band = self.get_default_band()
-        def_path = self.get_band_paths([default_band], resolution=self.resolution)[
-            default_band
-        ]
+        def_path = self.get_band_paths(
+            [default_band], resolution=self.resolution, **kwargs
+        )[default_band]
         with rasterio.open(str(def_path)) as dst:
             return dst.transform, dst.width, dst.height, dst.crs

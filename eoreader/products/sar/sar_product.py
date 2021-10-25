@@ -36,7 +36,7 @@ from sertit import files, misc, rasters, snap, strings, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
-from eoreader import utils
+from eoreader import cached_property, utils
 from eoreader.bands.alias import (
     is_clouds,
     is_dem,
@@ -199,6 +199,7 @@ class SarProduct(Product):
         self._set_sensor_mode()
         self.pol_channels = self._get_raw_bands()
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
@@ -208,7 +209,7 @@ class SarProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
@@ -255,7 +256,7 @@ class SarProduct(Product):
 
     # Parameters differ from overridden 'get_default_band_path' method (arguments-differ)
     # pylint: disable=W0221
-    def get_default_band_path(self) -> Union[CloudPath, Path]:
+    def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get default band path (the first existing one between `VV` and `HH` for SAR data), ready to use (orthorectified)
 
@@ -271,14 +272,17 @@ class SarProduct(Product):
             ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.
             '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif'
 
+        Args:
+            kwargs: Additional arguments
         Returns:
             Union[CloudPath, Path]: Default band path
         """
         default_band = self.get_default_band()
-        band_path = self.get_band_paths([default_band])
+        band_path = self.get_band_paths([default_band], **kwargs)
 
         return band_path[default_band]
 
+    @cached_property
     @abstractmethod
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
@@ -290,7 +294,7 @@ class SarProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent()
+            >>> prod.wgs84_extent
                                    Name  ...                                           geometry
             0  Sentinel-1 Image Overlay  ...  POLYGON ((0.85336 42.24660, -2.32032 42.65493,...
             [1 rows x 12 columns]
@@ -301,6 +305,7 @@ class SarProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
+    @cached_property
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -319,7 +324,7 @@ class SarProduct(Product):
             gpd.GeoDataFrame: Footprint in UTM
         """
         # Get WGS84 extent
-        extent_wgs84 = self.wgs84_extent()
+        extent_wgs84 = self.wgs84_extent
 
         # Get upper-left corner and deduce UTM proj from it
         utm = vectors.corresponding_utm_projection(
@@ -329,6 +334,7 @@ class SarProduct(Product):
 
         return extent
 
+    @cached_property
     def crs(self) -> crs.CRS:
         """
         Get UTM projection
@@ -345,7 +351,7 @@ class SarProduct(Product):
             crs.CRS: CRS object
         """
         # Get WGS84 extent
-        extent_wgs84 = self.wgs84_extent()
+        extent_wgs84 = self.wgs84_extent
 
         # Get upper-left corner and deduce UTM proj from it
         crs_str = vectors.corresponding_utm_projection(
@@ -408,7 +414,9 @@ class SarProduct(Product):
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+    def get_band_paths(
+        self, band_list: list, resolution: float = None, **kwargs
+    ) -> dict:
         """
         Return the paths of required bands.
 
@@ -429,6 +437,7 @@ class SarProduct(Product):
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Band resolution
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -579,6 +588,7 @@ class SarProduct(Product):
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> XDS_TYPE:
         """
         Read band from disk.
@@ -591,12 +601,17 @@ class SarProduct(Product):
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             XDS_TYPE: Band xarray
 
         """
         return utils.read(
-            path, resolution=resolution, size=size, resampling=Resampling.bilinear
+            path,
+            resolution=resolution,
+            size=size,
+            resampling=Resampling.bilinear,
+            **kwargs,
         ).astype(np.float32)
 
     def _load_bands(
@@ -604,6 +619,7 @@ class SarProduct(Product):
         bands: Union[list, BandNames],
         resolution: float = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
@@ -612,6 +628,7 @@ class SarProduct(Product):
             bands (list, BandNames): List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -632,13 +649,17 @@ class SarProduct(Product):
         for band_name, band_path in band_paths.items():
             # Read CSK band
             band_arrays[band_name] = self._read_band(
-                band_path, resolution=resolution, size=size
+                band_path, resolution=resolution, size=size, **kwargs
             )
 
         return band_arrays
 
     def _load(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Core function loading SAR data bands
@@ -647,6 +668,7 @@ class SarProduct(Product):
             bands (list): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             Dictionary {band_name, band_xarray}
@@ -683,10 +705,12 @@ class SarProduct(Product):
             self._check_dem_path()
 
         # Load bands
-        bands = self._load_bands(band_list, resolution=resolution, size=size)
+        bands = self._load_bands(band_list, resolution=resolution, size=size, **kwargs)
 
         # Add DEM
-        bands.update(self._load_dem(dem_list, resolution=resolution, size=size))
+        bands.update(
+            self._load_dem(dem_list, resolution=resolution, size=size, **kwargs)
+        )
 
         return bands
 
@@ -768,7 +792,9 @@ class SarProduct(Product):
                         )
                         self.path.download_to(os.path.join(tmp_dir, self.path.name))
                     else:
-                        prod_path = self.path.fspath
+                        prod_path = (
+                            self.path.fspath
+                        )  # In tmp file, no need to download_to
                 else:
                     prod_path = self.path.joinpath(self._snap_path)
 
@@ -779,7 +805,7 @@ class SarProduct(Product):
                         f"-Pfile={strings.to_cmd_string(prod_path)}",
                         f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
                         f"-Pdem_path={strings.to_cmd_string(dem_path)}",
-                        f"-Pcrs={self.crs()}",
+                        f"-Pcrs={self.crs}",
                         f"-Pres_m={res_m}",
                         f"-Pres_deg={res_deg}",
                         f"-Pout={strings.to_cmd_string(pp_dim)}",
@@ -873,11 +899,11 @@ class SarProduct(Product):
 
             # Save the file as the terrain-corrected image
             file_path = os.path.join(
-                self._tmp_process,
+                self._get_band_folder(writable=True),
                 f"{files.get_filename(dim_path)}_{pol}{'_DSPK' if dspk else ''}.tif",
             )
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
-            rasters.write(arr, file_path, dtype=np.float32, nodata=0)
+            utils.write(arr, file_path, dtype=np.float32, nodata=0)
 
         return file_path
 

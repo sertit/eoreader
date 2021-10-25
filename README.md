@@ -14,7 +14,7 @@ clouds, DEM and index in a sensor-agnostic way.
 
 |**Optical sensors** | **SAR sensors**|
 | --- | ---|
-|Sentinel-2 and Sentinel-2 Theia<br>Sentinel-3 OLCI and Sentinel-3 SLSTR<br>Landsat 1 to 8 (MSS, TM, ETM and OLCI)<br>PlanetScope<br>Pleiades<br>SPOT 6-7<br>WorldView-2 to 4, GeoEye-1 (and other Maxar sensors)| Sentinel-1<br>COSMO-Skymed<br>TerraSAR-X & TanDEM-X<br>RADARSAT-2<br>RADARSAT-Constellation|
+|Sentinel-2 and Sentinel-2 Theia<br>Sentinel-3 OLCI and Sentinel-3 SLSTR<br>Landsat 1 to 8 (MSS, TM, ETM and OLCI)<br>PlanetScope<br>Pleiades<br>SPOT 6-7<br>WorldView-2 to 4, GeoEye-1 (and other Maxar sensors)| Sentinel-1<br>COSMO-Skymed<br>TerraSAR-X, TanDEM-X & PAZ<br>RADARSAT-2<br>RADARSAT-Constellation|
 
 It also implements additional **sensor-agnostic** features:
 
@@ -88,7 +88,7 @@ For SAR data:
 >>> mtd, namespace = s1_prod.read_mtd()
 ```
 
-Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.
+SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be orthorectified and calibrated.
 Ensure that you have the folder containing your `gpt` executable in your `PATH`.
 
 ## Documentation
@@ -101,6 +101,7 @@ Available notebooks provided as examples:
 - [Basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html)
 - [SAR data](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html)
 - [VHR data](https://eoreader.readthedocs.io/en/latest/notebooks/VHR.html)
+- [Sentinel-3 data](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html)
 - [Water detection](https://eoreader.readthedocs.io/en/latest/notebooks/water_detection.html)
 - [S3 Compatible Storage](https://eoreader.readthedocs.io/en/latest/notebooks/s3_compatible_storage.html)
 - [Dask](https://eoreader.readthedocs.io/en/latest/notebooks/dask.html)
@@ -128,6 +129,24 @@ You can install EOReader via conda:
 `conda config --env --set channel_priority strict`
 
 `conda install -c conda-forge eoreader`
+
+## Context
+
+SERTIT is part of the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/)
+rapid mapping and risk and recovery teams.
+
+In these activations, we need to deliver information (such as flood or fire delineations, landslides mapping, etc.)
+based on various sensors (more than 10 optical and 5 SAR). As every minute counts in production,
+it seemed crucial to harmonize the ground on which are built our production tools, in order to make them
+as sensor-agnostic as possible.
+
+Thus, thanks to **EOReader**, these tools are made independent to the sensor:
+- the algorithm (and its developer) can focus on its core tasks (such as extraction)
+without taking into account the sensor characteristics
+(how to load a band, which band correspond to which band number, which band to use for this index...)
+- the addition of a new sensor is done effortlessly (if existing in **EOReader**) and without any modification of the algorithm
+- the maintenance is simplified and the code is way more readable (no more ifs regarding the sensor type!)
+- the testing is also simplified as the sensor-related parts are tested in this library
 
 ## License
 

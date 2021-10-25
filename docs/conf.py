@@ -50,6 +50,12 @@ myst_enable_extensions = [
     "substitution",
 ]
 
+# Autodoc
+autodoc_default_options = {
+    'member-order': 'groupwise',
+    'show-inheritance': True,
+}
+
 # Notebook integration parameters
 jupyter_execute_notebooks = "cache"
 execution_timeout = 3600

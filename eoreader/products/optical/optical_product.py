@@ -26,10 +26,10 @@ import rasterio
 from cloudpathlib import CloudPath
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
-from sertit import misc, rasters, strings
+from sertit import rasters
 from sertit.rasters import XDS_TYPE
-from sertit.snap import MAX_CORES
 
+from eoreader import cache, cached_property, utils
 from eoreader.bands import index
 from eoreader.bands.alias import (
     is_clouds,
@@ -57,7 +57,9 @@ class OpticalProduct(Product):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
-        self.band_names = OpticalBands()
+        # They may be overloaded
+        if not self.band_names:
+            self.band_names = OpticalBands()
         self.sensor_type = SensorType.OPTICAL
 
     def _post_init(self) -> None:
@@ -84,7 +86,7 @@ class OpticalProduct(Product):
         """
         return obn.GREEN
 
-    def get_default_band_path(self) -> Union[CloudPath, Path]:
+    def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get default band (`GREEN` for optical data) path.
 
@@ -96,12 +98,15 @@ class OpticalProduct(Product):
             >>> prod.get_default_band_path()
             'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2'
 
+        Args:
+            kwargs: Additional arguments
         Returns:
             Union[CloudPath, Path]: Default band path
         """
         default_band = self.get_default_band()
-        return self.get_band_paths([default_band])[default_band]
+        return self.get_band_paths([default_band], **kwargs)[default_band]
 
+    @cached_property
     def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
@@ -111,7 +116,7 @@ class OpticalProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.crs()
+            >>> prod.crs
             CRS.from_epsg(32630)
 
         Returns:
@@ -123,6 +128,7 @@ class OpticalProduct(Product):
 
         return utm
 
+    @cached_property
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -132,7 +138,7 @@ class OpticalProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.extent()
+            >>> prod.extent
                                                         geometry
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
@@ -140,7 +146,7 @@ class OpticalProduct(Product):
             gpd.GeoDataFrame: Footprint in UTM
         """
         # Get extent
-        return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
+        return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs)
 
     def get_existing_bands(self) -> list:
         """
@@ -198,6 +204,7 @@ class OpticalProduct(Product):
         band_paths: dict,
         resolution: float = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Open bands from disk.
@@ -206,6 +213,7 @@ class OpticalProduct(Product):
             band_paths (dict): Band dict: {band_enum: band_path}
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -217,25 +225,23 @@ class OpticalProduct(Product):
             # Read band
             LOGGER.debug(f"Read {band.name}")
             band_arr = self._read_band(
-                band_path, band=band, resolution=resolution, size=size
+                band_path, band=band, resolution=resolution, size=size, **kwargs
             )
             # Write on disk in order not to reprocess band everytime
             # (invalid pix management can be time consuming)
             if not str(band_path).endswith("clean.tif"):
                 # Manage invalid pixels
                 LOGGER.debug(f"Manage invalid pixels for band {band.name}")
-                band_arr = self._manage_invalid_pixels(
-                    band_arr, band=band, resolution=resolution, size=size
-                )
+                band_arr = self._manage_invalid_pixels(band_arr, band=band, **kwargs)
 
                 # Write on disk
                 try:
                     if not resolution:
                         resolution = band_arr.rio.resolution()[0]
                     clean_band_path = self._get_clean_band_path(
-                        band, resolution=resolution, writable=True
+                        band, resolution=resolution, writable=True, **kwargs
                     )
-                    rasters.write(
+                    utils.write(
                         band_arr.rename(f"{to_str(band)[0]} CLEAN"), clean_band_path
                     )
                 except Exception:
@@ -251,11 +257,7 @@ class OpticalProduct(Product):
     # R0913: Too many arguments (6/5) (too-many-arguments)
     @abstractmethod
     def _manage_invalid_pixels(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -263,8 +265,7 @@ class OpticalProduct(Product):
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             XDS_TYPE: Cleaned band array
@@ -294,7 +295,11 @@ class OpticalProduct(Product):
         return band_arr.where(mask == 0)
 
     def _load(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Core function loading optical data bands
@@ -303,6 +308,7 @@ class OpticalProduct(Product):
             bands (list): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             Dictionary {band_name, band_xarray}
@@ -350,7 +356,9 @@ class OpticalProduct(Product):
         unique_bands = list(set(bands_to_load))
         if unique_bands:
             LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
-        bands = self._load_bands(unique_bands, resolution=resolution, size=size)
+        bands = self._load_bands(
+            unique_bands, resolution=resolution, size=size, **kwargs
+        )
 
         # Compute index (they conserve the nodata)
         if index_list:
@@ -363,18 +371,21 @@ class OpticalProduct(Product):
         # Add DEM
         if dem_list:
             LOGGER.debug(f"Loading DEM bands {to_str(dem_list)}")
-        bands_dict.update(self._load_dem(dem_list, resolution=resolution, size=size))
+        bands_dict.update(
+            self._load_dem(dem_list, resolution=resolution, size=size, **kwargs)
+        )
 
         # Add Clouds
         if clouds_list:
             LOGGER.debug(f"Loading Cloud bands {to_str(clouds_list)}")
         bands_dict.update(
-            self._load_clouds(clouds_list, resolution=resolution, size=size)
+            self._load_clouds(clouds_list, resolution=resolution, size=size, **kwargs)
         )
 
         return bands_dict
 
     @abstractmethod
+    @cache
     def get_mean_sun_angles(self) -> (float, float):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)
@@ -417,13 +428,13 @@ class OpticalProduct(Product):
 
         # Get Hillshade path
         hillshade_name = f"{self.condensed_name}_HILLSHADE.tif"
-        hillshade_dem = self._get_band_folder().joinpath(hillshade_name)
-        if hillshade_dem.is_file():
+        hillshade_path = self._get_band_folder().joinpath(hillshade_name)
+        if hillshade_path.is_file():
             LOGGER.debug(
                 "Already existing hillshade DEM for %s. Skipping process.", self.name
             )
         else:
-            hillshade_dem = self._get_band_folder(writable=True).joinpath(
+            hillshade_path = self._get_band_folder(writable=True).joinpath(
                 hillshade_name
             )
             LOGGER.debug("Computing hillshade DEM for %s", self.name)
@@ -431,38 +442,21 @@ class OpticalProduct(Product):
             # Get angles
             mean_azimuth_angle, mean_zenith_angle = self.get_mean_sun_angles()
 
-            # Altitude of the light, in degrees. 90 if the light comes from above the DEM, 0 if it is raking light.
-            alt = 90 - mean_zenith_angle
+            # Compute hillshade
+            hillshade = rasters.hillshade(
+                warped_dem_path, mean_azimuth_angle, mean_zenith_angle
+            )
+            utils.write(hillshade, hillshade_path)
 
-            # Run cmd
-            cmd_hillshade = [
-                "gdaldem",
-                "--config",
-                "NUM_THREADS",
-                MAX_CORES,
-                "hillshade",
-                strings.to_cmd_string(warped_dem_path),
-                "-compute_edges",
-                "-z",
-                "1",
-                "-az",
-                mean_azimuth_angle,
-                "-alt",
-                alt,
-                "-of",
-                "GTiff",
-                strings.to_cmd_string(hillshade_dem),
-            ]
-            # Run command
-            try:
-                misc.run_cli(cmd_hillshade)
-            except RuntimeError as ex:
-                raise RuntimeError("Something went wrong with gdaldem!") from ex
+        return hillshade_path
 
-        return hillshade_dem
-
+    @abstractmethod
     def _load_clouds(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -471,6 +465,7 @@ class OpticalProduct(Product):
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
@@ -496,7 +491,7 @@ class OpticalProduct(Product):
         return mask
 
     def _get_clean_band_path(
-        self, band: obn, resolution: float = None, writable: bool = False
+        self, band: obn, resolution: float = None, writable: bool = False, **kwargs
     ) -> Union[CloudPath, Path]:
         """
         Get clean band path.

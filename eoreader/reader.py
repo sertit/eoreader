@@ -67,8 +67,11 @@ class Platform(ListEnum):
     S2_THEIA = "Sentinel-2 Theia"
     """Sentinel-2 Theia"""
 
-    S3 = "Sentinel-3"
-    """Sentinel-3"""
+    S3_OLCI = "Sentinel-3 OLCI"
+    """Sentinel-3 OLCI"""
+
+    S3_SLSTR = "Sentinel-3 SLSTR"
+    """Sentinel-3 SLSTR"""
 
     L8 = "Landsat-8"
     """Landsat-8"""
@@ -108,6 +111,9 @@ class Platform(ListEnum):
 
     TDX = "TanDEM-X"
     """TanDEM-X"""
+
+    PAZ = "PAZ SAR"
+    """SEOSAR/PAZ SAR"""
 
     RS2 = "RADARSAT-2"
     """RADARSAT-2"""
@@ -150,7 +156,8 @@ PLATFORM_REGEX = {
     Platform.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
     Platform.S2: r"S2[AB]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
     Platform.S2_THEIA: r"SENTINEL2[AB]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
-    Platform.S3: r"S3[AB]_[OS]L_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
+    Platform.S3_OLCI: r"S3[AB]_OL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
+    Platform.S3_SLSTR: r"S3[AB]_SL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
     Platform.L8: r"LC08_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Platform.L7: r"LE07_L1(GT|TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Platform.L5: r"L[TM]05_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
@@ -164,7 +171,7 @@ PLATFORM_REGEX = {
         r"CSKS[1-4]_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
         r"\w{2}_(HH|VV|VH|HV|CO|CH|CV)_[LR][AD]_[FS][NF]_\d{14}_\d{14}\.h5",
     ],
-    Platform.TSX: r"T[SD]X1_SAR__(SSC|MGD|GEC|EEC)_[SR]E___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
+    Platform.TSX: r"(TSX|TDX|PAZ)1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Platform.RS2: r"RS2_OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)",
     Platform.PLD: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
     Platform.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
@@ -177,13 +184,14 @@ PLATFORM_REGEX = {
 MTD_REGEX = {
     Platform.S1: r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}\.xml",
     Platform.S2: [
-        r"MTD_MSIL(1C|2A)\.xml",  # Too generic name, check also a band
-        r"T\d{2}\w{3}_\d{8}T\d{6}_B\d{2}(_\d0m|).jp2",
+        r"MTD_MSIL(1C|2A)\.xml",
     ],
     Platform.S2_THEIA: f"{PLATFORM_REGEX[Platform.S2_THEIA]}_MTD_ALL\.xml",
-    Platform.S3: [
-        r"xfdumanifest\.xml",  # Not the real metadata...
-        r"(S\d|Oa\d{2})_radiance(_an|).nc",
+    Platform.S3_OLCI: [
+        r"Oa\d{2}_radiance.nc",
+    ],
+    Platform.S3_SLSTR: [
+        r"S\d_radiance_an.nc",
     ],
     Platform.L8: f"{PLATFORM_REGEX[Platform.L8]}_MTL\.txt",
     Platform.L7: f"{PLATFORM_REGEX[Platform.L7]}_MTL\.txt",
@@ -404,28 +412,29 @@ class Reader:
         """
         product_path = AnyPath(product_path)
 
+        if not product_path.exists():
+            return False
+
         # Here the list is a check of several files
         regex_list = self._mtd_regex[platform]
 
         # False by default
         is_valid = [False for idx in regex_list]
 
-        for idx, regex in enumerate(regex_list):
-            # Folder
-            if product_path.is_dir():
-                for fle in product_path.glob("**/*.*"):
-                    if regex.match(str(fle)):
-                        is_valid[idx] = True
-                        break
+        # Folder
+        if product_path.is_dir():
+            prod_files = list(product_path.glob("**/*.*"))
 
-            # Archive
-            else:
-                if product_path.is_file():
-                    fls = files.get_archived_file_list(product_path)
-                    for fle in fls:
-                        if regex.match(fle):
-                            is_valid[idx] = True
-                            break
+        # Archive
+        else:
+            prod_files = files.get_archived_file_list(product_path)
+
+        # Check
+        for idx, regex in enumerate(regex_list):
+            for prod_file in prod_files:
+                if regex.match(str(prod_file)):
+                    is_valid[idx] = True
+                    break
 
         return all(is_valid)
 

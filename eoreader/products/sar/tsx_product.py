@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-TerraSAR-X & TanDEM-X products.
+TerraSAR-X & TanDEM-X & PAZ products.
 More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
 """
 import logging
@@ -30,6 +30,7 @@ from lxml import etree
 from sertit import vectors
 from sertit.misc import ListEnum
 
+from eoreader import cache, cached_property
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.reader import Platform
@@ -44,7 +45,7 @@ warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarni
 @unique
 class TsxProductType(ListEnum):
     """
-    TerraSAR-X & TanDEM-X projection identifier.
+    TerraSAR-X & TanDEM-X & PAZ projection identifier.
     Take a look
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
@@ -65,7 +66,7 @@ class TsxProductType(ListEnum):
 @unique
 class TsxSensorMode(ListEnum):
     """
-    TerraSAR-X & TanDEM-X sensor mode.
+    TerraSAR-X & TanDEM-X & PAZ sensor mode.
     Take a look
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
@@ -89,7 +90,7 @@ class TsxSensorMode(ListEnum):
 @unique
 class TsxPolarization(ListEnum):
     """
-    TerraSAR-X & TanDEM-X polarization mode.
+    TerraSAR-X & TanDEM-X & PAZ polarization mode.
     Take a look
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
@@ -110,7 +111,7 @@ class TsxPolarization(ListEnum):
 @unique
 class TsxSatId(ListEnum):
     """
-    TerraSAR-X products satellite IDs
+    TerraSAR-X products satellite IDs + PAZ
 
     See `here <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 29)
     """
@@ -125,9 +126,14 @@ class TsxSatId(ListEnum):
     TerraSAR-X
     """
 
+    PAZ = "PAZ"
+    """
+    PAZ
+    """
+
 
 class TsxProduct(SarProduct):
-    """Class for TerraSAR-X & TanDEM-X Products"""
+    """Class for TerraSAR-X & TanDEM-X & PAZ Products"""
 
     def _set_resolution(self) -> float:
         """
@@ -155,9 +161,14 @@ class TsxProduct(SarProduct):
         (setting needs_extraction and so on)
         """
         # Private attributes
-        self._raw_band_regex = "*IMAGE_{}_*.tif"
+        self._raw_band_regex = "*IMAGE_{}_*"
         self._band_folder = self.path.joinpath("IMAGEDATA")
-        self._snap_path = self.name + ".xml"
+
+        root, _ = self.read_mtd()
+        name = root.find(".//generalHeader").attrib.get("fileName")
+        if not name:
+            raise InvalidProductError("Cannot find the filename in the metadata file")
+        self._snap_path = name
 
         # SNAP cannot process its archive
         self.needs_extraction = True
@@ -183,6 +194,7 @@ class TsxProduct(SarProduct):
         # Post init done by the super class
         super()._post_init()
 
+    @cached_property
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -193,7 +205,7 @@ class TsxProduct(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent()
+            >>> prod.wgs84_extent
                                                         geometry
             0  POLYGON ((106.65491 -6.39693, 106.96233 -6.396...
 
@@ -228,7 +240,7 @@ class TsxProduct(SarProduct):
 
         if self.product_type == TsxProductType.MGD:
             self.sar_prod_type = SarProductType.GDRG
-        elif self.product_type in TsxProductType.SSC:
+        elif self.product_type == TsxProductType.SSC:
             self.sar_prod_type = SarProductType.CPLX
         else:
             raise NotImplementedError(
@@ -280,23 +292,27 @@ class TsxProduct(SarProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
+        if self.datetime is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
 
-        # Open identifier
-        try:
-            acq_date = root.findtext(".//start/timeUTC")
-        except TypeError:
-            raise InvalidProductError("start/timeUTC not found in metadata !")
+            # Open identifier
+            try:
+                acq_date = root.findtext(".//start/timeUTC")
+            except TypeError:
+                raise InvalidProductError("start/timeUTC not found in metadata !")
 
-        # Convert to datetime
-        date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+            # Convert to datetime
+            date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+        else:
+            date = self.datetime
 
         if not as_datetime:
             date = date.strftime(DATETIME_FMT)
 
         return date
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict
@@ -312,6 +328,6 @@ class TsxProduct(SarProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = f"{self.name}.xml"
+        mtd_from_path = "SAR*SAR*xml"
 
         return self._read_mtd_xml(mtd_from_path)

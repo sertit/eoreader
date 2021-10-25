@@ -15,10 +15,11 @@ from eoreader.env_vars import (
     CI_EOREADER_BAND_FOLDER,
     DEM_PATH,
     S3_DB_URL_ROOT,
-    S3_DEF_RES,
     SAR_DEF_RES,
     TEST_USING_S3_DB,
 )
+from eoreader.keywords import SLSTR_RAD_ADJUST
+from eoreader.products.optical.s3_slstr_product import SlstrRadAdjust
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
@@ -86,13 +87,7 @@ def remove_dem_files(prod):
         files.remove(to_d)
 
 
-def test_invalid():
-    wrong_path = "dzfdzef"
-    assert READER.open(wrong_path) is None
-    assert not READER.valid_name(wrong_path, "S2")
-
-
-def _test_core_optical(pattern: str, dem_path=None, debug=False):
+def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
     """
     Core function testing optical data
     Args:
@@ -100,10 +95,10 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False):
         debug (bool): Debug option
     """
     possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
-    _test_core(pattern, opt_path(), possible_bands, dem_path, debug)
+    _test_core(pattern, opt_path(), possible_bands, dem_path, debug, **kwargs)
 
 
-def _test_core_sar(pattern: str, dem_path=None, debug=False):
+def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
     """
     Core function testing SAR data
     Args:
@@ -111,11 +106,16 @@ def _test_core_sar(pattern: str, dem_path=None, debug=False):
         debug (bool): Debug option
     """
     possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
-    _test_core(pattern, sar_path(), possible_bands, dem_path, debug)
+    _test_core(pattern, sar_path(), possible_bands, dem_path, debug, **kwargs)
 
 
 def _test_core(
-    pattern: str, prod_dir: str, possible_bands: list, dem_path=None, debug=False
+    pattern: str,
+    prod_dir: str,
+    possible_bands: list,
+    dem_path=None,
+    debug=False,
+    **kwargs,
 ):
     """
     Core function testing all data
@@ -156,8 +156,12 @@ def _test_core(
             )
 
             # Open product and set output
+            LOGGER.info("Checking opening solutions")
+            LOGGER.info("MTD")
             prod: Product = READER.open(path, method=CheckMethod.MTD, remove_tmp=False)
+            LOGGER.info("NAME")
             prod_name = READER.open(path, method=CheckMethod.NAME)
+            LOGGER.info("BOTH")
             prod_both = READER.open(path, method=CheckMethod.BOTH)
             assert prod is not None
             assert prod == prod_name
@@ -171,17 +175,6 @@ def _test_core(
                     # )
                     prod.output = tmp_dir
 
-                    # Env var
-                    # if (
-                    #     prod.platform == Platform.S3
-                    #     or prod.sensor_type == SensorType.SAR
-                    # ):
-                    #     os.environ[CI_EOREADER_BAND_FOLDER] = str(
-                    #         get_ci_data_dir().joinpath(prod.condensed_name)
-                    #     )
-                    # else:
-                    #     if CI_EOREADER_BAND_FOLDER in os.environ:
-                    #         os.environ.pop(CI_EOREADER_BAND_FOLDER)
                     os.environ[CI_EOREADER_BAND_FOLDER] = str(
                         get_ci_data_dir().joinpath(prod.condensed_name)
                     )
@@ -192,11 +185,10 @@ def _test_core(
                         os.environ[SAR_DEF_RES] = str(res)
                     else:
                         res = prod.resolution * 50
-                        os.environ[S3_DEF_RES] = str(res)
 
                     # Extent
                     LOGGER.info("Checking extent")
-                    extent = prod.extent()
+                    extent = prod.extent
                     assert isinstance(extent, gpd.GeoDataFrame)
                     extent_path = get_ci_data_dir().joinpath(
                         prod.condensed_name, f"{prod.condensed_name}_extent.geojson"
@@ -217,7 +209,7 @@ def _test_core(
 
                     # Footprint
                     LOGGER.info("Checking footprint")
-                    footprint = prod.footprint()
+                    footprint = prod.footprint
                     assert isinstance(footprint, gpd.GeoDataFrame)
                     footprint_path = get_ci_data_dir().joinpath(
                         prod.condensed_name, f"{prod.condensed_name}_footprint.geojson"
@@ -264,7 +256,7 @@ def _test_core(
                         tmp_dir, f"{prod.condensed_name}_stack.tif"
                     )
                     stack = prod.stack(
-                        stack_bands, resolution=res, stack_path=curr_path
+                        stack_bands, resolution=res, stack_path=curr_path, **kwargs
                     )
                     assert stack.dtype == np.float32
 
@@ -289,16 +281,17 @@ def _test_core(
                         ci_band = curr_path_band
 
                     band_arr = prod.load(
-                        first_band, size=(stack.rio.width, stack.rio.height)
+                        first_band, size=(stack.rio.width, stack.rio.height), **kwargs
                     )[first_band]
                     rasters.write(band_arr, curr_path_band)
                     assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
 
                 # CRS
                 LOGGER.info("Checking CRS")
-                assert prod.crs().is_projected
+                assert prod.crs.is_projected
 
                 # MTD
+                LOGGER.info("Checking Mtd")
                 mtd_xml, nmsp = prod.read_mtd()
                 assert isinstance(mtd_xml, etree._Element)
                 assert isinstance(nmsp, dict)
@@ -337,7 +330,7 @@ def test_s3_olci():
 def test_s3_slstr():
     """Function testing the correct functioning of the optical satellites"""
     # Init logger
-    _test_core_optical("*S3*_SL_1_*")
+    _test_core_optical("*S3*_SL_1_*", **{SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP})
 
 
 @s3_env
@@ -468,6 +461,7 @@ def test_csk():
     _test_core_sar("*csk_*")
 
 
+# Assume that tests TSX, TDX and PAZ sensors
 @s3_env
 def test_tsx():
     """Function testing the correct functioning of the optical satellites"""
@@ -491,3 +485,9 @@ def test_rcm():
 # TODO:
 # check non existing bands
 # check cloud results
+
+
+def test_invalid():
+    wrong_path = "dzfdzef"
+    assert READER.open(wrong_path) is None
+    assert not READER.valid_name(wrong_path, "S2")

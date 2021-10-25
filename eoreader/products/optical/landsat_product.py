@@ -34,7 +34,7 @@ from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
-from eoreader import utils
+from eoreader import cache, cached_property, utils
 from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
@@ -139,7 +139,15 @@ class LandsatProduct(OpticalProduct):
             self._radsat_id = "_QA_RADSAT"
 
         # Warning if GS or GT
-        if "GS" in self.name:
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        except TypeError:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
+
+        if "GS" in name:
             LOGGER.warning(
                 "This Landsat product %s could be badly georeferenced "
                 "as only systematic geometric corrections have been applied "
@@ -173,6 +181,7 @@ class LandsatProduct(OpticalProduct):
 
         return path
 
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -182,7 +191,7 @@ class LandsatProduct(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
             >>> prod = Reader().open(path)
-            >>> prod.footprint()
+            >>> prod.footprint
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
@@ -241,7 +250,15 @@ class LandsatProduct(OpticalProduct):
 
     def _set_mss_product_type(self, version: int) -> None:
         """Set MSS product type and map corresponding bands"""
-        if "L1" in self.name:
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        except TypeError:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
+
+        if "L1" in name:
             self.product_type = LandsatProductType.L1_MSS
             self.band_names.map_bands(
                 {
@@ -259,7 +276,15 @@ class LandsatProduct(OpticalProduct):
 
     def _set_tm_product_type(self) -> None:
         """Set TM product type and map corresponding bands"""
-        if "L1" in self.name:
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        except TypeError:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
+
+        if "L1" in name:
             self.product_type = LandsatProductType.L1_TM
             self.band_names.map_bands(
                 {
@@ -279,7 +304,15 @@ class LandsatProduct(OpticalProduct):
 
     def _set_etm_product_type(self) -> None:
         """Set ETM product type and map corresponding bands"""
-        if "L1" in self.name:
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        except TypeError:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
+
+        if "L1" in name:
             self.product_type = LandsatProductType.L1_ETM
             self.band_names.map_bands(
                 {
@@ -300,7 +333,15 @@ class LandsatProduct(OpticalProduct):
 
     def _set_olci_product_type(self) -> None:
         """Set OLCI product type and map corresponding bands"""
-        if "L1" in self.name:
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        except TypeError:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
+
+        if "L1" in name:
             self.product_type = LandsatProductType.L1_OLCI
             self.band_names.map_bands(
                 {
@@ -341,25 +382,33 @@ class LandsatProduct(OpticalProduct):
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        mtd_data, _ = self._read_mtd()
+        if self.datetime is None:
+            mtd_data, _ = self._read_mtd()
 
-        try:
-            date = mtd_data.findtext(".//DATE_ACQUIRED")
-            hours = mtd_data.findtext(".//SCENE_CENTER_TIME").replace('"', "")[:-3]
-        except TypeError:
-            raise InvalidProductError("ACQUISITION_DATE not found in metadata !")
+            try:
+                date = mtd_data.findtext(".//DATE_ACQUIRED")
+                hours = mtd_data.findtext(".//SCENE_CENTER_TIME").replace('"', "")[:-3]
+            except TypeError:
+                raise InvalidProductError("ACQUISITION_DATE not found in metadata !")
 
-        date = (
-            f"{datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')}"
-            f"T{datetime.strptime(hours, '%H:%M:%S.%f').strftime('%H%M%S')}"
-        )
+            date = (
+                f"{datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')}"
+                f"T{datetime.strptime(hours, '%H:%M:%S.%f').strftime('%H%M%S')}"
+            )
 
-        if as_datetime:
-            date = datetime.strptime(date, DATETIME_FMT)
+            if as_datetime:
+                date = datetime.strptime(date, DATETIME_FMT)
+
+        else:
+            date = self.datetime
+            if not as_datetime:
+                date = date.strftime(DATETIME_FMT)
 
         return date
 
-    def get_band_paths(self, band_list: list, resolution: float = None) -> dict:
+    def get_band_paths(
+        self, band_list: list, resolution: float = None, **kwargs
+    ) -> dict:
         """
         Return the paths of required bands.
 
@@ -380,6 +429,7 @@ class LandsatProduct(OpticalProduct):
         Args:
             band_list (list): List of the wanted bands
             resolution (float): Useless here
+            kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing the path of each queried band
@@ -394,7 +444,9 @@ class LandsatProduct(OpticalProduct):
             band_nb = self.band_names[band]
 
             # Get clean band path
-            clean_band = self._get_clean_band_path(band, resolution=resolution)
+            clean_band = self._get_clean_band_path(
+                band, resolution=resolution, **kwargs
+            )
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
@@ -425,11 +477,11 @@ class LandsatProduct(OpticalProduct):
         # Try with XML (we don't know what collection it is)
         try:
             # Open XML metadata
-            mtd_from_path = f"{self.name}_MTL.xml"
-            mtd_archived = f"{self.name}_MTL\.xml"
+            mtd_from_path = "*_MTL.xml"
+            mtd_archived = ".*_MTL\.xml"
             mtd_data = self._read_mtd_xml(mtd_from_path, mtd_archived)
         except (InvalidProductError, FileNotFoundError):
-            mtd_name = f"{self.name}_MTL.txt"
+            mtd_name = "**_MTL.txt"
             if self.is_archived:
                 # We need to extract the file in memory to be used with pandas
                 tar_ds = tarfile.open(self.path, "r")
@@ -438,7 +490,7 @@ class LandsatProduct(OpticalProduct):
             else:
                 # FOR COLLECTION 1 AND 2
                 tar_ds = None
-                mtd_path = self.path.joinpath(mtd_name)
+                mtd_path = next(self.path.glob(mtd_name))
 
                 if not mtd_path.is_file():
                     raise InvalidProductError(
@@ -495,6 +547,7 @@ class LandsatProduct(OpticalProduct):
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> XDS_TYPE:
         """
         Read band from disk.
@@ -507,6 +560,7 @@ class LandsatProduct(OpticalProduct):
             band (BandNames): Band to read
             resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             XDS_TYPE: Band xarray
 
@@ -525,11 +579,16 @@ class LandsatProduct(OpticalProduct):
                 size=size,
                 resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
                 masked=False,
+                **kwargs,
             ).astype(np.uint16)
         else:
             # Read band (call superclass generic method)
             band_xda = utils.read(
-                path, resolution=resolution, size=size, resampling=Resampling.bilinear
+                path,
+                resolution=resolution,
+                size=size,
+                resampling=Resampling.bilinear,
+                **kwargs,
             ).astype(np.float32)
 
             # Convert raw bands from DN to correct reflectance
@@ -571,11 +630,7 @@ class LandsatProduct(OpticalProduct):
     # pylint: disable=R0913
     # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
-        self,
-        band_arr: XDS_TYPE,
-        band: obn,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -583,8 +638,7 @@ class LandsatProduct(OpticalProduct):
         Args:
             band_arr (XDS_TYPE): Band array
             band (obn): Band name as an OpticalBandNames
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
 
         Returns:
             XDS_TYPE: Cleaned band array
@@ -592,7 +646,8 @@ class LandsatProduct(OpticalProduct):
         # Open QA band
         landsat_qa_path = self._get_path(self._radsat_id)
         qa_arr = self._read_band(
-            landsat_qa_path, resolution=resolution, size=size
+            landsat_qa_path,
+            size=(band_arr.rio.width, band_arr.rio.height),
         ).data  # To np array
 
         if self._collection == LandsatCollection.COL_1:
@@ -626,7 +681,7 @@ class LandsatProduct(OpticalProduct):
             # If collection 2, nodata has to be found in pixel QA file
             landsat_stat_path = self._get_path(self._pixel_quality_id)
             pixel_arr = self._read_band(
-                landsat_stat_path, resolution=resolution, size=size
+                landsat_stat_path, size=(band_arr.rio.width, band_arr.rio.height)
             ).data
             nodata = np.where(pixel_arr == 1, 1, 0)
 
@@ -636,37 +691,42 @@ class LandsatProduct(OpticalProduct):
 
     def _load_bands(
         self,
-        band_list: Union[list, BandNames],
+        bands: Union[list, BandNames],
         resolution: float = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load bands as numpy arrays with the same resolution (and same metadata).
 
         Args:
-            band_list (list, BandNames): List of the wanted bands
+            bands (list, BandNames): List of the wanted bands
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
         # Return empty if no band are specified
-        if not band_list:
+        if not bands:
             return {}
 
         # Get band paths
-        if not isinstance(band_list, list):
-            band_list = [band_list]
+        if not isinstance(bands, list):
+            bands = [bands]
 
         if resolution is None and size is not None:
             resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(band_list, resolution=resolution)
+        band_paths = self.get_band_paths(bands, resolution=resolution)
 
         # Open bands and get array (resampled if needed)
-        band_arrays = self._open_bands(band_paths, resolution=resolution, size=size)
+        band_arrays = self._open_bands(
+            band_paths, resolution=resolution, size=size, **kwargs
+        )
 
         return band_arrays
 
+    @cache
     def get_mean_sun_angles(self) -> (float, float):
         """
         Get Mean Sun angles (Azimuth and Zenith angles)
@@ -743,7 +803,11 @@ class LandsatProduct(OpticalProduct):
         return has_band
 
     def _load_clouds(
-        self, bands: list, resolution: float = None, size: Union[list, tuple] = None
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -759,6 +823,7 @@ class LandsatProduct(OpticalProduct):
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
