@@ -163,7 +163,12 @@ class TsxProduct(SarProduct):
         # Private attributes
         self._raw_band_regex = "*IMAGE_{}_*"
         self._band_folder = self.path.joinpath("IMAGEDATA")
-        self._snap_path = self.name + ".xml"
+
+        root, _ = self.read_mtd()
+        name = root.find(".//generalHeader").attrib.get("fileName")
+        if not name:
+            raise InvalidProductError("Cannot find the filename in the metadata file")
+        self._snap_path = name
 
         # SNAP cannot process its archive
         self.needs_extraction = True
@@ -323,6 +328,6 @@ class TsxProduct(SarProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = f"{self.name}.xml"
+        mtd_from_path = "SAR*SAR*xml"
 
         return self._read_mtd_xml(mtd_from_path)

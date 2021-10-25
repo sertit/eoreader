@@ -10,6 +10,7 @@
 - **BREAKING CHANGE: `SLOPE` is given in degrees instead of percents**
 
 - **ENH: Adding the support of the PAZ SAR sensor**
+- **ENH: Adding the support of the Sentinel-2 processed with the [processing baseline 4.0](https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming)** [#11](https://github.com/sertit/eoreader/issues/11)
 - **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !** [#12](https://github.com/sertit/eoreader/issues/12)
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
 - **ENH: Thermal bands of Sentinel-3 SLSTR can now be used**
@@ -39,6 +40,7 @@
 - FIX: Fixing minor bug when trying to read metadata with a POSIX path
 - FIX: Fixing the `**kwargs` omission in `utils.read`
 - FIX: Better management of `_temp_process` directory
+- FIX: Landsats and TSX: Can use other filenames now
 
 
 - DEPR: `FAR_NIR` band is removed

@@ -33,7 +33,7 @@ from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import features, transform
 from rasterio.enums import Resampling
-from sertit import files, vectors
+from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
@@ -53,7 +53,40 @@ class S2ProductType(ListEnum):
     """Sentinel-2 products types (L1C or L2A)"""
 
     L1C = "L1C"
+    """L1C: https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-1c"""
+
     L2A = "L2A"
+    """L2A: https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-2a"""
+
+
+@unique
+class S2GmlMasks(ListEnum):
+    """Sentinel-2 GML masks (processing baseline < 4.0)"""
+
+    FOOTPRINT = "DETFOO"
+    CLOUDS = "CLOUDS"
+    DEFECT = "DEFECT"
+    NODATA = "NODATA"
+    SATURATION = "SATURA"
+    QUALITY = "TECQUA"
+
+    # L2A (jp2)
+    CLDPRB = "CLDPRB"
+    SNWPRB = "SNWPRB"
+
+
+@unique
+class S2Jp2Masks(ListEnum):
+    """Sentinel-2 jp2 masks (processing baseline > 4.0)"""
+
+    # Both L1C and L2A
+    FOOTPRINT = "DETFOO"
+    CLOUDS = "CLASSI"
+    QUALITY = "QUALIT"  # Regroups TECQUA, DEFECT, NODATA, SATURA
+
+    # L2A
+    CLDPRB = "CLDPRB"
+    SNWPRB = "SNWPRB"
 
 
 BAND_DIR_NAMES = {
@@ -82,6 +115,24 @@ class S2Product(OpticalProduct):
     You can use directly the .zip file
     """
 
+    def __init__(
+        self,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
+        remove_tmp: bool = False,
+    ) -> None:
+        # Is this products comes from a processing baseline less than 4.0
+        # The processing baseline 4.0 introduces format changes:
+        # - masks are given as GeoTIFFs instead of GML files
+        # - an offset is added to keep the zero as no-data value
+        # See here for more information
+        # https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming
+        self._processing_baseline_lt_4_0 = None
+
+        # Initialization from the super class
+        super().__init__(product_path, archive_path, output_path, remove_tmp)
+
     def _pre_init(self) -> None:
         """
         Function used to pre_init the products
@@ -98,6 +149,14 @@ class S2Product(OpticalProduct):
         (setting sensor type, band names and so on)
         """
         self.tile_name = self._get_tile_name()
+
+        # Get processing baseline
+        root, _ = self.read_datatake_mtd()
+        try:
+            pr_baseline = float(root.findtext(".//PROCESSING_BASELINE"))
+        except TypeError:
+            raise InvalidProductError("PRODUCT_URI not found in datatake metadata !")
+        self._processing_baseline_lt_4_0 = pr_baseline < 4.0
 
         # Post init done by the super class
         super()._post_init()
@@ -129,7 +188,16 @@ class S2Product(OpticalProduct):
 
     def _set_product_type(self) -> None:
         """Set products type"""
-        if "MSIL2A" in self.name:
+        # Get MTD XML file
+        root, _ = self.read_datatake_mtd()
+
+        # Open identifier
+        try:
+            name = root.findtext(".//PRODUCT_URI")
+        except TypeError:
+            raise InvalidProductError("PRODUCT_URI not found in datatake metadata !")
+
+        if "MSIL2A" in name:
             self.product_type = S2ProductType.L2A
             self.band_names.map_bands(
                 {
@@ -147,7 +215,7 @@ class S2Product(OpticalProduct):
                     obn.SWIR_2: "12",
                 }
             )
-        elif "MSIL1C" in self.name:
+        elif "MSIL1C" in name:
             self.product_type = S2ProductType.L1C
             self.band_names.map_bands(
                 {
@@ -187,9 +255,22 @@ class S2Product(OpticalProduct):
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
         def_band = self.band_names[self.get_default_band()]
-        det_footprint = self.open_mask("DETFOO", def_band)
-        footprint_gs = det_footprint.dissolve().convex_hull
-        return gpd.GeoDataFrame(geometry=footprint_gs.geometry, crs=footprint_gs.crs)
+        if self._processing_baseline_lt_4_0:
+            det_footprint = self._open_mask_lt_4_0(S2GmlMasks.FOOTPRINT, def_band)
+            footprint_gs = det_footprint.dissolve().convex_hull
+            footprint = gpd.GeoDataFrame(
+                geometry=footprint_gs.geometry, crs=footprint_gs.crs
+            )
+        else:
+            det_footprint = self._open_mask_gt_4_0(S2Jp2Masks.FOOTPRINT, def_band)
+            footprint = rasters.vectorize(
+                det_footprint, values=0, keep_values=False, dissolve=True
+            )
+
+            # Keep only the convex hull
+            footprint.geometry = footprint.geometry.convex_hull
+
+        return footprint
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -221,7 +302,7 @@ class S2Product(OpticalProduct):
 
             # Open identifier
             try:
-                # Sentinel-2 datetime is the datatake sensing time, not the granule sensing time !
+                # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time !
                 sensing_time = root.findtext(".//PRODUCT_START_TIME")
             except TypeError:
                 raise InvalidProductError(
@@ -395,14 +476,48 @@ class S2Product(OpticalProduct):
             **kwargs,
         )
 
-        # Compute the correct radiometry of the band
-        original_dtype = band_xda.encoding.get("dtype", band_xda.dtype)
-        if original_dtype == "uint16":
-            band_xda /= 10000.0
+        if str(path).endswith(".jp2"):
+            # Get MTD XML file
+            root, _ = self.read_datatake_mtd()
+
+            # Get quantification value
+            quantif_prefix = "BOA_" if self.product_type == S2ProductType.L2A else ""
+            try:
+                quantif_value = float(
+                    root.findtext(f".//{quantif_prefix}QUANTIFICATION_VALUE")
+                )
+            except TypeError:
+                raise InvalidProductError(
+                    f"{quantif_prefix}QUANTIFICATION_VALUE not found in datatake metadata !"
+                )
+
+            # Get offset
+            offset_prefix = (
+                "BOA_" if self.product_type == S2ProductType.L2A else "RADIO_"
+            )
+            if self._processing_baseline_lt_4_0:
+                offset = 0.0
+            else:
+                try:
+                    band_id = str(int(self.band_names[band]))
+                    offset = float(
+                        root.findtext(
+                            f".//{offset_prefix}ADD_OFFSET[@band_id = '{band_id}']"
+                        )
+                    )
+                except TypeError:
+                    raise InvalidProductError(
+                        f"{offset_prefix}ADD_OFFSET not found in datatake metadata !"
+                    )
+
+            # Compute the correct radiometry of the band
+            band_xda = (band_xda - offset) / quantif_value
 
         return band_xda.astype(np.float32)
 
-    def open_mask(self, mask_str: str, band: Union[obn, str]) -> gpd.GeoDataFrame:
+    def _open_mask_lt_4_0(
+        self, mask_id: Union[str, S2GmlMasks], band: Union[obn, str] = None
+    ) -> gpd.GeoDataFrame:
         """
         Open S2 mask (GML files stored in QI_DATA) as `gpd.GeoDataFrame`.
 
@@ -439,15 +554,15 @@ class S2Product(OpticalProduct):
             [6 rows x 3 columns]
 
         Args:
-            mask_str (str): Mask name, such as DEFECT, NODATA, SATURA...
+            mask_id (Union[str, S2GmlMasks]): Mask name, such as DEFECT, NODATA, SATURA...
             band (Union[obn, str]): Band number as an OpticalBandNames or str (for clouds: 00)
 
         Returns:
             gpd.GeoDataFrame: Mask as a vector
         """
         # Check inputs
-        assert mask_str in ["DEFECT", "DETFOO", "NODATA", "SATURA", "TECQUA", "CLOUDS"]
-        if mask_str == "CLOUDS":
+        mask_id = S2GmlMasks.from_value(mask_id)
+        if mask_id == S2GmlMasks.CLOUDS:
             band = "00"
 
         # Get QI_DATA path
@@ -464,7 +579,7 @@ class S2Product(OpticalProduct):
                 with zipfile.ZipFile(self.path, "r") as zip_ds:
                     filenames = [f.filename for f in zip_ds.filelist]
                     regex = re.compile(
-                        f".*GRANULE.*QI_DATA.*MSK_{mask_str}_B{band_name}.gml"
+                        f".*GRANULE.*QI_DATA.*MSK_{mask_id.value}_B{band_name}.gml"
                     )
                     mask_path = zip_ds.extract(
                         list(filter(regex.match, filenames))[0], tmp_dir.name
@@ -473,7 +588,7 @@ class S2Product(OpticalProduct):
                 # Get mask path
                 mask_path = files.get_file_in_dir(
                     self.path,
-                    f"**/*GRANULE/*/QI_DATA/MSK_{mask_str}_B{band_name}.gml",
+                    f"**/*GRANULE/*/QI_DATA/MSK_{mask_id.value}_B{band_name}.gml",
                     exact_name=True,
                 )
 
@@ -488,8 +603,59 @@ class S2Product(OpticalProduct):
 
         return mask
 
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
+    def _open_mask_gt_4_0(
+        self,
+        mask_id: Union[str, S2Jp2Masks],
+        band: Union[obn, str] = None,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+    ) -> xr.DataArray:
+        """
+        Open S2 mask (jp2 files stored in QI_DATA) as raster.
+
+        Masks than can be called that way are:
+
+        - `DETFOO`: Detectors footprint -> used to process nodata outside the detectors
+        - `QUALIT`: TECQUA, DEFECT, NODATA, SATURA, CLOLOW merged
+        - `CLASSI`: CLOUDS and SNOICE **only with `00` as a band !**
+
+        Args:
+            mask_id (Union[str, S2GmlMasks]): Mask ID
+            band (Union[obn, str]): Band number as an OpticalBandNames or str (for clouds: 00)
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+
+        Returns:
+            gpd.GeoDataFrame: Mask as a DataArray
+        """
+        # Check inputs
+        mask_id = S2Jp2Masks.from_value(mask_id)
+        if mask_id == S2Jp2Masks.CLOUDS:
+            band = "00"
+
+        # Get QI_DATA path
+        if isinstance(band, obn):
+            band_name = self.band_names[band]
+        else:
+            band_name = band
+
+        if self.is_archived:
+            mask_path = files.get_archived_rio_path(
+                self.path, f".*GRANULE.*QI_DATA.*MSK_{mask_id.value}_B{band_name}.jp2"
+            )
+        else:
+            # Get mask path
+            mask_path = files.get_file_in_dir(
+                self.path,
+                f"**/*GRANULE/*/QI_DATA/MSK_{mask_id.value}_B{band_name}.jp2",
+                exact_name=True,
+            )
+
+        # Read mask
+        mask = rasters.read(mask_path, resolution=resolution, size=size)
+
+        return mask
+
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
@@ -505,9 +671,31 @@ class S2Product(OpticalProduct):
         Returns:
             XDS_TYPE: Cleaned band array
         """
+        if self._processing_baseline_lt_4_0:
+            return self._manage_invalid_pixels_lt_4_0(band_arr, band, **kwargs)
+        else:
+            return self._manage_invalid_pixels_gt_4_0(band_arr, band, **kwargs)
+
+    # pylint: disable=R0913
+    # R0913: Too many arguments (6/5) (too-many-arguments)
+    def _manage_invalid_pixels_lt_4_0(
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
+    ) -> XDS_TYPE:
+        """
+        Manage invalid pixels (Nodata, saturated, defective...)
+        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
         # Get detector footprint to deduce the outside nodata
-        nodata_det = self.open_mask(
-            "DETFOO", band
+        nodata_det = self._open_mask_lt_4_0(
+            S2GmlMasks.FOOTPRINT, band
         )  # Detector nodata, -> pixels that are outside of the detectors
 
         # Rasterize nodata
@@ -523,17 +711,17 @@ class S2Product(OpticalProduct):
         )
 
         #  Load masks and merge them into the nodata
-        nodata_pix = self.open_mask(
-            "NODATA", band
+        nodata_pix = self._open_mask_lt_4_0(
+            S2GmlMasks.NODATA, band
         )  # Pixel nodata, not pixels that are outside of the detectors !!!
         if len(nodata_pix) > 0:
             # Discard pixels corrected during crosstalk
             nodata_pix = nodata_pix[nodata_pix.gml_id == "QT_NODATA_PIXELS"]
-        nodata_pix.append(self.open_mask("DEFECT", band))
-        nodata_pix.append(self.open_mask("SATURA", band))
+        nodata_pix.append(self._open_mask_lt_4_0(S2GmlMasks.DEFECT, band))
+        nodata_pix.append(self._open_mask_lt_4_0(S2GmlMasks.SATURATION, band))
 
         # Technical quality mask
-        tecqua = self.open_mask("TECQUA", band)
+        tecqua = self._open_mask_lt_4_0(S2GmlMasks.QUALITY, band)
         if len(tecqua) > 0:
             # Do not take into account ancillary data
             tecqua = tecqua[tecqua.gml_id.isin(["MSI_LOST", "MSI_DEG"])]
@@ -553,6 +741,53 @@ class S2Product(OpticalProduct):
             )
 
             mask[mask_pix] = self._mask_true
+
+        return self._set_nodata_mask(band_arr, mask)
+
+    def _manage_invalid_pixels_gt_4_0(
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
+    ) -> XDS_TYPE:
+        """
+        Manage invalid pixels (Nodata, saturated, defective...)
+        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # Get detector footprint to deduce the outside nodata
+        # TODO: use them ?
+        # nodata = self._open_mask_gt_4_0(
+        #     S2Jp2Masks.FOOTPRINT, band, size=(band_arr.rio.width, band_arr.rio.height)
+        # ).data.astype(
+        #     np.uint8
+        # )  # Detector nodata, -> pixels that are outside of the detectors
+
+        # Set to nodata where the array is set to 0
+        nodata = np.where(band_arr.compute() == 0, self._mask_true, self._mask_false)
+
+        # Manage quality mask
+        quality = (
+            self._open_mask_gt_4_0(
+                S2Jp2Masks.QUALITY, band, size=(band_arr.rio.width, band_arr.rio.height)
+            )
+            .compute()
+            .astype(np.uint8)
+        )
+
+        # Technical quality mask: Only keep MSI_LOST (band 3) and MSI_DEG (band 4)
+        # Defectuous pixels (band 5)
+        # Saturated pixels (band 8)
+        bands_id = [3, 4, 5, 7]  # Band - 1
+        qual_mask = np.bitwise_or.reduce(
+            [quality[band_id, :, :] for band_id in bands_id]
+        )
+
+        mask = nodata | qual_mask
 
         return self._set_nodata_mask(band_arr, mask)
 
@@ -665,6 +900,7 @@ class S2Product(OpticalProduct):
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
+    @cache
     def read_datatake_mtd(self) -> (etree._Element, dict):
         """
         Read datatake metadata and outputs the metadata XML root and its namespaces as a dict
@@ -698,7 +934,7 @@ class S2Product(OpticalProduct):
             has_band = True
         return has_band
 
-    def _load_clouds(
+    def _load_clouds_lt_4_0(
         self,
         bands: list,
         resolution: float = None,
@@ -722,7 +958,7 @@ class S2Product(OpticalProduct):
         band_dict = {}
 
         if bands:
-            cloud_vec = self.open_mask("CLOUDS", "00")
+            cloud_vec = self._open_mask_lt_4_0(S2GmlMasks.CLOUDS)
 
             # Open a bands to mask it
             def_band = self._read_band(
@@ -758,6 +994,76 @@ class S2Product(OpticalProduct):
                     )
 
         return band_dict
+
+    def _load_clouds_gt_4_0(
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load cloud files as xarrays.
+
+        Read S2 cloud mask .JP2 files (both valid for L2A and L1C products).
+        https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2-Products-Specification-Document-14_8.pdf
+
+        Args:
+            bands (list): List of the wanted bands
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        band_dict = {}
+
+        if bands:
+            cloud_vec = self._open_mask_gt_4_0(
+                S2Jp2Masks.CLOUDS, "00", resolution=resolution, size=size
+            ).astype(np.uint8)
+
+            for band in bands:
+                if band == ALL_CLOUDS:
+                    band_dict[band] = cloud_vec[0, :, :] | cloud_vec[1, :, :]
+                elif band == CIRRUS:
+                    band_dict[band] = cloud_vec[1, :, :]  # CIRRUS = band 2
+                elif band == CLOUDS:
+                    band_dict[band] = cloud_vec[0, :, :]  # OPAQUE = band 1
+                elif band == RAW_CLOUDS:
+                    band_dict[band] = cloud_vec
+                else:
+                    raise InvalidTypeError(
+                        f"Non existing cloud band for Sentinel-2: {band}"
+                    )
+
+        return band_dict
+
+    def _load_clouds(
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load cloud files as xarrays.
+
+        Read S2 cloud mask .GML files (both valid for L2A and L1C products).
+        https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
+
+        Args:
+            bands (list): List of the wanted bands
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        if self._processing_baseline_lt_4_0:
+            return self._load_clouds_lt_4_0(bands, resolution, size, **kwargs)
+        else:
+            return self._load_clouds_gt_4_0(bands, resolution, size, **kwargs)
 
     def _rasterize(
         self, xds: XDS_TYPE, geometry: gpd.GeoDataFrame, nodata: np.ndarray

@@ -219,7 +219,8 @@ environment variables:
 ### Sentinel-2
 
 - [Cloud masks](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks)
-- [Product Specification](https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf)
+- [Product Specification (Processing Baseline < 4.0)](https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf)
+- [Product Specification (Processing Baseline > 4.0)](https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2-Products-Specification-Document-14_8.pdf)
 
 ### Sentinel-2 Theia
 

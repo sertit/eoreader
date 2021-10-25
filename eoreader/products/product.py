@@ -1371,7 +1371,7 @@ class Product:
                 # NOT ALL bands need to be scaled, only:
                 # - Satellite bands
                 # - index
-                for b_id, band in enumerate(band_dict.keys()):
+                for b_id, band in enumerate(bands):
                     if is_band(band) or is_index(band):
                         stack[b_id, ...] = stack[b_id, ...] * 10000
 
@@ -1393,7 +1393,7 @@ class Product:
                 )  # NaN values are already set
 
         # Some updates
-        band_list = to_str(list(band_dict.keys()))
+        band_list = to_str(bands)
         stack.attrs["long_name"] = band_list
         stack = stack.rename("_".join(band_list))
 

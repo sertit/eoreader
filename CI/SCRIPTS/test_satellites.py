@@ -87,12 +87,6 @@ def remove_dem_files(prod):
         files.remove(to_d)
 
 
-def test_invalid():
-    wrong_path = "dzfdzef"
-    assert READER.open(wrong_path) is None
-    assert not READER.valid_name(wrong_path, "S2")
-
-
 def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
     """
     Core function testing optical data
@@ -162,8 +156,12 @@ def _test_core(
             )
 
             # Open product and set output
+            LOGGER.info("Checking opening solutions")
+            LOGGER.info("MTD")
             prod: Product = READER.open(path, method=CheckMethod.MTD, remove_tmp=False)
+            LOGGER.info("NAME")
             prod_name = READER.open(path, method=CheckMethod.NAME)
+            LOGGER.info("BOTH")
             prod_both = READER.open(path, method=CheckMethod.BOTH)
             assert prod is not None
             assert prod == prod_name
@@ -308,7 +306,7 @@ def _test_core(
 @dask_env
 def test_s2():
     """Function testing the correct functioning of the optical satellites"""
-    _test_core_optical("*S2*_MSI*")
+    _test_core_optical("*S2*_MSI*.zip")
 
 
 @s3_env
@@ -486,3 +484,9 @@ def test_rcm():
 # TODO:
 # check non existing bands
 # check cloud results
+
+
+def test_invalid():
+    wrong_path = "dzfdzef"
+    assert READER.open(wrong_path) is None
+    assert not READER.valid_name(wrong_path, "S2")

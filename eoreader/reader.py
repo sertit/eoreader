@@ -185,15 +185,15 @@ MTD_REGEX = {
     Platform.S1: r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}\.xml",
     Platform.S2: [
         r"MTD_MSIL(1C|2A)\.xml",  # Too generic name, check also a band
-        r"T\d{2}\w{3}_\d{8}T\d{6}_B\d{2}(_\d0m|).jp2",
+        # r"GRANULE.*IMG_DATA.*T\d{2}\w{3}_\d{8}T\d{6}_B\d{2}(_\d0m|).jp2",
     ],
     Platform.S2_THEIA: f"{PLATFORM_REGEX[Platform.S2_THEIA]}_MTD_ALL\.xml",
     Platform.S3_OLCI: [
-        r"xfdumanifest\.xml",  # Not the real metadata...
+        # r"xfdumanifest\.xml",  # Not the real metadata...
         r"Oa\d{2}_radiance.nc",
     ],
     Platform.S3_SLSTR: [
-        r"xfdumanifest\.xml",  # Not the real metadata...
+        # r"xfdumanifest\.xml",  # Not the real metadata...
         r"S\d_radiance_an.nc",
     ],
     Platform.L8: f"{PLATFORM_REGEX[Platform.L8]}_MTL\.txt",
@@ -415,28 +415,29 @@ class Reader:
         """
         product_path = AnyPath(product_path)
 
+        if not product_path.exists():
+            return False
+
         # Here the list is a check of several files
         regex_list = self._mtd_regex[platform]
 
         # False by default
         is_valid = [False for idx in regex_list]
 
-        for idx, regex in enumerate(regex_list):
-            # Folder
-            if product_path.is_dir():
-                for fle in product_path.glob("**/*.*"):
-                    if regex.match(str(fle)):
-                        is_valid[idx] = True
-                        break
+        # Folder
+        if product_path.is_dir():
+            prod_files = product_path.glob("**/*.*")
 
-            # Archive
-            else:
-                if product_path.is_file():
-                    fls = files.get_archived_file_list(product_path)
-                    for fle in fls:
-                        if regex.match(fle):
-                            is_valid[idx] = True
-                            break
+        # Archive
+        else:
+            prod_files = files.get_archived_file_list(product_path)
+
+        # Check
+        for idx, regex in enumerate(regex_list):
+            for prod_file in prod_files:
+                if regex.match(str(prod_file)):
+                    is_valid[idx] = True
+                    break
 
         return all(is_valid)
 
