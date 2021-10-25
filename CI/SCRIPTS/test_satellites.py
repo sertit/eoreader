@@ -306,7 +306,7 @@ def _test_core(
 @dask_env
 def test_s2():
     """Function testing the correct functioning of the optical satellites"""
-    _test_core_optical("*S2*_MSI*.zip")
+    _test_core_optical("*S2*_MSI*")
 
 
 @s3_env
