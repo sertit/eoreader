@@ -80,7 +80,7 @@ These bands are mainly based on Sentinel-2 bands with some additions:
 Note that bands that are not mapped can still be used (i.e. for Sentinel-3 OLCI and SLSTR). 
 They will be called by their true name (i.e. `F1` or `Oa05`). However, 
 the mapped band will have to be called with their mapped name, i.e. `BLUE` rather than `Oa04` for Sentinel-3 OLCI.
-But the bands that are not present in the `~eoreader.bands.alias` file won't be recognized.
+But the bands that are not present in the `alias` file won't be recognized.
 ```
 
 #### Optical band mapping between sensors
@@ -90,7 +90,7 @@ But the bands that are not present in the `~eoreader.bands.alias` file won't be 
 |**Bands (alias)** | `CA` | `BLUE` | `GREEN` | `YELLOW` | `RED` | `VRE_1` | `VRE_2` | `VRE_3` | `NIR` | `NARROW_NIR` | `WV` | `SWIR_CIRRUS` | `SWIR_1` | `SWIR_2` | `PAN` | `TIR_1` | `TIR_2`|
 |Sentinel-2 | **1** (60m) | **2** (10m) | **3** (10m) | | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8** (10m) | **8A** (20m) |**9** (60m) |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
 |Sentinel-2 Theia | *Not available* | **2** (10m) |**3** (10m)  | | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8** (10m) | **8A** (20m) | *Not available* |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
-|Sentinel-3 OLCI* | **2** (300m) | **3** (300m) |**6** (300m)  | |**8** (300m) |**11** (300m) |**12** (300m) | **16** (300m) | **17** (300m) | **17** (300m) | **20** (300m) |  |  |  |  |  | |
+|Sentinel-3 OLCI* | **2** (300m) | **3** (300m) |**6** (300m)  |**7** (300m)  |**8** (300m) |**11** (300m) |**12** (300m) | **16** (300m) | **17** (300m) | **17** (300m) | **20** (300m) |  |  |  |  |  | |
 |Sentinel-3 SLSTR* | | | **1** (500m)  | | **2** (500m) |  |  |  |**3** (500m) |**3** (500m) |  | **4** (500m) | **5** (500m) |**6** (500m) | |**8** (1km, not managed yet) |**9** (1km, not managed yet)|
 |Landsat OLCI (8) | **1** (30m) | **2** (30m) | **3** (30m)  | | **4** (30m) |  |  |  | **5** (30m) | **5** (30m) |  |**9** (30m) |**6** (30m) |**7** (30m) |**8** (15m) |**10** (100m) |**11** (100m)|
 |Landsat ETM (7)|  | **1** (30m) | **2** (30m)  | | **3** (30m) |  |  |  | **4** (30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |**8** (15m) |**6** (60m) |**6** (60m)|
@@ -197,12 +197,6 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 |{meth}`~eoreader.bands.index.WV_VI` | `WV`, `RED` | Sentinel-2, Sentinel-3 OLCI, WorldView-2/3 (8 bands)|
 |{meth}`~eoreader.bands.index.WV_WI` | `WV`, `CA` | Sentinel-2, Sentinel-3 OLCI, WorldView-2/3 (8 bands)|
 
-## Default SNAP resolution
-
-You can override default SNAP resolution (in meters) when orthorecifying SAR and S3 bands by setting the following
-environment variables:
-
-- `EOREADER_S3_DEFAULT_RES` (500m for SLSTR and 300m for OLCI data by default)
 
 ## Documentary Sources
 
