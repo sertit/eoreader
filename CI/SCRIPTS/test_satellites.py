@@ -291,6 +291,7 @@ def _test_core(
                 assert prod.crs.is_projected
 
                 # MTD
+                LOGGER.info("Checking Mtd")
                 mtd_xml, nmsp = prod.read_mtd()
                 assert isinstance(mtd_xml, etree._Element)
                 assert isinstance(nmsp, dict)

@@ -2,7 +2,7 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
-## 0.8.0 (2021-MM-DD)
+## 0.8.0 (2021-10-25)
 
 - **BREAKING CHANGE: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties !**
 - **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** [#10](https://github.com/sertit/eoreader/issues/10)

@@ -50,7 +50,7 @@ except ImportError:
         return wrapper
 
 
-__version__ = "0.7.1"
+__version__ = "0.8.0"
 __title__ = "eoreader"
 __description__ = (
     "Remote-sensing opensource python library reading optical and SAR sensors, "

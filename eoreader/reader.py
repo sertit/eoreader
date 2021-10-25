@@ -184,16 +184,13 @@ PLATFORM_REGEX = {
 MTD_REGEX = {
     Platform.S1: r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}\.xml",
     Platform.S2: [
-        r"MTD_MSIL(1C|2A)\.xml",  # Too generic name, check also a band
-        # r"GRANULE.*IMG_DATA.*T\d{2}\w{3}_\d{8}T\d{6}_B\d{2}(_\d0m|).jp2",
+        r"MTD_MSIL(1C|2A)\.xml",
     ],
     Platform.S2_THEIA: f"{PLATFORM_REGEX[Platform.S2_THEIA]}_MTD_ALL\.xml",
     Platform.S3_OLCI: [
-        # r"xfdumanifest\.xml",  # Not the real metadata...
         r"Oa\d{2}_radiance.nc",
     ],
     Platform.S3_SLSTR: [
-        # r"xfdumanifest\.xml",  # Not the real metadata...
         r"S\d_radiance_an.nc",
     ],
     Platform.L8: f"{PLATFORM_REGEX[Platform.L8]}_MTL\.txt",
@@ -426,7 +423,7 @@ class Reader:
 
         # Folder
         if product_path.is_dir():
-            prod_files = product_path.glob("**/*.*")
+            prod_files = list(product_path.glob("**/*.*"))
 
         # Archive
         else:
