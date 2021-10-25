@@ -88,7 +88,7 @@ For SAR data:
 >>> mtd, namespace = s1_prod.read_mtd()
 ```
 
-Sentinel-3 and SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be geocoded.
+SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be orthorectified and calibrated.
 Ensure that you have the folder containing your `gpt` executable in your `PATH`.
 
 ## Documentation
