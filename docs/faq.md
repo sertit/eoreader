@@ -4,9 +4,9 @@
 
 ### I want to load orthorectified bands, what do I need to do ?
 EOReader always loads orthorectified bands, you cannot get raw bands !
-- For Sentinel-3 data, EOReader uses SNAP to geocode the wanted images.
+- For Sentinel-3 data, EOReader creates GCPs and uses `rasterio.reproject` SNAP to geocode the wanted images. The result is slightly different than the one obtained by SNAP !
 - For SAR images, EOReader uses SNAP to orthorectify the wanted images.
-- For DIMAP data, if not already orthorectified, EOReader will use `gdalwarp` through `rasterio` (with `RPC_DEM` keyword) to orthorectify the DIMAP stack.  
+- For DIMAP data, if not already orthorectified, EOReader will use `rasterio.reproject` (with `RPC_DEM` keyword) to orthorectify the DIMAP stack.  
   However, this comes with several limitations:
   - Pay attention to give a sufficiently resolute DEM (does orthorectifying Pleiades data with a 30m SRTM DEM make sense ?)
   - `gdalwarp` cannot access DEM through S3-compatible storage or https links. Be sure to link a DEM stored on disk.
