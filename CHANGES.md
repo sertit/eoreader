@@ -2,6 +2,10 @@
 
 ## X.Y.Z (YYYY-MM-DD)
 
+## 0.8.1 (2021-10-26)
+
+- FIX: Do not force `chunk` in `utils.read` if dask is not installed
+
 ## 0.8.0 (2021-10-25)
 
 - **BREAKING CHANGE: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties !**

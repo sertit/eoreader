@@ -147,6 +147,11 @@ def read(
         Union[XDS_TYPE]: Masked xarray corresponding to the raster data and its meta data
 
     """
+    if use_dask():
+        chunks = True
+    else:
+        chunks = None
+
     return rasters.read(
         path,
         resolution=resolution,
@@ -154,7 +159,7 @@ def read(
         resampling=resampling,
         masked=masked,
         indexes=indexes,
-        chunks=True,
+        chunks=chunks,
         **kwargs,
     )
 
