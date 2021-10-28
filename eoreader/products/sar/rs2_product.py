@@ -16,7 +16,7 @@
 # limitations under the License.
 """
 RADARSAT-2 products.
-More info `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs>`_.
+More info `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs>`_.
 """
 import difflib
 import logging
@@ -47,7 +47,7 @@ warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarni
 class Rs2ProductType(ListEnum):
     """
     RADARSAT-2 projection identifier.
-    Take a look `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html>`_.
+    Take a look `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html>`_.
     """
 
     SLC = "SLC"
@@ -82,7 +82,7 @@ class Rs2ProductType(ListEnum):
 class Rs2SensorMode(ListEnum):
     """
     RADARSAT-2 sensor mode.
-    Take a look `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html>`_.
+    Take a look `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html>`_.
 
     .. WARNING:: The name in the metadata may vary !
     """
@@ -155,7 +155,7 @@ class Rs2SensorMode(ListEnum):
 class Rs2Polarization(ListEnum):
     """
     RADARSAT-2 polarization mode.
-    Take a look `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs>`_
+    Take a look `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs>`_
     """
 
     HH = "HH"

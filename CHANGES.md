@@ -1,6 +1,7 @@
 # Release History
 
 ## X.Y.Z (YYYY-MM-DD)
+- DOC: Fix references to `pcigeomatics` that doesn't exist anymore (RADARSAT-2 and Constellation)
 - REQ: Update `dask` to fix a security issue (only in requirements as `dask` is not mandatory)
 
 ## 0.8.1 (2021-10-26)

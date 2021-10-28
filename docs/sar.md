@@ -8,7 +8,7 @@
 |COSMO-Skymed | {meth}`~eoreader.products.sar.csk_product.CskProduct` | DGM & SCS, (others should also be OK) | No|
 |TerraSAR-X & TanDEM-X & PAZ SAR | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | MGD (SSC should be OK) | No|
 |RADARSAT-2 | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | SGF (SLC should be OK) | Yes|
-|RADARSAT-Constellation | {meth}`~eoreader.products.sar.rs2_product.RcmProduct` | GRD (others should be OK) | No|
+|RADARSAT-Constellation | {meth}`~eoreader.products.sar.rcm_product.RcmProduct` | GRD (others should be OK) | No|
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use, 
@@ -269,12 +269,18 @@ variable:
 
 ### RADARSAT
 
-- [RADARSAT-2 Product Description](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html)
-- [RADARSAT-Constellation Product Description](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT_Constellation.html)
+- [RADARSAT-2 Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html)
+- [RADARSAT-Constellation Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT_Constellation.html)
 - [Comparison between RS2 and RCM](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp)
 
-### Others
+### COSMO-Skymed
 
 - [COSMO-Skymed Product Description](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description)
+- [COSMO-Skymed Product Description 2](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/SPW_reuse/COSMO-SkyMed.html)
+
+### TerraSAR-X, TanDEM-X and PAZ SAR
+
 - [TerraSAR-X & TanDEM-X Product Description](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
+- [TerraSAR-X & TanDEM-X Product Description 2](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/TerraSAR-X.html)
 - [PAZ SAR Image Product Guide](https://www.hisdesat.es/wp-content/uploads/2019/10/PAZ-HDS-GUI-001-PAZ-Image-Product-Guide-issue-1.1-.pdf)
+- [PAZ SAR Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/PAZ.html)
