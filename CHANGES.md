@@ -1,6 +1,7 @@
 # Release History
 
 ## X.Y.Z (YYYY-MM-DD)
+- REQ: Update `dask` to fix a security issue (only in requirements as `dask` is not mandatory)
 
 ## 0.8.1 (2021-10-26)
 
