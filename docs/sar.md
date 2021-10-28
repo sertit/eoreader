@@ -9,6 +9,7 @@
 |TerraSAR-X & TanDEM-X & PAZ SAR | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | MGD (SSC should be OK) | No|
 |RADARSAT-2 | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | SGF (SLC should be OK) | Yes|
 |RADARSAT-Constellation | {meth}`~eoreader.products.sar.rcm_product.RcmProduct` | GRD (others should be OK) | No|
+|ICEYE | {meth}`~eoreader.products.sar.iceye_product.IceyeProduct` | GRD (SLC not used) | No|
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use, 
@@ -21,6 +22,11 @@ The sensors that can be used as of 09/2021 are:
 ![cems_sensors](https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2021/09/copernicus_contributing_missions_overview/23461131-1-eng-GB/Copernicus_Contributing_Missions_overview_pillars.jpg)
 
 ## SAR Bands
+
+```{warning}
+**EOReader** always loads SAR bands in a GRD format. This library is not (yet ?) meant to manage inSAR or other complex processes.
+```
+
 According to what contains the products, allowed SAR bands are:
 
 - {meth}`~eoreader.bands.bands.SarBandNames.VV`
@@ -139,6 +145,22 @@ The product resolution is read in the metadata file if possible, so the followin
 
 \* Same resolution for every product type according 
 to [that page](https://www.asc-csa.gc.ca/fra/satellites/radarsat/aspects-techniques/radarsat-comparaison.asp).
+
+### ICEYE
+For GRD products: 
+
+|ICEYE | Ground sample spacing (pixel size)|
+|--- | ---|
+|Spotlight [SL(H)] |0.5m|
+|StripMap [SM(H)] |2.5m|
+|Scan [SC] |6.0m|
+
+|ICEYE | Resolution|
+|--- | ---|
+|Spotlight [SL(H)] |1.0m|
+|StripMap [SM(H)] |3.0m|
+|Scan [SC] |< 15.0m|
+
 
 ## GPT graphs
 
@@ -284,3 +306,9 @@ variable:
 - [TerraSAR-X & TanDEM-X Product Description 2](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/TerraSAR-X.html)
 - [PAZ SAR Image Product Guide](https://www.hisdesat.es/wp-content/uploads/2019/10/PAZ-HDS-GUI-001-PAZ-Image-Product-Guide-issue-1.1-.pdf)
 - [PAZ SAR Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/PAZ.html)
+
+### ICEYE
+
+- [ICEYE Product Specifications](https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf)
+- [ICEYE Product Guide](https://www.iceye.com/hubfs/Downloadables/ICEYE_SAR_Product_Guide_2021_V4.0.pdf)
+- [ICEYE Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/ICEYE.html)
