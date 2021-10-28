@@ -1,6 +1,8 @@
 # Release History
 
-## X.Y.Z (YYYY-MM-DD)
+## 0.9.0 (YYYY-MM-DD)
+
+- **ENH: Adding the support of the ICEYE SAR sensor**
 - DOC: Fix references to `pcigeomatics` that doesn't exist anymore (RADARSAT-2 and Constellation)
 - REQ: Update `dask` to fix a security issue (only in requirements as `dask` is not mandatory)
 

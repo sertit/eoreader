@@ -306,21 +306,21 @@ def _test_core(
 @s3_env
 @dask_env
 def test_s2():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Sentinel-2 sensor"""
     _test_core_optical("*S2*_MSI*")
 
 
 @s3_env
 @dask_env
 def test_s2_theia():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Sentinel-2 Theia sensor"""
     _test_core_optical("*SENTINEL2*")
 
 
 @s3_env
 @dask_env
 def test_s3_olci():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Sentinel-3 OLCI sensor"""
     # Init logger
     _test_core_optical("*S3*_OL_1_*")
 
@@ -328,7 +328,7 @@ def test_s3_olci():
 @s3_env
 @dask_env
 def test_s3_slstr():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Sentinel-3 SLSTR sensor"""
     # Init logger
     _test_core_optical("*S3*_SL_1_*", **{SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP})
 
@@ -336,7 +336,7 @@ def test_s3_slstr():
 @s3_env
 @dask_env
 def test_l8():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Landsat-8 sensor"""
     # Init logger
     _test_core_optical("*LC08*")
 
@@ -344,84 +344,84 @@ def test_l8():
 @s3_env
 @dask_env
 def test_l7():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Landsat-7 sensor"""
     _test_core_optical("*LE07*")
 
 
 @s3_env
 @dask_env
 def test_l5_tm():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Landsat-5 TM sensor"""
     _test_core_optical("*LT05*")
 
 
 @s3_env
 @dask_env
 def test_l4_tm():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Landsat-4 TM sensor"""
     _test_core_optical("*LT04*")
 
 
 @s3_env
 @dask_env
 def test_l5_mss():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Landsat-5 MSS sensor"""
     _test_core_optical("*LM05*")
 
 
 @s3_env
 @dask_env
 def test_l4_mss():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Landsat-4 MSS sensor"""
     _test_core_optical("*LM04*")
 
 
 @s3_env
 @dask_env
 def test_l3_mss():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Landsat-3 sensor"""
     _test_core_optical("*LM03*")
 
 
 @s3_env
 @dask_env
 def test_l2_mss():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Landsat-2 sensor"""
     _test_core_optical("*LM02*")
 
 
 @s3_env
 @dask_env
 def test_l1_mss():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Landsat-1 sensor"""
     _test_core_optical("*LM01*")
 
 
 @s3_env
 @dask_env
 def test_pla():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of PlanetScope sensor"""
     _test_core_optical("*202*1014*")
 
 
 @s3_env
 @dask_env
 def test_pld():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Pleiades sensor"""
     _test_core_optical("*IMG_PHR*")
 
 
 @s3_env
 @dask_env
 def test_spot6():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of SPOT-6 sensor"""
     _test_core_optical("*IMG_SPOT6*")
 
 
 @s3_env
 @dask_env
 def test_spot7():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of SPOT-7 sensor"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
     dem_path = os.path.join(
         ci.get_db2_path(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
@@ -432,7 +432,7 @@ def test_spot7():
 @s3_env
 @dask_env
 def test_wv02_wv03():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of WorldView-2/3 sensors"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
     dem_path = os.path.join(
         ci.get_db2_path(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
@@ -443,43 +443,50 @@ def test_wv02_wv03():
 @s3_env
 @dask_env
 def test_ge01_wv04():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of GeoEye-1/WorldView-4 sensors"""
     _test_core_optical("*P001_PSH*")
 
 
 @s3_env
 @dask_env
 def test_s1():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of Sentinel-1 sensor"""
     _test_core_sar("*S1*_IW*")
 
 
 @s3_env
 @dask_env
 def test_csk():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of COSMO-Skymed sensor"""
     _test_core_sar("*csk_*")
 
 
 # Assume that tests TSX, TDX and PAZ sensors
 @s3_env
 def test_tsx():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of TerraSAR-X, TanDEM-X and PAZ SAR sensors"""
     _test_core_sar("*TSX*")
 
 
 @s3_env
 @dask_env
 def test_rs2():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of RADARSAT-2 sensor"""
     _test_core_sar("*RS2_*")
 
 
 @s3_env
 @dask_env
 def test_rcm():
-    """Function testing the correct functioning of the optical satellites"""
+    """Function testing the support of RADARSAT-Constellation sensor"""
     _test_core_sar("*RCM*")
+
+
+@s3_env
+@dask_env
+def test_iceye():
+    """Function testing the support of ICEYE sensor"""
+    _test_core_sar("*SC*")
 
 
 # TODO:
