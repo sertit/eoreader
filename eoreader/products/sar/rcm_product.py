@@ -16,7 +16,7 @@
 # limitations under the License.
 """
 RADARSAT-Constellation Mission products.
-More info `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT_Constellation.html>`_.
+More info `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT_Constellation.html>`_.
 """
 import difflib
 import logging
@@ -47,7 +47,7 @@ warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarni
 class RcmProductType(ListEnum):
     """
     RADARSAT-Constellation projection identifier.
-    Take a look `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html>`_.
+    Take a look `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html>`_.
     """
 
     SLC = "SLC"
@@ -80,7 +80,7 @@ class RcmProductType(ListEnum):
 class RcmSensorMode(ListEnum):
     """
     RADARSAT-Constellation sensor mode.
-    Take a look `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT_Constellation.html>`_.
+    Take a look `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT_Constellation.html>`_.
 
     .. WARNING:: The name in the metadata may vary !
     """
@@ -121,7 +121,7 @@ class RcmSensorMode(ListEnum):
 class RcmPolarization(ListEnum):
     """
     RADARSAT-Constellation polarization mode.
-    Take a look `here <https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT_Constellation.html>`_.
+    Take a look `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT_Constellation.html>`_.
     """
 
     RH = "RH"

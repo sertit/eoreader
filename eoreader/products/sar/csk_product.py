@@ -156,8 +156,6 @@ class CskProduct(SarProduct):
         """
         Set product default resolution (in meters)
         """
-        def_res = None
-
         # Read metadata for default resolution
         try:
             root, _ = self.read_mtd()
