@@ -106,6 +106,9 @@ class Platform(ListEnum):
     CSK = "COSMO-SkyMed"
     """COSMO-SkyMed"""
 
+    CSG = "COSMO-SkyMed 2nd Generation"
+    """COSMO-SkyMed"""
+
     TSX = "TerraSAR-X"
     """TerraSAR-X"""
 
@@ -171,8 +174,13 @@ PLATFORM_REGEX = {
     Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}",
     Platform.CSK: [
         r".+",  # Need to check inside as the folder does not have any recognizable name
-        r"CSKS[1-4]_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
+        r"CSKS\d_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
         r"\w{2}_(HH|VV|VH|HV|CO|CH|CV)_[LR][AD]_[FS][NF]_\d{14}_\d{14}\.h5",
+    ],
+    Platform.CSG: [
+        r".+",  # Need to check inside as the folder does not have any recognizable name
+        r"CSG_SSAR\d_(RAW|SCS|DGM|GEC|GTC)_([UBF]|FQLK_B)_\d{4}_(S2[ABC]|D2[RSJ]|OQ[RS]|STR|SC[12]|PPS|QPS)_\d{3}"
+        r"_(HH|VV|VH|HV)_[LR][AD]_[DPFR]_\d{14}_\d{14}\_\d_[FC]_\d{2}[NS]_Z\d{2}_[NFB]\d{2}.h5",
     ],
     Platform.TSX: r"(TSX|TDX|PAZ)1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Platform.RS2: r"RS2_OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)",
@@ -206,6 +214,7 @@ MTD_REGEX = {
     Platform.L1: f"{PLATFORM_REGEX[Platform.L1]}_MTL\.txt",
     Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*metadata.*\.xml",
     Platform.CSK: f"{PLATFORM_REGEX[Platform.CSK][1]}\.xml",
+    Platform.CSG: f"{PLATFORM_REGEX[Platform.CSG][1]}\.xml",
     Platform.TSX: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
     Platform.RS2: [
         r"product\.xml",  # Too generic name, check also a band

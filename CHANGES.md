@@ -2,7 +2,8 @@
 
 ## 0.9.0 (YYYY-MM-DD)
 
-- **ENH: Adding the support of the ICEYE SAR sensor**
+- **ENH: Adding the support of the ICEYE sensor**
+- **ENH: Adding the support of the COSMO-SkyMed 2nd Generation sensor**
 - DOC: Fix references to `pcigeomatics` that doesn't exist anymore (RADARSAT-2 and Constellation)
 - REQ: Update `dask` to fix a security issue (only in requirements as `dask` is not mandatory)
 
