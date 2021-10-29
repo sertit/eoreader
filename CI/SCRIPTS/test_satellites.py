@@ -461,6 +461,13 @@ def test_csk():
     _test_core_sar("*csk_*")
 
 
+@s3_env
+@dask_env
+def test_csg():
+    """Function testing the support of COSMO-Skymed 2nd Generation sensor"""
+    _test_core_sar("*CSG_*")
+
+
 # Assume that tests TSX, TDX and PAZ sensors
 @s3_env
 def test_tsx():

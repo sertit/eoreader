@@ -78,15 +78,30 @@ The product resolution is read in the metadata file if possible, so the followin
 |Extra-Wide swath (EW) | 5.9x19.9 m | | 25.0m | 40.0m|
 |Wave (WV) | 1.7x4.1 m and 2.7x4.1 m | | | 25.0m|
 
-### COSMO-Skymed
+### COSMO-Skymed 1st Generation
 
-| **COSMO-Skymed** | Single-look Complex Slant (SCS) | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+| **COSMO-Skymed 1st Generation** | Single-look Complex Slant (SCS) | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
 |--- | --- | ---|
 |**Spotlight**<br>Mode-2 (S2) | 1.1-0.9x0.91m | 1.0m|
 |**StripMap**<br>Himage (HI) | 3.0-2.6x2.4-2.6m | 5.0m|
 |**StripMap**<br>PingPong (PP) | 11-10x9.7m | 20.0m|
 |**ScanSAR**<br>Wide Region (WR) | 13.5x23m | 30.0m|
 |**ScanSAR**<br>Huge Region (HR) | 13.5x38.0m | 100.0m|
+
+### COSMO-Skymed 2nd Generation
+*Only for Standard products*
+
+| **COSMO-Skymed 2nd Generation** | Single-look Complex Slant (SCS) | Detected Ground Multi-look (DGM)Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+|--- | --- | ---|
+|**SPOTLIGHT_2_A** | ~0.25m | #1: 0.15m (apodized: 0.12m)<br>#2: 0.30m<br>#3: 0.45m |
+|**SPOTLIGHT_2_B** | ~0.45m | #1: 0.25m (apodized: 0.2m)<br>#2: 0.50m<br>#3: 1.0m |
+|**SPOTLIGHT-2C** | ~0.56m | #1: 0.30m (apodized: 0.24m)<br>#2: 0.60m<br>#3: 0.9m |
+|**STRIPMAP & QUADPOL** | ≤ 3.0m |#1: 1.25m<br>#2: 2.5m<br>#3: 5.0m|
+|**SCANSAR1** | 14.0m |#1: 5.0m<br>#2: 10.0m<br>#3: 15.0m|
+|**SCANSAR2** | 27.0m |#1: 10.0m<br>#2: 20.0m<br>#3: 50.0m|
+|**PINGPONG** | 8.0m |#1: 2.0m<br>#2: 4.0m<br>#3: 10.0m|
+
+`#1`, `#2` and `#3` correspond to the MultiLook ID.
 
 ### TerraSAR-X & TanDEM-X & PAZ SAR
 
@@ -297,8 +312,10 @@ variable:
 
 ### COSMO-Skymed
 
-- [COSMO-Skymed Product Description](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description)
-- [COSMO-Skymed Product Description 2](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/SPW_reuse/COSMO-SkyMed.html)
+- [COSMO-Skymed 1st Generation Product Description](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description)
+- [COSMO-Skymed 1st Generation Product Description 2](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/SPW_reuse/COSMO-SkyMed.html)
+- [COSMO-Skymed 1st Generation Product Handbook](https://earth.esa.int/c/document_library/get_file?uuid=3b4bdce5-e75b-49fa-be10-113d22c86b74)
+- [COSMO-Skymed 2nd Generation System and Products Description](https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI)
 
 ### TerraSAR-X, TanDEM-X and PAZ SAR
 
