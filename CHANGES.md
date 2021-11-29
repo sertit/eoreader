@@ -4,6 +4,7 @@
 
 - **ENH: Adding the support of the ICEYE sensor**
 - **ENH: Adding the support of the COSMO-SkyMed 2nd Generation sensor**
+- FIX: `Sentinel-1` metadata file with archived products (discarding RFI folder in its search).
 - FIX: Add `Quickbird`, `GeoEye` and `WorldView` sensors in `reader` regexes.
 - FIX: Add scipy in `requirements.txt` and `setup.py`
 - DOC: Fix references to `pcigeomatics` that doesn't exist anymore (RADARSAT-2 and Constellation)

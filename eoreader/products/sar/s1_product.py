@@ -297,6 +297,6 @@ class S1Product(SarProduct):
         mtd_from_path = "annotation/*.xml"
 
         # When archived, other XML (in calibration folder) can be found
-        mtd_archived = "annotation/(?!cal)(?!noise).*\.xml"
+        mtd_archived = "annotation/(?!rfi)(?!cal)(?!noise).*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
