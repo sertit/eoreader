@@ -189,6 +189,12 @@ PLATFORM_REGEX = {
     Platform.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
     Platform.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.QB: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.GE01: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.WV01: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.WV02: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.WV03: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.WV04: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Platform.ICEYE: r"((SM|SL|SC)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC)H*_\d{5,}_\d{8}T\d{6})",
 }
 
@@ -228,6 +234,12 @@ MTD_REGEX = {
         r"\d+_[RHV]{2}\.tif",
     ],
     Platform.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.QB: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.GE01: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.WV01: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.WV02: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.WV03: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.WV04: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Platform.ICEYE: r"ICEYE_X\d_(SLC|GRD)_(SM|SL|SC)H*_\d{5,}_\d{8}T\d{6}\.xml",
 }
 
