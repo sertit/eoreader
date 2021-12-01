@@ -148,12 +148,6 @@ class Product:
         self.platform = None
         """Product platform, such as Sentinel-2"""
 
-        # Set product type, needs to be done after the post-initialization
-        self.product_type = None
-        """
-        Type of this product (i.e. L2A or SLC)
-        """
-
         # Set the resolution, needs to be done when knowing the product type
         self.resolution = None
         """
@@ -808,12 +802,9 @@ class Product:
         # Sort bands to the asked order
         # xds.reindex({"band": bands})
 
-        # Rename all bands
+        # Rename all bands and add attributes
         for key, val in band_dict.items():
-            band_name = to_str(key)[0]
-            renamed_val = val.rename(band_name)
-            renamed_val.attrs["long_name"] = band_name
-            band_dict[key] = renamed_val
+            band_dict[key] = self._update_attrs(val, to_str(key)[0])
 
         return band_dict
 
@@ -1392,10 +1383,8 @@ class Product:
                     self.nodata, encoded=True, inplace=True
                 )  # NaN values are already set
 
-        # Some updates
-        band_list = to_str(bands)
-        stack.attrs["long_name"] = band_list
-        stack = stack.rename("_".join(band_list))
+        # Update stack's attributes
+        stack = self._update_attrs(stack, to_str(bands))
 
         # Write on disk
         if stack_path:
@@ -1409,6 +1398,28 @@ class Product:
             val.close()
 
         return stack
+
+    def _update_attrs(self, xarr: XDS_TYPE, long_name: Union[str, list]) -> XDS_TYPE:
+        """
+        Update attributes of the given array
+        Args:
+            xarr (XDS_TYPE): Array whose attributes need an update
+            long_name (str): Array name (as a str or a list)
+        """
+        if isinstance(long_name, list):
+            name = "_".join(long_name)
+        else:
+            name = long_name
+
+        renamed_xarr = xarr.rename(name)
+        renamed_xarr.attrs["long_name"] = long_name
+        renamed_xarr.attrs["sensor"] = self._get_platform().value
+        renamed_xarr.attrs["sensor_id"] = self.sat_id
+        renamed_xarr.attrs["product_type"] = self.product_type
+        renamed_xarr.attrs["acquisition_date"] = self.get_datetime(as_datetime=False)
+        renamed_xarr.attrs["condensed_name"] = self.condensed_name
+
+        return renamed_xarr
 
     @staticmethod
     def _check_dem_path() -> None:

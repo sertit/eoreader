@@ -4,6 +4,7 @@
 
 - **ENH: Adding the support of the ICEYE sensor**
 - **ENH: Adding the support of the COSMO-SkyMed 2nd Generation sensor**
+- **ENH: Adding some attributes to bands and stack: `sensor`, `sensor_id`, `product_type`, `acquisition_date`, `condensed_name`**
 - FIX: `Sentinel-1` metadata file with archived products (discarding RFI folder in its search).
 - FIX: Add `Quickbird`, `GeoEye` and `WorldView` sensors in `reader` regexes.
 - FIX: Add scipy in `requirements.txt` and `setup.py`
