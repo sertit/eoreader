@@ -260,6 +260,16 @@ def _test_core(
                     )
                     assert stack.dtype == np.float32
 
+                    # Check attributes
+                    assert stack.attrs["long_name"] == to_str(stack_bands)
+                    assert stack.attrs["sensor"] == prod._get_platform().value
+                    assert stack.attrs["sensor_id"] == prod.sat_id
+                    assert stack.attrs["product_type"] == prod.product_type
+                    assert stack.attrs["acquisition_date"] == prod.get_datetime(
+                        as_datetime=False
+                    )
+                    assert stack.attrs["condensed_name"] == prod.condensed_name
+
                     # Write to path if needed
                     if not ci_stack.exists():
                         raise FileNotFoundError(f"{ci_stack} not found !")
@@ -285,6 +295,16 @@ def _test_core(
                     )[first_band]
                     rasters.write(band_arr, curr_path_band)
                     assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
+
+                    # Check attributes
+                    assert band_arr.attrs["long_name"] == first_band.name
+                    assert band_arr.attrs["sensor"] == prod._get_platform().value
+                    assert band_arr.attrs["sensor_id"] == prod.sat_id
+                    assert band_arr.attrs["product_type"] == prod.product_type
+                    assert band_arr.attrs["acquisition_date"] == prod.get_datetime(
+                        as_datetime=False
+                    )
+                    assert band_arr.attrs["condensed_name"] == prod.condensed_name
 
                 # CRS
                 LOGGER.info("Checking CRS")
