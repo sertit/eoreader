@@ -35,7 +35,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from shapely.geometry import Polygon, box
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, cached_property
 from eoreader.bands.bands import BandNames
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
@@ -194,7 +194,7 @@ class CsgProduct(SarProduct):
             def_res = float(root.findtext(".//GroundRangeGeometricResolution"))
         except (InvalidProductError, TypeError):
             raise InvalidProductError(
-                "GroundRangeGeometricResolution not found in metadata !"
+                "GroundRangeGeometricResolution not found in metadata!"
             )
         except ValueError:
             if self.product_type == CsgProductType.SCS:
@@ -215,7 +215,7 @@ class CsgProduct(SarProduct):
                     def_res = -1.0
             else:
                 raise InvalidProductError(
-                    "GroundRangeGeometricResolution empty in metadata !"
+                    "GroundRangeGeometricResolution empty in metadata!"
                 )
 
         return def_res
@@ -359,7 +359,7 @@ class CsgProduct(SarProduct):
             # DGM_B, or SCS_B -> remove last 2 characters
             prod_type = root.findtext(".//ProductType")[:-2]
         except TypeError:
-            raise InvalidProductError("mode not found in metadata !")
+            raise InvalidProductError("mode not found in metadata!")
 
         self.product_type = CsgProductType.from_value(prod_type)
 
@@ -383,14 +383,14 @@ class CsgProduct(SarProduct):
         try:
             acq_mode = root.findtext(".//AcquisitionMode")
         except TypeError:
-            raise InvalidProductError("AcquisitionMode not found in metadata !")
+            raise InvalidProductError("AcquisitionMode not found in metadata!")
 
         # Get sensor mode
         self.sensor_mode = CsgSensorMode.from_value(acq_mode)
 
         if not self.sensor_mode:
             raise InvalidProductError(
-                f"Invalid {self.platform.value} name: {self._real_name}"
+                f"Invalid {self.platform.value} name: {self.name}"
             )
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
@@ -421,9 +421,7 @@ class CsgProduct(SarProduct):
             try:
                 acq_date = root.findtext(".//SceneSensingStartUTC")
             except TypeError:
-                raise InvalidProductError(
-                    "SceneSensingStartUTC not found in metadata !"
-                )
+                raise InvalidProductError("SceneSensingStartUTC not found in metadata!")
 
             # Convert to datetime
             # 2020-10-28 22:46:24.808662850
@@ -437,15 +435,26 @@ class CsgProduct(SarProduct):
 
         return date
 
-    def _get_split_name(self) -> list:
+    def _get_name(self) -> str:
         """
-        Get split name (erasing empty strings in it by precaution, especially for S1 data)
+        Set product real name from metadata
 
         Returns:
-            list: Split products name
+            str: True name of the product (from metadata)
         """
-        # Use the real name
-        return utils.get_split_name(self._real_name)
+        if self.name is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+
+            # Open identifier
+            try:
+                name = files.get_filename(root.findtext(".//ProductName"))
+            except TypeError:
+                raise InvalidProductError("ProductName not found in metadata!")
+        else:
+            name = self.name
+
+        return name
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
@@ -463,7 +472,7 @@ class CsgProduct(SarProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = f"DFDN_{self._real_name}.h5.xml"
+        mtd_from_path = "DFDN_*.h5.xml"
 
         return self._read_mtd_xml(mtd_from_path)
 

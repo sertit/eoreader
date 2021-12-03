@@ -95,7 +95,7 @@ class S2TheiaProduct(OpticalProduct):
         try:
             tile = root.findtext(".//GEOGRAPHICAL_ZONE")
         except TypeError:
-            raise InvalidProductError("GEOGRAPHICAL_ZONE not found in metadata !")
+            raise InvalidProductError("GEOGRAPHICAL_ZONE not found in metadata!")
 
         return tile
 
@@ -190,7 +190,7 @@ class S2TheiaProduct(OpticalProduct):
             try:
                 acq_date = root.findtext(".//ACQUISITION_DATE")
             except TypeError:
-                raise InvalidProductError("ACQUISITION_DATE not found in metadata !")
+                raise InvalidProductError("ACQUISITION_DATE not found in metadata!")
 
             # Convert to datetime
             date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -201,6 +201,27 @@ class S2TheiaProduct(OpticalProduct):
             date = date.strftime(DATETIME_FMT)
 
         return date
+
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        if self.name is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+
+            # Open identifier
+            try:
+                name = files.get_filename(root.findtext(".//IDENTIFIER"))
+            except TypeError:
+                raise InvalidProductError("IDENTIFIER not found in metadata!")
+        else:
+            name = self.name
+
+        return name
 
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
@@ -542,9 +563,7 @@ class S2TheiaProduct(OpticalProduct):
             zenith_angle = float(mean_sun_angles.findtext("ZENITH_ANGLE"))
             azimuth_angle = float(mean_sun_angles.findtext("AZIMUTH_ANGLE"))
         except TypeError:
-            raise InvalidProductError(
-                "Azimuth or Zenith angles not found in metadata !"
-            )
+            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
 
         return azimuth_angle, zenith_angle
 

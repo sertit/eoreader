@@ -398,7 +398,7 @@ class Reader:
         """
         platform = Platform.convert_from(platform)[0]
         regex = self._platform_regex[platform]
-        return self._is_filename_valid(product_path, regex)
+        return is_filename_valid(product_path, regex)
 
     def valid_mtd(
         self, product_path: Union[str, CloudPath, Path], platform: Union[str, Platform]
@@ -464,49 +464,49 @@ class Reader:
 
         return all(is_valid)
 
-    @staticmethod
-    def _is_filename_valid(
-        product_path: Union[str, CloudPath, Path], regex: Union[list, re.Pattern]
-    ) -> bool:
-        """
-        Check if the filename corresponds to the given satellite regex.
 
-        Checks also if a file inside the directory is correct.
+def is_filename_valid(
+    product_path: Union[str, CloudPath, Path], regex: Union[list, re.Pattern]
+) -> bool:
+    """
+    Check if the filename corresponds to the given satellite regex.
 
-        .. WARNING::
-            Two level max for the moment
+    Checks also if a file inside the directory is correct.
 
-        Args:
-            product_path (Union[str, CloudPath, Path]): Product path
-            regex (Union[list, re.Pattern]): Regex or list of regex
+    .. WARNING::
+        Two level max for the moment
 
-        Returns:
-            bool: True if the filename corresponds to the given satellite regex
-        """
-        product_path = AnyPath(product_path)
-        product_file_name = files.get_filename(product_path)
+    Args:
+        product_path (Union[str, CloudPath, Path]): Product path
+        regex (Union[list, re.Pattern]): Regex or list of regex
 
-        # Case folder is not enough to identify the products (ie. COSMO Skymed)
-        # WARNING: Two level max for the moment
-        is_valid = bool(regex[0].match(product_file_name))
-        if is_valid and len(regex) > 1:
-            is_valid = False  # Reset
-            if product_path.is_dir():
-                file_list = product_path.iterdir()
+    Returns:
+        bool: True if the filename corresponds to the given satellite regex
+    """
+    product_path = AnyPath(product_path)
+    product_file_name = files.get_filename(product_path)
+
+    # Case folder is not enough to identify the products (ie. COSMO Skymed)
+    # WARNING: Two level max for the moment
+    is_valid = bool(regex[0].match(product_file_name))
+    if is_valid and len(regex) > 1:
+        is_valid = False  # Reset
+        if product_path.is_dir():
+            file_list = product_path.iterdir()
+            for file in file_list:
+                if regex[1].match(file.name):
+                    is_valid = True
+                    break
+        else:
+            try:
+                file_list = files.get_archived_file_list(product_path)
                 for file in file_list:
-                    if regex[1].match(file.name):
+                    if regex[1].match(file):
                         is_valid = True
                         break
-            else:
-                try:
-                    file_list = files.get_archived_file_list(product_path)
-                    for file in file_list:
-                        if regex[1].match(file):
-                            is_valid = True
-                            break
-                except TypeError:
-                    LOGGER.debug(
-                        f"The product {product_file_name} should be a folder or an archive (.tar or .zip)"
-                    )
+            except TypeError:
+                LOGGER.debug(
+                    f"The product {product_file_name} should be a folder or an archive (.tar or .zip)"
+                )
 
-        return is_valid
+    return is_valid

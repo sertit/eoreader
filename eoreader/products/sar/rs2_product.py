@@ -35,6 +35,7 @@ from sertit.vectors import WGS84
 from eoreader import cache, cached_property
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
+from eoreader.reader import Reader
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -182,7 +183,7 @@ class Rs2Product(SarProduct):
             def_res = float(root.findtext(f".//{namespace}sampledPixelSpacing"))
         except (InvalidProductError, TypeError):
             raise InvalidProductError(
-                "sampledPixelSpacing or rowSpacing not found in metadata !"
+                "sampledPixelSpacing or rowSpacing not found in metadata!"
             )
 
         return def_res
@@ -259,7 +260,7 @@ class Rs2Product(SarProduct):
         try:
             prod_type = root.findtext(f".//{namespace}productType")
         except TypeError:
-            raise InvalidProductError("mode not found in metadata !")
+            raise InvalidProductError("mode not found in metadata!")
 
         self.product_type = Rs2ProductType.from_value(prod_type)
 
@@ -332,7 +333,7 @@ class Rs2Product(SarProduct):
             try:
                 acq_date = root.findtext(f".//{namespace}rawDataStartTime")
             except TypeError:
-                raise InvalidProductError("rawDataStartTime not found in metadata !")
+                raise InvalidProductError("rawDataStartTime not found in metadata!")
 
             # Convert to datetime
             date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -343,6 +344,30 @@ class Rs2Product(SarProduct):
             date = date.strftime(DATETIME_FMT)
 
         return date
+
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        if self.name is None:
+            name = self.filename
+
+            # Test filename
+            reader = Reader()
+            if not reader.valid_name(name, self._get_platform()):
+                LOGGER.warning(
+                    "This RADARSAT-2 filename is not valid. "
+                    "However RADARSAT-2 files do not provide anywhere the true name of the product."
+                    "Use it with caution."
+                )
+
+        else:
+            name = self.name
+
+        return name
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):

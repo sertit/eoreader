@@ -100,7 +100,7 @@ class IceyeProduct(SarProduct):
 
             def_res = float(root.findtext(f".//{namespace}range_spacing"))
         except (InvalidProductError, TypeError):
-            raise InvalidProductError("range_spacing not found in metadata !")
+            raise InvalidProductError("range_spacing not found in metadata!")
 
         return def_res
 
@@ -172,7 +172,7 @@ class IceyeProduct(SarProduct):
         try:
             prod_type = root.findtext(f".//{namespace}product_level")
         except TypeError:
-            raise InvalidProductError("mode not found in metadata !")
+            raise InvalidProductError("mode not found in metadata!")
 
         self.product_type = IceyeProductType.from_value(prod_type)
 
@@ -205,7 +205,7 @@ class IceyeProduct(SarProduct):
         try:
             imaging_mode = root.findtext(f".//{namespace}acquisition_mode")
         except TypeError:
-            raise InvalidProductError("imagingMode not found in metadata !")
+            raise InvalidProductError("imagingMode not found in metadata!")
 
         # Get sensor mode
         try:
@@ -245,7 +245,7 @@ class IceyeProduct(SarProduct):
                 acq_date = root.findtext(f".//{namespace}acquisition_start_utc")
             except TypeError:
                 raise InvalidProductError(
-                    "acquisition_start_utc not found in metadata !"
+                    "acquisition_start_utc not found in metadata!"
                 )
 
             # Convert to datetime
@@ -257,6 +257,30 @@ class IceyeProduct(SarProduct):
             date = date.strftime(DATETIME_FMT)
 
         return date
+
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        if self.name is None:
+            # Get MTD XML file
+            root, nsmap = self.read_mtd()
+
+            # Some ICEYE product metadata has a namespace some don't
+            namespace = nsmap.get(None, "")
+
+            # Open identifier
+            try:
+                name = root.findtext(f".//{namespace}product_name")
+            except TypeError:
+                raise InvalidProductError("product_name not found in metadata!")
+        else:
+            name = self.name
+
+        return name
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):

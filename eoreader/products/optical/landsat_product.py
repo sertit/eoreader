@@ -105,7 +105,7 @@ class LandsatProduct(OpticalProduct):
         try:
             col_nb = mtd.findtext(".//COLLECTION_NUMBER")
         except TypeError:
-            raise InvalidProductError("COLLECTION_NUMBER not found in metadata !")
+            raise InvalidProductError("COLLECTION_NUMBER not found in metadata!")
 
         return LandsatCollection.from_value(col_nb)
 
@@ -114,9 +114,17 @@ class LandsatProduct(OpticalProduct):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        mtd, _ = self.read_mtd()
+
+        # Open identifier
+        try:
+            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        except TypeError:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
+
         # Collections are not set yet
         # Collection 2 do not need to be extracted. Set True by default
-        if self.split_name[-2] == "02":
+        if utils.get_split_name(name)[-2] == "02":
             self.needs_extraction = False  # Fine to read .tar files
         else:
             self.needs_extraction = True  # Too slow to read directly tar.gz files
@@ -139,15 +147,7 @@ class LandsatProduct(OpticalProduct):
             self._radsat_id = "_QA_RADSAT"
 
         # Warning if GS or GT
-        mtd, _ = self.read_mtd()
-
-        # Open identifier
-        try:
-            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
-        except TypeError:
-            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
-
-        if "GS" in name:
+        if "GS" in self.name:
             LOGGER.warning(
                 "This Landsat product %s could be badly georeferenced "
                 "as only systematic geometric corrections have been applied "
@@ -233,15 +233,7 @@ class LandsatProduct(OpticalProduct):
         Returns:
             str: Tile name
         """
-        mtd, _ = self.read_mtd()
-
-        # Open identifier
-        try:
-            true_name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
-        except TypeError:
-            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
-
-        return utils.get_split_name(true_name)[2]
+        return self.split_name[2]
 
     @abstractmethod
     def _set_product_type(self) -> None:
@@ -250,15 +242,7 @@ class LandsatProduct(OpticalProduct):
 
     def _set_mss_product_type(self, version: int) -> None:
         """Set MSS product type and map corresponding bands"""
-        mtd, _ = self.read_mtd()
-
-        # Open identifier
-        try:
-            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
-        except TypeError:
-            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
-
-        if "L1" in name:
+        if "L1" in self.name:
             self.product_type = LandsatProductType.L1_MSS
             self.band_names.map_bands(
                 {
@@ -276,15 +260,7 @@ class LandsatProduct(OpticalProduct):
 
     def _set_tm_product_type(self) -> None:
         """Set TM product type and map corresponding bands"""
-        mtd, _ = self.read_mtd()
-
-        # Open identifier
-        try:
-            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
-        except TypeError:
-            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
-
-        if "L1" in name:
+        if "L1" in self.name:
             self.product_type = LandsatProductType.L1_TM
             self.band_names.map_bands(
                 {
@@ -304,15 +280,7 @@ class LandsatProduct(OpticalProduct):
 
     def _set_etm_product_type(self) -> None:
         """Set ETM product type and map corresponding bands"""
-        mtd, _ = self.read_mtd()
-
-        # Open identifier
-        try:
-            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
-        except TypeError:
-            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
-
-        if "L1" in name:
+        if "L1" in self.name:
             self.product_type = LandsatProductType.L1_ETM
             self.band_names.map_bands(
                 {
@@ -333,15 +301,7 @@ class LandsatProduct(OpticalProduct):
 
     def _set_olci_product_type(self) -> None:
         """Set OLCI product type and map corresponding bands"""
-        mtd, _ = self.read_mtd()
-
-        # Open identifier
-        try:
-            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
-        except TypeError:
-            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
-
-        if "L1" in name:
+        if "L1" in self.name:
             self.product_type = LandsatProductType.L1_OLCI
             self.band_names.map_bands(
                 {
@@ -389,7 +349,7 @@ class LandsatProduct(OpticalProduct):
                 date = mtd_data.findtext(".//DATE_ACQUIRED")
                 hours = mtd_data.findtext(".//SCENE_CENTER_TIME").replace('"', "")[:-3]
             except TypeError:
-                raise InvalidProductError("ACQUISITION_DATE not found in metadata !")
+                raise InvalidProductError("ACQUISITION_DATE not found in metadata!")
 
             date = (
                 f"{datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')}"
@@ -405,6 +365,29 @@ class LandsatProduct(OpticalProduct):
                 date = date.strftime(DATETIME_FMT)
 
         return date
+
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        if self.name is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+
+            # Open identifier
+            try:
+                name = root.findtext(".//LANDSAT_PRODUCT_ID").replace(
+                    '"', ""
+                )  # For txt files
+            except TypeError:
+                raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata!")
+        else:
+            name = self.name
+
+        return name
 
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
@@ -608,9 +591,7 @@ class LandsatProduct(OpticalProduct):
                     c_mul = float(mtd_data.findtext(f".//{c_mul_str}"))
                     c_add = float(mtd_data.findtext(f".//{c_add_str}"))
                 except TypeError:
-                    raise InvalidProductError(
-                        "ACQUISITION_DATE not found in metadata !"
-                    )
+                    raise InvalidProductError("ACQUISITION_DATE not found in metadata!")
 
                 # Manage NULL values
                 try:
@@ -748,7 +729,7 @@ class LandsatProduct(OpticalProduct):
             azimuth_angle = float(mtd_data.findtext(".//SUN_AZIMUTH"))
             zenith_angle = 90.0 - float(mtd_data.findtext(".//SUN_ELEVATION"))
         except TypeError:
-            raise InvalidProductError("ACQUISITION_DATE not found in metadata !")
+            raise InvalidProductError("ACQUISITION_DATE not found in metadata!")
 
         return azimuth_angle, zenith_angle
 

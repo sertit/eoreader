@@ -201,15 +201,7 @@ class PlaProduct(OpticalProduct):
         """
         # Ortho Tiles
         if self.product_type == PlaProductType.L3A:
-            # Get MTD XML file
-            root, nsmap = self.read_mtd()
-
-            # Open identifier
-            try:
-                name = root.findtext(f".//{nsmap['eop']}identifier")
-            except TypeError:
-                raise InvalidProductError("Product identifier not found in metadata !")
-            self.tile_name = utils.get_split_name(name)[1]  # TODO: test that !
+            self.tile_name = self.split_name[1]
 
         # Post init done by the super class
         super()._post_init()
@@ -367,6 +359,29 @@ class PlaProduct(OpticalProduct):
                 datetime_str = datetime_str.strftime(DATETIME_FMT)
 
         return datetime_str
+
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        if self.name is None:
+            # Get MTD XML file
+            root, nsmap = self.read_mtd()
+
+            # Open identifier
+            try:
+                name = root.findtext(f".//{nsmap['eop']}identifier")
+            except TypeError:
+                raise InvalidProductError(
+                    f"{nsmap['eop']}identifier not found in metadata!"
+                )
+        else:
+            name = self.name
+
+        return name
 
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
@@ -559,9 +574,7 @@ class PlaProduct(OpticalProduct):
                 root.findtext(f".//{nsmap['opt']}illuminationAzimuthAngle")
             )
         except TypeError:
-            raise InvalidProductError(
-                "Azimuth or Zenith angles not found in metadata !"
-            )
+            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
 
         # From elevation to zenith
         zenith_angle = 90.0 - elev_angle

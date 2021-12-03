@@ -150,7 +150,7 @@ class RcmProduct(SarProduct):
             def_res = float(root.findtext(f".//{namespace}sampledPixelSpacing"))
         except (InvalidProductError, TypeError):
             raise InvalidProductError(
-                "sampledPixelSpacing or rowSpacing not found in metadata !"
+                "sampledPixelSpacing or rowSpacing not found in metadata!"
             )
 
         return def_res
@@ -231,7 +231,7 @@ class RcmProduct(SarProduct):
         try:
             prod_type = root.findtext(f".//{namespace}productType")
         except TypeError:
-            raise InvalidProductError("mode not found in metadata !")
+            raise InvalidProductError("mode not found in metadata!")
 
         self.product_type = RcmProductType.from_value(prod_type)
 
@@ -307,7 +307,7 @@ class RcmProduct(SarProduct):
         try:
             acq_date = root.findtext(f".//{namespace}rawDataStartTime")
         except TypeError:
-            raise InvalidProductError("rawDataStartTime not found in metadata !")
+            raise InvalidProductError("rawDataStartTime not found in metadata!")
 
         # Convert to datetime
         date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -316,6 +316,37 @@ class RcmProduct(SarProduct):
             date = date.strftime(DATETIME_FMT)
 
         return date
+
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        if self.name is None:
+            # The name is not in the classic metadata, but can be found in the manifest
+            try:
+                mtd_from_path = "preview/productPreview.html"
+                mtd_archived = "preview.*productPreview\.html"
+
+                root = self._read_mtd_html(mtd_from_path, mtd_archived)
+
+                # Open identifier
+                try:
+                    name = root.findtext(".//header/h2")
+                except TypeError:
+                    raise InvalidProductError("header/h2 not found in metadata!")
+
+            except InvalidProductError:
+                LOGGER.warning(
+                    "productPreview.html not found in the product, the name will be the filename"
+                )
+                name = self.filename
+        else:
+            name = self.name
+
+        return name
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):

@@ -27,7 +27,7 @@ from typing import Union
 import geopandas as gpd
 import rasterio
 from lxml import etree
-from sertit import vectors
+from sertit import files, vectors
 from sertit.misc import ListEnum
 
 from eoreader import cache, cached_property
@@ -150,7 +150,7 @@ class TsxProduct(SarProduct):
             def_res = float(image_data.findtext(".//rowSpacing"))  # Square pixels
         except (InvalidProductError, TypeError):
             raise InvalidProductError(
-                "imageDataInfo or rowSpacing not found in metadata !"
+                "imageDataInfo or rowSpacing not found in metadata!"
             )
 
         return def_res
@@ -163,12 +163,6 @@ class TsxProduct(SarProduct):
         # Private attributes
         self._raw_band_regex = "*IMAGE_{}_*"
         self._band_folder = self.path.joinpath("IMAGEDATA")
-
-        root, _ = self.read_mtd()
-        name = root.find(".//generalHeader").attrib.get("fileName")
-        if not name:
-            raise InvalidProductError("Cannot find the filename in the metadata file")
-        self._snap_path = name
 
         # SNAP cannot process its archive
         self.needs_extraction = True
@@ -191,6 +185,8 @@ class TsxProduct(SarProduct):
         Function used to post_init the products
         (setting product-type, band names and so on)
         """
+        self._snap_path = self.name
+
         # Post init done by the super class
         super()._post_init()
 
@@ -234,7 +230,7 @@ class TsxProduct(SarProduct):
         try:
             prod_type = root.findtext(".//productVariant")
         except TypeError:
-            raise InvalidProductError("mode not found in metadata !")
+            raise InvalidProductError("mode not found in metadata!")
 
         self.product_type = TsxProductType.from_value(prod_type)
 
@@ -264,7 +260,7 @@ class TsxProduct(SarProduct):
         try:
             imaging_mode = root.findtext(".//imagingMode")
         except TypeError:
-            raise InvalidProductError("imagingMode not found in metadata !")
+            raise InvalidProductError("imagingMode not found in metadata!")
 
         # Get sensor mode
         try:
@@ -300,7 +296,7 @@ class TsxProduct(SarProduct):
             try:
                 acq_date = root.findtext(".//start/timeUTC")
             except TypeError:
-                raise InvalidProductError("start/timeUTC not found in metadata !")
+                raise InvalidProductError("start/timeUTC not found in metadata!")
 
             # Convert to datetime
             date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -311,6 +307,29 @@ class TsxProduct(SarProduct):
             date = date.strftime(DATETIME_FMT)
 
         return date
+
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        if self.name is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+
+            # Open identifier
+            try:
+                name = files.get_filename(
+                    root.find(".//generalHeader").attrib.get("fileName")
+                )
+            except TypeError:
+                raise InvalidProductError("ProductName not found in metadata!")
+        else:
+            name = self.name
+
+        return name
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
@@ -328,6 +347,13 @@ class TsxProduct(SarProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = "SAR*SAR*xml"
+        # Cloud paths
+        try:
+            mtd_from_path = "SAR*SAR*xml"
 
-        return self._read_mtd_xml(mtd_from_path)
+            return self._read_mtd_xml(mtd_from_path)
+        except InvalidProductError:
+            # Normal paths
+            mtd_from_path = "SAR*xml"
+
+            return self._read_mtd_xml(mtd_from_path)

@@ -39,7 +39,7 @@ from lxml import etree
 from lxml.builder import E
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
-from sertit import vectors
+from sertit import files, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from shapely.geometry import Polygon, box
@@ -331,7 +331,7 @@ class S3Product(OpticalProduct):
             try:
                 acq_date = root.findtext(".//start_time")
             except TypeError:
-                raise InvalidProductError("start_time not found in metadata !")
+                raise InvalidProductError("start_time not found in metadata!")
 
             # Convert to datetime
             date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -342,6 +342,27 @@ class S3Product(OpticalProduct):
             date = date.strftime(DATETIME_FMT)
 
         return date
+
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        if self.name is None:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+
+            # Open identifier
+            try:
+                name = files.get_filename(root.findtext(".//product_name"))
+            except TypeError:
+                raise InvalidProductError("product_name not found in metadata!")
+        else:
+            name = self.name
+
+        return name
 
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
