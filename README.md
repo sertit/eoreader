@@ -38,14 +38,16 @@ For optical data:
 >>> from eoreader.reader import Reader
 >>> from eoreader.bands.alias import *
 
->>> # Landsat-5 MSS path, can be found in CI/DATA
+>>> # Landsat-5 MSS path
 >>> l5_path = "LM05_L1TP_200029_19841014_20200902_02_T2.tar"
 
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()
->>> l5_prod = eoreader.open(l5_path)  # The Reader will recognize the satellite type from its structure
 
->>> # Specify a DEM to load DEM bands
+>>>  # The Reader will recognize the satellite type from its structure
+>>> l5_prod = eoreader.open(l5_path)
+
+>>> # Specify a DEM to load HILLSHADE AND SLOPE bands
 >>> import os
 >>> from eoreader.env_vars import DEM_PATH
 >>> os.environ[DEM_PATH] = "my_dem.tif"
@@ -66,14 +68,16 @@ For SAR data:
 >>> from eoreader.reader import Reader
 >>> from eoreader.bands.alias import *
 
->>> # Sentinel-1 GRD path, not provided in package
+>>> # Sentinel-1 GRD path
 >>> s1_path = "S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip"
 
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()
->>> s1_prod = eoreader.open(s1_path)  # The Reader will recognize the satellite type from its name
 
->>>  # Specify a DEM to load DEM bands
+>>> # The Reader will recognize the satellite type from its structure
+>>> s1_prod = eoreader.open(s1_path)
+
+>>>  # Specify a DEM to load DEM and SLOPE bands
 >>> import os
 >>> from eoreader.env_vars import DEM_PATH
 >>> os.environ[DEM_PATH] = "my_dem.tif"
