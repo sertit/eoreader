@@ -1,6 +1,6 @@
 # Release History
 
-## 0.9.0 (YYYY-MM-DD)
+## 0.9.0 (2021-12-06)
 
 - **ENH: Adding the support of the ICEYE sensor**
 - **ENH: Adding the support of the COSMO-SkyMed 2nd Generation sensor**
