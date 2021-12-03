@@ -4,8 +4,8 @@
 
 - **ENH: Adding the support of the ICEYE sensor**
 - **ENH: Adding the support of the COSMO-SkyMed 2nd Generation sensor**
-- **ENH: Adding some attributes to bands and stack: `sensor`, `sensor_id`, `product_type`, `acquisition_date`, `condensed_name`** [#14](https://github.com/sertit/eoreader/issues/7)
-- **ENH: Replace name by filename and read directly the true name of the product in the metadata** [#14](https://github.com/sertit/eoreader/issues/15)
+- **ENH: Adding some attributes to bands and stack: `sensor`, `sensor_id`, `product_type`, `acquisition_date`, `condensed_name`** [#7](https://github.com/sertit/eoreader/issues/7)
+- **ENH: Replace name by filename and read directly the true name of the product in the metadata** [#15](https://github.com/sertit/eoreader/issues/15)
 - FIX: `Sentinel-1` metadata file with archived products (discarding RFI folder in its search).
 - FIX: Add `Quickbird`, `GeoEye` and `WorldView` sensors in `reader` regexes.
 - FIX: Add scipy in `requirements.txt` and `setup.py`
