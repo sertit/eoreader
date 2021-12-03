@@ -1,6 +1,16 @@
 # Release History
 
-## X.Y.Z (YYYY-MM-DD)
+## 0.9.0 (YYYY-MM-DD)
+
+- **ENH: Adding the support of the ICEYE sensor**
+- **ENH: Adding the support of the COSMO-SkyMed 2nd Generation sensor**
+- **ENH: Adding some attributes to bands and stack: `sensor`, `sensor_id`, `product_type`, `acquisition_date`, `condensed_name`** [#14](https://github.com/sertit/eoreader/issues/7)
+- **ENH: Replace name by filename and read directly the true name of the product in the metadata** [#14](https://github.com/sertit/eoreader/issues/15)
+- FIX: `Sentinel-1` metadata file with archived products (discarding RFI folder in its search).
+- FIX: Add `Quickbird`, `GeoEye` and `WorldView` sensors in `reader` regexes.
+- FIX: Add scipy in `requirements.txt` and `setup.py`
+- DOC: Fix references to `pcigeomatics` that doesn't exist anymore (RADARSAT-2 and Constellation)
+- REQ: Update `dask` to fix a security issue (only in requirements as `dask` is not mandatory)
 
 ## 0.8.1 (2021-10-26)
 

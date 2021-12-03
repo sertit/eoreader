@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-COSMO-SkyMed products.
-More info `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
+COSMO-SkyMed 2nd Generation products.
+More info `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
 """
 import logging
 import warnings
@@ -32,9 +32,11 @@ from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from sertit import files, strings, vectors
 from sertit.misc import ListEnum
-from shapely.geometry import Polygon
+from sertit.rasters import XDS_TYPE
+from shapely.geometry import Polygon, box
 
 from eoreader import cache, cached_property
+from eoreader.bands.bands import BandNames
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
@@ -46,17 +48,21 @@ warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarni
 
 
 @unique
-class CskProductType(ListEnum):
+class CsgProductType(ListEnum):
     """
-    COSMO-SkyMed products types.
-    Take a look `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
+    COSMO-SkyMed 2nd Generation products types.
+
+    The product classed are not specified here.
+
+    More info
+    `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
     """
 
     RAW = "RAW"
     """Level 0"""
 
     SCS = "SCS"
-    """Level 1A, Single-look Complex Slant, (un)balanced"""
+    """Level 1A, Single-look Complex Slant"""
 
     DGM = "DGM"
     """Level 1B, Detected Ground Multi-look"""
@@ -69,33 +75,74 @@ class CskProductType(ListEnum):
 
 
 @unique
-class CskSensorMode(ListEnum):
+class CsgSensorMode(ListEnum):
     """
-    COSMO-SkyMed sensor mode.
-    Take a look `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
+    COSMO-SkyMed 2nd Generation sensor mode.
+    More info
+    `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
     """
 
-    HI = "HIMAGE"
-    """Himage"""
+    S1A = "SPOTLIGHT-1A"
+    """SPOTLIGHT-1A"""
+
+    S1B = "SPOTLIGHT-1B"
+    """SPOTLIGHT-1B"""
+
+    S2A = "SPOTLIGHT-2A"
+    """SPOTLIGHT-2A (standard and apodized). Resolution: 0.25m"""
+
+    S2B = "SPOTLIGHT-2B"
+    """SPOTLIGHT-2B (standard and apodized). Resolution: 0.45m"""
+
+    S2C = "SPOTLIGHT-2C"
+    """SPOTLIGHT-2C (standard and apodized). Resolution: 0.56m"""
+
+    S1_MSOR = "SPOTLIGHT-1-MSOR"
+    """SPOTLIGHT-1-MSOR"""
+
+    S2_MSOS = "SPOTLIGHT-2-MSOS"
+    """SPOTLIGHT-2-MSOS"""
+
+    S2_MSJN = "SPOTLIGHT-2-MSJN"
+    """SPOTLIGHT-2-MSJN"""
+
+    S1_OQR = "SPOTLIGHT-1-OQR"
+    """SPOTLIGHT-1-OQR"""
+
+    S2_OQS = "SPOTLIGHT-2-OQS"
+    """SPOTLIGHT-2-OQS"""
+
+    S1_EQR = "SPOTLIGHT-1-EQR"
+    """SPOTLIGHT-1-EQR"""
+
+    S2_EQS = "SPOTLIGHT-2-EQS"
+    """SPOTLIGHT-2-EQS"""
+
+    SM = "STRIPMAP"
+    """SPOTLIGHT-2C (standard and apodized). Resolution: Natural"""
 
     PP = "PINGPONG"
-    """PingPong"""
+    """PingPong. Resolution: 8.0m"""
 
-    WR = "WIDEREGION"
-    """Wide Region"""
+    QP = "QUADPOL"
+    """QuadPol. Resolution: Natural"""
 
-    HR = "HUGEREGION"
-    """Huge Region"""
+    SC1 = "SCANSAR-1"
+    """ScanSar-1. Resolution: 14.0m"""
 
-    S2 = "ENHANCED SPOTLIGHT"
-    """Enhanced Spotlight"""
+    SC2 = "SCANSAR-2"
+    """ScanSar-2. Resolution: 27.0m"""
+
+    NA = "N/A"
+    """N/A"""
 
 
 @unique
-class CskPolarization(ListEnum):
+class CsgPolarization(ListEnum):
     """
-    COSMO-SkyMed polarizations used during the acquisition.
-    Take a look `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
+    COSMO-SkyMed 2nd Generation polarizations used during the acquisition.
+    More info
+    `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
     """
 
     HH = "HH"
@@ -110,27 +157,12 @@ class CskPolarization(ListEnum):
     VH = "VH"
     """Vertical Tx/Horizontal Rx for Himage, ScanSAR"""
 
-    CO = "CO"
-    """Co-polar acquisition (HH/VV) for PingPong mode"""
 
-    CH = "CH"
-    """Cross polar acquisition (HH/HV) with Horizontal Tx polarization for PingPong mode"""
-
-    CV = "CV"
-    """Cross polar acquisition (VV/VH) with Vertical Tx polarization for PingPong mode"""
-
-
-class CskProduct(SarProduct):
+class CsgProduct(SarProduct):
     """
-    Class for COSMO-SkyMed Products
-
-    .. code-block:: python
-
-        >>> from eoreader.reader import Reader
-        >>> # CSK products could have any folder but needs to have a .h5 file correctly formatted
-        >>> # ie. "CSKS1_SCS_B_HI_15_HH_RA_SF_20201028224625_20201028224632.h5"
-        >>> path = r"1011117-766193"
-        >>> prod = Reader().open(path)
+    Class for COSMO-SkyMed 2nd Generation Products
+    More info
+    `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
     """
 
     def __init__(
@@ -147,6 +179,7 @@ class CskProduct(SarProduct):
             raise InvalidProductError(
                 f"Image file (*.h5) not found in {product_path}"
             ) from ex
+        self._real_name = files.get_filename(self._img_path)
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
@@ -161,8 +194,29 @@ class CskProduct(SarProduct):
             def_res = float(root.findtext(".//GroundRangeGeometricResolution"))
         except (InvalidProductError, TypeError):
             raise InvalidProductError(
-                "GroundRangeGeometricResolution or rowSpacing not found in metadata!"
+                "GroundRangeGeometricResolution not found in metadata!"
             )
+        except ValueError:
+            if self.product_type == CsgProductType.SCS:
+                if self.sensor_mode == CsgSensorMode.S2A:
+                    def_res = 0.25
+                elif self.sensor_mode == CsgSensorMode.S2B:
+                    def_res = 0.45
+                elif self.sensor_mode == CsgSensorMode.S2C:
+                    def_res = 0.56
+                elif self.sensor_mode == CsgSensorMode.PP:
+                    def_res = 8.0
+                elif self.sensor_mode == CsgSensorMode.SC1:
+                    def_res = 14.0
+                elif self.sensor_mode == CsgSensorMode.SC2:
+                    def_res = 27.0
+                else:
+                    # Complex data has an empty field and its resolution is not known (STRIPMAP and QUADPOL)
+                    def_res = -1.0
+            else:
+                raise InvalidProductError(
+                    "GroundRangeGeometricResolution empty in metadata!"
+                )
 
         return def_res
 
@@ -213,21 +267,85 @@ class CskProduct(SarProduct):
         root, _ = self.read_mtd()
 
         # Open zenith and azimuth angle
-        def from_str_to_arr(geo_coord: str):
-            return np.array(strings.str_to_list(geo_coord), dtype=float)[:2][::-1]
+        try:
 
-        bl_corner = from_str_to_arr(root.findtext(".//GeoCoordBottomLeft"))
-        br_corner = from_str_to_arr(root.findtext(".//GeoCoordBottomRight"))
-        tl_corner = from_str_to_arr(root.findtext(".//GeoCoordTopLeft"))
-        tr_corner = from_str_to_arr(root.findtext(".//GeoCoordTopRight"))
+            def from_str_to_arr(geo_coord: str):
+                return np.array(strings.str_to_list(geo_coord), dtype=float)[:2][::-1]
 
-        if bl_corner is None:
-            raise InvalidProductError("Invalid XML: missing extent.")
+            bl_corner = from_str_to_arr(root.findtext(".//GeoCoordBottomLeft"))
+            br_corner = from_str_to_arr(root.findtext(".//GeoCoordBottomRight"))
+            tl_corner = from_str_to_arr(root.findtext(".//GeoCoordTopLeft"))
+            tr_corner = from_str_to_arr(root.findtext(".//GeoCoordTopRight"))
 
-        extent_wgs84 = gpd.GeoDataFrame(
-            geometry=[Polygon([tl_corner, tr_corner, br_corner, bl_corner])],
-            crs=vectors.WGS84,
-        )
+            if bl_corner is None:
+                raise InvalidProductError("Invalid XML: missing extent.")
+
+            extent_wgs84 = gpd.GeoDataFrame(
+                geometry=[Polygon([tl_corner, tr_corner, br_corner, bl_corner])],
+                crs=vectors.WGS84,
+            )
+        except ValueError:
+
+            def from_str_to_arr(geo_coord: str):
+                str_list = [
+                    it
+                    for it in strings.str_to_list(geo_coord, additional_separator="\n")
+                    if "+" not in it
+                ]
+
+                # Create tuples of 2D coords
+                coord_list = []
+                coord = np.zeros((2, 1), dtype=float)
+                for it_id, it in enumerate(str_list):
+                    if it_id % 3 == 0:
+                        # Invert lat and lon
+                        coord[1] = float(it)
+                    elif it_id % 3 == 1:
+                        # Invert lat and lon
+                        coord[0] = float(it)
+                    elif it_id % 3 == 2:
+                        # Z coordinates: do not store it
+
+                        # Append the last coordinates
+                        coord_list.append(coord.copy())
+
+                        # And reinit it
+                        coord = np.zeros((2, 1), dtype=float)
+
+                return coord_list
+
+            bl_corners = from_str_to_arr(root.findtext(".//GeoCoordBottomLeft"))
+            br_corners = from_str_to_arr(root.findtext(".//GeoCoordBottomRight"))
+            tl_corners = from_str_to_arr(root.findtext(".//GeoCoordTopLeft"))
+            tr_corners = from_str_to_arr(root.findtext(".//GeoCoordTopRight"))
+
+            if not bl_corners:
+                raise InvalidProductError("Invalid XML: missing extent.")
+
+            assert (
+                len(bl_corners) == len(br_corners) == len(tl_corners) == len(tr_corners)
+            )
+
+            polygons = [
+                Polygon(
+                    [
+                        tl_corners[coord_id],
+                        tr_corners[coord_id],
+                        br_corners[coord_id],
+                        bl_corners[coord_id],
+                    ]
+                )
+                for coord_id in range(len(bl_corners))
+            ]
+            extents_wgs84 = gpd.GeoDataFrame(
+                geometry=polygons,
+                crs=vectors.WGS84,
+            )
+
+            extent_wgs84 = gpd.GeoDataFrame(
+                geometry=[box(*extents_wgs84.total_bounds)],
+                crs=vectors.WGS84,
+            )
 
         return extent_wgs84
 
@@ -243,11 +361,11 @@ class CskProduct(SarProduct):
         except TypeError:
             raise InvalidProductError("mode not found in metadata!")
 
-        self.product_type = CskProductType.from_value(prod_type)
+        self.product_type = CsgProductType.from_value(prod_type)
 
-        if self.product_type == CskProductType.DGM:
+        if self.product_type == CsgProductType.DGM:
             self.sar_prod_type = SarProductType.GDRG
-        elif self.product_type == CskProductType.SCS:
+        elif self.product_type == CsgProductType.SCS:
             self.sar_prod_type = SarProductType.CPLX
         else:
             raise NotImplementedError(
@@ -268,7 +386,7 @@ class CskProduct(SarProduct):
             raise InvalidProductError("AcquisitionMode not found in metadata!")
 
         # Get sensor mode
-        self.sensor_mode = CskSensorMode.from_value(acq_mode)
+        self.sensor_mode = CsgSensorMode.from_value(acq_mode)
 
         if not self.sensor_mode:
             raise InvalidProductError(
@@ -357,3 +475,44 @@ class CskProduct(SarProduct):
         mtd_from_path = "DFDN_*.h5.xml"
 
         return self._read_mtd_xml(mtd_from_path)
+
+    # unused band_name (compatibility reasons)
+    # pylint: disable=W0613
+    def _read_band(
+        self,
+        path: Union[CloudPath, Path],
+        band: BandNames = None,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> XDS_TYPE:
+        """
+        Read band from disk.
+
+        .. WARNING::
+            CSG SCS Products do not have a default resolution
+
+        Args:
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
+        Returns:
+            XDS_TYPE: Band xarray
+
+        """
+        # In case of SCS data that doesn't have any resolution in the mtd
+        if self.resolution < 0.0:
+            with rasterio.open(path) as ds:
+                self.resolution = ds.res[0]
+
+        try:
+            if resolution < 0.0:
+                resolution = self.resolution
+        except TypeError:
+            pass
+
+        return super()._read_band(
+            path=path, band=band, resolution=resolution, size=size, **kwargs
+        )

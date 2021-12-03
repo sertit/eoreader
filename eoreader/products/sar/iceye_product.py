@@ -15,8 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-TerraSAR-X & TanDEM-X & PAZ products.
-More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
+ICEYE products.
+Take a look
+`here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
 """
 import logging
 import warnings
@@ -31,9 +32,9 @@ from sertit import files, vectors
 from sertit.misc import ListEnum
 
 from eoreader import cache, cached_property
+from eoreader.bands.bands import SarBandNames as sbn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products.sar.sar_product import SarProduct, SarProductType
-from eoreader.reader import Platform
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -43,115 +44,63 @@ warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarni
 
 
 @unique
-class TsxProductType(ListEnum):
+class IceyeProductType(ListEnum):
     """
-    TerraSAR-X & TanDEM-X & PAZ projection identifier.
+    ICEYE products types.
     Take a look
-    `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
+    `here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
     """
 
-    SSC = "SSC"
-    """Single Look Slant Range, Complex representation"""
+    GRD = "GRD"
+    """ Level-1 Ground Range Detected (GRD) """
 
-    MGD = "MGD"
-    """Multi Look Ground Range, Detected representation"""
+    SLC = "SLC"
+    """ Level-1 Single Look Complex (SLC) """
 
-    GEC = "GEC"
-    """Geocoded Ellipsoid Corrected, Detected representation"""
-
-    EEC = "EEC"
-    """Enhanced Ellipsoid Corrected, Detected representation"""
+    # Not released yet
+    # ORTHO = "ORTHO"
+    # """ ORTHO """
 
 
 @unique
-class TsxSensorMode(ListEnum):
+class IceyeSensorMode(ListEnum):
     """
-    TerraSAR-X & TanDEM-X & PAZ sensor mode.
+    ICEYE imaging mode.
     Take a look
-    `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
+    `here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
     """
 
-    HS = "HS"
-    """High Resolution Spotlight"""
+    SM = "stripmap"
+    """SM - Stripmap, StripmapWide, StripmapHI"""
 
-    SL = "SL"
-    """Spotlight"""
+    SL = "spotlight"
+    """SL - Spotlight"""
 
-    ST = "ST"
-    """Staring Spotlight"""
-
-    SM = "SM"
-    """Stripmap"""
-
-    SC = "SC"
-    """ScanSAR"""
+    SC = "scan"
+    """SC - ScanSAR"""
 
 
-@unique
-class TsxPolarization(ListEnum):
+class IceyeProduct(SarProduct):
     """
-    TerraSAR-X & TanDEM-X & PAZ polarization mode.
+    Class for ICEYE Products
     Take a look
-    `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
+    `here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
     """
-
-    SINGLE = "S"
-    """"Single Polarization"""
-
-    DUAL = "D"
-    """"Dual Polarization"""
-
-    QUAD = "Q"
-    """"Quad Polarization"""
-
-    TWIN = "T"
-    """"Twin Polarization"""
-
-
-@unique
-class TsxSatId(ListEnum):
-    """
-    TerraSAR-X products satellite IDs + PAZ
-
-    See `here <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 29)
-    """
-
-    TDX = "TanDEM-X"
-    """
-    TanDEM-X
-    """
-
-    TSX = "TerraSAR-X"
-    """
-    TerraSAR-X
-    """
-
-    PAZ = "PAZ"
-    """
-    PAZ
-    """
-
-
-class TsxProduct(SarProduct):
-    """Class for TerraSAR-X & TanDEM-X & PAZ Products"""
 
     def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
-
-        .. WARNING::
-            - We assume being in High Resolution (except for WV where we must be in medium resolution)
-            - Incidence angle: we consider the best option, around 55 degrees
         """
-        # Read metadata
+        # Read metadata for default resolution
         try:
-            root, _ = self.read_mtd()
-            image_data = root.find(".//imageDataInfo")
-            def_res = float(image_data.findtext(".//rowSpacing"))  # Square pixels
+            root, nsmap = self.read_mtd()
+
+            # Some ICEYE product metadata has a namespace some don't
+            namespace = nsmap.get(None, "")
+
+            def_res = float(root.findtext(f".//{namespace}range_spacing"))
         except (InvalidProductError, TypeError):
-            raise InvalidProductError(
-                "imageDataInfo or rowSpacing not found in metadata!"
-            )
+            raise InvalidProductError("range_spacing not found in metadata!")
 
         return def_res
 
@@ -161,8 +110,9 @@ class TsxProduct(SarProduct):
         (setting needs_extraction and so on)
         """
         # Private attributes
-        self._raw_band_regex = "*IMAGE_{}_*"
-        self._band_folder = self.path.joinpath("IMAGEDATA")
+        self._raw_band_regex = "*ICEYE*GRD*.tif"
+        self._band_folder = self.path
+        self._snap_path = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
 
         # SNAP cannot process its archive
         self.needs_extraction = True
@@ -170,22 +120,11 @@ class TsxProduct(SarProduct):
         # Post init done by the super class
         super()._pre_init()
 
-    def _get_platform(self) -> Platform:
-        """ Getter of the platform """
-        # TerraSAR-X & TanDEM-X products are all similar, we must check into the metadata to know the sensor
-        root, _ = self.read_mtd()
-        sat_id = root.findtext(".//mission")
-        if not sat_id:
-            raise InvalidProductError("Cannot find mission in the metadata file")
-        sat_id = getattr(TsxSatId, sat_id.split("-")[0]).name
-        return getattr(Platform, sat_id)
-
     def _post_init(self) -> None:
         """
         Function used to post_init the products
         (setting product-type, band names and so on)
         """
-        self._snap_path = self.name
 
         # Post init done by the super class
         super()._post_init()
@@ -199,11 +138,11 @@ class TsxProduct(SarProduct):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023"
+            >>> path = r"1011117-766193"
             >>> prod = Reader().open(path)
             >>> prod.wgs84_extent
                                                         geometry
-            0  POLYGON ((106.65491 -6.39693, 106.96233 -6.396...
+            0  POLYGON ((108.09797 15.61011, 108.48224 15.678...
 
         Returns:
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
@@ -211,10 +150,10 @@ class TsxProduct(SarProduct):
         """
         # Open extent KML file
         try:
-            extent_file = next(self.path.glob("**/*SUPPORT/GEARTH_POLY.kml"))
+            extent_file = next(self.path.glob("*ICEYE*QUICKLOOK*.kml"))
         except IndexError as ex:
             raise InvalidProductError(
-                f"Extent file (products.kml) not found in {self.path}"
+                f"Extent file (*.kml) not found in {self.path}"
             ) from ex
 
         extent_wgs84 = vectors.read(extent_file).envelope
@@ -224,25 +163,28 @@ class TsxProduct(SarProduct):
     def _set_product_type(self) -> None:
         """Set products type"""
         # Get MTD XML file
-        root, _ = self.read_mtd()
+        root, nsmap = self.read_mtd()
+
+        # Some ICEYE product metadata has a namespace some don't
+        namespace = nsmap.get(None, "")
 
         # Open identifier
         try:
-            prod_type = root.findtext(".//productVariant")
+            prod_type = root.findtext(f".//{namespace}product_level")
         except TypeError:
             raise InvalidProductError("mode not found in metadata!")
 
-        self.product_type = TsxProductType.from_value(prod_type)
+        self.product_type = IceyeProductType.from_value(prod_type)
 
-        if self.product_type == TsxProductType.MGD:
+        if self.product_type == IceyeProductType.GRD:
             self.sar_prod_type = SarProductType.GDRG
-        elif self.product_type == TsxProductType.SSC:
+        elif self.product_type == IceyeProductType.SLC:
             self.sar_prod_type = SarProductType.CPLX
         else:
             raise NotImplementedError(
                 f"{self.product_type.value} product type is not available for {self.name}"
             )
-        if self.product_type != TsxProductType.MGD:
+        if self.product_type != IceyeProductType.GRD:
             LOGGER.warning(
                 "Other products type than MGD has not been tested for %s data. "
                 "Use it at your own risks !",
@@ -251,20 +193,23 @@ class TsxProduct(SarProduct):
 
     def _set_sensor_mode(self) -> None:
         """
-        Get products type from TerraSAR-X products name (could check the metadata too)
+        Get products type from S2 products name (could check the metadata too)
         """
         # Get MTD XML file
-        root, _ = self.read_mtd()
+        root, nsmap = self.read_mtd()
+
+        # Some ICEYE product metadata has a namespace some don't
+        namespace = nsmap.get(None, "")
 
         # Open identifier
         try:
-            imaging_mode = root.findtext(".//imagingMode")
+            imaging_mode = root.findtext(f".//{namespace}acquisition_mode")
         except TypeError:
             raise InvalidProductError("imagingMode not found in metadata!")
 
         # Get sensor mode
         try:
-            self.sensor_mode = TsxSensorMode.from_value(imaging_mode)
+            self.sensor_mode = IceyeSensorMode.from_value(imaging_mode)
         except ValueError as ex:
             raise InvalidTypeError(f"Invalid sensor mode for {self.name}") from ex
 
@@ -275,12 +220,12 @@ class TsxProduct(SarProduct):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023"
+            >>> path = r"1011117-766193"
             >>> prod = Reader().open(path)
             >>> prod.get_datetime(as_datetime=True)
-            datetime.datetime(2016, 2, 29, 22, 30, 18)
+            datetime.datetime(2020, 10, 28, 22, 46, 25)
             >>> prod.get_datetime(as_datetime=False)
-            '20160229T223018'
+            '20201028T224625'
 
         Args:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
@@ -290,16 +235,21 @@ class TsxProduct(SarProduct):
         """
         if self.datetime is None:
             # Get MTD XML file
-            root, _ = self.read_mtd()
+            root, nsmap = self.read_mtd()
+
+            # Some ICEYE product metadata has a namespace some don't
+            namespace = nsmap.get(None, "")
 
             # Open identifier
             try:
-                acq_date = root.findtext(".//start/timeUTC")
+                acq_date = root.findtext(f".//{namespace}acquisition_start_utc")
             except TypeError:
-                raise InvalidProductError("start/timeUTC not found in metadata!")
+                raise InvalidProductError(
+                    "acquisition_start_utc not found in metadata!"
+                )
 
             # Convert to datetime
-            date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+            date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%f")
         else:
             date = self.datetime
 
@@ -317,15 +267,16 @@ class TsxProduct(SarProduct):
         """
         if self.name is None:
             # Get MTD XML file
-            root, _ = self.read_mtd()
+            root, nsmap = self.read_mtd()
+
+            # Some ICEYE product metadata has a namespace some don't
+            namespace = nsmap.get(None, "")
 
             # Open identifier
             try:
-                name = files.get_filename(
-                    root.find(".//generalHeader").attrib.get("fileName")
-                )
+                name = root.findtext(f".//{namespace}product_name")
             except TypeError:
-                raise InvalidProductError("ProductName not found in metadata!")
+                raise InvalidProductError("product_name not found in metadata!")
         else:
             name = self.name
 
@@ -339,21 +290,34 @@ class TsxProduct(SarProduct):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20200605T042203_20200605T042211"
+            >>> path = r"1001513-735093"
             >>> prod = Reader().open(path)
             >>> prod.read_mtd()
-            (<Element level1Product at 0x1b845b7ab88>, {})
+            (<Element DeliveryNote at 0x2454ad4ee88>, {})
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        # Cloud paths
+        mtd_from_path = "ICEYE*GRD*.xml"
+
+        return self._read_mtd_xml(mtd_from_path)
+
+    def _get_raw_band_paths(self) -> dict:
+        """
+        Return the existing path of the VV band (as they come with the archived products).
+        ICEYE product only contains a VV band !
+
+        Returns:
+            dict: Dictionary containing the path of every band existing in the raw products
+        """
+        band_paths = {}
         try:
-            mtd_from_path = "SAR*SAR*xml"
+            band_paths[sbn.VV] = files.get_file_in_dir(
+                self._band_folder, self._raw_band_regex, exact_name=True, get_list=True
+            )
+        except FileNotFoundError:
+            raise InvalidProductError(
+                "An ICEYE product should at least contain a VV band !"
+            )
 
-            return self._read_mtd_xml(mtd_from_path)
-        except InvalidProductError:
-            # Normal paths
-            mtd_from_path = "SAR*xml"
-
-            return self._read_mtd_xml(mtd_from_path)
+        return band_paths
