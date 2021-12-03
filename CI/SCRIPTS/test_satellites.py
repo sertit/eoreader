@@ -167,163 +167,158 @@ def _test_core(
             assert prod == prod_name
             assert prod == prod_both
 
-            # Discard the case where an invalid file/directory is in the CI folder
-            if prod is not None:
-                with tempfile.TemporaryDirectory() as tmp_dir:
-                    # tmp_dir = os.path.join(
-                    #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                    # )
-                    prod.output = tmp_dir
+            # Log name
+            assert prod.name is not None
+            LOGGER.info(f"Product name: {prod.name}")
 
-                    os.environ[CI_EOREADER_BAND_FOLDER] = str(
-                        get_ci_data_dir().joinpath(prod.condensed_name)
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                # tmp_dir = os.path.join(
+                #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
+                # )
+                prod.output = tmp_dir
+
+                os.environ[CI_EOREADER_BAND_FOLDER] = str(
+                    get_ci_data_dir().joinpath(prod.condensed_name)
+                )
+
+                # Manage S3 resolution to speed up processes
+                if prod.sensor_type == SensorType.SAR:
+                    res = 1000.0
+                    os.environ[SAR_DEF_RES] = str(res)
+                else:
+                    res = prod.resolution * 50
+
+                # Extent
+                LOGGER.info("Checking extent")
+                extent = prod.extent
+                assert isinstance(extent, gpd.GeoDataFrame)
+                extent_path = get_ci_data_dir().joinpath(
+                    prod.condensed_name, f"{prod.condensed_name}_extent.geojson"
+                )
+                # Write to path if needed
+                if not extent_path.exists():
+                    extent_path = os.path.join(
+                        tmp_dir, f"{prod.condensed_name}_extent.geojson"
                     )
+                    extent.to_file(extent_path, driver="GeoJSON")
 
-                    # Manage S3 resolution to speed up processes
-                    if prod.sensor_type == SensorType.SAR:
-                        res = 1000.0
-                        os.environ[SAR_DEF_RES] = str(res)
-                    else:
-                        res = prod.resolution * 50
+                try:
+                    ci.assert_geom_equal(extent, extent_path)
+                except AssertionError:
+                    # TODO: WHY ???
+                    LOGGER.warning("Extent not equal, trying almost equal.")
+                    assert_geom_almost_equal(extent, extent_path)
 
-                    # Extent
-                    LOGGER.info("Checking extent")
-                    extent = prod.extent
-                    assert isinstance(extent, gpd.GeoDataFrame)
-                    extent_path = get_ci_data_dir().joinpath(
-                        prod.condensed_name, f"{prod.condensed_name}_extent.geojson"
+                # Footprint
+                LOGGER.info("Checking footprint")
+                footprint = prod.footprint
+                assert isinstance(footprint, gpd.GeoDataFrame)
+                footprint_path = get_ci_data_dir().joinpath(
+                    prod.condensed_name, f"{prod.condensed_name}_footprint.geojson"
+                )
+                # Write to path if needed
+                if not footprint_path.exists():
+                    footprint_path = os.path.join(
+                        tmp_dir, f"{prod.condensed_name}_footprint.geojson"
                     )
-                    # Write to path if needed
-                    if not extent_path.exists():
-                        extent_path = os.path.join(
-                            tmp_dir, f"{prod.condensed_name}_extent.geojson"
-                        )
-                        extent.to_file(extent_path, driver="GeoJSON")
+                    footprint.to_file(footprint_path, driver="GeoJSON")
 
-                    try:
-                        ci.assert_geom_equal(extent, extent_path)
-                    except AssertionError:
-                        # TODO: WHY ???
-                        LOGGER.warning("Extent not equal, trying almost equal.")
-                        assert_geom_almost_equal(extent, extent_path)
+                try:
+                    ci.assert_geom_equal(footprint, footprint_path)
+                except AssertionError:
+                    # Has not happened for now
+                    LOGGER.warning("Footprint not equal, trying almost equal.")
+                    assert_geom_almost_equal(footprint, footprint_path)
 
-                    # Log name
-                    LOGGER.info(f"Product name: {prod.name}")
+                # Remove DEM tifs if existing
+                remove_dem_files(prod)
 
-                    # Footprint
-                    LOGGER.info("Checking footprint")
-                    footprint = prod.footprint
-                    assert isinstance(footprint, gpd.GeoDataFrame)
-                    footprint_path = get_ci_data_dir().joinpath(
-                        prod.condensed_name, f"{prod.condensed_name}_footprint.geojson"
-                    )
-                    # Write to path if needed
-                    if not footprint_path.exists():
-                        footprint_path = os.path.join(
-                            tmp_dir, f"{prod.condensed_name}_footprint.geojson"
-                        )
-                        footprint.to_file(footprint_path, driver="GeoJSON")
+                # BAND TESTS
+                LOGGER.info("Checking load and stack")
+                # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
+                stack_bands = [band for band in possible_bands if prod.has_band(band)]
+                first_band = stack_bands[0]
 
-                    try:
-                        ci.assert_geom_equal(footprint, footprint_path)
-                    except AssertionError:
-                        # Has not happened for now
-                        LOGGER.warning("Footprint not equal, trying almost equal.")
-                        assert_geom_almost_equal(footprint, footprint_path)
+                # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
+                band_arr1 = prod.load(first_band, resolution=res)[first_band]
+                band_arr2 = prod.load(first_band, resolution=res)[first_band]
+                np.testing.assert_array_almost_equal(band_arr1, band_arr2)
+                assert band_arr1.dtype == np.float32
+                assert band_arr2.dtype == np.float32
 
-                    # Remove DEM tifs if existing
-                    remove_dem_files(prod)
+                # Get stack bands
+                # Stack data
+                ci_stack = get_ci_data_dir().joinpath(
+                    prod.condensed_name, f"{prod.condensed_name}_stack.tif"
+                )
 
-                    # BAND TESTS
-                    LOGGER.info("Checking load and stack")
-                    # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
-                    stack_bands = [
-                        band for band in possible_bands if prod.has_band(band)
-                    ]
-                    first_band = stack_bands[0]
+                curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
+                stack = prod.stack(
+                    stack_bands, resolution=res, stack_path=curr_path, **kwargs
+                )
+                assert stack.dtype == np.float32
 
-                    # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
-                    band_arr1 = prod.load(first_band, resolution=res)[first_band]
-                    band_arr2 = prod.load(first_band, resolution=res)[first_band]
-                    np.testing.assert_array_almost_equal(band_arr1, band_arr2)
-                    assert band_arr1.dtype == np.float32
-                    assert band_arr2.dtype == np.float32
+                # Check attributes
+                assert stack.attrs["long_name"] == to_str(stack_bands)
+                assert stack.attrs["sensor"] == prod._get_platform().value
+                assert stack.attrs["sensor_id"] == prod.sat_id
+                assert stack.attrs["product_type"] == prod.product_type
+                assert stack.attrs["acquisition_date"] == prod.get_datetime(
+                    as_datetime=False
+                )
+                assert stack.attrs["condensed_name"] == prod.condensed_name
 
-                    # Get stack bands
-                    # Stack data
-                    ci_stack = get_ci_data_dir().joinpath(
-                        prod.condensed_name, f"{prod.condensed_name}_stack.tif"
-                    )
+                # Write to path if needed
+                if not ci_stack.exists():
+                    raise FileNotFoundError(f"{ci_stack} not found !")
+                    # ci_stack = curr_path
 
-                    curr_path = os.path.join(
-                        tmp_dir, f"{prod.condensed_name}_stack.tif"
-                    )
-                    stack = prod.stack(
-                        stack_bands, resolution=res, stack_path=curr_path, **kwargs
-                    )
-                    assert stack.dtype == np.float32
+                # Test
+                assert_raster_almost_equal(curr_path, ci_stack, decimal=4)
 
-                    # Check attributes
-                    assert stack.attrs["long_name"] == to_str(stack_bands)
-                    assert stack.attrs["sensor"] == prod._get_platform().value
-                    assert stack.attrs["sensor_id"] == prod.sat_id
-                    assert stack.attrs["product_type"] == prod.product_type
-                    assert stack.attrs["acquisition_date"] == prod.get_datetime(
-                        as_datetime=False
-                    )
-                    assert stack.attrs["condensed_name"] == prod.condensed_name
+                # Load a band with the size option
+                LOGGER.info("Checking load with size keyword")
+                ci_band = get_ci_data_dir().joinpath(
+                    prod.condensed_name,
+                    f"{prod.condensed_name}_{first_band.name}_test.tif",
+                )
+                curr_path_band = os.path.join(
+                    tmp_dir, f"{prod.condensed_name}_{first_band.name}_test.tif"
+                )
+                if not ci_band.exists():
+                    ci_band = curr_path_band
 
-                    # Write to path if needed
-                    if not ci_stack.exists():
-                        raise FileNotFoundError(f"{ci_stack} not found !")
-                        # ci_stack = curr_path
+                band_arr = prod.load(
+                    first_band, size=(stack.rio.width, stack.rio.height), **kwargs
+                )[first_band]
+                rasters.write(band_arr, curr_path_band)
+                assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
 
-                    # Test
-                    assert_raster_almost_equal(curr_path, ci_stack, decimal=4)
+                # Check attributes
+                assert band_arr.attrs["long_name"] == first_band.name
+                assert band_arr.attrs["sensor"] == prod._get_platform().value
+                assert band_arr.attrs["sensor_id"] == prod.sat_id
+                assert band_arr.attrs["product_type"] == prod.product_type
+                assert band_arr.attrs["acquisition_date"] == prod.get_datetime(
+                    as_datetime=False
+                )
+                assert band_arr.attrs["condensed_name"] == prod.condensed_name
 
-                    # Load a band with the size option
-                    LOGGER.info("Checking load with size keyword")
-                    ci_band = get_ci_data_dir().joinpath(
-                        prod.condensed_name,
-                        f"{prod.condensed_name}_{first_band.name}_test.tif",
-                    )
-                    curr_path_band = os.path.join(
-                        tmp_dir, f"{prod.condensed_name}_{first_band.name}_test.tif"
-                    )
-                    if not ci_band.exists():
-                        ci_band = curr_path_band
+            # CRS
+            LOGGER.info("Checking CRS")
+            assert prod.crs.is_projected
 
-                    band_arr = prod.load(
-                        first_band, size=(stack.rio.width, stack.rio.height), **kwargs
-                    )[first_band]
-                    rasters.write(band_arr, curr_path_band)
-                    assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
+            # MTD
+            LOGGER.info("Checking Mtd")
+            mtd_xml, nmsp = prod.read_mtd()
+            assert isinstance(mtd_xml, etree._Element)
+            assert isinstance(nmsp, dict)
 
-                    # Check attributes
-                    assert band_arr.attrs["long_name"] == first_band.name
-                    assert band_arr.attrs["sensor"] == prod._get_platform().value
-                    assert band_arr.attrs["sensor_id"] == prod.sat_id
-                    assert band_arr.attrs["product_type"] == prod.product_type
-                    assert band_arr.attrs["acquisition_date"] == prod.get_datetime(
-                        as_datetime=False
-                    )
-                    assert band_arr.attrs["condensed_name"] == prod.condensed_name
-
-                # CRS
-                LOGGER.info("Checking CRS")
-                assert prod.crs.is_projected
-
-                # MTD
-                LOGGER.info("Checking Mtd")
-                mtd_xml, nmsp = prod.read_mtd()
-                assert isinstance(mtd_xml, etree._Element)
-                assert isinstance(nmsp, dict)
-
-                # Clean temp
-                if not debug:
-                    LOGGER.info("Cleaning tmp")
-                    prod.clean_tmp()
-                    assert len(list(prod._tmp_process.glob("*"))) == 0
+            # Clean temp
+            if not debug:
+                LOGGER.info("Cleaning tmp")
+                prod.clean_tmp()
+                assert len(list(prod._tmp_process.glob("*"))) == 0
 
 
 @s3_env
