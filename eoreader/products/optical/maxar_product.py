@@ -31,7 +31,7 @@ import rasterio
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import rasters, rasters_rio, vectors
+from sertit import files, rasters, rasters_rio, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
@@ -245,9 +245,6 @@ class MaxarProduct(VhrProduct):
         Can be set to use manually orthorectified or pansharpened data, especially useful for VHR data on steep terrain.
         """
 
-        # Order id (product name more or less)
-        self._order_id = None
-
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
 
@@ -287,12 +284,6 @@ class MaxarProduct(VhrProduct):
         sat_id = root.findtext(".//IMAGE/SATID")
         if not sat_id:
             raise InvalidProductError("Cannot find SATID in the metadata file")
-
-        # Order id (product name more or less)
-        order_id = root.findtext(".//IMD/PRODUCTORDERID")
-        if not order_id:
-            raise InvalidProductError("Cannot find PRODUCTORDERID in the metadata file")
-        self._order_id = order_id
 
         # Post init done by the super class
         super()._post_init()
@@ -521,6 +512,15 @@ class MaxarProduct(VhrProduct):
 
         return datetime_str
 
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        return files.get_filename(self._get_til_path())
+
     def _get_ortho_path(self) -> Union[CloudPath, Path]:
         """
         Get the orthorectified path of the bands.
@@ -606,9 +606,7 @@ class MaxarProduct(VhrProduct):
             elev_angle = float(root.findtext(".//MEANSUNEL"))
             azimuth_angle = float(root.findtext(".//MEANSUNAZ"))
         except TypeError:
-            raise InvalidProductError(
-                "Azimuth or Zenith angles not found in metadata !"
-            )
+            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
 
         # From elevation to zenith
         zenith_angle = 90.0 - elev_angle
@@ -663,4 +661,4 @@ class MaxarProduct(VhrProduct):
         Returns:
             Union[CloudPath, Path]: DIMAP filepath
         """
-        return self._get_path(self._order_id, "TIL")
+        return self._get_path("", "TIL")

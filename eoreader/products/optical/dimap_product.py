@@ -211,12 +211,7 @@ class DimapProduct(VhrProduct):
     def _set_product_type(self) -> None:
         """Set products type"""
         # Get MTD XML file
-        root, _ = self.read_mtd()
-        prod_type = root.find(".//DATASET_QL_PATH").attrib["href"].split("_")[4]
-        if not prod_type:
-            raise InvalidProductError(
-                "Cannot find DATASET_QL_PATH in the metadata file"
-            )
+        prod_type = self.split_name[4]
         self.product_type = getattr(DimapProductType, prod_type)
 
         # Manage bands of the product
@@ -363,6 +358,15 @@ class DimapProduct(VhrProduct):
 
         return date_str
 
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        return files.get_filename(self._get_dimap_path()).replace("DIM_", "")
+
     def _get_ortho_path(self) -> Union[CloudPath, Path]:
         """
         Get the orthorectified path of the bands.
@@ -481,9 +485,7 @@ class DimapProduct(VhrProduct):
             elev_angle = float(center_vals.findtext(".//SUN_ELEVATION"))
             azimuth_angle = float(center_vals.findtext(".//SUN_AZIMUTH"))
         except TypeError:
-            raise InvalidProductError(
-                "Azimuth or Zenith angles not found in metadata !"
-            )
+            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
 
         # From elevation to zenith
         zenith_angle = 90.0 - elev_angle

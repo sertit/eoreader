@@ -207,6 +207,9 @@ def _test_core(
                         LOGGER.warning("Extent not equal, trying almost equal.")
                         assert_geom_almost_equal(extent, extent_path)
 
+                    # Log name
+                    LOGGER.info(f"Product name: {prod.name}")
+
                     # Footprint
                     LOGGER.info("Checking footprint")
                     footprint = prod.footprint
@@ -513,7 +516,7 @@ def test_rcm():
 @dask_env
 def test_iceye():
     """Function testing the support of ICEYE sensor"""
-    _test_core_sar("*SC*")
+    _test_core_sar("*SC_*")
 
 
 # TODO:

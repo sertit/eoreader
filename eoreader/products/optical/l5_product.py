@@ -35,17 +35,9 @@ class L5Product(LandsatProduct):
 
     def _set_product_type(self) -> None:
         """Set products type"""
-        mtd, _ = self.read_mtd()
-
-        # Open identifier
-        try:
-            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
-        except TypeError:
-            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
-
-        if "LT05" in name:
+        if "LT05" in self.name:
             self._set_tm_product_type()
-        elif "LM05" in name:
+        elif "LM05" in self.name:
             self._set_mss_product_type(version=5)
         else:
             raise InvalidProductError(f"Invalid Landsat-5 name: {self.name}")

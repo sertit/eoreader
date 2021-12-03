@@ -105,7 +105,7 @@ class S1Product(SarProduct):
             def_res = float(root.findtext(".//rangePixelSpacing"))
         except TypeError:
             raise InvalidProductError(
-                "rangePixelSpacing or rowSpacing not found in metadata !"
+                "rangePixelSpacing or rowSpacing not found in metadata!"
             )
 
         return def_res
@@ -199,7 +199,7 @@ class S1Product(SarProduct):
         try:
             prod_type = root.findtext(".//productType")
         except TypeError:
-            raise InvalidProductError("mode not found in metadata !")
+            raise InvalidProductError("mode not found in metadata!")
 
         self.product_type = S1ProductType.from_value(prod_type)
 
@@ -223,7 +223,7 @@ class S1Product(SarProduct):
         try:
             mode = root.findtext(".//mode")
         except TypeError:
-            raise InvalidProductError("mode not found in metadata !")
+            raise InvalidProductError("mode not found in metadata!")
 
         # Get sensor mode
         self.sensor_mode = S1SensorMode.from_value(mode)
@@ -266,7 +266,7 @@ class S1Product(SarProduct):
             try:
                 acq_date = root.findtext(".//startTime")
             except TypeError:
-                raise InvalidProductError("startTime not found in metadata !")
+                raise InvalidProductError("startTime not found in metadata!")
 
             # Convert to datetime
             date = datetime.strptime(acq_date, "%Y-%m-%dT%H:%M:%S.%f")
@@ -277,6 +277,37 @@ class S1Product(SarProduct):
             date = date.strftime(DATETIME_FMT)
 
         return date
+
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        if self.name is None:
+            # The name is not in the classic metadata, but can be found in the manifest
+            try:
+                mtd_from_path = "preview/product-preview.html"
+                mtd_archived = "preview.*product-preview\.html"
+
+                root = self._read_mtd_html(mtd_from_path, mtd_archived)
+
+                # Open identifier
+                try:
+                    name = root.findtext(".//head/title")
+                except TypeError:
+                    raise InvalidProductError("title not found in metadata!")
+
+            except InvalidProductError:
+                LOGGER.warning(
+                    "product-preview.html not found in the product, the name will be the filename"
+                )
+                name = self.filename
+        else:
+            name = self.name
+
+        return name
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):

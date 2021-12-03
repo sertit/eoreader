@@ -155,7 +155,7 @@ class S2Product(OpticalProduct):
         try:
             pr_baseline = float(root.findtext(".//PROCESSING_BASELINE"))
         except TypeError:
-            raise InvalidProductError("PRODUCT_URI not found in datatake metadata !")
+            raise InvalidProductError("PRODUCT_URI not found in datatake metadata!")
         self._processing_baseline_lt_4_0 = pr_baseline < 4.0
 
         # Post init done by the super class
@@ -176,15 +176,7 @@ class S2Product(OpticalProduct):
         Returns:
             str: Tile name
         """
-        # Get MTD XML file
-        root, _ = self.read_datatake_mtd()
-
-        # Open identifier
-        try:
-            tile_id = root.findtext(".//PRODUCT_URI")
-        except TypeError:
-            raise InvalidProductError("PRODUCT_URI not found in datatake metadata !")
-        return utils.get_split_name(tile_id)[-2]
+        return self.split_name[-2]
 
     def _set_product_type(self) -> None:
         """Set products type"""
@@ -195,7 +187,7 @@ class S2Product(OpticalProduct):
         try:
             name = root.findtext(".//PRODUCT_URI")
         except TypeError:
-            raise InvalidProductError("PRODUCT_URI not found in datatake metadata !")
+            raise InvalidProductError("PRODUCT_URI not found in datatake metadata!")
 
         if "MSIL2A" in name:
             self.product_type = S2ProductType.L2A
@@ -235,7 +227,7 @@ class S2Product(OpticalProduct):
                 }
             )
         else:
-            raise InvalidProductError(f"Invalid Sentinel-2 name: {self.name}")
+            raise InvalidProductError(f"Invalid Sentinel-2 name: {self.filename}")
 
     @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
@@ -306,7 +298,7 @@ class S2Product(OpticalProduct):
                 sensing_time = root.findtext(".//PRODUCT_START_TIME")
             except TypeError:
                 raise InvalidProductError(
-                    "PRODUCT_START_TIME not found in datatake metadata !"
+                    "PRODUCT_START_TIME not found in datatake metadata!"
                 )
 
             # Convert to datetime
@@ -318,6 +310,27 @@ class S2Product(OpticalProduct):
             date = date.strftime(DATETIME_FMT)
 
         return date
+
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        if self.name is None:
+            # Get MTD XML file
+            root, _ = self.read_datatake_mtd()
+
+            # Open identifier
+            try:
+                name = files.get_filename(root.findtext(".//PRODUCT_URI"))
+            except TypeError:
+                raise InvalidProductError("PRODUCT_URI not found in metadata!")
+        else:
+            name = self.name
+
+        return name
 
     def _get_res_band_folder(self, band_list: list, resolution: float = None) -> dict:
         """
@@ -488,7 +501,7 @@ class S2Product(OpticalProduct):
                 )
             except TypeError:
                 raise InvalidProductError(
-                    f"{quantif_prefix}QUANTIFICATION_VALUE not found in datatake metadata !"
+                    f"{quantif_prefix}QUANTIFICATION_VALUE not found in datatake metadata!"
                 )
 
             # Get offset
@@ -507,7 +520,7 @@ class S2Product(OpticalProduct):
                     )
                 except TypeError:
                     raise InvalidProductError(
-                        f"{offset_prefix}ADD_OFFSET not found in datatake metadata !"
+                        f"{offset_prefix}ADD_OFFSET not found in datatake metadata!"
                     )
 
             # Compute the correct radiometry of the band
@@ -839,9 +852,7 @@ class S2Product(OpticalProduct):
         try:
             gen_time = root.findtext(".//GENERATION_TIME")
         except TypeError:
-            raise InvalidProductError(
-                "GENERATION_TIME not found in datatake metadata !"
-            )
+            raise InvalidProductError("GENERATION_TIME not found in datatake metadata!")
 
         gen_time = datetime.strptime(gen_time, "%Y-%m-%dT%H:%M:%S.%fZ").strftime(
             "%H%M%S"
@@ -872,9 +883,7 @@ class S2Product(OpticalProduct):
             zenith_angle = float(mean_sun_angles.findtext("ZENITH_ANGLE"))
             azimuth_angle = float(mean_sun_angles.findtext("AZIMUTH_ANGLE"))
         except TypeError:
-            raise InvalidProductError(
-                "Azimuth or Zenith angles not found in metadata !"
-            )
+            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
 
         return azimuth_angle, zenith_angle
 
