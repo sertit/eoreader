@@ -211,7 +211,7 @@ class DimapProduct(VhrProduct):
     def _set_product_type(self) -> None:
         """Set products type"""
         # Get MTD XML file
-        prod_type = self.split_name[4]
+        prod_type = self.split_name[3]
         self.product_type = getattr(DimapProductType, prod_type)
 
         # Manage bands of the product
