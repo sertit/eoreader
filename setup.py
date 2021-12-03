@@ -28,6 +28,7 @@ setuptools.setup(
     install_requires=[
         "lxml",
         "h5netcdf",
+        "scipy",
         "rasterio>=1.2.2",
         "xarray>=0.18.0",
         "rioxarray>=0.4.0",

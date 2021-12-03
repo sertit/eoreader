@@ -37,7 +37,7 @@ import validators
 import xarray as xr
 from affine import Affine
 from cloudpathlib import AnyPath, CloudPath
-from lxml import etree
+from lxml import etree, html
 from rasterio import crs as riocrs
 from rasterio import transform, warp
 from rasterio.crs import CRS
@@ -89,13 +89,15 @@ class Product:
         self.path = AnyPath(product_path)
         """Usable path to the product, either extracted or archived path, according to the satellite."""
 
-        self.name = files.get_filename(self.path)
-        """Product name (its filename without any extension)."""
+        self.filename = files.get_filename(self.path)
+        """Product filename"""
 
-        self.split_name = self._get_split_name()
+        self.name = None
+        """Product true name (as specified in the metadata)"""
+
+        self.split_name = None
         """
-        Split name, to retrieve every information from its filename (dates, tile, product type...).
-        **WARNING**: Use it with caution as EOReader accepts products with modified names !
+        Split name, to retrieve every information from its true name (dates, tile, product type...).
         """
 
         self.archive_path = AnyPath(archive_path) if archive_path else self.path
@@ -148,12 +150,6 @@ class Product:
         self.platform = None
         """Product platform, such as Sentinel-2"""
 
-        # Set product type, needs to be done after the post-initialization
-        self.product_type = None
-        """
-        Type of this product (i.e. L2A or SLC)
-        """
-
         # Set the resolution, needs to be done when knowing the product type
         self.resolution = None
         """
@@ -184,8 +180,11 @@ class Product:
 
         # Only compute data if OK (for now OK is extracted if needed)
         if self.is_archived and self.needs_extraction:
-            LOGGER.warning(f"{self.name} needs to be extracted to be used !")
+            LOGGER.warning(f"{self.filename} needs to be extracted to be used !")
         else:
+            # Get the product real name
+            self.name = self._get_name()
+            self.split_name = self._get_split_name()
 
             # Get the products date and datetime
             self.datetime = self.get_datetime(as_datetime=True)
@@ -349,6 +348,16 @@ class Product:
         class_module = cls.__module__.split(".")[-1]
         sat_id = class_module.split("_")[0].upper()
         return getattr(Platform, sat_id)
+
+    @abstractmethod
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
 
     @abstractmethod
     def _get_condensed_name(self) -> str:
@@ -555,7 +564,9 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    def _read_mtd_xml(self, mtd_from_path: str, mtd_archived: str = None):
+    def _read_mtd_xml(
+        self, mtd_from_path: str, mtd_archived: str = None
+    ) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dicts as a dict
 
@@ -600,6 +611,47 @@ class Product:
                 nsmap.pop(ns)
 
         return root, nsmap
+
+    def _read_mtd_html(
+        self, mtd_from_path: str, mtd_archived: str = None
+    ) -> html.HtmlElement:
+        """
+        Read metadata and outputs the metadata HTML root
+
+        Args:
+            mtd_from_path (str): Metadata regex (glob style) to find from extracted product
+            mtd_archived (str): Metadata regex (re style) to find from archived product
+
+        Returns:
+            (html.HtmlElement, dict): Metadata HTML root and its namespaces
+
+        """
+        if self.is_archived:
+            root = files.read_archived_html(self.path, f".*{mtd_archived}")
+        else:
+            try:
+                mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
+                if isinstance(mtd_file, CloudPath):
+                    try:
+                        # Try using read_text (faster)
+                        root = html.fromstring(mtd_file.read_text())
+                    except ValueError:
+                        # Try using read_bytes
+                        # Slower but works with:
+                        # {ValueError}Unicode strings with encoding declaration are not supported.
+                        # Please use bytes input or XML fragments without declaration.
+                        root = html.fromstring(mtd_file.read_bytes())
+                else:
+                    # pylint: disable=I1101:
+                    # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                    html_tree = html.parse(str(mtd_file))
+                    root = html_tree.getroot()
+            except StopIteration as ex:
+                raise InvalidProductError(
+                    f"Metadata file ({mtd_from_path}) not found in {self.path}"
+                ) from ex
+
+        return root
 
     def read_mtd(self) -> Any:
         """
@@ -808,12 +860,9 @@ class Product:
         # Sort bands to the asked order
         # xds.reindex({"band": bands})
 
-        # Rename all bands
+        # Rename all bands and add attributes
         for key, val in band_dict.items():
-            band_name = to_str(key)[0]
-            renamed_val = val.rename(band_name)
-            renamed_val.attrs["long_name"] = band_name
-            band_dict[key] = renamed_val
+            band_dict[key] = self._update_attrs(val, to_str(key)[0])
 
         return band_dict
 
@@ -1074,10 +1123,12 @@ class Product:
         dem_name = f"{self.condensed_name}_DEM.tif"
         warped_dem_path = self._get_band_folder().joinpath(dem_name)
         if warped_dem_path.is_file():
-            LOGGER.debug("Already existing DEM for %s. Skipping process.", self.name)
+            LOGGER.debug(
+                "Already existing DEM for %s. Skipping process.", self.condensed_name
+            )
         else:
             warped_dem_path = self._get_band_folder(writable=True).joinpath(dem_name)
-            LOGGER.debug("Warping DEM for %s", self.name)
+            LOGGER.debug("Warping DEM for %s", self.condensed_name)
 
             # Allow S3 HTTP Urls only on Linux because rasterio bugs on Windows
             if validators.url(dem_path) and platform.system() == "Windows":
@@ -1214,11 +1265,12 @@ class Product:
         slope_path = self._get_band_folder().joinpath(slope_name)
         if slope_path.is_file():
             LOGGER.debug(
-                "Already existing slope DEM for %s. Skipping process.", self.name
+                "Already existing slope DEM for %s. Skipping process.",
+                self.condensed_name,
             )
         else:
             slope_path = self._get_band_folder(writable=True).joinpath(slope_name)
-            LOGGER.debug("Computing slope for %s", self.name)
+            LOGGER.debug("Computing slope for %s", self.condensed_name)
 
             # Compute slope
             slope = rasters.slope(warped_dem_path)
@@ -1392,10 +1444,8 @@ class Product:
                     self.nodata, encoded=True, inplace=True
                 )  # NaN values are already set
 
-        # Some updates
-        band_list = to_str(bands)
-        stack.attrs["long_name"] = band_list
-        stack = stack.rename("_".join(band_list))
+        # Update stack's attributes
+        stack = self._update_attrs(stack, to_str(bands))
 
         # Write on disk
         if stack_path:
@@ -1409,6 +1459,31 @@ class Product:
             val.close()
 
         return stack
+
+    def _update_attrs(self, xarr: XDS_TYPE, long_name: Union[str, list]) -> XDS_TYPE:
+        """
+        Update attributes of the given array
+        Args:
+            xarr (XDS_TYPE): Array whose attributes need an update
+            long_name (str): Array name (as a str or a list)
+        """
+        if isinstance(long_name, list):
+            name = "_".join(long_name)
+        else:
+            name = long_name
+
+        renamed_xarr = xarr.rename(name)
+        renamed_xarr.attrs["long_name"] = long_name
+        renamed_xarr.attrs["sensor"] = self._get_platform().value
+        renamed_xarr.attrs["sensor_id"] = self.sat_id
+        renamed_xarr.attrs["product_path"] = self.path
+        renamed_xarr.attrs["product_name"] = self.name
+        renamed_xarr.attrs["product_filename"] = self.filename
+        renamed_xarr.attrs["product_type"] = self.product_type
+        renamed_xarr.attrs["acquisition_date"] = self.get_datetime(as_datetime=False)
+        renamed_xarr.attrs["condensed_name"] = self.condensed_name
+
+        return renamed_xarr
 
     @staticmethod
     def _check_dem_path() -> None:

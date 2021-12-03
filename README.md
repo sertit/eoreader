@@ -14,7 +14,7 @@ clouds, DEM and index in a sensor-agnostic way.
 
 |**Optical sensors** | **SAR sensors**|
 | --- | ---|
-|Sentinel-2 and Sentinel-2 Theia<br>Sentinel-3 OLCI and Sentinel-3 SLSTR<br>Landsat 1 to 8 (MSS, TM, ETM and OLCI)<br>PlanetScope<br>Pleiades<br>SPOT 6-7<br>WorldView-2 to 4, GeoEye-1 (and other Maxar sensors)| Sentinel-1<br>COSMO-Skymed<br>TerraSAR-X, TanDEM-X and PAZ<br>RADARSAT-2<br>RADARSAT-Constellation|
+|Sentinel-2 and Sentinel-2 Theia<br>Sentinel-3 OLCI and Sentinel-3 SLSTR<br>Landsat 1 to 8 (MSS, TM, ETM and OLCI)<br>PlanetScope<br>Pleiades<br>SPOT 6-7<br>WorldView-2 to 4, GeoEye-1 (and other Maxar sensors)| Sentinel-1<br>COSMO-Skymed 1st and 2nd Generation<br>TerraSAR-X, TanDEM-X and PAZ<br>RADARSAT-2<br>RADARSAT-Constellation<br>ICEYE|
 
 It also implements additional **sensor-agnostic** features:
 
@@ -147,6 +147,10 @@ without taking into account the sensor characteristics
 - the addition of a new sensor is done effortlessly (if existing in **EOReader**) and without any modification of the algorithm
 - the maintenance is simplified and the code is way more readable (no more ifs regarding the sensor type!)
 - the testing is also simplified as the sensor-related parts are tested in this library
+
+However, keep in mind that the support of all the sensors used in CEMS is done in a best effort mode, especially for commercial data.
+Indeed, we may not have faced every product type, sensor mode or order configuration, so some details may be missing.
+If this happens to you, do not hesitate to make a PR or write an issue about that !
 
 ## License
 

@@ -8,7 +8,8 @@
 |COSMO-Skymed | {meth}`~eoreader.products.sar.csk_product.CskProduct` | DGM & SCS, (others should also be OK) | No|
 |TerraSAR-X & TanDEM-X & PAZ SAR | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | MGD (SSC should be OK) | No|
 |RADARSAT-2 | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | SGF (SLC should be OK) | Yes|
-|RADARSAT-Constellation | {meth}`~eoreader.products.sar.rs2_product.RcmProduct` | GRD (others should be OK) | No|
+|RADARSAT-Constellation | {meth}`~eoreader.products.sar.rcm_product.RcmProduct` | GRD (others should be OK) | No|
+|ICEYE | {meth}`~eoreader.products.sar.iceye_product.IceyeProduct` | GRD (SLC not used) | No|
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use, 
@@ -21,6 +22,11 @@ The sensors that can be used as of 09/2021 are:
 ![cems_sensors](https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2021/09/copernicus_contributing_missions_overview/23461131-1-eng-GB/Copernicus_Contributing_Missions_overview_pillars.jpg)
 
 ## SAR Bands
+
+```{warning}
+**EOReader** always loads SAR bands in a GRD format. This library is not (yet ?) meant to manage inSAR or other complex processes.
+```
+
 According to what contains the products, allowed SAR bands are:
 
 - {meth}`~eoreader.bands.bands.SarBandNames.VV`
@@ -72,15 +78,30 @@ The product resolution is read in the metadata file if possible, so the followin
 |Extra-Wide swath (EW) | 5.9x19.9 m | | 25.0m | 40.0m|
 |Wave (WV) | 1.7x4.1 m and 2.7x4.1 m | | | 25.0m|
 
-### COSMO-Skymed
+### COSMO-Skymed 1st Generation
 
-| **COSMO-Skymed** | Single-look Complex Slant (SCS) | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+| **COSMO-Skymed 1st Generation** | Single-look Complex Slant (SCS) | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
 |--- | --- | ---|
 |**Spotlight**<br>Mode-2 (S2) | 1.1-0.9x0.91m | 1.0m|
 |**StripMap**<br>Himage (HI) | 3.0-2.6x2.4-2.6m | 5.0m|
 |**StripMap**<br>PingPong (PP) | 11-10x9.7m | 20.0m|
 |**ScanSAR**<br>Wide Region (WR) | 13.5x23m | 30.0m|
 |**ScanSAR**<br>Huge Region (HR) | 13.5x38.0m | 100.0m|
+
+### COSMO-Skymed 2nd Generation
+*Only for Standard products*
+
+| **COSMO-Skymed 2nd Generation** | Single-look Complex Slant (SCS) | Detected Ground Multi-look (DGM)Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+|--- | --- | ---|
+|**SPOTLIGHT_2_A** | ~0.25m | #1: 0.15m (apodized: 0.12m)<br>#2: 0.30m<br>#3: 0.45m |
+|**SPOTLIGHT_2_B** | ~0.45m | #1: 0.25m (apodized: 0.2m)<br>#2: 0.50m<br>#3: 1.0m |
+|**SPOTLIGHT-2C** | ~0.56m | #1: 0.30m (apodized: 0.24m)<br>#2: 0.60m<br>#3: 0.9m |
+|**STRIPMAP & QUADPOL** | ≤ 3.0m |#1: 1.25m<br>#2: 2.5m<br>#3: 5.0m|
+|**SCANSAR1** | 14.0m |#1: 5.0m<br>#2: 10.0m<br>#3: 15.0m|
+|**SCANSAR2** | 27.0m |#1: 10.0m<br>#2: 20.0m<br>#3: 50.0m|
+|**PINGPONG** | 8.0m |#1: 2.0m<br>#2: 4.0m<br>#3: 10.0m|
+
+`#1`, `#2` and `#3` correspond to the MultiLook ID.
 
 ### TerraSAR-X & TanDEM-X & PAZ SAR
 
@@ -139,6 +160,22 @@ The product resolution is read in the metadata file if possible, so the followin
 
 \* Same resolution for every product type according 
 to [that page](https://www.asc-csa.gc.ca/fra/satellites/radarsat/aspects-techniques/radarsat-comparaison.asp).
+
+### ICEYE
+For GRD products: 
+
+|ICEYE | Ground sample spacing (pixel size)|
+|--- | ---|
+|Spotlight [SL(H)] |0.5m|
+|StripMap [SM(H)] |2.5m|
+|Scan [SC] |6.0m|
+
+|ICEYE | Resolution|
+|--- | ---|
+|Spotlight [SL(H)] |1.0m|
+|StripMap [SM(H)] |3.0m|
+|Scan [SC] |< 15.0m|
+
 
 ## GPT graphs
 
@@ -269,12 +306,26 @@ variable:
 
 ### RADARSAT
 
-- [RADARSAT-2 Product Description](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT-2.html)
-- [RADARSAT-Constellation Product Description](https://www.pcigeomatics.com/geomatica-help/references/gdb_r/RADARSAT_Constellation.html)
+- [RADARSAT-2 Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html)
+- [RADARSAT-Constellation Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT_Constellation.html)
 - [Comparison between RS2 and RCM](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp)
 
-### Others
+### COSMO-Skymed
 
-- [COSMO-Skymed Product Description](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description)
+- [COSMO-Skymed 1st Generation Product Description](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description)
+- [COSMO-Skymed 1st Generation Product Description 2](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/SPW_reuse/COSMO-SkyMed.html)
+- [COSMO-Skymed 1st Generation Product Handbook](https://earth.esa.int/c/document_library/get_file?uuid=3b4bdce5-e75b-49fa-be10-113d22c86b74)
+- [COSMO-Skymed 2nd Generation System and Products Description](https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI)
+
+### TerraSAR-X, TanDEM-X and PAZ SAR
+
 - [TerraSAR-X & TanDEM-X Product Description](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
+- [TerraSAR-X & TanDEM-X Product Description 2](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/TerraSAR-X.html)
 - [PAZ SAR Image Product Guide](https://www.hisdesat.es/wp-content/uploads/2019/10/PAZ-HDS-GUI-001-PAZ-Image-Product-Guide-issue-1.1-.pdf)
+- [PAZ SAR Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/PAZ.html)
+
+### ICEYE
+
+- [ICEYE Product Specifications](https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf)
+- [ICEYE Product Guide](https://www.iceye.com/hubfs/Downloadables/ICEYE_SAR_Product_Guide_2021_V4.0.pdf)
+- [ICEYE Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/ICEYE.html)

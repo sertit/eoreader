@@ -106,6 +106,9 @@ class Platform(ListEnum):
     CSK = "COSMO-SkyMed"
     """COSMO-SkyMed"""
 
+    CSG = "COSMO-SkyMed 2nd Generation"
+    """COSMO-SkyMed"""
+
     TSX = "TerraSAR-X"
     """TerraSAR-X"""
 
@@ -151,6 +154,9 @@ class Platform(ListEnum):
     WV04 = "WorldView-4"
     """WorldView-4"""
 
+    ICEYE = "ICEYE"
+    """ICEYE"""
+
 
 PLATFORM_REGEX = {
     Platform.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
@@ -168,8 +174,13 @@ PLATFORM_REGEX = {
     Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}",
     Platform.CSK: [
         r".+",  # Need to check inside as the folder does not have any recognizable name
-        r"CSKS[1-4]_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
+        r"CSKS\d_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
         r"\w{2}_(HH|VV|VH|HV|CO|CH|CV)_[LR][AD]_[FS][NF]_\d{14}_\d{14}\.h5",
+    ],
+    Platform.CSG: [
+        r".+",  # Need to check inside as the folder does not have any recognizable name
+        r"CSG_SSAR\d_(RAW|SCS|DGM|GEC|GTC)_([UBF]|FQLK_B)_\d{4}_(S2[ABC]|D2[RSJ]|OQ[RS]|STR|SC[12]|PPS|QPS)_\d{3}"
+        r"_(HH|VV|VH|HV)_[LR][AD]_[DPFR]_\d{14}_\d{14}\_\d_[FC]_\d{2}[NS]_Z\d{2}_[NFB]\d{2}.h5",
     ],
     Platform.TSX: r"(TSX|TDX|PAZ)1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Platform.RS2: r"RS2_OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)",
@@ -178,6 +189,13 @@ PLATFORM_REGEX = {
     Platform.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
     Platform.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.QB: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.GE01: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.WV01: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.WV02: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.WV03: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.WV04: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.ICEYE: r"((SM|SL|SC)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC)H*_\d{5,}_\d{8}T\d{6})",
 }
 
 # Not used for now
@@ -202,6 +220,7 @@ MTD_REGEX = {
     Platform.L1: f"{PLATFORM_REGEX[Platform.L1]}_MTL\.txt",
     Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*metadata.*\.xml",
     Platform.CSK: f"{PLATFORM_REGEX[Platform.CSK][1]}\.xml",
+    Platform.CSG: f"{PLATFORM_REGEX[Platform.CSG][1]}\.xml",
     Platform.TSX: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
     Platform.RS2: [
         r"product\.xml",  # Too generic name, check also a band
@@ -215,6 +234,13 @@ MTD_REGEX = {
         r"\d+_[RHV]{2}\.tif",
     ],
     Platform.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.QB: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.GE01: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.WV01: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.WV02: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.WV03: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.WV04: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.ICEYE: r"ICEYE_X\d_(SLC|GRD)_(SM|SL|SC)H*_\d{5,}_\d{8}T\d{6}\.xml",
 }
 
 
@@ -372,7 +398,7 @@ class Reader:
         """
         platform = Platform.convert_from(platform)[0]
         regex = self._platform_regex[platform]
-        return self._is_filename_valid(product_path, regex)
+        return is_filename_valid(product_path, regex)
 
     def valid_mtd(
         self, product_path: Union[str, CloudPath, Path], platform: Union[str, Platform]
@@ -438,49 +464,49 @@ class Reader:
 
         return all(is_valid)
 
-    @staticmethod
-    def _is_filename_valid(
-        product_path: Union[str, CloudPath, Path], regex: Union[list, re.Pattern]
-    ) -> bool:
-        """
-        Check if the filename corresponds to the given satellite regex.
 
-        Checks also if a file inside the directory is correct.
+def is_filename_valid(
+    product_path: Union[str, CloudPath, Path], regex: Union[list, re.Pattern]
+) -> bool:
+    """
+    Check if the filename corresponds to the given satellite regex.
 
-        .. WARNING::
-            Two level max for the moment
+    Checks also if a file inside the directory is correct.
 
-        Args:
-            product_path (Union[str, CloudPath, Path]): Product path
-            regex (Union[list, re.Pattern]): Regex or list of regex
+    .. WARNING::
+        Two level max for the moment
 
-        Returns:
-            bool: True if the filename corresponds to the given satellite regex
-        """
-        product_path = AnyPath(product_path)
-        product_file_name = files.get_filename(product_path)
+    Args:
+        product_path (Union[str, CloudPath, Path]): Product path
+        regex (Union[list, re.Pattern]): Regex or list of regex
 
-        # Case folder is not enough to identify the products (ie. COSMO Skymed)
-        # WARNING: Two level max for the moment
-        is_valid = bool(regex[0].match(product_file_name))
-        if is_valid and len(regex) > 1:
-            is_valid = False  # Reset
-            if product_path.is_dir():
-                file_list = product_path.iterdir()
+    Returns:
+        bool: True if the filename corresponds to the given satellite regex
+    """
+    product_path = AnyPath(product_path)
+    product_file_name = files.get_filename(product_path)
+
+    # Case folder is not enough to identify the products (ie. COSMO Skymed)
+    # WARNING: Two level max for the moment
+    is_valid = bool(regex[0].match(product_file_name))
+    if is_valid and len(regex) > 1:
+        is_valid = False  # Reset
+        if product_path.is_dir():
+            file_list = product_path.iterdir()
+            for file in file_list:
+                if regex[1].match(file.name):
+                    is_valid = True
+                    break
+        else:
+            try:
+                file_list = files.get_archived_file_list(product_path)
                 for file in file_list:
-                    if regex[1].match(file.name):
+                    if regex[1].match(file):
                         is_valid = True
                         break
-            else:
-                try:
-                    file_list = files.get_archived_file_list(product_path)
-                    for file in file_list:
-                        if regex[1].match(file):
-                            is_valid = True
-                            break
-                except TypeError:
-                    LOGGER.debug(
-                        f"The product {product_file_name} should be a folder or an archive (.tar or .zip)"
-                    )
+            except TypeError:
+                LOGGER.debug(
+                    f"The product {product_file_name} should be a folder or an archive (.tar or .zip)"
+                )
 
-        return is_valid
+    return is_valid
