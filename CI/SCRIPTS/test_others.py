@@ -10,6 +10,7 @@ from eoreader import utils
 from eoreader.bands.alias import *
 from eoreader.bands.bands import OpticalBands, SarBandNames
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
+from eoreader.reader import Platform
 
 from .scripts_utils import (
     AWS_ACCESS_KEY_ID,
@@ -75,7 +76,7 @@ def test_alias():
 def test_products():
     # Get paths
     prod1_path = opt_path().joinpath(
-        "LC08_L1TP_200030_20201220_20210310_02_T1.tar"
+        "LC08_L1GT_023030_20200518_20200527_01_T2"
     )  # Newer
     prod2_path = opt_path().joinpath(
         "LM03_L1GS_033028_19820906_20180414_01_T2"
@@ -122,7 +123,7 @@ def test_products():
 @dask_env
 def test_dems_https():
     # Get paths
-    prod_path = opt_path().joinpath("LC08_L1TP_200030_20201220_20210310_02_T1.tar")
+    prod_path = opt_path().joinpath("LC08_L1GT_023030_20200518_20200527_01_T2")
 
     # Open prods
     prod = READER.open(prod_path)
@@ -154,7 +155,7 @@ def test_dems_https():
 )
 def test_dems_S3():
     # Get paths
-    prod_path = opt_path().joinpath("LC08_L1TP_200030_20201220_20210310_02_T1.tar")
+    prod_path = opt_path().joinpath("LC08_L1GT_023030_20200518_20200527_01_T2")
 
     # Open prods
     prod = READER.open(prod_path)
@@ -219,3 +220,23 @@ def test_bands():
 
     with pytest.raises(InvalidTypeError):
         ob.map_bands({VV: "wrong_val"})
+
+
+@s3_env
+def test_reader_methods():
+    # Get paths
+    prod_path = opt_path().joinpath("LC08_L1GT_023030_20200518_20200527_01_T2")
+
+    # NAME
+    READER.valid_name(prod_path, Platform.L8)
+    READER.valid_name(prod_path, "L8")
+    READER.valid_name(prod_path, "Landsat-8")
+    READER.valid_name(prod_path, Platform.L8.name)
+    READER.valid_name(prod_path, Platform.L8.value)
+
+    # MTD
+    READER.valid_mtd(prod_path, Platform.L8)
+    READER.valid_mtd(prod_path, "L8")
+    READER.valid_mtd(prod_path, "Landsat-8")
+    READER.valid_mtd(prod_path, Platform.L8.name)
+    READER.valid_mtd(prod_path, Platform.L8.value)

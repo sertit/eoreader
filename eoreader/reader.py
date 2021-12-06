@@ -436,6 +436,9 @@ class Reader:
             bool: True if valid name
 
         """
+        # Convert platform if needed
+        platform = Platform.convert_from(platform)[0]
+
         product_path = AnyPath(product_path)
 
         if not product_path.exists():

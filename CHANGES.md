@@ -1,6 +1,9 @@
 # Release History
 
 ## 0.9.0 (2021-12-06)
+- FIX: `Reader().valid_mtd` now correclty accepts strings instead of only `Platform` objects
+-
+## 0.9.0 (2021-12-06)
 
 - **ENH: Adding the support of the ICEYE sensor**
 - **ENH: Adding the support of the COSMO-SkyMed 2nd Generation sensor**
