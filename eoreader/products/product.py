@@ -212,17 +212,7 @@ class Product:
 
     def __del__(self):
         """Cleaning up _tmp directory"""
-        # -- Delete all cached properties and functions
-        gc.collect()
-
-        # All objects collected
-        objects = [
-            i for i in gc.get_objects() if isinstance(i, functools._lru_cache_wrapper)
-        ]
-
-        # All objects cleared
-        for obj in objects:
-            obj.cache_clear()
+        self.clear()
 
         # -- Remove temp folders
         if self._tmp_output:
@@ -1572,6 +1562,22 @@ class Product:
         if self._tmp_process.exists():
             for tmp_file in self._tmp_process.glob("*"):
                 files.remove(tmp_file)
+
+    def clear(self):
+        """
+        Clear this product's cache
+        """
+        # -- Delete all cached properties and functions
+        gc.collect()
+
+        # All objects collected
+        objects = [
+            i for i in gc.get_objects() if isinstance(i, functools._lru_cache_wrapper)
+        ]
+
+        # All objects cleared
+        for obj in objects:
+            obj.cache_clear()
 
     def _resolution_to_str(self, resolution: Union[float, tuple, list] = None):
         """
