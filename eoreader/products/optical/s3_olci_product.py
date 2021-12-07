@@ -281,7 +281,9 @@ class S3OlciProduct(S3Product):
                 filename = band
 
             # Get raw band
-            band_arr = self._read_nc(filename, subdataset)
+            band_arr = self._read_nc(
+                filename, subdataset, dtype=kwargs.get("dtype", np.float32)
+            )
 
             # Convert radiance to reflectances if needed
             # Convert first pixel by pixel before reprojection !
@@ -329,7 +331,7 @@ class S3OlciProduct(S3Product):
             dst_crs=self.crs,
             resolution=resolution,
             gcps=self._gcps,
-            nodata=self.nodata,
+            nodata=self._mask_nodata if band_arr.dtype == np.uint8 else self.nodata,
             num_threads=MAX_CORES,
             **{"SRC_METHOD": "GCP_TPS"},
         )

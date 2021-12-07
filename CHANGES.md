@@ -1,6 +1,14 @@
 # Release History
 
+## 0.9.2 (2021-12-07)
+
+- FIX: Fixing flag type for `Sentinel-3` data
+- FIX: Do not multiply the flags values by the radiance adjustment factor for `Sentinel-3 SLSTR`!
+- FIX: Fixing flag exception threshold for `Sentinel-3 SLSTR`
+- FIX: Fixing preprocessed band filenames for `Sentinel-3 SLSTR`
+
 ## 0.9.1 (2021-12-07)
+
 - FIX: `Reader().valid_mtd` now correctly accepts strings instead of only `Platform` objects
 - FIX: Better handling of `Sentinel-2` product type
 - FIX: Save bands' new attributes in `str` (to pickle them)
@@ -10,8 +18,10 @@
 
 - **ENH: Adding the support of the ICEYE sensor**
 - **ENH: Adding the support of the COSMO-SkyMed 2nd Generation sensor**
-- **ENH: Adding some attributes to bands and stack: `sensor`, `sensor_id`, `product_type`, `acquisition_date`, `condensed_name`** [#7](https://github.com/sertit/eoreader/issues/7)
-- **ENH: Replace name by filename and read directly the true name of the product in the metadata** [#15](https://github.com/sertit/eoreader/issues/15)
+- **ENH: Adding some attributes to bands and stack: `sensor`, `sensor_id`, `product_type`, `acquisition_date`
+  , `condensed_name`** [#7](https://github.com/sertit/eoreader/issues/7)
+- **ENH: Replace name by filename and read directly the true name of the product in the
+  metadata** [#15](https://github.com/sertit/eoreader/issues/15)
 - FIX: `Sentinel-1` metadata file with archived products (discarding RFI folder in its search).
 - FIX: Add `Quickbird`, `GeoEye` and `WorldView` sensors in `reader` regexes.
 - FIX: Add scipy in `requirements.txt` and `setup.py`
@@ -25,21 +35,29 @@
 ## 0.8.0 (2021-10-25)
 
 - **BREAKING CHANGE: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties !**
-- **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** [#10](https://github.com/sertit/eoreader/issues/10)
+- **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly
+  different !)** [#10](https://github.com/sertit/eoreader/issues/10)
 - **BREAKING CHANGE: `HILLSHADE` is given in `float32` instead of `uint8`**
 - **BREAKING CHANGE: `SLOPE` is given in degrees instead of percents**
 - **ENH: Adding the support of the PAZ SAR sensor**
-- **ENH: Adding the support of the Sentinel-2 processed with the [processing baseline 4.0](https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming)** [#11](https://github.com/sertit/eoreader/issues/11)
-- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !** [#12](https://github.com/sertit/eoreader/issues/12)
+- **ENH: Adding the support of the Sentinel-2 processed with
+  the [processing baseline 4.0](https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming)** [#11](https://github.com/sertit/eoreader/issues/11)
+- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP
+  dependency !** [#12](https://github.com/sertit/eoreader/issues/12)
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
 - **ENH: Thermal bands of Sentinel-3 SLSTR can now be used**
-- **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for OLCI)** [#14](https://github.com/sertit/eoreader/issues/14)
+- **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for
+  OLCI)** [#14](https://github.com/sertit/eoreader/issues/14)
 - **ENH: `YELLOW` band is mapped to `Oa07` band of Sentinel-3 OLCI**
 - **ENH: Zipped Sentinel-3 products can now be processed**
-- **ENH: Allow the use of `kwargs` in `load`, mainly for `rasters.read` (and allowing ie. radiance adjustment in S3-SLSTR)**
-- OPTIM: `crs`, `footprint`, `extent`, `default_transform`, `wgs84_extent` are cached (using `@cached_property`) [#13](https://github.com/sertit/eoreader/issues/13)
-- OPTIM: `get_mean_sun_angles` and `default_transform` are now cached (using `@cache`) [#13](https://github.com/sertit/eoreader/issues/13)
-- OPTIM: `get_datetime`: Look for the date only if `datetime` attribute is None [#13](https://github.com/sertit/eoreader/issues/13)
+- **ENH: Allow the use of `kwargs` in `load`, mainly for `rasters.read` (and allowing ie. radiance adjustment in
+  S3-SLSTR)**
+- OPTIM: `crs`, `footprint`, `extent`, `default_transform`, `wgs84_extent` are cached (
+  using `@cached_property`) [#13](https://github.com/sertit/eoreader/issues/13)
+- OPTIM: `get_mean_sun_angles` and `default_transform` are now cached (
+  using `@cache`) [#13](https://github.com/sertit/eoreader/issues/13)
+- OPTIM: `get_datetime`: Look for the date only if `datetime` attribute is
+  None [#13](https://github.com/sertit/eoreader/issues/13)
 - OPTIM: Better management of `fspath` for cloud-stored products (download the files only once)
 - OPTIM: Stop downloading/extracting files if not necessary
 - FIX: Bands are correctly ordered in stacks

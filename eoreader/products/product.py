@@ -146,6 +146,7 @@ class Product:
         # Mask values
         self._mask_true = 1
         self._mask_false = 0
+        self._mask_nodata = 255
 
         self.platform = None
         """Product platform, such as Sentinel-2"""
