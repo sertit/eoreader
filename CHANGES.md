@@ -3,6 +3,7 @@
 ## 0.9.1 (202X-XX-XX)
 - FIX: `Reader().valid_mtd` now correctly accepts strings instead of only `Platform` objects
 -
+- FIX: Add a `clear()` function to clear products cache
 ## 0.9.0 (2021-12-06)
 
 - **ENH: Adding the support of the ICEYE sensor**
