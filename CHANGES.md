@@ -3,6 +3,7 @@
 ## 0.9.1 (202X-XX-XX)
 - FIX: `Reader().valid_mtd` now correctly accepts strings instead of only `Platform` objects
 - FIX: Better handling of `Sentinel-2` product type
+- FIX: Save bands' new attributes in `str` (to pickle them)
 - FIX: Add a `clear()` function to clear products cache
 ## 0.9.0 (2021-12-06)
 

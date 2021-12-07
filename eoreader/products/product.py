@@ -1466,10 +1466,10 @@ class Product:
         renamed_xarr.attrs["long_name"] = long_name
         renamed_xarr.attrs["sensor"] = self._get_platform().value
         renamed_xarr.attrs["sensor_id"] = self.sat_id
-        renamed_xarr.attrs["product_path"] = self.path
+        renamed_xarr.attrs["product_path"] = str(self.path)  # Convert to string
         renamed_xarr.attrs["product_name"] = self.name
         renamed_xarr.attrs["product_filename"] = self.filename
-        renamed_xarr.attrs["product_type"] = self.product_type
+        renamed_xarr.attrs["product_type"] = self.product_type.value
         renamed_xarr.attrs["acquisition_date"] = self.get_datetime(as_datetime=False)
         renamed_xarr.attrs["condensed_name"] = self.condensed_name
 
