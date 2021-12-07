@@ -627,7 +627,7 @@ class S3Product(OpticalProduct):
         return mtd_el, {}
 
     def _read_nc(
-        self, filename: Union[str, obn], subdataset: str = None
+        self, filename: Union[str, obn], subdataset: str = None, dtype=np.float32
     ) -> xr.DataArray:
         """
         Read NetCDF file (as float32) and rescaled them to their true values
@@ -701,8 +701,8 @@ class S3Product(OpticalProduct):
         # BUT the xr.DataArray dimensions wont be correctly formatted !
         # Align the NetCDF behaviour on rasterio's
 
-        # Read as float32
-        nc = nc.astype(np.float32)
+        # Read as float32 (by default) or with given type
+        nc = nc.astype(dtype)
 
         # Add the band dimension
         if "band" not in nc.dims:

@@ -280,9 +280,9 @@ class S3SlstrProduct(S3Product):
         """
         res_str = self._resolution_to_str(resolution)
         if filename.endswith(suffix):
-            pp_name = f"{self.condensed_name}_{filename}_{suffix}_{res_str}.tif"
-        else:
             pp_name = f"{self.condensed_name}_{filename}_{res_str}.tif"
+        else:
+            pp_name = f"{self.condensed_name}_{filename}_{suffix}_{res_str}.tif"
 
         return self._get_band_folder(writable=writable).joinpath(pp_name)
 
@@ -412,10 +412,12 @@ class S3SlstrProduct(S3Product):
             )
 
             # Get raw band
-            band_arr = self._read_nc(filename, subdataset)
+            band_arr = self._read_nc(
+                filename, subdataset, dtype=kwargs.get("dtype", np.float32)
+            )
 
             # Radiance pre process (BT bands are given in BT !)
-            if band_name in SLSTR_RAD_BANDS:
+            if not kwargs.get("flags", False) and band_name in SLSTR_RAD_BANDS:
                 # Adjust radiance if needed
                 # Get the user's radiance adjustment if existing
                 rad_adjust = kwargs.get(SLSTR_RAD_ADJUST, self._rad_adjust)
@@ -531,7 +533,7 @@ class S3SlstrProduct(S3Product):
             dst_crs=self.crs,
             resolution=resolution,
             gcps=self._gcps[suffix],
-            nodata=self.nodata,
+            nodata=self._mask_nodata if band_arr.dtype == np.uint8 else self.nodata,
             num_threads=MAX_CORES,
             resampling=Resampling.nearest,
             **{"SRC_METHOD": "GCP_TPS"},
@@ -695,7 +697,6 @@ class S3SlstrProduct(S3Product):
         Returns:
             xr.DataArray: Adjusted band array
         """
-        rad_coeff = None
         try:
             band_name = self.band_names[band]
             if band_name in SLSTR_RAD_BANDS:
@@ -705,15 +706,12 @@ class S3SlstrProduct(S3Product):
                 else:
                     rad_adjust_tuple = rad_adjust
 
-                # Get the band coefficient
+                # Get the band coefficient and multiply the band
                 rad_coeff = getattr(rad_adjust_tuple, f"{band_name}_{view}")
+                band_arr *= rad_coeff
         except KeyError:
             # Not a band (ie Quality Flags) or Brilliance temperature: no adjust needed
             pass
-
-        # Correct if needed
-        if rad_coeff:
-            band_arr *= rad_coeff
 
         return band_arr
 
@@ -796,6 +794,8 @@ class S3SlstrProduct(S3Product):
             subdataset=self._replace(self._exception_name, band=band, suffix=suffix),
             resolution=band_arr.rio.resolution(),
             to_reflectance=False,
+            flags=True,
+            dtype=np.uint8,
         )
 
         # Open flag file
@@ -806,8 +806,8 @@ class S3SlstrProduct(S3Product):
             masked=False,
         )
 
-        # Set no data for everything that caused an exception
-        exception = np.where(qual_arr > 2, self._mask_true, self._mask_false)
+        # Set no data for everything that caused an exception (3 and more)
+        exception = np.where(qual_arr >= 3, self._mask_true, self._mask_false)
 
         # Get nodata mask
         no_data = np.where(np.isnan(band_arr.data), self._mask_true, self._mask_false)
