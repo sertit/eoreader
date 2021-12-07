@@ -536,7 +536,7 @@ class S2TheiaProduct(OpticalProduct):
             str: Condensed name
         """
         return (
-            f"{self.get_datetime()}_S2THEIA_{self.tile_name}_{self.product_type.value}"
+            f"{self.get_datetime()}_S2THEIA_{self.tile_name}_{self.product_type.name}"
         )
 
     @cache

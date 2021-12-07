@@ -52,10 +52,10 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class S2ProductType(ListEnum):
     """Sentinel-2 products types (L1C or L2A)"""
 
-    L1C = "L1C"
+    L1C = "Level-1C"
     """L1C: https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-1c"""
 
-    L2A = "L2A"
+    L2A = "Level-2A"
     """L2A: https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-2a"""
 
 
@@ -185,11 +185,13 @@ class S2Product(OpticalProduct):
 
         # Open identifier
         try:
-            name = root.findtext(".//PRODUCT_URI")
+            product_lvl = root.findtext(".//PROCESSING_LEVEL")
         except TypeError:
-            raise InvalidProductError("PRODUCT_URI not found in datatake metadata!")
+            raise InvalidProductError(
+                "PROCESSING_LEVEL not found in datatake metadata!"
+            )
 
-        if "MSIL2A" in name:
+        if product_lvl == S2ProductType.L2A.value:
             self.product_type = S2ProductType.L2A
             self.band_names.map_bands(
                 {
@@ -207,7 +209,7 @@ class S2Product(OpticalProduct):
                     obn.SWIR_2: "12",
                 }
             )
-        elif "MSIL1C" in name:
+        elif product_lvl == S2ProductType.L1C.value:
             self.product_type = S2ProductType.L1C
             self.band_names.map_bands(
                 {
@@ -857,7 +859,7 @@ class S2Product(OpticalProduct):
         gen_time = datetime.strptime(gen_time, "%Y-%m-%dT%H:%M:%S.%fZ").strftime(
             "%H%M%S"
         )
-        return f"{self.get_datetime()}_{self.platform.name}_{self.tile_name}_{self.product_type.value}_{gen_time}"
+        return f"{self.get_datetime()}_{self.platform.name}_{self.tile_name}_{self.product_type.name}_{gen_time}"
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
