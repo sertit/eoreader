@@ -107,7 +107,7 @@ class Platform(ListEnum):
     """COSMO-SkyMed"""
 
     CSG = "COSMO-SkyMed 2nd Generation"
-    """COSMO-SkyMed"""
+    """COSMO-SkyMed 2nd Generation"""
 
     TSX = "TerraSAR-X"
     """TerraSAR-X"""

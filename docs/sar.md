@@ -6,6 +6,7 @@
 |--- | --- | --- | ---|
 |Sentinel-1 | {meth}`~eoreader.products.sar.s1_product.S1Product` | SLC & GRD | Yes|
 |COSMO-Skymed | {meth}`~eoreader.products.sar.csk_product.CskProduct` | DGM & SCS, (others should also be OK) | No|
+|COSMO-Skymed COSMO-SkyMed 2nd Generation| {meth}`~eoreader.products.sar.csg_product.CsgProduct` | DGM & SCS, (others should also be OK) | No|
 |TerraSAR-X & TanDEM-X & PAZ SAR | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | MGD (SSC should be OK) | No|
 |RADARSAT-2 | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | SGF (SLC should be OK) | Yes|
 |RADARSAT-Constellation | {meth}`~eoreader.products.sar.rcm_product.RcmProduct` | GRD (others should be OK) | No|
