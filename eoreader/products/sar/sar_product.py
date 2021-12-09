@@ -828,8 +828,8 @@ class SarProduct(Product):
             except AssertionError:
                 if isinstance(self.path, CloudPath):
                     raise InvalidProductError(
-                        "For now, TerraSAR-X data cannot be processed while being stored in the cloud."
-                        "A bug when caching directories prevents that, see here: "
+                        f"For now, {self._get_platform().value} can't be processed while being stored in the cloud. "
+                        "A bug when caching nested directories prevents that, see here: "
                         "https://github.com/drivendataorg/cloudpathlib/issues/148"
                     )
         return out
