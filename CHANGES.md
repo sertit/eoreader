@@ -5,6 +5,7 @@
 - FIX: Fixing the search for `.TIL` files for `Maxar` products (with on disk files)
 - FIX: Fixing the search for metadata files for `Landsat` products (with on disk files)
 - FIX: Fixing the search for metadata files for `TerraSAR-X`, `TanDEM-X` and `PAZ SAR` products (with on disk files)
+- FIX: Fixing SNAP files for `TerraSAR-X`, `TanDEM-X` and `PAZ SAR` products
 - FIX: Fixing when reading CRS code for `DIMAP` products
 
 ## 0.9.2 (2021-12-07)

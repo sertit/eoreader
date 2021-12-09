@@ -183,6 +183,8 @@ PLATFORM_REGEX = {
         r"_(HH|VV|VH|HV)_[LR][AD]_[DPFR]_\d{14}_\d{14}\_\d_[FC]_\d{2}[NS]_Z\d{2}_[NFB]\d{2}.h5",
     ],
     Platform.TSX: r"(TSX|TDX|PAZ)1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
+    Platform.TDX: r"TDX1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
+    Platform.PAZ: r"PAZ1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Platform.RS2: r"RS2_OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)",
     Platform.PLD: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
     Platform.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
@@ -222,6 +224,8 @@ MTD_REGEX = {
     Platform.CSK: f"{PLATFORM_REGEX[Platform.CSK][1]}\.xml",
     Platform.CSG: f"{PLATFORM_REGEX[Platform.CSG][1]}\.xml",
     Platform.TSX: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
+    Platform.TDX: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
+    Platform.PAZ: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
     Platform.RS2: [
         r"product\.xml",  # Too generic name, check also a band
         r"imagery_[HV]{2}\.tif",
@@ -333,6 +337,21 @@ class Reader:
 
             if is_valid:
                 sat_class = platform.name.lower() + "_product"
+
+                # Channel correctly the sensors to their generic files (just in case)
+                # TerraSAR-like sensors
+                if platform in [Platform.TDX, platform.PAZ]:
+                    sat_class = "tsx_product"
+                # Maxar-like sensors
+                elif platform in [
+                    Platform.QB,
+                    Platform.GE01,
+                    Platform.WV01,
+                    Platform.WV02,
+                    Platform.WV03,
+                    Platform.WV04,
+                ]:
+                    sat_class = "maxar_product"
 
                 # Manage both optical and SAR
                 try:
