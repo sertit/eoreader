@@ -243,7 +243,7 @@ class DimapProduct(VhrProduct):
         root, _ = self.read_mtd()
 
         # Get CRS
-        crs_name = root.findtext(".//GEODETIC_CRS_NAME")
+        crs_name = root.findtext(".//GEODETIC_CRS_CODE")
         if not crs_name:
             crs_name = root.findtext(".//PROJECTED_CRS_CODE")
             if not crs_name:

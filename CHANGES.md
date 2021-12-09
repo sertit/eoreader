@@ -1,5 +1,12 @@
 # Release History
 
+## 0.9.3 (2021-12-09)
+
+- FIX: Fixing the search for `.TIL` files for `Maxar` products (with on disk files)
+- FIX: Fixing the search for metadata files for `Landsat` products (with on disk files)
+- FIX: Fixing the search for metadata files for `TerraSAR-X`, `TanDEM-X` and `PAZ SAR` products (with on disk files)
+- FIX: Fixing when reading CRS code for `DIMAP` products
+
 ## 0.9.2 (2021-12-07)
 
 - FIX: Fixing flag type for `Sentinel-3` data

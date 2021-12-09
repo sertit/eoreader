@@ -403,7 +403,9 @@ class VhrProduct(OpticalProduct):
 
         return band_arrays
 
-    def _get_path(self, filename: str, extension: str) -> Union[CloudPath, Path]:
+    def _get_path(
+        self, filename: str = "", extension: str = ""
+    ) -> Union[CloudPath, Path]:
         """
         Get either the archived path of the normal path of an asset
 
@@ -417,13 +419,16 @@ class VhrProduct(OpticalProduct):
         """
         path = []
         try:
+            if filename and not filename.startswith("*"):
+                filename = f"*{filename}"
+
             if self.is_archived:
                 path = files.get_archived_rio_path(
                     self.path,
-                    f".*{filename}.*\.{extension}",
+                    f".{filename}.*\.{extension}",
                 )
             else:
-                path = next(self.path.glob(f"*{filename}*.{extension}"))
+                path = next(self.path.glob(f"{filename}*.{extension}"))
 
         except (FileNotFoundError, IndexError):
             LOGGER.warning(

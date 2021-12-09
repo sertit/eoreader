@@ -573,7 +573,11 @@ class Product:
             root = files.read_archived_xml(self.path, f".*{mtd_archived}")
         else:
             try:
-                mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
+                try:
+                    mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
+                except ValueError:
+                    mtd_file = next(self.path.glob(f"*{mtd_from_path}"))
+
                 if isinstance(mtd_file, CloudPath):
                     try:
                         # Try using read_text (faster)
