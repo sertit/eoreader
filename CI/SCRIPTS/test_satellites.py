@@ -492,6 +492,7 @@ def test_csg():
 
 # Assume that tests TSX, TDX and PAZ sensors
 @s3_env
+@dask_env
 def test_tsx():
     """Function testing the support of TerraSAR-X, TanDEM-X and PAZ SAR sensors"""
     _test_core_sar("*TSX*")

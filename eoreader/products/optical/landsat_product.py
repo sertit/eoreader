@@ -460,11 +460,11 @@ class LandsatProduct(OpticalProduct):
         # Try with XML (we don't know what collection it is)
         try:
             # Open XML metadata
-            mtd_from_path = "*_MTL.xml"
-            mtd_archived = ".*_MTL\.xml"
+            mtd_from_path = "_MTL.xml"
+            mtd_archived = "_MTL\.xml"
             mtd_data = self._read_mtd_xml(mtd_from_path, mtd_archived)
         except (InvalidProductError, FileNotFoundError):
-            mtd_name = "**_MTL.txt"
+            mtd_name = "_MTL.txt"
             if self.is_archived:
                 # We need to extract the file in memory to be used with pandas
                 tar_ds = tarfile.open(self.path, "r")
@@ -473,7 +473,10 @@ class LandsatProduct(OpticalProduct):
             else:
                 # FOR COLLECTION 1 AND 2
                 tar_ds = None
-                mtd_path = next(self.path.glob(mtd_name))
+                try:
+                    mtd_path = next(self.path.glob(f"**/*{mtd_name}"))
+                except ValueError:
+                    mtd_path = next(self.path.glob(f"*{mtd_name}"))
 
                 if not mtd_path.is_file():
                     raise InvalidProductError(

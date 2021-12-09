@@ -622,7 +622,7 @@ class MaxarProduct(VhrProduct):
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
         mtd_from_path = ".XML"
-        mtd_archived = ".*\.XML"
+        mtd_archived = "\.XML"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
@@ -661,4 +661,4 @@ class MaxarProduct(VhrProduct):
         Returns:
             Union[CloudPath, Path]: DIMAP filepath
         """
-        return self._get_path("", "TIL")
+        return self._get_path(extension="TIL")
