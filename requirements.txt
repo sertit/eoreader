@@ -15,6 +15,7 @@ twine
 
 # Libs for all platforms
 scipy
+methodtools
 tqdm
 lxml
 colorlog

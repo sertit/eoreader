@@ -36,6 +36,7 @@ setuptools.setup(
         "sertit[full]>=1.11.0",
         "rtree",
         "validators",
+        "methodtools",
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",

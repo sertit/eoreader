@@ -543,7 +543,6 @@ class Product:
         """
         raise NotImplementedError("This method should be implemented by a child class")
 
-    @cache
     @abstractmethod
     def _read_mtd(self) -> Any:
         """

@@ -1,5 +1,9 @@
 # Release History
 
+## 0.9.4 (2021-12-DD)
+
+- FIX: Caching properties and functions only for object instances
+
 ## 0.9.3 (2021-12-09)
 
 - FIX: Fixing the search for `.TIL` files for `Maxar` products (with on disk files)
