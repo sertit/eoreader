@@ -17,37 +17,29 @@
 """
 **EOReader** library
 """
+from functools import wraps
+from typing import Callable
 
-# Python 3.9
-try:
-    from functools import cache  # noqa
-except ImportError:
-    from functools import lru_cache, wraps
-    from typing import Callable
-
-    def cache(func: Callable) -> Callable:
-        @lru_cache(maxsize=None)
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
-
-        return wrapper
+from methodtools import lru_cache
 
 
-# Python 3.8
-try:
-    from functools import cached_property  # noqa
-except ImportError:
-    from typing import Callable
+def cache(func: Callable) -> Callable:
+    @lru_cache(maxsize=None)
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
 
-    def cached_property(func: Callable) -> property:
-        @property
-        @lru_cache(maxsize=None)
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
+    return wrapper
 
-        return wrapper
+
+def cached_property(func: Callable) -> property:
+    @property
+    @lru_cache(maxsize=None)
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 __version__ = "0.9.3"
