@@ -887,6 +887,23 @@ class SarProduct(Product):
             dim_path (str): DIMAP path
             pol (str): Polarization name
         """
+
+        def interp_na(arr, dim):
+            try:
+                arr = arr.interpolate_na(dim=dim, limit=10, keep_attrs=True)
+            except ValueError:
+                try:
+                    # ValueError: Index 'y' must be monotonically increasing
+                    dim_idx = getattr(arr, dim)
+                    reversed_dim_idx = list(reversed(dim_idx))
+                    arr = arr.reindex(**{dim: reversed_dim_idx})
+                    arr = arr.interpolate_na(dim=dim, limit=10, keep_attrs=True)
+                    arr = arr.reindex(**{dim: dim_idx})
+                except ValueError:
+                    pass
+
+            return arr
+
         # Get .img file path (readable by rasterio)
         try:
             img = rasters.get_dim_img_path(dim_path, f"*{pol}*")
@@ -896,6 +913,10 @@ class SarProduct(Product):
         # Open SAR image
         with rioxarray.open_rasterio(str(img)) as arr:
             arr = arr.where(arr != self._snap_no_data, np.nan)
+
+            # Interpolate if needed (interpolate na works only 1D-like, sadly)
+            arr = interp_na(arr, dim="y")
+            arr = interp_na(arr, dim="x")
 
             # Save the file as the terrain-corrected image
             file_path = os.path.join(

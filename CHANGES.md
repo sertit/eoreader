@@ -1,8 +1,12 @@
 # Release History
 
-## 0.9.4 (2021-12-DD)
+## 0.9.4 (2021-12-13)
 
 - FIX: Caching properties and functions only for object instances
+- FIX: Fixing metadata reading for `COSMO-SkyMed 1st Generation` with `Wide Region` and complex product type (handling of multiple swaths)
+- FIX: Updates of SNAP GPT graphs for complex SAR data
+- FIX: Interpolate nodata inside SAR images (badly handled by SNAP -> fill the gaps that shouldn't exist)
+- INTERNAL: Creation of a class `CosmoProduct` handling generic methods for both `COSMO-SkyMed` generations
 
 ## 0.9.3 (2021-12-09)
 
