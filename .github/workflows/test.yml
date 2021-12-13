@@ -48,8 +48,8 @@ jobs:
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
         key: ${{ runner.os }}-pip-${{ steps.get-week.outputs.week }}-${{ hashFiles('setup.py') }}
-    - name: Install tox
+    - name: Install tox and methodtools
       run: |
-        python -m pip install tox
+        python -m pip install tox methodtools
     - name: Testing with tox
       run: python -m tox -e docs
