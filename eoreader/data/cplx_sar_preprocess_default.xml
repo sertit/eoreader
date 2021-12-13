@@ -7,21 +7,30 @@
       <file>${file}</file>
     </parameters>
   </node>
-  <node id="SRGR">
-    <operator>SRGR</operator>
+  <node id="Calibration">
+    <operator>Calibration</operator>
     <sources>
-      <sourceProduct refid="Multilook"/>
+      <sourceProduct refid="Read"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <sourceBands/>
-      <warpPolynomialOrder>4</warpPolynomialOrder>
-      <interpolationMethod>Cubic interpolation</interpolationMethod>
+      <sourceBands>Intensity</sourceBands>
+      <auxFile>Latest Auxiliary File</auxFile>
+      <externalAuxFile/>
+      <outputImageInComplex>false</outputImageInComplex>
+      <outputImageScaleInDb>false</outputImageScaleInDb>
+      <createGammaBand>false</createGammaBand>
+      <createBetaBand>false</createBetaBand>
+      <selectedPolarisations/>
+      <outputSigmaBand>true</outputSigmaBand>
+      <outputGammaBand>false</outputGammaBand>
+      <outputBetaBand>false</outputBetaBand>
     </parameters>
   </node>
+
   <node id="Multilook">
     <operator>Multilook</operator>
     <sources>
-      <sourceProduct refid="Read"/>
+      <sourceProduct refid="Calibration"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -31,10 +40,12 @@
       <grSquarePixel>true</grSquarePixel>
     </parameters>
   </node>
+
+
   <node id="Terrain-Correction">
     <operator>Terrain-Correction</operator>
     <sources>
-      <sourceProduct refid="LinearToFromdB"/>
+      <sourceProduct refid="Multilook"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -68,44 +79,48 @@
       <externalAuxFile/>
     </parameters>
   </node>
+
+
   <node id="LinearToFromdB">
     <operator>LinearToFromdB</operator>
     <sources>
-      <sourceProduct refid="SRGR"/>
+      <sourceProduct refid="Terrain-Correction"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
     </parameters>
   </node>
+
   <node id="Write">
     <operator>Write</operator>
     <sources>
-      <sourceProduct refid="Terrain-Correction"/>
+      <sourceProduct refid="LinearToFromdB"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${out}</file>
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>
+
   <applicationData id="Presentation">
     <Description/>
     <node id="Read">
-            <displayPosition x="99.0" y="68.0"/>
+      <displayPosition x="7.0" y="131.0"/>
     </node>
-    <node id="SRGR">
-      <displayPosition x="411.0" y="237.0"/>
-    </node>
-    <node id="Multilook">
-      <displayPosition x="356.0" y="206.0"/>
+    <node id="Calibration">
+      <displayPosition x="43.0" y="188.0"/>
     </node>
     <node id="Terrain-Correction">
-      <displayPosition x="502.0" y="312.0"/>
+      <displayPosition x="143.0" y="265.0"/>
     </node>
     <node id="LinearToFromdB">
-      <displayPosition x="647.0" y="329.0"/>
+      <displayPosition x="256.0" y="299.0"/>
+    </node>
+    <node id="Multilook">
+      <displayPosition x="108.0" y="224.0"/>
     </node>
     <node id="Write">
-      <displayPosition x="755.0" y="335.0"/>
+      <displayPosition x="461.0" y="307.0"/>
     </node>
   </applicationData>
 </graph>
