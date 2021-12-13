@@ -42,7 +42,7 @@ def cached_property(func: Callable) -> property:
     return wrapper
 
 
-__version__ = "0.9.3"
+__version__ = "0.9.4"
 __title__ = "eoreader"
 __description__ = (
     "Remote-sensing opensource python library reading optical and SAR sensors, "
