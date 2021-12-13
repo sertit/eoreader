@@ -24,7 +24,7 @@ from methodtools import lru_cache
 
 
 def cache(func: Callable) -> Callable:
-    @lru_cache(maxsize=None)
+    @lru_cache()
     @wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
@@ -33,8 +33,8 @@ def cache(func: Callable) -> Callable:
 
 
 def cached_property(func: Callable) -> property:
+    @lru_cache()
     @property
-    @lru_cache(maxsize=None)
     @wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
