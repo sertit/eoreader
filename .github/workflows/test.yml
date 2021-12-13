@@ -1,4 +1,4 @@
-name: Run Pull/Push Tests
+name: CI
 
 on:
   push:
