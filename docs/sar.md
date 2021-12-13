@@ -66,9 +66,10 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 ## Default resolution
 
 The default resolution of SAR products depends on their type. Complex data are **always** converted back to ground range
-to be used.
+to be used, so the complex resolution is **never** used by EOReader.
 
-The product resolution is read in the metadata file if possible, so the following values are given as hints:
+The product resolution is read in the metadata file if possible, except for complex data.
+For them, Grand Range values from the constructor are used.
 
 ### Sentinel-1
 
@@ -316,7 +317,7 @@ variable:
 - [COSMO-Skymed 1st Generation Product Description](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description)
 - [COSMO-Skymed 1st Generation Product Description 2](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/SPW_reuse/COSMO-SkyMed.html)
 - [COSMO-Skymed 1st Generation Product Handbook](https://earth.esa.int/c/document_library/get_file?uuid=3b4bdce5-e75b-49fa-be10-113d22c86b74)
-- [COSMO-Skymed 2nd Generation System and Products Description](https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI)
+- [COSMO-Skymed 2nd Generation System and Products Description](https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Second-Generation-Mission-Products-Description.pdf)
 
 ### TerraSAR-X, TanDEM-X and PAZ SAR
 

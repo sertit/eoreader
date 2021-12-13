@@ -95,16 +95,16 @@ class TsxPolarization(ListEnum):
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
     """
 
-    SINGLE = "S"
+    S = "SINGLE"
     """"Single Polarization"""
 
-    DUAL = "D"
+    D = "DUAL"
     """"Dual Polarization"""
 
-    QUAD = "Q"
+    Q = "QUAD"
     """"Quad Polarization"""
 
-    TWIN = "T"
+    T = "TWIN"
     """"Twin Polarization"""
 
 
@@ -138,20 +138,77 @@ class TsxProduct(SarProduct):
     def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
+        See here
+        <here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
+        for more information (Beam Modes)
 
         .. WARNING::
-            - We assume being in High Resolution (except for WV where we must be in medium resolution)
-            - Incidence angle: we consider the best option, around 55 degrees
+            For SSC data:
+                - We assume being in High Resolution (SE)
+                - Incidence angle: we consider the worst option, around 20 degrees
         """
         # Read metadata
         try:
             root, _ = self.read_mtd()
-            image_data = root.find(".//imageDataInfo")
-            def_res = float(image_data.findtext(".//rowSpacing"))  # Square pixels
+            acq_info = root.find(".//acquisitionInfo")
+            polarization = TsxPolarization.from_value(
+                acq_info.findtext(".//polarisationMode")
+            )
         except (InvalidProductError, TypeError):
             raise InvalidProductError(
                 "imageDataInfo or rowSpacing not found in metadata!"
             )
+
+        def_res = None
+        # For complex data, set regular ground range resolution provided by the constructor
+        # Missing spotlight and ship detection because the values are contextual
+        if self.product_type == TsxProductType.SSC:
+            if self.sensor_mode == TsxSensorMode.HS:
+                if polarization == TsxPolarization.S:
+                    def_res = 0.75
+                elif polarization == TsxPolarization.D:
+                    def_res = 1.5
+            elif self.sensor_mode == TsxSensorMode.SL:
+                if polarization == TsxPolarization.S:
+                    def_res = 1.5
+                elif polarization == TsxPolarization.D:
+                    def_res = 1.5
+            elif self.sensor_mode == TsxSensorMode.ST:
+                if polarization == TsxPolarization.S:
+                    def_res = 0.4
+            elif self.sensor_mode == TsxSensorMode.SM:
+                if polarization == TsxPolarization.S:
+                    def_res = 1.5
+                elif polarization == TsxPolarization.D:
+                    def_res = 3.0
+            elif self.sensor_mode == TsxSensorMode.SC:
+                # Read metadata
+                try:
+                    root, _ = self.read_mtd()
+                    acq_info = root.find(".//acquisitionInfo")
+                    nof_beams = int(acq_info.findtext(".//numberOfBeams"))
+                except (InvalidProductError, TypeError):
+                    raise InvalidProductError(
+                        "imageDataInfo or rowSpacing not found in metadata!"
+                    )
+                # Four beams
+                if nof_beams == 4:
+                    def_res = 8.25
+
+                elif nof_beams == 6:
+                    # Six beams
+                    def_res = 15.0
+
+        if not def_res:
+            # Read metadata
+            try:
+                root, _ = self.read_mtd()
+                img_data = root.find(".//imageDataInfo")
+                def_res = float(img_data.findtext(".//rowSpacing"))  # Square pixels
+            except (InvalidProductError, TypeError):
+                raise InvalidProductError(
+                    "imageDataInfo or rowSpacing not found in metadata!"
+                )
 
         return def_res
 

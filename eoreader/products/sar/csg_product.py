@@ -55,13 +55,13 @@ class CsgSensorMode(ListEnum):
     """SPOTLIGHT-1B"""
 
     S2A = "SPOTLIGHT-2A"
-    """SPOTLIGHT-2A (standard and apodized). Resolution: 0.25m"""
+    """SPOTLIGHT-2A (standard and apodized)"""
 
     S2B = "SPOTLIGHT-2B"
-    """SPOTLIGHT-2B (standard and apodized). Resolution: 0.45m"""
+    """SPOTLIGHT-2B (standard and apodized)"""
 
     S2C = "SPOTLIGHT-2C"
-    """SPOTLIGHT-2C (standard and apodized). Resolution: 0.56m"""
+    """SPOTLIGHT-2C (standard and apodized)"""
 
     S1_MSOR = "SPOTLIGHT-1-MSOR"
     """SPOTLIGHT-1-MSOR"""
@@ -113,35 +113,37 @@ class CsgProduct(CosmoProduct):
     def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
+        See here
+        <here](https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Second-Generation-Mission-Products-Description.pdf>`_
+        for more information (tables 23 and 24).
+        Taking the `CSK legacy` values
         """
-        # Read metadata for default resolution
-        try:
-            root, _ = self.read_mtd()
-            def_res = float(root.findtext(".//GroundRangeGeometricResolution"))
-        except (InvalidProductError, TypeError):
-            raise InvalidProductError(
-                "GroundRangeGeometricResolution not found in metadata!"
-            )
-        except ValueError:
-            if self.product_type == CosmoProductType.SCS:
-                if self.sensor_mode == CsgSensorMode.S2A:
-                    def_res = 0.25
-                elif self.sensor_mode == CsgSensorMode.S2B:
-                    def_res = 0.45
-                elif self.sensor_mode == CsgSensorMode.S2C:
-                    def_res = 0.56
-                elif self.sensor_mode == CsgSensorMode.PP:
-                    def_res = 8.0
-                elif self.sensor_mode == CsgSensorMode.SC1:
-                    def_res = 14.0
-                elif self.sensor_mode == CsgSensorMode.SC2:
-                    def_res = 27.0
-                else:
-                    # Complex data has an empty field and its resolution is not known (STRIPMAP and QUADPOL)
-                    def_res = -1.0
+        # For complex data, set regular ground range resolution provided by the constructor
+        if self.product_type == CosmoProductType.SCS:
+            if self.sensor_mode == CsgSensorMode.S2A:
+                def_res = 0.12
+            elif self.sensor_mode == CsgSensorMode.S2B:
+                def_res = 0.2
+            elif self.sensor_mode == CsgSensorMode.S2C:
+                def_res = 0.24
+            elif self.sensor_mode == CsgSensorMode.PP:
+                def_res = 10.0
+            elif self.sensor_mode == CsgSensorMode.SC1:
+                def_res = 15.0
+            elif self.sensor_mode == CsgSensorMode.SC2:
+                def_res = 50.0
+            elif self.sensor_mode in [CsgSensorMode.SM, CsgSensorMode.QP]:
+                def_res = 2.5
             else:
+                # Complex data has an empty field and its resolution is not known
+                def_res = -1.0
+        else:
+            try:
+                root, _ = self.read_mtd()
+                def_res = float(root.findtext(".//GroundRangeGeometricResolution"))
+            except (InvalidProductError, TypeError):
                 raise InvalidProductError(
-                    "GroundRangeGeometricResolution empty in metadata!"
+                    "GroundRangeGeometricResolution not found in metadata!"
                 )
 
         return def_res

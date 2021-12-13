@@ -1,9 +1,15 @@
 # Release History
 
+## 0.9.5 (2021-MM-DD)
+
+- FIX: Using `GRD` resolution given by the constructors as default values for `SLC` products. Do not look it up in
+  metadata as SLC resolution is **NOT** the GRD resolution !
+
 ## 0.9.4 (2021-12-13)
 
 - FIX: Caching properties and functions only for object instances
-- FIX: Fixing metadata reading for `COSMO-SkyMed 1st Generation` with `Wide Region` and complex product type (handling of multiple swaths)
+- FIX: Fixing metadata reading for `COSMO-SkyMed 1st Generation` with `Wide Region` and complex product type (handling
+  of multiple swaths)
 - FIX: Updates of SNAP GPT graphs for complex SAR data
 - FIX: Interpolate nodata inside SAR images (badly handled by SNAP -> fill the gaps that shouldn't exist)
 - INTERNAL: Creation of a class `CosmoProduct` handling generic methods for both `COSMO-SkyMed` generations
