@@ -102,7 +102,7 @@ upload_wheel:linux:
   image: python:3.7-buster
   stage: publish
   script:
-    - pip install twine
+    - pip install twine methodtools
     - python setup.py sdist bdist_wheel
     - TWINE_PASSWORD=${PYPI_PWD} TWINE_USERNAME=${PYPI_TOKEN} python -m twine upload dist/*
   tags:
