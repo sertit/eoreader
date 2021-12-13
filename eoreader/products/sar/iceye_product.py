@@ -90,17 +90,31 @@ class IceyeProduct(SarProduct):
     def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
+        See here
+        <here](https://www.iceye.com/hubfs/Downloadables/ICEYE_SAR_Product_Guide_2021_V4.0.pdf>`_
+        for more information (table B.3).
         """
-        # Read metadata for default resolution
-        try:
-            root, nsmap = self.read_mtd()
+        # For complex data, set regular ground range resolution provided by the constructor
+        if self.product_type == IceyeProductType.SLC:
+            if self.sensor_mode == IceyeSensorMode.SM:
+                def_res = 2.5
+            elif self.sensor_mode == IceyeSensorMode.SL:
+                def_res = 0.5
+            elif self.sensor_mode == IceyeSensorMode.SC:
+                def_res = 6.0
+            else:
+                raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
+        else:
+            # Read metadata for default resolution
+            try:
+                root, nsmap = self.read_mtd()
 
-            # Some ICEYE product metadata has a namespace some don't
-            namespace = nsmap.get(None, "")
+                # Some ICEYE product metadata has a namespace some don't
+                namespace = nsmap.get(None, "")
 
-            def_res = float(root.findtext(f".//{namespace}range_spacing"))
-        except (InvalidProductError, TypeError):
-            raise InvalidProductError("range_spacing not found in metadata!")
+                def_res = float(root.findtext(f".//{namespace}range_spacing"))
+            except (InvalidProductError, TypeError):
+                raise InvalidProductError("range_spacing not found in metadata!")
 
         return def_res
 

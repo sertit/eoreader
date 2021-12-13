@@ -26,7 +26,7 @@ import rasterio
 from sertit.misc import ListEnum
 
 from eoreader.exceptions import InvalidProductError
-from eoreader.products.sar.cosmo_product import CosmoProduct
+from eoreader.products.sar.cosmo_product import CosmoProduct, CosmoProductType
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -74,15 +74,32 @@ class CskProduct(CosmoProduct):
     def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
+        See here
+        <here](https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Mission-Products-Description.pdf>`_
+        for more information (p. 30)
         """
-        # Read metadata for default resolution
-        try:
-            root, _ = self.read_mtd()
-            def_res = float(root.findtext(".//GroundRangeGeometricResolution"))
-        except (InvalidProductError, TypeError):
-            raise InvalidProductError(
-                "GroundRangeGeometricResolution or rowSpacing not found in metadata!"
-            )
+        # For complex data, set regular ground range resolution provided by the constructor
+        if self.product_type == CosmoProductType.SCS:
+            if self.sensor_mode == CskSensorMode.HI:
+                def_res = 5.0
+            elif self.sensor_mode == CskSensorMode.PP:
+                def_res = 20.0
+            elif self.sensor_mode == CskSensorMode.WR:
+                def_res = 30.0
+            elif self.sensor_mode == CskSensorMode.HR:
+                def_res = 100.0
+            elif self.sensor_mode == CskSensorMode.S2:
+                def_res = 1.0
+            else:
+                raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
+        else:
+            try:
+                root, _ = self.read_mtd()
+                def_res = float(root.findtext(".//GroundRangeGeometricResolution"))
+            except (InvalidProductError, TypeError):
+                raise InvalidProductError(
+                    "GroundRangeGeometricResolution not found in metadata!"
+                )
 
         return def_res
 
