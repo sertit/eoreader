@@ -20,7 +20,15 @@
 from functools import wraps
 from typing import Callable
 
-from methodtools import lru_cache
+try:
+    from methodtools import lru_cache
+except ImportError:
+    print(
+        "WARNING!\n "
+        "Without methodtools library, caches are not limited to object instances!\n"
+        "Caches may be shared between similar products!"
+    )
+    from functools import lru_cache
 
 
 def cache(func: Callable) -> Callable:

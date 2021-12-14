@@ -2,6 +2,7 @@
 
 ## 0.9.5 (2021-MM-DD)
 
+- FIX: Do not force import `methodtools`
 - FIX: Using `GRD` resolution given by the constructors as default values for `SLC` products. Do not look it up in
   metadata as SLC resolution is **NOT** the GRD resolution !
 
