@@ -54,7 +54,7 @@ We are using some optimizations in order to optimize SNAP's GPT speed, as specif
 Do not hesitate to include it once again. For example:  
 ```python
 import os
-os.environ["PATH"] += += r";C:\Program Files\snap\bin"
+os.environ["PATH"] += r";C:\Program Files\snap\bin"
 ```
 - Sometimes a weird bug appears with conda and the .xml files stored in `eoreader/data` are not in the conda package.  
 If it happens, please post an issue and in the meantime download them from [Github](https://github.com/sertit/eoreader/tree/master/eoreader/data), then set the graphs by hand:
