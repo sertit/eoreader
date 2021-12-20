@@ -33,16 +33,31 @@ but they have not been tested.
 >>> prod.output = os.path.join(output, prod.condensed_name)  # It will automatically create it if needed
 ```
 
+
+### Optical
+
 The recognized paths for products directories are:
 
-- `Sentinel`: Main directory, `.SAFE`, `.SEN3` or `.zip`, i.e. `S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE`
-- `Theia`:  Main directory containing the `.tif` image, i.e. `SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2`
-- `Landsat`: Main directory extracted or archived if Collection 2 (`.tar`), i.e. `LC08_L1TP_200030_20201220_20210310_02_T1.tar`
-- `Planet`: Directory containing the `files` directory, i.e. `20210406_015904_37_2407`
-- `DIMAP`: Directory containing the `.JP2` files, i.e. `IMG_PHR1B_PMS_001`
-- `COSMO-Skymed`: Directory containing the `.h5` image, i.e. `1011117-766193`
-- `RADARSAT-2`: Main directory containing the `.tif` image, i.e. `RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip`
-- `TerraSAR-X`: Directory containing the `IMAGEDATA` directory, i.e. `TDX1_SAR__MGD_SE___SM_S_SRA_20201016T231611_20201016T231616`
+|Sensor group | Folder to link|
+|--- | ---|
+|`Sentinel 2 and 3` | Main directory, `.SAFE`, `.SEN3` or `.zip`, i.e. `S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE`|
+|`Sentinel 2 Theia` | Main directory containing the `.tif` image, i.e. `SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2`|
+|`Landsats`| Main directory extracted or archived if Collection 2 (`.tar`), i.e. `LC08_L1TP_200030_20201220_20210310_02_T1.tar`|
+|`Planet` | Directory containing the `manifest.json` file, i.e. `20210406_015904_37_2407`|
+|`DIMAP (Pleiades, SPOTs, ...)` | Directory containing the `.JP2` files, i.e. `IMG_PHR1B_PMS_001`|
+|`Maxar (WorldVieww, GeoEye...)` | Directory containing the `.TIL` file, i.e. `013187549010_01_P001_PSH`|
+
+### SAR
+
+The recognized paths for products directories are:
+
+|Sensor group | Folder to link|
+|--- | ---|
+|`Sentinel-1 and RADARSAT-Constellation Mission` | SAFE directory containing the `manifest.safe` file, i.e. `S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.SAFE`|
+|`COSMO-Skymed 1 and 2ng Generation` | Directory containing the `.h5` image, i.e. `1011117-766193`|
+|`RADARSAT-2` | Main directory containing the `.tif` image, i.e. `RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip`|
+|`TerraSAR-X, TanDEM-X or PAZ SAR` | Directory containing the `IMAGEDATA` directory, i.e. `TDX1_SAR__MGD_SE___SM_S_SRA_20201016T231611_20201016T231616`|
+|`ICEYE` | Directory containing the `.tif` file, i.e. `SC_124020`|
 
 ## Load
 
