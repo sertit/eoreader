@@ -93,6 +93,17 @@ def test_products():
     assert prod2 < prod1
     assert prod1 != prod2
 
+    # Test bands
+    assert prod1.has_band(BLUE)
+    assert prod1.has_bands(BLUE)
+    assert prod1.has_bands([BLUE, RED, GREEN])
+    with pytest.raises(AssertionError):
+        assert prod1.has_band(VV)
+    with pytest.raises(AssertionError):
+        assert prod1.has_bands(VV)
+    with pytest.raises(AssertionError):
+        assert prod1.has_bands([VV, RED, GREEN])
+
     # Test without a DEM set:
     old_dem = None
     if DEM_PATH in os.environ:

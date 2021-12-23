@@ -911,7 +911,7 @@ class Product:
             True
 
         Args:
-            band (Union[obn, sbn]): Optical or SAR band
+            band (Union[BandNames, Callable]): Optical or SAR band
 
         Returns:
             bool: True if the products has the specified band
@@ -929,6 +929,30 @@ class Product:
             has_band = band in self.get_existing_bands()
 
         return has_band
+
+    def has_bands(self, bands: Union[list, BandNames, Callable]) -> bool:
+        """
+        Does this products has the specified bands ?
+
+        By band, we mean:
+
+        - satellite band
+        - index
+        - DEM band
+        - cloud band
+
+        See `has_bands` for a code example.
+
+        Args:
+            band (Union[list, BandNames, Callable]): List (or unique value) of Optical or SAR bands
+
+        Returns:
+            bool: True if the products has the specified band
+        """
+        if not isinstance(bands, list):
+            bands = [bands]
+
+        return all([self.has_band(band) for band in set(bands)])
 
     @abstractmethod
     def _has_cloud_band(self, band: BandNames) -> bool:
@@ -1089,11 +1113,6 @@ class Product:
     ) -> str:
         """
         Get this products DEM, warped to this products footprint and CRS.
-
-        If no DEM is giving (or non existing or non intersecting the products):
-
-        - Using EUDEM over Europe
-        - Using MERIT DEM everywhere else
 
         .. code-block:: python
 

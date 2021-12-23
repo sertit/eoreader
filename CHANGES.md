@@ -1,5 +1,9 @@
 # Release History
 
+## 0.10.0 (2022-MM-DD)
+
+- **ENH: Adding a `has_bands` to products, ingesting lists as a shortcut for testing the availability of multiple bands**
+
 ## 0.9.5 (2021-12-14)
 
 - FIX: Do not force import `methodtools` (not existing lib in conda)
