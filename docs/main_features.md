@@ -54,7 +54,7 @@ The recognized paths for products directories are:
 |Sensor group | Folder to link|
 |--- | ---|
 |`Sentinel-1 and RADARSAT-Constellation Mission` | SAFE directory containing the `manifest.safe` file, i.e. `S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.SAFE`|
-|`COSMO-Skymed 1 and 2ng Generation` | Directory containing the `.h5` image, i.e. `1011117-766193`|
+|`COSMO-Skymed 1 and 2nd Generation` | Directory containing the `.h5` image, i.e. `1011117-766193`|
 |`RADARSAT-2` | Main directory containing the `.tif` image, i.e. `RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip`|
 |`TerraSAR-X, TanDEM-X or PAZ SAR` | Directory containing the `IMAGEDATA` directory, i.e. `TDX1_SAR__MGD_SE___SM_S_SRA_20201016T231611_20201016T231616`|
 |`ICEYE` | Directory containing the `.tif` file, i.e. `SC_124020`|
