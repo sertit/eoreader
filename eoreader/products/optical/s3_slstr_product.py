@@ -920,7 +920,10 @@ class S3SlstrProduct(S3Product):
                         f"Non existing cloud band for Sentinel-3 SLSTR: {band}"
                     )
 
-                band_dict[band] = cloud.rename(to_str(band)[0])
+                # Rename
+                band_name = to_str(band)[0]
+                cloud.attrs["long_name"] = band_name
+                band_dict[band] = cloud.rename(band_name)
 
         return band_dict
 

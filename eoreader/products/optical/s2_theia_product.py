@@ -669,7 +669,10 @@ class S2TheiaProduct(OpticalProduct):
                         f"Non existing cloud band for Sentinel-2 THEIA: {res_id}"
                     )
 
-                band_dict[band] = cloud.rename(to_str(band)[0])
+                # Rename
+                band_name = to_str(band)[0]
+                cloud.attrs["long_name"] = band_name
+                band_dict[band] = cloud.rename(band_name)
 
         return band_dict
 

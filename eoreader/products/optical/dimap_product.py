@@ -40,7 +40,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, cached_property, utils
-from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
+from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, to_str
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -580,15 +580,20 @@ class DimapProduct(VhrProduct):
                         (1, def_xarr.rio.height, def_xarr.rio.width), dtype=np.uint8
                     )
 
-            for res_id in bands:
-                if res_id in [ALL_CLOUDS, CLOUDS, RAW_CLOUDS]:
-                    band_dict[res_id] = self._create_mask(
-                        def_xarr.rename(res_id.name),
+            for band in bands:
+                if band in [ALL_CLOUDS, CLOUDS, RAW_CLOUDS]:
+                    cloud = self._create_mask(
+                        def_xarr,
                         cld_arr,
                         nodata,
                     )
                 else:
-                    raise InvalidTypeError(f"Non existing cloud band for: {res_id}")
+                    raise InvalidTypeError(f"Non existing cloud band for: {band}")
+
+                # Rename
+                band_name = to_str(band)[0]
+                cloud.attrs["long_name"] = band_name
+                band_dict[band] = cloud.rename(band_name)
 
         return band_dict
 
