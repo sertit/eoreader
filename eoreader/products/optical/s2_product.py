@@ -1004,7 +1004,10 @@ class S2Product(OpticalProduct):
                         f"Non existing cloud band for Sentinel-2: {band}"
                     )
 
-                band_dict[band] = cloud.rename(to_str(band)[0])
+                # Rename
+                band_name = to_str(band)[0]
+                cloud.attrs["long_name"] = band_name
+                band_dict[band] = cloud.rename(band_name)
 
         return band_dict
 
@@ -1050,7 +1053,13 @@ class S2Product(OpticalProduct):
                         f"Non existing cloud band for Sentinel-2: {band}"
                     )
 
-                band_dict[band] = cloud.rename(to_str(band)[0])
+                if len(cloud.shape) == 2:
+                    cloud = cloud.expand_dims(dim="band", axis=0)
+
+                # Rename
+                band_name = to_str(band)[0]
+                cloud.attrs["long_name"] = band_name
+                band_dict[band] = cloud.rename(band_name)
 
         return band_dict
 

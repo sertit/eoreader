@@ -874,7 +874,10 @@ class LandsatProduct(OpticalProduct):
                     f"Non existing cloud band for Landsat-MSS sensor: {band}"
                 )
 
-            band_dict[band] = cloud.rename(to_str(band)[0])
+            # Rename
+            band_name = to_str(band)[0]
+            cloud.attrs["long_name"] = band_name
+            band_dict[band] = cloud.rename(band_name)
 
         return band_dict
 
@@ -938,7 +941,10 @@ class LandsatProduct(OpticalProduct):
                     f"Non existing cloud band for Landsat-(E)TM sensor: {band}"
                 )
 
-            band_dict[band] = cloud.rename(to_str(band)[0])
+            # Rename
+            band_name = to_str(band)[0]
+            cloud.attrs["long_name"] = band_name
+            band_dict[band] = cloud.rename(band_name)
 
         return band_dict
 
@@ -1026,6 +1032,9 @@ class LandsatProduct(OpticalProduct):
                     f"Non existing cloud band for Landsat-OLCI sensor: {band}"
                 )
 
-            band_dict[band] = cloud.rename(to_str(band)[0])
+            # Rename
+            band_name = to_str(band)[0]
+            cloud.attrs["long_name"] = band_name
+            band_dict[band] = cloud.rename(band_name)
 
         return band_dict

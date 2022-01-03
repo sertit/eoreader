@@ -37,7 +37,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, cached_property, utils
-from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
+from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, to_str
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -656,9 +656,9 @@ class PlaProduct(OpticalProduct):
         nodata = self._load_nodata(resolution, size).data
 
         if bands:
-            for res_id in bands:
-                if res_id == ALL_CLOUDS:
-                    band_dict[res_id] = self._create_mask(
+            for band in bands:
+                if band == ALL_CLOUDS:
+                    cloud = self._create_mask(
                         def_xarr.rename(ALL_CLOUDS.name),
                         (
                             self.open_mask("CLOUD", resolution, size).data
@@ -667,32 +667,35 @@ class PlaProduct(OpticalProduct):
                         ),
                         nodata,
                     )
-                elif res_id == SHADOWS:
-                    band_dict[res_id] = self._create_mask(
+                elif band == SHADOWS:
+                    cloud = self._create_mask(
                         def_xarr.rename(SHADOWS.name),
                         self.open_mask("SHADOW", resolution, size).data,
                         nodata,
                     )
-                elif res_id == CLOUDS:
-                    band_dict[res_id] = self._create_mask(
+                elif band == CLOUDS:
+                    cloud = self._create_mask(
                         def_xarr.rename(CLOUDS.name),
                         self.open_mask("CLOUD", resolution, size).data,
                         nodata,
                     )
-                elif res_id == CIRRUS:
-                    band_dict[res_id] = self._create_mask(
+                elif band == CIRRUS:
+                    cloud = self._create_mask(
                         def_xarr.rename(CIRRUS.name),
                         self.open_mask("HEAVY_HAZE", resolution, size).data,
                         nodata,
                     )
-                elif res_id == RAW_CLOUDS:
-                    band_dict[res_id] = utils.read(
-                        self._get_path("udm2", "tif"), resolution, size
-                    )
+                elif band == RAW_CLOUDS:
+                    cloud = utils.read(self._get_path("udm2", "tif"), resolution, size)
                 else:
                     raise InvalidTypeError(
-                        f"Non existing cloud band for Planet: {res_id}"
+                        f"Non existing cloud band for Planet: {band}"
                     )
+
+                # Rename
+                band_name = to_str(band)[0]
+                cloud.attrs["long_name"] = band_name
+                band_dict[band] = cloud.rename(band_name)
 
         return band_dict
 
