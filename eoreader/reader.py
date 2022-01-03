@@ -197,7 +197,7 @@ PLATFORM_REGEX = {
     Platform.WV02: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Platform.WV03: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Platform.WV04: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Platform.ICEYE: r"((SM|SL|SC)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC)H*_\d{5,}_\d{8}T\d{6})",
+    Platform.ICEYE: r"((SM|SL|SC|SLEA)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC|SLEA)H*_\d{5,}_\d{8}T\d{6})",
 }
 
 # Not used for now
@@ -244,7 +244,7 @@ MTD_REGEX = {
     Platform.WV02: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Platform.WV03: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Platform.WV04: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Platform.ICEYE: r"ICEYE_X\d_(SLC|GRD)_(SM|SL|SC)H*_\d{5,}_\d{8}T\d{6}\.xml",
+    Platform.ICEYE: r"ICEYE_X\d{1,}_(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
 }
 
 
