@@ -650,6 +650,9 @@ class MaxarProduct(VhrProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
+        if bands:
+            LOGGER.warning("Maxar products do not provide any cloud file")
+
         return {}
 
     def _get_til_path(self) -> Union[CloudPath, Path]:

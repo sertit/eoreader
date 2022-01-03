@@ -35,7 +35,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, cached_property, utils
-from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
+from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, to_str
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -819,20 +819,20 @@ class LandsatProduct(OpticalProduct):
             qa_arr = self._read_band(landsat_qa_path, resolution=resolution, size=size)
 
             if self.product_type == LandsatProductType.L1_OLCI:
-                band_dict = self._load_olci_clouds(qa_arr, bands)
+                band_dict = self._open_olci_clouds(qa_arr, bands)
             elif self.product_type in [
                 LandsatProductType.L1_ETM,
                 LandsatProductType.L1_TM,
             ]:
-                band_dict = self._load_e_tm_clouds(qa_arr, bands)
+                band_dict = self._open_e_tm_clouds(qa_arr, bands)
             elif self.product_type == LandsatProductType.L1_MSS:
-                band_dict = self._load_mss_clouds(qa_arr, bands)
+                band_dict = self._open_mss_clouds(qa_arr, bands)
             else:
                 raise InvalidProductError(f"Invalid product type: {self.product_type}")
 
         return band_dict
 
-    def _load_mss_clouds(self, qa_arr: XDS_TYPE, band_list: list) -> dict:
+    def _open_mss_clouds(self, qa_arr: XDS_TYPE, band_list: list) -> dict:
         """
         Load cloud files as xarrays.
 
@@ -849,7 +849,7 @@ class LandsatProduct(OpticalProduct):
         Returns:
             dict, dict: Dictionary {band_name, band_array}
         """
-        bands = {}
+        band_dict = {}
 
         # Get clouds and nodata
         nodata_id = 0
@@ -864,19 +864,21 @@ class LandsatProduct(OpticalProduct):
 
         for band in band_list:
             if band == ALL_CLOUDS:
-                bands[band] = clouds
+                cloud = clouds
             elif band == CLOUDS:
-                bands[band] = clouds
+                cloud = clouds
             elif band == RAW_CLOUDS:
-                bands[band] = qa_arr
+                cloud = qa_arr
             else:
                 raise InvalidTypeError(
                     f"Non existing cloud band for Landsat-MSS sensor: {band}"
                 )
 
-        return bands
+            band_dict[band] = cloud.rename(to_str(band)[0])
 
-    def _load_e_tm_clouds(
+        return band_dict
+
+    def _open_e_tm_clouds(
         self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
     ) -> dict:
         """
@@ -896,7 +898,7 @@ class LandsatProduct(OpticalProduct):
         Returns:
             dict, dict: Dictionary {band_name, band_array}
         """
-        bands = {}
+        band_dict = {}
 
         # Get clouds and nodata
         nodata = None
@@ -924,21 +926,23 @@ class LandsatProduct(OpticalProduct):
 
         for band in band_list:
             if band == ALL_CLOUDS:
-                bands[band] = self._create_mask(qa_arr, cld | shd, nodata)
+                cloud = self._create_mask(qa_arr, cld | shd, nodata)
             elif band == SHADOWS:
-                bands[band] = self._create_mask(qa_arr, shd, nodata)
+                cloud = self._create_mask(qa_arr, shd, nodata)
             elif band == CLOUDS:
-                bands[band] = self._create_mask(qa_arr, cld, nodata)
+                cloud = self._create_mask(qa_arr, cld, nodata)
             elif band == RAW_CLOUDS:
-                bands[band] = qa_arr
+                cloud = qa_arr
             else:
                 raise InvalidTypeError(
                     f"Non existing cloud band for Landsat-(E)TM sensor: {band}"
                 )
 
-        return bands
+            band_dict[band] = cloud.rename(to_str(band)[0])
 
-    def _load_olci_clouds(
+        return band_dict
+
+    def _open_olci_clouds(
         self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
     ) -> dict:
         """
@@ -957,7 +961,7 @@ class LandsatProduct(OpticalProduct):
         Returns:
             dict, dict: Dictionary {band_name, band_array}
         """
-        bands = {}
+        band_dict = {}
 
         # Get clouds and nodata
         nodata = None
@@ -1008,18 +1012,20 @@ class LandsatProduct(OpticalProduct):
 
         for band in band_list:
             if band == ALL_CLOUDS:
-                bands[band] = self._create_mask(qa_arr, cld | shd | cir, nodata)
+                cloud = self._create_mask(qa_arr, cld | shd | cir, nodata)
             elif band == SHADOWS:
-                bands[band] = self._create_mask(qa_arr, shd, nodata)
+                cloud = self._create_mask(qa_arr, shd, nodata)
             elif band == CLOUDS:
-                bands[band] = self._create_mask(qa_arr, cld, nodata)
+                cloud = self._create_mask(qa_arr, cld, nodata)
             elif band == CIRRUS:
-                bands[band] = self._create_mask(qa_arr, cir, nodata)
+                cloud = self._create_mask(qa_arr, cir, nodata)
             elif band == RAW_CLOUDS:
-                bands[band] = qa_arr
+                cloud = qa_arr
             else:
                 raise InvalidTypeError(
                     f"Non existing cloud band for Landsat-OLCI sensor: {band}"
                 )
 
-        return bands
+            band_dict[band] = cloud.rename(to_str(band)[0])
+
+        return band_dict

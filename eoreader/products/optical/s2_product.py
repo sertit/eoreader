@@ -38,7 +38,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, cached_property, utils
-from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
+from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, to_str
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -982,27 +982,29 @@ class S2Product(OpticalProduct):
 
             for band in bands:
                 if band == ALL_CLOUDS:
-                    band_dict[band] = self._rasterize(def_band, cloud_vec, nodata)
+                    cloud = self._rasterize(def_band, cloud_vec, nodata)
                 elif band == CIRRUS:
                     try:
                         cirrus = cloud_vec[cloud_vec.maskType == "CIRRUS"]
                     except AttributeError:
                         # No masktype -> empty
                         cirrus = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
-                    band_dict[band] = self._rasterize(def_band, cirrus, nodata)
+                    cloud = self._rasterize(def_band, cirrus, nodata)
                 elif band == CLOUDS:
                     try:
                         clouds = cloud_vec[cloud_vec.maskType == "OPAQUE"]
                     except AttributeError:
                         # No masktype -> empty
                         clouds = gpd.GeoDataFrame(geometry=[], crs=cloud_vec.crs)
-                    band_dict[band] = self._rasterize(def_band, clouds, nodata)
+                    cloud = self._rasterize(def_band, clouds, nodata)
                 elif band == RAW_CLOUDS:
-                    band_dict[band] = self._rasterize(def_band, cloud_vec, nodata)
+                    cloud = self._rasterize(def_band, cloud_vec, nodata)
                 else:
                     raise InvalidTypeError(
                         f"Non existing cloud band for Sentinel-2: {band}"
                     )
+
+                band_dict[band] = cloud.rename(to_str(band)[0])
 
         return band_dict
 
@@ -1036,17 +1038,19 @@ class S2Product(OpticalProduct):
 
             for band in bands:
                 if band == ALL_CLOUDS:
-                    band_dict[band] = cloud_vec[0, :, :] | cloud_vec[1, :, :]
+                    cloud = cloud_vec[0, :, :] | cloud_vec[1, :, :]
                 elif band == CIRRUS:
-                    band_dict[band] = cloud_vec[1, :, :]  # CIRRUS = band 2
+                    cloud = cloud_vec[1, :, :]  # CIRRUS = band 2
                 elif band == CLOUDS:
-                    band_dict[band] = cloud_vec[0, :, :]  # OPAQUE = band 1
+                    cloud = cloud_vec[0, :, :]  # OPAQUE = band 1
                 elif band == RAW_CLOUDS:
-                    band_dict[band] = cloud_vec
+                    cloud = cloud_vec
                 else:
                     raise InvalidTypeError(
                         f"Non existing cloud band for Sentinel-2: {band}"
                     )
+
+                band_dict[band] = cloud.rename(to_str(band)[0])
 
         return band_dict
 
