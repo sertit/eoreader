@@ -945,7 +945,7 @@ class S2Product(OpticalProduct):
             has_band = True
         return has_band
 
-    def _load_clouds_lt_4_0(
+    def _open_clouds_lt_4_0(
         self,
         bands: list,
         resolution: float = None,
@@ -1006,7 +1006,7 @@ class S2Product(OpticalProduct):
 
         return band_dict
 
-    def _load_clouds_gt_4_0(
+    def _open_clouds_gt_4_0(
         self,
         bands: list,
         resolution: float = None,
@@ -1050,7 +1050,7 @@ class S2Product(OpticalProduct):
 
         return band_dict
 
-    def _load_clouds(
+    def _open_clouds(
         self,
         bands: list,
         resolution: float = None,
@@ -1072,9 +1072,9 @@ class S2Product(OpticalProduct):
             dict: Dictionary {band_name, band_xarray}
         """
         if self._processing_baseline_lt_4_0:
-            return self._load_clouds_lt_4_0(bands, resolution, size, **kwargs)
+            return self._open_clouds_lt_4_0(bands, resolution, size, **kwargs)
         else:
-            return self._load_clouds_gt_4_0(bands, resolution, size, **kwargs)
+            return self._open_clouds_gt_4_0(bands, resolution, size, **kwargs)
 
     def _rasterize(
         self, xds: XDS_TYPE, geometry: gpd.GeoDataFrame, nodata: np.ndarray

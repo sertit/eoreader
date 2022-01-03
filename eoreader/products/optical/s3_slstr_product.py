@@ -835,7 +835,7 @@ class S3SlstrProduct(S3Product):
 
         return has_band
 
-    def _load_clouds(
+    def _open_clouds(
         self,
         bands: list,
         resolution: float = None,

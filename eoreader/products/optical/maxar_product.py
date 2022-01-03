@@ -632,7 +632,7 @@ class MaxarProduct(VhrProduct):
         """
         return False
 
-    def _load_clouds(
+    def _open_clouds(
         self,
         bands: list,
         resolution: float = None,
@@ -641,8 +641,6 @@ class MaxarProduct(VhrProduct):
     ) -> dict:
         """
         Load cloud files as xarrays.
-
-        CIRRUS is HEAVY_HAZE
 
         Args:
             bands (list): List of the wanted bands

@@ -594,7 +594,7 @@ class S2TheiaProduct(OpticalProduct):
         """
         return True
 
-    def _load_clouds(
+    def _open_clouds(
         self,
         bands: list,
         resolution: float = None,
