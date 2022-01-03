@@ -525,8 +525,6 @@ class DimapProduct(VhrProduct):
         """
         Load cloud files as xarrays.
 
-        CIRRUS is HEAVY_HAZE
-
         Args:
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters

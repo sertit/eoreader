@@ -4,6 +4,7 @@
 
 - **ENH: Adding `has_bands` to products, ingesting lists as a shortcut for testing the availability of multiple bands**
 - OPTIM: Writing cloud bands on disk to speed up multiple calls to `load` or `stack` functions [#17](https://github.com/sertit/eoreader/issues/17)
+- FIX: Correctly naming cloud xarrays
 - FIX: Add missing `SLEA` (Spot Extended Area) product type to `ICEYE` data
 - DOC: Updating copyright to 2022
 

@@ -35,7 +35,7 @@ from sertit import files, rasters, rasters_rio, vectors
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, cached_property, utils
-from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS
+from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, to_str
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -649,29 +649,27 @@ class S2TheiaProduct(OpticalProduct):
             shadows_in_id = 5
             shadows_out_id = 6
 
-            for res_id in bands:
-                if res_id == ALL_CLOUDS:
-                    band_dict[res_id] = self._create_mask(
+            for band in bands:
+                if band == ALL_CLOUDS:
+                    cloud = self._create_mask(
                         clouds_mask, [clouds_shadows_id, cirrus_id], nodata
                     )
-                elif res_id == SHADOWS:
-                    band_dict[res_id] = self._create_mask(
+                elif band == SHADOWS:
+                    cloud = self._create_mask(
                         clouds_mask, [shadows_in_id, shadows_out_id], nodata
                     )
-                elif res_id == CLOUDS:
-                    band_dict[res_id] = self._create_mask(
-                        clouds_mask, clouds_id, nodata
-                    )
-                elif res_id == CIRRUS:
-                    band_dict[res_id] = self._create_mask(
-                        clouds_mask, cirrus_id, nodata
-                    )
-                elif res_id == RAW_CLOUDS:
-                    band_dict[res_id] = clouds_mask
+                elif band == CLOUDS:
+                    cloud = self._create_mask(clouds_mask, clouds_id, nodata)
+                elif band == CIRRUS:
+                    cloud = self._create_mask(clouds_mask, cirrus_id, nodata)
+                elif band == RAW_CLOUDS:
+                    cloud = clouds_mask
                 else:
                     raise InvalidTypeError(
                         f"Non existing cloud band for Sentinel-2 THEIA: {res_id}"
                     )
+
+                band_dict[band] = cloud.rename(to_str(band)[0])
 
         return band_dict
 

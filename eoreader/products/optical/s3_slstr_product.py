@@ -39,7 +39,7 @@ from sertit.rasters import MAX_CORES, XDS_TYPE
 from sertit.vectors import WGS84
 
 from eoreader import cache, utils
-from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS
+from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, to_str
 from eoreader.bands.bands import BandNames
 from eoreader.bands.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -908,17 +908,19 @@ class S3SlstrProduct(S3Product):
 
             for band in bands:
                 if band == ALL_CLOUDS:
-                    band_dict[band] = self._create_mask(clouds_array, all_ids, nodata)
+                    cloud = self._create_mask(clouds_array, all_ids, nodata)
                 elif band == CLOUDS:
-                    band_dict[band] = self._create_mask(clouds_array, cloud_ids, nodata)
+                    cloud = self._create_mask(clouds_array, cloud_ids, nodata)
                 elif band == CIRRUS:
-                    band_dict[band] = self._create_mask(clouds_array, cir_id, nodata)
+                    cloud = self._create_mask(clouds_array, cir_id, nodata)
                 elif band == RAW_CLOUDS:
-                    band_dict[band] = clouds_array
+                    cloud = clouds_array
                 else:
                     raise InvalidTypeError(
                         f"Non existing cloud band for Sentinel-3 SLSTR: {band}"
                     )
+
+                band_dict[band] = cloud.rename(to_str(band)[0])
 
         return band_dict
 
