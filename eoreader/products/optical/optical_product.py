@@ -451,6 +451,26 @@ class OpticalProduct(Product):
         return hillshade_path
 
     @abstractmethod
+    def _open_clouds(
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Open cloud files as xarrays.
+
+        Args:
+            bands (list): List of the wanted bands
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
+
     def _load_clouds(
         self,
         bands: list,
@@ -469,7 +489,33 @@ class OpticalProduct(Product):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        band_dict = {}
+        if bands:
+            # First, try to open the cloud band written on disk
+            bands_to_load = []
+            for band in bands:
+                cloud_path = self._get_cloud_band_path(
+                    band, resolution, size, writable=False, **kwargs
+                )
+                if cloud_path.is_file():
+                    band_dict[band] = utils.read(cloud_path)
+                else:
+                    bands_to_load.append(band)
+
+            # Then load other bands that haven't be loaded before
+            loaded_bands = self._open_clouds(bands_to_load, resolution, size, **kwargs)
+
+            # Write them on disk
+            for band_id, band_arr in loaded_bands.items():
+                cloud_path = self._get_cloud_band_path(
+                    band_id, resolution, size, writable=True, **kwargs
+                )
+                utils.write(band_arr, cloud_path)
+
+            # Merge the dict
+            band_dict.update(loaded_bands)
+
+        return band_dict
 
     def _create_mask(
         self, xds: XDS_TYPE, cond: np.ndarray, nodata: np.ndarray
@@ -501,6 +547,8 @@ class OpticalProduct(Product):
         Args:
             band (OpticalBandNames): Wanted band
             resolution (float): Band resolution in meters
+            writable (bool): True if we want the band folder to be writeable
+            kwargs: Additional arguments
 
         Returns:
             Union[CloudPath, Path]: Clean band path
@@ -509,4 +557,38 @@ class OpticalProduct(Product):
 
         return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_clean.tif",
+        )
+
+    def _get_cloud_band_path(
+        self,
+        band: obn,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        writable: bool = False,
+        **kwargs,
+    ) -> Union[CloudPath, Path]:
+        """
+        Get cloud band path.
+
+        Args:
+            band (OpticalBandNames): Wanted band
+            resolution (float): Band resolution in meters
+            writable (bool): True if we want the band folder to be writeable
+            kwargs: Additional arguments
+
+        Returns:
+            Union[CloudPath, Path]: Clean band path
+        """
+        # Manage resolution
+        if resolution is None:
+            if size is not None:
+                resolution = self._resolution_from_size(size)
+            else:
+                resolution = self.resolution
+
+        # Convert to str
+        res_str = self._resolution_to_str(resolution)
+
+        return self._get_band_folder(writable).joinpath(
+            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}.tif",
         )

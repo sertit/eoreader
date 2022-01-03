@@ -515,7 +515,7 @@ class DimapProduct(VhrProduct):
             has_band = True
         return has_band
 
-    def _load_clouds(
+    def _open_clouds(
         self,
         bands: list,
         resolution: float = None,

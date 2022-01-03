@@ -725,7 +725,7 @@ class S3Product(OpticalProduct):
         return nc.copy()
 
     @abstractmethod
-    def _load_clouds(
+    def _open_clouds(
         self,
         bands: list,
         resolution: float = None,

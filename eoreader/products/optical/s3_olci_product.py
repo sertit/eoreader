@@ -544,7 +544,7 @@ class S3OlciProduct(S3Product):
         """
         return False
 
-    def _load_clouds(
+    def _open_clouds(
         self,
         bands: list,
         resolution: float = None,

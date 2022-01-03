@@ -622,7 +622,7 @@ class PlaProduct(OpticalProduct):
         # but not having reliable interpretation of the radiometry or surface reflectance.
         return True
 
-    def _load_clouds(
+    def _open_clouds(
         self,
         bands: list,
         resolution: float = None,
