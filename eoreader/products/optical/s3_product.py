@@ -382,8 +382,8 @@ class S3Product(OpticalProduct):
             Executing processing graph
             ...11%...21%...31%...42%...52%...62%...73%...83%... done.
             {
-                <OpticalBandNames.GREEN: 'GREEN'>: '20191115T233722_S3_SLSTR_RBT\\S1_reflectance.tif',
-                <OpticalBandNames.RED: 'RED'>: '20191115T233722_S3_SLSTR_RBT\\S2_reflectance.tif',
+                <OpticalBandNames.GREEN: 'GREEN'>: '20191115T233722_S3_SLSTR_RBT/S1_reflectance.tif',
+                <OpticalBandNames.RED: 'RED'>: '20191115T233722_S3_SLSTR_RBT/S2_reflectance.tif',
             }
 
         Args:

@@ -270,7 +270,7 @@ class SarProduct(Product):
             >>> prod.get_default_band_path()
             Executing processing graph
             ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.
-            '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif'
+            '20191215T060906_S1_IW_GRD/20191215T060906_S1_IW_GRD_VV.tif'
 
         Args:
             kwargs: Additional arguments
@@ -430,7 +430,7 @@ class SarProduct(Product):
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([VV, HH])
             {
-                <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif'
+                <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD/20191215T060906_S1_IW_GRD_VV.tif'
             }
             >>> # HH doesn't exist
 
@@ -542,10 +542,10 @@ class SarProduct(Product):
             Executing processing graph
             ....10%....20%....30%....40%....50%....60%....70%....80%....90% done.
             {
-                <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV.tif',
-                <SarBandNames.VH: 'VH'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VH.tif',
-                <SarBandNames.VV_DSPK: 'VV_DSPK'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VV_DSPK.tif',
-                <SarBandNames.VH_DSPK: 'VH_DSPK'>: '20191215T060906_S1_IW_GRD\\20191215T060906_S1_IW_GRD_VH_DSPK.tif'
+                <SarBandNames.VV: 'VV'>: '20191215T060906_S1_IW_GRD/20191215T060906_S1_IW_GRD_VV.tif',
+                <SarBandNames.VH: 'VH'>: '20191215T060906_S1_IW_GRD/20191215T060906_S1_IW_GRD_VH.tif',
+                <SarBandNames.VV_DSPK: 'VV_DSPK'>: '20191215T060906_S1_IW_GRD/20191215T060906_S1_IW_GRD_VV_DSPK.tif',
+                <SarBandNames.VH_DSPK: 'VH_DSPK'>: '20191215T060906_S1_IW_GRD/20191215T060906_S1_IW_GRD_VH_DSPK.tif'
             }
 
         Returns:

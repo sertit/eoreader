@@ -127,7 +127,7 @@ def read(
 
     .. code-block:: python
 
-        >>> raster_path = "path\\to\\raster.tif"
+        >>> raster_path = "path/to/raster.tif"
         >>> xds1 = read(raster_path)
         >>> # or
         >>> with rasterio.open(raster_path) as dst:
@@ -169,8 +169,8 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
     Overload of `sertit.rasters.write()` managing DASK in EOReader's way.
 
     ```python
-    >>> raster_path = "path\\to\\raster.tif"
-    >>> raster_out = "path\\to\\out.tif"
+    >>> raster_path = "path/to/raster.tif"
+    >>> raster_out = "path/to/out.tif"
 
     >>> # Read raster
     >>> xds = read(raster_path)
