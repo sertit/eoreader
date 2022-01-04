@@ -12,6 +12,7 @@
 - FIX: Add missing `SLEA` (Spot Extended Area) product type to `ICEYE` data
 - FIX: Sentinel-2 clouds (with processing baseline >= 4.0) are now given with a rasterio shape (`count`, `height`, `width`)
 - CI: Remove `pages` stage and run only the tests when a Python file has changed
+- DOC: Updating notebooks
 - DOC: Updating copyright to 2022
 
 ## 0.9.5 (2021-12-14)
