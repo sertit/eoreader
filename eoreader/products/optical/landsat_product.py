@@ -404,9 +404,9 @@ class LandsatProduct(OpticalProduct):
             >>> prod.get_band_paths([GREEN, RED])
             {
                 <OpticalBandNames.GREEN: 'GREEN'>:
-                    'LC08_L1GT_023030_20200518_20200527_01_T2\\LC08_L1GT_023030_20200518_20200527_01_T2_B3.TIF',
+                    'LC08_L1GT_023030_20200518_20200527_01_T2/LC08_L1GT_023030_20200518_20200527_01_T2_B3.TIF',
                 <OpticalBandNames.RED: 'RED'>:
-                    'LC08_L1GT_023030_20200518_20200527_01_T2\\LC08_L1GT_023030_20200518_20200527_01_T2_B4.TIF'
+                    'LC08_L1GT_023030_20200518_20200527_01_T2/LC08_L1GT_023030_20200518_20200527_01_T2_B4.TIF'
             }
 
         Args:
