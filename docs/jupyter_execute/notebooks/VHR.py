@@ -68,7 +68,7 @@ print(f"Condensed name: {prod.condensed_name}")
 # In[5]:
 
 
-from eoreader.bands.alias import *
+from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH
 
 # Here, if you want to orthorectify or pansharpen your data manually, you can set your stack here.

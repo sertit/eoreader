@@ -33,7 +33,7 @@ import matplotlib.pyplot as plt
 import rasterio 
 
 from eoreader.reader import Reader
-from eoreader.bands.alias import *
+from eoreader.bands import *
 
 # Other
 AWS_S3_ENDPOINT = os.getenv("AWS_S3_ENDPOINT")

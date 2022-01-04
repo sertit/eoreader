@@ -33,7 +33,7 @@ from sertit.misc import ListEnum
 
 from eoreader import cache, cached_property
 from eoreader.exceptions import InvalidProductError
-from eoreader.products.sar.sar_product import SarProduct, SarProductType
+from eoreader.products import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)

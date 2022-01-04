@@ -21,7 +21,7 @@ import geopandas as gpd
 from sertit import rasters
 
 from eoreader import cached_property, utils
-from eoreader.products.optical.landsat_product import LandsatProduct
+from eoreader.products import LandsatProduct
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)

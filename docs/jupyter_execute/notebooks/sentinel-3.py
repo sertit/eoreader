@@ -21,7 +21,7 @@
 # Imports
 import os
 from eoreader.reader import Reader
-from eoreader.bands.alias import *
+from eoreader.bands import *
 
 import warnings
 import rasterio
@@ -97,7 +97,7 @@ olci_bands[Oa21][:, ::10, ::10].plot()
 
 # Other imports
 from eoreader.keywords import SLSTR_VIEW, SLSTR_STRIPE, SLSTR_RAD_ADJUST
-from eoreader.products.optical.s3_slstr_product import SlstrRadAdjustTuple, SlstrRadAdjust, SlstrView, SlstrStripe
+from eoreader.products import SlstrRadAdjustTuple, SlstrRadAdjust, SlstrView, SlstrStripe
 
 # Then, let's focus on Sentinel-3 SLSTR data (extracted here, but a zip would work)
 slstr_path = os.path.join("/home", "data", "DATA", "PRODS", "SENTINEL", "Sentinel-3",

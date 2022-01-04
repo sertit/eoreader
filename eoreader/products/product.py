@@ -48,8 +48,8 @@ from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 
 from eoreader import cache, cached_property, utils
+from eoreader.bands import *
 from eoreader.bands import index
-from eoreader.bands.alias import *
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
 from eoreader.exceptions import InvalidProductError
@@ -524,7 +524,7 @@ class Product:
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])
@@ -778,7 +778,7 @@ class Product:
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> bands = prod.load([GREEN, NDVI], resolution=20)
@@ -896,7 +896,7 @@ class Product:
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> prod.has_band(GREEN)
@@ -962,7 +962,7 @@ class Product:
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> prod.has_cloud_band(CLOUDS)
@@ -977,7 +977,7 @@ class Product:
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> prod.has_index(NDVI)
@@ -1117,7 +1117,7 @@ class Product:
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> prod.warp_dem(resolution=20)  # In meters
@@ -1337,7 +1337,7 @@ class Product:
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> stack = prod.stack([NDVI, MNDWI, GREEN], resolution=20)  # In meters

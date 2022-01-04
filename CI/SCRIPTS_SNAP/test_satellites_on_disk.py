@@ -15,10 +15,10 @@ from CI.SCRIPTS.scripts_utils import (
     opt_path,
     sar_path,
 )
-from eoreader.bands.alias import *
+from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT, SAR_DEF_RES, TEST_USING_S3_DB
 from eoreader.keywords import SLSTR_RAD_ADJUST
-from eoreader.products.optical.s3_slstr_product import SlstrRadAdjust
+from eoreader.products import SlstrRadAdjust
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME

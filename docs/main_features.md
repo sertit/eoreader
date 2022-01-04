@@ -68,7 +68,7 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 ```python
 >>> import os
 >>> from eoreader.reader import Reader
->>> from eoreader.bands.alias import *
+>>> from eoreader.bands import *
 
 >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip"
 >>> output = os.path.abspath("./output")

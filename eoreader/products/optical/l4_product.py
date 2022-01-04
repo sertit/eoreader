@@ -16,7 +16,7 @@
 # limitations under the License.
 """ Landsat-4 products """
 from eoreader.exceptions import InvalidProductError
-from eoreader.products.optical.landsat_product import LandsatProduct, LandsatProductType
+from eoreader.products import LandsatProduct, LandsatProductType
 
 
 class L4Product(LandsatProduct):

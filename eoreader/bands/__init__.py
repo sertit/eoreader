@@ -25,7 +25,7 @@ To use it, simply type:
 
 .. code-block:: python
 
-    >>> from eoreader.bands.alias import *
+    >>> from eoreader.bands import *
     >>> GREEN
     <OpticalBandNames.GREEN: 'GREEN'>
     >>> HH
@@ -33,3 +33,16 @@ To use it, simply type:
     >>> NDVI
     <function NDVI at 0x00000261F6FFA950>
 """
+# flake8: noqa
+from .alias import *
+from .bands import (
+    BandNames,
+    CloudsBandNames,
+    CloudsBands,
+    DemBandNames,
+    DemBands,
+    OpticalBandNames,
+    OpticalBands,
+    SarBandNames,
+    SarBands,
+)

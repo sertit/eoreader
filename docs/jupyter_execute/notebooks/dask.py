@@ -17,7 +17,7 @@
 import os
 from dask.distributed import Client, LocalCluster
 from eoreader.reader import Reader
-from eoreader.bands.alias import *
+from eoreader.bands import *
 from eoreader.env_vars import USE_DASK
 
 # Ensure EOReader uses dask

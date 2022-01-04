@@ -81,7 +81,7 @@ footprint.geometry.to_crs("EPSG:4326").iat[0]  # Display
 # In[8]:
 
 
-from eoreader.bands.alias import *
+from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH
 
 # Select the bands you want to load

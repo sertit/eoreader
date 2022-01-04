@@ -21,7 +21,7 @@ for more information.
 """
 import logging
 
-from eoreader.products.optical.dimap_product import DimapBandCombination, DimapProduct
+from eoreader.products import DimapBandCombination, DimapProduct
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)

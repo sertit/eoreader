@@ -45,10 +45,10 @@ from sertit.rasters import XDS_TYPE
 from shapely.geometry import Polygon, box
 
 from eoreader import cache, cached_property, utils
-from eoreader.bands.bands import BandNames
-from eoreader.bands.bands import OpticalBandNames as obn
+from eoreader.bands import BandNames
+from eoreader.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
-from eoreader.products.optical.optical_product import OpticalProduct
+from eoreader.products import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -375,7 +375,7 @@ class S3Product(OpticalProduct):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = "S3B_SL_1_RBT____20191115T233722_20191115T234022_20191117T031722_0179_032_144_3420_LN2_O_NT_003.SEN3"
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])

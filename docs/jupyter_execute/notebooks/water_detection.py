@@ -42,7 +42,7 @@ prod = eoreader.open(path, remove_tmp=True) # No need to unarchive here
 # In[4]:
 
 
-from eoreader.bands.alias import *
+from eoreader.bands import *
 
 # Load those bands as a dict of xarray.DataArray
 band_dict = prod.load(NDWI)

@@ -35,11 +35,11 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, cached_property, utils
-from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, to_str
-from eoreader.bands.bands import BandNames
-from eoreader.bands.bands import OpticalBandNames as obn
+from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
+from eoreader.bands import OpticalBandNames as obn
+from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products.optical.optical_product import OpticalProduct
+from eoreader.products import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -398,7 +398,7 @@ class LandsatProduct(OpticalProduct):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])

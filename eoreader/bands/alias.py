@@ -21,7 +21,7 @@ To use it, simply type:
 
 .. code-block:: python
 
-    >>> from eoreader.bands.alias import *
+    >>> from eoreader.bands import *
     >>> GREEN
     <OpticalBandNames.GREEN: 'GREEN'>
     >>> HH
@@ -138,7 +138,7 @@ def is_clouds(clouds: _tp.Any) -> bool:
 
     .. code-block:: python
 
-        >>> from eoreader.bands.alias import *
+        >>> from eoreader.bands import *
         >>> is_clouds(NDVI)
         False
         >>> is_clouds(HH)
@@ -163,7 +163,7 @@ def is_dem(dem: _tp.Any) -> bool:
 
     .. code-block:: python
 
-        >>> from eoreader.bands.alias import *
+        >>> from eoreader.bands import *
         >>> is_dem(NDVI)
         False
         >>> is_dem(HH)
@@ -188,7 +188,7 @@ def is_index(idx: _tp.Any) -> bool:
 
     .. code-block:: python
 
-        >>> from eoreader.bands.alias import *
+        >>> from eoreader.bands import *
         >>> is_index(NDVI)
         True
         >>> is_index(HH)
@@ -222,7 +222,7 @@ def is_optical_band(band: _tp.Any) -> bool:
 
     .. code-block:: python
 
-        >>> from eoreader.bands.alias import *
+        >>> from eoreader.bands import *
         >>> is_optical_band(NDVI)
         False
         >>> is_optical_band(HH)
@@ -254,7 +254,7 @@ def is_sar_band(band: _tp.Any) -> bool:
 
     .. code-block:: python
 
-        >>> from eoreader.bands.alias import *
+        >>> from eoreader.bands import *
         >>> is_sar_band(NDVI)
         False
         >>> is_sar_band(HH)
@@ -286,7 +286,7 @@ def is_band(band: _tp.Any) -> bool:
 
     .. code-block:: python
 
-        >>> from eoreader.bands.alias import *
+        >>> from eoreader.bands import *
         >>> is_band(NDVI)
         False
         >>> is_band(HH)
