@@ -1,6 +1,6 @@
 # Release History
 
-## 0.10.0 (2022-01-03)
+## 0.10.0 (2022-01-04)
 
 - **ENH: Adding `has_bands` to products, ingesting lists as a shortcut for testing the availability of multiple bands**
 - **ENH: Simplifying imports**. Now you can replace:
