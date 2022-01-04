@@ -32,7 +32,7 @@ pytest:
   rules:
     - if: $CI_COMMIT_TAG != null
       changes:
-        - eoreader/**/*{.py, .xml}
+        - eoreader/*
 
 tox-linux-3.7:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.7
