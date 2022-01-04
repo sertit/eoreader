@@ -40,11 +40,11 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, cached_property, utils
-from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, to_str
-from eoreader.bands.bands import BandNames
-from eoreader.bands.bands import OpticalBandNames as obn
+from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
+from eoreader.bands import OpticalBandNames as obn
+from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products.optical.vhr_product import VhrProduct
+from eoreader.products import VhrProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -614,7 +614,7 @@ class DimapProduct(VhrProduct):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"IMG_PHR1A_PMS_001"
             >>> prod.open_mask("ROI")
                                                          gml_id  ...                                           geometry

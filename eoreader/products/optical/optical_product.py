@@ -30,8 +30,11 @@ from sertit import rasters
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, cached_property, utils
-from eoreader.bands import index
-from eoreader.bands.alias import (
+from eoreader.bands import BandNames
+from eoreader.bands import OpticalBandNames as obn
+from eoreader.bands import (
+    OpticalBands,
+    index,
     is_clouds,
     is_dem,
     is_index,
@@ -39,9 +42,6 @@ from eoreader.bands.alias import (
     is_sar_band,
     to_str,
 )
-from eoreader.bands.bands import BandNames
-from eoreader.bands.bands import OpticalBandNames as obn
-from eoreader.bands.bands import OpticalBands
 from eoreader.exceptions import InvalidBandError, InvalidIndexError
 from eoreader.products.product import Product, SensorType
 from eoreader.utils import EOREADER_NAME

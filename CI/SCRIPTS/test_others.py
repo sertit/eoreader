@@ -7,8 +7,7 @@ import xarray as xr
 from cloudpathlib import AnyPath, S3Client
 
 from eoreader import utils
-from eoreader.bands.alias import *
-from eoreader.bands.bands import OpticalBands, SarBandNames
+from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
 from eoreader.reader import Platform
 

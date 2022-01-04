@@ -35,38 +35,40 @@ The main features of EOReader are gathered hereunder.
 For optical data:
 
 ```python
+>>> import os
 >>> from eoreader.reader import Reader
->>> from eoreader.bands.alias import *
+>>> from eoreader.bands import *
+>>> from eoreader.env_vars import DEM_PATH
 
->>> # Landsat-5 MSS path
->>> l5_path = "LM05_L1TP_200029_19841014_20200902_02_T2.tar"
+>>> # Sentinel-2 path
+>>> s2_path = "S2B_MSIL1C_20181126T022319_N0207_R103_T51PWM_20181126T050025.SAFE"
 
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()
 
 >>>  # The Reader will recognize the satellite type from its structure
->>> l5_prod = eoreader.open(l5_path)
+>>> s2_prod = eoreader.open(s2_path)
 
 >>> # Specify a DEM to load HILLSHADE AND SLOPE bands
->>> import os
->>> from eoreader.env_vars import DEM_PATH
 >>> os.environ[DEM_PATH] = "my_dem.tif"
 
 >>> # Load some bands and index: they will all share the same metadata
->>> bands = l5_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])
+>>> bands = s2_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])
 
 >>> # Create a stack with some other bands
->>> stack = l5_prod.stack([NDWI, RED, SLOPE])
+>>> stack = s2_prod.stack([NDWI, RED, SLOPE])
 
 >>> # Read Metadata
->>> mtd, namespace = l5_prod.read_mtd()
+>>> mtd, namespace = s2_prod.read_mtd()
 ```
 
 For SAR data:
 
 ```python
+>>> import os
 >>> from eoreader.reader import Reader
->>> from eoreader.bands.alias import *
+>>> from eoreader.bands import *
+>>> from eoreader.env_vars import DEM_PATH
 
 >>> # Sentinel-1 GRD path
 >>> s1_path = "S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip"
@@ -78,8 +80,6 @@ For SAR data:
 >>> s1_prod = eoreader.open(s1_path)
 
 >>>  # Specify a DEM to load DEM and SLOPE bands
->>> import os
->>> from eoreader.env_vars import DEM_PATH
 >>> os.environ[DEM_PATH] = "my_dem.tif"
 
 >>> # Load some bands and index: they will all share the same metadata

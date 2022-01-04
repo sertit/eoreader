@@ -36,10 +36,10 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, cached_property
-from eoreader.bands.bands import BandNames
-from eoreader.bands.bands import OpticalBandNames as obn
+from eoreader.bands import BandNames
+from eoreader.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
-from eoreader.products.optical.vhr_product import VhrProduct
+from eoreader.products import VhrProduct
 from eoreader.reader import Platform
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 

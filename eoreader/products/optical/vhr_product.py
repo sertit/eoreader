@@ -43,7 +43,7 @@ from shapely.geometry import box
 from eoreader import cached_property, utils
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import DEM_PATH
-from eoreader.products.optical.optical_product import OpticalProduct
+from eoreader.products import OpticalProduct
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -152,7 +152,7 @@ class VhrProduct(OpticalProduct):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])

@@ -35,12 +35,11 @@ from sertit import files, rasters, rasters_rio, vectors
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, cached_property, utils
-from eoreader.bands.alias import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, to_str
-from eoreader.bands.bands import BandNames
-from eoreader.bands.bands import OpticalBandNames as obn
+from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
+from eoreader.bands import OpticalBandNames as obn
+from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products.optical.optical_product import OpticalProduct
-from eoreader.products.optical.s2_product import S2ProductType
+from eoreader.products import OpticalProduct, S2ProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -232,7 +231,7 @@ class S2TheiaProduct(OpticalProduct):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])
@@ -438,7 +437,7 @@ class S2TheiaProduct(OpticalProduct):
 
         .. code-block:: python
 
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> from eoreader.reader import Reader
             >>> path = r"SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip"
             >>> prod = Reader().open(path)

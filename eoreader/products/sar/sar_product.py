@@ -37,16 +37,16 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cached_property, utils
-from eoreader.bands.alias import (
+from eoreader.bands import BandNames
+from eoreader.bands import SarBandNames as sbn
+from eoreader.bands import (
+    SarBands,
     is_clouds,
     is_dem,
     is_index,
     is_optical_band,
     is_sar_band,
 )
-from eoreader.bands.bands import BandNames
-from eoreader.bands.bands import SarBandNames as sbn
-from eoreader.bands.bands import SarBands
 from eoreader.env_vars import DEM_PATH, DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES, SNAP_DEM_NAME
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.products.product import Product, SensorType
@@ -425,7 +425,7 @@ class SarProduct(Product):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([VV, HH])
@@ -533,7 +533,7 @@ class SarProduct(Product):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
             >>> prod.get_existing_band_paths()
@@ -560,7 +560,7 @@ class SarProduct(Product):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
             >>> prod.get_existing_bands()
@@ -955,7 +955,7 @@ class SarProduct(Product):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> from eoreader.bands.alias import *
+            >>> from eoreader.bands import *
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
             >>> prod.has_cloud_band(CLOUDS)

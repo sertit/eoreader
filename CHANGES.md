@@ -3,6 +3,10 @@
 ## 0.10.0 (2022-01-03)
 
 - **ENH: Adding `has_bands` to products, ingesting lists as a shortcut for testing the availability of multiple bands**
+- **ENH: Simplifying imports**. Now you can replace:
+  - `from eoreader.bands.alias import RED, NDVI` by `from eoreader.bands import RED, NDVI`,
+  - `from eoreader.products.optical.optical_product import OpticalProduct` by `from eoreader.products import OpticalProduct`,
+  - `from eoreader.products.optical.s3_slstr_product import SlstrRadAdjustTuple` by `from eoreader.products import SlstrRadAdjustTuple`, ...
 - OPTIM: Writing cloud bands on disk to speed up multiple calls to `load` or `stack` functions [#17](https://github.com/sertit/eoreader/issues/17)
 - FIX: Correctly naming cloud xarrays
 - FIX: Add missing `SLEA` (Spot Extended Area) product type to `ICEYE` data

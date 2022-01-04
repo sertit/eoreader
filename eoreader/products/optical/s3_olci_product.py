@@ -35,15 +35,10 @@ from sertit.rasters import MAX_CORES, XDS_TYPE
 from sertit.vectors import WGS84
 
 from eoreader import cache, utils
-from eoreader.bands.bands import BandNames
-from eoreader.bands.bands import OpticalBandNames as obn
+from eoreader.bands import BandNames
+from eoreader.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products.optical.s3_product import (
-    S3DataType,
-    S3Instrument,
-    S3Product,
-    S3ProductType,
-)
+from eoreader.products import S3DataType, S3Instrument, S3Product, S3ProductType
 from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
 

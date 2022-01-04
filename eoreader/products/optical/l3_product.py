@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Landsat-3 products """
-from eoreader.products.optical.landsat_product import LandsatProduct
+from eoreader.products import LandsatProduct
 
 
 class L3Product(LandsatProduct):

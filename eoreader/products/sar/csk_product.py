@@ -26,7 +26,7 @@ import rasterio
 from sertit.misc import ListEnum
 
 from eoreader.exceptions import InvalidProductError
-from eoreader.products.sar.cosmo_product import CosmoProduct, CosmoProductType
+from eoreader.products import CosmoProduct, CosmoProductType
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)

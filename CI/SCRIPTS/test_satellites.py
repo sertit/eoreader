@@ -10,7 +10,7 @@ from geopandas import gpd
 from lxml import etree
 from sertit import ci, files, rasters
 
-from eoreader.bands.alias import *
+from eoreader.bands import *
 from eoreader.env_vars import (
     CI_EOREADER_BAND_FOLDER,
     DEM_PATH,
@@ -19,8 +19,7 @@ from eoreader.env_vars import (
     TEST_USING_S3_DB,
 )
 from eoreader.keywords import SLSTR_RAD_ADJUST
-from eoreader.products.optical.s3_slstr_product import SlstrRadAdjust
-from eoreader.products.product import Product, SensorType
+from eoreader.products import Product, SensorType, SlstrRadAdjust
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
 
