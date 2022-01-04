@@ -22,32 +22,50 @@ from typing import Callable
 
 try:
     from methodtools import lru_cache
+
+    def cache(func: Callable) -> Callable:
+        @lru_cache()
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    def cached_property(func: Callable) -> property:
+        @lru_cache()
+        @property
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return wrapper
+
+
 except ImportError:
     print(
-        "WARNING!\n "
-        "Without methodtools library, caches are not limited to object instances!\n"
-        "Caches may be shared between similar products!"
+        "WARNING!\n"
+        "Without the methodtools library, caches are not limited to object instances!\n"
+        "Caches may be shared between similar products!\n"
+        "Please install methodtools through pip (pip install methodtools)"
     )
     from functools import lru_cache
 
+    def cache(func: Callable) -> Callable:
+        @lru_cache(maxsize=None)
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
 
-def cache(func: Callable) -> Callable:
-    @lru_cache()
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
+        return wrapper
 
-    return wrapper
+    def cached_property(func: Callable) -> property:
+        @property
+        @lru_cache(maxsize=None)
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
 
-
-def cached_property(func: Callable) -> property:
-    @lru_cache()
-    @property
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-
-    return wrapper
+        return wrapper
 
 
 __version__ = "0.10.0"
