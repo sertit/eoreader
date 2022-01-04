@@ -29,8 +29,10 @@ pytest:
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - linux
-  except:
-    - tags
+  rules:
+    - if: $CI_COMMIT_TAG != null
+      changes:
+        - eoreader/**/*{.py, .xml}
 
 tox-linux-3.7:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.7
@@ -110,18 +112,20 @@ upload_wheel:linux:
   only:
     - tags
 
-pages:
-  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
-  stage: docs
-  script:
-    - python -m pip install --upgrade pip
-    - pip install -r requirements-doc.txt --ignore-installed PyYAML
-    - sphinx-build docs/ docs/_build/html/
-    - mv docs/_build/html/ public/
-  artifacts:
-    paths:
-      - public
-  tags:
-    - linux
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE != "schedule"'
+#pages:
+#  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+#  stage: docs
+#  script:
+#    - python -m pip install --upgrade pip
+#    - pip install -r requirements-doc.txt --ignore-installed PyYAML
+#    - pip install mistune==0.8.4  # Workaround
+#    - sphinx-build docs/ docs/_build/html/
+#    - mv docs/_build/html/ public/
+#  artifacts:
+#    paths:
+#      - public
+#  tags:
+#    - linux
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE != "schedule"'
+#  needs: ["lint"]
