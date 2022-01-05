@@ -1,5 +1,9 @@
 # Release History
 
+## 0.10.2 (2022-MM-DD)
+
+- DOC: Update the installation paragraph in README
+
 ## 0.10.1 (2022-01-04)
 
 - FIX: Resolve a bug when `methodtools` is not present (for conda package)
