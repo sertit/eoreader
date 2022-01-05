@@ -41,11 +41,11 @@ The recognized paths for products directories are:
 |Sensor group | Folder to link|
 |--- | ---|
 |`Sentinel 2 and 3` | Main directory, `.SAFE`, `.SEN3` or `.zip`, i.e. `S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE`|
-|`Sentinel 2 Theia` | Main directory containing the `.tif` image, i.e. `SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2`|
+|`Sentinel 2 Theia` | Main directory containing the `.tif` images, i.e. `SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2`|
 |`Landsats`| Main directory extracted or archived if Collection 2 (`.tar`), i.e. `LC08_L1TP_200030_20201220_20210310_02_T1.tar`|
 |`Planet` | Directory containing the `manifest.json` file, i.e. `20210406_015904_37_2407`|
 |`DIMAP (Pleiades, SPOTs, ...)` | Directory containing the `.JP2` files, i.e. `IMG_PHR1B_PMS_001`|
-|`Maxar (WorldVieww, GeoEye...)` | Directory containing the `.TIL` file, i.e. `013187549010_01_P001_PSH`|
+|`Maxar (WorldView, GeoEye...)` | Directory containing the `.TIL` file, i.e. `013187549010_01_P001_PSH`|
 
 ### SAR
 
