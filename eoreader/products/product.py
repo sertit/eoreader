@@ -82,6 +82,7 @@ class Product:
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
         self.needs_extraction = True
         """Does this products needs to be extracted to be processed ? (`True` by default)."""
@@ -177,7 +178,7 @@ class Product:
             self._output = AnyPath(self._tmp_output.name)
 
         # Pre initialization
-        self._pre_init()
+        self._pre_init(**kwargs)
 
         # Only compute data if OK (for now OK is extracted if needed)
         if self.is_archived and self.needs_extraction:
@@ -196,7 +197,7 @@ class Product:
             self.sat_id = self.platform.name
 
             # Post initialization
-            self._post_init()
+            self._post_init(**kwargs)
 
             # Set product type, needs to be done after the post-initialization
             self._set_product_type()
@@ -223,7 +224,7 @@ class Product:
             files.remove(self._tmp_process)
 
     @abstractmethod
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -1496,7 +1497,11 @@ class Product:
         renamed_xarr.attrs["product_path"] = str(self.path)  # Convert to string
         renamed_xarr.attrs["product_name"] = self.name
         renamed_xarr.attrs["product_filename"] = self.filename
-        renamed_xarr.attrs["product_type"] = self.product_type.value
+        renamed_xarr.attrs["product_type"] = (
+            self.product_type
+            if isinstance(self.product_type, str)
+            else self.product_type.value
+        )
         renamed_xarr.attrs["acquisition_date"] = self.get_datetime(as_datetime=False)
         renamed_xarr.attrs["condensed_name"] = self.condensed_name
 
