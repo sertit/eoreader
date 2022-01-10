@@ -157,6 +157,9 @@ class Platform(ListEnum):
     ICEYE = "ICEYE"
     """ICEYE"""
 
+    CUSTOM = "CUSTOM"
+    """Custom stack"""
+
 
 PLATFORM_REGEX = {
     Platform.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",

@@ -19,9 +19,18 @@ SAR and Optical products
 """
 # flake8: noqa
 from .product import Product, SensorType
+from .custom_product import (
+    CustomProduct,
+    NAME,
+    ACQ_DATETIME,
+    BAND_MAP,
+    PLATFORM,
+    DEF_RES,
+    PROD_TYPE,
+)
 
 # -- Optical --
-from .optical.optical_product import OpticalProduct
+from .optical.optical_product import OpticalProduct, SensorType
 
 # VHR
 from .optical.vhr_product import VhrProduct
