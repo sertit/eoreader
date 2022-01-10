@@ -1,5 +1,8 @@
 # Release History
 
+## 0.11.0
+
+- **BREAKING CHANGES: Renamed `is_band` to `is_sat_band` to better reflect that this function only checks optical and SAR bands**
 ## 0.10.2 (2022-MM-DD)
 
 - DOC: Update the installation paragraph in README

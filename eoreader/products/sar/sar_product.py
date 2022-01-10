@@ -968,6 +968,6 @@ class SarProduct(Product):
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
         Returns:
-            str: Condensed S1 name
+            str: Condensed name
         """
         return f"{self.get_datetime()}_{self.platform.name}_{self.sensor_mode.name}_{self.product_type.value}"
