@@ -1437,7 +1437,7 @@ class Product:
                 # - Satellite bands
                 # - index
                 for b_id, band in enumerate(bands):
-                    if is_band(band) or is_index(band):
+                    if is_sat_band(band) or is_index(band):
                         stack[b_id, ...] = stack[b_id, ...] * 10000
 
                 # CONVERSION

@@ -280,7 +280,7 @@ def is_sar_band(band: _tp.Any) -> bool:
     return is_valid
 
 
-def is_band(band: _tp.Any) -> bool:
+def is_sat_band(band: _tp.Any) -> bool:
     """
     Returns True if is a band (from both `SarBandNames` or `OpticalBandNames`)
 
@@ -359,7 +359,7 @@ def to_band(to_convert: list) -> list:
                             except TypeError:
                                 pass
 
-        elif is_index(tc) or is_band(tc) or is_dem(tc) or is_clouds(tc):
+        elif is_index(tc) or is_sat_band(tc) or is_dem(tc) or is_clouds(tc):
             band_or_idx = tc
 
         # Store it

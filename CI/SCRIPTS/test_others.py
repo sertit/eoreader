@@ -50,11 +50,11 @@ def test_alias():
     assert not is_index(CLOUDS)
 
     # Bands
-    assert not is_band(NDVI)
-    assert is_band(HH)
-    assert is_band(GREEN)
-    assert not is_band(SLOPE)
-    assert not is_band(CLOUDS)
+    assert not is_sat_band(NDVI)
+    assert is_sat_band(HH)
+    assert is_sat_band(GREEN)
+    assert not is_sat_band(SLOPE)
+    assert not is_sat_band(CLOUDS)
 
     # Clouds
     assert not is_clouds(NDVI)
