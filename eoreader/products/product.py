@@ -833,12 +833,16 @@ class Product:
         Returns:
             dict: {band_name, band xarray}
         """
-        if not resolution and not size:
-            resolution = self.resolution
 
         # Check if all bands are valid
         if not isinstance(bands, list):
             bands = [bands]
+
+        for band in bands:
+            assert self.has_band(band), f"{self.name} has not a {band.value} band."
+
+        if not resolution and not size:
+            resolution = self.resolution
 
         # Load bands (only once ! and convert the bands to be loaded to correct format)
         unique_bands = list(set(to_band(bands)))
