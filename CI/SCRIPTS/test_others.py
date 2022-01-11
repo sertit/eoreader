@@ -121,7 +121,7 @@ def test_products():
             os.environ[DEM_PATH] = old_dem
 
     # Test invalid band
-    with pytest.raises(InvalidTypeError):
+    with pytest.raises(AssertionError):
         prod1.load("TEST")
 
 
