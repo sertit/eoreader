@@ -191,6 +191,7 @@ def _test_core(
                 LOGGER.info("Checking extent")
                 extent = prod.extent
                 assert isinstance(extent, gpd.GeoDataFrame)
+                assert extent.is_projected
                 extent_path = get_ci_data_dir().joinpath(
                     prod.condensed_name, f"{prod.condensed_name}_extent.geojson"
                 )
@@ -212,6 +213,7 @@ def _test_core(
                 LOGGER.info("Checking footprint")
                 footprint = prod.footprint
                 assert isinstance(footprint, gpd.GeoDataFrame)
+                assert footprint.is_projected
                 footprint_path = get_ci_data_dir().joinpath(
                     prod.condensed_name, f"{prod.condensed_name}_footprint.geojson"
                 )
@@ -258,7 +260,7 @@ def _test_core(
                 assert stack.dtype == np.float32
 
                 # Check attributes
-                assert stack.attrs["long_name"] == to_str(stack_bands)
+                assert stack.attrs["long_name"] == " ".join(to_str(stack_bands))
                 assert stack.attrs["sensor"] == prod._get_platform().value
                 assert stack.attrs["sensor_id"] == prod.sat_id
                 assert stack.attrs["product_type"] == prod.product_type.value

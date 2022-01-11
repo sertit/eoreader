@@ -1490,12 +1490,12 @@ class Product:
             long_name (str): Array name (as a str or a list)
         """
         if isinstance(long_name, list):
-            name = "_".join(long_name)
+            name = " ".join(long_name)
         else:
             name = long_name
 
         renamed_xarr = xarr.rename(name)
-        renamed_xarr.attrs["long_name"] = long_name
+        renamed_xarr.attrs["long_name"] = name
         renamed_xarr.attrs["sensor"] = self._get_platform().value
         renamed_xarr.attrs["sensor_id"] = self.sat_id
         renamed_xarr.attrs["product_path"] = str(self.path)  # Convert to string
