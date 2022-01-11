@@ -130,7 +130,7 @@ class VhrProduct(OpticalProduct):
         """
         def_tr, def_w, def_h, def_crs = self.default_transform()
         bounds = transform.array_bounds(def_h, def_w, def_tr)
-        return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs)
+        return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs).to_crs(self.crs)
 
     @abstractmethod
     def _get_ortho_path(self) -> Union[CloudPath, Path]:

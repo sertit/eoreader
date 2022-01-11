@@ -58,6 +58,8 @@ autodoc_default_options = {
 
 # Notebook integration parameters
 jupyter_execute_notebooks = "cache"
+jupyter_cache = "_build/.jupyter_cache"
+# execution_excludepatterns = ['*jupyter_execute/*/.ipynb']
 execution_timeout = 3600
 
 # This is going to generate a banner on top of each notebook

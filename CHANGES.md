@@ -5,6 +5,8 @@
 - **BREAKING CHANGES: Renamed `is_band` to `is_sat_band` to better reflect that this function only checks optical and SAR bands**
 - **ENH: Adding a CustomProduct, allowing the user to load any stack as an EOReader Product !**
 - **ENH: Check if band exists before trying to load it**
+- FIX: Ensure that extents and footprints are in UTM
+- DOC: Update notebooks
 
 ## 0.10.2 (2022-MM-DD)
 
