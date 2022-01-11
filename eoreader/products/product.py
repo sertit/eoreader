@@ -840,7 +840,11 @@ class Product:
             bands = [bands]
 
         for band in bands:
-            assert self.has_band(band), f"{self.name} has not a {band.value} band."
+            try:
+                band_name = band.value
+            except AttributeError:
+                band_name = band
+            assert self.has_band(band), f"{self.name} has not a {band_name} band."
 
         if not resolution and not size:
             resolution = self.resolution
