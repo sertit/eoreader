@@ -302,6 +302,8 @@ class Reader:
         output_path: Union[str, CloudPath, Path] = None,
         method: CheckMethod = CheckMethod.MTD,
         remove_tmp: bool = False,
+        custom=False,
+        **kwargs,
     ) -> "Product":  # noqa: F821
         """
         Open the product.
@@ -324,54 +326,68 @@ class Reader:
             Product: Correct products
 
         """
-        if not AnyPath(product_path).exists():
+        product_path = AnyPath(product_path)
+        if not product_path.exists():
             FileNotFoundError(f"Non existing product: {product_path}")
 
-        prod = None
-        for platform in PLATFORM_REGEX.keys():
-            if method == CheckMethod.MTD:
-                is_valid = self.valid_mtd(product_path, platform)
-            elif method == CheckMethod.NAME:
-                is_valid = self.valid_name(product_path, platform)
-            else:
-                is_valid = self.valid_name(product_path, platform) and self.valid_mtd(
-                    product_path, platform
-                )
+        if custom:
+            from eoreader.products import CustomProduct
 
-            if is_valid:
-                sat_class = platform.name.lower() + "_product"
+            prod = CustomProduct(
+                product_path=product_path,
+                archive_path=archive_path,
+                output_path=output_path,
+                remove_tmp=remove_tmp,
+                **kwargs,
+            )
+        else:
+            prod = None
+            for platform in PLATFORM_REGEX.keys():
+                if method == CheckMethod.MTD:
+                    is_valid = self.valid_mtd(product_path, platform)
+                elif method == CheckMethod.NAME:
+                    is_valid = self.valid_name(product_path, platform)
+                else:
+                    is_valid = self.valid_name(
+                        product_path, platform
+                    ) and self.valid_mtd(product_path, platform)
 
-                # Channel correctly the sensors to their generic files (just in case)
-                # TerraSAR-like sensors
-                if platform in [Platform.TDX, platform.PAZ]:
-                    sat_class = "tsx_product"
-                # Maxar-like sensors
-                elif platform in [
-                    Platform.QB,
-                    Platform.GE01,
-                    Platform.WV01,
-                    Platform.WV02,
-                    Platform.WV03,
-                    Platform.WV04,
-                ]:
-                    sat_class = "maxar_product"
+                if is_valid:
+                    sat_class = platform.name.lower() + "_product"
 
-                # Manage both optical and SAR
-                try:
-                    mod = importlib.import_module(f"eoreader.products.sar.{sat_class}")
-                except ModuleNotFoundError:
-                    mod = importlib.import_module(
-                        f"eoreader.products.optical.{sat_class}"
+                    # Channel correctly the sensors to their generic files (just in case)
+                    # TerraSAR-like sensors
+                    if platform in [Platform.TDX, platform.PAZ]:
+                        sat_class = "tsx_product"
+                    # Maxar-like sensors
+                    elif platform in [
+                        Platform.QB,
+                        Platform.GE01,
+                        Platform.WV01,
+                        Platform.WV02,
+                        Platform.WV03,
+                        Platform.WV04,
+                    ]:
+                        sat_class = "maxar_product"
+
+                    # Manage both optical and SAR
+                    try:
+                        mod = importlib.import_module(
+                            f"eoreader.products.sar.{sat_class}"
+                        )
+                    except ModuleNotFoundError:
+                        mod = importlib.import_module(
+                            f"eoreader.products.optical.{sat_class}"
+                        )
+
+                    class_ = getattr(mod, strings.snake_to_camel_case(sat_class))
+                    prod = class_(
+                        product_path=product_path,
+                        archive_path=archive_path,
+                        output_path=output_path,
+                        remove_tmp=remove_tmp,
                     )
-
-                class_ = getattr(mod, strings.snake_to_camel_case(sat_class))
-                prod = class_(
-                    product_path=product_path,
-                    archive_path=archive_path,
-                    output_path=output_path,
-                    remove_tmp=remove_tmp,
-                )
-                break
+                    break
 
         if not prod:
             LOGGER.warning(
