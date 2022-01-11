@@ -38,6 +38,7 @@ from eoreader.bands import (
     is_dem,
     is_index,
     is_sat_band,
+    to_band,
 )
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.products.product import Product, SensorType
@@ -92,7 +93,7 @@ class CustomProduct(Product):
         misc.check_mandatory_keys(kwargs, [BAND_MAP, SENSOR_TYPE])
 
         # Sensor type
-        self.sensor_type = SensorType.from_value(kwargs[SENSOR_TYPE])
+        self.sensor_type = SensorType.convert_from(kwargs[SENSOR_TYPE])[0]
         self.band_names = (
             OpticalBands() if self.sensor_type == SensorType.OPTICAL else SarBands()
         )
@@ -100,8 +101,15 @@ class CustomProduct(Product):
         # Band map
         band_names = kwargs[BAND_MAP]  # Shouldn't be empty
         assert isinstance(band_names, dict)
+        band_names = {to_band(key)[0]: val for key, val in band_names.items()}
         assert [is_sat_band(band) for band in band_names.keys()]
         self.band_names.map_bands(band_names)
+
+        # Test on the product
+        with rasterio.open(str(self.get_default_band_path())) as ds:
+            assert (
+                len(band_names) == ds.count
+            ), f"You should specify {ds.count} bands in band_map, not {len(band_names)} !"
 
         # Datetime
         self.datetime = kwargs.get(ACQ_DATETIME, datetime.now())
@@ -160,7 +168,7 @@ class CustomProduct(Product):
         Set product default resolution (in meters)
         """
         if self.resolution is None:
-            with rasterio.open(self.get_default_band_path()) as ds:
+            with rasterio.open(str(self.get_default_band_path())) as ds:
                 return ds.res[0]
 
     def _set_product_type(self) -> None:
@@ -229,7 +237,7 @@ class CustomProduct(Product):
         Returns:
             crs.CRS: CRS object
         """
-        with rasterio.open(self.path) as ds:
+        with rasterio.open(str(self.path)) as ds:
             def_crs = ds.crs
 
         if def_crs.is_projected:

@@ -280,3 +280,7 @@ def opt_path():
 
 def sar_path():
     return get_ci_db_dir().joinpath("sar")
+
+
+def others_path():
+    return get_ci_db_dir().joinpath("others")
