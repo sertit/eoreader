@@ -75,7 +75,7 @@ def assert_raster_almost_equal(path_1: str, path_2: str, decimal: int = 5) -> No
     Assert that two rasters are almost equal.
     (everything is equal except the transform and the arrays that are almost equal)
 
-    Accepts an offset of `1E{decimal}` on the array and the transform
+    Accepts an offset of :code:`1E{decimal}` on the array and the transform
 
     -> Useful for pytests.
 

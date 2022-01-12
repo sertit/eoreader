@@ -227,6 +227,7 @@ intersphinx_mapping = {
 
 add_function_parentheses = False
 add_module_names = False
+modindex_common_prefix = ["eoreader."]
 
 
 def _html_page_context(app, pagename, templatename, context, doctree):
@@ -236,13 +237,26 @@ def _html_page_context(app, pagename, templatename, context, doctree):
 
 
 def my_doc_skip(app, what, name, obj, skip, options):
+    """
+    https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#skipping-members
+    """
     skip = False
 
     # Skip these docstrings
-    data_module = what != "module" and name == "data"
-    cache_fct = what != "function" and (name == "cache" or name == "cached_property")
-    if data_module or cache_fct:
+    private = name.startswith("_") and name != "__init__"
+    ghosted_fct = what == "function" and name in [
+        "cache",
+        "cached_property",
+    ]
+    ghosted_module = what == "module" and name in [
+        "data"
+    ]
+    ghosted = ghosted_fct or ghosted_module
+
+    if ghosted or private:
         skip = True
+        if ghosted:
+            print(f"{what}, {name}: {obj}")
 
     return skip
 

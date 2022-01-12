@@ -324,7 +324,7 @@ class LandsatProduct(OpticalProduct):
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
-        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+        Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. code-block:: python
 
@@ -448,7 +448,7 @@ class LandsatProduct(OpticalProduct):
         """
         Read Landsat metadata as:
 
-         - a `pandas.DataFrame` whatever its collection is (by default for collection 1)
+         - a :code:`pandas.DataFrame` whatever its collection is (by default for collection 1)
          - a XML root + its namespace if the product is retrieved from the 2nd collection (by default for collection 2)
 
         Args:

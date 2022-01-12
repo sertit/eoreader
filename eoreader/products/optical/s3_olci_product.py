@@ -88,13 +88,8 @@ class S3OlciProduct(S3Product):
 
         """
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/observation-mode-desc
-        Note that the name of each netCDF file provides information about it's content.
-        The suffix of each filename is associated with the selected grid:
-            "an" and "ao" refer to the 500 m grid, stripe A, respectively for nadir view (n) and oblique view (o)
-            "bn" and "bo" refer to the 500 m grid, stripe B
-            "in" and "io" refer to the 1 km grid
-            "fn" and "fo" refer to the F1 channel 1 km grid
-            "tx/n/o" refer to the tie-point grid for agnostic/nadir and oblique view
+
+        Note that the name of each netCDF file provides information about its content.
         """
         super().__init__(
             product_path, archive_path, output_path, remove_tmp

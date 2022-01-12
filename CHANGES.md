@@ -5,9 +5,10 @@
 - **BREAKING CHANGES: Renamed `is_band` to `is_sat_band` to better reflect that this function only checks optical and SAR bands**
 - **ENH: Adding a CustomProduct, allowing the user to load any stack as an EOReader Product !**
 - **ENH: Check if band exists before trying to load it**
+- FIX: Better handling of `__all__` in `__init__.py` files
 - FIX: Ensure that extents and footprints are in UTM
 - FIX: Removing docs from wheel
-- DOC: Update notebooks
+- DOC: Update README, documentation and notebooks
 
 ## 0.10.2 (2022-MM-DD)
 

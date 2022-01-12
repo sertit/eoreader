@@ -123,7 +123,7 @@ def read(
     **kwargs,
 ) -> xr.DataArray:
     """
-    Overload of `sertit.rasters.read()` managing  DASK in EOReader's way.
+    Overload of :code:`sertit.rasters.read()` managing  DASK in EOReader's way.
 
     .. code-block:: python
 
@@ -166,23 +166,24 @@ def read(
 
 def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> None:
     """
-    Overload of `sertit.rasters.write()` managing DASK in EOReader's way.
+    Overload of :code:`sertit.rasters.write()` managing DASK in EOReader's way.
 
-    ```python
-    >>> raster_path = "path/to/raster.tif"
-    >>> raster_out = "path/to/out.tif"
+    .. code-block:: python
 
-    >>> # Read raster
-    >>> xds = read(raster_path)
+        >>> raster_path = "path/to/raster.tif"
+        >>> raster_out = "path/to/out.tif"
 
-    >>> # Rewrite it
-    >>> write(xds, raster_out)
-    ```
+        >>> # Read raster
+        >>> xds = read(raster_path)
+
+        >>> # Rewrite it
+        >>> write(xds, raster_out)
+
 
     Args:
         xds (xr.DataArray): Path to the raster or a rasterio dataset or a xarray
         path (Union[str, CloudPath, Path]): Path where to save it (directories should be existing)
-        **kwargs: Overloading metadata, ie `nodata=255` or `dtype=np.uint8`
+        **kwargs: Overloading metadata, ie :code:`nodata=255` or :code:`dtype=np.uint8`
     """
     if use_dask():
         from distributed import Lock, get_client

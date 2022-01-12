@@ -14,13 +14,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Additional keywords for EOReader used in `load` or `stack`"""
+""" Additional keywords for EOReader used in :code:`load` or  :code:`stack`"""
 
 SLSTR_RAD_ADJUST = "slstr_radiance_adjustment"
-""" SLSTR radiance adjustment, please see `eoreader.products.optical.s3_slstr_product.SlstrRadAdjust`"""
+""" SLSTR radiance adjustment, please see  :code:`eoreader.products.optical.s3_slstr_product.SlstrRadAdjust`"""
 
 SLSTR_STRIPE = "slstr_stripe"
-""" SLSTR stripe, please see `eoreader.products.optical.s3_slstr_product.SlstrStripe`"""
+""" SLSTR stripe, please see  :code:`eoreader.products.optical.s3_slstr_product.SlstrStripe`"""
 
 SLSTR_VIEW = "slstr_view"
-""" SLSTR view, please see `eoreader.products.optical.s3_slstr_product.SlstrView`"""
+""" SLSTR view, please see  :code:`eoreader.products.optical.s3_slstr_product.SlstrView`"""
