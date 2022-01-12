@@ -24,12 +24,14 @@ import geopandas as gpd
 import numpy as np
 import rasterio
 from cloudpathlib import CloudPath
+from lxml import etree
+from lxml.builder import E
 from rasterio import crs
 from rasterio.enums import Resampling
 from sertit import files, misc, rasters, vectors
 from sertit.rasters import XDS_TYPE
 
-from eoreader import cached_property, utils
+from eoreader import cache, cached_property, utils
 from eoreader.bands import (
     BandNames,
     OpticalBands,
@@ -488,3 +490,50 @@ class CustomProduct(Product):
             str: Condensed name
         """
         return f"{self.get_datetime()}_{self.platform.name}_{self.product_type}"
+
+    @cache
+    def _read_mtd(self) -> (etree._Element, dict):
+        """
+        Read metadata and outputs the metadata XML root and its namespaces as a dict
+
+        Returns:
+            (etree._Element, dict): Metadata XML root and its namespace
+        """
+        # Parsing global attributes
+        global_attr_names = [
+            "name",
+            "datetime",
+            "sensor_type",
+            "platform",
+            "resolution",
+            "product_type",
+            "band_names",
+            "sun_az",
+            "sun_zen",
+        ]
+
+        # Create XML attributes
+        global_attr = []
+        for attr in global_attr_names:
+            if hasattr(self, attr):
+                if attr == "band_names":
+                    str_attr = str(
+                        {
+                            key.name: val
+                            for key, val in self.band_names.items()
+                            if isinstance(val, int)
+                        }
+                    )
+                else:
+                    str_attr = str(getattr(self, attr))
+
+                global_attr.append(E(attr, str_attr))
+
+        mtd = E.custom_metadata(*global_attr)
+        mtd_el = etree.fromstring(
+            etree.tostring(
+                mtd, pretty_print=True, xml_declaration=True, encoding="UTF-8"
+            )
+        )
+
+        return mtd_el, {}

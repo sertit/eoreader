@@ -9,6 +9,7 @@
 - FIX: Ensure that extents and footprints are in UTM
 - FIX: Removing docs from wheel
 - DOC: Update README, documentation and notebooks
+- DOC: Water Extraction notebook has been refined to show how to manage multiple products
 
 ## 0.10.2 (2022-MM-DD)
 

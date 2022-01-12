@@ -513,7 +513,7 @@ class LandsatProduct(OpticalProduct):
             global_attr = [
                 E(str(attr), str(mtd_data[attr].iat[0])) for attr in attr_names
             ]
-            mtd = E.s3_global_attributes(*global_attr)
+            mtd = E.landsat_global_attributes(*global_attr)
             mtd_el = etree.fromstring(
                 etree.tostring(
                     mtd, pretty_print=True, xml_declaration=True, encoding="UTF-8"

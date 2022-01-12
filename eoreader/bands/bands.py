@@ -48,6 +48,9 @@ class _Bands(MutableMapping):
     def __len__(self):
         return len(self._band_map)
 
+    def __str__(self):
+        return str(self._band_map)
+
 
 class BandNames(ListEnum):
     """Super class for band names, **do not use it**."""
@@ -218,7 +221,6 @@ class SarBandNames(BandNames):
         Returns:
             SarBandNames: Despeckled band
         """
-        """"""
         return "DSPK" in band.name
 
 

@@ -255,8 +255,6 @@ def my_doc_skip(app, what, name, obj, skip, options):
 
     if ghosted or private:
         skip = True
-        if ghosted:
-            print(f"{what}, {name}: {obj}")
 
     return skip
 
