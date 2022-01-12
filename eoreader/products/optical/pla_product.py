@@ -50,7 +50,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class PlaInstrument(ListEnum):
     """PlanetScope instrument
-    See `here <https://developers.planet.com/docs/apis/data/sensors/>`_
+    See `here <https://developers.planet.com/docs/apis/data/sensors/>`__
     for more information.
     """
 
@@ -178,7 +178,7 @@ class PlaProductType(ListEnum):
 class PlaProduct(OpticalProduct):
     """
     Class of PlanetScope products.
-    See `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
+    See `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`__
     for more information.
 
     The scaling factor to retrieve the calibrated radiance is 0.01.
@@ -318,7 +318,7 @@ class PlaProduct(OpticalProduct):
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
-        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+        Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. code-block:: python
 
@@ -494,7 +494,7 @@ class PlaProduct(OpticalProduct):
         }
         udm = self.open_mask("UNUSABLE", size=(band_arr.rio.width, band_arr.rio.height))
         # Workaround:
-        # FutureWarning: The `numpy.expand_dims` function is not implemented by Dask array.
+        # FutureWarning: The :code:`numpy.expand_dims` function is not implemented by Dask array.
         # You may want to use the da.map_blocks function or something similar to silence this warning.
         # Your code may stop working in a future release.
         dubious_mask = rasters.read_bit_array(udm.values, dubious_bands[band])
@@ -709,21 +709,21 @@ class PlaProduct(OpticalProduct):
         Open a Planet UDM2 (Usable Data Mask) mask, band by band, as a xarray.
         Returns None if the mask is not available.
 
-        Do not open cloud mask with this function. Use `load` instead.
+        Do not open cloud mask with this function. Use :code:`load` instead.
 
         See `here <https://developers.planet.com/docs/data/udm-2/>`_ for more
         information.
 
         Accepted mask IDs:
 
-        - `CLEAR`:      Band 1     Clear map        [0, 1]  0: not clear, 1: clear
-        - `SNOW`:       Band 2     Snow map         [0, 1]  0: no snow or ice, 1: snow or ice
-        - `SHADOW`:     Band 3     Shadow map       [0, 1]  0: no shadow, 1: shadow
-        - `LIGHT_HAZE`: Band 4     Light haze map   [0, 1]  0: no light haze, 1: light haze
-        - `HEAVY_HAZE`: Band 5     Heavy haze map   [0, 1]  0: no heavy haze, 1: heavy haze
-        - `CLOUD`:      Band 6     Cloud map        [0, 1]  0: no cloud, 1: cloud
-        - `CONFIDENCE`: Band 7     Confidence map   [0-100] %age value: per-pixel algorithmic confidence in classif
-        - `UNUSABLE`:   Band 8     Unusable pixels  --      Equivalent to the UDM asset
+        - :code:`CLEAR`:      Band 1     Clear map        [0, 1]  0: not clear, 1: clear
+        - :code:`SNOW`:       Band 2     Snow map         [0, 1]  0: no snow or ice, 1: snow or ice
+        - :code:`SHADOW`:     Band 3     Shadow map       [0, 1]  0: no shadow, 1: shadow
+        - :code:`LIGHT_HAZE`: Band 4     Light haze map   [0, 1]  0: no light haze, 1: light haze
+        - :code:`HEAVY_HAZE`: Band 5     Heavy haze map   [0, 1]  0: no heavy haze, 1: heavy haze
+        - :code:`CLOUD`:      Band 6     Cloud map        [0, 1]  0: no cloud, 1: cloud
+        - :code:`CONFIDENCE`: Band 7     Confidence map   [0-100] %age value: per-pixel algorithmic confidence in classif
+        - :code:`UNUSABLE`:   Band 8     Unusable pixels  --      Equivalent to the UDM asset
 
         .. code-block:: python
 

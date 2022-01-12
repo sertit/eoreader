@@ -307,7 +307,7 @@ class DimapProduct(VhrProduct):
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
-        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+        Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. code-block:: python
 
@@ -599,17 +599,17 @@ class DimapProduct(VhrProduct):
 
     def open_mask(self, mask_str: str) -> gpd.GeoDataFrame:
         """
-        Open DIMAP V2 mask (GML files stored in MASKS) as `gpd.GeoDataFrame`.
+        Open DIMAP V2 mask (GML files stored in MASKS) as :code:`gpd.GeoDataFrame`.
 
         Masks than can be called that way are:
 
-        - `CLD`: Cloud vector mask
-        - `DET`: Out of order detectors vector mask
-        - `QTE`: Synthetic technical quality vector mask
-        - `ROI`: Region of Interest vector mask
-        - `SLT`: Straylight vector mask
-        - `SNW`: Snow vector mask
-        - `VIS`: Hidden area vector mask (optional)
+        - :code:`CLD`: Cloud vector mask
+        - :code:`DET`: Out of order detectors vector mask
+        - :code:`QTE`: Synthetic technical quality vector mask
+        - :code:`ROI`: Region of Interest vector mask
+        - :code:`SLT`: Straylight vector mask
+        - :code:`SNW`: Snow vector mask
+        - :code:`VIS`: Hidden area vector mask (optional)
 
         .. code-block:: python
 

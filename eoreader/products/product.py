@@ -85,7 +85,7 @@ class Product:
         **kwargs,
     ) -> None:
         self.needs_extraction = True
-        """Does this products needs to be extracted to be processed ? (`True` by default)."""
+        """Does this products needs to be extracted to be processed ? (:code:`True` by default)."""
 
         self.path = AnyPath(product_path)
         """Usable path to the product, either extracted or archived path, according to the satellite."""
@@ -131,7 +131,10 @@ class Product:
         """Product type, satellite-related field, such as L1C or L2A for Sentinel-2 data."""
 
         self.band_names = None
-        """Band mapping between band wrapping names such as `GREEN` and band real number such as `03` for Sentinel-2."""
+        """
+        Band mapping between band wrapping names such as
+        :code:`GREEN` and band real number such as :code:`03` for Sentinel-2.
+        """
 
         self.is_reference = False
         """If the product is a reference, used for algorithms that need pre and post data, such as fire detection."""
@@ -142,7 +145,7 @@ class Product:
          A list because of multiple ref in case of non-stackable products (S3, S1...)"""
 
         self.nodata = -9999
-        """ Product nodata, set to -999 by default """
+        """ Product nodata, set to -9999 by default """
 
         # Mask values
         self._mask_true = 1
@@ -162,12 +165,12 @@ class Product:
         self.condensed_name = None
         """
         Condensed name, the filename with only useful data to keep the name unique
-        (ie. `20191215T110441_S2_30TXP_L2A_122756`).
+        (ie. :code:`20191215T110441_S2_30TXP_L2A_122756`).
         Used to shorten names and paths.
         """
 
         self.sat_id = None
-        """Satellite ID, i.e. `S2` for Sentinel-2"""
+        """Satellite ID, i.e. :code:`S2` for :code:`Sentinel-2`"""
 
         # Manage output
         if output_path:
@@ -373,7 +376,7 @@ class Product:
     @abstractmethod
     def get_datetime(self, as_datetime: bool = False) -> Union[str, dt.datetime]:
         """
-        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+        Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. code-block:: python
 
@@ -425,7 +428,7 @@ class Product:
         """
         Get default band path (among the existing ones).
 
-        Usually `GREEN` band for optical data and the first existing one between `VV` and `HH` for SAR data.
+        Usually :code:`GREEN` band for optical data and the first existing one between :code:`VV` and :code:`HH` for SAR data.
 
         .. code-block:: python
 
@@ -447,7 +450,7 @@ class Product:
     def get_default_band(self) -> BandNames:
         """
         Get default band:
-        Usually `GREEN` band for optical data and the first existing one between `VV` and `HH` for SAR data.
+        Usually :code:`GREEN` band for optical data and the first existing one between :code:`VV` and :code:`HH` for SAR data.
 
         .. code-block:: python
 
@@ -548,7 +551,7 @@ class Product:
     def _read_mtd(self) -> Any:
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict most of the time,
-        except from L8-collection 1 data which outputs a `pandas.DataFrame`
+        except from L8-collection 1 data which outputs a :code:`pandas.DataFrame`
 
         Returns:
             Any: Metadata XML root and its namespace or pd.DataFrame
@@ -651,7 +654,7 @@ class Product:
     def read_mtd(self) -> Any:
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict most of the time,
-        except from L8-collection 1 data which outputs a `pandas.DataFrame`
+        except from L8-collection 1 data which outputs a :code:`pandas.DataFrame`
 
         .. code-block:: python
 
@@ -950,7 +953,7 @@ class Product:
         - DEM band
         - cloud band
 
-        See `has_bands` for a code example.
+        See :code:`has_bands` for a code example.
 
         Args:
             band (Union[list, BandNames, Callable]): List (or unique value) of Optical or SAR bands
@@ -1406,7 +1409,7 @@ class Product:
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             stack_path (Union[str, CloudPath, Path]): Stack path
             save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
-            **kwargs: Other arguments passed to `load` or `rioxarray.to_raster()` (such as `compress`)
+            **kwargs: Other arguments passed to :code:`load` or :code:`rioxarray.to_raster()` (such as :code:`compress`)
 
         Returns:
             xr.DataArray: Stack as a DataArray
@@ -1534,7 +1537,7 @@ class Product:
     def default_transform(self, **kwargs) -> (Affine, int, int, CRS):
         """
         Returns default transform data of the default band (UTM),
-        as the `rasterio.warp.calculate_default_transform` does:
+        as the :code:`rasterio.warp.calculate_default_transform` does:
         - transform
         - width
         - height

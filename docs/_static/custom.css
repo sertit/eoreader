@@ -107,3 +107,6 @@ dl.class > dt:first-of-type {
     display: block !important;
 }
 
+.bd-sidebar .nav ul {
+    padding: 0 0 0 0.5rem;
+}

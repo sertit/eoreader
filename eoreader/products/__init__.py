@@ -18,7 +18,22 @@
 SAR and Optical products
 """
 # flake8: noqa
+__all__ = [
+    "Product",
+    "SensorType",
+]
+
 from .product import Product, SensorType
+
+__all__ += [
+    "CustomProduct",
+    "NAME",
+    "ACQ_DATETIME",
+    "BAND_MAP",
+    "PLATFORM",
+    "DEF_RES",
+    "PROD_TYPE",
+]
 from .custom_product import (
     CustomProduct,
     NAME,
@@ -30,9 +45,26 @@ from .custom_product import (
 )
 
 # -- Optical --
+__all__ += [
+    "OpticalProduct",
+    "SensorType",
+]
 from .optical.optical_product import OpticalProduct, SensorType
 
 # VHR
+__all__ += [
+    "VhrProduct",
+    "DimapBandCombination",
+    "DimapProduct",
+    "DimapProductType",
+    "PldProduct",
+    "Spot6Product",
+    "Spot7Product",
+    "MaxarProduct",
+    "MaxarProductType",
+    "MaxarSatId",
+    "MaxarBandId",
+]
 from .optical.vhr_product import VhrProduct
 from .optical.dimap_product import DimapBandCombination, DimapProduct, DimapProductType
 from .optical.pld_product import PldProduct
@@ -46,9 +78,26 @@ from .optical.maxar_product import (
 )
 
 # Planet
+__all__ += [
+    "PlaProduct",
+    "PlaProductType",
+    "PlaInstrument",
+]
 from .optical.pla_product import PlaProduct, PlaProductType, PlaInstrument
 
 # Landsat
+__all__ += [
+    "LandsatProduct",
+    "LandsatProductType",
+    "LandsatCollection",
+    "L1Product",
+    "L2Product",
+    "L3Product",
+    "L4Product",
+    "L5Product",
+    "L7Product",
+    "L8Product",
+]
 from .optical.landsat_product import (
     LandsatProduct,
     LandsatProductType,
@@ -63,6 +112,22 @@ from .optical.l7_product import L7Product
 from .optical.l8_product import L8Product
 
 # Sentinel
+__all__ += [
+    "S2Product",
+    "S2ProductType",
+    "S2GmlMasks",
+    "S2Jp2Masks",
+    "S2TheiaProduct",
+    "S3Product",
+    "S3ProductType",
+    "S3DataType",
+    "S3Instrument",
+    "S3SlstrProduct",
+    "SlstrRadAdjustTuple",
+    "SlstrRadAdjust",
+    "SlstrView",
+    "SlstrStripe",
+]
 from .optical.s2_product import S2Product, S2ProductType, S2GmlMasks, S2Jp2Masks
 from .optical.s2_theia_product import S2TheiaProduct
 from .optical.s3_product import S3Product, S3ProductType, S3DataType, S3Instrument
@@ -76,6 +141,36 @@ from .optical.s3_slstr_product import (
 )
 
 # -- SAR --
+__all__ += [
+    "SarProduct",
+    "SarProductType",
+    "CosmoProduct",
+    "CosmoProductType",
+    "CosmoPolarization",
+    "CsgProduct",
+    "CsgSensorMode",
+    "CskProduct",
+    "CskSensorMode",
+    "IceyeProduct",
+    "IceyeProductType",
+    "IceyeSensorMode",
+    "RcmProduct",
+    "RcmPolarization",
+    "RcmProductType",
+    "RcmSensorMode",
+    "Rs2Product",
+    "Rs2ProductType",
+    "Rs2Polarization",
+    "Rs2SensorMode",
+    "S1Product",
+    "S1SensorMode",
+    "S1ProductType",
+    "TsxProduct",
+    "TsxPolarization",
+    "TsxSatId",
+    "TsxProductType",
+    "TsxSensorMode",
+]
 from .sar.sar_product import SarProduct, SarProductType
 from .sar.cosmo_product import CosmoProduct, CosmoProductType, CosmoPolarization
 from .sar.csg_product import CsgProduct, CsgSensorMode

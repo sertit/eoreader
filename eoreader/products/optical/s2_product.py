@@ -268,7 +268,7 @@ class S2Product(OpticalProduct):
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
-        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+        Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. WARNING::
             Sentinel-2 datetime is the datatake sensing time, not the granule sensing time !
@@ -534,16 +534,16 @@ class S2Product(OpticalProduct):
         self, mask_id: Union[str, S2GmlMasks], band: Union[obn, str] = None
     ) -> gpd.GeoDataFrame:
         """
-        Open S2 mask (GML files stored in QI_DATA) as `gpd.GeoDataFrame`.
+        Open S2 mask (GML files stored in QI_DATA) as :code:`gpd.GeoDataFrame`.
 
         Masks than can be called that way are:
 
-        - `TECQUA`: Technical quality mask
-        - `SATURA`: Saturated Pixels
-        - `NODATA`: Pixel nodata (inside the detectors)
-        - `DETFOO`: Detectors footprint -> used to process nodata outside the detectors
-        - `DEFECT`: Defective pixels
-        - `CLOUDS`, **only with `00` as a band !**
+        - :code:`TECQUA`: Technical quality mask
+        - :code:`SATURA`: Saturated Pixels
+        - :code:`NODATA`: Pixel nodata (inside the detectors)
+        - :code:`DETFOO`: Detectors footprint -> used to process nodata outside the detectors
+        - :code:`DEFECT`: Defective pixels
+        - :code:`CLOUDS`, **only with :code:`00` as a band !**
 
         .. code-block:: python
 
@@ -630,9 +630,9 @@ class S2Product(OpticalProduct):
 
         Masks than can be called that way are:
 
-        - `DETFOO`: Detectors footprint -> used to process nodata outside the detectors
-        - `QUALIT`: TECQUA, DEFECT, NODATA, SATURA, CLOLOW merged
-        - `CLASSI`: CLOUDS and SNOICE **only with `00` as a band !**
+        - :code:`DETFOO`: Detectors footprint -> used to process nodata outside the detectors
+        - :code:`QUALIT`: TECQUA, DEFECT, NODATA, SATURA, CLOLOW merged
+        - :code:`CLASSI`: CLOUDS and SNOICE **only with :code:`00` as a band !**
 
         Args:
             mask_id (Union[str, S2GmlMasks]): Mask ID
@@ -915,7 +915,7 @@ class S2Product(OpticalProduct):
     def read_datatake_mtd(self) -> (etree._Element, dict):
         """
         Read datatake metadata and outputs the metadata XML root and its namespaces as a dict
-        (datatake metadata is the file in the root directory named `MTD_MSI(L1C/L2A).xml`)
+        (datatake metadata is the file in the root directory named :code:`MTD_MSI(L1C/L2A).xml`)
 
         .. code-block:: python
 

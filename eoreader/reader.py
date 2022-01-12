@@ -46,7 +46,7 @@ class CheckMethod(ListEnum):
     Check the filename:
 
     Safer method that allows modified product names as it recursively looks for the metadata name in the product files.
-    For products that have generic metadata files (ie. RS2 that as mtd named `product.xml`),
+    For products that have generic metadata files (ie. RS2 that as mtd named :code:`product.xml`),
     it also checks the band name.
     """
 
@@ -276,7 +276,7 @@ class Reader:
         Compile regex or list of regex
 
         Args:
-            regex (Union[str, list]): Regex in `re` sense
+            regex (Union[str, list]): Regex in :code:`re` sense
             prefix (str): Prefix of regex, ^ by default (means start of the string)
             suffix (str): Prefix of regex, & by default (means end of the string)
 

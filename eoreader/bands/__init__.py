@@ -46,3 +46,16 @@ from .bands import (
     SarBandNames,
     SarBands,
 )
+
+# __all__ = alias.__all__
+# __all__ += [
+#     "BandNames",
+#     "CloudsBandNames",
+#     "CloudsBands",
+#     "DemBandNames",
+#     "DemBands",
+#     "OpticalBandNames",
+#     "OpticalBands",
+#     "SarBandNames",
+#     "SarBands"
+# ]

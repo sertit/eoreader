@@ -31,14 +31,16 @@ DEM_PATH = "EOREADER_DEM_PATH"
 SNAP_DEM_NAME = "EOREADER_SNAP_DEM_NAME"
 """
 Environment variable for overriding default DEM name used in SNAP.
-Default is `Copernicus 30m Global DEM`.
-Can be `GETASSE30`, `SRTM 3Sec`, `External DEM`...
-If `EOREADER_SNAP_DEM_NAME` is set to `External DEM`,
-SNAP will use your DEM stored in `EOREADER_DEM_PATH` as an external DEM.
+
+Default is :code:`Copernicus 30m Global DEM`.
+Can be :code:`GETASSE30`, :code:`SRTM 3Sec`, :code:`External DEM`...
+
+If :code:`EOREADER_SNAP_DEM_NAME` is set to :code:`External DEM`,
+SNAP will use your DEM stored in  :code:`EOREADER_DEM_PATH` as an external DEM.
 """
 
 S3_DB_URL_ROOT = "S3_DB_URL_ROOT"
-"""Environment variable used for specify DB base url (e.g. https://s3.unistra.fr/bucket_name/) """
+"""Environment variable used for specify DB base url (e.g. :code:`https://s3.unistra.fr/bucket_name/`) """
 
 TEST_USING_S3_DB = "TESTING_USING_S3_DB"
 """Environment variable to specify to use external DB as a opposed to local one. (For testing purposes only)"""
@@ -51,5 +53,5 @@ in order to bypass SNAP process and DEM reprojection.
 
 USE_DASK = "EOREADER_USE_DASK"
 """
-If set and `dask` is installed, EOReader will read products as dask arrays instead of numpy arrays.
+If set and  :code:`dask` is installed, EOReader will read products as dask arrays instead of numpy arrays.
 """

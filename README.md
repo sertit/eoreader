@@ -142,7 +142,7 @@ So please install it via pip (`pip install methodtools`) before using **EOReader
 #### Configuration file (preferred method)
 You can use a configuration file like this (`environment.yml`) for conda to create your environment:
 
-```yml
+```yaml
 name: eoreader
 channels:
   - conda-forge

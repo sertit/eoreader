@@ -71,7 +71,7 @@ class OpticalProduct(Product):
 
     def get_default_band(self) -> BandNames:
         """
-        Get default band: `GREEN` for optical data as every optical satellite has a GREEN band.
+        Get default band: :code:`GREEN` for optical data as every optical satellite has a GREEN band.
 
         .. code-block:: python
 
@@ -88,7 +88,7 @@ class OpticalProduct(Product):
 
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
-        Get default band (`GREEN` for optical data) path.
+        Get default band (:code:`GREEN` for optical data) path.
 
         .. code-block:: python
 

@@ -116,7 +116,7 @@ class CsgProduct(CosmoProduct):
         See here
         <here](https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Second-Generation-Mission-Products-Description.pdf>`_
         for more information (tables 23 and 24).
-        Taking the `CSK legacy` values
+        Taking the :code:`CSK legacy` values
         """
         # For complex data, set regular ground range resolution provided by the constructor
         if self.product_type == CosmoProductType.SCS:

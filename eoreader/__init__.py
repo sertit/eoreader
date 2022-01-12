@@ -68,6 +68,10 @@ except ImportError:
         return wrapper
 
 
+__all__ = ["bands", "products"]
+
+from . import bands, products
+
 __version__ = "0.10.1"
 __title__ = "eoreader"
 __description__ = (
