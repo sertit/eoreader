@@ -6,6 +6,7 @@
 - **ENH: Adding a CustomProduct, allowing the user to load any stack as an EOReader Product !**
 - **ENH: Check if band exists before trying to load it**
 - FIX: Ensure that extents and footprints are in UTM
+- FIX: Removing docs from wheel
 - DOC: Update notebooks
 
 ## 0.10.2 (2022-MM-DD)
