@@ -24,6 +24,7 @@
    notebooks/VHR
    notebooks/sentinel-3
    notebooks/water_detection
+   notebooks/custom
    notebooks/s3_compatible_storage
    notebooks/dask
 ```

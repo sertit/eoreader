@@ -58,8 +58,6 @@ autodoc_default_options = {
 
 # Notebook integration parameters
 jupyter_execute_notebooks = "cache"
-jupyter_cache = "_build/.jupyter_cache"
-# execution_excludepatterns = ['*jupyter_execute/*/.ipynb']
 execution_timeout = 3600
 
 # This is going to generate a banner on top of each notebook
@@ -113,7 +111,13 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "__init__.py",
+    "eoreader/data/*"
+]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -231,6 +235,18 @@ def _html_page_context(app, pagename, templatename, context, doctree):
         context["theme_use_edit_page_button"] = False
 
 
+def my_doc_skip(app, what, name, obj, skip, options):
+    skip = False
+
+    # Skip these docstrings
+    data_module = what != "module" and name == "data"
+    cache_fct = what != "function" and (name == "cache" or name == "cached_property")
+    if data_module or cache_fct:
+        skip = True
+
+    return skip
+
 def setup(app):
     """dummy docstring for pydocstyle"""
+    app.connect('autodoc-skip-member', my_doc_skip)
     app.connect("html-page-context", _html_page_context)
