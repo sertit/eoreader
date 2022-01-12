@@ -287,15 +287,15 @@ def is_sat_band(band: _tp.Any) -> bool:
     .. code-block:: python
 
         >>> from eoreader.bands import *
-        >>> is_band(NDVI)
+        >>> is_sat_band(NDVI)
         False
-        >>> is_band(HH)
+        >>> is_sat_band(HH)
         True
-        >>> is_band(GREEN)
+        >>> is_sat_band(GREEN)
         True
-        >>> is_band(SLOPE)
+        >>> is_sat_band(SLOPE)
         False
-        >>> is_band(CLOUDS)
+        >>> is_sat_band(CLOUDS)
         False
 
     Args:

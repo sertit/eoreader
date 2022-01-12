@@ -191,7 +191,7 @@ def _test_core(
                 LOGGER.info("Checking extent")
                 extent = prod.extent
                 assert isinstance(extent, gpd.GeoDataFrame)
-                assert extent.is_projected
+                assert extent.crs.is_projected
                 extent_path = get_ci_data_dir().joinpath(
                     prod.condensed_name, f"{prod.condensed_name}_extent.geojson"
                 )
@@ -213,7 +213,7 @@ def _test_core(
                 LOGGER.info("Checking footprint")
                 footprint = prod.footprint
                 assert isinstance(footprint, gpd.GeoDataFrame)
-                assert footprint.is_projected
+                assert footprint.crs.is_projected
                 footprint_path = get_ci_data_dir().joinpath(
                     prod.condensed_name, f"{prod.condensed_name}_footprint.geojson"
                 )
