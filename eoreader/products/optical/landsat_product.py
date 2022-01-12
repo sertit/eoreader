@@ -594,17 +594,25 @@ class LandsatProduct(OpticalProduct):
                     c_mul = float(mtd_data.findtext(f".//{c_mul_str}"))
                     c_add = float(mtd_data.findtext(f".//{c_add_str}"))
                 except TypeError:
-                    raise InvalidProductError("ACQUISITION_DATE not found in metadata!")
+                    if band in [obn.TIR_1, obn.TIR_2]:
+                        c_mul = 1.0
+                        c_add = 0.0
+                    else:
+                        raise InvalidProductError(
+                            f"Cannot find additive or multiplicative "
+                            f"rescaling factor for bands ({band.name}, "
+                            f"number {band_name}) in metadata"
+                        )
 
                 # Manage NULL values
                 try:
                     c_mul = float(c_mul)
                 except ValueError:
-                    c_mul = 1
+                    c_mul = 1.0
                 try:
                     c_add = float(c_add)
                 except ValueError:
-                    c_add = 0
+                    c_add = 0.0
 
                 # Compute the correct reflectance of the band and set no data to 0
                 band_xda = c_mul * band_xda + c_add  # Already in float

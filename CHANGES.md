@@ -8,6 +8,7 @@
 - FIX: Better handling of `__all__` in `__init__.py` files
 - FIX: Ensure that extents and footprints are in UTM
 - FIX: Removing docs from wheel
+- FIX: Fixing `TIR` bands reading for Landsat data
 - DOC: Update README, documentation and notebooks
 - DOC: Water Extraction notebook has been refined to show how to manage multiple products
 
