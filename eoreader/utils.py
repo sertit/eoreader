@@ -24,6 +24,7 @@ from typing import Union
 import numpy as np
 import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
+from lxml import etree
 from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
 from sertit import rasters
@@ -239,3 +240,27 @@ def create_gcps(lon: xr.DataArray, lat: xr.DataArray, alt: xr.DataArray) -> list
                 gcp_id += 1
 
     return gcps
+
+
+def quick_xml_to_dict(element: etree._Element) -> tuple:
+    """
+    Convert a lxml root to a nested dict (quick and dirty)
+
+    https://lxml.de/FAQ.html#how-can-i-map-an-xml-tree-into-a-dict-of-dicts:
+
+
+        How can I map an XML tree into a dict of dicts?
+
+        Note that this beautiful quick-and-dirty converter expects children to have unique tag names and will silently
+        overwrite any data that was contained in preceding siblings with the same name.
+        For any real-world application of xml-to-dict conversion, you would better write your own,
+        longer version of this.
+
+    Args:
+        element (etree._Element): Element to convert into a dict
+
+    Returns:
+        : XML as a nested dict
+
+    """
+    return element.tag, dict(map(quick_xml_to_dict, element)) or element.text

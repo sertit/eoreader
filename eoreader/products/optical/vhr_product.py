@@ -33,7 +33,7 @@ import rasterio
 from cloudpathlib import AnyPath, CloudPath
 from rasterio import rpc, transform, warp
 from rasterio.crs import CRS
-from rasterio.enums import Resampling
+from rasterio.enums import Compression, Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
@@ -254,7 +254,7 @@ class VhrProduct(OpticalProduct):
         meta = src_meta.copy()
         meta["transform"] = dst_transform
         meta["driver"] = "GTiff"
-        meta["compress"] = "lzw"
+        meta["compress"] = Compression.lzw
         meta["nodata"] = 0
         meta["crs"] = self.crs
         meta["width"] = width

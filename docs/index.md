@@ -11,6 +11,7 @@
    main_features
    optical
    sar
+   custom
    faq
 ```
 
