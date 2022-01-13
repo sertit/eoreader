@@ -1,3 +1,5 @@
+-r requirements.txt
+
 # Doc
 sphinx
 sphinx-book-theme
@@ -10,6 +12,4 @@ jupyter
 matplotlib
 cartopy
 
-
--r requirements.txt
 -e .
