@@ -191,6 +191,7 @@ def _test_core(
                 LOGGER.info("Checking extent")
                 extent = prod.extent
                 assert isinstance(extent, gpd.GeoDataFrame)
+                assert extent.crs.is_projected
                 extent_path = get_ci_data_dir().joinpath(
                     prod.condensed_name, f"{prod.condensed_name}_extent.geojson"
                 )
@@ -212,6 +213,7 @@ def _test_core(
                 LOGGER.info("Checking footprint")
                 footprint = prod.footprint
                 assert isinstance(footprint, gpd.GeoDataFrame)
+                assert footprint.crs.is_projected
                 footprint_path = get_ci_data_dir().joinpath(
                     prod.condensed_name, f"{prod.condensed_name}_footprint.geojson"
                 )
@@ -253,12 +255,16 @@ def _test_core(
 
                 curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
                 stack = prod.stack(
-                    stack_bands, resolution=res, stack_path=curr_path, **kwargs
+                    stack_bands,
+                    resolution=res,
+                    stack_path=curr_path,
+                    clean_optical="clean",
+                    **kwargs,
                 )
                 assert stack.dtype == np.float32
 
                 # Check attributes
-                assert stack.attrs["long_name"] == to_str(stack_bands)
+                assert stack.attrs["long_name"] == " ".join(to_str(stack_bands))
                 assert stack.attrs["sensor"] == prod._get_platform().value
                 assert stack.attrs["sensor_id"] == prod.sat_id
                 assert stack.attrs["product_type"] == prod.product_type.value
@@ -289,7 +295,10 @@ def _test_core(
                     ci_band = curr_path_band
 
                 band_arr = prod.load(
-                    first_band, size=(stack.rio.width, stack.rio.height), **kwargs
+                    first_band,
+                    size=(stack.rio.width, stack.rio.height),
+                    clean_optical="clean",
+                    **kwargs,
                 )[first_band]
                 rasters.write(band_arr, curr_path_band)
                 assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)

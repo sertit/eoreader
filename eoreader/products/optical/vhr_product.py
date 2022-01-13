@@ -87,7 +87,7 @@ class VhrProduct(OpticalProduct):
 
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
-        Get default band (`GREEN` for optical data) path.
+        Get default band (:code:`GREEN` for optical data) path.
 
         .. WARNING:
             If you are using a non orthorectified product, this function will orthorectify the stack.
@@ -130,7 +130,7 @@ class VhrProduct(OpticalProduct):
         """
         def_tr, def_w, def_h, def_crs = self.default_transform()
         bounds = transform.array_bounds(def_h, def_w, def_tr)
-        return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs)
+        return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs).to_crs(self.crs)
 
     @abstractmethod
     def _get_ortho_path(self) -> Union[CloudPath, Path]:
@@ -592,7 +592,7 @@ class VhrProduct(OpticalProduct):
     def default_transform(self, **kwargs) -> (affine.Affine, int, int, CRS):
         """
         Returns default transform data of the default band (UTM),
-        as the `rasterio.warp.calculate_default_transform` does:
+        as the :code:`rasterio.warp.calculate_default_transform` does:
         - transform
         - width
         - height

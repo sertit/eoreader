@@ -324,7 +324,7 @@ class LandsatProduct(OpticalProduct):
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
-        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+        Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. code-block:: python
 
@@ -448,7 +448,7 @@ class LandsatProduct(OpticalProduct):
         """
         Read Landsat metadata as:
 
-         - a `pandas.DataFrame` whatever its collection is (by default for collection 1)
+         - a :code:`pandas.DataFrame` whatever its collection is (by default for collection 1)
          - a XML root + its namespace if the product is retrieved from the 2nd collection (by default for collection 2)
 
         Args:
@@ -513,7 +513,7 @@ class LandsatProduct(OpticalProduct):
             global_attr = [
                 E(str(attr), str(mtd_data[attr].iat[0])) for attr in attr_names
             ]
-            mtd = E.s3_global_attributes(*global_attr)
+            mtd = E.landsat_global_attributes(*global_attr)
             mtd_el = etree.fromstring(
                 etree.tostring(
                     mtd, pretty_print=True, xml_declaration=True, encoding="UTF-8"
@@ -594,25 +594,31 @@ class LandsatProduct(OpticalProduct):
                     c_mul = float(mtd_data.findtext(f".//{c_mul_str}"))
                     c_add = float(mtd_data.findtext(f".//{c_add_str}"))
                 except TypeError:
-                    raise InvalidProductError("ACQUISITION_DATE not found in metadata!")
+                    if band in [obn.TIR_1, obn.TIR_2]:
+                        c_mul = 1.0
+                        c_add = 0.0
+                    else:
+                        raise InvalidProductError(
+                            f"Cannot find additive or multiplicative "
+                            f"rescaling factor for bands ({band.name}, "
+                            f"number {band_name}) in metadata"
+                        )
 
                 # Manage NULL values
                 try:
                     c_mul = float(c_mul)
                 except ValueError:
-                    c_mul = 1
+                    c_mul = 1.0
                 try:
                     c_add = float(c_add)
                 except ValueError:
-                    c_add = 0
+                    c_add = 0.0
 
                 # Compute the correct reflectance of the band and set no data to 0
                 band_xda = c_mul * band_xda + c_add  # Already in float
 
         return band_xda
 
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
@@ -672,6 +678,41 @@ class LandsatProduct(OpticalProduct):
             mask = sat | other | nodata
 
         return self._set_nodata_mask(band_arr, mask)
+
+    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+        """
+        Manage only nodata pixels
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # Open QA band
+        landsat_qa_path = self._get_path(self._radsat_id)
+        qa_arr = self._read_band(
+            landsat_qa_path,
+            size=(band_arr.rio.width, band_arr.rio.height),
+        ).data  # To np array
+
+        if self._collection == LandsatCollection.COL_1:
+            # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
+            # Bit ids
+            nodata_id = 0  # Fill value
+            nodata = rasters.read_bit_array(qa_arr, nodata_id)
+        else:
+            # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
+            # If collection 2, nodata has to be found in pixel QA file
+            landsat_stat_path = self._get_path(self._pixel_quality_id)
+            pixel_arr = self._read_band(
+                landsat_stat_path, size=(band_arr.rio.width, band_arr.rio.height)
+            ).data
+            nodata = np.where(pixel_arr == 1, 1, 0)
+
+        return self._set_nodata_mask(band_arr, nodata)
 
     def _load_bands(
         self,
@@ -736,7 +777,6 @@ class LandsatProduct(OpticalProduct):
 
         return azimuth_angle, zenith_angle
 
-    @abstractmethod
     def _get_condensed_name(self) -> str:
         """
         Get products condensed name ({date}_Lx_{tile}_{product_type}).

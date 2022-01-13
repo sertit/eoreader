@@ -17,6 +17,7 @@
 """ Super class for optical products """
 import logging
 from abc import abstractmethod
+from enum import unique
 from pathlib import Path
 from typing import Union
 
@@ -27,6 +28,7 @@ from cloudpathlib import CloudPath
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from sertit import rasters
+from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, cached_property, utils
@@ -43,10 +45,33 @@ from eoreader.bands import (
     to_str,
 )
 from eoreader.exceptions import InvalidBandError, InvalidIndexError
+from eoreader.keywords import CLEAN_OPTICAL
 from eoreader.products.product import Product, SensorType
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
+
+
+@unique
+class CleanMethod(ListEnum):
+    """
+    Cleaning method for optical bands
+    """
+
+    CLEAN = "clean"
+    """
+    Clean everything that can be cleaned (nodata, saturated pixels, cosmic rays, broken detectors...).
+    Default method but slowest.
+    """
+
+    NODATA = "nodata"
+    """
+    Clean only the detector nodata (nan outside the detector footprint).
+    A bit faster than the previous method.
+    """
+
+    RAW = "raw"
+    """ Return raw band without any cleaning (fastest method) """
 
 
 class OpticalProduct(Product):
@@ -71,7 +96,7 @@ class OpticalProduct(Product):
 
     def get_default_band(self) -> BandNames:
         """
-        Get default band: `GREEN` for optical data as every optical satellite has a GREEN band.
+        Get default band: :code:`GREEN` for optical data as every optical satellite has a GREEN band.
 
         .. code-block:: python
 
@@ -88,7 +113,7 @@ class OpticalProduct(Product):
 
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
-        Get default band (`GREEN` for optical data) path.
+        Get default band (:code:`GREEN` for optical data) path.
 
         .. code-block:: python
 
@@ -231,8 +256,19 @@ class OpticalProduct(Product):
             # (invalid pix management can be time consuming)
             if not str(band_path).endswith("clean.tif"):
                 # Manage invalid pixels
-                LOGGER.debug(f"Manage invalid pixels for band {band.name}")
-                band_arr = self._manage_invalid_pixels(band_arr, band=band, **kwargs)
+                cleaning_method = CleanMethod.from_value(
+                    kwargs.get(CLEAN_OPTICAL, CleanMethod.NODATA)
+                )
+                if cleaning_method == CleanMethod.RAW:
+                    pass
+                elif cleaning_method == CleanMethod.NODATA:
+                    LOGGER.debug(f"Manage nodata for band {band.name}")
+                    band_arr = self._manage_nodata(band_arr, band=band, **kwargs)
+                else:
+                    LOGGER.debug(f"Manage invalid pixels for band {band.name}")
+                    band_arr = self._manage_invalid_pixels(
+                        band_arr, band=band, **kwargs
+                    )
 
                 # Write on disk
                 try:
@@ -253,14 +289,27 @@ class OpticalProduct(Product):
 
         return band_arrays
 
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
     @abstractmethod
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
+
+    @abstractmethod
+    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+        """
+        Manage only nodata pixels
 
         Args:
             band_arr (XDS_TYPE): Band array
@@ -553,10 +602,14 @@ class OpticalProduct(Product):
         Returns:
             Union[CloudPath, Path]: Clean band path
         """
+        cleaning_method = CleanMethod.from_value(
+            kwargs.get(CLEAN_OPTICAL, CleanMethod.CLEAN)
+        )
+
         res_str = self._resolution_to_str(resolution)
 
         return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_clean.tif",
+            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{cleaning_method.value}.tif",
         )
 
     def _get_cloud_band_path(

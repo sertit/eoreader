@@ -305,7 +305,7 @@ class S3Product(OpticalProduct):
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
-        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+        Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. code-block:: python
 
@@ -462,6 +462,23 @@ class S3Product(OpticalProduct):
             XDS_TYPE: Cleaned band array
         """
         raise NotImplementedError("This method should be implemented by a child class")
+
+    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+        """
+        Manage only nodata pixels
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # Get nodata mask
+        no_data = np.where(np.isnan(band_arr.data), self._mask_true, self._mask_false)
+
+        return self._set_nodata_mask(band_arr, no_data)
 
     def _load_bands(
         self,
