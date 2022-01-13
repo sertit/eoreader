@@ -11,6 +11,7 @@
 - FIX: Ensure that extents and footprints are in UTM
 - FIX: Removing docs from wheel
 - FIX: Fixing `TIR` bands reading for Landsat data
+- OPTIM: Optimizing `manage_invalid_pixels` for `Sentinel-2` data (processing baseline >= 04.00)
 - DOC: Update README, documentation and notebooks
 - DOC: Water Extraction notebook has been refined to show how to manage multiple products
 - DOC: Update the installation paragraph in README
