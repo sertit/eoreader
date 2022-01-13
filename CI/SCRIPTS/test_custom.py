@@ -35,7 +35,7 @@ def test_custom():
     stack = prod_all.stack([BLUE, GREEN, RED, NIR])
 
     # Check attributes
-    assert stack.attrs["long_name"] == ["BLUE GREEN RED NIR"]
+    assert stack.attrs["long_name"] == "BLUE GREEN RED NIR"
     assert stack.attrs["sensor"] == "WorldView-2"
     assert stack.attrs["sensor_id"] == "WV02"
     assert stack.attrs["product_type"] == "Ortho"
@@ -140,7 +140,7 @@ def test_custom():
     stack_sar = prod_sar.stack([VV, VV_DSPK])
 
     # Check attributes
-    assert stack_sar.attrs["long_name"] == ["VV VV_DSPK"]
+    assert stack_sar.attrs["long_name"] == "VV VV_DSPK"
     assert stack_sar.attrs["sensor"] == "ICEYE"
     assert stack_sar.attrs["sensor_id"] == "ICEYE"
     assert stack_sar.attrs["product_type"] == "GRD"
