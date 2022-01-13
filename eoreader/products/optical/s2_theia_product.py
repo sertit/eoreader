@@ -163,7 +163,7 @@ class S2TheiaProduct(OpticalProduct):
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
-        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+        Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. code-block:: python
 
@@ -316,8 +316,6 @@ class S2TheiaProduct(OpticalProduct):
 
         return band_xda
 
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
@@ -334,14 +332,11 @@ class S2TheiaProduct(OpticalProduct):
         Returns:
             XDS_TYPE: Cleaned band array
         """
-        nodata_true = 1
-        nodata_false = 0
-
         # -- Manage nodata from Theia band array
         # Theia nodata is already processed
         theia_nodata = -1.0
         no_data_mask = np.where(
-            band_arr.data == theia_nodata, nodata_true, nodata_false
+            band_arr.data == theia_nodata, self._mask_true, self._mask_false
         ).astype(np.uint8)
 
         # Open NODATA pixels mask
@@ -369,22 +364,44 @@ class S2TheiaProduct(OpticalProduct):
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
 
+    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+        """
+        Manage only nodata pixels
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # -- Manage nodata from Theia band array
+        # Theia nodata is already processed
+        theia_nodata = -1.0
+        no_data_mask = np.where(
+            band_arr.data == theia_nodata, self._mask_true, self._mask_false
+        ).astype(np.uint8)
+
+        # -- Merge masks
+        return self._set_nodata_mask(band_arr, no_data_mask)
+
     def get_mask_path(self, mask_id: str, res_id: str) -> Union[CloudPath, Path]:
         """
-        Get mask path from its id and file_id (`R1` for 10m resolution, `R2` for 20m resolution)
+        Get mask path from its id and file_id (:code:`R1` for 10m resolution, :code:`R2` for 20m resolution)
 
         Accepted mask IDs:
 
-        - `DFP`: Defective pixels (do not always exist ! Will raise `InvalidProductError` if not)
-        - `EDG`: Nodata pixels mask
-        - `SAT`: Saturated pixels mask
-        - `MG2`: Geophysical mask (classification)
-        - `IAB`: Mask where water vapor and TOA pixels have been interpolated
-        - `CLM`: Cloud mask
+        - :code:`DFP`: Defective pixels (do not always exist ! Will raise :code:`InvalidProductError` if not)
+        - :code:`EDG`: Nodata pixels mask
+        - :code:`SAT`: Saturated pixels mask
+        - :code:`MG2`: Geophysical mask (classification)
+        - :code:`IAB`: Mask where water vapor and TOA pixels have been interpolated
+        - :code:`CLM`: Cloud mask
 
         Args:
             mask_id (str): Mask ID
-            res_id (str): Resolution ID (`R1` or `R2`)
+            res_id (str): Resolution ID (:code:`R1` or :code:`R2`)
 
         Returns:
             Union[CloudPath, Path]: Mask path
@@ -422,18 +439,18 @@ class S2TheiaProduct(OpticalProduct):
         - Opens the nodata binary mask
         - Opens the other masks as is
 
-        Do not open cloud mask with this function. Use `load` instead.
+        Do not open cloud mask with this function. Use :code:`load` instead.
 
         See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_ for more
         information.
 
         Accepted mask IDs:
 
-        - `DFP`: Defective pixels
-        - `EDG`: Nodata pixels mask
-        - `SAT`: Saturated pixels mask
-        - `MG2`: Geophysical mask (classification)
-        - `IAB`: Mask where water vapor and TOA pixels have been interpolated
+        - :code:`DFP`: Defective pixels
+        - :code:`EDG`: Nodata pixels mask
+        - :code:`SAT`: Saturated pixels mask
+        - :code:`MG2`: Geophysical mask (classification)
+        - :code:`IAB`: Mask where water vapor and TOA pixels have been interpolated
 
         .. code-block:: python
 
@@ -446,7 +463,7 @@ class S2TheiaProduct(OpticalProduct):
 
         Args:
             mask_id: Mask ID
-            band (Union[obn, str]): Band name as an OpticalBandNames or resolution ID: [`R1`, `R2`]
+            band (Union[obn, str]): Band name as an OpticalBandNames or resolution ID: ['R1', 'R2']
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 

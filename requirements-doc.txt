@@ -8,6 +8,7 @@ linkify-it-py
 
 jupyter
 matplotlib
+cartopy
 
 
 -r requirements.txt

@@ -9,6 +9,7 @@ from cloudpathlib import AnyPath, S3Client
 from eoreader import utils
 from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
+from eoreader.exceptions import InvalidTypeError
 from eoreader.reader import Platform
 
 from .scripts_utils import (
@@ -50,11 +51,11 @@ def test_alias():
     assert not is_index(CLOUDS)
 
     # Bands
-    assert not is_band(NDVI)
-    assert is_band(HH)
-    assert is_band(GREEN)
-    assert not is_band(SLOPE)
-    assert not is_band(CLOUDS)
+    assert not is_sat_band(NDVI)
+    assert is_sat_band(HH)
+    assert is_sat_band(GREEN)
+    assert not is_sat_band(SLOPE)
+    assert not is_sat_band(CLOUDS)
 
     # Clouds
     assert not is_clouds(NDVI)
@@ -121,7 +122,7 @@ def test_products():
             os.environ[DEM_PATH] = old_dem
 
     # Test invalid band
-    with pytest.raises(InvalidTypeError):
+    with pytest.raises(AssertionError):
         prod1.load("TEST")
 
 

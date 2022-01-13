@@ -52,6 +52,11 @@ Be sure to position the environment variable `EOREADER_DEM_PATH` to the DEM you 
 Optical bands are always loaded in reflectance. 
 For Sentinel-3 SLSTR, radiances are converted to reflectance, 
 expcept for brilliance temperature bands that are left as is.
+
+These bands will be cleaned according to the user's needs. 
+By default, only the pixels outside the detectors footprints are set to nodata.
+Methods to clean optical bands are best described 
+[here](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html).
 ```
 
 #### Band names

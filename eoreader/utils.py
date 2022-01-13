@@ -24,11 +24,13 @@ from typing import Union
 import numpy as np
 import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
+from lxml import etree
 from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
 from sertit import rasters
 
 from eoreader.env_vars import USE_DASK
+from eoreader.keywords import prune_keywords
 
 EOREADER_NAME = "eoreader"
 DATETIME_FMT = "%Y%m%dT%H%M%S"
@@ -123,7 +125,7 @@ def read(
     **kwargs,
 ) -> xr.DataArray:
     """
-    Overload of `sertit.rasters.read()` managing  DASK in EOReader's way.
+    Overload of :code:`sertit.rasters.read()` managing  DASK in EOReader's way.
 
     .. code-block:: python
 
@@ -160,29 +162,30 @@ def read(
         masked=masked,
         indexes=indexes,
         chunks=chunks,
-        **kwargs,
+        **prune_keywords(**kwargs),
     )
 
 
 def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> None:
     """
-    Overload of `sertit.rasters.write()` managing DASK in EOReader's way.
+    Overload of :code:`sertit.rasters.write()` managing DASK in EOReader's way.
 
-    ```python
-    >>> raster_path = "path/to/raster.tif"
-    >>> raster_out = "path/to/out.tif"
+    .. code-block:: python
 
-    >>> # Read raster
-    >>> xds = read(raster_path)
+        >>> raster_path = "path/to/raster.tif"
+        >>> raster_out = "path/to/out.tif"
 
-    >>> # Rewrite it
-    >>> write(xds, raster_out)
-    ```
+        >>> # Read raster
+        >>> xds = read(raster_path)
+
+        >>> # Rewrite it
+        >>> write(xds, raster_out)
+
 
     Args:
         xds (xr.DataArray): Path to the raster or a rasterio dataset or a xarray
         path (Union[str, CloudPath, Path]): Path where to save it (directories should be existing)
-        **kwargs: Overloading metadata, ie `nodata=255` or `dtype=np.uint8`
+        **kwargs: Overloading metadata, ie :code:`nodata=255` or :code:`dtype=np.uint8`
     """
     if use_dask():
         from distributed import Lock, get_client
@@ -191,7 +194,19 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
     else:
         lock = None
 
-    return rasters.write(xds, path=path, lock=lock, **kwargs)
+    # Reset the long name as a list to write it down
+    previous_long_name = xds.attrs.get("long_name")
+    if previous_long_name and xds.rio.count > 1:
+        xds.attrs["long_name"] = xds.attrs.get(
+            "long_name", xds.attrs.get("name", "")
+        ).split(" ")
+
+    # Write
+    rasters.write(xds, path=path, lock=lock, **prune_keywords(**kwargs))
+
+    # Set back the previous long name
+    if previous_long_name and xds.rio.count > 1:
+        xds.attrs["long_name"] = previous_long_name
 
 
 def create_gcps(lon: xr.DataArray, lat: xr.DataArray, alt: xr.DataArray) -> list:
@@ -238,3 +253,27 @@ def create_gcps(lon: xr.DataArray, lat: xr.DataArray, alt: xr.DataArray) -> list
                 gcp_id += 1
 
     return gcps
+
+
+def quick_xml_to_dict(element: etree._Element) -> tuple:
+    """
+    Convert a lxml root to a nested dict (quick and dirty)
+
+    https://lxml.de/FAQ.html#how-can-i-map-an-xml-tree-into-a-dict-of-dicts:
+
+
+        How can I map an XML tree into a dict of dicts?
+
+        Note that this beautiful quick-and-dirty converter expects children to have unique tag names and will silently
+        overwrite any data that was contained in preceding siblings with the same name.
+        For any real-world application of xml-to-dict conversion, you would better write your own,
+        longer version of this.
+
+    Args:
+        element (etree._Element): Element to convert into a dict
+
+    Returns:
+        : XML as a nested dict
+
+    """
+    return element.tag, dict(map(quick_xml_to_dict, element)) or element.text

@@ -158,10 +158,14 @@ The nodata written back on disk is by convention:
 - `65535` for optical bands (saved in `uint16`)
 - `0` for SAR bands (saved in `float32`), to be compliant with SNAP default nodata
 - `255` for masks (saved in `uint8`)
+
+For optical bands, only the pixels outside of the detector are set to nodata by default 
+but this can be changed according to the user's needs (see below).
 ```
 
 Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
-Sentinel-3 additional keywords use is highlighted in the corresponding notebook.
+- Methods to clean optical bands are best described [here](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html),
+- Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html).
 
 ## Stack
 
@@ -225,8 +229,11 @@ Attributes:
     long_name:  ['GREEN', 'NDVI', 'HILLSHADE']
 ```
 
-Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list. 
-Sentinel-3 additional keywords use is highlighted in the corresponding notebook.
+Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
+- Methods to clean optical bands are best
+  described [here](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html),
+- Sentinel-3 additional keywords use is highlighted in
+  the [corresponding notebook](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html).
 
 ## Read Metadata
 EOReader gives you the access to the metadata of your product as a `lxml.etree._Element` followed by the namespace you may need to read them 

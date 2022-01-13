@@ -11,19 +11,22 @@
    main_features
    optical
    sar
+   custom
    faq
 ```
 
 ```{eval-rst}
 .. toctree::
    :maxdepth: 2
-   :caption: Examples
+   :caption: Tutorials
 
    notebooks/base
    notebooks/SAR
    notebooks/VHR
    notebooks/sentinel-3
    notebooks/water_detection
+   notebooks/custom
+   notebooks/optical_cleaning_methods
    notebooks/s3_compatible_storage
    notebooks/dask
 ```
@@ -36,5 +39,15 @@
     :recursive:
 
     eoreader
+```
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 1
+   :caption: For Contributors
+
+   contributing
+   history
+   GitHub Repository <https://github.com/sertit/eoreader>
 ```
 

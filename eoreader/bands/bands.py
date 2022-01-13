@@ -48,6 +48,9 @@ class _Bands(MutableMapping):
     def __len__(self):
         return len(self._band_map)
 
+    def __str__(self):
+        return str(self._band_map)
+
 
 class BandNames(ListEnum):
     """Super class for band names, **do not use it**."""
@@ -218,7 +221,6 @@ class SarBandNames(BandNames):
         Returns:
             SarBandNames: Despeckled band
         """
-        """"""
         return "DSPK" in band.name
 
 
@@ -229,6 +231,30 @@ class SarBands(_Bands):
 
     def __init__(self) -> None:
         super().__init__({band_name: band_name.value for band_name in SarBandNames})
+
+    def map_bands(self, band_map: dict) -> None:
+        """
+        Mapping band names to specific satellite band numbers, as strings.
+
+        .. code-block:: python
+
+            >>> # Example for Sentinel-2 L1C data
+            >>> sb = SarBands()
+            >>> sb.map_bands({
+                    VV: 1,
+                })
+
+        Args:
+            band_map (dict): Band mapping as {SarBandNames: Band number for loading band}
+        """
+        for band_name, band_nb in band_map.items():
+            if band_name not in self._band_map or not isinstance(
+                band_name, SarBandNames
+            ):
+                raise InvalidTypeError(f"{band_name} should be an SarBandNames object")
+
+            # Set number
+            self._band_map[band_name] = band_nb
 
 
 # ---------------------- OPTICAL ----------------------

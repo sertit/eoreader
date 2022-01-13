@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Aliases for bands and index, created in order to import just this file and not `OpticalBandNames`, `SarBandNames` and `index`.
+Aliases for bands and index, created in order to import just this file and not :code:`OpticalBandNames`, :code:`SarBandNames` and :code:`index`.
 
 To use it, simply type:
 
@@ -37,7 +37,23 @@ from eoreader.bands.bands import CloudsBandNames as _clouds
 from eoreader.bands.bands import DemBandNames as _dem
 from eoreader.bands.bands import OpticalBandNames as _obn
 from eoreader.bands.bands import SarBandNames as _sbn
-from eoreader.exceptions import InvalidTypeError
+from eoreader.exceptions import InvalidTypeError as _ite
+
+__all__ = _idx.get_all_index_names()
+__all__ += _obn.list_names()
+__all__ += _sbn.list_names()
+__all__ += _dem.list_names()
+__all__ += _clouds.list_names()
+__all__ += [
+    "is_clouds",
+    "is_dem",
+    "is_index",
+    "is_optical_band",
+    "is_sar_band",
+    "is_sat_band",
+    "to_band",
+    "to_str",
+]
 
 # -- OPTICAL BANDS --
 CA = _obn.CA  # Coastal aerosol
@@ -118,6 +134,10 @@ WI = _idx.WI
 AFRI_1_6 = _idx.AFRI_1_6
 AFRI_2_1 = _idx.AFRI_2_1
 BSI = _idx.BSI
+WV_WI = _idx.WV_WI
+WV_VI = _idx.WV_VI
+WV_SI = _idx.WV_SI
+WV_BI = _idx.WV_BI
 
 # -- DEM --
 DEM = _dem.DEM
@@ -184,7 +204,7 @@ def is_dem(dem: _tp.Any) -> bool:
 
 def is_index(idx: _tp.Any) -> bool:
     """
-    Returns True if is an index function from the `bands.index` module
+    Returns True if is an index function from the :code:`ands.index` module
 
     .. code-block:: python
 
@@ -204,7 +224,7 @@ def is_index(idx: _tp.Any) -> bool:
         idx (Any): Anything that could be an index
 
     Returns:
-        bool: True if the index asked is an index function (such as `index.NDVI`)
+        bool: True if the index asked is an index function (such as :code:`ndex.NDVI`)
 
     """
     if isinstance(idx, str):
@@ -218,7 +238,7 @@ def is_index(idx: _tp.Any) -> bool:
 
 def is_optical_band(band: _tp.Any) -> bool:
     """
-    Returns True if is an optical band (from `OpticalBandNames`)
+    Returns True if is an optical band (from :code:`pticalBandNames`)
 
     .. code-block:: python
 
@@ -250,7 +270,7 @@ def is_optical_band(band: _tp.Any) -> bool:
 
 def is_sar_band(band: _tp.Any) -> bool:
     """
-    Returns True if is a SAR band (from `SarBandNames`)
+    Returns True if is a SAR band (from :code:`arBandNames`)
 
     .. code-block:: python
 
@@ -280,22 +300,22 @@ def is_sar_band(band: _tp.Any) -> bool:
     return is_valid
 
 
-def is_band(band: _tp.Any) -> bool:
+def is_sat_band(band: _tp.Any) -> bool:
     """
-    Returns True if is a band (from both `SarBandNames` or `OpticalBandNames`)
+    Returns True if is a band (from both :code:`arBandNames` or :code:`pticalBandNames`)
 
     .. code-block:: python
 
         >>> from eoreader.bands import *
-        >>> is_band(NDVI)
+        >>> is_sat_band(NDVI)
         False
-        >>> is_band(HH)
+        >>> is_sat_band(HH)
         True
-        >>> is_band(GREEN)
+        >>> is_sat_band(GREEN)
         True
-        >>> is_band(SLOPE)
+        >>> is_sat_band(SLOPE)
         False
-        >>> is_band(CLOUDS)
+        >>> is_sat_band(CLOUDS)
         False
 
     Args:
@@ -359,14 +379,14 @@ def to_band(to_convert: list) -> list:
                             except TypeError:
                                 pass
 
-        elif is_index(tc) or is_band(tc) or is_dem(tc) or is_clouds(tc):
+        elif is_index(tc) or is_sat_band(tc) or is_dem(tc) or is_clouds(tc):
             band_or_idx = tc
 
         # Store it
         if band_or_idx:
             bands.append(band_or_idx)
         else:
-            raise InvalidTypeError(f"Unknown band or index: {tc}")
+            raise _ite(f"Unknown band or index: {tc}")
 
     return bands
 

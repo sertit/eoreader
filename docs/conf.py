@@ -111,7 +111,13 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "__init__.py",
+    "eoreader/data/*"
+]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -221,6 +227,7 @@ intersphinx_mapping = {
 
 add_function_parentheses = False
 add_module_names = False
+modindex_common_prefix = ["eoreader."]
 
 
 def _html_page_context(app, pagename, templatename, context, doctree):
@@ -229,6 +236,30 @@ def _html_page_context(app, pagename, templatename, context, doctree):
         context["theme_use_edit_page_button"] = False
 
 
+def my_doc_skip(app, what, name, obj, skip, options):
+    """
+    https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#skipping-members
+    """
+    skip = False
+
+    # Skip these docstrings
+    private = name.startswith("_") and name != "__init__"
+    ghosted_fct = what == "function" and name in [
+        "cache",
+        "cached_property",
+    ]
+    ghosted_module = what == "module" and name in [
+        "data"
+    ]
+    ghosted = ghosted_fct or ghosted_module
+
+    if ghosted or private:
+        skip = True
+
+    return skip
+
+
 def setup(app):
     """dummy docstring for pydocstyle"""
+    app.connect('autodoc-skip-member', my_doc_skip)
     app.connect("html-page-context", _html_page_context)

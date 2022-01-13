@@ -268,7 +268,7 @@ class S2Product(OpticalProduct):
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
-        Get the product's acquisition datetime, with format `YYYYMMDDTHHMMSS` <-> `%Y%m%dT%H%M%S`
+        Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. WARNING::
             Sentinel-2 datetime is the datatake sensing time, not the granule sensing time !
@@ -534,16 +534,16 @@ class S2Product(OpticalProduct):
         self, mask_id: Union[str, S2GmlMasks], band: Union[obn, str] = None
     ) -> gpd.GeoDataFrame:
         """
-        Open S2 mask (GML files stored in QI_DATA) as `gpd.GeoDataFrame`.
+        Open S2 mask (GML files stored in QI_DATA) as :code:`gpd.GeoDataFrame`.
 
         Masks than can be called that way are:
 
-        - `TECQUA`: Technical quality mask
-        - `SATURA`: Saturated Pixels
-        - `NODATA`: Pixel nodata (inside the detectors)
-        - `DETFOO`: Detectors footprint -> used to process nodata outside the detectors
-        - `DEFECT`: Defective pixels
-        - `CLOUDS`, **only with `00` as a band !**
+        - :code:`TECQUA`: Technical quality mask
+        - :code:`SATURA`: Saturated Pixels
+        - :code:`NODATA`: Pixel nodata (inside the detectors)
+        - :code:`DETFOO`: Detectors footprint -> used to process nodata outside the detectors
+        - :code:`DEFECT`: Defective pixels
+        - :code:`CLOUDS`, **only with :code:`00` as a band !**
 
         .. code-block:: python
 
@@ -630,9 +630,9 @@ class S2Product(OpticalProduct):
 
         Masks than can be called that way are:
 
-        - `DETFOO`: Detectors footprint -> used to process nodata outside the detectors
-        - `QUALIT`: TECQUA, DEFECT, NODATA, SATURA, CLOLOW merged
-        - `CLASSI`: CLOUDS and SNOICE **only with `00` as a band !**
+        - :code:`DETFOO`: Detectors footprint -> used to process nodata outside the detectors
+        - :code:`QUALIT`: TECQUA, DEFECT, NODATA, SATURA, CLOLOW merged
+        - :code:`CLASSI`: CLOUDS and SNOICE **only with :code:`00` as a band !**
 
         Args:
             mask_id (Union[str, S2GmlMasks]): Mask ID
@@ -667,7 +667,7 @@ class S2Product(OpticalProduct):
             )
 
         # Read mask
-        mask = rasters.read(mask_path, resolution=resolution, size=size)
+        mask = utils.read(mask_path, resolution=resolution, size=size)
 
         return mask
 
@@ -691,8 +691,23 @@ class S2Product(OpticalProduct):
         else:
             return self._manage_invalid_pixels_gt_4_0(band_arr, band, **kwargs)
 
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
+    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+        """
+        Manage only nodata pixels
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        if self._processing_baseline_lt_4_0:
+            return self._manage_nodata_lt_4_0(band_arr, band, **kwargs)
+        else:
+            return self._manage_nodata_gt_4_0(band_arr, band, **kwargs)
+
     def _manage_invalid_pixels_lt_4_0(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
@@ -795,7 +810,7 @@ class S2Product(OpticalProduct):
         )
 
         # Technical quality mask: Only keep MSI_LOST (band 3) and MSI_DEG (band 4)
-        # Defectuous pixels (band 5)
+        # Defective pixels (band 5)
         # Saturated pixels (band 8)
         bands_id = [3, 4, 5, 7]  # Band - 1
         qual_mask = np.bitwise_or.reduce(
@@ -805,6 +820,68 @@ class S2Product(OpticalProduct):
         mask = nodata | qual_mask
 
         return self._set_nodata_mask(band_arr, mask)
+
+    def _manage_nodata_lt_4_0(
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
+    ) -> XDS_TYPE:
+        """
+        Manage only nodata
+        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # Get detector footprint to deduce the outside nodata
+        nodata_det = self._open_mask_lt_4_0(
+            S2GmlMasks.FOOTPRINT, band
+        )  # Detector nodata, -> pixels that are outside of the detectors
+
+        # Rasterize nodata
+        mask = features.rasterize(
+            nodata_det.geometry,
+            out_shape=(band_arr.rio.height, band_arr.rio.width),
+            fill=self._mask_true,  # Outside detector = nodata (inverted compared to the usual)
+            default_value=self._mask_false,  # Inside detector = not nodata
+            transform=transform.from_bounds(
+                *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
+            ),
+            dtype=np.uint8,
+        )
+
+        return self._set_nodata_mask(band_arr, mask)
+
+    def _manage_nodata_gt_4_0(
+        self, band_arr: XDS_TYPE, band: obn, **kwargs
+    ) -> XDS_TYPE:
+        """
+        Manage only nodata
+        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # Get detector footprint to deduce the outside nodata
+        # TODO: use them ?
+        # nodata = self._open_mask_gt_4_0(
+        #     S2Jp2Masks.FOOTPRINT, band, size=(band_arr.rio.width, band_arr.rio.height)
+        # ).data.astype(
+        #     np.uint8
+        # )  # Detector nodata, -> pixels that are outside of the detectors
+
+        # Set to nodata where the array is set to 0
+        nodata = np.where(band_arr.compute() == 0, self._mask_true, self._mask_false)
+
+        return self._set_nodata_mask(band_arr, nodata)
 
     def _load_bands(
         self,
@@ -915,7 +992,7 @@ class S2Product(OpticalProduct):
     def read_datatake_mtd(self) -> (etree._Element, dict):
         """
         Read datatake metadata and outputs the metadata XML root and its namespaces as a dict
-        (datatake metadata is the file in the root directory named `MTD_MSI(L1C/L2A).xml`)
+        (datatake metadata is the file in the root directory named :code:`MTD_MSI(L1C/L2A).xml`)
 
         .. code-block:: python
 

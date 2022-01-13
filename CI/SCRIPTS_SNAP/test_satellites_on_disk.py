@@ -140,6 +140,9 @@ def _test_core(
             LOGGER.info(f"Product name: {prod.name}")
 
             with tempfile.TemporaryDirectory() as tmp_dir:
+                tmp_dir = os.path.join(
+                    "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT_ON_DISK_CLEAN"
+                )
                 prod.output = tmp_dir
 
                 # Manage S3 resolution to speed up processes
@@ -151,7 +154,6 @@ def _test_core(
 
                 # BAND TESTS
                 LOGGER.info("Checking load and stack")
-                # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
                 stack_bands = [band for band in possible_bands if prod.has_band(band)]
                 first_band = stack_bands[0]
 
@@ -159,13 +161,20 @@ def _test_core(
                 # Stack data
                 curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
                 stack = prod.stack(
-                    stack_bands, resolution=res, stack_path=curr_path, **kwargs
+                    stack_bands,
+                    resolution=res,
+                    stack_path=curr_path,
+                    clean_optical="clean",
+                    **kwargs,
                 )
 
                 # Load a band with the size option
                 LOGGER.info("Checking load with size keyword")
                 band_arr = prod.load(  # noqa
-                    first_band, size=(stack.rio.width, stack.rio.height), **kwargs
+                    first_band,
+                    size=(stack.rio.width, stack.rio.height),
+                    clean_optical="clean",
+                    **kwargs,
                 )[first_band]
             prod.clear()
 

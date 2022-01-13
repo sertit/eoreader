@@ -223,7 +223,7 @@ class SarProduct(Product):
     def get_default_band(self) -> BandNames:
         """
         Get default band:
-        The first existing one between `VV` and `HH` for SAR data.
+        The first existing one between :code:`VV` and :code:`HH` for SAR data.
 
         .. code-block:: python
 
@@ -254,11 +254,9 @@ class SarProduct(Product):
 
         return default_band
 
-    # Parameters differ from overridden 'get_default_band_path' method (arguments-differ)
-    # pylint: disable=W0221
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
-        Get default band path (the first existing one between `VV` and `HH` for SAR data), ready to use (orthorectified)
+        Get default band path (the first existing one between :code:`VV` and :code:`HH` for SAR data), ready to use (orthorectified)
 
         .. WARNING:: This functions orthorectifies SAR bands if not existing !
 
@@ -968,6 +966,6 @@ class SarProduct(Product):
         Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
 
         Returns:
-            str: Condensed S1 name
+            str: Condensed name
         """
         return f"{self.get_datetime()}_{self.platform.name}_{self.sensor_mode.name}_{self.product_type.value}"
