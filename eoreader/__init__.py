@@ -17,6 +17,7 @@
 """
 **EOReader** library
 """
+# flake8: noqa
 from functools import wraps
 from typing import Callable
 
@@ -71,16 +72,14 @@ except ImportError:
 __all__ = ["bands", "products"]
 
 from . import bands, products
-
-__version__ = "0.11.0"
-__title__ = "eoreader"
-__description__ = (
-    "Remote-sensing opensource python library reading optical and SAR sensors, "
-    "loading and stacking bands, clouds, DEM and index in a sensor-agnostic way."
+from .__meta__ import (
+    __author__,
+    __author_email__,
+    __copyright__,
+    __description__,
+    __documentation__,
+    __license__,
+    __title__,
+    __url__,
+    __version__,
 )
-__author__ = "ICube-SERTIT"
-__author_email__ = "dev-sertit@unistra.fr"
-__url__ = "https://github.com/sertit/eoreader"
-__license__ = "Apache 2.0"
-__copyright__ = "Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/"
-__documentation__ = "https://eoreader.readthedocs.io"
