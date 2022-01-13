@@ -619,8 +619,6 @@ class LandsatProduct(OpticalProduct):
 
         return band_xda
 
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
@@ -680,6 +678,41 @@ class LandsatProduct(OpticalProduct):
             mask = sat | other | nodata
 
         return self._set_nodata_mask(band_arr, mask)
+
+    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+        """
+        Manage only nodata pixels
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # Open QA band
+        landsat_qa_path = self._get_path(self._radsat_id)
+        qa_arr = self._read_band(
+            landsat_qa_path,
+            size=(band_arr.rio.width, band_arr.rio.height),
+        ).data  # To np array
+
+        if self._collection == LandsatCollection.COL_1:
+            # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
+            # Bit ids
+            nodata_id = 0  # Fill value
+            nodata = rasters.read_bit_array(qa_arr, nodata_id)
+        else:
+            # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
+            # If collection 2, nodata has to be found in pixel QA file
+            landsat_stat_path = self._get_path(self._pixel_quality_id)
+            pixel_arr = self._read_band(
+                landsat_stat_path, size=(band_arr.rio.width, band_arr.rio.height)
+            ).data
+            nodata = np.where(pixel_arr == 1, 1, 0)
+
+        return self._set_nodata_mask(band_arr, nodata)
 
     def _load_bands(
         self,

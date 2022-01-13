@@ -414,8 +414,6 @@ class S3OlciProduct(S3Product):
 
         return e0
 
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
@@ -524,7 +522,6 @@ class S3OlciProduct(S3Product):
         # Combine masks
         mask = no_data | invalid | sat
 
-        # DO not set 0 to epsilons as they are a part of the
         return self._set_nodata_mask(band_arr, mask)
 
     def _has_cloud_band(self, band: BandNames) -> bool:

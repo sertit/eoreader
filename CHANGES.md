@@ -1,10 +1,12 @@
 # Release History
 
-## 0.11.0
+## 0.11.0 (2022-MM-DD)
 
 - **BREAKING CHANGES: Renamed `is_band` to `is_sat_band` to better reflect that this function only checks optical and SAR bands**
+- **BREAKING CHANGES: Invalid pixels are not processed by default anymore! Only the nodata is set (to go a bit faster)**
+- **ENH: Allowing the user to choose the pixel processing for optical bands: raw band, only nodata or total cleaning of defective pixels**
 - **ENH: Adding a CustomProduct, allowing the user to load any stack as an EOReader Product !**
-- **ENH: Check if band exists before trying to load it**
+- **ENH: Check if a band exists before trying to load it**
 - FIX: Better handling of `__all__` in `__init__.py` files
 - FIX: Ensure that extents and footprints are in UTM
 - FIX: Removing docs from wheel

@@ -47,9 +47,9 @@ from .custom_product import (
 # -- Optical --
 __all__ += [
     "OpticalProduct",
-    "SensorType",
+    "CleanMethod",
 ]
-from .optical.optical_product import OpticalProduct, SensorType
+from .optical.optical_product import OpticalProduct, CleanMethod
 
 # VHR
 __all__ += [

@@ -550,8 +550,6 @@ class MaxarProduct(VhrProduct):
 
         return ortho_path
 
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
@@ -570,7 +568,21 @@ class MaxarProduct(VhrProduct):
             XDS_TYPE: Cleaned band array
         """
         # Do nothing
+        return band_arr
 
+    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+        """
+        Manage only nodata pixels
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # Do nothing
         return band_arr
 
     def _get_condensed_name(self) -> str:

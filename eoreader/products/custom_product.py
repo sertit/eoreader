@@ -186,8 +186,6 @@ class CustomProduct(Product):
         """
         return list(self.band_names.keys())[0]
 
-    # Parameters differ from overridden 'get_default_band_path' method (arguments-differ)
-    # pylint: disable=W0221
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get default band path: the stack path.

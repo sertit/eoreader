@@ -107,6 +107,7 @@ Available notebooks provided as examples:
 - [Sentinel-3 data](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html)
 - [Water detection on multiple products](https://eoreader.readthedocs.io/en/latest/notebooks/water_detection.html)
 - [Custom stacks](https://eoreader.readthedocs.io/en/latest/notebooks/custom.html)
+- [Methods to clean optical bands](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html)
 - [S3 Compatible Storage](https://eoreader.readthedocs.io/en/latest/notebooks/s3_compatible_storage.html)
 - [Dask](https://eoreader.readthedocs.io/en/latest/notebooks/dask.html)
 

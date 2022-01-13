@@ -255,7 +255,11 @@ def _test_core(
 
                 curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
                 stack = prod.stack(
-                    stack_bands, resolution=res, stack_path=curr_path, **kwargs
+                    stack_bands,
+                    resolution=res,
+                    stack_path=curr_path,
+                    clean_optical="clean",
+                    **kwargs,
                 )
                 assert stack.dtype == np.float32
 
@@ -291,7 +295,10 @@ def _test_core(
                     ci_band = curr_path_band
 
                 band_arr = prod.load(
-                    first_band, size=(stack.rio.width, stack.rio.height), **kwargs
+                    first_band,
+                    size=(stack.rio.width, stack.rio.height),
+                    clean_optical="clean",
+                    **kwargs,
                 )[first_band]
                 rasters.write(band_arr, curr_path_band)
                 assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
