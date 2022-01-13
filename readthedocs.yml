@@ -5,10 +5,16 @@ sphinx:
   configuration: docs/conf.py
   # Equivalent to -W and --keep-going => turn warnings into errors, keep going anyway but return an exit code 1
   fail_on_warning: false
+build:
+  apt_packages:
+    - libproj-dev
+    - proj-data
+    - proj-bin
+    - libgeos-dev
 
 # Explicitly set the version of Python and its requirements
 python:
-  version: 3.7
+  version: "3.7"
   install:
     - requirements: requirements.txt
     - requirements: requirements-doc.txt
