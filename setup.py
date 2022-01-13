@@ -2,7 +2,7 @@ import os
 
 import setuptools
 
-from eoreader import (
+from eoreader.__meta__ import (
     __author__,
     __author_email__,
     __description__,

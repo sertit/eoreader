@@ -17,6 +17,7 @@
 - DOC: Update the installation paragraph in README
 - DOC: Adding a `For Contributors` section in the documentation (contributing, release history and Github repository)
 - DOC: Remove doc testing in Github (as the docs are built with readthedocs)
+- INTERNAL: Better management of project metadata (version...) in a dedicated file
 
 ## 0.10.1 (2022-01-04)
 
