@@ -316,8 +316,6 @@ class S2TheiaProduct(OpticalProduct):
 
         return band_xda
 
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
@@ -334,14 +332,11 @@ class S2TheiaProduct(OpticalProduct):
         Returns:
             XDS_TYPE: Cleaned band array
         """
-        nodata_true = 1
-        nodata_false = 0
-
         # -- Manage nodata from Theia band array
         # Theia nodata is already processed
         theia_nodata = -1.0
         no_data_mask = np.where(
-            band_arr.data == theia_nodata, nodata_true, nodata_false
+            band_arr.data == theia_nodata, self._mask_true, self._mask_false
         ).astype(np.uint8)
 
         # Open NODATA pixels mask
@@ -368,6 +363,28 @@ class S2TheiaProduct(OpticalProduct):
 
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
+
+    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+        """
+        Manage only nodata pixels
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # -- Manage nodata from Theia band array
+        # Theia nodata is already processed
+        theia_nodata = -1.0
+        no_data_mask = np.where(
+            band_arr.data == theia_nodata, self._mask_true, self._mask_false
+        ).astype(np.uint8)
+
+        # -- Merge masks
+        return self._set_nodata_mask(band_arr, no_data_mask)
 
     def get_mask_path(self, mask_id: str, res_id: str) -> Union[CloudPath, Path]:
         """

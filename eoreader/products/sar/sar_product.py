@@ -254,8 +254,6 @@ class SarProduct(Product):
 
         return default_band
 
-    # Parameters differ from overridden 'get_default_band_path' method (arguments-differ)
-    # pylint: disable=W0221
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get default band path (the first existing one between :code:`VV` and :code:`HH` for SAR data), ready to use (orthorectified)

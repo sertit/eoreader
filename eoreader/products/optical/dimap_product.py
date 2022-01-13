@@ -395,8 +395,6 @@ class DimapProduct(VhrProduct):
 
         return ortho_path
 
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
@@ -440,10 +438,30 @@ class DimapProduct(VhrProduct):
                 dtype=np.uint8,
             )
             nodata = nodata | mask
-        else:
-            nodata = np.full(
-                band_arr.shape, fill_value=self._mask_false, dtype=np.uint8
-            )
+
+        return self._set_nodata_mask(band_arr, nodata)
+
+    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+        """
+        Manage only nodata pixels
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # array data
+        width = band_arr.rio.width
+        height = band_arr.rio.height
+        vec_tr = transform.from_bounds(
+            *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
+        )
+
+        # Get detector footprint to deduce the outside nodata
+        nodata = self._load_nodata(width, height, vec_tr)
 
         return self._set_nodata_mask(band_arr, nodata)
 

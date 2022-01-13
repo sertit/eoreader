@@ -464,8 +464,6 @@ class PlaProduct(OpticalProduct):
 
         return band_xda
 
-    # pylint: disable=R0913
-    # R0913: Too many arguments (6/5) (too-many-arguments)
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
     ) -> XDS_TYPE:
@@ -504,6 +502,26 @@ class PlaProduct(OpticalProduct):
 
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
+
+    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+        """
+        Manage only nodata pixels
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # Nodata
+        no_data_mask = self._load_nodata(
+            size=(band_arr.rio.width, band_arr.rio.height)
+        ).values
+
+        # -- Merge masks
+        return self._set_nodata_mask(band_arr, no_data_mask)
 
     def _load_bands(
         self,

@@ -169,8 +169,6 @@ class CsgProduct(CosmoProduct):
                 f"Invalid {self.platform.value} name: {self.name}"
             )
 
-    # unused band_name (compatibility reasons)
-    # pylint: disable=W0613
     def _read_band(
         self,
         path: Union[CloudPath, Path],

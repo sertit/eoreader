@@ -30,6 +30,7 @@ from rasterio.enums import Resampling
 from sertit import rasters
 
 from eoreader.env_vars import USE_DASK
+from eoreader.keywords import prune_keywords
 
 EOREADER_NAME = "eoreader"
 DATETIME_FMT = "%Y%m%dT%H%M%S"
@@ -161,7 +162,7 @@ def read(
         masked=masked,
         indexes=indexes,
         chunks=chunks,
-        **kwargs,
+        **prune_keywords(**kwargs),
     )
 
 
@@ -193,7 +194,19 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
     else:
         lock = None
 
-    return rasters.write(xds, path=path, lock=lock, **kwargs)
+    # Reset the long name as a list to write it down
+    previous_long_name = xds.attrs.get("long_name")
+    if previous_long_name and xds.rio.count > 1:
+        xds.attrs["long_name"] = xds.attrs.get(
+            "long_name", xds.attrs.get("name", "")
+        ).split(" ")
+
+    # Write
+    rasters.write(xds, path=path, lock=lock, **prune_keywords(**kwargs))
+
+    # Set back the previous long name
+    if previous_long_name and xds.rio.count > 1:
+        xds.attrs["long_name"] = previous_long_name
 
 
 def create_gcps(lon: xr.DataArray, lat: xr.DataArray, alt: xr.DataArray) -> list:

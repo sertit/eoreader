@@ -15,6 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Additional keywords for EOReader used in :code:`load` or  :code:`stack`"""
+import sys
+
+__all__ = ["SLSTR_RAD_ADJUST", "SLSTR_STRIPE", "SLSTR_VIEW", "CLEAN_OPTICAL"]
 
 SLSTR_RAD_ADJUST = "slstr_radiance_adjustment"
 """ SLSTR radiance adjustment, please see  :code:`eoreader.products.optical.s3_slstr_product.SlstrRadAdjust`"""
@@ -24,3 +27,30 @@ SLSTR_STRIPE = "slstr_stripe"
 
 SLSTR_VIEW = "slstr_view"
 """ SLSTR view, please see  :code:`eoreader.products.optical.s3_slstr_product.SlstrView`"""
+
+CLEAN_OPTICAL = "clean_optical"
+"""
+Method to clean optical band (manage invalid pixels, only nodata or directly raw data).
+This can speed up the process.
+"""
+
+
+def prune_keywords(**kwargs) -> dict:
+    """
+    Prune EOReader keywords from kwargs in order to avoid the GDAL warning
+    CPLE_NotSupported in driver GTiff does not support open option XXX
+
+    Args:
+        kwargs: Kwargs to prune
+
+    Returns: Prune kwargs
+    """
+    if kwargs:
+        prune_kwargs = kwargs.copy()
+        for keyword in __all__:
+            keyword_val = getattr(sys.modules[__name__], keyword)
+            if keyword_val in prune_kwargs:
+                prune_kwargs.pop(keyword_val)
+        return prune_kwargs
+    else:
+        return kwargs
