@@ -624,6 +624,7 @@ class S2Product(OpticalProduct):
         band: Union[obn, str] = None,
         resolution: float = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Open S2 mask (jp2 files stored in QI_DATA) as raster.
@@ -667,7 +668,13 @@ class S2Product(OpticalProduct):
             )
 
         # Read mask
-        mask = utils.read(mask_path, resolution=resolution, size=size)
+        mask = utils.read(
+            mask_path,
+            resolution=resolution,
+            size=size,
+            resampling=Resampling.nearest,
+            **kwargs,
+        )
 
         return mask
 
@@ -689,6 +696,7 @@ class S2Product(OpticalProduct):
         if self._processing_baseline_lt_4_0:
             return self._manage_invalid_pixels_lt_4_0(band_arr, band, **kwargs)
         else:
+            # return band_arr
             return self._manage_invalid_pixels_gt_4_0(band_arr, band, **kwargs)
 
     def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
@@ -779,7 +787,8 @@ class S2Product(OpticalProduct):
     ) -> XDS_TYPE:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
-        See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
+        See there:
+        https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2-Products-Specification-Document-14_8.pdf
 
         Args:
             band_arr (XDS_TYPE): Band array
@@ -801,23 +810,25 @@ class S2Product(OpticalProduct):
         nodata = np.where(band_arr.compute() == 0, self._mask_true, self._mask_false)
 
         # Manage quality mask
-        quality = (
-            self._open_mask_gt_4_0(
-                S2Jp2Masks.QUALITY, band, size=(band_arr.rio.width, band_arr.rio.height)
-            )
-            .compute()
-            .astype(np.uint8)
-        )
-
+        # TODO: Optimize it -> very slow (why ?)
         # Technical quality mask: Only keep MSI_LOST (band 3) and MSI_DEG (band 4)
         # Defective pixels (band 5)
+        # Nodata pixels (band 6)
         # Saturated pixels (band 8)
-        bands_id = [3, 4, 5, 7]  # Band - 1
-        qual_mask = np.bitwise_or.reduce(
-            [quality[band_id, :, :] for band_id in bands_id]
+        quality = (
+            self._open_mask_gt_4_0(
+                S2Jp2Masks.QUALITY,
+                band,
+                size=(band_arr.rio.width, band_arr.rio.height),
+                indexes=[3, 4, 5, 6, 8],
+                masked=False,
+            )
+            .astype(np.uint8)
+            .data
         )
 
-        mask = nodata | qual_mask
+        # Compute mask
+        mask = (nodata + np.sum(quality, axis=0)) > 0
 
         return self._set_nodata_mask(band_arr, mask)
 
