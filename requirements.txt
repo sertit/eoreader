@@ -1,6 +1,5 @@
 # Tests & lint
 tox
-tox-conda; platform_system == "Windows"
 pre-commit
 black
 pytest
@@ -30,3 +29,6 @@ validators
 
 # SERTIT libs
 sertit[full]>=1.11.0
+
+# Windows
+tox-conda; platform_system == "Windows"
