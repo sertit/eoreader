@@ -744,7 +744,6 @@ class LandsatProduct(OpticalProduct):
 
         return azimuth_angle, zenith_angle
 
-    @abstractmethod
     def _get_condensed_name(self) -> str:
         """
         Get products condensed name ({date}_Lx_{tile}_{product_type}).

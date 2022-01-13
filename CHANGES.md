@@ -11,9 +11,6 @@
 - FIX: Fixing `TIR` bands reading for Landsat data
 - DOC: Update README, documentation and notebooks
 - DOC: Water Extraction notebook has been refined to show how to manage multiple products
-
-## 0.10.2 (2022-MM-DD)
-
 - DOC: Update the installation paragraph in README
 
 ## 0.10.1 (2022-01-04)

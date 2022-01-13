@@ -6,6 +6,7 @@ from sertit import ci
 
 from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH
+from eoreader.exceptions import InvalidTypeError
 from eoreader.products import SensorType
 
 from .scripts_utils import READER, dask_env, get_db_dir, others_path, s3_env

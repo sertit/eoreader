@@ -52,7 +52,7 @@ from eoreader.bands import *
 from eoreader.bands import index
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
-from eoreader.exceptions import InvalidProductError
+from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.reader import Platform, Reader
 from eoreader.utils import EOREADER_NAME
 
@@ -923,7 +923,7 @@ class Product:
             True
 
         Args:
-            band (Union[BandNames, Callable]): Optical or SAR band
+            band (Union[BandNames, Callable]): EOReader band (optical, SAR, clouds, DEM)
 
         Returns:
             bool: True if the products has the specified band
@@ -956,7 +956,7 @@ class Product:
         See :code:`has_bands` for a code example.
 
         Args:
-            band (Union[list, BandNames, Callable]): List (or unique value) of Optical or SAR bands
+            bands (Union[list, BandNames, Callable]): EOReader bands (optical, SAR, clouds, DEM)
 
         Returns:
             bool: True if the products has the specified band

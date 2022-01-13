@@ -9,6 +9,7 @@ from cloudpathlib import AnyPath, S3Client
 from eoreader import utils
 from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
+from eoreader.exceptions import InvalidTypeError
 from eoreader.reader import Platform
 
 from .scripts_utils import (
