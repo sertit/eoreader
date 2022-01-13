@@ -4,7 +4,7 @@
 
 - **BREAKING CHANGES: Renamed `is_band` to `is_sat_band` to better reflect that this function only checks optical and SAR bands**
 - **BREAKING CHANGES: Invalid pixels are not processed by default anymore! Only the nodata is set (to go a bit faster)**
-- **ENH: Allowing the user to choose the pixel processing for optical bands: raw band, only nodata or total cleaning of defective pixels**
+- **ENH: Allowing the user to choose the pixel processing for optical bands: raw band, only nodata or total cleaning of defective pixels** [#16](https://github.com/sertit/eoreader/issues/16)
 - **ENH: Adding a CustomProduct, allowing the user to load any stack as an EOReader Product !**
 - **ENH: Check if a band exists before trying to load it**
 - FIX: Better handling of `__all__` in `__init__.py` files
@@ -14,6 +14,7 @@
 - DOC: Update README, documentation and notebooks
 - DOC: Water Extraction notebook has been refined to show how to manage multiple products
 - DOC: Update the installation paragraph in README
+- DOC: Adding a `For Contributors` section in the documentation (contributing, release history and Github repository)
 
 ## 0.10.1 (2022-01-04)
 
