@@ -69,9 +69,6 @@ except ImportError:
         return wrapper
 
 
-__all__ = ["bands", "products"]
-
-from . import bands, products
 from .__meta__ import (
     __author__,
     __author_email__,
