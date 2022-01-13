@@ -47,7 +47,7 @@ from .bands import (
     SarBands,
 )
 
-__all__ = alias.__all__
+__all__ = alias.__all__.copy()
 __all__ += [
     "BandNames",
     "CloudsBandNames",
