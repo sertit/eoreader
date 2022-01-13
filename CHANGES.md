@@ -1,6 +1,6 @@
 # Release History
 
-## 0.11.0 (2022-MM-DD)
+## 0.11.0 (2022-01-13)
 
 - **BREAKING CHANGES: Renamed `is_band` to `is_sat_band` to better reflect that this function only checks optical and SAR bands**
 - **BREAKING CHANGES: Invalid pixels are not processed by default anymore! Only the nodata is set (to go a bit faster)**
