@@ -258,6 +258,7 @@ def my_doc_skip(app, what, name, obj, skip, options):
 
     return skip
 
+
 def setup(app):
     """dummy docstring for pydocstyle"""
     app.connect('autodoc-skip-member', my_doc_skip)

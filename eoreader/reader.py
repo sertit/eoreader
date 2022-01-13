@@ -321,6 +321,7 @@ class Reader:
             output_path (Union[str, CloudPath, Path]): Output Path
             method (CheckMethod): Checking method used to recognize the products
             remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
+            custom (bool): True if we want to use a custom stack
 
         Returns:
             Product: Correct products
