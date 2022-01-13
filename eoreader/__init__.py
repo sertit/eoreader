@@ -72,7 +72,7 @@ __all__ = ["bands", "products"]
 
 from . import bands, products
 
-__version__ = "0.10.1"
+__version__ = "0.11.0"
 __title__ = "eoreader"
 __description__ = (
     "Remote-sensing opensource python library reading optical and SAR sensors, "
