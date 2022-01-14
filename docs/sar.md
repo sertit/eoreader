@@ -1,21 +1,54 @@
 # SAR data
 
+You will find a SAR tutorial [here](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html).
+
 ## Implemented SAR satellites
 
-|Satellites | Class | Product Types | Use archive|
-|--- | --- | --- | ---|
-|Sentinel-1 | {meth}`~eoreader.products.sar.s1_product.S1Product` | SLC & GRD | Yes|
-|COSMO-Skymed 1st Generation| {meth}`~eoreader.products.sar.csk_product.CskProduct` | DGM & SCS, (others should also be OK) | No|
-|COSMO-Skymed 2nd Generation| {meth}`~eoreader.products.sar.csg_product.CsgProduct` | DGM & SCS, (others should also be OK) | No|
-|TerraSAR-X & TanDEM-X & PAZ SAR | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | MGD (SSC should be OK) | No|
-|RADARSAT-2 | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | SGF (SLC should be OK) | Yes|
-|RADARSAT-Constellation | {meth}`~eoreader.products.sar.rcm_product.RcmProduct` | GRD (others should be OK) | No|
-|ICEYE | {meth}`~eoreader.products.sar.iceye_product.IceyeProduct` | GRD (SLC not used) | No|
+|Satellites | Class | Use archive|
+|--- | --- |  ---|
+|`COSMO-Skymed 1st Generation`| {meth}`~eoreader.products.sar.csk_product.CskProduct` | ❌|
+|`COSMO-Skymed 2nd Generation`| {meth}`~eoreader.products.sar.csg_product.CsgProduct` | ❌|
+|`ICEYE` | {meth}`~eoreader.products.sar.iceye_product.IceyeProduct` | ❌|
+|`RADARSAT Constellation Mission` | {meth}`~eoreader.products.sar.rcm_product.RcmProduct` | ❌|
+|`RADARSAT-2` | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | ✅|
+|`Sentinel-1` | {meth}`~eoreader.products.sar.s1_product.S1Product` | ✅|
+|`TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | ❌|
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use, 
 mostly because SNAP doesn't handle them.
 ```
+
+## Product type handling
+
+| Sensor | Product Type | Handled |
+| --- | --- | --- |
+| `COSMO-Skymed` | SCS | ✅ |
+| `COSMO-SkyMed` 1st Generation | DGM | ✅ |
+| `COSMO-SkyMed` 2nd Generation | DGM | ⚠️ |
+| `COSMO-SkyMed` | GEC, GTC | ⚠️ | 
+| `ICEYE` | SLC | ❌* |
+| `ICEYE` |GRD | ✅ | 
+| `ICEYE` | ORTHO | 💤 |
+| `RADARSAT Constellation Mission` | SLC | ⚠️ | 
+| `RADARSAT Constellation Mission` | GRC, GCC, GCD | ⚠️ |
+| `RADARSAT Constellation Mission` | GRD | ✅ | 
+| `RADARSAT-2` | SLC | ⚠️| 
+| `RADARSAT-2` | SGX, SCN, SCW,<br>SCF, SCS, SSG, SPG | ⚠️ |
+| `RADARSAT-2` | SGF | ✅ |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | SSC | ✅ | 
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | MGD | ✅ |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | GEC | ⚠️ |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | EEC | ✅ |
+| `Sentinel-1` | SLC | ✅ | 
+| `Sentinel-1` | GRD | ✅ |
+
+\**always given with a GRD image*
+
+✅: Tested   
+⚠️: Never tested, **use it at your own risk!**  
+❌: Not handled   
+💤: Waiting for the release  
 
 The goal of **EOReader** is to implement every sensor that can be used in
 the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/).
@@ -25,7 +58,11 @@ The sensors that can be used during CEMS activations are (as of 09/2021):
 ## SAR Bands
 
 ```{warning}
-**EOReader** always loads SAR bands in a GRD format. This library is not (yet ?) meant to manage inSAR or other complex processes.
+- **EOReader** always loads SAR bands in a GRD format. This library is not (yet ?) meant to manage inSAR or other complex processes.
+- Only the `Intensity` bands are used (not the `I`, `Q` for complex data or `Amplitude` for ground range data)
+- Some SAR band may contain null pixels that are not really nodata (COSMO for example).  
+    In this case, the Terrain Correction step applied by SNAP can create large nodata area.  
+    If this is the case, you can set the keyword {meth}`~eoreader.keywords.SAR_INTERP_NA` to True when loading or stacking SAR data
 ```
 
 According to what contains the products, allowed SAR bands are:

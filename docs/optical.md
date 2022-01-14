@@ -4,29 +4,30 @@
 
 |Satellites | Class | Product Types | Use archive | Default Resolution |
 |--- | --- | --- | --- | ---|
-|Sentinel-2 | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A | Yes | 20m|
-|Sentinel-2 Theia | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | Yes | 20m|
-|Sentinel-3 SLSTR | {meth}`~eoreader.products.optical.s3_product.S3Product` | RBT | Yes | 300m|
-|Sentinel-3 OLCI | {meth}`~eoreader.products.optical.s3_product.S3Product` | EFR | Yes | 500m|
-|Landsat 8 OLCI | {meth}`~eoreader.products.optical.l8_product.L8Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat 7 ETM | {meth}`~eoreader.products.optical.l7_product.L7Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat 5 TM | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat 4 TM | {meth}`~eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: No, Collection 2: Yes | 30m|
-|Landsat 5 MSS | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat 4 MSS | {meth}`~eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat 3 MSS | {meth}`~eoreader.products.optical.l3_product.L3Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat 2 MSS | {meth}`~eoreader.products.optical.l2_product.L2Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|Landsat 1 MSS | {meth}`~eoreader.products.optical.l1_product.L1Product` | Level 1 | Collection 1: No, Collection 2: Yes | 60m|
-|PlanetScope | {meth}`~eoreader.products.optical.pla_product.PlaProduct` | L3A & L3B | Yes | 3m|
-|Pleiades | {meth}`~eoreader.products.optical.pld_product.PldProduct` | SEN, PRJ, ORT & MOS | Yes | 0.5 or 2m|
-|SPOT 7 | {meth}`~eoreader.products.optical.spot7_product.Spot7Product` | SEN, PRJ, ORT & MOS | Yes | 1.5 or 6m|
-|SPOT 6 | {meth}`~eoreader.products.optical.spot6_product.Spot6Product` | SEN, PRJ, ORT & MOS | Yes | 1.5 or 6m|
-|GeoEye-1* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | Yes | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
-|WorldView-2* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | Yes | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
-|WorldView-3* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | Yes | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
-|WorldView-4* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | Yes | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
+|Sentinel-2 | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A | ✅ | 20m|
+|Sentinel-2 Theia | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | ✅ | 20m|
+|Sentinel-3 SLSTR | {meth}`~eoreader.products.optical.s3_product.S3Product` | RBT | ✅ | 300m|
+|Sentinel-3 OLCI | {meth}`~eoreader.products.optical.s3_product.S3Product` | EFR | ✅ | 500m|
+|Landsat 8 OLCI | {meth}`~eoreader.products.optical.l8_product.L8Product` | Level 1 | Collection 1: ❌, Collection 2: ✅ | 30m|
+|Landsat 7 ETM | {meth}`~eoreader.products.optical.l7_product.L7Product` | Level 1 | Collection 1: ❌, Collection 2: ✅ | 30m|
+|Landsat 5 TM | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: ❌, Collection 2: ✅ | 30m|
+|Landsat 4 TM | {meth}`~eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: ❌, Collection 2: ✅ | 30m|
+|Landsat 5 MSS | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | Collection 1: ❌, Collection 2: ✅ | 60m|
+|Landsat 4 MSS | {meth}`~eoreader.products.optical.l4_product.L4Product` | Level 1 | Collection 1: ❌, Collection 2: ✅ | 60m|
+|Landsat 3 MSS | {meth}`~eoreader.products.optical.l3_product.L3Product` | Level 1 | Collection 1: ❌, Collection 2: ✅ | 60m|
+|Landsat 2 MSS | {meth}`~eoreader.products.optical.l2_product.L2Product` | Level 1 | Collection 1: ❌, Collection 2: ✅ | 60m|
+|Landsat 1 MSS | {meth}`~eoreader.products.optical.l1_product.L1Product` | Level 1 | Collection 1: ❌, Collection 2: ✅ | 60m|
+|PlanetScope | {meth}`~eoreader.products.optical.pla_product.PlaProduct` | L3A & L3B | ✅ | 3m|
+|Pleiades | {meth}`~eoreader.products.optical.pld_product.PldProduct` | SEN, PRJ, ORT & MOS | ✅ | 0.5 or 2m|
+|SPOT 7 | {meth}`~eoreader.products.optical.spot7_product.Spot7Product` | SEN, PRJ, ORT & MOS | ✅ | 1.5 or 6m|
+|SPOT 6 | {meth}`~eoreader.products.optical.spot6_product.Spot6Product` | SEN, PRJ, ORT & MOS | ✅ | 1.5 or 6m|
+|GeoEye-1* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | ✅ | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
+|WorldView-2* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | ✅ | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
+|WorldView-3* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | ✅ | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
+|WorldView-4* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | ✅ | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
 
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product.*
+
 \* *Other Maxar satellites (such as WorldView-1, QuickBird...) with the same file format should be supported.*
 
 ```{warning}

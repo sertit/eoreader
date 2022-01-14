@@ -34,6 +34,12 @@ Method to clean optical band (manage invalid pixels, only nodata or directly raw
 This can speed up the process.
 """
 
+SAR_INTERP_NA = "sar_interpolate_na"
+"""
+Interpolate nodata pixels that can be found inside the footprint
+(coming from null values that are not really nodata but that are not processed by the Terrain Correction step)
+"""
+
 
 def prune_keywords(**kwargs) -> dict:
     """

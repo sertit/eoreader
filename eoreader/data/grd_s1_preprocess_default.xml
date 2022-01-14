@@ -47,13 +47,13 @@
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
-      <auxFile>Product Auxiliary File</auxFile>
+      <auxFile>Latest Auxiliary File</auxFile>
       <externalAuxFile/>
       <outputImageInComplex>false</outputImageInComplex>
       <outputImageScaleInDb>false</outputImageScaleInDb>
       <createGammaBand>false</createGammaBand>
       <createBetaBand>false</createBetaBand>
-      <selectedPolarisations/>
+      <selectedPolarisations>${calib_pola}</selectedPolarisations>
       <outputSigmaBand>true</outputSigmaBand>
       <outputGammaBand>false</outputGammaBand>
       <outputBetaBand>false</outputBetaBand>

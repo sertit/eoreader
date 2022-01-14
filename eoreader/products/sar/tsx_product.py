@@ -27,7 +27,8 @@ from typing import Union
 import geopandas as gpd
 import rasterio
 from lxml import etree
-from sertit import files, vectors
+from rasterio import crs
+from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 
 from eoreader import cache, cached_property
@@ -248,6 +249,51 @@ class TsxProduct(SarProduct):
         super()._post_init()
 
     @cached_property
+    def extent(self) -> gpd.GeoDataFrame:
+        """
+        Get UTM extent of the tile
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.utm_extent()
+                                   Name  ...                                           geometry
+            0  Sentinel-1 Image Overlay  ...  POLYGON ((817914.501 4684349.823, 555708.624 4...
+            [1 rows x 12 columns]
+
+        Returns:
+            gpd.GeoDataFrame: Footprint in UTM
+        """
+        if self.product_type == TsxProductType.EEC:
+            return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs)
+        else:
+            return super().extent
+
+    @cached_property
+    def crs(self) -> crs.CRS:
+        """
+        Get UTM projection
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.utm_crs()
+            CRS.from_epsg(32630)
+
+        Returns:
+            crs.CRS: CRS object
+        """
+        if self.product_type == TsxProductType.EEC:
+            with rasterio.open(self.get_default_band_path()) as ds:
+                return ds.crs
+        else:
+            return super().crs
+
+    @cached_property
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -291,7 +337,11 @@ class TsxProduct(SarProduct):
 
         self.product_type = TsxProductType.from_value(prod_type)
 
-        if self.product_type == TsxProductType.MGD:
+        if self.product_type in [
+            TsxProductType.MGD,
+            TsxProductType.GEC,
+            TsxProductType.EEC,
+        ]:
             self.sar_prod_type = SarProductType.GDRG
         elif self.product_type == TsxProductType.SSC:
             self.sar_prod_type = SarProductType.CPLX
@@ -299,9 +349,9 @@ class TsxProduct(SarProduct):
             raise NotImplementedError(
                 f"{self.product_type.value} product type is not available for {self.name}"
             )
-        if self.product_type != TsxProductType.MGD:
+        if self.product_type == TsxProductType.GEC:
             LOGGER.warning(
-                "Other products type than MGD has not been tested for %s data. "
+                "GEC (Geocoded Ellipsoid Corrected) products type has never been tested for %s data. "
                 "Use it at your own risks !",
                 self.platform.value,
             )
