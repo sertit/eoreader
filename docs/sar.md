@@ -33,7 +33,7 @@ mostly because SNAP doesn't handle them.
 | `RADARSAT Constellation Mission` | SLC | ⚠️ | 
 | `RADARSAT Constellation Mission` | GRC, GCC, GCD | ⚠️ |
 | `RADARSAT Constellation Mission` | GRD | ✅ | 
-| `RADARSAT-2` | SLC | ⚠️| 
+| `RADARSAT-2` | SLC | ✅| 
 | `RADARSAT-2` | SGX, SCN, SCW,<br>SCF, SCS, SSG, SPG | ⚠️ |
 | `RADARSAT-2` | SGF | ✅ |
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | SSC | ✅ | 

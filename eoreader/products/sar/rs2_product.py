@@ -334,9 +334,9 @@ class Rs2Product(SarProduct):
                 f"{self.product_type.value} product type is not available for {self.name}"
             )
 
-        if self.product_type != Rs2ProductType.SGF:
+        if self.product_type not in [Rs2ProductType.SGF, Rs2ProductType.SLC]:
             LOGGER.warning(
-                "Other products type than SGF has not been tested for %s data. "
+                "Other product types than SGF or SLC haven't been tested for %s data. "
                 "Use it at your own risks !",
                 self.platform.value,
             )

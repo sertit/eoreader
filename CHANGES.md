@@ -3,6 +3,7 @@
 ## 0.11.1 (2022-01-XX)
 
 - FIX: Fixing complex and orthorectified products for `SAR` data
+- FIX: Fixing `RADARSAT-2` `SLC` product type
 - OPTIM: Only preprocessing wanted SAR bands (instead of all existing)
 - OPTIM: Do not interpolate nan values by default when writing SAR bands to disk (using a keyword instead)
 - DOC: Updating the SAR notebook and documentation
