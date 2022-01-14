@@ -54,8 +54,10 @@ class S1ProductType(ListEnum):
 
     SLC = "SLC"
     """Single Look Complex (SLC, lvl 1)"""
+
     GRD = "GRD"
     """Ground Range Detected (GRD, lvl 1, phase lost)"""
+
     OCN = "OCN"
     """Ocean products (lvl 2): **not used by EOReader**"""
 
@@ -220,7 +222,7 @@ class S1Product(SarProduct):
 
         if self.product_type == S1ProductType.GRD:
             self.sar_prod_type = SarProductType.GDRG
-        elif self.product_type in S1ProductType.SLC:
+        elif self.product_type == S1ProductType.SLC:
             self.sar_prod_type = SarProductType.CPLX
         else:
             raise NotImplementedError(

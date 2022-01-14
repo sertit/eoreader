@@ -28,6 +28,7 @@ from typing import Union
 
 import geopandas as gpd
 import numpy as np
+import rasterio
 import rioxarray
 from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs
@@ -49,6 +50,7 @@ from eoreader.bands import (
 )
 from eoreader.env_vars import DEM_PATH, DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES, SNAP_DEM_NAME
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
+from eoreader.keywords import SAR_INTERP_NA
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
@@ -178,6 +180,7 @@ class SarProduct(Product):
         self._snap_path = None
         self._raw_band_regex = None
         self._snap_no_data = 0
+        self._raw_no_data = 0
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
@@ -459,20 +462,17 @@ class SarProduct(Product):
                 if speckle_band in self.pol_channels:
                     if sbn.is_despeckle(band):
                         # Despeckle the noisy band
-                        band_paths[band] = self._despeckle_sar(speckle_band)
+                        band_paths[band] = self._despeckle_sar(speckle_band, **kwargs)
                     else:
-                        all_band_paths = self._pre_process_sar(resolution)
-                        band_paths = {
-                            band: path
-                            for band, path in all_band_paths.items()
-                            if band in band_list
-                        }
+                        band_paths[band] = self._pre_process_sar(
+                            band, resolution, **kwargs
+                        )
 
         return band_paths
 
     def _get_raw_band_paths(self) -> dict:
         """
-        Return the existing band paths (as they come with th archived products).
+        Return the existing band paths (as they come with the archived products).
 
         Returns:
             dict: Dictionary containing the path of every band existing in the raw products
@@ -504,7 +504,8 @@ class SarProduct(Product):
                 try:
                     band_paths[band] = files.get_file_in_dir(
                         self._band_folder, band_regex, exact_name=True, get_list=True
-                    )
+                    )[0]
+                    # Get as a list but keep only the first item (S1-SLC with 3 swaths)
                 except FileNotFoundError:
                     continue
 
@@ -712,132 +713,149 @@ class SarProduct(Product):
 
         return bands
 
-    def _pre_process_sar(self, resolution: float = None) -> dict:
+    def _pre_process_sar(self, band: sbn, resolution: float = None, **kwargs) -> str:
         """
         Pre-process SAR data (geocoding...)
 
         Args:
+            band (sbn): Band to preprocess
             resolution (float): Resolution
+            kwargs: Additional arguments
 
         Returns:
-            dict: Dictionary containing {band: path}
+            str: Band path
         """
-        out = {}
+        raw_band_path = str(self._get_raw_band_paths()[band])
+        with rasterio.open(raw_band_path) as ds:
+            raw_crs = ds.crs
 
-        # Create target dir (tmp dir)
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            # Use dimap for speed and security (ie. GeoTiff's broken georef)
-            pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
-            pp_dim = pp_target + ".dim"
+        if raw_crs and raw_crs.is_projected:
+            # Set the nodata and write the image where they belong
+            with rioxarray.open_rasterio(raw_band_path) as arr:
+                arr = arr.where(arr != self._raw_no_data, np.nan)
 
-            # Pre-process graph
-            if PP_GRAPH not in os.environ:
-                sat = "s1" if self.sat_id == Platform.S1.name else "sar"
-                spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
-                pp_graph = utils.get_data_dir().joinpath(
-                    f"{spt}_{sat}_preprocess_default.xml"
+                file_path = os.path.join(
+                    self._get_band_folder(writable=True),
+                    f"{self.condensed_name}_{band.name}.tif",
                 )
-            else:
-                pp_graph = AnyPath(os.environ[PP_GRAPH])
-                if not pp_graph.is_file() or not pp_graph.suffix == ".xml":
-                    FileNotFoundError(f"{pp_graph} cannot be found.")
+                utils.write(arr, file_path, dtype=np.float32, nodata=self._snap_no_data)
+            return file_path
+        else:
+            # Create target dir (tmp dir)
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                # Use dimap for speed and security (ie. GeoTiff's broken georef)
+                pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
+                pp_dim = pp_target + ".dim"
 
-            # Command line
-            if not os.path.isfile(pp_dim):
-                def_res = float(os.environ.get(SAR_DEF_RES, self.resolution))
-                res_m = resolution if resolution else def_res
-                res_deg = (
-                    res_m / 10.0 * 8.983152841195215e-5
-                )  # Approx, shouldn't be used
-
-                # Manage DEM name
-                try:
-                    dem_name = SnapDems.from_value(
-                        os.environ.get(SNAP_DEM_NAME, SnapDems.GETASSE30)
+                # Pre-process graph
+                if PP_GRAPH not in os.environ:
+                    sat = "s1" if self.sat_id == Platform.S1.name else "sar"
+                    spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
+                    pp_graph = utils.get_data_dir().joinpath(
+                        f"{spt}_{sat}_preprocess_default.xml"
                     )
-                except AttributeError as ex:
-                    raise ValueError(
-                        f"{SNAP_DEM_NAME} should be chosen among {SnapDems.list_values()}"
-                    ) from ex
+                else:
+                    pp_graph = AnyPath(os.environ[PP_GRAPH])
+                    if not pp_graph.is_file() or not pp_graph.suffix == ".xml":
+                        FileNotFoundError(f"{pp_graph} cannot be found.")
 
-                # Manage DEM path
-                if dem_name == SnapDems.EXT_DEM:
-                    dem_path = os.environ.get(DEM_PATH)
-                    if not dem_path:
+                # Command line
+                if not os.path.isfile(pp_dim):
+                    # Resolution
+                    def_res = float(os.environ.get(SAR_DEF_RES, self.resolution))
+                    res_m = resolution if resolution else def_res
+                    res_deg = (
+                        res_m / 10.0 * 8.983152841195215e-5
+                    )  # Approx, shouldn't be used
+
+                    # Manage DEM name
+                    try:
+                        dem_name = SnapDems.from_value(
+                            os.environ.get(SNAP_DEM_NAME, SnapDems.GETASSE30)
+                        )
+                    except AttributeError as ex:
                         raise ValueError(
-                            f"You specified '{dem_name.value}' but you didn't give any DEM path. "
-                            f"Please set the environment variable {DEM_PATH} "
-                            f"or change {SNAP_DEM_NAME} to an acceptable SNAP DEM."
-                        )
-                elif dem_name in [SnapDems.GLO_30, SnapDems.GLO_90]:
-                    LOGGER.warning(
-                        "For now, SNAP cannot use Copernicus DEM "
-                        "(see https://forum.step.esa.int/t/terrain-correction-with-copernicus-dem/29025/11). "
-                        "Using GETASSE30 instead."
-                    )
-                    dem_name = SnapDems.GETASSE30
-                else:
-                    dem_path = ""
+                            f"{SNAP_DEM_NAME} should be chosen among {SnapDems.list_values()}"
+                        ) from ex
 
-                # Download cloud path to cache
-                if isinstance(self.path, CloudPath):
-                    LOGGER.debug(
-                        f"Caching {self.path} to {os.path.join(tmp_dir, self.path.name)}"
-                    )
-                    if self.path.is_dir():
-                        prod_path = os.path.join(
-                            tmp_dir, self.path.name, self._snap_path
+                    # Manage DEM path
+                    if dem_name == SnapDems.EXT_DEM:
+                        dem_path = os.environ.get(DEM_PATH)
+                        if not dem_path:
+                            raise ValueError(
+                                f"You specified '{dem_name.value}' but you didn't give any DEM path. "
+                                f"Please set the environment variable {DEM_PATH} "
+                                f"or change {SNAP_DEM_NAME} to an acceptable SNAP DEM."
+                            )
+                    elif dem_name in [SnapDems.GLO_30, SnapDems.GLO_90]:
+                        LOGGER.warning(
+                            "For now, SNAP cannot use Copernicus DEM "
+                            "(see https://forum.step.esa.int/t/terrain-correction-with-copernicus-dem/29025/11). "
+                            "Using GETASSE30 instead."
                         )
-                        self.path.download_to(os.path.join(tmp_dir, self.path.name))
+                        dem_name = SnapDems.GETASSE30
                     else:
-                        prod_path = (
-                            self.path.fspath
-                        )  # In tmp file, no need to download_to
-                else:
-                    prod_path = self.path.joinpath(self._snap_path)
+                        dem_path = ""
 
-                # Create SNAP CLI
-                cmd_list = snap.get_gpt_cli(
-                    pp_graph,
-                    [
-                        f"-Pfile={strings.to_cmd_string(prod_path)}",
-                        f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
-                        f"-Pdem_path={strings.to_cmd_string(dem_path)}",
-                        f"-Pcrs={self.crs}",
-                        f"-Pres_m={res_m}",
-                        f"-Pres_deg={res_deg}",
-                        f"-Pout={strings.to_cmd_string(pp_dim)}",
-                    ],
-                    display_snap_opt=LOGGER.level == logging.DEBUG,
-                )
+                    # Download cloud path to cache
+                    if isinstance(self.path, CloudPath):
+                        LOGGER.debug(
+                            f"Caching {self.path} to {os.path.join(tmp_dir, self.path.name)}"
+                        )
+                        if self.path.is_dir():
+                            prod_path = os.path.join(
+                                tmp_dir, self.path.name, self._snap_path
+                            )
+                            self.path.download_to(os.path.join(tmp_dir, self.path.name))
+                        else:
+                            prod_path = (
+                                self.path.fspath
+                            )  # In tmp file, no need to download_to
+                    else:
+                        prod_path = self.path.joinpath(self._snap_path)
 
-                # Pre-process SAR images according to the given graph
-                LOGGER.debug("Pre-process SAR image")
-                try:
-                    misc.run_cli(cmd_list)
-                except RuntimeError as ex:
-                    raise RuntimeError("Something went wrong with SNAP!") from ex
-
-            # Convert DIMAP images to GeoTiff
-            try:
-                for pol in self.pol_channels:
-                    # Speckle image
-                    out[sbn.from_value(pol)] = self._write_sar(pp_dim, pol.value)
-            except AssertionError:
-                if isinstance(self.path, CloudPath):
-                    raise InvalidProductError(
-                        f"For now, {self._get_platform().value} can't be processed while being stored in the cloud. "
-                        "A bug when caching nested directories prevents that, see here: "
-                        "https://github.com/drivendataorg/cloudpathlib/issues/148"
+                    # Create SNAP CLI
+                    cmd_list = snap.get_gpt_cli(
+                        pp_graph,
+                        [
+                            f"-Pfile={strings.to_cmd_string(prod_path)}",
+                            f"-Pcalib_pola={strings.to_cmd_string(band.name)}",
+                            f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
+                            f"-Pdem_path={strings.to_cmd_string(dem_path)}",
+                            f"-Pcrs={self.crs}",
+                            f"-Pres_m={res_m}",
+                            f"-Pres_deg={res_deg}",
+                            f"-Pout={strings.to_cmd_string(pp_dim)}",
+                        ],
+                        display_snap_opt=LOGGER.level == logging.DEBUG,
                     )
-        return out
 
-    def _despeckle_sar(self, band: sbn) -> str:
+                    # Pre-process SAR images according to the given graph
+                    LOGGER.debug("Pre-process SAR image")
+                    try:
+                        misc.run_cli(cmd_list)
+                    except RuntimeError as ex:
+                        raise RuntimeError("Something went wrong with SNAP!") from ex
+
+                # Convert DIMAP images to GeoTiff
+                try:
+                    LOGGER.debug("Converting DIMAP to GeoTiff")
+                    return self._write_sar(pp_dim, band.value, **kwargs)
+                except AssertionError:
+                    if isinstance(self.path, CloudPath):
+                        raise InvalidProductError(
+                            f"For now, {self._get_platform().value} can't be processed while being stored in the cloud. "
+                            "A bug when caching nested directories prevents that, see here: "
+                            "https://github.com/drivendataorg/cloudpathlib/issues/148"
+                        )
+
+    def _despeckle_sar(self, band: sbn, **kwargs) -> str:
         """
         Pre-process SAR data (geocode...)
 
         Args:
             band (sbn): Band to despeckle
+            kwargs: Additional arguments
 
         Returns:
             str: Despeckled path
@@ -873,17 +891,21 @@ class SarProduct(Product):
                     raise RuntimeError("Something went wrong with SNAP!") from ex
 
             # Convert DIMAP images to GeoTiff
-            out = self._write_sar(dspk_dim, band.value.upper(), dspk=True)
+            out = self._write_sar(dspk_dim, band.value.upper(), dspk=True, **kwargs)
 
         return out
 
-    def _write_sar(self, dim_path: str, pol: str, dspk=False):
+    def _write_sar(self, dim_path: str, pol: str, dspk=False, **kwargs) -> str:
         """
         Write SAR image on disk.
 
         Args:
             dim_path (str): DIMAP path
             pol (str): Polarization name
+            kwargs: Additional arguments
+
+        Returns:
+            str: SAR path
         """
 
         def interp_na(arr, dim):
@@ -913,8 +935,10 @@ class SarProduct(Product):
             arr = arr.where(arr != self._snap_no_data, np.nan)
 
             # Interpolate if needed (interpolate na works only 1D-like, sadly)
-            arr = interp_na(arr, dim="y")
-            arr = interp_na(arr, dim="x")
+            # DSPK step in done on already interpolated data
+            if not dspk and kwargs.get(SAR_INTERP_NA, False):
+                arr = interp_na(arr, dim="y")
+                arr = interp_na(arr, dim="x")
 
             # Save the file as the terrain-corrected image
             file_path = os.path.join(
@@ -922,7 +946,7 @@ class SarProduct(Product):
                 f"{files.get_filename(dim_path)}_{pol}{'_DSPK' if dspk else ''}.tif",
             )
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
-            utils.write(arr, file_path, dtype=np.float32, nodata=0)
+            utils.write(arr, file_path, dtype=np.float32, nodata=self._snap_no_data)
 
         return file_path
 

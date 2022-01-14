@@ -1,5 +1,12 @@
 # Release History
 
+## 0.11.1 (2022-01-XX)
+
+- FIX: Fixing complex and orthorectified products for `SAR` data
+- OPTIM: Only preprocessing wanted SAR bands (instead of all existing)
+- OPTIM: Do not interpolate nan values by default when writing SAR bands to disk (using a keyword instead)
+- DOC: Updating the SAR notebook and documentation
+
 ## 0.11.0 (2022-01-13)
 
 - **BREAKING CHANGES: Renamed `is_band` to `is_sat_band` to better reflect that this function only checks optical and SAR bands**

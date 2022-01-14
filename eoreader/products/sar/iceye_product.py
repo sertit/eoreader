@@ -124,6 +124,7 @@ class IceyeProduct(SarProduct):
         (setting needs_extraction and so on)
         """
         # Private attributes
+        # TODO: Allow to use SLC data ? Or SLC and GRD are always together ?
         self._raw_band_regex = "*ICEYE*GRD*.tif"
         self._band_folder = self.path
         self._snap_path = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
@@ -327,7 +328,7 @@ class IceyeProduct(SarProduct):
         band_paths = {}
         try:
             band_paths[sbn.VV] = files.get_file_in_dir(
-                self._band_folder, self._raw_band_regex, exact_name=True, get_list=True
+                self._band_folder, self._raw_band_regex, exact_name=True, get_list=False
             )
         except FileNotFoundError:
             raise InvalidProductError(
