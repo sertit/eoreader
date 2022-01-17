@@ -1,6 +1,6 @@
 # Release History
 
-## 0.11.1 (2022-01-XX)
+## 0.11.1 (2022-01-17)
 
 - FIX: Fixing complex and orthorectified products for `SAR` data
 - FIX: Fixing `RADARSAT-2` `SLC` product type
