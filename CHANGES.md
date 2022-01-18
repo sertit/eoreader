@@ -1,5 +1,9 @@
 # Release History
 
+## 0.11.2 (2022-MM-DD)
+
+- FIX: Fixing the default name for cleaned bands for optical data (was set on `CLEAN` instead of `NODATA`)
+
 ## 0.11.1 (2022-01-17)
 
 - FIX: Fixing complex and orthorectified products for `SAR` data
