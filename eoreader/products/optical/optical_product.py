@@ -74,6 +74,9 @@ class CleanMethod(ListEnum):
     """ Return raw band without any cleaning (fastest method) """
 
 
+DEF_CLEAN_METHOD = CleanMethod.NODATA
+
+
 class OpticalProduct(Product):
     """Super class for optical products"""
 
@@ -257,7 +260,7 @@ class OpticalProduct(Product):
             if not str(band_path).endswith("clean.tif"):
                 # Manage invalid pixels
                 cleaning_method = CleanMethod.from_value(
-                    kwargs.get(CLEAN_OPTICAL, CleanMethod.NODATA)
+                    kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
                 )
                 if cleaning_method == CleanMethod.RAW:
                     pass
@@ -603,7 +606,7 @@ class OpticalProduct(Product):
             Union[CloudPath, Path]: Clean band path
         """
         cleaning_method = CleanMethod.from_value(
-            kwargs.get(CLEAN_OPTICAL, CleanMethod.CLEAN)
+            kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
         )
 
         res_str = self._resolution_to_str(resolution)
