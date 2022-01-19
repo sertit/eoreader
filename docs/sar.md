@@ -10,7 +10,7 @@ You will find a SAR tutorial [here](https://eoreader.readthedocs.io/en/latest/no
 |`COSMO-Skymed 2nd Generation`| {meth}`~eoreader.products.sar.csg_product.CsgProduct` | ❌|
 |`ICEYE` | {meth}`~eoreader.products.sar.iceye_product.IceyeProduct` | ❌|
 |`RADARSAT Constellation Mission` | {meth}`~eoreader.products.sar.rcm_product.RcmProduct` | ❌|
-|`RADARSAT-2` | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | ✅|
+|`RADARSAT-2` | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | ✅ for ground range data, ❌ for complex data|
 |`Sentinel-1` | {meth}`~eoreader.products.sar.s1_product.S1Product` | ✅|
 |`TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | ❌|
 
