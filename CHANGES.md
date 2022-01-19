@@ -1,7 +1,9 @@
 # Release History
 
-## 0.11.2 (2022-MM-DD)
+## 0.11.2 (2022-01-19)
 
+- FIX: Fixing archived SAR processing
+- FIX: Needs extraction for `RS2-SLC` data as SNAP does not handle the product
 - FIX: Fixing the default name for cleaned bands for optical data (was set on `CLEAN` instead of `NODATA`)
 
 ## 0.11.1 (2022-01-17)

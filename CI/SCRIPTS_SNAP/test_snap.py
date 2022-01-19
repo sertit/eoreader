@@ -105,20 +105,6 @@ def _test_core(pattern: str, prod_dir: str, possible_bands: list, debug=False):
 
 
 @s3_env
-def test_s3_olci():
-    """Function testing the correct functioning of the optical satellites"""
-    # Init logger
-    _test_core_optical("*S3*_OL_1_*")
-
-
-@s3_env
-def test_s3_slstr():
-    """Function testing the correct functioning of the optical satellites"""
-    # Init logger
-    _test_core_optical("*S3*_SL_1_*")
-
-
-@s3_env
 def test_s1():
     """Function testing the correct functioning of the optical satellites"""
     _test_core_sar("*S1*_IW*")

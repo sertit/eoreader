@@ -259,8 +259,18 @@ class Rs2Product(SarProduct):
         self._band_folder = self.path
         self._snap_path = ""
 
-        # Zipped and SNAP can process its archive
-        self.needs_extraction = False
+        # SNAP can process non-complex archive
+        root, nsmap = self.read_mtd()
+        namespace = nsmap[None]
+
+        # Open identifier
+        try:
+            prod_type = root.findtext(f".//{namespace}productType")
+        except TypeError:
+            raise InvalidProductError("mode not found in metadata!")
+
+        self.product_type = Rs2ProductType.from_value(prod_type)
+        self.needs_extraction = self.product_type == Rs2ProductType.SLC
 
         # Post init done by the super class
         super()._pre_init()
@@ -313,26 +323,10 @@ class Rs2Product(SarProduct):
 
     def _set_product_type(self) -> None:
         """Set products type"""
-        # Get MTD XML file
-        root, nsmap = self.read_mtd()
-        namespace = nsmap[None]
-
-        # Open identifier
-        try:
-            prod_type = root.findtext(f".//{namespace}productType")
-        except TypeError:
-            raise InvalidProductError("mode not found in metadata!")
-
-        self.product_type = Rs2ProductType.from_value(prod_type)
-
-        if self.product_type == Rs2ProductType.SGF:
-            self.sar_prod_type = SarProductType.GDRG
-        elif self.product_type == Rs2ProductType.SLC:
+        if self.product_type == Rs2ProductType.SLC:
             self.sar_prod_type = SarProductType.CPLX
         else:
-            raise NotImplementedError(
-                f"{self.product_type.value} product type is not available for {self.name}"
-            )
+            self.sar_prod_type = SarProductType.GDRG
 
         if self.product_type not in [Rs2ProductType.SGF, Rs2ProductType.SLC]:
             LOGGER.warning(
@@ -421,7 +415,7 @@ class Rs2Product(SarProduct):
             if not reader.valid_name(name, self._get_platform()):
                 LOGGER.warning(
                     "This RADARSAT-2 filename is not valid. "
-                    "However RADARSAT-2 files do not provide anywhere the true name of the product."
+                    "However RADARSAT-2 files do not provide anywhere the true name of the product. "
                     "Use it with caution."
                 )
 
