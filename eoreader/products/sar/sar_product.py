@@ -17,9 +17,7 @@
 """ Super class for SAR products """
 import logging
 import os
-import re
 import tempfile
-import zipfile
 from abc import abstractmethod
 from enum import unique
 from pathlib import Path
@@ -484,18 +482,13 @@ class SarProduct(Product):
 
             if self.is_archived:
                 if self.path.suffix == ".zip":
-                    # Open the zip file
-                    with zipfile.ZipFile(self.path, "r") as zip_ds:
-                        # Get the correct band path
-                        regex = re.compile(band_regex.replace("*", ".*"))
-                        try:
-                            band_paths[band] = list(
-                                filter(
-                                    regex.match, [f.filename for f in zip_ds.filelist]
-                                )
-                            )[0]
-                        except IndexError:
-                            continue
+                    try:
+                        band_paths[band] = files.get_archived_rio_path(
+                            self.path, band_regex.replace("*", ".*"), as_list=True
+                        )[0]
+                        # Get as a list but keep only the first item (S1-SLC with 3 swaths)
+                    except FileNotFoundError:
+                        continue
                 else:
                     raise InvalidProductError(
                         f"Only zipped products can be processed without extraction: {self.path}"
