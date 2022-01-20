@@ -45,7 +45,7 @@ from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import CLEAN_OPTICAL, SLSTR_RAD_ADJUST, SLSTR_STRIPE, SLSTR_VIEW
 from eoreader.products import S3DataType, S3Instrument, S3Product, S3ProductType
-from eoreader.products.optical.optical_product import CleanMethod
+from eoreader.products.optical.optical_product import DEF_CLEAN_METHOD, CleanMethod
 from eoreader.reader import Platform
 from eoreader.utils import EOREADER_NAME
 
@@ -1001,7 +1001,7 @@ class S3SlstrProduct(S3Product):
             Union[CloudPath, Path]: Clean band path
         """
         cleaning_method = CleanMethod.from_value(
-            kwargs.get(CLEAN_OPTICAL, CleanMethod.CLEAN)
+            kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
         )
 
         suffix = self._get_suffix(band, **kwargs)

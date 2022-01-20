@@ -1,5 +1,9 @@
 # Release History
 
+## 0.11.3 (2022-MM-DD)
+
+- FIX: Fixing the default name for cleaned bands for `Sentinel-3 SLSTR` data (was set on `CLEAN` instead of `NODATA`)
+
 ## 0.11.2 (2022-01-19)
 
 - FIX: Fixing archived SAR processing
