@@ -743,19 +743,23 @@ class Product:
             for band in band_list:
                 assert is_dem(band)
                 if band == DEM:
-                    dem_path = kwargs.get(DEM_KW, dem_path)
                     path = self._warp_dem(
-                        dem_path, resolution=resolution, size=size, **kwargs
+                        kwargs.get(DEM_KW, dem_path),
+                        resolution=resolution,
+                        size=size,
+                        **kwargs,
                     )
                 elif band == SLOPE:
-                    dem_path = kwargs.get(SLOPE_DEM_KW, dem_path)
                     path = self._compute_slope(
-                        dem_path, resolution=resolution, size=size
+                        kwargs.get(SLOPE_DEM_KW, dem_path),
+                        resolution=resolution,
+                        size=size,
                     )
                 elif band == HILLSHADE:
-                    dem_path = kwargs.get(HILLSHADE_DEM_KW, dem_path)
                     path = self._compute_hillshade(
-                        dem_path, resolution=resolution, size=size
+                        kwargs.get(HILLSHADE_DEM_KW, dem_path),
+                        resolution=resolution,
+                        size=size,
                     )
                 else:
                     raise InvalidTypeError(f"Unknown DEM band: {band}")

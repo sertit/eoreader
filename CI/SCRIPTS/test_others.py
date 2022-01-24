@@ -137,6 +137,14 @@ def test_dems():
     # Open prods
     prod = READER.open(prod_path)
 
+    dem = str(
+        get_db_dir().joinpath(
+            "GLOBAL",
+            "EUDEM_v2",
+            "eudem_wgs84.tif",
+        )
+    )
+
     # Test two different DEM source
     slope_dem = str(
         get_db_dir().joinpath(
@@ -155,26 +163,36 @@ def test_dems():
     )
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        prod.output = os.path.join(tmp_dir, prod.condensed_name)
-        prod.load(
-            [SLOPE, HILLSHADE],
-            resolution=prod.resolution * 100,
-            **{"slope_dem": slope_dem, "hillshade_dem": hillshade_dem},
-        )
+        with tempenv.TemporaryEnvironment({DEM_PATH: dem}):
+            prod.output = os.path.join(tmp_dir, prod.condensed_name)
+            prod.load(
+                [DEM, SLOPE, HILLSHADE],
+                resolution=prod.resolution * 100,
+                **{"slope_dem": slope_dem, "hillshade_dem": hillshade_dem},
+            )
 
-        assert next(prod.output.glob(f"**/*DEM_{files.get_filename(slope_dem)}.tif"))
+        assert next(
+            prod.output.glob(f"**/*DEM_{files.get_filename(dem)}.tif")
+        ).is_file()
+        assert next(
+            prod.output.glob(f"**/*DEM_{files.get_filename(slope_dem)}.tif")
+        ).is_file()
         assert next(
             prod.output.glob(f"**/*DEM_{files.get_filename(hillshade_dem)}.tif")
-        )
-        assert next(prod.output.glob(f"**/*SLOPE_{files.get_filename(slope_dem)}.tif"))
+        ).is_file()
+        assert next(
+            prod.output.glob(f"**/*SLOPE_{files.get_filename(slope_dem)}.tif")
+        ).is_file()
         assert next(
             prod.output.glob(f"**/*HILLSHADE_{files.get_filename(hillshade_dem)}.tif")
-        )
+        ).is_file()
 
         with pytest.raises(StopIteration):
             next(prod.output.glob(f"**/*SLOPE_{files.get_filename(hillshade_dem)}.tif"))
         with pytest.raises(StopIteration):
             next(prod.output.glob(f"**/*HILLSHADE_{files.get_filename(slope_dem)}.tif"))
+        with pytest.raises(StopIteration):
+            next(prod.output.glob(f"**/*HILLSHADE_{files.get_filename(dem)}.tif"))
 
 
 @pytest.mark.skipif(
