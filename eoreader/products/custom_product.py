@@ -412,7 +412,7 @@ class CustomProduct(Product):
 
         # Check if DEM is set and exists
         if dem_list:
-            self._check_dem_path()
+            self._check_dem_path(bands, **kwargs)
 
         # Load bands
         bands = self._load_bands(band_list, resolution=resolution, size=size, **kwargs)
@@ -447,7 +447,9 @@ class CustomProduct(Product):
             warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
             # Get Hillshade path
-            hillshade_name = f"{self.condensed_name}_HILLSHADE.tif"
+            hillshade_name = (
+                f"{self.condensed_name}_HILLSHADE_{files.get_filename(dem_path)}.tif"
+            )
             hillshade_path = self._get_band_folder().joinpath(hillshade_name)
             if hillshade_path.is_file():
                 LOGGER.debug(

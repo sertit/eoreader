@@ -75,17 +75,6 @@ def set_dem(dem_path):
             )
 
 
-def remove_dem_files(prod):
-    """Remove DEM from product output"""
-    to_del = [
-        prod.output.joinpath(f"{prod.condensed_name}_DEM.tif"),
-        prod.output.joinpath(f"{prod.condensed_name}_HILLSHADE.tif"),
-        prod.output.joinpath(f"{prod.condensed_name}_SLOPE.tif"),
-    ]
-    for to_d in to_del:
-        files.remove(to_d)
-
-
 def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
     """
     Core function testing optical data
@@ -230,9 +219,6 @@ def _test_core(
                     # Has not happened for now
                     LOGGER.warning("Footprint not equal, trying almost equal.")
                     assert_geom_almost_equal(footprint, footprint_path)
-
-                # Remove DEM tifs if existing
-                remove_dem_files(prod)
 
                 # BAND TESTS
                 LOGGER.info("Checking load and stack")

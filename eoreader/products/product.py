@@ -53,6 +53,7 @@ from eoreader.bands import index
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.keywords import DEM_KW, HILLSHADE_DEM_KW, SLOPE_DEM_KW
 from eoreader.reader import Platform, Reader
 from eoreader.utils import EOREADER_NAME
 
@@ -712,7 +713,6 @@ class Product:
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-            kwargs: Additional arguments
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -743,14 +743,17 @@ class Product:
             for band in band_list:
                 assert is_dem(band)
                 if band == DEM:
+                    dem_path = kwargs.get(DEM_KW, dem_path)
                     path = self._warp_dem(
                         dem_path, resolution=resolution, size=size, **kwargs
                     )
                 elif band == SLOPE:
+                    dem_path = kwargs.get(SLOPE_DEM_KW, dem_path)
                     path = self._compute_slope(
                         dem_path, resolution=resolution, size=size
                     )
                 elif band == HILLSHADE:
+                    dem_path = kwargs.get(HILLSHADE_DEM_KW, dem_path)
                     path = self._compute_hillshade(
                         dem_path, resolution=resolution, size=size
                     )
@@ -1145,7 +1148,7 @@ class Product:
         Returns:
             str: DEM path (as a VRT)
         """
-        dem_name = f"{self.condensed_name}_DEM.tif"
+        dem_name = f"{self.condensed_name}_DEM_{files.get_filename(dem_path)}.tif"
         warped_dem_path = self._get_band_folder().joinpath(dem_name)
         if warped_dem_path.is_file():
             LOGGER.debug(
@@ -1286,7 +1289,7 @@ class Product:
         warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
         # Get slope path
-        slope_name = f"{self.condensed_name}_SLOPE.tif"
+        slope_name = f"{self.condensed_name}_SLOPE_{files.get_filename(dem_path)}.tif"
         slope_path = self._get_band_folder().joinpath(slope_name)
         if slope_path.is_file():
             LOGGER.debug(
@@ -1515,13 +1518,25 @@ class Product:
         return renamed_xarr
 
     @staticmethod
-    def _check_dem_path() -> None:
-        """ Check if DEM is set and exists"""
+    def _check_dem_path(bands: list, **kwargs) -> None:
+        """
+        Check if DEM is set and exists if DEM bands are asked.
+
+        Args:
+            bands (list): List of the wanted bands
+            kwargs: Other arguments used to load bands
+        """
         if DEM_PATH not in os.environ:
-            raise ValueError(
-                f"Dem path not set, unable to compute DEM bands! "
-                f"Please set the environment variable {DEM_PATH}."
-            )
+            if (
+                (DEM in bands and DEM_KW not in kwargs)
+                or (SLOPE in bands and SLOPE_DEM_KW not in kwargs)
+                or (HILLSHADE in bands and HILLSHADE_DEM_KW not in kwargs)
+            ):
+
+                raise ValueError(
+                    f"DEM path not set, unable to compute DEM bands! "
+                    f"Please set the environment variable {DEM_PATH} or a DEM keyword."
+                )
         else:
             dem_path = os.environ.get(DEM_PATH)
             # URLs and file paths are required
