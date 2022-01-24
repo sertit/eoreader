@@ -764,7 +764,7 @@ class SarProduct(Product):
                     # Manage DEM name
                     try:
                         dem_name = SnapDems.from_value(
-                            os.environ.get(SNAP_DEM_NAME, SnapDems.GETASSE30)
+                            os.environ.get(SNAP_DEM_NAME, SnapDems.GLO_30)
                         )
                     except AttributeError as ex:
                         raise ValueError(
@@ -780,13 +780,6 @@ class SarProduct(Product):
                                 f"Please set the environment variable {DEM_PATH} "
                                 f"or change {SNAP_DEM_NAME} to an acceptable SNAP DEM."
                             )
-                    elif dem_name in [SnapDems.GLO_30, SnapDems.GLO_90]:
-                        LOGGER.warning(
-                            "For now, SNAP cannot use Copernicus DEM "
-                            "(see https://forum.step.esa.int/t/terrain-correction-with-copernicus-dem/29025/11). "
-                            "Using GETASSE30 instead."
-                        )
-                        dem_name = SnapDems.GETASSE30
                     else:
                         dem_path = ""
 
