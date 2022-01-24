@@ -1,10 +1,12 @@
 import os
 import sys
+import tempfile
 
 import pytest
 import tempenv
 import xarray as xr
 from cloudpathlib import AnyPath, S3Client
+from sertit import files
 
 from eoreader import utils
 from eoreader.bands import *
@@ -126,6 +128,55 @@ def test_products():
         prod1.load("TEST")
 
 
+@s3_env
+@dask_env
+def test_dems():
+    # Get paths
+    prod_path = opt_path().joinpath("LC08_L1GT_023030_20200518_20200527_01_T2")
+
+    # Open prods
+    prod = READER.open(prod_path)
+
+    # Test two different DEM source
+    slope_dem = str(
+        get_db_dir().joinpath(
+            "GLOBAL",
+            "MERIT_Hydrologically_Adjusted_Elevations",
+            "MERIT_DEM.vrt",
+        )
+    )
+
+    hillshade_dem = str(
+        get_db_dir().joinpath(
+            "GLOBAL",
+            "COPDEM_30m",
+            "COPDEM_30m.vrt",
+        )
+    )
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        prod.output = os.path.join(tmp_dir, prod.condensed_name)
+        prod.load(
+            [SLOPE, HILLSHADE],
+            resolution=prod.resolution * 100,
+            **{"slope_dem": slope_dem, "hillshade_dem": hillshade_dem},
+        )
+
+        assert next(prod.output.glob(f"**/*DEM_{files.get_filename(slope_dem)}.tif"))
+        assert next(
+            prod.output.glob(f"**/*DEM_{files.get_filename(hillshade_dem)}.tif")
+        )
+        assert next(prod.output.glob(f"**/*SLOPE_{files.get_filename(slope_dem)}.tif"))
+        assert next(
+            prod.output.glob(f"**/*HILLSHADE_{files.get_filename(hillshade_dem)}.tif")
+        )
+
+        with pytest.raises(StopIteration):
+            next(prod.output.glob(f"**/*SLOPE_{files.get_filename(hillshade_dem)}.tif"))
+        with pytest.raises(StopIteration):
+            next(prod.output.glob(f"**/*HILLSHADE_{files.get_filename(slope_dem)}.tif"))
+
+
 @pytest.mark.skipif(
     S3_DB_URL_ROOT not in os.environ or sys.platform == "win32",
     reason="S3 DB not set or Rasterio bugs with http urls",
@@ -160,10 +211,6 @@ def test_dems_https():
 
 
 @s3_env
-@pytest.mark.skipif(
-    AWS_ACCESS_KEY_ID not in os.environ,
-    reason="AWS S3 Compatible Storage IDs not set",
-)
 def test_dems_S3():
     # Get paths
     prod_path = opt_path().joinpath("LC08_L1GT_023030_20200518_20200527_01_T2")

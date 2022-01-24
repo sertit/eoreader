@@ -40,6 +40,21 @@ Interpolate nodata pixels that can be found inside the footprint
 (coming from null values that are not really nodata but that are not processed by the Terrain Correction step)
 """
 
+DEM_KW = "dem"
+"""
+Set a DEM path when specifically loading the :code:`DEM` band, used to overload the :code:`DEM_PATH` environment variable.
+"""
+
+SLOPE_DEM_KW = "slope_dem"
+"""
+Set a DEM path when specifically loading the :code:`SLOPE` band, used to overload the :code:`DEM_PATH` environment variable.
+"""
+
+HILLSHADE_DEM_KW = "hillshade_dem"
+"""
+Set a DEM path when specifically loading the :code:`HILLSHADE` band, used to overload the :code:`DEM_PATH` environment variable.
+"""
+
 
 def prune_keywords(**kwargs) -> dict:
     """

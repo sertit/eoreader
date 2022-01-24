@@ -694,7 +694,7 @@ class SarProduct(Product):
 
         # Check if DEM is set and exists
         if dem_list:
-            self._check_dem_path()
+            self._check_dem_path(bands, **kwargs)
 
         # Load bands
         bands = self._load_bands(band_list, resolution=resolution, size=size, **kwargs)
