@@ -546,7 +546,7 @@ class PlaProduct(OpticalProduct):
             return {}
 
         # Get band paths
-        band_paths = self.get_band_paths(bands)
+        band_paths = self.get_band_paths(bands, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(

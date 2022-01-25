@@ -144,6 +144,7 @@ from .optical.s3_slstr_product import (
 __all__ += [
     "SarProduct",
     "SarProductType",
+    "SnapDems",
     "CosmoProduct",
     "CosmoProductType",
     "CosmoPolarization",
@@ -171,7 +172,7 @@ __all__ += [
     "TsxProductType",
     "TsxSensorMode",
 ]
-from .sar.sar_product import SarProduct, SarProductType
+from .sar.sar_product import SarProduct, SarProductType, SnapDems
 from .sar.cosmo_product import CosmoProduct, CosmoProductType, CosmoPolarization
 from .sar.csg_product import CsgProduct, CsgSensorMode
 from .sar.csk_product import CskProduct, CskSensorMode

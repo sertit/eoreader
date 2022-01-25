@@ -286,7 +286,7 @@ class DimapProduct(VhrProduct):
         return utm
 
     @cached_property
-    def footprint(self) -> gpd.GeoDataFrame:
+    def footprint(self, **kwargs) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
 
@@ -303,7 +303,7 @@ class DimapProduct(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        return self.open_mask("ROI").to_crs(self.crs)
+        return self.open_mask("ROI", **kwargs).to_crs(self.crs)
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -367,7 +367,7 @@ class DimapProduct(VhrProduct):
         """
         return files.get_filename(self._get_dimap_path()).replace("DIM_", "")
 
-    def _get_ortho_path(self) -> Union[CloudPath, Path]:
+    def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get the orthorectified path of the bands.
 
@@ -380,14 +380,18 @@ class DimapProduct(VhrProduct):
             if not ortho_path.is_file():
                 ortho_path = self._get_band_folder(writable=True).joinpath(ortho_name)
                 LOGGER.info(
-                    f"Manually orthorectified stack not given by the user. "
-                    f"Reprojecting data here: {ortho_path} "
-                    "(May be inaccurate on steep terrain, depending on the DEM resolution.)"
+                    "Manually orthorectified stack not given by the user. "
+                    # f"Reprojecting whole stack here: {ortho_path} "
+                    "Reprojecting whole stack, this may take a while. "
+                    "(May be inaccurate on steep terrain, depending on the DEM resolution)"
                 )
 
                 # Reproject and write on disk data
+                dem_path = self._get_dem_path(**kwargs)
                 with rasterio.open(str(self._get_dimap_path())) as src:
-                    out_arr, meta = self._reproject(src.read(), src.meta, src.rpcs)
+                    out_arr, meta = self._reproject(
+                        src.read(), src.meta, src.rpcs, dem_path, **kwargs
+                    )
                     rasters_rio.write(out_arr, meta, ortho_path)
 
         else:
@@ -420,12 +424,12 @@ class DimapProduct(VhrProduct):
         )
 
         # Get detector footprint to deduce the outside nodata
-        nodata = self._load_nodata(width, height, vec_tr)
+        nodata = self._load_nodata(width, height, vec_tr, **kwargs)
 
         #  Load masks and merge them into the nodata
-        nodata_vec = self.open_mask("DET")  # Out of order detectors
-        nodata_vec.append(self.open_mask("VIS"))  # Hidden area vector mask
-        nodata_vec.append(self.open_mask("SLT"))  # Straylight vector mask
+        nodata_vec = self.open_mask("DET", **kwargs)  # Out of order detectors
+        nodata_vec.append(self.open_mask("VIS", **kwargs))  # Hidden area vector mask
+        nodata_vec.append(self.open_mask("SLT", **kwargs))  # Straylight vector mask
 
         if len(nodata_vec) > 0:
             # Rasterize mask
@@ -461,7 +465,7 @@ class DimapProduct(VhrProduct):
         )
 
         # Get detector footprint to deduce the outside nodata
-        nodata = self._load_nodata(width, height, vec_tr)
+        nodata = self._load_nodata(width, height, vec_tr, **kwargs)
 
         return self._set_nodata_mask(band_arr, nodata)
 
@@ -555,7 +559,7 @@ class DimapProduct(VhrProduct):
 
         if bands:
             # Load cloud vector
-            cld_vec = self.open_mask("CLD")
+            cld_vec = self.open_mask("CLD", **kwargs)
             has_vec = len(cld_vec) > 0
 
             # Load default xarray as a template
@@ -578,7 +582,7 @@ class DimapProduct(VhrProduct):
                 vec_tr = transform.from_bounds(
                     *def_xarr.rio.bounds(), def_xarr.rio.width, def_xarr.rio.height
                 )
-                nodata = self._load_nodata(width, height, vec_tr)
+                nodata = self._load_nodata(width, height, vec_tr, **kwargs)
 
                 # Rasterize features if existing vector
                 if has_vec:
@@ -615,7 +619,7 @@ class DimapProduct(VhrProduct):
 
         return band_dict
 
-    def open_mask(self, mask_str: str) -> gpd.GeoDataFrame:
+    def open_mask(self, mask_str: str, **kwargs) -> gpd.GeoDataFrame:
         """
         Open DIMAP V2 mask (GML files stored in MASKS) as :code:`gpd.GeoDataFrame`.
 
@@ -710,8 +714,9 @@ class DimapProduct(VhrProduct):
 
                     # Reproject mask raster
                     LOGGER.debug(f"\tReprojecting {mask_str}")
+                    dem_path = self._get_dem_path(**kwargs)
                     reproj_data = self._reproject(
-                        mask_raster, dim_dst.meta, dim_dst.rpcs
+                        mask_raster, dim_dst.meta, dim_dst.rpcs, dem_path, **kwargs
                     )
 
                     # Vectorize mask raster
@@ -747,10 +752,7 @@ class DimapProduct(VhrProduct):
         return mask
 
     def _load_nodata(
-        self,
-        width: int,
-        height: int,
-        transform: affine.Affine,
+        self, width: int, height: int, transform: affine.Affine, **kwargs
     ) -> Union[np.ndarray, None]:
         """
         Load nodata (unimaged pixels) as a numpy array.
@@ -764,7 +766,7 @@ class DimapProduct(VhrProduct):
             Union[np.ndarray, None]: Nodata array
 
         """
-        nodata_det = self.open_mask("ROI")
+        nodata_det = self.open_mask("ROI", **kwargs)
 
         # Rasterize nodata
         return features.rasterize(

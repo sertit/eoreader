@@ -495,9 +495,11 @@ class MaxarProduct(VhrProduct):
             root, _ = self.read_mtd()
             datetime_str = root.findtext(".//EARLIESTACQTIME")
             if not datetime_str:
-                raise InvalidProductError(
-                    "Cannot find EARLIESTACQTIME in the metadata file."
-                )
+                datetime_str = root.findtext(".//FIRSTLINETIME")
+                if not datetime_str:
+                    raise InvalidProductError(
+                        "Cannot find EARLIESTACQTIME or FIRSTLINETIME in the metadata file."
+                    )
 
             # Convert to datetime
             datetime_str = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -521,7 +523,7 @@ class MaxarProduct(VhrProduct):
         """
         return files.get_filename(self._get_til_path())
 
-    def _get_ortho_path(self) -> Union[CloudPath, Path]:
+    def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get the orthorectified path of the bands.
 
@@ -535,14 +537,18 @@ class MaxarProduct(VhrProduct):
             if not ortho_path.is_file():
                 ortho_path = self._get_band_folder(writable=True).joinpath(ortho_name)
                 LOGGER.info(
-                    f"Manually orthorectified stack not given by the user. "
-                    f"Reprojecting data here: {ortho_path} "
-                    "(May be inaccurate on steep terrain, depending on the DEM resolution.)"
+                    "Manually orthorectified stack not given by the user. "
+                    # f"Reprojecting whole stack here: {ortho_path} "
+                    "Reprojecting whole stack, this may take a while. "
+                    "(May be inaccurate on steep terrain, depending on the DEM resolution)"
                 )
 
                 # Reproject and write on disk data
+                dem_path = self._get_dem_path(**kwargs)
                 with rasterio.open(str(self._get_til_path())) as src:
-                    out_arr, meta = self._reproject(src.read(), src.meta, src.rpcs)
+                    out_arr, meta = self._reproject(
+                        src.read(), src.meta, src.rpcs, dem_path, **kwargs
+                    )
                     rasters_rio.write(out_arr, meta, ortho_path)
 
         else:

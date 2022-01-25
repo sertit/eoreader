@@ -634,7 +634,7 @@ class SarProduct(Product):
 
         if resolution is None and size is not None:
             resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution)
+        band_paths = self.get_band_paths(bands, resolution, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = {}
@@ -862,7 +862,7 @@ class SarProduct(Product):
 
             # Create command line and run it
             if not os.path.isfile(dspk_dim):
-                path = self.get_band_paths([band])[band]
+                path = self.get_band_paths([band], **kwargs)[band]
                 cmd_list = snap.get_gpt_cli(
                     dspk_graph,
                     [f"-Pfile={path}", f"-Pout={dspk_dim}"],
