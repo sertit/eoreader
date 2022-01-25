@@ -53,7 +53,7 @@ from eoreader.bands import index
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.keywords import DEM_KW, HILLSHADE_DEM_KW, SLOPE_DEM_KW
+from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Platform, Reader
 from eoreader.utils import EOREADER_NAME
 
@@ -751,13 +751,13 @@ class Product:
                     )
                 elif band == SLOPE:
                     path = self._compute_slope(
-                        kwargs.get(SLOPE_DEM_KW, dem_path),
+                        kwargs.get(SLOPE_KW, dem_path),
                         resolution=resolution,
                         size=size,
                     )
                 elif band == HILLSHADE:
                     path = self._compute_hillshade(
-                        kwargs.get(HILLSHADE_DEM_KW, dem_path),
+                        kwargs.get(HILLSHADE_KW, dem_path),
                         resolution=resolution,
                         size=size,
                     )
@@ -1533,8 +1533,8 @@ class Product:
         if DEM_PATH not in os.environ:
             if (
                 (DEM in bands and DEM_KW not in kwargs)
-                or (SLOPE in bands and SLOPE_DEM_KW not in kwargs)
-                or (HILLSHADE in bands and HILLSHADE_DEM_KW not in kwargs)
+                or (SLOPE in bands and SLOPE_KW not in kwargs)
+                or (HILLSHADE in bands and HILLSHADE_KW not in kwargs)
             ):
 
                 raise ValueError(

@@ -45,12 +45,12 @@ DEM_KW = "dem"
 Set a DEM path when specifically loading the :code:`DEM` band, used to overload the :code:`DEM_PATH` environment variable.
 """
 
-SLOPE_DEM_KW = "slope_dem"
+SLOPE_KW = "slope_dem"
 """
 Set a DEM path when specifically loading the :code:`SLOPE` band, used to overload the :code:`DEM_PATH` environment variable.
 """
 
-HILLSHADE_DEM_KW = "hillshade_dem"
+HILLSHADE_KW = "hillshade_dem"
 """
 Set a DEM path when specifically loading the :code:`HILLSHADE` band, used to overload the :code:`DEM_PATH` environment variable.
 """
