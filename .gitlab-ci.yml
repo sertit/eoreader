@@ -13,7 +13,7 @@ lint:
     - pip install flake8
     - flake8 eoreader
   tags:
-    - linux
+    - sertit
   except:
     - tags
 
@@ -28,7 +28,7 @@ pytest:
     - pytest -v --durations=0 --cov-report term --cov-report xml:cov.xml --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
-    - linux
+    - sertit
   rules:
     - if: $CI_COMMIT_TAG
       when: never
@@ -44,7 +44,7 @@ tox-linux-3.7:on-schedule:
   script:
     - tox -c tox.ini -e py37
   tags:
-    - linux
+    - sertit
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
 
@@ -57,7 +57,7 @@ tox-linux-3.8:on-schedule:
   script:
     - tox -c tox.ini -e py38
   tags:
-    - linux
+    - sertit
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
 
@@ -70,7 +70,7 @@ tox-linux-3.9:on-schedule:
   script:
     - tox -c tox.ini -e py39
   tags:
-    - linux
+    - sertit
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
 
@@ -97,7 +97,7 @@ tox-linux-3.7-snap:on-schedule:
   script:
     - tox -c tox-snap.ini -e py37
   tags:
-    - linux
+    - sertit
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "SNAP"'
 
@@ -109,7 +109,7 @@ upload_wheel:linux:
     - python setup.py sdist bdist_wheel
     - TWINE_PASSWORD=${PYPI_PWD} TWINE_USERNAME=${PYPI_TOKEN} python -m twine upload dist/*
   tags:
-    - linux
+    - sertit
   only:
     - tags
 
@@ -126,7 +126,7 @@ upload_wheel:linux:
 #    paths:
 #      - public
 #  tags:
-#    - linux
+#    - sertit
 #  rules:
 #    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE != "schedule"'
 #  needs: ["lint"]
