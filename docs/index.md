@@ -25,6 +25,7 @@
    notebooks/VHR
    notebooks/sentinel-3
    notebooks/water_detection
+   notebooks/dem
    notebooks/custom
    notebooks/optical_cleaning_methods
    notebooks/s3_compatible_storage

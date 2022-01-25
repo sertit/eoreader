@@ -2,10 +2,12 @@
 
 ## 0.12.0 (2022-02-XX)
 
-- **ENH: Adding a keyword to allow the pass of a specific DEM path in `load`/`stack` functions (for `DEM`, `SLOPE` and `HILLSHADE`)**
+- **ENH: Adding a keyword to allow the pass of a specific DEM path in `load`/`stack` functions (for VHR orthorectification and `DEM` bands)**
 - FIX: Using `COPDEM-30` (`GLO-30`) by default for SNAP as it appears that the retrieval has been fixed.
 - FIX: Fixing the default name for cleaned bands for `Sentinel-3 SLSTR` data (was set on `CLEAN` instead of `NODATA`)
 - FIX: Adding the name of the DEM in DEM band (i.e. allow to compute the `HILLSHADE` with a DEM and the `SLOPE` with a DTM)
+- CI: Using another runner
+- DOC: Adding a DEM notebook
 
 ## 0.11.2 (2022-01-19)
 

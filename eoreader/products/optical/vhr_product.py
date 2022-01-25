@@ -43,6 +43,7 @@ from shapely.geometry import box
 from eoreader import cached_property, utils
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import DEM_PATH
+from eoreader.keywords import DEM_KW
 from eoreader.products import OpticalProduct
 from eoreader.utils import EOREADER_NAME
 
@@ -133,7 +134,7 @@ class VhrProduct(OpticalProduct):
         return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs).to_crs(self.crs)
 
     @abstractmethod
-    def _get_ortho_path(self) -> Union[CloudPath, Path]:
+    def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get the orthorectified path of the bands.
 
@@ -172,7 +173,7 @@ class VhrProduct(OpticalProduct):
             dict: Dictionary containing the path of each queried band
         """
         if not self.ortho_path:
-            self.ortho_path = self._get_ortho_path()
+            self.ortho_path = self._get_ortho_path(**kwargs)
 
         # Processed path names
         band_paths = {}
@@ -198,37 +199,49 @@ class VhrProduct(OpticalProduct):
 
         return band_paths
 
-    def _reproject(
-        self, src_arr: np.ndarray, src_meta: dict, rpcs: rpc.RPC
-    ) -> (np.ndarray, dict):
+    def _get_dem_path(self, **kwargs) -> str:
         """
-        Reproject using RPCs
-
-        Args:
-            src_arr (np.ndarray): Array to reproject
-            src_meta (dict): Metadata
-            rpcs (rpc.RPC): RPCs
+        Get DEM path
 
         Returns:
-            (np.ndarray, dict): Reprojected array and its metadata
+            str: DEM path
+
         """
         # Get DEM path
-        dem_path = os.environ.get(DEM_PATH)
+        dem_path = os.environ.get(DEM_PATH, kwargs.get(DEM_KW))
         if not dem_path:
             raise ValueError(
-                f"You are using a non orthorectified Pleiades product {self.path}, "
+                f"As you are using a non orthorectified VHR product ({self.path}), "
                 f"you must provide a valid DEM through the {DEM_PATH} environment variable"
             )
         else:
-            dem_path = AnyPath(dem_path)
-            if isinstance(dem_path, CloudPath):
+            if isinstance(AnyPath(dem_path), CloudPath):
                 raise TypeError(
                     "gdalwarp cannot process DEM stored on cloud with 'RPC_DEM' argument, "
                     "hence cloud-stored DEM cannot be used with non orthorectified DIMAP data."
                     f"(DEM: {dem_path}, DIMAP data: {self.name})"
                 )
 
+        return dem_path
+
+    def _reproject(
+        self, src_arr: np.ndarray, src_meta: dict, rpcs: rpc.RPC, dem_path, **kwargs
+    ) -> (np.ndarray, dict):
+        """
+        Reproject using RPCs (cannot use another resolution than src to ensure RPCs are valid)
+
+        Args:
+            src_arr (np.ndarray): Array to reproject
+            src_meta (dict): Metadata
+            rpcs (rpc.RPC): RPCs
+            dem_path (str): DEM path
+
+        Returns:
+            (np.ndarray, dict): Reprojected array and its metadata
+        """
+
         # Set RPC keywords
+        LOGGER.debug(f"Orthorectifying data with {dem_path}")
         kwargs = {"RPC_DEM": dem_path, "RPC_DEM_MISSING_VALUE": 0}
         # TODO:  add "refine_gcps" ? With which tolerance ? (ie. '-refine_gcps 500 1.9')
         #  (https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-refine_gcps)
@@ -394,7 +407,7 @@ class VhrProduct(OpticalProduct):
         # Get band paths
         if resolution is None and size is not None:
             resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution=resolution)
+        band_paths = self.get_band_paths(bands, resolution=resolution, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(
