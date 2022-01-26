@@ -69,7 +69,7 @@ pytest_s3:
   needs: [ "lint" ]
 
 # Test SNAP with SNAP
-pytest_all_sar_snap:
+pytest_end_to_end:
   image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
   stage: test
   before_script:
@@ -83,6 +83,9 @@ pytest_all_sar_snap:
     - sertit
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "SNAP"'
+      when: always
+    - if: $CI_COMMIT_TAG
+      when: always
 
 tox-linux-3.7:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.7
@@ -150,6 +153,7 @@ upload_wheel:linux:
     - sertit
   only:
     - tags
+  needs: ["pytest_end_to_end"]
 
 #pages:
 #  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
