@@ -58,6 +58,22 @@ pytest_s3:
     - changes:
         - eoreader/**/*.{py,xml}
 
+# Test SNAP with SNAP
+pytest_all_sar_snap:
+  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  stage: test
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install --ignore-installed PyYAML
+    - pip install -e .
+  script:
+    - pytest -v --durations=0 --cov-report term --cov-report xml:cov.xml --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_SNAP/test_all_sar_snap.py
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  tags:
+    - sertit
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "SNAP"'
+
 tox-linux-3.7:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.7
   stage: weekly_tests
@@ -83,6 +99,7 @@ tox-linux-3.8:on-schedule:
     - sertit
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
+  needs: [ "tox-linux-3.7:on-schedule" ]
 
 tox-linux-3.9:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.9
@@ -96,6 +113,7 @@ tox-linux-3.9:on-schedule:
     - sertit
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
+  needs: [ "tox-linux-3.8:on-schedule" ]
 
 tox-windows:on-schedule:
   stage: weekly_tests
@@ -109,6 +127,7 @@ tox-windows:on-schedule:
     - conda
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
+  needs: [ "tox-linux-3.9:on-schedule" ]
 
 
 tox-linux-3.7-snap:on-schedule:
