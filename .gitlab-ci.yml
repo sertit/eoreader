@@ -19,8 +19,7 @@ lint:
       when: never
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
-    - changes:
-        - eoreader/**/*.{py,xml}
+    - when: always
 
 # Test with data on local disk
 pytest:
