@@ -51,7 +51,7 @@ def _test_sar(pattern, **kwargs):
         for sar_path in pattern_paths:
             prod = Reader().open(sar_path)
             is_zip = "_ZIP" if prod.is_archived else ""
-            prod.output = output / f"{prod.condensed_name}{is_zip}"
+            prod.output = os.path.join(output, f"{prod.condensed_name}{is_zip}")
 
             LOGGER.info(
                 "%s on drive %s (CI_EOREADER_S3: %s)",

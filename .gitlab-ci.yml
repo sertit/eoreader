@@ -14,8 +14,11 @@ lint:
     - flake8 eoreader
   tags:
     - sertit
-  except:
-    - tags
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
 
 # Test with data on local disk
 pytest:
@@ -34,6 +37,8 @@ pytest:
     - sertit
   rules:
     - if: $CI_COMMIT_TAG
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - changes:
         - eoreader/**/*.{py,xml}
@@ -54,6 +59,8 @@ pytest_s3:
     - sertit
   rules:
     - if: $CI_COMMIT_TAG
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - changes:
         - eoreader/**/*.{py,xml}
@@ -128,20 +135,6 @@ tox-windows:on-schedule:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
   needs: [ "tox-linux-3.9:on-schedule" ]
-
-
-tox-linux-3.7-snap:on-schedule:
-  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
-  stage: weekly_tests
-  before_script:
-    - python -m pip install --upgrade pip
-    - pip install tox
-  script:
-    - tox -c tox-snap.ini -e py37
-  tags:
-    - sertit
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "SNAP"'
 
 upload_wheel:linux:
   image: python:3.7-buster
