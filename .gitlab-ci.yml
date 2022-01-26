@@ -19,6 +19,8 @@ lint:
       when: never
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
+    - changes:
+        - eoreader/**/*.{py,xml}
 
 # Test with data on local disk
 pytest:
@@ -42,6 +44,7 @@ pytest:
       when: never
     - changes:
         - eoreader/**/*.{py,xml}
+  needs: [ "lint" ]
 
 # Test with data on S3
 # TODO: create S3-specific CI ?
@@ -64,6 +67,7 @@ pytest_s3:
       when: never
     - changes:
         - eoreader/**/*.{py,xml}
+  needs: [ "lint" ]
 
 # Test SNAP with SNAP
 pytest_all_sar_snap:
