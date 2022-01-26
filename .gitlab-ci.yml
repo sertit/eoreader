@@ -131,7 +131,6 @@ tox-linux-3.9:on-schedule:
 tox-windows:on-schedule:
   stage: weekly_tests
   before_script:
-    - C:\ProgramData\Miniconda3\python.exe -m pip install --upgrade pip
     - pip install tox
   script:
     - tox -c tox-conda.ini -e py39
