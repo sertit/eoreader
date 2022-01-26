@@ -381,7 +381,6 @@ class DimapProduct(VhrProduct):
                 ortho_path = self._get_band_folder(writable=True).joinpath(ortho_name)
                 LOGGER.info(
                     "Manually orthorectified stack not given by the user. "
-                    # f"Reprojecting whole stack here: {ortho_path} "
                     "Reprojecting whole stack, this may take a while. "
                     "(May be inaccurate on steep terrain, depending on the DEM resolution)"
                 )
