@@ -253,9 +253,7 @@ def test_spot6():
 def test_spot7():
     """Function testing the support of SPOT-7 sensor"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
-    dem_path = os.path.join(
-        get_db_dir_on_disk(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
-    )
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*IMG_SPOT7*", dem_path=dem_path)
 
 
@@ -263,9 +261,7 @@ def test_spot7():
 def test_wv02_wv03():
     """Function testing the support of WorldView-2/3 sensors"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
-    dem_path = os.path.join(
-        get_db_dir_on_disk(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
-    )
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*P001_MUL*", dem_path=dem_path)
 
 
