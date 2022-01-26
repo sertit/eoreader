@@ -164,6 +164,28 @@ def assert_geom_almost_equal(
             )
 
 
+def get_db_dir_on_disk() -> Union[CloudPath, Path]:
+    """
+    Get database directory in the DS2
+
+    Returns:
+        str: Database directory
+    """
+    # ON DISK
+    db_dir = AnyPath(r"//ds2/database02/BASES_DE_DONNEES")
+
+    if not db_dir.is_dir():
+        try:
+            db_dir = AnyPath(ci.get_db2_path(), "BASES_DE_DONNEES")
+        except NotADirectoryError:
+            db_dir = AnyPath("/home", "ds2_db2", "BASES_DE_DONNEES")
+
+    if not db_dir.is_dir():
+        raise NotADirectoryError("Impossible to open database directory !")
+
+    return db_dir
+
+
 def get_db_dir() -> Union[CloudPath, Path]:
     """
     Get database directory in the DS2
@@ -178,16 +200,7 @@ def get_db_dir() -> Union[CloudPath, Path]:
         return AnyPath("s3://sertit-geodatastore")
     else:
         # ON DISK
-        db_dir = AnyPath(r"//ds2/database02/BASES_DE_DONNEES")
-
-        if not db_dir.is_dir():
-            try:
-                db_dir = AnyPath(ci.get_db2_path(), "BASES_DE_DONNEES")
-            except NotADirectoryError:
-                db_dir = AnyPath("/home", "ds2_db2", "BASES_DE_DONNEES")
-
-        if not db_dir.is_dir():
-            raise NotADirectoryError("Impossible to open database directory !")
+        db_dir = get_db_dir_on_disk()
 
     return db_dir
 
