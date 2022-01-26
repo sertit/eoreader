@@ -31,6 +31,7 @@ from .scripts_utils import (
     dask_env,
     get_ci_data_dir,
     get_db_dir,
+    get_db_dir_on_disk,
     opt_path,
     s3_env,
     sar_path,
@@ -440,7 +441,7 @@ def test_spot7():
     """Function testing the support of SPOT-7 sensor"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
     dem_path = os.path.join(
-        ci.get_db2_path(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
+        get_db_dir_on_disk(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
     )
     _test_core_optical("*IMG_SPOT7*", dem_path=dem_path)
 
@@ -451,7 +452,7 @@ def test_wv02_wv03():
     """Function testing the support of WorldView-2/3 sensors"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
     dem_path = os.path.join(
-        ci.get_db2_path(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
+        get_db_dir_on_disk(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
     )
     _test_core_optical("*P001_MUL*", dem_path=dem_path)
 
