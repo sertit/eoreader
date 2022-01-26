@@ -11,9 +11,9 @@ from CI.SCRIPTS.scripts_utils import (
     CI_EOREADER_S3,
     READER,
     dask_env,
+    get_ci_db_dir,
     get_db_dir,
     opt_path,
-    sar_path,
 )
 from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT, SAR_DEF_RES, TEST_USING_S3_DB
@@ -22,6 +22,19 @@ from eoreader.products import SlstrRadAdjust
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
+
+# Init logger
+logging.getLogger("boto3").setLevel(logging.WARNING)  # BOTO has way too much verbosity
+logging.getLogger("botocore").setLevel(
+    logging.WARNING
+)  # BOTO has way too much verbosity
+logging.getLogger("shapely").setLevel(
+    logging.WARNING
+)  # BOTO has way too much verbosity
+logging.getLogger("fiona").setLevel(logging.WARNING)  # BOTO has way too much verbosity
+logging.getLogger("rasterio").setLevel(
+    logging.WARNING
+)  # BOTO has way too much verbosity
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -80,8 +93,15 @@ def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
         pattern (str): Pattern of the satellite
         debug (bool): Debug option
     """
-    possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
-    _test_core(pattern, sar_path(), possible_bands, dem_path, debug, **kwargs)
+    possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE]
+    _test_core(
+        pattern,
+        get_ci_db_dir().joinpath("all_sar"),
+        possible_bands,
+        dem_path,
+        debug,
+        **kwargs,
+    )
 
 
 def _test_core(
@@ -104,14 +124,6 @@ def _test_core(
     set_dem(dem_path)
 
     with xr.set_options(warn_for_unclosed_files=debug):
-
-        # Init logger
-        logging.getLogger("boto3").setLevel(
-            logging.WARNING
-        )  # BOTO has way too much verbosity
-        logging.getLogger("botocore").setLevel(
-            logging.WARNING
-        )  # BOTO has way too much verbosity
 
         # DATA paths
         pattern_paths = files.get_file_in_dir(
@@ -140,10 +152,12 @@ def _test_core(
             LOGGER.info(f"Product name: {prod.name}")
 
             with tempfile.TemporaryDirectory() as tmp_dir:
-                tmp_dir = os.path.join(
-                    "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT_ON_DISK_CLEAN"
-                )
-                prod.output = tmp_dir
+                # output = os.path.join(
+                #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT_ON_DISK_CLEAN"
+                # )
+                output = tmp_dir
+                is_zip = "_ZIP" if prod.is_archived else ""
+                prod.output = os.path.join(output, f"{prod.condensed_name}{is_zip}")
 
                 # Manage S3 resolution to speed up processes
                 if prod.sensor_type == SensorType.SAR:
@@ -156,6 +170,10 @@ def _test_core(
                 LOGGER.info("Checking load and stack")
                 stack_bands = [band for band in possible_bands if prod.has_band(band)]
                 first_band = stack_bands[0]
+
+                # Geometric data
+                footprint = prod.footprint  # noqa
+                extent = prod.extent  # noqa
 
                 # Get stack bands
                 # Stack data
@@ -263,28 +281,41 @@ def test_s1():
 
 
 @dask_env
+def test_s1_zip():
+    """Function testing the support of Sentinel-1 sensor"""
+    _test_core_sar("*S1*_IW*.zip")
+
+
+@dask_env
 def test_csk():
     """Function testing the support of COSMO-Skymed sensor"""
-    _test_core_sar("*csk_*")
+    _test_core_sar("*CSK*")
 
 
 @dask_env
 def test_csg():
     """Function testing the support of COSMO-Skymed 2nd Generation sensor"""
-    _test_core_sar("*CSG_PP*")
+    _test_core_sar("*CSG*")
 
 
 @dask_env
 def test_tsx():
-    """Function testing the support of TerraSAR-X"""
+    """Function testing the support of TerraSAR-X sensor"""
     _test_core_sar("*TSX*")
 
 
 # Assume that tests TDX and PAZ sensors
 @dask_env
 def test_tdx():
-    """Function testing the support of TanDEM-X and PAZ SAR sensors"""
+    """Function testing the support of TanDEM-X sensor"""
     _test_core_sar("*TDX*")
+
+
+# Assume that tests TDX and PAZ sensors
+@dask_env
+def test_paz():
+    """Function testing the support of PAZ SAR sensor"""
+    _test_core_sar("*PAZ*")
 
 
 @dask_env
@@ -302,7 +333,7 @@ def test_rcm():
 @dask_env
 def test_iceye():
     """Function testing the support of ICEYE sensor"""
-    _test_core_sar("*SC_*")
+    _test_core_sar("*SLH_*")
 
 
 # TODO:
