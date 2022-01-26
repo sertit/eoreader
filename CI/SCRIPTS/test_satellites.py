@@ -1,9 +1,11 @@
 """ Script testing EOReader satellites in a push routine """
 import logging
 import os
+import sys
 import tempfile
 
 import numpy as np
+import pytest
 import xarray as xr
 from cloudpathlib import AnyPath
 from geopandas import gpd
@@ -379,6 +381,10 @@ def test_l4_tm():
     _test_core_optical("*LT04*")
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Weirdly Landsat-5 image shape is not the same on Linux or on Windows. Skipping test on Windows",
+)
 @s3_env
 @dask_env
 def test_l5_mss():
