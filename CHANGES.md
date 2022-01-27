@@ -6,6 +6,7 @@
 - FIX: Using `COPDEM-30` (`GLO-30`) by default for SNAP as it appears that the retrieval has been fixed.
 - FIX: Fixing the default name for cleaned bands for `Sentinel-3 SLSTR` data (was set on `CLEAN` instead of `NODATA`)
 - FIX: Adding the name of the DEM in DEM band (i.e. allow to compute the `HILLSHADE` with a DEM and the `SLOPE` with a DTM)
+- OPTIM: Do not look for valid metadata further than 1st level in product's directory
 - CI: Using another runner
 - DOC: Adding a DEM notebook
 

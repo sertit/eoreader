@@ -492,7 +492,7 @@ class Reader:
 
         # Folder
         if product_path.is_dir():
-            prod_files = list(product_path.glob("**/*.*"))
+            prod_files = list(path for path in product_path.iterdir() if path.is_file())
 
         # Archive
         else:
