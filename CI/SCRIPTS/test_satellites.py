@@ -155,6 +155,8 @@ def _test_core(
             LOGGER.info("BOTH")
             prod_both = READER.open(path, method=CheckMethod.BOTH)
             assert prod is not None
+            assert prod_name is not None
+            assert prod_both is not None
             assert prod == prod_name
             assert prod == prod_both
 

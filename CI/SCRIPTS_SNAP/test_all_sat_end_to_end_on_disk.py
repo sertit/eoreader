@@ -149,6 +149,7 @@ def _test_core(
             prod: Product = READER.open(path, method=CheckMethod.MTD, remove_tmp=False)
 
             # Log name
+            assert prod is not None
             assert prod.name is not None
             LOGGER.info(f"Product name: {prod.name}")
 
