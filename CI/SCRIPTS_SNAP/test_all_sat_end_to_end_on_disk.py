@@ -73,7 +73,17 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
         pattern (str): Pattern of the satellite
         debug (bool): Debug option
     """
-    possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
+    possible_bands = [
+        RED,
+        NARROW_NIR,
+        Oa01,
+        TIR_1,
+        F1,
+        SWIR_2,
+        HILLSHADE,
+        CLOUDS,
+        ALL_CLOUDS,
+    ]
     _test_core(pattern, opt_path(), possible_bands, dem_path, debug, **kwargs)
 
 
