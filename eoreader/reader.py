@@ -130,6 +130,9 @@ class Platform(ListEnum):
     SPOT6 = "Spot-6"
     """SPOT-6"""
 
+    VIS1 = "Vision-1"
+    """Vision-1"""
+
     RCM = "RADARSAT-Constellation Mission"
     """RADARSAT-Constellation Mission"""
 
@@ -193,6 +196,7 @@ PLATFORM_REGEX = {
     Platform.PLD: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
     Platform.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
+    Platform.VIS1: r"VIS1_(PAN|BUN|PSH|MS4)_.+_\d{2}-\d",
     Platform.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
     Platform.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Platform.QB: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
@@ -237,6 +241,7 @@ MTD_REGEX = {
     Platform.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Platform.SPOT7: r"DIM_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Platform.SPOT6: r"DIM_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
+    Platform.VIS1: r"DIM_VIS1_(PSH|MS4|PAN)_\d{14}_(PRJ|ORTP)_S\d{5,}_\d{4}_Meta\.xml",
     Platform.RCM: {
         "nested": 1,  # File that can be found at 1st folder level (product/*/file)
         "regex": [

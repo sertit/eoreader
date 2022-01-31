@@ -26,14 +26,11 @@ from enum import unique
 from pathlib import Path
 from typing import Union
 
-import geopandas as gpd
-import rasterio
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import files, rasters, rasters_rio, vectors
+from sertit import files, vectors
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, cached_property
 from eoreader.bands import BandNames
@@ -245,6 +242,8 @@ class MaxarProduct(VhrProduct):
         Can be set to use manually orthorectified or pansharpened data, especially useful for VHR data on steep terrain.
         """
 
+        self._proj_prod_type = [MaxarProductType.Standard]
+
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
 
@@ -358,6 +357,12 @@ class MaxarProduct(VhrProduct):
                         obn.RED: 2,
                         obn.GREEN: 3,
                         obn.BLUE: 4,
+                        obn.WV: 5,
+                        obn.VRE_1: 6,
+                        obn.VRE_2: 6,
+                        obn.VRE_3: 6,
+                        obn.YELLOW: 7,
+                        obn.CA: 8,
                     }
                 )
             else:
@@ -368,10 +373,6 @@ class MaxarProduct(VhrProduct):
                         obn.RED: 2,
                         obn.GREEN: 3,
                         obn.BLUE: 4,
-                        obn.WV: 5,
-                        obn.RE: 6,
-                        obn.YELLOW: 7,
-                        obn.CA: 8,
                     }
                 )
         else:
@@ -448,28 +449,6 @@ class MaxarProduct(VhrProduct):
 
         return utm
 
-    @cached_property
-    def footprint(self) -> gpd.GeoDataFrame:
-        """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1B_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.footprint
-                                                         gml_id  ...                                           geometry
-            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
-            [1 rows x 3 columns]
-
-        Returns:
-            gpd.GeoDataFrame: Footprint as a GeoDataFrame
-        """
-        # Get footprint
-        # TODO: Optimize that
-        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs)
-
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the product's acquisition datetime, with format  :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
@@ -521,83 +500,7 @@ class MaxarProduct(VhrProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        return files.get_filename(self._get_til_path())
-
-    def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
-        """
-        Get the orthorectified path of the bands.
-
-        Returns:
-            Union[CloudPath, Path]: Orthorectified path
-        """
-
-        if self.product_type == MaxarProductType.Standard:
-            ortho_name = f"{self.condensed_name}_ortho.tif"
-            ortho_path = self._get_band_folder().joinpath(ortho_name)
-            if not ortho_path.is_file():
-                ortho_path = self._get_band_folder(writable=True).joinpath(ortho_name)
-                LOGGER.info(
-                    "Manually orthorectified stack not given by the user. "
-                    "Reprojecting whole stack, this may take a while. "
-                    "(May be inaccurate on steep terrain, depending on the DEM resolution)"
-                )
-
-                # Reproject and write on disk data
-                dem_path = self._get_dem_path(**kwargs)
-                with rasterio.open(str(self._get_til_path())) as src:
-                    out_arr, meta = self._reproject(
-                        src.read(), src.meta, src.rpcs, dem_path, **kwargs
-                    )
-                    rasters_rio.write(out_arr, meta, ortho_path)
-
-        else:
-            ortho_path = self._get_til_path()
-
-        return ortho_path
-
-    def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
-        """
-        Manage invalid pixels (Nodata, saturated, defective...)
-        See
-        `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
-        (unusable data mask) for more information.
-
-        Args:
-            band_arr (XDS_TYPE): Band array
-            band (obn): Band name as an OpticalBandNames
-            kwargs: Other arguments used to load bands
-
-        Returns:
-            XDS_TYPE: Cleaned band array
-        """
-        # Do nothing
-        return band_arr
-
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
-        """
-        Manage only nodata pixels
-
-        Args:
-            band_arr (XDS_TYPE): Band array
-            band (obn): Band name as an OpticalBandNames
-            kwargs: Other arguments used to load bands
-
-        Returns:
-            XDS_TYPE: Cleaned band array
-        """
-        # Do nothing
-        return band_arr
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get PlanetScope products condensed name ({date}_PLD_{product_type}_{band_combi}).
-
-        Returns:
-            str: Condensed name
-        """
-        return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}_{self.band_combi.name}"
+        return files.get_filename(self._get_tile_path())
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
@@ -672,7 +575,7 @@ class MaxarProduct(VhrProduct):
 
         return {}
 
-    def _get_til_path(self) -> Union[CloudPath, Path]:
+    def _get_tile_path(self) -> Union[CloudPath, Path]:
         """
         Get the DIMAP filepath
 

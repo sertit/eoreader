@@ -168,6 +168,7 @@ class DimapProduct(VhrProduct):
         Orthorectified path.
         Can be set to use manually orthorectified or pansharpened data, especially useful for VHR data on steep terrain.
         """
+        self._proj_prod_type = [DimapProductType.SEN, DimapProductType.PRJ]
 
         self._empty_mask = []
 
@@ -365,38 +366,7 @@ class DimapProduct(VhrProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        return files.get_filename(self._get_dimap_path()).replace("DIM_", "")
-
-    def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
-        """
-        Get the orthorectified path of the bands.
-
-        Returns:
-            Union[CloudPath, Path]: Orthorectified path
-        """
-        if self.product_type in [DimapProductType.SEN, DimapProductType.PRJ]:
-            ortho_name = f"{self.condensed_name}_ortho.tif"
-            ortho_path = self._get_band_folder().joinpath(ortho_name)
-            if not ortho_path.is_file():
-                ortho_path = self._get_band_folder(writable=True).joinpath(ortho_name)
-                LOGGER.info(
-                    "Manually orthorectified stack not given by the user. "
-                    "Reprojecting whole stack, this may take a while. "
-                    "(May be inaccurate on steep terrain, depending on the DEM resolution)"
-                )
-
-                # Reproject and write on disk data
-                dem_path = self._get_dem_path(**kwargs)
-                with rasterio.open(str(self._get_dimap_path())) as src:
-                    out_arr, meta = self._reproject(
-                        src.read(), src.meta, src.rpcs, dem_path, **kwargs
-                    )
-                    rasters_rio.write(out_arr, meta, ortho_path)
-
-        else:
-            ortho_path = self._get_dimap_path()
-
-        return ortho_path
+        return files.get_filename(self._get_tile_path()).replace("DIM_", "")
 
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
@@ -467,15 +437,6 @@ class DimapProduct(VhrProduct):
         nodata = self._load_nodata(width, height, vec_tr, **kwargs)
 
         return self._set_nodata_mask(band_arr, nodata)
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get PlanetScope products condensed name ({date}_PLD_{product_type}_{band_combi}).
-
-        Returns:
-            str: Condensed name
-        """
-        return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}_{self.band_combi.name}"
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
@@ -700,7 +661,7 @@ class DimapProduct(VhrProduct):
                 DimapProductType.PRJ,
             ]:
                 LOGGER.info(f"Orthorectifying {mask_str}")
-                with rasterio.open(str(self._get_dimap_path())) as dim_dst:
+                with rasterio.open(str(self._get_tile_path())) as dim_dst:
                     # Rasterize mask (no transform as we have teh vector in image geometry)
                     LOGGER.debug(f"\tRasterizing {mask_str}")
                     mask_raster = features.rasterize(
@@ -777,7 +738,7 @@ class DimapProduct(VhrProduct):
             dtype=np.uint8,
         )
 
-    def _get_dimap_path(self) -> Union[CloudPath, Path]:
+    def _get_tile_path(self) -> Union[CloudPath, Path]:
         """
         Get the DIMAP filepath
 
