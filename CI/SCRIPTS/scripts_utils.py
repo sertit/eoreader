@@ -34,6 +34,7 @@ def reduce_verbosity() -> None:
     logging.getLogger("rasterio").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("s3transfer").setLevel(logging.WARNING)
+    logging.getLogger("pyproj").setLevel(logging.WARNING)
 
 
 def get_ci_dir() -> Union[CloudPath, Path]:
