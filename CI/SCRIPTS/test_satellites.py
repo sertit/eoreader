@@ -383,7 +383,7 @@ def test_l4_tm():
 
 @pytest.mark.skipif(
     sys.platform == "win32" or os.getenv(CI_EOREADER_S3) == "0",
-    reason="Weirdly Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk",
+    reason="Weirdly, Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk",
 )
 @s3_env
 @dask_env

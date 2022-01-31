@@ -514,7 +514,10 @@ class S2Product(OpticalProduct):
                 offset = 0.0
             else:
                 try:
-                    band_id = str(int(self.band_names[band]))
+                    if band == obn.NARROW_NIR:
+                        band_id = 8
+                    else:
+                        band_id = int(self.band_names[band])
                     offset = float(
                         root.findtext(
                             f".//{offset_prefix}ADD_OFFSET[@band_id = '{band_id}']"
