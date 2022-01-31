@@ -25,6 +25,15 @@ AWS_S3_ENDPOINT = "s3.unistra.fr"
 CI_EOREADER_S3 = "CI_EOREADER_USE_S3"
 
 
+def reduce_verbosity() -> None:
+    """ Reduce verbosity for other loggers """
+    logging.getLogger("boto3").setLevel(logging.WARNING)
+    logging.getLogger("botocore").setLevel(logging.WARNING)
+    logging.getLogger("shapely").setLevel(logging.WARNING)
+    logging.getLogger("fiona").setLevel(logging.WARNING)
+    logging.getLogger("rasterio").setLevel(logging.WARNING)
+
+
 def get_ci_dir() -> Union[CloudPath, Path]:
     """
     Get CI DATA directory

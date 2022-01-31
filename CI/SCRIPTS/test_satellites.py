@@ -35,9 +35,12 @@ from .scripts_utils import (
     get_db_dir,
     get_db_dir_on_disk,
     opt_path,
+    reduce_verbosity,
     s3_env,
     sar_path,
 )
+
+reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -120,15 +123,6 @@ def _test_core(
     set_dem(dem_path)
 
     with xr.set_options(warn_for_unclosed_files=debug):
-
-        # Init logger
-        logging.getLogger("boto3").setLevel(
-            logging.WARNING
-        )  # BOTO has way too much verbosity
-        logging.getLogger("botocore").setLevel(
-            logging.WARNING
-        )  # BOTO has way too much verbosity
-
         # DATA paths
         pattern_paths = files.get_file_in_dir(
             prod_dir, pattern, exact_name=True, get_list=True
