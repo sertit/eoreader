@@ -32,6 +32,8 @@ def reduce_verbosity() -> None:
     logging.getLogger("shapely").setLevel(logging.WARNING)
     logging.getLogger("fiona").setLevel(logging.WARNING)
     logging.getLogger("rasterio").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("s3transfer").setLevel(logging.WARNING)
 
 
 def get_ci_dir() -> Union[CloudPath, Path]:
