@@ -15,6 +15,7 @@ from CI.SCRIPTS.scripts_utils import (
     get_db_dir,
     get_db_dir_on_disk,
     opt_path,
+    reduce_verbosity,
 )
 from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT, SAR_DEF_RES, TEST_USING_S3_DB
@@ -24,18 +25,7 @@ from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
 
-# Init logger
-logging.getLogger("boto3").setLevel(logging.WARNING)  # BOTO has way too much verbosity
-logging.getLogger("botocore").setLevel(
-    logging.WARNING
-)  # BOTO has way too much verbosity
-logging.getLogger("shapely").setLevel(
-    logging.WARNING
-)  # BOTO has way too much verbosity
-logging.getLogger("fiona").setLevel(logging.WARNING)  # BOTO has way too much verbosity
-logging.getLogger("rasterio").setLevel(
-    logging.WARNING
-)  # BOTO has way too much verbosity
+reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
