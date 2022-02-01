@@ -9,6 +9,7 @@
 - FIX: Adding the name of the DEM in DEM band (i.e. allow to compute the `HILLSHADE` with a DEM and the `SLOPE` with a DTM)
 - FIX: `Sentinel-2` Processing Baseline 04.00: `NARROW_NIR` bands are now loaded correctly
 - FIX: `Maxar` products (with `Multi` band ID) are now correctly handled
+- FIX: Correct warning `DeprecationWarning: invalid escape sequence \.`
 - OPTIM: Do not look for valid metadata further than a given nested level in product's directory (for extracted products)
 - CI: Using another runner
 - DOC: Adding a DEM notebook
