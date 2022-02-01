@@ -124,6 +124,9 @@ class Platform(ListEnum):
     PLD = "Pleiades"
     """Pléiades"""
 
+    PNEO = "Pleiades-Neo"
+    """Pleiades-Néo"""
+
     SPOT7 = "Spot-7"
     """SPOT-7"""
 
@@ -193,7 +196,8 @@ PLATFORM_REGEX = {
     Platform.PAZ: r"PAZ1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Platform.RS2: r"RS2_(OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}|\d{8}_\d{6}_\d{4}_.{1,5})"
     r"(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)(_\d{6}_\d{4}_\d{8}|)",
-    Platform.PLD: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
+    Platform.PLD: r"IMG_\d+_PNEO\d_(P|MS|PMS|MS-FS|PMS-FS)",
+    Platform.PNEO: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
     Platform.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.VIS1: r"VIS1_(PAN|BUN|PSH|MS4)_.+_\d{2}-\d",
@@ -239,6 +243,7 @@ MTD_REGEX = {
         r"imagery_[HV]{2}\.tif",
     ],
     Platform.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
+    Platform.PNEO: r"DIM_PNEO\d_\d{15}_(P|MS|PMS|MS-FS|PMS-FS)_(SEN|PRJ|ORT|MOS)_.{9,}_._._._.\.XML",
     Platform.SPOT7: r"DIM_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Platform.SPOT6: r"DIM_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Platform.VIS1: r"DIM_VIS1_(PSH|MS4|PAN)_\d{14}_(PRJ|ORTP)_S\d{5,}_\d{4}_Meta\.xml",
