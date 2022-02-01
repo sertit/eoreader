@@ -301,16 +301,8 @@ class Vis1Product(VhrProduct):
         root, _ = self.read_mtd()
 
         # Open zenith and azimuth angle
-        try:
-            center_vals = [
-                a
-                for a in root.iterfind(".//Located_Geometric_Values")
-                if a.findtext("LOCATION_TYPE") == "Center"
-            ][0]
-            elev_angle = float(center_vals.findtext(".//SUN_ELEVATION"))
-            azimuth_angle = float(center_vals.findtext(".//SUN_AZIMUTH"))
-        except TypeError:
-            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
+        elev_angle = float(root.findtext(".//SUN_ELEVATION"))
+        azimuth_angle = float(root.findtext(".//SUN_AZIMUTH"))
 
         # From elevation to zenith
         zenith_angle = 90.0 - elev_angle

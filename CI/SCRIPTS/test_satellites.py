@@ -464,6 +464,14 @@ def test_ge01_wv04():
 
 @s3_env
 @dask_env
+def test_vs1():
+    """Function testing the support of Vision-1 sensor"""
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
+    _test_core_optical("*VIS1_MS4*", dem_path=dem_path)
+
+
+@s3_env
+@dask_env
 def test_s1():
     """Function testing the support of Sentinel-1 sensor"""
     _test_core_sar("*S1*_IW*")
