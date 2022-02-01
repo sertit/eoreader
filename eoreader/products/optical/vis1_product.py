@@ -19,6 +19,7 @@ Vision-1 products.
 See `here <https://www.intelligence-airbusds.com/imagery/constellation/vision1/>`_
 for more information.
 """
+import io
 import logging
 import time
 from datetime import date, datetime
@@ -33,7 +34,7 @@ from rasterio import crs as riocrs
 from sertit import files, vectors
 from sertit.misc import ListEnum
 
-from eoreader import cache, cached_property
+from eoreader import cache, cached_property, utils
 from eoreader.bands import BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
@@ -57,14 +58,14 @@ class Vis1BandCombination(ListEnum):
     GeoTiffs with pixel sizes of 3.5m and 0.87m for MS and PAN data respectively.
     """
 
-    PSH = "PANSHARPENED"
+    PSH = "Pansharpened"
     """
     Pansharpened products combine the spectral information of the four multispectral
     bands with the high-resolution detail provided within the panchromatic data,
     resulting in a single 0.87m colour product.
     """
 
-    MS4 = "Multi Spectral"
+    MS4 = "Multispectral"
     """
     The single multispectral product includes four multispectral (colour) bands: Blue,
     Green, Red and Near Infrared. The product pixel size is 3.5m.
@@ -119,14 +120,7 @@ class Vis1Product(VhrProduct):
         Function used to post_init the products
         (setting sensor type, band names and so on)
         """
-        # Band combination
-        root, nsp = self.read_mtd()
-        band_combi = root.findtext(".//RADIOMETRIC_PROCESSING")
-        if not band_combi:
-            raise InvalidProductError(
-                "Cannot find the band combination (from RADIOMETRIC_PROCESSING) type in the metadata file"
-            )
-        self.band_combi = Vis1BandCombination.from_value(band_combi)
+        self.band_combi = getattr(Vis1BandCombination, self.split_name[1])
 
         # Post init done by the super class
         super()._post_init()
@@ -283,8 +277,9 @@ class Vis1Product(VhrProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        # TODO: SAME AS DIMAP
-        return files.get_filename(self._get_tile_path()).replace("DIM_", "")
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+        return root.findtext(".//DATASET_NAME")
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
@@ -330,9 +325,8 @@ class Vis1Product(VhrProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
-        # TODO: SAME AS DIMAP
-        mtd_from_path = "DIM_*.XML"
-        mtd_archived = "DIM_.*\.XML"
+        mtd_from_path = "DIM_*.xml"
+        mtd_archived = "DIM_.*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
@@ -368,7 +362,21 @@ class Vis1Product(VhrProduct):
 
         Returns:
             Union[CloudPath, Path]: DIMAP filepath
-
         """
-        # TODO: SAME AS DIMAP
-        return self._get_path("DIM_", "XML")
+        return self._get_path("DIM_", "xml")
+
+    def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
+        """
+        Get the orthorectified path of the bands.
+
+        Returns:
+            Union[CloudPath, Path]: Orthorectified path
+        """
+        # Compute RPCSs
+        if self.is_archived:
+            rpcs_file = io.BytesIO(files.read_archived_file(self.path, r".*\.rpc"))
+        else:
+            rpcs_file = self.path.joinpath(self.name + ".rpc")
+
+        rpcs = utils.open_rpc_file(rpcs_file)
+        return super()._get_ortho_path(rpcs=rpcs, **kwargs)

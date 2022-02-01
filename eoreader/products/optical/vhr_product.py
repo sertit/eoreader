@@ -43,6 +43,7 @@ from shapely.geometry import box
 from eoreader import cached_property, utils
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import DEM_PATH
+from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import DEM_KW
 from eoreader.products import OpticalProduct
 from eoreader.utils import EOREADER_NAME
@@ -159,7 +160,6 @@ class VhrProduct(OpticalProduct):
         # TODO: Optimize that
         return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs)
 
-    @abstractmethod
     def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get the orthorectified path of the bands.
@@ -181,8 +181,18 @@ class VhrProduct(OpticalProduct):
                 # Reproject and write on disk data
                 dem_path = self._get_dem_path(**kwargs)
                 with rasterio.open(str(self._get_tile_path())) as src:
+                    rpcs = kwargs.pop("rpcs")
+                    if not rpcs:
+                        rpcs = src.rpcs
+
+                    if not rpcs:
+                        raise InvalidProductError(
+                            "Your projected VHR data doesn't have any RPC. "
+                            "EOReadere cannot orthorectify it!"
+                        )
+
                     out_arr, meta = self._reproject(
-                        src.read(), src.meta, src.rpcs, dem_path, **kwargs
+                        src.read(), src.meta, rpcs, dem_path, **kwargs
                     )
                     rasters_rio.write(out_arr, meta, ortho_path)
 
@@ -290,8 +300,6 @@ class VhrProduct(OpticalProduct):
         # Set RPC keywords
         LOGGER.debug(f"Orthorectifying data with {dem_path}")
         kwargs = {"RPC_DEM": dem_path, "RPC_DEM_MISSING_VALUE": 0}
-        # TODO:  add "refine_gcps" ? With which tolerance ? (ie. '-refine_gcps 500 1.9')
-        #  (https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-refine_gcps)
 
         # Reproject
         # WARNING: may not give correct output resolution
