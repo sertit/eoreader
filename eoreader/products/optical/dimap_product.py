@@ -163,13 +163,6 @@ class DimapProduct(VhrProduct):
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
     ) -> None:
-        self.ortho_path = None
-        """
-        Orthorectified path.
-        Can be set to use manually orthorectified or pansharpened data, especially useful for VHR data on steep terrain.
-        """
-        self._proj_prod_type = [DimapProductType.SEN, DimapProductType.PRJ]
-
         self._empty_mask = []
 
         # Initialization from the super class
@@ -181,6 +174,7 @@ class DimapProduct(VhrProduct):
         (setting needs_extraction and so on)
         """
         self.needs_extraction = False
+        self._proj_prod_type = [DimapProductType.SEN, DimapProductType.PRJ]
 
         # Post init done by the super class
         super()._pre_init()
