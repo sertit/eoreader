@@ -81,16 +81,6 @@ class VhrProduct(OpticalProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
 
-    @abstractmethod
-    def _get_raw_crs(self) -> CRS:
-        """
-        Get raw CRS of the tile
-
-        Returns:
-            rasterio.crs.CRS: CRS object
-        """
-        raise NotImplementedError("This method should be implemented by a child class")
-
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get default band (:code:`GREEN` for optical data) path.
@@ -181,8 +171,9 @@ class VhrProduct(OpticalProduct):
                 # Reproject and write on disk data
                 dem_path = self._get_dem_path(**kwargs)
                 with rasterio.open(str(self._get_tile_path())) as src:
-                    rpcs = kwargs.pop("rpcs")
-                    if not rpcs:
+                    if "rpcs" in kwargs:
+                        rpcs = kwargs.pop("rpcs")
+                    else:
                         rpcs = src.rpcs
 
                     if not rpcs:
