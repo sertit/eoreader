@@ -74,6 +74,7 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
         debug (bool): Debug option
     """
     possible_bands = [
+        PAN,
         RED,
         NARROW_NIR,
         Oa01,
@@ -270,6 +271,13 @@ def test_wv02_wv03():
 def test_ge01_wv04():
     """Function testing the support of GeoEye-1/WorldView-4 sensors"""
     _test_core_optical("*P001_PSH*")
+
+
+@dask_env
+def test_vs1():
+    """Function testing the support of Vision-1 sensor"""
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
+    _test_core_optical("*VIS1*", dem_path=dem_path)
 
 
 @dask_env
