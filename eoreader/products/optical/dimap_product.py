@@ -148,6 +148,12 @@ class DimapBandCombination(ListEnum):
     (3 bands: GREEN RED NIR)
     """
 
+    PMS_FS = "Pansharpened ???"
+    """
+    ???
+    Only Pleiades-Neo
+    """
+
 
 class DimapProduct(VhrProduct):
     """
@@ -216,7 +222,11 @@ class DimapProduct(VhrProduct):
             self.band_names.map_bands(
                 {obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1, obn.NIR: 4, obn.NARROW_NIR: 4}
             )
-        elif self.band_combi in [DimapBandCombination.MS_N, DimapBandCombination.PMS_N]:
+        elif self.band_combi in [
+            DimapBandCombination.MS_N,
+            DimapBandCombination.PMS_N,
+            DimapBandCombination.PMS_FS,
+        ]:
             self.band_names.map_bands({obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1})
         elif self.band_combi in [DimapBandCombination.MS_X, DimapBandCombination.PMS_X]:
             self.band_names.map_bands(
@@ -335,9 +345,14 @@ class DimapProduct(VhrProduct):
             try:
                 time_dt = time.strptime(time_str, "%H:%M:%S.%fZ")
             except ValueError:
-                time_dt = time.strptime(
-                    time_str, "%H:%M:%S.%f"
-                )  # Sometimes without a Z
+                try:
+                    time_dt = time.strptime(
+                        time_str, "%H:%M:%S.%f"
+                    )  # Sometimes without a Z
+                except ValueError:
+                    time_dt = time.strptime(
+                        time_str, "%H:%M:%S"
+                    )  # Sometimes without microseconds
 
             date_str = (
                 f"{date_dt.strftime('%Y%m%d')}T{time.strftime('%H%M%S', time_dt)}"
@@ -390,21 +405,26 @@ class DimapProduct(VhrProduct):
         nodata = self._load_nodata(width, height, vec_tr, **kwargs)
 
         #  Load masks and merge them into the nodata
-        nodata_vec = self.open_mask("DET", **kwargs)  # Out of order detectors
-        nodata_vec.append(self.open_mask("VIS", **kwargs))  # Hidden area vector mask
-        nodata_vec.append(self.open_mask("SLT", **kwargs))  # Straylight vector mask
+        try:
+            nodata_vec = self.open_mask("DET", **kwargs)  # Out of order detectors
+            nodata_vec.append(
+                self.open_mask("VIS", **kwargs)
+            )  # Hidden area vector mask
+            nodata_vec.append(self.open_mask("SLT", **kwargs))  # Straylight vector mask
 
-        if len(nodata_vec) > 0:
-            # Rasterize mask
-            mask = features.rasterize(
-                nodata_vec.geometry,
-                out_shape=(height, width),
-                fill=self._mask_false,  # Outside vector
-                default_value=self._mask_true,  # Inside vector
-                transform=vec_tr,
-                dtype=np.uint8,
-            )
-            nodata = nodata | mask
+            if len(nodata_vec) > 0:
+                # Rasterize mask
+                mask = features.rasterize(
+                    nodata_vec.geometry,
+                    out_shape=(height, width),
+                    fill=self._mask_false,  # Outside vector
+                    default_value=self._mask_true,  # Inside vector
+                    transform=vec_tr,
+                    dtype=np.uint8,
+                )
+                nodata = nodata | mask
+        except InvalidProductError:
+            pass
 
         return self._set_nodata_mask(band_arr, nodata)
 
@@ -622,7 +642,7 @@ class DimapProduct(VhrProduct):
                 try:
                     mask = vectors.read(
                         self.path,
-                        archive_regex=f".*MASKS.*{mask_str}.*_MSK\.GML",
+                        archive_regex=f".*MASKS.*{mask_str}.*\.GML",
                         crs=crs,
                     )
                 except Exception:
@@ -636,7 +656,7 @@ class DimapProduct(VhrProduct):
                 try:
                     mask_gml_path = files.get_file_in_dir(
                         self.path.joinpath("MASKS"),
-                        f"*{mask_str}*_MSK.GML",
+                        f"*{mask_str}*.GML",
                         exact_name=True,
                     )
 
