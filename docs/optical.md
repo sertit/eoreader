@@ -18,14 +18,11 @@
 |Landsat 2 MSS | {meth}`~eoreader.products.optical.l2_product.L2Product` | Level 1 | Collection 1: ❌, Collection 2: ✅ | 60m|
 |Landsat 1 MSS | {meth}`~eoreader.products.optical.l1_product.L1Product` | Level 1 | Collection 1: ❌, Collection 2: ✅ | 60m|
 |PlanetScope | {meth}`~eoreader.products.optical.pla_product.PlaProduct` | L3A & L3B | ✅ | 3m|
-|Pleiades | {meth}`~eoreader.products.optical.pld_product.PldProduct` | SEN, PRJ, ORT & MOS | ✅ | 0.5 or 2m|
-|SPOT 7 | {meth}`~eoreader.products.optical.spot7_product.Spot7Product` | SEN, PRJ, ORT & MOS | ✅ | 1.5 or 6m|
-|SPOT 6 | {meth}`~eoreader.products.optical.spot6_product.Spot6Product` | SEN, PRJ, ORT & MOS | ✅ | 1.5 or 6m|
-|GeoEye-1* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | ✅ | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
-|WorldView-2* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | ✅ | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
-|WorldView-3* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | ✅ | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
-|WorldView-4* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | ✅ | 0.3 to 0.6 (PAN or pansharpened), 1.6 to 2.4m (MS)|
-|Vision-1 | {meth}`~eoreader.products.optical.vis1_product.Vis1Product` | PRJ & ORTP | ✅ | 0.9 (PAN), 3.5m (MS4)|
+|Pleiades | {meth}`~eoreader.products.optical.pld_product.PldProduct` | SEN, PRJ, ORT & MOS | ❌ | 0.5 (PAN) or 2m (MS)|
+|SPOT 7 | {meth}`~eoreader.products.optical.spot7_product.Spot7Product` | SEN, PRJ, ORT & MOS | ❌ | 1.5 (PAN) or 6m (MS)|
+|SPOT 6 | {meth}`~eoreader.products.optical.spot6_product.Spot6Product` | SEN, PRJ, ORT & MOS | ❌ | 1.5 (PAN) or 6m (MS)|
+|WorldView 2, 3, 4, GeoEye-1* | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | ❌ | 0.3 to 0.6 (PAN), 1.6 to 2.4m (MS)|
+|Vision-1 | {meth}`~eoreader.products.optical.vis1_product.Vis1Product` | PRJ & ORTP | ❌ | 0.9 (PAN), 3.5m (MS4)|
 
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product.*
 
