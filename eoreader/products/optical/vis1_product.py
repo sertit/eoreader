@@ -103,29 +103,13 @@ class Vis1Product(VhrProduct):
     for more information.
     """
 
-    def __init__(
-        self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
-        remove_tmp: bool = False,
-    ) -> None:
-        self.ortho_path = None
-        """
-        Orthorectified path.
-        Can be set to use manually orthorectified or pansharpened data, especially useful for VHR data on steep terrain.
-        """
-        self._proj_prod_type = [Vis1ProductType.PRJ]
-
-        # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path, remove_tmp)
-
     def _pre_init(self) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
         self.needs_extraction = False
+        self._proj_prod_type = [Vis1ProductType.PRJ]
 
         # Post init done by the super class
         super()._pre_init()
