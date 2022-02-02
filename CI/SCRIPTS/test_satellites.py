@@ -527,22 +527,11 @@ def test_iceye():
     _test_core_sar("*SC_*")
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32" or os.getenv(CI_EOREADER_S3) == "0",
-    reason="Weirdly, Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk",
-)
 @s3_env
 @dask_env
-def test_saocom_l1d():
-    """Function testing the support of SAOCOM L1D sensor (only on S3) """
-    _test_core_sar("*L1DSARSAO*")
-
-
-@s3_env
-@dask_env
-def test_saocom_l1a():
+def test_saocom():
     """Function testing the support of SAOCOM sensor"""
-    _test_core_sar("*L1ASARSAO*")
+    _test_core_sar("*SAO*")
 
 
 # TODO:
