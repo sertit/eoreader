@@ -165,7 +165,7 @@ class CosmoProduct(SarProduct):
         """
         root, _ = self.read_mtd()
 
-        # Open zenith and azimuth angle
+        # Open extent coordinates
         try:
 
             def from_str_to_arr(geo_coord: str):
