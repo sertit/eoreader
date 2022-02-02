@@ -527,6 +527,13 @@ def test_iceye():
     _test_core_sar("*SC_*")
 
 
+@s3_env
+@dask_env
+def test_saocom():
+    """Function testing the support of SAOCOM sensor"""
+    _test_core_sar("*SAO*")
+
+
 # TODO:
 # check non existing bands
 # check cloud results

@@ -454,7 +454,7 @@ class TsxProduct(SarProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        # Cloud paths
+        # Cloud-stored paths
         try:
             mtd_from_path = "SAR*SAR*xml"
 
