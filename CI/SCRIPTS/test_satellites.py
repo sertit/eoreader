@@ -432,6 +432,13 @@ def test_pld():
 
 @s3_env
 @dask_env
+def test_pneo():
+    """Function testing the support of Pleiades-Neo sensor"""
+    _test_core_optical("*IMG_*_PNEO*")
+
+
+@s3_env
+@dask_env
 def test_spot6():
     """Function testing the support of SPOT-6 sensor"""
     _test_core_optical("*IMG_SPOT6*")

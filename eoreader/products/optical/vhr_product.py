@@ -37,7 +37,6 @@ from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
-from sertit.vectors import WGS84
 from shapely.geometry import box
 
 from eoreader import cached_property, utils
@@ -106,6 +105,16 @@ class VhrProduct(OpticalProduct):
             Union[CloudPath, Path]: Default band path
         """
         return self._get_default_utm_band(self.resolution, **kwargs)
+
+    @abstractmethod
+    def _get_raw_crs(self) -> CRS:
+        """
+        Get raw CRS of the tile
+
+        Returns:
+            rasterio.crs.CRS: CRS object
+        """
+        raise NotImplementedError("This method should be implemented by a child class")
 
     @cached_property
     def extent(self) -> gpd.GeoDataFrame:
@@ -179,7 +188,7 @@ class VhrProduct(OpticalProduct):
                     if not rpcs:
                         raise InvalidProductError(
                             "Your projected VHR data doesn't have any RPC. "
-                            "EOReadere cannot orthorectify it!"
+                            "EOReader cannot orthorectify it!"
                         )
 
                     out_arr, meta = self._reproject(
@@ -290,14 +299,18 @@ class VhrProduct(OpticalProduct):
 
         # Set RPC keywords
         LOGGER.debug(f"Orthorectifying data with {dem_path}")
-        kwargs = {"RPC_DEM": dem_path, "RPC_DEM_MISSING_VALUE": 0}
+        kwargs = {
+            "RPC_DEM": dem_path,
+            "RPC_DEM_MISSING_VALUE": 0,
+            "OSR_USE_ETMERC": "YES",
+        }
 
         # Reproject
         # WARNING: may not give correct output resolution
         out_arr, dst_transform = warp.reproject(
             src_arr,
             rpcs=rpcs,
-            src_crs=WGS84,
+            src_crs=self._get_raw_crs(),
             dst_crs=self.crs,
             resolution=self.resolution,
             src_nodata=0,
