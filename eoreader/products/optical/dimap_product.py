@@ -128,6 +128,12 @@ class DimapBandCombination(ListEnum):
     (3 bands: GREEN RED NIR)
     """
 
+    MS_FS = "Multi Spectral Full"
+    """
+    Full MS: Multispectral (6 bands).
+    Only Pleiades-Neo
+    """
+
     PMS = "Pansharpened Multi Spectral"
     """
     Pan-sharpened products combine the visual coloured information of the Multispectral data with the details
@@ -146,6 +152,12 @@ class DimapBandCombination(ListEnum):
     Pan-sharpened products combine the visual coloured information of the Multispectral data with the details
     provided by of the Panchromatic data, resulting in a higher resolution 0.5 m colour product
     (3 bands: GREEN RED NIR)
+    """
+
+    PMS_FS = "Pansharpened Multi Spectral Full"
+    """
+    Full PMS: Pansharpening (6 bands).
+    Only Pleiades-Neo
     """
 
 
@@ -216,8 +228,28 @@ class DimapProduct(VhrProduct):
             self.band_names.map_bands(
                 {obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1, obn.NIR: 4, obn.NARROW_NIR: 4}
             )
-        elif self.band_combi in [DimapBandCombination.MS_N, DimapBandCombination.PMS_N]:
+        elif self.band_combi in [
+            DimapBandCombination.MS_N,
+            DimapBandCombination.PMS_N,
+            DimapBandCombination.PMS_FS,
+        ]:
             self.band_names.map_bands({obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1})
+        elif self.band_combi in [
+            DimapBandCombination.MS_FS,
+            DimapBandCombination.PMS_FS,
+        ]:
+            self.band_names.map_bands(
+                {
+                    obn.BLUE: 3,
+                    obn.GREEN: 2,
+                    obn.RED: 1,
+                    obn.NIR: 4,
+                    obn.VRE_1: 5,
+                    obn.VRE_2: 5,
+                    obn.VRE_3: 5,
+                    obn.CA: 6,
+                }
+            )
         elif self.band_combi in [DimapBandCombination.MS_X, DimapBandCombination.PMS_X]:
             self.band_names.map_bands(
                 {obn.GREEN: 1, obn.RED: 2, obn.NIR: 3, obn.NARROW_NIR: 3}
@@ -281,6 +313,27 @@ class DimapProduct(VhrProduct):
         return utm
 
     @cached_property
+    def extent(self, **kwargs) -> gpd.GeoDataFrame:
+        """
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"IMG_PHR1B_PMS_001"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint
+                                                         gml_id  ...                                           geometry
+            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
+            [1 rows x 3 columns]
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        """
+        # TODO: parse KMZ - product - xxxx ?
+        return super().extent
+
+    @cached_property
     def footprint(self, **kwargs) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -335,9 +388,14 @@ class DimapProduct(VhrProduct):
             try:
                 time_dt = time.strptime(time_str, "%H:%M:%S.%fZ")
             except ValueError:
-                time_dt = time.strptime(
-                    time_str, "%H:%M:%S.%f"
-                )  # Sometimes without a Z
+                try:
+                    time_dt = time.strptime(
+                        time_str, "%H:%M:%S.%f"
+                    )  # Sometimes without a Z
+                except ValueError:
+                    time_dt = time.strptime(
+                        time_str, "%H:%M:%S"
+                    )  # Sometimes without microseconds
 
             date_str = (
                 f"{date_dt.strftime('%Y%m%d')}T{time.strftime('%H%M%S', time_dt)}"
@@ -390,21 +448,26 @@ class DimapProduct(VhrProduct):
         nodata = self._load_nodata(width, height, vec_tr, **kwargs)
 
         #  Load masks and merge them into the nodata
-        nodata_vec = self.open_mask("DET", **kwargs)  # Out of order detectors
-        nodata_vec.append(self.open_mask("VIS", **kwargs))  # Hidden area vector mask
-        nodata_vec.append(self.open_mask("SLT", **kwargs))  # Straylight vector mask
+        try:
+            nodata_vec = self.open_mask("DET", **kwargs)  # Out of order detectors
+            nodata_vec.append(
+                self.open_mask("VIS", **kwargs)
+            )  # Hidden area vector mask
+            nodata_vec.append(self.open_mask("SLT", **kwargs))  # Straylight vector mask
 
-        if len(nodata_vec) > 0:
-            # Rasterize mask
-            mask = features.rasterize(
-                nodata_vec.geometry,
-                out_shape=(height, width),
-                fill=self._mask_false,  # Outside vector
-                default_value=self._mask_true,  # Inside vector
-                transform=vec_tr,
-                dtype=np.uint8,
-            )
-            nodata = nodata | mask
+            if len(nodata_vec) > 0:
+                # Rasterize mask
+                mask = features.rasterize(
+                    nodata_vec.geometry,
+                    out_shape=(height, width),
+                    fill=self._mask_false,  # Outside vector
+                    default_value=self._mask_true,  # Inside vector
+                    transform=vec_tr,
+                    dtype=np.uint8,
+                )
+                nodata = nodata | mask
+        except InvalidProductError:
+            pass
 
         return self._set_nodata_mask(band_arr, nodata)
 
@@ -622,7 +685,7 @@ class DimapProduct(VhrProduct):
                 try:
                     mask = vectors.read(
                         self.path,
-                        archive_regex=f".*MASKS.*{mask_str}.*_MSK\.GML",
+                        archive_regex=f".*MASKS.*{mask_str}.*\.GML",
                         crs=crs,
                     )
                 except Exception:
@@ -636,7 +699,7 @@ class DimapProduct(VhrProduct):
                 try:
                     mask_gml_path = files.get_file_in_dir(
                         self.path.joinpath("MASKS"),
-                        f"*{mask_str}*_MSK.GML",
+                        f"*{mask_str}*.GML",
                         exact_name=True,
                     )
 

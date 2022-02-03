@@ -194,6 +194,27 @@ class Vis1Product(VhrProduct):
 
         return utm
 
+    def _get_raw_crs(self) -> riocrs.CRS:
+        """
+        Get raw CRS of the tile
+
+        Returns:
+            rasterio.crs.CRS: CRS object
+        """
+        # Open metadata
+        root, _ = self.read_mtd()
+
+        # Get CRS
+        crs_name = root.findtext(".//HORIZONTAL_CS_CODE")
+        if not crs_name:
+            crs_name = root.findtext(".//GEOGRAPHIC_CS_CODE")
+            if not crs_name:
+                raise InvalidProductError(
+                    "Cannot find the CRS name (from GEOGRAPHIC_CS_CODE or HORIZONTAL_CS_CODE) type in the metadata file"
+                )
+
+        return riocrs.CRS.from_string(crs_name)
+
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
