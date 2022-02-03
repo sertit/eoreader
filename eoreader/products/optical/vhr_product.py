@@ -192,7 +192,7 @@ class VhrProduct(OpticalProduct):
                         )
 
                     out_arr, meta = self._reproject(
-                        src.read(1), src.meta, rpcs, dem_path, **kwargs
+                        src.read(), src.meta, rpcs, dem_path, **kwargs
                     )
                     rasters_rio.write(out_arr, meta, ortho_path)
 
