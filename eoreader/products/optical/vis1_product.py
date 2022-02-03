@@ -162,28 +162,6 @@ class Vis1Product(VhrProduct):
                 f"Unusual band combination: {self.band_combi.name}"
             )
 
-    def _get_raw_crs(self) -> riocrs.CRS:
-        """
-        Get raw CRS of the tile
-
-        Returns:
-            rasterio.crs.CRS: CRS object
-        """
-        # TODO: Check if OK
-        # Open metadata
-        root, _ = self.read_mtd()
-
-        # Get CRS
-        crs_name = root.findtext(".//GEODETIC_CRS_CODE")
-        if not crs_name:
-            crs_name = root.findtext(".//PROJECTED_CRS_CODE")
-            if not crs_name:
-                raise InvalidProductError(
-                    "Cannot find the CRS name (from GEODETIC_CRS_NAME or PROJECTED_CRS_CODE) type in the metadata file"
-                )
-
-        return riocrs.CRS.from_string(crs_name)
-
     @cached_property
     def crs(self) -> riocrs.CRS:
         """

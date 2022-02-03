@@ -12,6 +12,7 @@ You will find a SAR tutorial [here](https://eoreader.readthedocs.io/en/latest/no
 |`RADARSAT Constellation Mission` | {meth}`~eoreader.products.sar.rcm_product.RcmProduct` | ❌|
 |`RADARSAT-2` | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | ✅ for ground range data, ❌ for complex data|
 |`Sentinel-1` | {meth}`~eoreader.products.sar.s1_product.S1Product` | ✅|
+|`SAOCOM-1` | {meth}`~eoreader.products.sar.saocom_product.SaocomProduct` | ❌|
 |`TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | ❌|
 
 ```{warning}
@@ -36,12 +37,16 @@ mostly because SNAP doesn't handle them.
 | `RADARSAT-2` | SLC | ✅| 
 | `RADARSAT-2` | SGX, SCN, SCW,<br>SCF, SCS, SSG, SPG | ⚠️ |
 | `RADARSAT-2` | SGF | ✅ |
+| `Sentinel-1` | SLC | ✅ | 
+| `Sentinel-1` | GRD | ✅ |
+| `SAOCOM-1` | SLC | ✅ | 
+| `SAOCOM-1` | ID | ⚠ |
+| `SAOCOM-1` | GEC | ✅ |
+| `SAOCOM-1` | GTC | ✅ |
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | SSC | ✅ | 
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | MGD | ✅ |
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | GEC | ⚠️ |
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | EEC | ✅ |
-| `Sentinel-1` | SLC | ✅ | 
-| `Sentinel-1` | GRD | ✅ |
 
 \**always given with a GRD image*
 
@@ -215,6 +220,16 @@ For GRD products:
 |StripMap [SM(H)] |3.0m|
 |Scan [SC] |< 15.0m|
 
+### SAOCOM-1
+
+|**SAOCOM-1** | Single-Look Complex (SLC) | Detected Image (DI)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+|--- | --- | ---|
+|**StripMap (SM)**<br>Single and Dual Pol | 10x5m | 10.0m|
+|**StripMap (SM)**<br>Quad Pol | 10x6m | 10.0m|
+|**TOPSAR Narrow (TN)**<br>Single and Dual Pol | 10x30m | 30.0m|
+|**TOPSAR Narrow (TN)**<br>Quad Pol | 10x50m | 50.0m|
+|**TOPSAR Wide (TW)**<br>Single and Dual Pol | 10x50m | 50.0m|
+|**TOPSAR Wide (TW)**<br>Quad Pol | 10x100m | 100.0m|
 
 ## GPT graphs
 
@@ -368,3 +383,8 @@ variable:
 - [ICEYE Product Specifications](https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf)
 - [ICEYE Product Guide](https://www.iceye.com/hubfs/Downloadables/ICEYE_SAR_Product_Guide_2021_V4.0.pdf)
 - [ICEYE Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/ICEYE.html)
+
+### SAOCOM-1
+- [SAOCOM Description](https://saocom.veng.com.ar/en/)
+- [SAOCOM Product Format](https://saocom.veng.com.ar/L1-product-format-EN.pdf)
+- [SAOCOM Data Products](https://earth.esa.int/eogateway/catalog/saocom-data-products)
