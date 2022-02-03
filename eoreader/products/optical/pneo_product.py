@@ -20,6 +20,10 @@ See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>
 for more information.
 """
 import logging
+from pathlib import Path
+from typing import Union
+
+from cloudpathlib import CloudPath
 
 from eoreader.products import DimapBandCombination, DimapProduct
 from eoreader.utils import EOREADER_NAME
@@ -43,8 +47,23 @@ class PneoProduct(DimapProduct):
             DimapBandCombination.MS,
             DimapBandCombination.MS_X,
             DimapBandCombination.MS_N,
+            DimapBandCombination.MS_FS,
         ]:
-            return 2.0
+            return 1.2
         # Pansharpened images
         else:
-            return 0.5
+            return 0.3
+
+    def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
+        """
+        Get the orthorectified path of the bands.
+
+        Returns:
+            Union[CloudPath, Path]: Orthorectified path
+        """
+        # ERROR BECAUSE RASTERIO/GDAL DOES NOT HANDLE PLEIADES-NEO RPCs
+        raise NotImplementedError(
+            "Pleiades-Neo RPCs file nomenclature is not yet handled by rasterio. "
+            "See https://github.com/rasterio/rasterio/issues/2388. "
+            "GDAL PR is here: https://github.com/OSGeo/gdal/pull/5090"
+        )

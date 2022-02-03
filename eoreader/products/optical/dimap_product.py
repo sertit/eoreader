@@ -128,6 +128,12 @@ class DimapBandCombination(ListEnum):
     (3 bands: GREEN RED NIR)
     """
 
+    MS_FS = "Multi Spectral Full"
+    """
+    Full MS: Multispectral (6 bands).
+    Only Pleiades-Neo
+    """
+
     PMS = "Pansharpened Multi Spectral"
     """
     Pan-sharpened products combine the visual coloured information of the Multispectral data with the details
@@ -148,9 +154,9 @@ class DimapBandCombination(ListEnum):
     (3 bands: GREEN RED NIR)
     """
 
-    PMS_FS = "Pansharpened ???"
+    PMS_FS = "Pansharpened Multi Spectral Full"
     """
-    ???
+    Full PMS: Pansharpening (6 bands).
     Only Pleiades-Neo
     """
 
@@ -228,6 +234,22 @@ class DimapProduct(VhrProduct):
             DimapBandCombination.PMS_FS,
         ]:
             self.band_names.map_bands({obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1})
+        elif self.band_combi in [
+            DimapBandCombination.MS_FS,
+            DimapBandCombination.PMS_FS,
+        ]:
+            self.band_names.map_bands(
+                {
+                    obn.BLUE: 3,
+                    obn.GREEN: 2,
+                    obn.RED: 1,
+                    obn.NIR: 4,
+                    obn.VRE_1: 5,
+                    obn.VRE_2: 5,
+                    obn.VRE_3: 5,
+                    obn.CA: 6,
+                }
+            )
         elif self.band_combi in [DimapBandCombination.MS_X, DimapBandCombination.PMS_X]:
             self.band_names.map_bands(
                 {obn.GREEN: 1, obn.RED: 2, obn.NIR: 3, obn.NARROW_NIR: 3}
@@ -289,6 +311,27 @@ class DimapProduct(VhrProduct):
         utm = riocrs.CRS.from_string(utm)
 
         return utm
+
+    @cached_property
+    def extent(self, **kwargs) -> gpd.GeoDataFrame:
+        """
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"IMG_PHR1B_PMS_001"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint
+                                                         gml_id  ...                                           geometry
+            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
+            [1 rows x 3 columns]
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        """
+        # TODO: parse KMZ - product - xxxx ?
+        return super().extent
 
     @cached_property
     def footprint(self, **kwargs) -> gpd.GeoDataFrame:

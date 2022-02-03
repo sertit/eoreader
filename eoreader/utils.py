@@ -283,12 +283,14 @@ def quick_xml_to_dict(element: etree._Element) -> tuple:
 
 def open_rpc_file(path: Union[CloudPath, Path]) -> RPC:
     """
+    Create a rasterio RPC object from a :code:`.rpc` file.
+    Used for Vision-1 product
 
     Args:
-        path:
+        path: Path of the RPC file
 
     Returns:
-
+        RPC: RPC object
     """
 
     def to_float(pd_table, field) -> float:
