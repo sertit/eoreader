@@ -61,9 +61,15 @@ class PneoProduct(DimapProduct):
         Returns:
             Union[CloudPath, Path]: Orthorectified path
         """
-        # ERROR BECAUSE RASTERIO/GDAL DOES NOT HANDLE PLEIADES-NEO RPCs
-        raise NotImplementedError(
-            "Pleiades-Neo RPCs file nomenclature is not yet handled by rasterio. "
-            "See https://github.com/rasterio/rasterio/issues/2388. "
-            "GDAL PR is here: https://github.com/OSGeo/gdal/pull/5090"
-        )
+        if self.product_type in self._proj_prod_type:
+            # ERROR BECAUSE RASTERIO/GDAL DOES NOT HANDLE PLEIADES-NEO RPCs
+            raise NotImplementedError(
+                "Pleiades-Neo RPCs file nomenclature is not yet handled by rasterio. "
+                "See https://github.com/rasterio/rasterio/issues/2388. "
+                "GDAL PR is here: https://github.com/OSGeo/gdal/pull/5090"
+            )
+
+        else:
+            ortho_path = self._get_tile_path()
+
+        return ortho_path
