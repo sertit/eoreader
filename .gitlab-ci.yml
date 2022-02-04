@@ -101,7 +101,7 @@ pytest_coverage:
         - CI/**/*.{py,xml}
         - .gitlab-ci.yml
         - pytest.ini
-  needs: [ "pytest", "pytest_s3" ]
+  dependencies: [ "pytest", "pytest_s3" ]
 
 # Test SNAP with SNAP
 pytest_end_to_end:
