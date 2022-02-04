@@ -35,7 +35,7 @@ pytest:
     - pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_on_disk.html --cov=eoreader --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
   artifacts:
     paths:
-      - ${CI_PROJECT_DIR}/cov.xml
+      - ${CI_PROJECT_DIR}/cov_on_disk.html
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - sertit
@@ -64,7 +64,7 @@ pytest_s3:
     - pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_s3.html --cov=eoreader --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
   artifacts:
     paths:
-      - ${CI_PROJECT_DIR}/cov.xml
+      - ${CI_PROJECT_DIR}/cov_s3.html
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - sertit
