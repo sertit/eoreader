@@ -36,6 +36,7 @@ pytest:
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/cov_on_disk.html
+      - ${CI_PROJECT_DIR}.coverage
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - sertit
@@ -65,6 +66,7 @@ pytest_s3:
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/cov_s3.html
+      - ${CI_PROJECT_DIR}.coverage
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - sertit
@@ -84,7 +86,7 @@ pytest_coverage:
   image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
   stage: test
   script:
-    - coverage combine --keep ${CI_PROJECT_DIR}/cov_s3.html ${CI_PROJECT_DIR}/cov_on_disk.html
+    - coverage combine --keep ${CI_PROJECT_DIR}
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}
