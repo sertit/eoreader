@@ -589,6 +589,7 @@ class S3SlstrProduct(S3Product):
     #     https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-3-slstr/instrument/measured-spectral-response-function-data
     #
     #     In https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a
+    #
     #     Args:
     #         band_arr (xr.DataArray): Band array
     #         band (obn): Optical Band

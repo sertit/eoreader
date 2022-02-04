@@ -213,7 +213,8 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
 
 def create_gcps(lon: xr.DataArray, lat: xr.DataArray, alt: xr.DataArray) -> list:
     """
-    Create GCPs from an array of longitude, latitude and altitude (based on Sentinel-3 geocoding)
+    Create GCPs from an array of longitude, latitude and altitude (based on Sentinel-3 geocoding).
+
     Args:
         lon (xr.DataArray): Longitude array
         lat (xr.DataArray): Latitude array

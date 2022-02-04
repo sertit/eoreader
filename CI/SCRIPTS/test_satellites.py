@@ -84,6 +84,7 @@ def set_dem(dem_path):
 def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
     """
     Core function testing optical data
+
     Args:
         pattern (str): Pattern of the satellite
         debug (bool): Debug option
@@ -95,6 +96,7 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
 def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
     """
     Core function testing SAR data
+
     Args:
         pattern (str): Pattern of the satellite
         debug (bool): Debug option
@@ -113,6 +115,7 @@ def _test_core(
 ):
     """
     Core function testing all data
+
     Args:
         pattern (str): Pattern of the satellite
         prod_dir (str): Product directory

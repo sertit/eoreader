@@ -7,6 +7,7 @@
 .. toctree::
    :maxdepth: 1
    :caption: For Users
+   :hidden:
 
    main_features
    optical
@@ -17,19 +18,13 @@
 
 ```{eval-rst}
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Tutorials
+   :hidden:
 
-   notebooks/base
-   notebooks/SAR
-   notebooks/VHR
-   notebooks/sentinel-3
-   notebooks/water_detection
-   notebooks/dem
-   notebooks/custom
-   notebooks/optical_cleaning_methods
-   notebooks/s3_compatible_storage
-   notebooks/dask
+   notebooks/basics
+   notebooks/advanced
+   notebooks/experimental
 ```
 
 ```{eval-rst}
@@ -52,6 +47,7 @@
 .. toctree::
    :maxdepth: 1
    :caption: For Contributors
+   :hidden:
 
    contributing
    history
