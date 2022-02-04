@@ -114,7 +114,7 @@ class VhrProduct(OpticalProduct):
         Returns:
             rasterio.crs.CRS: CRS object
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @cached_property
     def extent(self) -> gpd.GeoDataFrame:
@@ -738,4 +738,4 @@ class VhrProduct(OpticalProduct):
         Returns:
             Union[CloudPath, Path]: DIMAP filepath
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError

@@ -233,7 +233,7 @@ class Product:
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _post_init(self) -> None:
@@ -241,7 +241,7 @@ class Product:
         Function used to post_init the products
         (setting sensor type, band names and so on)
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
@@ -284,7 +284,7 @@ class Product:
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @cached_property
     @abstractmethod
@@ -303,7 +303,7 @@ class Product:
         Returns:
             crs.CRS: CRS object
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _get_band_folder(self, writable: bool = False) -> Union[CloudPath, Path]:
         """
@@ -330,14 +330,14 @@ class Product:
         """
         Set product default resolution (in meters)
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _set_product_type(self) -> None:
         """
         Set product type
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @classmethod
     def _get_platform(cls) -> Platform:
@@ -353,7 +353,7 @@ class Product:
         Returns:
             str: True name of the product (from metadata)
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _get_condensed_name(self) -> str:
@@ -363,7 +363,7 @@ class Product:
         Returns:
             str: Condensed name
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _get_split_name(self) -> list:
         """
@@ -395,7 +395,7 @@ class Product:
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def get_date(self, as_date: bool = False) -> Union[str, dt.date]:
         """
@@ -445,7 +445,7 @@ class Product:
         Returns:
             Union[CloudPath, Path]: Default band path
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def get_default_band(self) -> BandNames:
@@ -465,7 +465,7 @@ class Product:
         Returns:
             str: Default band
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def get_existing_bands(self) -> list:
@@ -495,7 +495,7 @@ class Product:
         Returns:
             list: List of existing bands in the products
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def get_existing_band_paths(self) -> dict:
@@ -517,7 +517,7 @@ class Product:
         Returns:
             dict: Dictionary containing the path of each queried band
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def get_band_paths(
@@ -546,7 +546,7 @@ class Product:
         Returns:
             dict: Dictionary containing the path of each queried band
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _read_mtd(self) -> Any:
@@ -557,7 +557,7 @@ class Product:
         Returns:
             Any: Metadata XML root and its namespace or pd.DataFrame
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _read_mtd_xml(
         self, mtd_from_path: str, mtd_archived: str = None
@@ -696,7 +696,7 @@ class Product:
             XDS_TYPE: Band xarray
 
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _load_bands(
@@ -717,7 +717,7 @@ class Product:
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _load_dem(
         self,
@@ -899,7 +899,7 @@ class Product:
         Returns:
             Dictionary {band_name, band_xarray}
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def has_band(self, band: Union[BandNames, Callable]) -> bool:
         """
@@ -987,7 +987,7 @@ class Product:
             >>> prod.has_cloud_band(CLOUDS)
             True
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _has_index(self, idx: Callable) -> bool:
         """
@@ -1267,7 +1267,7 @@ class Product:
             str: Hillshade mask path
 
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _compute_slope(
         self,

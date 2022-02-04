@@ -307,7 +307,7 @@ class OpticalProduct(Product):
         Returns:
             XDS_TYPE: Cleaned band array
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
@@ -322,7 +322,7 @@ class OpticalProduct(Product):
         Returns:
             XDS_TYPE: Cleaned band array
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @staticmethod
     def _set_nodata_mask(band_arr: XDS_TYPE, mask: np.ndarray) -> XDS_TYPE:
@@ -453,7 +453,7 @@ class OpticalProduct(Product):
         Returns:
             (float, float): Mean Azimuth and Zenith angle
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _compute_hillshade(
         self,
@@ -523,7 +523,7 @@ class OpticalProduct(Product):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _load_clouds(
         self,
