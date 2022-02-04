@@ -238,7 +238,7 @@ class LandsatProduct(OpticalProduct):
     @abstractmethod
     def _set_product_type(self) -> None:
         """Set products type"""
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _set_mss_product_type(self, version: int) -> None:
         """Set MSS product type and map corresponding bands"""

@@ -213,7 +213,7 @@ class DimapProduct(VhrProduct):
         """
         Set product default resolution (in meters)
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _set_product_type(self) -> None:
         """Set products type"""

@@ -302,7 +302,7 @@ class SarProduct(Product):
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
 
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @cached_property
     def extent(self) -> gpd.GeoDataFrame:
@@ -411,7 +411,7 @@ class SarProduct(Product):
         """
         Set SAR sensor mode
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
