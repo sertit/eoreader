@@ -32,7 +32,7 @@ pytest:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - pytest -v --durations=0 --cov-report term --cov-report xml:${CI_PROJECT_DIR}/cov.xml --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
+    - pytest -v --durations=0 --cov-report term --cov-report xml:${CI_PROJECT_DIR}/cov_on_disk.xml --cov=eoreader html:${CI_PROJECT_DIR}/cov_on_disk.html --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/cov.xml
@@ -61,7 +61,7 @@ pytest_s3:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - pytest -v --durations=0 --cov-report term --cov-report xml:${CI_PROJECT_DIR}/cov.xml --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
+    - pytest -v --durations=0 --cov-report term --cov-report xml:${CI_PROJECT_DIR}/cov_s3.xml html:${CI_PROJECT_DIR}/cov_s3.html --cov=eoreader --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/cov.xml
@@ -84,10 +84,10 @@ pytest_coverage:
   image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
   stage: test
   script:
-    - coverage combine ${CI_PROJECT_DIR} --data-file=cov.xml --keep
+    - coverage combine ${CI_PROJECT_DIR} --keep
   artifacts:
     paths:
-      - ${CI_PROJECT_DIR}/coverage.xml
+      - ${CI_PROJECT_DIR}
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - sertit
