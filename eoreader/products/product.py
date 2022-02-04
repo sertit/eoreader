@@ -314,13 +314,13 @@ class Product:
         """
         band_folder = self._tmp_process
 
-        # Manage CI SNAP band
-        ci_band_folder = os.environ.get(CI_EOREADER_BAND_FOLDER)
-        if ci_band_folder:
-            ci_band_folder = AnyPath(ci_band_folder)
-            if ci_band_folder.is_dir():
-                # If we need a writable directory, check it
-                if (writable and files.is_writable(ci_band_folder)) or not writable:
+        # Manage CI bands (when we do not write anything, read only)
+        if not writable:
+            ci_band_folder = os.environ.get(CI_EOREADER_BAND_FOLDER)
+            if ci_band_folder:
+                ci_band_folder = AnyPath(ci_band_folder)
+                if ci_band_folder.is_dir():
+                    # If we need a writable directory, check it
                     band_folder = ci_band_folder
 
         return band_folder

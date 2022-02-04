@@ -11,7 +11,13 @@
 - FIX: `Maxar` products (with `Multi` band ID) are now correctly handled
 - FIX: Correct warning `DeprecationWarning: invalid escape sequence \.`
 - OPTIM: Do not look for valid metadata further than a given nested level in product's directory (for extracted products)
-- CI: Using another runner
+- CI: Using another (faster) runner
+- CI: Do not write file on disk
+- CI: Add on disk and end to end tests
+- CI: Coverage:
+  - Get coverage as HTML
+  - Remove useless lines from coverage
+  - Combine coverage of S3 and on disk tests
 - DOC: Adding a DEM notebook
 
 ## 0.11.2 (2022-01-19)
