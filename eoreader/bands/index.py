@@ -17,10 +17,7 @@
 """
 Set of usual optical index.
 
-**Note**: The nodata is always considered to be set to 0.
-If this changes, it will become mandatory to use the NODATA mask everywhere !
-
-**Note 2**: This is easier to manage index as raw functions in a file rather than stored in a class
+**Note**: This is easier to manage index as raw functions in a file rather than stored in a class
 """
 # Index not snake case
 # pylint: disable=C0103
@@ -192,6 +189,7 @@ def TCWET(bands: dict) -> xr.DataArray:
 def NDRE2(bands: dict) -> xr.DataArray:
     """
     Normalized Difference Red-Edge: https://www.indexdatabase.de/db/i-single.php?id=223
+
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
 
@@ -560,8 +558,10 @@ def BSI(bands: dict) -> xr.DataArray:
 def WV_WI(bands: dict) -> xr.DataArray:
     """
     WorldView-Water (WV-WI)
+
     Useful for detecting standing, flowing water, or shadow in VNIR imagery
-    WV_WI = ((B8-B1)/(B8+B1))
+
+    :code:`WV_WI = ((B8-B1)/(B8+B1))`
 
     https://resources.maxar.com/optical-imagery/multispectral-reference-guide
 
@@ -578,8 +578,10 @@ def WV_WI(bands: dict) -> xr.DataArray:
 def WV_VI(bands: dict) -> xr.DataArray:
     """
     WorldView – Vegetation (WV-VI)
+
     Useful for detecting vegetation and assessing vegetation health
-    WV_VI = ((B8-B5)/(B8+B5))
+
+    :code:`WV_VI = ((B8-B5)/(B8+B5))`
 
     https://resources.maxar.com/optical-imagery/multispectral-reference-guide
 
@@ -596,8 +598,10 @@ def WV_VI(bands: dict) -> xr.DataArray:
 def WV_SI(bands: dict) -> xr.DataArray:
     """
     WorldView – Soil (WV-SI)
+
     Useful for detecting and differentiating exposed soil
-    WV_SI = ((B4-B3)/(B4+B3))
+
+    :code:`WV_SI = ((B4-B3)/(B4+B3))`
 
     https://resources.maxar.com/optical-imagery/multispectral-reference-guide
 
@@ -614,8 +618,10 @@ def WV_SI(bands: dict) -> xr.DataArray:
 def WV_BI(bands: dict) -> xr.DataArray:
     """
     WorldView – Built-up (WV-BI)
+
     Useful for detecting impervious surfaces such as buildings and roads
-    WV_BI = ((B6-B1)/(B6+B1))
+
+    :code:`WV_BI = ((B6-B1)/(B6+B1))`
 
     https://resources.maxar.com/optical-imagery/multispectral-reference-guide
 

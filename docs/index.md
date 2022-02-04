@@ -5,7 +5,7 @@
 
 ```{eval-rst}
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
    :caption: For Users
 
    main_features
@@ -17,7 +17,7 @@
 
 ```{eval-rst}
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Tutorials
 
    notebooks/base
@@ -34,12 +34,18 @@
 
 ```{eval-rst}
 .. autosummary::
-    :toctree: api
-    :caption: API
-    :template: custom-module-template.rst
-    :recursive:
-
-    eoreader
+   :toctree: api
+   :caption: EOReader API
+   :template: custom-module-template.rst
+   :recursive:
+   
+   eoreader.reader
+   eoreader.products
+   eoreader.bands
+   eoreader.env_vars
+   eoreader.keywords
+   eoreader.exceptions
+   eoreader.utils 
 ```
 
 ```{eval-rst}
