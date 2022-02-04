@@ -10,6 +10,7 @@
 - FIX: `Sentinel-2` Processing Baseline 04.00: `NARROW_NIR` bands are now loaded correctly
 - FIX: `Maxar` products (with `Multi` band ID) are now correctly handled
 - FIX: Correct warning `DeprecationWarning: invalid escape sequence \.`
+- FIX: Proper check for empty fields when parsing metadata
 - OPTIM: Do not look for valid metadata further than a given nested level in product's directory (for extracted products)
 - CI: Using another (faster) runner
 - CI: Do not write file on disk

@@ -91,9 +91,8 @@ class S2TheiaProduct(OpticalProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        try:
-            tile = root.findtext(".//GEOGRAPHICAL_ZONE")
-        except TypeError:
+        tile = root.findtext(".//GEOGRAPHICAL_ZONE")
+        if not tile:
             raise InvalidProductError("GEOGRAPHICAL_ZONE not found in metadata!")
 
         return tile
@@ -186,9 +185,8 @@ class S2TheiaProduct(OpticalProduct):
             root, _ = self.read_mtd()
 
             # Open identifier
-            try:
-                acq_date = root.findtext(".//ACQUISITION_DATE")
-            except TypeError:
+            acq_date = root.findtext(".//ACQUISITION_DATE")
+            if not acq_date:
                 raise InvalidProductError("ACQUISITION_DATE not found in metadata!")
 
             # Convert to datetime
@@ -213,9 +211,8 @@ class S2TheiaProduct(OpticalProduct):
             root, _ = self.read_mtd()
 
             # Open identifier
-            try:
-                name = files.get_filename(root.findtext(".//IDENTIFIER"))
-            except TypeError:
+            name = files.get_filename(root.findtext(".//IDENTIFIER"))
+            if not name:
                 raise InvalidProductError("IDENTIFIER not found in metadata!")
         else:
             name = self.name

@@ -213,9 +213,8 @@ class S1Product(SarProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        try:
-            prod_type = root.findtext(".//productType")
-        except TypeError:
+        prod_type = root.findtext(".//productType")
+        if not prod_type:
             raise InvalidProductError("mode not found in metadata!")
 
         self.product_type = S1ProductType.from_value(prod_type)
@@ -237,9 +236,8 @@ class S1Product(SarProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        try:
-            mode = root.findtext(".//mode")
-        except TypeError:
+        mode = root.findtext(".//mode")
+        if not mode:
             raise InvalidProductError("mode not found in metadata!")
 
         # Get sensor mode
@@ -280,9 +278,8 @@ class S1Product(SarProduct):
             root, _ = self.read_mtd()
 
             # Open identifier
-            try:
-                acq_date = root.findtext(".//startTime")
-            except TypeError:
+            acq_date = root.findtext(".//startTime")
+            if not acq_date:
                 raise InvalidProductError("startTime not found in metadata!")
 
             # Convert to datetime
@@ -311,9 +308,8 @@ class S1Product(SarProduct):
                 root = self._read_mtd_html(mtd_from_path, mtd_archived)
 
                 # Open identifier
-                try:
-                    name = root.findtext(".//head/title")
-                except TypeError:
+                name = root.findtext(".//head/title")
+                if not name:
                     raise InvalidProductError("title not found in metadata!")
 
             except InvalidProductError:

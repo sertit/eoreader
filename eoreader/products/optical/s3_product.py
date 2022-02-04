@@ -328,9 +328,8 @@ class S3Product(OpticalProduct):
             root, _ = self.read_mtd()
 
             # Open identifier
-            try:
-                acq_date = root.findtext(".//start_time")
-            except TypeError:
+            acq_date = root.findtext(".//start_time")
+            if not acq_date:
                 raise InvalidProductError("start_time not found in metadata!")
 
             # Convert to datetime
@@ -355,9 +354,8 @@ class S3Product(OpticalProduct):
             root, _ = self.read_mtd()
 
             # Open identifier
-            try:
-                name = files.get_filename(root.findtext(".//product_name"))
-            except TypeError:
+            name = files.get_filename(root.findtext(".//product_name"))
+            if not name:
                 raise InvalidProductError("product_name not found in metadata!")
         else:
             name = self.name

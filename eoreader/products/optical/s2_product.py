@@ -184,9 +184,8 @@ class S2Product(OpticalProduct):
         root, _ = self.read_datatake_mtd()
 
         # Open identifier
-        try:
-            product_lvl = root.findtext(".//PROCESSING_LEVEL")
-        except TypeError:
+        product_lvl = root.findtext(".//PROCESSING_LEVEL")
+        if not product_lvl:
             raise InvalidProductError(
                 "PROCESSING_LEVEL not found in datatake metadata!"
             )
@@ -294,11 +293,9 @@ class S2Product(OpticalProduct):
             # Get MTD XML file
             root, _ = self.read_datatake_mtd()
 
-            # Open identifier
-            try:
-                # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time !
-                sensing_time = root.findtext(".//PRODUCT_START_TIME")
-            except TypeError:
+            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time !
+            sensing_time = root.findtext(".//PRODUCT_START_TIME")
+            if not sensing_time:
                 raise InvalidProductError(
                     "PRODUCT_START_TIME not found in datatake metadata!"
                 )
@@ -325,9 +322,8 @@ class S2Product(OpticalProduct):
             root, _ = self.read_datatake_mtd()
 
             # Open identifier
-            try:
-                name = files.get_filename(root.findtext(".//PRODUCT_URI"))
-            except TypeError:
+            name = files.get_filename(root.findtext(".//PRODUCT_URI"))
+            if not name:
                 raise InvalidProductError("PRODUCT_URI not found in metadata!")
         else:
             name = self.name
@@ -942,9 +938,8 @@ class S2Product(OpticalProduct):
         root, _ = self.read_datatake_mtd()
 
         # Open identifier
-        try:
-            gen_time = root.findtext(".//GENERATION_TIME")
-        except TypeError:
+        gen_time = root.findtext(".//GENERATION_TIME")
+        if not gen_time:
             raise InvalidProductError("GENERATION_TIME not found in datatake metadata!")
 
         gen_time = datetime.strptime(gen_time, "%Y-%m-%dT%H:%M:%S.%fZ").strftime(
