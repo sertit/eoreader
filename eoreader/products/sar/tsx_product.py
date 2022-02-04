@@ -330,10 +330,9 @@ class TsxProduct(SarProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        try:
-            prod_type = root.findtext(".//productVariant")
-        except TypeError:
-            raise InvalidProductError("mode not found in metadata!")
+        prod_type = root.findtext(".//productVariant")
+        if not prod_type:
+            raise InvalidProductError("productVariant not found in metadata!")
 
         self.product_type = TsxProductType.from_value(prod_type)
 
@@ -364,9 +363,8 @@ class TsxProduct(SarProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        try:
-            imaging_mode = root.findtext(".//imagingMode")
-        except TypeError:
+        imaging_mode = root.findtext(".//imagingMode")
+        if not imaging_mode:
             raise InvalidProductError("imagingMode not found in metadata!")
 
         # Get sensor mode
@@ -400,9 +398,8 @@ class TsxProduct(SarProduct):
             root, _ = self.read_mtd()
 
             # Open identifier
-            try:
-                acq_date = root.findtext(".//start/timeUTC")
-            except TypeError:
+            acq_date = root.findtext(".//start/timeUTC")
+            if not acq_date:
                 raise InvalidProductError("start/timeUTC not found in metadata!")
 
             # Convert to datetime

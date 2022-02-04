@@ -264,10 +264,9 @@ class Rs2Product(SarProduct):
         namespace = nsmap[None]
 
         # Open identifier
-        try:
-            prod_type = root.findtext(f".//{namespace}productType")
-        except TypeError:
-            raise InvalidProductError("mode not found in metadata!")
+        prod_type = root.findtext(f".//{namespace}productType")
+        if not prod_type:
+            raise InvalidProductError("productType not found in metadata!")
 
         self.product_type = Rs2ProductType.from_value(prod_type)
         self.needs_extraction = self.product_type == Rs2ProductType.SLC
@@ -385,9 +384,8 @@ class Rs2Product(SarProduct):
             namespace = nsmap[None]
 
             # Open identifier
-            try:
-                acq_date = root.findtext(f".//{namespace}rawDataStartTime")
-            except TypeError:
+            acq_date = root.findtext(f".//{namespace}rawDataStartTime")
+            if not acq_date:
                 raise InvalidProductError("rawDataStartTime not found in metadata!")
 
             # Convert to datetime

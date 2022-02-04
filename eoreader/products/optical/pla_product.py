@@ -372,9 +372,8 @@ class PlaProduct(OpticalProduct):
             root, nsmap = self.read_mtd()
 
             # Open identifier
-            try:
-                name = root.findtext(f".//{nsmap['eop']}identifier")
-            except TypeError:
+            name = root.findtext(f".//{nsmap['eop']}identifier")
+            if not name:
                 raise InvalidProductError(
                     f"{nsmap['eop']}identifier not found in metadata!"
                 )

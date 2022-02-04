@@ -143,9 +143,8 @@ class SaocomProduct(SarProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        try:
-            polarization = SaocomPolarization.from_value(root.findtext(".//polMode"))
-        except TypeError:
+        polarization = SaocomPolarization.from_value(root.findtext(".//polMode"))
+        if not polarization:
             raise InvalidProductError("polMode not found in metadata!")
 
         def_res = None
@@ -296,9 +295,8 @@ class SaocomProduct(SarProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        try:
-            prod_type = root.findtext(".//procLevel")
-        except TypeError:
+        prod_type = root.findtext(".//procLevel")
+        if not prod_type:
             raise InvalidProductError("procLevel not found in metadata!")
 
         self.product_type = SaocomProductType.from_value(prod_type)
@@ -330,9 +328,8 @@ class SaocomProduct(SarProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        try:
-            imaging_mode = root.findtext(".//acqMode")
-        except TypeError:
+        imaging_mode = root.findtext(".//acqMode")
+        if not imaging_mode:
             raise InvalidProductError("acqMode not found in metadata!")
 
         # Get sensor mode
@@ -366,9 +363,8 @@ class SaocomProduct(SarProduct):
             root, _ = self.read_mtd()
 
             # Open identifier
-            try:
-                acq_date = root.findtext(".//acquisitionTime/startTime")
-            except TypeError:
+            acq_date = root.findtext(".//acquisitionTime/startTime")
+            if not acq_date:
                 raise InvalidProductError(
                     "acquisitionTime/startTime not found in metadata!"
                 )

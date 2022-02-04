@@ -251,10 +251,9 @@ class RcmProduct(SarProduct):
         namespace = nsmap[None]
 
         # Open identifier
-        try:
-            prod_type = root.findtext(f".//{namespace}productType")
-        except TypeError:
-            raise InvalidProductError("mode not found in metadata!")
+        prod_type = root.findtext(f".//{namespace}productType")
+        if not prod_type:
+            raise InvalidProductError("productType not found in metadata!")
 
         self.product_type = RcmProductType.from_value(prod_type)
 
@@ -327,9 +326,8 @@ class RcmProduct(SarProduct):
         namespace = nsmap[None]
 
         # Open identifier
-        try:
-            acq_date = root.findtext(f".//{namespace}rawDataStartTime")
-        except TypeError:
+        acq_date = root.findtext(f".//{namespace}rawDataStartTime")
+        if not acq_date:
             raise InvalidProductError("rawDataStartTime not found in metadata!")
 
         # Convert to datetime
@@ -356,9 +354,8 @@ class RcmProduct(SarProduct):
                 root = self._read_mtd_html(mtd_from_path, mtd_archived)
 
                 # Open identifier
-                try:
-                    name = root.findtext(".//header/h2")
-                except TypeError:
+                name = root.findtext(".//header/h2")
+                if not name:
                     raise InvalidProductError("header/h2 not found in metadata!")
 
             except InvalidProductError:

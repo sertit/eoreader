@@ -184,9 +184,8 @@ class IceyeProduct(SarProduct):
         namespace = nsmap.get(None, "")
 
         # Open identifier
-        try:
-            prod_type = root.findtext(f".//{namespace}product_level")
-        except TypeError:
+        prod_type = root.findtext(f".//{namespace}product_level")
+        if not prod_type:
             raise InvalidProductError("mode not found in metadata!")
 
         self.product_type = IceyeProductType.from_value(prod_type)
@@ -217,9 +216,8 @@ class IceyeProduct(SarProduct):
         namespace = nsmap.get(None, "")
 
         # Open identifier
-        try:
-            imaging_mode = root.findtext(f".//{namespace}acquisition_mode")
-        except TypeError:
+        imaging_mode = root.findtext(f".//{namespace}acquisition_mode")
+        if not imaging_mode:
             raise InvalidProductError("imagingMode not found in metadata!")
 
         # Get sensor mode
@@ -256,9 +254,8 @@ class IceyeProduct(SarProduct):
             namespace = nsmap.get(None, "")
 
             # Open identifier
-            try:
-                acq_date = root.findtext(f".//{namespace}acquisition_start_utc")
-            except TypeError:
+            acq_date = root.findtext(f".//{namespace}acquisition_start_utc")
+            if not acq_date:
                 raise InvalidProductError(
                     "acquisition_start_utc not found in metadata!"
                 )
@@ -288,9 +285,8 @@ class IceyeProduct(SarProduct):
             namespace = nsmap.get(None, "")
 
             # Open identifier
-            try:
-                name = root.findtext(f".//{namespace}product_name")
-            except TypeError:
+            name = root.findtext(f".//{namespace}product_name")
+            if not name:
                 raise InvalidProductError("product_name not found in metadata!")
         else:
             name = self.name
