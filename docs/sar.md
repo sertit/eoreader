@@ -292,55 +292,82 @@ Those graphs should have a reader and a writer on this model:
 Pay attention to set `$file` and `$out` and leave the `BEAM-DIMAP` file format. The first graph must orthorectify your
 SAR data, but should not despeckle it. The second graph is precisely charged to do it.
 
- The pre-processing graph should also have a `Terrain Correction` step with the following wildcards that are set automatically in the module:
+SNAP graphs are run on every band separatly.
 
+ The pre-processing graph should also have a `Calibration` and a `Terrain Correction` step with the following wildcards that are set automatically in the module:
+
+ - `$calib_pola`: Polarization of the band to calibrate
+ - `$dem_name`: SNAP DEM name
+ - `$dem_path`: DEM path (that can be use by SNAP, so only TIFF DEMs)
  - `$res_m`: Resolution in meters
  - `$res_deg`: Resolution in degrees
  - `$crs`: CRS
  - The nodata value should **always** be set to 0.
 ```
 
+The default `Calibration` step is:
+
+```xml
+<node id="Calibration">
+    <operator>Calibration</operator>
+    <sources>
+        <sourceProduct refid="ThermalNoiseRemoval"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+        <sourceBands/>
+        <auxFile>Latest Auxiliary File</auxFile>
+        <externalAuxFile/>
+        <outputImageInComplex>false</outputImageInComplex>
+        <outputImageScaleInDb>false</outputImageScaleInDb>
+        <createGammaBand>false</createGammaBand>
+        <createBetaBand>false</createBetaBand>
+        <selectedPolarisations>${calib_pola}</selectedPolarisations>
+        <outputSigmaBand>true</outputSigmaBand>
+        <outputGammaBand>false</outputGammaBand>
+        <outputBetaBand>false</outputBetaBand>
+    </parameters>
+</node>
+```
 
 The default `Terrain Correction` step is:
 
 ```xml
-
 <node id="Terrain-Correction">
- <operator>Terrain-Correction</operator>
- <sources>
-  <sourceProduct refid="LinearToFromdB"/>
- </sources>
- <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-  <sourceBands/>
-  <demName>GETASSE30</demName>
-  <externalDEMFile/>
-  <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
-  <externalDEMApplyEGM>true</externalDEMApplyEGM>
-  <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
-  <imgResamplingMethod>BILINEAR_INTERPOLATION</imgResamplingMethod>
-  <pixelSpacingInMeter>$res_m</pixelSpacingInMeter>
-  <pixelSpacingInDegree>$res_deg</pixelSpacingInDegree>
-  <mapProjection>$crs</mapProjection>
-  <alignToStandardGrid>false</alignToStandardGrid>
-  <standardGridOriginX>0.0</standardGridOriginX>
-  <standardGridOriginY>0.0</standardGridOriginY>
-  <nodataValueAtSea>true</nodataValueAtSea>
-  <saveDEM>false</saveDEM>
-  <saveLatLon>false</saveLatLon>
-  <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
-  <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
-  <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
-  <saveSelectedSourceBand>true</saveSelectedSourceBand>
-  <outputComplex>false</outputComplex>
-  <applyRadiometricNormalization>false</applyRadiometricNormalization>
-  <saveSigmaNought>false</saveSigmaNought>
-  <saveGammaNought>false</saveGammaNought>
-  <saveBetaNought>false</saveBetaNought>
-  <incidenceAngleForSigma0>Use projected local incidence angle from DEM</incidenceAngleForSigma0>
-  <incidenceAngleForGamma0>Use projected local incidence angle from DEM</incidenceAngleForGamma0>
-  <auxFile>Latest Auxiliary File</auxFile>
-  <externalAuxFile/>
- </parameters>
+    <operator>Terrain-Correction</operator>
+    <sources>
+        <sourceProduct refid="LinearToFromdB"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+        <sourceBands/>
+        <demName>${dem_name}</demName>
+        <externalDEMFile>${dem_path}</externalDEMFile>
+        <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
+        <externalDEMApplyEGM>true</externalDEMApplyEGM>
+        <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
+        <imgResamplingMethod>BILINEAR_INTERPOLATION</imgResamplingMethod>
+        <pixelSpacingInMeter>${res_m}</pixelSpacingInMeter>
+        <pixelSpacingInDegree>${res_deg}</pixelSpacingInDegree>
+        <mapProjection>${crs}</mapProjection>
+        <alignToStandardGrid>false</alignToStandardGrid>
+        <standardGridOriginX>0.0</standardGridOriginX>
+        <standardGridOriginY>0.0</standardGridOriginY>
+        <nodataValueAtSea>true</nodataValueAtSea>
+        <saveDEM>false</saveDEM>
+        <saveLatLon>false</saveLatLon>
+        <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
+        <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
+        <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
+        <saveSelectedSourceBand>true</saveSelectedSourceBand>
+        <outputComplex>false</outputComplex>
+        <applyRadiometricNormalization>false</applyRadiometricNormalization>
+        <saveSigmaNought>false</saveSigmaNought>
+        <saveGammaNought>false</saveGammaNought>
+        <saveBetaNought>false</saveBetaNought>
+        <incidenceAngleForSigma0>Use projected local incidence angle from DEM</incidenceAngleForSigma0>
+        <incidenceAngleForGamma0>Use projected local incidence angle from DEM</incidenceAngleForGamma0>
+        <auxFile>Latest Auxiliary File</auxFile>
+        <externalAuxFile/>
+    </parameters>
 </node>
 ```
 
@@ -349,7 +376,7 @@ The default `Terrain Correction` step is:
 You can override default SNAP resolution (in meters) when geocoding SAR bands by setting the following environment
 variable:
 
-- `EOREADER_SAR_DEFAULT_RES` (0.0 by default, which means using the product's default resolution)
+- `EOREADER_SAR_DEFAULT_RES`: 0.0 by default, which means using the product's default resolution
 
 ## Documentary Sources
 
