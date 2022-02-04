@@ -84,7 +84,7 @@ pytest_coverage:
   image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
   stage: test
   script:
-    - coverage combine --keep ${CI_PROJECT_DIR}
+    - coverage combine --keep ${CI_PROJECT_DIR}/cov_s3.html ${CI_PROJECT_DIR}/cov_on_disk.html
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}
