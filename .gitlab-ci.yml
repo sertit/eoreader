@@ -32,7 +32,10 @@ pytest:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - pytest -v --durations=0 --cov-report term --cov-report xml:cov.xml --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
+    - pytest -v --durations=0 --cov-report term --cov-report xml:${CI_PROJECT_DIR}/cov.xml --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/cov.xml
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - sertit
@@ -58,7 +61,10 @@ pytest_s3:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - pytest -v --durations=0 --cov-report term --cov-report xml:cov.xml --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
+    - pytest -v --durations=0 --cov-report term --cov-report xml:${CI_PROJECT_DIR}/cov.xml --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/cov.xml
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - sertit
@@ -73,6 +79,29 @@ pytest_s3:
         - .gitlab-ci.yml
         - pytest.ini
   needs: [ "lint" ]
+
+pytest_coverage:
+  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  stage: test
+  script:
+    - coverage combine ${CI_PROJECT_DIR} --data-file=cov.xml --keep
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/coverage.xml
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  tags:
+    - sertit
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - changes:
+        - eoreader/**/*.{py,xml}
+        - CI/**/*.{py,xml}
+        - .gitlab-ci.yml
+        - pytest.ini
+  needs: [ "pytest", "pytest_s3" ]
 
 # Test SNAP with SNAP
 pytest_end_to_end:
