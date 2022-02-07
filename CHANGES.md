@@ -18,6 +18,7 @@
 - FIX: Fixing default band for Custom stacks
 - FIX: Fixing `get_existing_band_paths` behavior for Custom stacks
 - FIX: Re-enabling loading str bands (regression)
+- FIX: Do not set `long_name` for `RAW_CLOUDS` arrays
 - OPTIM: Do not look for valid metadata further than a given nested level in product's directory (for extracted products)
 - CI: Using another (faster) runner
 - CI: Do not write file on disk
