@@ -695,7 +695,7 @@ class S2TheiaProduct(OpticalProduct):
                 band_dict[band] = cloud.rename(band_name)
 
                 # Multi bands -> do not change long name
-                if not RAW_CLOUDS:
+                if band != RAW_CLOUDS:
                     cloud.attrs["long_name"] = band_name
 
         return band_dict
