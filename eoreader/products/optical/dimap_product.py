@@ -632,7 +632,7 @@ class DimapProduct(VhrProduct):
                 # Rename
                 band_name = to_str(band)[0]
                 cloud.attrs["long_name"] = band_name
-                band_dict[band] = cloud.rename(band_name)
+                band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict
 
