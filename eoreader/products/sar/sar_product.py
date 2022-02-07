@@ -359,53 +359,6 @@ class SarProduct(Product):
 
         return crs.CRS.from_string(crs_str)
 
-    def _get_sar_product_type(
-        self,
-        prod_type_pos: int,
-        gdrg_types: Union[ListEnum, list],
-        cplx_types: Union[ListEnum, list],
-    ) -> None:
-        """
-        Get products type, special function for SAR satellites.
-
-        Args:
-            prod_type_pos (int): Position of the products type in the file name
-            gdrg_types (Union[ListEnum, list]): Ground Range products types
-            cplx_types (Union[ListEnum, list]): Complex products types
-        """
-        # Get and check products type class
-        if not isinstance(gdrg_types, list):
-            gdrg_types = [gdrg_types]
-        if not isinstance(cplx_types, list):
-            cplx_types = [cplx_types]
-
-        all_types = gdrg_types + cplx_types
-        prod_type_class = all_types[0].__class__
-        assert all(isinstance(prod_type, prod_type_class) for prod_type in all_types)
-
-        # Get products type
-        try:
-            # All products types can be found in the filename and are 3 characters long
-            self.product_type = prod_type_class.from_value(
-                self.split_name[prod_type_pos][:3]
-            )
-        except ValueError as ex:
-            raise InvalidTypeError(f"Invalid products type for {self.name}") from ex
-
-        # Link to SAR generic products types
-        if self.product_type in gdrg_types:
-            self.sar_prod_type = SarProductType.GDRG
-        elif self.product_type in cplx_types:
-            self.sar_prod_type = SarProductType.CPLX
-        else:
-            self.sar_prod_type = SarProductType.OTHER
-
-        # Discard invalid products types
-        if self.sar_prod_type == SarProductType.OTHER:
-            raise NotImplementedError(
-                f"{self.product_type.value} product type is not available ({self.name})"
-            )
-
     @abstractmethod
     def _set_sensor_mode(self) -> None:
         """
