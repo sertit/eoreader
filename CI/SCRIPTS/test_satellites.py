@@ -311,6 +311,7 @@ def _test_core(
                 assert band_arr.attrs["product_path"] == str(prod.path)
 
                 # CLOUDS: just try to load them without testing it
+                LOGGER.info("Loading clouds")
                 cloud_bands = [CLOUDS, ALL_CLOUDS, RAW_CLOUDS, CIRRUS, SHADOWS]
                 ok_clouds = [cloud for cloud in cloud_bands if prod.has_band(cloud)]
                 prod.load(ok_clouds, size=(stack.rio.width, stack.rio.height))  # noqa

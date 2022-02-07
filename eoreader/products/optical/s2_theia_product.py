@@ -640,9 +640,17 @@ class S2TheiaProduct(OpticalProduct):
         """
         band_dict = {}
 
+        if resolution:
+            res_file = resolution
+        else:
+            if size:
+                res_file = self._resolution_from_size(size)
+            else:
+                res_file = self.resolution
+
         if bands:
             # Open 20m cloud file if resolution >= 20m
-            res_id = "R2" if resolution >= 20 else "R1"
+            res_id = "R2" if res_file >= 20 else "R1"
 
             cloud_path = self.get_mask_path("CLM", res_id)
             clouds_mask = utils.read(
@@ -684,8 +692,11 @@ class S2TheiaProduct(OpticalProduct):
 
                 # Rename
                 band_name = to_str(band)[0]
-                cloud.attrs["long_name"] = band_name
                 band_dict[band] = cloud.rename(band_name)
+
+                # Multi bands -> do not change long name
+                if not RAW_CLOUDS:
+                    cloud.attrs["long_name"] = band_name
 
         return band_dict
 
