@@ -199,9 +199,12 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
     # Reset the long name as a list to write it down
     previous_long_name = xds.attrs.get("long_name")
     if previous_long_name and xds.rio.count > 1:
-        xds.attrs["long_name"] = xds.attrs.get(
-            "long_name", xds.attrs.get("name", "")
-        ).split(" ")
+        try:
+            xds.attrs["long_name"] = xds.attrs.get(
+                "long_name", xds.attrs.get("name", "")
+            ).split(" ")
+        except AttributeError:
+            pass
 
     # Write
     rasters.write(xds, path=path, lock=lock, **prune_keywords(**kwargs))
