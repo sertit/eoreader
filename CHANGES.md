@@ -22,7 +22,7 @@
 - OPTIM: Do not look for valid metadata further than a given nested level in product's directory (for extracted products)
 - CI: Using another (faster) runner
 - CI: Do not write file on disk
-- CI: Add on disk and end to end tests
+- CI: Add on disk and end-to-end tests
 - CI: Add more tests to get a better coverage
 - CI: Coverage:
   - Get coverage as HTML
