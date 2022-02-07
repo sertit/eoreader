@@ -711,11 +711,11 @@ class PlaProduct(OpticalProduct):
 
                 # Rename
                 band_name = to_str(band)[0]
-                band_dict[band] = cloud.rename(band_name)
 
                 # Multi bands -> do not change long name
                 if band != RAW_CLOUDS:
                     cloud.attrs["long_name"] = band_name
+                band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict
 
