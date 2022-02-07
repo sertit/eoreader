@@ -644,7 +644,7 @@ class S2TheiaProduct(OpticalProduct):
             res_file = resolution
         else:
             if size:
-                res_file = self._resolution_from_size(size)
+                res_file = self._resolution_from_size(size)[0]
             else:
                 res_file = self.resolution
 
