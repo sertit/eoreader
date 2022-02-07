@@ -260,11 +260,7 @@ class Product:
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        def_band = self.get_default_band()
-        default_xda = self.load(def_band)[
-            def_band
-        ]  # Forced to load as the nodata may not be positioned by default
-        return rasters.get_footprint(default_xda).to_crs(self.crs)
+        raise NotImplementedError
 
     @cached_property
     @abstractmethod
@@ -846,8 +842,7 @@ class Product:
         """
 
         # Check if all bands are valid
-        if not isinstance(bands, list):
-            bands = [bands]
+        bands = to_band(bands)
 
         for band in bands:
             try:
@@ -1164,7 +1159,7 @@ class Product:
 
             # Allow S3 HTTP Urls only on Linux because rasterio bugs on Windows
             if validators.url(dem_path) and platform.system() == "Windows":
-                raise Exception(
+                raise OSError(
                     f"URLs to DEM like {dem_path} are not supported on Windows! Use Docker or Linux instead"
                 )
 

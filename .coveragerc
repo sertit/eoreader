@@ -13,8 +13,15 @@ exclude_lines =
     raise NotImplementedError
     raise InvalidProductError
     raise InvalidTypeError
+    raise InvalidIndexError
+    raise InvalidBandError
+    raise TypeError
+    raise OsError
+    raise FileNotFoundError
     except
     LOGGER.warning
+    LOGGER.debug
+    return {}
 
     # Don't complain if non-runnable code isn't run:
     if 0:

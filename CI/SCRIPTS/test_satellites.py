@@ -21,7 +21,7 @@ from eoreader.env_vars import (
     TEST_USING_S3_DB,
 )
 from eoreader.keywords import SLSTR_RAD_ADJUST
-from eoreader.products import Product, SensorType, SlstrRadAdjust
+from eoreader.products import Product, S2Product, SensorType, SlstrRadAdjust
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
 
@@ -229,11 +229,19 @@ def _test_core(
                 first_band = stack_bands[0]
 
                 # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
-                band_arr1 = prod.load(first_band, resolution=res)[first_band]
+                assert prod.load([]) == {}
+                band_arr_raw = prod.load(
+                    first_band.value, resolution=res, clean_optical="raw"
+                )[first_band]
+                band_arr1 = prod.load(
+                    first_band, resolution=res, clean_optical="nodata"
+                )[first_band]
                 band_arr2 = prod.load(first_band, resolution=res)[first_band]
                 np.testing.assert_array_almost_equal(band_arr1, band_arr2)
+                assert band_arr_raw.dtype == np.float32
                 assert band_arr1.dtype == np.float32
                 assert band_arr2.dtype == np.float32
+                assert band_arr_raw.shape == band_arr1.shape
 
                 # Get stack bands
                 # Stack data
@@ -301,6 +309,18 @@ def _test_core(
                 )
                 assert band_arr.attrs["condensed_name"] == prod.condensed_name
                 assert band_arr.attrs["product_path"] == str(prod.path)
+
+                # CLOUDS: just try to load them without testing it
+                cloud_bands = [CLOUDS, ALL_CLOUDS, RAW_CLOUDS, CIRRUS, SHADOWS]
+                ok_clouds = [cloud for cloud in cloud_bands if prod.has_band(cloud)]
+                prod.load(ok_clouds, size=(stack.rio.width, stack.rio.height))  # noqa
+
+                # Check if no error
+                prod.get_default_band_path()  # noqa
+
+                # Check if possible to load narrow nir, without checking result
+                if isinstance(prod, S2Product) and not prod._processing_baseline_lt_4_0:
+                    prod.load(NARROW_NIR)
 
             # CRS
             LOGGER.info("Checking CRS")
@@ -553,3 +573,10 @@ def test_invalid():
     wrong_path = "dzfdzef"
     assert READER.open(wrong_path) is None
     assert not READER.valid_name(wrong_path, "S2")
+
+
+@s3_env
+@dask_env
+def test_sar():
+    """Function testing some other SAR methods"""
+    # TODO

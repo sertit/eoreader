@@ -11,10 +11,18 @@
 - FIX: `Maxar` products (with `Multi` band ID) are now correctly handled
 - FIX: Correct warning `DeprecationWarning: invalid escape sequence \.`
 - FIX: Proper check for empty fields when parsing metadata
+- FIX: Providing a URL DEM on Windows throws a `OSError` instead of a bare `Exception`
+- FIX: Remove lines with archived `RCM` products as it cannot happen
+- FIX: Remove lines with complex `ICEYE` products as it cannot happen in EOReader (for now)
+- FIX: Remove other useless lines
+- FIX: Fixing default band for Custom stacks
+- FIX: Fixing `get_existing_band_paths` behavior for Custom stacks
+- FIX: Re-enabling loading str bands (regression)
 - OPTIM: Do not look for valid metadata further than a given nested level in product's directory (for extracted products)
 - CI: Using another (faster) runner
 - CI: Do not write file on disk
 - CI: Add on disk and end to end tests
+- CI: Add more tests to get a better coverage
 - CI: Coverage:
   - Get coverage as HTML
   - Remove useless lines from coverage

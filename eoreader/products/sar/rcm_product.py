@@ -199,9 +199,6 @@ class RcmProduct(SarProduct):
         self._band_folder = self.path / "imagery"
         self._snap_path = ""
 
-        # Zipped and SNAP can process its archive
-        self.needs_extraction = False
-
         # Post init done by the super class
         super()._post_init()
 
@@ -226,13 +223,8 @@ class RcmProduct(SarProduct):
         """
         # Open extent KML file
         try:
-            if self.is_archived:
-                product_kml = vectors.read(self.path, archive_regex=".*mapOverlay\.kml")
-            else:
-                extent_file = next(
-                    self.path.joinpath("preview").glob("*mapOverlay.kml")
-                )
-                product_kml = vectors.read(extent_file)
+            extent_file = next(self.path.joinpath("preview").glob("*mapOverlay.kml"))
+            product_kml = vectors.read(extent_file)
         except IndexError as ex:
             raise InvalidProductError(
                 f"Extent file (product.kml) not found in {self.path}"
