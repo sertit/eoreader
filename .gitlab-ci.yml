@@ -113,7 +113,7 @@ pytest_end_to_end:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - pytest -v --durations=0 --cov-report term--cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_SNAP/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=sys
+    - pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_SNAP/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=sys
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/cov_e2e.html
