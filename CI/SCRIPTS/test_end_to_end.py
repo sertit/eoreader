@@ -1,8 +1,10 @@
 """ Script testing EOReader satellites in a push routine """
 import logging
 import os
+import sys
 import tempfile
 
+import pytest
 import xarray as xr
 from cloudpathlib import AnyPath
 from sertit import files
@@ -198,12 +200,20 @@ def _test_core(
             prod.clear()
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Not enough memory to reproject on Windows runner",
+)
 @dask_env
 def test_spot6():
     """Function testing the support of SPOT-6 sensor"""
     _test_core_optical("*IMG_SPOT6*")
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Not enough memory to orthorectify on Windows runner",
+)
 @dask_env
 def test_spot7():
     """Function testing the support of SPOT-7 sensor"""
@@ -212,6 +222,10 @@ def test_spot7():
     _test_core_optical("*IMG_SPOT7*", dem_path=dem_path)
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="SNAP is not present on Windows runner",
+)
 @dask_env
 def test_iceye():
     """Function testing the support of ICEYE sensor"""
