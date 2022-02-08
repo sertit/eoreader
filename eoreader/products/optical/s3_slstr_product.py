@@ -400,7 +400,7 @@ class S3SlstrProduct(S3Product):
 
         # Get the pre-processed path
         path = self._get_preprocessed_band_path(
-            pp_name, suffix=suffix, resolution=resolution
+            pp_name, suffix=suffix, resolution=resolution, writable=False
         )
 
         if not path.is_file():
