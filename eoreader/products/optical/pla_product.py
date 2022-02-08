@@ -367,18 +367,15 @@ class PlaProduct(OpticalProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # Get MTD XML file
-            root, nsmap = self.read_mtd()
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
 
-            # Open identifier
-            name = root.findtext(f".//{nsmap['eop']}identifier")
-            if not name:
-                raise InvalidProductError(
-                    f"{nsmap['eop']}identifier not found in metadata!"
-                )
-        else:
-            name = self.name
+        # Open identifier
+        name = root.findtext(f".//{nsmap['eop']}identifier")
+        if not name:
+            raise InvalidProductError(
+                f"{nsmap['eop']}identifier not found in metadata!"
+            )
 
         return name
 

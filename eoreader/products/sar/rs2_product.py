@@ -405,20 +405,16 @@ class Rs2Product(SarProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            name = self.filename
+        name = self.filename
 
-            # Test filename
-            reader = Reader()
-            if not reader.valid_name(name, self._get_platform()):
-                LOGGER.warning(
-                    "This RADARSAT-2 filename is not valid. "
-                    "However RADARSAT-2 files do not provide anywhere the true name of the product. "
-                    "Use it with caution."
-                )
-
-        else:
-            name = self.name
+        # Test filename
+        reader = Reader()
+        if not reader.valid_name(name, self._get_platform()):
+            LOGGER.warning(
+                "This RADARSAT-2 filename is not valid. "
+                "However RADARSAT-2 files do not provide anywhere the true name of the product. "
+                "Use it with caution."
+            )
 
         return name
 

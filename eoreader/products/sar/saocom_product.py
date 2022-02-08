@@ -386,19 +386,14 @@ class SaocomProduct(SarProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # Get MTD XML file
-            root, _ = self.read_mtd()
+        # Get MTD XML file
+        root, _ = self.read_mtd()
 
-            # Open identifier
-            try:
-                name = files.get_filename(root.findtext(".//dataFile/componentPath"))
-            except TypeError:
-                raise InvalidProductError(
-                    "dataFile/componentPath not found in metadata!"
-                )
-        else:
-            name = self.name
+        # Open identifier
+        try:
+            name = files.get_filename(root.findtext(".//dataFile/componentPath"))
+        except TypeError:
+            raise InvalidProductError("dataFile/componentPath not found in metadata!")
 
         return name
 

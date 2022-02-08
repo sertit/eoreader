@@ -278,19 +278,16 @@ class IceyeProduct(SarProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # Get MTD XML file
-            root, nsmap = self.read_mtd()
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
 
-            # Some ICEYE product metadata has a namespace some don't
-            namespace = nsmap.get(None, "")
+        # Some ICEYE product metadata has a namespace some don't
+        namespace = nsmap.get(None, "")
 
-            # Open identifier
-            name = root.findtext(f".//{namespace}product_name")
-            if not name:
-                raise InvalidProductError("product_name not found in metadata!")
-        else:
-            name = self.name
+        # Open identifier
+        name = root.findtext(f".//{namespace}product_name")
+        if not name:
+            raise InvalidProductError("product_name not found in metadata!")
 
         return name
 

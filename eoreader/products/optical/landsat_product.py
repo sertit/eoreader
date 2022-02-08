@@ -372,16 +372,13 @@ class LandsatProduct(OpticalProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # Get MTD XML file
-            root, _ = self.read_mtd()
+        # Get MTD XML file
+        root, _ = self.read_mtd()
 
-            # Open identifier (replace for txt files)
-            name = root.findtext(".//LANDSAT_PRODUCT_ID").replace('"', "")
-            if not name:
-                raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata!")
-        else:
-            name = self.name
+        # Open identifier (replace for txt files)
+        name = root.findtext(".//LANDSAT_PRODUCT_ID").replace('"', "")
+        if not name:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata!")
 
         return name
 

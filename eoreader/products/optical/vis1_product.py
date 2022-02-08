@@ -278,7 +278,13 @@ class Vis1Product(VhrProduct):
         """
         # Get MTD XML file
         root, _ = self.read_mtd()
-        return root.findtext(".//DATASET_NAME")
+
+        # Open identifier
+        name = root.findtext(".//DATASET_NAME")
+        if not name:
+            raise InvalidProductError("DATASET_NAME not found in metadata!")
+
+        return name
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
