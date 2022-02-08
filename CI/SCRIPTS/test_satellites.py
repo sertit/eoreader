@@ -317,7 +317,10 @@ def _test_core(
                 prod.load(ok_clouds, size=(stack.rio.width, stack.rio.height))  # noqa
 
                 # Check if no error
+                LOGGER.info("get_default_band_path")
                 prod.get_default_band_path()  # noqa
+
+                LOGGER.info("get_existing_band_paths")
                 prod.get_existing_band_paths()  # noqa
 
                 # Check if possible to load narrow nir, without checking result
