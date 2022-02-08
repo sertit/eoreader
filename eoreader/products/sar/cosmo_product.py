@@ -317,16 +317,13 @@ class CosmoProduct(SarProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # Get MTD XML file
-            root, _ = self.read_mtd()
+        # Get MTD XML file
+        root, _ = self.read_mtd()
 
-            # Open identifier
-            name = files.get_filename(root.findtext(".//ProductName"))
-            if not name:
-                raise InvalidProductError("ProductName not found in metadata!")
-        else:
-            name = self.name
+        # Open identifier
+        name = files.get_filename(root.findtext(".//ProductName"))
+        if not name:
+            raise InvalidProductError("ProductName not found in metadata!")
 
         return name
 

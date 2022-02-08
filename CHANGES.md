@@ -14,7 +14,7 @@
 - FIX: Providing a URL DEM on Windows throws a `OSError` instead of a bare `Exception`
 - FIX: Remove lines with archived `RCM` products as it cannot happen
 - FIX: Remove lines with complex `ICEYE` products as it cannot happen in EOReader (for now)
-- FIX: Remove other useless lines
+- FIX: Remove other never covered lines of code
 - FIX: Fixing default band for Custom stacks
 - FIX: Fixing `get_existing_band_paths` behavior for Custom stacks
 - FIX: Re-enabling loading str bands (regression)

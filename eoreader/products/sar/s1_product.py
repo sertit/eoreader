@@ -299,26 +299,23 @@ class S1Product(SarProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # The name is not in the classic metadata, but can be found in the manifest
-            try:
-                mtd_from_path = "preview/product-preview.html"
-                mtd_archived = "preview.*product-preview\.html"
+        # The name is not in the classic metadata, but can be found in the manifest
+        try:
+            mtd_from_path = "preview/product-preview.html"
+            mtd_archived = "preview.*product-preview\.html"
 
-                root = self._read_mtd_html(mtd_from_path, mtd_archived)
+            root = self._read_mtd_html(mtd_from_path, mtd_archived)
 
-                # Open identifier
-                name = root.findtext(".//head/title")
-                if not name:
-                    raise InvalidProductError("title not found in metadata!")
+            # Open identifier
+            name = root.findtext(".//head/title")
+            if not name:
+                raise InvalidProductError("title not found in metadata!")
 
-            except InvalidProductError:
-                LOGGER.warning(
-                    "product-preview.html not found in the product, the name will be the filename"
-                )
-                name = self.filename
-        else:
-            name = self.name
+        except InvalidProductError:
+            LOGGER.warning(
+                "product-preview.html not found in the product, the name will be the filename"
+            )
+            name = self.filename
 
         return name
 
