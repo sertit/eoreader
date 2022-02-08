@@ -413,13 +413,14 @@ class SarProduct(Product):
                 if speckle_band in self.pol_channels:
                     if sbn.is_despeckle(band):
                         # Check if existing speckle ortho band
-                        despeckle_path = files.get_file_in_dir(
-                            self._get_band_folder(),
-                            f"*{self.condensed_name}_{self.band_names[speckle_band]}.tif",
-                            exact_name=True,
-                        )
-                        if not despeckle_path.is_file():
-                            self._pre_process_sar(band, resolution, **kwargs)
+                        try:
+                            files.get_file_in_dir(
+                                self._get_band_folder(),
+                                f"*{self.condensed_name}_{self.band_names[speckle_band]}.tif",
+                                exact_name=True,
+                            )
+                        except FileNotFoundError:
+                            self._pre_process_sar(speckle_band, resolution, **kwargs)
 
                         # Despeckle the noisy band
                         band_paths[band] = self._despeckle_sar(speckle_band, **kwargs)
