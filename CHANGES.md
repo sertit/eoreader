@@ -20,6 +20,7 @@
 - FIX: Re-enabling loading str bands (regression)
 - FIX: Do not set `long_name` for `RAW_CLOUDS` arrays
 - FIX: VHR `_get_dem_path` raises `ValueError` instead of `TypeError`
+- FIX: Pre-process SAR bands before despeckling if not existing
 - OPTIM: Do not look for valid metadata further than a given nested level in product's directory (for extracted products)
 - CI: Using another (faster) runner
 - CI: Do not write file on disk
