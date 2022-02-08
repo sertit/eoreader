@@ -273,7 +273,7 @@ class VhrProduct(OpticalProduct):
             )
         else:
             if isinstance(AnyPath(dem_path), CloudPath):
-                raise TypeError(
+                raise ValueError(
                     "gdalwarp cannot process DEM stored on cloud with 'RPC_DEM' argument, "
                     "hence cloud-stored DEM cannot be used with non orthorectified DIMAP data."
                     f"(DEM: {dem_path}, DIMAP data: {self.name})"

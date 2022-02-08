@@ -18,6 +18,7 @@ exclude_lines =
     raise TypeError
     raise OsError
     raise FileNotFoundError
+    raise ValueError
     except
     LOGGER.warning
     LOGGER.debug
