@@ -136,7 +136,7 @@ def test_custom():
     extent_sar = prod_sar.extent
     footprint_sar = prod_sar.footprint
     crs_sar = prod_sar.crs
-    stack_sar = prod_sar.stack([VV, VV_DSPK])
+    stack_sar = prod_sar.stack([VV, VV_DSPK], prod_sar.resolution * 10)
 
     # Check attributes
     assert stack_sar.attrs["long_name"] == "VV VV_DSPK"
@@ -158,7 +158,7 @@ def test_custom():
     extent_wtf = prod_wtf.extent
     footprint_wtf = prod_wtf.footprint
     crs_wtf = prod_wtf.crs
-    stack_wtf = prod_wtf.stack([HH, RH])
+    stack_wtf = prod_wtf.stack([HH, RH], prod_wtf.resolution * 10)
 
     ci.assert_geom_equal(extent_sar, extent_wtf)
     ci.assert_geom_equal(footprint_sar, footprint_wtf)
