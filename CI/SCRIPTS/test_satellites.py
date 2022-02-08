@@ -318,6 +318,7 @@ def _test_core(
 
                 # Check if no error
                 prod.get_default_band_path()  # noqa
+                prod.get_existing_band_paths()  # noqa
 
                 # Check if possible to load narrow nir, without checking result
                 if isinstance(prod, S2Product) and not prod._processing_baseline_lt_4_0:
