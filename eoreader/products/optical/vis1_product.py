@@ -323,7 +323,7 @@ class Vis1Product(VhrProduct):
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
         mtd_from_path = "DIM_*.xml"
-        mtd_archived = "DIM_.*\.xml"
+        mtd_archived = r"DIM_.*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 

@@ -990,7 +990,7 @@ class S2Product(OpticalProduct):
             (etree._Element, dict): Metadata XML root and its namespaces
         """
         mtd_from_path = "GRANULE/*/*.xml"
-        mtd_archived = "GRANULE.*\.xml"
+        mtd_archived = r"GRANULE.*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
@@ -1013,7 +1013,7 @@ class S2Product(OpticalProduct):
             (etree._Element, dict): Metadata XML root and its namespaces
         """
         mtd_from_path = "MTD_MSI*.xml"
-        mtd_archived = "MTD_MSI.*\.xml"
+        mtd_archived = r"MTD_MSI.*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 

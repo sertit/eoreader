@@ -619,7 +619,7 @@ class PlaProduct(OpticalProduct):
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
         mtd_from_path = "metadata*.xml"
-        mtd_archived = "metadata.*\.xml"
+        mtd_archived = r"metadata.*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
@@ -826,9 +826,9 @@ class PlaProduct(OpticalProduct):
         try:
             if self.is_archived:
                 if invalid_lookahead:
-                    regex = f".*{filename}(?!{invalid_lookahead})\w*[_]*\.{extension}"
+                    regex = rf".*{filename}(?!{invalid_lookahead})\w*[_]*\.{extension}"
                 else:
-                    regex = f".*{filename}\w*[_]*\.{extension}"
+                    regex = rf".*{filename}\w*[_]*\.{extension}"
 
                 path = files.get_archived_rio_path(self.path, regex)
             else:

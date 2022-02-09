@@ -525,7 +525,7 @@ class MaxarProduct(VhrProduct):
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
         mtd_from_path = ".XML"
-        mtd_archived = "\.XML"
+        mtd_archived = r"\.XML"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 

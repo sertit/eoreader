@@ -540,7 +540,7 @@ class DimapProduct(VhrProduct):
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
         mtd_from_path = "DIM_*.XML"
-        mtd_archived = "DIM_.*\.XML"
+        mtd_archived = r"DIM_.*\.XML"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
@@ -685,7 +685,7 @@ class DimapProduct(VhrProduct):
                 try:
                     mask = vectors.read(
                         self.path,
-                        archive_regex=f".*MASKS.*{mask_str}.*\.GML",
+                        archive_regex=rf".*MASKS.*{mask_str}.*\.GML",
                         crs=crs,
                     )
                 except Exception:
