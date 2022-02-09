@@ -380,6 +380,9 @@ variable:
 
 ## Documentary Sources
 
+### Copernicus 
+- [Copernicus Contributing Missions](https://www.esa.int/ESA_Multimedia/Images/2021/09/Copernicus_Contributing_Missions_overview)
+
 ### Sentinel-1
 
 - [Data Products](https://earth.esa.int/web/sentinel/missions/sentinel-1/data-products)
