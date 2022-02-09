@@ -5,6 +5,7 @@ import tempfile
 
 import xarray as xr
 from cloudpathlib import AnyPath
+from lxml import etree
 from sertit import files
 
 from CI.SCRIPTS.scripts_utils import (
@@ -20,7 +21,7 @@ from CI.SCRIPTS.scripts_utils import (
 from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT, SAR_DEF_RES, TEST_USING_S3_DB
 from eoreader.keywords import SLSTR_RAD_ADJUST
-from eoreader.products import SlstrRadAdjust
+from eoreader.products import S2Product, SlstrRadAdjust
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
@@ -197,7 +198,41 @@ def _test_core(
                     clean_optical="clean",
                     **kwargs,
                 )[first_band]
+
+                # CLOUDS: just try to load them without testing it
+                LOGGER.info("Loading clouds")
+                cloud_bands = [CLOUDS, ALL_CLOUDS, RAW_CLOUDS, CIRRUS, SHADOWS]
+                ok_clouds = [cloud for cloud in cloud_bands if prod.has_band(cloud)]
+                prod.load(ok_clouds, size=(stack.rio.width, stack.rio.height))  # noqa
+
+                # Check if no error
+                LOGGER.info("get_default_band_path")
+                prod.get_default_band_path()  # noqa
+
+                LOGGER.info("get_existing_band_paths")
+                prod.get_existing_band_paths()  # noqa
+
+                # Check if possible to load narrow nir, without checking result
+                if isinstance(prod, S2Product) and not prod._processing_baseline_lt_4_0:
+                    prod.load(NARROW_NIR)
+
             prod.clear()
+
+            # CRS
+            LOGGER.info("Checking CRS")
+            assert prod.crs.is_projected
+
+            # MTD
+            LOGGER.info("Checking Mtd")
+            mtd_xml, nmsp = prod.read_mtd()
+            assert isinstance(mtd_xml, etree._Element)
+            assert isinstance(nmsp, dict)
+
+            # Clean temp
+            if not debug:
+                LOGGER.info("Cleaning tmp")
+                prod.clean_tmp()
+                assert len(list(prod._tmp_process.glob("*"))) == 0
 
 
 @dask_env
