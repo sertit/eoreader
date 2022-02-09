@@ -4,30 +4,26 @@
 
 - **ENH: Adding the support of `Pleiades-Neo`, `Vision-1` and `SAOCOM` sensors**
 - **ENH: Adding a keyword to allow passing a specific DEM path in `load`/`stack` (for VHR orthorectification and `DEM` bands)**
-- FIX: Using `COPDEM-30` (`GLO-30`) by default for SNAP as it appears that the retrieval has been fixed.
-- FIX: Fixing the default name for cleaned bands for `Sentinel-3 SLSTR` data (was set on `CLEAN` instead of `NODATA`)
-- FIX: Adding the name of the DEM in DEM band (i.e. allow to compute the `HILLSHADE` with a DEM and the `SLOPE` with a DTM)
+- **ENH: Adding the name of the DEM in DEM band (i.e. allow to compute the `HILLSHADE` with a DEM and the `SLOPE` with a DTM)**
 - FIX: `Sentinel-2` Processing Baseline 04.00: `NARROW_NIR` bands are now loaded correctly
 - FIX: `Maxar` products (with `Multi` band ID) are now correctly handled
-- FIX: Correct warning `DeprecationWarning: invalid escape sequence \.`
-- FIX: Proper check for empty fields when parsing metadata
-- FIX: Providing a URL DEM on Windows throws a `OSError` instead of a bare `Exception`
-- FIX: Remove lines with archived `RCM` products as it cannot happen
-- FIX: Remove lines with complex `ICEYE` products as it cannot happen in EOReader (for now)
-- FIX: Remove other never covered lines of code
+- FIX: Using `COPDEM-30` (`GLO-30`) by default for SNAP as it appears that the retrieval has been fixed.
+- FIX: Fixing the default name for cleaned bands for `Sentinel-3 SLSTR` data (was set on `CLEAN` instead of `NODATA`)
 - FIX: Fixing default band for Custom stacks
 - FIX: Fixing `get_existing_band_paths` behavior for Custom stacks
+- FIX: Remove other never covered lines of code (archived `RCM` products, complex `ICEYE` products, others...)
 - FIX: Re-enabling loading str bands (regression)
-- FIX: Do not set `long_name` for `RAW_CLOUDS` arrays
+- FIX: Proper check for empty fields when parsing metadata
 - FIX: VHR `_get_dem_path` raises `ValueError` instead of `TypeError`
-- FIX: Pre-process SAR bands before despeckling if not existing
-- FIX: Do not pre-process existing Sentinel-3 geocoded bands
+- FIX: Pre-process SAR bands before despeckling if not existing (was OK in most of the cases, but broke in some cases, especially with CI folder activated and S3 compatible storage)
 - FIX: Remove warning `invalid escape sequence \.`, `\w`, `\D` and `\s`
+- FIX: Do not set `long_name` for `RAW_CLOUDS` arrays
+- FIX: Providing a URL DEM on Windows throws a `OSError` instead of a bare `Exception`
+- OPTIM: Do not pre-process existing Sentinel-3 geocoded bands
 - OPTIM: Do not look for valid metadata further than a given nested level in product's directory (for extracted products)
 - CI: Using another (faster) runner
-- CI: Do not write file on disk
 - CI: Add on disk and end-to-end tests
-- CI: Add more tests to get a better coverage
+- CI: Do not write tmp files when running on disk tests
 - CI: Coverage:
   - Get coverage as HTML
   - Remove useless lines from coverage
