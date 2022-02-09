@@ -184,9 +184,8 @@ class S2Product(OpticalProduct):
         root, _ = self.read_datatake_mtd()
 
         # Open identifier
-        try:
-            product_lvl = root.findtext(".//PROCESSING_LEVEL")
-        except TypeError:
+        product_lvl = root.findtext(".//PROCESSING_LEVEL")
+        if not product_lvl:
             raise InvalidProductError(
                 "PROCESSING_LEVEL not found in datatake metadata!"
             )
@@ -294,11 +293,9 @@ class S2Product(OpticalProduct):
             # Get MTD XML file
             root, _ = self.read_datatake_mtd()
 
-            # Open identifier
-            try:
-                # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time !
-                sensing_time = root.findtext(".//PRODUCT_START_TIME")
-            except TypeError:
+            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time !
+            sensing_time = root.findtext(".//PRODUCT_START_TIME")
+            if not sensing_time:
                 raise InvalidProductError(
                     "PRODUCT_START_TIME not found in datatake metadata!"
                 )
@@ -320,17 +317,13 @@ class S2Product(OpticalProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # Get MTD XML file
-            root, _ = self.read_datatake_mtd()
+        # Get MTD XML file
+        root, _ = self.read_datatake_mtd()
 
-            # Open identifier
-            try:
-                name = files.get_filename(root.findtext(".//PRODUCT_URI"))
-            except TypeError:
-                raise InvalidProductError("PRODUCT_URI not found in metadata!")
-        else:
-            name = self.name
+        # Open identifier
+        name = files.get_filename(root.findtext(".//PRODUCT_URI"))
+        if not name:
+            raise InvalidProductError("PRODUCT_URI not found in metadata!")
 
         return name
 
@@ -514,7 +507,10 @@ class S2Product(OpticalProduct):
                 offset = 0.0
             else:
                 try:
-                    band_id = str(int(self.band_names[band]))
+                    if band == obn.NARROW_NIR:
+                        band_id = 8
+                    else:
+                        band_id = int(self.band_names[band])
                     offset = float(
                         root.findtext(
                             f".//{offset_prefix}ADD_OFFSET[@band_id = '{band_id}']"
@@ -918,7 +914,7 @@ class S2Product(OpticalProduct):
 
         if resolution is None and size is not None:
             resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution=resolution)
+        band_paths = self.get_band_paths(bands, resolution=resolution, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(
@@ -939,9 +935,8 @@ class S2Product(OpticalProduct):
         root, _ = self.read_datatake_mtd()
 
         # Open identifier
-        try:
-            gen_time = root.findtext(".//GENERATION_TIME")
-        except TypeError:
+        gen_time = root.findtext(".//GENERATION_TIME")
+        if not gen_time:
             raise InvalidProductError("GENERATION_TIME not found in datatake metadata!")
 
         gen_time = datetime.strptime(gen_time, "%Y-%m-%dT%H:%M:%S.%fZ").strftime(
@@ -1094,8 +1089,11 @@ class S2Product(OpticalProduct):
 
                 # Rename
                 band_name = to_str(band)[0]
-                cloud.attrs["long_name"] = band_name
-                band_dict[band] = cloud.rename(band_name)
+
+                # Multi bands -> do not change long name
+                if band != RAW_CLOUDS:
+                    cloud.attrs["long_name"] = band_name
+                band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict
 
@@ -1146,8 +1144,12 @@ class S2Product(OpticalProduct):
 
                 # Rename
                 band_name = to_str(band)[0]
-                cloud.attrs["long_name"] = band_name
-                band_dict[band] = cloud.rename(band_name)
+
+                # Multi bands -> do not change long name
+                if band != RAW_CLOUDS:
+                    cloud.attrs["long_name"] = band_name
+
+                band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict
 

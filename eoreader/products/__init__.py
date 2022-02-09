@@ -64,6 +64,9 @@ __all__ += [
     "MaxarProductType",
     "MaxarSatId",
     "MaxarBandId",
+    "Vis1Product",
+    "Vis1ProductType",
+    "Vis1BandCombination",
 ]
 from .optical.vhr_product import VhrProduct
 from .optical.dimap_product import DimapBandCombination, DimapProduct, DimapProductType
@@ -76,6 +79,7 @@ from .optical.maxar_product import (
     MaxarSatId,
     MaxarBandId,
 )
+from .optical.vis1_product import Vis1Product, Vis1ProductType, Vis1BandCombination
 
 # Planet
 __all__ += [
@@ -144,6 +148,7 @@ from .optical.s3_slstr_product import (
 __all__ += [
     "SarProduct",
     "SarProductType",
+    "SnapDems",
     "CosmoProduct",
     "CosmoProductType",
     "CosmoPolarization",
@@ -165,13 +170,16 @@ __all__ += [
     "S1Product",
     "S1SensorMode",
     "S1ProductType",
-    "TsxProduct",
+    "SaocomProduct",
+    "SaocomProductType",
+    "SaocomPolarization",
+    "SaocomSensorMode" "TsxProduct",
     "TsxPolarization",
     "TsxSatId",
     "TsxProductType",
     "TsxSensorMode",
 ]
-from .sar.sar_product import SarProduct, SarProductType
+from .sar.sar_product import SarProduct, SarProductType, SnapDems
 from .sar.cosmo_product import CosmoProduct, CosmoProductType, CosmoPolarization
 from .sar.csg_product import CsgProduct, CsgSensorMode
 from .sar.csk_product import CskProduct, CskSensorMode
@@ -179,6 +187,12 @@ from .sar.iceye_product import IceyeProduct, IceyeProductType, IceyeSensorMode
 from .sar.rcm_product import RcmProduct, RcmPolarization, RcmProductType, RcmSensorMode
 from .sar.rs2_product import Rs2Product, Rs2ProductType, Rs2Polarization, Rs2SensorMode
 from .sar.s1_product import S1Product, S1SensorMode, S1ProductType
+from .sar.saocom_product import (
+    SaocomProduct,
+    SaocomProductType,
+    SaocomPolarization,
+    SaocomSensorMode,
+)
 from .sar.tsx_product import (
     TsxProduct,
     TsxPolarization,

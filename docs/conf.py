@@ -58,7 +58,7 @@ autodoc_default_options = {
 
 # Notebook integration parameters
 jupyter_execute_notebooks = "cache"
-execution_timeout = 3600
+execution_timeout = -1
 
 # This is going to generate a banner on top of each notebook
 nbsphinx_prolog = ""

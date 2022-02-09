@@ -111,9 +111,8 @@ class CskProduct(CosmoProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        try:
-            acq_mode = root.findtext(".//AcquisitionMode")
-        except TypeError:
+        acq_mode = root.findtext(".//AcquisitionMode")
+        if not acq_mode:
             raise InvalidProductError("AcquisitionMode not found in metadata!")
 
         # Get sensor mode

@@ -94,27 +94,28 @@ class IceyeProduct(SarProduct):
         <here](https://www.iceye.com/hubfs/Downloadables/ICEYE_SAR_Product_Guide_2021_V4.0.pdf>`_
         for more information (table B.3).
         """
+        # ICEYE-SLC is not yet handled in EOReader
         # For complex data, set regular ground range resolution provided by the constructor
-        if self.product_type == IceyeProductType.SLC:
-            if self.sensor_mode == IceyeSensorMode.SM:
-                def_res = 2.5
-            elif self.sensor_mode == IceyeSensorMode.SL:
-                def_res = 0.5
-            elif self.sensor_mode == IceyeSensorMode.SC:
-                def_res = 6.0
-            else:
-                raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
-        else:
-            # Read metadata for default resolution
-            try:
-                root, nsmap = self.read_mtd()
+        # if self.product_type == IceyeProductType.SLC:
+        #     if self.sensor_mode == IceyeSensorMode.SM:
+        #         def_res = 2.5
+        #     elif self.sensor_mode == IceyeSensorMode.SL:
+        #         def_res = 0.5
+        #     elif self.sensor_mode == IceyeSensorMode.SC:
+        #         def_res = 6.0
+        #     else:
+        #         raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
-                # Some ICEYE product metadata has a namespace some don't
-                namespace = nsmap.get(None, "")
+        # Read metadata for default resolution
+        try:
+            root, nsmap = self.read_mtd()
 
-                def_res = float(root.findtext(f".//{namespace}range_spacing"))
-            except (InvalidProductError, TypeError):
-                raise InvalidProductError("range_spacing not found in metadata!")
+            # Some ICEYE product metadata has a namespace some don't
+            namespace = nsmap.get(None, "")
+
+            def_res = float(root.findtext(f".//{namespace}range_spacing"))
+        except (InvalidProductError, TypeError):
+            raise InvalidProductError("range_spacing not found in metadata!")
 
         return def_res
 
@@ -184,9 +185,8 @@ class IceyeProduct(SarProduct):
         namespace = nsmap.get(None, "")
 
         # Open identifier
-        try:
-            prod_type = root.findtext(f".//{namespace}product_level")
-        except TypeError:
+        prod_type = root.findtext(f".//{namespace}product_level")
+        if not prod_type:
             raise InvalidProductError("mode not found in metadata!")
 
         self.product_type = IceyeProductType.from_value(prod_type)
@@ -217,9 +217,8 @@ class IceyeProduct(SarProduct):
         namespace = nsmap.get(None, "")
 
         # Open identifier
-        try:
-            imaging_mode = root.findtext(f".//{namespace}acquisition_mode")
-        except TypeError:
+        imaging_mode = root.findtext(f".//{namespace}acquisition_mode")
+        if not imaging_mode:
             raise InvalidProductError("imagingMode not found in metadata!")
 
         # Get sensor mode
@@ -256,9 +255,8 @@ class IceyeProduct(SarProduct):
             namespace = nsmap.get(None, "")
 
             # Open identifier
-            try:
-                acq_date = root.findtext(f".//{namespace}acquisition_start_utc")
-            except TypeError:
+            acq_date = root.findtext(f".//{namespace}acquisition_start_utc")
+            if not acq_date:
                 raise InvalidProductError(
                     "acquisition_start_utc not found in metadata!"
                 )
@@ -280,20 +278,16 @@ class IceyeProduct(SarProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # Get MTD XML file
-            root, nsmap = self.read_mtd()
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
 
-            # Some ICEYE product metadata has a namespace some don't
-            namespace = nsmap.get(None, "")
+        # Some ICEYE product metadata has a namespace some don't
+        namespace = nsmap.get(None, "")
 
-            # Open identifier
-            try:
-                name = root.findtext(f".//{namespace}product_name")
-            except TypeError:
-                raise InvalidProductError("product_name not found in metadata!")
-        else:
-            name = self.name
+        # Open identifier
+        name = root.findtext(f".//{namespace}product_name")
+        if not name:
+            raise InvalidProductError("product_name not found in metadata!")
 
         return name
 

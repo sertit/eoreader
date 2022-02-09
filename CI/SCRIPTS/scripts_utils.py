@@ -11,6 +11,7 @@ import numpy as np
 import rasterio
 from cloudpathlib import AnyPath, CloudPath, S3Client
 from sertit import ci, vectors
+from sertit.ci import _assert_field
 
 from eoreader.env_vars import USE_DASK
 from eoreader.reader import Reader
@@ -23,6 +24,18 @@ AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID"
 AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY"
 AWS_S3_ENDPOINT = "s3.unistra.fr"
 CI_EOREADER_S3 = "CI_EOREADER_USE_S3"
+
+
+def reduce_verbosity() -> None:
+    """ Reduce verbosity for other loggers """
+    logging.getLogger("boto3").setLevel(logging.WARNING)
+    logging.getLogger("botocore").setLevel(logging.WARNING)
+    logging.getLogger("shapely").setLevel(logging.WARNING)
+    logging.getLogger("fiona").setLevel(logging.WARNING)
+    logging.getLogger("rasterio").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("s3transfer").setLevel(logging.WARNING)
+    logging.getLogger("pyproj").setLevel(logging.WARNING)
 
 
 def get_ci_dir() -> Union[CloudPath, Path]:
@@ -91,30 +104,30 @@ def assert_raster_almost_equal(path_1: str, path_2: str, decimal: int = 5) -> No
         path_2 (str): Raster 2
         decimal (int): Accepted decimals
     """
-    with rasterio.open(str(path_1)) as dst_1:
-        with rasterio.open(str(path_2)) as dst_2:
-            assert dst_1.meta["driver"] == dst_2.meta["driver"]
-            assert dst_1.meta["dtype"] == dst_2.meta["dtype"]
-            assert dst_1.meta["nodata"] == dst_2.meta["nodata"]
-            assert dst_1.meta["width"] == dst_2.meta["width"]
-            assert dst_1.meta["height"] == dst_2.meta["height"]
-            assert dst_1.meta["count"] == dst_2.meta["count"]
-            assert dst_1.meta["crs"] == dst_2.meta["crs"]
-            dst_1.meta["transform"].almost_equals(
-                dst_1.meta["transform"], precision=1e-7
-            )
+    with rasterio.open(str(path_1)) as ds_1:
+        with rasterio.open(str(path_2)) as ds_2:
+            meta_1 = ds_1.meta
+            meta_2 = ds_2.meta
+            _assert_field(meta_1, meta_2, "driver")
+            _assert_field(meta_1, meta_2, "dtype")
+            _assert_field(meta_1, meta_2, "nodata")
+            _assert_field(meta_1, meta_2, "width")
+            _assert_field(meta_1, meta_2, "height")
+            _assert_field(meta_1, meta_2, "count")
+            _assert_field(meta_1, meta_2, "crs")
+            ds_1.meta["transform"].almost_equals(ds_1.meta["transform"], precision=1e-7)
             errors = []
-            for i in range(dst_1.count):
+            for i in range(ds_1.count):
 
-                LOGGER.info(f"Checking Band {i + 1}: {dst_1.descriptions[i]}")
+                LOGGER.info(f"Checking Band {i + 1}: {ds_1.descriptions[i]}")
                 try:
-                    marr_1 = dst_1.read(i + 1)
-                    marr_2 = dst_2.read(i + 1)
+                    marr_1 = ds_1.read(i + 1)
+                    marr_2 = ds_2.read(i + 1)
                     np.testing.assert_array_almost_equal(
                         marr_1, marr_2, decimal=decimal
                     )
                 except AssertionError:
-                    text = f"Band {i + 1}: {dst_1.descriptions[i]} failed"
+                    text = f"Band {i + 1}: {ds_1.descriptions[i]} failed"
                     errors.append(text)
                     LOGGER.error(text, exc_info=True)
 
@@ -164,6 +177,28 @@ def assert_geom_almost_equal(
             )
 
 
+def get_db_dir_on_disk() -> Union[CloudPath, Path]:
+    """
+    Get database directory in the DS2
+
+    Returns:
+        str: Database directory
+    """
+    # ON DISK
+    db_dir = AnyPath(r"//ds2/database02/BASES_DE_DONNEES")
+
+    if not db_dir.is_dir():
+        try:
+            db_dir = AnyPath(ci.get_db2_path(), "BASES_DE_DONNEES")
+        except NotADirectoryError:
+            db_dir = AnyPath("/home", "ds2_db2", "BASES_DE_DONNEES")
+
+    if not db_dir.is_dir():
+        raise NotADirectoryError("Impossible to open database directory !")
+
+    return db_dir
+
+
 def get_db_dir() -> Union[CloudPath, Path]:
     """
     Get database directory in the DS2
@@ -178,16 +213,7 @@ def get_db_dir() -> Union[CloudPath, Path]:
         return AnyPath("s3://sertit-geodatastore")
     else:
         # ON DISK
-        db_dir = AnyPath(r"//ds2/database02/BASES_DE_DONNEES")
-
-        if not db_dir.is_dir():
-            try:
-                db_dir = AnyPath(ci.get_db2_path(), "BASES_DE_DONNEES")
-            except NotADirectoryError:
-                db_dir = AnyPath("/home", "ds2_db2", "BASES_DE_DONNEES")
-
-        if not db_dir.is_dir():
-            raise NotADirectoryError("Impossible to open database directory !")
+        db_dir = get_db_dir_on_disk()
 
     return db_dir
 

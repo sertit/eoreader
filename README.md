@@ -14,7 +14,7 @@ clouds, DEM and index in a sensor-agnostic way.
 
 |**Optical sensors** | **SAR sensors**|
 | --- | ---|
-|Sentinel-2 and Sentinel-2 Theia<br>Sentinel-3 OLCI and Sentinel-3 SLSTR<br>Landsat 1 to 8 (MSS, TM, ETM and OLCI)<br>PlanetScope<br>Pleiades<br>SPOT 6-7<br>WorldView-2 to 4, GeoEye-1 (and other Maxar sensors)| Sentinel-1<br>COSMO-Skymed 1st and 2nd Generation<br>TerraSAR-X, TanDEM-X and PAZ<br>RADARSAT-2<br>RADARSAT-Constellation<br>ICEYE|
+|Sentinel-2 and Sentinel-2 Theia<br>Sentinel-3 OLCI and Sentinel-3 SLSTR<br>Landsat 1 to 8 (MSS, TM, ETM and OLCI)<br>PlanetScope<br>Pleiades-Neo<br>Pleiades<br>SPOT 6-7<br>Vision-1<br>WorldView-2 to 4, GeoEye-1 (and other Maxar sensors)| Sentinel-1<br>COSMO-Skymed 1st and 2nd Generation<br>TerraSAR-X, TanDEM-X and PAZ<br>RADARSAT-2<br>RADARSAT-Constellation<br>ICEYE<br>SAOCOM-1|
 
 It also implements additional **sensor-agnostic** features:
 
@@ -107,6 +107,7 @@ Available notebooks provided as examples:
 - [VHR data](https://eoreader.readthedocs.io/en/latest/notebooks/VHR.html)
 - [Sentinel-3 data](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html)
 - [Water detection on multiple products](https://eoreader.readthedocs.io/en/latest/notebooks/water_detection.html)
+- [DEM](https://eoreader.readthedocs.io/en/latest/notebooks/dem.html)
 - [Custom stacks](https://eoreader.readthedocs.io/en/latest/notebooks/custom.html)
 - [Methods to clean optical bands](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html)
 - [S3 Compatible Storage](https://eoreader.readthedocs.io/en/latest/notebooks/s3_compatible_storage.html)

@@ -1,9 +1,11 @@
 """ Script testing EOReader satellites in a push routine """
 import logging
 import os
+import sys
 import tempfile
 
 import numpy as np
+import pytest
 import xarray as xr
 from cloudpathlib import AnyPath
 from geopandas import gpd
@@ -19,7 +21,7 @@ from eoreader.env_vars import (
     TEST_USING_S3_DB,
 )
 from eoreader.keywords import SLSTR_RAD_ADJUST
-from eoreader.products import Product, SensorType, SlstrRadAdjust
+from eoreader.products import Product, S2Product, SensorType, SlstrRadAdjust
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
 
@@ -31,10 +33,14 @@ from .scripts_utils import (
     dask_env,
     get_ci_data_dir,
     get_db_dir,
+    get_db_dir_on_disk,
     opt_path,
+    reduce_verbosity,
     s3_env,
     sar_path,
 )
+
+reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -75,20 +81,10 @@ def set_dem(dem_path):
             )
 
 
-def remove_dem_files(prod):
-    """Remove DEM from product output"""
-    to_del = [
-        prod.output.joinpath(f"{prod.condensed_name}_DEM.tif"),
-        prod.output.joinpath(f"{prod.condensed_name}_HILLSHADE.tif"),
-        prod.output.joinpath(f"{prod.condensed_name}_SLOPE.tif"),
-    ]
-    for to_d in to_del:
-        files.remove(to_d)
-
-
 def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
     """
     Core function testing optical data
+
     Args:
         pattern (str): Pattern of the satellite
         debug (bool): Debug option
@@ -100,6 +96,7 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
 def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
     """
     Core function testing SAR data
+
     Args:
         pattern (str): Pattern of the satellite
         debug (bool): Debug option
@@ -118,6 +115,7 @@ def _test_core(
 ):
     """
     Core function testing all data
+
     Args:
         pattern (str): Pattern of the satellite
         prod_dir (str): Product directory
@@ -128,15 +126,6 @@ def _test_core(
     set_dem(dem_path)
 
     with xr.set_options(warn_for_unclosed_files=debug):
-
-        # Init logger
-        logging.getLogger("boto3").setLevel(
-            logging.WARNING
-        )  # BOTO has way too much verbosity
-        logging.getLogger("botocore").setLevel(
-            logging.WARNING
-        )  # BOTO has way too much verbosity
-
         # DATA paths
         pattern_paths = files.get_file_in_dir(
             prod_dir, pattern, exact_name=True, get_list=True
@@ -163,6 +152,8 @@ def _test_core(
             LOGGER.info("BOTH")
             prod_both = READER.open(path, method=CheckMethod.BOTH)
             assert prod is not None
+            assert prod_name is not None
+            assert prod_both is not None
             assert prod == prod_name
             assert prod == prod_both
 
@@ -231,9 +222,6 @@ def _test_core(
                     LOGGER.warning("Footprint not equal, trying almost equal.")
                     assert_geom_almost_equal(footprint, footprint_path)
 
-                # Remove DEM tifs if existing
-                remove_dem_files(prod)
-
                 # BAND TESTS
                 LOGGER.info("Checking load and stack")
                 # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
@@ -241,11 +229,19 @@ def _test_core(
                 first_band = stack_bands[0]
 
                 # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
-                band_arr1 = prod.load(first_band, resolution=res)[first_band]
+                assert prod.load([]) == {}
+                band_arr_raw = prod.load(
+                    first_band.value, resolution=res, clean_optical="raw"
+                )[first_band]
+                band_arr1 = prod.load(
+                    first_band, resolution=res, clean_optical="nodata"
+                )[first_band]
                 band_arr2 = prod.load(first_band, resolution=res)[first_band]
                 np.testing.assert_array_almost_equal(band_arr1, band_arr2)
+                assert band_arr_raw.dtype == np.float32
                 assert band_arr1.dtype == np.float32
                 assert band_arr2.dtype == np.float32
+                assert band_arr_raw.shape == band_arr1.shape
 
                 # Get stack bands
                 # Stack data
@@ -314,21 +310,38 @@ def _test_core(
                 assert band_arr.attrs["condensed_name"] == prod.condensed_name
                 assert band_arr.attrs["product_path"] == str(prod.path)
 
-            # CRS
-            LOGGER.info("Checking CRS")
-            assert prod.crs.is_projected
+                # CLOUDS: just try to load them without testing it
+                LOGGER.info("Loading clouds")
+                cloud_bands = [CLOUDS, ALL_CLOUDS, RAW_CLOUDS, CIRRUS, SHADOWS]
+                ok_clouds = [cloud for cloud in cloud_bands if prod.has_band(cloud)]
+                prod.load(ok_clouds, size=(stack.rio.width, stack.rio.height))  # noqa
 
-            # MTD
-            LOGGER.info("Checking Mtd")
-            mtd_xml, nmsp = prod.read_mtd()
-            assert isinstance(mtd_xml, etree._Element)
-            assert isinstance(nmsp, dict)
+                # Check if no error
+                LOGGER.info("get_default_band_path")
+                prod.get_default_band_path()  # noqa
 
-            # Clean temp
-            if not debug:
-                LOGGER.info("Cleaning tmp")
-                prod.clean_tmp()
-                assert len(list(prod._tmp_process.glob("*"))) == 0
+                LOGGER.info("get_existing_band_paths")
+                prod.get_existing_band_paths()  # noqa
+
+                # Check if possible to load narrow nir, without checking result
+                if isinstance(prod, S2Product) and not prod._processing_baseline_lt_4_0:
+                    prod.load(NARROW_NIR)
+
+                # CRS
+                LOGGER.info("Checking CRS")
+                assert prod.crs.is_projected
+
+                # MTD
+                LOGGER.info("Checking Mtd")
+                mtd_xml, nmsp = prod.read_mtd()
+                assert isinstance(mtd_xml, etree._Element)
+                assert isinstance(nmsp, dict)
+
+                # Clean temp
+                if not debug:
+                    LOGGER.info("Cleaning tmp")
+                    prod.clean_tmp()
+                    assert len(list(prod._tmp_process.glob("*"))) == 0
 
             prod.clear()
 
@@ -392,6 +405,10 @@ def test_l4_tm():
     _test_core_optical("*LT04*")
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32" or os.getenv(CI_EOREADER_S3) == "0",
+    reason="Weirdly, Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk",
+)
 @s3_env
 @dask_env
 def test_l5_mss():
@@ -443,6 +460,13 @@ def test_pld():
 
 @s3_env
 @dask_env
+def test_pneo():
+    """Function testing the support of Pleiades-Neo sensor"""
+    _test_core_optical("*IMG_*_PNEO*")
+
+
+@s3_env
+@dask_env
 def test_spot6():
     """Function testing the support of SPOT-6 sensor"""
     _test_core_optical("*IMG_SPOT6*")
@@ -453,9 +477,7 @@ def test_spot6():
 def test_spot7():
     """Function testing the support of SPOT-7 sensor"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
-    dem_path = os.path.join(
-        ci.get_db2_path(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
-    )
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*IMG_SPOT7*", dem_path=dem_path)
 
 
@@ -464,9 +486,7 @@ def test_spot7():
 def test_wv02_wv03():
     """Function testing the support of WorldView-2/3 sensors"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
-    dem_path = os.path.join(
-        ci.get_db2_path(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
-    )
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*P001_MUL*", dem_path=dem_path)
 
 
@@ -475,6 +495,14 @@ def test_wv02_wv03():
 def test_ge01_wv04():
     """Function testing the support of GeoEye-1/WorldView-4 sensors"""
     _test_core_optical("*P001_PSH*")
+
+
+@s3_env
+@dask_env
+def test_vs1():
+    """Function testing the support of Vision-1 sensor"""
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
+    _test_core_optical("*VIS1_MS4*", dem_path=dem_path)
 
 
 @s3_env
@@ -534,6 +562,13 @@ def test_iceye():
     _test_core_sar("*SC_*")
 
 
+@s3_env
+@dask_env
+def test_saocom():
+    """Function testing the support of SAOCOM sensor"""
+    _test_core_sar("*SAO*")
+
+
 # TODO:
 # check non existing bands
 # check cloud results
@@ -543,3 +578,10 @@ def test_invalid():
     wrong_path = "dzfdzef"
     assert READER.open(wrong_path) is None
     assert not READER.valid_name(wrong_path, "S2")
+
+
+@s3_env
+@dask_env
+def test_sar():
+    """Function testing some other SAR methods"""
+    # TODO

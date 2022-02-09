@@ -1,5 +1,6 @@
 import logging
 import os
+import tempfile
 
 from sertit import files
 
@@ -38,30 +39,33 @@ def _test_sar(pattern, **kwargs):
 
     bands = [HH, VV]
     all_sar_paths = get_ci_db_dir().joinpath("all_sar")
-    output = get_ci_db_dir().joinpath("all_sar_output")
 
-    # DATA paths
-    pattern_paths = files.get_file_in_dir(
-        all_sar_paths, pattern, exact_name=True, get_list=True
-    )
-    for sar_path in pattern_paths:
-        prod = Reader().open(sar_path)
-        is_zip = "_ZIP" if prod.is_archived else ""
-        prod.output = output / f"{prod.condensed_name}{is_zip}"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        output = tmp_dir
+        # output = get_ci_db_dir().joinpath("all_sar_output")
 
-        LOGGER.info(
-            "%s on drive %s (CI_EOREADER_S3: %s)",
-            sar_path.name,
-            sar_path.drive,
-            os.getenv(CI_EOREADER_S3),
+        # DATA paths
+        pattern_paths = files.get_file_in_dir(
+            all_sar_paths, pattern, exact_name=True, get_list=True
         )
+        for sar_path in pattern_paths:
+            prod = Reader().open(sar_path)
+            is_zip = "_ZIP" if prod.is_archived else ""
+            prod.output = os.path.join(output, f"{prod.condensed_name}{is_zip}")
 
-        # Load band
-        ok_bands = [band for band in bands if prod.has_band(band)]
-        prod.load(ok_bands, resolution=prod.resolution * 20)
+            LOGGER.info(
+                "%s on drive %s (CI_EOREADER_S3: %s)",
+                sar_path.name,
+                sar_path.drive,
+                os.getenv(CI_EOREADER_S3),
+            )
 
-        # Get extent
-        ext = prod.extent  # noqa
+            # Load band
+            ok_bands = [band for band in bands if prod.has_band(band)]
+            prod.load(ok_bands, resolution=prod.resolution * 20)
+
+            # Get extent
+            ext = prod.extent  # noqa
 
 
 @dask_env

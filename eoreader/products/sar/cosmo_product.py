@@ -165,7 +165,7 @@ class CosmoProduct(SarProduct):
         """
         root, _ = self.read_mtd()
 
-        # Open zenith and azimuth angle
+        # Open extent coordinates
         try:
 
             def from_str_to_arr(geo_coord: str):
@@ -253,11 +253,9 @@ class CosmoProduct(SarProduct):
         # Get MTD XML file
         root, _ = self.read_mtd()
 
-        # Open identifier
-        try:
-            # DGM_B, or SCS_B -> remove last 2 characters
-            prod_type = root.findtext(".//ProductType")[:-2]
-        except TypeError:
+        # DGM_B, or SCS_B -> remove last 2 characters
+        prod_type = root.findtext(".//ProductType")[:-2]
+        if not prod_type:
             raise InvalidProductError("mode not found in metadata!")
 
         self.product_type = CosmoProductType.from_value(prod_type)
@@ -296,9 +294,8 @@ class CosmoProduct(SarProduct):
             root, _ = self.read_mtd()
 
             # Open identifier
-            try:
-                acq_date = root.findtext(".//SceneSensingStartUTC")
-            except TypeError:
+            acq_date = root.findtext(".//SceneSensingStartUTC")
+            if not acq_date:
                 raise InvalidProductError("SceneSensingStartUTC not found in metadata!")
 
             # Convert to datetime
@@ -320,17 +317,13 @@ class CosmoProduct(SarProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # Get MTD XML file
-            root, _ = self.read_mtd()
+        # Get MTD XML file
+        root, _ = self.read_mtd()
 
-            # Open identifier
-            try:
-                name = files.get_filename(root.findtext(".//ProductName"))
-            except TypeError:
-                raise InvalidProductError("ProductName not found in metadata!")
-        else:
-            name = self.name
+        # Open identifier
+        name = files.get_filename(root.findtext(".//ProductName"))
+        if not name:
+            raise InvalidProductError("ProductName not found in metadata!")
 
         return name
 

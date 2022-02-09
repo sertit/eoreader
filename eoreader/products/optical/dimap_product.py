@@ -128,6 +128,12 @@ class DimapBandCombination(ListEnum):
     (3 bands: GREEN RED NIR)
     """
 
+    MS_FS = "Multi Spectral Full"
+    """
+    Full MS: Multispectral (6 bands).
+    Only Pleiades-Neo
+    """
+
     PMS = "Pansharpened Multi Spectral"
     """
     Pan-sharpened products combine the visual coloured information of the Multispectral data with the details
@@ -148,6 +154,12 @@ class DimapBandCombination(ListEnum):
     (3 bands: GREEN RED NIR)
     """
 
+    PMS_FS = "Pansharpened Multi Spectral Full"
+    """
+    Full PMS: Pansharpening (6 bands).
+    Only Pleiades-Neo
+    """
+
 
 class DimapProduct(VhrProduct):
     """
@@ -163,12 +175,6 @@ class DimapProduct(VhrProduct):
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
     ) -> None:
-        self.ortho_path = None
-        """
-        Orthorectified path.
-        Can be set to use manually orthorectified or pansharpened data, especially useful for VHR data on steep terrain.
-        """
-
         self._empty_mask = []
 
         # Initialization from the super class
@@ -180,6 +186,7 @@ class DimapProduct(VhrProduct):
         (setting needs_extraction and so on)
         """
         self.needs_extraction = False
+        self._proj_prod_type = [DimapProductType.SEN, DimapProductType.PRJ]
 
         # Post init done by the super class
         super()._pre_init()
@@ -206,7 +213,7 @@ class DimapProduct(VhrProduct):
         """
         Set product default resolution (in meters)
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _set_product_type(self) -> None:
         """Set products type"""
@@ -221,8 +228,28 @@ class DimapProduct(VhrProduct):
             self.band_names.map_bands(
                 {obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1, obn.NIR: 4, obn.NARROW_NIR: 4}
             )
-        elif self.band_combi in [DimapBandCombination.MS_N, DimapBandCombination.PMS_N]:
+        elif self.band_combi in [
+            DimapBandCombination.MS_N,
+            DimapBandCombination.PMS_N,
+            DimapBandCombination.PMS_FS,
+        ]:
             self.band_names.map_bands({obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1})
+        elif self.band_combi in [
+            DimapBandCombination.MS_FS,
+            DimapBandCombination.PMS_FS,
+        ]:
+            self.band_names.map_bands(
+                {
+                    obn.BLUE: 3,
+                    obn.GREEN: 2,
+                    obn.RED: 1,
+                    obn.NIR: 4,
+                    obn.VRE_1: 5,
+                    obn.VRE_2: 5,
+                    obn.VRE_3: 5,
+                    obn.CA: 6,
+                }
+            )
         elif self.band_combi in [DimapBandCombination.MS_X, DimapBandCombination.PMS_X]:
             self.band_names.map_bands(
                 {obn.GREEN: 1, obn.RED: 2, obn.NIR: 3, obn.NARROW_NIR: 3}
@@ -286,7 +313,7 @@ class DimapProduct(VhrProduct):
         return utm
 
     @cached_property
-    def footprint(self) -> gpd.GeoDataFrame:
+    def extent(self, **kwargs) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
 
@@ -303,7 +330,28 @@ class DimapProduct(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        return self.open_mask("ROI").to_crs(self.crs)
+        # TODO: parse KMZ - product - xxxx ?
+        return super().extent
+
+    @cached_property
+    def footprint(self, **kwargs) -> gpd.GeoDataFrame:
+        """
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"IMG_PHR1B_PMS_001"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint
+                                                         gml_id  ...                                           geometry
+            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
+            [1 rows x 3 columns]
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        """
+        return self.open_mask("ROI", **kwargs).to_crs(self.crs)
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -340,9 +388,14 @@ class DimapProduct(VhrProduct):
             try:
                 time_dt = time.strptime(time_str, "%H:%M:%S.%fZ")
             except ValueError:
-                time_dt = time.strptime(
-                    time_str, "%H:%M:%S.%f"
-                )  # Sometimes without a Z
+                try:
+                    time_dt = time.strptime(
+                        time_str, "%H:%M:%S.%f"
+                    )  # Sometimes without a Z
+                except ValueError:
+                    time_dt = time.strptime(
+                        time_str, "%H:%M:%S"
+                    )  # Sometimes without microseconds
 
             date_str = (
                 f"{date_dt.strftime('%Y%m%d')}T{time.strftime('%H%M%S', time_dt)}"
@@ -365,35 +418,7 @@ class DimapProduct(VhrProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        return files.get_filename(self._get_dimap_path()).replace("DIM_", "")
-
-    def _get_ortho_path(self) -> Union[CloudPath, Path]:
-        """
-        Get the orthorectified path of the bands.
-
-        Returns:
-            Union[CloudPath, Path]: Orthorectified path
-        """
-        if self.product_type in [DimapProductType.SEN, DimapProductType.PRJ]:
-            ortho_name = f"{self.condensed_name}_ortho.tif"
-            ortho_path = self._get_band_folder().joinpath(ortho_name)
-            if not ortho_path.is_file():
-                ortho_path = self._get_band_folder(writable=True).joinpath(ortho_name)
-                LOGGER.info(
-                    f"Manually orthorectified stack not given by the user. "
-                    f"Reprojecting data here: {ortho_path} "
-                    "(May be inaccurate on steep terrain, depending on the DEM resolution.)"
-                )
-
-                # Reproject and write on disk data
-                with rasterio.open(str(self._get_dimap_path())) as src:
-                    out_arr, meta = self._reproject(src.read(), src.meta, src.rpcs)
-                    rasters_rio.write(out_arr, meta, ortho_path)
-
-        else:
-            ortho_path = self._get_dimap_path()
-
-        return ortho_path
+        return files.get_filename(self._get_tile_path()).replace("DIM_", "")
 
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
@@ -420,24 +445,29 @@ class DimapProduct(VhrProduct):
         )
 
         # Get detector footprint to deduce the outside nodata
-        nodata = self._load_nodata(width, height, vec_tr)
+        nodata = self._load_nodata(width, height, vec_tr, **kwargs)
 
         #  Load masks and merge them into the nodata
-        nodata_vec = self.open_mask("DET")  # Out of order detectors
-        nodata_vec.append(self.open_mask("VIS"))  # Hidden area vector mask
-        nodata_vec.append(self.open_mask("SLT"))  # Straylight vector mask
+        try:
+            nodata_vec = self.open_mask("DET", **kwargs)  # Out of order detectors
+            nodata_vec.append(
+                self.open_mask("VIS", **kwargs)
+            )  # Hidden area vector mask
+            nodata_vec.append(self.open_mask("SLT", **kwargs))  # Straylight vector mask
 
-        if len(nodata_vec) > 0:
-            # Rasterize mask
-            mask = features.rasterize(
-                nodata_vec.geometry,
-                out_shape=(height, width),
-                fill=self._mask_false,  # Outside vector
-                default_value=self._mask_true,  # Inside vector
-                transform=vec_tr,
-                dtype=np.uint8,
-            )
-            nodata = nodata | mask
+            if len(nodata_vec) > 0:
+                # Rasterize mask
+                mask = features.rasterize(
+                    nodata_vec.geometry,
+                    out_shape=(height, width),
+                    fill=self._mask_false,  # Outside vector
+                    default_value=self._mask_true,  # Inside vector
+                    transform=vec_tr,
+                    dtype=np.uint8,
+                )
+                nodata = nodata | mask
+        except InvalidProductError:
+            pass
 
         return self._set_nodata_mask(band_arr, nodata)
 
@@ -461,18 +491,9 @@ class DimapProduct(VhrProduct):
         )
 
         # Get detector footprint to deduce the outside nodata
-        nodata = self._load_nodata(width, height, vec_tr)
+        nodata = self._load_nodata(width, height, vec_tr, **kwargs)
 
         return self._set_nodata_mask(band_arr, nodata)
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get PlanetScope products condensed name ({date}_PLD_{product_type}_{band_combi}).
-
-        Returns:
-            str: Condensed name
-        """
-        return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}_{self.band_combi.name}"
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
@@ -555,7 +576,7 @@ class DimapProduct(VhrProduct):
 
         if bands:
             # Load cloud vector
-            cld_vec = self.open_mask("CLD")
+            cld_vec = self.open_mask("CLD", **kwargs)
             has_vec = len(cld_vec) > 0
 
             # Load default xarray as a template
@@ -578,7 +599,7 @@ class DimapProduct(VhrProduct):
                 vec_tr = transform.from_bounds(
                     *def_xarr.rio.bounds(), def_xarr.rio.width, def_xarr.rio.height
                 )
-                nodata = self._load_nodata(width, height, vec_tr)
+                nodata = self._load_nodata(width, height, vec_tr, **kwargs)
 
                 # Rasterize features if existing vector
                 if has_vec:
@@ -611,11 +632,11 @@ class DimapProduct(VhrProduct):
                 # Rename
                 band_name = to_str(band)[0]
                 cloud.attrs["long_name"] = band_name
-                band_dict[band] = cloud.rename(band_name)
+                band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict
 
-    def open_mask(self, mask_str: str) -> gpd.GeoDataFrame:
+    def open_mask(self, mask_str: str, **kwargs) -> gpd.GeoDataFrame:
         """
         Open DIMAP V2 mask (GML files stored in MASKS) as :code:`gpd.GeoDataFrame`.
 
@@ -664,7 +685,7 @@ class DimapProduct(VhrProduct):
                 try:
                     mask = vectors.read(
                         self.path,
-                        archive_regex=f".*MASKS.*{mask_str}.*_MSK\.GML",
+                        archive_regex=f".*MASKS.*{mask_str}.*\.GML",
                         crs=crs,
                     )
                 except Exception:
@@ -678,7 +699,7 @@ class DimapProduct(VhrProduct):
                 try:
                     mask_gml_path = files.get_file_in_dir(
                         self.path.joinpath("MASKS"),
-                        f"*{mask_str}*_MSK.GML",
+                        f"*{mask_str}*.GML",
                         exact_name=True,
                     )
 
@@ -697,7 +718,7 @@ class DimapProduct(VhrProduct):
                 DimapProductType.PRJ,
             ]:
                 LOGGER.info(f"Orthorectifying {mask_str}")
-                with rasterio.open(str(self._get_dimap_path())) as dim_dst:
+                with rasterio.open(str(self._get_tile_path())) as dim_dst:
                     # Rasterize mask (no transform as we have teh vector in image geometry)
                     LOGGER.debug(f"\tRasterizing {mask_str}")
                     mask_raster = features.rasterize(
@@ -710,8 +731,9 @@ class DimapProduct(VhrProduct):
 
                     # Reproject mask raster
                     LOGGER.debug(f"\tReprojecting {mask_str}")
+                    dem_path = self._get_dem_path(**kwargs)
                     reproj_data = self._reproject(
-                        mask_raster, dim_dst.meta, dim_dst.rpcs
+                        mask_raster, dim_dst.meta, dim_dst.rpcs, dem_path, **kwargs
                     )
 
                     # Vectorize mask raster
@@ -747,10 +769,7 @@ class DimapProduct(VhrProduct):
         return mask
 
     def _load_nodata(
-        self,
-        width: int,
-        height: int,
-        transform: affine.Affine,
+        self, width: int, height: int, transform: affine.Affine, **kwargs
     ) -> Union[np.ndarray, None]:
         """
         Load nodata (unimaged pixels) as a numpy array.
@@ -764,7 +783,7 @@ class DimapProduct(VhrProduct):
             Union[np.ndarray, None]: Nodata array
 
         """
-        nodata_det = self.open_mask("ROI")
+        nodata_det = self.open_mask("ROI", **kwargs)
 
         # Rasterize nodata
         return features.rasterize(
@@ -776,7 +795,7 @@ class DimapProduct(VhrProduct):
             dtype=np.uint8,
         )
 
-    def _get_dimap_path(self) -> Union[CloudPath, Path]:
+    def _get_tile_path(self) -> Union[CloudPath, Path]:
         """
         Get the DIMAP filepath
 

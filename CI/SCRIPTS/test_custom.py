@@ -6,7 +6,7 @@ from sertit import ci
 
 from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH
-from eoreader.exceptions import InvalidTypeError
+from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SensorType
 
 from .scripts_utils import READER, dask_env, get_db_dir, others_path, s3_env
@@ -122,7 +122,6 @@ def test_custom():
     sar_stack = others_path() / "20210827T162210_ICEYE_SC_GRD_STK.tif"
 
     # Load with all info
-    opt_stack = others_path() / "20200310T030415_WV02_Ortho_BGRN_STK.tif"
     prod_sar = READER.open(
         sar_stack,
         custom=True,
@@ -137,7 +136,7 @@ def test_custom():
     extent_sar = prod_sar.extent
     footprint_sar = prod_sar.footprint
     crs_sar = prod_sar.crs
-    stack_sar = prod_sar.stack([VV, VV_DSPK])
+    stack_sar = prod_sar.stack([VV, VV_DSPK], prod_sar.resolution * 10)
 
     # Check attributes
     assert stack_sar.attrs["long_name"] == "VV VV_DSPK"
@@ -150,12 +149,16 @@ def test_custom():
 
     # MIX
     prod_wtf = READER.open(
-        sar_stack, custom=True, sensor_type=SensorType.SAR, band_map={HH: 1, RH: 2}
+        sar_stack,
+        custom=True,
+        sensor_type=SensorType.SAR,
+        band_map={HH: 1, RH: 2},
+        default_resolution=6.0,
     )
     extent_wtf = prod_wtf.extent
     footprint_wtf = prod_wtf.footprint
     crs_wtf = prod_wtf.crs
-    stack_wtf = prod_wtf.stack([HH, RH])
+    stack_wtf = prod_wtf.stack([HH, RH], prod_wtf.resolution * 10)
 
     ci.assert_geom_equal(extent_sar, extent_wtf)
     ci.assert_geom_equal(footprint_sar, footprint_wtf)
@@ -163,6 +166,61 @@ def test_custom():
 
     np.testing.assert_array_equal(stack_sar.data, stack_wtf.data)
 
+    # WGS84
+    wgs84_stack = others_path() / "SPOT6_WGS84.tif"
+    prod_wgs84 = READER.open(
+        wgs84_stack,
+        custom=True,
+        sensor_type=SensorType.OPTICAL,
+        name="SPOT6_WGS84",
+        acquisition_datetime="20181218T0938",
+        platform="SPOT6",
+        default_resolution=1.5 * 15,
+        product_type="ORT",
+        band_map={RED: 1, GREEN: 2, BLUE: 3, NIR: 4},
+    )
+
+    # Check geometries -> assert projected
+    with pytest.raises(InvalidProductError):
+        prod_wgs84.extent  # noqa
+
+    with pytest.raises(InvalidProductError):
+        prod_wgs84.footprint  # noqa
+
+    with pytest.raises(InvalidProductError):
+        prod_wgs84.crs  # noqa
+
+    # Read mtd
+    root, nsp = prod_wgs84.read_mtd()
+    assert nsp == {}
+    assert root.findtext("name") == "SPOT6_WGS84"
+    assert root.findtext("datetime") == "2018-12-18 09:03:08"
+    assert root.findtext("sensor_type") == "SensorType.OPTICAL"
+    assert root.findtext("platform") == "Platform.SPOT6"
+    assert root.findtext("resolution") == str(1.5 * 15)
+    assert root.findtext("product_type") == "ORT"
+    assert root.findtext("band_names") == "{'BLUE': 3, 'GREEN': 2, 'RED': 1, 'NIR': 4}"
+    assert root.findtext("sun_az") == "None"
+    assert root.findtext("sun_zen") == "None"
+
+    # Band paths
+    assert prod_wgs84.get_existing_bands() == [BLUE, GREEN, RED, NIR]
+    assert prod_wgs84.get_default_band() == BLUE
+    for key, path in prod_wgs84.get_existing_band_paths().items():
+        assert key in [BLUE, GREEN, RED, NIR]
+        assert str(path) == str(wgs84_stack)
+
+    # Load without a list and nothing
+    with pytest.raises(InvalidProductError):
+        prod_wgs84.load(BLUE, size=[3863, 1049])[BLUE]  # noqa
+
+    # Try non available clouds and bands
+    assert prod_wgs84.load([]) == {}
+    assert not prod_wgs84.has_bands(CLOUDS)
+    with pytest.raises(AssertionError):
+        prod_wgs84.load(CLOUDS, YELLOW)
+
+    # Invalid tests
     with pytest.raises(InvalidTypeError):
         READER.open(
             opt_stack,

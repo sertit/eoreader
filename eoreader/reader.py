@@ -124,11 +124,17 @@ class Platform(ListEnum):
     PLD = "Pleiades"
     """Pléiades"""
 
+    PNEO = "Pleiades-Neo"
+    """Pleiades-Néo"""
+
     SPOT7 = "Spot-7"
     """SPOT-7"""
 
     SPOT6 = "Spot-6"
     """SPOT-6"""
+
+    VIS1 = "Vision-1"
+    """Vision-1"""
 
     RCM = "RADARSAT-Constellation Mission"
     """RADARSAT-Constellation Mission"""
@@ -156,6 +162,9 @@ class Platform(ListEnum):
 
     ICEYE = "ICEYE"
     """ICEYE"""
+
+    SAOCOM = "SAOCOM-1"
+    """SAOCOM-1"""
 
     CUSTOM = "CUSTOM"
     """Custom stack"""
@@ -191,64 +200,73 @@ PLATFORM_REGEX = {
     Platform.RS2: r"RS2_(OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}|\d{8}_\d{6}_\d{4}_.{1,5})"
     r"(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)(_\d{6}_\d{4}_\d{8}|)",
     Platform.PLD: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
+    Platform.PNEO: r"IMG_\d+_PNEO\d_(P|MS|PMS|MS-FS|PMS-FS)",
     Platform.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Platform.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
+    Platform.VIS1: r"VIS1_(PAN|BUN|PSH|MS4)_.+_\d{2}-\d",
     Platform.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
-    Platform.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Platform.QB: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Platform.GE01: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Platform.WV01: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Platform.WV02: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Platform.WV03: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Platform.WV04: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Platform.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Platform.ICEYE: r"((SM|SL|SC|SLEA)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC|SLEA)H*_\d{5,}_\d{8}T\d{6})",
+    Platform.SAOCOM: r".+EOL1[ABCD]SARSAO1[AB]\d+(-product|)",
 }
 
-# Not used for now
 MTD_REGEX = {
-    Platform.S1: r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}\.xml",
-    Platform.S2: [
-        r"MTD_MSIL(1C|2A)\.xml",
-    ],
-    Platform.S2_THEIA: f"{PLATFORM_REGEX[Platform.S2_THEIA]}_MTD_ALL\.xml",
-    Platform.S3_OLCI: [
-        r"Oa\d{2}_radiance.nc",
-    ],
-    Platform.S3_SLSTR: [
-        r"S\d_radiance_an.nc",
-    ],
-    Platform.L8: f"{PLATFORM_REGEX[Platform.L8]}_MTL\.txt",
-    Platform.L7: f"{PLATFORM_REGEX[Platform.L7]}_MTL\.txt",
-    Platform.L5: f"{PLATFORM_REGEX[Platform.L5]}_MTL\.txt",
-    Platform.L4: f"{PLATFORM_REGEX[Platform.L4]}_MTL\.txt",
-    Platform.L3: f"{PLATFORM_REGEX[Platform.L3]}_MTL\.txt",
-    Platform.L2: f"{PLATFORM_REGEX[Platform.L2]}_MTL\.txt",
-    Platform.L1: f"{PLATFORM_REGEX[Platform.L1]}_MTL\.txt",
-    Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*metadata.*\.xml",
-    Platform.CSK: f"{PLATFORM_REGEX[Platform.CSK][1]}\.xml",
-    Platform.CSG: f"{PLATFORM_REGEX[Platform.CSG][1]}\.xml",
-    Platform.TSX: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
-    Platform.TDX: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
-    Platform.PAZ: f"{PLATFORM_REGEX[Platform.TSX]}\.xml",
+    Platform.S1: {
+        "nested": 1,
+        # File that can be found at any level (product/**/file)
+        "regex": r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}\.xml",
+    },
+    Platform.S2: r"MTD_MSIL(1C|2A)\.xml",
+    Platform.S2_THEIA: rf"{PLATFORM_REGEX[Platform.S2_THEIA]}_MTD_ALL\.xml",
+    Platform.S3_OLCI: r"Oa\d{2}_radiance.nc",
+    Platform.S3_SLSTR: r"S\d_radiance_an.nc",
+    Platform.L8: rf"{PLATFORM_REGEX[Platform.L8]}_MTL\.txt",
+    Platform.L7: rf"{PLATFORM_REGEX[Platform.L7]}_MTL\.txt",
+    Platform.L5: rf"{PLATFORM_REGEX[Platform.L5]}_MTL\.txt",
+    Platform.L4: rf"{PLATFORM_REGEX[Platform.L4]}_MTL\.txt",
+    Platform.L3: rf"{PLATFORM_REGEX[Platform.L3]}_MTL\.txt",
+    Platform.L2: rf"{PLATFORM_REGEX[Platform.L2]}_MTL\.txt",
+    Platform.L1: rf"{PLATFORM_REGEX[Platform.L1]}_MTL\.txt",
+    Platform.PLA: {
+        "nested": -1,  # File that can be found at any level (product/**/file)
+        "regex": r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*metadata.*\.xml",
+    },
+    Platform.CSK: rf"{PLATFORM_REGEX[Platform.CSK][1]}\.xml",
+    Platform.CSG: rf"{PLATFORM_REGEX[Platform.CSG][1]}\.xml",
+    Platform.TSX: rf"{PLATFORM_REGEX[Platform.TSX]}\.xml",
+    Platform.TDX: rf"{PLATFORM_REGEX[Platform.TSX]}\.xml",
+    Platform.PAZ: rf"{PLATFORM_REGEX[Platform.TSX]}\.xml",
     Platform.RS2: [
         r"product\.xml",  # Too generic name, check also a band
         r"imagery_[HV]{2}\.tif",
     ],
     Platform.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
+    Platform.PNEO: r"DIM_PNEO\d_\d{15}_(P|MS|PMS|MS-FS|PMS-FS)_(SEN|PRJ|ORT|MOS)_.{9,}_._._._.\.XML",
     Platform.SPOT7: r"DIM_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Platform.SPOT6: r"DIM_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
-    Platform.RCM: [
-        r"product\.xml",  # Too generic name, check also a band
-        r"\d+_[RHV]{2}\.tif",
-    ],
-    Platform.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.VIS1: r"DIM_VIS1_(PSH|MS4|PAN)_\d{14}_(PRJ|ORTP)_S\d{5,}_\d{4}_Meta\.xml",
+    Platform.RCM: {
+        "nested": 1,  # File that can be found at 1st folder level (product/*/file)
+        "regex": [
+            r"product\.xml",  # Too generic name, check also a band
+            r"\d+_[RHV]{2}\.tif",
+        ],
+    },
     Platform.QB: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Platform.GE01: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Platform.WV01: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Platform.WV02: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Platform.WV03: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Platform.WV04: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Platform.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Platform.ICEYE: r"ICEYE_X\d{1,}_(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
+    Platform.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
 }
 
 
@@ -262,6 +280,7 @@ class Reader:
     def __init__(self):
         self._platform_regex = {}
         self._mtd_regex = {}
+        self._mtd_nested = {}
 
         # Register platforms
         for platform, regex in PLATFORM_REGEX.items():
@@ -269,7 +288,14 @@ class Reader:
 
         # Register metadata
         for platform, regex in MTD_REGEX.items():
-            self._mtd_regex[platform] = self._compile(regex, prefix=".*", suffix="")
+            if isinstance(regex, dict):
+                self._mtd_regex[platform] = self._compile(
+                    regex["regex"], prefix=".*", suffix=""
+                )
+                self._mtd_nested[platform] = regex["nested"]
+            else:
+                self._mtd_regex[platform] = self._compile(regex, prefix=".*", suffix="")
+                self._mtd_nested[platform] = 0
 
     @staticmethod
     def _compile(regex: Union[str, list], prefix="^", suffix="&") -> list:
@@ -486,13 +512,22 @@ class Reader:
 
         # Here the list is a check of several files
         regex_list = self._mtd_regex[platform]
+        nested = self._mtd_nested[platform]
 
         # False by default
         is_valid = [False for idx in regex_list]
 
         # Folder
         if product_path.is_dir():
-            prod_files = list(product_path.glob("**/*.*"))
+            if nested < 0:
+                prod_files = list(product_path.glob("**/*.*"))
+            elif nested == 0:
+                prod_files = list(
+                    path for path in product_path.iterdir() if path.is_file()
+                )
+            else:
+                nested_wildcard = "/".join(["*" for i in range(nested)])
+                prod_files = list(product_path.glob(f"*{nested_wildcard}/*.*"))
 
         # Archive
         else:

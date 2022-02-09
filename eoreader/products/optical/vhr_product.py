@@ -37,12 +37,13 @@ from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
-from sertit.vectors import WGS84
 from shapely.geometry import box
 
 from eoreader import cached_property, utils
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import DEM_PATH
+from eoreader.exceptions import InvalidProductError
+from eoreader.keywords import DEM_KW
 from eoreader.products import OpticalProduct
 from eoreader.utils import EOREADER_NAME
 
@@ -69,21 +70,15 @@ class VhrProduct(OpticalProduct):
         Can be set to use manually orthorectified or pansharpened data, especially useful for VHR data on steep terrain.
         """
 
+        self._proj_prod_type = []
+
+        self.band_combi = None
+
         # Order id (product name more or less)
         self._order_id = None
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
-
-    @abstractmethod
-    def _get_raw_crs(self) -> CRS:
-        """
-        Get raw CRS of the tile
-
-        Returns:
-            rasterio.crs.CRS: CRS object
-        """
-        raise NotImplementedError("This method should be implemented by a child class")
 
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
@@ -111,6 +106,16 @@ class VhrProduct(OpticalProduct):
         """
         return self._get_default_utm_band(self.resolution, **kwargs)
 
+    @abstractmethod
+    def _get_raw_crs(self) -> CRS:
+        """
+        Get raw CRS of the tile
+
+        Returns:
+            rasterio.crs.CRS: CRS object
+        """
+        raise NotImplementedError
+
     @cached_property
     def extent(self) -> gpd.GeoDataFrame:
         """
@@ -132,16 +137,69 @@ class VhrProduct(OpticalProduct):
         bounds = transform.array_bounds(def_h, def_w, def_tr)
         return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs).to_crs(self.crs)
 
-    @abstractmethod
-    def _get_ortho_path(self) -> Union[CloudPath, Path]:
+    @cached_property
+    def footprint(self) -> gpd.GeoDataFrame:
+        """
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"IMG_PHR1B_PMS_001"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint
+                                                         gml_id  ...                                           geometry
+            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
+            [1 rows x 3 columns]
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        """
+        # Get footprint
+        # TODO: Optimize that
+        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs)
+
+    def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
         Get the orthorectified path of the bands.
 
         Returns:
             Union[CloudPath, Path]: Orthorectified path
         """
+        if self.product_type in self._proj_prod_type:
+            ortho_name = f"{self.condensed_name}_ortho.tif"
+            ortho_path = self._get_band_folder().joinpath(ortho_name)
+            if not ortho_path.is_file():
+                ortho_path = self._get_band_folder(writable=True).joinpath(ortho_name)
+                LOGGER.info(
+                    "Manually orthorectified stack not given by the user. "
+                    "Reprojecting whole stack, this may take a while. "
+                    "(May be inaccurate on steep terrain, depending on the DEM resolution)"
+                )
 
-        raise NotImplementedError("This method should be implemented by a child class")
+                # Reproject and write on disk data
+                dem_path = self._get_dem_path(**kwargs)
+                with rasterio.open(str(self._get_tile_path())) as src:
+                    if "rpcs" in kwargs:
+                        rpcs = kwargs.pop("rpcs")
+                    else:
+                        rpcs = src.rpcs
+
+                    if not rpcs:
+                        raise InvalidProductError(
+                            "Your projected VHR data doesn't have any RPC. "
+                            "EOReader cannot orthorectify it!"
+                        )
+
+                    out_arr, meta = self._reproject(
+                        src.read(), src.meta, rpcs, dem_path, **kwargs
+                    )
+                    rasters_rio.write(out_arr, meta, ortho_path)
+
+        else:
+            ortho_path = self._get_tile_path()
+
+        return ortho_path
 
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
@@ -172,7 +230,7 @@ class VhrProduct(OpticalProduct):
             dict: Dictionary containing the path of each queried band
         """
         if not self.ortho_path:
-            self.ortho_path = self._get_ortho_path()
+            self.ortho_path = self._get_ortho_path(**kwargs)
 
         # Processed path names
         band_paths = {}
@@ -198,47 +256,61 @@ class VhrProduct(OpticalProduct):
 
         return band_paths
 
-    def _reproject(
-        self, src_arr: np.ndarray, src_meta: dict, rpcs: rpc.RPC
-    ) -> (np.ndarray, dict):
+    def _get_dem_path(self, **kwargs) -> str:
         """
-        Reproject using RPCs
-
-        Args:
-            src_arr (np.ndarray): Array to reproject
-            src_meta (dict): Metadata
-            rpcs (rpc.RPC): RPCs
+        Get DEM path
 
         Returns:
-            (np.ndarray, dict): Reprojected array and its metadata
+            str: DEM path
+
         """
         # Get DEM path
-        dem_path = os.environ.get(DEM_PATH)
+        dem_path = os.environ.get(DEM_PATH, kwargs.get(DEM_KW))
         if not dem_path:
             raise ValueError(
-                f"You are using a non orthorectified Pleiades product {self.path}, "
+                f"As you are using a non orthorectified VHR product ({self.path}), "
                 f"you must provide a valid DEM through the {DEM_PATH} environment variable"
             )
         else:
-            dem_path = AnyPath(dem_path)
-            if isinstance(dem_path, CloudPath):
-                raise TypeError(
+            if isinstance(AnyPath(dem_path), CloudPath):
+                raise ValueError(
                     "gdalwarp cannot process DEM stored on cloud with 'RPC_DEM' argument, "
                     "hence cloud-stored DEM cannot be used with non orthorectified DIMAP data."
                     f"(DEM: {dem_path}, DIMAP data: {self.name})"
                 )
 
+        return dem_path
+
+    def _reproject(
+        self, src_arr: np.ndarray, src_meta: dict, rpcs: rpc.RPC, dem_path, **kwargs
+    ) -> (np.ndarray, dict):
+        """
+        Reproject using RPCs (cannot use another resolution than src to ensure RPCs are valid)
+
+        Args:
+            src_arr (np.ndarray): Array to reproject
+            src_meta (dict): Metadata
+            rpcs (rpc.RPC): RPCs
+            dem_path (str): DEM path
+
+        Returns:
+            (np.ndarray, dict): Reprojected array and its metadata
+        """
+
         # Set RPC keywords
-        kwargs = {"RPC_DEM": dem_path, "RPC_DEM_MISSING_VALUE": 0}
-        # TODO:  add "refine_gcps" ? With which tolerance ? (ie. '-refine_gcps 500 1.9')
-        #  (https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-refine_gcps)
+        LOGGER.debug(f"Orthorectifying data with {dem_path}")
+        kwargs = {
+            "RPC_DEM": dem_path,
+            "RPC_DEM_MISSING_VALUE": 0,
+            "OSR_USE_ETMERC": "YES",
+        }
 
         # Reproject
         # WARNING: may not give correct output resolution
         out_arr, dst_transform = warp.reproject(
             src_arr,
             rpcs=rpcs,
-            src_crs=WGS84,
+            src_crs=self._get_raw_crs(),
             dst_crs=self.crs,
             resolution=self.resolution,
             src_nodata=0,
@@ -394,7 +466,7 @@ class VhrProduct(OpticalProduct):
         # Get band paths
         if resolution is None and size is not None:
             resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution=resolution)
+        band_paths = self.get_band_paths(bands, resolution=resolution, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(
@@ -402,6 +474,50 @@ class VhrProduct(OpticalProduct):
         )
 
         return band_arrays
+
+    def _manage_invalid_pixels(
+        self, band_arr: XDS_TYPE, band: BandNames, **kwargs
+    ) -> XDS_TYPE:
+        """
+        Manage invalid pixels (Nodata, saturated, defective...)
+        See
+        `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
+        (unusable data mask) for more information.
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # Do nothing
+        return band_arr
+
+    def _manage_nodata(self, band_arr: XDS_TYPE, band: BandNames, **kwargs) -> XDS_TYPE:
+        """
+        Manage only nodata pixels
+
+        Args:
+            band_arr (XDS_TYPE): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            XDS_TYPE: Cleaned band array
+        """
+        # Do nothing
+        return band_arr
+
+    def _get_condensed_name(self) -> str:
+        """
+        Get PlanetScope products condensed name ({date}_PLD_{product_type}_{band_combi}).
+
+        Returns:
+            str: Condensed name
+        """
+        return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}_{self.band_combi.name}"
 
     def _get_path(
         self, filename: str = "", extension: str = ""
@@ -613,3 +729,13 @@ class VhrProduct(OpticalProduct):
         )[default_band]
         with rasterio.open(str(def_path)) as dst:
             return dst.transform, dst.width, dst.height, dst.crs
+
+    @abstractmethod
+    def _get_tile_path(self) -> Union[CloudPath, Path]:
+        """
+        Get the DIMAP filepath
+
+        Returns:
+            Union[CloudPath, Path]: DIMAP filepath
+        """
+        raise NotImplementedError

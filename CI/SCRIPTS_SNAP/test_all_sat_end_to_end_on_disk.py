@@ -5,23 +5,28 @@ import tempfile
 
 import xarray as xr
 from cloudpathlib import AnyPath
-from sertit import ci, files
+from lxml import etree
+from sertit import files
 
 from CI.SCRIPTS.scripts_utils import (
     CI_EOREADER_S3,
     READER,
     dask_env,
+    get_ci_db_dir,
     get_db_dir,
+    get_db_dir_on_disk,
     opt_path,
-    sar_path,
+    reduce_verbosity,
 )
 from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT, SAR_DEF_RES, TEST_USING_S3_DB
 from eoreader.keywords import SLSTR_RAD_ADJUST
-from eoreader.products import SlstrRadAdjust
+from eoreader.products import S2Product, SlstrRadAdjust
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
+
+reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -69,7 +74,18 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
         pattern (str): Pattern of the satellite
         debug (bool): Debug option
     """
-    possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
+    possible_bands = [
+        PAN,
+        RED,
+        NARROW_NIR,
+        Oa01,
+        TIR_1,
+        F1,
+        SWIR_2,
+        HILLSHADE,
+        CLOUDS,
+        ALL_CLOUDS,
+    ]
     _test_core(pattern, opt_path(), possible_bands, dem_path, debug, **kwargs)
 
 
@@ -80,8 +96,15 @@ def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
         pattern (str): Pattern of the satellite
         debug (bool): Debug option
     """
-    possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
-    _test_core(pattern, sar_path(), possible_bands, dem_path, debug, **kwargs)
+    possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE]
+    _test_core(
+        pattern,
+        get_ci_db_dir().joinpath("all_sar"),
+        possible_bands,
+        dem_path,
+        debug,
+        **kwargs,
+    )
 
 
 def _test_core(
@@ -104,14 +127,6 @@ def _test_core(
     set_dem(dem_path)
 
     with xr.set_options(warn_for_unclosed_files=debug):
-
-        # Init logger
-        logging.getLogger("boto3").setLevel(
-            logging.WARNING
-        )  # BOTO has way too much verbosity
-        logging.getLogger("botocore").setLevel(
-            logging.WARNING
-        )  # BOTO has way too much verbosity
 
         # DATA paths
         pattern_paths = files.get_file_in_dir(
@@ -136,14 +151,17 @@ def _test_core(
             prod: Product = READER.open(path, method=CheckMethod.MTD, remove_tmp=False)
 
             # Log name
+            assert prod is not None
             assert prod.name is not None
             LOGGER.info(f"Product name: {prod.name}")
 
             with tempfile.TemporaryDirectory() as tmp_dir:
-                tmp_dir = os.path.join(
-                    "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT_ON_DISK_CLEAN"
-                )
-                prod.output = tmp_dir
+                # output = os.path.join(
+                #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT_ON_DISK_CLEAN"
+                # )
+                output = tmp_dir
+                is_zip = "_ZIP" if prod.is_archived else ""
+                prod.output = os.path.join(output, f"{prod.condensed_name}{is_zip}")
 
                 # Manage S3 resolution to speed up processes
                 if prod.sensor_type == SensorType.SAR:
@@ -156,6 +174,10 @@ def _test_core(
                 LOGGER.info("Checking load and stack")
                 stack_bands = [band for band in possible_bands if prod.has_band(band)]
                 first_band = stack_bands[0]
+
+                # Geometric data
+                footprint = prod.footprint  # noqa
+                extent = prod.extent  # noqa
 
                 # Get stack bands
                 # Stack data
@@ -176,6 +198,40 @@ def _test_core(
                     clean_optical="clean",
                     **kwargs,
                 )[first_band]
+
+                # CLOUDS: just try to load them without testing it
+                LOGGER.info("Loading clouds")
+                cloud_bands = [CLOUDS, ALL_CLOUDS, RAW_CLOUDS, CIRRUS, SHADOWS]
+                ok_clouds = [cloud for cloud in cloud_bands if prod.has_band(cloud)]
+                prod.load(ok_clouds, size=(stack.rio.width, stack.rio.height))  # noqa
+
+                # Check if no error
+                LOGGER.info("get_default_band_path")
+                prod.get_default_band_path()  # noqa
+
+                LOGGER.info("get_existing_band_paths")
+                prod.get_existing_band_paths()  # noqa
+
+                # Check if possible to load narrow nir, without checking result
+                if isinstance(prod, S2Product) and not prod._processing_baseline_lt_4_0:
+                    prod.load(NARROW_NIR)
+
+                # CRS
+                LOGGER.info("Checking CRS")
+                assert prod.crs.is_projected
+
+                # MTD
+                LOGGER.info("Checking Mtd")
+                mtd_xml, nmsp = prod.read_mtd()
+                assert isinstance(mtd_xml, etree._Element)
+                assert isinstance(nmsp, dict)
+
+                # Clean temp
+                if not debug:
+                    LOGGER.info("Cleaning tmp")
+                    prod.clean_tmp()
+                    assert len(list(prod._tmp_process.glob("*"))) == 0
+
             prod.clear()
 
 
@@ -225,6 +281,12 @@ def test_pld():
 
 
 @dask_env
+def test_pneo():
+    """Function testing the support of Pleiades-Neo sensor"""
+    _test_core_optical("*IMG_*_PNEO*")
+
+
+@dask_env
 def test_spot6():
     """Function testing the support of SPOT-6 sensor"""
     _test_core_optical("*IMG_SPOT6*")
@@ -234,9 +296,7 @@ def test_spot6():
 def test_spot7():
     """Function testing the support of SPOT-7 sensor"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
-    dem_path = os.path.join(
-        ci.get_db2_path(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
-    )
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*IMG_SPOT7*", dem_path=dem_path)
 
 
@@ -244,9 +304,7 @@ def test_spot7():
 def test_wv02_wv03():
     """Function testing the support of WorldView-2/3 sensors"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
-    dem_path = os.path.join(
-        ci.get_db2_path(), "BASES_DE_DONNEES", *MERIT_DEM_SUB_DIR_PATH
-    )
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*P001_MUL*", dem_path=dem_path)
 
 
@@ -257,34 +315,54 @@ def test_ge01_wv04():
 
 
 @dask_env
+def test_vs1():
+    """Function testing the support of Vision-1 sensor"""
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
+    _test_core_optical("*VIS1*", dem_path=dem_path)
+
+
+@dask_env
 def test_s1():
     """Function testing the support of Sentinel-1 sensor"""
     _test_core_sar("*S1*_IW*")
 
 
 @dask_env
+def test_s1_zip():
+    """Function testing the support of Sentinel-1 sensor"""
+    _test_core_sar("*S1*_IW*.zip")
+
+
+@dask_env
 def test_csk():
     """Function testing the support of COSMO-Skymed sensor"""
-    _test_core_sar("*csk_*")
+    _test_core_sar("*CSK*")
 
 
 @dask_env
 def test_csg():
     """Function testing the support of COSMO-Skymed 2nd Generation sensor"""
-    _test_core_sar("*CSG_PP*")
+    _test_core_sar("*CSG*")
 
 
 @dask_env
 def test_tsx():
-    """Function testing the support of TerraSAR-X"""
+    """Function testing the support of TerraSAR-X sensor"""
     _test_core_sar("*TSX*")
 
 
 # Assume that tests TDX and PAZ sensors
 @dask_env
 def test_tdx():
-    """Function testing the support of TanDEM-X and PAZ SAR sensors"""
+    """Function testing the support of TanDEM-X sensor"""
     _test_core_sar("*TDX*")
+
+
+# Assume that tests TDX and PAZ sensors
+@dask_env
+def test_paz():
+    """Function testing the support of PAZ SAR sensor"""
+    _test_core_sar("*PAZ*")
 
 
 @dask_env
@@ -302,7 +380,13 @@ def test_rcm():
 @dask_env
 def test_iceye():
     """Function testing the support of ICEYE sensor"""
-    _test_core_sar("*SC_*")
+    _test_core_sar("*SLH_*")
+
+
+@dask_env
+def test_saocom():
+    """Function testing the support of SAOCOM sensor"""
+    _test_core_sar("*SAO*")
 
 
 # TODO:

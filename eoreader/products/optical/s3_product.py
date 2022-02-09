@@ -136,7 +136,7 @@ class S3Product(OpticalProduct):
     @abstractmethod
     def _set_preprocess_members(self):
         """ Set pre-process members """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _post_init(self) -> None:
         """
@@ -328,9 +328,8 @@ class S3Product(OpticalProduct):
             root, _ = self.read_mtd()
 
             # Open identifier
-            try:
-                acq_date = root.findtext(".//start_time")
-            except TypeError:
+            acq_date = root.findtext(".//start_time")
+            if not acq_date:
                 raise InvalidProductError("start_time not found in metadata!")
 
             # Convert to datetime
@@ -350,17 +349,13 @@ class S3Product(OpticalProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # Get MTD XML file
-            root, _ = self.read_mtd()
+        # Get MTD XML file
+        root, _ = self.read_mtd()
 
-            # Open identifier
-            try:
-                name = files.get_filename(root.findtext(".//product_name"))
-            except TypeError:
-                raise InvalidProductError("product_name not found in metadata!")
-        else:
-            name = self.name
+        # Open identifier
+        name = files.get_filename(root.findtext(".//product_name"))
+        if not name:
+            raise InvalidProductError("product_name not found in metadata!")
 
         return name
 
@@ -461,7 +456,7 @@ class S3Product(OpticalProduct):
         Returns:
             XDS_TYPE: Cleaned band array
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
         """
@@ -541,7 +536,7 @@ class S3Product(OpticalProduct):
         Returns:
             dict: Dictionary containing {band: path}
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _get_condensed_name(self) -> str:
         """
@@ -760,18 +755,18 @@ class S3Product(OpticalProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _set_product_type(self) -> None:
         """
         Set product type
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError

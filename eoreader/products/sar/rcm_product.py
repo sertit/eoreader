@@ -199,9 +199,6 @@ class RcmProduct(SarProduct):
         self._band_folder = self.path / "imagery"
         self._snap_path = ""
 
-        # Zipped and SNAP can process its archive
-        self.needs_extraction = False
-
         # Post init done by the super class
         super()._post_init()
 
@@ -226,13 +223,8 @@ class RcmProduct(SarProduct):
         """
         # Open extent KML file
         try:
-            if self.is_archived:
-                product_kml = vectors.read(self.path, archive_regex=".*mapOverlay\.kml")
-            else:
-                extent_file = next(
-                    self.path.joinpath("preview").glob("*mapOverlay.kml")
-                )
-                product_kml = vectors.read(extent_file)
+            extent_file = next(self.path.joinpath("preview").glob("*mapOverlay.kml"))
+            product_kml = vectors.read(extent_file)
         except IndexError as ex:
             raise InvalidProductError(
                 f"Extent file (product.kml) not found in {self.path}"
@@ -251,10 +243,9 @@ class RcmProduct(SarProduct):
         namespace = nsmap[None]
 
         # Open identifier
-        try:
-            prod_type = root.findtext(f".//{namespace}productType")
-        except TypeError:
-            raise InvalidProductError("mode not found in metadata!")
+        prod_type = root.findtext(f".//{namespace}productType")
+        if not prod_type:
+            raise InvalidProductError("productType not found in metadata!")
 
         self.product_type = RcmProductType.from_value(prod_type)
 
@@ -327,9 +318,8 @@ class RcmProduct(SarProduct):
         namespace = nsmap[None]
 
         # Open identifier
-        try:
-            acq_date = root.findtext(f".//{namespace}rawDataStartTime")
-        except TypeError:
+        acq_date = root.findtext(f".//{namespace}rawDataStartTime")
+        if not acq_date:
             raise InvalidProductError("rawDataStartTime not found in metadata!")
 
         # Convert to datetime
@@ -347,27 +337,23 @@ class RcmProduct(SarProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # The name is not in the classic metadata, but can be found in the manifest
-            try:
-                mtd_from_path = "preview/productPreview.html"
-                mtd_archived = "preview.*productPreview\.html"
+        # The name is not in the classic metadata, but can be found in the manifest
+        try:
+            mtd_from_path = "preview/productPreview.html"
+            mtd_archived = "preview.*productPreview\.html"
 
-                root = self._read_mtd_html(mtd_from_path, mtd_archived)
+            root = self._read_mtd_html(mtd_from_path, mtd_archived)
 
-                # Open identifier
-                try:
-                    name = root.findtext(".//header/h2")
-                except TypeError:
-                    raise InvalidProductError("header/h2 not found in metadata!")
+            # Open identifier
+            name = root.findtext(".//header/h2")
+            if not name:
+                raise InvalidProductError("header/h2 not found in metadata!")
 
-            except InvalidProductError:
-                LOGGER.warning(
-                    "productPreview.html not found in the product, the name will be the filename"
-                )
-                name = self.filename
-        else:
-            name = self.name
+        except InvalidProductError:
+            LOGGER.warning(
+                "productPreview.html not found in the product, the name will be the filename"
+            )
+            name = self.filename
 
         return name
 

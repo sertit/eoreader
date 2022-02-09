@@ -12,6 +12,7 @@ You will find a SAR tutorial [here](https://eoreader.readthedocs.io/en/latest/no
 |`RADARSAT Constellation Mission` | {meth}`~eoreader.products.sar.rcm_product.RcmProduct` | ❌|
 |`RADARSAT-2` | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | ✅ for ground range data, ❌ for complex data|
 |`Sentinel-1` | {meth}`~eoreader.products.sar.s1_product.S1Product` | ✅|
+|`SAOCOM-1` | {meth}`~eoreader.products.sar.saocom_product.SaocomProduct` | ❌|
 |`TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | ❌|
 
 ```{warning}
@@ -36,12 +37,16 @@ mostly because SNAP doesn't handle them.
 | `RADARSAT-2` | SLC | ✅| 
 | `RADARSAT-2` | SGX, SCN, SCW,<br>SCF, SCS, SSG, SPG | ⚠️ |
 | `RADARSAT-2` | SGF | ✅ |
+| `Sentinel-1` | SLC | ✅ | 
+| `Sentinel-1` | GRD | ✅ |
+| `SAOCOM-1` | SLC | ✅ | 
+| `SAOCOM-1` | ID | ⚠ |
+| `SAOCOM-1` | GEC | ✅ |
+| `SAOCOM-1` | GTC | ✅ |
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | SSC | ✅ | 
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | MGD | ✅ |
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | GEC | ⚠️ |
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | EEC | ✅ |
-| `Sentinel-1` | SLC | ✅ | 
-| `Sentinel-1` | GRD | ✅ |
 
 \**always given with a GRD image*
 
@@ -215,6 +220,16 @@ For GRD products:
 |StripMap [SM(H)] |3.0m|
 |Scan [SC] |< 15.0m|
 
+### SAOCOM-1
+
+|**SAOCOM-1** | Single-Look Complex (SLC) | Detected Image (DI)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+|--- | --- | ---|
+|**StripMap (SM)**<br>Single and Dual Pol | 10x5m | 10.0m|
+|**StripMap (SM)**<br>Quad Pol | 10x6m | 10.0m|
+|**TOPSAR Narrow (TN)**<br>Single and Dual Pol | 10x30m | 30.0m|
+|**TOPSAR Narrow (TN)**<br>Quad Pol | 10x50m | 50.0m|
+|**TOPSAR Wide (TW)**<br>Single and Dual Pol | 10x50m | 50.0m|
+|**TOPSAR Wide (TW)**<br>Quad Pol | 10x100m | 100.0m|
 
 ## GPT graphs
 
@@ -277,55 +292,82 @@ Those graphs should have a reader and a writer on this model:
 Pay attention to set `$file` and `$out` and leave the `BEAM-DIMAP` file format. The first graph must orthorectify your
 SAR data, but should not despeckle it. The second graph is precisely charged to do it.
 
- The pre-processing graph should also have a `Terrain Correction` step with the following wildcards that are set automatically in the module:
+SNAP graphs are run on every band separatly.
 
+ The pre-processing graph should also have a `Calibration` and a `Terrain Correction` step with the following wildcards that are set automatically in the module:
+
+ - `$calib_pola`: Polarization of the band to calibrate
+ - `$dem_name`: SNAP DEM name
+ - `$dem_path`: DEM path (that can be use by SNAP, so only TIFF DEMs)
  - `$res_m`: Resolution in meters
  - `$res_deg`: Resolution in degrees
  - `$crs`: CRS
  - The nodata value should **always** be set to 0.
 ```
 
+The default `Calibration` step is:
+
+```xml
+<node id="Calibration">
+    <operator>Calibration</operator>
+    <sources>
+        <sourceProduct refid="ThermalNoiseRemoval"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+        <sourceBands/>
+        <auxFile>Latest Auxiliary File</auxFile>
+        <externalAuxFile/>
+        <outputImageInComplex>false</outputImageInComplex>
+        <outputImageScaleInDb>false</outputImageScaleInDb>
+        <createGammaBand>false</createGammaBand>
+        <createBetaBand>false</createBetaBand>
+        <selectedPolarisations>${calib_pola}</selectedPolarisations>
+        <outputSigmaBand>true</outputSigmaBand>
+        <outputGammaBand>false</outputGammaBand>
+        <outputBetaBand>false</outputBetaBand>
+    </parameters>
+</node>
+```
 
 The default `Terrain Correction` step is:
 
 ```xml
-
 <node id="Terrain-Correction">
- <operator>Terrain-Correction</operator>
- <sources>
-  <sourceProduct refid="LinearToFromdB"/>
- </sources>
- <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-  <sourceBands/>
-  <demName>GETASSE30</demName>
-  <externalDEMFile/>
-  <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
-  <externalDEMApplyEGM>true</externalDEMApplyEGM>
-  <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
-  <imgResamplingMethod>BILINEAR_INTERPOLATION</imgResamplingMethod>
-  <pixelSpacingInMeter>$res_m</pixelSpacingInMeter>
-  <pixelSpacingInDegree>$res_deg</pixelSpacingInDegree>
-  <mapProjection>$crs</mapProjection>
-  <alignToStandardGrid>false</alignToStandardGrid>
-  <standardGridOriginX>0.0</standardGridOriginX>
-  <standardGridOriginY>0.0</standardGridOriginY>
-  <nodataValueAtSea>true</nodataValueAtSea>
-  <saveDEM>false</saveDEM>
-  <saveLatLon>false</saveLatLon>
-  <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
-  <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
-  <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
-  <saveSelectedSourceBand>true</saveSelectedSourceBand>
-  <outputComplex>false</outputComplex>
-  <applyRadiometricNormalization>false</applyRadiometricNormalization>
-  <saveSigmaNought>false</saveSigmaNought>
-  <saveGammaNought>false</saveGammaNought>
-  <saveBetaNought>false</saveBetaNought>
-  <incidenceAngleForSigma0>Use projected local incidence angle from DEM</incidenceAngleForSigma0>
-  <incidenceAngleForGamma0>Use projected local incidence angle from DEM</incidenceAngleForGamma0>
-  <auxFile>Latest Auxiliary File</auxFile>
-  <externalAuxFile/>
- </parameters>
+    <operator>Terrain-Correction</operator>
+    <sources>
+        <sourceProduct refid="LinearToFromdB"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+        <sourceBands/>
+        <demName>${dem_name}</demName>
+        <externalDEMFile>${dem_path}</externalDEMFile>
+        <externalDEMNoDataValue>0.0</externalDEMNoDataValue>
+        <externalDEMApplyEGM>true</externalDEMApplyEGM>
+        <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
+        <imgResamplingMethod>BILINEAR_INTERPOLATION</imgResamplingMethod>
+        <pixelSpacingInMeter>${res_m}</pixelSpacingInMeter>
+        <pixelSpacingInDegree>${res_deg}</pixelSpacingInDegree>
+        <mapProjection>${crs}</mapProjection>
+        <alignToStandardGrid>false</alignToStandardGrid>
+        <standardGridOriginX>0.0</standardGridOriginX>
+        <standardGridOriginY>0.0</standardGridOriginY>
+        <nodataValueAtSea>true</nodataValueAtSea>
+        <saveDEM>false</saveDEM>
+        <saveLatLon>false</saveLatLon>
+        <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
+        <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
+        <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
+        <saveSelectedSourceBand>true</saveSelectedSourceBand>
+        <outputComplex>false</outputComplex>
+        <applyRadiometricNormalization>false</applyRadiometricNormalization>
+        <saveSigmaNought>false</saveSigmaNought>
+        <saveGammaNought>false</saveGammaNought>
+        <saveBetaNought>false</saveBetaNought>
+        <incidenceAngleForSigma0>Use projected local incidence angle from DEM</incidenceAngleForSigma0>
+        <incidenceAngleForGamma0>Use projected local incidence angle from DEM</incidenceAngleForGamma0>
+        <auxFile>Latest Auxiliary File</auxFile>
+        <externalAuxFile/>
+    </parameters>
 </node>
 ```
 
@@ -334,9 +376,12 @@ The default `Terrain Correction` step is:
 You can override default SNAP resolution (in meters) when geocoding SAR bands by setting the following environment
 variable:
 
-- `EOREADER_SAR_DEFAULT_RES` (0.0 by default, which means using the product's default resolution)
+- `EOREADER_SAR_DEFAULT_RES`: 0.0 by default, which means using the product's default resolution
 
 ## Documentary Sources
+
+### Copernicus 
+- [Copernicus Contributing Missions](https://www.esa.int/ESA_Multimedia/Images/2021/09/Copernicus_Contributing_Missions_overview)
 
 ### Sentinel-1
 
@@ -368,3 +413,8 @@ variable:
 - [ICEYE Product Specifications](https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf)
 - [ICEYE Product Guide](https://www.iceye.com/hubfs/Downloadables/ICEYE_SAR_Product_Guide_2021_V4.0.pdf)
 - [ICEYE Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/ICEYE.html)
+
+### SAOCOM-1
+- [SAOCOM Description](https://saocom.veng.com.ar/en/)
+- [SAOCOM Product Format](https://saocom.veng.com.ar/L1-product-format-EN.pdf)
+- [SAOCOM Data Products](https://earth.esa.int/eogateway/catalog/saocom-data-products)

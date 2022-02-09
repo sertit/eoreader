@@ -13,11 +13,47 @@ lint:
     - pip install flake8
     - flake8 eoreader
   tags:
-    - linux
-  except:
-    - tags
+    - sertit
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - when: always
 
+# Test with data on local disk
 pytest:
+  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  stage: test
+  variables:
+    CI_EOREADER_USE_S3: "0"
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install --ignore-installed PyYAML
+    - pip install -e .
+  script:
+    - pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_on_disk.html --cov=eoreader --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/cov_on_disk.html
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  tags:
+    - sertit
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - changes:
+        - eoreader/**/*.{py,xml}
+        - CI/**/*.{py,xml}
+        - .gitlab-ci.yml
+        - pytest.ini
+  needs: [ "lint" ]
+
+# Test with data on S3
+# TODO: create S3-specific CI ?
+pytest_s3:
   image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
   stage: test
   before_script:
@@ -25,15 +61,70 @@ pytest:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - pytest -v --durations=0 --cov-report term --cov-report xml:cov.xml --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS
+    - pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_s3.html --cov=eoreader --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/cov_s3.html
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
-    - linux
+    - sertit
   rules:
     - if: $CI_COMMIT_TAG
       when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
     - changes:
         - eoreader/**/*.{py,xml}
+        - CI/**/*.{py,xml}
+        - .gitlab-ci.yml
+        - pytest.ini
+  needs: [ "lint" ]
+
+#pytest_coverage:
+#  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+#  stage: test
+#  script:
+#    - coverage combine --keep ${CI_PROJECT_DIR}
+#  artifacts:
+#    paths:
+#      - ${CI_PROJECT_DIR}
+#  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+#  tags:
+#    - sertit
+#  rules:
+#    - if: $CI_COMMIT_TAG
+#      when: never
+#    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+#      when: never
+#    - changes:
+#        - eoreader/**/*.{py,xml}
+#        - CI/**/*.{py,xml}
+#        - .gitlab-ci.yml
+#        - pytest.ini
+#  needs: [ "pytest", "pytest_s3" ]
+#  dependencies: [ "pytest", "pytest_s3" ]
+
+# Test SNAP with SNAP
+pytest_end_to_end:
+  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  stage: test
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install --ignore-installed PyYAML
+    - pip install -e .
+  script:
+    - pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_SNAP/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=sys
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/cov_e2e.html
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  tags:
+    - sertit
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "SNAP"'
+      when: always
+    - if: $CI_COMMIT_TAG
+      when: always
 
 tox-linux-3.7:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.7
@@ -44,7 +135,7 @@ tox-linux-3.7:on-schedule:
   script:
     - tox -c tox.ini -e py37
   tags:
-    - linux
+    - sertit
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
 
@@ -57,9 +148,10 @@ tox-linux-3.8:on-schedule:
   script:
     - tox -c tox.ini -e py38
   tags:
-    - linux
+    - sertit
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
+  needs: [ "tox-linux-3.7:on-schedule" ]
 
 tox-linux-3.9:on-schedule:
   image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.9
@@ -70,36 +162,25 @@ tox-linux-3.9:on-schedule:
   script:
     - tox -c tox.ini -e py39
   tags:
-    - linux
+    - sertit
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
+  needs: [ "tox-linux-3.8:on-schedule" ]
 
 tox-windows:on-schedule:
   stage: weekly_tests
   before_script:
-    - python -m pip install --upgrade pip
     - pip install tox
   script:
-    - tox -c tox-conda.ini
+    - tox -c tox-conda.ini -e py39
   tags:
     - windows
     - conda
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
-
-
-tox-linux-3.7-snap:on-schedule:
-  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
-  stage: weekly_tests
-  before_script:
-    - python -m pip install --upgrade pip
-    - pip install tox
-  script:
-    - tox -c tox-snap.ini -e py37
-  tags:
-    - linux
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "SNAP"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "windows"'
+      when: always
 
 upload_wheel:linux:
   image: python:3.7-buster
@@ -109,9 +190,10 @@ upload_wheel:linux:
     - python setup.py sdist bdist_wheel
     - TWINE_PASSWORD=${PYPI_PWD} TWINE_USERNAME=${PYPI_TOKEN} python -m twine upload dist/*
   tags:
-    - linux
+    - sertit
   only:
     - tags
+  needs: ["pytest_end_to_end"]
 
 #pages:
 #  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
@@ -126,7 +208,7 @@ upload_wheel:linux:
 #    paths:
 #      - public
 #  tags:
-#    - linux
+#    - sertit
 #  rules:
 #    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE != "schedule"'
 #  needs: ["lint"]
