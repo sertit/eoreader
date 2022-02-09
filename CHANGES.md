@@ -1,6 +1,6 @@
 # Release History
 
-## 0.12.0 (2022-02-XX)
+## 0.12.0 (2022-02-09)
 
 - **ENH: Adding the support of `Pleiades-Neo`, `Vision-1` and `SAOCOM` sensors**
 - **ENH: Adding a keyword to allow passing a specific DEM path in `load`/`stack` (for VHR orthorectification and `DEM` bands)**

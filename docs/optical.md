@@ -213,6 +213,10 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 
 ## Documentary Sources
 
+### Copernicus
+
+- [Copernicus Contributing Missions](https://www.esa.int/ESA_Multimedia/Images/2021/09/Copernicus_Contributing_Missions_overview)
+
 ### Landsat
 
 - [Collection 1 vs Collection 2](https://www.usgs.gov/media/files/landsat-collection-1-vs-collection-2-summary)
