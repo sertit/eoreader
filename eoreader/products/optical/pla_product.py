@@ -367,19 +367,15 @@ class PlaProduct(OpticalProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # Get MTD XML file
-            root, nsmap = self.read_mtd()
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
 
-            # Open identifier
-            try:
-                name = root.findtext(f".//{nsmap['eop']}identifier")
-            except TypeError:
-                raise InvalidProductError(
-                    f"{nsmap['eop']}identifier not found in metadata!"
-                )
-        else:
-            name = self.name
+        # Open identifier
+        name = root.findtext(f".//{nsmap['eop']}identifier")
+        if not name:
+            raise InvalidProductError(
+                f"{nsmap['eop']}identifier not found in metadata!"
+            )
 
         return name
 
@@ -546,7 +542,7 @@ class PlaProduct(OpticalProduct):
             return {}
 
         # Get band paths
-        band_paths = self.get_band_paths(bands)
+        band_paths = self.get_band_paths(bands, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(
@@ -712,8 +708,11 @@ class PlaProduct(OpticalProduct):
 
                 # Rename
                 band_name = to_str(band)[0]
-                cloud.attrs["long_name"] = band_name
-                band_dict[band] = cloud.rename(band_name)
+
+                # Multi bands -> do not change long name
+                if band != RAW_CLOUDS:
+                    cloud.attrs["long_name"] = band_name
+                band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict
 

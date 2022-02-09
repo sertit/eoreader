@@ -102,9 +102,8 @@ class LandsatProduct(OpticalProduct):
         mtd, _ = self.read_mtd()
 
         # Open identifier
-        try:
-            col_nb = mtd.findtext(".//COLLECTION_NUMBER")
-        except TypeError:
+        col_nb = mtd.findtext(".//COLLECTION_NUMBER")
+        if not col_nb:
             raise InvalidProductError("COLLECTION_NUMBER not found in metadata!")
 
         return LandsatCollection.from_value(col_nb)
@@ -117,9 +116,8 @@ class LandsatProduct(OpticalProduct):
         mtd, _ = self.read_mtd()
 
         # Open identifier
-        try:
-            name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
-        except TypeError:
+        name = mtd.findtext(".//LANDSAT_PRODUCT_ID")
+        if not name:
             raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
 
         # Collections are not set yet
@@ -238,7 +236,7 @@ class LandsatProduct(OpticalProduct):
     @abstractmethod
     def _set_product_type(self) -> None:
         """Set products type"""
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _set_mss_product_type(self, version: int) -> None:
         """Set MSS product type and map corresponding bands"""
@@ -345,11 +343,12 @@ class LandsatProduct(OpticalProduct):
         if self.datetime is None:
             mtd_data, _ = self._read_mtd()
 
-            try:
-                date = mtd_data.findtext(".//DATE_ACQUIRED")
-                hours = mtd_data.findtext(".//SCENE_CENTER_TIME").replace('"', "")[:-3]
-            except TypeError:
-                raise InvalidProductError("ACQUISITION_DATE not found in metadata!")
+            date = mtd_data.findtext(".//DATE_ACQUIRED")
+            hours = mtd_data.findtext(".//SCENE_CENTER_TIME").replace('"', "")[:-3]
+            if not date or not hours:
+                raise InvalidProductError(
+                    "DATE_ACQUIRED or SCENE_CENTER_TIME not found in metadata!"
+                )
 
             date = (
                 f"{datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')}"
@@ -373,19 +372,13 @@ class LandsatProduct(OpticalProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # Get MTD XML file
-            root, _ = self.read_mtd()
+        # Get MTD XML file
+        root, _ = self.read_mtd()
 
-            # Open identifier
-            try:
-                name = root.findtext(".//LANDSAT_PRODUCT_ID").replace(
-                    '"', ""
-                )  # For txt files
-            except TypeError:
-                raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata!")
-        else:
-            name = self.name
+        # Open identifier (replace for txt files)
+        name = root.findtext(".//LANDSAT_PRODUCT_ID").replace('"', "")
+        if not name:
+            raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata!")
 
         return name
 
@@ -742,7 +735,7 @@ class LandsatProduct(OpticalProduct):
 
         if resolution is None and size is not None:
             resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution=resolution)
+        band_paths = self.get_band_paths(bands, resolution=resolution, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(
@@ -916,8 +909,11 @@ class LandsatProduct(OpticalProduct):
 
             # Rename
             band_name = to_str(band)[0]
-            cloud.attrs["long_name"] = band_name
-            band_dict[band] = cloud.rename(band_name)
+
+            # Multi bands -> do not change long name
+            if band != RAW_CLOUDS:
+                cloud.attrs["long_name"] = band_name
+            band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict
 
@@ -983,8 +979,11 @@ class LandsatProduct(OpticalProduct):
 
             # Rename
             band_name = to_str(band)[0]
-            cloud.attrs["long_name"] = band_name
-            band_dict[band] = cloud.rename(band_name)
+
+            # Multi bands -> do not change long name
+            if band != RAW_CLOUDS:
+                cloud.attrs["long_name"] = band_name
+            band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict
 
@@ -1074,7 +1073,10 @@ class LandsatProduct(OpticalProduct):
 
             # Rename
             band_name = to_str(band)[0]
-            cloud.attrs["long_name"] = band_name
-            band_dict[band] = cloud.rename(band_name)
+
+            # Multi bands -> do not change long name
+            if band != RAW_CLOUDS:
+                cloud.attrs["long_name"] = band_name
+            band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict

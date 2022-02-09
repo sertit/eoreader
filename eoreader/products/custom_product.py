@@ -137,7 +137,11 @@ class CustomProduct(Product):
         Function used to post_init the products
         (setting product-type, band names and so on)
         """
-        pass
+        # Check CRS
+        try:
+            crs = self.crs  # noqa
+        except InvalidProductError as msg:
+            LOGGER.warning(msg)
 
     def _get_name(self) -> str:
         """
@@ -172,6 +176,8 @@ class CustomProduct(Product):
         if self.resolution is None:
             with rasterio.open(str(self.get_default_band_path())) as ds:
                 return ds.res[0]
+        else:
+            return self.resolution
 
     def _set_product_type(self) -> None:
         """Set products type"""
@@ -184,7 +190,7 @@ class CustomProduct(Product):
         Returns:
             str: Default band
         """
-        return list(self.band_names.keys())[0]
+        return list(self.get_existing_bands())[0]
 
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
@@ -225,9 +231,7 @@ class CustomProduct(Product):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        return rasters.get_footprint(
-            self.get_default_band_path()
-        )  # Processed by SNAP: the nodata is set
+        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs)
 
     @cached_property
     def crs(self) -> crs.CRS:
@@ -282,7 +286,8 @@ class CustomProduct(Product):
         Returns:
             dict: Dictionary containing the path of every orthorectified bands
         """
-        return self.path
+        existing_bands = self.get_existing_bands()
+        return self.get_band_paths(band_list=existing_bands)
 
     def get_existing_bands(self) -> list:
         """
@@ -357,7 +362,7 @@ class CustomProduct(Product):
         if resolution is None and size is not None:
             resolution = self._resolution_from_size(size)
 
-        band_paths = self.get_band_paths(bands, resolution)
+        band_paths = self.get_band_paths(bands, resolution, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = {}
@@ -412,7 +417,7 @@ class CustomProduct(Product):
 
         # Check if DEM is set and exists
         if dem_list:
-            self._check_dem_path()
+            self._check_dem_path(bands, **kwargs)
 
         # Load bands
         bands = self._load_bands(band_list, resolution=resolution, size=size, **kwargs)
@@ -447,7 +452,9 @@ class CustomProduct(Product):
             warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
             # Get Hillshade path
-            hillshade_name = f"{self.condensed_name}_HILLSHADE.tif"
+            hillshade_name = (
+                f"{self.condensed_name}_HILLSHADE_{files.get_filename(dem_path)}.tif"
+            )
             hillshade_path = self._get_band_folder().joinpath(hillshade_name)
             if hillshade_path.is_file():
                 LOGGER.debug(

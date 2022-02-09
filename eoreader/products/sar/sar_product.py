@@ -302,7 +302,7 @@ class SarProduct(Product):
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
 
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @cached_property
     def extent(self) -> gpd.GeoDataFrame:
@@ -359,59 +359,12 @@ class SarProduct(Product):
 
         return crs.CRS.from_string(crs_str)
 
-    def _get_sar_product_type(
-        self,
-        prod_type_pos: int,
-        gdrg_types: Union[ListEnum, list],
-        cplx_types: Union[ListEnum, list],
-    ) -> None:
-        """
-        Get products type, special function for SAR satellites.
-
-        Args:
-            prod_type_pos (int): Position of the products type in the file name
-            gdrg_types (Union[ListEnum, list]): Ground Range products types
-            cplx_types (Union[ListEnum, list]): Complex products types
-        """
-        # Get and check products type class
-        if not isinstance(gdrg_types, list):
-            gdrg_types = [gdrg_types]
-        if not isinstance(cplx_types, list):
-            cplx_types = [cplx_types]
-
-        all_types = gdrg_types + cplx_types
-        prod_type_class = all_types[0].__class__
-        assert all(isinstance(prod_type, prod_type_class) for prod_type in all_types)
-
-        # Get products type
-        try:
-            # All products types can be found in the filename and are 3 characters long
-            self.product_type = prod_type_class.from_value(
-                self.split_name[prod_type_pos][:3]
-            )
-        except ValueError as ex:
-            raise InvalidTypeError(f"Invalid products type for {self.name}") from ex
-
-        # Link to SAR generic products types
-        if self.product_type in gdrg_types:
-            self.sar_prod_type = SarProductType.GDRG
-        elif self.product_type in cplx_types:
-            self.sar_prod_type = SarProductType.CPLX
-        else:
-            self.sar_prod_type = SarProductType.OTHER
-
-        # Discard invalid products types
-        if self.sar_prod_type == SarProductType.OTHER:
-            raise NotImplementedError(
-                f"{self.product_type.value} product type is not available ({self.name})"
-            )
-
     @abstractmethod
     def _set_sensor_mode(self) -> None:
         """
         Set SAR sensor mode
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
@@ -459,6 +412,16 @@ class SarProduct(Product):
                 speckle_band = sbn.corresponding_speckle(band)
                 if speckle_band in self.pol_channels:
                     if sbn.is_despeckle(band):
+                        # Check if existing speckle ortho band
+                        try:
+                            files.get_file_in_dir(
+                                self._get_band_folder(),
+                                f"*{self.condensed_name}_{self.band_names[speckle_band]}.tif",
+                                exact_name=True,
+                            )
+                        except FileNotFoundError:
+                            self._pre_process_sar(speckle_band, resolution, **kwargs)
+
                         # Despeckle the noisy band
                         band_paths[band] = self._despeckle_sar(speckle_band, **kwargs)
                     else:
@@ -634,7 +597,7 @@ class SarProduct(Product):
 
         if resolution is None and size is not None:
             resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution)
+        band_paths = self.get_band_paths(bands, resolution, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = {}
@@ -694,7 +657,7 @@ class SarProduct(Product):
 
         # Check if DEM is set and exists
         if dem_list:
-            self._check_dem_path()
+            self._check_dem_path(bands, **kwargs)
 
         # Load bands
         bands = self._load_bands(band_list, resolution=resolution, size=size, **kwargs)
@@ -862,7 +825,7 @@ class SarProduct(Product):
 
             # Create command line and run it
             if not os.path.isfile(dspk_dim):
-                path = self.get_band_paths([band])[band]
+                path = self.get_band_paths([band], **kwargs)[band]
                 cmd_list = snap.get_gpt_cli(
                     dspk_graph,
                     [f"-Pfile={path}", f"-Pout={dspk_dim}"],

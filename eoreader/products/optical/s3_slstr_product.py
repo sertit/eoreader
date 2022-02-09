@@ -400,7 +400,7 @@ class S3SlstrProduct(S3Product):
 
         # Get the pre-processed path
         path = self._get_preprocessed_band_path(
-            pp_name, suffix=suffix, resolution=resolution
+            pp_name, suffix=suffix, resolution=resolution, writable=False
         )
 
         if not path.is_file():
@@ -589,6 +589,7 @@ class S3SlstrProduct(S3Product):
     #     https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-3-slstr/instrument/measured-spectral-response-function-data
     #
     #     In https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a
+    #
     #     Args:
     #         band_arr (xr.DataArray): Band array
     #         band (obn): Optical Band
@@ -917,8 +918,11 @@ class S3SlstrProduct(S3Product):
 
                 # Rename
                 band_name = to_str(band)[0]
-                cloud.attrs["long_name"] = band_name
-                band_dict[band] = cloud.rename(band_name)
+
+                # Multi bands -> do not change long name
+                if band != RAW_CLOUDS:
+                    cloud.attrs["long_name"] = band_name
+                band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict
 

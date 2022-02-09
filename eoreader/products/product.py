@@ -53,6 +53,7 @@ from eoreader.bands import index
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Platform, Reader
 from eoreader.utils import EOREADER_NAME
 
@@ -232,7 +233,7 @@ class Product:
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _post_init(self) -> None:
@@ -240,7 +241,7 @@ class Product:
         Function used to post_init the products
         (setting sensor type, band names and so on)
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
@@ -259,11 +260,7 @@ class Product:
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        def_band = self.get_default_band()
-        default_xda = self.load(def_band)[
-            def_band
-        ]  # Forced to load as the nodata may not be positioned by default
-        return rasters.get_footprint(default_xda).to_crs(self.crs)
+        raise NotImplementedError
 
     @cached_property
     @abstractmethod
@@ -283,7 +280,7 @@ class Product:
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @cached_property
     @abstractmethod
@@ -302,7 +299,7 @@ class Product:
         Returns:
             crs.CRS: CRS object
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _get_band_folder(self, writable: bool = False) -> Union[CloudPath, Path]:
         """
@@ -313,13 +310,13 @@ class Product:
         """
         band_folder = self._tmp_process
 
-        # Manage CI SNAP band
-        ci_band_folder = os.environ.get(CI_EOREADER_BAND_FOLDER)
-        if ci_band_folder:
-            ci_band_folder = AnyPath(ci_band_folder)
-            if ci_band_folder.is_dir():
-                # If we need a writable directory, check it
-                if (writable and files.is_writable(ci_band_folder)) or not writable:
+        # Manage CI bands (when we do not write anything, read only)
+        if not writable:
+            ci_band_folder = os.environ.get(CI_EOREADER_BAND_FOLDER)
+            if ci_band_folder:
+                ci_band_folder = AnyPath(ci_band_folder)
+                if ci_band_folder.is_dir():
+                    # If we need a writable directory, check it
                     band_folder = ci_band_folder
 
         return band_folder
@@ -329,14 +326,14 @@ class Product:
         """
         Set product default resolution (in meters)
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _set_product_type(self) -> None:
         """
         Set product type
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @classmethod
     def _get_platform(cls) -> Platform:
@@ -352,7 +349,7 @@ class Product:
         Returns:
             str: True name of the product (from metadata)
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _get_condensed_name(self) -> str:
@@ -362,7 +359,7 @@ class Product:
         Returns:
             str: Condensed name
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _get_split_name(self) -> list:
         """
@@ -394,7 +391,7 @@ class Product:
         Returns:
              Union[str, datetime.datetime]: Its acquisition datetime
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def get_date(self, as_date: bool = False) -> Union[str, dt.date]:
         """
@@ -444,7 +441,7 @@ class Product:
         Returns:
             Union[CloudPath, Path]: Default band path
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def get_default_band(self) -> BandNames:
@@ -464,7 +461,7 @@ class Product:
         Returns:
             str: Default band
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def get_existing_bands(self) -> list:
@@ -494,7 +491,7 @@ class Product:
         Returns:
             list: List of existing bands in the products
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def get_existing_band_paths(self) -> dict:
@@ -516,7 +513,7 @@ class Product:
         Returns:
             dict: Dictionary containing the path of each queried band
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def get_band_paths(
@@ -545,7 +542,7 @@ class Product:
         Returns:
             dict: Dictionary containing the path of each queried band
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _read_mtd(self) -> Any:
@@ -556,7 +553,7 @@ class Product:
         Returns:
             Any: Metadata XML root and its namespace or pd.DataFrame
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _read_mtd_xml(
         self, mtd_from_path: str, mtd_archived: str = None
@@ -695,7 +692,7 @@ class Product:
             XDS_TYPE: Band xarray
 
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     @abstractmethod
     def _load_bands(
@@ -712,12 +709,11 @@ class Product:
             bands (list): List of the wanted bands
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-            kwargs: Additional arguments
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _load_dem(
         self,
@@ -744,15 +740,22 @@ class Product:
                 assert is_dem(band)
                 if band == DEM:
                     path = self._warp_dem(
-                        dem_path, resolution=resolution, size=size, **kwargs
+                        kwargs.get(DEM_KW, dem_path),
+                        resolution=resolution,
+                        size=size,
+                        **kwargs,
                     )
                 elif band == SLOPE:
                     path = self._compute_slope(
-                        dem_path, resolution=resolution, size=size
+                        kwargs.get(SLOPE_KW, dem_path),
+                        resolution=resolution,
+                        size=size,
                     )
                 elif band == HILLSHADE:
                     path = self._compute_hillshade(
-                        dem_path, resolution=resolution, size=size
+                        kwargs.get(HILLSHADE_KW, dem_path),
+                        resolution=resolution,
+                        size=size,
                     )
                 else:
                     raise InvalidTypeError(f"Unknown DEM band: {band}")
@@ -839,8 +842,7 @@ class Product:
         """
 
         # Check if all bands are valid
-        if not isinstance(bands, list):
-            bands = [bands]
+        bands = to_band(bands)
 
         for band in bands:
             try:
@@ -892,7 +894,7 @@ class Product:
         Returns:
             Dictionary {band_name, band_xarray}
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def has_band(self, band: Union[BandNames, Callable]) -> bool:
         """
@@ -980,7 +982,7 @@ class Product:
             >>> prod.has_cloud_band(CLOUDS)
             True
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _has_index(self, idx: Callable) -> bool:
         """
@@ -1145,7 +1147,7 @@ class Product:
         Returns:
             str: DEM path (as a VRT)
         """
-        dem_name = f"{self.condensed_name}_DEM.tif"
+        dem_name = f"{self.condensed_name}_DEM_{files.get_filename(dem_path)}.tif"
         warped_dem_path = self._get_band_folder().joinpath(dem_name)
         if warped_dem_path.is_file():
             LOGGER.debug(
@@ -1157,7 +1159,7 @@ class Product:
 
             # Allow S3 HTTP Urls only on Linux because rasterio bugs on Windows
             if validators.url(dem_path) and platform.system() == "Windows":
-                raise Exception(
+                raise OSError(
                     f"URLs to DEM like {dem_path} are not supported on Windows! Use Docker or Linux instead"
                 )
 
@@ -1260,7 +1262,7 @@ class Product:
             str: Hillshade mask path
 
         """
-        raise NotImplementedError("This method should be implemented by a child class")
+        raise NotImplementedError
 
     def _compute_slope(
         self,
@@ -1286,7 +1288,7 @@ class Product:
         warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
         # Get slope path
-        slope_name = f"{self.condensed_name}_SLOPE.tif"
+        slope_name = f"{self.condensed_name}_SLOPE_{files.get_filename(dem_path)}.tif"
         slope_path = self._get_band_folder().joinpath(slope_name)
         if slope_path.is_file():
             LOGGER.debug(
@@ -1515,13 +1517,25 @@ class Product:
         return renamed_xarr
 
     @staticmethod
-    def _check_dem_path() -> None:
-        """ Check if DEM is set and exists"""
+    def _check_dem_path(bands: list, **kwargs) -> None:
+        """
+        Check if DEM is set and exists if DEM bands are asked.
+
+        Args:
+            bands (list): List of the wanted bands
+            kwargs: Other arguments used to load bands
+        """
         if DEM_PATH not in os.environ:
-            raise ValueError(
-                f"Dem path not set, unable to compute DEM bands! "
-                f"Please set the environment variable {DEM_PATH}."
-            )
+            if (
+                (DEM in bands and DEM_KW not in kwargs)
+                or (SLOPE in bands and SLOPE_KW not in kwargs)
+                or (HILLSHADE in bands and HILLSHADE_KW not in kwargs)
+            ):
+
+                raise ValueError(
+                    f"DEM path not set, unable to compute DEM bands! "
+                    f"Please set the environment variable {DEM_PATH} or a DEM keyword."
+                )
         else:
             dem_path = os.environ.get(DEM_PATH)
             # URLs and file paths are required

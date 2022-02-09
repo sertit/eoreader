@@ -22,11 +22,13 @@ from pathlib import Path
 from typing import Union
 
 import numpy as np
+import pandas as pd
 import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
+from rasterio.rpc import RPC
 from sertit import rasters
 
 from eoreader.env_vars import USE_DASK
@@ -197,9 +199,12 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
     # Reset the long name as a list to write it down
     previous_long_name = xds.attrs.get("long_name")
     if previous_long_name and xds.rio.count > 1:
-        xds.attrs["long_name"] = xds.attrs.get(
-            "long_name", xds.attrs.get("name", "")
-        ).split(" ")
+        try:
+            xds.attrs["long_name"] = xds.attrs.get(
+                "long_name", xds.attrs.get("name", "")
+            ).split(" ")
+        except AttributeError:
+            pass
 
     # Write
     rasters.write(xds, path=path, lock=lock, **prune_keywords(**kwargs))
@@ -211,7 +216,8 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
 
 def create_gcps(lon: xr.DataArray, lat: xr.DataArray, alt: xr.DataArray) -> list:
     """
-    Create GCPs from an array of longitude, latitude and altitude (based on Sentinel-3 geocoding)
+    Create GCPs from an array of longitude, latitude and altitude (based on Sentinel-3 geocoding).
+
     Args:
         lon (xr.DataArray): Longitude array
         lat (xr.DataArray): Latitude array
@@ -277,3 +283,68 @@ def quick_xml_to_dict(element: etree._Element) -> tuple:
 
     """
     return element.tag, dict(map(quick_xml_to_dict, element)) or element.text
+
+
+def open_rpc_file(path: Union[CloudPath, Path]) -> RPC:
+    """
+    Create a rasterio RPC object from a :code:`.rpc` file.
+    Used for Vision-1 product
+
+    Args:
+        path: Path of the RPC file
+
+    Returns:
+        RPC: RPC object
+    """
+
+    def to_float(pd_table, field) -> float:
+        pd_field = pd_table.T[field]
+        val = None
+        for val in pd_field.values[0].split(" "):
+            if val:
+                break
+        return float(val)
+
+    def to_list(pd_table, field) -> list:
+        pd_list = pd_table[pd_table.index.str.contains(field)].values
+        return [float(val[0]) for val in pd_list]
+
+    try:
+        rpcs_file = pd.read_csv(
+            path, delimiter=":", names=["name", "value"], index_col=0
+        )
+
+        height_off = to_float(rpcs_file, "HEIGHT_OFF")
+        height_scale = to_float(rpcs_file, "HEIGHT_SCALE")
+        lat_off = to_float(rpcs_file, "LAT_OFF")
+        lat_scale = to_float(rpcs_file, "LAT_SCALE")
+        line_den_coeff = to_list(rpcs_file, "LINE_DEN_COEFF")
+        line_num_coeff = to_list(rpcs_file, "LINE_NUM_COEFF")
+        line_off = to_float(rpcs_file, "LINE_OFF")
+        line_scale = to_float(rpcs_file, "LINE_SCALE")
+        long_off = to_float(rpcs_file, "LONG_OFF")
+        long_scale = to_float(rpcs_file, "LONG_SCALE")
+        samp_den_coeff = to_list(rpcs_file, "SAMP_DEN_COEFF")
+        samp_num_coeff = to_list(rpcs_file, "SAMP_NUM_COEFF")
+        samp_off = to_float(rpcs_file, "SAMP_OFF")
+        samp_scale = to_float(rpcs_file, "SAMP_SCALE")
+        return RPC(
+            height_off,
+            height_scale,
+            lat_off,
+            lat_scale,
+            line_den_coeff,
+            line_num_coeff,
+            line_off,
+            line_scale,
+            long_off,
+            long_scale,
+            samp_den_coeff,
+            samp_num_coeff,
+            samp_off,
+            samp_scale,
+            err_bias=None,
+            err_rand=None,
+        )
+    except KeyError as msg:
+        raise KeyError(f"Invalid RPC file, missing key: {msg}")

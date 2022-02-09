@@ -91,9 +91,8 @@ class S2TheiaProduct(OpticalProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        try:
-            tile = root.findtext(".//GEOGRAPHICAL_ZONE")
-        except TypeError:
+        tile = root.findtext(".//GEOGRAPHICAL_ZONE")
+        if not tile:
             raise InvalidProductError("GEOGRAPHICAL_ZONE not found in metadata!")
 
         return tile
@@ -186,9 +185,8 @@ class S2TheiaProduct(OpticalProduct):
             root, _ = self.read_mtd()
 
             # Open identifier
-            try:
-                acq_date = root.findtext(".//ACQUISITION_DATE")
-            except TypeError:
+            acq_date = root.findtext(".//ACQUISITION_DATE")
+            if not acq_date:
                 raise InvalidProductError("ACQUISITION_DATE not found in metadata!")
 
             # Convert to datetime
@@ -208,17 +206,13 @@ class S2TheiaProduct(OpticalProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        if self.name is None:
-            # Get MTD XML file
-            root, _ = self.read_mtd()
+        # Get MTD XML file
+        root, _ = self.read_mtd()
 
-            # Open identifier
-            try:
-                name = files.get_filename(root.findtext(".//IDENTIFIER"))
-            except TypeError:
-                raise InvalidProductError("IDENTIFIER not found in metadata!")
-        else:
-            name = self.name
+        # Open identifier
+        name = files.get_filename(root.findtext(".//IDENTIFIER"))
+        if not name:
+            raise InvalidProductError("IDENTIFIER not found in metadata!")
 
         return name
 
@@ -535,7 +529,7 @@ class S2TheiaProduct(OpticalProduct):
         # Get band paths
         if resolution is None and size is not None:
             resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution=resolution)
+        band_paths = self.get_band_paths(bands, resolution=resolution, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(
@@ -643,9 +637,17 @@ class S2TheiaProduct(OpticalProduct):
         """
         band_dict = {}
 
+        if resolution:
+            res_file = resolution
+        else:
+            if size:
+                res_file = self._resolution_from_size(size)[0]
+            else:
+                res_file = self.resolution
+
         if bands:
             # Open 20m cloud file if resolution >= 20m
-            res_id = "R2" if resolution >= 20 else "R1"
+            res_id = "R2" if res_file >= 20 else "R1"
 
             cloud_path = self.get_mask_path("CLM", res_id)
             clouds_mask = utils.read(
@@ -687,8 +689,11 @@ class S2TheiaProduct(OpticalProduct):
 
                 # Rename
                 band_name = to_str(band)[0]
-                cloud.attrs["long_name"] = band_name
-                band_dict[band] = cloud.rename(band_name)
+
+                # Multi bands -> do not change long name
+                if band != RAW_CLOUDS:
+                    cloud.attrs["long_name"] = band_name
+                band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict
 

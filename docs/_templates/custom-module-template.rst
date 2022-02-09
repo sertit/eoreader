@@ -8,6 +8,7 @@
 
    .. autosummary::
       :toctree:
+      :template: custom-base-template.rst
    {% for item in attributes %}
       {{ item }}
    {%- endfor %}
@@ -20,6 +21,7 @@
 
    .. autosummary::
       :toctree:
+      :template: custom-base-template.rst
    {% for item in functions %}
       {{ item }}
    {%- endfor %}
@@ -45,6 +47,7 @@
 
    .. autosummary::
       :toctree:
+      :template: custom-base-template.rst
    {% for item in exceptions %}
       {{ item }}
    {%- endfor %}

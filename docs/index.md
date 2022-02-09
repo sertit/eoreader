@@ -5,8 +5,9 @@
 
 ```{eval-rst}
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
    :caption: For Users
+   :hidden:
 
    main_features
    optical
@@ -19,32 +20,34 @@
 .. toctree::
    :maxdepth: 2
    :caption: Tutorials
+   :hidden:
 
-   notebooks/base
-   notebooks/SAR
-   notebooks/VHR
-   notebooks/sentinel-3
-   notebooks/water_detection
-   notebooks/custom
-   notebooks/optical_cleaning_methods
-   notebooks/s3_compatible_storage
-   notebooks/dask
+   notebooks/basics
+   notebooks/advanced
+   notebooks/experimental
 ```
 
 ```{eval-rst}
 .. autosummary::
-    :toctree: api
-    :caption: API
-    :template: custom-module-template.rst
-    :recursive:
-
-    eoreader
+   :toctree: api
+   :caption: EOReader API
+   :template: custom-module-template.rst
+   :recursive:
+   
+   eoreader.reader
+   eoreader.products
+   eoreader.bands
+   eoreader.env_vars
+   eoreader.keywords
+   eoreader.exceptions
+   eoreader.utils 
 ```
 
 ```{eval-rst}
 .. toctree::
    :maxdepth: 1
    :caption: For Contributors
+   :hidden:
 
    contributing
    history

@@ -204,7 +204,7 @@ def is_dem(dem: _tp.Any) -> bool:
 
 def is_index(idx: _tp.Any) -> bool:
     """
-    Returns True if is an index function from the :code:`ands.index` module
+    Returns True if is an index function from the :code:`bands.index` module
 
     .. code-block:: python
 
@@ -224,7 +224,7 @@ def is_index(idx: _tp.Any) -> bool:
         idx (Any): Anything that could be an index
 
     Returns:
-        bool: True if the index asked is an index function (such as :code:`ndex.NDVI`)
+        bool: True if the index asked is an index function (such as :code:`index.NDVI`)
 
     """
     if isinstance(idx, str):
@@ -238,7 +238,7 @@ def is_index(idx: _tp.Any) -> bool:
 
 def is_optical_band(band: _tp.Any) -> bool:
     """
-    Returns True if is an optical band (from :code:`pticalBandNames`)
+    Returns True if is an optical band (from :code:`OpticalBandNames`)
 
     .. code-block:: python
 
@@ -270,7 +270,7 @@ def is_optical_band(band: _tp.Any) -> bool:
 
 def is_sar_band(band: _tp.Any) -> bool:
     """
-    Returns True if is a SAR band (from :code:`arBandNames`)
+    Returns True if is a SAR band (from :code:`SarBandNames`)
 
     .. code-block:: python
 
@@ -302,7 +302,7 @@ def is_sar_band(band: _tp.Any) -> bool:
 
 def is_sat_band(band: _tp.Any) -> bool:
     """
-    Returns True if is a band (from both :code:`arBandNames` or :code:`pticalBandNames`)
+    Returns True if is a band (from both :code:`SarBandNames` or :code:`OpticalBandNames`)
 
     .. code-block:: python
 

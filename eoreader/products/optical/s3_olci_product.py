@@ -254,7 +254,9 @@ class S3OlciProduct(S3Product):
         """
         band_str = band if isinstance(band, str) else band.name
 
-        path = self._get_preprocessed_band_path(band, resolution=resolution)
+        path = self._get_preprocessed_band_path(
+            band, resolution=resolution, writable=False
+        )
 
         if not path.is_file():
             path = self._get_preprocessed_band_path(
