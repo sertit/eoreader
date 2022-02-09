@@ -327,21 +327,21 @@ def _test_core(
                 if isinstance(prod, S2Product) and not prod._processing_baseline_lt_4_0:
                     prod.load(NARROW_NIR)
 
-            # CRS
-            LOGGER.info("Checking CRS")
-            assert prod.crs.is_projected
+                # CRS
+                LOGGER.info("Checking CRS")
+                assert prod.crs.is_projected
 
-            # MTD
-            LOGGER.info("Checking Mtd")
-            mtd_xml, nmsp = prod.read_mtd()
-            assert isinstance(mtd_xml, etree._Element)
-            assert isinstance(nmsp, dict)
+                # MTD
+                LOGGER.info("Checking Mtd")
+                mtd_xml, nmsp = prod.read_mtd()
+                assert isinstance(mtd_xml, etree._Element)
+                assert isinstance(nmsp, dict)
 
-            # Clean temp
-            if not debug:
-                LOGGER.info("Cleaning tmp")
-                prod.clean_tmp()
-                assert len(list(prod._tmp_process.glob("*"))) == 0
+                # Clean temp
+                if not debug:
+                    LOGGER.info("Cleaning tmp")
+                    prod.clean_tmp()
+                    assert len(list(prod._tmp_process.glob("*"))) == 0
 
             prod.clear()
 
