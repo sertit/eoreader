@@ -340,7 +340,7 @@ class RcmProduct(SarProduct):
         # The name is not in the classic metadata, but can be found in the manifest
         try:
             mtd_from_path = "preview/productPreview.html"
-            mtd_archived = "preview.*productPreview\.html"
+            mtd_archived = r"preview.*productPreview\.html"
 
             root = self._read_mtd_html(mtd_from_path, mtd_archived)
 
@@ -375,7 +375,7 @@ class RcmProduct(SarProduct):
             (etree._Element, dict): Metadata XML root and its namespace
         """
         mtd_from_path = "metadata/product.xml"
-        mtd_archived = "metadata.*product\.xml"
+        mtd_archived = r"metadata.*product\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 

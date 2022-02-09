@@ -253,7 +253,7 @@ class S2TheiaProduct(OpticalProduct):
                 try:
                     if self.is_archived:
                         band_paths[band] = files.get_archived_rio_path(
-                            self.path, f".*FRE_B{self.band_names[band]}\.tif"
+                            self.path, rf".*FRE_B{self.band_names[band]}\.tif"
                         )
                     else:
                         band_paths[band] = files.get_file_in_dir(
@@ -594,7 +594,7 @@ class S2TheiaProduct(OpticalProduct):
             (etree._Element, dict): Metadata XML root and its namespaces
         """
         mtd_from_path = "MTD_ALL.xml"
-        mtd_archived = "MTD_ALL\.xml"
+        mtd_archived = r"MTD_ALL\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 

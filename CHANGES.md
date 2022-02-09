@@ -22,6 +22,7 @@
 - FIX: VHR `_get_dem_path` raises `ValueError` instead of `TypeError`
 - FIX: Pre-process SAR bands before despeckling if not existing
 - FIX: Do not pre-process existing Sentinel-3 geocoded bands
+- FIX: Remove warning `invalid escape sequence \.`, `\w`, `\D` and `\s`
 - OPTIM: Do not look for valid metadata further than a given nested level in product's directory (for extracted products)
 - CI: Using another (faster) runner
 - CI: Do not write file on disk

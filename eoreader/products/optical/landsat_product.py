@@ -454,7 +454,7 @@ class LandsatProduct(OpticalProduct):
         try:
             # Open XML metadata
             mtd_from_path = "_MTL.xml"
-            mtd_archived = "_MTL\.xml"
+            mtd_archived = r"_MTL\.xml"
             mtd_data = self._read_mtd_xml(mtd_from_path, mtd_archived)
         except (InvalidProductError, FileNotFoundError):
             mtd_name = "_MTL.txt"
@@ -479,7 +479,7 @@ class LandsatProduct(OpticalProduct):
             # Parse
             mtd_data = pd.read_table(
                 mtd_path,
-                sep="\s=\s",
+                sep=r"\s=\s",
                 names=["NAME", "value"],
                 skipinitialspace=True,
                 engine="python",

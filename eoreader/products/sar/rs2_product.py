@@ -305,7 +305,7 @@ class Rs2Product(SarProduct):
         # Open extent KML file
         try:
             if self.is_archived:
-                product_kml = vectors.read(self.path, archive_regex=".*product\.kml")
+                product_kml = vectors.read(self.path, archive_regex=r".*product\.kml")
             else:
                 extent_file = next(self.path.glob("*product.kml"))
                 product_kml = vectors.read(extent_file)
@@ -436,6 +436,6 @@ class Rs2Product(SarProduct):
             (etree._Element, dict): Metadata XML root and its namespace
         """
         mtd_from_path = "product.xml"
-        mtd_archived = "product\.xml"
+        mtd_archived = r"product\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)

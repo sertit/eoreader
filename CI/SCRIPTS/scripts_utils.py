@@ -94,8 +94,8 @@ def assert_raster_almost_equal(path_1: str, path_2: str, decimal: int = 5) -> No
 
     .. code-block:: python
 
-        >>> path = r"CI\DATA\rasters\raster.tif"
-        >>> path2 = r"CI\DATA\rasters\raster_almost.tif"
+        >>> path = r"CI/DATA/rasters/raster.tif"
+        >>> path2 = r"CI/DATA/rasters/raster_almost.tif"
         >>> assert_raster_equal(path, path2)
         >>> # Raises AssertionError if sth goes wrong
 
@@ -147,7 +147,7 @@ def assert_geom_almost_equal(
     -> Useful for pytests.
 
     .. code-block:: python
-        >>> path = r"CI\DATA\vectors\aoi.geojson"
+        >>> path = r"CI/DATA/vectors/aoi.geojson"
         >>> assert_geom_equal(path, path)
         >>> # Raises AssertionError if sth goes wrong
 

@@ -302,7 +302,7 @@ class S1Product(SarProduct):
         # The name is not in the classic metadata, but can be found in the manifest
         try:
             mtd_from_path = "preview/product-preview.html"
-            mtd_archived = "preview.*product-preview\.html"
+            mtd_archived = r"preview.*product-preview\.html"
 
             root = self._read_mtd_html(mtd_from_path, mtd_archived)
 
@@ -338,6 +338,6 @@ class S1Product(SarProduct):
         mtd_from_path = "annotation/*.xml"
 
         # When archived, other XML (in calibration folder) can be found
-        mtd_archived = "annotation/(?!rfi)(?!cal)(?!noise).*\.xml"
+        mtd_archived = r"annotation/(?!rfi)(?!cal)(?!noise).*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
