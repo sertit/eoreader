@@ -1,5 +1,9 @@
 # Release History
 
+## 0.12.0 (2022-MM-DD)
+
+- **ENH: Adding the support of `Landsat-9` sensor**
+
 ## 0.12.0 (2022-02-09)
 
 - **ENH: Adding the support of `Pleiades-Neo`, `Vision-1` and `SAOCOM` sensors**

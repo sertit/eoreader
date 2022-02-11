@@ -21,7 +21,7 @@ from abc import abstractmethod
 from datetime import datetime
 from enum import unique
 from pathlib import Path
-from typing import Tuple, Union
+from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -435,9 +435,7 @@ class LandsatProduct(OpticalProduct):
 
         return band_paths
 
-    def _read_mtd(
-        self, force_pd=False
-    ) -> Tuple[Union[pd.DataFrame, etree._Element], dict]:
+    def _read_mtd(self, force_pd=False) -> (etree._Element, dict):
         """
         Read Landsat metadata as:
 
