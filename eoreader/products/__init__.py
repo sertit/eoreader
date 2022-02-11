@@ -101,6 +101,7 @@ __all__ += [
     "L5Product",
     "L7Product",
     "L8Product",
+    "L9Product",
 ]
 from .optical.landsat_product import (
     LandsatProduct,
@@ -114,6 +115,7 @@ from .optical.l4_product import L4Product
 from .optical.l5_product import L5Product
 from .optical.l7_product import L7Product
 from .optical.l8_product import L8Product
+from .optical.l9_product import L9Product
 
 # Sentinel
 __all__ += [

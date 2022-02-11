@@ -28,7 +28,7 @@ import tempfile
 from abc import abstractmethod
 from enum import unique
 from pathlib import Path
-from typing import Any, Callable, Union
+from typing import Callable, Union
 
 import geopandas as gpd
 import numpy as np
@@ -545,13 +545,12 @@ class Product:
         raise NotImplementedError
 
     @abstractmethod
-    def _read_mtd(self) -> Any:
+    def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict most of the time,
-        except from L8-collection 1 data which outputs a :code:`pandas.DataFrame`
+        Read metadata and outputs the metadata XML root and its namespaces as a dict
 
         Returns:
-            Any: Metadata XML root and its namespace or pd.DataFrame
+            (etree._Element, dict): Metadata XML root and its namespace
         """
         raise NotImplementedError
 
@@ -648,10 +647,9 @@ class Product:
 
         return root
 
-    def read_mtd(self) -> Any:
+    def read_mtd(self) -> (etree._Element, dict):
         """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict most of the time,
-        except from L8-collection 1 data which outputs a :code:`pandas.DataFrame`
+        Read metadata and outputs the metadata XML root and its namespaces as a dict.
 
         .. code-block:: python
 
@@ -662,7 +660,7 @@ class Product:
             (<Element product at 0x1832895d788>, '')
 
         Returns:
-            Any: Metadata XML root and its namespace or pd.DataFrame
+            (etree._Element, dict): Metadata XML root and its namespace
         """
         return self._read_mtd()
 

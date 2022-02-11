@@ -8,6 +8,7 @@
 |Sentinel-2 Theia | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | ✅ | 20m|
 |Sentinel-3 SLSTR | {meth}`~eoreader.products.optical.s3_product.S3Product` | RBT | ✅ | 300m|
 |Sentinel-3 OLCI | {meth}`~eoreader.products.optical.s3_product.S3Product` | EFR | ✅ | 500m|
+|Landsat 9 OLCI | {meth}`~eoreader.products.optical.l9_product.L9Product` | Level 1 | ✅ | 30m|
 |Landsat 8 OLCI | {meth}`~eoreader.products.optical.l8_product.L8Product` | Level 1 | COL1*: ❌, COL2: ✅ | 30m|
 |Landsat 7 ETM | {meth}`~eoreader.products.optical.l7_product.L7Product` | Level 1 | COL1*: ❌, COL2: ✅ | 30m|
 |Landsat 5 TM | {meth}`~eoreader.products.optical.l5_product.L5Product` | Level 1 | COL1*: ❌, COL2: ✅ | 30m|
@@ -25,7 +26,7 @@
 |SPOT 6 | {meth}`~eoreader.products.optical.spot6_product.Spot6Product` | SEN, PRJ, ORT & MOS | ✅ | 1.5 (PAN) or 6m (MS)|
 |Maxar** | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | ✅ | 0.5 (PAN) or 2m (MS)|
 
-\* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product.*
+\* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
 
 \*\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1, but other (such as WorldView-1, QuickBird...) with the same file format should be supported. The resolution can vary around the one given here.*
 
@@ -146,6 +147,7 @@ The only difference with the other bands is that the cloud bands are provided in
 |Sentinel-2 Theia | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
 |Sentinel-3 OLCI | *No cloud file available for S3-OLCI data* |
 |Sentinel-3 SLSTR | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`|
+|Landsat 9 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
 |Landsat 8 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
 |Landsat 7 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
 |Landsat 5 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
