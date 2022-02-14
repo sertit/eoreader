@@ -3,6 +3,7 @@
 ## 0.12.0 (2022-MM-DD)
 
 - **ENH: Adding the support of `Landsat-9` sensor**
+- FIX: Use `--no-binary fiona,rasterio` directly in `requirements.txt`
 
 ## 0.12.0 (2022-02-09)
 

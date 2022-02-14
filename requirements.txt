@@ -29,3 +29,5 @@ validators
 
 # SERTIT libs
 sertit[full]>=1.11.0
+
+--no-binary fiona,rasterio
