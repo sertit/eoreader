@@ -4,6 +4,7 @@
 
 - **ENH: Adding the support of `Landsat-9` sensor**
 - FIX: Use `--no-binary fiona,rasterio` directly in `requirements.txt`
+- REPO: Setting GitHub as the main repository and using new Gitlab runners
 
 ## 0.12.0 (2022-02-09)
 
