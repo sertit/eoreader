@@ -5,6 +5,10 @@ stages:
   - publish
   - docs
 
+variables:
+  EEO_DEPS: $REGISTRY_GITLAB/extracteo/extracteo_deps
+  EO_CONTAINER: $REGISTRY_GITLAB/eo-containers/python
+
 lint:
   image: python:3.7-buster
   stage: lint
@@ -12,8 +16,6 @@ lint:
     - python -m pip install --upgrade pip
     - pip install flake8
     - flake8 eoreader
-  tags:
-    - sertit
   rules:
     - if: $CI_COMMIT_TAG
       when: never
@@ -23,7 +25,7 @@ lint:
 
 # Test with data on local disk
 pytest:
-  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  image: $EEO_DEPS:latest
   stage: test
   variables:
     CI_EOREADER_USE_S3: "0"
@@ -54,7 +56,7 @@ pytest:
 # Test with data on S3
 # TODO: create S3-specific CI ?
 pytest_s3:
-  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  image: $EEO_DEPS:latest
   stage: test
   before_script:
     - python -m pip install --upgrade pip
@@ -80,33 +82,9 @@ pytest_s3:
         - pytest.ini
   needs: [ "lint" ]
 
-#pytest_coverage:
-#  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
-#  stage: test
-#  script:
-#    - coverage combine --keep ${CI_PROJECT_DIR}
-#  artifacts:
-#    paths:
-#      - ${CI_PROJECT_DIR}
-#  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
-#  tags:
-#    - sertit
-#  rules:
-#    - if: $CI_COMMIT_TAG
-#      when: never
-#    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-#      when: never
-#    - changes:
-#        - eoreader/**/*.{py,xml}
-#        - CI/**/*.{py,xml}
-#        - .gitlab-ci.yml
-#        - pytest.ini
-#  needs: [ "pytest", "pytest_s3" ]
-#  dependencies: [ "pytest", "pytest_s3" ]
-
 # Test SNAP with SNAP
 pytest_end_to_end:
-  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
+  image: $EEO_DEPS:latest
   stage: test
   before_script:
     - python -m pip install --upgrade pip
@@ -127,7 +105,7 @@ pytest_end_to_end:
       when: always
 
 tox-linux-3.7:on-schedule:
-  image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.7
+  image: $EO_CONTAINER:3.7
   stage: weekly_tests
   before_script:
     - python -m pip install --upgrade pip
@@ -140,7 +118,7 @@ tox-linux-3.7:on-schedule:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
 
 tox-linux-3.8:on-schedule:
-  image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.8
+  image: $EO_CONTAINER:3.8
   stage: weekly_tests
   before_script:
     - python -m pip install --upgrade pip
@@ -154,7 +132,7 @@ tox-linux-3.8:on-schedule:
   needs: [ "tox-linux-3.7:on-schedule" ]
 
 tox-linux-3.9:on-schedule:
-  image: docker.sertit.unistra.fr/sertit/eo-containers/python:3.9
+  image: $EO_CONTAINER:3.9
   stage: weekly_tests
   before_script:
     - python -m pip install --upgrade pip
@@ -194,21 +172,3 @@ upload_wheel:linux:
   only:
     - tags
   needs: ["pytest_end_to_end"]
-
-#pages:
-#  image: docker.sertit.unistra.fr/extracteo/extracteo_deps:latest
-#  stage: docs
-#  script:
-#    - python -m pip install --upgrade pip
-#    - pip install -r requirements-doc.txt --ignore-installed PyYAML
-#    - pip install mistune==0.8.4  # Workaround
-#    - sphinx-build docs/ docs/_build/html/
-#    - mv docs/_build/html/ public/
-#  artifacts:
-#    paths:
-#      - public
-#  tags:
-#    - sertit
-#  rules:
-#    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE != "schedule"'
-#  needs: ["lint"]
