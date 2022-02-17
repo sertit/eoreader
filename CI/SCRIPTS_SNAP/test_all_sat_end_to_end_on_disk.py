@@ -134,10 +134,6 @@ def _test_core(
         )
 
         for path in pattern_paths:
-            # WORKAROUND
-            if str(path).endswith("/"):
-                path = AnyPath(str(path)[:-1])
-
             LOGGER.info(
                 "%s on drive %s (CI_EOREADER_S3: %s)",
                 path.name,
