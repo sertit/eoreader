@@ -378,6 +378,14 @@ def test_s3_slstr():
 
 @s3_env
 @dask_env
+def test_l9():
+    """Function testing the support of Landsat-9 sensor"""
+    # Init logger
+    _test_core_optical("*LC09*")
+
+
+@s3_env
+@dask_env
 def test_l8():
     """Function testing the support of Landsat-8 sensor"""
     # Init logger
