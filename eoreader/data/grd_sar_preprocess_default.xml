@@ -52,7 +52,6 @@
       <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
       <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
       <saveSelectedSourceBand>true</saveSelectedSourceBand>
-      <outputComplex>false</outputComplex>
       <applyRadiometricNormalization>false</applyRadiometricNormalization>
       <saveSigmaNought>false</saveSigmaNought>
       <saveGammaNought>false</saveGammaNought>
