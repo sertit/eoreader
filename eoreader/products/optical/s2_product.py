@@ -52,11 +52,11 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class S2ProductType(ListEnum):
     """Sentinel-2 products types (L1C or L2A)"""
 
-    L1C = "Level-1C"
-    """L1C: https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-1c"""
+    L1C = "MSIL1C"
+    """Level-1C: https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-1c"""
 
-    L2A = "Level-2A"
-    """L2A: https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-2a"""
+    L2A = "MSIL2A"
+    """Level-2A: https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-2a"""
 
 
 @unique
@@ -150,12 +150,8 @@ class S2Product(OpticalProduct):
         """
         self.tile_name = self._get_tile_name()
 
-        # Get processing baseline
-        root, _ = self.read_datatake_mtd()
-        try:
-            pr_baseline = float(root.findtext(".//PROCESSING_BASELINE"))
-        except TypeError:
-            raise InvalidProductError("PRODUCT_URI not found in datatake metadata!")
+        # Get processing baseline: N0213 -> 02.13
+        pr_baseline = float(self.split_name[3][1:]) / 100
         self._processing_baseline_lt_4_0 = pr_baseline < 4.0
 
         # Post init done by the super class
@@ -180,18 +176,11 @@ class S2Product(OpticalProduct):
 
     def _set_product_type(self) -> None:
         """Set products type"""
-        # Get MTD XML file
-        root, _ = self.read_datatake_mtd()
 
         # Open identifier
-        product_lvl = root.findtext(".//PROCESSING_LEVEL")
-        if not product_lvl:
-            raise InvalidProductError(
-                "PROCESSING_LEVEL not found in datatake metadata!"
-            )
+        self.product_type = S2ProductType.from_value(self.split_name[1])
 
-        if product_lvl == S2ProductType.L2A.value:
-            self.product_type = S2ProductType.L2A
+        if self.product_type == S2ProductType.L2A:
             self.band_names.map_bands(
                 {
                     obn.CA: "01",
@@ -208,8 +197,7 @@ class S2Product(OpticalProduct):
                     obn.SWIR_2: "12",
                 }
             )
-        elif product_lvl == S2ProductType.L1C.value:
-            self.product_type = S2ProductType.L1C
+        elif self.product_type == S2ProductType.L1C:
             self.band_names.map_bands(
                 {
                     obn.CA: "01",
@@ -290,18 +278,11 @@ class S2Product(OpticalProduct):
              Union[str, datetime.datetime]: Its acquisition datetime
         """
         if self.datetime is None:
-            # Get MTD XML file
-            root, _ = self.read_datatake_mtd()
-
             # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time !
-            sensing_time = root.findtext(".//PRODUCT_START_TIME")
-            if not sensing_time:
-                raise InvalidProductError(
-                    "PRODUCT_START_TIME not found in datatake metadata!"
-                )
+            sensing_time = self.split_name[2]
 
             # Convert to datetime
-            date = datetime.strptime(sensing_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+            date = datetime.strptime(sensing_time, "%Y%m%dT%H%M%S")
         else:
             date = self.datetime
 
@@ -317,13 +298,17 @@ class S2Product(OpticalProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        # Get MTD XML file
-        root, _ = self.read_datatake_mtd()
+        try:
+            # Get MTD XML file
+            root, _ = self.read_datatake_mtd()
 
-        # Open identifier
-        name = files.get_filename(root.findtext(".//PRODUCT_URI"))
-        if not name:
-            raise InvalidProductError("PRODUCT_URI not found in metadata!")
+            # Open identifier
+            name = files.get_filename(root.findtext(".//PRODUCT_URI"))
+            if not name:
+                raise InvalidProductError("PRODUCT_URI not found in metadata!")
+        except InvalidProductError:
+            tile_info = files.read_json(next(self.path.glob("**/tileInfo.json")))
+            name = tile_info["productName"]
 
         return name
 
@@ -485,41 +470,51 @@ class S2Product(OpticalProduct):
         )
 
         if str(path).endswith(".jp2"):
-            # Get MTD XML file
-            root, _ = self.read_datatake_mtd()
-
-            # Get quantification value
-            quantif_prefix = "BOA_" if self.product_type == S2ProductType.L2A else ""
             try:
-                quantif_value = float(
-                    root.findtext(f".//{quantif_prefix}QUANTIFICATION_VALUE")
-                )
-            except TypeError:
-                raise InvalidProductError(
-                    f"{quantif_prefix}QUANTIFICATION_VALUE not found in datatake metadata!"
-                )
+                # Get MTD XML file
+                root, _ = self.read_datatake_mtd()
 
-            # Get offset
-            offset_prefix = (
-                "BOA_" if self.product_type == S2ProductType.L2A else "RADIO_"
-            )
-            if self._processing_baseline_lt_4_0:
-                offset = 0.0
-            else:
+                # Get quantification value
+                quantif_prefix = (
+                    "BOA_" if self.product_type == S2ProductType.L2A else ""
+                )
                 try:
-                    if band == obn.NARROW_NIR:
-                        band_id = 8
-                    else:
-                        band_id = int(self.band_names[band])
-                    offset = float(
-                        root.findtext(
-                            f".//{offset_prefix}ADD_OFFSET[@band_id = '{band_id}']"
-                        )
+                    quantif_value = float(
+                        root.findtext(f".//{quantif_prefix}QUANTIFICATION_VALUE")
                     )
                 except TypeError:
                     raise InvalidProductError(
-                        f"{offset_prefix}ADD_OFFSET not found in datatake metadata!"
+                        f"{quantif_prefix}QUANTIFICATION_VALUE not found in datatake metadata!"
                     )
+
+                # Get offset
+                offset_prefix = (
+                    "BOA_" if self.product_type == S2ProductType.L2A else "RADIO_"
+                )
+                if self._processing_baseline_lt_4_0:
+                    offset = 0.0
+                else:
+                    try:
+                        if band == obn.NARROW_NIR:
+                            band_id = 8
+                        else:
+                            band_id = int(self.band_names[band])
+                        offset = float(
+                            root.findtext(
+                                f".//{offset_prefix}ADD_OFFSET[@band_id = '{band_id}']"
+                            )
+                        )
+                    except TypeError:
+                        raise InvalidProductError(
+                            f"{offset_prefix}ADD_OFFSET not found in datatake metadata!"
+                        )
+            except InvalidProductError:
+                # If not datatake file
+                if self._processing_baseline_lt_4_0:
+                    offset = 0.0
+                else:
+                    offset = -1000.0
+                quantif_value = 10000.0
 
             # Compute the correct radiometry of the band
             band_xda = (band_xda - offset) / quantif_value
@@ -931,17 +926,8 @@ class S2Product(OpticalProduct):
             str: Condensed name
         """
         # Used to make the difference between 2 products acquired on the same tile at the same date but cut differently
-        # Get MTD XML file
-        root, _ = self.read_datatake_mtd()
-
-        # Open identifier
-        gen_time = root.findtext(".//GENERATION_TIME")
-        if not gen_time:
-            raise InvalidProductError("GENERATION_TIME not found in datatake metadata!")
-
-        gen_time = datetime.strptime(gen_time, "%Y-%m-%dT%H:%M:%S.%fZ").strftime(
-            "%H%M%S"
-        )
+        # Sentinel-2 generation time: "%Y%m%dT%H%M%S" -> save only %H%M%S
+        gen_time = self.split_name[-1].split("T")[-1]
         return f"{self.get_datetime()}_{self.platform.name}_{self.tile_name}_{self.product_type.name}_{gen_time}"
 
     @cache
