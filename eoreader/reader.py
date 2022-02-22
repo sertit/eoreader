@@ -226,7 +226,7 @@ MTD_REGEX = {
         # File that can be found at any level (product/**/file)
         "regex": r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}\.xml",
     },
-    Platform.S2: r"MTD_MSIL(1C|2A)\.xml",
+    Platform.S2: {"nested": 3, "regex": r"MTD_TL.xml"},
     Platform.S2_THEIA: rf"{PLATFORM_REGEX[Platform.S2_THEIA]}_MTD_ALL\.xml",
     Platform.S3_OLCI: r"Oa\d{2}_radiance.nc",
     Platform.S3_SLSTR: r"S\d_radiance_an.nc",
