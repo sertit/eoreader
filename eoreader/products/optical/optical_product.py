@@ -257,7 +257,11 @@ class OpticalProduct(Product):
             )
             # Write on disk in order not to reprocess band everytime
             # (invalid pix management can be time consuming)
-            if not str(band_path).endswith("clean.tif"):
+            if (
+                not str(band_path).endswith(f"{CleanMethod.RAW.value}.tif")
+                and not str(band_path).endswith(f"{CleanMethod.CLEAN.value}.tif")
+                and not str(band_path).endswith(f"{CleanMethod.NODATA.value}.tif")
+            ):
                 # Manage invalid pixels
                 cleaning_method = CleanMethod.from_value(
                     kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
