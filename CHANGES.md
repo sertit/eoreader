@@ -3,7 +3,7 @@
 ## 0.13.0 (2022-MM-DD)
 
 - **ENH: Adding the support of `Landsat-9` sensor**
-- **ENH: Support Sentinel-2 downloaded from SentinelHub AWS bucket but converted to .SAFE (with missing datatake metadata file)**
+- **ENH: Support Sentinel-2 with missing datatake metadata file(sometimes happens with data downloaded from AWS buckets and converted to .SAFE)**
 - FIX: Use `--no-binary fiona,rasterio` directly in `requirements.txt`
 - FIX: Removing useless `outputComplex` line in GPT graphs that is breaking SNAP on Linux
 - FIX: Removing the workarounds caused by some bugs of `cloudpathlib` and enabling retrieval of nested SAR products (TSX, TDX, PAZ, RCM) from S3 compatible storage.
