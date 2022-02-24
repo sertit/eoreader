@@ -662,7 +662,7 @@ class LandsatProduct(OpticalProduct):
             try:
                 band_nb = int(self.band_names[band])
             except ValueError:
-                if band in [obn.TIR_1, obn.TIR_2] and self.sat_id == Platform.L7:
+                if band in [obn.TIR_1, obn.TIR_2] and self.sat_id == Platform.L7.name:
                     band_nb = 6
                 else:
                     raise InvalidProductError(
