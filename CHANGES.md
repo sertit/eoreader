@@ -8,6 +8,8 @@
 - FIX: Removing useless `outputComplex` line in GPT graphs that is breaking SNAP on Linux
 - FIX: Removing the workarounds caused by some bugs of `cloudpathlib` and enabling retrieval of nested SAR products (TSX, TDX, PAZ, RCM) from S3 compatible storage.
 - FIX: Do not process nodata for a band already existing
+- FIX: Fixing an error when reading `TIR` bands with Landsat-7
+- FIX: Fixing an error when additive/multiplicative coefficients are set to `NULL` for Landsat data
 - REPO: Setting GitHub as the main repository and using new Gitlab runners
 
 ## 0.12.0 (2022-02-09)
