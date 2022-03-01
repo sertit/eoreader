@@ -31,7 +31,7 @@ from sertit.rasters import XDS_TYPE
 
 from eoreader.bands.bands import BandNames
 from eoreader.exceptions import InvalidProductError
-from eoreader.products import CosmoProduct, CosmoProductType
+from eoreader.products import CosmoProduct
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -115,36 +115,26 @@ class CsgProduct(CosmoProduct):
         Set product default resolution (in meters)
         See here
         <here](https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Second-Generation-Mission-Products-Description.pdf>`_
-        for more information (tables 23 and 24).
+        for more information (tables 20).
         Taking the :code:`CSK legacy` values
         """
-        # For complex data, set regular ground range resolution provided by the constructor
-        if self.product_type == CosmoProductType.SCS:
-            if self.sensor_mode == CsgSensorMode.S2A:
-                def_res = 0.12
-            elif self.sensor_mode == CsgSensorMode.S2B:
-                def_res = 0.2
-            elif self.sensor_mode == CsgSensorMode.S2C:
-                def_res = 0.24
-            elif self.sensor_mode == CsgSensorMode.PP:
-                def_res = 10.0
-            elif self.sensor_mode == CsgSensorMode.SC1:
-                def_res = 15.0
-            elif self.sensor_mode == CsgSensorMode.SC2:
-                def_res = 50.0
-            elif self.sensor_mode in [CsgSensorMode.SM, CsgSensorMode.QP]:
-                def_res = 2.5
-            else:
-                # Complex data has an empty field and its resolution is not known
-                def_res = -1.0
+        if self.sensor_mode == CsgSensorMode.S2A:
+            def_res = 0.4
+        elif self.sensor_mode == CsgSensorMode.S2B:
+            def_res = 0.63
+        elif self.sensor_mode == CsgSensorMode.S2C:
+            def_res = 0.8
+        elif self.sensor_mode == CsgSensorMode.PP:
+            def_res = 12.0
+        elif self.sensor_mode == CsgSensorMode.SC1:
+            def_res = 20.0
+        elif self.sensor_mode == CsgSensorMode.SC2:
+            def_res = 40.0
+        elif self.sensor_mode in [CsgSensorMode.SM, CsgSensorMode.QP]:
+            def_res = 3.0
         else:
-            try:
-                root, _ = self.read_mtd()
-                def_res = float(root.findtext(".//GroundRangeGeometricResolution"))
-            except (InvalidProductError, TypeError):
-                raise InvalidProductError(
-                    "GroundRangeGeometricResolution not found in metadata!"
-                )
+            # Complex data has an empty field and its resolution is not known
+            def_res = -1.0
 
         return def_res
 

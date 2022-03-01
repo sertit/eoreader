@@ -2,10 +2,13 @@
 
 ## Implemented optical satellites
 
+The product resolution is the one given in [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589). 
+The Data Access Portfolio Document presents the offer of the datasets and data access services that are made available to the Copernicus Users in response to their Earth Observation data requirements.
+
 |Satellites | Class | Product Types | Use archive | Default Resolution |
 |--- | --- | --- | --- | ---|
-|Sentinel-2 | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A | ✅ | 20m|
-|Sentinel-2 Theia | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | ✅ | 20m|
+|Sentinel-2 | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A | ✅ | 10m|
+|Sentinel-2 Theia | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | ✅ | 10m|
 |Sentinel-3 SLSTR | {meth}`~eoreader.products.optical.s3_product.S3Product` | RBT | ✅ | 300m|
 |Sentinel-3 OLCI | {meth}`~eoreader.products.optical.s3_product.S3Product` | EFR | ✅ | 500m|
 |Landsat 9 OLCI | {meth}`~eoreader.products.optical.l9_product.L9Product` | Level 1 | ✅ | 30m|
@@ -214,6 +217,8 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 
 
 ## Documentary Sources
+
+- [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589)
 
 ### Copernicus
 
