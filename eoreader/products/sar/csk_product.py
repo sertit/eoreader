@@ -78,28 +78,21 @@ class CskProduct(CosmoProduct):
         <here](https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Mission-Products-Description.pdf>`_
         for more information (p. 30)
         """
-        # For complex data, set regular ground range resolution provided by the constructor
-        if self.product_type == CosmoProductType.SCS:
-            if self.sensor_mode == CskSensorMode.HI:
-                def_res = 5.0
-            elif self.sensor_mode == CskSensorMode.PP:
-                def_res = 20.0
-            elif self.sensor_mode == CskSensorMode.WR:
-                def_res = 30.0
-            elif self.sensor_mode == CskSensorMode.HR:
-                def_res = 100.0
-            elif self.sensor_mode == CskSensorMode.S2:
-                def_res = 1.0
+        if self.sensor_mode == CskSensorMode.HI:
+            if self.product_type == CosmoProductType.SCS:
+                def_res = 3.0
             else:
-                raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
+                def_res = 5.0
+        elif self.sensor_mode == CskSensorMode.PP:
+            def_res = 20.0
+        elif self.sensor_mode == CskSensorMode.WR:
+            def_res = 30.0
+        elif self.sensor_mode == CskSensorMode.HR:
+            def_res = 100.0
+        elif self.sensor_mode == CskSensorMode.S2:
+            def_res = 1.0
         else:
-            try:
-                root, _ = self.read_mtd()
-                def_res = float(root.findtext(".//GroundRangeGeometricResolution"))
-            except (InvalidProductError, TypeError):
-                raise InvalidProductError(
-                    "GroundRangeGeometricResolution not found in metadata!"
-                )
+            raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
         return def_res
 

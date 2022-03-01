@@ -146,35 +146,22 @@ class RcmProduct(SarProduct):
         <here](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
         for more information (Beam Modes)
         """
-        def_res = None
-        # For complex data, set regular ground range resolution provided by the constructor
-        # Missing spotlight and ship detection because the values are contextual
-        if self.product_type == RcmProductType.SLC:
-            if self.sensor_mode == RcmSensorMode.THREE_M:
-                def_res = 3.0
-            elif self.sensor_mode == RcmSensorMode.FIVE_M:
-                def_res = 5.0
-            elif self.sensor_mode == RcmSensorMode.QP:
-                def_res = 9.0
-            elif self.sensor_mode == RcmSensorMode.SIXTEEN_M:
-                def_res = 16.0
-            elif self.sensor_mode == RcmSensorMode.THIRTY_M:
-                def_res = 30.0
-            elif self.sensor_mode == RcmSensorMode.FIFTY_M:
-                def_res = 50.0
-            elif self.sensor_mode in [RcmSensorMode.HUNDRED_M, RcmSensorMode.SCLN]:
-                def_res = 100.0
-
-        if not def_res:
-            # Read metadata
-            try:
-                root, nsmap = self.read_mtd()
-                namespace = nsmap[None]
-                def_res = float(root.findtext(f".//{namespace}sampledPixelSpacing"))
-            except (InvalidProductError, TypeError):
-                raise InvalidProductError(
-                    "sampledPixelSpacing or rowSpacing not found in metadata!"
-                )
+        if self.sensor_mode == RcmSensorMode.THREE_M:
+            def_res = 3.0
+        elif self.sensor_mode == RcmSensorMode.FIVE_M:
+            def_res = 5.0
+        elif self.sensor_mode == RcmSensorMode.QP:
+            def_res = 9.0
+        elif self.sensor_mode == RcmSensorMode.SIXTEEN_M:
+            def_res = 16.0
+        elif self.sensor_mode == RcmSensorMode.THIRTY_M:
+            def_res = 30.0
+        elif self.sensor_mode == RcmSensorMode.FIFTY_M:
+            def_res = 50.0
+        elif self.sensor_mode in [RcmSensorMode.HUNDRED_M, RcmSensorMode.SCLN]:
+            def_res = 100.0
+        else:
+            raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
         return def_res
 
