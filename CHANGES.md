@@ -10,6 +10,7 @@
 - FIX: Do not process nodata for a band already existing
 - FIX: Fixing an error when reading `TIR` bands with Landsat-7
 - FIX: Fixing an error when additive/multiplicative coefficients are set to `NULL` for Landsat data
+- CI: Do not try to process SAR end to end if GPT cannot be found
 - CI: Publishing wheel from Github instead of Gitlab
 - REPO: Setting GitHub as the main repository and using new Gitlab runners
 
