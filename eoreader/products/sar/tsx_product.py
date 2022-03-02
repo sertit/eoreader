@@ -157,59 +157,47 @@ class TsxProduct(SarProduct):
             )
         except (InvalidProductError, TypeError):
             raise InvalidProductError(
-                "imageDataInfo or rowSpacing not found in metadata!"
+                "acquisitionInfo or polarisationMode not found in metadata!"
             )
 
         def_res = None
-        # For complex data, set regular ground range resolution provided by the constructor
-        # Missing spotlight and ship detection because the values are contextual
-        if self.product_type == TsxProductType.SSC:
-            if self.sensor_mode == TsxSensorMode.HS:
-                if polarization == TsxPolarization.S:
-                    def_res = 0.75
-                elif polarization == TsxPolarization.D:
-                    def_res = 1.5
-            elif self.sensor_mode == TsxSensorMode.SL:
-                if polarization == TsxPolarization.S:
-                    def_res = 1.5
-                elif polarization == TsxPolarization.D:
-                    def_res = 1.5
-            elif self.sensor_mode == TsxSensorMode.ST:
-                if polarization == TsxPolarization.S:
-                    def_res = 0.4
-            elif self.sensor_mode == TsxSensorMode.SM:
-                if polarization == TsxPolarization.S:
-                    def_res = 1.5
-                elif polarization == TsxPolarization.D:
-                    def_res = 3.0
-            elif self.sensor_mode == TsxSensorMode.SC:
-                # Read metadata
-                try:
-                    root, _ = self.read_mtd()
-                    acq_info = root.find(".//acquisitionInfo")
-                    nof_beams = int(acq_info.findtext(".//numberOfBeams"))
-                except (InvalidProductError, TypeError):
-                    raise InvalidProductError(
-                        "imageDataInfo or rowSpacing not found in metadata!"
-                    )
-                # Four beams
-                if nof_beams == 4:
-                    def_res = 8.25
-
-                elif nof_beams == 6:
-                    # Six beams
-                    def_res = 15.0
-
-        if not def_res:
+        if self.sensor_mode == TsxSensorMode.HS:
+            if polarization == TsxPolarization.S:
+                def_res = 1.1
+            elif polarization == TsxPolarization.D:
+                def_res = 2.2
+        elif self.sensor_mode == TsxSensorMode.SL:
+            if polarization == TsxPolarization.S:
+                def_res = 1.7
+            elif polarization == TsxPolarization.D:
+                def_res = 3.4
+        elif self.sensor_mode == TsxSensorMode.ST:
+            if polarization == TsxPolarization.S:
+                def_res = 0.24
+        elif self.sensor_mode == TsxSensorMode.SM:
+            if polarization == TsxPolarization.S:
+                def_res = 3.3
+            elif polarization == TsxPolarization.D:
+                def_res = 6.6
+        elif self.sensor_mode == TsxSensorMode.SC:
             # Read metadata
             try:
                 root, _ = self.read_mtd()
-                img_data = root.find(".//imageDataInfo")
-                def_res = float(img_data.findtext(".//rowSpacing"))  # Square pixels
+                acq_info = root.find(".//acquisitionInfo")
+                nof_beams = int(acq_info.findtext(".//numberOfBeams"))
             except (InvalidProductError, TypeError):
                 raise InvalidProductError(
                     "imageDataInfo or rowSpacing not found in metadata!"
                 )
+            # Four beams
+            if nof_beams == 4:
+                def_res = 18.5
+
+            elif nof_beams == 6:
+                # Six beams
+                def_res = 40.0
+        else:
+            raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
         return def_res
 

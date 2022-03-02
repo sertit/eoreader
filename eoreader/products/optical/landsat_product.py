@@ -21,7 +21,7 @@ from abc import abstractmethod
 from datetime import datetime
 from enum import unique
 from pathlib import Path
-from typing import Tuple, Union
+from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -40,6 +40,7 @@ from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
+from eoreader.reader import Platform
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -435,9 +436,7 @@ class LandsatProduct(OpticalProduct):
 
         return band_paths
 
-    def _read_mtd(
-        self, force_pd=False
-    ) -> Tuple[Union[pd.DataFrame, etree._Element], dict]:
+    def _read_mtd(self, force_pd=False) -> (etree._Element, dict):
         """
         Read Landsat metadata as:
 
@@ -584,8 +583,18 @@ class LandsatProduct(OpticalProduct):
 
                 # Get coeffs to convert DN to reflectance
                 try:
-                    c_mul = float(mtd_data.findtext(f".//{c_mul_str}"))
-                    c_add = float(mtd_data.findtext(f".//{c_add_str}"))
+                    c_mul = mtd_data.findtext(f".//{c_mul_str}")
+                    c_add = mtd_data.findtext(f".//{c_add_str}")
+
+                    # Manage some cases where the values are set to NULL
+                    if c_mul == "NULL":
+                        c_mul = 1.0
+                    else:
+                        c_mul = float(c_mul)
+                    if c_add == "NULL":
+                        c_add = 1.0
+                    else:
+                        c_add = float(c_add)
                 except TypeError:
                     if band in [obn.TIR_1, obn.TIR_2]:
                         c_mul = 1.0
@@ -650,7 +659,15 @@ class LandsatProduct(OpticalProduct):
         else:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
             # SATURATED & OTHER PIXELS
-            band_nb = int(self.band_names[band])
+            try:
+                band_nb = int(self.band_names[band])
+            except ValueError:
+                if band in [obn.TIR_1, obn.TIR_2] and self.sat_id == Platform.L7.name:
+                    band_nb = 6
+                else:
+                    raise InvalidProductError(
+                        f"Cannot convert {self.band_names[band]} to integer."
+                    )
 
             # Bit ids
             sat_id = band_nb - 1  # Saturated pixel

@@ -14,18 +14,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-**EOReader** library
-"""
-__version__ = "0.13.0"
-__title__ = "eoreader"
-__description__ = (
-    "Remote-sensing opensource python library reading optical and SAR sensors, "
-    "loading and stacking bands, clouds, DEM and index in a sensor-agnostic way."
-)
-__author__ = "ICube-SERTIT"
-__author_email__ = "dev-sertit@unistra.fr"
-__url__ = "https://github.com/sertit/eoreader"
-__license__ = "Apache 2.0"
-__copyright__ = "Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/"
-__documentation__ = "https://eoreader.readthedocs.io"
+""" Landsat-9 products """
+from eoreader.products import LandsatProduct
+
+
+class L9Product(LandsatProduct):
+    """Class of Landsat-9 Products"""
+
+    def _set_resolution(self) -> float:
+        """
+        Set product default resolution (in meters)
+        """
+        # DO NOT TAKE INTO ACCOUNT PAN AND TIRS RES
+        return 30.0
+
+    def _set_product_type(self) -> None:
+        """Set products type"""
+        self._set_olci_product_type()

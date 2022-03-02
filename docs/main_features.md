@@ -315,7 +315,7 @@ Please note the difference between `footprint` and `extent`:
 |--- | ---|
 | ![without_nodata](https://zupimages.net/up/21/14/69i6.gif) | ![with_nodata](https://zupimages.net/up/21/14/vg6w.gif) |
 
-## Optical data
+### Solar angles
 Get product azimuth (between [0, 360] degrees) and 
 [zenith solar angles](https://en.wikipedia.org/wiki/Solar_zenith_angle), useful for computing the Hillshade for example.
 

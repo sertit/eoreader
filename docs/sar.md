@@ -110,111 +110,101 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 The default resolution of SAR products depends on their type. Complex data are **always** converted back to ground range
 to be used, so the complex resolution is **never** used by EOReader.
 
-The product resolution is read in the metadata file if possible, except for complex data.
-For them, Grand Range values from the constructor are used.
+The product resolution is the one given in [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589). 
+The Data Access Portfolio Document presents the offer of the datasets and data access services that are made available to the Copernicus Users in response to their Earth Observation data requirements.
+Resolutions not found in this paper have been looked for in the constructor's documents (see sources).
 
 ### Sentinel-1
 
-| **Sentinel-1** | Single Look Complex (SLC) |Ground Range Detected (GRD)<br>Full Resolution (FR) | Ground Range Detected (GRD)<br>High Resolution (HR) | Ground Range Detected (GRD)<br>Medium Resolution (MR)|
-|--- | --- | --- | --- | ---|
-|StripMap (SM) | 1.5x3.6 m to 3.1x4.1 m | 3.5m | 10.0m | 40.0m|
-|Interferometric Wide swath (IW) | 2.3x14.1 m | | 10.0m | 40.0m|
-|Extra-Wide swath (EW) | 5.9x19.9 m | | 25.0m | 40.0m|
-|Wave (WV) | 1.7x4.1 m and 2.7x4.1 m | | | 25.0m|
+| **Sentinel-1** | Ground Range Detected (GRD)<br>Full Resolution (FR) | Ground Range Detected (GRD)<br>High Resolution (HR) | Ground Range Detected (GRD)<br>Medium Resolution (MR)|
+|--- | --- | --- | ---|
+|StripMap (SM) |  9.0m | 23.0m | 84.0m|
+|Interferometric Wide swath (IW) |  | 20.0m | 88.0m|
+|Extra-Wide swath (EW) |  | 50.0m | 93.0m|
+|Wave (WV) | | | 52.0m|
 
 ### COSMO-Skymed 1st Generation
 
-| **COSMO-Skymed 1st Generation** | Single-look Complex Slant (SCS) | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
-|--- | --- | ---|
-|**Spotlight**<br>Mode-2 (S2) | 1.1-0.9x0.91m | 1.0m|
-|**StripMap**<br>Himage (HI) | 3.0-2.6x2.4-2.6m | 5.0m|
-|**StripMap**<br>PingPong (PP) | 11-10x9.7m | 20.0m|
-|**ScanSAR**<br>Wide Region (WR) | 13.5x23m | 30.0m|
-|**ScanSAR**<br>Huge Region (HR) | 13.5x38.0m | 100.0m|
+| **COSMO-Skymed 1st Generation** | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+|--- | ---|
+|**Spotlight**<br>Mode-2 (S2) | 1.0m| 
+|**StripMap**<br>Himage from SCS (HI) | 3.0m|
+|**StripMap**<br>Himage GRD (HI) | 5.0m|
+|**StripMap**<br>PingPong (PP) | 20.0m|
+|**ScanSAR**<br>Wide Region (WR) | 30.0m|
+|**ScanSAR**<br>Huge Region (HR) | 100.0m|
 
 ### COSMO-Skymed 2nd Generation
-*Only for Standard products*
+*TO BE CHECKED*
 
-| **COSMO-Skymed 2nd Generation** | Single-look Complex Slant (SCS) | Detected Ground Multi-look (DGM)Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
-|--- | --- | ---|
-|**SPOTLIGHT_2_A** | ~0.25m | #1: 0.15m (apodized: 0.12m)<br>#2: 0.30m<br>#3: 0.45m |
-|**SPOTLIGHT_2_B** | ~0.45m | #1: 0.25m (apodized: 0.2m)<br>#2: 0.50m<br>#3: 1.0m |
-|**SPOTLIGHT-2C** | ~0.56m | #1: 0.30m (apodized: 0.24m)<br>#2: 0.60m<br>#3: 0.9m |
-|**STRIPMAP & QUADPOL** | ≤ 3.0m |#1: 1.25m<br>#2: 2.5m<br>#3: 5.0m|
-|**SCANSAR1** | 14.0m |#1: 5.0m<br>#2: 10.0m<br>#3: 15.0m|
-|**SCANSAR2** | 27.0m |#1: 10.0m<br>#2: 20.0m<br>#3: 50.0m|
-|**PINGPONG** | 8.0m |#1: 2.0m<br>#2: 4.0m<br>#3: 10.0m|
-
-`#1`, `#2` and `#3` correspond to the MultiLook ID.
+| **COSMO-Skymed 2nd Generation** | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+|--- | ---|
+|SPOTLIGHT_2_A | 0.4m |
+|SPOTLIGHT_2_B | 0.63m |
+|SPOTLIGHT-2_C | 0.8m |
+|STRIPMAP & QUADPOL | 3.0m|
+|SCANSAR1 | 20.0m|
+|SCANSAR2 | 40.0m|
+|PINGPONG | 12.0m|
 
 ### TerraSAR-X & TanDEM-X & PAZ SAR
 
-|**TerraSAR-X & TanDEM-X & PAZ SAR** | Single-look Slant Range (SSC) | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
-|--- | --- | --- | ---|
-|**StripMap (SM)**<br>Single-Pol | 0.9x2.0m | 1.5m or 1.25m | 4.0m or 3.25m|
-|**StripMap (SM)**<br>Dual-Pol | 0.9x2.5m | 3.0m | 5.5m or 4.5m|
-|**High Resolution Spotlight (HS)**<br>Single-Pol | 0.9x0.8m | 1.5m or 0.5m | 2.0m or 1.5m|
-|**High Resolution Spotlight (HS)**<br>Dual-Pol | 0.9x1.5m | 1.5m or 1.0m | 3.0m or 2.0m|
-|**Spotlight (SL)**<br>Single-Pol | 0.9x1.3m | 1.5m or 0.75m | 3.0m or 1.75m|
-|**Spotlight (SL)**<br>Dual-Pol | 0.9x2.6m | 3.5m or 3.4m | 8.5m or 5.5m|
-|**Staring Spotlight (ST)**<br>Single-Pol | 0.5x0.2m | 0.4m or 0.2m | 0.8m or 0.4m|
-|**ScanSAR (SC)**<br>Four Beams | 0.9x13m | | 8.25m|
-|**ScanSAR (SC)**<br>Six Beams | 1.4x?m | | 15.0m|
+|**TerraSAR-X & TanDEM-X & PAZ SAR** | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
+|--- | --- | ---|
+|**StripMap (SM)**<br>Single-Pol | 3.3m | 7.0m|
+|**StripMap (SM)**<br>Dual-Pol | 6.6m | 9.9m|
+|**High Resolution Spotlight (HS)**<br>Single-Pol | 1.1m | 3.0m|
+|**High Resolution Spotlight (HS)**<br>Dual-Pol |2.2m | 4.4m|
+|**Spotlight (SL)**<br>Single-Pol | 1.7m | 3.8m|
+|**Spotlight (SL)**<br>Dual-Pol | 3.4m | 5.5m|
+|**Staring Spotlight (ST)**<br>Single-Pol |  0.24m | 0.9m|
+|**ScanSAR (SC)**<br>Four Beams | | 18.5m|
+|**ScanSAR (SC)**<br>Six Beams | | 40.0m|
 
 ### RADARSAT-2
 
-|**RADARSAT-2** | Single-look complex (SLC) | SAR georeferenced extra(SGX) | SAR georeferenced fine (SGF) | SAR systematic geocorrected (SSG) | SAR precision geocorrected (SPG) | ScanSAR narrow beam (SCN) | ScanSAR wide beam (SCW) | ScanSAR fine (SCF) | ScanSAR sampled (SCS)|
-|--- | --- | --- | --- | --- | --- | --- | --- | --- | ---|
-|Spotlight | 1.3x0.4m | 1.0 or 0.8x1/3m | 0.5m | 0.5m | 0.5m | | | | |
-|Ultra-Fine | 1.3x2.1m | 1.0x1.0 or 0.8x0.8m | 1.56m | 1.56m | 1.56m | | | | |
-|Wide Ultra-Fine | 1.3x2.1m | 1.0m | 1.56m | 1.56m | 1.56m | | | | |
-|Multi-Look Fine | 2.7x2.9m | 3.13m | 6.25m | 6.25m | 6.25m | | | | |
-|Wide Multi-Look Fine | 2.7x2.9m | 3.13m | 6.25m | 6.25m | 6.25m | | | | |
-|Extra-Fine | Full Res: 2.7x2.9m<br>Fine Res: 4.3x5.8m<br>Full Res: 7.1x5.8m<br>Wide Res: 10.6x5.8m | 1 look: 2.0m<br>4 looks: 3.13m<br>28 looks: 5.0m | 1 look: 3.13m<br>4 looks: 6.25m<br>28 looks: 8.0m | 3.13m | 3.13m | | | | |
-|Fine | 4.7x5.1m | 3.13m | 6.25m | 6.25m | 6.25m | | | | |
-|Wide-Fine | 4.7x5.1m | 3.13m | 6.25m | 6.25m | 6.25m | | | | |
-|Standard | 8.0 or 11.8x5.1m | 8.0m | 12.5m | 12.5m | 12.5m | | | | |
-|Wide | 11.8x5.1m | 10.0m | 12.5m | 12.5m | 12.5m | | | | |
-|Extended High | 11.8x5.1m | 8.0m | 12.5m | 12.5m | 12.5m | | | | |
-|Extended Low | 8.0x5.1m | 10.0m | 12.5m | 12.5m | 12.5m | | | | |
-|Fine Quad-Pol | 4.7x5.1m | 3.13m | 3.13m | 3.13m | 3.13m | | | | |
-|Wide Quad-Pol | 4.7x5.1m | 3.13m | 3.13m | 3.13m | 3.13m | | | | |
-|Standard Quad-Pol | 8.0 or 11.8x5.1m | 8.0x3.13m | 8.0x3.13m | 8.0x3.13m | 8.0x3.13m | | | | |
-|Wide Standard Quad-Pol | 8.0 or 11.8x5.1m | 8.0x3.13m | 8.0x3.13m | 8.0x3.13m | 8.0x3.13m | | | | |
-|ScanSAR Narrow | | | | | | 25.0m | | 25.0m | 25.0m|
-|ScanSAR Wide | | | | | | | 50.0m | 50.0m | 50.0m|
-|Ship (Detection of vessels) | | | | | | | | 40.0m | 20.0m|
-|Ocean Surveillance | | | | | | | | 50.0m | 35.0x25.0m|
+|**RADARSAT-2** | Maximal spatial resolution |
+|--- | ---|
+|Spotlight | 1.0m |
+|Ultra-Fine | 3.0m |
+|Wide Ultra-Fine | 3.0m |
+|Multi-Look Fine | 5.0m |
+|Wide Multi-Look Fine | 5.0m |
+|Extra-Fine | 5.0m |
+|Fine | 8.0m |
+|Wide-Fine | 8.0m |
+|Standard | 25.0m |
+|Wide | 25.0m |
+|Extended High | 25.0m |
+|Extended Low | 25.0m |
+|Fine Quad-Pol | 12.0m |
+|Wide Quad-Pol | 12.0m |
+|Standard Quad-Pol | 25.0m |
+|Wide Standard Quad-Pol | 25.0m |
+|ScanSAR Narrow | 60.0m |
+|ScanSAR Wide | 100.0m |
+|Ship (Detection of vessels) | 35.0m |
+|Ocean Surveillance | 50.0m |
 
 
 ### RADARSAT-Constellation
 
-|RADARSAT-Constellation | Resolution*|
+|**RADARSAT-Constellation** | Resolution|
 |--- | ---|
-|Spotlight [FSL] | ≈ 1.0 x 3.0m à 35°|
-|Very-High Resolution, 3 meters [3M] | ≈ 3.0 x 3.0m à 35°|
-|High Resolution, 5 meters [5M] | ≈ 5.0 x 5.0m|
-|Quad-Polarization [QP]| ≈ 9.0 x 9.0m|
-|Medium Resolution, 16 meters [16M] | ≈ 16.0 x 16.0m|
-|Medium Resolution, 30 meters [SC30] | ≈ 30.0 x 30.0m|
-|Medium Resolution, 50 meters [SC50] | ≈ 50.0 x 50.0m|
-|Low Noise [SCLN] | ≈ 100.0 x 100.0m|
-|Low Resolution, 100 meters [SC100] | ≈ 100.0 x 100.0m|
+|Spotlight [FSL] | 1.0m|
+|Very-High Resolution, 3 meters [3M] | 3.0m |
+|High Resolution, 5 meters [5M] | 5.0m|
+|Quad-Polarization [QP]| 9.0m|
+|Medium Resolution, 16 meters [16M] | 16.0m|
+|Medium Resolution, 30 meters [SC30] | 30.0m|
+|Medium Resolution, 50 meters [SC50] | 50.0m|
+|Low Noise [SCLN] | 100.0m|
+|Low Resolution, 100 meters [SC100] | 100.0m|
 |Ship Detection | Variable|
 
-\* Same resolution for every product type according 
-to [that page](https://www.asc-csa.gc.ca/fra/satellites/radarsat/aspects-techniques/radarsat-comparaison.asp).
-
 ### ICEYE
-For GRD products: 
 
-|ICEYE | Ground sample spacing (pixel size)|
-|--- | ---|
-|Spotlight [SL(H)] |0.5m|
-|StripMap [SM(H)] |2.5m|
-|Scan [SC] |6.0m|
-
-|ICEYE | Resolution|
+|**ICEYE** | Resolution|
 |--- | ---|
 |Spotlight [SL(H)] |1.0m|
 |StripMap [SM(H)] |3.0m|
@@ -222,14 +212,14 @@ For GRD products:
 
 ### SAOCOM-1
 
-|**SAOCOM-1** | Single-Look Complex (SLC) | Detected Image (DI)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
-|--- | --- | ---|
-|**StripMap (SM)**<br>Single and Dual Pol | 10x5m | 10.0m|
-|**StripMap (SM)**<br>Quad Pol | 10x6m | 10.0m|
-|**TOPSAR Narrow (TN)**<br>Single and Dual Pol | 10x30m | 30.0m|
-|**TOPSAR Narrow (TN)**<br>Quad Pol | 10x50m | 50.0m|
-|**TOPSAR Wide (TW)**<br>Single and Dual Pol | 10x50m | 50.0m|
-|**TOPSAR Wide (TW)**<br>Quad Pol | 10x100m | 100.0m|
+|**SAOCOM-1** | Detected Image (DI)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+|--- | ---|
+|**StripMap (SM)**<br>Single and Dual Pol | 10.0m|
+|**StripMap (SM)**<br>Quad Pol | 10.0m|
+|**TOPSAR Narrow (TN)**<br>Single and Dual Pol | 30.0m|
+|**TOPSAR Narrow (TN)**<br>Quad Pol | 50.0m|
+|**TOPSAR Wide (TW)**<br>Single and Dual Pol | 50.0m|
+|**TOPSAR Wide (TW)**<br>Quad Pol | 100.0m|
 
 ## GPT graphs
 
@@ -380,6 +370,8 @@ variable:
 
 ## Documentary Sources
 
+- [Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589)
+- 
 ### Copernicus 
 - [Copernicus Contributing Missions](https://www.esa.int/ESA_Multimedia/Images/2021/09/Copernicus_Contributing_Missions_overview)
 
