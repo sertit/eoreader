@@ -76,9 +76,9 @@ class S2TheiaProduct(OpticalProduct):
         """
         Set product default resolution (in meters)
         """
-        # S2: use 20m resolution, even if we have 60m and 10m resolution
+        # S2: use 10m resolution, even if we have 60m and 20m resolution
         # In the future maybe set one resolution per band ?
-        return 20.0
+        return 10.0
 
     def _get_tile_name(self) -> str:
         """

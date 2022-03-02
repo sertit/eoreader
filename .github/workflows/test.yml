@@ -1,24 +1,19 @@
-name: CI
+name: Mirror and run GitLab CI
 
-on:
-  push:
-    branches: [master]
-  pull_request:
-    branches: [master]
-  schedule:
-    - cron: "0 7 * * 1"
-  workflow_dispatch:
+on: [ push ]
 
 jobs:
-  lint:
-    name: Linters (pre-commit)
+  build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout the repo
-      uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: "3.7"
-    - name: Run pre-commit action
-      uses: pre-commit/action@v2.0.0
+      - uses: actions/checkout@v1
+      - name: Mirror + trigger CI
+        uses: SvanBoxel/gitlab-mirror-and-ci-action@master
+        with:
+          args: "https://${{ secrets.GITLAB_HOSTNAME }}/sertit/extracteo/eoreader"
+        env:
+          GITLAB_HOSTNAME: ${{ secrets.GITLAB_HOSTNAME }}
+          GITLAB_USERNAME: ${{ secrets.GITLAB_USERNAME }}
+          GITLAB_PASSWORD: ${{ secrets.GITLAB_PASSWORD }}
+          GITLAB_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

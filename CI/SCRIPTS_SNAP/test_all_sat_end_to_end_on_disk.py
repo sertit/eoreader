@@ -134,10 +134,6 @@ def _test_core(
         )
 
         for path in pattern_paths:
-            # WORKAROUND
-            if str(path).endswith("/"):
-                path = AnyPath(str(path)[:-1])
-
             LOGGER.info(
                 "%s on drive %s (CI_EOREADER_S3: %s)",
                 path.name,
@@ -262,10 +258,65 @@ def test_s3_slstr():
 
 
 @dask_env
+def test_l9():
+    """Function testing the support of Landsat-9 sensor"""
+    # Init logger
+    _test_core_optical("*LC09*")
+
+
+@dask_env
 def test_l8():
     """Function testing the support of Landsat-8 sensor"""
     # Init logger
     _test_core_optical("*LC08*")
+
+
+@dask_env
+def test_l7():
+    """Function testing the support of Landsat-7 sensor"""
+    _test_core_optical("*LE07*")
+
+
+@dask_env
+def test_l5_tm():
+    """Function testing the support of Landsat-5 TM sensor"""
+    _test_core_optical("*LT05*")
+
+
+@dask_env
+def test_l4_tm():
+    """Function testing the support of Landsat-4 TM sensor"""
+    _test_core_optical("*LT04*")
+
+
+@dask_env
+def test_l5_mss():
+    """Function testing the support of Landsat-5 MSS sensor"""
+    _test_core_optical("*LM05*")
+
+
+@dask_env
+def test_l4_mss():
+    """Function testing the support of Landsat-4 MSS sensor"""
+    _test_core_optical("*LM04*")
+
+
+@dask_env
+def test_l3_mss():
+    """Function testing the support of Landsat-3 sensor"""
+    _test_core_optical("*LM03*")
+
+
+@dask_env
+def test_l2_mss():
+    """Function testing the support of Landsat-2 sensor"""
+    _test_core_optical("*LM02*")
+
+
+@dask_env
+def test_l1_mss():
+    """Function testing the support of Landsat-1 sensor"""
+    _test_core_optical("*LM01*")
 
 
 @dask_env

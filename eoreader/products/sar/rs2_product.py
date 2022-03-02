@@ -178,74 +178,69 @@ class Rs2Product(SarProduct):
         """
         Set product default resolution (in meters)
         """
-        def_res = None
-        # For complex data, set regular ground range resolution provided by the constructor
-        # Missing Ocean Surveillance and Ship Detection because the values are contextual
-        if self.product_type == Rs2ProductType.SLC:
-            # -------------------------------------------------------------
-            # Selective Single or Dual Polarization
-            # Transmit H and/or V, receive H and/or V
-            # F = "Fine", WF = "Wide Fine"
-            if self.sensor_mode in [Rs2SensorMode.F, Rs2SensorMode.WF]:
-                def_res = 8.0
-            # S = "Standard", W = "Wide"
-            elif self.sensor_mode == [Rs2SensorMode.S, Rs2SensorMode.W]:
-                def_res = 25.0
-            # SCN = "ScanSAR Narrow"
-            elif self.sensor_mode == Rs2SensorMode.SCN:
-                def_res = 50.0
-            # SCW = "ScanSAR Wide"
-            elif self.sensor_mode == Rs2SensorMode.SCW:
-                def_res = 100.0
+        # -------------------------------------------------------------
+        # Selective Single or Dual Polarization
+        # Transmit H and/or V, receive H and/or V
+        # F = "Fine", WF = "Wide Fine"
+        if self.sensor_mode in [Rs2SensorMode.F, Rs2SensorMode.WF]:
+            def_res = 8.0
+        # S = "Standard", W = "Wide"
+        elif self.sensor_mode in [Rs2SensorMode.S, Rs2SensorMode.W]:
+            def_res = 25.0
+        # SCN = "ScanSAR Narrow"
+        elif self.sensor_mode == Rs2SensorMode.SCN:
+            def_res = 50.0
+        # SCW = "ScanSAR Wide"
+        elif self.sensor_mode == Rs2SensorMode.SCW:
+            def_res = 100.0
 
-            # -------------------------------------------------------------
-            # Polarimetric
-            # Transmit H and V on alternate pulses /
-            # receive H and V on any pulse
-            # FQ = "Fine Quad-Pol", WFQ = "Wide Fine Quad-Pol"
-            elif self.sensor_mode == [Rs2SensorMode.FQ, Rs2SensorMode.WFQ]:
-                def_res = 12.0
-            # SQ = "Standard Quad-Pol", "Wide Standard Quad-Pol"
-            elif self.sensor_mode == [Rs2SensorMode.SQ, Rs2SensorMode.WSQ]:
-                def_res = 25.0
+        # -------------------------------------------------------------
+        # Polarimetric
+        # Transmit H and V on alternate pulses /
+        # receive H and V on any pulse
+        # FQ = "Fine Quad-Pol", WFQ = "Wide Fine Quad-Pol"
+        elif self.sensor_mode in [Rs2SensorMode.FQ, Rs2SensorMode.WFQ]:
+            def_res = 12.0
+        # SQ = "Standard Quad-Pol", "Wide Standard Quad-Pol"
+        elif self.sensor_mode in [Rs2SensorMode.SQ, Rs2SensorMode.WSQ]:
+            def_res = 25.0
 
-            # -------------------------------------------------------------
-            # Single Polarization HH
-            # Transmit H, receive H
-            # EH = "Extended High"
-            elif self.sensor_mode == Rs2SensorMode.EH:
-                def_res = 25.0
-            # EL = "Extended Low"
-            elif self.sensor_mode == Rs2SensorMode.EL:
-                def_res = 60.0
+        # -------------------------------------------------------------
+        # Single Polarization HH
+        # Transmit H, receive H
+        # EH = "Extended High"
+        elif self.sensor_mode == Rs2SensorMode.EH:
+            def_res = 25.0
+        # EL = "Extended Low"
+        elif self.sensor_mode == Rs2SensorMode.EL:
+            def_res = 60.0
 
-            # -------------------------------------------------------------
-            # Selective Single Polarization
-            # Transmit H or V, receive H or V
-            # EH = "Extended High"
-            # SLA = "Spotlight"
-            elif self.sensor_mode == Rs2SensorMode.SLA:
-                def_res = 1.0
-            # U = "Ultra-Fine", WU = "Wide Ultra-Fine"
-            elif self.sensor_mode == [Rs2SensorMode.U, Rs2SensorMode.WU]:
-                def_res = 3.0
-            # XF = "Extra-Fine"
-            elif self.sensor_mode == Rs2SensorMode.XF:
-                def_res = 5.0
-            # MF = "Multi-Look Fine", WMF = "Wide Multi-Look Fine"
-            elif self.sensor_mode == [Rs2SensorMode.MF, Rs2SensorMode.WMF]:
-                def_res = 8.0
+        # -------------------------------------------------------------
+        # Selective Single Polarization
+        # Transmit H or V, receive H or V
+        # EH = "Extended High"
+        # SLA = "Spotlight"
+        elif self.sensor_mode == Rs2SensorMode.SLA:
+            def_res = 1.0
+        # U = "Ultra-Fine", WU = "Wide Ultra-Fine"
+        elif self.sensor_mode in [Rs2SensorMode.U, Rs2SensorMode.WU]:
+            def_res = 3.0
+        # XF = "Extra-Fine"
+        elif self.sensor_mode == Rs2SensorMode.XF:
+            def_res = 5.0
+        # MF = "Multi-Look Fine", WMF = "Wide Multi-Look Fine"
+        elif self.sensor_mode in [Rs2SensorMode.MF, Rs2SensorMode.WMF]:
+            def_res = 8.0
 
-        if not def_res:
-            # Read metadata
-            try:
-                root, nsmap = self.read_mtd()
-                namespace = nsmap[None]
-                def_res = float(root.findtext(f".//{namespace}sampledPixelSpacing"))
-            except (InvalidProductError, TypeError):
-                raise InvalidProductError(
-                    "sampledPixelSpacing or rowSpacing not found in metadata!"
-                )
+        # -------------------------------------------------------------
+        # Ocean surveillance and detection of vessels
+        elif self.sensor_mode == Rs2SensorMode.OSVN:
+            def_res = 50.0
+
+        elif self.sensor_mode == Rs2SensorMode.DVWF:
+            def_res = 35.0
+        else:
+            raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
         return def_res
 

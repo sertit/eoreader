@@ -787,16 +787,8 @@ class SarProduct(Product):
                         raise RuntimeError("Something went wrong with SNAP!") from ex
 
                 # Convert DIMAP images to GeoTiff
-                try:
-                    LOGGER.debug("Converting DIMAP to GeoTiff")
-                    return self._write_sar(pp_dim, band.value, **kwargs)
-                except AssertionError:
-                    if isinstance(self.path, CloudPath):
-                        raise InvalidProductError(
-                            f"For now, {self._get_platform().value} can't be processed while being stored in the cloud. "
-                            "A bug when caching nested directories prevents that, see here: "
-                            "https://github.com/drivendataorg/cloudpathlib/issues/148"
-                        )
+                LOGGER.debug("Converting DIMAP to GeoTiff")
+                return self._write_sar(pp_dim, band.value, **kwargs)
 
     def _despeckle_sar(self, band: sbn, **kwargs) -> str:
         """

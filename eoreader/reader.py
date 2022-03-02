@@ -73,6 +73,9 @@ class Platform(ListEnum):
     S3_SLSTR = "Sentinel-3 SLSTR"
     """Sentinel-3 SLSTR"""
 
+    L9 = "Landsat-9"
+    """Landsat-9"""
+
     L8 = "Landsat-8"
     """Landsat-8"""
 
@@ -176,6 +179,7 @@ PLATFORM_REGEX = {
     Platform.S2_THEIA: r"SENTINEL2[AB]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
     Platform.S3_OLCI: r"S3[AB]_OL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
     Platform.S3_SLSTR: r"S3[AB]_SL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
+    Platform.L9: r"LC09_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Platform.L8: r"LC08_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Platform.L7: r"LE07_L1(GT|TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Platform.L5: r"L[TM]05_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
@@ -222,10 +226,11 @@ MTD_REGEX = {
         # File that can be found at any level (product/**/file)
         "regex": r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}\.xml",
     },
-    Platform.S2: r"MTD_MSIL(1C|2A)\.xml",
+    Platform.S2: {"nested": 3, "regex": r"MTD_TL.xml"},
     Platform.S2_THEIA: rf"{PLATFORM_REGEX[Platform.S2_THEIA]}_MTD_ALL\.xml",
     Platform.S3_OLCI: r"Oa\d{2}_radiance.nc",
     Platform.S3_SLSTR: r"S\d_radiance_an.nc",
+    Platform.L9: rf"{PLATFORM_REGEX[Platform.L9]}_MTL\.txt",
     Platform.L8: rf"{PLATFORM_REGEX[Platform.L8]}_MTL\.txt",
     Platform.L7: rf"{PLATFORM_REGEX[Platform.L7]}_MTL\.txt",
     Platform.L5: rf"{PLATFORM_REGEX[Platform.L5]}_MTL\.txt",

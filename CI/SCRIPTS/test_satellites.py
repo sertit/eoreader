@@ -132,10 +132,6 @@ def _test_core(
         )
 
         for path in pattern_paths:
-            # WORKAROUND
-            if str(path).endswith("/"):
-                path = AnyPath(str(path)[:-1])
-
             LOGGER.info(
                 "%s on drive %s (CI_EOREADER_S3: %s)",
                 path.name,
@@ -175,6 +171,8 @@ def _test_core(
                 if prod.sensor_type == SensorType.SAR:
                     res = 1000.0
                     os.environ[SAR_DEF_RES] = str(res)
+                elif prod.sat_id in ["S2", "S2_THEIA"]:
+                    res = 20.0 * 50  # Legacy
                 else:
                     res = prod.resolution * 50
 
@@ -374,6 +372,14 @@ def test_s3_slstr():
     """Function testing the support of Sentinel-3 SLSTR sensor"""
     # Init logger
     _test_core_optical("*S3*_SL_1_*", **{SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP})
+
+
+@s3_env
+@dask_env
+def test_l9():
+    """Function testing the support of Landsat-9 sensor"""
+    # Init logger
+    _test_core_optical("*LC09*")
 
 
 @s3_env

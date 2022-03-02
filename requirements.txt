@@ -26,6 +26,9 @@ geopandas>=0.9.0
 dask[complete]==2021.10.0
 rtree
 validators
+cloudpathlib>=0.7.0
 
 # SERTIT libs
 sertit[full]>=1.11.0
+
+--no-binary fiona,rasterio

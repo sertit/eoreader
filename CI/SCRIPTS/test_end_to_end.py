@@ -1,6 +1,7 @@
 """ Script testing EOReader satellites in a push routine """
 import logging
 import os
+import shutil
 import sys
 import tempfile
 
@@ -133,10 +134,6 @@ def _test_core(
         )
 
         for path in pattern_paths:
-            # WORKAROUND
-            if str(path).endswith("/"):
-                path = AnyPath(str(path)[:-1])
-
             LOGGER.info(
                 "%s on drive %s (CI_EOREADER_S3: %s)",
                 path.name,
@@ -223,8 +220,7 @@ def test_spot7():
 
 
 @pytest.mark.skipif(
-    sys.platform == "win32",
-    reason="SNAP is not present on Windows runner",
+    shutil.which("gpt") is None, reason="Only works if SNAP GPT's exe can be found."
 )
 @dask_env
 def test_iceye():

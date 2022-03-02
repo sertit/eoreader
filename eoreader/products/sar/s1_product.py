@@ -101,30 +101,16 @@ class S1Product(SarProduct):
         <here](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected>`_
         for more information
         """
-        def_res = None
-        # For complex data, set regular ground range resolution provided by the constructor
-        # For Sentinel data, use the best resolution available
-        if self.product_type == S1ProductType.SLC:
-            if self.sensor_mode == S1SensorMode.SM:
-                def_res = 3.5  # Full Resolution GRD
-            elif self.sensor_mode == S1SensorMode.IW:
-                def_res = 10.0  # High  Resolution GRD
-            elif self.sensor_mode == S1SensorMode.EW:
-                def_res = 25.0  # High  Resolution GRD
-            elif self.sensor_mode == S1SensorMode.WV:
-                def_res = 25.0  # Medium Resolution GRD
-
-        if not def_res:
-            root, _ = self.read_mtd()
-
-            # Read metadata
-            try:
-                def_res = float(root.findtext(".//rangePixelSpacing"))
-            except TypeError:
-                raise InvalidProductError(
-                    "rangePixelSpacing or rowSpacing not found in metadata!"
-                )
-
+        if self.sensor_mode == S1SensorMode.SM:
+            def_res = 9.0  # Full Resolution GRD
+        elif self.sensor_mode == S1SensorMode.IW:
+            def_res = 20.0  # High  Resolution GRD
+        elif self.sensor_mode == S1SensorMode.EW:
+            def_res = 50.0  # High  Resolution GRD
+        elif self.sensor_mode == S1SensorMode.WV:
+            def_res = 52.0  # Medium Resolution GRD
+        else:
+            raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
         return def_res
 
     def _pre_init(self) -> None:
