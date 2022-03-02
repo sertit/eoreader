@@ -171,6 +171,8 @@ def _test_core(
                 if prod.sensor_type == SensorType.SAR:
                     res = 1000.0
                     os.environ[SAR_DEF_RES] = str(res)
+                elif prod.sat_id in ["S2", "S2_THEIA"]:
+                    res = 20.0 * 50  # Legacy
                 else:
                     res = prod.resolution * 50
 
