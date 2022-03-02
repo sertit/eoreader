@@ -185,7 +185,7 @@ class Rs2Product(SarProduct):
         if self.sensor_mode in [Rs2SensorMode.F, Rs2SensorMode.WF]:
             def_res = 8.0
         # S = "Standard", W = "Wide"
-        elif self.sensor_mode == [Rs2SensorMode.S, Rs2SensorMode.W]:
+        elif self.sensor_mode in [Rs2SensorMode.S, Rs2SensorMode.W]:
             def_res = 25.0
         # SCN = "ScanSAR Narrow"
         elif self.sensor_mode == Rs2SensorMode.SCN:
@@ -199,10 +199,10 @@ class Rs2Product(SarProduct):
         # Transmit H and V on alternate pulses /
         # receive H and V on any pulse
         # FQ = "Fine Quad-Pol", WFQ = "Wide Fine Quad-Pol"
-        elif self.sensor_mode == [Rs2SensorMode.FQ, Rs2SensorMode.WFQ]:
+        elif self.sensor_mode in [Rs2SensorMode.FQ, Rs2SensorMode.WFQ]:
             def_res = 12.0
         # SQ = "Standard Quad-Pol", "Wide Standard Quad-Pol"
-        elif self.sensor_mode == [Rs2SensorMode.SQ, Rs2SensorMode.WSQ]:
+        elif self.sensor_mode in [Rs2SensorMode.SQ, Rs2SensorMode.WSQ]:
             def_res = 25.0
 
         # -------------------------------------------------------------
@@ -223,14 +223,22 @@ class Rs2Product(SarProduct):
         elif self.sensor_mode == Rs2SensorMode.SLA:
             def_res = 1.0
         # U = "Ultra-Fine", WU = "Wide Ultra-Fine"
-        elif self.sensor_mode == [Rs2SensorMode.U, Rs2SensorMode.WU]:
+        elif self.sensor_mode in [Rs2SensorMode.U, Rs2SensorMode.WU]:
             def_res = 3.0
         # XF = "Extra-Fine"
         elif self.sensor_mode == Rs2SensorMode.XF:
             def_res = 5.0
         # MF = "Multi-Look Fine", WMF = "Wide Multi-Look Fine"
-        elif self.sensor_mode == [Rs2SensorMode.MF, Rs2SensorMode.WMF]:
+        elif self.sensor_mode in [Rs2SensorMode.MF, Rs2SensorMode.WMF]:
             def_res = 8.0
+
+        # -------------------------------------------------------------
+        # Ocean surveillance and detection of vessels
+        elif self.sensor_mode == Rs2SensorMode.OSVN:
+            def_res = 50.0
+
+        elif self.sensor_mode == Rs2SensorMode.DVWF:
+            def_res = 35.0
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
