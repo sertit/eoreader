@@ -147,8 +147,6 @@ Resolutions not found in this paper have been looked for in the constructor's do
 |SCANSAR2 | 40.0m|
 |PINGPONG | 12.0m|
 
-
-
 ### TerraSAR-X & TanDEM-X & PAZ SAR
 
 |**TerraSAR-X & TanDEM-X & PAZ SAR** | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
