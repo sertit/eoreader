@@ -4,7 +4,7 @@
 
 - **ENH: Adding the support of `Landsat-9` sensor**
 - **ENH: Support Sentinel-2 with missing datatake metadata file(sometimes happens with data downloaded from AWS buckets and converted to .SAFE)**
-- FIX: Using default SAR resolution from official [Copernicus Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589)
+- FIX: Using default SAR resolution from official [Copernicus Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589) (Sentinel-2 default resolution goes to 10.0 m !)
 - FIX: Use `--no-binary fiona,rasterio` directly in `requirements.txt`
 - FIX: Removing useless `outputComplex` line in GPT graphs that is breaking SNAP on Linux
 - FIX: Removing the workarounds caused by some bugs of `cloudpathlib` and enabling retrieval of nested SAR products (TSX, TDX, PAZ, RCM) from S3 compatible storage.
