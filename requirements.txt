@@ -30,5 +30,3 @@ cloudpathlib>=0.7.0
 
 # SERTIT libs
 sertit[full]>=1.11.0
-
---no-binary fiona,rasterio
