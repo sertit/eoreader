@@ -522,12 +522,14 @@ class S2Product(OpticalProduct):
         # For L2Ap
         if self._is_l2ap and str(path).endswith(".jp2"):
             # Download path just in case
-            if isinstance(path, CloudPath):
-                on_disk_path = self._get_band_folder(writable=True) / path.name
-                if not on_disk_path.is_file():
+            on_disk_path = self._get_band_folder(writable=True) / path.name
+            if not on_disk_path.is_file():
+                if isinstance(path, CloudPath):
                     path = path.download_to(self._get_band_folder(writable=True))
                 else:
-                    path = on_disk_path
+                    path = files.copy(path, self._get_band_folder(writable=True))
+            else:
+                path = on_disk_path
 
             # Get and write geocode data if not already existing
             with rasterio.open(str(path), "r+") as ds:
