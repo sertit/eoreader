@@ -28,14 +28,18 @@ from typing import Union
 
 import geopandas as gpd
 import numpy as np
+import rasterio
 import xarray as xr
+from affine import Affine
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import features, transform
+from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
+from shapely.geometry import box
 
 from eoreader import cache, cached_property, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
@@ -130,6 +134,9 @@ class S2Product(OpticalProduct):
         # https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming
         self._processing_baseline_lt_4_0 = None
 
+        # L2Ap
+        self._is_l2ap = False
+
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp)
 
@@ -219,6 +226,52 @@ class S2Product(OpticalProduct):
             raise InvalidProductError(f"Invalid Sentinel-2 name: {self.filename}")
 
     @cached_property
+    def crs(self) -> CRS:
+        """
+        Get UTM projection of the tile
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.crs
+            CRS.from_epsg(32630)
+
+        Returns:
+            rasterio.crs.CRS: CRS object
+        """
+        if self._is_l2ap:
+            root, ns = self.read_mtd()
+            return CRS.from_string(root.findtext(".//HORIZONTAL_CS_CODE"))
+        else:
+            return super().crs
+
+    @cached_property
+    def extent(self) -> gpd.GeoDataFrame:
+        """
+        Get UTM extent of the tile
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.extent
+                                                        geometry
+            0  POLYGON ((309780.000 4390200.000, 309780.000 4...
+
+        Returns:
+            gpd.GeoDataFrame: Footprint in UTM
+        """
+        if self._is_l2ap:
+            tf, width, height, crs = self.default_transform()
+            bounds = transform.array_bounds(height, width, tf)
+            return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=crs)
+        else:
+            return super().extent
+
+    @cached_property
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint in UTM of the products (without nodata, *in french == emprise utile*)
@@ -303,9 +356,15 @@ class S2Product(OpticalProduct):
             root, _ = self.read_datatake_mtd()
 
             # Open identifier
-            name = files.get_filename(root.findtext(".//PRODUCT_URI"))
+            name = root.findtext(".//PRODUCT_URI")
             if not name:
-                raise InvalidProductError("PRODUCT_URI not found in metadata!")
+                # Manage L2Ap products
+                name = root.findtext(".//PRODUCT_URI_2A")
+                self._is_l2ap = True
+                if not name:
+                    raise InvalidProductError("PRODUCT_URI not found in metadata!")
+
+            name = files.get_filename(name)
         except InvalidProductError:
             tile_info = files.read_json(next(self.path.glob("**/tileInfo.json")))
             name = tile_info["productName"]
@@ -460,6 +519,23 @@ class S2Product(OpticalProduct):
             XDS_TYPE: Band xarray
 
         """
+        # For L2Ap
+        if self._is_l2ap and path.suffix == ".jp2":
+            # Download path just in case
+            if isinstance(path, CloudPath):
+                on_disk_path = self._get_band_folder(writable=True) / path.name
+                if not on_disk_path.is_file():
+                    path = path.download_to(self._get_band_folder(writable=True))
+                else:
+                    path = on_disk_path
+
+            # Get and write geocode data if not already existing
+            with rasterio.open(str(path), "r+") as ds:
+                if not ds.crs:
+                    tf, _, _, crs = self._l2ap_geocode_data(path)
+                    ds.crs = crs
+                    ds.transform = tf
+
         # Read band
         band_xda = utils.read(
             path,
@@ -469,7 +545,7 @@ class S2Product(OpticalProduct):
             **kwargs,
         )
 
-        if str(path).endswith(".jp2"):
+        if path.suffix == ".jp2":
             try:
                 # Get MTD XML file
                 root, _ = self.read_datatake_mtd()
@@ -1205,3 +1281,57 @@ class S2Product(OpticalProduct):
                 dtype=np.uint8,
             )
         return self._create_mask(xds, cond, nodata)
+
+    def _l2ap_geocode_data(
+        self, path: Union[CloudPath, Path]
+    ) -> (Affine, int, int, CRS):
+        """"""
+
+        # Read metadata
+        root, ns = self.read_mtd()
+
+        # Read CRS
+        crs = CRS.from_string(root.findtext(".//HORIZONTAL_CS_CODE"))
+
+        # Determie wanted resolution
+        if "10m" in path.name:
+            res = 10
+        elif "20m" in path.name:
+            res = 20
+        else:
+            res = 60
+
+        # Open size
+        width = int(root.findtext(f".//Size[@resolution='{res}']/NCOLS"))
+        height = int(root.findtext(f".//Size[@resolution='{res}']/NROWS"))
+
+        # Open upper-left corner
+        ulx = float(root.findtext(f".//Geoposition[@resolution='{res}']/ULX"))
+        uly = float(root.findtext(f".//Geoposition[@resolution='{res}']/ULY"))
+
+        # Create transform
+        tf = transform.from_origin(ulx, uly, res, res)
+
+        return tf, width, height, crs
+
+    @cache
+    def default_transform(self, **kwargs) -> (Affine, int, int, CRS):
+        """
+        Returns default transform data of the default band (UTM),
+        as the :code:`rasterio.warp.calculate_default_transform` does:
+        - transform
+        - width
+        - height
+        - crs
+
+        Args:
+            kwargs: Additional arguments
+        Returns:
+            Affine, int, int: transform, width, height
+
+        """
+        if self._is_l2ap:
+            default_path = self.get_default_band_path(**kwargs)
+            return self._l2ap_geocode_data(default_path)
+        else:
+            return super().default_transform()
