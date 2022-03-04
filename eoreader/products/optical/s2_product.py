@@ -497,7 +497,7 @@ class S2Product(OpticalProduct):
 
     def _read_band(
         self,
-        path: Union[CloudPath, Path],
+        path: Union[str, CloudPath, Path],
         band: BandNames = None,
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -520,7 +520,7 @@ class S2Product(OpticalProduct):
 
         """
         # For L2Ap
-        if self._is_l2ap and path.suffix == ".jp2":
+        if self._is_l2ap and str(path).endswith(".jp2"):
             # Download path just in case
             if isinstance(path, CloudPath):
                 on_disk_path = self._get_band_folder(writable=True) / path.name
@@ -545,7 +545,7 @@ class S2Product(OpticalProduct):
             **kwargs,
         )
 
-        if path.suffix == ".jp2":
+        if str(path).endswith(".jp2"):
             try:
                 # Get MTD XML file
                 root, _ = self.read_datatake_mtd()
