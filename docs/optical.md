@@ -7,7 +7,7 @@ The Data Access Portfolio Document presents the offer of the datasets and data a
 
 |Satellites | Class | Product Types | Use archive | Default Resolution |
 |--- | --- | --- | --- | ---|
-|Sentinel-2 | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A | ✅ | 10m|
+|Sentinel-2 | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A & L2Ap | ✅ | 10m|
 |Sentinel-2 Theia | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | ✅ | 10m|
 |Sentinel-3 SLSTR | {meth}`~eoreader.products.optical.s3_product.S3Product` | RBT | ✅ | 300m|
 |Sentinel-3 OLCI | {meth}`~eoreader.products.optical.s3_product.S3Product` | EFR | ✅ | 500m|

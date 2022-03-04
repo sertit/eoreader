@@ -1,6 +1,10 @@
 # Release History
 
+## 0.13.1 (2022-03-XX)
+
+- FIX: Handling `Sentinel-2 L2Ap` data
 - FIX: Do not use `--no-binary fiona,rasterio` directly in `requirements.txt` (breaks on Windows)
+
 ## 0.13.0 (2022-03-02)
 
 - **ENH: Adding the support of `Landsat-9` sensor**
