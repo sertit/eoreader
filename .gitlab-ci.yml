@@ -42,6 +42,7 @@ pytest:
   tags:
     - sertit
     - linux
+    - high_memory
   rules:
     - if: $CI_COMMIT_TAG
       when: never
@@ -72,6 +73,7 @@ pytest_s3:
   tags:
     - sertit
     - linux
+    - high_memory
   rules:
     - if: $CI_COMMIT_TAG
       when: never
@@ -101,6 +103,7 @@ pytest_end_to_end:
   tags:
     - sertit
     - linux
+    - high_memory
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "END_TO_END"'
       when: always
@@ -118,6 +121,7 @@ tox-linux-3.7:on-schedule:
   tags:
     - sertit
     - linux
+    - high_memory
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
 
@@ -132,6 +136,7 @@ tox-linux-3.8:on-schedule:
   tags:
     - sertit
     - linux
+    - high_memory
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
   needs: [ "tox-linux-3.7:on-schedule" ]
@@ -147,6 +152,7 @@ tox-linux-3.9:on-schedule:
   tags:
     - sertit
     - linux
+    - high_memory
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
   needs: [ "tox-linux-3.8:on-schedule" ]
@@ -160,6 +166,7 @@ tox-windows:on-schedule:
   tags:
     - sertit
     - windows
+    - high_memory
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
       when: always
