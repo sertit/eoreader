@@ -4,6 +4,7 @@
 
 - FIX: Handling `Sentinel-2 L2Ap` data
 - FIX: Do not use `--no-binary fiona,rasterio` directly in `requirements.txt` (breaks on Windows)
+- CI: Adding a tag for choosing the runners
 
 ## 0.13.0 (2022-03-02)
 
