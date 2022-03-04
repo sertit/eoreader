@@ -1,5 +1,6 @@
 # Release History
 
+- FIX: Do not use `--no-binary fiona,rasterio` directly in `requirements.txt` (breaks on Windows)
 ## 0.13.0 (2022-03-02)
 
 - **ENH: Adding the support of `Landsat-9` sensor**
