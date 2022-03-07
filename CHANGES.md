@@ -6,7 +6,7 @@
 - FIX: Do not use `--no-binary fiona,rasterio` directly in `requirements.txt` (breaks on Windows)
 - FIX: Fixing stacking with string bands
 - CI: Adding a tag for choosing the runners
-- DOC: Fixing cartopy/GEOS conflicts
+- DOC: Fixing cartopy/GEOS conflicts making the documentation build to fail
 
 ## 0.13.0 (2022-03-02)
 
