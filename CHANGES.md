@@ -5,6 +5,7 @@
 - FIX: Handling `Sentinel-2 L2Ap` data
 - FIX: Do not use `--no-binary fiona,rasterio` directly in `requirements.txt` (breaks on Windows)
 - FIX: Fixing stacking with string bands
+- FIX: Better `__repr__` function
 - CI: Adding a tag for choosing the runners
 - DOC: Fixing cartopy/GEOS conflicts making the documentation build to fail
 

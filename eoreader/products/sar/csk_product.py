@@ -75,7 +75,7 @@ class CskProduct(CosmoProduct):
         """
         Set product default resolution (in meters)
         See here
-        <here](https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Mission-Products-Description.pdf>`_
+        `here <https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Mission-Products-Description.pdf>`_
         for more information (p. 30)
         """
         if self.sensor_mode == CskSensorMode.HI:

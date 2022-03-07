@@ -155,7 +155,7 @@ def _test_core(
 
             # Log name
             assert prod.name is not None
-            LOGGER.info(f"Product name: {prod.name}")
+            LOGGER.info(prod)
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 # tmp_dir = os.path.join(
