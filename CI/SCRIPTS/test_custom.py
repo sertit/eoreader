@@ -1,3 +1,4 @@
+import logging
 import os
 
 import numpy as np
@@ -8,8 +9,11 @@ from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SensorType
+from eoreader.utils import EOREADER_NAME
 
 from .scripts_utils import READER, dask_env, get_db_dir, others_path, s3_env
+
+LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 @s3_env
@@ -29,6 +33,7 @@ def test_custom():
         product_type="Ortho",
         band_map={BLUE: 1, GREEN: 2, RED: 3, NIR: 4, SWIR_1: 5},
     )
+    LOGGER.info(prod_all)
     extent_all = prod_all.extent
     footprint_all = prod_all.footprint
     crs_all = prod_all.crs
@@ -51,6 +56,7 @@ def test_custom():
         sensor_type="OPTICAL",
         band_map={"BLUE": 1, "GREEN": 2, "RED": 3, "NIR": 4, SWIR_1: 5},
     )
+    LOGGER.info(prod_min)
     extent_min = prod_min.extent
     footprint_min = prod_min.footprint
     crs_min = prod_min.crs
@@ -88,6 +94,7 @@ def test_custom():
         sun_zenith=20.0,
         band_map={BLUE: 1, "GREEN": 2, RED: 3, "NIR": 4, SWIR_1: 5},
     )
+    LOGGER.info(prod_some)
     extent_some = prod_some.extent
     footprint_some = prod_some.footprint
     crs_some = prod_some.crs
@@ -133,6 +140,7 @@ def test_custom():
         product_type="GRD",
         band_map={VV: 1, VV_DSPK: 2},
     )
+    LOGGER.info(prod_sar)
     extent_sar = prod_sar.extent
     footprint_sar = prod_sar.footprint
     crs_sar = prod_sar.crs
@@ -155,6 +163,7 @@ def test_custom():
         band_map={HH: 1, RH: 2},
         default_resolution=6.0,
     )
+    LOGGER.info(prod_wtf)
     extent_wtf = prod_wtf.extent
     footprint_wtf = prod_wtf.footprint
     crs_wtf = prod_wtf.crs
@@ -179,6 +188,7 @@ def test_custom():
         product_type="ORT",
         band_map={RED: 1, GREEN: 2, BLUE: 3, NIR: 4},
     )
+    LOGGER.info(prod_wgs84)
 
     # Check geometries -> assert projected
     with pytest.raises(InvalidProductError):
