@@ -1660,3 +1660,36 @@ class Product:
             res_str = _res_to_str(self.resolution)
 
         return res_str
+
+    def to_repr(self) -> list:
+        """
+        Returns a representation of the product as a list
+
+        Returns:
+            list: Representation of the product
+        """
+        band_repr = "\n".join(
+            [
+                f"\t\t{band.value}: {nb}"
+                for band, nb in self.band_names.items()
+                if nb is not None
+            ]
+        )
+        return [
+            f"EOReader {self.__class__.__name__}",
+            "Attributes:",
+            f"\tcondensed_name: {self.condensed_name}",
+            f"\tname: {self.name}",
+            f"\tpath: {self.path}",
+            f"\tplatform: {self.platform.value}",
+            f"\tsensor type: {self.sensor_type.value}",
+            f"\tproduct type: {self.product_type.value}",
+            f"\tdefault resolution: {self.resolution}",
+            f"\tacquisition datetime: {self.get_datetime(as_datetime=True).isoformat()}",
+            f"\tband mapping:\n{band_repr}",
+            f"\ttile name: {self.tile_name if self.tile_name is not None else 'N/A'}",
+            f"\tneeds_extraction: {self.needs_extraction}",
+        ]
+
+    def __repr__(self):
+        return "\n".join(self.to_repr())
