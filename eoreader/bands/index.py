@@ -259,7 +259,7 @@ def RI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.VRE_1], +bands[obn.GREEN])
+    return _norm_diff(bands[obn.VRE_1], bands[obn.GREEN])
 
 
 @_idx_fct

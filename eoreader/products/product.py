@@ -38,7 +38,6 @@ import xarray as xr
 from affine import Affine
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree, html
-from rasterio import crs as riocrs
 from rasterio import transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
@@ -284,7 +283,7 @@ class Product:
 
     @cached_property
     @abstractmethod
-    def crs(self) -> riocrs.CRS:
+    def crs(self) -> CRS:
         """
         Get UTM projection of the tile
 
@@ -1197,7 +1196,7 @@ class Product:
                         resolution = self.resolution
 
                     bounds = transform.array_bounds(def_h, def_w, def_tr)
-                    dst_tr, out_w, out_h = rasterio.warp.calculate_default_transform(
+                    dst_tr, out_w, out_h = warp.calculate_default_transform(
                         def_crs,
                         self.crs,
                         def_w,
@@ -1416,6 +1415,9 @@ class Product:
         """
         if not isinstance(bands, list):
             bands = [bands]
+
+        # Ensure the bands are not in strings (otherwise will bug in Dataset conversion)
+        bands = to_band(bands)
 
         if not resolution and not size:
             resolution = self.resolution
