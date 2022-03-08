@@ -86,7 +86,7 @@ def _norm_diff(band_1: xr.DataArray, band_2: xr.DataArray) -> xr.DataArray:
 @_idx_fct
 def RGI(bands: dict) -> xr.DataArray:
     """
-    Relative Greenness Index: https://www.indexdatabase.de/db/i-single.php?id=326
+    `Relative Greenness Index <https://www.indexdatabase.de/db/i-single.php?id=326>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -101,7 +101,7 @@ def RGI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def NDVI(bands: dict) -> xr.DataArray:
     """
-    Normalized Difference Vegetation Index: https://www.indexdatabase.de/db/i-single.php?id=59
+    `Normalized Difference Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=59>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -117,8 +117,9 @@ def NDVI(bands: dict) -> xr.DataArray:
 def TCBRI(bands: dict) -> xr.DataArray:
     """
     Tasseled Cap Brightness:
-    https://en.wikipedia.org/wiki/Tasseled_cap_transformation
-    https://www.indexdatabase.de/db/r-single.php?id=723
+
+    - `Wikipedia <https://en.wikipedia.org/wiki/Tasseled_cap_transformation>`_
+    - `Index Database <https://www.indexdatabase.de/db/r-single.php?id=723>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -141,8 +142,9 @@ def TCBRI(bands: dict) -> xr.DataArray:
 def TCGRE(bands: dict) -> xr.DataArray:
     """
     Tasseled Cap Greenness:
-    https://en.wikipedia.org/wiki/Tasseled_cap_transformation
-    https://www.indexdatabase.de/db/r-single.php?id=723
+
+    - `Wikipedia <https://en.wikipedia.org/wiki/Tasseled_cap_transformation>`_
+    - `Index Database <https://www.indexdatabase.de/db/r-single.php?id=723>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -165,8 +167,9 @@ def TCGRE(bands: dict) -> xr.DataArray:
 def TCWET(bands: dict) -> xr.DataArray:
     """
     Tasseled Cap Wetness:
-    https://en.wikipedia.org/wiki/Tasseled_cap_transformation
-    https://www.indexdatabase.de/db/r-single.php?id=723
+
+    - `Wikipedia <https://en.wikipedia.org/wiki/Tasseled_cap_transformation>`_
+    - `Index Database <https://www.indexdatabase.de/db/r-single.php?id=723>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -188,7 +191,7 @@ def TCWET(bands: dict) -> xr.DataArray:
 @_idx_fct
 def NDRE2(bands: dict) -> xr.DataArray:
     """
-    Normalized Difference Red-Edge: https://www.indexdatabase.de/db/i-single.php?id=223
+    `Normalized Difference Red-Edge <https://www.indexdatabase.de/db/i-single.php?id=223>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -203,7 +206,7 @@ def NDRE2(bands: dict) -> xr.DataArray:
 @_idx_fct
 def NDRE3(bands: dict) -> xr.DataArray:
     """
-    Normalized Difference Red-Edge: https://www.indexdatabase.de/db/i-single.php?id=223
+    `Normalized Difference Red-Edge <https://www.indexdatabase.de/db/i-single.php?id=223>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -218,7 +221,7 @@ def NDRE3(bands: dict) -> xr.DataArray:
 @_idx_fct
 def GLI(bands: dict) -> xr.DataArray:
     """
-    Green leaf index: https://www.indexdatabase.de/db/i-single.php?id=375
+    `Green leaf index <https://www.indexdatabase.de/db/i-single.php?id=375>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -235,7 +238,7 @@ def GLI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def GNDVI(bands: dict) -> xr.DataArray:
     """
-    Green NDVI: https://www.indexdatabase.de/db/i-single.php?id=401
+    `Green NDVI <https://www.indexdatabase.de/db/i-single.php?id=401>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -250,7 +253,7 @@ def GNDVI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def RI(bands: dict) -> xr.DataArray:
     """
-    Normalized Difference RED/GREEN Redness Index: https://www.indexdatabase.de/db/i-single.php?id=74
+    `Normalized Difference RED/GREEN Redness Index <https://www.indexdatabase.de/db/i-single.php?id=74>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -265,7 +268,7 @@ def RI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def NDGRI(bands: dict) -> xr.DataArray:
     """
-    Normalized Difference GREEN/RED Index: https://www.indexdatabase.de/db/i-single.php?id=390
+    `Normalized Difference GREEN/RED Index <https://www.indexdatabase.de/db/i-single.php?id=390>`_
 
     Also known as NDGR.
 
@@ -282,7 +285,7 @@ def NDGRI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def CIG(bands: dict) -> xr.DataArray:
     """
-    Chlorophyll Index Green: https://www.indexdatabase.de/db/i-single.php?id=128
+    `Chlorophyll Index Green <https://www.indexdatabase.de/db/i-single.php?id=128>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -297,7 +300,7 @@ def CIG(bands: dict) -> xr.DataArray:
 @_idx_fct
 def NDMI(bands: dict) -> xr.DataArray:
     """
-    Normalized Difference Moisture Index: https://www.indexdatabase.de/db/i-single.php?id=56
+    `Normalized Difference Moisture Index <https://www.indexdatabase.de/db/i-single.php?id=56>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -312,7 +315,7 @@ def NDMI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def DSWI(bands: dict) -> xr.DataArray:
     """
-    Disease water stress index: https://www.indexdatabase.de/db/i-single.php?id=106
+    `Disease water stress index <https://www.indexdatabase.de/db/i-single.php?id=106>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -327,7 +330,7 @@ def DSWI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def SRSWIR(bands: dict) -> xr.DataArray:
     """
-    Simple Ratio SWIR_1/SWIR_2 Clay Minerals: https://www.indexdatabase.de/db/i-single.php?id=204
+    `Simple Ratio SWIR_1/SWIR_2 Clay Minerals <https://www.indexdatabase.de/db/i-single.php?id=204>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -342,7 +345,7 @@ def SRSWIR(bands: dict) -> xr.DataArray:
 @_idx_fct
 def RDI(bands: dict) -> xr.DataArray:
     """
-    Ratio Drought Index: https://www.indexdatabase.de/db/i-single.php?id=71
+    `Ratio Drought Index <https://www.indexdatabase.de/db/i-single.php?id=71>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -357,10 +360,10 @@ def RDI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def NDWI(bands: dict) -> xr.DataArray:
     """
-    Normalized Difference Water Index (GREEN Version):
-    https://pro.arcgis.com/fr/pro-app/2.7/arcpy/image-analyst/ndwi.htm
+    `Normalized Difference Water Index <https://pro.arcgis.com/fr/pro-app/2.7/arcpy/image-analyst/ndwi.htm>`_
+    (GREEN Version)
 
-    NDWI = (Green - NIR) / (Green + NIR)
+    :code:`NDWI = (GREEN - NIR) / (GREEN + NIR)`
 
     For the SWIR version, see the NDMI.
 
@@ -377,7 +380,7 @@ def NDWI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def BAI(bands: dict) -> xr.DataArray:
     """
-    Burn Area Index: https://www.harrisgeospatial.com/docs/BackgroundBurnIndices.html
+    `Burn Area Index <https://www.harrisgeospatial.com/docs/BackgroundBurnIndices.html>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -391,8 +394,8 @@ def BAI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def BAIS2(bands: dict) -> xr.DataArray:
     """
-    Burn Area Index for Sentinel-2:
-    https://www.researchgate.net/publication/323964124_BAIS2_Burned_Area_Index_for_Sentinel-2
+    `Burn Area Index for Sentinel-2
+    <https://www.researchgate.net/publication/323964124_BAIS2_Burned_Area_Index_for_Sentinel-2>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -413,7 +416,7 @@ def BAIS2(bands: dict) -> xr.DataArray:
 @_idx_fct
 def NBR(bands: dict) -> xr.DataArray:
     """
-    Normalized Burn Ratio: https://www.indexdatabase.de/db/i-single.php?id=53
+    `Normalized Burn Ratio <https://www.indexdatabase.de/db/i-single.php?id=53>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -428,7 +431,7 @@ def NBR(bands: dict) -> xr.DataArray:
 @_idx_fct
 def MNDWI(bands: dict) -> xr.DataArray:
     """
-    Modified Normalised Difference Water Index : https://wiki.orfeo-toolbox.org/index.php/MNDWI
+    `Modified Normalised Difference Water Index <https://wiki.orfeo-toolbox.org/index.php/MNDWI>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -501,7 +504,7 @@ def WI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def AFRI_1_6(bands: dict) -> xr.DataArray:
     """
-    Aerosol free vegetation index 1600: https://www.indexdatabase.de/db/i-single.php?id=393
+    `Aerosol free vegetation index 1600 <https://www.indexdatabase.de/db/i-single.php?id=393>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -515,7 +518,7 @@ def AFRI_1_6(bands: dict) -> xr.DataArray:
 @_idx_fct
 def AFRI_2_1(bands: dict) -> xr.DataArray:
     """
-    Aerosol free vegetation index 2100: https://www.indexdatabase.de/db/i-single.php?id=395
+    `Aerosol free vegetation index 2100 <https://www.indexdatabase.de/db/i-single.php?id=395>`_
 
     .. WARNING::
         There is an error in the formula, go see the papers to get the right one (0.56 instead of 0.5):
@@ -533,11 +536,11 @@ def AFRI_2_1(bands: dict) -> xr.DataArray:
 @_idx_fct
 def BSI(bands: dict) -> xr.DataArray:
     """
-    Barren Soil Index:
+    `Barren Soil Index <http://tropecol.com/pdf/open/PDF_43_1/43104.pdf>`_
     Rikimaru et al., 2002. Tropical forest cover density mapping.
-    http://tropecol.com/pdf/open/PDF_43_1/43104.pdf
 
-    BSI = ((RED+SWIR) – (NIR+BLUE)) / ((RED+SWIR) + (NIR+BLUE))
+
+    :code:`BSI = ((RED+SWIR) – (NIR+BLUE)) / ((RED+SWIR) + (NIR+BLUE))`
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -557,13 +560,11 @@ def BSI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def WV_WI(bands: dict) -> xr.DataArray:
     """
-    WorldView-Water (WV-WI)
+    `WorldView-Water (WV-WI) <https://resources.maxar.com/optical-imagery/multispectral-reference-guide>`_
 
     Useful for detecting standing, flowing water, or shadow in VNIR imagery
 
     :code:`WV_WI = ((B8-B1)/(B8+B1))`
-
-    https://resources.maxar.com/optical-imagery/multispectral-reference-guide
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -577,13 +578,11 @@ def WV_WI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def WV_VI(bands: dict) -> xr.DataArray:
     """
-    WorldView – Vegetation (WV-VI)
+    `WorldView-Vegetation (WV-VI) <https://resources.maxar.com/optical-imagery/multispectral-reference-guide>`_
 
     Useful for detecting vegetation and assessing vegetation health
 
     :code:`WV_VI = ((B8-B5)/(B8+B5))`
-
-    https://resources.maxar.com/optical-imagery/multispectral-reference-guide
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -597,13 +596,11 @@ def WV_VI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def WV_SI(bands: dict) -> xr.DataArray:
     """
-    WorldView – Soil (WV-SI)
+    `WorldView-Soil (WV-SI) <https://resources.maxar.com/optical-imagery/multispectral-reference-guide>`_
 
     Useful for detecting and differentiating exposed soil
 
     :code:`WV_SI = ((B4-B3)/(B4+B3))`
-
-    https://resources.maxar.com/optical-imagery/multispectral-reference-guide
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -617,13 +614,11 @@ def WV_SI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def WV_BI(bands: dict) -> xr.DataArray:
     """
-    WorldView – Built-up (WV-BI)
+    `WorldView-Built-up (WV-BI) <https://resources.maxar.com/optical-imagery/multispectral-reference-guide>`_
 
     Useful for detecting impervious surfaces such as buildings and roads
 
     :code:`WV_BI = ((B6-B1)/(B6+B1))`
-
-    https://resources.maxar.com/optical-imagery/multispectral-reference-guide
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -632,6 +627,99 @@ def WV_BI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
     """
     return _norm_diff(bands[obn.VRE_1], bands[obn.CA])
+
+
+@_idx_fct
+def SI(bands: dict) -> xr.DataArray:
+    """
+    Shadow Index
+
+    Replacing maxima by percentile_98 in order to discard potential outliers
+
+    :code:`SI = sqrt((perc_98(GREEN) - GREEN)*(perc_98(RED) - RED))`
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    green = np.nanpercentile(bands[obn.GREEN], 99) - bands[obn.GREEN]
+    green = np.where(green < 0, 0, green)
+    red = np.nanpercentile(bands[obn.RED], 99) - bands[obn.RED]
+    red = np.where(red < 0, 0, red)
+    return np.sqrt(green * red)
+
+
+@_idx_fct
+def GVMI(bands: dict) -> xr.DataArray:
+    """
+    `Global Vegetation Moisture Index <https://www.indexdatabase.de/db/i-single.php?id=372>`_
+
+    :code:`GVMI = norm_diff(NIR+0.1), SWIR_2 + 0.02))`
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return _norm_diff(bands[obn.NIR] + 0.1, bands[obn.SWIR_2] + 0.02)
+
+
+@_idx_fct
+def SBI(bands: dict) -> xr.DataArray:
+    """
+    `Soil Brightness Index <https://hal.archives-ouvertes.fr/hal-03207299/document>`_ (p.4)
+
+    The role of the brightness index is to identify the reflectance of soil
+    and to highlight the vegetal cover of bare areas.
+    *Bannari et al. 1996; Soufiane Maimouni and Bannari 2011*
+
+    :code:`SBI = sqrt(RED**2 + NIR**2)`
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return np.sqrt(bands[obn.RED] ** 2 + bands[obn.NIR] ** 2)
+
+
+@_idx_fct
+def SCI(bands: dict) -> xr.DataArray:
+    """
+    `Soil Cuirass Index <https://hal.archives-ouvertes.fr/hal-03207299/document>`_ (p.4)
+
+    It aims is to dissociate vegetated coverings from mineralized surfaces
+    *Okaingni et al. 2010; Stephane et al. 2016*
+
+    :code:`SCI = 3*GREEN - RED - 100`
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return 3 * bands[obn.GREEN] - bands[obn.RED] - 100
+
+
+@_idx_fct
+def PANI(bands: dict) -> xr.DataArray:
+    """
+    Panchromatic mocking index
+
+    :code:`PAN = sqrt(RED**2 + GREEN**2 + BLUE**2)`
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return np.sqrt(bands[obn.RED] ** 2 + bands[obn.GREEN] ** 2 + bands[obn.BLUE] ** 2)
 
 
 def get_all_index_names() -> list:

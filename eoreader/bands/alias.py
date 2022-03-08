@@ -138,6 +138,11 @@ WV_WI = _idx.WV_WI
 WV_VI = _idx.WV_VI
 WV_SI = _idx.WV_SI
 WV_BI = _idx.WV_BI
+SI = _idx.SI
+GVMI = _idx.GVMI
+SBI = _idx.SBI
+SCI = _idx.SCI
+PANI = _idx.PANI
 
 # -- DEM --
 DEM = _dem.DEM

@@ -1,5 +1,9 @@
 # Release History
 
+## 0.14.0 (2022-MM-DD)
+
+- **ENH: Adding Shadow Index (`SI`), Global Vegetation Moisture Index (`GVMI`), Soil Brightness Index (`SBI`), Soil Cuirass Index (`SCI`), Panchromatic mocking Index (`PANI`)**
+
 ## 0.13.1 (2022-03-08)
 
 - FIX: Handling `Sentinel-2 L2Ap` data
