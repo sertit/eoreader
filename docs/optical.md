@@ -194,6 +194,7 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 |{meth}`~eoreader.bands.index.DSWI` | `GREEN`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | All optical satellites except for Landsat MSS|
 |{meth}`~eoreader.bands.index.GNDVI` | `GREEN`, `NIR` | All optical satellites|
+|{meth}`~eoreader.bands.index.GVMI` | `NIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.MNDWI` | `GREEN`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.NBR` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.NDGRI` | `GREEN`, `RED` | All optical satellites|
@@ -202,9 +203,13 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 |{meth}`~eoreader.bands.index.NDRE3` | `NIR`, `VRE_2` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
 |{meth}`~eoreader.bands.index.NDVI` | `RED`, `NIR` | All optical satellites|
 |{meth}`~eoreader.bands.index.NDWI` | `GREEN`, `NIR` | All optical satellites|
+|{meth}`~eoreader.bands.index.PANI` | `RED`, `GREEN`, `BLUE` | All optical satellites except for Landsat MSS|
 |{meth}`~eoreader.bands.index.RDI` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.RGI` | `GREEN`, `RED` | All optical satellites|
 |{meth}`~eoreader.bands.index.RI` | `GREEN`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS, PlanetScope (5 bands), WorldView-2/3 (8 bands), Pleiades-Neo (full) |
+|{meth}`~eoreader.bands.index.SBI` | `RED`, `NIR` | All optical satellites|
+|{meth}`~eoreader.bands.index.SCI` | `RED`, `GREEN` | All optical satellites|
+|{meth}`~eoreader.bands.index.SI` | `GREEN`, `RED` | All optical satellites|
 |{meth}`~eoreader.bands.index.SRSWIR` | `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCBRI` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCGRE` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
