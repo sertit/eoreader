@@ -341,14 +341,13 @@ The default `Terrain Correction` step is:
         <alignToStandardGrid>false</alignToStandardGrid>
         <standardGridOriginX>0.0</standardGridOriginX>
         <standardGridOriginY>0.0</standardGridOriginY>
-        <nodataValueAtSea>true</nodataValueAtSea>
+        <nodataValueAtSea>false</nodataValueAtSea>
         <saveDEM>false</saveDEM>
         <saveLatLon>false</saveLatLon>
         <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
         <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
         <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
         <saveSelectedSourceBand>true</saveSelectedSourceBand>
-        <outputComplex>false</outputComplex>
         <applyRadiometricNormalization>false</applyRadiometricNormalization>
         <saveSigmaNought>false</saveSigmaNought>
         <saveGammaNought>false</saveGammaNought>
