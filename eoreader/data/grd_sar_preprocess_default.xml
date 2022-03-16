@@ -45,7 +45,7 @@
       <alignToStandardGrid>false</alignToStandardGrid>
       <standardGridOriginX>0.0</standardGridOriginX>
       <standardGridOriginY>0.0</standardGridOriginY>
-      <nodataValueAtSea>true</nodataValueAtSea>
+      <nodataValueAtSea>false</nodataValueAtSea>
       <saveDEM>false</saveDEM>
       <saveLatLon>false</saveLatLon>
       <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
