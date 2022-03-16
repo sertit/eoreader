@@ -1624,9 +1624,13 @@ class Product:
         gc.collect()
 
         # All objects collected
-        objects = [
-            i for i in gc.get_objects() if isinstance(i, functools._lru_cache_wrapper)
-        ]
+        objects = []
+        for obj in gc.get_objects():
+            try:
+                if isinstance(obj, functools._lru_cache_wrapper):
+                    objects.append(obj)
+            except ReferenceError:
+                pass
 
         # All objects cleared
         for obj in objects:

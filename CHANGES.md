@@ -3,6 +3,7 @@
 ## 0.14.0 (2022-MM-DD)
 
 - **ENH: Adding Shadow Index (`SI`), Global Vegetation Moisture Index (`GVMI`), Soil Brightness Index (`SBI`), Soil Cuirass Index (`SCI`), Panchromatic mocking Index (`PANI`)**
+- FIX: Fixing `ReferenceError: weakly-referenced object no longer exists` when deleting an object
 - FIX: Do not set sea values to nodata
 
 ## 0.13.1 (2022-03-08)
