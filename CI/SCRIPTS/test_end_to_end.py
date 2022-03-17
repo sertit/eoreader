@@ -8,7 +8,7 @@ import tempfile
 import pytest
 import xarray as xr
 from cloudpathlib import AnyPath
-from sertit import files
+from sertit import ci, files
 
 from CI.SCRIPTS.scripts_utils import (
     CI_EOREADER_S3,
@@ -18,7 +18,6 @@ from CI.SCRIPTS.scripts_utils import (
     get_db_dir,
     get_db_dir_on_disk,
     opt_path,
-    reduce_verbosity,
 )
 from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT, SAR_DEF_RES, TEST_USING_S3_DB
@@ -26,7 +25,7 @@ from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
 
-reduce_verbosity()
+ci.reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

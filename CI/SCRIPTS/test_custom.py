@@ -15,6 +15,8 @@ from .scripts_utils import READER, dask_env, get_db_dir, others_path, s3_env
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
+ci.reduce_verbosity()
+
 
 @s3_env
 @dask_env

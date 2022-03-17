@@ -15,6 +15,8 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 RES = 2000.0  # 2000 meters
 
+ci.reduce_verbosity()
+
 
 @s3_env
 @dask_env
