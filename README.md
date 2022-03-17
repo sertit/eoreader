@@ -180,6 +180,10 @@ However, keep in mind that the support of all the sensors used in CEMS is done i
 Indeed, we may not have faced every product type, sensor mode or order configuration, so some details may be missing.
 If this happens to you, do not hesitate to make a PR or write an issue about that !
 
+## Press Release
+
+- [ESA Succes Story](https://earth.esa.int/eogateway/news/new-open-source-python-library-improves-rapid-mapping-services)
+
 ## License
 
 **EOReader** is licensed under Apache License v2.0. See LICENSE file for details.
