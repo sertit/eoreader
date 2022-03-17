@@ -2,7 +2,7 @@ import logging
 import os
 import tempfile
 
-from sertit import files
+from sertit import ci, files
 
 from CI.SCRIPTS.scripts_utils import CI_EOREADER_S3, dask_env, get_ci_db_dir, get_db_dir
 from eoreader.bands import *
@@ -10,18 +10,7 @@ from eoreader.env_vars import DEM_PATH
 from eoreader.reader import Reader
 from eoreader.utils import EOREADER_NAME
 
-# Init logger
-logging.getLogger("boto3").setLevel(logging.WARNING)  # BOTO has way too much verbosity
-logging.getLogger("botocore").setLevel(
-    logging.WARNING
-)  # BOTO has way too much verbosity
-logging.getLogger("shapely").setLevel(
-    logging.WARNING
-)  # BOTO has way too much verbosity
-logging.getLogger("fiona").setLevel(logging.WARNING)  # BOTO has way too much verbosity
-logging.getLogger("rasterio").setLevel(
-    logging.WARNING
-)  # BOTO has way too much verbosity
+ci.reduce_verbosity()
 
 READER = Reader()
 

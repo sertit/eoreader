@@ -35,12 +35,11 @@ from .scripts_utils import (
     get_db_dir,
     get_db_dir_on_disk,
     opt_path,
-    reduce_verbosity,
     s3_env,
     sar_path,
 )
 
-reduce_verbosity()
+ci.reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
