@@ -231,7 +231,7 @@ class TsxProduct(SarProduct):
         Function used to post_init the products
         (setting product-type, band names and so on)
         """
-        self._snap_path = f"{self.name}.xml"
+        self.snap_filename = f"{self.name}.xml"
 
         # Post init done by the super class
         super()._post_init()

@@ -174,7 +174,7 @@ class SarProduct(Product):
         self.pol_channels = None
         """Polarization Channels stored in the current product"""
 
-        self.snap_path = None
+        self.snap_filename = None
         """Path used by SNAP to process this product"""
 
         # Private attributes
@@ -756,7 +756,7 @@ class SarProduct(Product):
                         )
                         if self.path.is_dir():
                             prod_path = os.path.join(
-                                tmp_dir, self.path.name, self.snap_path
+                                tmp_dir, self.path.name, self.snap_filename
                             )
                             self.path.download_to(os.path.join(tmp_dir, self.path.name))
                         else:
@@ -764,7 +764,7 @@ class SarProduct(Product):
                                 self.path.fspath
                             )  # In tmp file, no need to download_to
                     else:
-                        prod_path = self.path.joinpath(self.snap_path)
+                        prod_path = self.path.joinpath(self.snap_filename)
 
                     # Create SNAP CLI
                     cmd_list = snap.get_gpt_cli(

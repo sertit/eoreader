@@ -140,10 +140,10 @@ class IceyeProduct(SarProduct):
         """
         # Private attributes
         if self._use_slc:
-            self.snap_path = str(next(self.path.glob("*ICEYE*SLC*.xml")).name)
+            self.snap_filename = str(next(self.path.glob("*ICEYE*SLC*.xml")).name)
             self._raw_band_regex = "*ICEYE*SLC*.h5"
         else:
-            self.snap_path = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
+            self.snap_filename = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
             self._raw_band_regex = "*ICEYE*GRD*.tif"
 
         # Post init done by the super class
