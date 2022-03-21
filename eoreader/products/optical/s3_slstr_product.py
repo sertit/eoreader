@@ -212,6 +212,7 @@ class S3SlstrProduct(S3Product):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
         """
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/observation-mode-desc
@@ -239,8 +240,8 @@ class S3SlstrProduct(S3Product):
         self._bt_subds = "{band}_BT_{suffix}"
 
         super().__init__(
-            product_path, archive_path, output_path, remove_tmp
-        )  # Order is important here
+            product_path, archive_path, output_path, remove_tmp, **kwargs
+        )  # Order is important here, gcps NEED to be after this
 
         self._gcps = defaultdict(list)
 

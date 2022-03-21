@@ -106,6 +106,7 @@ class CosmoProduct(SarProduct):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
         try:
             product_path = AnyPath(product_path)
@@ -117,7 +118,7 @@ class CosmoProduct(SarProduct):
         self._real_name = files.get_filename(self._img_path)
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path, remove_tmp)
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
     def _pre_init(self) -> None:
         """

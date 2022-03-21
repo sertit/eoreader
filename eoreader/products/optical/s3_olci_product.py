@@ -84,6 +84,7 @@ class S3OlciProduct(S3Product):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
 
         """
@@ -92,8 +93,8 @@ class S3OlciProduct(S3Product):
         Note that the name of each netCDF file provides information about its content.
         """
         super().__init__(
-            product_path, archive_path, output_path, remove_tmp
-        )  # Order is important here
+            product_path, archive_path, output_path, remove_tmp, **kwargs
+        )  # Order is important here, gcps NEED to be after this
 
         self._gcps = []
 

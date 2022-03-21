@@ -98,6 +98,7 @@ class S3Product(OpticalProduct):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
         self._instrument = None
         self._data_type = None
@@ -129,9 +130,7 @@ class S3Product(OpticalProduct):
 
         self._set_preprocess_members()
 
-        super().__init__(
-            product_path, archive_path, output_path, remove_tmp
-        )  # Order is important here
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
     @abstractmethod
     def _set_preprocess_members(self):

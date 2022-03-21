@@ -63,6 +63,7 @@ class VhrProduct(OpticalProduct):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
         self.ortho_path = None
         """
@@ -78,7 +79,7 @@ class VhrProduct(OpticalProduct):
         self._order_id = None
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path, remove_tmp)
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """

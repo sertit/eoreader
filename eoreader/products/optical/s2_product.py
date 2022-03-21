@@ -125,6 +125,7 @@ class S2Product(OpticalProduct):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
 
         # Processing baseline < 02.07: images not georeferenced (L2Ap and after)
@@ -141,7 +142,7 @@ class S2Product(OpticalProduct):
         self._is_l2ap = False
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path, remove_tmp)
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
     def _pre_init(self) -> None:
         """

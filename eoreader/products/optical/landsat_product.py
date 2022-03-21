@@ -90,13 +90,14 @@ class LandsatProduct(OpticalProduct):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
         # Private
         self._collection = None
         self._pixel_quality_id = None
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path, remove_tmp)
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
     def _set_collection(self):
         """Set Landsat collection"""
