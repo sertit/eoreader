@@ -109,11 +109,7 @@ class IceyeProduct(SarProduct):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
-        # Private attributes
-        # TODO: Allow to use SLC data ? Or SLC and GRD are always together ?
-        self._raw_band_regex = "*ICEYE*GRD*.tif"
         self._band_folder = self.path
-        self._snap_path = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
 
         # SNAP cannot process its archive
         self.needs_extraction = True
@@ -126,6 +122,14 @@ class IceyeProduct(SarProduct):
         Function used to post_init the products
         (setting product-type, band names and so on)
         """
+        # Private attributes
+        if "GRD" in self.name:
+            self._snap_path = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
+            self._raw_band_regex = "*ICEYE*GRD*.tif"
+        else:
+            # Pure SLC paths
+            self._snap_path = str(next(self.path.glob("*ICEYE*SLC*.xml")).name)
+            self._raw_band_regex = "*ICEYE*SLC*.h5"
 
         # Post init done by the super class
         super()._post_init()
@@ -183,12 +187,6 @@ class IceyeProduct(SarProduct):
         else:
             raise NotImplementedError(
                 f"{self.product_type.value} product type is not available for {self.name}"
-            )
-        if self.product_type != IceyeProductType.GRD:
-            LOGGER.warning(
-                "Other products type than MGD has not been tested for %s data. "
-                "Use it at your own risks !",
-                self.platform.value,
             )
 
     def _set_sensor_mode(self) -> None:
@@ -292,9 +290,12 @@ class IceyeProduct(SarProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = "ICEYE*GRD*.xml"
-
-        return self._read_mtd_xml(mtd_from_path)
+        try:
+            mtd_from_path = "ICEYE*GRD*.xml"
+            return self._read_mtd_xml(mtd_from_path)
+        except InvalidProductError:
+            mtd_from_path = "ICEYE*SLC*.xml"
+            return self._read_mtd_xml(mtd_from_path)
 
     def _get_raw_band_paths(self) -> dict:
         """
