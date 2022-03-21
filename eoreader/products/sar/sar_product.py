@@ -163,6 +163,7 @@ class SarProduct(Product):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
         self.sar_prod_type = None
         """SAR product type, either Single Look Complex or Ground Range"""
@@ -173,15 +174,17 @@ class SarProduct(Product):
         self.pol_channels = None
         """Polarization Channels stored in the current product"""
 
+        self.snap_path = None
+        """Path used by SNAP to process this product"""
+
         # Private attributes
         self._band_folder = None
-        self._snap_path = None
         self._raw_band_regex = None
         self._snap_no_data = 0
         self._raw_no_data = 0
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path, remove_tmp)
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
     def _pre_init(self) -> None:
         """
@@ -753,7 +756,7 @@ class SarProduct(Product):
                         )
                         if self.path.is_dir():
                             prod_path = os.path.join(
-                                tmp_dir, self.path.name, self._snap_path
+                                tmp_dir, self.path.name, self.snap_path
                             )
                             self.path.download_to(os.path.join(tmp_dir, self.path.name))
                         else:
@@ -761,7 +764,7 @@ class SarProduct(Product):
                                 self.path.fspath
                             )  # In tmp file, no need to download_to
                     else:
-                        prod_path = self.path.joinpath(self._snap_path)
+                        prod_path = self.path.joinpath(self.snap_path)
 
                     # Create SNAP CLI
                     cmd_list = snap.get_gpt_cli(

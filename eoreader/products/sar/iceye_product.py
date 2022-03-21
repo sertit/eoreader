@@ -23,10 +23,12 @@ import logging
 import warnings
 from datetime import datetime
 from enum import unique
+from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import rasterio
+from cloudpathlib import CloudPath
 from lxml import etree
 from sertit import files, vectors
 from sertit.misc import ListEnum
@@ -34,6 +36,7 @@ from sertit.misc import ListEnum
 from eoreader import cache, cached_property
 from eoreader.bands.bands import SarBandNames as sbn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.keywords import ICEYE_USE_SLC
 from eoreader.products import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
@@ -87,6 +90,19 @@ class IceyeProduct(SarProduct):
     `here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
     """
 
+    def __init__(
+        self,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
+        remove_tmp: bool = False,
+        **kwargs,
+    ) -> None:
+        self._use_slc = kwargs.pop(ICEYE_USE_SLC, False)
+
+        # Initialization from the super class
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+
     def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
@@ -123,13 +139,12 @@ class IceyeProduct(SarProduct):
         (setting product-type, band names and so on)
         """
         # Private attributes
-        if "GRD" in self.name:
-            self._snap_path = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
-            self._raw_band_regex = "*ICEYE*GRD*.tif"
-        else:
-            # Pure SLC paths
-            self._snap_path = str(next(self.path.glob("*ICEYE*SLC*.xml")).name)
+        if self._use_slc:
+            self.snap_path = str(next(self.path.glob("*ICEYE*SLC*.xml")).name)
             self._raw_band_regex = "*ICEYE*SLC*.h5"
+        else:
+            self.snap_path = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
+            self._raw_band_regex = "*ICEYE*GRD*.tif"
 
         # Post init done by the super class
         super()._post_init()
@@ -272,6 +287,12 @@ class IceyeProduct(SarProduct):
         if not name:
             raise InvalidProductError("product_name not found in metadata!")
 
+        # Check if use_slc is compatible
+        if self._use_slc and IceyeProductType.SLC.value not in name:
+            raise InvalidProductError(f"This product {self.name} has no SLC image!")
+        elif not self._use_slc and IceyeProductType.GRD.value not in name:
+            raise InvalidProductError(f"This product {self.name} has no GRD image!")
+
         return name
 
     @cache
@@ -290,12 +311,26 @@ class IceyeProduct(SarProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        try:
-            mtd_from_path = "ICEYE*GRD*.xml"
-            return self._read_mtd_xml(mtd_from_path)
-        except InvalidProductError:
-            mtd_from_path = "ICEYE*SLC*.xml"
-            return self._read_mtd_xml(mtd_from_path)
+
+        def __read_mtd(prod_type: IceyeProductType):
+            return self._read_mtd_xml(f"ICEYE*{prod_type.value}*.xml")
+
+        if self._use_slc:
+            try:
+                root, nsmap = __read_mtd(IceyeProductType.SLC)
+            except InvalidProductError:
+                LOGGER.warning("SLC image is not available for this product.")
+                self._use_slc = False
+                root, nsmap = __read_mtd(IceyeProductType.GRD)
+        else:
+            try:
+                root, nsmap = __read_mtd(IceyeProductType.GRD)
+            except InvalidProductError:
+                LOGGER.warning("GRD image is not available for this product.")
+                self._use_slc = True
+                root, nsmap = __read_mtd(IceyeProductType.SLC)
+
+        return root, nsmap
 
     def _get_raw_band_paths(self) -> dict:
         """

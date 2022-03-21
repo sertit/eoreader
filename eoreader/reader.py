@@ -419,6 +419,7 @@ class Reader:
                         archive_path=archive_path,
                         output_path=output_path,
                         remove_tmp=remove_tmp,
+                        **kwargs,
                     )
                     break
 

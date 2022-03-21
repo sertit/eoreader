@@ -3,11 +3,13 @@
 ## 0.14.0 (2022-MM-DD)
 
 - **ENH: Adding Shadow Index (`SI`), Global Vegetation Moisture Index (`GVMI`), Soil Brightness Index (`SBI`), Soil Cuirass Index (`SCI`), Panchromatic mocking Index (`PANI`)**
+- **ENH: Making SAR attribute `snap_path` public**
+- **ENH: Handling `ICEYE` pure SLC products**
+- **ENH: Allowing the user to choose if they want the GRD or SLC image for `ICEYE` products**
 - FIX: Fixing `ReferenceError: weakly-referenced object no longer exists` when deleting an object
 - FIX: Do not set sea values to nodata
 - FIX: Handle `Sentinel-2` data with processing baseline < 02.07 as `L2Ap` products
 - FIX: Handle new `ICEYE` metadata name's nomenclatura
-- FIX: Handle `ICEYE` pure SLC products
 - CI: Using `sertit.ci.reduce_verbosity` instead of recreating the function
 
 ## 0.13.1 (2022-03-08)

@@ -55,6 +55,11 @@ HILLSHADE_KW = "hillshade_dem"
 Set a DEM path when specifically loading the :code:`HILLSHADE` band, used to overload the :code:`DEM_PATH` environment variable.
 """
 
+ICEYE_USE_SLC = "iceye_use_slc"
+"""
+Force use the SLC image for GRD_SLC ICEYE products which contains both.
+"""
+
 
 def prune_keywords(**kwargs) -> dict:
     """
