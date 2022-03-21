@@ -272,8 +272,9 @@ def _test_core(
                     raise FileNotFoundError(f"{ci_stack} not found !")
                     # ci_stack = curr_path
 
-                # Test
-                assert_raster_almost_equal(curr_path, ci_stack, decimal=4)
+                else:
+                    # Test
+                    assert_raster_almost_equal(curr_path, ci_stack, decimal=4)
 
                 # Load a band with the size option
                 LOGGER.info("Checking load with size keyword")
@@ -321,7 +322,7 @@ def _test_core(
                 prod.get_existing_band_paths()  # noqa
 
                 # Check if possible to load narrow nir, without checking result
-                if isinstance(prod, S2Product) and not prod._processing_baseline_lt_4_0:
+                if isinstance(prod, S2Product) and not prod._processing_baseline < 4.0:
                     prod.load(NARROW_NIR)
 
                 # CRS

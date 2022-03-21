@@ -5,6 +5,7 @@
 - **ENH: Adding Shadow Index (`SI`), Global Vegetation Moisture Index (`GVMI`), Soil Brightness Index (`SBI`), Soil Cuirass Index (`SCI`), Panchromatic mocking Index (`PANI`)**
 - FIX: Fixing `ReferenceError: weakly-referenced object no longer exists` when deleting an object
 - FIX: Do not set sea values to nodata
+- FIX: Handle `Sentinel-2` data with processing baseline < 02.07 as `L2Ap` products
 - CI: Using `sertit.ci.reduce_verbosity` instead of recreating the function
 
 ## 0.13.1 (2022-03-08)
