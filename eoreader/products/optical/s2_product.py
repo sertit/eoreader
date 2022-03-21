@@ -126,13 +126,16 @@ class S2Product(OpticalProduct):
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
     ) -> None:
+
+        # Processing baseline < 02.07: images not georeferenced (L2Ap and after)
+
         # Is this products comes from a processing baseline less than 4.0
         # The processing baseline 4.0 introduces format changes:
         # - masks are given as GeoTIFFs instead of GML files
         # - an offset is added to keep the zero as no-data value
         # See here for more information
         # https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming
-        self._processing_baseline_lt_4_0 = None
+        self._processing_baseline = None
 
         # L2Ap
         self._is_l2ap = False
@@ -159,7 +162,7 @@ class S2Product(OpticalProduct):
 
         # Get processing baseline: N0213 -> 02.13
         pr_baseline = float(self.split_name[3][1:]) / 100
-        self._processing_baseline_lt_4_0 = pr_baseline < 4.0
+        self._processing_baseline = pr_baseline
 
         # Post init done by the super class
         super()._post_init()
@@ -241,7 +244,7 @@ class S2Product(OpticalProduct):
         Returns:
             rasterio.crs.CRS: CRS object
         """
-        if self._is_l2ap:
+        if self._processing_baseline < 2.07:
             root, ns = self.read_mtd()
             return CRS.from_string(root.findtext(".//HORIZONTAL_CS_CODE"))
         else:
@@ -264,7 +267,7 @@ class S2Product(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
         """
-        if self._is_l2ap:
+        if self._processing_baseline < 2.07:
             tf, width, height, crs = self.default_transform()
             bounds = transform.array_bounds(height, width, tf)
             return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=crs)
@@ -289,7 +292,7 @@ class S2Product(OpticalProduct):
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
         def_band = self.band_names[self.get_default_band()]
-        if self._processing_baseline_lt_4_0:
+        if self._processing_baseline < 4.0:
             det_footprint = self._open_mask_lt_4_0(S2GmlMasks.FOOTPRINT, def_band)
             footprint_gs = det_footprint.dissolve().convex_hull
             footprint = gpd.GeoDataFrame(
@@ -360,7 +363,6 @@ class S2Product(OpticalProduct):
             if not name:
                 # Manage L2Ap products
                 name = root.findtext(".//PRODUCT_URI_2A")
-                self._is_l2ap = True
                 if not name:
                     raise InvalidProductError("PRODUCT_URI not found in metadata!")
 
@@ -520,7 +522,7 @@ class S2Product(OpticalProduct):
 
         """
         # For L2Ap
-        if self._is_l2ap and str(path).endswith(".jp2"):
+        if self._processing_baseline < 2.07 and str(path).endswith(".jp2"):
             # Download path just in case
             on_disk_path = self._get_band_folder(writable=True) / path.name
             if not on_disk_path.is_file():
@@ -569,7 +571,7 @@ class S2Product(OpticalProduct):
                 offset_prefix = (
                     "BOA_" if self.product_type == S2ProductType.L2A else "RADIO_"
                 )
-                if self._processing_baseline_lt_4_0:
+                if self._processing_baseline < 4.0:
                     offset = 0.0
                 else:
                     try:
@@ -588,7 +590,7 @@ class S2Product(OpticalProduct):
                         )
             except InvalidProductError:
                 # If not datatake file
-                if self._processing_baseline_lt_4_0:
+                if self._processing_baseline < 4.0:
                     offset = 0.0
                 else:
                     offset = -1000.0
@@ -762,7 +764,7 @@ class S2Product(OpticalProduct):
         Returns:
             XDS_TYPE: Cleaned band array
         """
-        if self._processing_baseline_lt_4_0:
+        if self._processing_baseline < 4.0:
             return self._manage_invalid_pixels_lt_4_0(band_arr, band, **kwargs)
         else:
             # return band_arr
@@ -780,7 +782,7 @@ class S2Product(OpticalProduct):
         Returns:
             XDS_TYPE: Cleaned band array
         """
-        if self._processing_baseline_lt_4_0:
+        if self._processing_baseline < 4.0:
             return self._manage_nodata_lt_4_0(band_arr, band, **kwargs)
         else:
             return self._manage_nodata_gt_4_0(band_arr, band, **kwargs)
@@ -1238,7 +1240,7 @@ class S2Product(OpticalProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        if self._processing_baseline_lt_4_0:
+        if self._processing_baseline < 4.0:
             return self._open_clouds_lt_4_0(bands, resolution, size, **kwargs)
         else:
             return self._open_clouds_gt_4_0(bands, resolution, size, **kwargs)
@@ -1332,7 +1334,7 @@ class S2Product(OpticalProduct):
             Affine, int, int: transform, width, height
 
         """
-        if self._is_l2ap:
+        if self._processing_baseline < 2.07:
             default_path = self.get_default_band_path(**kwargs)
             return self._l2ap_geocode_data(default_path)
         else:
