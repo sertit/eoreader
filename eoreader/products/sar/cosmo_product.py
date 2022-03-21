@@ -128,7 +128,7 @@ class CosmoProduct(SarProduct):
         # Private attributes
         self._raw_band_regex = "*_{}_*.h5"
         self._band_folder = self.path
-        self._snap_path = self._img_path.name
+        self.snap_filename = self._img_path.name
 
         # SNAP cannot process its archive
         self.needs_extraction = True

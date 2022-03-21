@@ -184,7 +184,7 @@ class RcmProduct(SarProduct):
         # Private attributes
         self._raw_band_regex = "*_{}.tif"
         self._band_folder = self.path / "imagery"
-        self._snap_path = ""
+        self.snap_filename = ""
 
         # Post init done by the super class
         super()._post_init()
