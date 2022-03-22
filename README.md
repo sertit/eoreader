@@ -103,6 +103,7 @@ The API documentation can be found [here](https://eoreader.readthedocs.io/en/lat
 Available notebooks provided as examples:
 
 - [Basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html)
+- [Optical tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html)
 - [SAR data](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html)
 - [VHR data](https://eoreader.readthedocs.io/en/latest/notebooks/VHR.html)
 - [Sentinel-3 data](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html)

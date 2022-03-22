@@ -10,6 +10,7 @@
 - FIX: Do not set sea values to nodata
 - FIX: Handle `Sentinel-2` data with processing baseline < 02.07 as `L2Ap` products
 - FIX: Handle new `ICEYE` metadata name's nomenclature
+- DOC: Creating a real `base` notebook and renaming the old one to `optical`
 - CI: Using `sertit.ci.reduce_verbosity` instead of recreating the function
 
 ## 0.13.1 (2022-03-08)
