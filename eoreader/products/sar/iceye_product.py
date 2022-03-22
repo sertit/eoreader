@@ -98,7 +98,7 @@ class IceyeProduct(SarProduct):
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
-        self._use_slc = kwargs.pop(ICEYE_USE_SLC, False)
+        self._use_slc = kwargs.pop(ICEYE_USE_SLC, None)
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
@@ -315,20 +315,28 @@ class IceyeProduct(SarProduct):
         def __read_mtd(prod_type: IceyeProductType):
             return self._read_mtd_xml(f"ICEYE*{prod_type.value}*.xml")
 
-        if self._use_slc:
+        if self._use_slc is None:
             try:
-                root, nsmap = __read_mtd(IceyeProductType.SLC)
-            except InvalidProductError:
-                LOGGER.warning("SLC image is not available for this product.")
+                root, nsmap = __read_mtd(IceyeProductType.GRD)
                 self._use_slc = False
-                root, nsmap = __read_mtd(IceyeProductType.GRD)
-        else:
-            try:
-                root, nsmap = __read_mtd(IceyeProductType.GRD)
             except InvalidProductError:
-                LOGGER.warning("GRD image is not available for this product.")
-                self._use_slc = True
                 root, nsmap = __read_mtd(IceyeProductType.SLC)
+                self._use_slc = True
+        else:
+            if self._use_slc:
+                try:
+                    root, nsmap = __read_mtd(IceyeProductType.SLC)
+                except InvalidProductError:
+                    LOGGER.warning("SLC image is not available for this product.")
+                    self._use_slc = False
+                    root, nsmap = __read_mtd(IceyeProductType.GRD)
+            else:
+                try:
+                    root, nsmap = __read_mtd(IceyeProductType.GRD)
+                except InvalidProductError:
+                    LOGGER.warning("GRD image is not available for this product.")
+                    self._use_slc = True
+                    root, nsmap = __read_mtd(IceyeProductType.SLC)
 
         return root, nsmap
 
