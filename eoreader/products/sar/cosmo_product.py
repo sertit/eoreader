@@ -115,7 +115,6 @@ class CosmoProduct(SarProduct):
             raise InvalidProductError(
                 f"Image file (*.h5) not found in {product_path}"
             ) from ex
-        self._real_name = files.get_filename(self._img_path)
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
