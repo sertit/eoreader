@@ -2,6 +2,7 @@
 
 ## 0.14.0 (2022-MM-DD)
 - **BREAKING CHANGES**: `footprint`, `extent` and `crs` are converted to methods instead of properties in order to prevent side effects of expensive computation when displaying the object when debugging
+- **BREAKING CHANGES**: `get_all_index` becomes `get_all_indices`
 - **ENH: Adding Shadow Index (`SI`), Global Vegetation Moisture Index (`GVMI`), Soil Brightness Index (`SBI`), Soil Cuirass Index (`SCI`), Panchromatic mocking Index (`PANI`)**
 - **ENH: Making SAR attribute `snap_filename` public**
 - **ENH: Handling `ICEYE` pure SLC products**

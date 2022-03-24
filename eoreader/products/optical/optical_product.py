@@ -418,7 +418,7 @@ class OpticalProduct(Product):
 
         # Compute index (they conserve the nodata)
         if index_list:
-            LOGGER.debug(f"Loading index {to_str(index_list)}")
+            LOGGER.debug(f"Loading indices {to_str(index_list)}")
         bands_dict = {idx: idx(bands) for idx in index_list}
 
         # Add bands

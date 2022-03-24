@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Set of usual optical index.
+Set of usual spectral indices.
 
-**Note**: This is easier to manage index as raw functions in a file rather than stored in a class
+**Note**: This is easier to manage indices as raw functions in a file rather than stored in a class
 """
 # Index not snake case
 # pylint: disable=C0103
@@ -736,10 +736,10 @@ def get_all_index_names() -> list:
         list: Index names
 
     """
-    return [idx_fct.__name__ for idx_fct in get_all_index()]
+    return [idx_fct.__name__ for idx_fct in get_all_indices()]
 
 
-def get_all_index() -> list:
+def get_all_indices() -> list:
     """
     Get all index functions contained in this file
 

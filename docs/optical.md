@@ -179,7 +179,7 @@ use both a local path e.g. `/mnt/dataserver/dems/srtm_30_v4/index.vrt` or `\\dat
 a URL pointing to a web resources hosted on a S3 compatible storage e.g. 
 `https://s3.storage.com/dem-bucket/srtm_cog.tif` (not available on Windows for now).
 
-### Available index
+### Available spectral indices
 
 |Index | Needed bands | Accepted satellites|
 |--- | --- | ---|
