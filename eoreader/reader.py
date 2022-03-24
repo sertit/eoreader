@@ -103,8 +103,8 @@ class Platform(ListEnum):
     # RPD = "RapidEye"
     # """RapidEye"""
     #
-    # SKY = "SkySat"
-    # """SkySat"""
+    SKY = "SkySat"
+    """SkySat"""
 
     CSK = "COSMO-SkyMed"
     """COSMO-SkyMed"""
