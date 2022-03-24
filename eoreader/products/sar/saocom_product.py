@@ -31,7 +31,7 @@ from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
-from eoreader import cache, cached_property
+from eoreader import cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.sar.sar_product import _ExtendedFormatter
@@ -189,7 +189,7 @@ class SaocomProduct(SarProduct):
         # Post init done by the super class
         super()._post_init()
 
-    @cached_property
+    @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -200,7 +200,7 @@ class SaocomProduct(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent
+            >>> prod.wgs84_extent()
                                                         geometry
             0  POLYGON ((106.65491 -6.39693, 106.96233 -6.396...
 
@@ -238,7 +238,7 @@ class SaocomProduct(SarProduct):
         #
         #     return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
@@ -248,7 +248,7 @@ class SaocomProduct(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 

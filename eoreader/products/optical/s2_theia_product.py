@@ -34,7 +34,7 @@ from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio, vectors
 from sertit.rasters import XDS_TYPE
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
@@ -119,7 +119,7 @@ class S2TheiaProduct(OpticalProduct):
         # B1 to be divided by 20
         # B9 to be divided by 200
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -133,7 +133,7 @@ class S2TheiaProduct(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 

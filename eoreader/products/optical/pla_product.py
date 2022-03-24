@@ -36,7 +36,7 @@ from sertit import files, rasters
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
@@ -282,7 +282,7 @@ class PlaProduct(OpticalProduct):
                 f"Please check the validity of your product"
             )
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint of the products (without nodata, in french == emprise utile)
@@ -292,7 +292,7 @@ class PlaProduct(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 

@@ -46,7 +46,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import *
 from eoreader.bands import index
 from eoreader.bands.bands import BandNames
@@ -242,7 +242,7 @@ class Product:
         """
         raise NotImplementedError
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
@@ -252,7 +252,7 @@ class Product:
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
@@ -261,7 +261,7 @@ class Product:
         """
         raise NotImplementedError
 
-    @cached_property
+    @cache
     @abstractmethod
     def extent(self) -> gpd.GeoDataFrame:
         """
@@ -281,7 +281,7 @@ class Product:
         """
         raise NotImplementedError
 
-    @cached_property
+    @cache
     @abstractmethod
     def crs(self) -> CRS:
         """
@@ -1198,7 +1198,7 @@ class Product:
                     bounds = transform.array_bounds(def_h, def_w, def_tr)
                     dst_tr, out_w, out_h = warp.calculate_default_transform(
                         def_crs,
-                        self.crs,
+                        self.crs(),
                         def_w,
                         def_h,
                         *bounds,
@@ -1218,7 +1218,7 @@ class Product:
                     "width": out_w,
                     "height": out_h,
                     "count": dem_ds.count,
-                    "crs": self.crs,
+                    "crs": self.crs(),
                     "transform": dst_tr,
                 }
                 with rasterio.open(str(warped_dem_path), "w", **out_meta) as out_dst:
@@ -1231,7 +1231,7 @@ class Product:
                         resampling=resampling,
                         num_threads=MAX_CORES,
                         dst_transform=dst_tr,
-                        dst_crs=self.crs,
+                        dst_crs=self.crs(),
                         src_crs=dem_ds.crs,
                         src_transform=dem_ds.transform,
                     )
@@ -1583,7 +1583,7 @@ class Product:
         if not def_crs.is_projected:
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
                 def_crs,
-                self.crs,
+                self.crs(),
                 def_w,
                 def_h,
                 *bounds,

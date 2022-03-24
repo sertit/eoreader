@@ -36,9 +36,9 @@ def test_custom():
         band_map={BLUE: 1, GREEN: 2, RED: 3, NIR: 4, SWIR_1: 5},
     )
     LOGGER.info(prod_all)
-    extent_all = prod_all.extent
-    footprint_all = prod_all.footprint
-    crs_all = prod_all.crs
+    extent_all = prod_all.extent()
+    footprint_all = prod_all.footprint()
+    crs_all = prod_all.crs()
     stack = prod_all.stack([BLUE, GREEN, RED, NIR])
 
     # Check attributes
@@ -59,9 +59,9 @@ def test_custom():
         band_map={"BLUE": 1, "GREEN": 2, "RED": 3, "NIR": 4, SWIR_1: 5},
     )
     LOGGER.info(prod_min)
-    extent_min = prod_min.extent
-    footprint_min = prod_min.footprint
-    crs_min = prod_min.crs
+    extent_min = prod_min.extent()
+    footprint_min = prod_min.footprint()
+    crs_min = prod_min.crs()
     bands = prod_min.load([BLUE, NIR])
 
     # Check attributes
@@ -97,9 +97,9 @@ def test_custom():
         band_map={BLUE: 1, "GREEN": 2, RED: 3, "NIR": 4, SWIR_1: 5},
     )
     LOGGER.info(prod_some)
-    extent_some = prod_some.extent
-    footprint_some = prod_some.footprint
-    crs_some = prod_some.crs
+    extent_some = prod_some.extent()
+    footprint_some = prod_some.footprint()
+    crs_some = prod_some.crs()
     bands = prod_some.load([HILLSHADE], resolution=200.0)
 
     # Check attributes
@@ -143,9 +143,9 @@ def test_custom():
         band_map={VV: 1, VV_DSPK: 2},
     )
     LOGGER.info(prod_sar)
-    extent_sar = prod_sar.extent
-    footprint_sar = prod_sar.footprint
-    crs_sar = prod_sar.crs
+    extent_sar = prod_sar.extent()
+    footprint_sar = prod_sar.footprint()
+    crs_sar = prod_sar.crs()
     stack_sar = prod_sar.stack([VV, VV_DSPK], prod_sar.resolution * 10)
 
     # Check attributes
@@ -166,9 +166,9 @@ def test_custom():
         default_resolution=6.0,
     )
     LOGGER.info(prod_wtf)
-    extent_wtf = prod_wtf.extent
-    footprint_wtf = prod_wtf.footprint
-    crs_wtf = prod_wtf.crs
+    extent_wtf = prod_wtf.extent()
+    footprint_wtf = prod_wtf.footprint()
+    crs_wtf = prod_wtf.crs()
     stack_wtf = prod_wtf.stack([HH, RH], prod_wtf.resolution * 10)
 
     ci.assert_geom_equal(extent_sar, extent_wtf)
@@ -194,13 +194,13 @@ def test_custom():
 
     # Check geometries -> assert projected
     with pytest.raises(InvalidProductError):
-        prod_wgs84.extent  # noqa
+        prod_wgs84.extent()  # noqa
 
     with pytest.raises(InvalidProductError):
-        prod_wgs84.footprint  # noqa
+        prod_wgs84.footprint()  # noqa
 
     with pytest.raises(InvalidProductError):
-        prod_wgs84.crs  # noqa
+        prod_wgs84.crs()  # noqa
 
     # Read mtd
     root, nsp = prod_wgs84.read_mtd()

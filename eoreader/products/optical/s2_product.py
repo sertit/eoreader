@@ -41,7 +41,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from shapely.geometry import box
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
@@ -229,7 +229,7 @@ class S2Product(OpticalProduct):
         else:
             raise InvalidProductError(f"Invalid Sentinel-2 name: {self.filename}")
 
-    @cached_property
+    @cache
     def crs(self) -> CRS:
         """
         Get UTM projection of the tile
@@ -239,7 +239,7 @@ class S2Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.crs
+            >>> prod.crs()
             CRS.from_epsg(32630)
 
         Returns:
@@ -249,9 +249,9 @@ class S2Product(OpticalProduct):
             root, ns = self.read_mtd()
             return CRS.from_string(root.findtext(".//HORIZONTAL_CS_CODE"))
         else:
-            return super().crs
+            return super().crs()
 
-    @cached_property
+    @cache
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -261,7 +261,7 @@ class S2Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.extent
+            >>> prod.extent()
                                                         geometry
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
@@ -273,9 +273,9 @@ class S2Product(OpticalProduct):
             bounds = transform.array_bounds(height, width, tf)
             return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=crs)
         else:
-            return super().extent
+            return super().extent()
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint in UTM of the products (without nodata, *in french == emprise utile*)
@@ -285,7 +285,7 @@ class S2Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
@@ -680,7 +680,7 @@ class S2Product(OpticalProduct):
                 )
 
             # Read vector
-            mask = vectors.read(mask_path, crs=self.crs)
+            mask = vectors.read(mask_path, crs=self.crs())
 
         except Exception as ex:
             raise InvalidProductError(ex) from ex

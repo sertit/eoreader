@@ -34,7 +34,7 @@ from rasterio import crs as riocrs
 from sertit import files, vectors
 from sertit.misc import ListEnum
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
@@ -162,7 +162,7 @@ class Vis1Product(VhrProduct):
                 f"Unusual band combination: {self.band_combi.name}"
             )
 
-    @cached_property
+    @cache
     def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
@@ -172,7 +172,7 @@ class Vis1Product(VhrProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.crs
+            >>> prod.crs()
             CRS.from_epsg(32618)
 
         Returns:

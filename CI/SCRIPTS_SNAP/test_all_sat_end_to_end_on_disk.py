@@ -171,8 +171,8 @@ def _test_core(
                 first_band = stack_bands[0]
 
                 # Geometric data
-                footprint = prod.footprint  # noqa
-                extent = prod.extent  # noqa
+                footprint = prod.footprint()  # noqa
+                extent = prod.extent()  # noqa
 
                 # Get stack bands
                 # Stack data
@@ -208,12 +208,12 @@ def _test_core(
                 prod.get_existing_band_paths()  # noqa
 
                 # Check if possible to load narrow nir, without checking result
-                if isinstance(prod, S2Product) and not prod._processing_baseline_lt_4_0:
+                if isinstance(prod, S2Product) and not prod._processing_baseline < 4.0:
                     prod.load(NARROW_NIR)
 
                 # CRS
                 LOGGER.info("Checking CRS")
-                assert prod.crs.is_projected
+                assert prod.crs().is_projected
 
                 # MTD
                 LOGGER.info("Checking Mtd")

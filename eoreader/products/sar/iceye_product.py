@@ -33,7 +33,7 @@ from lxml import etree
 from sertit import files, vectors
 from sertit.misc import ListEnum
 
-from eoreader import cache, cached_property
+from eoreader import cache
 from eoreader.bands.bands import SarBandNames as sbn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import ICEYE_USE_SLC
@@ -149,7 +149,7 @@ class IceyeProduct(SarProduct):
         # Post init done by the super class
         super()._post_init()
 
-    @cached_property
+    @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -160,7 +160,7 @@ class IceyeProduct(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"1011117-766193"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent
+            >>> prod.wgs84_extent()
                                                         geometry
             0  POLYGON ((108.09797 15.61011, 108.48224 15.678...
 

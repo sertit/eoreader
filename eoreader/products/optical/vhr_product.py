@@ -39,7 +39,7 @@ from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 from shapely.geometry import box
 
-from eoreader import cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import DEM_PATH
 from eoreader.exceptions import InvalidProductError
@@ -117,7 +117,7 @@ class VhrProduct(OpticalProduct):
         """
         raise NotImplementedError
 
-    @cached_property
+    @cache
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -136,9 +136,9 @@ class VhrProduct(OpticalProduct):
         """
         def_tr, def_w, def_h, def_crs = self.default_transform()
         bounds = transform.array_bounds(def_h, def_w, def_tr)
-        return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs).to_crs(self.crs)
+        return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs).to_crs(self.crs())
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -148,7 +148,7 @@ class VhrProduct(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                                                          gml_id  ...                                           geometry
             0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
             [1 rows x 3 columns]
@@ -158,7 +158,7 @@ class VhrProduct(OpticalProduct):
         """
         # Get footprint
         # TODO: Optimize that
-        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs)
+        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs())
 
     def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
@@ -312,7 +312,7 @@ class VhrProduct(OpticalProduct):
             src_arr,
             rpcs=rpcs,
             src_crs=self._get_raw_crs(),
-            dst_crs=self.crs,
+            dst_crs=self.crs(),
             resolution=self.resolution,
             src_nodata=0,
             dst_nodata=0,  # input data should be in integer
@@ -329,7 +329,7 @@ class VhrProduct(OpticalProduct):
         meta["driver"] = "GTiff"
         meta["compress"] = "lzw"
         meta["nodata"] = 0
-        meta["crs"] = self.crs
+        meta["crs"] = self.crs()
         meta["width"] = width
         meta["height"] = height
         meta["count"] = count
@@ -612,7 +612,7 @@ class VhrProduct(OpticalProduct):
 
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
                 src.crs,
-                self.crs,
+                self.crs(),
                 src.width,
                 src.height,
                 *src.bounds,
@@ -628,7 +628,7 @@ class VhrProduct(OpticalProduct):
                 source=src.read(band_nb),
                 destination=out_arr,
                 src_crs=src.crs,
-                dst_crs=self.crs,
+                dst_crs=self.crs(),
                 src_transform=src.transform,
                 dst_transform=utm_tr,
                 src_nodata=0,
@@ -636,7 +636,7 @@ class VhrProduct(OpticalProduct):
                 num_threads=MAX_CORES,
             )
             meta["transform"] = utm_tr
-            meta["crs"] = self.crs
+            meta["crs"] = self.crs()
             meta["driver"] = "GTiff"
 
             rasters_rio.write(out_arr, meta, reproj_path)

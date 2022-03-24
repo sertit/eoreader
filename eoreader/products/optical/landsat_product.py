@@ -34,7 +34,7 @@ from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
@@ -181,7 +181,7 @@ class LandsatProduct(OpticalProduct):
 
         return path
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)

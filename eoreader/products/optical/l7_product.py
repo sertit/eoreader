@@ -20,7 +20,7 @@ import logging
 import geopandas as gpd
 from sertit import rasters
 
-from eoreader import cached_property, utils
+from eoreader import cache, utils
 from eoreader.products import LandsatProduct
 from eoreader.utils import EOREADER_NAME
 
@@ -41,7 +41,7 @@ class L7Product(LandsatProduct):
         """Set products type"""
         self._set_etm_product_type()
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -55,7 +55,7 @@ class L7Product(LandsatProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
