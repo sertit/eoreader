@@ -6,7 +6,7 @@ import tempfile
 import numpy as np
 from sertit import ci, rasters
 
-from eoreader.bands.index import get_all_index
+from eoreader.bands.index import get_all_indices
 from eoreader.utils import EOREADER_NAME
 
 from .scripts_utils import READER, dask_env, get_ci_data_dir, opt_path, s3_env
@@ -21,7 +21,7 @@ ci.reduce_verbosity()
 @s3_env
 @dask_env
 def test_index():
-    """Function testing the correct functioning of the index"""
+    """Function testing the correct functioning of the indices"""
     # Load S2 products as it can load every index
     s2_path = opt_path().joinpath(
         r"S2B_MSIL2A_20200114T065229_N0213_R020_T40REQ_20200114T094749.SAFE"
@@ -33,14 +33,14 @@ def test_index():
         prod.output = os.path.join(tmp_dir, prod.condensed_name)
 
         # Load every index
-        LOGGER.info("Load all index")
+        LOGGER.info("Load all indices")
         logging.getLogger("boto3").setLevel(
             logging.WARNING
         )  # BOTO has way too much verbosity
         logging.getLogger("botocore").setLevel(
             logging.WARNING
         )  # BOTO has way too much verbosity
-        idx_list = [idx for idx in get_all_index() if prod.has_band(idx)]
+        idx_list = [idx for idx in get_all_indices() if prod.has_band(idx)]
         idx = prod.load(idx_list, resolution=RES)
 
         for idx_fct, idx_arr in idx.items():
@@ -64,6 +64,6 @@ def test_index():
                 failed_idx.append(idx_name)
 
         # Read the results
-        # Do like that to check all existing index
+        # Do like that to check all existing indices
         if failed_idx:
             raise AssertionError(f"Failed index: {failed_idx}")
