@@ -746,7 +746,7 @@ def get_all_indices() -> list:
     .. code-block:: python
 
         >>> from eoreader.bands import index
-        >>> index.get_all_index()
+        >>> index.get_all_indices()
         [<function AFRI_1_6 at 0x00000118FFFB51E0>, ..., <function WI at 0x00000118FFFB5158>]
 
     Returns:

@@ -22,12 +22,12 @@ The Data Access Portfolio Document presents the offer of the datasets and data a
 |Landsat 2 MSS | {meth}`~eoreader.products.optical.l2_product.L2Product` | Level 1 | COL1*: ❌, COL2: ✅ | 60m|
 |Landsat 1 MSS | {meth}`~eoreader.products.optical.l1_product.L1Product` | Level 1 | COL1*: ❌, COL2: ✅ | 60m|
 |PlanetScope | {meth}`~eoreader.products.optical.pla_product.PlaProduct` | L3A & L3B | ✅ | 3m|
-|Pleiades-Neo | {meth}`~eoreader.products.optical.pneo_product.PneoProduct` | ORT | ✅ | 0.3 (PAN) or 1.2m (MS)|
-|Pleiades | {meth}`~eoreader.products.optical.pld_product.PldProduct` | SEN, PRJ, ORT & MOS | ✅ | 0.5 (PAN) or 2m (MS)|
+|Pleiades-Neo | {meth}`~eoreader.products.optical.pneo_product.PneoProduct` | ORT | ✅ | 0.3 (PAN), 1.2m (MS)|
+|Pleiades | {meth}`~eoreader.products.optical.pld_product.PldProduct` | SEN, PRJ, ORT & MOS | ✅ | 0.5 (PAN), 2m (MS)|
 |Vision-1 | {meth}`~eoreader.products.optical.vis1_product.Vis1Product` | PRJ & ORTP | ✅ | 0.9 (PAN), 3.5m (MS)|
-|SPOT 7 | {meth}`~eoreader.products.optical.spot7_product.Spot7Product` | SEN, PRJ, ORT & MOS | ✅ | 1.5 (PAN) or 6m (MS)|
-|SPOT 6 | {meth}`~eoreader.products.optical.spot6_product.Spot6Product` | SEN, PRJ, ORT & MOS | ✅ | 1.5 (PAN) or 6m (MS)|
-|Maxar** | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | ✅ | 0.5 (PAN) or 2m (MS)|
+|SPOT 7 | {meth}`~eoreader.products.optical.spot7_product.Spot7Product` | SEN, PRJ, ORT & MOS | ✅ | 1.5 (PAN), 6m (MS)|
+|SPOT 6 | {meth}`~eoreader.products.optical.spot6_product.Spot6Product` | SEN, PRJ, ORT & MOS | ✅ | 1.5 (PAN), 6m (MS)|
+|Maxar** | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct` | Standard & Ortho | ✅ | 0.5 (PAN), 2m (MS)|
 
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
 

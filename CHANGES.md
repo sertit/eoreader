@@ -1,6 +1,7 @@
 # Release History
 
 ## 0.14.0 (2022-MM-DD)
+
 - **BREAKING CHANGES**: `footprint`, `extent` and `crs` are converted to methods instead of properties in order to prevent side effects of expensive computation when displaying the object when debugging
 - **BREAKING CHANGES**: `get_all_index` becomes `get_all_indices`
 - **ENH: Adding Shadow Index (`SI`), Global Vegetation Moisture Index (`GVMI`), Soil Brightness Index (`SBI`), Soil Cuirass Index (`SCI`), Panchromatic mocking Index (`PANI`)**
@@ -8,7 +9,7 @@
 - **ENH: Handling `ICEYE` pure SLC products**
 - **ENH: Allowing the user to choose if they want the GRD or SLC image for `ICEYE` products**
 - FIX: Fixing `ReferenceError: weakly-referenced object no longer exists` when deleting an object
-- FIX: Do not set sea values to nodata
+- FIX: Do not set sea values to nodata when orthorectifying SAR data with SNAP
 - FIX: Handle `Sentinel-2` data with processing baseline < 02.07 as `L2Ap` products
 - FIX: Handle new `ICEYE` metadata name's nomenclature
 - DOC: Creating a real `base` notebook and renaming the old one to `optical`
