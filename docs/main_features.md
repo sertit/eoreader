@@ -23,8 +23,8 @@ but they have not been tested.
 >>> output = os.path.abspath('.')
 
 >>> # Create the reader singleton
->>> eoreader = Reader()
->>> prod = eoreader.open(path, output_path=output, remove_tmp=True)
+>>> reader = Reader()
+>>> prod = reader.open(path, output_path=output, remove_tmp=True)
 >>> # remove_tmp allows you to automatically delete processing files 
 >>> # such as cleaned or orthorectified bands when the product is deleted
 >>> # False by default to speed up the computation if you want to use the same product in several part of your code

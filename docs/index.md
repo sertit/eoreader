@@ -1,7 +1,7 @@
 ```{include} ../README.md
 ```
 
-# Site content
+# EOReader API
 
 ```{eval-rst}
 .. toctree::
