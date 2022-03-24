@@ -237,7 +237,7 @@ class S3Product(OpticalProduct):
         extent_wgs84 = gpd.GeoDataFrame(geometry=[Polygon(vertex)], crs=vectors.WGS84)
         # TODO: set CRS here also (in order not to reopen lat/lon) ?
 
-        return extent_wgs84.to_crs(self.crs)
+        return extent_wgs84.to_crs(self.crs())
 
     @cache
     def crs(self) -> riocrs.CRS:
