@@ -327,7 +327,7 @@ def _test_core(
 
                 # CRS
                 LOGGER.info("Checking CRS")
-                assert prod.crs.is_projected
+                assert prod().crs.is_projected
 
                 # MTD
                 LOGGER.info("Checking Mtd")
