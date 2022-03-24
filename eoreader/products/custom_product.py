@@ -31,7 +31,7 @@ from rasterio.enums import Resampling
 from sertit import files, misc, rasters, vectors
 from sertit.rasters import XDS_TYPE
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import (
     BandNames,
     OpticalBands,
@@ -139,7 +139,7 @@ class CustomProduct(Product):
         """
         # Check CRS
         try:
-            crs = self.crs  # noqa
+            crs = self.crs()  # noqa
         except InvalidProductError as msg:
             LOGGER.warning(msg)
 
@@ -203,7 +203,7 @@ class CustomProduct(Product):
         """
         return self.path
 
-    @cached_property
+    @cache
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of stack.
@@ -212,9 +212,9 @@ class CustomProduct(Product):
             gpd.GeoDataFrame: Footprint in UTM
         """
         # Get extent
-        return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs)
+        return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
@@ -224,16 +224,16 @@ class CustomProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs)
+        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs())
 
-    @cached_property
+    @cache
     def crs(self) -> crs.CRS:
         """
         Get UTM projection of stack.

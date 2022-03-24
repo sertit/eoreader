@@ -44,7 +44,7 @@ from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 from shapely.geometry import Polygon, box
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
@@ -145,7 +145,7 @@ class S3Product(OpticalProduct):
         # Post init done by the super class
         super()._post_init()
 
-    @cached_property
+    @cache
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile, managing the case with not orthorectified bands.
@@ -164,8 +164,8 @@ class S3Product(OpticalProduct):
         """
         # --- EXTENT IN UTM ---
         extent = gpd.GeoDataFrame(
-            geometry=[box(*self.footprint.geometry.total_bounds)],
-            crs=self.crs,
+            geometry=[box(*self.footprint().geometry.total_bounds)],
+            crs=self.crs(),
         )
 
         # --- EXTENT IN WGS84 ---
@@ -193,7 +193,7 @@ class S3Product(OpticalProduct):
 
         return extent
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint in UTM of the products (without nodata, *in french == emprise utile*)
@@ -203,7 +203,7 @@ class S3Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
@@ -239,7 +239,7 @@ class S3Product(OpticalProduct):
 
         return extent_wgs84.to_crs(self.crs)
 
-    @cached_property
+    @cache
     def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
@@ -249,7 +249,7 @@ class S3Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.crs
+            >>> prod.crs()
             CRS.from_epsg(32630)
 
         Returns:

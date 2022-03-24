@@ -171,8 +171,8 @@ def _test_core(
                 first_band = stack_bands[0]
 
                 # Geometric data
-                footprint = prod.footprint  # noqa
-                extent = prod.extent  # noqa
+                footprint = prod.footprint()  # noqa
+                extent = prod.extent()  # noqa
 
                 # Get stack bands
                 # Stack data

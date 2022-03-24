@@ -31,7 +31,7 @@ from rasterio import crs
 from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 
-from eoreader import cache, cached_property
+from eoreader import cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.reader import Platform
@@ -236,7 +236,7 @@ class TsxProduct(SarProduct):
         # Post init done by the super class
         super()._post_init()
 
-    @cached_property
+    @cache
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -255,11 +255,11 @@ class TsxProduct(SarProduct):
             gpd.GeoDataFrame: Footprint in UTM
         """
         if self.product_type == TsxProductType.EEC:
-            return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs)
+            return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
         else:
-            return super().extent
+            return super().extent()
 
-    @cached_property
+    @cache
     def crs(self) -> crs.CRS:
         """
         Get UTM projection
@@ -279,9 +279,9 @@ class TsxProduct(SarProduct):
             with rasterio.open(self.get_default_band_path()) as ds:
                 return ds.crs
         else:
-            return super().crs
+            return super().crs()
 
-    @cached_property
+    @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -292,7 +292,7 @@ class TsxProduct(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent
+            >>> prod.wgs84_extent()
                                                         geometry
             0  POLYGON ((106.65491 -6.39693, 106.96233 -6.396...
 

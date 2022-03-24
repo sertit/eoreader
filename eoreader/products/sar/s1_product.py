@@ -31,7 +31,7 @@ from lxml import etree
 from sertit import vectors
 from sertit.misc import ListEnum
 
-from eoreader import cache, cached_property
+from eoreader import cache
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
@@ -138,7 +138,7 @@ class S1Product(SarProduct):
         # Post init done by the super class
         super()._post_init()
 
-    @cached_property
+    @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -149,7 +149,7 @@ class S1Product(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent
+            >>> prod.wgs84_extent()
                                    Name  ...                                           geometry
             0  Sentinel-1 Image Overlay  ...  POLYGON ((0.85336 42.24660, -2.32032 42.65493,...
             [1 rows x 12 columns]

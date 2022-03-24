@@ -17,7 +17,17 @@
 """ Additional keywords for EOReader used in :code:`load` or  :code:`stack`"""
 import sys
 
-__all__ = ["SLSTR_RAD_ADJUST", "SLSTR_STRIPE", "SLSTR_VIEW", "CLEAN_OPTICAL"]
+__all__ = [
+    "SLSTR_RAD_ADJUST",
+    "SLSTR_STRIPE",
+    "SLSTR_VIEW",
+    "CLEAN_OPTICAL",
+    "SAR_INTERP_NA",
+    "DEM_KW",
+    "SLOPE_KW",
+    "HILLSHADE_KW",
+    "ICEYE_USE_SLC",
+]
 
 SLSTR_RAD_ADJUST = "slstr_radiance_adjustment"
 """ SLSTR radiance adjustment, please see  :code:`eoreader.products.optical.s3_slstr_product.SlstrRadAdjust`"""

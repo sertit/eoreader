@@ -177,7 +177,7 @@ def _test_core(
 
                 # Extent
                 LOGGER.info("Checking extent")
-                extent = prod.extent
+                extent = prod.extent()
                 assert isinstance(extent, gpd.GeoDataFrame)
                 assert extent.crs.is_projected
                 extent_path = get_ci_data_dir().joinpath(
@@ -199,7 +199,7 @@ def _test_core(
 
                 # Footprint
                 LOGGER.info("Checking footprint")
-                footprint = prod.footprint
+                footprint = prod.footprint()
                 assert isinstance(footprint, gpd.GeoDataFrame)
                 assert footprint.crs.is_projected
                 footprint_path = get_ci_data_dir().joinpath(

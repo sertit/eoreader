@@ -54,7 +54,7 @@ def _test_sar(pattern, **kwargs):
             prod.load(ok_bands, resolution=prod.resolution * 20)
 
             # Get extent
-            ext = prod.extent  # noqa
+            ext = prod.extent()  # noqa
 
 
 @dask_env
