@@ -46,20 +46,14 @@ For optical data:
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()
 
->>>  # The Reader will recognize the satellite type from its structure
+>>> # The reader will recognize the sensor from its product structure
 >>> s2_prod = eoreader.open(s2_path)
 
->>> # Specify a DEM to load HILLSHADE AND SLOPE bands
->>> os.environ[DEM_PATH] = "my_dem.tif"
+>>> # Load some bands and index
+>>> bands = s2_prod.load([NDVI, GREEN, CLOUDS])
 
->>> # Load some bands and index: they will all share the same metadata
->>> bands = s2_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])
-
->>> # Create a stack with some other bands
->>> stack = s2_prod.stack([NDWI, RED, SLOPE])
-
->>> # Read Metadata
->>> mtd, namespace = s2_prod.read_mtd()
+>>> # Create a stack with some bands
+>>> stack = s2_prod.stack([NDWI, RED])
 ```
 
 For SAR data:
@@ -68,7 +62,6 @@ For SAR data:
 >>> import os
 >>> from eoreader.reader import Reader
 >>> from eoreader.bands import *
->>> from eoreader.env_vars import DEM_PATH
 
 >>> # Sentinel-1 GRD path
 >>> s1_path = "S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip"
@@ -76,20 +69,14 @@ For SAR data:
 >>> # Create the reader object and open satellite data
 >>> eoreader = Reader()
 
->>> # The Reader will recognize the satellite type from its structure
+>>> # The reader will recognize the sensor from its product structure
 >>> s1_prod = eoreader.open(s1_path)
 
->>>  # Specify a DEM to load DEM and SLOPE bands
->>> os.environ[DEM_PATH] = "my_dem.tif"
+>>> # Load some bands and index
+>>> bands = s1_prod.load([VV, VV_DSPK])
 
->>> # Load some bands and index: they will all share the same metadata
->>> bands = s1_prod.load([VV, VV_DSPK, DEM])
-
->>> # Create a stack with some other bands
->>> stack = s1_prod.stack([VV, VV_DSPK, SLOPE])
-
->>> # Read Metadata
->>> mtd, namespace = s1_prod.read_mtd()
+>>> # Create a stack with some bands
+>>> stack = s1_prod.stack([VV, VV_DSPK])
 ```
 
 SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be orthorectified and calibrated.
@@ -183,7 +170,7 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 
 ## Press Release
 
-- [ESA Succes Story](https://earth.esa.int/eogateway/news/new-open-source-python-library-improves-rapid-mapping-services)
+- [ESA Success Story](https://earth.esa.int/eogateway/news/new-open-source-python-library-improves-rapid-mapping-services)
 
 ## License
 

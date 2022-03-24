@@ -16,8 +16,9 @@
 # limitations under the License.
 """
 PlanetScope products.
-See `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
-and `here <https://developers.planet.com/docs/data/planetscope/>`_
+See
+`Earth Online <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
+and `Planet documentation <https://developers.planet.com/docs/data/planetscope/>`_
 for more information.
 """
 import logging
