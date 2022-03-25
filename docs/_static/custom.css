@@ -2,11 +2,6 @@
     --pst-color-inline-code: 0, 0, 0 !important;
 }
 
-code {
-    background: #f2f2f1 !important;
-    font-size: 100% !important;
-}
-
 
 table {
     display: block;
@@ -34,39 +29,27 @@ td:empty {
     background-color: #ececec !important;
 }
 
-th:nth-child(1), td:nth-child(1) {
+th:first-child, td:first-child {
     background-color: #c4d5e7;
     position: -webkit-sticky;
     position: sticky;
     left: 0;
 }
 
-/* two items */
-th:first-child:nth-last-child(2),
-th:first-child:nth-last-child(2) ~ th {
+/* 1 row and one or two columns */
+tr:first-child:nth-last-child(1) th:first-child:nth-last-child(2),
+tr:first-child:nth-last-child(1) th:first-child:nth-last-child(2) ~ th,
+tr:first-child:nth-last-child(1) th:first-child:nth-last-child(1)
+{
     background-color: #c4d5e780 !important;
 }
 
-td:first-child:nth-last-child(2),
-td:first-child:nth-last-child(2) ~ td {
+tr:first-child:nth-last-child(1) td:first-child:nth-last-child(2),
+tr:first-child:nth-last-child(1) td:first-child:nth-last-child(2) ~ td,
+tr:first-child:nth-last-child(1) td:first-child:nth-last-child(1){
     background-color: white !important;
     position: inherit;
     left: inherit;
-}
-
-/* one items */
-th:first-child:nth-last-child(1) {
-    background-color: #c4d5e780 !important;
-}
-
-td:first-child:nth-last-child(1) {
-    background-color: white !important;
-    position: inherit;
-    left: inherit;
-}
-
-td:nth-child(1) code, th:nth-child(1) code {
-    background: none !important;
 }
 
 td p {
@@ -109,4 +92,16 @@ dl.class > dt:first-of-type {
 
 .bd-sidebar .nav ul {
     padding: 0 0 0 0.5rem;
+}
+
+code {
+    background: #f2f2f1;
+    font-size: 100% !important;
+}
+
+td:first-child:nth-last-child(n+3) code,
+td:first-child:nth-last-child(n+3) code ~td,
+th:first-child:nth-last-child(n+3) code,
+th:first-child:nth-last-child(n+3) code ~ th {
+    background: none !important;
 }

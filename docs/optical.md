@@ -1,11 +1,11 @@
 # Optical data
 
-## Implemented optical satellites
+## Implemented optical sensors
 
 The product resolution is the one given in [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589). 
 The Data Access Portfolio Document presents the offer of the datasets and data access services that are made available to the Copernicus Users in response to their Earth Observation data requirements.
 
-|Satellites | Class | Product Types | Use archive | Default Resolution |
+|Sensors | Class | Product Types | Use archive | Default Resolution |
 |--- | --- | --- | --- | ---|
 |Sentinel-2 | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A & L2Ap | ✅ | 10m|
 |Sentinel-2 Theia | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | L2A | ✅ | 10m|
@@ -31,7 +31,7 @@ The Data Access Portfolio Document presents the offer of the datasets and data a
 
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
 
-\*\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1, but other (such as WorldView-1, QuickBird...) with the same file format should be supported. The resolution can vary around the one given here.*
+\*\* *Maxar sensors: Worldview 2, 3, 4 and GeoEye-1, but other (such as WorldView-1, QuickBird...) with the same file format should be supported. The resolution can vary around the one given here.*
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
@@ -141,35 +141,35 @@ The only difference with the other bands is that the cloud bands are provided in
   probabilities, their presence is determined according to Landsat definition (proba> 67%)
 - {meth}`~eoreader.bands.bands.CloudsBandNames.SHADOWS`: Shadows presence (1) or absence (0). If clouds are provided in
   probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- {meth}`~eoreader.bands.bands.CloudsBandNames.ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (
-  0). Do not take into account missing bands (i.e. for Landsat MSS sensors, `ALL_CLOUDS` == `CLOUDS`)
+- {meth}`~eoreader.bands.bands.CloudsBandNames.ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (0).  
+  Do not take into account missing bands (i.e. for Landsat MSS sensors, `ALL_CLOUDS` == `CLOUDS`)
 
-|Satellites | Clouds Bands|
-|--- | ---|
-|Sentinel-2 | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`|
-|Sentinel-2 Theia | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
-|Sentinel-3 OLCI | *No cloud file available for S3-OLCI data* |
-|Sentinel-3 SLSTR | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`|
-|Landsat 9 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
-|Landsat 8 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
-|Landsat 7 | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
-|Landsat 5 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
-|Landsat 4 TM | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
-|Landsat 5 MSS | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Landsat 4 MSS | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Landsat 3 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Landsat 2 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Landsat 1 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|PlanetScope | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
-|Pleiades | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Pleiades-Neo | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|SPOT 6-7 | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
-|Vision-1 | *No cloud file available for Vision-1 data* |
-|Maxar (GeoEye-1, WorldViews) | *No cloud file available for Maxar data* |
+|Sensors | Cloud files | Clouds Bands|
+|--- | --- | ---|
+|Sentinel-2 | ✅ | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`|
+|Sentinel-2 Theia | ✅ | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
+|Sentinel-3 OLCI | ❌ | |
+|Sentinel-3 SLSTR | ✅ | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`|
+|Landsat 9 | ✅ | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
+|Landsat 8 | ✅ | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
+|Landsat 7 | ✅ | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
+|Landsat 5 TM | ✅ | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
+|Landsat 4 TM | ✅ | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`|
+|Landsat 5 MSS | ✅ | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 4 MSS | ✅ | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 3 | ✅ | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 2 | ✅ | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Landsat 1 | ✅ | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|PlanetScope | ✅ | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS`|
+|Pleiades | ✅ | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Pleiades-Neo | ✅ | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|SPOT 6-7 | ✅ | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`|
+|Vision-1 | ❌ | |
+|Maxar (GeoEye-1, WorldViews) | ❌ | |
 
 ### DEM bands
 
-Optical satellites can all load {meth}`~eoreader.bands.bands.DemBandNames.DEM`, {meth}`~eoreader.bands.bands.DemBandNames.SLOPE`
+Optical sensors can all load {meth}`~eoreader.bands.bands.DemBandNames.DEM`, {meth}`~eoreader.bands.bands.DemBandNames.SLOPE`
 and {meth}`~eoreader.bands.bands.DemBandNames.HILLSHADE` bands. 
 The `SLOPE` band is given in degrees. 
 Please post an issue if you need this band in `percent`.
@@ -181,35 +181,35 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 
 ### Available spectral indices
 
-|Index | Needed bands | Accepted satellites|
+|Spectral Indices | Needed bands | Accepted sensors|
 |--- | --- | ---|
 |{meth}`~eoreader.bands.index.AFRI_1_6` | `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.AFRI_2_1` | `NIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.AWEInsh` | `BLUE`, `GREEN`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.AWEIsh` | `GREEN`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|{meth}`~eoreader.bands.index.BAI` | `RED`, `NIR` | All optical satellites|
+|{meth}`~eoreader.bands.index.BAI` | `RED`, `NIR` | All optical sensors|
 |{meth}`~eoreader.bands.index.BAIS2` | `RED`, `NIR`, `VRE_1`, `VRE_2`, `VRE_3`, `SWIR_2` | Sentinel-2 |
 |{meth}`~eoreader.bands.index.BSI` | `BLUE`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|{meth}`~eoreader.bands.index.CIG` | `GREEN`, `NIR` | All optical satellites|
+|{meth}`~eoreader.bands.index.CIG` | `GREEN`, `NIR` | All optical sensors|
 |{meth}`~eoreader.bands.index.DSWI` | `GREEN`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|{meth}`~eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | All optical satellites except for Landsat MSS|
-|{meth}`~eoreader.bands.index.GNDVI` | `GREEN`, `NIR` | All optical satellites|
+|{meth}`~eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | All optical sensors except for Landsat MSS|
+|{meth}`~eoreader.bands.index.GNDVI` | `GREEN`, `NIR` | All optical sensors|
 |{meth}`~eoreader.bands.index.GVMI` | `NIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.MNDWI` | `GREEN`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.NBR` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|{meth}`~eoreader.bands.index.NDGRI` | `GREEN`, `RED` | All optical satellites|
+|{meth}`~eoreader.bands.index.NDGRI` | `GREEN`, `RED` | All optical sensors|
 |{meth}`~eoreader.bands.index.NDMI` | `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.NDRE2` | `NIR`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
 |{meth}`~eoreader.bands.index.NDRE3` | `NIR`, `VRE_2` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
-|{meth}`~eoreader.bands.index.NDVI` | `RED`, `NIR` | All optical satellites|
-|{meth}`~eoreader.bands.index.NDWI` | `GREEN`, `NIR` | All optical satellites|
-|{meth}`~eoreader.bands.index.PANI` | `RED`, `GREEN`, `BLUE` | All optical satellites except for Landsat MSS|
+|{meth}`~eoreader.bands.index.NDVI` | `RED`, `NIR` | All optical sensors|
+|{meth}`~eoreader.bands.index.NDWI` | `GREEN`, `NIR` | All optical sensors|
+|{meth}`~eoreader.bands.index.PANI` | `RED`, `GREEN`, `BLUE` | All optical sensors except for Landsat MSS|
 |{meth}`~eoreader.bands.index.RDI` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|{meth}`~eoreader.bands.index.RGI` | `GREEN`, `RED` | All optical satellites|
+|{meth}`~eoreader.bands.index.RGI` | `GREEN`, `RED` | All optical sensors|
 |{meth}`~eoreader.bands.index.RI` | `GREEN`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS, PlanetScope (5 bands), WorldView-2/3 (8 bands), Pleiades-Neo (full) |
-|{meth}`~eoreader.bands.index.SBI` | `RED`, `NIR` | All optical satellites|
-|{meth}`~eoreader.bands.index.SCI` | `RED`, `GREEN` | All optical satellites|
-|{meth}`~eoreader.bands.index.SI` | `GREEN`, `RED` | All optical satellites|
+|{meth}`~eoreader.bands.index.SBI` | `RED`, `NIR` | All optical sensors|
+|{meth}`~eoreader.bands.index.SCI` | `RED`, `GREEN` | All optical sensors|
+|{meth}`~eoreader.bands.index.SI` | `GREEN`, `RED` | All optical sensors|
 |{meth}`~eoreader.bands.index.SRSWIR` | `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCBRI` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCGRE` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
