@@ -125,7 +125,7 @@ Resolutions not found in this paper have been looked for in the constructor's do
 
 ### COSMO-Skymed 1st Generation
 
-| **COSMO-Skymed 1st Generation** | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+| **COSMO-Skymed<br>1st Generation** | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
 |--- | ---|
 |**Spotlight**<br>Mode-2 (S2) | 1.0m| 
 |**StripMap**<br>Himage from SCS (HI) | 3.0m|
@@ -135,9 +135,10 @@ Resolutions not found in this paper have been looked for in the constructor's do
 |**ScanSAR**<br>Huge Region (HR) | 100.0m|
 
 ### COSMO-Skymed 2nd Generation
-*TO BE CHECKED*
 
-| **COSMO-Skymed 2nd Generation** | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
+> ⚠️*TO BE CHECKED*
+
+| **COSMO-Skymed<br>2nd Generation** | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
 |--- | ---|
 |SPOTLIGHT_2_A | 0.4m |
 |SPOTLIGHT_2_B | 0.63m |
@@ -149,7 +150,7 @@ Resolutions not found in this paper have been looked for in the constructor's do
 
 ### TerraSAR-X & TanDEM-X & PAZ SAR
 
-|**TerraSAR-X & TanDEM-X & PAZ SAR** | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced <br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
+|**TerraSAR-X<br>TanDEM-X<br>PAZ SAR** | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced<br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
 |--- | --- | ---|
 |**StripMap (SM)**<br>Single-Pol | 3.3m | 7.0m|
 |**StripMap (SM)**<br>Dual-Pol | 6.6m | 9.9m|
