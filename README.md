@@ -14,7 +14,7 @@ clouds, DEM and spectral indices in a sensor-agnostic way.
 
 |**Optical sensors** | **SAR sensors**|
 | --- | ---|
-|Sentinel-2 and Sentinel-2 Theia<br>Sentinel-3 OLCI and Sentinel-3 SLSTR<br>Landsat 1 to 9 (MSS, TM, ETM and OLCI)<br>PlanetScope<br>Pleiades-Neo<br>Pleiades<br>SPOT 6-7<br>Vision-1<br>Maxar (WorldView-2 to 4, GeoEye-1 and others)| Sentinel-1<br>COSMO-Skymed 1st and 2nd Generation<br>TerraSAR-X, TanDEM-X and PAZ<br>RADARSAT-2<br>RADARSAT-Constellation<br>ICEYE<br>SAOCOM-1|
+|`Sentinel-2` and `Sentinel-2 Theia`<br>`Sentinel-3 OLCI` and `SLSTR`<br>`Landsat` 1 to 9<br>`PlanetScope`<br>`Pleiades` and `Pleiades-Neo`<br>`SPOT 6-7`<br>`Vision-1`<br>`Maxar` (WorldViews, GeoEye)| `Sentinel-1`<br>`COSMO-Skymed` 1st and 2nd Generation<br>`TerraSAR-X`, `TanDEM-X` and `PAS SAR`<br>`RADARSAT-2` and `RADARSAT-Constellation`<br>`ICEYE`<br>`SAOCOM`|
 
 It also implements additional **sensor-agnostic** features:
 
@@ -76,6 +76,7 @@ and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_struc
 ```
 
 > ⚠️**SNAP and SAR**
+>
 > SAR products need [`ESA SNAP`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph)
 > free software to be orthorectified and calibrated.
 > Ensure that you have the folder containing your `gpt` executable in your `PATH`.

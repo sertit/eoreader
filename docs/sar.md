@@ -2,9 +2,9 @@
 
 You will find a SAR tutorial [here](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html).
 
-## Implemented SAR satellites
+## Implemented SAR sensors
 
-|Satellites | Class | Use archive|
+|Sensors | Class | Use archive|
 |--- | --- |  ---|
 |`COSMO-Skymed 1st Generation`| {meth}`~eoreader.products.sar.csk_product.CskProduct` | ❌|
 |`COSMO-Skymed 2nd Generation`| {meth}`~eoreader.products.sar.csg_product.CsgProduct` | ❌|
@@ -22,7 +22,7 @@ mostly because SNAP doesn't handle them.
 
 ## Product type handling
 
-| Sensor | Product Type | Handled |
+| Sensors | Product Type | Handled |
 | --- | --- | --- |
 | `COSMO-Skymed` | SCS | ✅ |
 | `COSMO-SkyMed` 1st Generation | DGM | ✅ |
@@ -96,7 +96,7 @@ These bands need a valid worldwide DEM path positioned thanks to the environment
 - `DEM`
 - `SLOPE`
 
-SAR satellites can only load {meth}`~eoreader.bands.bands.DemBandNames.DEM` and {meth}`~eoreader.bands.bands.DemBandNames.SLOPE`
+SAR sensors can only load {meth}`~eoreader.bands.bands.DemBandNames.DEM` and {meth}`~eoreader.bands.bands.DemBandNames.SLOPE`
 bands as the sun position does not impact SAR data. The `SLOPE` band is given in degrees. Please post an issue if you
 need this band in `percent`.
 
