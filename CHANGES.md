@@ -33,6 +33,7 @@
 - FIX: Do not use `--no-binary fiona,rasterio` directly in `requirements.txt` (breaks on Windows)
 - FIX: Fixing stacking with string bands
 - FIX: Better `__repr__` function
+- FIX: Read README as UTF-8 in setup.py
 
 ### Other
 
