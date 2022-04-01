@@ -137,6 +137,8 @@ class S2Product(OpticalProduct):
         # See here for more information
         # https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming
         self._processing_baseline = None
+        self.base_no_data_val = 0
+        self.no_data_val = {}
 
         # L2Ap
         self._is_l2ap = False
@@ -598,7 +600,9 @@ class S2Product(OpticalProduct):
                 quantif_value = 10000.0
 
             # Compute the correct radiometry of the band
-            band_xda = (band_xda - offset) / quantif_value
+            band_xda = (band_xda + offset) / quantif_value
+
+            self.no_data_val[band] = (self.base_no_data_val + offset) / quantif_value
 
         return band_xda.astype(np.float32)
 
@@ -871,15 +875,11 @@ class S2Product(OpticalProduct):
             XDS_TYPE: Cleaned band array
         """
         # Get detector footprint to deduce the outside nodata
-        # TODO: use them ?
-        # nodata = self._open_mask_gt_4_0(
-        #     S2Jp2Masks.FOOTPRINT, band, size=(band_arr.rio.width, band_arr.rio.height)
-        # ).data.astype(
-        #     np.uint8
-        # )  # Detector nodata, -> pixels that are outside of the detectors
+        nodata = self._open_mask_gt_4_0(
+            S2Jp2Masks.FOOTPRINT, band, size=(band_arr.rio.width, band_arr.rio.height)
+        ).data
 
-        # Set to nodata where the array is set to 0
-        nodata = np.where(band_arr.compute() == 0, self._mask_true, self._mask_false)
+        nodata = np.where(nodata == 0, 1, 0).astype(np.uint8)
 
         # Manage quality mask
         # TODO: Optimize it -> very slow (why ?)
@@ -954,15 +954,11 @@ class S2Product(OpticalProduct):
             XDS_TYPE: Cleaned band array
         """
         # Get detector footprint to deduce the outside nodata
-        # TODO: use them ?
-        # nodata = self._open_mask_gt_4_0(
-        #     S2Jp2Masks.FOOTPRINT, band, size=(band_arr.rio.width, band_arr.rio.height)
-        # ).data.astype(
-        #     np.uint8
-        # )  # Detector nodata, -> pixels that are outside of the detectors
+        nodata = self._open_mask_gt_4_0(
+            S2Jp2Masks.FOOTPRINT, band, size=(band_arr.rio.width, band_arr.rio.height)
+        ).data
 
-        # Set to nodata where the array is set to 0
-        nodata = np.where(band_arr.compute() == 0, self._mask_true, self._mask_false)
+        nodata = np.where(nodata == 0, 1, 0).astype(np.uint8)
 
         return self._set_nodata_mask(band_arr, nodata)
 
