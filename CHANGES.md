@@ -18,7 +18,8 @@
 
 - FIX: Fixing `ReferenceError: weakly-referenced object no longer exists` when deleting an object
 - FIX: Do not set sea values to nodata when orthorectifying SAR data with SNAP
-- FIX: Handle `Sentinel-2` data with processing baseline < 02.07 as `L2Ap` products
+- FIX: Handle `Sentinel-2` data with PB < 02.07 as `L2Ap` products
+- FIX: Fixing nodata for `Sentinel-2` data with PB > 04.00
 - FIX: Handle new `ICEYE` metadata name's nomenclature
 
 ### Other
