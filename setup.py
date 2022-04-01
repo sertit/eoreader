@@ -13,7 +13,7 @@ from eoreader.__meta__ import (
 )
 
 BASEDIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
-with open(os.path.join(BASEDIR, "README.md"), "r") as f:
+with open(os.path.join(BASEDIR, "README.md"), "r", encoding="utf8") as f:
     readme = f.read()
 
 setuptools.setup(
