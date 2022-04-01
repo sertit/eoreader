@@ -149,7 +149,7 @@ class S3OlciProduct(S3Product):
         self._solar_flux_name = "solar_flux"
         self._det_index = "detector_index"
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -157,7 +157,7 @@ class S3OlciProduct(S3Product):
         self.needs_extraction = False
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
     def _get_platform(self) -> Platform:
         """ Getter of the platform """

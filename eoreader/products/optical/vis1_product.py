@@ -104,7 +104,7 @@ class Vis1Product(VhrProduct):
     for more information.
     """
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -113,9 +113,9 @@ class Vis1Product(VhrProduct):
         self._proj_prod_type = [Vis1ProductType.PRJ]
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
@@ -123,7 +123,7 @@ class Vis1Product(VhrProduct):
         self.band_combi = getattr(Vis1BandCombination, self.split_name[1])
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
     def _set_resolution(self) -> float:
         """

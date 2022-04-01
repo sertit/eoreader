@@ -229,7 +229,7 @@ class MaxarProduct(VhrProduct):
     for more information.
     """
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -238,7 +238,7 @@ class MaxarProduct(VhrProduct):
         self._proj_prod_type = [MaxarProductType.Standard]
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
     def _get_platform(self) -> Platform:
         """ Getter of the platform """
@@ -250,7 +250,7 @@ class MaxarProduct(VhrProduct):
         sat_id = getattr(MaxarSatId, sat_id).name
         return getattr(Platform, sat_id)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
@@ -268,7 +268,7 @@ class MaxarProduct(VhrProduct):
             raise InvalidProductError("Cannot find SATID in the metadata file")
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
     @abstractmethod
     def _set_resolution(self) -> float:

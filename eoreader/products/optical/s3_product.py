@@ -137,14 +137,6 @@ class S3Product(OpticalProduct):
         """ Set pre-process members """
         raise NotImplementedError
 
-    def _post_init(self) -> None:
-        """
-        Function used to post_init the products
-        (setting sensor type, band names and so on)
-        """
-        # Post init done by the super class
-        super()._post_init()
-
     @cache
     def extent(self) -> gpd.GeoDataFrame:
         """

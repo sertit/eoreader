@@ -267,8 +267,8 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 
 ### Vision-1 (DIMAP V1)
 - [Vision-1 on Airbus Website](https://www.intelligence-airbusds.com/imagery/constellation/vision1)
-- Presentation of the satellite: `Vision-1_web_201906.pdf` (downloadable from the previous link)
-- User guide: `vision-1-imagery-user-guide-20210217.pdf` (downloadable from the previous link)
+- [Presentation of the satellite](https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC02MDIyNg==/ZG9jdXRoZXF1ZS1maWxlLTYwMjI1/Vision-1_web_201906.pdf)
+- [User guide](https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC02ODMwNQ==/ZG9jdXRoZXF1ZS1maWxlLTY4MzAy/vision-1-imagery-user-guide-20210217)
 
 ### DIMAP V2: Pleiades, SPOT 6-7
 - [DIMAP V2 Format](https://www.intelligence-airbusds.com/en/8723-pleiades-and-spot-6-7-format-delivery)

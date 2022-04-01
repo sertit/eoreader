@@ -181,7 +181,7 @@ class DimapProduct(VhrProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -190,9 +190,9 @@ class DimapProduct(VhrProduct):
         self._proj_prod_type = [DimapProductType.SEN, DimapProductType.PRJ]
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
@@ -207,7 +207,7 @@ class DimapProduct(VhrProduct):
         self.band_combi = getattr(DimapBandCombination, band_combi.replace("-", "_"))
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
     @abstractmethod
     def _set_resolution(self) -> float:

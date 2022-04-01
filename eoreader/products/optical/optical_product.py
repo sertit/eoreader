@@ -80,7 +80,7 @@ DEF_CLEAN_METHOD = CleanMethod.NODATA
 class OpticalProduct(Product):
     """Super class for optical products"""
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -90,7 +90,7 @@ class OpticalProduct(Product):
             self.band_names = OpticalBands()
         self.sensor_type = SensorType.OPTICAL
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
