@@ -101,7 +101,7 @@ def RGI(bands: dict) -> xr.DataArray:
 @_idx_fct
 def NDVI(bands: dict) -> xr.DataArray:
     """
-    `Normalized Difference Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=59>`_
+    `Normalized Difference Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=58>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}

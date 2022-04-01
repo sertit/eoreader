@@ -110,7 +110,7 @@ class LandsatProduct(OpticalProduct):
 
         return LandsatCollection.from_value(col_nb)
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -130,9 +130,9 @@ class LandsatProduct(OpticalProduct):
             self.needs_extraction = True  # Too slow to read directly tar.gz files
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
@@ -156,7 +156,7 @@ class LandsatProduct(OpticalProduct):
             )
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
     def _get_path(self, band_id: str) -> Union[CloudPath, Path]:
         """

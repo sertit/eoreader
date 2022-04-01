@@ -235,7 +235,7 @@ class Product:
         raise NotImplementedError
 
     @abstractmethod
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)

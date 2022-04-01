@@ -165,7 +165,7 @@ class RcmProduct(SarProduct):
 
         return def_res
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -174,9 +174,9 @@ class RcmProduct(SarProduct):
         self.needs_extraction = True
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting product-type, band names and so on)
@@ -187,7 +187,7 @@ class RcmProduct(SarProduct):
         self.snap_filename = ""
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
     @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:

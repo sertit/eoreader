@@ -144,7 +144,7 @@ class S2Product(OpticalProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -152,9 +152,9 @@ class S2Product(OpticalProduct):
         self.needs_extraction = False
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
@@ -166,7 +166,7 @@ class S2Product(OpticalProduct):
         self._processing_baseline = pr_baseline
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
     def _set_resolution(self) -> float:
         """

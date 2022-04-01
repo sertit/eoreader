@@ -201,7 +201,7 @@ class TsxProduct(SarProduct):
 
         return def_res
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -214,7 +214,7 @@ class TsxProduct(SarProduct):
         self.needs_extraction = True
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
     def _get_platform(self) -> Platform:
         """ Getter of the platform """
@@ -226,7 +226,7 @@ class TsxProduct(SarProduct):
         sat_id = getattr(TsxSatId, sat_id.split("-")[0]).name
         return getattr(Platform, sat_id)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting product-type, band names and so on)
@@ -234,7 +234,7 @@ class TsxProduct(SarProduct):
         self.snap_filename = f"{self.name}.xml"
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
     @cache
     def extent(self) -> gpd.GeoDataFrame:
