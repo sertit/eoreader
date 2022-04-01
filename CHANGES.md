@@ -29,6 +29,7 @@
 ## 0.13.1 (2022-03-08)
 
 ### Bug Fixes
+
 - FIX: Handling `Sentinel-2 L2Ap` data
 - FIX: Do not use `--no-binary fiona,rasterio` directly in `requirements.txt` (breaks on Windows)
 - FIX: Fixing stacking with string bands
@@ -43,11 +44,14 @@
 ## 0.13.0 (2022-03-02)
 
 ### Enhancements
+
 - **ENH: Adding the support of `Landsat-9` sensor**
 - **ENH: Support Sentinel-2 with missing datatake metadata file(sometimes happens with data downloaded from AWS buckets and converted to .SAFE)**
 
 ### Bug Fixes
-- FIX: Using default SAR resolution from official [Copernicus Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589) (Sentinel-2 default resolution goes to 10.0 m !)
+
+- FIX: Using default SAR resolution from official [Copernicus Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589) (Sentinel-2 default
+  resolution goes to 10.0 m !)
 - FIX: Use `--no-binary fiona,rasterio` directly in `requirements.txt`
 - FIX: Removing useless `outputComplex` line in GPT graphs that is breaking SNAP on Linux
 - FIX: Removing the workarounds caused by some bugs of `cloudpathlib` and enabling retrieval of nested SAR products (TSX, TDX, PAZ, RCM) from S3 compatible storage.
@@ -64,11 +68,13 @@
 ## 0.12.0 (2022-02-09)
 
 ### Enhancements
+
 - **ENH: Adding the support of `Pleiades-Neo`, `Vision-1` and `SAOCOM` sensors**
 - **ENH: Adding a keyword to allow passing a specific DEM path in `load`/`stack` (for VHR orthorectification and `DEM` bands)**
 - **ENH: Adding the name of the DEM in DEM band (i.e. allow to compute the `HILLSHADE` with a DEM and the `SLOPE` with a DTM)**
 
 ### Bug Fixes
+
 - FIX: `Sentinel-2` Processing Baseline 04.00: `NARROW_NIR` bands are now loaded correctly
 - FIX: `Maxar` products (with `Multi` band ID) are now correctly handled
 - FIX: Using `COPDEM-30` (`GLO-30`) by default for SNAP as it appears that the retrieval has been fixed.
@@ -95,14 +101,15 @@
 - CI: Add on disk and end-to-end tests
 - CI: Do not write tmp files when running on disk tests
 - CI: Coverage:
-  - Get coverage as HTML
-  - Remove useless lines from coverage
-  - Combine coverage of S3 and on disk tests
+    - Get coverage as HTML
+    - Remove useless lines from coverage
+    - Combine coverage of S3 and on disk tests
 - DOC: Adding a DEM notebook
 
 ## 0.11.2 (2022-01-19)
 
 ### Bug Fixes
+
 - FIX: Fixing archived SAR processing
 - FIX: Needs extraction for `RS2-SLC` data as SNAP does not handle the product
 - FIX: Fixing the default name for cleaned bands for optical data (was set on `CLEAN` instead of `NODATA`)
@@ -110,6 +117,7 @@
 ## 0.11.1 (2022-01-17)
 
 ### Bug Fixes
+
 - FIX: Fixing complex and orthorectified products for `SAR` data
 - FIX: Fixing `RADARSAT-2` `SLC` product type
 
@@ -125,6 +133,7 @@
 ## 0.11.0 (2022-01-13)
 
 ### Breaking Changes
+
 - **BREAKING CHANGES: Renamed `is_band` to `is_sat_band` to better reflect that this function only checks optical and SAR bands**
 - **BREAKING CHANGES: Invalid pixels are not processed by default anymore! Only the nodata is set (to go a bit faster)**
 
@@ -163,11 +172,12 @@
 ## 0.10.0 (2022-01-04)
 
 ### Enhancements
+
 - **ENH: Adding `has_bands` to products, ingesting lists as a shortcut for testing the availability of multiple bands**
 - **ENH: Simplifying imports**. Now you can replace:
-  - `from eoreader.bands.alias import RED, NDVI` by `from eoreader.bands import RED, NDVI`,
-  - `from eoreader.products.optical.optical_product import OpticalProduct` by `from eoreader.products import OpticalProduct`,
-  - `from eoreader.products.optical.s3_slstr_product import SlstrRadAdjustTuple` by `from eoreader.products import SlstrRadAdjustTuple`, ...
+    - `from eoreader.bands.alias import RED, NDVI` by `from eoreader.bands import RED, NDVI`,
+    - `from eoreader.products.optical.optical_product import OpticalProduct` by `from eoreader.products import OpticalProduct`,
+    - `from eoreader.products.optical.s3_slstr_product import SlstrRadAdjustTuple` by `from eoreader.products import SlstrRadAdjustTuple`, ...
 
 ### Optimizations
 
@@ -190,16 +200,14 @@
 ### Bug Fixes
 
 - FIX: Do not force import `methodtools` (not existing lib in conda)
-- FIX: Using `GRD` resolution given by the constructors as default values for `SLC` products. Do not look it up in
-  metadata as SLC resolution is **NOT** the GRD resolution !
+- FIX: Using `GRD` resolution given by the constructors as default values for `SLC` products. Do not look it up in metadata as SLC resolution is **NOT** the GRD resolution !
 
 ## 0.9.4 (2021-12-13)
 
 ### Bug Fixes
 
 - FIX: Caching properties and functions only for object instances
-- FIX: Fixing metadata reading for `COSMO-SkyMed 1st Generation` with `Wide Region` and complex product type (handling
-  of multiple swaths)
+- FIX: Fixing metadata reading for `COSMO-SkyMed 1st Generation` with `Wide Region` and complex product type (handling of multiple swaths)
 - FIX: Updates of SNAP GPT graphs for complex SAR data
 - FIX: Interpolate nodata inside SAR images (badly handled by SNAP -> fill the gaps that shouldn't exist)
 
@@ -238,12 +246,12 @@
 ## 0.9.0 (2021-12-06)
 
 ### Enhancements
+
 - **ENH: Adding the support of the ICEYE sensor**
 - **ENH: Adding the support of the COSMO-SkyMed 2nd Generation sensor**
 - **ENH: Adding some attributes to bands and stack: `sensor`, `sensor_id`, `product_type`, `acquisition_date`
   , `condensed_name`** [#7](https://github.com/sertit/eoreader/issues/7)
-- **ENH: Replace name by filename and read directly the true name of the product in the
-  metadata** [#15](https://github.com/sertit/eoreader/issues/15)
+- **ENH: Replace name by filename and read directly the true name of the product in the metadata** [#15](https://github.com/sertit/eoreader/issues/15)
 
 ### Bug Fixes
 
@@ -265,27 +273,23 @@
 ## 0.8.0 (2021-10-25)
 
 ### Breaking Changes
+
 - **BREAKING CHANGE: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties !**
-- **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly
-  different !)** [#10](https://github.com/sertit/eoreader/issues/10)
+- **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** [#10](https://github.com/sertit/eoreader/issues/10)
 - **BREAKING CHANGE: `HILLSHADE` is given in `float32` instead of `uint8`**
 - **BREAKING CHANGE: `SLOPE` is given in degrees instead of percents**
 
 ### Enhancements
 
 - **ENH: Adding the support of the PAZ SAR sensor**
-- **ENH: Adding the support of the Sentinel-2 processed with
-  the [processing baseline 4.0](https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming)** [#11](https://github.com/sertit/eoreader/issues/11)
-- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP
-  dependency !** [#12](https://github.com/sertit/eoreader/issues/12)
+- **ENH: Adding the support of the Sentinel-2 processed with the [processing baseline 4.0](https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming)** [#11](https://github.com/sertit/eoreader/issues/11)
+- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !** [#12](https://github.com/sertit/eoreader/issues/12)
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
 - **ENH: Thermal bands of Sentinel-3 SLSTR can now be used**
-- **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for
-  OLCI)** [#14](https://github.com/sertit/eoreader/issues/14)
+- **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for OLCI)** [#14](https://github.com/sertit/eoreader/issues/14)
 - **ENH: `YELLOW` band is mapped to `Oa07` band of Sentinel-3 OLCI**
 - **ENH: Zipped Sentinel-3 products can now be processed**
-- **ENH: Allow the use of `kwargs` in `load`, mainly for `rasters.read` (and allowing ie. radiance adjustment in
-  S3-SLSTR)**
+- **ENH: Allow the use of `kwargs` in `load`, mainly for `rasters.read` (and allowing ie. radiance adjustment in S3-SLSTR)**
 
 ### Optimizations
 
@@ -293,8 +297,7 @@
   using `@cached_property`) [#13](https://github.com/sertit/eoreader/issues/13)
 - OPTIM: `get_mean_sun_angles` and `default_transform` are now cached (
   using `@cache`) [#13](https://github.com/sertit/eoreader/issues/13)
-- OPTIM: `get_datetime`: Look for the date only if `datetime` attribute is
-  None [#13](https://github.com/sertit/eoreader/issues/13)
+- OPTIM: `get_datetime`: Look for the date only if `datetime` attribute is None [#13](https://github.com/sertit/eoreader/issues/13)
 - OPTIM: Better management of `fspath` for cloud-stored products (download the files only once)
 - OPTIM: Stop downloading/extracting files if not necessary
 
@@ -335,13 +338,13 @@
 ## 0.7.0 (2021-09-23)
 
 ### Enhancements
+
 - **ENH: Implementing RADARSAT-Constellation products (as `RCM`)**
 - **ENH: Implementing Maxar products (such as `GE01, WV02, WV03, WV04`, but others should be supported too)**
 - **ENH: Implementing TanDEM-X products (as `TDX`)**
 - **ENH: Adding `RH`, `RV`, `RH_DSPK` and `RV_DSPK` SAR bands**
 - **ENH: Adding the `YELLOW` optical band (for `WorldView-2`, `WorldView-3` and `Sentinel-3 OLCI`)**
-- **ENH: Adding [WorldView index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide) (without
-  the ones using SWIR)**
+- **ENH: Adding [WorldView index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide) (without the ones using SWIR)**
 - **ENH: Loading by size -> round resolution to the closest meter (or decimeter for resolution < 1.0m)**
 - **ENH: Super class for VHR data**
 
@@ -400,6 +403,7 @@
 ## 0.6.0 (2021-09-02)
 
 ### Enhancements
+
 - **ENH: Ensuring EOReader supports Dask**
 
 ### Bug Fixes
@@ -449,13 +453,10 @@
 ### Bug Fixes
 
 - FIX: Decoupling classic metadata reading from the name as EOReader accepts now modified product names (#9)
-- FIX: Better handling of cloud-stored DEM (raising an exception for non-ortho DIMAP data as GDAL and rasterio does not
-  handle that case)
-- FIX: `environment.yml` to respect the stricter use of `file:` syntax.
-  See [here](https://stackoverflow.com/questions/68571543/using-a-pip-requirements-file-in-a-conda-yml-file-throws-attributeerror-fileno)
+- FIX: Better handling of cloud-stored DEM (raising an exception for non-ortho DIMAP data as GDAL and rasterio does not handle that case)
+- FIX: `environment.yml` to respect the stricter use of `file:` syntax. See [here](https://stackoverflow.com/questions/68571543/using-a-pip-requirements-file-in-a-conda-yml-file-throws-attributeerror-fileno)
   for more information.
-- FIX: Fixing bug when opening an archive product with `name` mode and nested dictionary (when looking for a filename
-  instead of the directory name)
+- FIX: Fixing bug when opening an archive product with `name` mode and nested dictionary (when looking for a filename instead of the directory name)
 
 ### Other
 
@@ -467,12 +468,12 @@
 ## 0.4.8 (2021-07-23)
 
 ### Enhancements
+
 - **ENH: Allowing `stack` to take single band in input instead of a list**
 
 ### Bug Fixes
 
-- FIX: Fixing a regression loading optical bands which have been previously cleaned (Landsat, Theia, possibly
-  PlanetScope)
+- FIX: Fixing a regression loading optical bands which have been previously cleaned (Landsat, Theia, possibly PlanetScope)
 - FIX: `load` and `stack` always returns `float32` arrays
 
 ### Other
@@ -488,6 +489,7 @@
 ## 0.4.7 (2021-07-23)
 
 ### Enhancements
+
 - **ENH: Adding a `default_transform` function returning data from default band (without warping it)**
   -> *mapping `calculate_default_transform` from `rasterio`*
 - **ENH: Adding a `clean_tmp` function allowing the user to clean the product's temporary output by hand**
@@ -557,6 +559,7 @@
 ## 0.4.3 (2021-07-05)
 
 ### Enhancements
+
 - **ENH: Optimizing loading cloud bands for DIMAP Products**
 - `stack` accepts `**kwargs` in order to pass options to `rioxarray.to_raster()`
 
@@ -572,6 +575,7 @@
 ## 0.4.2 (2021-07-01)
 
 ### Enhancements
+
 - **ENH: Enabling the use of products stored in the cloud
   (S3, S3 compatible storage, Google, Azure...) through [`cloudpathlib`](https://cloudpathlib.drivendata.org/)**
 - **ENH: Using correct band names in long_name**
@@ -596,8 +600,7 @@
     - Only satellite bands and index are scaled (*10.000)
     - DEM bands are just rounded
     - Cloud bands (booleans) are saved as is
-- FIX: Fixing a rasterization bug affecting S2 and DIMAP masks, happening when the vectors have another size than the
-  image
+- FIX: Fixing a rasterization bug affecting S2 and DIMAP masks, happening when the vectors have another size than the image
 - FIX: Adding a warning on bad georeferencing when using GS and GT Landsat products
 
 ### Other
