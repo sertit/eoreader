@@ -267,7 +267,7 @@ class S3Product(OpticalProduct):
     def _replace(
         self,
         ppm_to_replace: str,
-        band: Union[str, obn] = None,
+        band: Union[str, BandNames] = None,
         suffix: str = None,
         view: str = None,
     ) -> str:
@@ -276,7 +276,7 @@ class S3Product(OpticalProduct):
 
         Args:
             ppm_to_replace (str): Preprocessed member to replace
-            band (Union[str, obn]): Replace the band
+            band (Union[str, BandNames]): Replace the band
             suffix (str): Replace the suffix
             view (str): Replace the view
 

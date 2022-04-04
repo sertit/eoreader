@@ -544,7 +544,7 @@ class S2Product(OpticalProduct):
                     ds.transform = tf
 
         # Read band
-        band_xda = utils.read(
+        return utils.read(
             path,
             resolution=resolution,
             size=size,
@@ -552,6 +552,9 @@ class S2Product(OpticalProduct):
             **kwargs,
         )
 
+    def _to_reflectance(
+        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
+    ):
         if str(path).endswith(".jp2"):
             try:
                 # Get MTD XML file
@@ -600,11 +603,11 @@ class S2Product(OpticalProduct):
                 quantif_value = 10000.0
 
             # Compute the correct radiometry of the band
-            band_xda = (band_xda + offset) / quantif_value
+            band_arr = (band_arr + offset) / quantif_value
 
             self.no_data_val[band] = (self.base_no_data_val + offset) / quantif_value
 
-        return band_xda.astype(np.float32)
+        return band_arr.astype(np.float32)
 
     def _open_mask_lt_4_0(
         self, mask_id: Union[str, S2GmlMasks], band: Union[obn, str] = None

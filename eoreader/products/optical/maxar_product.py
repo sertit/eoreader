@@ -26,6 +26,7 @@ from enum import unique
 from pathlib import Path
 from typing import Union
 
+import numpy as np
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
@@ -528,6 +529,19 @@ class MaxarProduct(VhrProduct):
         mtd_archived = r"\.XML"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
+
+    def _to_reflectance(
+        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
+    ):
+        # Delivered in uint16
+        # TODO: Convert DN into radiance !
+        # TODO: Convert radiance into reflectance !
+
+        # To float32
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
+
+        return band_arr
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """

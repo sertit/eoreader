@@ -350,6 +350,12 @@ class S3SlstrProduct(S3Product):
             }
         )
 
+    def _to_reflectance(
+        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
+    ):
+        # Do nothing, managed elsewhere
+        return band_arr
+
     def _preprocess(
         self,
         band: Union[obn, str],
@@ -744,12 +750,12 @@ class S3SlstrProduct(S3Product):
 
         return sza_img
 
-    def _compute_e0(self, band: obn, suffix: str) -> np.ndarray:
+    def _compute_e0(self, band: BandNames, suffix: str) -> np.ndarray:
         """
         Compute the solar spectral flux in mW / (m^2 * sr * nm)
 
         Args:
-            band (obn): Optical Band
+            band (BandNames): Optical Band
             suffix (str): Suffix
 
         Returns:
