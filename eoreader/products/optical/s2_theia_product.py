@@ -266,49 +266,19 @@ class S2TheiaProduct(OpticalProduct):
 
         return band_paths
 
-    def _read_band(
-        self,
-        path: Union[CloudPath, Path],
-        band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
-        **kwargs,
-    ) -> XDS_TYPE:
-        """
-        Read band from disk.
-
-        .. WARNING::
-            Invalid pixels are not managed here
-
-        Args:
-            path (Union[CloudPath, Path]): Band path
-            band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-            kwargs: Other arguments used to load bands
-        Returns:
-            XDS_TYPE: Band xarray
-
-        """
-        # Read band
-        band_xda = utils.read(
-            path,
-            resolution=resolution,
-            size=size,
-            resampling=Resampling.bilinear,
-            **kwargs,
-        )
-
+    def _to_reflectance(
+        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
+    ):
         # Compute the correct radiometry of the band (Theia product are stored into int16 bits)
-        original_dtype = band_xda.encoding.get("dtype", band_xda.dtype)
+        original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
         if original_dtype == "int16":
-            band_xda /= 10000.0
+            band_arr /= 10000.0
 
         # Convert type if needed
-        if band_xda.dtype != np.float32:
-            band_xda = band_xda.astype(np.float32)
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
 
-        return band_xda
+        return band_arr
 
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs

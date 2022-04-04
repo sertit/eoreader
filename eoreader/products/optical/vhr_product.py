@@ -393,7 +393,7 @@ class VhrProduct(OpticalProduct):
                     )
 
                 # Read band
-                band_xda = utils.read(
+                band_arr = utils.read(
                     reproj_path,
                     resolution=resolution,
                     size=size,
@@ -404,7 +404,7 @@ class VhrProduct(OpticalProduct):
             # Manage the case if we open a simple band (EOReader processed bands)
             elif dst.count == 1:
                 # Read band
-                band_xda = utils.read(
+                band_arr = utils.read(
                     path,
                     resolution=resolution,
                     size=size,
@@ -415,7 +415,7 @@ class VhrProduct(OpticalProduct):
             # Manage the case if we open a stack (native DIMAP bands)
             else:
                 # Read band
-                band_xda = utils.read(
+                band_arr = utils.read(
                     path,
                     resolution=resolution,
                     size=size,
@@ -424,23 +424,11 @@ class VhrProduct(OpticalProduct):
                     **kwargs,
                 )
 
-            # If nodata not set, set it here
-            if not band_xda.rio.encoded_nodata:
-                band_xda = rasters.set_nodata(band_xda, 0)
+        # Pop useless long name
+        if "long_name" in band_arr.attrs:
+            band_arr.attrs.pop("long_name")
 
-            # Compute the correct radiometry of the band
-            if dst.meta["dtype"] == "uint16":
-                band_xda /= 10000.0
-
-            # Pop useless long name
-            if "long_name" in band_xda.attrs:
-                band_xda.attrs.pop("long_name")
-
-            # To float32
-            if band_xda.dtype != np.float32:
-                band_xda = band_xda.astype(np.float32)
-
-        return band_xda
+        return band_arr
 
     def _load_bands(
         self,
@@ -493,8 +481,7 @@ class VhrProduct(OpticalProduct):
         Returns:
             XDS_TYPE: Cleaned band array
         """
-        # Do nothing
-        return band_arr
+        return self._manage_nodata(band_arr, band, **kwargs)
 
     def _manage_nodata(self, band_arr: XDS_TYPE, band: BandNames, **kwargs) -> XDS_TYPE:
         """
@@ -508,7 +495,10 @@ class VhrProduct(OpticalProduct):
         Returns:
             XDS_TYPE: Cleaned band array
         """
-        # Do nothing
+        # If nodata not set, set it here
+        if not band_arr.rio.encoded_nodata:
+            band_arr = rasters.set_nodata(band_arr, 0)
+
         return band_arr
 
     def _get_condensed_name(self) -> str:

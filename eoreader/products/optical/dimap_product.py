@@ -93,6 +93,41 @@ class DimapProductType(ListEnum):
 
 
 @unique
+class DimapRadiometricProcessing(ListEnum):
+    """
+    DIMAP V2 radiometric processing.
+
+    See `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+    (Paragraph 2.4) for more information.
+    """
+
+    BASIC = "BASIC"
+    """
+    In the BASIC radiometric option, the imagery values are digital numbers (DN)
+    quantifying the energy recorded by the detector corrected relative
+    to the other detectors to avoid non-uniformity noise.
+    """
+
+    REFLECTANCE = "REFLECTANCE"
+    """
+    In the REFLECTANCE radiometric option, the imagery values are corrected
+    from radiometric sensor calibration and systematic effects of the atmosphere
+    (molecular or Rayleigh diffusion and given in reflectance physical unit).
+    """
+
+    LINEAR_STRETCH = "LINEAR_STRETCH"
+    """
+    Relates to the BASIC option at 8-bit depth.
+    """
+
+    SEAMLESS = "SEAMLESS"
+    """
+    Relates to the mosaic option.
+    In this case, the spectral properties cannot be retrieved since the initial images have undergone several radiometric adjustments for aesthetic rendering.
+    """
+
+
+@unique
 class DimapBandCombination(ListEnum):
     """
     DIMAP V2 products band combination
@@ -301,7 +336,7 @@ class DimapProduct(VhrProduct):
         root, _ = self.read_mtd()
 
         # Open the Bounding_Polygon
-        vertices = [v for v in root.iterfind(".//Vertex")]
+        vertices = list(root.iterfind(".//Vertex"))
 
         # Get the mean lon lat
         lon = float(np.mean([float(v.findtext("LON")) for v in vertices]))
@@ -471,6 +506,41 @@ class DimapProduct(VhrProduct):
             pass
 
         return self._set_nodata_mask(band_arr, nodata)
+
+    def _to_reflectance(
+        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
+    ):
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+        rad_proc = DimapRadiometricProcessing.from_value(
+            root.findtext(".//IMAGING_DATE")
+        )
+
+        if rad_proc == DimapRadiometricProcessing.REFLECTANCE:
+            # Compute the correct radiometry of the band
+            original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
+            if original_dtype == "uint16":
+                band_arr /= 10000.0
+        elif rad_proc in [
+            DimapRadiometricProcessing.BASIC,
+            DimapRadiometricProcessing.LINEAR_STRETCH,
+        ]:
+            LOGGER.warning(
+                "BASIC and LINEAR_STRETCH are not yet handled for DIMAP products."
+                "The image will be outputted as DN."
+            )
+        else:
+            LOGGER.warning(
+                "The spectral properties of a SEAMLESS radiometric processed image "
+                "cannot be retrieved since the initial images have undergone "
+                "several radiometric adjustments for aesthetic rendering."
+            )
+
+        # To float32
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
+
+        return band_arr
 
     def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
         """

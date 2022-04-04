@@ -278,20 +278,6 @@ class S3OlciProduct(S3Product):
                 filename, subdataset, dtype=kwargs.get("dtype", np.float32)
             )
 
-            # Convert radiance to reflectances if needed
-            # Convert first pixel by pixel before reprojection !
-            if to_reflectance:
-                LOGGER.debug(f"Converting {band_str} to reflectance")
-                band_arr = self._rad_2_refl(band_arr, band)
-
-                # Debug
-                # utils.write(
-                #     band_arr,
-                #     self._get_band_folder(writable=True).joinpath(
-                #         f"{self.condensed_name}_{band.name}_rad2refl.tif"
-                #     ),
-                # )
-
             # Geocode
             LOGGER.debug(f"Geocoding {band_str}")
             pp_arr = self._geocode(band_arr, resolution=resolution)
@@ -329,9 +315,26 @@ class S3OlciProduct(S3Product):
             **{"SRC_METHOD": "GCP_TPS"},
         )
 
+    def _to_reflectance(
+        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
+    ):
+        # Do nothing, managed elsewhere
+        return band_arr
+
     def _rad_2_refl(self, band_arr: xr.DataArray, band: obn = None) -> xr.DataArray:
         """
         Convert radiance to reflectance
+
+        The Level 1 product provides measurements of top of atmosphere (ToA) radiances (mW/m2/sr/nm). These
+        values can be converted to normalised reflectance for better comparison or merging of data with different
+        sun angles as follows:
+        reflectance = π* (ToA radiance / solar irradiance / cos(solar zenith angle))
+        where the solar irradiance at ToA is given in the ‘solar_flux’ dataset  (instrument_data.nc  file)  for  each
+        detector  and  each  channel,  and  the  solar  zenith  angle  is  given  at  Tie  Points  in the ‘SZA’ dataset
+        (tie_geometry.nc file). The appropriate instrument detector is given at each pixel by the ‘detector_index’
+        dataset (instrument_data.nc file).
+
+        In https://sentinel.esa.int/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91
 
         Args:
             band_arr (xr.DataArray): Band array
@@ -383,17 +386,6 @@ class S3OlciProduct(S3Product):
     def _compute_e0(self, band: obn = None) -> np.ndarray:
         """
         Compute the solar spectral flux in mW / (m^2 * sr * nm)
-
-        The Level 1 product provides measurements of top of atmosphere (ToA) radiances (mW/m2/sr/nm). These
-        values can be converted to normalised reflectance for better comparison or merging of data with different
-        sun angles as follows:
-        reflectance = π* (ToA radiance / solar irradiance / cos(solar zenith angle))
-        where the solar irradiance at ToA is given in the ‘solar_flux’ dataset  (instrument_data.nc  file)  for  each
-        detector  and  each  channel,  and  the  solar  zenith  angle  is  given  at  Tie  Points  in the ‘SZA’ dataset
-        (tie_geometry.nc file). The appropriate instrument detector is given at each pixel by the ‘detector_index’
-        dataset (instrument_data.nc file).
-
-        In https://sentinel.esa.int/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91
 
         Args:
             band (obn): Optical Band (for SLSTR only)

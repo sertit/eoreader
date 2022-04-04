@@ -27,6 +27,7 @@ __all__ = [
     "SLOPE_KW",
     "HILLSHADE_KW",
     "ICEYE_USE_SLC",
+    "TO_REFLECTANCE",
 ]
 
 SLSTR_RAD_ADJUST = "slstr_radiance_adjustment"
@@ -68,6 +69,11 @@ Set a DEM path when specifically loading the :code:`HILLSHADE` band, used to ove
 ICEYE_USE_SLC = "iceye_use_slc"
 """
 Force use the SLC image for GRD_SLC ICEYE products which contains both.
+"""
+
+TO_REFLECTANCE = "to_reflectance"
+"""
+Convert optical data to reflectance (default is :code:`True`). If :code:`False`, it loads the values as is.
 """
 
 

@@ -29,7 +29,6 @@ import pandas as pd
 from cloudpathlib import CloudPath
 from lxml import etree
 from lxml.builder import E
-from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
@@ -520,30 +519,9 @@ class LandsatProduct(OpticalProduct):
 
         return mtd_data
 
-    def _read_band(
-        self,
-        path: Union[CloudPath, Path],
-        band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
-        **kwargs,
-    ) -> XDS_TYPE:
-        """
-        Read band from disk.
-
-        .. WARNING::
-            Invalid pixels are not managed here
-
-        Args:
-            path (Union[CloudPath, Path]): Band path
-            band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-            kwargs: Other arguments used to load bands
-        Returns:
-            XDS_TYPE: Band xarray
-
-        """
+    def _to_reflectance(
+        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
+    ):
         # Get band name: the last number of the filename:
         # ie: 'LC08_L1TP_200030_20191218_20191226_01_T1_B1'
         if self.is_archived:
@@ -552,23 +530,10 @@ class LandsatProduct(OpticalProduct):
             filename = files.get_filename(path)
 
         if self._pixel_quality_id in filename or self._radsat_id in filename:
-            band_xda = utils.read(
-                path,
-                resolution=resolution,
-                size=size,
-                resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
-                masked=False,
-                **kwargs,
-            ).astype(np.uint16)
+            band_arr = band_arr.astype(np.uint16)
         else:
             # Read band (call superclass generic method)
-            band_xda = utils.read(
-                path,
-                resolution=resolution,
-                size=size,
-                resampling=Resampling.bilinear,
-                **kwargs,
-            ).astype(np.float32)
+            band_arr = band_arr.astype(np.float32)
 
             # Convert raw bands from DN to correct reflectance
             if not filename.startswith(self.condensed_name):
@@ -618,9 +583,9 @@ class LandsatProduct(OpticalProduct):
                     c_add = 0.0
 
                 # Compute the correct reflectance of the band and set no data to 0
-                band_xda = c_mul * band_xda + c_add  # Already in float
+                band_arr = c_mul * band_arr + c_add  # Already in float
 
-        return band_xda
+        return band_arr
 
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs

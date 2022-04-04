@@ -45,7 +45,7 @@ from eoreader.bands import (
     to_str,
 )
 from eoreader.exceptions import InvalidBandError, InvalidIndexError
-from eoreader.keywords import CLEAN_OPTICAL
+from eoreader.keywords import CLEAN_OPTICAL, TO_REFLECTANCE
 from eoreader.products.product import Product, SensorType
 from eoreader.utils import EOREADER_NAME
 
@@ -255,6 +255,12 @@ class OpticalProduct(Product):
             band_arr = self._read_band(
                 band_path, band=band, resolution=resolution, size=size, **kwargs
             )
+            band_arr.attrs["radiometry"] = "as_is"
+
+            if TO_REFLECTANCE:
+                band_arr = self._to_reflectance(band_arr, band_path, band)
+                band_arr.attrs["radiometry"] = "reflectance"
+
             # Write on disk in order not to reprocess band everytime
             # (invalid pix management can be time consuming)
             if (
@@ -276,6 +282,7 @@ class OpticalProduct(Product):
                     band_arr = self._manage_invalid_pixels(
                         band_arr, band=band, **kwargs
                     )
+                band_arr.attrs["cleaning_method"] = cleaning_method.value
 
                 # Write on disk
                 try:
@@ -295,6 +302,43 @@ class OpticalProduct(Product):
             band_arrays[band] = band_arr
 
         return band_arrays
+
+    def _read_band(
+        self,
+        path: Union[CloudPath, Path],
+        band: BandNames = None,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> XDS_TYPE:
+        """
+        Read band from disk.
+
+        .. WARNING::
+            Invalid pixels are not managed here
+
+        Args:
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
+        Returns:
+            XDS_TYPE: Band xarray
+        """
+        band_arr = utils.read(
+            path,
+            resolution=resolution,
+            size=size,
+            resampling=Resampling.bilinear,
+            **kwargs,
+        )
+
+        # Convert type if needed
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
+
+        return band_arr
 
     @abstractmethod
     def _manage_invalid_pixels(

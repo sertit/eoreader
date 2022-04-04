@@ -182,7 +182,7 @@ class Vis1Product(VhrProduct):
         root, _ = self.read_mtd()
 
         # Open the Bounding_Polygon
-        vertices = [v for v in root.iterfind(".//Dataset_Frame/Vertex")]
+        vertices = list(root.iterfind(".//Dataset_Frame/Vertex"))
 
         # Get the mean lon lat
         lon = float(np.mean([float(v.findtext("FRAME_LON")) for v in vertices]))
@@ -313,6 +313,23 @@ class Vis1Product(VhrProduct):
         zenith_angle = 90.0 - elev_angle
 
         return azimuth_angle, zenith_angle
+
+    def _to_reflectance(
+        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
+    ):
+
+        # Compute the correct radiometry of the band
+        original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
+        if original_dtype == "uint16":
+            band_arr /= 100.0
+
+        # TODO: Convert into reflectance !
+
+        # To float32
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
+
+        return band_arr
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
