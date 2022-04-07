@@ -350,12 +350,6 @@ class S3SlstrProduct(S3Product):
             }
         )
 
-    def _to_reflectance(
-        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
-    ):
-        # Do nothing, managed elsewhere
-        return band_arr
-
     def _preprocess(
         self,
         band: Union[obn, str],

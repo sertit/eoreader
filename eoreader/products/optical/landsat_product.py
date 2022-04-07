@@ -26,6 +26,7 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from lxml.builder import E
@@ -520,8 +521,24 @@ class LandsatProduct(OpticalProduct):
         return mtd_data
 
     def _to_reflectance(
-        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
-    ):
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray):
+            path (Union[Path, CloudPath]):
+            band (BandNames):
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
         # Get band name: the last number of the filename:
         # ie: 'LC08_L1TP_200030_20191218_20191226_01_T1_B1'
         if self.is_archived:

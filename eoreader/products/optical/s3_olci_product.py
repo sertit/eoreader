@@ -315,12 +315,6 @@ class S3OlciProduct(S3Product):
             **{"SRC_METHOD": "GCP_TPS"},
         )
 
-    def _to_reflectance(
-        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
-    ):
-        # Do nothing, managed elsewhere
-        return band_arr
-
     def _rad_2_refl(self, band_arr: xr.DataArray, band: obn = None) -> xr.DataArray:
         """
         Convert radiance to reflectance

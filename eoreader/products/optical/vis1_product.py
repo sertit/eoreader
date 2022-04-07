@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Union
 
 import numpy as np
+import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
@@ -42,6 +43,20 @@ from eoreader.products import VhrProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
+
+VIS1_E0 = {
+    obn.PAN: 1828,
+    obn.BLUE: 2003,
+    obn.GREEN: 1828,
+    obn.RED: 1618,
+    obn.NIR: 1042,
+    obn.NARROW_NIR: 1042,
+}
+"""
+Solar spectral irradiance, E0b, (commonly known as ESUN) is a constant value specific to each band of the Vision-1 imager.
+It is determined by using well know models of Solar Irradiance with the measured spectral transmission of the imager for each incident wavelength.
+It has units of Wm-2μm-1. The applicable values for Vision-1 are provided in the table.
+"""
 
 
 @unique
@@ -315,21 +330,35 @@ class Vis1Product(VhrProduct):
         return azimuth_angle, zenith_angle
 
     def _to_reflectance(
-        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
-    ):
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray):
+            path (Union[Path, CloudPath]):
+            band (BandNames):
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
 
         # Compute the correct radiometry of the band
         original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
         if original_dtype == "uint16":
             band_arr /= 100.0
 
-        # TODO: Convert into reflectance !
-
         # To float32
         if band_arr.dtype != np.float32:
             band_arr = band_arr.astype(np.float32)
 
-        return band_arr
+        return self._toa_rad_to_toa_refl(band_arr, band)
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
@@ -394,3 +423,31 @@ class Vis1Product(VhrProduct):
 
         rpcs = utils.open_rpc_file(rpcs_file)
         return super()._get_ortho_path(rpcs=rpcs, **kwargs)
+
+    def _toa_rad_to_toa_refl(
+        self, rad_arr: xr.DataArray, band: BandNames
+    ) -> xr.DataArray:
+        """
+        Compute TOA reflectance from TOA radiance
+
+        See
+        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC02ODMwNQ==/ZG9jdXRoZXF1ZS1maWxlLTY4MzAy/vision-1-imagery-user-guide-20210217>`_
+        (3.2.2) for more information.
+
+        Args:
+            rad_arr (xr.DataArray): TOA Radiance array
+            band (BandNames): Band
+
+        Returns:
+            xr.DataArray: TOA Reflectance array
+        """
+        _, sun_zenith_angle = self.get_mean_sun_angles()
+        toa_refl_coeff = (
+            np.pi
+            * self._sun_earth_distance_variation() ** 2
+            / (VIS1_E0[band] * np.cos(np.deg2rad(sun_zenith_angle)))
+        )
+
+        LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
+
+        return rad_arr.copy(data=toa_refl_coeff * rad_arr)

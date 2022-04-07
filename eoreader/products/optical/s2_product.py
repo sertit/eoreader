@@ -553,8 +553,24 @@ class S2Product(OpticalProduct):
         )
 
     def _to_reflectance(
-        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
-    ):
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray):
+            path (Union[Path, CloudPath]):
+            band (BandNames):
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
         if str(path).endswith(".jp2"):
             try:
                 # Get MTD XML file

@@ -48,6 +48,7 @@ from eoreader import cache, utils
 from eoreader.bands import BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
+from eoreader.keywords import TO_REFLECTANCE
 from eoreader.products import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
@@ -391,7 +392,10 @@ class S3Product(OpticalProduct):
             else:
                 # Pre-process the wanted band (does nothing if existing)
                 band_paths[band] = self._preprocess(
-                    band, resolution=resolution, **kwargs
+                    band,
+                    resolution=resolution,
+                    to_reflectance=kwargs.get(TO_REFLECTANCE, True),
+                    **kwargs,
                 )
 
         return band_paths
@@ -431,6 +435,28 @@ class S3Product(OpticalProduct):
 
         # Read band
         return band.astype(np.float32) * band.scale_factor
+
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray):
+            path (Union[Path, CloudPath]):
+            band (BandNames):
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
+        # Do nothing, managed elsewhere
+        return band_arr
 
     @abstractmethod
     def _manage_invalid_pixels(

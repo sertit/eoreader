@@ -17,6 +17,7 @@
 """ Super class for optical products """
 import logging
 from abc import abstractmethod
+from datetime import datetime
 from enum import unique
 from pathlib import Path
 from typing import Union
@@ -24,6 +25,7 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import rasterio
+import xarray as xr
 from cloudpathlib import CloudPath
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
@@ -227,6 +229,27 @@ class OpticalProduct(Product):
         existing_bands = self.get_existing_bands()
         return self.get_band_paths(band_list=existing_bands)
 
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray):
+            path (Union[Path, CloudPath]):
+            band (BandNames):
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
+        raise NotImplementedError
+
     def _open_bands(
         self,
         band_paths: dict,
@@ -257,7 +280,8 @@ class OpticalProduct(Product):
             )
             band_arr.attrs["radiometry"] = "as_is"
 
-            if TO_REFLECTANCE:
+            if kwargs.get(TO_REFLECTANCE, True):
+                # TODO: check if needs reflectance (NO TIR !!!) Landsats, S3
                 band_arr = self._to_reflectance(band_arr, band_path, band)
                 band_arr.attrs["radiometry"] = "reflectance"
 
@@ -698,3 +722,22 @@ class OpticalProduct(Product):
         return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}.tif",
         )
+
+    @cache
+    def _sun_earth_distance_variation(self):
+        """
+        Compute Sun-Earth distance variation.
+        It utilises the inverse square law of irradiance, under which,
+        the intensity (or irradiance) of light radiating from a point source is inversely proportional to the square of the distance from the source.
+
+        See `here <https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-2-msi/level-1c/algorithm>`_ for more information.
+
+        Returns:
+
+        """
+        # julian_date is the Julian Day corresponding to the acquisition date (reference day: 01/01/1950).
+        ref_julian_date = datetime(year=1950, month=1, day=1)
+        julian_date = (self.date - ref_julian_date).days + 1
+        d = 1 / (1 - 0.01673 * np.cos(0.0172 * (julian_date - 2) ** 2))
+        LOGGER.debug(f"d = {d}")
+        return d

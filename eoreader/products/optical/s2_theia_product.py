@@ -267,8 +267,24 @@ class S2TheiaProduct(OpticalProduct):
         return band_paths
 
     def _to_reflectance(
-        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
-    ):
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray):
+            path (Union[Path, CloudPath]):
+            band (BandNames):
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
         # Compute the correct radiometry of the band (Theia product are stored into int16 bits)
         original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
         if original_dtype == "int16":
