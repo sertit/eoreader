@@ -29,7 +29,7 @@ from typing import Union
 
 import geopandas as gpd
 import numpy as np
-import xarray
+import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
@@ -455,8 +455,24 @@ class PlaProduct(OpticalProduct):
         return band_arr
 
     def _to_reflectance(
-        self, band_arr, path: Union[Path, CloudPath], band: BandNames, **kwargs
-    ):
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray):
+            path (Union[Path, CloudPath]):
+            band (BandNames):
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
         # Get MTD XML file
         root, nsmap = self.read_mtd()
 
@@ -741,7 +757,7 @@ class PlaProduct(OpticalProduct):
         mask_id: str,
         resolution: float = None,
         size: Union[list, tuple] = None,
-    ) -> Union[xarray.DataArray, None]:
+    ) -> Union[xr.DataArray, None]:
         """
         Open a Planet UDM2 (Usable Data Mask) mask, band by band, as a xarray.
         Returns None if the mask is not available.
@@ -810,7 +826,7 @@ class PlaProduct(OpticalProduct):
         self,
         resolution: float = None,
         size: Union[list, tuple] = None,
-    ) -> Union[xarray.DataArray, None]:
+    ) -> Union[xr.DataArray, None]:
         """
         Load nodata (unimaged pixels) as a numpy array.
 

@@ -16,6 +16,7 @@
 
 ### Bug Fixes
 
+- FIX: Loading every optical band in reflectance (fixed for `Maxar`, `Planet` and `Vision-1` data) ([#30](https://github.com/sertit/eoreader/issues/30))
 - FIX: Fixing `ReferenceError: weakly-referenced object no longer exists` when deleting an object
 - FIX: Do not set sea values to nodata when orthorectifying SAR data with SNAP
 - FIX: Handle `Sentinel-2` data with PB < 02.07 as `L2Ap` products
