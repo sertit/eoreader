@@ -46,9 +46,32 @@ from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import VhrProduct
+from eoreader.reader import Platform
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
+
+_DIMAP_BAND_MTD = {
+    obn.PAN: "P",
+    obn.BLUE: "B0",
+    obn.GREEN: "B1",
+    obn.RED: "B2",
+    obn.NIR: "B3",
+    obn.NARROW_NIR: "B3",
+}
+
+_PNEO_BAND_MTD = {
+    obn.PAN: "P",
+    obn.BLUE: "B",
+    obn.GREEN: "G",
+    obn.RED: "R",
+    obn.NIR: "NIR",
+    obn.NARROW_NIR: "NIR",
+    obn.VRE_1: "RE",
+    obn.VRE_2: "RE",
+    obn.VRE_3: "RE",
+    obn.CA: "DB",  # deep blue
+}
 
 
 @unique
@@ -281,6 +304,7 @@ class DimapProduct(VhrProduct):
                     obn.GREEN: 2,
                     obn.RED: 1,
                     obn.NIR: 4,
+                    obn.NARROW_NIR: 4,
                     obn.VRE_1: 5,
                     obn.VRE_2: 5,
                     obn.VRE_3: 5,
@@ -518,6 +542,10 @@ class DimapProduct(VhrProduct):
         """
         Converts band to reflectance
 
+        See
+        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTY0Mw==/ZG9jdXRoZXF1ZS1maWxlLTU1NjQy/airbus-pleiades-imagery-user-guide-15042021.pdf>`_
+        (Appendix D)
+
         Args:
             band_arr (xr.DataArray):
             path (Union[Path, CloudPath]):
@@ -542,15 +570,18 @@ class DimapProduct(VhrProduct):
             DimapRadiometricProcessing.BASIC,
             DimapRadiometricProcessing.LINEAR_STRETCH,
         ]:
-            LOGGER.warning(
-                "BASIC and LINEAR_STRETCH are not yet handled for DIMAP products."
-                "The image will be outputted as DN."
-            )
+            # Convert DN into radiance
+            band_arr = self._dn_to_toa_rad(band_arr, band)
+
+            # Convert radiance into reflectance
+            band_arr = self._toa_rad_to_toa_refl(band_arr, band)
+
         else:
             LOGGER.warning(
                 "The spectral properties of a SEAMLESS radiometric processed image "
                 "cannot be retrieved since the initial images have undergone "
                 "several radiometric adjustments for aesthetic rendering."
+                "Returned as is."
             )
 
         # To float32
@@ -892,3 +923,98 @@ class DimapProduct(VhrProduct):
 
         """
         return self._get_path("DIM_", "XML")
+
+    def _dn_to_toa_rad(self, dn_arr: xr.DataArray, band: BandNames) -> xr.DataArray:
+        """
+        Compute DN to TOA radiance
+
+        See
+        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTY0Mw==/ZG9jdXRoZXF1ZS1maWxlLTU1NjQy/airbus-pleiades-imagery-user-guide-15042021.pdf>`_
+        for more information. (Appendix D)
+
+        Args:
+            rad_arr (xr.DataArray): DN array
+            band (BandNames): Band
+
+        Returns:
+            xr.DataArray: TOA Radiance array
+        """
+        if self.platform == Platform.PNEO:
+            band_mtd_str = _PNEO_BAND_MTD[band]
+        else:
+            band_mtd_str = _DIMAP_BAND_MTD[band]
+
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Convert DN to TOA radiance
+        # <MEASURE_DESC>Raw radiometric counts (DN) to TOA Radiance (L). Formulae L=DN/GAIN+BIAS</MEASURE_DESC>
+        try:
+            rad_gain = None
+            rad_bias = None
+            for br in root.iterfind(".//Band_Radiance"):
+                if br.findtext("BAND_ID") == band_mtd_str:
+                    rad_gain = float(br.findtext("GAIN"))
+                    rad_bias = float(br.findtext("BIAS"))
+                    break
+
+            if rad_gain is None or rad_bias is None:
+                raise TypeError
+
+        except TypeError:
+            raise InvalidProductError(
+                "GAIN and BIAS from Band_Radiance not found in metadata!"
+            )
+        return dn_arr / rad_gain + rad_bias
+
+    def _toa_rad_to_toa_refl(
+        self, rad_arr: xr.DataArray, band: BandNames
+    ) -> xr.DataArray:
+        """
+        Compute TOA reflectance from TOA radiance
+
+        See
+        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTY0Mw==/ZG9jdXRoZXF1ZS1maWxlLTU1NjQy/airbus-pleiades-imagery-user-guide-15042021.pdf>`_
+        for more information. (Appendix D)
+
+        Args:
+            rad_arr (xr.DataArray): TOA Radiance array
+            band (BandNames): Band
+
+        Returns:
+            xr.DataArray: TOA Reflectance array
+        """
+        if self.platform == Platform.PNEO:
+            band_mtd_str = _PNEO_BAND_MTD[band]
+        else:
+            band_mtd_str = _DIMAP_BAND_MTD[band]
+
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Get the solar irradiance value of raw radiometric Band (in watt/m2/micron)
+        try:
+            e0 = None
+            for br in root.iterfind(".//Band_Solar_Irradiance"):
+                if br.findtext("BAND_ID") == band_mtd_str:
+                    e0 = float(br.findtext("VALUE"))
+                    break
+
+            if e0 is None:
+                raise TypeError
+
+        except TypeError:
+            raise InvalidProductError(
+                "VALUE from Band_Solar_Irradiance not found in metadata!"
+            )
+
+        # Compute the coefficient converting TOA radiance in TOA reflectance
+        dt = self._sun_earth_distance_variation()
+        _, sun_zen = self.get_mean_sun_angles()
+        rad_sun_zen = np.deg2rad(sun_zen)
+
+        # WARNING: d = 1 / sqrt(d(t))
+        toa_refl_coeff = np.pi / (e0 * dt * np.cos(rad_sun_zen))
+
+        # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
+        return rad_arr.copy(data=toa_refl_coeff * rad_arr)

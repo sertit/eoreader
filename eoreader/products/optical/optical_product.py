@@ -713,20 +713,25 @@ class OpticalProduct(Product):
         )
 
     @cache
-    def _sun_earth_distance_variation(self):
+    def _sun_earth_distance_variation(self) -> float:
         """
-        Compute Sun-Earth distance variation.
+        Correction for the Sun-Earth distance variation
+
         It utilises the inverse square law of irradiance, under which,
         the intensity (or irradiance) of light radiating from a point source is inversely proportional to the square of the distance from the source.
+
+         - t is the Julian Day corresponding to the acquisition date (reference day: 01/01/1950).
+         - 0.01673 is the Earth orbit eccentricity.
+         - 0.0172 is the Earth angular velocity (radians/day).
 
         See `here <https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-2-msi/level-1c/algorithm>`_ for more information.
 
         Returns:
-
+            float: Sun-Earth distance variation
         """
         # julian_date is the Julian Day corresponding to the acquisition date (reference day: 01/01/1950).
         ref_julian_date = datetime(year=1950, month=1, day=1)
         julian_date = (self.date - ref_julian_date).days + 1
-        d = 1 / (1 - 0.01673 * np.cos(0.0172 * (julian_date - 2) ** 2))
-        LOGGER.debug(f"d = {d}")
-        return d
+
+        # Compute Sun-Earth distance variation
+        return 1 / (1 - 0.01673 * np.cos(0.0172 * (julian_date - 2))) ** 2

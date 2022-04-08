@@ -45,7 +45,7 @@ from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-MAXAR_BAND_MTD = {
+_MAXAR_BAND_MTD = {
     obn.NIR: "N",
     obn.NARROW_NIR: "N",
     obn.RED: "R",
@@ -61,7 +61,7 @@ MAXAR_BAND_MTD = {
 }
 
 GainOffset = namedtuple("GainOffset", ["gain", "offset"], defaults=[1.0, 0.0])
-MAXAR_GAIN_OFFSET = {
+_MAXAR_GAIN_OFFSET = {
     Platform.GE01: {
         obn.PAN: GainOffset(gain=1.001, offset=0.0),
         obn.BLUE: GainOffset(gain=1.041, offset=0.0),
@@ -129,7 +129,7 @@ Only using last calibration as the Maxar sensors have been found to be very stab
 See `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>_` for the values.
 """
 
-MAXAR_E0 = {
+_MAXAR_E0 = {
     Platform.GE01: {
         obn.PAN: 1610.73,
         obn.BLUE: 1993.18,
@@ -764,7 +764,7 @@ class MaxarProduct(VhrProduct):
         Returns:
             xr.DataArray: TOA Radiance array
         """
-        band_mtd_str = f"BAND_{MAXAR_BAND_MTD[band]}"
+        band_mtd_str = f"BAND_{_MAXAR_BAND_MTD[band]}"
 
         # Get MTD XML file
         root, _ = self.read_mtd()
@@ -780,7 +780,7 @@ class MaxarProduct(VhrProduct):
             )
 
         # Get sensor-specific gain and offset (latest)
-        gain, offset = MAXAR_GAIN_OFFSET[self.platform][band]
+        gain, offset = _MAXAR_GAIN_OFFSET[self.platform][band]
 
         # Compute the coefficient converting DN in TOA radiance
         coeff = gain * abs_factor / effective_bandwidth + offset
@@ -798,6 +798,8 @@ class MaxarProduct(VhrProduct):
         `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_
         for more information.
 
+        WARNING: in this formula, d**2 = 1 / sqrt(dt) !
+
         Args:
             rad_arr (xr.DataArray): TOA Radiance array
             band (BandNames): Band
@@ -807,11 +809,11 @@ class MaxarProduct(VhrProduct):
         """
 
         # Compute the coefficient converting TOA radiance in TOA reflectance
-        sq_rel_dist = self._sun_earth_distance_variation() ** 2
+        dt = self._sun_earth_distance_variation() ** 2
         _, sun_zen = self.get_mean_sun_angles()
         rad_sun_zen = np.deg2rad(sun_zen)
-        e0 = MAXAR_E0[self.platform][band]
-        toa_refl_coeff = np.pi * sq_rel_dist / (e0 * np.cos(rad_sun_zen))
+        e0 = _MAXAR_E0[self.platform][band]
+        toa_refl_coeff = np.pi / (e0 * dt * np.cos(rad_sun_zen))
 
         # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
         return rad_arr.copy(data=toa_refl_coeff * rad_arr)
