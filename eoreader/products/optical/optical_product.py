@@ -682,8 +682,11 @@ class OpticalProduct(Product):
 
         res_str = self._resolution_to_str(resolution)
 
+        # Radiometric processing
+        rad_proc = "" if kwargs.get(TO_REFLECTANCE, True) else "_as_is"
+
         return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{cleaning_method.value}.tif",
+            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{cleaning_method.value}{rad_proc}.tif",
         )
 
     def _get_cloud_band_path(
