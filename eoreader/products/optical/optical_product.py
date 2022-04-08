@@ -324,6 +324,7 @@ class OpticalProduct(Product):
 
         return band_arrays
 
+    @abstractmethod
     def _read_band(
         self,
         path: Union[CloudPath, Path],
@@ -347,19 +348,7 @@ class OpticalProduct(Product):
         Returns:
             XDS_TYPE: Band xarray
         """
-        band_arr = utils.read(
-            path,
-            resolution=resolution,
-            size=size,
-            resampling=Resampling.bilinear,
-            **kwargs,
-        )
-
-        # Convert type if needed
-        if band_arr.dtype != np.float32:
-            band_arr = band_arr.astype(np.float32)
-
-        return band_arr
+        raise NotImplementedError
 
     @abstractmethod
     def _manage_invalid_pixels(

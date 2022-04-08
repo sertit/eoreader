@@ -266,6 +266,43 @@ class S2TheiaProduct(OpticalProduct):
 
         return band_paths
 
+    def _read_band(
+        self,
+        path: Union[CloudPath, Path],
+        band: BandNames = None,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> XDS_TYPE:
+        """
+        Read band from disk.
+
+        .. WARNING::
+            Invalid pixels are not managed here
+
+        Args:
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
+        Returns:
+            XDS_TYPE: Band xarray
+        """
+        band_arr = utils.read(
+            path,
+            resolution=resolution,
+            size=size,
+            resampling=Resampling.bilinear,
+            **kwargs,
+        )
+
+        # Convert type if needed
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
+
+        return band_arr
+
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
