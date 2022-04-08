@@ -689,9 +689,9 @@ class MaxarProduct(VhrProduct):
         Converts band to reflectance
 
         Args:
-            band_arr (xr.DataArray):
-            path (Union[Path, CloudPath]):
-            band (BandNames):
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
             **kwargs: Other keywords
 
         Returns:
