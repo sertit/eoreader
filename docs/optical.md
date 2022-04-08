@@ -252,6 +252,7 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 - [Product Format](https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/)
 
 ### Sentinel-3
+
 - [OLCI main page](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-olci)
 - [SLSTR main page](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr)
 - [OLCI Handbook](https://sentinel.esa.int/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91)
@@ -268,11 +269,13 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 - [On Medium](https://medium.com/geoplexing/getting-started-with-planet-imagery-part-3-items-and-ordering-476a1a21618c)
 
 ### Vision-1 (DIMAP V1)
+
 - [Vision-1 on Airbus Website](https://www.intelligence-airbusds.com/imagery/constellation/vision1)
 - [Presentation of the satellite](https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC02MDIyNg==/ZG9jdXRoZXF1ZS1maWxlLTYwMjI1/Vision-1_web_201906.pdf)
 - [User guide](https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC02ODMwNQ==/ZG9jdXRoZXF1ZS1maWxlLTY4MzAy/vision-1-imagery-user-guide-20210217)
 
 ### DIMAP V2: Pleiades, SPOT 6-7
+
 - [DIMAP V2 Format](https://www.intelligence-airbusds.com/en/8723-pleiades-and-spot-6-7-format-delivery)
 - [Pleiades User Guide (2019)](https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf)
 - [SPOT 6-7 User Guide (2019)](https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf)
