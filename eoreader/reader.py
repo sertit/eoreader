@@ -279,7 +279,7 @@ class Reader:
     """
     Factory class creating satellite products according to their names.
 
-    It creates a singleton that you can call only on,e time per file.
+    It creates a singleton that you can call only one time per file.
     """
 
     def __init__(self):

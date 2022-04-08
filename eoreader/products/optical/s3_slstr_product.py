@@ -987,7 +987,7 @@ class S3SlstrProduct(S3Product):
         sun_az = self._read_nc(geom_file, saa_name)
         sun_ze = self._read_nc(geom_file, sza_name)
 
-        return sun_az.mean().data % 360, sun_ze.mean().data
+        return float(sun_az.mean().data) % 360, float(sun_ze.mean().data)
 
     def _get_clean_band_path(
         self, band: obn, resolution: float = None, writable: bool = False, **kwargs

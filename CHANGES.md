@@ -60,6 +60,7 @@
 - FIX: Do not process nodata for a band already existing
 - FIX: Fixing an error when reading `TIR` bands with Landsat-7
 - FIX: Fixing an error when additive/multiplicative coefficients are set to `NULL` for Landsat data
+- FIX: Returning sun angles always as float (some `Sentinel-3` angles were returned as `np.array`)
 
 ### Other
 
