@@ -371,7 +371,9 @@ class S2Product(OpticalProduct):
 
             name = files.get_filename(name)
         except InvalidProductError:
-            tile_info = files.read_json(next(self.path.glob("**/tileInfo.json")))
+            tile_info = files.read_json(
+                next(self.path.glob("**/tileInfo.json")), print_file=False
+            )
             name = tile_info["productName"]
 
         return name
