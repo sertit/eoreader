@@ -441,13 +441,12 @@ class Vis1Product(VhrProduct):
         Returns:
             xr.DataArray: TOA Reflectance array
         """
-        _, sun_zenith_angle = self.get_mean_sun_angles()
-        toa_refl_coeff = (
-            np.pi
-            * self._sun_earth_distance_variation() ** 2
-            / (VIS1_E0[band] * np.cos(np.deg2rad(sun_zenith_angle)))
-        )
+        # Compute the coefficient converting TOA radiance in TOA reflectance
+        sq_rel_dist = self._sun_earth_distance_variation() ** 2
+        _, sun_zen = self.get_mean_sun_angles()
+        rad_sun_zen = np.deg2rad(sun_zen)
+        e0 = VIS1_E0[band]
+        toa_refl_coeff = np.pi * sq_rel_dist / (e0 * np.cos(rad_sun_zen))
 
-        LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
-
+        # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
         return rad_arr.copy(data=toa_refl_coeff * rad_arr)

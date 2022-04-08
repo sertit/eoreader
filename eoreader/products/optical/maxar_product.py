@@ -754,25 +754,22 @@ class MaxarProduct(VhrProduct):
         Compute DN to TOA radiance
 
         See
-        `Absolute Radiometric Calibration: 2016v0 <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/209/ABSRADCAL_FLEET_2016v0_Rel20170606.pdf>`_
-        and
-        `Improvements in Calibration, and Validation of the Absolute Radiometric Response of MAXAR Earth-Observing Sensors
-        <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/209/ABSRADCAL_FLEET_2016v0_Rel20170606.pdf>`_
-        (3.2.2) for more information.
+        `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_
+        for more information.
 
         Args:
-            rad_arr (xr.DataArray): TOA Radiance array
+            rad_arr (xr.DataArray): DN array
             band (BandNames): Band
 
         Returns:
-            xr.DataArray: TOA Reflectance array
+            xr.DataArray: TOA Radiance array
         """
         band_mtd_str = f"BAND_{MAXAR_BAND_MTD[band]}"
 
         # Get MTD XML file
         root, _ = self.read_mtd()
 
-        # Open zenith and azimuth angle
+        # Open absolute calibration factor and the effective bandwidth
         try:
             band_mtd = root.find(f".//{band_mtd_str}")
             abs_factor = float(band_mtd.findtext(".//ABSCALFACTOR"))
@@ -782,15 +779,14 @@ class MaxarProduct(VhrProduct):
                 "ABSCALFACTOR or EFFECTIVEBANDWIDTH not found in metadata!"
             )
 
+        # Get sensor-specific gain and offset (latest)
         gain, offset = MAXAR_GAIN_OFFSET[self.platform][band]
 
-        coeff = gain * (abs_factor / effective_bandwidth) + offset
+        # Compute the coefficient converting DN in TOA radiance
+        coeff = gain * abs_factor / effective_bandwidth + offset
 
-        LOGGER.debug(f"DN to rad coeff = {coeff}")
-
-        toa_rad = coeff * dn_arr.data
-
-        return dn_arr.copy(data=toa_rad)
+        # LOGGER.debug(f"DN to rad coeff = {coeff}")
+        return dn_arr.copy(data=coeff * dn_arr.data)
 
     def _toa_rad_to_toa_refl(
         self, rad_arr: xr.DataArray, band: BandNames
@@ -799,11 +795,8 @@ class MaxarProduct(VhrProduct):
         Compute TOA reflectance from TOA radiance
 
         See
-        `Absolute Radiometric Calibration: 2016v0 <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/209/ABSRADCAL_FLEET_2016v0_Rel20170606.pdf>`_
-        and
-        `Improvements in Calibration, and Validation of the Absolute Radiometric Response of MAXAR Earth-Observing Sensors
-        <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/209/ABSRADCAL_FLEET_2016v0_Rel20170606.pdf>`_
-        (3.2.2) for more information.
+        `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_
+        for more information.
 
         Args:
             rad_arr (xr.DataArray): TOA Radiance array
@@ -812,13 +805,13 @@ class MaxarProduct(VhrProduct):
         Returns:
             xr.DataArray: TOA Reflectance array
         """
-        _, sun_zenith_angle = self.get_mean_sun_angles()
-        toa_refl_coeff = (
-            np.pi
-            * self._sun_earth_distance_variation() ** 2
-            / (MAXAR_E0[self.platform][band] * np.cos(np.deg2rad(sun_zenith_angle)))
-        )
 
-        LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
+        # Compute the coefficient converting TOA radiance in TOA reflectance
+        sq_rel_dist = self._sun_earth_distance_variation() ** 2
+        _, sun_zen = self.get_mean_sun_angles()
+        rad_sun_zen = np.deg2rad(sun_zen)
+        e0 = MAXAR_E0[self.platform][band]
+        toa_refl_coeff = np.pi * sq_rel_dist / (e0 * np.cos(rad_sun_zen))
 
+        # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
         return rad_arr.copy(data=toa_refl_coeff * rad_arr)
