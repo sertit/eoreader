@@ -53,9 +53,10 @@ Be sure to position the environment variable `EOREADER_DEM_PATH` to the DEM you 
 ### Satellite bands
 
 ```{note}
-Optical bands are always loaded in reflectance. 
-For Sentinel-3 SLSTR, radiances are converted to reflectance, 
-expcept for brilliance temperature bands that are left as is.
+Optical bands are always loaded in reflectance, except for brilliance temperature bands that are left as is. 
+
+However, the user can ask for bands "as is" by using the {meth}`~eoreader.keyword.TO_REFLECTANCE` keyword with the load and stack functions.
+It will give the bands in the provider format (either DN, radiance or reflactance in uint16...).
 
 These bands will be cleaned according to the user's needs. 
 By default, only the pixels outside the detectors footprints are set to nodata.
@@ -285,6 +286,7 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 - [ISD](https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf)
 - [Digital Globe Standard Imagery (old)](https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-Standard-Imagery.pdf)
 - [Digital Globe Products Guide (old)](https://www.geosoluciones.cl/documentos/worldview/DigitalGlobe-Core-Imagery-Products-Guide.pdf)
+- [Conversion from DN to TOA reflectance](https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf)
 
 ### Band mapping
 
