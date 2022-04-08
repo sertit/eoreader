@@ -240,9 +240,9 @@ class OpticalProduct(Product):
         Converts band to reflectance
 
         Args:
-            band_arr (xr.DataArray):
-            path (Union[Path, CloudPath]):
-            band (BandNames):
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
             **kwargs: Other keywords
 
         Returns:
@@ -278,12 +278,9 @@ class OpticalProduct(Product):
             band_arr = self._read_band(
                 band_path, band=band, resolution=resolution, size=size, **kwargs
             )
-            band_arr.attrs["radiometry"] = "as_is"
 
             if kwargs.get(TO_REFLECTANCE, True):
-                # TODO: check if needs reflectance (NO TIR !!!) Landsats, S3
                 band_arr = self._to_reflectance(band_arr, band_path, band)
-                band_arr.attrs["radiometry"] = "reflectance"
 
             # Write on disk in order not to reprocess band everytime
             # (invalid pix management can be time consuming)

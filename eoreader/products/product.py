@@ -52,7 +52,7 @@ from eoreader.bands import index
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
+from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW, TO_REFLECTANCE
 from eoreader.reader import Platform, Reader
 from eoreader.utils import EOREADER_NAME
 
@@ -867,7 +867,7 @@ class Product:
 
         # Rename all bands and add attributes
         for key, val in band_dict.items():
-            band_dict[key] = self._update_attrs(val, to_str(key)[0])
+            band_dict[key] = self._update_attrs(val, to_str(key)[0], **kwargs)
 
         return band_dict
 
@@ -1472,7 +1472,7 @@ class Product:
                 )  # NaN values are already set
 
         # Update stack's attributes
-        stack = self._update_attrs(stack, to_str(bands))
+        stack = self._update_attrs(stack, to_str(bands), **kwargs)
 
         # Write on disk
         if stack_path:
@@ -1487,7 +1487,9 @@ class Product:
 
         return stack
 
-    def _update_attrs(self, xarr: XDS_TYPE, long_name: Union[str, list]) -> XDS_TYPE:
+    def _update_attrs(
+        self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
+    ) -> XDS_TYPE:
         """
         Update attributes of the given array
         Args:
@@ -1513,6 +1515,13 @@ class Product:
         )
         renamed_xarr.attrs["acquisition_date"] = self.get_datetime(as_datetime=False)
         renamed_xarr.attrs["condensed_name"] = self.condensed_name
+
+        # kwargs attrs
+        if self.sensor_type == SensorType.OPTICAL:
+            if kwargs.get(TO_REFLECTANCE, True):
+                renamed_xarr.attrs["radiometry"] = "reflectance"
+            else:
+                renamed_xarr.attrs["radiometry"] = "as is"
 
         return renamed_xarr
 
