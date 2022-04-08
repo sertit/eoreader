@@ -30,6 +30,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from lxml.builder import E
+from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
@@ -520,6 +521,57 @@ class LandsatProduct(OpticalProduct):
 
         return mtd_data
 
+    def _read_band(
+        self,
+        path: Union[CloudPath, Path],
+        band: BandNames = None,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> XDS_TYPE:
+        """
+        Read band from disk.
+
+        .. WARNING::
+            Invalid pixels are not managed here
+
+        Args:
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
+        Returns:
+            XDS_TYPE: Band xarray
+        """
+        if self.is_archived:
+            filename = files.get_filename(str(path).split("!")[-1])
+        else:
+            filename = files.get_filename(path)
+
+        if self._pixel_quality_id in filename or self._radsat_id in filename:
+            band_arr = utils.read(
+                path,
+                resolution=resolution,
+                size=size,
+                resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
+                masked=False,
+                **kwargs,
+            ).astype(np.uint16)
+            band_arr = band_arr.astype(np.uint16)
+        else:
+            # Read band (call superclass generic method)
+            band_arr = utils.read(
+                path,
+                resolution=resolution,
+                size=size,
+                resampling=Resampling.bilinear,
+                **kwargs,
+            ).astype(np.float32)
+            band_arr = band_arr.astype(np.float32)
+
+        return band_arr
+
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
@@ -546,12 +598,7 @@ class LandsatProduct(OpticalProduct):
         else:
             filename = files.get_filename(path)
 
-        if self._pixel_quality_id in filename or self._radsat_id in filename:
-            band_arr = band_arr.astype(np.uint16)
-        else:
-            # Read band (call superclass generic method)
-            band_arr = band_arr.astype(np.float32)
-
+        if not (self._pixel_quality_id in filename or self._radsat_id in filename):
             # Convert raw bands from DN to correct reflectance
             if not filename.startswith(self.condensed_name):
                 # Original band name
@@ -623,7 +670,7 @@ class LandsatProduct(OpticalProduct):
         qa_arr = self._read_band(
             landsat_qa_path,
             size=(band_arr.rio.width, band_arr.rio.height),
-        ).data.astype(np.uint8)
+        ).data
 
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -689,7 +736,7 @@ class LandsatProduct(OpticalProduct):
         qa_arr = self._read_band(
             landsat_qa_path,
             size=(band_arr.rio.width, band_arr.rio.height),
-        ).data.astype(np.uint8)
+        ).data
 
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -849,9 +896,7 @@ class LandsatProduct(OpticalProduct):
         if bands:
             # Open QA band
             landsat_qa_path = self._get_path(self._pixel_quality_id)
-            qa_arr = self._read_band(
-                landsat_qa_path, resolution=resolution, size=size
-            ).astype(np.uint8)
+            qa_arr = self._read_band(landsat_qa_path, resolution=resolution, size=size)
 
             if self.product_type == LandsatProductType.L1_OLCI:
                 band_dict = self._open_olci_clouds(qa_arr, bands)
