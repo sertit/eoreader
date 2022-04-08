@@ -48,7 +48,6 @@ from eoreader import cache, utils
 from eoreader.bands import BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
-from eoreader.keywords import TO_REFLECTANCE
 from eoreader.products import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
@@ -394,7 +393,6 @@ class S3Product(OpticalProduct):
                 band_paths[band] = self._preprocess(
                     band,
                     resolution=resolution,
-                    to_reflectance=kwargs.get(TO_REFLECTANCE, True),
                     **kwargs,
                 )
 
