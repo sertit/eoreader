@@ -26,7 +26,7 @@ import geopandas as gpd
 import numpy as np
 import rasterio
 import xarray as xr
-from cloudpathlib import CloudPath
+from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from sertit import files, rasters
@@ -285,9 +285,10 @@ class OpticalProduct(Product):
                 band, resolution=resolution, writable=True, **kwargs
             )
             # If raw data, clean it !
-            if band_path.name != clean_band_path.name:
+            if AnyPath(band_path).name != clean_band_path.name:
                 # Manage reflectance
                 if kwargs.get(TO_REFLECTANCE, True):
+                    LOGGER.debug(f"Converting {band.name} to reflectance")
                     band_arr = self._to_reflectance(band_arr, band_path, band)
 
                 # Clean pixels
