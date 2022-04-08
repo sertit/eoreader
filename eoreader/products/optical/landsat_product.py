@@ -623,7 +623,7 @@ class LandsatProduct(OpticalProduct):
         qa_arr = self._read_band(
             landsat_qa_path,
             size=(band_arr.rio.width, band_arr.rio.height),
-        ).data  # To np array
+        ).data.astype(np.uint8)
 
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -689,9 +689,7 @@ class LandsatProduct(OpticalProduct):
         qa_arr = self._read_band(
             landsat_qa_path,
             size=(band_arr.rio.width, band_arr.rio.height),
-        ).data.astype(
-            np.uint8
-        )  # To np array
+        ).data.astype(np.uint8)
 
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -851,7 +849,9 @@ class LandsatProduct(OpticalProduct):
         if bands:
             # Open QA band
             landsat_qa_path = self._get_path(self._pixel_quality_id)
-            qa_arr = self._read_band(landsat_qa_path, resolution=resolution, size=size)
+            qa_arr = self._read_band(
+                landsat_qa_path, resolution=resolution, size=size
+            ).astype(np.uint8)
 
             if self.product_type == LandsatProductType.L1_OLCI:
                 band_dict = self._open_olci_clouds(qa_arr, bands)
