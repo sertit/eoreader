@@ -172,12 +172,12 @@ class LandsatProduct(OpticalProduct):
         if self.is_archived:
             # Because of gap_mask files that have the same name structure and exists only for L7
             if self.product_type == LandsatProductType.L1_ETM:
-                regex = f".*RT{band_id}.*"
+                regex = f".*RT{band_id}\."
             else:
-                regex = f".*{band_id}.*"
+                regex = f".*{band_id}\."
             path = files.get_archived_rio_path(self.path, regex)
         else:
-            path = files.get_file_in_dir(self.path, band_id, extension="TIF")
+            path = files.get_file_in_dir(self.path, f"*{band_id}.TIF", exact_name=True)
 
         return path
 
@@ -689,7 +689,9 @@ class LandsatProduct(OpticalProduct):
         qa_arr = self._read_band(
             landsat_qa_path,
             size=(band_arr.rio.width, band_arr.rio.height),
-        ).data  # To np array
+        ).data.astype(
+            np.uint8
+        )  # To np array
 
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -703,7 +705,7 @@ class LandsatProduct(OpticalProduct):
             pixel_arr = self._read_band(
                 landsat_stat_path, size=(band_arr.rio.width, band_arr.rio.height)
             ).data
-            nodata = np.where(pixel_arr == 1, 1, 0)
+            nodata = np.where(pixel_arr == 1, 1, 0).astype(np.uint8)
 
         return self._set_nodata_mask(band_arr, nodata)
 
