@@ -244,7 +244,7 @@ class VhrProduct(OpticalProduct):
                 band_paths[band] = clean_band
             else:
                 # First look for reprojected bands
-                reproj_path = self._create_utm_band_path(
+                reproj_path = self._get_utm_band_path(
                     band=band.name, resolution=resolution
                 )
                 if not reproj_path.is_file():
@@ -374,14 +374,12 @@ class VhrProduct(OpticalProduct):
                 resolution = self._resolution_from_size(size)
 
             # Reproj path in case
-            reproj_path = self._create_utm_band_path(
-                band=band.name, resolution=resolution
-            )
+            reproj_path = self._get_utm_band_path(band=band.name, resolution=resolution)
 
             # Manage the case if we got a LAT LON product
             if not dst_crs.is_projected:
                 if not reproj_path.is_file():
-                    reproj_path = self._create_utm_band_path(
+                    reproj_path = self._get_utm_band_path(
                         band=band.name, resolution=resolution, writable=True
                     )
                     # Warp band if needed
@@ -544,7 +542,7 @@ class VhrProduct(OpticalProduct):
 
         return path
 
-    def _create_utm_band_path(
+    def _get_utm_band_path(
         self,
         band: str,
         resolution: Union[float, tuple, list] = None,
@@ -672,13 +670,13 @@ class VhrProduct(OpticalProduct):
 
                 if not dst_crs.is_projected:
                     def_band = self.get_default_band()
-                    path = self._create_utm_band_path(
+                    path = self._get_utm_band_path(
                         band=def_band.name, resolution=resolution
                     )
 
                     # Warp band if needed
                     if not path.is_file():
-                        path = self._create_utm_band_path(
+                        path = self._get_utm_band_path(
                             band=def_band.name, resolution=resolution, writable=True
                         )
                         self._warp_band(
