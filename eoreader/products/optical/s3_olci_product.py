@@ -562,4 +562,4 @@ class S3OlciProduct(S3Product):
         sun_az = self._read_nc(self._geom_file, self._saa_name)
         sun_ze = self._read_nc(self._geom_file, self._sza_name)
 
-        return sun_az.mean().data % 360, sun_ze.mean().data
+        return float(sun_az.mean().data) % 360, float(sun_ze.mean().data)

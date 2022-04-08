@@ -335,6 +335,12 @@ def _test_core(
                 assert isinstance(mtd_xml, etree._Element)
                 assert isinstance(nmsp, dict)
 
+                # Mean sun angle type
+                if prod.sensor_type == SensorType.OPTICAL:
+                    az, zen = prod.get_mean_sun_angles()
+                    assert isinstance(az, float)
+                    assert isinstance(zen, float)
+
                 # Clean temp
                 if not debug:
                     LOGGER.info("Cleaning tmp")
