@@ -44,7 +44,7 @@ from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-VIS1_E0 = {
+_VIS1_E0 = {
     obn.PAN: 1828,
     obn.BLUE: 2003,
     obn.GREEN: 1828,
@@ -434,6 +434,8 @@ class Vis1Product(VhrProduct):
         `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC02ODMwNQ==/ZG9jdXRoZXF1ZS1maWxlLTY4MzAy/vision-1-imagery-user-guide-20210217>`_
         (3.2.2) for more information.
 
+        WARNING: in this formula, d**2 = 1 / sqrt(dt) !
+
         Args:
             rad_arr (xr.DataArray): TOA Radiance array
             band (BandNames): Band
@@ -442,11 +444,11 @@ class Vis1Product(VhrProduct):
             xr.DataArray: TOA Reflectance array
         """
         # Compute the coefficient converting TOA radiance in TOA reflectance
-        sq_rel_dist = self._sun_earth_distance_variation() ** 2
+        dt = self._sun_earth_distance_variation()
         _, sun_zen = self.get_mean_sun_angles()
         rad_sun_zen = np.deg2rad(sun_zen)
-        e0 = VIS1_E0[band]
-        toa_refl_coeff = np.pi * sq_rel_dist / (e0 * np.cos(rad_sun_zen))
+        e0 = _VIS1_E0[band]
+        toa_refl_coeff = np.pi / (e0 * dt * np.cos(rad_sun_zen))
 
         # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
         return rad_arr.copy(data=toa_refl_coeff * rad_arr)
