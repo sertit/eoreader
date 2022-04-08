@@ -530,7 +530,7 @@ class DimapProduct(VhrProduct):
         # Get MTD XML file
         root, _ = self.read_mtd()
         rad_proc = DimapRadiometricProcessing.from_value(
-            root.findtext(".//IMAGING_DATE")
+            root.findtext(".//RADIOMETRIC_PROCESSING")
         )
 
         if rad_proc == DimapRadiometricProcessing.REFLECTANCE:

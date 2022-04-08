@@ -16,11 +16,11 @@
 
 ### Bug Fixes
 
-- FIX: Loading every optical band in reflectance (fixed for `Maxar`, `Planet` and `Vision-1` data) ([#30](https://github.com/sertit/eoreader/issues/30))
+- FIX: Loading every optical band in reflectance (fixed for `Sentinel-2 THEIA`, `Maxar`, `Planet` and `Vision-1` data) ([#30](https://github.com/sertit/eoreader/issues/30))
 - FIX: Fixing `ReferenceError: weakly-referenced object no longer exists` when deleting an object
 - FIX: Do not set sea values to nodata when orthorectifying SAR data with SNAP
 - FIX: Handle `Sentinel-2` data with PB < 02.07 as `L2Ap` products
-- FIX: Fixing nodata for `Sentinel-2` data with PB > 04.00
+- FIX: Fixing nodata and offset for `Sentinel-2` data with PB > 04.00
 - FIX: Handle new `ICEYE` metadata name's nomenclature
 - FIX: Fixing harmless regex error when searching for B1 path for `Landsat` products
 - FIX: Fore convert flag data to `np.uint8` for `Landsat` data, sometimes preventing from computing the bitwise operations
