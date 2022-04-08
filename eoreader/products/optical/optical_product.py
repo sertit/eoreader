@@ -279,17 +279,18 @@ class OpticalProduct(Product):
                 band_path, band=band, resolution=resolution, size=size, **kwargs
             )
 
-            if kwargs.get(TO_REFLECTANCE, True):
-                band_arr = self._to_reflectance(band_arr, band_path, band)
+            if not resolution:
+                resolution = band_arr.rio.resolution()[0]
+            clean_band_path = self._get_clean_band_path(
+                band, resolution=resolution, writable=True, **kwargs
+            )
+            # If raw data, clean it !
+            if band_path.name != clean_band_path.name:
+                # Manage reflectance
+                if kwargs.get(TO_REFLECTANCE, True):
+                    band_arr = self._to_reflectance(band_arr, band_path, band)
 
-            # Write on disk in order not to reprocess band everytime
-            # (invalid pix management can be time consuming)
-            if (
-                not str(band_path).endswith(f"{CleanMethod.RAW.value}.tif")
-                and not str(band_path).endswith(f"{CleanMethod.CLEAN.value}.tif")
-                and not str(band_path).endswith(f"{CleanMethod.NODATA.value}.tif")
-            ):
-                # Manage invalid pixels
+                # Clean pixels
                 cleaning_method = CleanMethod.from_value(
                     kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
                 )
@@ -307,17 +308,12 @@ class OpticalProduct(Product):
 
                 # Write on disk
                 try:
-                    if not resolution:
-                        resolution = band_arr.rio.resolution()[0]
-                    clean_band_path = self._get_clean_band_path(
-                        band, resolution=resolution, writable=True, **kwargs
-                    )
                     utils.write(
                         band_arr.rename(f"{to_str(band)[0]} CLEAN"), clean_band_path
                     )
                 except Exception:
                     # Not important if we cannot write it
-                    pass
+                    LOGGER.debug(f"Cannot write {clean_band_path} on disk.")
 
             # Save band array
             band_arrays[band] = band_arr
