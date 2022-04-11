@@ -783,10 +783,10 @@ class MaxarProduct(VhrProduct):
         gain, offset = _MAXAR_GAIN_OFFSET[self.platform][band]
 
         # Compute the coefficient converting DN in TOA radiance
-        coeff = gain * abs_factor / effective_bandwidth + offset
+        coeff = gain * abs_factor / effective_bandwidth
 
         # LOGGER.debug(f"DN to rad coeff = {coeff}")
-        return dn_arr.copy(data=coeff * dn_arr.data)
+        return dn_arr.copy(data=coeff * dn_arr.data + offset)
 
     def _toa_rad_to_toa_refl(
         self, rad_arr: xr.DataArray, band: BandNames
