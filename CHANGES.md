@@ -13,8 +13,9 @@
 - **ENH: Making SAR attribute `snap_filename` public**
 - **ENH: Handling `ICEYE` pure SLC products**
 - **ENH: Allowing the user to choose if they want the GRD or SLC image for `ICEYE` products**
-- **ENH: Add the possibility to directly load the cloud cover for optical data (and add it in the band attributes)**
-- **ENH: Add the possibility to retrieve the quicklook path (if existing) and add the `plot` function allowing the user to plot the quicklook (if existing)**
+- **ENH: Add the possibility to directly load the cloud cover for optical data (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/30))**
+- **ENH: Add the possibility to retrieve the quicklook path (if existing) and add the `plot` function allowing the user to plot the quicklook (if existing) ([#28](https://github.com/sertit/eoreader/issues/30))**
+- **ENH: Add the possibility to retrieve the orbit direction (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/30))**
 
 ### Bug Fixes
 

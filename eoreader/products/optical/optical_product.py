@@ -48,7 +48,7 @@ from eoreader.bands import (
 )
 from eoreader.exceptions import InvalidBandError, InvalidIndexError
 from eoreader.keywords import CLEAN_OPTICAL, TO_REFLECTANCE
-from eoreader.products.product import Product, SensorType
+from eoreader.products.product import OrbitDirection, Product, SensorType
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -769,3 +769,22 @@ class OpticalProduct(Product):
         xarr.attrs["cloud_cover"] = self.get_cloud_cover()
 
         return xarr
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        # All optical satellite are descending by default
+        return OrbitDirection.DESCENDING

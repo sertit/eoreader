@@ -75,6 +75,19 @@ class SensorType(ListEnum):
     """For SAR data"""
 
 
+@unique
+class OrbitDirection(ListEnum):
+    """
+    Orbit Direction
+    """
+
+    ASCENDING = "ASCENDING"
+    """Ascending sensing orbit direction"""
+
+    DESCENDING = "DESCENDING"
+    """Descending sensing orbit direction"""
+
+
 class Product:
     """Super class of EOReader Products"""
 
@@ -1518,7 +1531,7 @@ class Product:
 
         renamed_xarr = xarr.rename(name)
         renamed_xarr.attrs["long_name"] = name
-        renamed_xarr.attrs["sensor"] = self._get_platform().value
+        renamed_xarr.attrs["sensor"] = self.platform.value
         renamed_xarr.attrs["sensor_id"] = self.sat_id
         renamed_xarr.attrs["product_path"] = str(self.path)  # Convert to string
         renamed_xarr.attrs["product_name"] = self.name
@@ -1530,6 +1543,7 @@ class Product:
         )
         renamed_xarr.attrs["acquisition_date"] = self.get_datetime(as_datetime=False)
         renamed_xarr.attrs["condensed_name"] = self.condensed_name
+        renamed_xarr.attrs["orbit_direction"] = self.get_orbit_direction().value
 
         # kwargs attrs
         renamed_xarr = self._update_attrs_sensor_specific(xarr, long_name, **kwargs)
@@ -1759,3 +1773,21 @@ class Product:
                         pass
 
                 plt.title(f"{self.condensed_name}")
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        raise NotImplementedError
