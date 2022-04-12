@@ -25,7 +25,7 @@
 - FIX: Fixing nodata and offset for `Sentinel-2` data with PB > 04.00
 - FIX: Handle new `ICEYE` metadata name's nomenclature
 - FIX: Fixing harmless regex error when searching for B1 path for `Landsat` products
-- FIX: Fore convert flag data to `np.uint8` for `Landsat` data, sometimes preventing from computing the bitwise operations
+- FIX: Fixing platform for `Sentinel-2 Theia`
 
 ### Other
 
