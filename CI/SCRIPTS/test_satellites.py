@@ -335,11 +335,20 @@ def _test_core(
                 assert isinstance(mtd_xml, etree._Element)
                 assert isinstance(nmsp, dict)
 
-                # Mean sun angle type
+                # Mean sun angle type, cloud cover...
                 if prod.sensor_type == SensorType.OPTICAL:
                     az, zen = prod.get_mean_sun_angles()
                     assert isinstance(az, float)
                     assert isinstance(zen, float)
+
+                    cc = prod.get_cloud_cover()
+                    assert isinstance(cc, float)
+
+                qck_path = prod.get_quicklook_path()
+                if qck_path is not None:
+                    assert isinstance(qck_path, str)
+
+                prod.plot()
 
                 # Clean temp
                 if not debug:

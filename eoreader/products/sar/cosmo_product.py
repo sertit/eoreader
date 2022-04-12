@@ -30,7 +30,7 @@ import numpy as np
 import rasterio
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
-from sertit import files, strings, vectors
+from sertit import files, rasters, strings, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
 
@@ -346,3 +346,28 @@ class CosmoProduct(SarProduct):
         mtd_from_path = "DFDN_*.h5.xml"
 
         return self._read_mtd_xml(mtd_from_path)
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        qlk_path = (
+            self._get_band_folder(writable=True) / f"{self.condensed_name}_QLK.tif"
+        )
+        if not qlk_path.is_file():
+            with rasterio.open(str(self._img_path)) as ds:
+                quicklook_paths = [subds for subds in ds.subdatasets if "QLK" in subds]
+
+            if len(quicklook_paths) == 0:
+                LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+            else:
+                rasters.write(rasters.read(quicklook_paths[0]), qlk_path)
+                if len(quicklook_paths) > 1:
+                    LOGGER.info(
+                        "For now, only the quicklook of the first swath is taken into account."
+                    )
+
+        return str(qlk_path)

@@ -1357,3 +1357,74 @@ class S2Product(OpticalProduct):
             return self._l2ap_geocode_data(default_path)
         else:
             return super().default_transform()
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Get the cloud cover
+        try:
+            cc = float(root.findtext(".//CLOUDY_PIXEL_PERCENTAGE"))
+
+        except TypeError:
+            raise InvalidProductError("CLOUDY_PIXEL_PERCENTAGE not found in metadata!")
+
+        return cc
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing (some providers are providing one quicklook, such as creodias)
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=r".*ql\.jpg"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("**/*ql.jpg")))
+        except (StopIteration, FileNotFoundError):
+            try:
+                if self.is_archived:
+                    quicklook_path = files.get_archived_rio_path(
+                        self.path, file_regex=r".*preview\.jpg"
+                    )
+                else:
+                    quicklook_path = str(next(self.path.glob("**/preview.jpg")))
+            except (StopIteration, FileNotFoundError):
+                # Use the TCI
+                try:
+                    if self.product_type == S2ProductType.L2A:
+                        tci_regex = "TCI_60m"
+                    else:
+                        tci_regex = "TCI"
+                    if self.is_archived:
+                        quicklook_path = files.get_archived_rio_path(
+                            self.path, file_regex=rf".*{tci_regex}\.jp2"
+                        )
+                    else:
+                        quicklook_path = str(
+                            next(self.path.glob(f"**/{tci_regex}.jp2"))
+                        )
+                except (StopIteration, FileNotFoundError):
+                    LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path

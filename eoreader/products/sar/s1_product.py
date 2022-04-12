@@ -28,7 +28,7 @@ from typing import Union
 import geopandas as gpd
 import rasterio
 from lxml import etree
-from sertit import vectors
+from sertit import files, vectors
 from sertit.misc import ListEnum
 
 from eoreader import cache
@@ -327,3 +327,23 @@ class S1Product(SarProduct):
         mtd_archived = r"annotation/(?!rfi)(?!cal)(?!noise).*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=r".*preview.quick-look\.png"
+                )
+            else:
+                quicklook_path = next(self.path.glob("preview/quick-look.png"))
+        except (StopIteration, FileNotFoundError):
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path

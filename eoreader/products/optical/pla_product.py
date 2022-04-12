@@ -880,3 +880,31 @@ class PlaProduct(OpticalProduct):
             )
 
         return path
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Get the cloud cover
+        try:
+            cc = float(root.findtext(f".//{nsmap['opt']}cloudCoverPercentage"))
+
+        except TypeError:
+            raise InvalidProductError("opt:cloudCoverPercentage not found in metadata!")
+
+        return cc

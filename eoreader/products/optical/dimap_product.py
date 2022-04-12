@@ -1018,3 +1018,52 @@ class DimapProduct(VhrProduct):
 
         # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
         return rad_arr.copy(data=toa_refl_coeff * rad_arr)
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Get the cloud cover
+        try:
+            cc = float(root.findtext(".//CLOUD_COVERAGE"))
+
+        except TypeError:
+            raise InvalidProductError("CLOUD_COVERAGE not found in metadata!")
+
+        return cc
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=".*PREVIEW.*JPG"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("*PREVIEW*.JPG")))
+        except (StopIteration, FileNotFoundError):
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path

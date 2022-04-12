@@ -173,9 +173,9 @@ class LandsatProduct(OpticalProduct):
         if self.is_archived:
             # Because of gap_mask files that have the same name structure and exists only for L7
             if self.product_type == LandsatProductType.L1_ETM:
-                regex = f".*RT{band_id}\."
+                regex = rf".*RT{band_id}\."
             else:
-                regex = f".*{band_id}\."
+                regex = rf".*{band_id}\."
             path = files.get_archived_rio_path(self.path, regex)
         else:
             path = files.get_file_in_dir(self.path, f"*{band_id}.TIF", exact_name=True)
@@ -1127,3 +1127,58 @@ class LandsatProduct(OpticalProduct):
             band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Get the cloud cover
+        try:
+            cc = float(root.findtext(".//CLOUD_COVER"))
+
+        except TypeError:
+            raise InvalidProductError("CLOUD_COVER not found in metadata!")
+
+        return cc
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=r".*thumb_large\.jpeg"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("*thumb_large.jpeg")))
+        except (StopIteration, FileNotFoundError):
+            # Thumbnail only exists for collection 2, not for one: do not throw a warning in this case
+            if self._collection == LandsatCollection.COL_2:
+                LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+            else:
+                LOGGER.warning(
+                    f"No quicklook available for {self.platform.value} Collection-1 data!"
+                )
+
+        return quicklook_path
