@@ -339,7 +339,7 @@ class Product:
     @classmethod
     def _get_platform(cls) -> Platform:
         class_module = cls.__module__.split(".")[-1]
-        sat_id = class_module.split("_")[0].upper()
+        sat_id = class_module.replace("_product", "").upper()
         return getattr(Platform, sat_id)
 
     @abstractmethod
