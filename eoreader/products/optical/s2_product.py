@@ -47,6 +47,7 @@ from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
+from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -1428,3 +1429,38 @@ class S2Product(OpticalProduct):
                     LOGGER.warning(f"No quicklook found in {self.condensed_name}")
 
         return quicklook_path
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        try:
+            # Get MTD XML file
+            root, _ = self.read_datatake_mtd()
+
+            # Get the cloud cover
+            try:
+                od = OrbitDirection.from_value(
+                    root.findtext(".//SENSING_ORBIT_DIRECTION")
+                )
+
+            except TypeError:
+                raise InvalidProductError(
+                    "SENSING_ORBIT_DIRECTION not found in metadata!"
+                )
+        except InvalidProductError:
+            od = OrbitDirection.DESCENDING
+
+        return od

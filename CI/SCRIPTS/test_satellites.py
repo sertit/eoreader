@@ -22,6 +22,7 @@ from eoreader.env_vars import (
 )
 from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import Product, S2Product, SensorType, SlstrRadAdjust
+from eoreader.products.product import OrbitDirection
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
 
@@ -344,11 +345,16 @@ def _test_core(
                     cc = prod.get_cloud_cover()
                     assert isinstance(cc, float)
 
+                # Quicklook and plot
                 qck_path = prod.get_quicklook_path()
                 if qck_path is not None:
                     assert isinstance(qck_path, str)
 
                 prod.plot()
+
+                # Orbit direction
+                orbit_dir = prod.get_orbit_direction()
+                assert isinstance(orbit_dir, OrbitDirection)
 
                 # Clean temp
                 if not debug:

@@ -28,6 +28,7 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import rasterio
+import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from sertit import files, rasters, strings, vectors
@@ -37,6 +38,7 @@ from shapely.geometry import Polygon, box
 from eoreader import cache
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import SarProduct, SarProductType
+from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -371,3 +373,31 @@ class CosmoProduct(SarProduct):
                     )
 
         return str(qlk_path)
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        # Get MTD XML file
+        h5_xarr = xr.open_dataset(str(self._img_path))
+
+        # Get the cloud cover
+        try:
+            od = OrbitDirection.from_value(getattr(h5_xarr, "Orbit Direction"))
+
+        except TypeError:
+            raise InvalidProductError("Orbit Direction not found in metadata!")
+
+        return od

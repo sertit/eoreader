@@ -742,6 +742,26 @@ class S2TheiaProduct(OpticalProduct):
 
         return super()._create_mask(bit_array, cond, nodata)
 
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing (some providers are providing one quicklook, such as creodias)
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=r".*QKL_ALL\.jpg"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("**/*QKL_ALL.jpg")))
+        except (StopIteration, FileNotFoundError):
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path
+
     @cache
     def get_cloud_cover(self) -> float:
         """
