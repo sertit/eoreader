@@ -390,3 +390,18 @@ class RcmProduct(SarProduct):
             mode_name = self.sensor_mode.name
 
         return f"{self.get_datetime()}_{self.platform.name}_{mode_name}_{self.product_type.value}"
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            quicklook_path = str(next(self.path.glob("preview/productOverview.png")))
+        except StopIteration:
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path

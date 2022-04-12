@@ -13,6 +13,7 @@ tempenv
 twine
 
 # Libs for all platforms
+matplotlib
 scipy
 methodtools
 tqdm

@@ -27,8 +27,10 @@ import platform
 import tempfile
 from abc import abstractmethod
 from enum import unique
+from io import BytesIO
 from pathlib import Path
 from typing import Callable, Union
+from zipfile import ZipFile
 
 import geopandas as gpd
 import numpy as np
@@ -52,7 +54,7 @@ from eoreader.bands import index
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW, TO_REFLECTANCE
+from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Platform, Reader
 from eoreader.utils import EOREADER_NAME
 
@@ -1487,6 +1489,19 @@ class Product:
 
         return stack
 
+    @abstractmethod
+    def _update_attrs_sensor_specific(
+        self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
+    ) -> XDS_TYPE:
+        """
+        Update attributes of the given array (sensor specific)
+
+        Args:
+            xarr (XDS_TYPE): Array whose attributes need an update
+            long_name (str): Array name (as a str or a list)
+        """
+        raise NotImplementedError
+
     def _update_attrs(
         self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
     ) -> XDS_TYPE:
@@ -1517,11 +1532,7 @@ class Product:
         renamed_xarr.attrs["condensed_name"] = self.condensed_name
 
         # kwargs attrs
-        if self.sensor_type == SensorType.OPTICAL:
-            if kwargs.get(TO_REFLECTANCE, True):
-                renamed_xarr.attrs["radiometry"] = "reflectance"
-            else:
-                renamed_xarr.attrs["radiometry"] = "as is"
+        renamed_xarr = self._update_attrs_sensor_specific(xarr, long_name, **kwargs)
 
         return renamed_xarr
 
@@ -1706,3 +1717,45 @@ class Product:
 
     def __repr__(self):
         return "\n".join(self.to_repr())
+
+    def get_quicklook_path(self) -> Union[None, str]:
+        """
+        Get quicklook path if existing (no such thing for Sentinel-2)
+
+        Returns:
+            str: Quicklook path
+        """
+        LOGGER.warning(f"No quicklook available for {self.platform.value} data!")
+        return None
+
+    def plot(self) -> None:
+        """
+        Plot the quicklook if existing
+        """
+
+        try:
+            import matplotlib.pyplot as plt
+            from PIL import Image
+        except ModuleNotFoundError:
+            LOGGER.warning("You need to install matplotlib to plot the product.")
+        else:
+            quicklook_path = self.get_quicklook_path()
+
+            if quicklook_path is not None:
+                if quicklook_path[:4].lower() in [".png", ".jpg"]:
+                    if quicklook_path.startswith("zip::"):
+                        str_path = quicklook_path.replace("zip::", "")
+                        zip_path, zip_name = str_path.split("!")
+                        with ZipFile(zip_path, "r") as zip_ds:
+                            with BytesIO(zip_ds.read(zip_name)) as bf:
+                                plt.imshow(Image.open(bf), cmap="GnBu")
+                else:
+                    qck = rasters.read(quicklook_path)
+                    if qck.rio.count == 3:
+                        qck.plot.imshow(cmap="GnBu", robust=True)
+                    elif qck.rio.count == 1:
+                        qck.plot(cmap="GnBu", robust=True)
+                    else:
+                        pass
+
+                plt.title(f"{self.condensed_name}")

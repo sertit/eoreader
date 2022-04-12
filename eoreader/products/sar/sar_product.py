@@ -937,3 +937,16 @@ class SarProduct(Product):
             str: Condensed name
         """
         return f"{self.get_datetime()}_{self.platform.name}_{self.sensor_mode.name}_{self.product_type.value}"
+
+    def _update_attrs_sensor_specific(
+        self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
+    ) -> XDS_TYPE:
+        """
+        Update attributes of the given array (sensor specific)
+
+        Args:
+            xarr (XDS_TYPE): Array whose attributes need an update
+            long_name (str): Array name (as a str or a list)
+        """
+
+        return xarr

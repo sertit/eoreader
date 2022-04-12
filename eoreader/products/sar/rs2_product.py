@@ -28,7 +28,7 @@ from typing import Union
 import geopandas as gpd
 import rasterio
 from lxml import etree
-from sertit import vectors
+from sertit import files, vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 
@@ -434,3 +434,23 @@ class Rs2Product(SarProduct):
         mtd_archived = r"product\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=".*BrowseImage\.tif"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("BrowseImage.tif")))
+        except (StopIteration, FileNotFoundError):
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path

@@ -446,3 +446,18 @@ class TsxProduct(SarProduct):
             mtd_from_path = "SAR*xml"
 
             return self._read_mtd_xml(mtd_from_path)
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            quicklook_path = str(next(self.path.glob("PREVIEW/BROWSE.tif")))
+        except StopIteration:
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path

@@ -416,3 +416,23 @@ class SaocomProduct(SarProduct):
         mtd_from_path = "xemt"
 
         return self._read_mtd_xml(mtd_from_path)
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            try:
+                quicklook_path = files.get_archived_rio_path(
+                    next(self.path.glob(f"{self.name}.zip")), file_regex="Images/.*png"
+                )
+            except FileNotFoundError:
+                quicklook_path = str(next(self.path.glob("Images/*.png")))
+        except StopIteration:
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path

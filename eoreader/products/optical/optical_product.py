@@ -732,3 +732,40 @@ class OpticalProduct(Product):
 
         # Compute Sun-Earth distance variation
         return 1 / (1 - 0.01673 * np.cos(0.0172 * (julian_date - 2))) ** 2
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+        LOGGER.warning(f"No cloud cover available for {self.platform.value} data !")
+        return 0.0
+
+    def _update_attrs_sensor_specific(
+        self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
+    ) -> XDS_TYPE:
+        """
+        Update attributes of the given array (sensor specific)
+
+        Args:
+            xarr (XDS_TYPE): Array whose attributes need an update
+            long_name (str): Array name (as a str or a list)
+        """
+        if kwargs.get(TO_REFLECTANCE, True):
+            xarr.attrs["radiometry"] = "reflectance"
+        else:
+            xarr.attrs["radiometry"] = "as is"
+        xarr.attrs["cloud_cover"] = self.get_cloud_cover()
+
+        return xarr
