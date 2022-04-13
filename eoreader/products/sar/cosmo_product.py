@@ -22,6 +22,7 @@ import logging
 import warnings
 from datetime import datetime
 from enum import unique
+from io import BytesIO
 from pathlib import Path
 from typing import Union
 
@@ -391,7 +392,11 @@ class CosmoProduct(SarProduct):
             OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
         """
         # Get MTD XML file
-        h5_xarr = xr.open_dataset(str(self._img_path), phony_dims="access")
+        if isinstance(self.path, CloudPath):
+            with BytesIO(self._img_path.read_bytes()) as bf:
+                h5_xarr = xr.open_dataset(bf, phony_dims="access")
+        else:
+            h5_xarr = xr.open_dataset(str(self._img_path))
 
         # Get the orbit direction
         try:
