@@ -27,12 +27,7 @@ from .product import Product, SensorType
 
 __all__ += [
     "CustomProduct",
-    "NAME",
-    "ACQ_DATETIME",
-    "BAND_MAP",
-    "PLATFORM",
-    "DEF_RES",
-    "PROD_TYPE",
+    "CustomFields",
 ]
 from .custom_product import CustomProduct, CustomFields
 
