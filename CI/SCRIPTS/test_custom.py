@@ -28,10 +28,10 @@ def test_custom():
         opt_stack,
         custom=True,
         name="20200310T030415_WV02_Ortho",
-        acquisition_datetime="20200310T030415",
+        datetime="20200310T030415",
         sensor_type=SensorType.OPTICAL,
         platform="WV02",
-        default_resolution=2.0,
+        resolution=2.0,
         product_type="Ortho",
         band_map={BLUE: 1, GREEN: 2, RED: 3, NIR: 4, SWIR_1: 5},
     )
@@ -89,7 +89,7 @@ def test_custom():
     prod_some = READER.open(
         opt_stack,
         custom=True,
-        acquisition_datetime="20200310T030415",
+        datetime="20200310T030415",
         sensor_type="Optical",
         product_type="wonderful_type",
         sun_azimuth=10.0,
@@ -136,9 +136,9 @@ def test_custom():
         custom=True,
         sensor_type=SensorType.SAR,
         name="20210827T162210_ICEYE_SC_GRD",
-        acquisition_datetime="20210827T162210",
+        datetime="20210827T162210",
         platform="ICEYE",
-        default_resolution=6.0,
+        resolution=6.0,
         product_type="GRD",
         band_map={VV: 1, VV_DSPK: 2},
     )
@@ -163,7 +163,7 @@ def test_custom():
         custom=True,
         sensor_type=SensorType.SAR,
         band_map={HH: 1, RH: 2},
-        default_resolution=6.0,
+        resolution=6.0,
     )
     LOGGER.info(prod_wtf)
     extent_wtf = prod_wtf.extent()
@@ -184,9 +184,9 @@ def test_custom():
         custom=True,
         sensor_type=SensorType.OPTICAL,
         name="SPOT6_WGS84",
-        acquisition_datetime="20181218T0938",
+        datetime="20181218T090308",
         platform="SPOT6",
-        default_resolution=1.5 * 15,
+        resolution=1.5 * 15,
         product_type="ORT",
         band_map={RED: 1, GREEN: 2, BLUE: 3, NIR: 4},
     )
@@ -206,14 +206,16 @@ def test_custom():
     root, nsp = prod_wgs84.read_mtd()
     assert nsp == {}
     assert root.findtext("name") == "SPOT6_WGS84"
-    assert root.findtext("datetime") == "2018-12-18 09:03:08"
-    assert root.findtext("sensor_type") == "SensorType.OPTICAL"
-    assert root.findtext("platform") == "Platform.SPOT6"
+    assert root.findtext("datetime") == "2018-12-18T09:03:08"
+    assert root.findtext("sensor_type") == "Optical"
+    assert root.findtext("platform") == "Spot-6"
     assert root.findtext("resolution") == str(1.5 * 15)
     assert root.findtext("product_type") == "ORT"
-    assert root.findtext("band_names") == "{'BLUE': 3, 'GREEN': 2, 'RED': 1, 'NIR': 4}"
-    assert root.findtext("sun_az") == "None"
-    assert root.findtext("sun_zen") == "None"
+    assert root.findtext("band_map") == "{'BLUE': 3, 'GREEN': 2, 'RED': 1, 'NIR': 4}"
+    assert root.findtext("sun_azimuth") == "None"
+    assert root.findtext("sun_zenith") == "None"
+    assert root.findtext("orbit_direction") == "None"
+    assert root.findtext("cloud_cover") == "None"
 
     # Band paths
     assert prod_wgs84.get_existing_bands() == [BLUE, GREEN, RED, NIR]

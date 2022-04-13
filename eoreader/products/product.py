@@ -1543,7 +1543,8 @@ class Product:
         )
         renamed_xarr.attrs["acquisition_date"] = self.get_datetime(as_datetime=False)
         renamed_xarr.attrs["condensed_name"] = self.condensed_name
-        renamed_xarr.attrs["orbit_direction"] = self.get_orbit_direction().value
+        od = self.get_orbit_direction()
+        renamed_xarr.attrs["orbit_direction"] = od.value if od is not None else str(od)
 
         # kwargs attrs
         renamed_xarr = self._update_attrs_sensor_specific(xarr, long_name, **kwargs)

@@ -34,15 +34,7 @@ __all__ += [
     "DEF_RES",
     "PROD_TYPE",
 ]
-from .custom_product import (
-    CustomProduct,
-    NAME,
-    ACQ_DATETIME,
-    BAND_MAP,
-    PLATFORM,
-    DEF_RES,
-    PROD_TYPE,
-)
+from .custom_product import CustomProduct, CustomFields
 
 # -- Optical --
 __all__ += [
