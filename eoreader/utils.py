@@ -148,7 +148,7 @@ def read(
         indexes (Union[int, list]): Indexes to load. Load the whole array if None.
         **kwargs: Optional keyword arguments to pass into rioxarray.open_rasterio().
     Returns:
-        Union[XDS_TYPE]: Masked xarray corresponding to the raster data and its meta data
+        xr.DataArray: Masked xarray corresponding to the raster data and its meta data
 
     """
     if use_dask():

@@ -35,7 +35,6 @@ from lxml import etree
 from rasterio.enums import Resampling
 from sertit import files, rasters
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
@@ -422,7 +421,7 @@ class PlaProduct(OpticalProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -436,7 +435,7 @@ class PlaProduct(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
 
         """
         # Read band
@@ -498,8 +497,8 @@ class PlaProduct(OpticalProduct):
         return band_arr * refl_coef
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See
@@ -507,12 +506,12 @@ class PlaProduct(OpticalProduct):
         (unusable data mask) for more information.
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Nodata
         no_data_mask = self._load_nodata(
@@ -536,17 +535,19 @@ class PlaProduct(OpticalProduct):
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Nodata
         no_data_mask = self._load_nodata(

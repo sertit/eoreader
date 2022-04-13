@@ -35,7 +35,7 @@ from rasterio import features
 from rasterio.enums import Resampling
 from sertit import rasters, rasters_rio
 from sertit.misc import ListEnum
-from sertit.rasters import MAX_CORES, XDS_TYPE
+from sertit.rasters import MAX_CORES
 from sertit.vectors import WGS84
 
 from eoreader import cache, utils
@@ -767,20 +767,20 @@ class S3SlstrProduct(S3Product):
         return e0
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         ISP_absent pixel_absent not_decompressed no_signal saturation invalid_radiance no_parameters unfilled_pixel"
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Open quality flags
         # NOT OPTIMIZED, MAYBE CHECK INVALID PIXELS ON NOT GEOCODED DATA

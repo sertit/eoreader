@@ -30,12 +30,12 @@ import affine
 import geopandas as gpd
 import numpy as np
 import rasterio
+import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from rasterio import rpc, transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
-from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 from shapely.geometry import box
 
@@ -350,7 +350,7 @@ class VhrProduct(OpticalProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -364,7 +364,7 @@ class VhrProduct(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
         """
         with rasterio.open(str(path)) as dst:
             dst_crs = dst.crs
@@ -463,8 +463,8 @@ class VhrProduct(OpticalProduct):
         return band_arrays
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: BandNames, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See
@@ -472,26 +472,28 @@ class VhrProduct(OpticalProduct):
         (unusable data mask) for more information.
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         return self._manage_nodata(band_arr, band, **kwargs)
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: BandNames, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # If nodata not set, set it here
         if not band_arr.rio.encoded_nodata:

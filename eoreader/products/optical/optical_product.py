@@ -31,7 +31,6 @@ from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from sertit import files, rasters
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, utils
 from eoreader.bands import BandNames
@@ -329,7 +328,7 @@ class OpticalProduct(Product):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -343,53 +342,55 @@ class OpticalProduct(Product):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
         """
         raise NotImplementedError
 
     @abstractmethod
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         raise NotImplementedError
 
     @abstractmethod
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         raise NotImplementedError
 
     @staticmethod
-    def _set_nodata_mask(band_arr: XDS_TYPE, mask: np.ndarray) -> XDS_TYPE:
+    def _set_nodata_mask(band_arr: xr.DataArray, mask: np.ndarray) -> xr.DataArray:
         """
         Create the correct xarray with well positioned nodata
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             mask (np.ndarray): Mask array
 
         Returns:
-            (XDS_TYPE): Corrected band array
+            (xr.DataArray): Corrected band array
         """
         # Binary mask
         if mask.dtype != np.uint8:
@@ -627,18 +628,18 @@ class OpticalProduct(Product):
         return band_dict
 
     def _create_mask(
-        self, xds: XDS_TYPE, cond: np.ndarray, nodata: np.ndarray
-    ) -> XDS_TYPE:
+        self, xds: xr.DataArray, cond: np.ndarray, nodata: np.ndarray
+    ) -> xr.DataArray:
         """
         Create a mask from a conditional array and a nodata mask.
 
         Args:
-            xds (XDS_TYPE): xarray to retrieve attributes
+            xds (xr.DataArray): xarray to retrieve attributes
             cond (np.ndarray): Conditional array
             nodata (np.ndarray): Nodata mask
 
         Returns:
-            XDS_TYPE: Mask as xarray
+            xr.DataArray: Mask as xarray
         """
         mask = xds.copy(data=np.where(cond, self._mask_true, self._mask_false))
         mask = mask.where(nodata == 0)
@@ -753,14 +754,16 @@ class OpticalProduct(Product):
         return 0.0
 
     def _update_attrs_sensor_specific(
-        self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
-    ) -> XDS_TYPE:
+        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+    ) -> xr.DataArray:
         """
         Update attributes of the given array (sensor specific)
 
         Args:
-            xarr (XDS_TYPE): Array whose attributes need an update
+            xarr (xr.DataArray): Array whose attributes need an update
             long_name (str): Array name (as a str or a list)
+        Returns:
+            xr.DataArray: Updated array
         """
         if kwargs.get(TO_REFLECTANCE, True):
             xarr.attrs["radiometry"] = "reflectance"

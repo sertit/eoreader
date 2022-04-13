@@ -28,12 +28,12 @@ import geopandas as gpd
 import numpy as np
 import rasterio
 import rioxarray
+import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs
 from rasterio.enums import Resampling
 from sertit import files, misc, rasters, snap, strings, vectors
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, utils
 from eoreader.bands import BandNames
@@ -547,7 +547,7 @@ class SarProduct(Product):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -561,7 +561,7 @@ class SarProduct(Product):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
 
         """
         return utils.read(
@@ -939,14 +939,16 @@ class SarProduct(Product):
         return f"{self.get_datetime()}_{self.platform.name}_{self.sensor_mode.name}_{self.product_type.value}"
 
     def _update_attrs_sensor_specific(
-        self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
-    ) -> XDS_TYPE:
+        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+    ) -> xr.DataArray:
         """
         Update attributes of the given array (sensor specific)
 
         Args:
-            xarr (XDS_TYPE): Array whose attributes need an update
+            xarr (xr.DataArray): Array whose attributes need an update
             long_name (str): Array name (as a str or a list)
+        Returns:
+            xr.DataArray: Updated array
         """
 
         return xarr
