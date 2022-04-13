@@ -367,7 +367,12 @@ class CosmoProduct(SarProduct):
             if len(quicklook_paths) == 0:
                 LOGGER.warning(f"No quicklook found in {self.condensed_name}")
             else:
-                rasters.write(rasters.read(quicklook_paths[0]), qlk_path)
+                rasters.write(
+                    rasters.read(quicklook_paths[0]),
+                    qlk_path,
+                    dtype=np.uint8,
+                    nodata=255,
+                )
                 if len(quicklook_paths) > 1:
                     LOGGER.info(
                         "For now, only the quicklook of the first swath is taken into account."
@@ -393,16 +398,18 @@ class CosmoProduct(SarProduct):
         """
         # Get MTD XML file
         if isinstance(self.path, CloudPath):
-            with BytesIO(self._img_path.read_bytes()) as bf:
-                h5_xarr = xr.open_dataset(bf, phony_dims="access")
+            h5_xarr_path = BytesIO(self._img_path.read_bytes())
         else:
-            h5_xarr = xr.open_dataset(str(self._img_path))
+            h5_xarr_path = str(self._img_path)
 
-        # Get the orbit direction
-        try:
-            od = OrbitDirection.from_value(getattr(h5_xarr, "Orbit Direction"))
+        with xr.open_dataset(
+            h5_xarr_path, phony_dims="access", engine="h5netcdf"
+        ) as h5_xarr:
+            # Get the orbit direction
+            try:
+                od = OrbitDirection.from_value(getattr(h5_xarr, "Orbit Direction"))
 
-        except TypeError:
-            raise InvalidProductError("Orbit Direction not found in metadata!")
+            except TypeError:
+                raise InvalidProductError("Orbit Direction not found in metadata!")
 
         return od

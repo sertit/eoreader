@@ -1747,7 +1747,6 @@ class Product:
         """
         Plot the quicklook if existing
         """
-
         try:
             import matplotlib.pyplot as plt
             from PIL import Image
@@ -1758,18 +1757,21 @@ class Product:
 
             if quicklook_path is not None:
                 if quicklook_path[:4].lower() in [".png", ".jpg"]:
+                    plt.figure(figsize=(6, 6))
                     if quicklook_path.startswith("zip::"):
                         str_path = quicklook_path.replace("zip::", "")
                         zip_path, zip_name = str_path.split("!")
                         with ZipFile(zip_path, "r") as zip_ds:
                             with BytesIO(zip_ds.read(zip_name)) as bf:
-                                plt.imshow(Image.open(bf), cmap="GnBu")
+                                plt.imshow(Image.open(bf))
                 else:
                     qck = rasters.read(quicklook_path)
                     if qck.rio.count == 3:
-                        qck.plot.imshow(cmap="GnBu", robust=True)
+                        plt.figure(figsize=(6, 6))
+                        qck.plot.imshow(robust=True)
                     elif qck.rio.count == 1:
-                        qck.plot(cmap="GnBu", robust=True)
+                        plt.figure(figsize=(7, 6))
+                        qck.plot(cmap="GnBu_r", robust=True)
                     else:
                         pass
 
