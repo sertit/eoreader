@@ -31,6 +31,7 @@ import affine
 import geopandas as gpd
 import numpy as np
 import rasterio
+import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
@@ -45,9 +46,32 @@ from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import VhrProduct
+from eoreader.reader import Platform
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
+
+_DIMAP_BAND_MTD = {
+    obn.PAN: "P",
+    obn.BLUE: "B0",
+    obn.GREEN: "B1",
+    obn.RED: "B2",
+    obn.NIR: "B3",
+    obn.NARROW_NIR: "B3",
+}
+
+_PNEO_BAND_MTD = {
+    obn.PAN: "P",
+    obn.BLUE: "B",
+    obn.GREEN: "G",
+    obn.RED: "R",
+    obn.NIR: "NIR",
+    obn.NARROW_NIR: "NIR",
+    obn.VRE_1: "RE",
+    obn.VRE_2: "RE",
+    obn.VRE_3: "RE",
+    obn.CA: "DB",  # deep blue
+}
 
 
 @unique
@@ -89,6 +113,41 @@ class DimapProductType(ListEnum):
     The Ortho product is a georeferenced image in Earth geometry,
     corrected from acquisition and terrain off-nadir effects.
     The Ortho is produced as a standard, with fully automatic processing.
+    """
+
+
+@unique
+class DimapRadiometricProcessing(ListEnum):
+    """
+    DIMAP V2 radiometric processing.
+
+    See `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+    (Paragraph 2.4) for more information.
+    """
+
+    BASIC = "BASIC"
+    """
+    In the BASIC radiometric option, the imagery values are digital numbers (DN)
+    quantifying the energy recorded by the detector corrected relative
+    to the other detectors to avoid non-uniformity noise.
+    """
+
+    REFLECTANCE = "REFLECTANCE"
+    """
+    In the REFLECTANCE radiometric option, the imagery values are corrected
+    from radiometric sensor calibration and systematic effects of the atmosphere
+    (molecular or Rayleigh diffusion and given in reflectance physical unit).
+    """
+
+    LINEAR_STRETCH = "LINEAR_STRETCH"
+    """
+    Relates to the BASIC option at 8-bit depth.
+    """
+
+    SEAMLESS = "SEAMLESS"
+    """
+    Relates to the mosaic option.
+    In this case, the spectral properties cannot be retrieved since the initial images have undergone several radiometric adjustments for aesthetic rendering.
     """
 
 
@@ -245,6 +304,7 @@ class DimapProduct(VhrProduct):
                     obn.GREEN: 2,
                     obn.RED: 1,
                     obn.NIR: 4,
+                    obn.NARROW_NIR: 4,
                     obn.VRE_1: 5,
                     obn.VRE_2: 5,
                     obn.VRE_3: 5,
@@ -301,7 +361,7 @@ class DimapProduct(VhrProduct):
         root, _ = self.read_mtd()
 
         # Open the Bounding_Polygon
-        vertices = [v for v in root.iterfind(".//Vertex")]
+        vertices = list(root.iterfind(".//Vertex"))
 
         # Get the mean lon lat
         lon = float(np.mean([float(v.findtext("LON")) for v in vertices]))
@@ -471,6 +531,64 @@ class DimapProduct(VhrProduct):
             pass
 
         return self._set_nodata_mask(band_arr, nodata)
+
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        See
+        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTY0Mw==/ZG9jdXRoZXF1ZS1maWxlLTU1NjQy/airbus-pleiades-imagery-user-guide-15042021.pdf>`_
+        (Appendix D)
+
+        Args:
+            band_arr (xr.DataArray):
+            path (Union[Path, CloudPath]):
+            band (BandNames):
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+        rad_proc = DimapRadiometricProcessing.from_value(
+            root.findtext(".//RADIOMETRIC_PROCESSING")
+        )
+
+        if rad_proc == DimapRadiometricProcessing.REFLECTANCE:
+            # Compute the correct radiometry of the band
+            original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
+            if original_dtype == "uint16":
+                band_arr /= 10000.0
+        elif rad_proc in [
+            DimapRadiometricProcessing.BASIC,
+            DimapRadiometricProcessing.LINEAR_STRETCH,
+        ]:
+            # Convert DN into radiance
+            band_arr = self._dn_to_toa_rad(band_arr, band)
+
+            # Convert radiance into reflectance
+            band_arr = self._toa_rad_to_toa_refl(band_arr, band)
+
+        else:
+            LOGGER.warning(
+                "The spectral properties of a SEAMLESS radiometric processed image "
+                "cannot be retrieved since the initial images have undergone "
+                "several radiometric adjustments for aesthetic rendering."
+                "Returned as is."
+            )
+
+        # To float32
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
+
+        return band_arr
 
     def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
         """
@@ -805,3 +923,147 @@ class DimapProduct(VhrProduct):
 
         """
         return self._get_path("DIM_", "XML")
+
+    def _dn_to_toa_rad(self, dn_arr: xr.DataArray, band: BandNames) -> xr.DataArray:
+        """
+        Compute DN to TOA radiance
+
+        See
+        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTY0Mw==/ZG9jdXRoZXF1ZS1maWxlLTU1NjQy/airbus-pleiades-imagery-user-guide-15042021.pdf>`_
+        for more information. (Appendix D)
+
+        Args:
+            rad_arr (xr.DataArray): DN array
+            band (BandNames): Band
+
+        Returns:
+            xr.DataArray: TOA Radiance array
+        """
+        if self.platform == Platform.PNEO:
+            band_mtd_str = _PNEO_BAND_MTD[band]
+        else:
+            band_mtd_str = _DIMAP_BAND_MTD[band]
+
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Convert DN to TOA radiance
+        # <MEASURE_DESC>Raw radiometric counts (DN) to TOA Radiance (L). Formulae L=DN/GAIN+BIAS</MEASURE_DESC>
+        try:
+            rad_gain = None
+            rad_bias = None
+            for br in root.iterfind(".//Band_Radiance"):
+                if br.findtext("BAND_ID") == band_mtd_str:
+                    rad_gain = float(br.findtext("GAIN"))
+                    rad_bias = float(br.findtext("BIAS"))
+                    break
+
+            if rad_gain is None or rad_bias is None:
+                raise TypeError
+
+        except TypeError:
+            raise InvalidProductError(
+                "GAIN and BIAS from Band_Radiance not found in metadata!"
+            )
+        return dn_arr / rad_gain + rad_bias
+
+    def _toa_rad_to_toa_refl(
+        self, rad_arr: xr.DataArray, band: BandNames
+    ) -> xr.DataArray:
+        """
+        Compute TOA reflectance from TOA radiance
+
+        See
+        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTY0Mw==/ZG9jdXRoZXF1ZS1maWxlLTU1NjQy/airbus-pleiades-imagery-user-guide-15042021.pdf>`_
+        for more information. (Appendix D)
+
+        Args:
+            rad_arr (xr.DataArray): TOA Radiance array
+            band (BandNames): Band
+
+        Returns:
+            xr.DataArray: TOA Reflectance array
+        """
+        if self.platform == Platform.PNEO:
+            band_mtd_str = _PNEO_BAND_MTD[band]
+        else:
+            band_mtd_str = _DIMAP_BAND_MTD[band]
+
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Get the solar irradiance value of raw radiometric Band (in watt/m2/micron)
+        try:
+            e0 = None
+            for br in root.iterfind(".//Band_Solar_Irradiance"):
+                if br.findtext("BAND_ID") == band_mtd_str:
+                    e0 = float(br.findtext("VALUE"))
+                    break
+
+            if e0 is None:
+                raise TypeError
+
+        except TypeError:
+            raise InvalidProductError(
+                "VALUE from Band_Solar_Irradiance not found in metadata!"
+            )
+
+        # Compute the coefficient converting TOA radiance in TOA reflectance
+        dt = self._sun_earth_distance_variation()
+        _, sun_zen = self.get_mean_sun_angles()
+        rad_sun_zen = np.deg2rad(sun_zen)
+
+        # WARNING: d = 1 / sqrt(d(t))
+        toa_refl_coeff = np.pi / (e0 * dt * np.cos(rad_sun_zen))
+
+        # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
+        return rad_arr.copy(data=toa_refl_coeff * rad_arr)
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Get the cloud cover
+        try:
+            cc = float(root.findtext(".//CLOUD_COVERAGE"))
+
+        except TypeError:
+            raise InvalidProductError("CLOUD_COVERAGE not found in metadata!")
+
+        return cc
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=".*PREVIEW.*JPG"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("*PREVIEW*.JPG")))
+        except (StopIteration, FileNotFoundError):
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path

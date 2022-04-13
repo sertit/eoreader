@@ -27,8 +27,10 @@ import platform
 import tempfile
 from abc import abstractmethod
 from enum import unique
+from io import BytesIO
 from pathlib import Path
 from typing import Callable, Union
+from zipfile import ZipFile
 
 import geopandas as gpd
 import numpy as np
@@ -71,6 +73,19 @@ class SensorType(ListEnum):
 
     SAR = "SAR"
     """For SAR data"""
+
+
+@unique
+class OrbitDirection(ListEnum):
+    """
+    Orbit Direction
+    """
+
+    ASCENDING = "ASCENDING"
+    """Ascending sensing orbit direction"""
+
+    DESCENDING = "DESCENDING"
+    """Descending sensing orbit direction"""
 
 
 class Product:
@@ -337,7 +352,7 @@ class Product:
     @classmethod
     def _get_platform(cls) -> Platform:
         class_module = cls.__module__.split(".")[-1]
-        sat_id = class_module.split("_")[0].upper()
+        sat_id = class_module.replace("_product", "").upper()
         return getattr(Platform, sat_id)
 
     @abstractmethod
@@ -867,7 +882,7 @@ class Product:
 
         # Rename all bands and add attributes
         for key, val in band_dict.items():
-            band_dict[key] = self._update_attrs(val, to_str(key)[0])
+            band_dict[key] = self._update_attrs(val, to_str(key)[0], **kwargs)
 
         return band_dict
 
@@ -1472,7 +1487,7 @@ class Product:
                 )  # NaN values are already set
 
         # Update stack's attributes
-        stack = self._update_attrs(stack, to_str(bands))
+        stack = self._update_attrs(stack, to_str(bands), **kwargs)
 
         # Write on disk
         if stack_path:
@@ -1487,7 +1502,22 @@ class Product:
 
         return stack
 
-    def _update_attrs(self, xarr: XDS_TYPE, long_name: Union[str, list]) -> XDS_TYPE:
+    @abstractmethod
+    def _update_attrs_sensor_specific(
+        self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
+    ) -> XDS_TYPE:
+        """
+        Update attributes of the given array (sensor specific)
+
+        Args:
+            xarr (XDS_TYPE): Array whose attributes need an update
+            long_name (str): Array name (as a str or a list)
+        """
+        raise NotImplementedError
+
+    def _update_attrs(
+        self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
+    ) -> XDS_TYPE:
         """
         Update attributes of the given array
         Args:
@@ -1501,7 +1531,7 @@ class Product:
 
         renamed_xarr = xarr.rename(name)
         renamed_xarr.attrs["long_name"] = name
-        renamed_xarr.attrs["sensor"] = self._get_platform().value
+        renamed_xarr.attrs["sensor"] = self.platform.value
         renamed_xarr.attrs["sensor_id"] = self.sat_id
         renamed_xarr.attrs["product_path"] = str(self.path)  # Convert to string
         renamed_xarr.attrs["product_name"] = self.name
@@ -1513,6 +1543,11 @@ class Product:
         )
         renamed_xarr.attrs["acquisition_date"] = self.get_datetime(as_datetime=False)
         renamed_xarr.attrs["condensed_name"] = self.condensed_name
+        od = self.get_orbit_direction()
+        renamed_xarr.attrs["orbit_direction"] = od.value if od is not None else str(od)
+
+        # kwargs attrs
+        renamed_xarr = self._update_attrs_sensor_specific(xarr, long_name, **kwargs)
 
         return renamed_xarr
 
@@ -1697,3 +1732,65 @@ class Product:
 
     def __repr__(self):
         return "\n".join(self.to_repr())
+
+    def get_quicklook_path(self) -> Union[None, str]:
+        """
+        Get quicklook path if existing (no such thing for Sentinel-2)
+
+        Returns:
+            str: Quicklook path
+        """
+        LOGGER.warning(f"No quicklook available for {self.platform.value} data!")
+        return None
+
+    def plot(self) -> None:
+        """
+        Plot the quicklook if existing
+        """
+        try:
+            import matplotlib.pyplot as plt
+            from PIL import Image
+        except ModuleNotFoundError:
+            LOGGER.warning("You need to install matplotlib to plot the product.")
+        else:
+            quicklook_path = self.get_quicklook_path()
+
+            if quicklook_path is not None:
+                if quicklook_path[:4].lower() in [".png", ".jpg"]:
+                    plt.figure(figsize=(6, 6))
+                    if quicklook_path.startswith("zip::"):
+                        str_path = quicklook_path.replace("zip::", "")
+                        zip_path, zip_name = str_path.split("!")
+                        with ZipFile(zip_path, "r") as zip_ds:
+                            with BytesIO(zip_ds.read(zip_name)) as bf:
+                                plt.imshow(Image.open(bf))
+                else:
+                    qck = rasters.read(quicklook_path)
+                    if qck.rio.count == 3:
+                        plt.figure(figsize=(6, 6))
+                        qck.plot.imshow(robust=True)
+                    elif qck.rio.count == 1:
+                        plt.figure(figsize=(7, 6))
+                        qck.plot(cmap="GnBu_r", robust=True)
+                    else:
+                        pass
+
+                plt.title(f"{self.condensed_name}")
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        raise NotImplementedError

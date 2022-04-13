@@ -34,6 +34,7 @@ from sertit.misc import ListEnum
 from eoreader import cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
+from eoreader.products.product import OrbitDirection
 from eoreader.reader import Platform
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
@@ -446,3 +447,46 @@ class TsxProduct(SarProduct):
             mtd_from_path = "SAR*xml"
 
             return self._read_mtd_xml(mtd_from_path)
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            quicklook_path = str(next(self.path.glob("PREVIEW/BROWSE.tif")))
+        except StopIteration:
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Get the orbit direction
+        try:
+            od = OrbitDirection.from_value(root.findtext(".//orbitDirection"))
+
+        except TypeError:
+            raise InvalidProductError("orbitDirection not found in metadata!")
+
+        return od

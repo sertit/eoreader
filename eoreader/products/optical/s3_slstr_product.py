@@ -744,12 +744,12 @@ class S3SlstrProduct(S3Product):
 
         return sza_img
 
-    def _compute_e0(self, band: obn, suffix: str) -> np.ndarray:
+    def _compute_e0(self, band: BandNames, suffix: str) -> np.ndarray:
         """
         Compute the solar spectral flux in mW / (m^2 * sr * nm)
 
         Args:
-            band (obn): Optical Band
+            band (BandNames): Optical Band
             suffix (str): Suffix
 
         Returns:
@@ -987,7 +987,7 @@ class S3SlstrProduct(S3Product):
         sun_az = self._read_nc(geom_file, saa_name)
         sun_ze = self._read_nc(geom_file, sza_name)
 
-        return sun_az.mean().data % 360, sun_ze.mean().data
+        return float(sun_az.mean().data) % 360, float(sun_ze.mean().data)
 
     def _get_clean_band_path(
         self, band: obn, resolution: float = None, writable: bool = False, **kwargs

@@ -6,6 +6,7 @@
 
 - **BREAKING CHANGES: `footprint`, `extent`, `wgs84_extent` and `crs` properties are converted back to methods in order to prevent side effects of expensive computation when displaying the object when debugging (rollback before version 0.8.0)**
 - **BREAKING CHANGES: `get_all_index` becomes `get_all_indices`**
+- **BREAKING CHANGES: `acquisition_datetime` becomes `datetime` and `default_resolution`becomes `resolution` for `CustomProduct` in accepted keywards, and the metadata fields have been renamed according to the `CustomFields` enum**
 
 ### Enhancements
 
@@ -13,14 +14,20 @@
 - **ENH: Making SAR attribute `snap_filename` public**
 - **ENH: Handling `ICEYE` pure SLC products**
 - **ENH: Allowing the user to choose if they want the GRD or SLC image for `ICEYE` products**
+- **ENH: Add the possibility to directly load the cloud cover for optical data (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/30))**
+- **ENH: Add the possibility to retrieve the quicklook path (if existing) and add the `plot` function allowing the user to plot the quicklook (if existing) ([#28](https://github.com/sertit/eoreader/issues/30))**
+- **ENH: Add the possibility to retrieve the orbit direction (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/30))**
 
 ### Bug Fixes
 
+- FIX: Loading every optical band in reflectance (fixed for `Sentinel-2 THEIA`, `Maxar`, `Planet` and `Vision-1` data) ([#30](https://github.com/sertit/eoreader/issues/30))
 - FIX: Fixing `ReferenceError: weakly-referenced object no longer exists` when deleting an object
 - FIX: Do not set sea values to nodata when orthorectifying SAR data with SNAP
 - FIX: Handle `Sentinel-2` data with PB < 02.07 as `L2Ap` products
-- FIX: Fixing nodata for `Sentinel-2` data with PB > 04.00
+- FIX: Fixing nodata and offset for `Sentinel-2` data with PB > 04.00
 - FIX: Handle new `ICEYE` metadata name's nomenclature
+- FIX: Fixing harmless regex error when searching for B1 path for `Landsat` products
+- FIX: Fixing platform for `Sentinel-2 Theia`
 
 ### Other
 
@@ -59,6 +66,7 @@
 - FIX: Do not process nodata for a band already existing
 - FIX: Fixing an error when reading `TIR` bands with Landsat-7
 - FIX: Fixing an error when additive/multiplicative coefficients are set to `NULL` for Landsat data
+- FIX: Returning sun angles always as float (some `Sentinel-3` angles were returned as `np.array`)
 
 ### Other
 

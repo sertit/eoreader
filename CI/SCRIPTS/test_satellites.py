@@ -22,6 +22,7 @@ from eoreader.env_vars import (
 )
 from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import Product, S2Product, SensorType, SlstrRadAdjust
+from eoreader.products.product import OrbitDirection
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
 
@@ -334,6 +335,26 @@ def _test_core(
                 mtd_xml, nmsp = prod.read_mtd()
                 assert isinstance(mtd_xml, etree._Element)
                 assert isinstance(nmsp, dict)
+
+                # Mean sun angle type, cloud cover...
+                if prod.sensor_type == SensorType.OPTICAL:
+                    az, zen = prod.get_mean_sun_angles()
+                    assert isinstance(az, float)
+                    assert isinstance(zen, float)
+
+                    cc = prod.get_cloud_cover()
+                    assert isinstance(cc, float)
+
+                # Quicklook and plot
+                qck_path = prod.get_quicklook_path()
+                if qck_path is not None:
+                    assert isinstance(qck_path, str)
+
+                prod.plot()
+
+                # Orbit direction
+                orbit_dir = prod.get_orbit_direction()
+                assert isinstance(orbit_dir, OrbitDirection)
 
                 # Clean temp
                 if not debug:

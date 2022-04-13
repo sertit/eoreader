@@ -288,10 +288,8 @@ class S2TheiaProduct(OpticalProduct):
             kwargs: Other arguments used to load bands
         Returns:
             XDS_TYPE: Band xarray
-
         """
-        # Read band
-        band_xda = utils.read(
+        band_arr = utils.read(
             path,
             resolution=resolution,
             size=size,
@@ -299,16 +297,41 @@ class S2TheiaProduct(OpticalProduct):
             **kwargs,
         )
 
+        # Convert type if needed
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
+
+        return band_arr
+
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
         # Compute the correct radiometry of the band (Theia product are stored into int16 bits)
-        original_dtype = band_xda.encoding.get("dtype", band_xda.dtype)
+        original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
         if original_dtype == "int16":
-            band_xda /= 10000.0
+            band_arr /= 10000.0
 
         # Convert type if needed
-        if band_xda.dtype != np.float32:
-            band_xda = band_xda.astype(np.float32)
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
 
-        return band_xda
+        return band_arr
 
     def _manage_invalid_pixels(
         self, band_arr: XDS_TYPE, band: obn, **kwargs
@@ -718,3 +741,53 @@ class S2TheiaProduct(OpticalProduct):
         cond = reduce(lambda x, y: x | y, conds)  # Use every conditions (bitwise or)
 
         return super()._create_mask(bit_array, cond, nodata)
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing (some providers are providing one quicklook, such as creodias)
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=r".*QKL_ALL\.jpg"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("**/*QKL_ALL.jpg")))
+        except (StopIteration, FileNotFoundError):
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Get the cloud cover
+        try:
+            cc = float(root.findtext(".//QUALITY_INDEX[@name='CloudPercent']"))
+
+        except TypeError:
+            raise InvalidProductError(
+                "QUALITY_INDEXQUALITY_INDEX name='CloudPercent' not found in metadata!"
+            )
+
+        return cc

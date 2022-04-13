@@ -22,21 +22,24 @@ import logging
 import warnings
 from datetime import datetime
 from enum import unique
+from io import BytesIO
 from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import rasterio
+import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
-from sertit import files, strings, vectors
+from sertit import files, rasters, strings, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
 
 from eoreader import cache
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import SarProduct, SarProductType
+from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -346,3 +349,67 @@ class CosmoProduct(SarProduct):
         mtd_from_path = "DFDN_*.h5.xml"
 
         return self._read_mtd_xml(mtd_from_path)
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        qlk_path = (
+            self._get_band_folder(writable=True) / f"{self.condensed_name}_QLK.tif"
+        )
+        if not qlk_path.is_file():
+            with rasterio.open(str(self._img_path)) as ds:
+                quicklook_paths = [subds for subds in ds.subdatasets if "QLK" in subds]
+
+            if len(quicklook_paths) == 0:
+                LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+            else:
+                rasters.write(
+                    rasters.read(quicklook_paths[0]),
+                    qlk_path,
+                    dtype=np.uint8,
+                    nodata=255,
+                )
+                if len(quicklook_paths) > 1:
+                    LOGGER.info(
+                        "For now, only the quicklook of the first swath is taken into account."
+                    )
+
+        return str(qlk_path)
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        # Get MTD XML file
+        if isinstance(self.path, CloudPath):
+            h5_xarr_path = BytesIO(self._img_path.read_bytes())
+        else:
+            h5_xarr_path = str(self._img_path)
+
+        with xr.open_dataset(
+            h5_xarr_path, phony_dims="access", engine="h5netcdf"
+        ) as h5_xarr:
+            # Get the orbit direction
+            try:
+                od = OrbitDirection.from_value(getattr(h5_xarr, "Orbit Direction"))
+
+            except TypeError:
+                raise InvalidProductError("Orbit Direction not found in metadata!")
+
+        return od
