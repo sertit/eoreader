@@ -41,7 +41,6 @@ from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from sertit import files, vectors
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
@@ -406,7 +405,7 @@ class S3Product(OpticalProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -420,7 +419,7 @@ class S3Product(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
 
         """
         band = utils.read(
@@ -458,32 +457,34 @@ class S3Product(OpticalProduct):
 
     @abstractmethod
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         raise NotImplementedError
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Get nodata mask
         no_data = np.where(np.isnan(band_arr.data), self._mask_true, self._mask_false)

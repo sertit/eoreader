@@ -38,7 +38,6 @@ from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 from shapely.geometry import box
 
 from eoreader import cache, utils
@@ -510,7 +509,7 @@ class S2Product(OpticalProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -524,7 +523,7 @@ class S2Product(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
 
         """
         # For L2Ap
@@ -777,19 +776,19 @@ class S2Product(OpticalProduct):
         return mask
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         if self._processing_baseline < 4.0:
             return self._manage_invalid_pixels_lt_4_0(band_arr, band, **kwargs)
@@ -797,17 +796,19 @@ class S2Product(OpticalProduct):
             # return band_arr
             return self._manage_invalid_pixels_gt_4_0(band_arr, band, **kwargs)
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         if self._processing_baseline < 4.0:
             return self._manage_nodata_lt_4_0(band_arr, band, **kwargs)
@@ -815,19 +816,19 @@ class S2Product(OpticalProduct):
             return self._manage_nodata_gt_4_0(band_arr, band, **kwargs)
 
     def _manage_invalid_pixels_lt_4_0(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Get detector footprint to deduce the outside nodata
         nodata_det = self._open_mask_lt_4_0(
@@ -881,20 +882,20 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_invalid_pixels_gt_4_0(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See there:
         https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2-Products-Specification-Document-14_8.pdf
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Get detector footprint to deduce the outside nodata
         nodata = self._open_mask_gt_4_0(
@@ -927,19 +928,19 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata_lt_4_0(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Get detector footprint to deduce the outside nodata
         nodata_det = self._open_mask_lt_4_0(
@@ -961,19 +962,19 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata_gt_4_0(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Get detector footprint to deduce the outside nodata
         nodata = self._open_mask_gt_4_0(
@@ -1265,13 +1266,13 @@ class S2Product(OpticalProduct):
             return self._open_clouds_gt_4_0(bands, resolution, size, **kwargs)
 
     def _rasterize(
-        self, xds: XDS_TYPE, geometry: gpd.GeoDataFrame, nodata: np.ndarray
+        self, xds: xr.DataArray, geometry: gpd.GeoDataFrame, nodata: np.ndarray
     ) -> xr.DataArray:
         """
         Rasterize a vector on a memory dataset
 
         Args:
-            xds: xarray
+            xds (xr.DataArray): Array
             geometry (gpd.GeoDataFrame): Geometry to rasterize
             nodata (np.ndarray): Nodata mask
 

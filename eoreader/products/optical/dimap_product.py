@@ -38,7 +38,6 @@ from rasterio import crs as riocrs
 from rasterio import features, transform
 from sertit import files, rasters_rio, vectors
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
@@ -482,8 +481,8 @@ class DimapProduct(VhrProduct):
         return files.get_filename(self._get_tile_path()).replace("DIM_", "")
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See
@@ -491,12 +490,12 @@ class DimapProduct(VhrProduct):
         (unusable data mask) for more information.
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # array data
         width = band_arr.rio.width
@@ -590,17 +589,19 @@ class DimapProduct(VhrProduct):
 
         return band_arr
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # array data
         width = band_arr.rio.width

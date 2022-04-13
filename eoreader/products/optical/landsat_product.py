@@ -33,7 +33,6 @@ from lxml.builder import E
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
@@ -528,7 +527,7 @@ class LandsatProduct(OpticalProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -542,7 +541,7 @@ class LandsatProduct(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
         """
         if self.is_archived:
             filename = files.get_filename(str(path).split("!")[-1])
@@ -652,18 +651,18 @@ class LandsatProduct(OpticalProduct):
         return band_arr
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Open QA band
         landsat_qa_path = self._get_path(self._radsat_id)
@@ -719,17 +718,19 @@ class LandsatProduct(OpticalProduct):
 
         return self._set_nodata_mask(band_arr, mask)
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Open QA band
         landsat_qa_path = self._get_path(self._radsat_id)
@@ -912,7 +913,7 @@ class LandsatProduct(OpticalProduct):
 
         return band_dict
 
-    def _open_mss_clouds(self, qa_arr: XDS_TYPE, band_list: list) -> dict:
+    def _open_mss_clouds(self, qa_arr: xr.DataArray, band_list: list) -> dict:
         """
         Load cloud files as xarrays.
 
@@ -924,7 +925,7 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            qa_arr (XDS_TYPE): Quality array
+            qa_arr (xr.DataArray): Quality array
             band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
@@ -965,7 +966,7 @@ class LandsatProduct(OpticalProduct):
         return band_dict
 
     def _open_e_tm_clouds(
-        self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
+        self, qa_arr: xr.DataArray, band_list: Union[list, BandNames]
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -979,7 +980,7 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            qa_arr (XDS_TYPE): Quality array
+            qa_arr (xr.DataArray): Quality array
             band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
@@ -1035,7 +1036,7 @@ class LandsatProduct(OpticalProduct):
         return band_dict
 
     def _open_olci_clouds(
-        self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
+        self, qa_arr: xr.DataArray, band_list: Union[list, BandNames]
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -1048,7 +1049,7 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            qa_arr (XDS_TYPE): Quality array
+            qa_arr (xr.DataArray): Quality array
             band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}

@@ -31,7 +31,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from rasterio.enums import Resampling
 from sertit import rasters, rasters_rio
-from sertit.rasters import MAX_CORES, XDS_TYPE
+from sertit.rasters import MAX_CORES
 from sertit.vectors import WGS84
 
 from eoreader import cache, utils
@@ -404,8 +404,8 @@ class S3OlciProduct(S3Product):
         return e0
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...) for OLCI data.
         See there:
@@ -448,12 +448,12 @@ class S3OlciProduct(S3Product):
         | 31 |   land               |
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Bit ids
         band_bit_id = {

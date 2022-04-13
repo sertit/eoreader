@@ -45,7 +45,6 @@ from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from sertit import files, rasters, strings
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 
 from eoreader import cache, utils
@@ -687,7 +686,7 @@ class Product:
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -701,7 +700,7 @@ class Product:
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
 
         """
         raise NotImplementedError
@@ -1318,12 +1317,13 @@ class Product:
         return slope_path
 
     @staticmethod
-    def _collocate_bands(bands: dict, master_xds: XDS_TYPE = None) -> dict:
+    def _collocate_bands(bands: dict, master_xds: xr.DataArray = None) -> dict:
         """
         Collocate all bands from a dict if needed (if a raster shape is different)
 
         Args:
             bands (dict): Dict of bands to collocate if needed
+            master_xds (xr.DataArray): Master array
 
         Returns:
             dict: Collocated bands
@@ -1504,25 +1504,27 @@ class Product:
 
     @abstractmethod
     def _update_attrs_sensor_specific(
-        self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
-    ) -> XDS_TYPE:
+        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+    ) -> xr.DataArray:
         """
         Update attributes of the given array (sensor specific)
 
         Args:
-            xarr (XDS_TYPE): Array whose attributes need an update
+            xarr (xr.DataArray): Array whose attributes need an update
             long_name (str): Array name (as a str or a list)
         """
         raise NotImplementedError
 
     def _update_attrs(
-        self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
-    ) -> XDS_TYPE:
+        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+    ) -> xr.DataArray:
         """
         Update attributes of the given array
         Args:
-            xarr (XDS_TYPE): Array whose attributes need an update
+            xarr (xr.DataArray): Array whose attributes need an update
             long_name (str): Array name (as a str or a list)
+        Returns:
+            xr.DataArray: Updated array
         """
         if isinstance(long_name, list):
             name = " ".join(long_name)

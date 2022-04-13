@@ -32,7 +32,6 @@ from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio, vectors
-from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
@@ -273,7 +272,7 @@ class S2TheiaProduct(OpticalProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -287,7 +286,7 @@ class S2TheiaProduct(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
         """
         band_arr = utils.read(
             path,
@@ -334,20 +333,20 @@ class S2TheiaProduct(OpticalProduct):
         return band_arr
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_ for more
         information.
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # -- Manage nodata from Theia band array
         # Theia nodata is already processed
@@ -381,17 +380,19 @@ class S2TheiaProduct(OpticalProduct):
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # -- Manage nodata from Theia band array
         # Theia nodata is already processed
@@ -721,13 +722,13 @@ class S2TheiaProduct(OpticalProduct):
         return band_dict
 
     def _create_mask(
-        self, bit_array: XDS_TYPE, bit_ids: Union[int, list], nodata: np.ndarray
+        self, bit_array: xr.DataArray, bit_ids: Union[int, list], nodata: np.ndarray
     ) -> xr.DataArray:
         """
         Create a mask masked array (uint8) from a bit array, bit IDs and a nodata mask.
 
         Args:
-            bit_array (XDS_TYPE): Conditional array
+            bit_array (xr.DataArray): Conditional array
             bit_ids (Union[int, list]): Bit IDs
             nodata (np.ndarray): Nodata mask
 
