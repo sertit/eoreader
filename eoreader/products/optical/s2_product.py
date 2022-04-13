@@ -1450,7 +1450,7 @@ class S2Product(OpticalProduct):
             # Get MTD XML file
             root, _ = self.read_datatake_mtd()
 
-            # Get the cloud cover
+            # Get the orbit direction
             try:
                 od = OrbitDirection.from_value(
                     root.findtext(".//SENSING_ORBIT_DIRECTION")

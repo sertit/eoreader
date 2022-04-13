@@ -929,7 +929,7 @@ class PlaProduct(OpticalProduct):
         # Get MTD XML file
         root, nsmap = self.read_mtd()
 
-        # Get the cloud cover
+        # Get the orbit direction
         try:
             od = OrbitDirection.from_value(
                 root.findtext(f".//{nsmap['eop']}orbitDirection")

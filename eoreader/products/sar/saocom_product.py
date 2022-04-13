@@ -457,7 +457,7 @@ class SaocomProduct(SarProduct):
         # Get MTD XML file
         root, _ = self.read_mtd()
 
-        # Get the cloud cover
+        # Get the orbit direction
         try:
             od = OrbitDirection.from_value(root.findtext(".//OrbitDirection"))
 

@@ -391,9 +391,9 @@ class CosmoProduct(SarProduct):
             OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
         """
         # Get MTD XML file
-        h5_xarr = xr.open_dataset(str(self._img_path))
+        h5_xarr = xr.open_dataset(str(self._img_path), phony_dims="access")
 
-        # Get the cloud cover
+        # Get the orbit direction
         try:
             od = OrbitDirection.from_value(getattr(h5_xarr, "Orbit Direction"))
 
