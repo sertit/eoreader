@@ -473,11 +473,14 @@ class Rs2Product(SarProduct):
             OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
         """
         # Get MTD XML file
-        root, _ = self.read_mtd()
+        root, nsmap = self.read_mtd()
+        namespace = nsmap[None]
 
-        # Get the cloud cover
+        # Get the orbit direction
         try:
-            od = OrbitDirection.from_value(root.findtext(".//passDirection").upper())
+            od = OrbitDirection.from_value(
+                root.findtext(f".//{namespace}passDirection").upper()
+            )
 
         except TypeError:
             raise InvalidProductError("passDirection not found in metadata!")
