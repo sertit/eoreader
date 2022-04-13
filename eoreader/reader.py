@@ -24,6 +24,7 @@ import re
 from enum import unique
 from pathlib import Path
 from typing import Union
+from zipfile import BadZipFile
 
 from cloudpathlib import AnyPath, CloudPath
 from sertit import files, strings
@@ -279,7 +280,7 @@ class Reader:
     """
     Factory class creating satellite products according to their names.
 
-    It creates a singleton that you can call only on,e time per file.
+    It creates a singleton that you can call only one time per file.
     """
 
     def __init__(self):
@@ -537,7 +538,10 @@ class Reader:
 
         # Archive
         else:
-            prod_files = files.get_archived_file_list(product_path)
+            try:
+                prod_files = files.get_archived_file_list(product_path)
+            except BadZipFile:
+                raise BadZipFile(f"{product_path} is not a zip file")
 
         # Check
         for idx, regex in enumerate(regex_list):
@@ -592,5 +596,7 @@ def is_filename_valid(
                 LOGGER.debug(
                     f"The product {product_file_name} should be a folder or an archive (.tar or .zip)"
                 )
+            except BadZipFile:
+                raise BadZipFile(f"{product_path} is not a zip file")
 
     return is_valid

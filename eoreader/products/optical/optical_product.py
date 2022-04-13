@@ -17,6 +17,7 @@
 """ Super class for optical products """
 import logging
 from abc import abstractmethod
+from datetime import datetime
 from enum import unique
 from pathlib import Path
 from typing import Union
@@ -24,7 +25,8 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import rasterio
-from cloudpathlib import CloudPath
+import xarray as xr
+from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from sertit import files, rasters
@@ -45,8 +47,8 @@ from eoreader.bands import (
     to_str,
 )
 from eoreader.exceptions import InvalidBandError, InvalidIndexError
-from eoreader.keywords import CLEAN_OPTICAL
-from eoreader.products.product import Product, SensorType
+from eoreader.keywords import CLEAN_OPTICAL, TO_REFLECTANCE
+from eoreader.products.product import OrbitDirection, Product, SensorType
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -227,6 +229,27 @@ class OpticalProduct(Product):
         existing_bands = self.get_existing_bands()
         return self.get_band_paths(band_list=existing_bands)
 
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
+        raise NotImplementedError
+
     def _open_bands(
         self,
         band_paths: dict,
@@ -255,14 +278,20 @@ class OpticalProduct(Product):
             band_arr = self._read_band(
                 band_path, band=band, resolution=resolution, size=size, **kwargs
             )
-            # Write on disk in order not to reprocess band everytime
-            # (invalid pix management can be time consuming)
-            if (
-                not str(band_path).endswith(f"{CleanMethod.RAW.value}.tif")
-                and not str(band_path).endswith(f"{CleanMethod.CLEAN.value}.tif")
-                and not str(band_path).endswith(f"{CleanMethod.NODATA.value}.tif")
-            ):
-                # Manage invalid pixels
+
+            if not resolution:
+                resolution = band_arr.rio.resolution()[0]
+            clean_band_path = self._get_clean_band_path(
+                band, resolution=resolution, writable=True, **kwargs
+            )
+            # If raw data, clean it !
+            if AnyPath(band_path).name != clean_band_path.name:
+                # Manage reflectance
+                if kwargs.get(TO_REFLECTANCE, True):
+                    LOGGER.debug(f"Converting {band.name} to reflectance")
+                    band_arr = self._to_reflectance(band_arr, band_path, band)
+
+                # Clean pixels
                 cleaning_method = CleanMethod.from_value(
                     kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
                 )
@@ -276,25 +305,47 @@ class OpticalProduct(Product):
                     band_arr = self._manage_invalid_pixels(
                         band_arr, band=band, **kwargs
                     )
+                band_arr.attrs["cleaning_method"] = cleaning_method.value
 
                 # Write on disk
                 try:
-                    if not resolution:
-                        resolution = band_arr.rio.resolution()[0]
-                    clean_band_path = self._get_clean_band_path(
-                        band, resolution=resolution, writable=True, **kwargs
-                    )
                     utils.write(
                         band_arr.rename(f"{to_str(band)[0]} CLEAN"), clean_band_path
                     )
                 except Exception:
                     # Not important if we cannot write it
-                    pass
+                    LOGGER.debug(f"Cannot write {clean_band_path} on disk.")
 
             # Save band array
             band_arrays[band] = band_arr
 
         return band_arrays
+
+    @abstractmethod
+    def _read_band(
+        self,
+        path: Union[CloudPath, Path],
+        band: BandNames = None,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> XDS_TYPE:
+        """
+        Read band from disk.
+
+        .. WARNING::
+            Invalid pixels are not managed here
+
+        Args:
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
+        Returns:
+            XDS_TYPE: Band xarray
+        """
+        raise NotImplementedError
 
     @abstractmethod
     def _manage_invalid_pixels(
@@ -617,8 +668,11 @@ class OpticalProduct(Product):
 
         res_str = self._resolution_to_str(resolution)
 
+        # Radiometric processing
+        rad_proc = "" if kwargs.get(TO_REFLECTANCE, True) else "_as_is"
+
         return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{cleaning_method.value}.tif",
+            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{cleaning_method.value}{rad_proc}.tif",
         )
 
     def _get_cloud_band_path(
@@ -654,3 +708,83 @@ class OpticalProduct(Product):
         return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}.tif",
         )
+
+    @cache
+    def _sun_earth_distance_variation(self) -> float:
+        """
+        Correction for the Sun-Earth distance variation
+
+        It utilises the inverse square law of irradiance, under which,
+        the intensity (or irradiance) of light radiating from a point source is inversely proportional to the square of the distance from the source.
+
+         - t is the Julian Day corresponding to the acquisition date (reference day: 01/01/1950).
+         - 0.01673 is the Earth orbit eccentricity.
+         - 0.0172 is the Earth angular velocity (radians/day).
+
+        See `here <https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-2-msi/level-1c/algorithm>`_ for more information.
+
+        Returns:
+            float: Sun-Earth distance variation
+        """
+        # julian_date is the Julian Day corresponding to the acquisition date (reference day: 01/01/1950).
+        ref_julian_date = datetime(year=1950, month=1, day=1)
+        julian_date = (self.date - ref_julian_date).days + 1
+
+        # Compute Sun-Earth distance variation
+        return 1 / (1 - 0.01673 * np.cos(0.0172 * (julian_date - 2))) ** 2
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+        LOGGER.warning(f"No cloud cover available for {self.platform.value} data !")
+        return 0.0
+
+    def _update_attrs_sensor_specific(
+        self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
+    ) -> XDS_TYPE:
+        """
+        Update attributes of the given array (sensor specific)
+
+        Args:
+            xarr (XDS_TYPE): Array whose attributes need an update
+            long_name (str): Array name (as a str or a list)
+        """
+        if kwargs.get(TO_REFLECTANCE, True):
+            xarr.attrs["radiometry"] = "reflectance"
+        else:
+            xarr.attrs["radiometry"] = "as is"
+        xarr.attrs["cloud_cover"] = self.get_cloud_cover()
+
+        return xarr
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        # All optical satellite are descending by default
+        return OrbitDirection.DESCENDING

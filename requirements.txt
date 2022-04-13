@@ -13,6 +13,7 @@ tempenv
 twine
 
 # Libs for all platforms
+matplotlib
 scipy
 methodtools
 tqdm
@@ -29,4 +30,4 @@ validators
 cloudpathlib>=0.7.0
 
 # SERTIT libs
-sertit[full]>=1.13.0
+sertit[full]>=1.13.1

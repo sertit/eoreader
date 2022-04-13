@@ -267,7 +267,7 @@ class S3Product(OpticalProduct):
     def _replace(
         self,
         ppm_to_replace: str,
-        band: Union[str, obn] = None,
+        band: Union[str, BandNames] = None,
         suffix: str = None,
         view: str = None,
     ) -> str:
@@ -276,7 +276,7 @@ class S3Product(OpticalProduct):
 
         Args:
             ppm_to_replace (str): Preprocessed member to replace
-            band (Union[str, obn]): Replace the band
+            band (Union[str, BandNames]): Replace the band
             suffix (str): Replace the suffix
             view (str): Replace the view
 
@@ -391,7 +391,9 @@ class S3Product(OpticalProduct):
             else:
                 # Pre-process the wanted band (does nothing if existing)
                 band_paths[band] = self._preprocess(
-                    band, resolution=resolution, **kwargs
+                    band,
+                    resolution=resolution,
+                    **kwargs,
                 )
 
         return band_paths
@@ -431,6 +433,28 @@ class S3Product(OpticalProduct):
 
         # Read band
         return band.astype(np.float32) * band.scale_factor
+
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
+        # Do nothing, managed elsewhere
+        return band_arr
 
     @abstractmethod
     def _manage_invalid_pixels(

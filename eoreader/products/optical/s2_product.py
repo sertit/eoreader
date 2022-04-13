@@ -47,6 +47,7 @@ from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
+from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -371,7 +372,9 @@ class S2Product(OpticalProduct):
 
             name = files.get_filename(name)
         except InvalidProductError:
-            tile_info = files.read_json(next(self.path.glob("**/tileInfo.json")))
+            tile_info = files.read_json(
+                next(self.path.glob("**/tileInfo.json")), print_file=False
+            )
             name = tile_info["productName"]
 
         return name
@@ -544,7 +547,7 @@ class S2Product(OpticalProduct):
                     ds.transform = tf
 
         # Read band
-        band_xda = utils.read(
+        return utils.read(
             path,
             resolution=resolution,
             size=size,
@@ -552,6 +555,25 @@ class S2Product(OpticalProduct):
             **kwargs,
         )
 
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
         if str(path).endswith(".jp2"):
             try:
                 # Get MTD XML file
@@ -600,11 +622,11 @@ class S2Product(OpticalProduct):
                 quantif_value = 10000.0
 
             # Compute the correct radiometry of the band
-            band_xda = (band_xda + offset) / quantif_value
+            band_arr = (band_arr + offset) / quantif_value
 
             self.no_data_val[band] = (self.base_no_data_val + offset) / quantif_value
 
-        return band_xda.astype(np.float32)
+        return band_arr.astype(np.float32)
 
     def _open_mask_lt_4_0(
         self, mask_id: Union[str, S2GmlMasks], band: Union[obn, str] = None
@@ -1336,3 +1358,109 @@ class S2Product(OpticalProduct):
             return self._l2ap_geocode_data(default_path)
         else:
             return super().default_transform()
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Get the cloud cover
+        try:
+            cc = float(root.findtext(".//CLOUDY_PIXEL_PERCENTAGE"))
+
+        except TypeError:
+            raise InvalidProductError("CLOUDY_PIXEL_PERCENTAGE not found in metadata!")
+
+        return cc
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing (some providers are providing one quicklook, such as creodias)
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=r".*ql\.jpg"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("**/*ql.jpg")))
+        except (StopIteration, FileNotFoundError):
+            try:
+                if self.is_archived:
+                    quicklook_path = files.get_archived_rio_path(
+                        self.path, file_regex=r".*preview\.jpg"
+                    )
+                else:
+                    quicklook_path = str(next(self.path.glob("**/preview.jpg")))
+            except (StopIteration, FileNotFoundError):
+                # Use the TCI
+                try:
+                    if self.product_type == S2ProductType.L2A:
+                        tci_regex = "TCI_60m"
+                    else:
+                        tci_regex = "TCI"
+                    if self.is_archived:
+                        quicklook_path = files.get_archived_rio_path(
+                            self.path, file_regex=rf".*{tci_regex}\.jp2"
+                        )
+                    else:
+                        quicklook_path = str(
+                            next(self.path.glob(f"**/{tci_regex}.jp2"))
+                        )
+                except (StopIteration, FileNotFoundError):
+                    LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        try:
+            # Get MTD XML file
+            root, _ = self.read_datatake_mtd()
+
+            # Get the orbit direction
+            try:
+                od = OrbitDirection.from_value(
+                    root.findtext(".//SENSING_ORBIT_DIRECTION")
+                )
+
+            except TypeError:
+                raise InvalidProductError(
+                    "SENSING_ORBIT_DIRECTION not found in metadata!"
+                )
+        except InvalidProductError:
+            od = OrbitDirection.DESCENDING
+
+        return od

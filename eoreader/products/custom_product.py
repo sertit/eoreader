@@ -17,6 +17,7 @@
 """ Class for custom products """
 import logging
 from datetime import datetime
+from enum import unique
 from pathlib import Path
 from typing import Union
 
@@ -29,6 +30,7 @@ from lxml.builder import E
 from rasterio import crs
 from rasterio.enums import Resampling
 from sertit import files, misc, rasters, vectors
+from sertit.misc import ListEnum
 from sertit.rasters import XDS_TYPE
 
 from eoreader import cache, utils
@@ -43,22 +45,31 @@ from eoreader.bands import (
     to_band,
 )
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
-from eoreader.products.product import Product, SensorType
+from eoreader.products.product import OrbitDirection, Product, SensorType
 from eoreader.reader import Platform
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-# -- CUSTOM FIELDS --
-NAME = "name"
-SENSOR_TYPE = "sensor_type"
-ACQ_DATETIME = "acquisition_datetime"
-BAND_MAP = "band_map"
-PLATFORM = "platform"
-DEF_RES = "default_resolution"
-PROD_TYPE = "product_type"
-SUN_AZ = "sun_azimuth"
-SUN_ZEN = "sun_zenith"
+
+@unique
+class CustomFields(ListEnum):
+    """
+    Custom fields, self explanatory
+    """
+
+    NAME = "name"
+    SENSOR_TYPE = "sensor_type"
+    DATETIME = "datetime"
+    BAND_MAP = "band_map"
+    PLATFORM = "platform"
+    RES = "resolution"
+    PROD_TYPE = "product_type"
+    SUN_AZ = "sun_azimuth"
+    SUN_ZEN = "sun_zenith"
+    ORBIT_DIR = "orbit_direction"
+    CC = "cloud_cover"
+
 
 # -- CUSTOM
 CUSTOM = "CUSTOM"
@@ -75,11 +86,8 @@ class CustomProduct(Product):
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
-        self.sun_az = None
-        """Sun mean angles (azimuth)"""
-
-        self.sun_zen = None
-        """Sun mean angles (zenith)"""
+        self.kwargs = None
+        """Custom kwargs"""
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
@@ -92,16 +100,20 @@ class CustomProduct(Product):
         self.needs_extraction = False
 
         # -- Parse the kwargs
-        misc.check_mandatory_keys(kwargs, [BAND_MAP, SENSOR_TYPE])
+        misc.check_mandatory_keys(
+            kwargs, [CustomFields.BAND_MAP.value, CustomFields.SENSOR_TYPE.value]
+        )
 
         # Sensor type
-        self.sensor_type = SensorType.convert_from(kwargs[SENSOR_TYPE])[0]
+        self.sensor_type = SensorType.convert_from(
+            kwargs.pop(CustomFields.SENSOR_TYPE.value)
+        )[0]
         self.band_names = (
             OpticalBands() if self.sensor_type == SensorType.OPTICAL else SarBands()
         )
 
         # Band map
-        band_names = kwargs[BAND_MAP]  # Shouldn't be empty
+        band_names = kwargs.pop(CustomFields.BAND_MAP.value)  # Shouldn't be empty
         assert isinstance(band_names, dict)
         band_names = {to_band(key)[0]: val for key, val in band_names.items()}
         assert [is_sat_band(band) for band in band_names.keys()]
@@ -113,24 +125,15 @@ class CustomProduct(Product):
                 len(band_names) == ds.count
             ), f"You should specify {ds.count} bands in band_map, not {len(band_names)} !"
 
-        # Datetime
-        self.datetime = kwargs.get(ACQ_DATETIME, datetime.now())
-        if isinstance(self.datetime, str):
+        self.kwargs = kwargs
+
+        for key in self.kwargs.keys():
             try:
-                self.datetime = datetime.fromisoformat(self.datetime)
+                CustomFields.from_value(key)  # noqa
             except ValueError:
-                self.datetime = datetime.strptime(self.datetime, "%Y%m%dT%H%M%S")
-        assert isinstance(self.datetime, datetime)
-
-        # Sun angles
-        self.sun_az = kwargs.get(SUN_AZ, None)
-        self.sun_zen = kwargs.get(SUN_ZEN, None)
-
-        # Others
-        self.name = kwargs.get(NAME, files.get_filename(self.path))
-        self.platform = Platform.convert_from(kwargs.get(PLATFORM, CUSTOM))[0]
-        self.resolution = kwargs.get(DEF_RES, None)
-        self.product_type = kwargs.get(PROD_TYPE, CUSTOM)
+                LOGGER.warning(
+                    f"{key} is not taken into account as it doesn't belong to the handled keys: {CustomFields.list_values()}"
+                )
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -150,7 +153,7 @@ class CustomProduct(Product):
         Returns:
             str: True name of the product (from metadata)
         """
-        return self.name
+        return self.kwargs.get(CustomFields.NAME.value, files.get_filename(self.path))
 
     def get_datetime(self, as_datetime: bool = False) -> str:
         """
@@ -159,29 +162,42 @@ class CustomProduct(Product):
         Returns:
             str: True name of the product (from metadata)
         """
+
+        # Datetime
+        dt = self.kwargs.get(CustomFields.DATETIME.value, datetime.now())
+        if isinstance(dt, str):
+            try:
+                dt = datetime.fromisoformat(dt)
+            except ValueError:
+                dt = datetime.strptime(dt, "%Y%m%dT%H%M%S")
+        assert isinstance(dt, datetime)
+
         if as_datetime:
-            date = self.datetime
+            date = dt
         else:
-            date = self.datetime.strftime(DATETIME_FMT)
+            date = dt.strftime(DATETIME_FMT)
 
         return date
 
     def _get_platform(self) -> Platform:
-        return self.platform
+        return Platform.convert_from(
+            self.kwargs.get(CustomFields.PLATFORM.value, CUSTOM)
+        )[0]
 
     def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
         """
-        if self.resolution is None:
+        resolution = self.kwargs.get(CustomFields.RES.value, None)
+        if resolution is None:
             with rasterio.open(str(self.get_default_band_path())) as ds:
                 return ds.res[0]
         else:
-            return self.resolution
+            return resolution
 
     def _set_product_type(self) -> None:
         """Set products type"""
-        pass
+        self.product_type = self.kwargs.get(CustomFields.PROD_TYPE.value, CUSTOM)
 
     def get_default_band(self) -> BandNames:
         """
@@ -429,6 +445,28 @@ class CustomProduct(Product):
 
         return bands
 
+    @cache
+    def get_mean_sun_angles(self) -> (float, float):
+        """
+        Get Mean Sun angles (Azimuth and Zenith angles)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_sun_angles()
+            (149.148155074489, 32.6627897525474)
+
+        Returns:
+            (float, float): Mean Azimuth and Zenith angle
+        """
+        # Sun angles
+        sun_az = self.kwargs.get(CustomFields.SUN_AZ.value, None)
+        sun_zen = self.kwargs.get(CustomFields.SUN_ZEN.value, None)
+
+        return sun_az, sun_zen
+
     def _compute_hillshade(
         self,
         dem_path: str = "",
@@ -447,7 +485,8 @@ class CustomProduct(Product):
         Returns:
             str: Hillshade mask path
         """
-        if self.sun_az is not None and self.sun_zen is not None:
+        sun_az, sun_zen = self.get_mean_sun_angles()
+        if sun_az is not None and sun_zen is not None:
             # Warp DEM
             warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
 
@@ -468,14 +507,12 @@ class CustomProduct(Product):
                 LOGGER.debug("Computing hillshade DEM for %s", self.name)
 
                 # Compute hillshade
-                hillshade = rasters.hillshade(
-                    warped_dem_path, self.sun_az, self.sun_zen
-                )
+                hillshade = rasters.hillshade(warped_dem_path, sun_az, sun_zen)
                 utils.write(hillshade, hillshade_path)
 
         else:
             raise InvalidProductError(
-                f"You should provide {SUN_AZ} and {SUN_ZEN} data to compute hillshade!"
+                f"You should provide {CustomFields.SUN_AZ.value} and {CustomFields.SUN_ZEN.value} data to compute hillshade!"
             )
 
         return hillshade_path
@@ -505,34 +542,32 @@ class CustomProduct(Product):
             (etree._Element, dict): Metadata XML root and its namespace
         """
         # Parsing global attributes
-        global_attr_names = [
-            "name",
-            "datetime",
-            "sensor_type",
-            "platform",
-            "resolution",
-            "product_type",
-            "band_names",
-            "sun_az",
-            "sun_zen",
-        ]
+        global_attr_names = CustomFields.list_values()
 
         # Create XML attributes
         global_attr = []
         for attr in global_attr_names:
-            if hasattr(self, attr):
-                if attr == "band_names":
-                    str_attr = str(
-                        {
-                            key.name: val
-                            for key, val in self.band_names.items()
-                            if isinstance(val, int)
-                        }
-                    )
+            if attr == CustomFields.BAND_MAP.value:
+                str_attr = str(
+                    {
+                        key.name: val
+                        for key, val in self.band_names.items()
+                        if isinstance(val, int)
+                    }
+                )
+            elif hasattr(self, attr):
+                # Get it formatted
+                val = getattr(self, attr)
+                if isinstance(val, ListEnum):
+                    str_attr = val.value
+                elif isinstance(val, datetime):
+                    str_attr = val.isoformat()
                 else:
-                    str_attr = str(getattr(self, attr))
+                    str_attr = str(val)
+            else:
+                str_attr = str(self.kwargs.get(attr, None))
 
-                global_attr.append(E(attr, str_attr))
+            global_attr.append(E(attr, str_attr))
 
         mtd = E.custom_metadata(*global_attr)
         mtd_el = etree.fromstring(
@@ -542,3 +577,37 @@ class CustomProduct(Product):
         )
 
         return mtd_el, {}
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        od = self.kwargs.get(CustomFields.ORBIT_DIR.value, None)
+        if od is not None:
+            od = OrbitDirection.from_value(od)
+
+        return od
+
+    def _update_attrs_sensor_specific(
+        self, xarr: XDS_TYPE, long_name: Union[str, list], **kwargs
+    ) -> XDS_TYPE:
+        """
+        Update attributes of the given array (sensor specific)
+
+        Args:
+            xarr (XDS_TYPE): Array whose attributes need an update
+            long_name (str): Array name (as a str or a list)
+        """
+        return xarr

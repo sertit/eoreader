@@ -38,6 +38,7 @@ from eoreader.bands.bands import SarBandNames as sbn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import ICEYE_USE_SLC
 from eoreader.products import SarProduct, SarProductType
+from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -359,3 +360,46 @@ class IceyeProduct(SarProduct):
             )
 
         return band_paths
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            quicklook_path = str(next(self.path.glob("*.png")))
+        except StopIteration:
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Get the orbit direction
+        try:
+            od = OrbitDirection.from_value(root.findtext(".//orbit_direction"))
+
+        except TypeError:
+            raise InvalidProductError("orbit_direction not found in metadata!")
+
+        return od
