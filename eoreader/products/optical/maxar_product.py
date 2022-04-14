@@ -383,6 +383,7 @@ class MaxarProduct(VhrProduct):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        self._has_cloud_cover = True
         self.needs_extraction = False
         self._proj_prod_type = [MaxarProductType.Standard]
 

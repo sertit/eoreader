@@ -952,3 +952,14 @@ class SarProduct(Product):
         """
 
         return xarr
+
+    def _to_repr_sensor_specific(self) -> list:
+        """
+        Representation specific to the sensor
+
+        Returns:
+            list: Representation list (sensor specific)
+        """
+        return [
+            f"\torbit direction:{self.get_orbit_direction().value}",
+        ]

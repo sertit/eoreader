@@ -81,6 +81,19 @@ DEF_CLEAN_METHOD = CleanMethod.NODATA
 class OpticalProduct(Product):
     """Super class for optical products"""
 
+    def __init__(
+        self,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
+        remove_tmp: bool = False,
+        **kwargs,
+    ) -> None:
+        self._has_cloud_cover = False
+
+        # Initialization from the super class
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
@@ -769,7 +782,9 @@ class OpticalProduct(Product):
             xarr.attrs["radiometry"] = "reflectance"
         else:
             xarr.attrs["radiometry"] = "as is"
-        xarr.attrs["cloud_cover"] = self.get_cloud_cover()
+
+        if self._has_cloud_cover:
+            xarr.attrs["cloud_cover"] = self.get_cloud_cover()
 
         return xarr
 
@@ -791,3 +806,19 @@ class OpticalProduct(Product):
         """
         # All optical satellite are descending by default
         return OrbitDirection.DESCENDING
+
+    def _to_repr_sensor_specific(self) -> list:
+        """
+        Representation specific to the sensor
+
+        Returns:
+            list: Representation list (sensor specific)
+        """
+        repr = []
+        if self._has_cloud_cover:
+            repr.append(f"\tcloud cover: {self.get_cloud_cover()}")
+
+        if self.tile_name is not None:
+            repr.append(f"\ttile name: {self.tile_name}")
+
+        return repr

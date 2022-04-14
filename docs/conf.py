@@ -60,6 +60,9 @@ autodoc_default_options = {
 jupyter_execute_notebooks = "cache"
 execution_timeout = -1
 
+# Merge stderr and stdout
+nb_merge_streams = True
+
 # This is going to generate a banner on top of each notebook
 nbsphinx_prolog = ""
 

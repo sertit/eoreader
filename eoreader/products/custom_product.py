@@ -613,3 +613,12 @@ class CustomProduct(Product):
             xr.DataArray: Updated array
         """
         return xarr
+
+    def _to_repr_sensor_specific(self) -> list:
+        """
+        Representation specific to the sensor
+
+        Returns:
+            list: Representation list (sensor specific)
+        """
+        return []
