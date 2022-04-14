@@ -96,12 +96,51 @@ dl.class > dt:first-of-type {
 
 code {
     background: #f2f2f1;
-    font-size: 100% !important;
+    font-size: 100%;
 }
 
-td:first-child:nth-last-child(n+3) code,
-td:first-child:nth-last-child(n+3) code ~td,
-th:first-child:nth-last-child(n+3) code,
-th:first-child:nth-last-child(n+3) code ~ th {
-    background: none !important;
+td:first-child code,
+td:first-child code ~ td,
+th:first-child code,
+th:first-child code ~ th {
+    background: none;
+}
+
+tr:first-child:nth-last-child(1) td:first-child:nth-last-child(2) code,
+tr:first-child:nth-last-child(1) td:first-child:nth-last-child(2) code ~ td,
+tr:first-child:nth-last-child(1) td:first-child:nth-last-child(1) code {
+    background: #f2f2f1;
+}
+
+dl.class dt,
+dl.exception dt,
+dl.data dt,
+dl.function dt {
+    margin: 6px 0;
+    font-size: 90%;
+    line-height: normal;
+    background: #e7f2fa;
+    color: #2980B9;
+    border-top: solid 3px #6ab0de;
+    padding: 6px;
+    position: relative;
+}
+
+dl.class dl dt,
+dl.exception dl dt,
+dl.data dl dt,
+dl.function dl dt {
+    margin-bottom: 6px;
+    border: none;
+    border-left: solid 3px #ccc;
+    background: #f0f0f0;
+    color: #555;
+}
+
+dl.class .viewcode-link,
+dl.exception .viewcode-link,
+dl.data .viewcode-link,
+dl.function .viewcode-link {
+    color: #27AE60;
+    font-size: 80%;
 }
