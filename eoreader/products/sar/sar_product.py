@@ -961,5 +961,5 @@ class SarProduct(Product):
             list: Representation list (sensor specific)
         """
         return [
-            f"\torbit direction:{self.get_orbit_direction().value}",
+            f"\torbit direction: {self.get_orbit_direction().value}",
         ]
