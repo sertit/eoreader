@@ -855,15 +855,15 @@ class S2Product(OpticalProduct):
         if len(nodata_pix) > 0:
             # Discard pixels corrected during crosstalk
             nodata_pix = nodata_pix[nodata_pix.gml_id == "QT_NODATA_PIXELS"]
-        nodata_pix.append(self._open_mask_lt_4_0(S2GmlMasks.DEFECT, band))
-        nodata_pix.append(self._open_mask_lt_4_0(S2GmlMasks.SATURATION, band))
+        nodata_pix.concat(self._open_mask_lt_4_0(S2GmlMasks.DEFECT, band))
+        nodata_pix.concat(self._open_mask_lt_4_0(S2GmlMasks.SATURATION, band))
 
         # Technical quality mask
         tecqua = self._open_mask_lt_4_0(S2GmlMasks.QUALITY, band)
         if len(tecqua) > 0:
             # Do not take into account ancillary data
             tecqua = tecqua[tecqua.gml_id.isin(["MSI_LOST", "MSI_DEG"])]
-        nodata_pix.append(tecqua)
+        nodata_pix.concat(tecqua)
 
         if len(nodata_pix) > 0:
             # Rasterize mask
