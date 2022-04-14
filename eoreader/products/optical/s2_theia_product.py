@@ -107,8 +107,8 @@ class S2TheiaProduct(OpticalProduct):
                 obn.VRE_1: "5",
                 obn.VRE_2: "6",
                 obn.VRE_3: "7",
-                obn.NIR: "8",
-                obn.NARROW_NIR: "8A",
+                obn.NIR: "8A",
+                obn.NARROW_NIR: "8",
                 obn.SWIR_1: "11",
                 obn.SWIR_2: "12",
             }

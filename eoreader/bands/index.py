@@ -110,7 +110,7 @@ def NDVI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NIR], bands[obn.RED])
+    return _norm_diff(bands[obn.NARROW_NIR], bands[obn.RED])
 
 
 @_idx_fct
@@ -247,7 +247,7 @@ def GNDVI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NIR], bands[obn.GREEN])
+    return _norm_diff(bands[obn.NARROW_NIR], bands[obn.GREEN])
 
 
 @_idx_fct
@@ -294,7 +294,7 @@ def CIG(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return (bands[obn.NIR] / bands[obn.GREEN]) - 1
+    return (bands[obn.NARROW_NIR] / bands[obn.GREEN]) - 1
 
 
 @_idx_fct
@@ -354,7 +354,7 @@ def RDI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return bands[obn.SWIR_2] / bands[obn.NARROW_NIR]
+    return bands[obn.SWIR_2] / bands[obn.NIR]
 
 
 @_idx_fct
@@ -374,7 +374,7 @@ def NDWI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.GREEN], bands[obn.NIR])
+    return _norm_diff(bands[obn.GREEN], bands[obn.NARROW_NIR])
 
 
 @_idx_fct
@@ -388,7 +388,7 @@ def BAI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return 1.0 / ((0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NIR]) ** 2)
+    return 1.0 / ((0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NARROW_NIR]) ** 2)
 
 
 @_idx_fct
@@ -404,11 +404,9 @@ def BAIS2(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
     """
     # (1-((B06*B07*B8A)/B04)**0.5)*((B12-B8A)/((B12+B8A)**0.5)+1);
-    a = (
-        (bands[obn.VRE_2] * bands[obn.VRE_3] * bands[obn.NARROW_NIR]) / bands[obn.RED]
-    ) ** 0.5
-    b = (bands[obn.SWIR_2] - bands[obn.NARROW_NIR]) / (
-        (bands[obn.SWIR_2] + bands[obn.NARROW_NIR]) ** 0.5
+    a = ((bands[obn.VRE_2] * bands[obn.VRE_3] * bands[obn.NIR]) / bands[obn.RED]) ** 0.5
+    b = (bands[obn.SWIR_2] - bands[obn.NIR]) / (
+        (bands[obn.SWIR_2] + bands[obn.NIR]) ** 0.5
     )
     return (1 - a) * (1 + b)
 
@@ -425,7 +423,7 @@ def NBR(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NARROW_NIR], bands[obn.SWIR_2])
+    return _norm_diff(bands[obn.NIR], bands[obn.SWIR_2])
 
 
 @_idx_fct
@@ -684,7 +682,7 @@ def SBI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return np.sqrt(bands[obn.RED] ** 2 + bands[obn.NIR] ** 2)
+    return np.sqrt(bands[obn.RED] ** 2 + bands[obn.NARROW_NIR] ** 2)
 
 
 @_idx_fct
