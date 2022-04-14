@@ -26,15 +26,15 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from lxml.builder import E
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
@@ -90,13 +90,14 @@ class LandsatProduct(OpticalProduct):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
         # Private
         self._collection = None
         self._pixel_quality_id = None
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path, remove_tmp)
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
     def _set_collection(self):
         """Set Landsat collection"""
@@ -109,11 +110,13 @@ class LandsatProduct(OpticalProduct):
 
         return LandsatCollection.from_value(col_nb)
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        self._has_cloud_cover = True
+
         mtd, _ = self.read_mtd()
 
         # Open identifier
@@ -129,9 +132,9 @@ class LandsatProduct(OpticalProduct):
             self.needs_extraction = True  # Too slow to read directly tar.gz files
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
@@ -155,7 +158,7 @@ class LandsatProduct(OpticalProduct):
             )
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
     def _get_path(self, band_id: str) -> Union[CloudPath, Path]:
         """
@@ -171,16 +174,16 @@ class LandsatProduct(OpticalProduct):
         if self.is_archived:
             # Because of gap_mask files that have the same name structure and exists only for L7
             if self.product_type == LandsatProductType.L1_ETM:
-                regex = f".*RT{band_id}.*"
+                regex = rf".*RT{band_id}\."
             else:
-                regex = f".*{band_id}.*"
+                regex = rf".*{band_id}\."
             path = files.get_archived_rio_path(self.path, regex)
         else:
-            path = files.get_file_in_dir(self.path, band_id, extension="TIF")
+            path = files.get_file_in_dir(self.path, f"*{band_id}.TIF", exact_name=True)
 
         return path
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -526,7 +529,7 @@ class LandsatProduct(OpticalProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -540,8 +543,54 @@ class LandsatProduct(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
+        """
+        if self.is_archived:
+            filename = files.get_filename(str(path).split("!")[-1])
+        else:
+            filename = files.get_filename(path)
 
+        if self._pixel_quality_id in filename or self._radsat_id in filename:
+            band_arr = utils.read(
+                path,
+                resolution=resolution,
+                size=size,
+                resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
+                masked=False,
+                **kwargs,
+            ).astype(np.uint16)
+            band_arr = band_arr.astype(np.uint16)
+        else:
+            # Read band (call superclass generic method)
+            band_arr = utils.read(
+                path,
+                resolution=resolution,
+                size=size,
+                resampling=Resampling.bilinear,
+                **kwargs,
+            ).astype(np.float32)
+            band_arr = band_arr.astype(np.float32)
+
+        return band_arr
+
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
         """
         # Get band name: the last number of the filename:
         # ie: 'LC08_L1TP_200030_20191218_20191226_01_T1_B1'
@@ -550,25 +599,7 @@ class LandsatProduct(OpticalProduct):
         else:
             filename = files.get_filename(path)
 
-        if self._pixel_quality_id in filename or self._radsat_id in filename:
-            band_xda = utils.read(
-                path,
-                resolution=resolution,
-                size=size,
-                resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
-                masked=False,
-                **kwargs,
-            ).astype(np.uint16)
-        else:
-            # Read band (call superclass generic method)
-            band_xda = utils.read(
-                path,
-                resolution=resolution,
-                size=size,
-                resampling=Resampling.bilinear,
-                **kwargs,
-            ).astype(np.float32)
-
+        if not (self._pixel_quality_id in filename or self._radsat_id in filename):
             # Convert raw bands from DN to correct reflectance
             if not filename.startswith(self.condensed_name):
                 # Original band name
@@ -617,30 +648,30 @@ class LandsatProduct(OpticalProduct):
                     c_add = 0.0
 
                 # Compute the correct reflectance of the band and set no data to 0
-                band_xda = c_mul * band_xda + c_add  # Already in float
+                band_arr = c_mul * band_arr + c_add  # Already in float
 
-        return band_xda
+        return band_arr
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Open QA band
         landsat_qa_path = self._get_path(self._radsat_id)
         qa_arr = self._read_band(
             landsat_qa_path,
             size=(band_arr.rio.width, band_arr.rio.height),
-        ).data  # To np array
+        ).data
 
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -689,24 +720,26 @@ class LandsatProduct(OpticalProduct):
 
         return self._set_nodata_mask(band_arr, mask)
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Open QA band
         landsat_qa_path = self._get_path(self._radsat_id)
         qa_arr = self._read_band(
             landsat_qa_path,
             size=(band_arr.rio.width, band_arr.rio.height),
-        ).data  # To np array
+        ).data
 
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -720,7 +753,7 @@ class LandsatProduct(OpticalProduct):
             pixel_arr = self._read_band(
                 landsat_stat_path, size=(band_arr.rio.width, band_arr.rio.height)
             ).data
-            nodata = np.where(pixel_arr == 1, 1, 0)
+            nodata = np.where(pixel_arr == 1, 1, 0).astype(np.uint8)
 
         return self._set_nodata_mask(band_arr, nodata)
 
@@ -882,7 +915,7 @@ class LandsatProduct(OpticalProduct):
 
         return band_dict
 
-    def _open_mss_clouds(self, qa_arr: XDS_TYPE, band_list: list) -> dict:
+    def _open_mss_clouds(self, qa_arr: xr.DataArray, band_list: list) -> dict:
         """
         Load cloud files as xarrays.
 
@@ -894,7 +927,7 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            qa_arr (XDS_TYPE): Quality array
+            qa_arr (xr.DataArray): Quality array
             band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
@@ -935,7 +968,7 @@ class LandsatProduct(OpticalProduct):
         return band_dict
 
     def _open_e_tm_clouds(
-        self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
+        self, qa_arr: xr.DataArray, band_list: Union[list, BandNames]
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -949,7 +982,7 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            qa_arr (XDS_TYPE): Quality array
+            qa_arr (xr.DataArray): Quality array
             band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
@@ -1005,7 +1038,7 @@ class LandsatProduct(OpticalProduct):
         return band_dict
 
     def _open_olci_clouds(
-        self, qa_arr: XDS_TYPE, band_list: Union[list, BandNames]
+        self, qa_arr: xr.DataArray, band_list: Union[list, BandNames]
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -1018,7 +1051,7 @@ class LandsatProduct(OpticalProduct):
 
 
         Args:
-            qa_arr (XDS_TYPE): Quality array
+            qa_arr (xr.DataArray): Quality array
             band_list (list): List of the wanted bands
         Returns:
             dict, dict: Dictionary {band_name, band_array}
@@ -1097,3 +1130,58 @@ class LandsatProduct(OpticalProduct):
             band_dict[band] = cloud.rename(band_name).astype(np.float32)
 
         return band_dict
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Get the cloud cover
+        try:
+            cc = float(root.findtext(".//CLOUD_COVER"))
+
+        except TypeError:
+            raise InvalidProductError("CLOUD_COVER not found in metadata!")
+
+        return cc
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=r".*thumb_large\.jpeg"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("*thumb_large.jpeg")))
+        except (StopIteration, FileNotFoundError):
+            # Thumbnail only exists for collection 2, not for one: do not throw a warning in this case
+            if self._collection == LandsatCollection.COL_2:
+                LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+            else:
+                LOGGER.warning(
+                    f"No quicklook available for {self.platform.value} Collection-1 data!"
+                )
+
+        return quicklook_path

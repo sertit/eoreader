@@ -32,9 +32,10 @@ from sertit import vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 
-from eoreader import cache, cached_property
+from eoreader import cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
+from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -165,7 +166,7 @@ class RcmProduct(SarProduct):
 
         return def_res
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -174,9 +175,9 @@ class RcmProduct(SarProduct):
         self.needs_extraction = True
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting product-type, band names and so on)
@@ -184,12 +185,12 @@ class RcmProduct(SarProduct):
         # Private attributes
         self._raw_band_regex = "*_{}.tif"
         self._band_folder = self.path / "imagery"
-        self._snap_path = ""
+        self.snap_filename = ""
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
-    @cached_property
+    @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -390,3 +391,49 @@ class RcmProduct(SarProduct):
             mode_name = self.sensor_mode.name
 
         return f"{self.get_datetime()}_{self.platform.name}_{mode_name}_{self.product_type.value}"
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            quicklook_path = str(next(self.path.glob("preview/productOverview.png")))
+        except StopIteration:
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+        namespace = nsmap[None]
+
+        # Get the orbit direction
+        try:
+            od = OrbitDirection.from_value(
+                root.findtext(f".//{namespace}passDirection").upper()
+            )
+
+        except TypeError:
+            raise InvalidProductError("passDirection not found in metadata!")
+
+        return od

@@ -25,9 +25,9 @@ from pathlib import Path
 from typing import Union
 
 import rasterio
+import xarray as xr
 from cloudpathlib import CloudPath
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
 from eoreader.bands.bands import BandNames
 from eoreader.exceptions import InvalidProductError
@@ -165,7 +165,7 @@ class CsgProduct(CosmoProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -179,7 +179,7 @@ class CsgProduct(CosmoProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
 
         """
         # In case of SCS data that doesn't have any resolution in the mtd

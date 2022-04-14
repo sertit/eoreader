@@ -89,7 +89,7 @@ def get_data_dir() -> Union[CloudPath, Path]:
 
 def get_split_name(name: str) -> list:
     """
-    Get split name (with _). Removes empty index.
+    Get split name (with _). Removes empty indexes.
 
     Args:
         name (str): Name to split
@@ -148,7 +148,7 @@ def read(
         indexes (Union[int, list]): Indexes to load. Load the whole array if None.
         **kwargs: Optional keyword arguments to pass into rioxarray.open_rasterio().
     Returns:
-        Union[XDS_TYPE]: Masked xarray corresponding to the raster data and its meta data
+        xr.DataArray: Masked xarray corresponding to the raster data and its meta data
 
     """
     if use_dask():

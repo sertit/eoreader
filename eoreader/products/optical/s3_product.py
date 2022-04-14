@@ -41,10 +41,9 @@ from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from sertit import files, vectors
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 from shapely.geometry import Polygon, box
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
@@ -98,6 +97,7 @@ class S3Product(OpticalProduct):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
         self._instrument = None
         self._data_type = None
@@ -129,24 +129,14 @@ class S3Product(OpticalProduct):
 
         self._set_preprocess_members()
 
-        super().__init__(
-            product_path, archive_path, output_path, remove_tmp
-        )  # Order is important here
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
     @abstractmethod
     def _set_preprocess_members(self):
         """ Set pre-process members """
         raise NotImplementedError
 
-    def _post_init(self) -> None:
-        """
-        Function used to post_init the products
-        (setting sensor type, band names and so on)
-        """
-        # Post init done by the super class
-        super()._post_init()
-
-    @cached_property
+    @cache
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile, managing the case with not orthorectified bands.
@@ -165,8 +155,8 @@ class S3Product(OpticalProduct):
         """
         # --- EXTENT IN UTM ---
         extent = gpd.GeoDataFrame(
-            geometry=[box(*self.footprint.geometry.total_bounds)],
-            crs=self.crs,
+            geometry=[box(*self.footprint().geometry.total_bounds)],
+            crs=self.crs(),
         )
 
         # --- EXTENT IN WGS84 ---
@@ -194,7 +184,7 @@ class S3Product(OpticalProduct):
 
         return extent
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint in UTM of the products (without nodata, *in french == emprise utile*)
@@ -204,7 +194,7 @@ class S3Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
@@ -238,9 +228,9 @@ class S3Product(OpticalProduct):
         extent_wgs84 = gpd.GeoDataFrame(geometry=[Polygon(vertex)], crs=vectors.WGS84)
         # TODO: set CRS here also (in order not to reopen lat/lon) ?
 
-        return extent_wgs84.to_crs(self.crs)
+        return extent_wgs84.to_crs(self.crs())
 
-    @cached_property
+    @cache
     def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
@@ -250,7 +240,7 @@ class S3Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.crs
+            >>> prod.crs()
             CRS.from_epsg(32630)
 
         Returns:
@@ -276,7 +266,7 @@ class S3Product(OpticalProduct):
     def _replace(
         self,
         ppm_to_replace: str,
-        band: Union[str, obn] = None,
+        band: Union[str, BandNames] = None,
         suffix: str = None,
         view: str = None,
     ) -> str:
@@ -285,7 +275,7 @@ class S3Product(OpticalProduct):
 
         Args:
             ppm_to_replace (str): Preprocessed member to replace
-            band (Union[str, obn]): Replace the band
+            band (Union[str, BandNames]): Replace the band
             suffix (str): Replace the suffix
             view (str): Replace the view
 
@@ -400,7 +390,9 @@ class S3Product(OpticalProduct):
             else:
                 # Pre-process the wanted band (does nothing if existing)
                 band_paths[band] = self._preprocess(
-                    band, resolution=resolution, **kwargs
+                    band,
+                    resolution=resolution,
+                    **kwargs,
                 )
 
         return band_paths
@@ -413,7 +405,7 @@ class S3Product(OpticalProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -427,7 +419,7 @@ class S3Product(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
 
         """
         band = utils.read(
@@ -441,34 +433,58 @@ class S3Product(OpticalProduct):
         # Read band
         return band.astype(np.float32) * band.scale_factor
 
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
+        # Do nothing, managed elsewhere
+        return band_arr
+
     @abstractmethod
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         raise NotImplementedError
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Get nodata mask
         no_data = np.where(np.isnan(band_arr.data), self._mask_true, self._mask_false)

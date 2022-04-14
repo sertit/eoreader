@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Aliases for bands and index, created in order to import just this file and not :code:`OpticalBandNames`, :code:`SarBandNames` and :code:`index`.
+Aliases for bands and indices, created in order to import just this file and not :code:`OpticalBandNames`, :code:`SarBandNames` and :code:`index`.
 
 To use it, simply type:
 
@@ -106,7 +106,7 @@ RH_DSPK = _sbn.RH_DSPK
 RV = _sbn.RV
 RV_DSPK = _sbn.RV_DSPK
 
-# -- INDEX --
+# -- INDICES --
 RGI = _idx.RGI
 NDVI = _idx.NDVI
 TCBRI = _idx.TCBRI
@@ -138,6 +138,19 @@ WV_WI = _idx.WV_WI
 WV_VI = _idx.WV_VI
 WV_SI = _idx.WV_SI
 WV_BI = _idx.WV_BI
+SI = _idx.SI
+GVMI = _idx.GVMI
+SBI = _idx.SBI
+SCI = _idx.SCI
+PANI = _idx.PANI
+GRI = _idx.GRI
+SAVI = _idx.SAVI
+OSAVI = _idx.OSAVI
+VARI = _idx.VARI
+EVI = _idx.EVI
+CI1 = _idx.CI1
+CI2 = _idx.CI2
+NDMI21 = _idx.NDMI21
 
 # -- DEM --
 DEM = _dem.DEM

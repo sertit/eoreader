@@ -60,8 +60,15 @@ autodoc_default_options = {
 jupyter_execute_notebooks = "cache"
 execution_timeout = -1
 
+# Merge stderr and stdout
+nb_merge_streams = True
+
 # This is going to generate a banner on top of each notebook
 nbsphinx_prolog = ""
+
+# Signature noise
+python_use_unqualified_type_names = True
+autodoc_typehints_format = "short"
 
 # sphinx-copybutton configurations
 copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "

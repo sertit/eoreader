@@ -23,8 +23,8 @@ but they have not been tested.
 >>> output = os.path.abspath('.')
 
 >>> # Create the reader singleton
->>> eoreader = Reader()
->>> prod = eoreader.open(path, output_path=output, remove_tmp=True)
+>>> reader = Reader()
+>>> prod = reader.open(path, output_path=output, remove_tmp=True)
 >>> # remove_tmp allows you to automatically delete processing files 
 >>> # such as cleaned or orthorectified bands when the product is deleted
 >>> # False by default to speed up the computation if you want to use the same product in several part of your code
@@ -33,43 +33,45 @@ but they have not been tested.
 >>> prod.output = os.path.join(output, prod.condensed_name)  # It will automatically create it if needed
 ```
 
+### Recognized paths
 
-### Optical
+**EOReader** always uses the directory containing the product files.
+Hereunder are the paths meant to be given to the reader.
 
-The recognized paths for products directories are:
-
-|Sensor group | Folder to link|
-|--- | ---|
-|Sentinel 2 and 3 | Main directory, `.SAFE`, `.SEN3` or `.zip`,<br>i.e. `S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE`|
-|Sentinel 2 Theia | Main directory containing the `.tif` images,<br>i.e. `SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2`|
-|Landsats| Main directory extracted or archived if Collection 2 (`.tar`),<br>i.e. `LC08_L1TP_200030_20201220_20210310_02_T1.tar`|
-|Planet | Directory containing the `manifest.json` file,<br>i.e. `20210406_015904_37_2407`|
-|DIMAP<br>(Pleiades, SPOTs, Vision-1, ...) | Directory containing the `.JP2` files,<br>i.e. `IMG_PHR1B_PMS_001`|
-|Maxar<br>(WorldView, GeoEye...) | Directory containing the `.TIL` file,<br>i.e. `013187549010_01_P001_PSH`|
-
-### SAR
-
-The recognized paths for products directories are:
+#### Optical
 
 |Sensor group | Folder to link|
 |--- | ---|
-|Sentinel-1<br>RADARSAT-Constellation Mission | SAFE directory containing the `manifest.safe` file,<br>i.e. `S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.SAFE`|
-|COSMO-Skymed 1 and 2nd Gen | Directory containing the `.h5` image,<br>i.e. `1011117-766193`|
-|RADARSAT-2 | Main directory containing the `.tif` image,<br>i.e. `RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip`|
-|TerraSAR-X<br>TanDEM-X<br>PAZ SAR| Directory containing the `IMAGEDATA` directory,<br>i.e. `TDX1_SAR__MGD_SE___SM_S_SRA_20201016T231611_20201016T231616`|
-|ICEYE| Directory containing the `.tif` file,<br>i.e. `SC_124020`|
-|SAOCOM | Directory containing the `.xemt` **AND** the `.zip` files,<br>i.e. `11245-EOL1CSARSAO1A198523`|
+|`Sentinel-2 and 3` | Main directory, `.SAFE`, `.SEN3` or `.zip`,<br>i.e. `S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE`|
+|`Sentinel-2 Theia` | Main directory containing the `.tif` images,<br>i.e. `SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2`|
+|`Landsats`| Main directory extracted or archived if Collection 2 (`.tar`),<br>i.e. `LC08_L1TP_200030_20201220_20210310_02_T1.tar`|
+|`PlanetScope` | Directory containing the `manifest.json` file,<br>i.e. `20210406_015904_37_2407`|
+|`DIMAP`<br>(Pleiades, SPOTs,<br>Vision-1, ...) | Directory containing the `.JP2` files,<br>i.e. `IMG_PHR1B_PMS_001`|
+|`Maxar`<br>(WorldViews,<br>GeoEye...) | Directory containing the `.TIL` file,<br>i.e. `013187549010_01_P001_PSH`|
+
+#### SAR
+
+|Sensor group | Folder to link|
+|--- | ---|
+|`Sentinel-1`<br>`RADARSAT-Constellation` | SAFE directory containing the `manifest.safe` file,<br>i.e. `S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.SAFE`|
+|`COSMO-Skymed`<br>1st and 2nd Gen | Directory containing the `.h5` image,<br>i.e. `1011117-766193`|
+|`RADARSAT-2` | Main directory containing the `.tif` image,<br>i.e. `RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip`|
+|`TerraSAR-X`<br>`TanDEM-X`<br>`PAZ SAR`| Directory containing the `IMAGEDATA` directory,<br>i.e. `TDX1_SAR__MGD_SE___SM_S_SRA_20201016T231611_20201016T231616`|
+|`ICEYE`| Directory containing the `.tif` file,<br>i.e. `SC_124020`|
+|`SAOCOM` | Directory containing the `.xemt` **AND** the `.zip` files,<br>i.e. `11245-EOL1CSARSAO1A198523`|
 
 ## Load
 
 {meth}`~eoreader.products.product.Product.load` is the function for accessing product-related bands.
 It can load satellite bands, index, DEM bands and cloud bands according to this workflow:
-![load_workflow](https://zupimages.net/up/21/14/vtnc.png)
+![load_workflow](https://zupimages.net/up/22/12/9mz0.png)
 
 ```python
 >>> import os
 >>> from eoreader.reader import Reader
 >>> from eoreader.bands import *
+>>> import os
+>>> from eoreader.env_vars import DEM_PATH
 
 >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip"
 >>> output = os.path.abspath("./output")
@@ -78,8 +80,6 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 >>> prod = Reader().open(path, output_path=output)
 
 >>>  # Specify a DEM to load DEM bands
->>> import os
->>> from eoreader.env_vars import DEM_PATH
 >>> os.environ[DEM_PATH] = r"my_dem.tif"
 
 >>> # Get the wanted bands and check if the product can produce them
@@ -89,7 +89,7 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 >>> # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
 
 >>> # Load bands
->>> bands = prod.load(ok_bands)  # resolution not specified -> load at default resolution (20.0 m for S2 data)
+>>> bands = prod.load(ok_bands, resolution=20.)  # if resolution is not specified -> load at default resolution (10.0 m for S2 data)
 >>> # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
 >>> # (important for DEM data as they may have different grids)
 
@@ -174,7 +174,7 @@ Some additional arguments can be passed to this function, please see {meth}`~eor
 It is based on the load function and then just stacks the bands and write it on disk if needed.
 
 The bands are ordered as asked in the stack.
-However, they cannot be duplicated (the stack cannot contain 2 RED bands for instance)!
+However, they cannot be duplicated (the stack cannot contain 2 `RED` bands for instance)!
 If the same band is asked several time, its order will be the one of the last demand.
 
 ```python
@@ -283,6 +283,17 @@ This is what you will have when calling this function:
 - `track_offset` (`SLSTR` only)
 ```
 
+## Plot
+If a quicklook exists, the user can plot the product.
+Always existing for VHR and SAR data, more rarely for other optical sensors.
+See [Optical](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html) and [SAR](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html) tutorials for examples.
+
+```python
+>>> # Plot product
+>>> prod.plot()
+```
+
+
 ## Other features
 
 ### CRS
@@ -316,11 +327,33 @@ Please note the difference between `footprint` and `extent`:
 | ![without_nodata](https://zupimages.net/up/21/14/69i6.gif) | ![with_nodata](https://zupimages.net/up/21/14/vg6w.gif) |
 
 ### Solar angles
-Get product azimuth (between [0, 360] degrees) and 
+
+Get optical product azimuth (between [0, 360] degrees) and
 [zenith solar angles](https://en.wikipedia.org/wiki/Solar_zenith_angle), useful for computing the Hillshade for example.
 
 ```python
->>> # Get azimuth and zenith solar angles
->>> prod.get_mean_sun_angles()
+>> >  # Get azimuth and zenith solar angles
+>> > prod.get_mean_sun_angles()
 (151.750970396115, 35.4971906983449)
+```
+
+### Cloud Cover
+
+Get optical product cloud cover as specified in the metadata
+
+```python
+>> >  # Get cloud cover
+>> > prod.get_cloud_cover()
+55.5
+```
+
+### Orbit direction
+
+Get product optical direction (useful especially for SAR data), as a {meth}`~eoreader.product.OrbitDirection` (`ASCENDING` or `DESCENDING`).
+Always specified in the metadata for SAR sensors, set to `DESCENDING` by default for optical data if not existing.
+
+```python
+>> >  # Get orbit direction
+>> > prod.get_orbit_direction()
+< OrbitDirection.DESCENDING: 'DESCENDING' >
 ```

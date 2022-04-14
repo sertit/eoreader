@@ -28,14 +28,14 @@ import geopandas as gpd
 import numpy as np
 import rasterio
 import rioxarray
+import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs
 from rasterio.enums import Resampling
 from sertit import files, misc, rasters, snap, strings, vectors
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
-from eoreader import cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import BandNames
 from eoreader.bands import SarBandNames as sbn
 from eoreader.bands import (
@@ -163,6 +163,7 @@ class SarProduct(Product):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
         self.sar_prod_type = None
         """SAR product type, either Single Look Complex or Ground Range"""
@@ -173,17 +174,19 @@ class SarProduct(Product):
         self.pol_channels = None
         """Polarization Channels stored in the current product"""
 
+        self.snap_filename = None
+        """Path used by SNAP to process this product"""
+
         # Private attributes
         self._band_folder = None
-        self._snap_path = None
         self._raw_band_regex = None
         self._snap_no_data = 0
         self._raw_no_data = 0
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path, remove_tmp)
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -192,7 +195,7 @@ class SarProduct(Product):
         self.sensor_type = SensorType.SAR
         self.band_names = SarBands()
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting product-type, band names and so on)
@@ -200,7 +203,7 @@ class SarProduct(Product):
         self._set_sensor_mode()
         self.pol_channels = self._get_raw_bands()
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
@@ -210,7 +213,7 @@ class SarProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
@@ -281,7 +284,7 @@ class SarProduct(Product):
 
         return band_path[default_band]
 
-    @cached_property
+    @cache
     @abstractmethod
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
@@ -293,7 +296,7 @@ class SarProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent
+            >>> prod.wgs84_extent()
                                    Name  ...                                           geometry
             0  Sentinel-1 Image Overlay  ...  POLYGON ((0.85336 42.24660, -2.32032 42.65493,...
             [1 rows x 12 columns]
@@ -304,7 +307,7 @@ class SarProduct(Product):
         """
         raise NotImplementedError
 
-    @cached_property
+    @cache
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -323,7 +326,7 @@ class SarProduct(Product):
             gpd.GeoDataFrame: Footprint in UTM
         """
         # Get WGS84 extent
-        extent_wgs84 = self.wgs84_extent
+        extent_wgs84 = self.wgs84_extent()
 
         # Get upper-left corner and deduce UTM proj from it
         utm = vectors.corresponding_utm_projection(
@@ -333,7 +336,7 @@ class SarProduct(Product):
 
         return extent
 
-    @cached_property
+    @cache
     def crs(self) -> crs.CRS:
         """
         Get UTM projection
@@ -350,7 +353,7 @@ class SarProduct(Product):
             crs.CRS: CRS object
         """
         # Get WGS84 extent
-        extent_wgs84 = self.wgs84_extent
+        extent_wgs84 = self.wgs84_extent()
 
         # Get upper-left corner and deduce UTM proj from it
         crs_str = vectors.corresponding_utm_projection(
@@ -544,7 +547,7 @@ class SarProduct(Product):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -558,7 +561,7 @@ class SarProduct(Product):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
 
         """
         return utils.read(
@@ -753,7 +756,7 @@ class SarProduct(Product):
                         )
                         if self.path.is_dir():
                             prod_path = os.path.join(
-                                tmp_dir, self.path.name, self._snap_path
+                                tmp_dir, self.path.name, self.snap_filename
                             )
                             self.path.download_to(os.path.join(tmp_dir, self.path.name))
                         else:
@@ -761,7 +764,7 @@ class SarProduct(Product):
                                 self.path.fspath
                             )  # In tmp file, no need to download_to
                     else:
-                        prod_path = self.path.joinpath(self._snap_path)
+                        prod_path = self.path.joinpath(self.snap_filename)
 
                     # Create SNAP CLI
                     cmd_list = snap.get_gpt_cli(
@@ -771,7 +774,7 @@ class SarProduct(Product):
                             f"-Pcalib_pola={strings.to_cmd_string(band.name)}",
                             f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
                             f"-Pdem_path={strings.to_cmd_string(dem_path)}",
-                            f"-Pcrs={self.crs}",
+                            f"-Pcrs={self.crs()}",
                             f"-Pres_m={res_m}",
                             f"-Pres_deg={res_deg}",
                             f"-Pout={strings.to_cmd_string(pp_dim)}",
@@ -934,3 +937,29 @@ class SarProduct(Product):
             str: Condensed name
         """
         return f"{self.get_datetime()}_{self.platform.name}_{self.sensor_mode.name}_{self.product_type.value}"
+
+    def _update_attrs_sensor_specific(
+        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+    ) -> xr.DataArray:
+        """
+        Update attributes of the given array (sensor specific)
+
+        Args:
+            xarr (xr.DataArray): Array whose attributes need an update
+            long_name (str): Array name (as a str or a list)
+        Returns:
+            xr.DataArray: Updated array
+        """
+
+        return xarr
+
+    def _to_repr_sensor_specific(self) -> list:
+        """
+        Representation specific to the sensor
+
+        Returns:
+            list: Representation list (sensor specific)
+        """
+        return [
+            f"\torbit direction: {self.get_orbit_direction().value}",
+        ]

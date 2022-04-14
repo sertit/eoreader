@@ -6,7 +6,7 @@ import tempfile
 import xarray as xr
 from cloudpathlib import AnyPath
 from lxml import etree
-from sertit import files
+from sertit import ci, files
 
 from CI.SCRIPTS.scripts_utils import (
     CI_EOREADER_S3,
@@ -16,7 +16,6 @@ from CI.SCRIPTS.scripts_utils import (
     get_db_dir,
     get_db_dir_on_disk,
     opt_path,
-    reduce_verbosity,
 )
 from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT, SAR_DEF_RES, TEST_USING_S3_DB
@@ -26,7 +25,7 @@ from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
 
-reduce_verbosity()
+ci.reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -172,8 +171,8 @@ def _test_core(
                 first_band = stack_bands[0]
 
                 # Geometric data
-                footprint = prod.footprint  # noqa
-                extent = prod.extent  # noqa
+                footprint = prod.footprint()  # noqa
+                extent = prod.extent()  # noqa
 
                 # Get stack bands
                 # Stack data
@@ -209,12 +208,12 @@ def _test_core(
                 prod.get_existing_band_paths()  # noqa
 
                 # Check if possible to load narrow nir, without checking result
-                if isinstance(prod, S2Product) and not prod._processing_baseline_lt_4_0:
+                if isinstance(prod, S2Product) and not prod._processing_baseline < 4.0:
                     prod.load(NARROW_NIR)
 
                 # CRS
                 LOGGER.info("Checking CRS")
-                assert prod.crs.is_projected
+                assert prod.crs().is_projected
 
                 # MTD
                 LOGGER.info("Checking Mtd")

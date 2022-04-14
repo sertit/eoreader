@@ -30,16 +30,16 @@ import affine
 import geopandas as gpd
 import numpy as np
 import rasterio
+import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from rasterio import rpc, transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
-from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 from shapely.geometry import box
 
-from eoreader import cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands.bands import BandNames
 from eoreader.env_vars import DEM_PATH
 from eoreader.exceptions import InvalidProductError
@@ -63,6 +63,7 @@ class VhrProduct(OpticalProduct):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
         self.ortho_path = None
         """
@@ -78,7 +79,7 @@ class VhrProduct(OpticalProduct):
         self._order_id = None
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path, remove_tmp)
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
@@ -116,7 +117,7 @@ class VhrProduct(OpticalProduct):
         """
         raise NotImplementedError
 
-    @cached_property
+    @cache
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -135,9 +136,9 @@ class VhrProduct(OpticalProduct):
         """
         def_tr, def_w, def_h, def_crs = self.default_transform()
         bounds = transform.array_bounds(def_h, def_w, def_tr)
-        return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs).to_crs(self.crs)
+        return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs).to_crs(self.crs())
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -147,7 +148,7 @@ class VhrProduct(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                                                          gml_id  ...                                           geometry
             0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
             [1 rows x 3 columns]
@@ -157,7 +158,7 @@ class VhrProduct(OpticalProduct):
         """
         # Get footprint
         # TODO: Optimize that
-        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs)
+        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs())
 
     def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
@@ -243,7 +244,7 @@ class VhrProduct(OpticalProduct):
                 band_paths[band] = clean_band
             else:
                 # First look for reprojected bands
-                reproj_path = self._create_utm_band_path(
+                reproj_path = self._get_utm_band_path(
                     band=band.name, resolution=resolution
                 )
                 if not reproj_path.is_file():
@@ -311,7 +312,7 @@ class VhrProduct(OpticalProduct):
             src_arr,
             rpcs=rpcs,
             src_crs=self._get_raw_crs(),
-            dst_crs=self.crs,
+            dst_crs=self.crs(),
             resolution=self.resolution,
             src_nodata=0,
             dst_nodata=0,  # input data should be in integer
@@ -328,7 +329,7 @@ class VhrProduct(OpticalProduct):
         meta["driver"] = "GTiff"
         meta["compress"] = "lzw"
         meta["nodata"] = 0
-        meta["crs"] = self.crs
+        meta["crs"] = self.crs()
         meta["width"] = width
         meta["height"] = height
         meta["count"] = count
@@ -349,7 +350,7 @@ class VhrProduct(OpticalProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -363,7 +364,7 @@ class VhrProduct(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
         """
         with rasterio.open(str(path)) as dst:
             dst_crs = dst.crs
@@ -373,14 +374,12 @@ class VhrProduct(OpticalProduct):
                 resolution = self._resolution_from_size(size)
 
             # Reproj path in case
-            reproj_path = self._create_utm_band_path(
-                band=band.name, resolution=resolution
-            )
+            reproj_path = self._get_utm_band_path(band=band.name, resolution=resolution)
 
             # Manage the case if we got a LAT LON product
             if not dst_crs.is_projected:
                 if not reproj_path.is_file():
-                    reproj_path = self._create_utm_band_path(
+                    reproj_path = self._get_utm_band_path(
                         band=band.name, resolution=resolution, writable=True
                     )
                     # Warp band if needed
@@ -392,7 +391,7 @@ class VhrProduct(OpticalProduct):
                     )
 
                 # Read band
-                band_xda = utils.read(
+                band_arr = utils.read(
                     reproj_path,
                     resolution=resolution,
                     size=size,
@@ -403,7 +402,7 @@ class VhrProduct(OpticalProduct):
             # Manage the case if we open a simple band (EOReader processed bands)
             elif dst.count == 1:
                 # Read band
-                band_xda = utils.read(
+                band_arr = utils.read(
                     path,
                     resolution=resolution,
                     size=size,
@@ -414,7 +413,7 @@ class VhrProduct(OpticalProduct):
             # Manage the case if we open a stack (native DIMAP bands)
             else:
                 # Read band
-                band_xda = utils.read(
+                band_arr = utils.read(
                     path,
                     resolution=resolution,
                     size=size,
@@ -423,23 +422,11 @@ class VhrProduct(OpticalProduct):
                     **kwargs,
                 )
 
-            # If nodata not set, set it here
-            if not band_xda.rio.encoded_nodata:
-                band_xda = rasters.set_nodata(band_xda, 0)
+        # Pop useless long name
+        if "long_name" in band_arr.attrs:
+            band_arr.attrs.pop("long_name")
 
-            # Compute the correct radiometry of the band
-            if dst.meta["dtype"] == "uint16":
-                band_xda /= 10000.0
-
-            # Pop useless long name
-            if "long_name" in band_xda.attrs:
-                band_xda.attrs.pop("long_name")
-
-            # To float32
-            if band_xda.dtype != np.float32:
-                band_xda = band_xda.astype(np.float32)
-
-        return band_xda
+        return band_arr
 
     def _load_bands(
         self,
@@ -476,8 +463,8 @@ class VhrProduct(OpticalProduct):
         return band_arrays
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: BandNames, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See
@@ -485,29 +472,33 @@ class VhrProduct(OpticalProduct):
         (unusable data mask) for more information.
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
-        # Do nothing
-        return band_arr
+        return self._manage_nodata(band_arr, band, **kwargs)
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: BandNames, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
-        # Do nothing
+        # If nodata not set, set it here
+        if not band_arr.rio.encoded_nodata:
+            band_arr = rasters.set_nodata(band_arr, 0)
+
         return band_arr
 
     def _get_condensed_name(self) -> str:
@@ -553,7 +544,7 @@ class VhrProduct(OpticalProduct):
 
         return path
 
-    def _create_utm_band_path(
+    def _get_utm_band_path(
         self,
         band: str,
         resolution: Union[float, tuple, list] = None,
@@ -611,7 +602,7 @@ class VhrProduct(OpticalProduct):
 
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
                 src.crs,
-                self.crs,
+                self.crs(),
                 src.width,
                 src.height,
                 *src.bounds,
@@ -627,7 +618,7 @@ class VhrProduct(OpticalProduct):
                 source=src.read(band_nb),
                 destination=out_arr,
                 src_crs=src.crs,
-                dst_crs=self.crs,
+                dst_crs=self.crs(),
                 src_transform=src.transform,
                 dst_transform=utm_tr,
                 src_nodata=0,
@@ -635,7 +626,7 @@ class VhrProduct(OpticalProduct):
                 num_threads=MAX_CORES,
             )
             meta["transform"] = utm_tr
-            meta["crs"] = self.crs
+            meta["crs"] = self.crs()
             meta["driver"] = "GTiff"
 
             rasters_rio.write(out_arr, meta, reproj_path)
@@ -681,13 +672,13 @@ class VhrProduct(OpticalProduct):
 
                 if not dst_crs.is_projected:
                     def_band = self.get_default_band()
-                    path = self._create_utm_band_path(
+                    path = self._get_utm_band_path(
                         band=def_band.name, resolution=resolution
                     )
 
                     # Warp band if needed
                     if not path.is_file():
-                        path = self._create_utm_band_path(
+                        path = self._get_utm_band_path(
                             band=def_band.name, resolution=resolution, writable=True
                         )
                         self._warp_band(

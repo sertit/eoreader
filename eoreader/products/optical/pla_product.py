@@ -16,8 +16,9 @@
 # limitations under the License.
 """
 PlanetScope products.
-See `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
-and `here <https://developers.planet.com/docs/data/planetscope/>`_
+See
+`Earth Online <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
+and `Planet documentation <https://developers.planet.com/docs/data/planetscope/>`_
 for more information.
 """
 import logging
@@ -28,20 +29,20 @@ from typing import Union
 
 import geopandas as gpd
 import numpy as np
-import xarray
+import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
 from sertit import files, rasters
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
+from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -184,7 +185,7 @@ class PlaProduct(OpticalProduct):
     The scaling factor to retrieve the calibrated radiance is 0.01.
     """
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -192,19 +193,21 @@ class PlaProduct(OpticalProduct):
         self.needs_extraction = False
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
         """
+        self._has_cloud_cover = True
+
         # Ortho Tiles
         if self.product_type == PlaProductType.L3A:
             self.tile_name = self.split_name[1]
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
     def _set_resolution(self) -> float:
         """
@@ -252,9 +255,7 @@ class PlaProduct(OpticalProduct):
         self.instrument = getattr(PlaInstrument, instrument.replace(".", "_"))
 
         # Manage bands of the product
-        nof_bands = len(
-            [band for band in root.iterfind(f".//{nsmap['ps']}bandSpecificMetadata")]
-        )
+        nof_bands = int(root.findtext(f".//{nsmap['ps']}numBands"))
         if nof_bands == 3:
             self.band_names.map_bands({obn.BLUE: 1, obn.GREEN: 2, obn.RED: 3})
         elif nof_bands == 4:
@@ -282,7 +283,7 @@ class PlaProduct(OpticalProduct):
                 f"Please check the validity of your product"
             )
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint of the products (without nodata, in french == emprise utile)
@@ -292,7 +293,7 @@ class PlaProduct(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
@@ -422,7 +423,7 @@ class PlaProduct(OpticalProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -436,11 +437,11 @@ class PlaProduct(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
 
         """
         # Read band
-        band_xda = utils.read(
+        band_arr = utils.read(
             path,
             resolution=resolution,
             size=size,
@@ -449,20 +450,57 @@ class PlaProduct(OpticalProduct):
             **kwargs,
         )
 
-        # Compute the correct radiometry of the band
-        original_dtype = band_xda.encoding.get("dtype", band_xda.dtype)
-        if original_dtype == "uint16":
-            band_xda /= 10000.0
+        # To float32
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
 
-        # Convert type if needed
-        if band_xda.dtype != np.float32:
-            band_xda = band_xda.astype(np.float32)
+        return band_arr
 
-        return band_xda
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Open identifier
+        refl_coef = None
+        for band_mtd in root.iterfind(f".//{nsmap['ps']}bandSpecificMetadata"):
+            if (
+                int(band_mtd.findtext(f".//{nsmap['ps']}bandNumber"))
+                == self.band_names[band]
+            ):
+                refl_coef = float(
+                    band_mtd.findtext(f".//{nsmap['ps']}reflectanceCoefficient")
+                )
+                break
+
+        if refl_coef is None:
+            raise InvalidProductError(
+                "Couldn't find any reflectanceCoefficient in the product metadata!"
+            )
+
+        # To reflectance
+        return band_arr * refl_coef
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See
@@ -470,12 +508,12 @@ class PlaProduct(OpticalProduct):
         (unusable data mask) for more information.
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Nodata
         no_data_mask = self._load_nodata(
@@ -499,17 +537,19 @@ class PlaProduct(OpticalProduct):
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Nodata
         no_data_mask = self._load_nodata(
@@ -721,7 +761,7 @@ class PlaProduct(OpticalProduct):
         mask_id: str,
         resolution: float = None,
         size: Union[list, tuple] = None,
-    ) -> Union[xarray.DataArray, None]:
+    ) -> Union[xr.DataArray, None]:
         """
         Open a Planet UDM2 (Usable Data Mask) mask, band by band, as a xarray.
         Returns None if the mask is not available.
@@ -790,7 +830,7 @@ class PlaProduct(OpticalProduct):
         self,
         resolution: float = None,
         size: Union[list, tuple] = None,
-    ) -> Union[xarray.DataArray, None]:
+    ) -> Union[xr.DataArray, None]:
         """
         Load nodata (unimaged pixels) as a numpy array.
 
@@ -844,3 +884,61 @@ class PlaProduct(OpticalProduct):
             )
 
         return path
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Get the cloud cover
+        try:
+            cc = float(root.findtext(f".//{nsmap['opt']}cloudCoverPercentage"))
+
+        except TypeError:
+            raise InvalidProductError("opt:cloudCoverPercentage not found in metadata!")
+
+        return cc
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Get the orbit direction
+        try:
+            od = OrbitDirection.from_value(
+                root.findtext(f".//{nsmap['eop']}orbitDirection")
+            )
+
+        except TypeError:
+            raise InvalidProductError("eop:orbitDirection not found in metadata!")
+
+        return od

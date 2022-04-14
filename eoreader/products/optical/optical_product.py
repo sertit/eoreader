@@ -17,6 +17,7 @@
 """ Super class for optical products """
 import logging
 from abc import abstractmethod
+from datetime import datetime
 from enum import unique
 from pathlib import Path
 from typing import Union
@@ -24,14 +25,14 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import rasterio
-from cloudpathlib import CloudPath
+import xarray as xr
+from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from sertit import files, rasters
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import (
@@ -45,8 +46,8 @@ from eoreader.bands import (
     to_str,
 )
 from eoreader.exceptions import InvalidBandError, InvalidIndexError
-from eoreader.keywords import CLEAN_OPTICAL
-from eoreader.products.product import Product, SensorType
+from eoreader.keywords import CLEAN_OPTICAL, TO_REFLECTANCE
+from eoreader.products.product import OrbitDirection, Product, SensorType
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -80,7 +81,20 @@ DEF_CLEAN_METHOD = CleanMethod.NODATA
 class OpticalProduct(Product):
     """Super class for optical products"""
 
-    def _pre_init(self) -> None:
+    def __init__(
+        self,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
+        remove_tmp: bool = False,
+        **kwargs,
+    ) -> None:
+        self._has_cloud_cover = False
+
+        # Initialization from the super class
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -90,7 +104,7 @@ class OpticalProduct(Product):
             self.band_names = OpticalBands()
         self.sensor_type = SensorType.OPTICAL
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
@@ -134,7 +148,7 @@ class OpticalProduct(Product):
         default_band = self.get_default_band()
         return self.get_band_paths([default_band], **kwargs)[default_band]
 
-    @cached_property
+    @cache
     def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
@@ -144,7 +158,7 @@ class OpticalProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.crs
+            >>> prod.crs()
             CRS.from_epsg(32630)
 
         Returns:
@@ -156,7 +170,7 @@ class OpticalProduct(Product):
 
         return utm
 
-    @cached_property
+    @cache
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -166,7 +180,7 @@ class OpticalProduct(Product):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.extent
+            >>> prod.extent()
                                                         geometry
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
@@ -174,7 +188,7 @@ class OpticalProduct(Product):
             gpd.GeoDataFrame: Footprint in UTM
         """
         # Get extent
-        return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs)
+        return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
 
     def get_existing_bands(self) -> list:
         """
@@ -227,6 +241,27 @@ class OpticalProduct(Product):
         existing_bands = self.get_existing_bands()
         return self.get_band_paths(band_list=existing_bands)
 
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
+        raise NotImplementedError
+
     def _open_bands(
         self,
         band_paths: dict,
@@ -255,14 +290,20 @@ class OpticalProduct(Product):
             band_arr = self._read_band(
                 band_path, band=band, resolution=resolution, size=size, **kwargs
             )
-            # Write on disk in order not to reprocess band everytime
-            # (invalid pix management can be time consuming)
-            if (
-                not str(band_path).endswith(f"{CleanMethod.RAW.value}.tif")
-                and not str(band_path).endswith(f"{CleanMethod.CLEAN.value}.tif")
-                and not str(band_path).endswith(f"{CleanMethod.NODATA.value}.tif")
-            ):
-                # Manage invalid pixels
+
+            if not resolution:
+                resolution = band_arr.rio.resolution()[0]
+            clean_band_path = self._get_clean_band_path(
+                band, resolution=resolution, writable=True, **kwargs
+            )
+            # If raw data, clean it !
+            if AnyPath(band_path).name != clean_band_path.name:
+                # Manage reflectance
+                if kwargs.get(TO_REFLECTANCE, True):
+                    LOGGER.debug(f"Converting {band.name} to reflectance")
+                    band_arr = self._to_reflectance(band_arr, band_path, band)
+
+                # Clean pixels
                 cleaning_method = CleanMethod.from_value(
                     kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
                 )
@@ -276,20 +317,16 @@ class OpticalProduct(Product):
                     band_arr = self._manage_invalid_pixels(
                         band_arr, band=band, **kwargs
                     )
+                band_arr.attrs["cleaning_method"] = cleaning_method.value
 
                 # Write on disk
                 try:
-                    if not resolution:
-                        resolution = band_arr.rio.resolution()[0]
-                    clean_band_path = self._get_clean_band_path(
-                        band, resolution=resolution, writable=True, **kwargs
-                    )
                     utils.write(
                         band_arr.rename(f"{to_str(band)[0]} CLEAN"), clean_band_path
                     )
                 except Exception:
                     # Not important if we cannot write it
-                    pass
+                    LOGGER.debug(f"Cannot write {clean_band_path} on disk.")
 
             # Save band array
             band_arrays[band] = band_arr
@@ -297,48 +334,76 @@ class OpticalProduct(Product):
         return band_arrays
 
     @abstractmethod
-    def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+    def _read_band(
+        self,
+        path: Union[CloudPath, Path],
+        band: BandNames = None,
+        resolution: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> xr.DataArray:
         """
-        Manage invalid pixels (Nodata, saturated, defective...)
+        Read band from disk.
+
+        .. WARNING::
+            Invalid pixels are not managed here
 
         Args:
-            band_arr (XDS_TYPE): Band array
-            band (obn): Band name as an OpticalBandNames
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
-
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Band xarray
         """
         raise NotImplementedError
 
     @abstractmethod
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_invalid_pixels(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
-        Manage only nodata pixels
+        Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
+        """
+        Manage only nodata pixels
+
+        Args:
+            band_arr (xr.DataArray): Band array
+            band (obn): Band name as an OpticalBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            xr.DataArray: Cleaned band array
         """
         raise NotImplementedError
 
     @staticmethod
-    def _set_nodata_mask(band_arr: XDS_TYPE, mask: np.ndarray) -> XDS_TYPE:
+    def _set_nodata_mask(band_arr: xr.DataArray, mask: np.ndarray) -> xr.DataArray:
         """
         Create the correct xarray with well positioned nodata
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             mask (np.ndarray): Mask array
 
         Returns:
-            (XDS_TYPE): Corrected band array
+            (xr.DataArray): Corrected band array
         """
         # Binary mask
         if mask.dtype != np.uint8:
@@ -418,7 +483,7 @@ class OpticalProduct(Product):
 
         # Compute index (they conserve the nodata)
         if index_list:
-            LOGGER.debug(f"Loading index {to_str(index_list)}")
+            LOGGER.debug(f"Loading indices {to_str(index_list)}")
         bands_dict = {idx: idx(bands) for idx in index_list}
 
         # Add bands
@@ -576,18 +641,18 @@ class OpticalProduct(Product):
         return band_dict
 
     def _create_mask(
-        self, xds: XDS_TYPE, cond: np.ndarray, nodata: np.ndarray
-    ) -> XDS_TYPE:
+        self, xds: xr.DataArray, cond: np.ndarray, nodata: np.ndarray
+    ) -> xr.DataArray:
         """
         Create a mask from a conditional array and a nodata mask.
 
         Args:
-            xds (XDS_TYPE): xarray to retrieve attributes
+            xds (xr.DataArray): xarray to retrieve attributes
             cond (np.ndarray): Conditional array
             nodata (np.ndarray): Nodata mask
 
         Returns:
-            XDS_TYPE: Mask as xarray
+            xr.DataArray: Mask as xarray
         """
         mask = xds.copy(data=np.where(cond, self._mask_true, self._mask_false))
         mask = mask.where(nodata == 0)
@@ -617,8 +682,11 @@ class OpticalProduct(Product):
 
         res_str = self._resolution_to_str(resolution)
 
+        # Radiometric processing
+        rad_proc = "" if kwargs.get(TO_REFLECTANCE, True) else "_as_is"
+
         return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{cleaning_method.value}.tif",
+            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{cleaning_method.value}{rad_proc}.tif",
         )
 
     def _get_cloud_band_path(
@@ -654,3 +722,103 @@ class OpticalProduct(Product):
         return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}.tif",
         )
+
+    @cache
+    def _sun_earth_distance_variation(self) -> float:
+        """
+        Correction for the Sun-Earth distance variation
+
+        It utilises the inverse square law of irradiance, under which,
+        the intensity (or irradiance) of light radiating from a point source is inversely proportional to the square of the distance from the source.
+
+         - t is the Julian Day corresponding to the acquisition date (reference day: 01/01/1950).
+         - 0.01673 is the Earth orbit eccentricity.
+         - 0.0172 is the Earth angular velocity (radians/day).
+
+        See `here <https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-2-msi/level-1c/algorithm>`_ for more information.
+
+        Returns:
+            float: Sun-Earth distance variation
+        """
+        # julian_date is the Julian Day corresponding to the acquisition date (reference day: 01/01/1950).
+        ref_julian_date = datetime(year=1950, month=1, day=1)
+        julian_date = (self.date - ref_julian_date).days + 1
+
+        # Compute Sun-Earth distance variation
+        return 1 / (1 - 0.01673 * np.cos(0.0172 * (julian_date - 2))) ** 2
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+        LOGGER.warning(f"No cloud cover available for {self.platform.value} data !")
+        return 0.0
+
+    def _update_attrs_sensor_specific(
+        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+    ) -> xr.DataArray:
+        """
+        Update attributes of the given array (sensor specific)
+
+        Args:
+            xarr (xr.DataArray): Array whose attributes need an update
+            long_name (str): Array name (as a str or a list)
+        Returns:
+            xr.DataArray: Updated array
+        """
+        if kwargs.get(TO_REFLECTANCE, True):
+            xarr.attrs["radiometry"] = "reflectance"
+        else:
+            xarr.attrs["radiometry"] = "as is"
+
+        if self._has_cloud_cover:
+            xarr.attrs["cloud_cover"] = self.get_cloud_cover()
+
+        return xarr
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        # All optical satellite are descending by default
+        return OrbitDirection.DESCENDING
+
+    def _to_repr_sensor_specific(self) -> list:
+        """
+        Representation specific to the sensor
+
+        Returns:
+            list: Representation list (sensor specific)
+        """
+        repr = []
+        if self._has_cloud_cover:
+            repr.append(f"\tcloud cover: {self.get_cloud_cover()}")
+
+        if self.tile_name is not None:
+            repr.append(f"\ttile name: {self.tile_name}")
+
+        return repr

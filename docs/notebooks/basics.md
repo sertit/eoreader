@@ -5,6 +5,7 @@
    :caption: Basics
 
    base
+   optical
    SAR
    VHR
 ```
