@@ -42,6 +42,6 @@ class InvalidProductError(EoReaderError):
 
 
 class InvalidTypeError(EoReaderError, TypeError):
-    """Tile Name error, thrown when an unknown type is given (shouldn't never happen)."""
+    """Invalid Type Name error, thrown when an unknown type is given (shouldn't never happen)."""
 
     pass
