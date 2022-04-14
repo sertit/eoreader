@@ -283,6 +283,17 @@ This is what you will have when calling this function:
 - `track_offset` (`SLSTR` only)
 ```
 
+## Plot
+If a quicklook exists, the user can plot the product.
+Always existing for VHR and SAR data, more rarely for other optical sensors.
+See [Optical](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html) and [SAR](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html) tutorials for examples.
+
+```python
+>>> # Plot product
+>>> prod.plot()
+```
+
+
 ## Other features
 
 ### CRS
@@ -316,11 +327,33 @@ Please note the difference between `footprint` and `extent`:
 | ![without_nodata](https://zupimages.net/up/21/14/69i6.gif) | ![with_nodata](https://zupimages.net/up/21/14/vg6w.gif) |
 
 ### Solar angles
-Get product azimuth (between [0, 360] degrees) and 
+
+Get optical product azimuth (between [0, 360] degrees) and
 [zenith solar angles](https://en.wikipedia.org/wiki/Solar_zenith_angle), useful for computing the Hillshade for example.
 
 ```python
->>> # Get azimuth and zenith solar angles
->>> prod.get_mean_sun_angles()
+>> >  # Get azimuth and zenith solar angles
+>> > prod.get_mean_sun_angles()
 (151.750970396115, 35.4971906983449)
+```
+
+### Cloud Cover
+
+Get optical product cloud cover as specified in the metadata
+
+```python
+>> >  # Get cloud cover
+>> > prod.get_cloud_cover()
+55.5
+```
+
+### Orbit direction
+
+Get product optical direction (useful especially for SAR data), as a {meth}`~eoreader.product.OrbitDirection` (`ASCENDING` or `DESCENDING`).
+Always specified in the metadata for SAR sensors, set to `DESCENDING` by default for optical data if not existing.
+
+```python
+>> >  # Get orbit direction
+>> > prod.get_orbit_direction()
+< OrbitDirection.DESCENDING: 'DESCENDING' >
 ```

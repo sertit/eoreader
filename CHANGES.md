@@ -6,7 +6,7 @@
 
 - **BREAKING CHANGES: `footprint`, `extent`, `wgs84_extent` and `crs` properties are converted back to methods in order to prevent side effects of expensive computation when displaying the object when debugging (rollback before version 0.8.0)**
 - **BREAKING CHANGES: `get_all_index` becomes `get_all_indices`**
-- **BREAKING CHANGES: `acquisition_datetime` becomes `datetime` and `default_resolution`becomes `resolution` for `CustomProduct` in accepted keywards, and the metadata fields have been renamed according to the `CustomFields` enum**
+- **BREAKING CHANGES: `acquisition_datetime` becomes `datetime` and `default_resolution`becomes `resolution` for `CustomProduct` in accepted keywords, and the metadata fields have been renamed according to the `CustomFields` enum**
 
 ### Enhancements
 

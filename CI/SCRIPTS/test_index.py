@@ -29,17 +29,11 @@ def test_index():
     prod = READER.open(s2_path)
     failed_idx = []
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # tmp_dir = os.path.join("/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT")
+        # tmp_dir = os.path.join("/mnt", "ds2_db3", "CI", "eoreader", "DATA", "INDEX")
         prod.output = os.path.join(tmp_dir, prod.condensed_name)
 
         # Load every index
         LOGGER.info("Load all indices")
-        logging.getLogger("boto3").setLevel(
-            logging.WARNING
-        )  # BOTO has way too much verbosity
-        logging.getLogger("botocore").setLevel(
-            logging.WARNING
-        )  # BOTO has way too much verbosity
         idx_list = [idx for idx in get_all_indices() if prod.has_band(idx)]
         idx = prod.load(idx_list, resolution=RES)
 

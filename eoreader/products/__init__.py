@@ -18,12 +18,9 @@
 SAR and Optical products
 """
 # flake8: noqa
-__all__ = [
-    "Product",
-    "SensorType",
-]
+__all__ = ["Product", "SensorType", "OrbitDirection"]
 
-from .product import Product, SensorType
+from .product import Product, SensorType, OrbitDirection
 
 __all__ += [
     "CustomProduct",
