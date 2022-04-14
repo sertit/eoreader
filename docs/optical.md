@@ -194,28 +194,36 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 |{meth}`~eoreader.bands.index.BSI` | `BLUE`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.CIG` | `GREEN`, `NIR` | All optical sensors|
 |{meth}`~eoreader.bands.index.DSWI` | `GREEN`, `RED`, `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|{meth}`~eoreader.bands.index.VARI` | `NIR`, `RED`, `BLUE` | All optical sensors except for Landsat MSS|
 |{meth}`~eoreader.bands.index.GLI` | `GREEN`, `RED`, `BLUE` | All optical sensors except for Landsat MSS|
 |{meth}`~eoreader.bands.index.GNDVI` | `GREEN`, `NIR` | All optical sensors|
 |{meth}`~eoreader.bands.index.GVMI` | `NIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|{meth}`~eoreader.bands.index.GRI` | `GREEN`, `RED` | All optical sensors|
 |{meth}`~eoreader.bands.index.MNDWI` | `GREEN`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
-|{meth}`~eoreader.bands.index.NBR` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|{meth}`~eoreader.bands.index.NBR` | `NIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.NDGRI` | `GREEN`, `RED` | All optical sensors|
 |{meth}`~eoreader.bands.index.NDMI` | `NIR`, `SWIR_1` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|{meth}`~eoreader.bands.index.NDMI` | `NIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.NDRE2` | `NIR`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
 |{meth}`~eoreader.bands.index.NDRE3` | `NIR`, `VRE_2` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS|
+|{meth}`~eoreader.bands.index.CI1` | `VRE_3`, `VRE_2` | Sentinel-2, Sentinel-3 OLCI|
+|{meth}`~eoreader.bands.index.CI2` | `VRE_2`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI|
 |{meth}`~eoreader.bands.index.NDVI` | `RED`, `NIR` | All optical sensors|
 |{meth}`~eoreader.bands.index.NDWI` | `GREEN`, `NIR` | All optical sensors|
+|{meth}`~eoreader.bands.index.OSAVI` | `RED`, `NIR` | All optical sensors|
 |{meth}`~eoreader.bands.index.PANI` | `RED`, `GREEN`, `BLUE` | All optical sensors except for Landsat MSS|
-|{meth}`~eoreader.bands.index.RDI` | `NNIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|{meth}`~eoreader.bands.index.RDI` | `NIR`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.RGI` | `GREEN`, `RED` | All optical sensors|
 |{meth}`~eoreader.bands.index.RI` | `GREEN`, `VRE_1` | Sentinel-2, Sentinel-3 OLCI, Landsat MSS, PlanetScope (5 bands), WorldView-2/3 (8 bands), Pleiades-Neo (full) |
 |{meth}`~eoreader.bands.index.SBI` | `RED`, `NIR` | All optical sensors|
+|{meth}`~eoreader.bands.index.SAVI` | `RED`, `NIR` | All optical sensors|
 |{meth}`~eoreader.bands.index.SCI` | `RED`, `GREEN` | All optical sensors|
 |{meth}`~eoreader.bands.index.SI` | `GREEN`, `RED` | All optical sensors|
 |{meth}`~eoreader.bands.index.SRSWIR` | `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCBRI` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCGRE` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.TCWET` | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
+|{meth}`~eoreader.bands.index.VARI` | `GREEN`, `RED`, `BLUE` | All optical sensors except for Landsat MSS|
 |{meth}`~eoreader.bands.index.WI` | `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM|
 |{meth}`~eoreader.bands.index.WV_BI` | `VRE_1`, `CA` | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, WorldView-2/3 (8 bands), Pleiades-Neo (full)|
 |{meth}`~eoreader.bands.index.WV_SI` | `YELLOW`, `GREEN` | Sentinel-3 OLCI, WorldView-2/3 (8 bands)|

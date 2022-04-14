@@ -143,6 +143,14 @@ GVMI = _idx.GVMI
 SBI = _idx.SBI
 SCI = _idx.SCI
 PANI = _idx.PANI
+GRI = _idx.GRI
+SAVI = _idx.SAVI
+OSAVI = _idx.OSAVI
+VARI = _idx.VARI
+EVI = _idx.EVI
+CI1 = _idx.CI1
+CI2 = _idx.CI2
+NDMI21 = _idx.NDMI21
 
 # -- DEM --
 DEM = _dem.DEM
