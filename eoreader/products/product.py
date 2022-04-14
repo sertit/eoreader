@@ -1706,7 +1706,7 @@ class Product:
 
         return res_str
 
-    def to_repr(self) -> list:
+    def _to_repr(self) -> list:
         """
         Returns a representation of the product as a list
 
@@ -1748,7 +1748,7 @@ class Product:
         raise NotImplementedError
 
     def __repr__(self):
-        return "\n".join(self.to_repr())
+        return "\n".join(self._to_repr())
 
     def get_quicklook_path(self) -> Union[None, str]:
         """
