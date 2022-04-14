@@ -17,11 +17,11 @@
 """
 **EOReader** library
 """
-__version__ = "0.13.1"
+__version__ = "0.14.0"
 __title__ = "eoreader"
 __description__ = (
     "Remote-sensing opensource python library reading optical and SAR sensors, "
-    "loading and stacking bands, clouds, DEM and index in a sensor-agnostic way."
+    "loading and stacking bands, clouds, DEM and spectral indices in a sensor-agnostic way."
 )
 __author__ = "ICube-SERTIT"
 __author_email__ = "dev-sertit@unistra.fr"

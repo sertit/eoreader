@@ -6,7 +6,7 @@ import pytest
 import tempenv
 import xarray as xr
 from cloudpathlib import AnyPath, S3Client
-from sertit import files
+from sertit import ci, files
 
 from eoreader import utils
 from eoreader.bands import *
@@ -26,6 +26,8 @@ from .scripts_utils import (
     s3_env,
     sar_path,
 )
+
+ci.reduce_verbosity()
 
 
 @pytest.mark.xfail

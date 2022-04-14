@@ -17,7 +17,18 @@
 """ Additional keywords for EOReader used in :code:`load` or  :code:`stack`"""
 import sys
 
-__all__ = ["SLSTR_RAD_ADJUST", "SLSTR_STRIPE", "SLSTR_VIEW", "CLEAN_OPTICAL"]
+__all__ = [
+    "SLSTR_RAD_ADJUST",
+    "SLSTR_STRIPE",
+    "SLSTR_VIEW",
+    "CLEAN_OPTICAL",
+    "SAR_INTERP_NA",
+    "DEM_KW",
+    "SLOPE_KW",
+    "HILLSHADE_KW",
+    "ICEYE_USE_SLC",
+    "TO_REFLECTANCE",
+]
 
 SLSTR_RAD_ADJUST = "slstr_radiance_adjustment"
 """ SLSTR radiance adjustment, please see  :code:`eoreader.products.optical.s3_slstr_product.SlstrRadAdjust`"""
@@ -53,6 +64,16 @@ Set a DEM path when specifically loading the :code:`SLOPE` band, used to overloa
 HILLSHADE_KW = "hillshade_dem"
 """
 Set a DEM path when specifically loading the :code:`HILLSHADE` band, used to overload the :code:`DEM_PATH` environment variable.
+"""
+
+ICEYE_USE_SLC = "iceye_use_slc"
+"""
+Force use the SLC image for GRD_SLC ICEYE products which contains both.
+"""
+
+TO_REFLECTANCE = "to_reflectance"
+"""
+Convert optical data to reflectance (default is :code:`True`). If :code:`False`, it loads the values as is.
 """
 
 

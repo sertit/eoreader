@@ -23,18 +23,22 @@ import logging
 import warnings
 from datetime import datetime
 from enum import unique
+from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import rasterio
+from cloudpathlib import CloudPath
 from lxml import etree
 from sertit import files, vectors
 from sertit.misc import ListEnum
 
-from eoreader import cache, cached_property
+from eoreader import cache
 from eoreader.bands.bands import SarBandNames as sbn
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.keywords import ICEYE_USE_SLC
 from eoreader.products import SarProduct, SarProductType
+from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -87,6 +91,19 @@ class IceyeProduct(SarProduct):
     `here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
     """
 
+    def __init__(
+        self,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
+        remove_tmp: bool = False,
+        **kwargs,
+    ) -> None:
+        self._use_slc = kwargs.pop(ICEYE_USE_SLC, None)
+
+        # Initialization from the super class
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+
     def _set_resolution(self) -> float:
         """
         Set product default resolution (in meters)
@@ -104,33 +121,36 @@ class IceyeProduct(SarProduct):
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
         return def_res
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
-        # Private attributes
-        # TODO: Allow to use SLC data ? Or SLC and GRD are always together ?
-        self._raw_band_regex = "*ICEYE*GRD*.tif"
         self._band_folder = self.path
-        self._snap_path = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
 
         # SNAP cannot process its archive
         self.needs_extraction = True
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting product-type, band names and so on)
         """
+        # Private attributes
+        if self._use_slc:
+            self.snap_filename = str(next(self.path.glob("*ICEYE*SLC*.xml")).name)
+            self._raw_band_regex = "*ICEYE*SLC*.h5"
+        else:
+            self.snap_filename = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
+            self._raw_band_regex = "*ICEYE*GRD*.tif"
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
-    @cached_property
+    @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -141,7 +161,7 @@ class IceyeProduct(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"1011117-766193"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent
+            >>> prod.wgs84_extent()
                                                         geometry
             0  POLYGON ((108.09797 15.61011, 108.48224 15.678...
 
@@ -183,12 +203,6 @@ class IceyeProduct(SarProduct):
         else:
             raise NotImplementedError(
                 f"{self.product_type.value} product type is not available for {self.name}"
-            )
-        if self.product_type != IceyeProductType.GRD:
-            LOGGER.warning(
-                "Other products type than MGD has not been tested for %s data. "
-                "Use it at your own risks !",
-                self.platform.value,
             )
 
     def _set_sensor_mode(self) -> None:
@@ -274,6 +288,12 @@ class IceyeProduct(SarProduct):
         if not name:
             raise InvalidProductError("product_name not found in metadata!")
 
+        # Check if use_slc is compatible
+        if self._use_slc and IceyeProductType.SLC.value not in name:
+            raise InvalidProductError(f"This product {self.name} has no SLC image!")
+        elif not self._use_slc and IceyeProductType.GRD.value not in name:
+            raise InvalidProductError(f"This product {self.name} has no GRD image!")
+
         return name
 
     @cache
@@ -292,9 +312,34 @@ class IceyeProduct(SarProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = "ICEYE*GRD*.xml"
 
-        return self._read_mtd_xml(mtd_from_path)
+        def __read_mtd(prod_type: IceyeProductType):
+            return self._read_mtd_xml(f"ICEYE*{prod_type.value}*.xml")
+
+        if self._use_slc is None:
+            try:
+                root, nsmap = __read_mtd(IceyeProductType.GRD)
+                self._use_slc = False
+            except InvalidProductError:
+                root, nsmap = __read_mtd(IceyeProductType.SLC)
+                self._use_slc = True
+        else:
+            if self._use_slc:
+                try:
+                    root, nsmap = __read_mtd(IceyeProductType.SLC)
+                except InvalidProductError:
+                    LOGGER.warning("SLC image is not available for this product.")
+                    self._use_slc = False
+                    root, nsmap = __read_mtd(IceyeProductType.GRD)
+            else:
+                try:
+                    root, nsmap = __read_mtd(IceyeProductType.GRD)
+                except InvalidProductError:
+                    LOGGER.warning("GRD image is not available for this product.")
+                    self._use_slc = True
+                    root, nsmap = __read_mtd(IceyeProductType.SLC)
+
+        return root, nsmap
 
     def _get_raw_band_paths(self) -> dict:
         """
@@ -315,3 +360,46 @@ class IceyeProduct(SarProduct):
             )
 
         return band_paths
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            quicklook_path = str(next(self.path.glob("*.png")))
+        except StopIteration:
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Get the orbit direction
+        try:
+            od = OrbitDirection.from_value(root.findtext(".//orbit_direction"))
+
+        except TypeError:
+            raise InvalidProductError("orbit_direction not found in metadata!")
+
+        return od

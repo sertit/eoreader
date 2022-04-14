@@ -4,17 +4,17 @@
 [![Gitter](https://badges.gitter.im/eoreader/community.svg)](https://gitter.im/eoreader/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/sertit/eoreader/blob/master/LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5082051.svg)](https://doi.org/10.5281/zenodo.5082051)
-[![starts](https://img.shields.io/github/stars/sertit/eoreader?style=social)](https://github.com/sertit/eoreader)
+[![stars](https://img.shields.io/github/stars/sertit/eoreader?style=social)](https://github.com/sertit/eoreader)
 
 # ![eoreader_logo](https://eoreader.readthedocs.io/en/latest/_static/favicon.png) EOReader
 
 **EOReader** is a remote-sensing opensource python library reading [optical](https://eoreader.readthedocs.io/en/latest/optical.html)
 and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) sensors, loading and stacking bands,
-clouds, DEM and index in a sensor-agnostic way.
+clouds, DEM and spectral indices in a sensor-agnostic way.
 
 |**Optical sensors** | **SAR sensors**|
 | --- | ---|
-|Sentinel-2 and Sentinel-2 Theia<br>Sentinel-3 OLCI and Sentinel-3 SLSTR<br>Landsat 1 to 9 (MSS, TM, ETM and OLCI)<br>PlanetScope<br>Pleiades-Neo<br>Pleiades<br>SPOT 6-7<br>Vision-1<br>WorldView-2 to 4, GeoEye-1 (and other Maxar sensors)| Sentinel-1<br>COSMO-Skymed 1st and 2nd Generation<br>TerraSAR-X, TanDEM-X and PAZ<br>RADARSAT-2<br>RADARSAT-Constellation<br>ICEYE<br>SAOCOM-1|
+|`Sentinel-2` and `Sentinel-2 Theia`<br>`Sentinel-3 OLCI` and `SLSTR`<br>`Landsat` 1 to 9<br>`PlanetScope`<br>`Pleiades` and `Pleiades-Neo`<br>`SPOT 6-7`<br>`Vision-1`<br>`Maxar` (WorldViews, GeoEye)| `Sentinel-1`<br>`COSMO-Skymed` 1st and 2nd Generation<br>`TerraSAR-X`, `TanDEM-X` and `PAS SAR`<br>`RADARSAT-2` and `RADARSAT-Constellation`<br>`ICEYE`<br>`SAOCOM`|
 
 It also implements additional **sensor-agnostic** features:
 
@@ -31,69 +31,55 @@ and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_struc
 
 ## Python Quickstart
 
-The main features of EOReader are gathered hereunder.
-For optical data:
+### Optical
 
 ```python
->>> import os
 >>> from eoreader.reader import Reader
 >>> from eoreader.bands import *
->>> from eoreader.env_vars import DEM_PATH
 
 >>> # Sentinel-2 path
 >>> s2_path = "S2B_MSIL1C_20181126T022319_N0207_R103_T51PWM_20181126T050025.SAFE"
 
 >>> # Create the reader object and open satellite data
->>> eoreader = Reader()
+>>> reader = Reader()
 
->>>  # The Reader will recognize the satellite type from its structure
->>> s2_prod = eoreader.open(s2_path)
+>>> # The reader will recognize the sensor from its product structure
+>>> s2_prod = reader.open(s2_path)
 
->>> # Specify a DEM to load HILLSHADE AND SLOPE bands
->>> os.environ[DEM_PATH] = "my_dem.tif"
+>>> # Load some bands and index
+>>> bands = s2_prod.load([NDVI, GREEN, CLOUDS])
 
->>> # Load some bands and index: they will all share the same metadata
->>> bands = s2_prod.load([NDVI, GREEN, HILLSHADE, CLOUDS])
-
->>> # Create a stack with some other bands
->>> stack = s2_prod.stack([NDWI, RED, SLOPE])
-
->>> # Read Metadata
->>> mtd, namespace = s2_prod.read_mtd()
+>>> # Create a stack with some bands
+>>> stack = s2_prod.stack([RED, GREEN, BLUE], stack_path="s2_rgb_stack.tif")
 ```
 
-For SAR data:
+### SAR
 
 ```python
->>> import os
 >>> from eoreader.reader import Reader
 >>> from eoreader.bands import *
->>> from eoreader.env_vars import DEM_PATH
 
 >>> # Sentinel-1 GRD path
 >>> s1_path = "S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip"
 
->>> # Create the reader object and open satellite data
->>> eoreader = Reader()
+>>>  # Create the reader object and open satellite data
+>>> reader = Reader()
 
->>> # The Reader will recognize the satellite type from its structure
->>> s1_prod = eoreader.open(s1_path)
+>>> # The reader will recognize the sensor from its product structure
+>>> s1_prod = reader.open(s1_path)
 
->>>  # Specify a DEM to load DEM and SLOPE bands
->>> os.environ[DEM_PATH] = "my_dem.tif"
+>>> # Load some bands and index
+>>> bands = s1_prod.load([VV, VV_DSPK])
 
->>> # Load some bands and index: they will all share the same metadata
->>> bands = s1_prod.load([VV, VV_DSPK, DEM])
-
->>> # Create a stack with some other bands
->>> stack = s1_prod.stack([VV, VV_DSPK, SLOPE])
-
->>> # Read Metadata
->>> mtd, namespace = s1_prod.read_mtd()
+>>> # Create a stack with some bands
+>>> stack = s1_prod.stack([VV, VV_DSPK], stack_path="s1_vv_stack.tif")
 ```
 
-SAR products need [`SNAP gpt`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph) to be orthorectified and calibrated.
-Ensure that you have the folder containing your `gpt` executable in your `PATH`.
+> ⚠️**SNAP and SAR**
+>
+> SAR products need [`ESA SNAP`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph)
+> free software to be orthorectified and calibrated.
+> Ensure that you have the folder containing your `gpt` executable in your `PATH`.
 
 ## Documentation
 The API documentation can be found [here](https://eoreader.readthedocs.io/en/latest/).
@@ -103,6 +89,7 @@ The API documentation can be found [here](https://eoreader.readthedocs.io/en/lat
 Available notebooks provided as examples:
 
 - [Basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html)
+- [Optical data](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html)
 - [SAR data](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html)
 - [VHR data](https://eoreader.readthedocs.io/en/latest/notebooks/VHR.html)
 - [Sentinel-3 data](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html)
@@ -179,6 +166,10 @@ without taking into account the sensor characteristics
 However, keep in mind that the support of all the sensors used in CEMS is done in a best effort mode, especially for commercial data.
 Indeed, we may not have faced every product type, sensor mode or order configuration, so some details may be missing.
 If this happens to you, do not hesitate to make a PR or write an issue about that !
+
+## Press Release
+
+- [ESA Success Story](https://earth.esa.int/eogateway/news/new-open-source-python-library-improves-rapid-mapping-services)
 
 ## License
 

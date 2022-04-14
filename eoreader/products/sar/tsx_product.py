@@ -31,9 +31,10 @@ from rasterio import crs
 from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 
-from eoreader import cache, cached_property
+from eoreader import cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
+from eoreader.products.product import OrbitDirection
 from eoreader.reader import Platform
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
@@ -201,7 +202,7 @@ class TsxProduct(SarProduct):
 
         return def_res
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -214,7 +215,7 @@ class TsxProduct(SarProduct):
         self.needs_extraction = True
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
     def _get_platform(self) -> Platform:
         """ Getter of the platform """
@@ -226,17 +227,17 @@ class TsxProduct(SarProduct):
         sat_id = getattr(TsxSatId, sat_id.split("-")[0]).name
         return getattr(Platform, sat_id)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting product-type, band names and so on)
         """
-        self._snap_path = f"{self.name}.xml"
+        self.snap_filename = f"{self.name}.xml"
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
-    @cached_property
+    @cache
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -255,11 +256,11 @@ class TsxProduct(SarProduct):
             gpd.GeoDataFrame: Footprint in UTM
         """
         if self.product_type == TsxProductType.EEC:
-            return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs)
+            return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
         else:
-            return super().extent
+            return super().extent()
 
-    @cached_property
+    @cache
     def crs(self) -> crs.CRS:
         """
         Get UTM projection
@@ -279,9 +280,9 @@ class TsxProduct(SarProduct):
             with rasterio.open(self.get_default_band_path()) as ds:
                 return ds.crs
         else:
-            return super().crs
+            return super().crs()
 
-    @cached_property
+    @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
         """
         Get the WGS84 extent of the file before any reprojection.
@@ -292,7 +293,7 @@ class TsxProduct(SarProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"TSX1_SAR__MGD_SE___SM_S_SRA_20160229T223018_20160229T223023"
             >>> prod = Reader().open(path)
-            >>> prod.wgs84_extent
+            >>> prod.wgs84_extent()
                                                         geometry
             0  POLYGON ((106.65491 -6.39693, 106.96233 -6.396...
 
@@ -446,3 +447,46 @@ class TsxProduct(SarProduct):
             mtd_from_path = "SAR*xml"
 
             return self._read_mtd_xml(mtd_from_path)
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            quicklook_path = str(next(self.path.glob("PREVIEW/BROWSE.tif")))
+        except StopIteration:
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Get the orbit direction
+        try:
+            od = OrbitDirection.from_value(root.findtext(".//orbitDirection"))
+
+        except TypeError:
+            raise InvalidProductError("orbitDirection not found in metadata!")
+
+        return od

@@ -35,7 +35,7 @@ from rasterio import features
 from rasterio.enums import Resampling
 from sertit import rasters, rasters_rio
 from sertit.misc import ListEnum
-from sertit.rasters import MAX_CORES, XDS_TYPE
+from sertit.rasters import MAX_CORES
 from sertit.vectors import WGS84
 
 from eoreader import cache, utils
@@ -212,6 +212,7 @@ class S3SlstrProduct(S3Product):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
         """
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/observation-mode-desc
@@ -239,8 +240,8 @@ class S3SlstrProduct(S3Product):
         self._bt_subds = "{band}_BT_{suffix}"
 
         super().__init__(
-            product_path, archive_path, output_path, remove_tmp
-        )  # Order is important here
+            product_path, archive_path, output_path, remove_tmp, **kwargs
+        )  # Order is important here, gcps NEED to be after this
 
         self._gcps = defaultdict(list)
 
@@ -527,7 +528,7 @@ class S3SlstrProduct(S3Product):
         band_arr.rio.write_crs(WGS84, inplace=True)
 
         return band_arr.rio.reproject(
-            dst_crs=self.crs,
+            dst_crs=self.crs(),
             resolution=resolution,
             gcps=self._gcps[suffix],
             nodata=self._mask_nodata if band_arr.dtype == np.uint8 else self.nodata,
@@ -743,12 +744,12 @@ class S3SlstrProduct(S3Product):
 
         return sza_img
 
-    def _compute_e0(self, band: obn, suffix: str) -> np.ndarray:
+    def _compute_e0(self, band: BandNames, suffix: str) -> np.ndarray:
         """
         Compute the solar spectral flux in mW / (m^2 * sr * nm)
 
         Args:
-            band (obn): Optical Band
+            band (BandNames): Optical Band
             suffix (str): Suffix
 
         Returns:
@@ -766,20 +767,20 @@ class S3SlstrProduct(S3Product):
         return e0
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         ISP_absent pixel_absent not_decompressed no_signal saturation invalid_radiance no_parameters unfilled_pixel"
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Open quality flags
         # NOT OPTIMIZED, MAYBE CHECK INVALID PIXELS ON NOT GEOCODED DATA
@@ -986,7 +987,7 @@ class S3SlstrProduct(S3Product):
         sun_az = self._read_nc(geom_file, saa_name)
         sun_ze = self._read_nc(geom_file, sza_name)
 
-        return sun_az.mean().data % 360, sun_ze.mean().data
+        return float(sun_az.mean().data) % 360, float(sun_ze.mean().data)
 
     def _get_clean_band_path(
         self, band: obn, resolution: float = None, writable: bool = False, **kwargs

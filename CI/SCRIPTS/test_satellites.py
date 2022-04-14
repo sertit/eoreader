@@ -22,6 +22,7 @@ from eoreader.env_vars import (
 )
 from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import Product, S2Product, SensorType, SlstrRadAdjust
+from eoreader.products.product import OrbitDirection
 from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
 
@@ -35,12 +36,11 @@ from .scripts_utils import (
     get_db_dir,
     get_db_dir_on_disk,
     opt_path,
-    reduce_verbosity,
     s3_env,
     sar_path,
 )
 
-reduce_verbosity()
+ci.reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -178,7 +178,7 @@ def _test_core(
 
                 # Extent
                 LOGGER.info("Checking extent")
-                extent = prod.extent
+                extent = prod.extent()
                 assert isinstance(extent, gpd.GeoDataFrame)
                 assert extent.crs.is_projected
                 extent_path = get_ci_data_dir().joinpath(
@@ -200,7 +200,7 @@ def _test_core(
 
                 # Footprint
                 LOGGER.info("Checking footprint")
-                footprint = prod.footprint
+                footprint = prod.footprint()
                 assert isinstance(footprint, gpd.GeoDataFrame)
                 assert footprint.crs.is_projected
                 footprint_path = get_ci_data_dir().joinpath(
@@ -273,8 +273,9 @@ def _test_core(
                     raise FileNotFoundError(f"{ci_stack} not found !")
                     # ci_stack = curr_path
 
-                # Test
-                assert_raster_almost_equal(curr_path, ci_stack, decimal=4)
+                else:
+                    # Test
+                    assert_raster_almost_equal(curr_path, ci_stack, decimal=4)
 
                 # Load a band with the size option
                 LOGGER.info("Checking load with size keyword")
@@ -322,18 +323,38 @@ def _test_core(
                 prod.get_existing_band_paths()  # noqa
 
                 # Check if possible to load narrow nir, without checking result
-                if isinstance(prod, S2Product) and not prod._processing_baseline_lt_4_0:
+                if isinstance(prod, S2Product) and not prod._processing_baseline < 4.0:
                     prod.load(NARROW_NIR)
 
                 # CRS
                 LOGGER.info("Checking CRS")
-                assert prod.crs.is_projected
+                assert prod.crs().is_projected
 
                 # MTD
                 LOGGER.info("Checking Mtd")
                 mtd_xml, nmsp = prod.read_mtd()
                 assert isinstance(mtd_xml, etree._Element)
                 assert isinstance(nmsp, dict)
+
+                # Mean sun angle type, cloud cover...
+                if prod.sensor_type == SensorType.OPTICAL:
+                    az, zen = prod.get_mean_sun_angles()
+                    assert isinstance(az, float)
+                    assert isinstance(zen, float)
+
+                    cc = prod.get_cloud_cover()
+                    assert isinstance(cc, float)
+
+                # Quicklook and plot
+                qck_path = prod.get_quicklook_path()
+                if qck_path is not None:
+                    assert isinstance(qck_path, str)
+
+                prod.plot()
+
+                # Orbit direction
+                orbit_dir = prod.get_orbit_direction()
+                assert isinstance(orbit_dir, OrbitDirection)
 
                 # Clean temp
                 if not debug:

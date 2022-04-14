@@ -24,6 +24,7 @@ import re
 from enum import unique
 from pathlib import Path
 from typing import Union
+from zipfile import BadZipFile
 
 from cloudpathlib import AnyPath, CloudPath
 from sertit import files, strings
@@ -103,8 +104,8 @@ class Platform(ListEnum):
     # RPD = "RapidEye"
     # """RapidEye"""
     #
-    # SKY = "SkySat"
-    # """SkySat"""
+    SKY = "SkySat"
+    """SkySat"""
 
     CSK = "COSMO-SkyMed"
     """COSMO-SkyMed"""
@@ -270,7 +271,7 @@ MTD_REGEX = {
     Platform.WV03: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Platform.WV04: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Platform.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Platform.ICEYE: r"ICEYE_X\d{1,}_(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
+    Platform.ICEYE: r"ICEYE_(X\d{1,}_|)(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
     Platform.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
 }
 
@@ -279,7 +280,7 @@ class Reader:
     """
     Factory class creating satellite products according to their names.
 
-    It creates a singleton that you can call only on,e time per file.
+    It creates a singleton that you can call only one time per file.
     """
 
     def __init__(self):
@@ -419,6 +420,7 @@ class Reader:
                         archive_path=archive_path,
                         output_path=output_path,
                         remove_tmp=remove_tmp,
+                        **kwargs,
                     )
                     break
 
@@ -536,7 +538,10 @@ class Reader:
 
         # Archive
         else:
-            prod_files = files.get_archived_file_list(product_path)
+            try:
+                prod_files = files.get_archived_file_list(product_path)
+            except BadZipFile:
+                raise BadZipFile(f"{product_path} is not a zip file")
 
         # Check
         for idx, regex in enumerate(regex_list):
@@ -591,5 +596,7 @@ def is_filename_valid(
                 LOGGER.debug(
                     f"The product {product_file_name} should be a folder or an archive (.tar or .zip)"
                 )
+            except BadZipFile:
+                raise BadZipFile(f"{product_path} is not a zip file")
 
     return is_valid

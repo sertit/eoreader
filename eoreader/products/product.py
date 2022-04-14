@@ -27,8 +27,10 @@ import platform
 import tempfile
 from abc import abstractmethod
 from enum import unique
+from io import BytesIO
 from pathlib import Path
 from typing import Callable, Union
+from zipfile import ZipFile
 
 import geopandas as gpd
 import numpy as np
@@ -43,10 +45,9 @@ from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from sertit import files, rasters, strings
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 from sertit.snap import MAX_CORES
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import *
 from eoreader.bands import index
 from eoreader.bands.bands import BandNames
@@ -71,6 +72,19 @@ class SensorType(ListEnum):
 
     SAR = "SAR"
     """For SAR data"""
+
+
+@unique
+class OrbitDirection(ListEnum):
+    """
+    Orbit Direction
+    """
+
+    ASCENDING = "ASCENDING"
+    """Ascending sensing orbit direction"""
+
+    DESCENDING = "DESCENDING"
+    """Descending sensing orbit direction"""
 
 
 class Product:
@@ -235,14 +249,14 @@ class Product:
         raise NotImplementedError
 
     @abstractmethod
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
         """
         raise NotImplementedError
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
@@ -252,7 +266,7 @@ class Product:
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
@@ -261,7 +275,7 @@ class Product:
         """
         raise NotImplementedError
 
-    @cached_property
+    @cache
     @abstractmethod
     def extent(self) -> gpd.GeoDataFrame:
         """
@@ -281,7 +295,7 @@ class Product:
         """
         raise NotImplementedError
 
-    @cached_property
+    @cache
     @abstractmethod
     def crs(self) -> CRS:
         """
@@ -337,7 +351,7 @@ class Product:
     @classmethod
     def _get_platform(cls) -> Platform:
         class_module = cls.__module__.split(".")[-1]
-        sat_id = class_module.split("_")[0].upper()
+        sat_id = class_module.replace("_product", "").upper()
         return getattr(Platform, sat_id)
 
     @abstractmethod
@@ -672,7 +686,7 @@ class Product:
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -686,7 +700,7 @@ class Product:
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
 
         """
         raise NotImplementedError
@@ -867,7 +881,7 @@ class Product:
 
         # Rename all bands and add attributes
         for key, val in band_dict.items():
-            band_dict[key] = self._update_attrs(val, to_str(key)[0])
+            band_dict[key] = self._update_attrs(val, to_str(key)[0], **kwargs)
 
         return band_dict
 
@@ -1198,7 +1212,7 @@ class Product:
                     bounds = transform.array_bounds(def_h, def_w, def_tr)
                     dst_tr, out_w, out_h = warp.calculate_default_transform(
                         def_crs,
-                        self.crs,
+                        self.crs(),
                         def_w,
                         def_h,
                         *bounds,
@@ -1218,7 +1232,7 @@ class Product:
                     "width": out_w,
                     "height": out_h,
                     "count": dem_ds.count,
-                    "crs": self.crs,
+                    "crs": self.crs(),
                     "transform": dst_tr,
                 }
                 with rasterio.open(str(warped_dem_path), "w", **out_meta) as out_dst:
@@ -1231,7 +1245,7 @@ class Product:
                         resampling=resampling,
                         num_threads=MAX_CORES,
                         dst_transform=dst_tr,
-                        dst_crs=self.crs,
+                        dst_crs=self.crs(),
                         src_crs=dem_ds.crs,
                         src_transform=dem_ds.transform,
                     )
@@ -1303,12 +1317,13 @@ class Product:
         return slope_path
 
     @staticmethod
-    def _collocate_bands(bands: dict, master_xds: XDS_TYPE = None) -> dict:
+    def _collocate_bands(bands: dict, master_xds: xr.DataArray = None) -> dict:
         """
         Collocate all bands from a dict if needed (if a raster shape is different)
 
         Args:
             bands (dict): Dict of bands to collocate if needed
+            master_xds (xr.DataArray): Master array
 
         Returns:
             dict: Collocated bands
@@ -1472,7 +1487,7 @@ class Product:
                 )  # NaN values are already set
 
         # Update stack's attributes
-        stack = self._update_attrs(stack, to_str(bands))
+        stack = self._update_attrs(stack, to_str(bands), **kwargs)
 
         # Write on disk
         if stack_path:
@@ -1487,21 +1502,40 @@ class Product:
 
         return stack
 
-    def _update_attrs(self, xarr: XDS_TYPE, long_name: Union[str, list]) -> XDS_TYPE:
+    @abstractmethod
+    def _update_attrs_sensor_specific(
+        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+    ) -> xr.DataArray:
+        """
+        Update attributes of the given array (sensor specific)
+
+        Args:
+            xarr (xr.DataArray): Array whose attributes need an update
+            long_name (str): Array name (as a str or a list)
+        """
+        raise NotImplementedError
+
+    def _update_attrs(
+        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+    ) -> xr.DataArray:
         """
         Update attributes of the given array
         Args:
-            xarr (XDS_TYPE): Array whose attributes need an update
+            xarr (xr.DataArray): Array whose attributes need an update
             long_name (str): Array name (as a str or a list)
+        Returns:
+            xr.DataArray: Updated array
         """
         if isinstance(long_name, list):
-            name = " ".join(long_name)
+            xr_name = "_".join(long_name)
+            attr_name = " ".join(long_name)
         else:
-            name = long_name
+            xr_name = long_name
+            attr_name = long_name
 
-        renamed_xarr = xarr.rename(name)
-        renamed_xarr.attrs["long_name"] = name
-        renamed_xarr.attrs["sensor"] = self._get_platform().value
+        renamed_xarr = xarr.rename(xr_name)
+        renamed_xarr.attrs["long_name"] = attr_name
+        renamed_xarr.attrs["sensor"] = self.platform.value
         renamed_xarr.attrs["sensor_id"] = self.sat_id
         renamed_xarr.attrs["product_path"] = str(self.path)  # Convert to string
         renamed_xarr.attrs["product_name"] = self.name
@@ -1513,6 +1547,13 @@ class Product:
         )
         renamed_xarr.attrs["acquisition_date"] = self.get_datetime(as_datetime=False)
         renamed_xarr.attrs["condensed_name"] = self.condensed_name
+        od = self.get_orbit_direction()
+        renamed_xarr.attrs["orbit_direction"] = od.value if od is not None else str(od)
+
+        # kwargs attrs
+        renamed_xarr = self._update_attrs_sensor_specific(
+            renamed_xarr, long_name, **kwargs
+        )
 
         return renamed_xarr
 
@@ -1583,7 +1624,7 @@ class Product:
         if not def_crs.is_projected:
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
                 def_crs,
-                self.crs,
+                self.crs(),
                 def_w,
                 def_h,
                 *bounds,
@@ -1624,9 +1665,13 @@ class Product:
         gc.collect()
 
         # All objects collected
-        objects = [
-            i for i in gc.get_objects() if isinstance(i, functools._lru_cache_wrapper)
-        ]
+        objects = []
+        for obj in gc.get_objects():
+            try:
+                if isinstance(obj, functools._lru_cache_wrapper):
+                    objects.append(obj)
+            except ReferenceError:
+                pass
 
         # All objects cleared
         for obj in objects:
@@ -1661,7 +1706,7 @@ class Product:
 
         return res_str
 
-    def to_repr(self) -> list:
+    def _to_repr(self) -> list:
         """
         Returns a representation of the product as a list
 
@@ -1675,7 +1720,7 @@ class Product:
                 if nb is not None
             ]
         )
-        return [
+        repr = [
             f"EOReader {self.__class__.__name__}",
             "Attributes:",
             f"\tcondensed_name: {self.condensed_name}",
@@ -1687,9 +1732,82 @@ class Product:
             f"\tdefault resolution: {self.resolution}",
             f"\tacquisition datetime: {self.get_datetime(as_datetime=True).isoformat()}",
             f"\tband mapping:\n{band_repr}",
-            f"\ttile name: {self.tile_name if self.tile_name is not None else 'N/A'}",
-            f"\tneeds_extraction: {self.needs_extraction}",
+            f"\tneeds extraction: {self.needs_extraction}",
         ]
 
+        return repr + self._to_repr_sensor_specific()
+
+    @abstractmethod
+    def _to_repr_sensor_specific(self) -> list:
+        """
+        Representation specific to the sensor
+
+        Returns:
+            list: Representation list (sensor specific)
+        """
+        raise NotImplementedError
+
     def __repr__(self):
-        return "\n".join(self.to_repr())
+        return "\n".join(self._to_repr())
+
+    def get_quicklook_path(self) -> Union[None, str]:
+        """
+        Get quicklook path if existing (no such thing for Sentinel-2)
+
+        Returns:
+            str: Quicklook path
+        """
+        LOGGER.warning(f"No quicklook available for {self.platform.value} data!")
+        return None
+
+    def plot(self) -> None:
+        """
+        Plot the quicklook if existing
+        """
+        try:
+            import matplotlib.pyplot as plt
+            from PIL import Image
+        except ModuleNotFoundError:
+            LOGGER.warning("You need to install matplotlib to plot the product.")
+        else:
+            quicklook_path = self.get_quicklook_path()
+
+            if quicklook_path is not None:
+                if quicklook_path[:4].lower() in [".png", ".jpg"]:
+                    plt.figure(figsize=(6, 6))
+                    if quicklook_path.startswith("zip::"):
+                        str_path = quicklook_path.replace("zip::", "")
+                        zip_path, zip_name = str_path.split("!")
+                        with ZipFile(zip_path, "r") as zip_ds:
+                            with BytesIO(zip_ds.read(zip_name)) as bf:
+                                plt.imshow(Image.open(bf))
+                else:
+                    qck = rasters.read(quicklook_path)
+                    if qck.rio.count == 3:
+                        plt.figure(figsize=(6, 6))
+                        qck.plot.imshow(robust=True)
+                    elif qck.rio.count == 1:
+                        plt.figure(figsize=(7, 6))
+                        qck.plot(cmap="GnBu_r", robust=True)
+                    else:
+                        pass
+
+                plt.title(f"{self.condensed_name}")
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        raise NotImplementedError

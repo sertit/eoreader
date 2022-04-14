@@ -38,15 +38,15 @@ from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
-from sertit.rasters import XDS_TYPE
 from shapely.geometry import box
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
+from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -125,32 +125,39 @@ class S2Product(OpticalProduct):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
+
+        # Processing baseline < 02.07: images not georeferenced (L2Ap and after)
+
         # Is this products comes from a processing baseline less than 4.0
         # The processing baseline 4.0 introduces format changes:
         # - masks are given as GeoTIFFs instead of GML files
         # - an offset is added to keep the zero as no-data value
         # See here for more information
         # https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming
-        self._processing_baseline_lt_4_0 = None
+        self._processing_baseline = None
+        self.base_no_data_val = 0
+        self.no_data_val = {}
 
         # L2Ap
         self._is_l2ap = False
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path, remove_tmp)
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        self._has_cloud_cover = True
         self.needs_extraction = False
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
@@ -159,10 +166,10 @@ class S2Product(OpticalProduct):
 
         # Get processing baseline: N0213 -> 02.13
         pr_baseline = float(self.split_name[3][1:]) / 100
-        self._processing_baseline_lt_4_0 = pr_baseline < 4.0
+        self._processing_baseline = pr_baseline
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
     def _set_resolution(self) -> float:
         """
@@ -197,8 +204,8 @@ class S2Product(OpticalProduct):
                     obn.VRE_1: "05",
                     obn.VRE_2: "06",
                     obn.VRE_3: "07",
-                    obn.NIR: "08",
-                    obn.NARROW_NIR: "8A",
+                    obn.NIR: "8A",
+                    obn.NARROW_NIR: "08",
                     obn.WV: "09",
                     obn.SWIR_1: "11",
                     obn.SWIR_2: "12",
@@ -214,8 +221,8 @@ class S2Product(OpticalProduct):
                     obn.VRE_1: "05",
                     obn.VRE_2: "06",
                     obn.VRE_3: "07",
-                    obn.NIR: "08",
-                    obn.NARROW_NIR: "8A",
+                    obn.NIR: "8A",
+                    obn.NARROW_NIR: "08",
                     obn.WV: "09",
                     obn.SWIR_CIRRUS: "10",
                     obn.SWIR_1: "11",
@@ -225,7 +232,7 @@ class S2Product(OpticalProduct):
         else:
             raise InvalidProductError(f"Invalid Sentinel-2 name: {self.filename}")
 
-    @cached_property
+    @cache
     def crs(self) -> CRS:
         """
         Get UTM projection of the tile
@@ -235,19 +242,19 @@ class S2Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.crs
+            >>> prod.crs()
             CRS.from_epsg(32630)
 
         Returns:
             rasterio.crs.CRS: CRS object
         """
-        if self._is_l2ap:
+        if self._processing_baseline < 2.07:
             root, ns = self.read_mtd()
             return CRS.from_string(root.findtext(".//HORIZONTAL_CS_CODE"))
         else:
-            return super().crs
+            return super().crs()
 
-    @cached_property
+    @cache
     def extent(self) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile
@@ -257,21 +264,21 @@ class S2Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.extent
+            >>> prod.extent()
                                                         geometry
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
         Returns:
             gpd.GeoDataFrame: Footprint in UTM
         """
-        if self._is_l2ap:
+        if self._processing_baseline < 2.07:
             tf, width, height, crs = self.default_transform()
             bounds = transform.array_bounds(height, width, tf)
             return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=crs)
         else:
-            return super().extent
+            return super().extent()
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint in UTM of the products (without nodata, *in french == emprise utile*)
@@ -281,7 +288,7 @@ class S2Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((199980.000 4500000.000, 199980.000 4...
 
@@ -289,7 +296,7 @@ class S2Product(OpticalProduct):
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
         def_band = self.band_names[self.get_default_band()]
-        if self._processing_baseline_lt_4_0:
+        if self._processing_baseline < 4.0:
             det_footprint = self._open_mask_lt_4_0(S2GmlMasks.FOOTPRINT, def_band)
             footprint_gs = det_footprint.dissolve().convex_hull
             footprint = gpd.GeoDataFrame(
@@ -360,13 +367,14 @@ class S2Product(OpticalProduct):
             if not name:
                 # Manage L2Ap products
                 name = root.findtext(".//PRODUCT_URI_2A")
-                self._is_l2ap = True
                 if not name:
                     raise InvalidProductError("PRODUCT_URI not found in metadata!")
 
             name = files.get_filename(name)
         except InvalidProductError:
-            tile_info = files.read_json(next(self.path.glob("**/tileInfo.json")))
+            tile_info = files.read_json(
+                next(self.path.glob("**/tileInfo.json")), print_file=False
+            )
             name = tile_info["productName"]
 
         return name
@@ -502,7 +510,7 @@ class S2Product(OpticalProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -516,11 +524,11 @@ class S2Product(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
+            xr.DataArray: Band xarray
 
         """
         # For L2Ap
-        if self._is_l2ap and str(path).endswith(".jp2"):
+        if self._processing_baseline < 2.07 and str(path).endswith(".jp2"):
             # Download path just in case
             on_disk_path = self._get_band_folder(writable=True) / path.name
             if not on_disk_path.is_file():
@@ -539,7 +547,7 @@ class S2Product(OpticalProduct):
                     ds.transform = tf
 
         # Read band
-        band_xda = utils.read(
+        return utils.read(
             path,
             resolution=resolution,
             size=size,
@@ -547,6 +555,25 @@ class S2Product(OpticalProduct):
             **kwargs,
         )
 
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
         if str(path).endswith(".jp2"):
             try:
                 # Get MTD XML file
@@ -569,7 +596,7 @@ class S2Product(OpticalProduct):
                 offset_prefix = (
                     "BOA_" if self.product_type == S2ProductType.L2A else "RADIO_"
                 )
-                if self._processing_baseline_lt_4_0:
+                if self._processing_baseline < 4.0:
                     offset = 0.0
                 else:
                     try:
@@ -588,16 +615,18 @@ class S2Product(OpticalProduct):
                         )
             except InvalidProductError:
                 # If not datatake file
-                if self._processing_baseline_lt_4_0:
+                if self._processing_baseline < 4.0:
                     offset = 0.0
                 else:
                     offset = -1000.0
                 quantif_value = 10000.0
 
             # Compute the correct radiometry of the band
-            band_xda = (band_xda - offset) / quantif_value
+            band_arr = (band_arr + offset) / quantif_value
 
-        return band_xda.astype(np.float32)
+            self.no_data_val[band] = (self.base_no_data_val + offset) / quantif_value
+
+        return band_arr.astype(np.float32)
 
     def _open_mask_lt_4_0(
         self, mask_id: Union[str, S2GmlMasks], band: Union[obn, str] = None
@@ -677,7 +706,7 @@ class S2Product(OpticalProduct):
                 )
 
             # Read vector
-            mask = vectors.read(mask_path, crs=self.crs)
+            mask = vectors.read(mask_path, crs=self.crs())
 
         except Exception as ex:
             raise InvalidProductError(ex) from ex
@@ -748,57 +777,59 @@ class S2Product(OpticalProduct):
         return mask
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
-        if self._processing_baseline_lt_4_0:
+        if self._processing_baseline < 4.0:
             return self._manage_invalid_pixels_lt_4_0(band_arr, band, **kwargs)
         else:
             # return band_arr
             return self._manage_invalid_pixels_gt_4_0(band_arr, band, **kwargs)
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
-        if self._processing_baseline_lt_4_0:
+        if self._processing_baseline < 4.0:
             return self._manage_nodata_lt_4_0(band_arr, band, **kwargs)
         else:
             return self._manage_nodata_gt_4_0(band_arr, band, **kwargs)
 
     def _manage_invalid_pixels_lt_4_0(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Get detector footprint to deduce the outside nodata
         nodata_det = self._open_mask_lt_4_0(
@@ -852,31 +883,27 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_invalid_pixels_gt_4_0(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See there:
         https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2-Products-Specification-Document-14_8.pdf
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Get detector footprint to deduce the outside nodata
-        # TODO: use them ?
-        # nodata = self._open_mask_gt_4_0(
-        #     S2Jp2Masks.FOOTPRINT, band, size=(band_arr.rio.width, band_arr.rio.height)
-        # ).data.astype(
-        #     np.uint8
-        # )  # Detector nodata, -> pixels that are outside of the detectors
+        nodata = self._open_mask_gt_4_0(
+            S2Jp2Masks.FOOTPRINT, band, size=(band_arr.rio.width, band_arr.rio.height)
+        ).data
 
-        # Set to nodata where the array is set to 0
-        nodata = np.where(band_arr.compute() == 0, self._mask_true, self._mask_false)
+        nodata = np.where(nodata == 0, 1, 0).astype(np.uint8)
 
         # Manage quality mask
         # TODO: Optimize it -> very slow (why ?)
@@ -902,19 +929,19 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata_lt_4_0(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Get detector footprint to deduce the outside nodata
         nodata_det = self._open_mask_lt_4_0(
@@ -936,30 +963,26 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata_gt_4_0(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata
         See there: https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Get detector footprint to deduce the outside nodata
-        # TODO: use them ?
-        # nodata = self._open_mask_gt_4_0(
-        #     S2Jp2Masks.FOOTPRINT, band, size=(band_arr.rio.width, band_arr.rio.height)
-        # ).data.astype(
-        #     np.uint8
-        # )  # Detector nodata, -> pixels that are outside of the detectors
+        nodata = self._open_mask_gt_4_0(
+            S2Jp2Masks.FOOTPRINT, band, size=(band_arr.rio.width, band_arr.rio.height)
+        ).data
 
-        # Set to nodata where the array is set to 0
-        nodata = np.where(band_arr.compute() == 0, self._mask_true, self._mask_false)
+        nodata = np.where(nodata == 0, 1, 0).astype(np.uint8)
 
         return self._set_nodata_mask(band_arr, nodata)
 
@@ -1238,19 +1261,19 @@ class S2Product(OpticalProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        if self._processing_baseline_lt_4_0:
+        if self._processing_baseline < 4.0:
             return self._open_clouds_lt_4_0(bands, resolution, size, **kwargs)
         else:
             return self._open_clouds_gt_4_0(bands, resolution, size, **kwargs)
 
     def _rasterize(
-        self, xds: XDS_TYPE, geometry: gpd.GeoDataFrame, nodata: np.ndarray
+        self, xds: xr.DataArray, geometry: gpd.GeoDataFrame, nodata: np.ndarray
     ) -> xr.DataArray:
         """
         Rasterize a vector on a memory dataset
 
         Args:
-            xds: xarray
+            xds (xr.DataArray): Array
             geometry (gpd.GeoDataFrame): Geometry to rasterize
             nodata (np.ndarray): Nodata mask
 
@@ -1332,8 +1355,114 @@ class S2Product(OpticalProduct):
             Affine, int, int: transform, width, height
 
         """
-        if self._is_l2ap:
+        if self._processing_baseline < 2.07:
             default_path = self.get_default_band_path(**kwargs)
             return self._l2ap_geocode_data(default_path)
         else:
             return super().default_transform()
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Get the cloud cover
+        try:
+            cc = float(root.findtext(".//CLOUDY_PIXEL_PERCENTAGE"))
+
+        except TypeError:
+            raise InvalidProductError("CLOUDY_PIXEL_PERCENTAGE not found in metadata!")
+
+        return cc
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing (some providers are providing one quicklook, such as creodias)
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=r".*ql\.jpg"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("**/*ql.jpg")))
+        except (StopIteration, FileNotFoundError):
+            try:
+                if self.is_archived:
+                    quicklook_path = files.get_archived_rio_path(
+                        self.path, file_regex=r".*preview\.jpg"
+                    )
+                else:
+                    quicklook_path = str(next(self.path.glob("**/preview.jpg")))
+            except (StopIteration, FileNotFoundError):
+                # Use the TCI
+                try:
+                    if self.product_type == S2ProductType.L2A:
+                        tci_regex = "TCI_60m"
+                    else:
+                        tci_regex = "TCI"
+                    if self.is_archived:
+                        quicklook_path = files.get_archived_rio_path(
+                            self.path, file_regex=rf".*{tci_regex}\.jp2"
+                        )
+                    else:
+                        quicklook_path = str(
+                            next(self.path.glob(f"**/{tci_regex}.jp2"))
+                        )
+                except (StopIteration, FileNotFoundError):
+                    LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path
+
+    @cache
+    def get_orbit_direction(self) -> OrbitDirection:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_orbit_direction().value
+            "DESCENDING"
+
+        Returns:
+            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
+        """
+        try:
+            # Get MTD XML file
+            root, _ = self.read_datatake_mtd()
+
+            # Get the orbit direction
+            try:
+                od = OrbitDirection.from_value(
+                    root.findtext(".//SENSING_ORBIT_DIRECTION")
+                )
+
+            except TypeError:
+                raise InvalidProductError(
+                    "SENSING_ORBIT_DIRECTION not found in metadata!"
+                )
+        except InvalidProductError:
+            od = OrbitDirection.DESCENDING
+
+        return od

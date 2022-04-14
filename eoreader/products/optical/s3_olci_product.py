@@ -31,7 +31,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from rasterio.enums import Resampling
 from sertit import rasters, rasters_rio
-from sertit.rasters import MAX_CORES, XDS_TYPE
+from sertit.rasters import MAX_CORES
 from sertit.vectors import WGS84
 
 from eoreader import cache, utils
@@ -84,6 +84,7 @@ class S3OlciProduct(S3Product):
         archive_path: Union[str, CloudPath, Path] = None,
         output_path: Union[str, CloudPath, Path] = None,
         remove_tmp: bool = False,
+        **kwargs,
     ) -> None:
 
         """
@@ -92,8 +93,8 @@ class S3OlciProduct(S3Product):
         Note that the name of each netCDF file provides information about its content.
         """
         super().__init__(
-            product_path, archive_path, output_path, remove_tmp
-        )  # Order is important here
+            product_path, archive_path, output_path, remove_tmp, **kwargs
+        )  # Order is important here, gcps NEED to be after this
 
         self._gcps = []
 
@@ -148,7 +149,7 @@ class S3OlciProduct(S3Product):
         self._solar_flux_name = "solar_flux"
         self._det_index = "detector_index"
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -156,7 +157,7 @@ class S3OlciProduct(S3Product):
         self.needs_extraction = False
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
     def _get_platform(self) -> Platform:
         """ Getter of the platform """
@@ -277,20 +278,6 @@ class S3OlciProduct(S3Product):
                 filename, subdataset, dtype=kwargs.get("dtype", np.float32)
             )
 
-            # Convert radiance to reflectances if needed
-            # Convert first pixel by pixel before reprojection !
-            if to_reflectance:
-                LOGGER.debug(f"Converting {band_str} to reflectance")
-                band_arr = self._rad_2_refl(band_arr, band)
-
-                # Debug
-                # utils.write(
-                #     band_arr,
-                #     self._get_band_folder(writable=True).joinpath(
-                #         f"{self.condensed_name}_{band.name}_rad2refl.tif"
-                #     ),
-                # )
-
             # Geocode
             LOGGER.debug(f"Geocoding {band_str}")
             pp_arr = self._geocode(band_arr, resolution=resolution)
@@ -320,7 +307,7 @@ class S3OlciProduct(S3Product):
         band_arr.rio.write_crs(WGS84, inplace=True)
 
         return band_arr.rio.reproject(
-            dst_crs=self.crs,
+            dst_crs=self.crs(),
             resolution=resolution,
             gcps=self._gcps,
             nodata=self._mask_nodata if band_arr.dtype == np.uint8 else self.nodata,
@@ -331,6 +318,17 @@ class S3OlciProduct(S3Product):
     def _rad_2_refl(self, band_arr: xr.DataArray, band: obn = None) -> xr.DataArray:
         """
         Convert radiance to reflectance
+
+        The Level 1 product provides measurements of top of atmosphere (ToA) radiances (mW/m2/sr/nm). These
+        values can be converted to normalised reflectance for better comparison or merging of data with different
+        sun angles as follows:
+        reflectance = π* (ToA radiance / solar irradiance / cos(solar zenith angle))
+        where the solar irradiance at ToA is given in the ‘solar_flux’ dataset  (instrument_data.nc  file)  for  each
+        detector  and  each  channel,  and  the  solar  zenith  angle  is  given  at  Tie  Points  in the ‘SZA’ dataset
+        (tie_geometry.nc file). The appropriate instrument detector is given at each pixel by the ‘detector_index’
+        dataset (instrument_data.nc file).
+
+        In https://sentinel.esa.int/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91
 
         Args:
             band_arr (xr.DataArray): Band array
@@ -383,17 +381,6 @@ class S3OlciProduct(S3Product):
         """
         Compute the solar spectral flux in mW / (m^2 * sr * nm)
 
-        The Level 1 product provides measurements of top of atmosphere (ToA) radiances (mW/m2/sr/nm). These
-        values can be converted to normalised reflectance for better comparison or merging of data with different
-        sun angles as follows:
-        reflectance = π* (ToA radiance / solar irradiance / cos(solar zenith angle))
-        where the solar irradiance at ToA is given in the ‘solar_flux’ dataset  (instrument_data.nc  file)  for  each
-        detector  and  each  channel,  and  the  solar  zenith  angle  is  given  at  Tie  Points  in the ‘SZA’ dataset
-        (tie_geometry.nc file). The appropriate instrument detector is given at each pixel by the ‘detector_index’
-        dataset (instrument_data.nc file).
-
-        In https://sentinel.esa.int/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91
-
         Args:
             band (obn): Optical Band (for SLSTR only)
 
@@ -417,8 +404,8 @@ class S3OlciProduct(S3Product):
         return e0
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...) for OLCI data.
         See there:
@@ -461,12 +448,12 @@ class S3OlciProduct(S3Product):
         | 31 |   land               |
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # Bit ids
         band_bit_id = {
@@ -575,4 +562,4 @@ class S3OlciProduct(S3Product):
         sun_az = self._read_nc(self._geom_file, self._saa_name)
         sun_ze = self._read_nc(self._geom_file, self._sza_name)
 
-        return sun_az.mean().data % 360, sun_ze.mean().data
+        return float(sun_az.mean().data) % 360, float(sun_ze.mean().data)

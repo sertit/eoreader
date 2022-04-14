@@ -28,13 +28,14 @@ from pathlib import Path
 from typing import Union
 
 import numpy as np
+import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
 from sertit import files, vectors
 from sertit.misc import ListEnum
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.exceptions import InvalidProductError
@@ -42,6 +43,20 @@ from eoreader.products import VhrProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
+
+_VIS1_E0 = {
+    obn.PAN: 1828,
+    obn.BLUE: 2003,
+    obn.GREEN: 1828,
+    obn.RED: 1618,
+    obn.NIR: 1042,
+    obn.NARROW_NIR: 1042,
+}
+"""
+Solar spectral irradiance, E0b, (commonly known as ESUN) is a constant value specific to each band of the Vision-1 imager.
+It is determined by using well know models of Solar Irradiance with the measured spectral transmission of the imager for each incident wavelength.
+It has units of Wm-2μm-1. The applicable values for Vision-1 are provided in the table.
+"""
 
 
 @unique
@@ -104,7 +119,7 @@ class Vis1Product(VhrProduct):
     for more information.
     """
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
@@ -113,9 +128,9 @@ class Vis1Product(VhrProduct):
         self._proj_prod_type = [Vis1ProductType.PRJ]
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
@@ -123,7 +138,7 @@ class Vis1Product(VhrProduct):
         self.band_combi = getattr(Vis1BandCombination, self.split_name[1])
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
     def _set_resolution(self) -> float:
         """
@@ -162,7 +177,7 @@ class Vis1Product(VhrProduct):
                 f"Unusual band combination: {self.band_combi.name}"
             )
 
-    @cached_property
+    @cache
     def crs(self) -> riocrs.CRS:
         """
         Get UTM projection of the tile
@@ -172,7 +187,7 @@ class Vis1Product(VhrProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"IMG_PHR1B_PMS_001"
             >>> prod = Reader().open(path)
-            >>> prod.crs
+            >>> prod.crs()
             CRS.from_epsg(32618)
 
         Returns:
@@ -182,7 +197,7 @@ class Vis1Product(VhrProduct):
         root, _ = self.read_mtd()
 
         # Open the Bounding_Polygon
-        vertices = [v for v in root.iterfind(".//Dataset_Frame/Vertex")]
+        vertices = list(root.iterfind(".//Dataset_Frame/Vertex"))
 
         # Get the mean lon lat
         lon = float(np.mean([float(v.findtext("FRAME_LON")) for v in vertices]))
@@ -314,6 +329,37 @@ class Vis1Product(VhrProduct):
 
         return azimuth_angle, zenith_angle
 
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
+
+        # Compute the correct radiometry of the band
+        original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
+        if original_dtype == "uint16":
+            band_arr /= 100.0
+
+        # To float32
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
+
+        return self._toa_rad_to_toa_refl(band_arr, band)
+
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
@@ -377,3 +423,52 @@ class Vis1Product(VhrProduct):
 
         rpcs = utils.open_rpc_file(rpcs_file)
         return super()._get_ortho_path(rpcs=rpcs, **kwargs)
+
+    def _toa_rad_to_toa_refl(
+        self, rad_arr: xr.DataArray, band: BandNames
+    ) -> xr.DataArray:
+        """
+        Compute TOA reflectance from TOA radiance
+
+        See
+        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC02ODMwNQ==/ZG9jdXRoZXF1ZS1maWxlLTY4MzAy/vision-1-imagery-user-guide-20210217>`_
+        (3.2.2) for more information.
+
+        WARNING: in this formula, d**2 = 1 / sqrt(dt) !
+
+        Args:
+            rad_arr (xr.DataArray): TOA Radiance array
+            band (BandNames): Band
+
+        Returns:
+            xr.DataArray: TOA Reflectance array
+        """
+        # Compute the coefficient converting TOA radiance in TOA reflectance
+        dt = self._sun_earth_distance_variation()
+        _, sun_zen = self.get_mean_sun_angles()
+        rad_sun_zen = np.deg2rad(sun_zen)
+        e0 = _VIS1_E0[band]
+        toa_refl_coeff = np.pi / (e0 * dt * np.cos(rad_sun_zen))
+
+        # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
+        return rad_arr.copy(data=toa_refl_coeff * rad_arr)
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex="Preview.tif"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("Preview.tif")))
+        except (StopIteration, FileNotFoundError):
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path

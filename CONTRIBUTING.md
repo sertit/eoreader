@@ -49,5 +49,5 @@ will take care of that for you. Please be sure that your code is running on Pyth
 Releases are made by tagging a commit on the master branch. To make a new release,
 
 * Ensure you correctly updated `README.md` and `CHANGES.md`
-* Check that the version string in `eoreader/__init__.py` (the variable `__version__`) is correctly updated
+* Check that the version string in `eoreader/__meta__.py` (the variable `__version__`) is correctly updated
 * Push your local master branch to remote.

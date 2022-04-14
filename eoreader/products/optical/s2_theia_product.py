@@ -32,9 +32,8 @@ from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio, vectors
-from sertit.rasters import XDS_TYPE
 
-from eoreader import cache, cached_property, utils
+from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
 from eoreader.bands import OpticalBandNames as obn
 from eoreader.bands import to_str
@@ -52,17 +51,18 @@ class S2TheiaProduct(OpticalProduct):
     for more information.
     """
 
-    def _pre_init(self) -> None:
+    def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        self._has_cloud_cover = True
         self.needs_extraction = False
 
         # Post init done by the super class
-        super()._pre_init()
+        super()._pre_init(**kwargs)
 
-    def _post_init(self) -> None:
+    def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting sensor type, band names and so on)
@@ -70,7 +70,7 @@ class S2TheiaProduct(OpticalProduct):
         self.tile_name = self._get_tile_name()
 
         # Post init done by the super class
-        super()._post_init()
+        super()._post_init(**kwargs)
 
     def _set_resolution(self) -> float:
         """
@@ -108,8 +108,8 @@ class S2TheiaProduct(OpticalProduct):
                 obn.VRE_1: "5",
                 obn.VRE_2: "6",
                 obn.VRE_3: "7",
-                obn.NIR: "8",
-                obn.NARROW_NIR: "8A",
+                obn.NIR: "8A",
+                obn.NARROW_NIR: "8",
                 obn.SWIR_1: "11",
                 obn.SWIR_2: "12",
             }
@@ -119,7 +119,7 @@ class S2TheiaProduct(OpticalProduct):
         # B1 to be divided by 20
         # B9 to be divided by 200
 
-    @cached_property
+    @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -133,7 +133,7 @@ class S2TheiaProduct(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> path = r"LC08_L1GT_023030_20200518_20200527_01_T2"
             >>> prod = Reader().open(path)
-            >>> prod.footprint
+            >>> prod.footprint()
                index                                           geometry
             0      0  POLYGON ((366165.000 4899735.000, 366165.000 4...
 
@@ -273,7 +273,7 @@ class S2TheiaProduct(OpticalProduct):
         resolution: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> XDS_TYPE:
+    ) -> xr.DataArray:
         """
         Read band from disk.
 
@@ -287,11 +287,9 @@ class S2TheiaProduct(OpticalProduct):
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
         Returns:
-            XDS_TYPE: Band xarray
-
+            xr.DataArray: Band xarray
         """
-        # Read band
-        band_xda = utils.read(
+        band_arr = utils.read(
             path,
             resolution=resolution,
             size=size,
@@ -299,32 +297,57 @@ class S2TheiaProduct(OpticalProduct):
             **kwargs,
         )
 
+        # Convert type if needed
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
+
+        return band_arr
+
+    def _to_reflectance(
+        self,
+        band_arr: xr.DataArray,
+        path: Union[Path, CloudPath],
+        band: BandNames,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+            band_arr (xr.DataArray): Band array to convert
+            path (Union[CloudPath, Path]): Band path
+            band (BandNames): Band to read
+            **kwargs: Other keywords
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
         # Compute the correct radiometry of the band (Theia product are stored into int16 bits)
-        original_dtype = band_xda.encoding.get("dtype", band_xda.dtype)
+        original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
         if original_dtype == "int16":
-            band_xda /= 10000.0
+            band_arr /= 10000.0
 
         # Convert type if needed
-        if band_xda.dtype != np.float32:
-            band_xda = band_xda.astype(np.float32)
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
 
-        return band_xda
+        return band_arr
 
     def _manage_invalid_pixels(
-        self, band_arr: XDS_TYPE, band: obn, **kwargs
-    ) -> XDS_TYPE:
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/>`_ for more
         information.
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # -- Manage nodata from Theia band array
         # Theia nodata is already processed
@@ -358,17 +381,19 @@ class S2TheiaProduct(OpticalProduct):
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
 
-    def _manage_nodata(self, band_arr: XDS_TYPE, band: obn, **kwargs) -> XDS_TYPE:
+    def _manage_nodata(
+        self, band_arr: xr.DataArray, band: obn, **kwargs
+    ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
-            band_arr (XDS_TYPE): Band array
+            band_arr (xr.DataArray): Band array
             band (obn): Band name as an OpticalBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
-            XDS_TYPE: Cleaned band array
+            xr.DataArray: Cleaned band array
         """
         # -- Manage nodata from Theia band array
         # Theia nodata is already processed
@@ -698,13 +723,13 @@ class S2TheiaProduct(OpticalProduct):
         return band_dict
 
     def _create_mask(
-        self, bit_array: XDS_TYPE, bit_ids: Union[int, list], nodata: np.ndarray
+        self, bit_array: xr.DataArray, bit_ids: Union[int, list], nodata: np.ndarray
     ) -> xr.DataArray:
         """
         Create a mask masked array (uint8) from a bit array, bit IDs and a nodata mask.
 
         Args:
-            bit_array (XDS_TYPE): Conditional array
+            bit_array (xr.DataArray): Conditional array
             bit_ids (Union[int, list]): Bit IDs
             nodata (np.ndarray): Nodata mask
 
@@ -718,3 +743,53 @@ class S2TheiaProduct(OpticalProduct):
         cond = reduce(lambda x, y: x | y, conds)  # Use every conditions (bitwise or)
 
         return super()._create_mask(bit_array, cond, nodata)
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing (some providers are providing one quicklook, such as creodias)
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=r".*QKL_ALL\.jpg"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("**/*QKL_ALL.jpg")))
+        except (StopIteration, FileNotFoundError):
+            LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        return quicklook_path
+
+    @cache
+    def get_cloud_cover(self) -> float:
+        """
+        Get cloud cover as given in the metadata
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_cloud_cover()
+            55.5
+
+        Returns:
+            float: Cloud cover as given in the metadata
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Get the cloud cover
+        try:
+            cc = float(root.findtext(".//QUALITY_INDEX[@name='CloudPercent']"))
+
+        except TypeError:
+            raise InvalidProductError(
+                "QUALITY_INDEXQUALITY_INDEX name='CloudPercent' not found in metadata!"
+            )
+
+        return cc
