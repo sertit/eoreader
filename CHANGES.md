@@ -10,7 +10,19 @@
 
 ### Enhancements
 
-- **ENH: Adding Shadow Index (`SI`), Global Vegetation Moisture Index (`GVMI`), Soil Brightness Index (`SBI`), Soil Cuirass Index (`SCI`), Panchromatic mocking Index (`PANI`)**
+- **ENH: Adding spectral indices:**
+  - Shadow Index (`SI`)
+  - Global Vegetation Moisture Index (`GVMI`)
+  - Soil Brightness Index (`SBI`), Soil Cuirass Index (`SCI`)
+  - Panchromatic mocking Index (`PANI`)
+  - Green-to-Red ratio Index (`GRI`)
+  - Soil Adjusted Vegetation Index (`SAVI`)
+  - Optimized Soil Adjusted Vegetation Index (`OSAVI`)
+  - Visible Atmospherically Resistant Index (Green) (`VARI`)
+  - Enhanced Vegetation Index (`EVI`)
+  - Chlorophyll Index RedEdge VRE_3/VRE_2 (`CI1`)
+  - Chlorophyll Index RedEdge VRE_2/VRE_1 (`CI2`)
+  - Normalized Difference Moisture Index (with SWIR_21) (`NDMI21`)
 - **ENH: Making SAR attribute `snap_filename` public**
 - **ENH: Handling `ICEYE` pure SLC products**
 - **ENH: Allowing the user to choose if they want the GRD or SLC image for `ICEYE` products**

@@ -99,6 +99,21 @@ def RGI(bands: dict) -> xr.DataArray:
 
 
 @_idx_fct
+def GRI(bands: dict) -> xr.DataArray:
+    """
+    Green-to-Red ratio Index
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    """
+    return bands[obn.GREEN] / bands[obn.RED]
+
+
+@_idx_fct
 def NDVI(bands: dict) -> xr.DataArray:
     """
     `Normalized Difference Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=58>`_
@@ -111,6 +126,82 @@ def NDVI(bands: dict) -> xr.DataArray:
 
     """
     return _norm_diff(bands[obn.NARROW_NIR], bands[obn.RED])
+
+
+@_idx_fct
+def SAVI(bands: dict) -> xr.DataArray:
+    """
+    `Soil Adjusted Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=87>_` with L=0.5
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    """
+    coeff = 0.5
+    return (
+        (1 + coeff)
+        * (bands[obn.NARROW_NIR] - bands[obn.RED])
+        / (bands[obn.NARROW_NIR] + bands[obn.RED] + coeff)
+    )
+
+
+@_idx_fct
+def OSAVI(bands: dict) -> xr.DataArray:
+    """
+    `Optimized Soil Adjusted Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=63>_` with L=0.16
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    """
+    coeff = 0.16
+    return (
+        (1 + coeff)
+        * (bands[obn.NARROW_NIR] - bands[obn.RED])
+        / (bands[obn.NARROW_NIR] + bands[obn.RED] + coeff)
+    )
+
+
+@_idx_fct
+def VARI(bands: dict) -> xr.DataArray:
+    """
+    `Visible Atmospherically Resistant Index (Green)<https://www.indexdatabase.de/db/i-single.php?id=356>_`
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    """
+    return (bands[obn.GREEN] - bands[obn.RED]) / (
+        bands[obn.GREEN] + bands[obn.RED] - bands[obn.BLUE]
+    )
+
+
+@_idx_fct
+def EVI(bands: dict) -> xr.DataArray:
+    """
+    `Enhanced Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=16>_`
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    """
+    return (
+        2.5
+        * (bands[obn.NARROW_NIR] - bands[obn.RED])
+        / (bands[obn.NARROW_NIR] + 6 * bands[obn.RED] - 7.5 * bands[obn.BLUE] + 1)
+    )
 
 
 @_idx_fct
@@ -219,6 +310,36 @@ def NDRE3(bands: dict) -> xr.DataArray:
 
 
 @_idx_fct
+def CI1(bands: dict) -> xr.DataArray:
+    """
+    Chlorophyll Index RedEdge VRE_3/VRE_2
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    """
+    return bands[obn.VRE_3] / bands[obn.VRE_2] - 1
+
+
+@_idx_fct
+def CI2(bands: dict) -> xr.DataArray:
+    """
+    Chlorophyll Index RedEdge VRE_2/VRE_1
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    """
+    return bands[obn.VRE_2] / bands[obn.VRE_1] - 1
+
+
+@_idx_fct
 def GLI(bands: dict) -> xr.DataArray:
     """
     `Green leaf index <https://www.indexdatabase.de/db/i-single.php?id=375>`_
@@ -310,6 +431,21 @@ def NDMI(bands: dict) -> xr.DataArray:
 
     """
     return _norm_diff(bands[obn.NIR], bands[obn.SWIR_1])
+
+
+@_idx_fct
+def NDMI21(bands: dict) -> xr.DataArray:
+    """
+    Normalized Difference Moisture Index (with SWIR_21)
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+
+    """
+    return _norm_diff(bands[obn.NIR], bands[obn.SWIR_2])
 
 
 @_idx_fct

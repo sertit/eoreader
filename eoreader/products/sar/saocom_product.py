@@ -226,7 +226,7 @@ class SaocomProduct(SarProduct):
         # # Open extent KML file
         # if self.product_type == SaocomProductType.SLC:
         #     pass
-        #     # TODO
+        #
         # else:
         #     try:
         #         extent_file = next(self.path.glob("**/Images/*.kml"))
