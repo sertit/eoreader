@@ -235,7 +235,6 @@ class DimapProduct(VhrProduct):
         **kwargs,
     ) -> None:
         self._empty_mask = []
-
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
@@ -244,6 +243,7 @@ class DimapProduct(VhrProduct):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        self._has_cloud_cover = True
         self.needs_extraction = False
         self._proj_prod_type = [DimapProductType.SEN, DimapProductType.PRJ]
 

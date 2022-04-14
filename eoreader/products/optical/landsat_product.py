@@ -115,6 +115,8 @@ class LandsatProduct(OpticalProduct):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        self._has_cloud_cover = True
+
         mtd, _ = self.read_mtd()
 
         # Open identifier

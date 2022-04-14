@@ -200,6 +200,8 @@ class PlaProduct(OpticalProduct):
         Function used to post_init the products
         (setting sensor type, band names and so on)
         """
+        self._has_cloud_cover = True
+
         # Ortho Tiles
         if self.product_type == PlaProductType.L3A:
             self.tile_name = self.split_name[1]

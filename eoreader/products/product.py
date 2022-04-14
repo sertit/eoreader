@@ -1549,7 +1549,9 @@ class Product:
         renamed_xarr.attrs["orbit_direction"] = od.value if od is not None else str(od)
 
         # kwargs attrs
-        renamed_xarr = self._update_attrs_sensor_specific(xarr, long_name, **kwargs)
+        renamed_xarr = self._update_attrs_sensor_specific(
+            renamed_xarr, long_name, **kwargs
+        )
 
         return renamed_xarr
 
@@ -1716,7 +1718,7 @@ class Product:
                 if nb is not None
             ]
         )
-        return [
+        repr = [
             f"EOReader {self.__class__.__name__}",
             "Attributes:",
             f"\tcondensed_name: {self.condensed_name}",
@@ -1728,9 +1730,20 @@ class Product:
             f"\tdefault resolution: {self.resolution}",
             f"\tacquisition datetime: {self.get_datetime(as_datetime=True).isoformat()}",
             f"\tband mapping:\n{band_repr}",
-            f"\ttile name: {self.tile_name if self.tile_name is not None else 'N/A'}",
-            f"\tneeds_extraction: {self.needs_extraction}",
+            f"\tneeds extraction: {self.needs_extraction}",
         ]
+
+        return repr + self._to_repr_sensor_specific()
+
+    @abstractmethod
+    def _to_repr_sensor_specific(self) -> list:
+        """
+        Representation specific to the sensor
+
+        Returns:
+            list: Representation list (sensor specific)
+        """
+        raise NotImplementedError
 
     def __repr__(self):
         return "\n".join(self.to_repr())

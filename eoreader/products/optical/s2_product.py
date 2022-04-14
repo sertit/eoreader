@@ -151,6 +151,7 @@ class S2Product(OpticalProduct):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        self._has_cloud_cover = True
         self.needs_extraction = False
 
         # Post init done by the super class
