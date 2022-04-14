@@ -41,6 +41,7 @@
 - FIX: Handle new `ICEYE` metadata name's nomenclature
 - FIX: Fixing harmless regex error when searching for B1 path for `Landsat` products
 - FIX: Fixing platform for `Sentinel-2 Theia`
+- FIX: Fix `FutureWarning: The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.`
 
 ### Other
 
