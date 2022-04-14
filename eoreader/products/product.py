@@ -1527,12 +1527,14 @@ class Product:
             xr.DataArray: Updated array
         """
         if isinstance(long_name, list):
-            name = " ".join(long_name)
+            xr_name = "_".join(long_name)
+            attr_name = " ".join(long_name)
         else:
-            name = long_name
+            xr_name = long_name
+            attr_name = long_name
 
-        renamed_xarr = xarr.rename(name)
-        renamed_xarr.attrs["long_name"] = name
+        renamed_xarr = xarr.rename(xr_name)
+        renamed_xarr.attrs["long_name"] = attr_name
         renamed_xarr.attrs["sensor"] = self.platform.value
         renamed_xarr.attrs["sensor_id"] = self.sat_id
         renamed_xarr.attrs["product_path"] = str(self.path)  # Convert to string
