@@ -1,5 +1,9 @@
 # Release History
 
+## 0.YY.ZZ (2022-MM-DD)
+
+- CI: Do not process two times the zipped Sentinel-1 in end-to-end tests
+
 ## 0.14.0 (2022-04-14)
 
 ### Breaking Changes

@@ -374,7 +374,7 @@ def test_vs1():
 @dask_env
 def test_s1():
     """Function testing the support of Sentinel-1 sensor"""
-    _test_core_sar("*S1*_IW*")
+    _test_core_sar("*S1*_IW*.SAFE")
 
 
 @dask_env
