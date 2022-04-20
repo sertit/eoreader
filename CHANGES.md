@@ -2,7 +2,7 @@
 
 ## 0.YY.ZZ (2022-MM-DD)
 
-- CI: Do not process two times the zipped Sentinel-1 in end-to-end tests
+- CI: Do not process two times the zipped Sentinel-1 in end-to-end tests and manage when the runner kills SNAP
 
 ## 0.14.0 (2022-04-14)
 
