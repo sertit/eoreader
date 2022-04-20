@@ -377,20 +377,23 @@ def test_s1_grdh():
     _test_core_sar("*S1*_IW_GRDH*.SAFE")
 
 
-@dask_env
 def test_s1_slc(capsys):
-    """Function testing the support of Sentinel-1 sensor"""
-    try:
-        _test_core_sar("*S1*_IW_SLC*.SAFE")
-    except RuntimeError:
-        # Sometimes SNAP kills the process when out of memory: assert OK in this case
-        import sys
+    @dask_env
+    def test_s1_slc_core():
+        """Function testing the support of Sentinel-1 sensor"""
+        try:
+            _test_core_sar("*S1*_IW_SLC*.SAFE")
+        except RuntimeError:
+            # Sometimes SNAP kills the process when out of memory: assert OK in this case
+            import sys
 
-        out, err = capsys.readouterr()
-        sys.stdout.write(out)
-        sys.stderr.write(err)
+            out, err = capsys.readouterr()
+            sys.stdout.write(out)
+            sys.stderr.write(err)
 
-        assert "Killed" in out or "Killed" in err
+            assert "Killed" in out or "Killed" in err
+
+    test_s1_slc_core()
 
 
 @dask_env
@@ -399,20 +402,23 @@ def test_s1_grdh_zip():
     _test_core_sar("*S1*_IW_GRDH*.zip")
 
 
-@dask_env
 def test_s1_slc_zip(capsys):
-    """Function testing the support of Sentinel-1 sensor"""
-    try:
-        _test_core_sar("*S1*_IW_SLC*.zip")
-    except RuntimeError:
-        # Sometimes SNAP kills the process when out of memory: assert OK in this case
-        import sys
+    @dask_env
+    def test_s1_slc_zip_core():
+        """Function testing the support of Sentinel-1 sensor"""
+        try:
+            _test_core_sar("*S1*_IW_SLC*.zip")
+        except RuntimeError:
+            # Sometimes SNAP kills the process when out of memory: assert OK in this case
+            import sys
 
-        out, err = capsys.readouterr()
-        sys.stdout.write(out)
-        sys.stderr.write(err)
+            out, err = capsys.readouterr()
+            sys.stdout.write(out)
+            sys.stderr.write(err)
 
-        assert "Killed" in out or "Killed" in err
+            assert "Killed" in out or "Killed" in err
+
+    test_s1_slc_zip_core()
 
 
 @dask_env
