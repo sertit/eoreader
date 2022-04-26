@@ -34,7 +34,7 @@ from sertit import files, vectors
 from sertit.misc import ListEnum
 
 from eoreader import cache
-from eoreader.bands.bands import SarBandNames as sbn
+from eoreader.bands import SarBandNames as sab
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import ICEYE_USE_SLC
 from eoreader.products import SarProduct, SarProductType
@@ -351,7 +351,7 @@ class IceyeProduct(SarProduct):
         """
         band_paths = {}
         try:
-            band_paths[sbn.VV] = files.get_file_in_dir(
+            band_paths[sab.VV] = files.get_file_in_dir(
                 self._band_folder, self._raw_band_regex, exact_name=True, get_list=False
             )
         except FileNotFoundError:

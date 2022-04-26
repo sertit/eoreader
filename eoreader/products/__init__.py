@@ -42,8 +42,7 @@ __all__ += [
     "DimapProduct",
     "DimapProductType",
     "PldProduct",
-    "Spot6Product",
-    "Spot7Product",
+    "SpotProduct",
     "MaxarProduct",
     "MaxarProductType",
     "MaxarSatId",
@@ -55,8 +54,7 @@ __all__ += [
 from .optical.vhr_product import VhrProduct
 from .optical.dimap_product import DimapBandCombination, DimapProduct, DimapProductType
 from .optical.pld_product import PldProduct
-from .optical.spot6_product import Spot6Product
-from .optical.spot7_product import Spot7Product
+from .optical.spot_product import SpotProduct
 from .optical.maxar_product import (
     MaxarProduct,
     MaxarProductType,

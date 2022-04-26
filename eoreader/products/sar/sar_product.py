@@ -36,16 +36,10 @@ from sertit import files, misc, rasters, snap, strings, vectors
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
-from eoreader.bands import BandNames
-from eoreader.bands import SarBandNames as sbn
-from eoreader.bands import (
-    SarBands,
-    is_clouds,
-    is_dem,
-    is_index,
-    is_optical_band,
-    is_sar_band,
-)
+from eoreader._stac import INTENSITY
+from eoreader.bands import BandNames, SarBand, SarBandMap
+from eoreader.bands import SarBandNames as sab
+from eoreader.bands import is_clouds, is_dem, is_index, is_sar_band, is_spectral_band
 from eoreader.env_vars import DEM_PATH, DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES, SNAP_DEM_NAME
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.keywords import SAR_INTERP_NA
@@ -193,7 +187,7 @@ class SarProduct(Product):
         """
         self.tile_name = None
         self.sensor_type = SensorType.SAR
-        self.band_names = SarBands()
+        self.bands = SarBandMap()
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -202,6 +196,17 @@ class SarProduct(Product):
         """
         self._set_sensor_mode()
         self.pol_channels = self._get_raw_bands()
+        self.bands.map_bands(
+            {
+                band_name: SarBand(
+                    eoreader_name=band_name,
+                    name=band_name.name,
+                    id=band_name.value,
+                    asset_role=INTENSITY,
+                )
+                for band_name in self.get_existing_bands()
+            }
+        )
 
     @cache
     def footprint(self) -> gpd.GeoDataFrame:
@@ -245,14 +250,14 @@ class SarProduct(Product):
             raise InvalidProductError(f"No band exists for products: {self.name}")
 
         # The order matters, as we almost always prefer VV and HH
-        if sbn.VV in existing_bands:
-            default_band = sbn.VV
-        elif sbn.HH in existing_bands:
-            default_band = sbn.HH
-        elif sbn.VH in existing_bands:
-            default_band = sbn.VH
-        elif sbn.HV in existing_bands:
-            default_band = sbn.HV
+        if sab.VV in existing_bands:
+            default_band = sab.VV
+        elif sab.HH in existing_bands:
+            default_band = sab.HH
+        elif sab.VH in existing_bands:
+            default_band = sab.VH
+        elif sab.HV in existing_bands:
+            default_band = sab.HV
         else:
             raise InvalidTypeError(f"Invalid bands for products: {existing_bands}")
 
@@ -399,27 +404,27 @@ class SarProduct(Product):
         """
         band_paths = {}
         for band in band_list:
-            bname = self.band_names[band]
-            if bname is None:
+            if self.bands[band] is None:
                 raise InvalidProductError(
                     f"Non existing band ({band.name}) for {self.name}"
                 )
             try:
                 # Try to load orthorectified bands
+                band_id = self.bands[band].id
                 band_paths[band] = files.get_file_in_dir(
                     self._get_band_folder(),
-                    f"*{self.condensed_name}_{bname}.tif",
+                    f"*{self.condensed_name}_{band_id}.tif",
                     exact_name=True,
                 )
             except FileNotFoundError:
-                speckle_band = sbn.corresponding_speckle(band)
+                speckle_band = sab.corresponding_speckle(band)
                 if speckle_band in self.pol_channels:
-                    if sbn.is_despeckle(band):
+                    if sab.is_despeckle(band):
                         # Check if existing speckle ortho band
                         try:
                             files.get_file_in_dir(
                                 self._get_band_folder(),
-                                f"*{self.condensed_name}_{self.band_names[speckle_band]}.tif",
+                                f"*{self.condensed_name}_{self.bands[speckle_band].id}.tif",
                                 exact_name=True,
                             )
                         except FileNotFoundError:
@@ -443,8 +448,8 @@ class SarProduct(Product):
         """
         extended_fmt = _ExtendedFormatter()
         band_paths = {}
-        for band, band_name in self.band_names.items():
-            band_regex = extended_fmt.format(self._raw_band_regex, band_name)
+        for band in sab.speckle_list():
+            band_regex = extended_fmt.format(self._raw_band_regex, band.value)
 
             if self.is_archived:
                 if self.path.suffix == ".zip":
@@ -533,7 +538,7 @@ class SarProduct(Product):
         # Get raw bands (maximum number of bands)
         raw_bands = self._get_raw_bands()
         existing_bands = raw_bands + [
-            sbn.corresponding_despeckle(band) for band in raw_bands
+            sab.corresponding_despeckle(band) for band in raw_bands
         ]
 
         return existing_bands
@@ -638,7 +643,7 @@ class SarProduct(Product):
                 raise NotImplementedError(
                     "For now, no index is implemented for SAR data."
                 )
-            elif is_optical_band(band):
+            elif is_spectral_band(band):
                 raise TypeError(
                     f"You should ask for SAR bands as {self.name} is a SAR product."
                 )
@@ -672,7 +677,7 @@ class SarProduct(Product):
 
         return bands
 
-    def _pre_process_sar(self, band: sbn, resolution: float = None, **kwargs) -> str:
+    def _pre_process_sar(self, band: sab, resolution: float = None, **kwargs) -> str:
         """
         Pre-process SAR data (geocoding...)
 
@@ -793,7 +798,7 @@ class SarProduct(Product):
                 LOGGER.debug("Converting DIMAP to GeoTiff")
                 return self._write_sar(pp_dim, band.value, **kwargs)
 
-    def _despeckle_sar(self, band: sbn, **kwargs) -> str:
+    def _despeckle_sar(self, band: sab, **kwargs) -> str:
         """
         Pre-process SAR data (geocode...)
 

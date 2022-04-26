@@ -17,7 +17,7 @@
 """
 PlanetScope products.
 See
-`Earth Online <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
+`Earth Online <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
 and `Planet documentation <https://developers.planet.com/docs/data/planetscope/>`_
 for more information.
 """
@@ -37,8 +37,17 @@ from sertit import files, rasters
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
-from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
-from eoreader.bands import OpticalBandNames as obn
+from eoreader._stac import *
+from eoreader.bands import (
+    ALL_CLOUDS,
+    CIRRUS,
+    CLOUDS,
+    RAW_CLOUDS,
+    SHADOWS,
+    BandNames,
+    SpectralBand,
+)
+from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
@@ -179,7 +188,7 @@ class PlaProductType(ListEnum):
 class PlaProduct(OpticalProduct):
     """
     Class of PlanetScope products.
-    See `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`__
+    See `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`__
     for more information.
 
     The scaling factor to retrieve the calibrated radiance is 0.01.
@@ -220,6 +229,147 @@ class PlaProduct(OpticalProduct):
         else:
             return 3.0
 
+    def _get_spectral_bands(self) -> dict:
+        """
+        See <here `https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf`_> for more information.
+
+        Returns:
+            dict: Maxar spectral bands
+        """
+        gsd = 3.7
+
+        blue = SpectralBand(
+            eoreader_name=spb.BLUE,
+            **{NAME: "Blue", ID: 2, GSD: gsd, WV_MIN: 465, WV_MAX: 515},
+        )
+
+        green = SpectralBand(
+            eoreader_name=spb.GREEN,
+            **{NAME: "Green", ID: 4, GSD: gsd, WV_MIN: 547, WV_MAX: 583},
+        )
+
+        red = SpectralBand(
+            eoreader_name=spb.RED,
+            **{NAME: "Red", ID: 6, GSD: gsd, WV_MIN: 650, WV_MAX: 680},
+        )
+
+        nir = SpectralBand(
+            eoreader_name=spb.NIR,
+            **{NAME: "NIR", ID: 8, GSD: gsd, WV_MIN: 845, WV_MAX: 885},
+        )
+
+        # Create spectral bands
+        if self.instrument == PlaInstrument.PSB_SD:
+            spectral_bands = {
+                "ca": SpectralBand(
+                    eoreader_name=spb.CA,
+                    **{NAME: "Coastal Blue", ID: 1, GSD: gsd, WV_MIN: 431, WV_MAX: 452},
+                ),
+                "blue": blue,
+                "green1": SpectralBand(
+                    eoreader_name=spb.GREEN,
+                    **{NAME: "Green I", ID: 3, GSD: gsd, WV_MIN: 513, WV_MAX: 549},
+                ),
+                "green": green.update(name="Green II"),
+                "yellow": SpectralBand(
+                    eoreader_name=spb.YELLOW,
+                    **{NAME: "Yellow", ID: 5, GSD: gsd, WV_MIN: 600, WV_MAX: 620},
+                ),
+                "red": red,
+                "vre": SpectralBand(
+                    eoreader_name=spb.VRE_1,
+                    **{NAME: "Red-Edge", ID: 7, GSD: gsd, WV_MIN: 697, WV_MAX: 713},
+                ),
+                "nir": nir,
+            }
+        elif self.instrument == PlaInstrument.PS2_SD:
+            spectral_bands = {
+                "blue": blue.update(**{ID: 1, WV_MIN: 464, WV_MAX: 517}),
+                "green": green.update(**{ID: 2, WV_MIN: 547, WV_MAX: 585}),
+                "red": red.update(**{ID: 3, WV_MIN: 650, WV_MAX: 682}),
+                "nir": nir.update(**{ID: 4, WV_MIN: 846, WV_MAX: 888}),
+            }
+        elif self.instrument == PlaInstrument.PS2:
+            spectral_bands = {
+                "blue": blue.update(**{ID: 1, WV_MIN: 455, WV_MAX: 515}),
+                "green": green.update(**{ID: 2, WV_MIN: 500, WV_MAX: 590}),
+                "red": red.update(**{ID: 3, WV_MIN: 590, WV_MAX: 670}),
+                "nir": nir.update(**{ID: 4, WV_MIN: 780, WV_MAX: 860}),
+            }
+        else:
+            raise InvalidProductError(
+                f"Non recognized PlanetScope Instrument: {self.instrument}"
+            )
+
+        return spectral_bands
+
+    def _set_band_map(self, nof_bands, **kwargs) -> None:
+        """
+        Set products type
+
+        https://developers.planet.com/docs/apis/data/sensors/
+        """
+        # Open spectral bands
+        ca = kwargs.get("ca")
+        blue = kwargs.get("blue")
+        green = kwargs.get("green")
+        green1 = kwargs.get("green1")
+        red = kwargs.get("red")
+        nir = kwargs.get("nir")
+        vre = kwargs.get("vre")
+        yellow = kwargs.get("yellow")
+
+        if nof_bands == 3:
+            self.bands.map_bands(
+                {
+                    spb.BLUE: blue.update(id=1),
+                    spb.GREEN: green.update(id=2),
+                    spb.RED: red.update(id=3),
+                }
+            )
+        elif nof_bands == 4:
+            self.bands.map_bands(
+                {
+                    spb.BLUE: blue.update(id=1),
+                    spb.GREEN: green.update(id=2),
+                    spb.RED: red.update(id=3),
+                    spb.NIR: nir.update(id=4),
+                    spb.NARROW_NIR: nir.update(id=4),
+                }
+            )
+        elif nof_bands == 5:
+            self.bands.map_bands(
+                {
+                    spb.BLUE: blue.update(id=1),
+                    spb.GREEN: green.update(id=2),
+                    spb.RED: red.update(id=3),
+                    spb.VRE_1: vre.update(id=4),
+                    spb.VRE_2: vre.update(id=4),
+                    spb.VRE_3: vre.update(id=4),
+                    spb.NIR: nir.update(id=5),
+                    spb.NARROW_NIR: nir.update(id=5),
+                }
+            )
+        elif nof_bands == 8:
+            self.bands.map_bands(
+                {
+                    spb.CA: ca,
+                    spb.BLUE: blue,
+                    spb.GREEN1: green1,
+                    spb.GREEN: green,
+                    spb.RED: red,
+                    spb.YELLOW: yellow,
+                    spb.VRE_1: vre,
+                    spb.NIR: nir,
+                    spb.NARROW_NIR: nir,
+                }
+            )
+        else:
+            raise InvalidProductError(
+                f"Unusual number of bands ({nof_bands}) for {self.path}. "
+                f"Please check the validity of your product"
+            )
+
     def _set_product_type(self) -> None:
         """Set products type"""
         # Get MTD XML file
@@ -249,39 +399,16 @@ class PlaProduct(OpticalProduct):
         instrument = instr_node.findtext(f"{nsmap['eop']}shortName")
 
         if not instrument:
-            raise InvalidProductError("Cannot find the platform in the metadata file")
+            raise InvalidProductError("Cannot find the Instrument in the metadata file")
 
         # Set correct platform
         self.instrument = getattr(PlaInstrument, instrument.replace(".", "_"))
 
         # Manage bands of the product
         nof_bands = int(root.findtext(f".//{nsmap['ps']}numBands"))
-        if nof_bands == 3:
-            self.band_names.map_bands({obn.BLUE: 1, obn.GREEN: 2, obn.RED: 3})
-        elif nof_bands == 4:
-            self.band_names.map_bands(
-                {obn.BLUE: 1, obn.GREEN: 2, obn.RED: 3, obn.NIR: 4, obn.NARROW_NIR: 4}
-            )
-        elif nof_bands == 5:
-            self.band_names.map_bands(
-                {
-                    obn.BLUE: 1,
-                    obn.GREEN: 2,
-                    obn.RED: 3,
-                    obn.VRE_1: 4,
-                    obn.NIR: 5,
-                    obn.NARROW_NIR: 5,
-                }
-            )
-        elif nof_bands == 8:
-            raise NotImplementedError(
-                f"8 Band Scenes are not yet implemented in EOReader: {self.path}"
-            )
-        else:
-            raise InvalidProductError(
-                f"Unusual number of bands ({nof_bands}) for {self.path}. "
-                f"Please check the validity of your product"
-            )
+
+        # Set the band map
+        self._set_band_map(nof_bands, **self._get_spectral_bands())
 
     @cache
     def footprint(self) -> gpd.GeoDataFrame:
@@ -394,9 +521,9 @@ class PlaProduct(OpticalProduct):
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])
             {
-                <OpticalBandNames.GREEN: 'GREEN'>:
+                <SpectralBandNames.GREEN: 'GREEN'>:
                 'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2/SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B3.tif',
-                <OpticalBandNames.RED: 'RED'>:
+                <SpectralBandNames.RED: 'RED'>:
                 'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2/SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B4.tif'
             }
 
@@ -446,7 +573,7 @@ class PlaProduct(OpticalProduct):
             resolution=resolution,
             size=size,
             resampling=Resampling.bilinear,
-            indexes=[self.band_names[band]],
+            indexes=[self.bands[band].id],
             **kwargs,
         )
 
@@ -483,7 +610,7 @@ class PlaProduct(OpticalProduct):
         for band_mtd in root.iterfind(f".//{nsmap['ps']}bandSpecificMetadata"):
             if (
                 int(band_mtd.findtext(f".//{nsmap['ps']}bandNumber"))
-                == self.band_names[band]
+                == self.bands[band].id
             ):
                 refl_coef = float(
                     band_mtd.findtext(f".//{nsmap['ps']}reflectanceCoefficient")
@@ -499,17 +626,17 @@ class PlaProduct(OpticalProduct):
         return band_arr * refl_coef
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
         See
-        `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
+        `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
         (unusable data mask) for more information.
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -522,7 +649,7 @@ class PlaProduct(OpticalProduct):
 
         # Dubious pixels mapping
         dubious_bands = {
-            key: val + 1 for key, val in self.band_names.items() if val is not None
+            key: val.id + 1 for key, val in self.bands.items() if val is not None
         }
         udm = self.open_mask("UNUSABLE", size=(band_arr.rio.width, band_arr.rio.height))
         # Workaround:
@@ -538,14 +665,14 @@ class PlaProduct(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -835,7 +962,7 @@ class PlaProduct(OpticalProduct):
         Load nodata (unimaged pixels) as a numpy array.
 
         See
-        `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
+        `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
         (unusable data mask) for more information.
 
         Args:

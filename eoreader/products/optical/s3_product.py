@@ -45,7 +45,7 @@ from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
 from eoreader.bands import BandNames
-from eoreader.bands import OpticalBandNames as obn
+from eoreader.bands import SpectralBandNames as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import OpticalProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
@@ -283,7 +283,7 @@ class S3Product(OpticalProduct):
             Completed preprocessed member
         """
         substitutions = {
-            "{band}": self.band_names[band] if isinstance(band, obn) else band,
+            "{band}": self.bands[band].id if isinstance(band, BandNames) else band,
             "{suffix}": suffix,
             "{view}": view,
         }
@@ -367,8 +367,8 @@ class S3Product(OpticalProduct):
             Executing processing graph
             ...11%...21%...31%...42%...52%...62%...73%...83%... done.
             {
-                <OpticalBandNames.GREEN: 'GREEN'>: '20191115T233722_S3_SLSTR_RBT/S1_reflectance.tif',
-                <OpticalBandNames.RED: 'RED'>: '20191115T233722_S3_SLSTR_RBT/S2_reflectance.tif',
+                <SpectralBandNames.GREEN: 'GREEN'>: '20191115T233722_S3_SLSTR_RBT/S1_reflectance.tif',
+                <SpectralBandNames.RED: 'RED'>: '20191115T233722_S3_SLSTR_RBT/S2_reflectance.tif',
             }
 
         Args:
@@ -457,14 +457,14 @@ class S3Product(OpticalProduct):
 
     @abstractmethod
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -473,14 +473,14 @@ class S3Product(OpticalProduct):
         raise NotImplementedError
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -531,7 +531,7 @@ class S3Product(OpticalProduct):
     @abstractmethod
     def _preprocess(
         self,
-        band: Union[obn, str],
+        band: Union[BandNames, str],
         resolution: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
@@ -543,7 +543,7 @@ class S3Product(OpticalProduct):
         - Convert radiance to reflectance
 
         Args:
-            band (Union[obn, str]): Band to preprocess (quality flags or others are accepted)
+            band (Union[BandNames, str]): Band to preprocess (quality flags or others are accepted)
             resolution (float): Resolution
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
@@ -655,7 +655,7 @@ class S3Product(OpticalProduct):
         return mtd_el, {}
 
     def _read_nc(
-        self, filename: Union[str, obn], subdataset: str = None, dtype=np.float32
+        self, filename: Union[str, BandNames], subdataset: str = None, dtype=np.float32
     ) -> xr.DataArray:
         """
         Read NetCDF file (as float32) and rescaled them to their true values
@@ -667,7 +667,7 @@ class S3Product(OpticalProduct):
         Caches the file if needed (rasterio does not seem to be able to open a netcdf stored in the cloud).
 
         Args:
-            filename (Union[str, obn]): Filename or band
+            filename (Union[str, BandNames]): Filename or band
             subdataset (str): NetCDF subdataset if needed
 
         Returns:
@@ -676,9 +676,9 @@ class S3Product(OpticalProduct):
         bytes_file = None
         nc_path = None
 
-        # Try to convert to obn if existing
+        # Try to convert to spb if existing
         try:
-            filename = obn.convert_from(filename)[0]
+            filename = spb.convert_from(filename)[0]
         except TypeError:
             pass
 

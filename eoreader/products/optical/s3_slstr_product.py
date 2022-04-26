@@ -39,8 +39,16 @@ from sertit.rasters import MAX_CORES
 from sertit.vectors import WGS84
 
 from eoreader import cache, utils
-from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, BandNames
-from eoreader.bands import OpticalBandNames as obn
+from eoreader._stac import *
+from eoreader.bands import (
+    ALL_CLOUDS,
+    CIRRUS,
+    CLOUDS,
+    RAW_CLOUDS,
+    BandNames,
+    SpectralBand,
+)
+from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import CLEAN_OPTICAL, SLSTR_RAD_ADJUST, SLSTR_STRIPE, SLSTR_VIEW
@@ -55,13 +63,13 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 # https://github.com/senbox-org/s3tbx/blob/197c9a471002eb2ec1fbd54e9a31bfc963446645/s3tbx-rad2refl/src/main/java/org/esa/s3tbx/processor/rad2refl/Rad2ReflConstants.java#L141
 # Not used for now
 SLSTR_SOLAR_FLUXES_DEFAULT = {
-    obn.GREEN: 1837.39,
-    obn.RED: 1525.94,
-    obn.NIR: 956.17,
-    obn.NARROW_NIR: 956.17,
-    obn.SWIR_CIRRUS: 365.90,
-    obn.SWIR_1: 248.33,
-    obn.SWIR_2: 78.33,
+    spb.GREEN: 1837.39,
+    spb.RED: 1525.94,
+    spb.NIR: 956.17,
+    spb.NARROW_NIR: 956.17,
+    spb.SWIR_CIRRUS: 365.90,
+    spb.SWIR_1: 248.33,
+    spb.SWIR_2: 78.33,
 }
 
 # Link band names to their stripe
@@ -333,26 +341,142 @@ class S3SlstrProduct(S3Product):
         self._data_type = S3DataType.RBT
 
         # Bands
-        self.band_names.map_bands(
-            {
-                obn.GREEN: SLSTR_A_BANDS[0],  # S1, radiance, 500m
-                obn.RED: SLSTR_A_BANDS[1],  # S2, radiance, 500m
-                obn.NIR: SLSTR_A_BANDS[2],  # S3, radiance, 500m
-                obn.NARROW_NIR: SLSTR_A_BANDS[2],  # S3, radiance, 500m
-                obn.SWIR_CIRRUS: SLSTR_ABC_BANDS[0],  # S4, radiance, 500m
-                obn.SWIR_1: SLSTR_ABC_BANDS[1],  # S5, radiance, 500m
-                obn.SWIR_2: SLSTR_ABC_BANDS[2],  # S6, radiance, 500m
-                obn.S7: SLSTR_I_BANDS[0],  # S7, brilliance temperature, 1km
-                obn.TIR_1: SLSTR_I_BANDS[1],  # S8, brilliance temperature, 1km
-                obn.TIR_2: SLSTR_I_BANDS[2],  # S9, brilliance temperature, 1km
-                obn.F1: SLSTR_I_BANDS[3],  # F1, brilliance temperature, 1km
-                obn.F2: SLSTR_I_BANDS[4],  # F2, brilliance temperature, 1km
-            }
-        )
+        bt_res = 1000.0
+        slstr_bands = {
+            spb.GREEN: SpectralBand(
+                eoreader_name=spb.GREEN,
+                **{
+                    NAME: SLSTR_A_BANDS[0],
+                    ID: SLSTR_A_BANDS[0],
+                    GSD: self.resolution,
+                    CENTER_WV: 554.27,
+                    FWHM: 19.26,
+                    DESCRIPTION: "Cloud screening, vegetation monitoring, aerosol",
+                },
+            ),
+            spb.RED: SpectralBand(
+                eoreader_name=spb.RED,
+                **{
+                    NAME: SLSTR_A_BANDS[1],
+                    ID: SLSTR_A_BANDS[1],
+                    GSD: self.resolution,
+                    CENTER_WV: 659.47,
+                    FWHM: 19.25,
+                    DESCRIPTION: "NDVI, vegetation monitoring, aerosol",
+                },
+            ),
+            spb.NIR: SpectralBand(
+                eoreader_name=spb.NIR,
+                **{
+                    NAME: SLSTR_A_BANDS[2],
+                    ID: SLSTR_A_BANDS[2],
+                    GSD: self.resolution,
+                    CENTER_WV: 868.00,
+                    FWHM: 20.60,
+                    DESCRIPTION: "NDVI, cloud flagging, pixel co-registration",
+                },
+            ),
+            spb.SWIR_CIRRUS: SpectralBand(
+                eoreader_name=spb.SWIR_CIRRUS,
+                **{
+                    NAME: SLSTR_ABC_BANDS[0],
+                    ID: SLSTR_ABC_BANDS[0],
+                    GSD: self.resolution,
+                    CENTER_WV: 1374.80,
+                    FWHM: 20.80,
+                    DESCRIPTION: "Cirrus detection over land",
+                },
+            ),
+            spb.SWIR_1: SpectralBand(
+                eoreader_name=spb.SWIR_1,
+                **{
+                    NAME: SLSTR_ABC_BANDS[1],
+                    ID: SLSTR_ABC_BANDS[1],
+                    GSD: self.resolution,
+                    CENTER_WV: 1613.40,
+                    FWHM: 60.68,
+                    DESCRIPTION: "Cloud clearing, ice, snow, vegetation monitoring",
+                },
+            ),
+            spb.SWIR_2: SpectralBand(
+                eoreader_name=spb.SWIR_2,
+                **{
+                    NAME: SLSTR_ABC_BANDS[2],
+                    ID: SLSTR_ABC_BANDS[2],
+                    GSD: bt_res,
+                    CENTER_WV: 2255.70,
+                    FWHM: 50.15,
+                    DESCRIPTION: "Vegetation state and cloud clearing",
+                },
+            ),
+            spb.S7: SpectralBand(
+                eoreader_name=spb.S7,
+                **{
+                    NAME: SLSTR_I_BANDS[0],
+                    ID: SLSTR_I_BANDS[0],
+                    GSD: bt_res,
+                    CENTER_WV: 3742.00,
+                    FWHM: 398.00,
+                    DESCRIPTION: "SST, LST, Active fire, brilliance temperature, 1km",
+                    ASSET_ROLE: BT,
+                },
+            ),
+            spb.TIR_1: SpectralBand(
+                eoreader_name=spb.TIR_1,
+                **{
+                    NAME: SLSTR_I_BANDS[1],
+                    ID: SLSTR_I_BANDS[1],
+                    GSD: bt_res,
+                    CENTER_WV: 10854.00,
+                    FWHM: 776.00,
+                    DESCRIPTION: "SST, LST, Active fire, brilliance temperature, 1km",
+                    ASSET_ROLE: BT,
+                },
+            ),
+            spb.TIR_2: SpectralBand(
+                eoreader_name=spb.TIR_2,
+                **{
+                    NAME: SLSTR_I_BANDS[2],
+                    ID: SLSTR_I_BANDS[2],
+                    GSD: bt_res,
+                    CENTER_WV: 12022.50,
+                    FWHM: 905.00,
+                    DESCRIPTION: "SST, LST, brilliance temperature, 1km",
+                    ASSET_ROLE: BT,
+                },
+            ),
+            spb.F1: SpectralBand(
+                eoreader_name=spb.F1,
+                **{
+                    NAME: SLSTR_I_BANDS[3],
+                    ID: SLSTR_I_BANDS[3],
+                    GSD: bt_res,
+                    CENTER_WV: 3742.00,
+                    FWHM: 398.00,
+                    DESCRIPTION: "Active fire, brilliance temperature, 1km",
+                    ASSET_ROLE: BT,
+                },
+            ),
+            spb.F2: SpectralBand(
+                eoreader_name=spb.F2,
+                **{
+                    NAME: SLSTR_I_BANDS[4],
+                    ID: SLSTR_I_BANDS[4],
+                    GSD: bt_res,
+                    CENTER_WV: 10854.00,
+                    FWHM: 776.00,
+                    DESCRIPTION: "Active fire, brilliance temperature, 1km",
+                    ASSET_ROLE: BT,
+                },
+            ),
+        }
+
+        # Bands
+        self.bands.map_bands(slstr_bands)
 
     def _preprocess(
         self,
-        band: Union[obn, str],
+        band: Union[BandNames, str],
         resolution: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
@@ -365,7 +489,7 @@ class S3SlstrProduct(S3Product):
         - Convert radiance to reflectance
 
         Args:
-            band (Union[obn, str]): Band to preprocess (quality flags or others are accepted)
+            band (Union[BandNames, str]): Band to preprocess (quality flags or others are accepted)
             resolution (float): Resolution
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
@@ -374,11 +498,11 @@ class S3SlstrProduct(S3Product):
         Returns:
             dict: Dictionary containing {band: path}
         """
-        if isinstance(band, obn):
-            band_name = self.band_names[band]
+        if isinstance(band, BandNames):
+            band_id = self.bands[band].id
             band_str = band.name
         else:
-            band_name = band
+            band_id = band
             band_str = band
 
         # Get this band's suffix
@@ -386,13 +510,13 @@ class S3SlstrProduct(S3Product):
 
         # Get band filename and subdataset
         pp_name = subdataset if subdataset else band_str
-        if band_name in SLSTR_RAD_BANDS:
+        if band_id in SLSTR_RAD_BANDS:
             if not subdataset:
                 subdataset = self._replace(
                     self._radiance_subds, band=band, suffix=suffix
                 )
             filename = self._replace(self._radiance_file, band=band, suffix=suffix)
-        elif band_name in SLSTR_BT_BANDS:
+        elif band_id in SLSTR_BT_BANDS:
             if not subdataset:
                 subdataset = self._replace(self._bt_subds, band=band, suffix=suffix)
             filename = self._replace(self._bt_file, band=band, suffix=suffix)
@@ -415,7 +539,7 @@ class S3SlstrProduct(S3Product):
             )
 
             # Radiance pre process (BT bands are given in BT !)
-            if not kwargs.get("flags", False) and band_name in SLSTR_RAD_BANDS:
+            if not kwargs.get("flags", False) and band_id in SLSTR_RAD_BANDS:
                 # Adjust radiance if needed
                 # Get the user's radiance adjustment if existing
                 rad_adjust = kwargs.get(SLSTR_RAD_ADJUST, self._rad_adjust)
@@ -453,7 +577,7 @@ class S3SlstrProduct(S3Product):
 
         return path
 
-    def _get_suffix(self, band: Union[str, obn] = None, **kwargs) -> str:
+    def _get_suffix(self, band: Union[str, BandNames] = None, **kwargs) -> str:
         """
         Get the suffix according to the (given) stripe and view.
             - "an" and "ao" refer to the 500 m grid, stripe A, respectively for nadir view (n) and oblique view (o)
@@ -463,7 +587,7 @@ class S3SlstrProduct(S3Product):
             - "fn" and "fo" refer to the F1 channel 1 km grid
 
         Args:
-            band (Union[obn, str]): Band from which to get the stripe
+            band (Union[BandNames, str]): Band from which to get the stripe
             kwargs: Other arguments
 
         Returns:
@@ -474,8 +598,8 @@ class S3SlstrProduct(S3Product):
 
         if band is not None:
             # Get the stripe
-            if isinstance(band, obn):
-                band = self.band_names[band]
+            if isinstance(band, BandNames):
+                band = self.bands[band].id
 
             if band in SLSTR_I_BANDS:
                 stripe = SlstrStripe.I
@@ -579,7 +703,7 @@ class S3SlstrProduct(S3Product):
 
         return img_arr
 
-    # def _bt_2_rad(self, band_arr: xr.DataArray, band: obn = None) -> xr.DataArray:
+    # def _bt_2_rad(self, band_arr: xr.DataArray, band: BandNames = None) -> xr.DataArray:
     #     """
     #     Convert brightness temperature to radiance
     #
@@ -593,7 +717,7 @@ class S3SlstrProduct(S3Product):
     #
     #     Args:
     #         band_arr (xr.DataArray): Band array
-    #         band (obn): Optical Band
+    #         band (BandNames): Spectral Band
     #
     #     Returns:
     #         dict: Dictionary containing {band: path}
@@ -602,7 +726,7 @@ class S3SlstrProduct(S3Product):
     #     return band_arr
 
     def _rad_2_refl(
-        self, band_arr: xr.DataArray, band: obn, suffix: str
+        self, band_arr: xr.DataArray, band: BandNames, suffix: str
     ) -> xr.DataArray:
         """
         Convert radiance to reflectance
@@ -622,7 +746,7 @@ class S3SlstrProduct(S3Product):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Optical Band
+            band (BandNames): Spectral Band
             suffix (str): Band suffix
 
         Returns:
@@ -659,7 +783,7 @@ class S3SlstrProduct(S3Product):
     def _radiance_adjustment(
         self,
         band_arr: xr.DataArray,
-        band: Union[str, obn],
+        band: Union[str, BandNames],
         view: str,
         rad_adjust: SlstrRadAdjust = SlstrRadAdjust.S3_PN_SLSTR_L1_08,
     ) -> xr.DataArray:
@@ -689,7 +813,7 @@ class S3SlstrProduct(S3Product):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Optical Band
+            band (Union[str, BandNames]): Optical Band
             view (str): View (n or o for Nadir and Oblique)
             rad_adjust (SlstrRadAdjust): Radiance Adjustment
 
@@ -697,8 +821,8 @@ class S3SlstrProduct(S3Product):
             xr.DataArray: Adjusted band array
         """
         try:
-            band_name = self.band_names[band]
-            if band_name in SLSTR_RAD_BANDS:
+            band_id = self.bands[band].id
+            if band_id in SLSTR_RAD_BANDS:
                 # Allow the tuple and the enum
                 if isinstance(rad_adjust, SlstrRadAdjust):
                     rad_adjust_tuple = rad_adjust.value
@@ -706,7 +830,7 @@ class S3SlstrProduct(S3Product):
                     rad_adjust_tuple = rad_adjust
 
                 # Get the band coefficient and multiply the band
-                rad_coeff = getattr(rad_adjust_tuple, f"{band_name}_{view}")
+                rad_coeff = getattr(rad_adjust_tuple, f"{band_id}_{view}")
                 band_arr *= rad_coeff
         except KeyError:
             # Not a band (ie Quality Flags) or Brilliance temperature: no adjust needed
@@ -767,7 +891,7 @@ class S3SlstrProduct(S3Product):
         return e0
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -776,7 +900,7 @@ class S3SlstrProduct(S3Product):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -990,7 +1114,11 @@ class S3SlstrProduct(S3Product):
         return float(sun_az.mean().data) % 360, float(sun_ze.mean().data)
 
     def _get_clean_band_path(
-        self, band: obn, resolution: float = None, writable: bool = False, **kwargs
+        self,
+        band: BandNames,
+        resolution: float = None,
+        writable: bool = False,
+        **kwargs,
     ) -> Union[CloudPath, Path]:
         """
         Get clean band path.
@@ -998,7 +1126,7 @@ class S3SlstrProduct(S3Product):
         The clean band is the opened band where invalid pixels have been managed.
 
         Args:
-            band (OpticalBandNames): Wanted band
+            band (BandNames): Wanted band
             resolution (float): Band resolution in meters
             kwargs: Additional arguments
 

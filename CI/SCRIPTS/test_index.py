@@ -6,7 +6,7 @@ import tempfile
 import numpy as np
 from sertit import ci, rasters
 
-from eoreader.bands.index import get_all_indices
+from eoreader.bands.indices import get_all_indices
 from eoreader.utils import EOREADER_NAME
 
 from .scripts_utils import READER, dask_env, get_ci_data_dir, opt_path, s3_env

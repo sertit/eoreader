@@ -41,8 +41,17 @@ from sertit.misc import ListEnum
 from shapely.geometry import box
 
 from eoreader import cache, utils
-from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
-from eoreader.bands import OpticalBandNames as obn
+from eoreader._stac import *
+from eoreader.bands import (
+    ALL_CLOUDS,
+    CIRRUS,
+    CLOUDS,
+    RAW_CLOUDS,
+    SHADOWS,
+    BandNames,
+    SpectralBand,
+)
+from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
@@ -176,7 +185,7 @@ class S2Product(OpticalProduct):
         Set product default resolution (in meters)
         """
         # S2: use 10m resolution, even if we have 60m and 20m resolution
-        # In the future maybe set one resolution per band ?
+        # In the future maybe use one resolution per band ?
         return 10.0
 
     def _get_tile_name(self) -> str:
@@ -191,42 +200,70 @@ class S2Product(OpticalProduct):
     def _set_product_type(self) -> None:
         """Set products type"""
 
+        l2a_bands = {
+            spb.CA: SpectralBand(
+                eoreader_name=spb.CA,
+                **{NAME: "B01", ID: "01", GSD: 60, CENTER_WV: 442, FWHM: 21},
+            ),
+            spb.BLUE: SpectralBand(
+                eoreader_name=spb.BLUE,
+                **{NAME: "B02", ID: "02", GSD: 10, CENTER_WV: 492, FWHM: 66},
+            ),
+            spb.GREEN: SpectralBand(
+                eoreader_name=spb.GREEN,
+                **{NAME: "B03", ID: "03", GSD: 10, CENTER_WV: 560, FWHM: 36},
+            ),
+            spb.RED: SpectralBand(
+                eoreader_name=spb.RED,
+                **{NAME: "B04", ID: "04", GSD: 10, CENTER_WV: 665, FWHM: 31},
+            ),
+            spb.VRE_1: SpectralBand(
+                eoreader_name=spb.VRE_1,
+                **{NAME: "B05", ID: "05", GSD: 20, CENTER_WV: 704, FWHM: 15},
+            ),
+            spb.VRE_2: SpectralBand(
+                eoreader_name=spb.VRE_2,
+                **{NAME: "B06", ID: "06", GSD: 20, CENTER_WV: 740, FWHM: 15},
+            ),
+            spb.VRE_3: SpectralBand(
+                eoreader_name=spb.VRE_3,
+                **{NAME: "B07", ID: "07", GSD: 20, CENTER_WV: 781, FWHM: 20},
+            ),
+            spb.NIR: SpectralBand(
+                eoreader_name=spb.NIR,
+                **{NAME: "B8A", ID: "8A", GSD: 10, CENTER_WV: 833, FWHM: 106},
+            ),
+            spb.NARROW_NIR: SpectralBand(
+                eoreader_name=spb.NARROW_NIR,
+                **{NAME: "B08", ID: "08", GSD: 20, CENTER_WV: 864, FWHM: 21},
+            ),
+            spb.WV: SpectralBand(
+                eoreader_name=spb.WV,
+                **{NAME: "B09", ID: "09", GSD: 60, CENTER_WV: 944, FWHM: 20},
+            ),
+            spb.SWIR_1: SpectralBand(
+                eoreader_name=spb.SWIR_1,
+                **{NAME: "B11", ID: "11", GSD: 20, CENTER_WV: 1612, FWHM: 92},
+            ),
+            spb.SWIR_2: SpectralBand(
+                eoreader_name=spb.SWIR_1,
+                **{NAME: "B12", ID: "12", GSD: 20, CENTER_WV: 2190, FWHM: 180},
+            ),
+        }
+
         # Open identifier
         self.product_type = S2ProductType.from_value(self.split_name[1])
 
         if self.product_type == S2ProductType.L2A:
-            self.band_names.map_bands(
-                {
-                    obn.CA: "01",
-                    obn.BLUE: "02",
-                    obn.GREEN: "03",
-                    obn.RED: "04",
-                    obn.VRE_1: "05",
-                    obn.VRE_2: "06",
-                    obn.VRE_3: "07",
-                    obn.NIR: "8A",
-                    obn.NARROW_NIR: "08",
-                    obn.WV: "09",
-                    obn.SWIR_1: "11",
-                    obn.SWIR_2: "12",
-                }
-            )
+            self.bands.map_bands(l2a_bands)
         elif self.product_type == S2ProductType.L1C:
-            self.band_names.map_bands(
+            self.bands.map_bands(
                 {
-                    obn.CA: "01",
-                    obn.BLUE: "02",
-                    obn.GREEN: "03",
-                    obn.RED: "04",
-                    obn.VRE_1: "05",
-                    obn.VRE_2: "06",
-                    obn.VRE_3: "07",
-                    obn.NIR: "8A",
-                    obn.NARROW_NIR: "08",
-                    obn.WV: "09",
-                    obn.SWIR_CIRRUS: "10",
-                    obn.SWIR_1: "11",
-                    obn.SWIR_2: "12",
+                    **l2a_bands,
+                    spb.SWIR_CIRRUS: SpectralBand(
+                        eoreader_name=spb.SWIR_CIRRUS,
+                        **{NAME: "B10", ID: "10", GSD: 60, CENTER_WV: 1380, FWHM: 30},
+                    ),
                 }
             )
         else:
@@ -295,7 +332,7 @@ class S2Product(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        def_band = self.band_names[self.get_default_band()]
+        def_band = self.bands[self.get_default_band()].id
         if self._processing_baseline < 4.0:
             det_footprint = self._open_mask_lt_4_0(S2GmlMasks.FOOTPRINT, def_band)
             footprint_gs = det_footprint.dissolve().convex_hull
@@ -402,9 +439,8 @@ class S2Product(OpticalProduct):
         # Manage L2A
         band_dir = BAND_DIR_NAMES[self.product_type]
         for band in band_list:
-            assert band in obn
-            band_nb = self.band_names[band]
-            if band_nb is None:
+            band_id = self.bands[band].id
+            if band_id is None:
                 raise InvalidProductError(
                     f"Non existing band ({band.name}) for S2-{self.product_type.name} products"
                 )
@@ -412,12 +448,12 @@ class S2Product(OpticalProduct):
             # If L2A products, we care about the resolution
             if self.product_type == S2ProductType.L2A:
                 # If we got a true S2 resolution, open the corresponding band
-                if resolution and f"R{int(resolution)}m" in band_dir[band_nb]:
+                if resolution and f"R{int(resolution)}m" in band_dir[band_id]:
                     dir_name = f"R{int(resolution)}m"
 
                 # Else open the first one, it will be resampled when the ban will be read
                 else:
-                    dir_name = band_dir[band_nb][0]
+                    dir_name = band_dir[band_id][0]
             # If L1C, we do not
             else:
                 dir_name = band_dir
@@ -462,8 +498,8 @@ class S2Product(OpticalProduct):
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])
             {
-                <OpticalBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
-                <OpticalBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
+                <SpectralBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
+                <SpectralBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
             }
 
         Args:
@@ -484,21 +520,22 @@ class S2Product(OpticalProduct):
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
+                band_id = self.bands[band].id
                 try:
                     if self.is_archived:
                         band_paths[band] = files.get_archived_rio_path(
                             self.path,
-                            f".*{band_folders[band]}.*_B{self.band_names[band]}.*.jp2",
+                            f".*{band_folders[band]}.*_B{band_id}.*.jp2",
                         )
                     else:
                         band_paths[band] = files.get_file_in_dir(
                             band_folders[band],
-                            "_B" + self.band_names[band],
+                            f"_B{band_id}",
                             extension="jp2",
                         )
                 except (FileNotFoundError, IndexError) as ex:
                     raise InvalidProductError(
-                        f"Non existing {band} ({self.band_names[band]}) band for {self.path}"
+                        f"Non existing {band} ({band_id}) band for {self.path}"
                     ) from ex
 
         return band_paths
@@ -600,10 +637,10 @@ class S2Product(OpticalProduct):
                     offset = 0.0
                 else:
                     try:
-                        if band == obn.NARROW_NIR:
+                        if band == spb.NARROW_NIR:
                             band_id = 8
                         else:
-                            band_id = int(self.band_names[band])
+                            band_id = int(self.bands[band].id)
                         offset = float(
                             root.findtext(
                                 f".//{offset_prefix}ADD_OFFSET[@band_id = '{band_id}']"
@@ -629,7 +666,7 @@ class S2Product(OpticalProduct):
         return band_arr.astype(np.float32)
 
     def _open_mask_lt_4_0(
-        self, mask_id: Union[str, S2GmlMasks], band: Union[obn, str] = None
+        self, mask_id: Union[str, S2GmlMasks], band: Union[BandNames, str] = None
     ) -> gpd.GeoDataFrame:
         """
         Open S2 mask (GML files stored in QI_DATA) as :code:`gpd.GeoDataFrame`.
@@ -668,7 +705,7 @@ class S2Product(OpticalProduct):
 
         Args:
             mask_id (Union[str, S2GmlMasks]): Mask name, such as DEFECT, NODATA, SATURA...
-            band (Union[obn, str]): Band number as an OpticalBandNames or str (for clouds: 00)
+            band (Union[BandNames, str]): Band number as an SpectralBandNames or str (for clouds: 00)
 
         Returns:
             gpd.GeoDataFrame: Mask as a vector
@@ -679,8 +716,8 @@ class S2Product(OpticalProduct):
             band = "00"
 
         # Get QI_DATA path
-        if isinstance(band, obn):
-            band_name = self.band_names[band]
+        if isinstance(band, BandNames):
+            band_name = self.bands[band].id
         else:
             band_name = band
 
@@ -719,7 +756,7 @@ class S2Product(OpticalProduct):
     def _open_mask_gt_4_0(
         self,
         mask_id: Union[str, S2Jp2Masks],
-        band: Union[obn, str] = None,
+        band: Union[BandNames, str] = None,
         resolution: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
@@ -735,7 +772,7 @@ class S2Product(OpticalProduct):
 
         Args:
             mask_id (Union[str, S2GmlMasks]): Mask ID
-            band (Union[obn, str]): Band number as an OpticalBandNames or str (for clouds: 00)
+            band (Union[BandNames, str]): Band number as an SpectralBandNames or str (for clouds: 00)
             resolution (int): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
@@ -748,20 +785,20 @@ class S2Product(OpticalProduct):
             band = "00"
 
         # Get QI_DATA path
-        if isinstance(band, obn):
-            band_name = self.band_names[band]
+        if isinstance(band, BandNames):
+            band_id = self.bands[band].id
         else:
-            band_name = band
+            band_id = band
 
         if self.is_archived:
             mask_path = files.get_archived_rio_path(
-                self.path, f".*GRANULE.*QI_DATA.*MSK_{mask_id.value}_B{band_name}.jp2"
+                self.path, f".*GRANULE.*QI_DATA.*MSK_{mask_id.value}_B{band_id}.jp2"
             )
         else:
             # Get mask path
             mask_path = files.get_file_in_dir(
                 self.path,
-                f"**/*GRANULE/*/QI_DATA/MSK_{mask_id.value}_B{band_name}.jp2",
+                f"**/*GRANULE/*/QI_DATA/MSK_{mask_id.value}_B{band_id}.jp2",
                 exact_name=True,
             )
 
@@ -777,7 +814,7 @@ class S2Product(OpticalProduct):
         return mask
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -785,7 +822,7 @@ class S2Product(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -798,14 +835,14 @@ class S2Product(OpticalProduct):
             return self._manage_invalid_pixels_gt_4_0(band_arr, band, **kwargs)
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -817,7 +854,7 @@ class S2Product(OpticalProduct):
             return self._manage_nodata_gt_4_0(band_arr, band, **kwargs)
 
     def _manage_invalid_pixels_lt_4_0(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -825,7 +862,7 @@ class S2Product(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -883,7 +920,7 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_invalid_pixels_gt_4_0(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -892,7 +929,7 @@ class S2Product(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -929,7 +966,7 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata_lt_4_0(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage only nodata
@@ -937,7 +974,7 @@ class S2Product(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -963,7 +1000,7 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata_gt_4_0(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage only nodata
@@ -971,7 +1008,7 @@ class S2Product(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:

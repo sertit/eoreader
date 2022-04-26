@@ -32,7 +32,7 @@ from rasterio.rpc import RPC
 from sertit import rasters
 
 from eoreader.env_vars import USE_DASK
-from eoreader.keywords import prune_keywords
+from eoreader.keywords import _prune_keywords
 
 EOREADER_NAME = "eoreader"
 DATETIME_FMT = "%Y%m%dT%H%M%S"
@@ -164,7 +164,7 @@ def read(
         masked=masked,
         indexes=indexes,
         chunks=chunks,
-        **prune_keywords(**kwargs),
+        **_prune_keywords(**kwargs),
     )
 
 
@@ -207,7 +207,7 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
             pass
 
     # Write
-    rasters.write(xds, path=path, lock=lock, **prune_keywords(**kwargs))
+    rasters.write(xds, path=path, lock=lock, **_prune_keywords(**kwargs))
 
     # Set back the previous long name
     if previous_long_name and xds.rio.count > 1:

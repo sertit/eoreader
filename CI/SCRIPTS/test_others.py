@@ -292,12 +292,12 @@ def test_bands():
     assert SarBandNames.corresponding_despeckle(HV_DSPK) == HV_DSPK
 
     map_dic = {VV: "VV", VH: None, HV: None, HH: None}
-    sb = SarBands()
+    sb = SarBandMap()
     sb.map_bands(map_dic)
 
     for key, val in map_dic.items():
         assert key in sb._band_map
-        assert sb._band_map[key] == map_dic[key]
+        assert sb._band_map[key].id == map_dic[key]
 
     # OPTIC
     map_dic = {
@@ -314,35 +314,15 @@ def test_bands():
         SWIR_1: "11",
         SWIR_2: "12",
     }
-    ob = OpticalBands()
+    ob = SpectralBandMap()
     ob.map_bands(map_dic)
 
     for key, val in map_dic.items():
         assert key in ob._band_map
-        assert ob._band_map[key] == map_dic[key]
+        assert ob._band_map[key].id == map_dic[key]
 
     with pytest.raises(InvalidTypeError):
         ob.map_bands({VV: "wrong_val"})
-
-    # DEM
-    db = DemBands()
-    assert db._band_map == {DEM: "DEM", SLOPE: "SLOPE", HILLSHADE: "HILLSHADE"}
-    assert (
-        str(db)
-        == "{<DemBandNames.DEM: 'DEM'>: 'DEM', <DemBandNames.SLOPE: 'SLOPE'>: 'SLOPE', <DemBandNames.HILLSHADE: 'HILLSHADE'>: 'HILLSHADE'}"
-    )
-    assert len(db) == 3
-    assert db.pop(DEM) == "DEM"
-
-    # Clouds
-    cb = CloudsBands()
-    assert cb._band_map == {
-        RAW_CLOUDS: "RAW CLOUDS",
-        CLOUDS: "CLOUDS",
-        SHADOWS: "SHADOWS",
-        CIRRUS: "CIRRUS",
-        ALL_CLOUDS: "ALL CLOUDS",
-    }
 
 
 @s3_env

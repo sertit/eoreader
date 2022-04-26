@@ -5,7 +5,20 @@ import numpy as np
 import pytest
 from sertit import ci
 
-from eoreader.bands import *
+from eoreader.bands import (
+    BLUE,
+    CLOUDS,
+    GREEN,
+    HH,
+    HILLSHADE,
+    NIR,
+    RED,
+    RH,
+    SWIR_1,
+    VV,
+    VV_DSPK,
+    YELLOW,
+)
 from eoreader.env_vars import DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SensorType
