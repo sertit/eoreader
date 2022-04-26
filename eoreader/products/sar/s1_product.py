@@ -298,7 +298,7 @@ class S1Product(SarProduct):
                 else:
                     pdf_file = next(self.path.glob("*.pdf"))
             except (FileNotFoundError, StopIteration):
-                # The name is not in the classic metadata, but can be found in the manifest
+                # The name is not in the classic metadata, but can be found in the product-preview
                 try:
                     mtd_from_path = "preview/product-preview.html"
                     mtd_archived = r"preview.*product-preview\.html"

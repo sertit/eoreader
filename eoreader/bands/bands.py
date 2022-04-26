@@ -159,9 +159,6 @@ class BandMap(MutableMapping):
     def __len__(self):
         return len(self._band_map)
 
-    def __str__(self):
-        return str(self._band_map)
-
     def __repr__(self):
         band_repr = [
             band.__repr__() for band in self._band_map.values() if band is not None
