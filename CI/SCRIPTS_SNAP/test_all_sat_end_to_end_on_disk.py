@@ -77,6 +77,7 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
         PAN,
         RED,
         NARROW_NIR,
+        NIR,
         Oa01,
         TIR_1,
         F1,
