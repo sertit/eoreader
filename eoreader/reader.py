@@ -344,9 +344,34 @@ class Reader:
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> path = r"S2B_MSIL1C_20210517T103619_N7990_R008_T30QVE_20210929T075738.SAFE.zip"
             >>> Reader().open(path)
-            <eoreader.products.optical.s2_product.S2Product object at 0x000001984986FAC8>
+            eoreader.S2Product 'S2B_MSIL1C_20210517T103619_N7990_R008_T30QVE_20210929T075738'
+            Attributes:
+                condensed_name: 20210517T103619_S2_T30QVE_L1C_075738
+                path: D:\S2B_MSIL1C_20210517T103619_N7990_R008_T30QVE_20210929T075738.SAFE.zip
+                platform: Sentinel-2
+                sensor type: Optical
+                product type: MSIL1C
+                default resolution: 10.0
+                acquisition datetime: 2021-05-17T10:36:19
+                band mapping:
+                    COASTAL_AEROSOL: 01
+                    BLUE: 02
+                    GREEN: 03
+                    RED: 04
+                    VEGETATION_RED_EDGE_1: 05
+                    VEGETATION_RED_EDGE_2: 06
+                    VEGETATION_RED_EDGE_3: 07
+                    NIR: 8A
+                    NARROW_NIR: 08
+                    WATER_VAPOUR: 09
+                    CIRRUS: 10
+                    SWIR_1: 11
+                    SWIR_2: 12
+                needs extraction: False
+                cloud cover: 0.155752635193646
+                tile name: T30QVE
 
         Args:
             product_path (Union[str, CloudPath, Path]): Product path
@@ -403,6 +428,9 @@ class Reader:
                         Platform.WV04,
                     ]:
                         sat_class = "maxar_product"
+                    # SPOT sensors
+                    elif platform in [Platform.SPOT6, Platform.SPOT7]:
+                        sat_class = "spot_product"
 
                     # Manage both optical and SAR
                     try:

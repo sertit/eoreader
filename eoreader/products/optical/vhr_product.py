@@ -74,9 +74,16 @@ class VhrProduct(OpticalProduct):
         self._proj_prod_type = []
 
         self.band_combi = None
+        """
+        Band combination, i.e. PAN, PMS, MS...
+        """
 
         # Order id (product name more or less)
         self._order_id = None
+
+        # Resolutions
+        self._pan_res = None
+        self._ms_res = None
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
@@ -216,9 +223,9 @@ class VhrProduct(OpticalProduct):
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])
             {
-                <OpticalBandNames.GREEN: 'GREEN'>:
+                <SpectralBandNames.GREEN: 'GREEN'>:
                 'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML',
-                <OpticalBandNames.RED: 'RED'>:
+                <SpectralBandNames.RED: 'RED'>:
                 'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML'
             }
 
@@ -418,7 +425,7 @@ class VhrProduct(OpticalProduct):
                     resolution=resolution,
                     size=size,
                     resampling=Resampling.bilinear,
-                    indexes=[self.band_names[band]],
+                    indexes=[self.bands[band].id],
                     **kwargs,
                 )
 
@@ -467,13 +474,10 @@ class VhrProduct(OpticalProduct):
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
-        See
-        `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
-        (unusable data mask) for more information.
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -489,7 +493,7 @@ class VhrProduct(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -597,7 +601,7 @@ class VhrProduct(OpticalProduct):
 
         # Read band
         with rasterio.open(str(path)) as src:
-            band_nb = self.band_names[band]
+            band_id = self.bands[band].id
             meta = src.meta.copy()
 
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
@@ -615,7 +619,7 @@ class VhrProduct(OpticalProduct):
             # If the CRS is not in UTM, reproject it
             out_arr = np.empty((1, utm_h, utm_w), dtype=meta["dtype"])
             warp.reproject(
-                source=src.read(band_nb),
+                source=src.read(band_id),
                 destination=out_arr,
                 src_crs=src.crs,
                 dst_crs=self.crs(),

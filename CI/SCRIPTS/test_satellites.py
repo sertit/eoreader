@@ -153,9 +153,10 @@ def _test_core(
             assert prod == prod_name
             assert prod == prod_both
 
-            # Log name
+            # Log product and bands
             assert prod.name is not None
             LOGGER.info(prod)
+            LOGGER.info(prod.bands)
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 # tmp_dir = os.path.join(

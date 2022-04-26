@@ -1,8 +1,33 @@
 # Release History
 
-## 0.YY.ZZ (2022-MM-DD)
+## 0.15.0 (2022-MM-DD)
 
+### Breaking Changes
+
+- **BREAKING CHANGES: `Optical` becomes `Spectral` when more appropriate**
+- **BREAKING CHANGES: File `alias` is removed, replaced by `*_bands` files and proper imports in `bands.__init__`**
+- **BREAKING CHANGES: Product attribute `band_names` becomes `bands` in order to be STAC compliant (#29)**
+- **BREAKING CHANGES: Better use of `NIR` and `NARROW_NIR` in the `indices` file (according to the gsd of `Sentinel-2` bands composing the indices)**
+
+### Enhancements
+
+- **ENH: Bands in mapping are now objects, instead of just IDs** (#29). This allows us to:
+    - Add band metadata (such as center wavelength, bandwidth...)
+    - Map spectral bands between STAC spec and EOReader format
+    - Add a better `__repr__` functions
+- **ENH: Handling 8 bands `PlanetScope` data** (#20)
+- **ENH: Adding the `GREEN1` mapped band, corresponding to PlanetScope `GREEN I` and `Sentinel-3 OLCI` `Oa05` band**
+
+### Bug Fixes
+
+- FIX: Fixing the band mapping of `WorldView-2/3 Multi` (8 bands)
+
+### Other
+
+- INTERNAL: File `spot_6` and `spot_7` are removed, replaced by a unique `spot` file. This shouldn't affect the user
+- INTERNAL: Some refactoring in `VHR` files
 - CI: Do not process two times the zipped Sentinel-1 in end-to-end tests and manage when the runner kills SNAP
+- DOC: Updates
 
 ## 0.14.0 (2022-04-14)
 
@@ -15,18 +40,18 @@
 ### Enhancements
 
 - **ENH: Adding spectral indices:**
-  - Shadow Index (`SI`)
-  - Global Vegetation Moisture Index (`GVMI`)
-  - Soil Brightness Index (`SBI`), Soil Cuirass Index (`SCI`)
-  - Panchromatic mocking Index (`PANI`)
-  - Green-to-Red ratio Index (`GRI`)
-  - Soil Adjusted Vegetation Index (`SAVI`)
-  - Optimized Soil Adjusted Vegetation Index (`OSAVI`)
-  - Visible Atmospherically Resistant Index (Green) (`VARI`)
-  - Enhanced Vegetation Index (`EVI`)
-  - Chlorophyll Index RedEdge VRE_3/VRE_2 (`CI1`)
-  - Chlorophyll Index RedEdge VRE_2/VRE_1 (`CI2`)
-  - Normalized Difference Moisture Index (with SWIR_21) (`NDMI21`)
+    - Shadow Index (`SI`)
+    - Global Vegetation Moisture Index (`GVMI`)
+    - Soil Brightness Index (`SBI`), Soil Cuirass Index (`SCI`)
+    - Panchromatic mocking Index (`PANI`)
+    - Green-to-Red ratio Index (`GRI`)
+    - Soil Adjusted Vegetation Index (`SAVI`)
+    - Optimized Soil Adjusted Vegetation Index (`OSAVI`)
+    - Visible Atmospherically Resistant Index (Green) (`VARI`)
+    - Enhanced Vegetation Index (`EVI`)
+    - Chlorophyll Index RedEdge VRE_3/VRE_2 (`CI1`)
+    - Chlorophyll Index RedEdge VRE_2/VRE_1 (`CI2`)
+    - Normalized Difference Moisture Index (with SWIR_21) (`NDMI21`)
 - **ENH: Making SAR attribute `snap_filename` public**
 - **ENH: Handling `ICEYE` pure SLC products**
 - **ENH: Allowing the user to choose if they want the GRD or SLC image for `ICEYE` products**

@@ -36,8 +36,9 @@ from sertit import files, vectors
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
-from eoreader.bands import BandNames
-from eoreader.bands import OpticalBandNames as obn
+from eoreader._stac import *
+from eoreader.bands import BandNames, SpectralBand
+from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
@@ -45,12 +46,12 @@ from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 _VIS1_E0 = {
-    obn.PAN: 1828,
-    obn.BLUE: 2003,
-    obn.GREEN: 1828,
-    obn.RED: 1618,
-    obn.NIR: 1042,
-    obn.NARROW_NIR: 1042,
+    spb.PAN: 1828,
+    spb.BLUE: 2003,
+    spb.GREEN: 1828,
+    spb.RED: 1618,
+    spb.NIR: 1042,
+    spb.NARROW_NIR: 1042,
 }
 """
 Solar spectral irradiance, E0b, (commonly known as ESUN) is a constant value specific to each band of the Vision-1 imager.
@@ -124,6 +125,8 @@ class Vis1Product(VhrProduct):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        self._pan_res = 0.9
+        self._ms_res = 3.5
         self.needs_extraction = False
         self._proj_prod_type = [Vis1ProductType.PRJ]
 
@@ -146,32 +149,77 @@ class Vis1Product(VhrProduct):
         """
         # Not Pansharpened images
         if self.band_combi == Vis1BandCombination.MS4:
-            return 3.5
+            return self._ms_res
         # Pansharpened images
         else:
-            return 0.9
+            return self._pan_res
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """
+        Set products type
+
+        See Vision-1_web_201906.pdf for more information.
+        """
         # Get MTD XML file
         prod_type = self.split_name[3]
         self.product_type = getattr(Vis1ProductType, prod_type)
 
+        # Create spectral bands
+        pan = SpectralBand(
+            eoreader_name=spb.PAN,
+            **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 450, WV_MAX: 650},
+        )
+
+        blue = SpectralBand(
+            eoreader_name=spb.BLUE,
+            **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 440, WV_MAX: 510},
+        )
+
+        green = SpectralBand(
+            eoreader_name=spb.GREEN,
+            **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 510, WV_MAX: 590},
+        )
+
+        red = SpectralBand(
+            eoreader_name=spb.RED,
+            **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 600, WV_MAX: 670},
+        )
+
+        nir = SpectralBand(
+            eoreader_name=spb.NIR,
+            **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 760, WV_MAX: 910},
+        )
+
         # Manage bands of the product
         if self.band_combi == Vis1BandCombination.PAN:
-            self.band_names.map_bands({obn.PAN: 1})
+            self.bands.map_bands({spb.PAN: pan})
         elif self.band_combi in [
             Vis1BandCombination.MS4,
-            Vis1BandCombination.PSH,
             Vis1BandCombination.BUN,
         ]:
-            self.band_names.map_bands(
-                {obn.BLUE: 1, obn.GREEN: 2, obn.RED: 3, obn.NIR: 4, obn.NARROW_NIR: 4}
+            self.bands.map_bands(
+                {
+                    spb.BLUE: blue,
+                    spb.GREEN: green,
+                    spb.RED: red,
+                    spb.NIR: nir,
+                    spb.NARROW_NIR: nir,
+                }
             )
             if self.band_combi == Vis1BandCombination.BUN:
                 LOGGER.warning(
                     "Bundle mode has never been tested by EOReader, use it at your own risk!"
                 )
+        elif self.band_combi == Vis1BandCombination.PSH:
+            self.bands.map_bands(
+                {
+                    spb.BLUE: blue.update(gsd=self._pan_res),
+                    spb.GREEN: green.update(gsd=self._pan_res),
+                    spb.RED: red.update(gsd=self._pan_res),
+                    spb.NIR: nir.update(gsd=self._pan_res),
+                    spb.NARROW_NIR: nir.update(gsd=self._pan_res),
+                }
+            )
         else:
             raise InvalidProductError(
                 f"Unusual band combination: {self.band_combi.name}"

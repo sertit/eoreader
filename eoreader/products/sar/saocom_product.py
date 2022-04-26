@@ -32,6 +32,7 @@ from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
 from eoreader import cache
+from eoreader.bands import SarBandNames
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
@@ -272,8 +273,8 @@ class SaocomProduct(SarProduct):
         extended_fmt = _ExtendedFormatter()
         cuss_file = next(self.path.glob("*.zip"))
         band_paths = {}
-        for band, band_name in self.band_names.items():
-            band_regex = extended_fmt.format(self._raw_band_regex, band_name)
+        for band in SarBandNames.speckle_list():
+            band_regex = extended_fmt.format(self._raw_band_regex, band.value)
 
             try:
                 # Get as a list but keep only the first item (SLC with multiple swaths)

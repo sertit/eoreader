@@ -6,14 +6,14 @@ You will find a SAR tutorial [here](https://eoreader.readthedocs.io/en/latest/no
 
 |Sensors | Class | Use archive|
 |--- | --- |  ---|
-|`COSMO-Skymed 1st Generation`| {meth}`~eoreader.products.sar.csk_product.CskProduct` | ❌|
-|`COSMO-Skymed 2nd Generation`| {meth}`~eoreader.products.sar.csg_product.CsgProduct` | ❌|
-|`ICEYE` | {meth}`~eoreader.products.sar.iceye_product.IceyeProduct` | ❌|
-|`RADARSAT Constellation Mission` | {meth}`~eoreader.products.sar.rcm_product.RcmProduct` | ❌|
-|`RADARSAT-2` | {meth}`~eoreader.products.sar.rs2_product.Rs2Product` | ✅ for ground range data, ❌ for complex data|
-|`Sentinel-1` | {meth}`~eoreader.products.sar.s1_product.S1Product` | ✅|
-|`SAOCOM-1` | {meth}`~eoreader.products.sar.saocom_product.SaocomProduct` | ❌|
-|`TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.sar.tsx_product.TsxProduct` | ❌|
+|`COSMO-Skymed 1st Generation`| {meth}`~eoreader.products.CskProduct` | ❌|
+|`COSMO-Skymed 2nd Generation`| {meth}`~eoreader.products.CsgProduct` | ❌|
+|`ICEYE` | {meth}`~eoreader.products.IceyeProduct` | ❌|
+|`RADARSAT Constellation Mission` | {meth}`~eoreader.products.RcmProduct` | ❌|
+|`RADARSAT-2` | {meth}`~eoreader.products.Rs2Product` | ✅ for ground range data, ❌ for complex data|
+|`Sentinel-1` | {meth}`~eoreader.products.S1Product` | ✅|
+|`SAOCOM-1` | {meth}`~eoreader.products.SaocomProduct` | ❌|
+|`TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.TsxProduct` | ❌|
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use, 
@@ -72,21 +72,21 @@ The sensors that can be used during CEMS activations are (as of 09/2021):
 
 According to what contains the products, allowed SAR bands are:
 
-- {meth}`~eoreader.bands.bands.SarBandNames.VV`
-- {meth}`~eoreader.bands.bands.SarBandNames.VH`
-- {meth}`~eoreader.bands.bands.SarBandNames.HH`
-- {meth}`~eoreader.bands.bands.SarBandNames.HV`
-- {meth}`~eoreader.bands.bands.SarBandNames.RH` (only for RADARSAT-Constellation)
-- {meth}`~eoreader.bands.bands.SarBandNames.RV` (only for RADARSAT-Constellation)
+- {meth}`~eoreader.bands.SarBandNames.VV`
+- {meth}`~eoreader.bands.SarBandNames.VH`
+- {meth}`~eoreader.bands.SarBandNames.HH`
+- {meth}`~eoreader.bands.SarBandNames.HV`
+- {meth}`~eoreader.bands.SarBandNames.RH` (only for RADARSAT-Constellation)
+- {meth}`~eoreader.bands.SarBandNames.RV` (only for RADARSAT-Constellation)
 
 You also can load despeckled bands:
 
-- {meth}`~eoreader.bands.bands.SarBandNames.VV_DSPK`
-- {meth}`~eoreader.bands.bands.SarBandNames.VH_DSPK`
-- {meth}`~eoreader.bands.bands.SarBandNames.HH_DSPK`
-- {meth}`~eoreader.bands.bands.SarBandNames.HV_DSPK`
-- {meth}`~eoreader.bands.bands.SarBandNames.RH_DSPK` (only for RADARSAT-Constellation)
-- {meth}`~eoreader.bands.bands.SarBandNames.RV_DSPK` (only for RADARSAT-Constellation)
+- {meth}`~eoreader.bands.SarBandNames.VV_DSPK`
+- {meth}`~eoreader.bands.SarBandNames.VH_DSPK`
+- {meth}`~eoreader.bands.SarBandNames.HH_DSPK`
+- {meth}`~eoreader.bands.SarBandNames.HV_DSPK`
+- {meth}`~eoreader.bands.SarBandNames.RH_DSPK` (only for RADARSAT-Constellation)
+- {meth}`~eoreader.bands.SarBandNames.RV_DSPK` (only for RADARSAT-Constellation)
 
 
 ## DEM bands
@@ -96,7 +96,7 @@ These bands need a valid worldwide DEM path positioned thanks to the environment
 - `DEM`
 - `SLOPE`
 
-SAR sensors can only load {meth}`~eoreader.bands.bands.DemBandNames.DEM` and {meth}`~eoreader.bands.bands.DemBandNames.SLOPE`
+SAR sensors can only load {meth}`~eoreader.bands.DemBandNames.DEM` and {meth}`~eoreader.bands.DemBandNames.SLOPE`
 bands as the sun position does not impact SAR data. The `SLOPE` band is given in degrees. Please post an issue if you
 need this band in `percent`.
 

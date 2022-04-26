@@ -36,8 +36,10 @@ from sertit.misc import ListEnum
 from eoreader import cache, utils
 from eoreader.bands import (
     BandNames,
-    OpticalBands,
-    SarBands,
+    SarBand,
+    SarBandMap,
+    SpectralBand,
+    SpectralBandMap,
     is_clouds,
     is_dem,
     is_index,
@@ -104,27 +106,7 @@ class CustomProduct(Product):
             kwargs, [CustomFields.BAND_MAP.value, CustomFields.SENSOR_TYPE.value]
         )
 
-        # Sensor type
-        self.sensor_type = SensorType.convert_from(
-            kwargs.pop(CustomFields.SENSOR_TYPE.value)
-        )[0]
-        self.band_names = (
-            OpticalBands() if self.sensor_type == SensorType.OPTICAL else SarBands()
-        )
-
-        # Band map
-        band_names = kwargs.pop(CustomFields.BAND_MAP.value)  # Shouldn't be empty
-        assert isinstance(band_names, dict)
-        band_names = {to_band(key)[0]: val for key, val in band_names.items()}
-        assert [is_sat_band(band) for band in band_names.keys()]
-        self.band_names.map_bands(band_names)
-
-        # Test on the product
-        with rasterio.open(str(self.get_default_band_path())) as ds:
-            assert (
-                len(band_names) == ds.count
-            ), f"You should specify {ds.count} bands in band_map, not {len(band_names)} !"
-
+        # Process kwargs
         self.kwargs = kwargs
 
         for key in self.kwargs.keys():
@@ -134,6 +116,40 @@ class CustomProduct(Product):
                 LOGGER.warning(
                     f"{key} is not taken into account as it doesn't belong to the handled keys: {CustomFields.list_values()}"
                 )
+
+        # Sensor type
+        self.sensor_type = SensorType.convert_from(
+            kwargs.pop(CustomFields.SENSOR_TYPE.value)
+        )[0]
+
+        if self.sensor_type == SensorType.OPTICAL:
+            band_map = SpectralBandMap()
+            band = SpectralBand
+        else:
+            band_map = SarBandMap()
+            band = SarBand
+
+        self.bands = band_map
+
+        # Band map
+        band_names = kwargs.pop(CustomFields.BAND_MAP.value)  # Shouldn't be empty
+        assert isinstance(band_names, dict)
+
+        band_map = {}
+        for key, val in band_names.items():
+            assert is_sat_band(key), "Custom bands should be satellite band"
+            band_name = to_band(key)[0]
+            band_map[band_name] = band(
+                eoreader_name=band_name, name=band_name.value, id=val
+            )
+
+        self.bands.map_bands(band_map)
+
+        # Test on the product
+        with rasterio.open(str(self.get_default_band_path())) as ds:
+            assert (
+                len(band_names) == ds.count
+            ), f"You should specify {ds.count} bands in band_map, not {len(band_names)} !"
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -312,7 +328,7 @@ class CustomProduct(Product):
         Returns:
             list: List of existing bands in the products
         """
-        return [name for name, nb in self.band_names.items() if nb]
+        return [name for name, nb in self.bands.items() if nb]
 
     # unused band_name (compatibility reasons)
     # pylint: disable=W0613
@@ -345,7 +361,7 @@ class CustomProduct(Product):
             resolution=resolution,
             size=size,
             resampling=Resampling.bilinear,
-            indexes=[self.band_names[band]],
+            indexes=[self.bands[band].id],
             **kwargs,
         ).astype(np.float32)
 
@@ -550,9 +566,9 @@ class CustomProduct(Product):
             if attr == CustomFields.BAND_MAP.value:
                 str_attr = str(
                     {
-                        key.name: val
-                        for key, val in self.band_names.items()
-                        if isinstance(val, int)
+                        key.name: val.id
+                        for key, val in self.bands.items()
+                        if val is not None
                     }
                 )
             elif hasattr(self, attr):

@@ -21,7 +21,10 @@ for more information.
 """
 import logging
 
-from eoreader.products import DimapBandCombination, DimapProduct
+from eoreader._stac import *
+from eoreader.bands import SpectralBand
+from eoreader.bands import spectral_bands as spb
+from eoreader.products import DimapProduct
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -34,17 +37,42 @@ class PldProduct(DimapProduct):
     for more information.
     """
 
-    def _set_resolution(self) -> float:
+    def _pre_init(self, **kwargs) -> None:
         """
-        Set product default resolution (in meters)
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
         """
-        # Not Pansharpened images
-        if self.band_combi in [
-            DimapBandCombination.MS,
-            DimapBandCombination.MS_X,
-            DimapBandCombination.MS_N,
-        ]:
-            return 2.0
-        # Pansharpened images
-        else:
-            return 0.5
+        self._pan_res = 0.5
+        self._ms_res = 2.0
+
+        # Post init done by the super class
+        super()._pre_init(**kwargs)
+
+    def _set_product_type(self) -> None:
+        """Set products type"""
+        # Create spectral bands
+        pan = SpectralBand(
+            eoreader_name=spb.PAN,
+            **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 480, WV_MAX: 830}
+        )
+
+        blue = SpectralBand(
+            eoreader_name=spb.BLUE,
+            **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 430, WV_MAX: 550}
+        )
+
+        green = SpectralBand(
+            eoreader_name=spb.GREEN,
+            **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 490, WV_MAX: 610}
+        )
+
+        red = SpectralBand(
+            eoreader_name=spb.RED,
+            **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 600, WV_MAX: 720}
+        )
+
+        nir = SpectralBand(
+            eoreader_name=spb.NIR,
+            **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 750, WV_MAX: 830}
+        )
+        self._set_product_type_core(blue=blue, green=green, red=red, nir=nir, pan=pan)

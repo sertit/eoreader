@@ -48,9 +48,19 @@ from sertit.misc import ListEnum
 from sertit.snap import MAX_CORES
 
 from eoreader import cache, utils
-from eoreader.bands import *
-from eoreader.bands import index
-from eoreader.bands.bands import BandNames
+from eoreader.bands import (
+    DEM,
+    HILLSHADE,
+    SLOPE,
+    BandNames,
+    indices,
+    is_clouds,
+    is_dem,
+    is_index,
+    is_sat_band,
+    to_band,
+    to_str,
+)
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
@@ -144,7 +154,7 @@ class Product:
         self.product_type = None
         """Product type, satellite-related field, such as L1C or L2A for Sentinel-2 data."""
 
-        self.band_names = None
+        self.bands = None
         """
         Band mapping between band wrapping names such as
         :code:`GREEN` and band real number such as :code:`03` for Sentinel-2.
@@ -468,7 +478,7 @@ class Product:
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> prod.get_default_band()
-            <OpticalBandNames.GREEN: 'GREEN'>
+            <SpectralBandNames.GREEN: 'GREEN'>
 
 
         Returns:
@@ -487,19 +497,19 @@ class Product:
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> prod.get_existing_bands()
-            [<OpticalBandNames.CA: 'COASTAL_AEROSOL'>,
-            <OpticalBandNames.BLUE: 'BLUE'>,
-            <OpticalBandNames.GREEN: 'GREEN'>,
-            <OpticalBandNames.RED: 'RED'>,
-            <OpticalBandNames.VRE_1: 'VEGETATION_RED_EDGE_1'>,
-            <OpticalBandNames.VRE_2: 'VEGETATION_RED_EDGE_2'>,
-            <OpticalBandNames.VRE_3: 'VEGETATION_RED_EDGE_3'>,
-            <OpticalBandNames.NIR: 'NIR'>,
-            <OpticalBandNames.NNIR: 'NARROW_NIR'>,
-            <OpticalBandNames.WV: 'WATER_VAPOUR'>,
-            <OpticalBandNames.CIRRUS: 'CIRRUS'>,
-            <OpticalBandNames.SWIR_1: 'SWIR_1'>,
-            <OpticalBandNames.SWIR_2: 'SWIR_2'>]
+            [<SpectralBandNames.CA: 'COASTAL_AEROSOL'>,
+            <SpectralBandNames.BLUE: 'BLUE'>,
+            <SpectralBandNames.GREEN: 'GREEN'>,
+            <SpectralBandNames.RED: 'RED'>,
+            <SpectralBandNames.VRE_1: 'VEGETATION_RED_EDGE_1'>,
+            <SpectralBandNames.VRE_2: 'VEGETATION_RED_EDGE_2'>,
+            <SpectralBandNames.VRE_3: 'VEGETATION_RED_EDGE_3'>,
+            <SpectralBandNames.NIR: 'NIR'>,
+            <SpectralBandNames.NNIR: 'NARROW_NIR'>,
+            <SpectralBandNames.WV: 'WATER_VAPOUR'>,
+            <SpectralBandNames.CIRRUS: 'CIRRUS'>,
+            <SpectralBandNames.SWIR_1: 'SWIR_1'>,
+            <SpectralBandNames.SWIR_2: 'SWIR_2'>]
 
         Returns:
             list: List of existing bands in the products
@@ -518,9 +528,9 @@ class Product:
             >>> prod = Reader().open(path)
             >>> prod.get_existing_band_paths()
             {
-                <OpticalBandNames.CA: 'COASTAL_AEROSOL'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2',
+                <SpectralBandNames.CA: 'COASTAL_AEROSOL'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2',
                 ...,
-                <OpticalBandNames.SWIR_2: 'SWIR_2'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2'
+                <SpectralBandNames.SWIR_2: 'SWIR_2'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2'
             }
 
         Returns:
@@ -543,8 +553,8 @@ class Product:
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])
             {
-                <OpticalBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
-                <OpticalBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
+                <SpectralBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
+                <SpectralBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
             }
 
         Args:
@@ -800,47 +810,6 @@ class Product:
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> bands = prod.load([GREEN, NDVI], resolution=20)
-            >>> bands
-            {
-                <function NDVI at 0x000001EFFFF5DD08>: <xarray.DataArray 'NDVI' (band: 1, y: 5490, x: 5490)>
-                array([[[0.949506  , 0.92181516, 0.9279379 , ..., 1.8002278 ,
-                         1.5424857 , 1.6747767 ],
-                        [0.95369846, 0.91685396, 0.8957871 , ..., 1.5847116 ,
-                         1.5248713 , 1.5011379 ],
-                        [2.9928885 , 1.3031474 , 1.0076253 , ..., 1.5969834 ,
-                         1.5590671 , 1.5018653 ],
-                        ...,
-                        [1.4245619 , 1.6115025 , 1.6201663 , ..., 1.2387121 ,
-                         1.4025431 , 1.800678  ],
-                        [1.5627214 , 1.822388  , 1.7245892 , ..., 1.1694248 ,
-                         1.2573677 , 1.5767351 ],
-                        [1.653781  , 1.6424649 , 1.5923225 , ..., 1.3072611 ,
-                         1.2181134 , 1.2478763 ]]], dtype=float32)
-                Coordinates:
-                  * band         (band) int32 1
-                  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-                  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-                    spatial_ref  int32 0,
-                <OpticalBandNames.GREEN: 'GREEN'>: <xarray.DataArray (band: 1, y: 5490, x: 5490)>
-                array([[[0.0615  , 0.061625, 0.061   , ..., 0.12085 , 0.120225,
-                         0.113575],
-                        [0.061075, 0.06045 , 0.06025 , ..., 0.114625, 0.119625,
-                         0.117625],
-                        [0.06475 , 0.06145 , 0.060925, ..., 0.111475, 0.114925,
-                         0.115175],
-                        ...,
-                        [0.1516  , 0.14195 , 0.1391  , ..., 0.159975, 0.14145 ,
-                         0.127075],
-                        [0.140325, 0.125975, 0.131875, ..., 0.18245 , 0.1565  ,
-                         0.13015 ],
-                        [0.133475, 0.1341  , 0.13345 , ..., 0.15565 , 0.170675,
-                         0.16405 ]]], dtype=float32)
-                Coordinates:
-                  * band         (band) int32 1
-                  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-                  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-                    spatial_ref  int32 0
-            }
 
         Args:
             bands (Union[list, BandNames, Callable]): Band list
@@ -1014,7 +983,7 @@ class Product:
         Returns:
             bool: True if the specified index can be computed with this product's bands
         """
-        index_bands = index.get_needed_bands(idx)
+        index_bands = indices.get_needed_bands(idx)
         return all(np.isin(index_bands, self.get_existing_bands()))
 
     def __gt__(self, other: Product) -> bool:
@@ -1367,55 +1336,6 @@ class Product:
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> stack = prod.stack([NDVI, MNDWI, GREEN], resolution=20)  # In meters
-            >>> stack
-            <xarray.DataArray 'NDVI_MNDWI_GREEN' (z: 3, y: 5490, x: 5490)>
-            array([[[ 0.949506  ,  0.92181516,  0.9279379 , ...,  1.8002278 ,
-                      1.5424857 ,  1.6747767 ],
-                    [ 0.95369846,  0.91685396,  0.8957871 , ...,  1.5847116 ,
-                      1.5248713 ,  1.5011379 ],
-                    [ 2.9928885 ,  1.3031474 ,  1.0076253 , ...,  1.5969834 ,
-                      1.5590671 ,  1.5018653 ],
-                    ...,
-                    [ 1.4245619 ,  1.6115025 ,  1.6201663 , ...,  1.2387121 ,
-                      1.4025431 ,  1.800678  ],
-                    [ 1.5627214 ,  1.822388  ,  1.7245892 , ...,  1.1694248 ,
-                      1.2573677 ,  1.5767351 ],
-                    [ 1.653781  ,  1.6424649 ,  1.5923225 , ...,  1.3072611 ,
-                      1.2181134 ,  1.2478763 ]],
-                   [[ 0.27066118,  0.23466069,  0.18792598, ..., -0.4611526 ,
-                     -0.49751845, -0.4865216 ],
-                    [ 0.22425456,  0.28004232,  0.27851456, ..., -0.5032771 ,
-                     -0.501796  , -0.502669  ],
-                    [-0.07466951,  0.06360884,  0.1207174 , ..., -0.50617427,
-                     -0.50219285, -0.5034222 ],
-                    [-0.47076276, -0.4705828 , -0.4747971 , ..., -0.32138503,
-                     -0.36619243, -0.37428448],
-                    [-0.4826967 , -0.5032287 , -0.48544118, ..., -0.278925  ,
-                     -0.31404778, -0.36052078],
-                    [-0.488381  , -0.48253912, -0.4697526 , ..., -0.38105175,
-                     -0.30813277, -0.27739233]],
-                   [[ 0.0615    ,  0.061625  ,  0.061     , ...,  0.12085   ,
-                      0.120225  ,  0.113575  ],
-                    [ 0.061075  ,  0.06045   ,  0.06025   , ...,  0.114625  ,
-                      0.119625  ,  0.117625  ],
-                    [ 0.06475   ,  0.06145   ,  0.060925  , ...,  0.111475  ,
-                      0.114925  ,  0.115175  ],
-                    ...,
-                    [ 0.1516    ,  0.14195   ,  0.1391    , ...,  0.159975  ,
-                      0.14145   ,  0.127075  ],
-                    [ 0.140325  ,  0.125975  ,  0.131875  , ...,  0.18245   ,
-                      0.1565    ,  0.13015   ],
-                    [ 0.133475  ,  0.1341    ,  0.13345   , ...,  0.15565   ,
-                      0.170675  ,  0.16405   ]]], dtype=float32)
-            Coordinates:
-              * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-              * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-                spatial_ref  int32 0
-              * z            (z) MultiIndex
-              - variable     (z) object 'NDVI' 'MNDWI' 'GREEN'
-              - band         (z) int64 1 1 1
-            -Attributes:
-                long_name:  ['NDVI', 'MNDWI', 'GREEN']
 
         Args:
             bands (list): Bands and index combination
@@ -1715,16 +1635,15 @@ class Product:
         """
         band_repr = "\n".join(
             [
-                f"\t\t{band.value}: {nb}"
-                for band, nb in self.band_names.items()
-                if nb is not None
+                f"\t\t{band.value}: {val.id}"
+                for band, val in self.bands.items()
+                if val is not None
             ]
         )
         repr = [
-            f"EOReader {self.__class__.__name__}",
+            f"eoreader.{self.__class__.__name__} '{self.name}'",
             "Attributes:",
             f"\tcondensed_name: {self.condensed_name}",
-            f"\tname: {self.name}",
             f"\tpath: {self.path}",
             f"\tplatform: {self.platform if isinstance(self.platform, str) else self.platform.value}",
             f"\tsensor type: {self.sensor_type if isinstance(self.sensor_type, str) else self.sensor_type.value}",

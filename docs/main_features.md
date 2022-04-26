@@ -67,39 +67,43 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 ![load_workflow](https://zupimages.net/up/22/12/9mz0.png)
 
 ```python
->>> import os
->>> from eoreader.reader import Reader
->>> from eoreader.bands import *
->>> import os
->>> from eoreader.env_vars import DEM_PATH
+>> > import os
+>> > from eoreader.reader import Reader
+>> > from eoreader.bands import *
+>> > import os
+>> > from eoreader.env_vars import DEM_PATH
 
->>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip"
->>> output = os.path.abspath("./output")
->>>  # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
->>>  # and you won't be able to retrieve what's has been written on disk
->>> prod = Reader().open(path, output_path=output)
+>> > path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip"
+>> > output = os.path.abspath("./output")
+>> >  # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
+>> >  # and you won't be able to retrieve what's has been written on disk
+>> > prod = Reader().open(path, output_path=output)
 
->>>  # Specify a DEM to load DEM bands
->>> os.environ[DEM_PATH] = r"my_dem.tif"
+>> >  # Specify a DEM to load DEM bands
+>> > os.environ[DEM_PATH] = r"my_dem.tif"
 
->>> # Get the wanted bands and check if the product can produce them
->>> band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
->>> ok_bands = [band for band in band_list if prod.has_band(band)]
+>> >  # Get the wanted bands and check if the product can produce them
+>> > band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
+>> > ok_bands = [band for band in band_list if prod.has_band(band)]
 [GREEN, NDVI, HILLSHADE]
->>> # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
+>> >  # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
 
->>> # Load bands
->>> bands = prod.load(ok_bands, resolution=20.)  # if resolution is not specified -> load at default resolution (10.0 m for S2 data)
->>> # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
->>> # (important for DEM data as they may have different grids)
+>> >  # Load bands
+>> > bands = prod.load(ok_bands, resolution=20.)  # if resolution is not specified -> load at default resolution (10.0 m for S2 data)
+>> >  # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
+>> >  # (important for DEM data as they may have different grids)
 
->>> bands
-{<function NDVI at 0x000001C47FF05E18>: <xarray.DataArray 'NDVI' (band: 1, y: 5490, x: 5490)>
+>> > bands
+{ < function
+NDVI
+at
+0x000001C47FF05E18 >: < xarray.DataArray
+'NDVI'(band: 1, y: 5490, x: 5490) >
 array([[[0.94786006, 0.92717856, 0.92240528, ..., 1.73572724,
          1.55314477, 1.63242706],
         [1.04147187, 0.93668633, 0.91499688, ..., 1.59941784,
          1.52895995, 1.51386761],
-        [2.86996677, 1.69360304, 1.2413562 , ..., 1.61172353,
+        [2.86996677, 1.69360304, 1.2413562, ..., 1.61172353,
          1.55742907, 1.50568275],
         ...,
         [1.45807257, 1.61071344, 1.64620751, ..., 1.25498441,
@@ -109,11 +113,29 @@ array([[[0.94786006, 0.92717856, 0.92240528, ..., 1.73572724,
         [1.63569594, 1.66751277, 1.63474646, ..., 1.27617084,
          1.22456033, 1.27022877]]])
 Coordinates:
-  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-  * band         (band) int32 1
-    spatial_ref  int32 0,
-<OpticalBandNames.GREEN: 'GREEN'>: <xarray.DataArray 'T30TTK_20200824T110631_B03' (band: 1, y: 5490, x: 5490)>
+*x(x)
+float64
+2e+05
+2e+05
+2e+05...
+3.097e+05
+3.098e+05
+3.098e+05
+* y(y)
+float64
+4.5e+06
+4.5e+06
+4.5e+06...
+4.39e+06
+4.39e+06
+* band(band)
+int32
+1
+spatial_ref
+int32
+0,
+< SpectralBandNames.GREEN: 'GREEN' >: < xarray.DataArray
+'T30TTK_20200824T110631_B03'(band: 1, y: 5490, x: 5490) >
 array([[[0.06146327, 0.06141786, 0.06100179, ..., 0.11880179,
          0.12087143, 0.11468571],
         [0.06123214, 0.06071094, 0.06029063, ..., 0.11465781,
@@ -121,18 +143,36 @@ array([[[0.06146327, 0.06141786, 0.06100179, ..., 0.11880179,
         [0.06494643, 0.06226562, 0.06169219, ..., 0.11174062,
          0.11434844, 0.11491964],
         ...,
-        [0.1478125 , 0.13953906, 0.13751719, ..., 0.15949688,
+        [0.1478125, 0.13953906, 0.13751719, ..., 0.15949688,
          0.14200781, 0.12982321],
         [0.14091429, 0.12959531, 0.13144844, ..., 0.17246719,
-         0.156175  , 0.13453036],
+         0.156175, 0.13453036],
         [0.13521429, 0.13274286, 0.13084821, ..., 0.16064821,
          0.16847143, 0.16009592]]])
 Coordinates:
-  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-  * band         (band) int32 1
-    spatial_ref  int32 0,
-<DemBandNames.HILLSHADE: 'HILLSHADE'>: <xarray.DataArray '20200824T110631_S2_T30TTK_L1C_150432_HILLSHADE' (band: 1, y: 5490, x: 5490)>
+*x(x)
+float64
+2e+05
+2e+05
+2e+05...
+3.097e+05
+3.098e+05
+3.098e+05
+* y(y)
+float64
+4.5e+06
+4.5e+06
+4.5e+06...
+4.39e+06
+4.39e+06
+* band(band)
+int32
+1
+spatial_ref
+int32
+0,
+< DemBandNames.HILLSHADE: 'HILLSHADE' >: < xarray.DataArray
+'20200824T110631_S2_T30TTK_L1C_150432_HILLSHADE'(band: 1, y: 5490, x: 5490) >
 array([[[220., 221., 221., ..., 210., 210., 210.],
         [222., 222., 221., ..., 210., 210., 210.],
         [221., 221., 220., ..., 210., 210., 210.],
@@ -141,13 +181,30 @@ array([[[220., 221., 221., ..., 210., 210., 210.],
         [214., 212., 211., ..., 206., 205., 205.],
         [213., 211., 209., ..., 205., 204., 205.]]])
 Coordinates:
-  * band         (band) int32 1
-  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-    spatial_ref  int32 0
+*band(band)
+int32
+1
+* y(y)
+float64
+4.5e+06
+4.5e+06
+4.5e+06...
+4.39e+06
+4.39e+06
+* x(x)
+float64
+2e+05
+2e+05
+2e+05...
+3.097e+05
+3.098e+05
+3.098e+05
+spatial_ref
+int32
+0
 Attributes:
-    grid_mapping:    spatial_ref
-    original_dtype:  uint8}
+grid_mapping:    spatial_ref
+original_dtype: uint8}
 ```
 
 ```{note}
