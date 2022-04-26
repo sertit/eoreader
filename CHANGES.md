@@ -21,6 +21,7 @@
 ### Bug Fixes
 
 - FIX: Fixing the band mapping of `WorldView-2/3 Multi` (8 bands)
+- FIX: Retrieval (if possible) of Sentinel-1 [unique ID](https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-1-sar/naming-conventions) (was missing from the product name, as it is not in the product preview)
 
 ### Other
 

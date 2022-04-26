@@ -35,6 +35,7 @@ from eoreader import cache
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
+from eoreader.reader import Platform, Reader
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -286,23 +287,39 @@ class S1Product(SarProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        # The name is not in the classic metadata, but can be found in the manifest
-        try:
-            mtd_from_path = "preview/product-preview.html"
-            mtd_archived = r"preview.*product-preview\.html"
-
-            root = self._read_mtd_html(mtd_from_path, mtd_archived)
-
-            # Open identifier
-            name = root.findtext(".//head/title")
-            if not name:
-                raise InvalidProductError("title not found in metadata!")
-
-        except InvalidProductError:
-            LOGGER.warning(
-                "product-preview.html not found in the product, the name will be the filename"
-            )
+        if Reader().valid_name(self.path, Platform.S1):
             name = self.filename
+        else:
+            try:
+                if self.is_archived:
+                    pdf_file = files.get_archived_path(
+                        self.path, ".*\.pdf", as_list=False
+                    )
+                else:
+                    pdf_file = next(self.path.glob("*.pdf"))
+            except (FileNotFoundError, StopIteration):
+                # The name is not in the classic metadata, but can be found in the manifest
+                try:
+                    mtd_from_path = "preview/product-preview.html"
+                    mtd_archived = r"preview.*product-preview\.html"
+
+                    root = self._read_mtd_html(mtd_from_path, mtd_archived)
+
+                    # Open identifier
+                    name = root.findtext(".//head/title")
+                    if not name:
+                        raise InvalidProductError("title not found in metadata!")
+
+                    LOGGER.warning(
+                        "Product filename is not a valid Sentinel-1 name, and the retrieved name is missing the unique ID."
+                    )
+
+                except InvalidProductError:
+                    raise InvalidProductError(
+                        "product-preview.html not found in the product, the name will be the filename (which is not a valid Sentinel-1 name)"
+                    )
+            else:
+                name = files.get_filename(pdf_file)
 
         return name
 
