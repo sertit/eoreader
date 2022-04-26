@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Spectral Bands """
+import numpy as np
+
 from eoreader._stac import *
 from eoreader.bands.bands import Band, BandMap, BandNames
 from eoreader.exceptions import InvalidTypeError
@@ -39,7 +41,7 @@ class SpectralBand(Band):
             float: Wavelength in micrometers
         """
         if wavelength and wavelength > thresh:
-            wavelength /= 1000
+            wavelength = np.round(wavelength / 1000.0, 6)
         return wavelength
 
     def __init__(self, eoreader_name, **kwargs):
@@ -60,8 +62,10 @@ class SpectralBand(Band):
             wv_min = self._from_nm_microm(kwargs[WV_MIN])
 
             assert wv_max > wv_min
-            self.full_width_half_max = wv_max - wv_min
-            self.center_wavelength = wv_min + self.full_width_half_max / 2.0
+            self.full_width_half_max = np.round(wv_max - wv_min, 6)
+            self.center_wavelength = np.round(
+                wv_min + self.full_width_half_max / 2.0, 6
+            )
         else:
             self.center_wavelength = self._from_nm_microm(kwargs.get(CENTER_WV))
             self.full_width_half_max = self._from_nm_microm(kwargs.get(FWHM), thresh=1)
