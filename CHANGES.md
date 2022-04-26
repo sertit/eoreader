@@ -24,7 +24,7 @@
 
 ### Other
 
-- INTERNAL: File `spot_6` and `spot_7` are removed, replaced by a unique `spot` file. This shouldn't affect the user
+- INTERNAL: File `spot_6` and `spot_7` are removed, replaced by a unique `spot` file. This shouldn't affect the user.
 - INTERNAL: Some refactoring in `VHR` files
 - CI: Do not process two times the zipped Sentinel-1 in end-to-end tests and manage when the runner kills SNAP
 - DOC: Updates
