@@ -67,33 +67,33 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 ![load_workflow](https://zupimages.net/up/22/12/9mz0.png)
 
 ```python
->> > import os
->> > from eoreader.reader import Reader
->> > from eoreader.bands import *
->> > import os
->> > from eoreader.env_vars import DEM_PATH
+>>> import os
+>>> from eoreader.reader import Reader
+>>> from eoreader.bands import *
+>>> import os
+>>> from eoreader.env_vars import DEM_PATH
 
->> > path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip"
->> > output = os.path.abspath("./output")
->> >  # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
->> >  # and you won't be able to retrieve what's has been written on disk
->> > prod = Reader().open(path, output_path=output)
+>>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip"
+>>> output = os.path.abspath("./output")
+>>>  # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
+>>>  # and you won't be able to retrieve what's has been written on disk
+>>> prod = Reader().open(path, output_path=output)
 
->> >  # Specify a DEM to load DEM bands
->> > os.environ[DEM_PATH] = r"my_dem.tif"
+>>>  # Specify a DEM to load DEM bands
+>>> os.environ[DEM_PATH] = r"my_dem.tif"
 
->> >  # Get the wanted bands and check if the product can produce them
->> > band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
->> > ok_bands = [band for band in band_list if prod.has_band(band)]
+>>>  # Get the wanted bands and check if the product can produce them
+>>> band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
+>>> ok_bands = [band for band in band_list if prod.has_band(band)]
 [GREEN, NDVI, HILLSHADE]
->> >  # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
+>>>  # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
 
->> >  # Load bands
->> > bands = prod.load(ok_bands, resolution=20.)  # if resolution is not specified -> load at default resolution (10.0 m for S2 data)
->> >  # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
->> >  # (important for DEM data as they may have different grids)
+>>>  # Load bands
+>>> bands = prod.load(ok_bands, resolution=20.)  # if resolution is not specified -> load at default resolution (10.0 m for S2 data)
+>>>  # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
+>>>  # (important for DEM data as they may have different grids)
 
->> > bands
+>>> bands
 { < function
 NDVI
 at
@@ -389,8 +389,8 @@ Get optical product azimuth (between [0, 360] degrees) and
 [zenith solar angles](https://en.wikipedia.org/wiki/Solar_zenith_angle), useful for computing the Hillshade for example.
 
 ```python
->> >  # Get azimuth and zenith solar angles
->> > prod.get_mean_sun_angles()
+>>>  # Get azimuth and zenith solar angles
+>>> prod.get_mean_sun_angles()
 (151.750970396115, 35.4971906983449)
 ```
 
@@ -399,8 +399,8 @@ Get optical product azimuth (between [0, 360] degrees) and
 Get optical product cloud cover as specified in the metadata
 
 ```python
->> >  # Get cloud cover
->> > prod.get_cloud_cover()
+>>>  # Get cloud cover
+>>> prod.get_cloud_cover()
 55.5
 ```
 
@@ -410,7 +410,7 @@ Get product optical direction (useful especially for SAR data), as a {meth}`~eor
 Always specified in the metadata for SAR sensors, set to `DESCENDING` by default for optical data if not existing.
 
 ```python
->> >  # Get orbit direction
->> > prod.get_orbit_direction()
+>>>  # Get orbit direction
+>>> prod.get_orbit_direction()
 < OrbitDirection.DESCENDING: 'DESCENDING' >
 ```
