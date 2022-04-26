@@ -26,6 +26,16 @@ class SarBand(Band):
     See `here <https://github.com/stac-extensions/eo/#band-object>`_ for more information, without useless information.
     """
 
+    def __init__(self, eoreader_name, **kwargs):
+        # Initialization from the super class
+        super().__init__(eoreader_name, **kwargs)
+
+        # Set names
+        try:
+            self.eoreader_name = SarBandNames.convert_from(eoreader_name)[0]
+        except TypeError:
+            raise InvalidTypeError
+
     def _to_repr_sensor_specific(self) -> list:
         """
         Representation specific to the sensor

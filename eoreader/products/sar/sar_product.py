@@ -180,6 +180,20 @@ class SarProduct(Product):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
+        # Needs to be done after the initialization
+        self.bands.map_bands(
+            {
+                band_name: SarBand(
+                    eoreader_name=band_name,
+                    name=band_name.name,
+                    gsd=self.resolution,
+                    id=band_name.value,
+                    asset_role=INTENSITY,
+                )
+                for band_name in self.get_existing_bands()
+            }
+        )
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
@@ -196,17 +210,6 @@ class SarProduct(Product):
         """
         self._set_sensor_mode()
         self.pol_channels = self._get_raw_bands()
-        self.bands.map_bands(
-            {
-                band_name: SarBand(
-                    eoreader_name=band_name,
-                    name=band_name.name,
-                    id=band_name.value,
-                    asset_role=INTENSITY,
-                )
-                for band_name in self.get_existing_bands()
-            }
-        )
 
     @cache
     def footprint(self) -> gpd.GeoDataFrame:
