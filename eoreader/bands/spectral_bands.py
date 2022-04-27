@@ -123,8 +123,7 @@ class SpectralBandMap(BandMap):
 
         .. code-block:: python
 
-            >>> # Example for Sentinel-2 L1C data
-            >>> ob = SpectralBands()
+            >>> ob = SpectralBandMap()
             >>> ob.map_bands({
                     CA: '01',
                     BLUE: '02',
@@ -134,7 +133,6 @@ class SpectralBandMap(BandMap):
                     VRE_2: '06',
                     VRE_3: '07',
                     NIR: '08',
-                    NNIR: '8A',
                     WV: '09',
                     SWIR_1: '11',
                     SWIR_2: '12'
