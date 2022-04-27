@@ -255,6 +255,9 @@ class Rs2Product(SarProduct):
         self._band_folder = self.path
         self.snap_filename = ""
 
+        # Its original filename is its name
+        self._use_filename = True
+
         # SNAP can process non-complex archive
         root, nsmap = self.read_mtd()
         namespace = nsmap[None]
@@ -394,7 +397,7 @@ class Rs2Product(SarProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_sensor_specific(self) -> str:
         """
         Set product real name from metadata
 

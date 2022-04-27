@@ -125,6 +125,7 @@ class LandsatProduct(OpticalProduct):
         (setting needs_extraction and so on)
         """
         self._has_cloud_cover = True
+        self._use_filename = True
 
         mtd, _ = self.read_mtd()
 
@@ -749,7 +750,7 @@ class LandsatProduct(OpticalProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_sensor_specific(self) -> str:
         """
         Set product real name from metadata
 

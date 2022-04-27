@@ -381,7 +381,7 @@ class SaocomProduct(SarProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_sensor_specific(self) -> str:
         """
         Set product real name from metadata
 

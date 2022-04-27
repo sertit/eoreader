@@ -174,6 +174,9 @@ class RcmProduct(SarProduct):
         # SNAP cannot process zipped RCM
         self.needs_extraction = True
 
+        # Its original filename is its name
+        self._use_filename = True
+
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
@@ -318,7 +321,7 @@ class RcmProduct(SarProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_sensor_specific(self) -> str:
         """
         Set product real name from metadata
 

@@ -162,7 +162,7 @@ class CustomProduct(Product):
         except InvalidProductError as msg:
             LOGGER.warning(msg)
 
-    def _get_name(self) -> str:
+    def _get_name_sensor_specific(self) -> str:
         """
         Set product real name from metadata
 

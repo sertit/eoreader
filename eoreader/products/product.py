@@ -117,6 +117,7 @@ class Product:
         self.filename = files.get_filename(self.path)
         """Product filename"""
 
+        self._use_filename = False
         self.name = None
         """Product true name (as specified in the metadata)"""
 
@@ -176,7 +177,7 @@ class Product:
         self._mask_false = 0
         self._mask_nodata = 255
 
-        self.platform = None
+        self.platform = kwargs.get("platform")
         """Product platform, such as Sentinel-2"""
 
         # Set the resolution, needs to be done when knowing the product type
@@ -364,8 +365,26 @@ class Product:
         sat_id = class_module.replace("_product", "").upper()
         return getattr(Platform, sat_id)
 
-    @abstractmethod
     def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        if (
+            self._use_filename
+            and self.platform
+            and Reader().valid_name(self.path, self.platform)
+        ):
+            name = self.filename
+        else:
+            name = self._get_name_sensor_specific()
+
+        return name
+
+    @abstractmethod
+    def _get_name_sensor_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -591,34 +610,37 @@ class Product:
             (etree._Element, dict): Metadata XML root and its namespaces
 
         """
-        if self.is_archived:
-            root = files.read_archived_xml(self.path, f".*{mtd_archived}")
-        else:
-            try:
+        try:
+            if self.is_archived:
+                root = files.read_archived_xml(self.path, f".*{mtd_archived}")
+            else:
                 try:
-                    mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
-                except ValueError:
-                    mtd_file = next(self.path.glob(f"*{mtd_from_path}"))
-
-                if isinstance(mtd_file, CloudPath):
                     try:
-                        # Try using read_text (faster)
-                        root = etree.fromstring(mtd_file.read_text())
+                        mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
                     except ValueError:
-                        # Try using read_bytes
-                        # Slower but works with:
-                        # {ValueError}Unicode strings with encoding declaration are not supported.
-                        # Please use bytes input or XML fragments without declaration.
-                        root = etree.fromstring(mtd_file.read_bytes())
-                else:
-                    # pylint: disable=I1101:
-                    # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                    xml_tree = etree.parse(str(mtd_file))
-                    root = xml_tree.getroot()
-            except StopIteration as ex:
-                raise InvalidProductError(
-                    f"Metadata file ({mtd_from_path}) not found in {self.path}"
-                ) from ex
+                        mtd_file = next(self.path.glob(f"*{mtd_from_path}"))
+
+                    if isinstance(mtd_file, CloudPath):
+                        try:
+                            # Try using read_text (faster)
+                            root = etree.fromstring(mtd_file.read_text())
+                        except ValueError:
+                            # Try using read_bytes
+                            # Slower but works with:
+                            # {ValueError}Unicode strings with encoding declaration are not supported.
+                            # Please use bytes input or XML fragments without declaration.
+                            root = etree.fromstring(mtd_file.read_bytes())
+                    else:
+                        # pylint: disable=I1101:
+                        # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                        xml_tree = etree.parse(str(mtd_file))
+                        root = xml_tree.getroot()
+                except StopIteration as ex:
+                    raise InvalidProductError(
+                        f"Metadata file ({mtd_from_path}) not found in {self.path}"
+                    ) from ex
+        except etree.XMLSyntaxError:
+            raise InvalidProductError(f"Invalid metadata XML for {self.path}!")
 
         # Get namespaces map (only useful ones)
         nsmap = {key: f"{{{ns}}}" for key, ns in root.nsmap.items()}
