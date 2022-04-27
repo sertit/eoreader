@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Sentinel-2 products """
-
+import json
 import logging
 import os
 import re
@@ -154,6 +154,15 @@ class S2Product(OpticalProduct):
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+
+        try:
+            self.read_mtd()
+        except InvalidProductError:
+            LOGGER.warning(
+                f"Corrupted metadata for {self.path}. "
+                f"Trying to process this product in degraded mode. "
+                f"Every process needing something from the metadata won't be able to be computed (i.e. HILLSHADE)"
+            )
 
     def _pre_init(self, **kwargs) -> None:
         """
@@ -419,10 +428,16 @@ class S2Product(OpticalProduct):
 
             name = files.get_filename(name)
         except InvalidProductError:
-            tile_info = files.read_json(
-                next(self.path.glob("**/tileInfo.json")), print_file=False
-            )
-            name = tile_info["productName"]
+            try:
+                tile_info = files.read_json(
+                    next(self.path.glob("**/tileInfo.json")), print_file=False
+                )
+                name = tile_info["productName"]
+            except json.JSONDecodeError:
+                raise InvalidProductError(
+                    f"Corrupted metadata and bad filename for {self.path}! "
+                    f"Impossible to process this product."
+                )
 
         return name
 
