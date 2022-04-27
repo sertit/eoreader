@@ -61,8 +61,7 @@ class SarBandMap(BandMap):
 
         .. code-block:: python
 
-            >>> # Example for Sentinel-2 L1C data
-            >>> sb = SarBands()
+            >>> sb = SarBandMap()
             >>> sb.map_bands({
                     VV: 1,
                 })
