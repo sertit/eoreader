@@ -376,6 +376,17 @@ class S3SlstrProduct(S3Product):
                     DESCRIPTION: "NDVI, cloud flagging, pixel co-registration",
                 },
             ),
+            spb.NARROW_NIR: SpectralBand(
+                eoreader_name=spb.NARROW_NIR,
+                **{
+                    NAME: SLSTR_A_BANDS[2],
+                    ID: SLSTR_A_BANDS[2],
+                    GSD: self.resolution,
+                    CENTER_WV: 868.00,
+                    FWHM: 20.60,
+                    DESCRIPTION: "NDVI, cloud flagging, pixel co-registration",
+                },
+            ),
             spb.SWIR_CIRRUS: SpectralBand(
                 eoreader_name=spb.SWIR_CIRRUS,
                 **{

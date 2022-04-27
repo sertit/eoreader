@@ -338,10 +338,10 @@ class S3OlciProduct(S3Product):
                 },
             ),
             spb.Oa14: SpectralBand(
-                eoreader_name=spb.Oa13,
+                eoreader_name=spb.Oa14,
                 **{
-                    NAME: "Oa13",
-                    ID: "Oa13",
+                    NAME: "Oa14",
+                    ID: "Oa14",
                     GSD: self.resolution,
                     CENTER_WV: 764.375,
                     FWHM: 3.75,
@@ -349,10 +349,10 @@ class S3OlciProduct(S3Product):
                 },
             ),
             spb.Oa15: SpectralBand(
-                eoreader_name=spb.Oa13,
+                eoreader_name=spb.Oa15,
                 **{
-                    NAME: "Oa13",
-                    ID: "Oa13",
+                    NAME: "Oa15",
+                    ID: "Oa15",
                     GSD: self.resolution,
                     CENTER_WV: 767.5,
                     FWHM: 2.5,
@@ -382,7 +382,7 @@ class S3OlciProduct(S3Product):
                 },
             ),
             spb.NARROW_NIR: SpectralBand(
-                eoreader_name=spb.NIR,
+                eoreader_name=spb.NARROW_NIR,
                 **{
                     NAME: "Oa17",
                     ID: "Oa17",
