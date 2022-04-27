@@ -6,18 +6,18 @@
 
 - **BREAKING CHANGES: `Optical` becomes `Spectral` when more appropriate**
 - **BREAKING CHANGES: File `alias` is removed, replaced by `*_bands` files and proper imports in `bands.__init__`**
-- **BREAKING CHANGES: Product attribute `band_names` becomes `bands` in order to be STAC compliant (#29)**
+- **BREAKING CHANGES: Product attribute `band_names` becomes `bands` in order to be STAC compliant ([#29](https://github.com/sertit/eoreader/issues/29))**
 - **BREAKING CHANGES: Better use of `NIR` and `NARROW_NIR` in the `indices` file (according to the gsd of `Sentinel-2` bands composing the indices)**
 
 ### Enhancements
 
-- **ENH: Bands in mapping are now objects, instead of just IDs** (#29). This allows us to:
+- **ENH: Bands in mapping are now objects, instead of just IDs** ([#29](https://github.com/sertit/eoreader/issues/29)). This allows us to:
     - Add band metadata (such as center wavelength, bandwidth...)
     - Map spectral bands between STAC spec and EOReader format
     - Add a better `__repr__` functions
-- **ENH: Handling 8 bands `PlanetScope` data** (#20)
+- **ENH: Handling 8 bands `PlanetScope` data** ([#20](https://github.com/sertit/eoreader/issues/20))
 - **ENH: Adding the `GREEN1` mapped band, corresponding to PlanetScope `GREEN I` and `Sentinel-3 OLCI` `Oa05` band**
-- **ENH: Handle some slightly broken `Sentinel-2` products, i.e. when the metadata files are corrupted or when the detfoo vectors are empty (#34)**
+- **ENH: Handle some slightly broken `Sentinel-2` products, i.e. when the metadata files are corrupted or when the detfoo vectors are empty ([#34](https://github.com/sertit/eoreader/issues/34))**
 
 ### Optimizations
 
@@ -61,9 +61,9 @@
 - **ENH: Making SAR attribute `snap_filename` public**
 - **ENH: Handling `ICEYE` pure SLC products**
 - **ENH: Allowing the user to choose if they want the GRD or SLC image for `ICEYE` products**
-- **ENH: Add the possibility to directly load the cloud cover for optical data (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/30))**
-- **ENH: Add the possibility to retrieve the quicklook path (if existing) and add the `plot` function allowing the user to plot the quicklook (if existing) ([#28](https://github.com/sertit/eoreader/issues/30))**
-- **ENH: Add the possibility to retrieve the orbit direction (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/30))**
+- **ENH: Add the possibility to directly load the cloud cover for optical data (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/28))**
+- **ENH: Add the possibility to retrieve the quicklook path (if existing) and add the `plot` function allowing the user to plot the quicklook (if existing) ([#28](https://github.com/sertit/eoreader/issues/28))**
+- **ENH: Add the possibility to retrieve the orbit direction (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/28))**
 
 ### Bug Fixes
 
