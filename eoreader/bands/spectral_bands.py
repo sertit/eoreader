@@ -154,6 +154,15 @@ class SpectralBandMap(BandMap):
             # Set number
             self._band_map[band_name] = band
 
+    def __repr__(self):
+        bands = [band for band in self._band_map.values() if band is not None]
+        try:
+            bands.sort(key=lambda x: int(x.id))
+        except ValueError:
+            bands.sort(key=lambda x: x.id)
+
+        return "\n".join([band.__repr__() for band in bands])
+
 
 class SpectralBandNames(BandNames):
     """
