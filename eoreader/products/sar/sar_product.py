@@ -219,7 +219,7 @@ class SarProduct(Product):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
             >>> prod.footprint()
                index                                           geometry
