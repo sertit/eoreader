@@ -162,6 +162,7 @@ class S2Product(OpticalProduct):
         """
         self._has_cloud_cover = True
         self.needs_extraction = False
+        self._use_filename = True
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
@@ -286,10 +287,19 @@ class S2Product(OpticalProduct):
             rasterio.crs.CRS: CRS object
         """
         if self._processing_baseline < 2.07:
-            root, ns = self.read_mtd()
-            return CRS.from_string(root.findtext(".//HORIZONTAL_CS_CODE"))
+            try:
+                root, ns = self.read_mtd()
+                crs = CRS.from_string(root.findtext(".//HORIZONTAL_CS_CODE"))
+            except InvalidProductError:
+                # Manage broken XML
+                utm_nb = self.tile_name[1:3]
+                utm_letter = self.tile_name[3]
+                utm_hemisphere = 6 if utm_letter > "N" else 7
+                crs = CRS.from_string(f"epsg:32{utm_hemisphere}{utm_nb}")
         else:
-            return super().crs()
+            crs = super().crs()
+
+        return crs
 
     @cache
     def extent(self) -> gpd.GeoDataFrame:
@@ -388,7 +398,7 @@ class S2Product(OpticalProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_sensor_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -564,28 +574,36 @@ class S2Product(OpticalProduct):
             xr.DataArray: Band xarray
 
         """
+        geocoded_path = path
+
         # For L2Ap
         if self._processing_baseline < 2.07 and str(path).endswith(".jp2"):
-            # Download path just in case
-            on_disk_path = self._get_band_folder(writable=True) / path.name
-            if not on_disk_path.is_file():
-                if isinstance(path, CloudPath):
-                    path = path.download_to(self._get_band_folder(writable=True))
-                else:
-                    path = files.copy(path, self._get_band_folder(writable=True))
-            else:
-                path = on_disk_path
-
             # Get and write geocode data if not already existing
-            with rasterio.open(str(path), "r+") as ds:
+            with rasterio.open(str(path), "r") as ds:
                 if not ds.crs:
-                    tf, _, _, crs = self._l2ap_geocode_data(path)
-                    ds.crs = crs
-                    ds.transform = tf
+                    # Download path just in case
+                    on_disk_path = self._get_band_folder(writable=True) / path.name
+                    if not on_disk_path.is_file():
+                        if isinstance(path, CloudPath):
+                            geocoded_path = path.download_to(
+                                self._get_band_folder(writable=True)
+                            )
+                        else:
+                            geocoded_path = files.copy(
+                                path, self._get_band_folder(writable=True)
+                            )
+                    else:
+                        geocoded_path = on_disk_path
+
+                    # Get and write geocode data if not already existing
+                    with rasterio.open(str(geocoded_path), "r+") as ds:
+                        tf, _, _, crs = self._l2ap_geocode_data(path)
+                        ds.crs = crs
+                        ds.transform = tf
 
         # Read band
         return utils.read(
-            path,
+            geocoded_path,
             resolution=resolution,
             size=size,
             resampling=Resampling.bilinear,
@@ -873,17 +891,25 @@ class S2Product(OpticalProduct):
             S2GmlMasks.FOOTPRINT, band
         )  # Detector nodata, -> pixels that are outside of the detectors
 
-        # Rasterize nodata
-        mask = features.rasterize(
-            nodata_det.geometry,
-            out_shape=(band_arr.rio.height, band_arr.rio.width),
-            fill=self._mask_true,  # Outside detector = nodata (inverted compared to the usual)
-            default_value=self._mask_false,  # Inside detector = not nodata
-            transform=transform.from_bounds(
-                *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
-            ),
-            dtype=np.uint8,
-        )
+        if len(nodata_det) > 0:
+            # Rasterize nodata
+            mask = features.rasterize(
+                nodata_det.geometry,
+                out_shape=(band_arr.rio.height, band_arr.rio.width),
+                fill=self._mask_true,  # Outside detector = nodata (inverted compared to the usual)
+                default_value=self._mask_false,  # Inside detector = not nodata
+                transform=transform.from_bounds(
+                    *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
+                ),
+                dtype=np.uint8,
+            )
+        else:
+            # Manage empty geometry: nodata is 0
+            LOGGER.warning(
+                "Empty detector footprint vector. Nodata will be set where the pixels are null."
+            )
+            s2_nodata = 0
+            mask = np.where(band_arr == s2_nodata, 1, 0).astype(np.uint8)
 
         #  Load masks and merge them into the nodata
         nodata_pix = self._open_mask_lt_4_0(
@@ -985,17 +1011,25 @@ class S2Product(OpticalProduct):
             S2GmlMasks.FOOTPRINT, band
         )  # Detector nodata, -> pixels that are outside of the detectors
 
-        # Rasterize nodata
-        mask = features.rasterize(
-            nodata_det.geometry,
-            out_shape=(band_arr.rio.height, band_arr.rio.width),
-            fill=self._mask_true,  # Outside detector = nodata (inverted compared to the usual)
-            default_value=self._mask_false,  # Inside detector = not nodata
-            transform=transform.from_bounds(
-                *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
-            ),
-            dtype=np.uint8,
-        )
+        if len(nodata_det) > 0:
+            # Rasterize nodata
+            mask = features.rasterize(
+                nodata_det.geometry,
+                out_shape=(band_arr.rio.height, band_arr.rio.width),
+                fill=self._mask_true,  # Outside detector = nodata (inverted compared to the usual)
+                default_value=self._mask_false,  # Inside detector = not nodata
+                transform=transform.from_bounds(
+                    *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
+                ),
+                dtype=np.uint8,
+            )
+        else:
+            # Manage empty geometry: nodata is 0
+            LOGGER.warning(
+                "Empty detector footprint vector. Nodata will be set where the pixels are null."
+            )
+            s2_nodata = 0
+            mask = np.where(band_arr == s2_nodata, 1, 0).astype(np.uint8)
 
         return self._set_nodata_mask(band_arr, mask)
 
@@ -1084,15 +1118,22 @@ class S2Product(OpticalProduct):
         Returns:
             (float, float): Mean Azimuth and Zenith angle
         """
-        # Read metadata
-        root, _ = self.read_mtd()
-
         try:
-            mean_sun_angles = root.find(".//Mean_Sun_Angle")
-            zenith_angle = float(mean_sun_angles.findtext("ZENITH_ANGLE"))
-            azimuth_angle = float(mean_sun_angles.findtext("AZIMUTH_ANGLE"))
-        except TypeError:
-            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
+            # Read metadata
+            root, _ = self.read_mtd()
+
+            try:
+                mean_sun_angles = root.find(".//Mean_Sun_Angle")
+                zenith_angle = float(mean_sun_angles.findtext("ZENITH_ANGLE"))
+                azimuth_angle = float(mean_sun_angles.findtext("AZIMUTH_ANGLE"))
+            except TypeError:
+                raise InvalidProductError(
+                    "Azimuth or Zenith angles not found in metadata!"
+                )
+        except InvalidProductError as ex:
+            LOGGER.warning(f"{ex}: setting sun angles to (0, 0).")
+            azimuth_angle = 0.0
+            zenith_angle = 0.0
 
         return azimuth_angle, zenith_angle
 
@@ -1348,33 +1389,32 @@ class S2Product(OpticalProduct):
         self, path: Union[CloudPath, Path]
     ) -> (Affine, int, int, CRS):
         """"""
+        try:
+            # Read metadata
+            root, ns = self.read_mtd()
 
-        # Read metadata
-        root, ns = self.read_mtd()
+            # Determie wanted resolution
+            if "10m" in path.name:
+                res = 10
+            elif "20m" in path.name:
+                res = 20
+            else:
+                res = 60
 
-        # Read CRS
-        crs = CRS.from_string(root.findtext(".//HORIZONTAL_CS_CODE"))
+            # Open size
+            width = int(root.findtext(f".//Size[@resolution='{res}']/NCOLS"))
+            height = int(root.findtext(f".//Size[@resolution='{res}']/NROWS"))
 
-        # Determie wanted resolution
-        if "10m" in path.name:
-            res = 10
-        elif "20m" in path.name:
-            res = 20
-        else:
-            res = 60
+            # Open upper-left corner
+            ulx = float(root.findtext(f".//Geoposition[@resolution='{res}']/ULX"))
+            uly = float(root.findtext(f".//Geoposition[@resolution='{res}']/ULY"))
 
-        # Open size
-        width = int(root.findtext(f".//Size[@resolution='{res}']/NCOLS"))
-        height = int(root.findtext(f".//Size[@resolution='{res}']/NROWS"))
+            # Create transform
+            tf = transform.from_origin(ulx, uly, res, res)
+        except InvalidProductError as ex:
+            raise InvalidProductError(f"{ex}: cannot geocode the bands!")
 
-        # Open upper-left corner
-        ulx = float(root.findtext(f".//Geoposition[@resolution='{res}']/ULX"))
-        uly = float(root.findtext(f".//Geoposition[@resolution='{res}']/ULY"))
-
-        # Create transform
-        tf = transform.from_origin(ulx, uly, res, res)
-
-        return tf, width, height, crs
+        return tf, width, height, self.crs()
 
     @cache
     def default_transform(self, **kwargs) -> (Affine, int, int, CRS):
@@ -1414,15 +1454,16 @@ class S2Product(OpticalProduct):
         Returns:
             float: Cloud cover as given in the metadata
         """
-        # Get MTD XML file
-        root, nsmap = self.read_mtd()
-
         # Get the cloud cover
         try:
+            # Get MTD XML file
+            root, nsmap = self.read_mtd()
             cc = float(root.findtext(".//CLOUDY_PIXEL_PERCENTAGE"))
-
-        except TypeError:
-            raise InvalidProductError("CLOUDY_PIXEL_PERCENTAGE not found in metadata!")
+        except (InvalidProductError, TypeError):
+            LOGGER.warning(
+                "CLOUDY_PIXEL_PERCENTAGE not found in metadata! Cloud coverage set to 0."
+            )
+            cc = 0
 
         return cc
 

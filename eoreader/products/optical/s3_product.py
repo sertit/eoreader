@@ -131,6 +131,17 @@ class S3Product(OpticalProduct):
 
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
+    def _pre_init(self, **kwargs) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        self.needs_extraction = False
+        self._use_filename = True
+
+        # Post init done by the super class
+        super()._pre_init(**kwargs)
+
     @abstractmethod
     def _set_preprocess_members(self):
         """ Set pre-process members """
@@ -332,7 +343,7 @@ class S3Product(OpticalProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_sensor_specific(self) -> str:
         """
         Set product real name from metadata
 

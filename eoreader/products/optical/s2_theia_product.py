@@ -67,6 +67,7 @@ class S2TheiaProduct(OpticalProduct):
         """
         self._has_cloud_cover = True
         self.needs_extraction = False
+        self._use_filename = True
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
@@ -238,7 +239,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_sensor_specific(self) -> str:
         """
         Set product real name from metadata
 

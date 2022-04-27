@@ -17,6 +17,11 @@
     - Add a better `__repr__` functions
 - **ENH: Handling 8 bands `PlanetScope` data** (#20)
 - **ENH: Adding the `GREEN1` mapped band, corresponding to PlanetScope `GREEN I` and `Sentinel-3 OLCI` `Oa05` band**
+- **ENH: Handle some slightly broken `Sentinel-2` products, i.e. when the metadata files are corrupted or when the detfoo vectors are empty (#34)**
+
+### Optimizations
+
+- OPTIM: retrieve name from filename if possible
 
 ### Bug Fixes
 

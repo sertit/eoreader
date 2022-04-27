@@ -131,6 +131,9 @@ class IceyeProduct(SarProduct):
         # SNAP cannot process its archive
         self.needs_extraction = True
 
+        # Its original filename is its name
+        self._use_filename = True
+
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
@@ -270,7 +273,7 @@ class IceyeProduct(SarProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_sensor_specific(self) -> str:
         """
         Set product real name from metadata
 
