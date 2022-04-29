@@ -231,7 +231,7 @@ def _test_core(
             prod.clear()
 
 
-def test_s1_slc(caplog):
+def test_s1_slc(capfd):
     @dask_env
     def test_s1_slc_core():
         """Function testing the support of Sentinel-1 sensor"""
@@ -240,12 +240,12 @@ def test_s1_slc(caplog):
         except RuntimeError:
             # Sometimes SNAP kills the process when out of memory: assert OK in this case
             LOGGER.warning("SNAP killed the process!")
-            assert "Killed" in caplog.text
+            assert capfd.readouterr().out
 
     test_s1_slc_core()
 
 
-def test_s1_slc_zip(caplog):
+def test_s1_slc_zip(capfd):
     @dask_env
     def test_s1_slc_zip_core():
         """Function testing the support of Sentinel-1 sensor"""
@@ -254,7 +254,7 @@ def test_s1_slc_zip(caplog):
         except RuntimeError:
             # Sometimes SNAP kills the process when out of memory: assert OK in this case
             LOGGER.warning("SNAP killed the process!")
-            assert "Killed" in caplog.text
+            assert capfd.readouterr().out
 
     test_s1_slc_zip_core()
 
