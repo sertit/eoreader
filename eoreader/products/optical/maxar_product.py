@@ -503,7 +503,7 @@ class MaxarProduct(VhrProduct):
                 ),
                 "red": SpectralBand(
                     eoreader_name=spb.RED,
-                    **{NAME: "RED", ID: 2, GSD: self._ms_res, WV_MIN: 630, WV_MAX: 690},
+                    **{NAME: "RED", ID: 5, GSD: self._ms_res, WV_MIN: 630, WV_MAX: 690},
                 ),
                 "vre": SpectralBand(
                     eoreader_name=spb.VRE_1,
@@ -519,7 +519,7 @@ class MaxarProduct(VhrProduct):
                     eoreader_name=spb.NIR,
                     **{
                         NAME: "NIR1",
-                        ID: 1,
+                        ID: 7,
                         GSD: self._ms_res,
                         WV_MIN: 770,
                         WV_MAX: 895,
@@ -529,7 +529,7 @@ class MaxarProduct(VhrProduct):
                     eoreader_name=spb.WV,
                     **{
                         NAME: "NIR2",
-                        ID: 5,
+                        ID: 8,
                         GSD: self._ms_res,
                         WV_MIN: 860,
                         WV_MAX: 1040,
