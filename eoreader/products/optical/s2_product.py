@@ -927,7 +927,7 @@ class S2Product(OpticalProduct):
         else:
             # Manage empty geometry: nodata is 0
             LOGGER.warning(
-                "Empty detector footprint vector. Nodata will be set where the pixels are null."
+                "Empty detector footprint (DETFOO) vector. Nodata will be set where the pixels are null."
             )
             s2_nodata = 0
             mask = np.where(band_arr == s2_nodata, 1, 0).astype(np.uint8)
@@ -1047,7 +1047,7 @@ class S2Product(OpticalProduct):
         else:
             # Manage empty geometry: nodata is 0
             LOGGER.warning(
-                "Empty detector footprint vector. Nodata will be set where the pixels are null."
+                "Empty detector footprint (DETFOO) vector. Nodata will be set where the pixels are null."
             )
             s2_nodata = 0
             mask = np.where(band_arr == s2_nodata, 1, 0).astype(np.uint8)
