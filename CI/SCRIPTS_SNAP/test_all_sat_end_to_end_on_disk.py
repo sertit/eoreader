@@ -231,6 +231,102 @@ def _test_core(
             prod.clear()
 
 
+def test_s1_slc(caplog):
+    @dask_env
+    def test_s1_slc_core():
+        """Function testing the support of Sentinel-1 sensor"""
+        try:
+            _test_core_sar("*S1*_IW_SLC*.SAFE")
+        except RuntimeError:
+            # Sometimes SNAP kills the process when out of memory: assert OK in this case
+            LOGGER.warning("SNAP killed the process!")
+            assert "Killed" in caplog.text
+
+    test_s1_slc_core()
+
+
+def test_s1_slc_zip(caplog):
+    @dask_env
+    def test_s1_slc_zip_core():
+        """Function testing the support of Sentinel-1 sensor"""
+        try:
+            _test_core_sar("*S1*_IW_SLC*.zip")
+        except RuntimeError:
+            # Sometimes SNAP kills the process when out of memory: assert OK in this case
+            LOGGER.warning("SNAP killed the process!")
+            assert "Killed" in caplog.text
+
+    test_s1_slc_zip_core()
+
+
+@dask_env
+def test_s1_grdh():
+    """Function testing the support of Sentinel-1 sensor"""
+    _test_core_sar("*S1*_IW_GRDH*.SAFE")
+
+
+@dask_env
+def test_s1_grdh_zip():
+    """Function testing the support of Sentinel-1 sensor"""
+    _test_core_sar("*S1*_IW_GRDH*.zip")
+
+
+@dask_env
+def test_csk():
+    """Function testing the support of COSMO-Skymed sensor"""
+    _test_core_sar("*CSK*")
+
+
+@dask_env
+def test_csg():
+    """Function testing the support of COSMO-Skymed 2nd Generation sensor"""
+    _test_core_sar("*CSG*")
+
+
+@dask_env
+def test_tsx():
+    """Function testing the support of TerraSAR-X sensor"""
+    _test_core_sar("*TSX*")
+
+
+# Assume that tests TDX and PAZ sensors
+@dask_env
+def test_tdx():
+    """Function testing the support of TanDEM-X sensor"""
+    _test_core_sar("*TDX*")
+
+
+# Assume that tests TDX and PAZ sensors
+@dask_env
+def test_paz():
+    """Function testing the support of PAZ SAR sensor"""
+    _test_core_sar("*PAZ*")
+
+
+@dask_env
+def test_rs2():
+    """Function testing the support of RADARSAT-2 sensor"""
+    _test_core_sar("*RS2_*")
+
+
+@dask_env
+def test_rcm():
+    """Function testing the support of RADARSAT-Constellation sensor"""
+    _test_core_sar("*RCM*")
+
+
+@dask_env
+def test_iceye():
+    """Function testing the support of ICEYE sensor"""
+    _test_core_sar("*SLH_*")
+
+
+@dask_env
+def test_saocom():
+    """Function testing the support of SAOCOM sensor"""
+    _test_core_sar("*SAO*")
+
+
 @dask_env
 def test_s2():
     """Function testing the support of Sentinel-2 sensor"""
@@ -370,102 +466,6 @@ def test_vs1():
     """Function testing the support of Vision-1 sensor"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*VIS1*", dem_path=dem_path)
-
-
-@dask_env
-def test_s1_grdh():
-    """Function testing the support of Sentinel-1 sensor"""
-    _test_core_sar("*S1*_IW_GRDH*.SAFE")
-
-
-def test_s1_slc(caplog):
-    @dask_env
-    def test_s1_slc_core():
-        """Function testing the support of Sentinel-1 sensor"""
-        try:
-            _test_core_sar("*S1*_IW_SLC*.SAFE")
-        except RuntimeError:
-            # Sometimes SNAP kills the process when out of memory: assert OK in this case
-            LOGGER.warning("Killed SNAP process")
-            assert "Killed" in caplog.text
-
-    test_s1_slc_core()
-
-
-@dask_env
-def test_s1_grdh_zip():
-    """Function testing the support of Sentinel-1 sensor"""
-    _test_core_sar("*S1*_IW_GRDH*.zip")
-
-
-def test_s1_slc_zip(caplog):
-    @dask_env
-    def test_s1_slc_zip_core():
-        """Function testing the support of Sentinel-1 sensor"""
-        try:
-            _test_core_sar("*S1*_IW_SLC*.zip")
-        except RuntimeError:
-            # Sometimes SNAP kills the process when out of memory: assert OK in this case
-            LOGGER.warning("Killed SNAP process")
-            assert "Killed" in caplog.text
-
-    test_s1_slc_zip_core()
-
-
-@dask_env
-def test_csk():
-    """Function testing the support of COSMO-Skymed sensor"""
-    _test_core_sar("*CSK*")
-
-
-@dask_env
-def test_csg():
-    """Function testing the support of COSMO-Skymed 2nd Generation sensor"""
-    _test_core_sar("*CSG*")
-
-
-@dask_env
-def test_tsx():
-    """Function testing the support of TerraSAR-X sensor"""
-    _test_core_sar("*TSX*")
-
-
-# Assume that tests TDX and PAZ sensors
-@dask_env
-def test_tdx():
-    """Function testing the support of TanDEM-X sensor"""
-    _test_core_sar("*TDX*")
-
-
-# Assume that tests TDX and PAZ sensors
-@dask_env
-def test_paz():
-    """Function testing the support of PAZ SAR sensor"""
-    _test_core_sar("*PAZ*")
-
-
-@dask_env
-def test_rs2():
-    """Function testing the support of RADARSAT-2 sensor"""
-    _test_core_sar("*RS2_*")
-
-
-@dask_env
-def test_rcm():
-    """Function testing the support of RADARSAT-Constellation sensor"""
-    _test_core_sar("*RCM*")
-
-
-@dask_env
-def test_iceye():
-    """Function testing the support of ICEYE sensor"""
-    _test_core_sar("*SLH_*")
-
-
-@dask_env
-def test_saocom():
-    """Function testing the support of SAOCOM sensor"""
-    _test_core_sar("*SAO*")
 
 
 # TODO:
