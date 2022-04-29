@@ -65,7 +65,7 @@ pytest_s3:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_s3.html --cov=eoreader --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
+    - pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_s3.html --cov=eoreader --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG --capture=tee-sys
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/cov_s3.html
