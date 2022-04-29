@@ -33,7 +33,7 @@ import xarray as xr
 from affine import Affine
 from cloudpathlib import CloudPath
 from lxml import etree
-from rasterio import features, transform
+from rasterio import errors, features, transform
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from sertit import files, rasters, vectors
@@ -476,7 +476,7 @@ class S2Product(OpticalProduct):
                 if resolution and f"R{int(resolution)}m" in band_dir[band_id]:
                     dir_name = f"R{int(resolution)}m"
 
-                # Else open the first one, it will be resampled when the ban will be read
+                # Else open the first one, it will be resampled when the band will be read
                 else:
                     dir_name = band_dir[band_id][0]
             # If L1C, we do not
@@ -592,29 +592,35 @@ class S2Product(OpticalProduct):
         geocoded_path = path
 
         # For L2Ap
-        if self._processing_baseline < 2.07 and str(path).endswith(".jp2"):
-            # Get and write geocode data if not already existing
-            with rasterio.open(str(path), "r") as ds:
-                if not ds.crs:
-                    # Download path just in case
-                    on_disk_path = self._get_band_folder(writable=True) / path.name
-                    if not on_disk_path.is_file():
-                        if isinstance(path, CloudPath):
-                            geocoded_path = path.download_to(
-                                self._get_band_folder(writable=True)
-                            )
+        try:
+            if self._processing_baseline < 2.07 and str(path).endswith(".jp2"):
+                # Get and write geocode data if not already existing
+                with rasterio.open(str(path), "r") as ds:
+                    if not ds.crs:
+                        # Download path just in case
+                        on_disk_path = self._get_band_folder(writable=True) / path.name
+                        if not on_disk_path.is_file():
+                            if isinstance(path, CloudPath):
+                                geocoded_path = path.download_to(
+                                    self._get_band_folder(writable=True)
+                                )
+                            else:
+                                geocoded_path = files.copy(
+                                    path, self._get_band_folder(writable=True)
+                                )
                         else:
-                            geocoded_path = files.copy(
-                                path, self._get_band_folder(writable=True)
-                            )
-                    else:
-                        geocoded_path = on_disk_path
+                            geocoded_path = on_disk_path
 
-                    # Get and write geocode data if not already existing
-                    with rasterio.open(str(geocoded_path), "r+") as ds:
-                        tf, _, _, crs = self._l2ap_geocode_data(path)
-                        ds.crs = crs
-                        ds.transform = tf
+                        # Get and write geocode data if not already existing
+                        with rasterio.open(str(geocoded_path), "r+") as ds:
+                            tf, _, _, crs = self._l2ap_geocode_data(path)
+                            ds.crs = crs
+                            ds.transform = tf
+        except errors.RasterioIOError as ex:
+            if str(path).endswith("jp2") or str(path).endswith("tif"):
+                raise InvalidProductError(f"Corrupted file: {path}") from ex
+            else:
+                raise
 
         # Read band
         return utils.read(

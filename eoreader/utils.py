@@ -26,12 +26,14 @@ import pandas as pd
 import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
+from rasterio import errors
 from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
 from rasterio.rpc import RPC
 from sertit import rasters
 
 from eoreader.env_vars import USE_DASK
+from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import _prune_keywords
 
 EOREADER_NAME = "eoreader"
@@ -156,16 +158,22 @@ def read(
     else:
         chunks = None
 
-    return rasters.read(
-        path,
-        resolution=resolution,
-        size=size,
-        resampling=resampling,
-        masked=masked,
-        indexes=indexes,
-        chunks=chunks,
-        **_prune_keywords(**kwargs),
-    )
+    try:
+        return rasters.read(
+            path,
+            resolution=resolution,
+            size=size,
+            resampling=resampling,
+            masked=masked,
+            indexes=indexes,
+            chunks=chunks,
+            **_prune_keywords(**kwargs),
+        )
+    except errors.RasterioIOError as ex:
+        if str(path).endswith("jp2") or str(path).endswith("tif"):
+            raise InvalidProductError(f"Corrupted file: {path}") from ex
+        else:
+            raise
 
 
 def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> None:
