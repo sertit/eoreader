@@ -20,6 +20,10 @@ from sertit.misc import ListEnum
 __all__ = [
     "ID",
     "GSD",
+    "GEOMETRY_FCT",
+    "BBOX_FCT",
+    "CRS_FCT",
+    "DATETIME",
     "EO_BANDS",
     "EO_CC",
     "NAME",
@@ -40,12 +44,26 @@ __all__ = [
     "AMPLITUDE",
     "INTENSITY",
     "COHERENCE",
+    "PROJ_BBOX",
+    "PROJ_EPSG",
+    "PROJ_SHAPE",
+    "PROJ_GEOMETRY",
+    "PROJ_TRANSFORM",
+    "VIEW_AZIMUTH",
+    "VIEW_OFF_NADIR",
+    "VIEW_SUN_AZIMUTH",
+    "VIEW_INCIDENCE_ANGLE",
+    "VIEW_SUN_ELEVATION",
 ]
 
 # MISC
 
 ID = "id"
 GSD = "gsd"
+GEOMETRY_FCT = "geometry_fct"
+BBOX_FCT = "bbox_fct"
+CRS_FCT = "crs_fct"
+DATETIME = "datetime"
 
 # ---------------- Electro-Optical Extension Specification ----------------
 
@@ -98,3 +116,21 @@ CLOUD_SHADOW = "cloud-shadow"
 INTENSITY = "intensity"
 AMPLITUDE = "amplitude"
 COHERENCE = "coherence"
+
+# ---------------- Projection Extension Specification ----------------
+
+# https://github.com/stac-extensions/projection/
+PROJ_EPSG = "proj:epsg"
+PROJ_GEOMETRY = "proj:geometry"
+PROJ_BBOX = "proj:bbox"
+PROJ_SHAPE = "proj:shape"
+PROJ_TRANSFORM = "proj:transform"
+
+# ---------------- View Extension Specification ----------------
+
+# https://github.com/stac-extensions/view/
+VIEW_OFF_NADIR = "view:off_nadir"
+VIEW_INCIDENCE_ANGLE = "view:incidence_angle"
+VIEW_AZIMUTH = "view:azimuth"
+VIEW_SUN_AZIMUTH = "view:sun_azimuth"
+VIEW_SUN_ELEVATION = "view:sun_elevation"
