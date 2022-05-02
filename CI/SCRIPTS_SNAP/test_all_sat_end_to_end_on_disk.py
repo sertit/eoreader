@@ -240,9 +240,8 @@ def test_s1_slc(capfd):
         except RuntimeError:
             # Sometimes SNAP kills the process when out of memory: assert OK in this case
             out, err = capfd.readouterr()
-            print(out)
-            assert "Killed" in out
-            LOGGER.warning("SNAP kilcapfdled the process!")
+            assert "90%" in out
+            LOGGER.warning("SNAP killed the process!")
 
     test_s1_slc_core()
 
@@ -256,8 +255,7 @@ def test_s1_slc_zip(capfd):
         except RuntimeError:
             # Sometimes SNAP kills the process when out of memory: assert OK in this case
             out, err = capfd.readouterr()
-            print(out)
-            assert "Killed" in out
+            assert "90%" in out
             LOGGER.warning("SNAP killed the process!")
 
     test_s1_slc_zip_core()
