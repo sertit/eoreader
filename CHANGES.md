@@ -5,7 +5,7 @@
 ### Breaking Changes
 
 - **BREAKING CHANGES: `Optical` becomes `Spectral` when more appropriate**
-- **BREAKING CHANGES: `Platform` becomes `Constellation` to fit STAC vocabulary**
+- **BREAKING CHANGES: `Platform` becomes `Constellation` to fit STAC vocabulary** ([#29](https://github.com/sertit/eoreader/issues/29))
 - **BREAKING CHANGES: File `alias` is removed, replaced by `*_bands` files and proper imports in `bands.__init__`**
 - **BREAKING CHANGES: Product attribute `band_names` becomes `bands` in order to be STAC compliant ([#29](https://github.com/sertit/eoreader/issues/29))**
 - **BREAKING CHANGES: Better use of `NIR` and `NARROW_NIR` in the `indices` file (according to the gsd of `Sentinel-2` bands composing the indices)**
@@ -14,13 +14,13 @@
 
 - **ENH: Bands in mapping are now objects, instead of just IDs** ([#29](https://github.com/sertit/eoreader/issues/29)). This allows us to:
     - Add band metadata (such as center wavelength, bandwidth...)
-    - Map spectral bands between STAC spec and EOReader format
+    - Map spectral bands between STAC spec and EOReader format ([#29](https://github.com/sertit/eoreader/issues/29))
     - Add a better `__repr__` functions
 - **ENH: Handling 8 bands `PlanetScope` data** ([#20](https://github.com/sertit/eoreader/issues/20))
 - **ENH: Adding the `GREEN1` mapped band, corresponding to PlanetScope `GREEN I` and `Sentinel-3 OLCI` `Oa05` band**
 - **ENH: Handle some slightly broken `Sentinel-2` products, i.e. when the metadata files are corrupted or when the detfoo vectors are empty ([#34](https://github.com/sertit/eoreader/issues/34))**
 - **ENH: Handle exception for corrupted bands (in `Sentinel-2` and `utils.read`) ([#34](https://github.com/sertit/eoreader/issues/34))**
-- **ENH: Add a STAC object that can be used to retrieve STAC Items from every Product (`prod.stac.create_item()`)**
+- **ENH: Add a STAC object that can be used to retrieve STAC Items from every Product (`prod.stac.create_item()`) ([#29](https://github.com/sertit/eoreader/issues/29))**
 - **ENH: Extending `get_raw_band_paths` to every products ([#31](https://github.com/sertit/eoreader/issues/31))**
 - **ENH: Adding a `is_ortho` attribute corresponding to when the product is already orthorectified/geocoded, in order to avoid computing heavy processes without wanting it (i.e. footprint...)**
 
