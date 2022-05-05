@@ -25,8 +25,8 @@ from typing import Union
 from sertit import misc
 from sertit.misc import ListEnum
 
-from eoreader._stac import *
 from eoreader.exceptions import InvalidTypeError
+from eoreader.stac import ASSET_ROLE, DESCRIPTION, GSD, ID, NAME, REFLECTANCE
 
 
 # ---------------------- BAND OBJECTS ----------------------

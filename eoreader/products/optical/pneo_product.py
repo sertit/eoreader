@@ -25,10 +25,10 @@ from typing import Union
 
 from cloudpathlib import CloudPath
 
-from eoreader._stac import *
 from eoreader.bands import SpectralBand
 from eoreader.bands import spectral_bands as spb
 from eoreader.products import DimapProduct
+from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -72,7 +72,7 @@ class PneoProduct(DimapProduct):
 
         return ortho_path
 
-    def _set_product_type(self) -> None:
+    def _map_bands(self) -> None:
         """Set products type"""
         # Create spectral bands
         ca = SpectralBand(
@@ -109,6 +109,6 @@ class PneoProduct(DimapProduct):
             eoreader_name=spb.VRE_1,
             **{NAME: "RED EDGE", ID: 6, GSD: self._ms_res, WV_MIN: 700, WV_MAX: 750}
         )
-        self._set_product_type_core(
+        self._map_bands_core(
             blue=blue, green=green, red=red, nir=nir, pan=pan, vre=vre, ca=ca
         )

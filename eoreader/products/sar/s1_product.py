@@ -240,7 +240,7 @@ class S1Product(SarProduct):
             )
         if not self.sensor_mode:
             raise InvalidProductError(
-                f"Invalid {self.platform.value} name: {self.name}"
+                f"Invalid {self.constellation.value} name: {self.name}"
             )
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:

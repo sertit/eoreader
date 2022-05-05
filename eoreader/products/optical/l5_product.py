@@ -38,6 +38,17 @@ class L5Product(LandsatProduct):
         if "LT05" in self.name:
             self._set_tm_product_type()
         elif "LM05" in self.name:
-            self._set_mss_product_type(version=5)
+            self._set_mss_product_type()
+        else:
+            raise InvalidProductError(f"Invalid Landsat-5 name: {self.name}")
+
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
+        if "LT05" in self.name:
+            self._map_bands_tm()
+        elif "LM05" in self.name:
+            self._map_bands_mss(version=5)
         else:
             raise InvalidProductError(f"Invalid Landsat-5 name: {self.name}")

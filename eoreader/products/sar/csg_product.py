@@ -155,7 +155,7 @@ class CsgProduct(CosmoProduct):
 
         if not self.sensor_mode:
             raise InvalidProductError(
-                f"Invalid {self.platform.value} name: {self.name}"
+                f"Invalid {self.constellation.value} name: {self.name}"
             )
 
     def _read_band(

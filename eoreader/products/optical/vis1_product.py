@@ -27,6 +27,7 @@ from enum import unique
 from pathlib import Path
 from typing import Union
 
+import geopandas as gpd
 import numpy as np
 import xarray as xr
 from cloudpathlib import CloudPath
@@ -34,13 +35,14 @@ from lxml import etree
 from rasterio import crs as riocrs
 from sertit import files, vectors
 from sertit.misc import ListEnum
+from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
-from eoreader._stac import *
 from eoreader.bands import BandNames, SpectralBand
 from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
+from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -164,6 +166,14 @@ class Vis1Product(VhrProduct):
         prod_type = self.split_name[3]
         self.product_type = getattr(Vis1ProductType, prod_type)
 
+        # Manage not orthorectified product
+        if self.product_type == Vis1ProductType.PRJ:
+            self.is_ortho = False
+
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
         # Create spectral bands
         pan = SpectralBand(
             eoreader_name=spb.PAN,
@@ -277,6 +287,81 @@ class Vis1Product(VhrProduct):
                 )
 
         return riocrs.CRS.from_string(crs_name)
+
+    @cache
+    def extent(self, **kwargs) -> gpd.GeoDataFrame:
+        """
+        Get UTM extent of the tile.
+
+        Returns:
+            gpd.GeoDataFrame: Extent in UTM
+        """
+        if self.product_type == Vis1ProductType.PRJ:
+            extent = gpd.GeoDataFrame(
+                geometry=[box(*self.footprint().total_bounds)],
+                crs=self.crs(),
+            )
+        else:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+
+            # Compute extent corners
+            corners = [
+                [
+                    float(vertex.findtext("FRAME_LON")),
+                    float(vertex.findtext("FRAME_LAT")),
+                ]
+                for vertex in root.iterfind(".//Dataset_Frame/Vertex")
+            ]
+
+            # When ORTP, Dataset_Frame is the extent
+            extent = gpd.GeoDataFrame(
+                geometry=[Polygon(corners)],
+                crs=vectors.WGS84,
+            ).to_crs(self.crs())
+
+        return extent
+
+    @cache
+    def footprint(self) -> gpd.GeoDataFrame:
+        """
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"IMG_PHR1B_PMS_001"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint()
+                                                         gml_id  ...                                           geometry
+            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
+            [1 rows x 3 columns]
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        """
+        if self.product_type == Vis1ProductType.PRJ:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+
+            # Compute extent corners
+            corners = [
+                [
+                    float(vertex.findtext("FRAME_LON")),
+                    float(vertex.findtext("FRAME_LAT")),
+                ]
+                for vertex in root.iterfind(".//Dataset_Frame/Vertex")
+            ]
+
+            # When PRJ, Dataset_Frame is the footprint
+            footprint = gpd.GeoDataFrame(
+                geometry=[Polygon(corners)],
+                crs=vectors.WGS84,
+            ).to_crs(self.crs())
+        else:
+            footprint = super().footprint()
+
+        return footprint
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """

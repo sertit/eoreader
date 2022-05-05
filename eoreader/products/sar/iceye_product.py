@@ -344,10 +344,13 @@ class IceyeProduct(SarProduct):
 
         return root, nsmap
 
-    def _get_raw_band_paths(self) -> dict:
+    def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing path of the VV band (as they come with the archived products).
         ICEYE product only contains a VV band !
+
+        Args:
+            **kwargs: Additional arguments
 
         Returns:
             dict: Dictionary containing the path of every band existing in the raw products

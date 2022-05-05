@@ -30,17 +30,17 @@ import rasterio
 import xarray as xr
 from cloudpathlib import CloudPath
 from rasterio.enums import Resampling
-from sertit import rasters, rasters_rio
+from sertit import files, rasters, rasters_rio
 from sertit.rasters import MAX_CORES
 from sertit.vectors import WGS84
 
 from eoreader import cache, utils
-from eoreader._stac import *
 from eoreader.bands import BandNames, SpectralBand
 from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import S3DataType, S3Instrument, S3Product, S3ProductType
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
+from eoreader.stac import CENTER_WV, DESCRIPTION, FWHM, GSD, ID, NAME
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -160,8 +160,8 @@ class S3OlciProduct(S3Product):
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
-    def _get_platform(self) -> Platform:
-        """ Getter of the platform """
+    def _get_constellation(self) -> Constellation:
+        """ Getter of the constellation """
         if "OL" in self.name:
             # Instrument
             self._instrument = S3Instrument.OLCI
@@ -171,7 +171,7 @@ class S3OlciProduct(S3Product):
                 f"Only OLCI and SLSTR are valid Sentinel-3 instruments : {self.name}"
             )
 
-        return getattr(Platform, sat_id)
+        return getattr(Constellation, sat_id)
 
     def _set_resolution(self) -> float:
         """
@@ -192,6 +192,10 @@ class S3OlciProduct(S3Product):
         self.product_type = S3ProductType.OLCI_EFR
         self._data_type = S3DataType.EFR
 
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
         # Bands
         olci_bands = {
             spb.Oa01: SpectralBand(
@@ -453,6 +457,32 @@ class S3OlciProduct(S3Product):
 
             # Create GCPs
             self._gcps = utils.create_gcps(lon, lat, alt)
+
+    def get_raw_band_paths(self, **kwargs) -> dict:
+        """
+        Return the raw band paths.
+
+        Args:
+            kwargs: Additional arguments
+
+        Returns:
+            dict: Dictionary containing the path of each queried band
+        """
+        raw_band_paths = {}
+        for band in self.get_existing_bands():
+            band_id = self.bands[band].id
+
+            # Get band filename and subdataset
+            filename = self._replace(self._radiance_file, band=band_id)
+
+            if self.is_archived:
+                raw_path = files.get_archived_path(self.path, f".*{filename}")
+            else:
+                raw_path = next(self.path.glob(f".*{filename}"))
+
+            raw_band_paths[band] = raw_path
+
+        return raw_band_paths
 
     def _preprocess(
         self,

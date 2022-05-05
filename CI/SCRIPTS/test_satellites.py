@@ -260,7 +260,7 @@ def _test_core(
 
                 # Check attributes
                 assert stack.attrs["long_name"] == " ".join(to_str(stack_bands))
-                assert stack.attrs["sensor"] == prod._get_platform().value
+                assert stack.attrs["sensor"] == prod._get_constellation().value
                 assert stack.attrs["sensor_id"] == prod.sat_id
                 assert stack.attrs["product_type"] == prod.product_type.value
                 assert stack.attrs["acquisition_date"] == prod.get_datetime(
@@ -301,7 +301,7 @@ def _test_core(
 
                 # Check attributes
                 assert band_arr.attrs["long_name"] == first_band.name
-                assert band_arr.attrs["sensor"] == prod._get_platform().value
+                assert band_arr.attrs["sensor"] == prod._get_constellation().value
                 assert band_arr.attrs["sensor_id"] == prod.sat_id
                 assert band_arr.attrs["product_type"] == prod.product_type.value
                 assert band_arr.attrs["acquisition_date"] == prod.get_datetime(

@@ -17,9 +17,16 @@
 """ Spectral Bands """
 import numpy as np
 
-from eoreader._stac import *
 from eoreader.bands.bands import Band, BandMap, BandNames
 from eoreader.exceptions import InvalidTypeError
+from eoreader.stac import (
+    CENTER_WV,
+    FWHM,
+    SOLAR_ILLUMINATION,
+    WV_MAX,
+    WV_MIN,
+    StacCommonNames,
+)
 
 
 class SpectralBand(Band):

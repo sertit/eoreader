@@ -35,7 +35,7 @@ from eoreader import cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -220,15 +220,15 @@ class TsxProduct(SarProduct):
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
-    def _get_platform(self) -> Platform:
-        """ Getter of the platform """
+    def _get_constellation(self) -> Constellation:
+        """ Getter of the constellation """
         # TerraSAR-X & TanDEM-X products are all similar, we must check into the metadata to know the sensor
         root, _ = self.read_mtd()
         sat_id = root.findtext(".//mission")
         if not sat_id:
             raise InvalidProductError("Cannot find mission in the metadata file")
         sat_id = getattr(TsxSatId, sat_id.split("-")[0]).name
-        return getattr(Platform, sat_id)
+        return getattr(Constellation, sat_id)
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -256,7 +256,7 @@ class TsxProduct(SarProduct):
             [1 rows x 12 columns]
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         if self.product_type == TsxProductType.EEC:
             return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
@@ -344,8 +344,10 @@ class TsxProduct(SarProduct):
             LOGGER.warning(
                 "GEC (Geocoded Ellipsoid Corrected) products type has never been tested for %s data. "
                 "Use it at your own risks !",
-                self.platform.value,
+                self.constellation.value,
             )
+        elif self.product_type == TsxProductType.EEC:
+            self.is_ortho = True
 
     def _set_sensor_mode(self) -> None:
         """

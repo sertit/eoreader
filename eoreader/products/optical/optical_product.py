@@ -184,14 +184,14 @@ class OpticalProduct(Product):
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         # Get extent
         return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
 
     def get_existing_bands(self) -> list:
         """
-        Return the existing band paths.
+        Return the existing band.
 
         .. code-block:: python
 
@@ -220,7 +220,7 @@ class OpticalProduct(Product):
 
     def get_existing_band_paths(self) -> dict:
         """
-        Return the existing band paths.
+        Return the existing band paths (orthorectified if needed).
 
         .. code-block:: python
 
@@ -766,7 +766,9 @@ class OpticalProduct(Product):
         Returns:
             float: Cloud cover as given in the metadata
         """
-        LOGGER.warning(f"No cloud cover available for {self.platform.value} data !")
+        LOGGER.warning(
+            f"No cloud cover available for {self.constellation.value} data !"
+        )
         return 0.0
 
     def _update_attrs_sensor_specific(
