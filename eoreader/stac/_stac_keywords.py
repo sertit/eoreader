@@ -20,10 +20,12 @@ from sertit.misc import ListEnum
 __all__ = [
     "ID",
     "GSD",
-    "GEOMETRY_FCT",
-    "BBOX_FCT",
-    "CRS_FCT",
+    "TITLE",
     "DATETIME",
+    "NA",
+    "CONSTELLATION",
+    "PLATFORM",
+    "INSTRUMENTS",
     "EO_BANDS",
     "EO_CC",
     "NAME",
@@ -46,6 +48,7 @@ __all__ = [
     "COHERENCE",
     "PROJ_BBOX",
     "PROJ_EPSG",
+    "PROJ_WKT",
     "PROJ_SHAPE",
     "PROJ_GEOMETRY",
     "PROJ_TRANSFORM",
@@ -60,10 +63,15 @@ __all__ = [
 
 ID = "id"
 GSD = "gsd"
+TITLE = "title"
 GEOMETRY_FCT = "geometry_fct"
 BBOX_FCT = "bbox_fct"
 CRS_FCT = "crs_fct"
 DATETIME = "datetime"
+NA = "N/A"
+CONSTELLATION = "constellation"
+PLATFORM = "platform"
+INSTRUMENTS = "instruments"
 
 # ---------------- Electro-Optical Extension Specification ----------------
 
@@ -106,7 +114,7 @@ class StacCommonNames(ListEnum):
 ASSET_ROLE = "asset_role"
 
 # Optical
-REFLECTANCE = "cloud_cover"
+REFLECTANCE = "reflectance"
 BT = "brilliance_temperature"
 SATURATION = "saturation"
 CLOUD = "cloud"
@@ -121,6 +129,7 @@ COHERENCE = "coherence"
 
 # https://github.com/stac-extensions/projection/
 PROJ_EPSG = "proj:epsg"
+PROJ_WKT = "proj:wkt2"
 PROJ_GEOMETRY = "proj:geometry"
 PROJ_BBOX = "proj:bbox"
 PROJ_SHAPE = "proj:shape"

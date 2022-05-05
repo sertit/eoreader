@@ -138,6 +138,7 @@ class S3Product(OpticalProduct):
         """
         self.needs_extraction = False
         self._use_filename = True
+        self.is_ortho = False
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
@@ -162,7 +163,7 @@ class S3Product(OpticalProduct):
             0  POLYGON ((1488846.028 6121896.451, 1488846.028...
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         # --- EXTENT IN UTM ---
         extent = gpd.GeoDataFrame(
@@ -572,7 +573,7 @@ class S3Product(OpticalProduct):
         Returns:
             str: Condensed name
         """
-        return f"{self.get_datetime()}_{self.platform.name}_{self._data_type.name}"
+        return f"{self.get_datetime()}_{self.constellation.name}_{self._data_type.name}"
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
@@ -591,7 +592,7 @@ class S3Product(OpticalProduct):
             (etree._Element, dict): Metadata XML root and its namespace
         """
         # Open first nc file as every file should have the global attributes
-        # Here in read_mtd we don't know which type of product we have (before we have the correct platform)
+        # Here in read_mtd we don't know which type of product we have (before we have the correct constellation)
         # Manage archives
         if self.is_archived:
             if isinstance(self.path, CloudPath):

@@ -29,4 +29,10 @@ class L2Product(LandsatProduct):
 
     def _set_product_type(self) -> None:
         """Set products type"""
-        self._set_mss_product_type(version=2)
+        self._set_mss_product_type()
+
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
+        self._map_bands_mss(version=2)

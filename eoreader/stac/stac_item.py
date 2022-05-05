@@ -30,13 +30,28 @@ extensions:
     - Sun angles
     - Viewing position (in progress)
 """
+import os
+from datetime import datetime
+from typing import Union
+
 import geopandas as gpd
-from sertit import misc
 from sertit.vectors import WGS84
+from shapely.geometry import mapping
 
 from eoreader import cache
-from eoreader.stac._stac_keywords import BBOX_FCT, DATETIME, GEOMETRY_FCT, ID
+from eoreader.stac import DESCRIPTION, GSD
+from eoreader.stac._stac_keywords import TITLE, StacCommonNames
 from eoreader.stac.stac_extensions import EoExtension, ProjExtension, ViewExtension
+
+SAR_STAC_EXTENSIONS = [
+    "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
+    "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+]
+OPTICAL_STAC_EXTENSIONS = [
+    "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
+    "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+    "https://stac-extensions.github.io/view/v1.0.0/schema.json",
+]
 
 
 class StacItem:
@@ -46,135 +61,207 @@ class StacItem:
     TODO
     """
 
-    def __init__(self, **kwargs):
-        misc.check_mandatory_keys(kwargs, [ID, GEOMETRY_FCT, BBOX_FCT, DATETIME])
-        self.id = kwargs.pop(ID)
+    def __init__(self, prod, **kwargs):
+        self.eo = EoExtension(prod, **kwargs)
         """
-        REQUIRED.
-        Provider identifier.
-        The ID should be unique within the Collection that contains the Item.
+        STAC Electro-Optical Extension Specification
         """
-
-        self._geometry_fct = kwargs[GEOMETRY_FCT]
+        self.proj = ProjExtension(prod, **kwargs)
         """
-        REQUIRED.
-        Defines the full footprint of the asset represented by this item, formatted according to RFC 7946, section 3.1.
-        The footprint should be the default GeoJSON geometry, though additional geometries can be included.
-        Coordinates are specified in Longitude/Latitude or Longitude/Latitude/Elevation based on WGS 84.
+        STAC Projection Extension Specification
         """
-
-        self._bbox_fct = kwargs[BBOX_FCT]
+        self.view = ViewExtension(prod, **kwargs)
         """
-        REQUIRED if geometry is not null. Bounding Box of the asset represented by this Item, formatted according to RFC 7946, section 5.
+        STAC View Extension Specification
         """
-
-        self.datetime = kwargs.pop(DATETIME)
-        """
-        REQUIRED.
-        The searchable date and time of the assets, which must be in UTC.
-        It is formatted according to RFC 3339, section 5.6.
-        null is allowed, but requires start_datetime and end_datetime from common metadata to be set.
-        """
-
-        self.eo = EoExtension(**kwargs)
-        self.proj = ProjExtension(**kwargs)
-        self.view = ViewExtension(**kwargs)
-
-        # Pop some args that we do not want in our additional properties
-        for arg in [GEOMETRY_FCT, BBOX_FCT]:
-            kwargs.pop(arg)
 
         # Keep others as dict and set them into metadata properties
-        self.properties = kwargs
+        self.properties = {"tilename": prod.tile_name}
+        self.properties.update(kwargs)
         """
         REQUIRED. A dictionary of additional metadata for the Item.
         """
 
+        self._prod = prod
+
     @cache
     def geometry(self) -> gpd.GeoDataFrame:
-        return self._geometry_fct().to_crs(WGS84)
+        if self._prod.is_ortho:
+            return self._prod.footprint().to_crs(WGS84)
+        else:
+            return self.bbox()
 
     @cache
     def bbox(self) -> gpd.GeoDataFrame:
-        return self._bbox_fct().to_crs(WGS84)
+        return self._prod.extent().to_crs(WGS84)
 
+    @cache
     def create_item(self):
         try:
             import pystac
-            from pystac.extensions.eo import EOExtension  # , Band
+            from pystac.extensions.eo import Band, EOExtension
             from pystac.extensions.projection import ProjectionExtension
             from pystac.extensions.view import ViewExtension
         except ImportError:
             raise ImportError(
-                "You need to install 'pystac' to export your product to a STAC Item!"
+                "You need to install 'pystac[validation]' to export your product to a STAC Item!"
             )
+
+        def fill_common_mtd(asset: Union[pystac.Asset, pystac.Item], **kwargs):
+
+            # Basics
+            asset.common_metadata.title = kwargs.get(TITLE)
+            asset.common_metadata.description = kwargs.get(DESCRIPTION)
+
+            # Date and Time
+            asset.common_metadata.created = datetime.utcnow()
+            asset.common_metadata.updated = None  # TODO
+
+            # Licensing
+            # asset.common_metadata.license = None  # Collection level if possible
+
+            # Provider
+            # asset.common_metadata.providers = None  # Collection level if possible
+
+            # Date and Time Range
+            asset.common_metadata.start_datetime = None  # TODO
+            asset.common_metadata.end_datetime = None  # TODO
+
+            # Instrument
+            asset.common_metadata.platform = None  # TODO
+            asset.common_metadata.instruments = None  # TODO
+            asset.common_metadata.constellation = self._prod.constellation.value.lower()
+            asset.common_metadata.mission = None
+            asset.common_metadata.gsd = kwargs.get(GSD)
 
         # Item creation
         item = pystac.Item(
-            id=self.id,
-            datetime=self.datetime,
-            geometry=self.geometry(),
-            bbox=self.bbox(),
+            id=self._prod.condensed_name,
+            datetime=self._prod.datetime,
+            geometry=mapping(self.geometry().geometry.values[0]),
+            bbox=list(self.bbox().bounds.values[0]),
             properties=self.properties,
+            stac_extensions=SAR_STAC_EXTENSIONS
+            if self._prod.sensor_type.value == "SAR"
+            else OPTICAL_STAC_EXTENSIONS,
         )
 
         # Add assets
-        # try:
-        #     try:
-        #         get_thumbnail = str(next(path.glob("**/*.jpg")))
-        #     except StopIteration:
-        #         get_thumbnail = str(next(path.glob("**/*.JPG")))
-        #     thumbnail_url = to_s3_https_path(get_thumbnail)
-        #
-        #     item.add_asset("thumbnail",
-        #                    pystac.Asset(
-        #                        href=thumbnail_url,
-        #                        media_type=pystac.MediaType.JPEG
-        #                    ))
-        # except StopIteration:
-        #     pass
-        #
-        # # Add band asset
-        # for band_id, band_path in bands():
-        #     try:
-        #         with rasterio.open(band_path) as ds:
-        #             if ds.crs.is_projected:
-        #                 gsd = ds.res[0]
-        #     except:
-        #         gsd = prod.resolution
-        #
-        #     band_url = to_s3_https_path(band_path)
-        #     asset = pystac.Asset(href=band_url, media_type=pystac.MediaType.COG)
-        #     asset_eo_ext = EOExtension.ext(asset)
-        #     asset_eo_ext.bands = [
-        #         Band.create(
-        #             name=band_id.name,
-        #             common_name=COMMON_NAMES[band_id],
-        #             # center_wavelength=0.48, full_width_half_max=0.02
-        #         )
-        #     ]
-        #     asset.common_metadata.gsd = gsd
-        #
-        #     item.add_asset(band_id.name, asset)
+        # TODO: manage S3 paths
+        # TODO: relative path ?
+        thumbnail_path = self._prod.get_quicklook_path()
+        if thumbnail_path:
+            suffix = os.path.splitext(thumbnail_path)[-1]
+            if suffix.lower() == ".png":
+                media_type = pystac.MediaType.PNG
+            elif suffix.lower() == ".tif":
+                media_type = pystac.MediaType.GEOTIFF
+            elif suffix.lower() in [".jpeg", ".jpg"]:
+                media_type = pystac.MediaType.JPEG
+            else:
+                raise ValueError(f"Not recognized media type: {suffix}")
+            item.add_asset(
+                "thumbnail",
+                pystac.Asset(href=str(thumbnail_path), media_type=media_type),  # TODO
+            )
 
         # Add the EO extension
         eo_ext = EOExtension.ext(item, add_if_missing=True)
-        eo_ext.cloud_cover = self.eo.cloud_cover
+        if self.eo.cloud_cover is not None:
+            eo_ext.cloud_cover = self.eo.cloud_cover
+
+        # Add band asset
+        band_paths = self._prod.get_raw_band_paths()
+        for band_name, band_path in band_paths.items():
+            band = self._prod.bands[band_name]
+            try:
+                suffix = os.path.splitext(band_path)[-1]
+                if suffix.lower() in [".tiff", ".tif"]:
+                    # Manage COGs
+                    media_type = pystac.MediaType.GEOTIFF
+                elif suffix.lower() == ".jp2":
+                    media_type = pystac.MediaType.JPEG2000
+                elif suffix.lower() == ".xml":
+                    media_type = pystac.MediaType.XML
+                elif suffix.lower() == ".til":
+                    media_type = None  # Not existing
+                elif suffix.lower() == ".nc":
+                    media_type = None  # Not existing
+                else:
+                    media_type = None  # Not recognized
+                band_asset = pystac.Asset(
+                    href=str(band_path),
+                    media_type=media_type,
+                    roles=[band.asset_role],
+                    extra_fields={"eoreader_name": band.eoreader_name.value},
+                )
+
+                # Spectral bands
+                try:
+                    center_wavelength = band.center_wavelength
+                    solar_illumination = band.solar_illumination
+                    full_width_half_max = band.full_width_half_max
+                except AttributeError:
+                    center_wavelength = None
+                    solar_illumination = None
+                    full_width_half_max = None
+
+                asset_eo_ext = EOExtension.ext(band_asset)
+                common_name = (
+                    band.common_name.value
+                    if isinstance(band.common_name, StacCommonNames)
+                    else None
+                )
+                asset_eo_ext.bands = [
+                    Band.create(
+                        name=band.name,
+                        common_name=common_name,
+                        description=band.description,
+                        center_wavelength=center_wavelength,
+                        full_width_half_max=full_width_half_max,
+                        solar_illumination=solar_illumination,
+                    )
+                ]
+                fill_common_mtd(
+                    band_asset,
+                    **{TITLE: band.name, GSD: band.gsd, DESCRIPTION: band.description},
+                )
+
+                item.add_asset(band.name, band_asset)
+            except ValueError:
+                continue
 
         # Add the PROJ extension
         proj_ext = ProjectionExtension.ext(item, add_if_missing=True)
         proj_ext.epsg = self.proj.crs().to_epsg()
         proj_ext.wkt2 = self.proj.crs().to_wkt()
-        # TODO: proj_ext.projjson
+        # proj_ext.projjson = None
 
-        # The View Geometry extension specifies information related to angles of sensors and other radiance angles
-        # that affect the view of resulting data
-        view_ext = ViewExtension.ext(item, add_if_missing=True)
-        view_ext.sun_azimuth = self.view.sun_az
-        view_ext.sun_elevation = self.view.sun_el
+        proj_geom = self.proj.geometry()
+        proj_ext.geometry = mapping(proj_geom.geometry.values[0])
+        proj_ext.bbox = list(self.proj.bbox().bounds.values[0])
+        centroid = proj_geom.centroid.to_crs(WGS84).values[0]
+        proj_ext.centroid = {"lat": centroid.y, "lon": centroid.x}
+
+        if self._prod.is_ortho:
+            transform, width, height, _ = self._prod.default_transform()
+            proj_ext.shape = [height, width]
+            proj_ext.transform = transform
+
+        # The View Geometry extension specifies information related to angles of sensors and other radiance angles that affect the view of resulting data
+        if self.view.sun_az is not None and self.view.sun_el is not None:
+            view_ext = ViewExtension.ext(item, add_if_missing=True)
+            view_ext.sun_azimuth = self.view.sun_az
+            view_ext.sun_elevation = self.view.sun_el
+
+        fill_common_mtd(
+            item, **{TITLE: self._prod.condensed_name, GSD: self._prod.resolution}
+        )
 
         # Now that we've added all the metadata to the item,
         # let's check the validator to make sure we've specified everything correctly.
         # The validation logic will take into account the new extensions
         # that have been enabled and validate against the proper schemas for those extensions
         item.validate()
+
+        return item

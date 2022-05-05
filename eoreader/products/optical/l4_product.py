@@ -39,6 +39,17 @@ class L4Product(LandsatProduct):
         if "LT04" in self.name:
             self._set_tm_product_type()
         elif "LM04" in self.name:
-            self._set_mss_product_type(version=4)
+            self._set_mss_product_type()
+        else:
+            raise InvalidProductError(f"Invalid Landsat-4 name: {self.name}")
+
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
+        if "LT04" in self.name:
+            self._map_bands_tm()
+        elif "LM04" in self.name:
+            self._map_bands_mss(version=4)
         else:
             raise InvalidProductError(f"Invalid Landsat-4 name: {self.name}")

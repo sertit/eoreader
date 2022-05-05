@@ -36,7 +36,6 @@ from sertit import files, misc, rasters, snap, strings, vectors
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
-from eoreader._stac import INTENSITY
 from eoreader.bands import BandNames, SarBand, SarBandMap
 from eoreader.bands import SarBandNames as sab
 from eoreader.bands import is_clouds, is_dem, is_index, is_sar_band, is_spectral_band
@@ -44,7 +43,8 @@ from eoreader.env_vars import DEM_PATH, DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES, SNAP_
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.keywords import SAR_INTERP_NA
 from eoreader.products.product import Product, SensorType
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
+from eoreader.stac import INTENSITY
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -180,7 +180,10 @@ class SarProduct(Product):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-        # Needs to be done after the initialization
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
         self.bands.map_bands(
             {
                 band_name: SarBand(
@@ -202,6 +205,7 @@ class SarProduct(Product):
         self.tile_name = None
         self.sensor_type = SensorType.SAR
         self.bands = SarBandMap()
+        self.is_ortho = False
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -331,7 +335,7 @@ class SarProduct(Product):
             [1 rows x 12 columns]
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         # Get WGS84 extent
         extent_wgs84 = self.wgs84_extent()
@@ -442,9 +446,12 @@ class SarProduct(Product):
 
         return band_paths
 
-    def _get_raw_band_paths(self) -> dict:
+    def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing band paths (as they come with the archived products).
+
+        Args:
+            **kwargs: Additional arguments
 
         Returns:
             dict: Dictionary containing the path of every band existing in the raw products
@@ -485,7 +492,7 @@ class SarProduct(Product):
         Returns:
             list: List of existing bands in the raw products (vv, hh, vh, hv)
         """
-        band_paths = self._get_raw_band_paths()
+        band_paths = self.get_raw_band_paths()
         return list(band_paths.keys())
 
     def get_existing_band_paths(self) -> dict:
@@ -692,7 +699,7 @@ class SarProduct(Product):
         Returns:
             str: Band path
         """
-        raw_band_path = str(self._get_raw_band_paths()[band])
+        raw_band_path = str(self.get_raw_band_paths(**kwargs)[band])
         with rasterio.open(raw_band_path) as ds:
             raw_crs = ds.crs
 
@@ -716,7 +723,7 @@ class SarProduct(Product):
 
                 # Pre-process graph
                 if PP_GRAPH not in os.environ:
-                    sat = "s1" if self.sat_id == Platform.S1.name else "sar"
+                    sat = "s1" if self.sat_id == Constellation.S1.name else "sar"
                     spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
                     pp_graph = utils.get_data_dir().joinpath(
                         f"{spt}_{sat}_preprocess_default.xml"
@@ -944,7 +951,7 @@ class SarProduct(Product):
         Returns:
             str: Condensed name
         """
-        return f"{self.get_datetime()}_{self.platform.name}_{self.sensor_mode.name}_{self.product_type.value}"
+        return f"{self.get_datetime()}_{self.constellation.name}_{self.sensor_mode.name}_{self.product_type.value}"
 
     def _update_attrs_sensor_specific(
         self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs

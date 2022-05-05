@@ -257,7 +257,7 @@ class RcmProduct(SarProduct):
             LOGGER.warning(
                 "Other products type than SGF has not been tested for %s data. "
                 "Use it at your own risks !",
-                self.platform.value,
+                self.constellation.value,
             )
 
     def _set_sensor_mode(self) -> None:
@@ -393,7 +393,7 @@ class RcmProduct(SarProduct):
         else:
             mode_name = self.sensor_mode.name
 
-        return f"{self.get_datetime()}_{self.platform.name}_{mode_name}_{self.product_type.value}"
+        return f"{self.get_datetime()}_{self.constellation.name}_{mode_name}_{self.product_type.value}"
 
     def get_quicklook_path(self) -> str:
         """

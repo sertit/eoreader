@@ -56,8 +56,8 @@ class CheckMethod(ListEnum):
 
 
 @unique
-class Platform(ListEnum):
-    """Platforms supported by EOReader"""
+class Constellation(ListEnum):
+    """Constellation supported by EOReader"""
 
     S1 = "Sentinel-1"
     """Sentinel-1"""
@@ -144,7 +144,7 @@ class Platform(ListEnum):
     """RADARSAT-Constellation Mission"""
 
     MAXAR = "Maxar"
-    """Maxar (not a real platform, but used as a template for every Maxar products)"""
+    """Maxar (not a real constellation, but used as a template for every Maxar products)"""
 
     QB = "QuickBird"
     """QuickBird"""
@@ -174,105 +174,105 @@ class Platform(ListEnum):
     """Custom stack"""
 
 
-PLATFORM_REGEX = {
-    Platform.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
-    Platform.S2: r"S2[AB]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
-    Platform.S2_THEIA: r"SENTINEL2[AB]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
-    Platform.S3_OLCI: r"S3[AB]_OL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
-    Platform.S3_SLSTR: r"S3[AB]_SL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
-    Platform.L9: r"LC09_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
-    Platform.L8: r"LC08_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
-    Platform.L7: r"LE07_L1(GT|TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
-    Platform.L5: r"L[TM]05_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
-    Platform.L4: r"L[TM]04_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
-    Platform.L3: r"LM03_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
-    Platform.L2: r"LM02_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
-    Platform.L1: r"LM01_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
-    Platform.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}",
-    Platform.CSK: [
+CONSTELLATION_REGEX = {
+    Constellation.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
+    Constellation.S2: r"S2[AB]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
+    Constellation.S2_THEIA: r"SENTINEL2[AB]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
+    Constellation.S3_OLCI: r"S3[AB]_OL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
+    Constellation.S3_SLSTR: r"S3[AB]_SL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
+    Constellation.L9: r"LC09_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
+    Constellation.L8: r"LC08_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
+    Constellation.L7: r"LE07_L1(GT|TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
+    Constellation.L5: r"L[TM]05_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
+    Constellation.L4: r"L[TM]04_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
+    Constellation.L3: r"LM03_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
+    Constellation.L2: r"LM02_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
+    Constellation.L1: r"LM01_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
+    Constellation.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}",
+    Constellation.CSK: [
         r".+",  # Need to check inside as the folder does not have any recognizable name
         r"CSKS\d_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
         r"\w{2}_(HH|VV|VH|HV|CO|CH|CV)_[LR][AD]_[FS][NF]_\d{14}_\d{14}\.h5",
     ],
-    Platform.CSG: [
+    Constellation.CSG: [
         r".+",  # Need to check inside as the folder does not have any recognizable name
         r"CSG_SSAR\d_(RAW|SCS|DGM|GEC|GTC)_([UBF]|FQLK_B)_\d{4}_(S2[ABC]|D2[RSJ]|OQ[RS]|STR|SC[12]|PPS|QPS)_\d{3}"
         r"_(HH|VV|VH|HV)_[LR][AD]_[DPFR]_\d{14}_\d{14}\_\d_[FC]_\d{2}[NS]_Z\d{2}_[NFB]\d{2}.h5",
     ],
-    Platform.TSX: r"(TSX|TDX|PAZ)1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
-    Platform.TDX: r"TDX1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
-    Platform.PAZ: r"PAZ1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
-    Platform.RS2: r"RS2_(OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}|\d{8}_\d{6}_\d{4}_.{1,5})"
+    Constellation.TSX: r"(TSX|TDX|PAZ)1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
+    Constellation.TDX: r"TDX1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
+    Constellation.PAZ: r"PAZ1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
+    Constellation.RS2: r"RS2_(OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}|\d{8}_\d{6}_\d{4}_.{1,5})"
     r"(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)(_\d{6}_\d{4}_\d{8}|)",
-    Platform.PLD: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
-    Platform.PNEO: r"IMG_\d+_PNEO\d_(P|MS|PMS|MS-FS|PMS-FS)",
-    Platform.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
-    Platform.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
-    Platform.VIS1: r"VIS1_(PAN|BUN|PSH|MS4)_.+_\d{2}-\d",
-    Platform.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
-    Platform.QB: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Platform.GE01: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Platform.WV01: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Platform.WV02: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Platform.WV03: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Platform.WV04: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Platform.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Platform.ICEYE: r"((SM|SL|SC|SLEA)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC|SLEA)H*_\d{5,}_\d{8}T\d{6})",
-    Platform.SAOCOM: r".+EOL1[ABCD]SARSAO1[AB]\d+(-product|)",
+    Constellation.PLD: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
+    Constellation.PNEO: r"IMG_\d+_PNEO\d_(P|MS|PMS|MS-FS|PMS-FS)",
+    Constellation.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
+    Constellation.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
+    Constellation.VIS1: r"VIS1_(PAN|BUN|PSH|MS4)_.+_\d{2}-\d",
+    Constellation.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
+    Constellation.QB: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Constellation.GE01: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Constellation.WV01: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Constellation.WV02: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Constellation.WV03: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Constellation.WV04: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Constellation.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Constellation.ICEYE: r"((SM|SL|SC|SLEA)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC|SLEA)H*_\d{5,}_\d{8}T\d{6})",
+    Constellation.SAOCOM: r".+EOL1[ABCD]SARSAO1[AB]\d+(-product|)",
 }
 
 MTD_REGEX = {
-    Platform.S1: {
+    Constellation.S1: {
         "nested": 1,
         # File that can be found at any level (product/**/file)
         "regex": r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}\.xml",
     },
-    Platform.S2: {"nested": 3, "regex": r"MTD_TL.xml"},
-    Platform.S2_THEIA: rf"{PLATFORM_REGEX[Platform.S2_THEIA]}_MTD_ALL\.xml",
-    Platform.S3_OLCI: r"Oa\d{2}_radiance.nc",
-    Platform.S3_SLSTR: r"S\d_radiance_an.nc",
-    Platform.L9: rf"{PLATFORM_REGEX[Platform.L9]}_MTL\.txt",
-    Platform.L8: rf"{PLATFORM_REGEX[Platform.L8]}_MTL\.txt",
-    Platform.L7: rf"{PLATFORM_REGEX[Platform.L7]}_MTL\.txt",
-    Platform.L5: rf"{PLATFORM_REGEX[Platform.L5]}_MTL\.txt",
-    Platform.L4: rf"{PLATFORM_REGEX[Platform.L4]}_MTL\.txt",
-    Platform.L3: rf"{PLATFORM_REGEX[Platform.L3]}_MTL\.txt",
-    Platform.L2: rf"{PLATFORM_REGEX[Platform.L2]}_MTL\.txt",
-    Platform.L1: rf"{PLATFORM_REGEX[Platform.L1]}_MTL\.txt",
-    Platform.PLA: {
+    Constellation.S2: {"nested": 3, "regex": r"MTD_TL.xml"},
+    Constellation.S2_THEIA: rf"{CONSTELLATION_REGEX[Constellation.S2_THEIA]}_MTD_ALL\.xml",
+    Constellation.S3_OLCI: r"Oa\d{2}_radiance.nc",
+    Constellation.S3_SLSTR: r"S\d_radiance_an.nc",
+    Constellation.L9: rf"{CONSTELLATION_REGEX[Constellation.L9]}_MTL\.txt",
+    Constellation.L8: rf"{CONSTELLATION_REGEX[Constellation.L8]}_MTL\.txt",
+    Constellation.L7: rf"{CONSTELLATION_REGEX[Constellation.L7]}_MTL\.txt",
+    Constellation.L5: rf"{CONSTELLATION_REGEX[Constellation.L5]}_MTL\.txt",
+    Constellation.L4: rf"{CONSTELLATION_REGEX[Constellation.L4]}_MTL\.txt",
+    Constellation.L3: rf"{CONSTELLATION_REGEX[Constellation.L3]}_MTL\.txt",
+    Constellation.L2: rf"{CONSTELLATION_REGEX[Constellation.L2]}_MTL\.txt",
+    Constellation.L1: rf"{CONSTELLATION_REGEX[Constellation.L1]}_MTL\.txt",
+    Constellation.PLA: {
         "nested": -1,  # File that can be found at any level (product/**/file)
         "regex": r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*metadata.*\.xml",
     },
-    Platform.CSK: rf"{PLATFORM_REGEX[Platform.CSK][1]}\.xml",
-    Platform.CSG: rf"{PLATFORM_REGEX[Platform.CSG][1]}\.xml",
-    Platform.TSX: rf"{PLATFORM_REGEX[Platform.TSX]}\.xml",
-    Platform.TDX: rf"{PLATFORM_REGEX[Platform.TSX]}\.xml",
-    Platform.PAZ: rf"{PLATFORM_REGEX[Platform.TSX]}\.xml",
-    Platform.RS2: [
+    Constellation.CSK: rf"{CONSTELLATION_REGEX[Constellation.CSK][1]}\.xml",
+    Constellation.CSG: rf"{CONSTELLATION_REGEX[Constellation.CSG][1]}\.xml",
+    Constellation.TSX: rf"{CONSTELLATION_REGEX[Constellation.TSX]}\.xml",
+    Constellation.TDX: rf"{CONSTELLATION_REGEX[Constellation.TSX]}\.xml",
+    Constellation.PAZ: rf"{CONSTELLATION_REGEX[Constellation.TSX]}\.xml",
+    Constellation.RS2: [
         r"product\.xml",  # Too generic name, check also a band
         r"imagery_[HV]{2}\.tif",
     ],
-    Platform.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
-    Platform.PNEO: r"DIM_PNEO\d_\d{15}_(P|MS|PMS|MS-FS|PMS-FS)_(SEN|PRJ|ORT|MOS)_.{9,}_._._._.\.XML",
-    Platform.SPOT7: r"DIM_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
-    Platform.SPOT6: r"DIM_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
-    Platform.VIS1: r"DIM_VIS1_(PSH|MS4|PAN)_\d{14}_(PRJ|ORTP)_S\d{5,}_\d{4}_Meta\.xml",
-    Platform.RCM: {
+    Constellation.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
+    Constellation.PNEO: r"DIM_PNEO\d_\d{15}_(P|MS|PMS|MS-FS|PMS-FS)_(SEN|PRJ|ORT|MOS)_.{9,}_._._._.\.XML",
+    Constellation.SPOT7: r"DIM_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
+    Constellation.SPOT6: r"DIM_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
+    Constellation.VIS1: r"DIM_VIS1_(PSH|MS4|PAN)_\d{14}_(PRJ|ORTP)_S\d{5,}_\d{4}_Meta\.xml",
+    Constellation.RCM: {
         "nested": 1,  # File that can be found at 1st folder level (product/*/file)
         "regex": [
             r"product\.xml",  # Too generic name, check also a band
             r"\d+_[RHV]{2}\.tif",
         ],
     },
-    Platform.QB: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Platform.GE01: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Platform.WV01: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Platform.WV02: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Platform.WV03: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Platform.WV04: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Platform.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Platform.ICEYE: r"ICEYE_(X\d{1,}_|)(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
-    Platform.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
+    Constellation.QB: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Constellation.GE01: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Constellation.WV01: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Constellation.WV02: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Constellation.WV03: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Constellation.WV04: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Constellation.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Constellation.ICEYE: r"ICEYE_(X\d{1,}_|)(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
+    Constellation.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
 }
 
 
@@ -284,24 +284,28 @@ class Reader:
     """
 
     def __init__(self):
-        self._platform_regex = {}
+        self._constellation_regex = {}
         self._mtd_regex = {}
         self._mtd_nested = {}
 
-        # Register platforms
-        for platform, regex in PLATFORM_REGEX.items():
-            self._platform_regex[platform] = self._compile(regex, prefix="", suffix="")
+        # Register constellations
+        for constellation, regex in CONSTELLATION_REGEX.items():
+            self._constellation_regex[constellation] = self._compile(
+                regex, prefix="", suffix=""
+            )
 
         # Register metadata
-        for platform, regex in MTD_REGEX.items():
+        for constellation, regex in MTD_REGEX.items():
             if isinstance(regex, dict):
-                self._mtd_regex[platform] = self._compile(
+                self._mtd_regex[constellation] = self._compile(
                     regex["regex"], prefix=".*", suffix=""
                 )
-                self._mtd_nested[platform] = regex["nested"]
+                self._mtd_nested[constellation] = regex["nested"]
             else:
-                self._mtd_regex[platform] = self._compile(regex, prefix=".*", suffix="")
-                self._mtd_nested[platform] = 0
+                self._mtd_regex[constellation] = self._compile(
+                    regex, prefix=".*", suffix=""
+                )
+                self._mtd_nested[constellation] = 0
 
     @staticmethod
     def _compile(regex: Union[str, list], prefix="^", suffix="&") -> list:
@@ -350,7 +354,7 @@ class Reader:
             Attributes:
                 condensed_name: 20210517T103619_S2_T30QVE_L1C_075738
                 path: D:\S2B_MSIL1C_20210517T103619_N7990_R008_T30QVE_20210929T075738.SAFE.zip
-                platform: Sentinel-2
+                constellation: Sentinel-2
                 sensor type: Optical
                 product type: MSIL1C
                 default resolution: 10.0
@@ -401,35 +405,35 @@ class Reader:
             )
         else:
             prod = None
-            for platform in PLATFORM_REGEX.keys():
+            for constellation in CONSTELLATION_REGEX.keys():
                 if method == CheckMethod.MTD:
-                    is_valid = self.valid_mtd(product_path, platform)
+                    is_valid = self.valid_mtd(product_path, constellation)
                 elif method == CheckMethod.NAME:
-                    is_valid = self.valid_name(product_path, platform)
+                    is_valid = self.valid_name(product_path, constellation)
                 else:
                     is_valid = self.valid_name(
-                        product_path, platform
-                    ) and self.valid_mtd(product_path, platform)
+                        product_path, constellation
+                    ) and self.valid_mtd(product_path, constellation)
 
                 if is_valid:
-                    sat_class = platform.name.lower() + "_product"
+                    sat_class = constellation.name.lower() + "_product"
 
                     # Channel correctly the sensors to their generic files (just in case)
                     # TerraSAR-like sensors
-                    if platform in [Platform.TDX, platform.PAZ]:
+                    if constellation in [Constellation.TDX, constellation.PAZ]:
                         sat_class = "tsx_product"
                     # Maxar-like sensors
-                    elif platform in [
-                        Platform.QB,
-                        Platform.GE01,
-                        Platform.WV01,
-                        Platform.WV02,
-                        Platform.WV03,
-                        Platform.WV04,
+                    elif constellation in [
+                        Constellation.QB,
+                        Constellation.GE01,
+                        Constellation.WV01,
+                        Constellation.WV02,
+                        Constellation.WV03,
+                        Constellation.WV04,
                     ]:
                         sat_class = "maxar_product"
                     # SPOT sensors
-                    elif platform in [Platform.SPOT6, Platform.SPOT7]:
+                    elif constellation in [Constellation.SPOT6, Constellation.SPOT7]:
                         sat_class = "spot_product"
 
                     # Manage both optical and SAR
@@ -448,7 +452,7 @@ class Reader:
                         archive_path=archive_path,
                         output_path=output_path,
                         remove_tmp=remove_tmp,
-                        platform=platform,
+                        constellation=constellation,
                         **kwargs,
                     )
                     break
@@ -462,7 +466,9 @@ class Reader:
         return prod
 
     def valid_name(
-        self, product_path: Union[str, CloudPath, Path], platform: Union[str, Platform]
+        self,
+        product_path: Union[str, CloudPath, Path],
+        constellation: Union[str, Constellation],
     ) -> bool:
         """
         Check if the product's name is valid for the given satellite
@@ -470,7 +476,7 @@ class Reader:
 
         .. code-block:: python
 
-            >>> from eoreader.reader import Reader, Platform
+            >>> from eoreader.reader import Reader, Constellation
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> With IDs
             >>> Reader().valid_name(path, "S1")
@@ -484,33 +490,35 @@ class Reader:
             >>> Reader().valid_name(path, "Sentinel-2")
             True
 
-            >>> # With Platform
-            >>> Reader().valid_name(path, Platform.S1)
+            >>> # With Constellation
+            >>> Reader().valid_name(path, Constellation.S1)
             False
-            >>> Reader().valid_name(path, Platform.S2)
+            >>> Reader().valid_name(path, Constellation.S2)
             True
 
         Args:
             product_path (Union[str, CloudPath, Path]): Product path
-            platform (str): Platform's name or ID
+            constellation (str): Constellation's name or ID
 
         Returns:
             bool: True if valid name
 
         """
-        platform = Platform.convert_from(platform)[0]
-        regex = self._platform_regex[platform]
+        constellation = Constellation.convert_from(constellation)[0]
+        regex = self._constellation_regex[constellation]
         return is_filename_valid(product_path, regex)
 
     def valid_mtd(
-        self, product_path: Union[str, CloudPath, Path], platform: Union[str, Platform]
+        self,
+        product_path: Union[str, CloudPath, Path],
+        constellation: Union[str, Constellation],
     ) -> bool:
         """
         Check if the product's mtd is in the product folder/archive
 
         .. code-block:: python
 
-            >>> from eoreader.reader import Reader, Platform
+            >>> from eoreader.reader import Reader, Constellation
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> With IDs
             >>> Reader().valid_mtd(path, "S1")
@@ -524,22 +532,22 @@ class Reader:
             >>> Reader().valid_mtd(path, "Sentinel-2")
             True
 
-            >>> # With Platform
-            >>> Reader().valid_mtd(path, Platform.S1)
+            >>> # With Constellation
+            >>> Reader().valid_mtd(path, Constellation.S1)
             False
-            >>> Reader().valid_mtd(path, Platform.S2)
+            >>> Reader().valid_mtd(path, Constellation.S2)
             True
 
         Args:
             product_path (Union[str, CloudPath, Path]): Product path
-            platform (Union[str, Platform]): Platform's name or ID
+            constellation (Union[str, Constellation]): Constellation's name or ID
 
         Returns:
             bool: True if valid name
 
         """
-        # Convert platform if needed
-        platform = Platform.convert_from(platform)[0]
+        # Convert constellation if needed
+        constellation = Constellation.convert_from(constellation)[0]
 
         product_path = AnyPath(product_path)
 
@@ -547,8 +555,8 @@ class Reader:
             return False
 
         # Here the list is a check of several files
-        regex_list = self._mtd_regex[platform]
-        nested = self._mtd_nested[platform]
+        regex_list = self._mtd_regex[constellation]
+        nested = self._mtd_nested[constellation]
 
         # False by default
         is_valid = [False for idx in regex_list]

@@ -35,7 +35,6 @@ from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
-from eoreader._stac import *
 from eoreader.bands import (
     ALL_CLOUDS,
     CIRRUS,
@@ -49,7 +48,8 @@ from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
+from eoreader.stac import ASSET_ROLE, BT, DESCRIPTION, GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -60,16 +60,16 @@ class LandsatProductType(ListEnum):
     """Landsat products types"""
 
     L1_OLCI = "OLCI"
-    """OLCI Product Type, for Landsat-8 platform"""
+    """OLCI Product Type, for Landsat-8 constellation"""
 
     L1_ETM = "ETM"
-    """ETM Product Type, for Landsat-7 platform"""
+    """ETM Product Type, for Landsat-7 constellation"""
 
     L1_TM = "TM"
-    """TM Product Type, for Landsat-5 and 4 platforms"""
+    """TM Product Type, for Landsat-5 and 4 constellation"""
 
     L1_MSS = "MSS"
-    """MSS Product Type, for Landsat-5, 4, 3, 2, 1 platforms"""
+    """MSS Product Type, for Landsat-5, 4, 3, 2, 1 constellation"""
 
 
 @unique
@@ -252,12 +252,25 @@ class LandsatProduct(OpticalProduct):
         """Set products type"""
         raise NotImplementedError
 
-    def _set_mss_product_type(self, version: int) -> None:
+    def _set_mss_product_type(self) -> None:
         """
         Set MSS product type and map corresponding bands
 
         More on spectral bands <here `https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites`_>.
         See also the <description `https://www.usgs.gov/faqs/what-are-best-landsat-spectral-bands-use-my-research`_>.
+        """
+
+        if "L1" in self.name:
+            self.product_type = LandsatProductType.L1_MSS
+        else:
+            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
+
+    def _map_bands_mss(self, version: int) -> None:
+        """
+        Map bands MSS
+
+        Args:
+            version (int): Landsat version
         """
         vre_dict = {
             NAME: "B6" if version < 4 else "B3",
@@ -306,11 +319,7 @@ class LandsatProduct(OpticalProduct):
             spb.NARROW_NIR: SpectralBand(eoreader_name=spb.NARROW_NIR, **nir_dict),
             spb.NIR: SpectralBand(eoreader_name=spb.NIR, **nir_dict),
         }
-        if "L1" in self.name:
-            self.product_type = LandsatProductType.L1_MSS
-            self.bands.map_bands(mss_bands)
-        else:
-            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
+        self.bands.map_bands(mss_bands)
 
     def _set_tm_product_type(self) -> None:
         """
@@ -318,6 +327,15 @@ class LandsatProduct(OpticalProduct):
 
         More on spectral bands <here `https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites`_>.
         See also the <description `https://www.usgs.gov/faqs/what-are-best-landsat-spectral-bands-use-my-research`_>.
+        """
+        if "L1" in self.name:
+            self.product_type = LandsatProductType.L1_TM
+        else:
+            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
+
+    def _map_bands_tm(self) -> None:
+        """
+        Map bands TM
         """
         tm_bands = {
             spb.BLUE: SpectralBand(
@@ -422,11 +440,7 @@ class LandsatProduct(OpticalProduct):
                 },
             ),
         }
-        if "L1" in self.name:
-            self.product_type = LandsatProductType.L1_TM
-            self.bands.map_bands(tm_bands)
-        else:
-            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
+        self.bands.map_bands(tm_bands)
 
     def _set_etm_product_type(self) -> None:
         """
@@ -434,6 +448,15 @@ class LandsatProduct(OpticalProduct):
 
         More on spectral bands <here `https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites`_>.
         See also the <description `https://www.usgs.gov/faqs/what-are-best-landsat-spectral-bands-use-my-research`_>.
+        """
+        if "L1" in self.name:
+            self.product_type = LandsatProductType.L1_ETM
+        else:
+            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
+
+    def _map_bands_etm(self) -> None:
+        """
+        Map bands ETM
         """
         etm_bands = {
             spb.BLUE: SpectralBand(
@@ -549,11 +572,7 @@ class LandsatProduct(OpticalProduct):
                 },
             ),
         }
-        if "L1" in self.name:
-            self.product_type = LandsatProductType.L1_ETM
-            self.bands.map_bands(etm_bands)
-        else:
-            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
+        self.bands.map_bands(etm_bands)
 
     def _set_olci_product_type(self) -> None:
         """
@@ -563,147 +582,152 @@ class LandsatProduct(OpticalProduct):
         See also the <description `https://www.usgs.gov/faqs/what-are-best-landsat-spectral-bands-use-my-research`_>.
         """
         if "L1" in self.name:
-            olci_bands = {
-                spb.CA: SpectralBand(
-                    eoreader_name=spb.CA,
-                    **{
-                        NAME: "Coastal aerosol",
-                        ID: "1",
-                        GSD: 30,
-                        WV_MIN: 430,
-                        WV_MAX: 450,
-                        DESCRIPTION: "Coastal and aerosol studies",
-                    },
-                ),
-                spb.BLUE: SpectralBand(
-                    eoreader_name=spb.BLUE,
-                    **{
-                        NAME: "Blue",
-                        ID: "2",
-                        GSD: 30,
-                        WV_MIN: 450,
-                        WV_MAX: 510,
-                        DESCRIPTION: "Bathymetric mapping, distinguishing soil from vegetation and deciduous from coniferous vegetation",
-                    },
-                ),
-                spb.GREEN: SpectralBand(
-                    eoreader_name=spb.GREEN,
-                    **{
-                        NAME: "Green",
-                        ID: "3",
-                        GSD: 30,
-                        WV_MIN: 530,
-                        WV_MAX: 590,
-                        DESCRIPTION: "Emphasizes peak vegetation, which is useful for assessing plant vigor",
-                    },
-                ),
-                spb.RED: SpectralBand(
-                    eoreader_name=spb.RED,
-                    **{
-                        NAME: "Red",
-                        ID: "4",
-                        GSD: 30,
-                        WV_MIN: 640,
-                        WV_MAX: 670,
-                        DESCRIPTION: "Discriminates vegetation slopes",
-                    },
-                ),
-                spb.NARROW_NIR: SpectralBand(
-                    eoreader_name=spb.NARROW_NIR,
-                    **{
-                        NAME: "Near Infrared (NIR)",
-                        ID: "5",
-                        GSD: 30,
-                        WV_MIN: 850,
-                        WV_MAX: 880,
-                        DESCRIPTION: "Emphasizes biomass content and shorelines",
-                    },
-                ),
-                spb.NIR: SpectralBand(
-                    eoreader_name=spb.NIR,
-                    **{
-                        NAME: "Near Infrared (NIR)",
-                        ID: "5",
-                        GSD: 30,
-                        WV_MIN: 850,
-                        WV_MAX: 880,
-                        DESCRIPTION: "Emphasizes biomass content and shorelines",
-                    },
-                ),
-                spb.SWIR_1: SpectralBand(
-                    eoreader_name=spb.SWIR_1,
-                    **{
-                        NAME: "SWIR 1",
-                        ID: "6",
-                        GSD: 30,
-                        WV_MIN: 1570,
-                        WV_MAX: 1650,
-                        DESCRIPTION: "Discriminates moisture content of soil and vegetation; penetrates thin clouds",
-                    },
-                ),
-                spb.SWIR_2: SpectralBand(
-                    eoreader_name=spb.SWIR_2,
-                    **{
-                        NAME: "SWIR 2",
-                        ID: "7",
-                        GSD: 30,
-                        WV_MIN: 2110,
-                        WV_MAX: 2290,
-                        DESCRIPTION: "Improved moisture content of soil and vegetation; penetrates thin clouds",
-                    },
-                ),
-                spb.PAN: SpectralBand(
-                    eoreader_name=spb.PAN,
-                    **{
-                        NAME: "Panchromatic",
-                        ID: "8",
-                        GSD: 30,
-                        WV_MIN: 500,
-                        WV_MAX: 680,
-                        DESCRIPTION: "15 meter resolution, sharper image definition",
-                    },
-                ),
-                spb.SWIR_CIRRUS: SpectralBand(
-                    eoreader_name=spb.SWIR_CIRRUS,
-                    **{
-                        NAME: "Cirrus",
-                        ID: "9",
-                        GSD: 30,
-                        WV_MIN: 1360,
-                        WV_MAX: 1380,
-                        DESCRIPTION: "Improved detection of cirrus cloud contamination",
-                    },
-                ),
-                spb.TIR_1: SpectralBand(
-                    eoreader_name=spb.TIR_1,
-                    **{
-                        NAME: "Thermal Infrared (TIRS) 1",
-                        ID: "10",
-                        GSD: 100,
-                        WV_MIN: 10600,
-                        WV_MAX: 11190,
-                        DESCRIPTION: "100 meter resolution, thermal mapping and estimated soil moisture",
-                        ASSET_ROLE: BT,
-                    },
-                ),
-                spb.TIR_2: SpectralBand(
-                    eoreader_name=spb.TIR_2,
-                    **{
-                        NAME: "Thermal Infrared (TIRS) 2",
-                        ID: "11",
-                        GSD: 100,
-                        WV_MIN: 11500,
-                        WV_MAX: 12510,
-                        DESCRIPTION: "100 meter resolution, improved thermal mapping and estimated soil moisture",
-                        ASSET_ROLE: BT,
-                    },
-                ),
-            }
-
             self.product_type = LandsatProductType.L1_OLCI
-            self.bands.map_bands(olci_bands)
         else:
             raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
+
+    def _map_bands_olci(self) -> None:
+        """
+        Map bands OLCI
+        """
+        olci_bands = {
+            spb.CA: SpectralBand(
+                eoreader_name=spb.CA,
+                **{
+                    NAME: "Coastal aerosol",
+                    ID: "1",
+                    GSD: 30,
+                    WV_MIN: 430,
+                    WV_MAX: 450,
+                    DESCRIPTION: "Coastal and aerosol studies",
+                },
+            ),
+            spb.BLUE: SpectralBand(
+                eoreader_name=spb.BLUE,
+                **{
+                    NAME: "Blue",
+                    ID: "2",
+                    GSD: 30,
+                    WV_MIN: 450,
+                    WV_MAX: 510,
+                    DESCRIPTION: "Bathymetric mapping, distinguishing soil from vegetation and deciduous from coniferous vegetation",
+                },
+            ),
+            spb.GREEN: SpectralBand(
+                eoreader_name=spb.GREEN,
+                **{
+                    NAME: "Green",
+                    ID: "3",
+                    GSD: 30,
+                    WV_MIN: 530,
+                    WV_MAX: 590,
+                    DESCRIPTION: "Emphasizes peak vegetation, which is useful for assessing plant vigor",
+                },
+            ),
+            spb.RED: SpectralBand(
+                eoreader_name=spb.RED,
+                **{
+                    NAME: "Red",
+                    ID: "4",
+                    GSD: 30,
+                    WV_MIN: 640,
+                    WV_MAX: 670,
+                    DESCRIPTION: "Discriminates vegetation slopes",
+                },
+            ),
+            spb.NARROW_NIR: SpectralBand(
+                eoreader_name=spb.NARROW_NIR,
+                **{
+                    NAME: "Near Infrared (NIR)",
+                    ID: "5",
+                    GSD: 30,
+                    WV_MIN: 850,
+                    WV_MAX: 880,
+                    DESCRIPTION: "Emphasizes biomass content and shorelines",
+                },
+            ),
+            spb.NIR: SpectralBand(
+                eoreader_name=spb.NIR,
+                **{
+                    NAME: "Near Infrared (NIR)",
+                    ID: "5",
+                    GSD: 30,
+                    WV_MIN: 850,
+                    WV_MAX: 880,
+                    DESCRIPTION: "Emphasizes biomass content and shorelines",
+                },
+            ),
+            spb.SWIR_1: SpectralBand(
+                eoreader_name=spb.SWIR_1,
+                **{
+                    NAME: "SWIR 1",
+                    ID: "6",
+                    GSD: 30,
+                    WV_MIN: 1570,
+                    WV_MAX: 1650,
+                    DESCRIPTION: "Discriminates moisture content of soil and vegetation; penetrates thin clouds",
+                },
+            ),
+            spb.SWIR_2: SpectralBand(
+                eoreader_name=spb.SWIR_2,
+                **{
+                    NAME: "SWIR 2",
+                    ID: "7",
+                    GSD: 30,
+                    WV_MIN: 2110,
+                    WV_MAX: 2290,
+                    DESCRIPTION: "Improved moisture content of soil and vegetation; penetrates thin clouds",
+                },
+            ),
+            spb.PAN: SpectralBand(
+                eoreader_name=spb.PAN,
+                **{
+                    NAME: "Panchromatic",
+                    ID: "8",
+                    GSD: 30,
+                    WV_MIN: 500,
+                    WV_MAX: 680,
+                    DESCRIPTION: "15 meter resolution, sharper image definition",
+                },
+            ),
+            spb.SWIR_CIRRUS: SpectralBand(
+                eoreader_name=spb.SWIR_CIRRUS,
+                **{
+                    NAME: "Cirrus",
+                    ID: "9",
+                    GSD: 30,
+                    WV_MIN: 1360,
+                    WV_MAX: 1380,
+                    DESCRIPTION: "Improved detection of cirrus cloud contamination",
+                },
+            ),
+            spb.TIR_1: SpectralBand(
+                eoreader_name=spb.TIR_1,
+                **{
+                    NAME: "Thermal Infrared (TIRS) 1",
+                    ID: "10",
+                    GSD: 100,
+                    WV_MIN: 10600,
+                    WV_MAX: 11190,
+                    DESCRIPTION: "100 meter resolution, thermal mapping and estimated soil moisture",
+                    ASSET_ROLE: BT,
+                },
+            ),
+            spb.TIR_2: SpectralBand(
+                eoreader_name=spb.TIR_2,
+                **{
+                    NAME: "Thermal Infrared (TIRS) 2",
+                    ID: "11",
+                    GSD: 100,
+                    WV_MIN: 11500,
+                    WV_MAX: 12510,
+                    DESCRIPTION: "100 meter resolution, improved thermal mapping and estimated soil moisture",
+                    ASSET_ROLE: BT,
+                },
+            ),
+        }
+
+        self.bands.map_bands(olci_bands)
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -1074,7 +1098,10 @@ class LandsatProduct(OpticalProduct):
             try:
                 band_id = int(self.bands[band].id)
             except ValueError:
-                if band in [spb.TIR_1, spb.TIR_2] and self.sat_id == Platform.L7.name:
+                if (
+                    band in [spb.TIR_1, spb.TIR_2]
+                    and self.sat_id == Constellation.L7.name
+                ):
                     band_id = 6
                 else:
                     raise InvalidProductError(
@@ -1208,7 +1235,7 @@ class LandsatProduct(OpticalProduct):
         Returns:
             str: Condensed Landsat name
         """
-        return f"{self.get_datetime()}_{self.platform.name}_{self.tile_name}_{self.product_type.value}"
+        return f"{self.get_datetime()}_{self.constellation.name}_{self.tile_name}_{self.product_type.value}"
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
@@ -1562,7 +1589,7 @@ class LandsatProduct(OpticalProduct):
                 LOGGER.warning(f"No quicklook found in {self.condensed_name}")
             else:
                 LOGGER.warning(
-                    f"No quicklook available for {self.platform.value} Collection-1 data!"
+                    f"No quicklook available for {self.constellation.value} Collection-1 data!"
                 )
 
         return quicklook_path

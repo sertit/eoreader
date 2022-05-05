@@ -13,7 +13,7 @@ from eoreader.bands import *
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
 from eoreader.exceptions import InvalidTypeError
 from eoreader.products import SensorType
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
 
 from .scripts_utils import (
     AWS_ACCESS_KEY_ID,
@@ -331,15 +331,15 @@ def test_reader_methods():
     prod_path = opt_path().joinpath("LC08_L1GT_023030_20200518_20200527_01_T2")
 
     # NAME
-    READER.valid_name(prod_path, Platform.L8)
+    READER.valid_name(prod_path, Constellation.L8)
     READER.valid_name(prod_path, "L8")
     READER.valid_name(prod_path, "Landsat-8")
-    READER.valid_name(prod_path, Platform.L8.name)
-    READER.valid_name(prod_path, Platform.L8.value)
+    READER.valid_name(prod_path, Constellation.L8.name)
+    READER.valid_name(prod_path, Constellation.L8.value)
 
     # MTD
-    READER.valid_mtd(prod_path, Platform.L8)
+    READER.valid_mtd(prod_path, Constellation.L8)
     READER.valid_mtd(prod_path, "L8")
     READER.valid_mtd(prod_path, "Landsat-8")
-    READER.valid_mtd(prod_path, Platform.L8.name)
-    READER.valid_mtd(prod_path, Platform.L8.value)
+    READER.valid_mtd(prod_path, Constellation.L8.name)
+    READER.valid_mtd(prod_path, Constellation.L8.value)

@@ -29,14 +29,6 @@ import geopandas as gpd
 from rasterio.crs import CRS
 
 from eoreader import cache
-from eoreader.stac._stac_keywords import (
-    BBOX_FCT,
-    CRS_FCT,
-    EO_CC,
-    GEOMETRY_FCT,
-    VIEW_SUN_AZIMUTH,
-    VIEW_SUN_ELEVATION,
-)
 
 
 class EoExtension:
@@ -44,10 +36,16 @@ class EoExtension:
     Class of `Electro-Optical Extension Specification <https://github.com/stac-extensions/eo/>`_ of STAC items.
     """
 
-    def __init__(self, **kwargs):
-        self.cloud_cover = kwargs.get(EO_CC, "N/A")
+    def __init__(self, prod, **kwargs):
+        self.cloud_cover = None
 
-        # TODO: add bands
+        try:
+            if prod._has_cloud_cover:
+                self.cloud_cover = prod.get_cloud_cover()
+        except AttributeError:
+            pass
+
+        self.bands = prod.bands
 
 
 class ProjExtension:
@@ -55,10 +53,8 @@ class ProjExtension:
     Class `Projection Extension Specification <https://github.com/stac-extensions/projection/>`_ of STAC items.
     """
 
-    def __init__(self, **kwargs):
-        self._crs_fct = kwargs.get(CRS_FCT, "N/A")
-        self._geometry_fct = kwargs.get(GEOMETRY_FCT, "N/A")
-        self._bbox_fct = kwargs.get(BBOX_FCT, "N/A")
+    def __init__(self, prod, **kwargs):
+        self._prod = prod
 
     @cache
     def crs(self) -> CRS:
@@ -68,7 +64,7 @@ class ProjExtension:
         Returns:
             CRS: Projected CRS
         """
-        return self._crs_fct()
+        return self._prod.crs()
 
     @cache
     def geometry(self) -> gpd.GeoDataFrame:
@@ -78,7 +74,10 @@ class ProjExtension:
         Returns:
             gpd.GeoDataFrame: Projected geometry
         """
-        return self._geometry_fct().to_crs(self.crs())
+        if self._prod.is_ortho:
+            return self._prod.footprint().to_crs(self.crs())
+        else:
+            return self.bbox()
 
     @cache
     def bbox(self) -> gpd.GeoDataFrame:
@@ -88,7 +87,7 @@ class ProjExtension:
         Returns:
             gpd.GeoDataFrame: Projected bbox
         """
-        return self._bbox_fct().to_crs(self.crs())
+        return self._prod.extent().to_crs(self.crs())
 
 
 class ViewExtension:
@@ -96,8 +95,16 @@ class ViewExtension:
     Class `View Extension Specification <https://github.com/stac-extensions/view/>`_ of STAC items.
     """
 
-    def __init__(self, **kwargs):
-        self.sun_az = kwargs.get(VIEW_SUN_AZIMUTH, "N/A")
-        self.sun_el = kwargs.get(VIEW_SUN_ELEVATION, "N/A")
+    def __init__(self, prod, **kwargs):
+        try:
+            sun_az, sun_el = prod.get_mean_sun_angles()
+            self.sun_az = sun_az
+            self.sun_el = sun_el
+        except AttributeError:
+            self.sun_az = None
+            self.sun_el = None
 
         # TODO: Others will come
+        # VIEW_OFF_NADIR = "view:off_nadir"
+        # VIEW_INCIDENCE_ANGLE = "view:incidence_angle"
+        # VIEW_AZIMUTH = "view:azimuth"

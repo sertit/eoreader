@@ -30,7 +30,7 @@ validators
 cloudpathlib>=0.7.0
 
 # STAC
-pystac
+pystac[validation]
 
 # SERTIT libs
 sertit[full]>=1.14.0

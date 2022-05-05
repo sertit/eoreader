@@ -263,9 +263,12 @@ class SaocomProduct(SarProduct):
             self.get_default_band_path()
         )  # Processed by SNAP: the nodata is set
 
-    def _get_raw_band_paths(self) -> dict:
+    def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing band paths (as they come with the archived products).
+
+        Args:
+            **kwargs: Additional arguments
 
         Returns:
             dict: Dictionary containing the path of every band existing in the raw products
@@ -319,7 +322,7 @@ class SaocomProduct(SarProduct):
             LOGGER.warning(
                 "DI (Detected Image) product type has never been tested for %s data. "
                 "Use it at your own risks !",
-                self.platform.value,
+                self.constellation.value,
             )
 
     def _set_sensor_mode(self) -> None:

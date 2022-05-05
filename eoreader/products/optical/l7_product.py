@@ -41,6 +41,12 @@ class L7Product(LandsatProduct):
         """Set products type"""
         self._set_etm_product_type()
 
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
+        self._map_bands_etm()
+
     @cache
     def footprint(self) -> gpd.GeoDataFrame:
         """

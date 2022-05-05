@@ -48,7 +48,7 @@ from eoreader.bands import (
 )
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.products.product import OrbitDirection, Product, SensorType
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -64,7 +64,7 @@ class CustomFields(ListEnum):
     SENSOR_TYPE = "sensor_type"
     DATETIME = "datetime"
     BAND_MAP = "band_map"
-    PLATFORM = "platform"
+    CONSTELLATION = "constellation"
     RES = "resolution"
     PROD_TYPE = "product_type"
     SUN_AZ = "sun_azimuth"
@@ -195,9 +195,9 @@ class CustomProduct(Product):
 
         return date
 
-    def _get_platform(self) -> Platform:
-        return Platform.convert_from(
-            self.kwargs.get(CustomFields.PLATFORM.value, CUSTOM)
+    def _get_constellation(self) -> Constellation:
+        return Constellation.convert_from(
+            self.kwargs.get(CustomFields.CONSTELLATION.value, CUSTOM)
         )[0]
 
     def _set_resolution(self) -> float:
@@ -241,7 +241,7 @@ class CustomProduct(Product):
         Get UTM extent of stack.
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         # Get extent
         return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
@@ -542,12 +542,12 @@ class CustomProduct(Product):
 
     def _get_condensed_name(self) -> str:
         """
-        Get products condensed name ({acq_datetime}_{platform}_{product_type}).
+        Get products condensed name ({acq_datetime}_{constellation}_{product_type}).
 
         Returns:
             str: Condensed name
         """
-        return f"{self.get_datetime()}_{self.platform.name}_{self.product_type}"
+        return f"{self.get_datetime()}_{self.constellation.name}_{self.product_type}"
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):

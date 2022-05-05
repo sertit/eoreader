@@ -330,7 +330,7 @@ class Rs2Product(SarProduct):
             LOGGER.warning(
                 "Other product types than SGF or SLC haven't been tested for %s data. "
                 "Use it at your own risks !",
-                self.platform.value,
+                self.constellation.value,
             )
 
     def _set_sensor_mode(self) -> None:
@@ -408,7 +408,7 @@ class Rs2Product(SarProduct):
 
         # Test filename
         reader = Reader()
-        if not reader.valid_name(name, self._get_platform()):
+        if not reader.valid_name(name, self._get_constellation()):
             LOGGER.warning(
                 "This RADARSAT-2 filename is not valid. "
                 "However RADARSAT-2 files do not provide anywhere the true name of the product. "
