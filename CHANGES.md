@@ -27,7 +27,7 @@
 ### Optimizations
 
 - OPTIM: Retrieve name from filename if possible
-- OPTIM: Retrieve extent from metadata when possible
+- OPTIM: Retrieve extent from metadata when possible (for VHR data)
 
 ### Bug Fixes
 
