@@ -195,17 +195,6 @@ def _test_core(
                 try:
                     ci.assert_geom_equal(extent, extent_path)
                 except AssertionError:
-
-                    tst_dir = os.path.join(
-                        "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                    )
-                    os.makedirs(tst_dir, exist_ok=True)
-                    extent.to_file(
-                        os.path.join(tst_dir, f"{prod.condensed_name}_extent.geojson"),
-                        driver="GeoJSON",
-                    )
-
-                    # TODO: WHY ???
                     LOGGER.warning("Extent not equal, trying almost equal.")
                     assert_geom_almost_equal(extent, extent_path)
 
@@ -227,17 +216,6 @@ def _test_core(
                 try:
                     ci.assert_geom_equal(footprint, footprint_path)
                 except AssertionError:
-
-                    tst_dir = os.path.join(
-                        "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                    )
-                    os.makedirs(tst_dir, exist_ok=True)
-                    footprint.to_file(
-                        os.path.join(
-                            tst_dir, f"{prod.condensed_name}_footprint.geojson"
-                        ),
-                        driver="GeoJSON",
-                    )
                     # Has not happened for now
                     LOGGER.warning("Footprint not equal, trying almost equal.")
                     assert_geom_almost_equal(footprint, footprint_path)

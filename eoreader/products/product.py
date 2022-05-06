@@ -846,8 +846,13 @@ class Product:
         """
         Open the bands and compute the wanted index.
 
-        The bands will be purged of nodata and invalid pixels,
-        the nodata will be set to 0 and the bands will be masked arrays in float.
+        - For Optical data:
+            The bands will be purged of nodata and invalid pixels (if specified with the CLEAN_OPTICAL keyword),
+            the nodata will be set to -9999 and the bands will be `xarray.DataArray`s in float32.
+
+        - For SAR data:
+            The bands will be purged of nodata (not over the sea),
+            the nodata will be set to 0 to respect SNAP's behavior and the bands will be `xarray.DataArray`s in float32.
 
         Bands that come out this function at the same time are collocated and therefore have the same shapes.
         This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
