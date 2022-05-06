@@ -37,7 +37,7 @@ from rasterio import crs as riocrs
 from rasterio import features, transform
 from sertit import files, rasters_rio, vectors
 from sertit.misc import ListEnum
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
@@ -475,7 +475,15 @@ class DimapProduct(VhrProduct):
             crs=vectors.WGS84,
         )
 
-        return extent_wgs84.to_crs(self.crs())
+        # Not square extent
+        utm_extent_raw = extent_wgs84.to_crs(self.crs())
+
+        utm_extent = gpd.GeoDataFrame(
+            geometry=[box(*utm_extent_raw.total_bounds)],
+            crs=self.crs(),
+        )
+
+        return utm_extent
 
     @cache
     def footprint(self, **kwargs) -> gpd.GeoDataFrame:

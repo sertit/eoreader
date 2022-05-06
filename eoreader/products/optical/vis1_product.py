@@ -296,72 +296,28 @@ class Vis1Product(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Extent in UTM
         """
-        if self.product_type == Vis1ProductType.PRJ:
-            extent = gpd.GeoDataFrame(
-                geometry=[box(*self.footprint().total_bounds)],
-                crs=self.crs(),
-            )
-        else:
-            # Get MTD XML file
-            root, _ = self.read_mtd()
 
-            # Compute extent corners
-            corners = [
-                [
-                    float(vertex.findtext("FRAME_LON")),
-                    float(vertex.findtext("FRAME_LAT")),
-                ]
-                for vertex in root.iterfind(".//Dataset_Frame/Vertex")
-            ]
+        # Get MTD XML file
+        root, _ = self.read_mtd()
 
-            # When ORTP, Dataset_Frame is the extent
-            extent = gpd.GeoDataFrame(
-                geometry=[Polygon(corners)],
-                crs=vectors.WGS84,
-            ).to_crs(self.crs())
+        # Compute extent corners
+        corners = [
+            [float(vertex.findtext("FRAME_LON")), float(vertex.findtext("FRAME_LAT"))]
+            for vertex in root.iterfind(".//Dataset_Frame/Vertex")
+        ]
+
+        # When PRJ, Dataset_Frame is the footprint
+        ds_frame = gpd.GeoDataFrame(
+            geometry=[Polygon(corners)],
+            crs=vectors.WGS84,
+        ).to_crs(self.crs())
+
+        extent = gpd.GeoDataFrame(
+            geometry=[box(*ds_frame.total_bounds)],
+            crs=self.crs(),
+        )
 
         return extent
-
-    @cache
-    def footprint(self) -> gpd.GeoDataFrame:
-        """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1B_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.footprint()
-                                                         gml_id  ...                                           geometry
-            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
-            [1 rows x 3 columns]
-
-        Returns:
-            gpd.GeoDataFrame: Footprint as a GeoDataFrame
-        """
-        if self.product_type == Vis1ProductType.PRJ:
-            # Get MTD XML file
-            root, _ = self.read_mtd()
-
-            # Compute extent corners
-            corners = [
-                [
-                    float(vertex.findtext("FRAME_LON")),
-                    float(vertex.findtext("FRAME_LAT")),
-                ]
-                for vertex in root.iterfind(".//Dataset_Frame/Vertex")
-            ]
-
-            # When PRJ, Dataset_Frame is the footprint
-            footprint = gpd.GeoDataFrame(
-                geometry=[Polygon(corners)],
-                crs=vectors.WGS84,
-            ).to_crs(self.crs())
-        else:
-            footprint = super().footprint()
-
-        return footprint
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """

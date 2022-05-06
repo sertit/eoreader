@@ -122,6 +122,10 @@ class CustomProduct(Product):
             kwargs.pop(CustomFields.SENSOR_TYPE.value)
         )[0]
 
+    def _map_bands(self):
+        """
+        Map bands
+        """
         if self.sensor_type == SensorType.OPTICAL:
             band_map = SpectralBandMap()
             band = SpectralBand
@@ -132,7 +136,7 @@ class CustomProduct(Product):
         self.bands = band_map
 
         # Band map
-        band_names = kwargs.pop(CustomFields.BAND_MAP.value)  # Shouldn't be empty
+        band_names = self.kwargs.pop(CustomFields.BAND_MAP.value)  # Shouldn't be empty
         assert isinstance(band_names, dict)
 
         band_map = {}
