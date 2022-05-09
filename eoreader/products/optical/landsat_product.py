@@ -17,7 +17,6 @@
 """ Landsat products """
 import logging
 import tarfile
-from abc import abstractmethod
 from datetime import datetime
 from enum import unique
 from pathlib import Path
@@ -57,19 +56,62 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 @unique
 class LandsatProductType(ListEnum):
+    """
+    `Landsat products types <https://www.usgs.gov/faqs/what-landsat-data-products-are-available>`_
+    """
+
+    L1 = "L1"
+    """
+    Ensures that the data in the Landsat Level-1 archive are consistent in processing and data quality to support time-series analyses and data stacking.
+    Each Level-1 data product includes individual spectral band files, a metadata file, and additional ancillary files.
+    """
+
+    ARD = "ARD"
+    """
+    Uses Landsat Collections Level-1 data as input
+    to provide data that is processed to the highest scientific standards and placed in a tile-based structure to support time-series analysis.
+
+    Not handled by EOReader.
+    """
+
+    L2 = "L2"
+    """
+    Level-2 and Level-3 products that are processed to include
+    atmospherically corrected data, surface reflectance, provisional surface temperature, and biophysical properties of the Earth’s surface.
+
+    Not handled by EOReader.
+    """
+
+    L3 = "L3"
+    """
+    Level-2 and Level-3 products that are processed to include
+    atmospherically corrected data, surface reflectance, provisional surface temperature, and biophysical properties of the Earth’s surface.
+
+    Not handled by EOReader.
+    """
+
+
+@unique
+class LandsatInstrument(ListEnum):
     """Landsat products types"""
 
-    L1_OLCI = "OLCI"
-    """OLCI Product Type, for Landsat-8 constellation"""
+    OLI_TIRS = "C"
+    """OLI-TIRS instruments combined, for Landsat-8 and 9 constellation"""
 
-    L1_ETM = "ETM"
-    """ETM Product Type, for Landsat-7 constellation"""
+    OLI = "O"
+    """OLI Instrument, for Landsat-8 and 9 constellation"""
 
-    L1_TM = "TM"
-    """TM Product Type, for Landsat-5 and 4 constellation"""
+    TIRS = "TIRS"
+    """TIRS Instrument, for Landsat-8 and 9 constellation"""
 
-    L1_MSS = "MSS"
-    """MSS Product Type, for Landsat-5, 4, 3, 2, 1 constellation"""
+    ETM = "E"
+    """ETM+ Instrument, for Landsat-7 constellation"""
+
+    TM = "T"
+    """TM Instrument, for Landsat-5 and 4 constellation"""
+
+    MSS = "M"
+    """MSS Instrument, for Landsat-5, 4, 3, 2, 1 constellation"""
 
 
 @unique
@@ -158,15 +200,6 @@ class LandsatProduct(OpticalProduct):
             self._pixel_quality_id = "_QA_PIXEL"
             self._radsat_id = "_QA_RADSAT"
 
-        # Warning if GS or GT
-        if "GS" in self.name:
-            LOGGER.warning(
-                "This Landsat product %s could be badly georeferenced "
-                "as only systematic geometric corrections have been applied "
-                "(using the spacecraft ephemeris data).",
-                self.name,
-            )
-
         # Post init done by the super class
         super()._post_init(**kwargs)
 
@@ -183,7 +216,7 @@ class LandsatProduct(OpticalProduct):
         """
         if self.is_archived:
             # Because of gap_mask files that have the same name structure and exists only for L7
-            if self.product_type == LandsatProductType.L1_ETM:
+            if self.instrument == LandsatInstrument.ETM:
                 regex = rf".*RT{band_id}\."
             else:
                 regex = rf".*{band_id}\."
@@ -192,6 +225,24 @@ class LandsatProduct(OpticalProduct):
             path = files.get_file_in_dir(self.path, f"*{band_id}.TIF", exact_name=True)
 
         return path
+
+    def _set_resolution(self) -> float:
+        """
+        Set product default resolution (in meters)
+        """
+        if self.constellation in [
+            Constellation.L8,
+            Constellation.L9,
+            Constellation.L7,
+        ] or (
+            self.constellation in [Constellation.L4, Constellation.L5]
+            and self.instrument == LandsatInstrument.TM
+        ):
+            res = 30.0
+        else:
+            res = 60.0
+
+        return res
 
     @cache
     def footprint(self) -> gpd.GeoDataFrame:
@@ -247,23 +298,84 @@ class LandsatProduct(OpticalProduct):
         """
         return self.split_name[2]
 
-    @abstractmethod
     def _set_product_type(self) -> None:
-        """Set products type"""
-        raise NotImplementedError
-
-    def _set_mss_product_type(self) -> None:
         """
-        Set MSS product type and map corresponding bands
+        Set landsat product type.
 
         More on spectral bands <here `https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites`_>.
         See also the <description `https://www.usgs.gov/faqs/what-are-best-landsat-spectral-bands-use-my-research`_>.
-        """
 
-        if "L1" in self.name:
-            self.product_type = LandsatProductType.L1_MSS
+        The naming convention of L1 data can be found
+        `here <https://www.usgs.gov/faqs/what-naming-convention-landsat-collections-level-1-scenes>`_.
+        """
+        # Processing level
+        proc_lvl = self.split_name[1]
+
+        try:
+            # ARD:  LC09_CU_016007_20220503_20220508_02, LT04_CU_017009_19821113_20210421_02
+            # Level3: LC08_CU_015007_20220416_20220423_02_BA
+            # Level2: LC09_L2SP_024031_20220507_20220509_02_T1
+
+            self.product_type = LandsatProductType.from_value(proc_lvl[:-2])
+
+            if self.product_type != LandsatProductType.L1:
+                LOGGER.warning(
+                    "Only Landsat level 1 have been tested on EOReader, ise it at your own risk."
+                )
+            else:
+                # Warning if GS (L1 only)
+                if "GS" in proc_lvl:
+                    LOGGER.warning(
+                        "This Landsat product %s could be badly georeferenced "
+                        "as only systematic geometric corrections have been applied "
+                        "(using the spacecraft ephemeris data).",
+                        self.name,
+                    )
+
+        except ValueError:
+            raise InvalidProductError(
+                "Landsat level 3 and ARD are not handled by EOReader!"
+            )
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+        """
+        instrument_letter = self.split_name[0][1]
+        if instrument_letter == "T" and self.constellation in [
+            Constellation.L8,
+            Constellation.L9,
+        ]:
+            self.instrument = LandsatInstrument.TIRS
         else:
-            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
+            self.instrument = LandsatInstrument.from_value(instrument_letter)
+
+        if self.instrument in [LandsatInstrument.OLI, LandsatInstrument.TIRS]:
+            LOGGER.warning(
+                "Product with TIRS or OLI only have not been tested in EOReader, use it at tour own risk."
+            )
+
+    def _get_constellation(self) -> Constellation:
+        """ Getter of the constellation """
+        sat_id = f"L{int(self.split_name[0][2:4])}"
+        return getattr(Constellation, sat_id)
+
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
+        if self.instrument == LandsatInstrument.MSS:
+            self._map_bands_mss(version=int(self.sat_id[-1]))
+        elif self.instrument == LandsatInstrument.TM:
+            self._map_bands_tm()
+        elif self.instrument == LandsatInstrument.ETM:
+            self._map_bands_etm()
+        elif self.instrument in [
+            LandsatInstrument.OLI_TIRS,
+            LandsatInstrument.OLI,
+            LandsatInstrument.TIRS,
+        ]:
+            self._map_bands_oli()
 
     def _map_bands_mss(self, version: int) -> None:
         """
@@ -320,18 +432,6 @@ class LandsatProduct(OpticalProduct):
             spb.NIR: SpectralBand(eoreader_name=spb.NIR, **nir_dict),
         }
         self.bands.map_bands(mss_bands)
-
-    def _set_tm_product_type(self) -> None:
-        """
-        Set TM product type and map corresponding bands
-
-        More on spectral bands <here `https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites`_>.
-        See also the <description `https://www.usgs.gov/faqs/what-are-best-landsat-spectral-bands-use-my-research`_>.
-        """
-        if "L1" in self.name:
-            self.product_type = LandsatProductType.L1_TM
-        else:
-            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
 
     def _map_bands_tm(self) -> None:
         """
@@ -441,18 +541,6 @@ class LandsatProduct(OpticalProduct):
             ),
         }
         self.bands.map_bands(tm_bands)
-
-    def _set_etm_product_type(self) -> None:
-        """
-        Set ETM product type and map corresponding bands
-
-        More on spectral bands <here `https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites`_>.
-        See also the <description `https://www.usgs.gov/faqs/what-are-best-landsat-spectral-bands-use-my-research`_>.
-        """
-        if "L1" in self.name:
-            self.product_type = LandsatProductType.L1_ETM
-        else:
-            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
 
     def _map_bands_etm(self) -> None:
         """
@@ -574,23 +662,11 @@ class LandsatProduct(OpticalProduct):
         }
         self.bands.map_bands(etm_bands)
 
-    def _set_olci_product_type(self) -> None:
+    def _map_bands_oli(self) -> None:
         """
-        Set OLCI product type and map corresponding bands
-
-        More on spectral bands <here `https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites`_>.
-        See also the <description `https://www.usgs.gov/faqs/what-are-best-landsat-spectral-bands-use-my-research`_>.
+        Map bands OLI-TIRS
         """
-        if "L1" in self.name:
-            self.product_type = LandsatProductType.L1_OLCI
-        else:
-            raise InvalidProductError("Only Landsat level 1 are managed in EOReader")
-
-    def _map_bands_olci(self) -> None:
-        """
-        Map bands OLCI
-        """
-        olci_bands = {
+        oli_bands = {
             spb.CA: SpectralBand(
                 eoreader_name=spb.CA,
                 **{
@@ -727,7 +803,7 @@ class LandsatProduct(OpticalProduct):
             ),
         }
 
-        self.bands.map_bands(olci_bands)
+        self.bands.map_bands(oli_bands)
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -1110,7 +1186,11 @@ class LandsatProduct(OpticalProduct):
 
             # Bit ids
             sat_id = band_id - 1  # Saturated pixel
-            if self.product_type != LandsatProductType.L1_OLCI:
+            if self.instrument not in [
+                LandsatInstrument.OLI,
+                LandsatInstrument.TIRS,
+                LandsatInstrument.OLI_TIRS,
+            ]:
                 other_id = 11  # Terrain occlusion
             else:
                 other_id = 9  # Dropped pixels
@@ -1230,12 +1310,12 @@ class LandsatProduct(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get products condensed name ({date}_Lx_{tile}_{product_type}).
+        Get products condensed name ({date}_Lx{instrument}_{tile}_{product_type}).
 
         Returns:
             str: Condensed Landsat name
         """
-        return f"{self.get_datetime()}_{self.constellation.name}_{self.tile_name}_{self.product_type.value}"
+        return f"{self.get_datetime()}_{self.constellation.name}_{self.tile_name}_{self.instrument.name}"
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
@@ -1244,14 +1324,18 @@ class LandsatProduct(OpticalProduct):
         - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
         - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
         """
-        if self.product_type == LandsatProductType.L1_OLCI:
+        if self.instrument in [
+            LandsatInstrument.OLI,
+            LandsatInstrument.TIRS,
+            LandsatInstrument.OLI_TIRS,
+        ]:
             has_band = True
-        elif self.product_type in [LandsatProductType.L1_ETM, LandsatProductType.L1_TM]:
+        elif self.instrument in [LandsatInstrument.ETM, LandsatInstrument.TM]:
             has_band = self._e_tm_has_cloud_band(band)
-        elif self.product_type == LandsatProductType.L1_MSS:
+        elif self.instrument == LandsatInstrument.MSS:
             has_band = self._mss_has_cloud_band(band)
         else:
-            raise InvalidProductError(f"Invalid product type: {self.product_type}")
+            raise InvalidProductError(f"Invalid product type: {self.instrument}")
 
         return has_band
 
@@ -1309,17 +1393,21 @@ class LandsatProduct(OpticalProduct):
             landsat_qa_path = self._get_path(self._pixel_quality_id)
             qa_arr = self._read_band(landsat_qa_path, resolution=resolution, size=size)
 
-            if self.product_type == LandsatProductType.L1_OLCI:
-                band_dict = self._open_olci_clouds(qa_arr, bands)
-            elif self.product_type in [
-                LandsatProductType.L1_ETM,
-                LandsatProductType.L1_TM,
+            if self.instrument in [
+                LandsatInstrument.OLI,
+                LandsatInstrument.TIRS,
+                LandsatInstrument.OLI_TIRS,
+            ]:
+                band_dict = self._open_oli_clouds(qa_arr, bands)
+            elif self.instrument in [
+                LandsatInstrument.ETM,
+                LandsatInstrument.TM,
             ]:
                 band_dict = self._open_e_tm_clouds(qa_arr, bands)
-            elif self.product_type == LandsatProductType.L1_MSS:
+            elif self.instrument == LandsatInstrument.MSS:
                 band_dict = self._open_mss_clouds(qa_arr, bands)
             else:
-                raise InvalidProductError(f"Invalid product type: {self.product_type}")
+                raise InvalidProductError(f"Invalid product type: {self.instrument}")
 
         return band_dict
 
@@ -1445,13 +1533,13 @@ class LandsatProduct(OpticalProduct):
 
         return band_dict
 
-    def _open_olci_clouds(
+    def _open_oli_clouds(
         self, qa_arr: xr.DataArray, band_list: Union[list, BandNames]
     ) -> dict:
         """
         Load cloud files as xarrays.
 
-        Read Landsat-OLCI clouds from QA mask.
+        Read Landsat-OLI clouds from QA mask.
         See here for clouds_values:
 
         - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
@@ -1526,7 +1614,7 @@ class LandsatProduct(OpticalProduct):
                 cloud = qa_arr
             else:
                 raise InvalidTypeError(
-                    f"Non existing cloud band for Landsat-OLCI sensor: {band}"
+                    f"Non existing cloud band for Landsat-OLI sensor: {band}"
                 )
 
             # Rename

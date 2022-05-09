@@ -121,6 +121,14 @@ class IceyeProduct(SarProduct):
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
         return def_res
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        ICEYE: https://earth.esa.int/eogateway/missions/iceye
+        """
+        self.instrument = "SAR X-band"
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products

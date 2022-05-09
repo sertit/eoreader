@@ -115,3 +115,11 @@ class CskProduct(CosmoProduct):
             raise InvalidProductError(
                 f"Invalid {self.constellation.value} name: {self.name}"
             )
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        CSK: https://earth.esa.int/eogateway/missions/cosmo-skymed
+        """
+        self.instrument = "SAR-2000"

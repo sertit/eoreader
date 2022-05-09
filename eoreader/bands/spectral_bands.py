@@ -262,7 +262,7 @@ class SpectralBandNames(BandNames):
     F2
     """
 
-    # OLCI additional band names
+    # S3-OLCI additional band names
     Oa01 = "Oa01"
     """
     Oa01

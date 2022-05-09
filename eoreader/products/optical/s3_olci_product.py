@@ -37,9 +37,8 @@ from sertit.vectors import WGS84
 from eoreader import cache, utils
 from eoreader.bands import BandNames, SpectralBand
 from eoreader.bands import spectral_bands as spb
-from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products import S3DataType, S3Instrument, S3Product, S3ProductType
-from eoreader.reader import Constellation
+from eoreader.exceptions import InvalidTypeError
+from eoreader.products import S3DataType, S3Product, S3ProductType
 from eoreader.stac import CENTER_WV, DESCRIPTION, FWHM, GSD, ID, NAME
 from eoreader.utils import EOREADER_NAME
 
@@ -159,19 +158,6 @@ class S3OlciProduct(S3Product):
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
-
-    def _get_constellation(self) -> Constellation:
-        """ Getter of the constellation """
-        if "OL" in self.name:
-            # Instrument
-            self._instrument = S3Instrument.OLCI
-            sat_id = self._instrument.value
-        else:
-            raise InvalidProductError(
-                f"Only OLCI and SLSTR are valid Sentinel-3 instruments : {self.name}"
-            )
-
-        return getattr(Constellation, sat_id)
 
     def _set_resolution(self) -> float:
         """

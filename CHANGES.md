@@ -9,6 +9,7 @@
 - **BREAKING CHANGES: File `alias` is removed, replaced by `*_bands` files and proper imports in `bands.__init__`**
 - **BREAKING CHANGES: Product attribute `band_names` becomes `bands` in order to be STAC compliant ([#29](https://github.com/sertit/eoreader/issues/29))**
 - **BREAKING CHANGES: Better use of `NIR` and `NARROW_NIR` in the `indices` file (according to the gsd of `Sentinel-2` bands composing the indices)**
+- **BREAKING CHANGES: Correcting Landsat product types to better manage processing levels and instrument. Landsat-8/9 condensed name may change!**
 
 ### Enhancements
 
@@ -23,16 +24,19 @@
 - **ENH: Add a STAC object that can be used to retrieve STAC Items from every Product (`prod.stac.create_item()`) ([#29](https://github.com/sertit/eoreader/issues/29))**
 - **ENH: Extending `get_raw_band_paths` to every products ([#31](https://github.com/sertit/eoreader/issues/31))**
 - **ENH: Adding a `is_ortho` attribute corresponding to when the product is already orthorectified/geocoded, in order to avoid computing heavy processes without wanting it (i.e. footprint...)**
+- **ENH: Adding the instrument name of every constellation, under `prod.instrument`**
 
 ### Optimizations
 
 - OPTIM: Retrieve name from filename if possible
 - OPTIM: Retrieve extent from metadata when possible (for VHR data)
+- OPTIM: Refactoring Landsat-XX products into `LandsatProduct`, this should bee invisible for user.
 
 ### Bug Fixes
 
 - FIX: Fixing the band mapping of `WorldView-2/3 Multi` (8 bands)
 - FIX: Retrieval (if possible) of Sentinel-1 [unique ID](https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-1-sar/naming-conventions) (was missing from the product name, as it is not in the product preview)
+- FIX: Fixing PAZ/TDX MTD regex
 
 ### Other
 

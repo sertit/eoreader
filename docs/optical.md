@@ -11,8 +11,8 @@ The Data Access Portfolio Document presents the offer of the datasets and data a
 |Sentinel-2 Theia | {meth}`~eoreader.products.S2TheiaProduct` | L2A | ✅ | 10m|
 |Sentinel-3 SLSTR | {meth}`~eoreader.products.S3Product` | RBT | ✅ | 300m|
 |Sentinel-3 OLCI | {meth}`~eoreader.products.S3Product` | EFR | ✅ | 500m|
-|Landsat 9 OLCI | {meth}`~eoreader.products.L9Product` | Level 1 | ✅ | 30m|
-|Landsat 8 OLCI | {meth}`~eoreader.products.L8Product` | Level 1 | COL1*: ❌, COL2: ✅ | 30m|
+|Landsat 9 OLI-TIRS | {meth}`~eoreader.products.L9Product` | Level 1 | ✅ | 30m|
+|Landsat 8 OLI-TIRS | {meth}`~eoreader.products.L8Product` | Level 1 | COL1*: ❌, COL2: ✅ | 30m|
 |Landsat 7 ETM | {meth}`~eoreader.productsL7Product` | Level 1 | COL1*: ❌, COL2: ✅ | 30m|
 |Landsat 5 TM | {meth}`~eoreader.products.L5Product` | Level 1 | COL1*: ❌, COL2: ✅ | 30m|
 |Landsat 4 TM | {meth}`~eoreader.products.L4Product` | Level 1 | COL1*: ❌, COL2: ✅ | 30m|
@@ -106,7 +106,7 @@ But the bands that are not present in the `alias` file won't be recognized.
 |Sentinel-2 Theia | *Not available* | **2** (10m) |**3** (10m)  | | **4** (10m) | **5** (20m) |**6** (20m) |**7** (20m) |**8A** (10m) | **8** (20m) | *Not available* |**10** (60m) |**11** (20m) |**12** (20m) |  |  | |
 |Sentinel-3 OLCI* | **2** (300m) | **3** (300m) |**6** (300m)  |**7** (300m)  |**8** (300m) |**11** (300m) |**12** (300m) | **16** (300m) | **17** (300m) | **17** (300m) | **20** (300m) |  |  |  |  |  | |
 |Sentinel-3 SLSTR* | | | **1** (500m)  | | **2** (500m) |  |  |  |**3** (500m) |**3** (500m) |  | **4** (500m) | **5** (500m) |**6** (500m) | |**8** (1km) |**9** (1km)|
-|Landsat OLCI (8) | **1** (30m) | **2** (30m) | **3** (30m)  | | **4** (30m) |  |  |  | **5** (30m) | **5** (30m) |  |**9** (30m) |**6** (30m) |**7** (30m) |**8** (15m) |**10** (100m) |**11** (100m)|
+|Landsat OLI-TIRS (8-9) | **1** (30m) | **2** (30m) | **3** (30m)  | | **4** (30m) |  |  |  | **5** (30m) | **5** (30m) |  |**9** (30m) |**6** (30m) |**7** (30m) |**8** (15m) |**10** (100m) |**11** (100m)|
 |Landsat ETM (7)|  | **1** (30m) | **2** (30m)  | | **3** (30m) |  |  |  | **4** (30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |**8** (15m) |**6** (60m) |**6** (60m)|
 |Landsat TM (5-4)|  | **1** (30m) | **2** (30m) |  | **3** (30m) |  |  |  | **4**(30m) | **4** (30m) |  |  | **5** (30m) |**7** (30m) |  |**6** (120m) |**6** (120m)|
 |Landsat MSS (5-4)|  |  | **1** (60m)  | | **2** (60m) | **3** (60m) | **3** (60m) | **3** (60m) | **4** (60m) | **4** (60m) |  |  |  |  |  |  | |

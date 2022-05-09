@@ -48,6 +48,7 @@ from eoreader.bands import BandNames
 from eoreader.bands import SpectralBandNames as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import OpticalProduct
+from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -99,7 +100,6 @@ class S3Product(OpticalProduct):
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
-        self._instrument = None
         self._data_type = None
         self._gcps = None
 
@@ -142,6 +142,30 @@ class S3Product(OpticalProduct):
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+        """
+        if self.constellation == Constellation.S3_OLCI:
+            self.instrument = S3Instrument.OLCI
+        elif self.constellation == Constellation.S3_SLSTR:
+            self.instrument = S3Instrument.SLSTR
+        else:
+            raise InvalidProductError(
+                f"Only OLCI and SLSTR are valid Sentinel-3 instruments : {self.name}"
+            )
+
+    def _get_constellation(self) -> Constellation:
+        """ Getter of the constellation """
+        if "OL" in self.name:
+            return Constellation.S3_OLCI
+        elif "SL" in self.name:
+            return Constellation.S3_SLSTR
+        else:
+            raise InvalidProductError(
+                f"Only OLCI and SLSTR are valid Sentinel-3 instruments : {self.name}"
+            )
 
     @abstractmethod
     def _set_preprocess_members(self):

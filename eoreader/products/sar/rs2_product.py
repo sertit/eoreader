@@ -245,6 +245,14 @@ class Rs2Product(SarProduct):
 
         return def_res
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        RADARSAT: https://earth.esa.int/eogateway/missions/radarsat
+        """
+        self.instrument = "SAR C-band"
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products

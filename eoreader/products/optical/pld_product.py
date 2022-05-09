@@ -78,3 +78,12 @@ class PldProduct(DimapProduct):
             **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 750, WV_MAX: 830}
         )
         self._map_bands_core(blue=blue, green=green, red=red, nir=nir, pan=pan)
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Pleiades: https://earth.esa.int/eogateway/missions/pleiades
+        """
+        # HiRI: High Resolution Imager
+        self.instrument = "HiRI"

@@ -211,6 +211,14 @@ class S2Product(OpticalProduct):
         """Set products type"""
         self.product_type = S2ProductType.from_value(self.split_name[1])
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Sentinel-2: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2/instrument-payload/
+        """
+        self.instrument = "MSI"
+
     def _map_bands(self) -> None:
         """
         Map bands

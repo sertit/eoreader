@@ -229,6 +229,25 @@ class PlaProduct(OpticalProduct):
         else:
             return 3.0
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Pleiades: https://earth.esa.int/eogateway/missions/pleiades-neo
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Manage constellation
+        instr_node = root.find(f".//{nsmap['eop']}Instrument")
+        instrument = instr_node.findtext(f"{nsmap['eop']}shortName")
+
+        if not instrument:
+            raise InvalidProductError("Cannot find the Instrument in the metadata file")
+
+        # Set correct constellation
+        self.instrument = getattr(PlaInstrument, instrument.replace(".", "_"))
+
     def _get_spectral_bands(self) -> dict:
         """
         See <here `https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf`_> for more information.
@@ -400,16 +419,6 @@ class PlaProduct(OpticalProduct):
                 f"Ortho Tile Product are not well tested for Planet products {self.path}."
                 f"Use it at your own risk !"
             )
-
-        # Manage constellation
-        instr_node = root.find(f".//{nsmap['eop']}Instrument")
-        instrument = instr_node.findtext(f"{nsmap['eop']}shortName")
-
-        if not instrument:
-            raise InvalidProductError("Cannot find the Instrument in the metadata file")
-
-        # Set correct constellation
-        self.instrument = getattr(PlaInstrument, instrument.replace(".", "_"))
 
     @cache
     def footprint(self) -> gpd.GeoDataFrame:
