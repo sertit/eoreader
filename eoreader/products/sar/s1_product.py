@@ -114,6 +114,14 @@ class S1Product(SarProduct):
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
         return def_res
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Sentinel-1: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-1/instrument-payload
+        """
+        self.instrument = "SAR C-band"
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products

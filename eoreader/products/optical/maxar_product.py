@@ -397,6 +397,33 @@ class MaxarProduct(VhrProduct):
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        WV01: https://earth.esa.int/eogateway/missions/worldview-1
+        WV02: https://earth.esa.int/eogateway/missions/worldview-2
+        WV03: https://earth.esa.int/eogateway/missions/worldview-3
+        WV04: https://space.oscar.wmo.int/satellites/view/worldview_4
+        Quickbird: https://earth.esa.int/eogateway/missions/quickbird-2
+        GeoEye: https://earth.esa.int/eogateway/missions/worldview-3
+        """
+        if self.constellation == Constellation.WV01:
+            # WorldView-60 camera (WV60)
+            self.instrument = "WV60"
+        elif self.constellation in [Constellation.WV02, Constellation.WV03]:
+            # WorldView-110 camera (WV110)
+            self.instrument = "WV110"
+        elif self.constellation == Constellation.WV04:
+            # SpaceView-110 camera
+            self.instrument = "SpaceView-110 camera"
+        elif self.constellation == Constellation.QB:
+            # Ball Global Imaging System 2000
+            self.instrument = "BGIS-2000"
+        elif self.constellation == Constellation.GE01:
+            # GeoEye Imaging System (GIS)
+            self.instrument = "GIS"
+
     def _get_constellation(self) -> Constellation:
         """ Getter of the constellation """
         # Maxar products are all similar, we must check into the metadata to know the sensor

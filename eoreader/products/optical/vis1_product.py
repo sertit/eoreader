@@ -156,6 +156,14 @@ class Vis1Product(VhrProduct):
         else:
             return self._pan_res
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Vision-1: https://earth.esa.int/eogateway/missions/vision-1
+        """
+        self.instrument = "Vision-1 optical sensor"
+
     def _set_product_type(self) -> None:
         """
         Set products type

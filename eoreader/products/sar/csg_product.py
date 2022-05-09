@@ -138,6 +138,14 @@ class CsgProduct(CosmoProduct):
 
         return def_res
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        CSG: https://earth.esa.int/eogateway/missions/cosmo-skymed-second-generation
+        """
+        self.instrument = "SAR X-band"
+
     def _set_sensor_mode(self) -> None:
         """
         Get products type from S2 products name (could check the metadata too)

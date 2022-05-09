@@ -180,8 +180,8 @@ CONSTELLATION_REGEX = {
     Constellation.S2_THEIA: r"SENTINEL2[AB]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
     Constellation.S3_OLCI: r"S3[AB]_OL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
     Constellation.S3_SLSTR: r"S3[AB]_SL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
-    Constellation.L9: r"LC09_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
-    Constellation.L8: r"LC08_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
+    Constellation.L9: r"L[OTC]09_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
+    Constellation.L8: r"L[OTC]08_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Constellation.L7: r"LE07_L1(GT|TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Constellation.L5: r"L[TM]05_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
     Constellation.L4: r"L[TM]04_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
@@ -199,7 +199,7 @@ CONSTELLATION_REGEX = {
         r"CSG_SSAR\d_(RAW|SCS|DGM|GEC|GTC)_([UBF]|FQLK_B)_\d{4}_(S2[ABC]|D2[RSJ]|OQ[RS]|STR|SC[12]|PPS|QPS)_\d{3}"
         r"_(HH|VV|VH|HV)_[LR][AD]_[DPFR]_\d{14}_\d{14}\_\d_[FC]_\d{2}[NS]_Z\d{2}_[NFB]\d{2}.h5",
     ],
-    Constellation.TSX: r"(TSX|TDX|PAZ)1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
+    Constellation.TSX: r"TSX1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Constellation.TDX: r"TDX1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Constellation.PAZ: r"PAZ1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Constellation.RS2: r"RS2_(OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}|\d{8}_\d{6}_\d{4}_.{1,5})"
@@ -246,8 +246,8 @@ MTD_REGEX = {
     Constellation.CSK: rf"{CONSTELLATION_REGEX[Constellation.CSK][1]}\.xml",
     Constellation.CSG: rf"{CONSTELLATION_REGEX[Constellation.CSG][1]}\.xml",
     Constellation.TSX: rf"{CONSTELLATION_REGEX[Constellation.TSX]}\.xml",
-    Constellation.TDX: rf"{CONSTELLATION_REGEX[Constellation.TSX]}\.xml",
-    Constellation.PAZ: rf"{CONSTELLATION_REGEX[Constellation.TSX]}\.xml",
+    Constellation.TDX: rf"{CONSTELLATION_REGEX[Constellation.TDX]}\.xml",
+    Constellation.PAZ: rf"{CONSTELLATION_REGEX[Constellation.PAZ]}\.xml",
     Constellation.RS2: [
         r"product\.xml",  # Too generic name, check also a band
         r"imagery_[HV]{2}\.tif",
@@ -422,6 +422,7 @@ class Reader:
                     # TerraSAR-like sensors
                     if constellation in [Constellation.TDX, constellation.PAZ]:
                         sat_class = "tsx_product"
+                        constellation = None  # All product names are the same, so assess it with MTD
                     # Maxar-like sensors
                     elif constellation in [
                         Constellation.QB,
@@ -432,6 +433,19 @@ class Reader:
                         Constellation.WV04,
                     ]:
                         sat_class = "maxar_product"
+                        constellation = None  # All product names are the same, so assess it with MTD
+                    # Lansat sensors
+                    elif constellation in [
+                        Constellation.L1,
+                        Constellation.L2,
+                        Constellation.L3,
+                        Constellation.L4,
+                        Constellation.L5,
+                        Constellation.L7,
+                        Constellation.L8,
+                        Constellation.L9,
+                    ]:
+                        sat_class = "landsat_product"
                     # SPOT sensors
                     elif constellation in [Constellation.SPOT6, Constellation.SPOT7]:
                         sat_class = "spot_product"

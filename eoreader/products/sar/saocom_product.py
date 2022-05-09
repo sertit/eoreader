@@ -166,6 +166,14 @@ class SaocomProduct(SarProduct):
 
         return def_res
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        SAOCOM: https://earth.esa.int/eogateway/missions/saocom
+        """
+        self.instrument = "SAR L-band"
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products

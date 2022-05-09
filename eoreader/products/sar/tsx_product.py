@@ -202,6 +202,15 @@ class TsxProduct(SarProduct):
 
         return def_res
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        TSX+TDX: https://earth.esa.int/eogateway/missions/terrasar-x-and-tandem-x
+        PAZ: https://earth.esa.int/eogateway/missions/paz
+        """
+        self.instrument = "SAR X-band"
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products

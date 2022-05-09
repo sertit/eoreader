@@ -82,3 +82,12 @@ class SpotProduct(DimapProduct):
             **{NAME: "NIR", ID: 4, GSD: 6, WV_MIN: 760, WV_MAX: 900}
         )
         self._map_bands_core(blue=blue, green=green, red=red, nir=nir, pan=pan)
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        SPOT-6/7: https://earth.esa.int/eogateway/missions/spot-6
+        """
+        # NAOMI: New Astrosat Optical Modular Instrument
+        self.instrument = "NAOMI"

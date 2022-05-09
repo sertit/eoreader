@@ -227,6 +227,14 @@ class RcmProduct(SarProduct):
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        RCM: https://earth.esa.int/web/eoportal/satellite-missions/r/rcm
+        """
+        self.instrument = "SAR C-band"
+
     def _set_product_type(self) -> None:
         """Set products type"""
         # Get MTD XML file

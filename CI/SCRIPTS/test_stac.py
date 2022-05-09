@@ -560,7 +560,7 @@ def test_tsx():
 @s3_env
 @dask_env
 def test_tdx():
-    """Function testing the support of PAS SAR and TanDEM-X sensors"""
+    """Function testing the support of PAZ SAR and TanDEM-X sensors"""
     _test_core_sar("*TDX*")
 
 

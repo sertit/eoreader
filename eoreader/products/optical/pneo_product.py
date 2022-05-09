@@ -112,3 +112,11 @@ class PneoProduct(DimapProduct):
         self._map_bands_core(
             blue=blue, green=green, red=red, nir=nir, pan=pan, vre=vre, ca=ca
         )
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Pleiades: https://earth.esa.int/eogateway/missions/pleiades-neo
+        """
+        self.instrument = "Pleiades Neo Imager"

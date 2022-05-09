@@ -158,6 +158,9 @@ def _test_core(
             LOGGER.info(prod)
             LOGGER.info(prod.bands)
 
+            # Instrument
+            assert prod.instrument is not None
+
             with tempfile.TemporaryDirectory() as tmp_dir:
                 # tmp_dir = os.path.join(
                 #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
@@ -262,6 +265,11 @@ def _test_core(
                 assert stack.attrs["sensor"] == prod._get_constellation().value
                 assert stack.attrs["sensor_id"] == prod.sat_id
                 assert stack.attrs["product_type"] == prod.product_type.value
+                assert (
+                    stack.attrs["instrument"] == prod.instrument
+                    if isinstance(prod.instrument, str)
+                    else prod.instrument.value
+                )
                 assert stack.attrs["acquisition_date"] == prod.get_datetime(
                     as_datetime=False
                 )
@@ -564,7 +572,7 @@ def test_tsx():
 @s3_env
 @dask_env
 def test_tdx():
-    """Function testing the support of PAS SAR and TanDEM-X sensors"""
+    """Function testing the support of PAZ SAR and TanDEM-X sensors"""
     _test_core_sar("*TDX*")
 
 

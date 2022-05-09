@@ -156,6 +156,9 @@ class Product:
         self.product_type = None
         """Product type, satellite-related field, such as L1C or L2A for Sentinel-2 data."""
 
+        self.instrument = None
+        """Product instrument, such as MSI for Sentinel-2 data."""
+
         self.bands = None
         """
         Band mapping between band wrapping names such as
@@ -227,8 +230,10 @@ class Product:
             self.date = self.get_date(as_date=True)
 
             # Constellation and satellite ID
-            self.constellation = self._get_constellation()
+            if not self.constellation:
+                self.constellation = self._get_constellation()
             self.sat_id = self.constellation.name
+            self._set_instrument()
 
             # Post initialization
             self._post_init(**kwargs)
@@ -369,6 +374,13 @@ class Product:
 
     @abstractmethod
     def _set_product_type(self) -> None:
+        """
+        Set product type
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _set_instrument(self) -> None:
         """
         Set product type
         """
@@ -1521,6 +1533,11 @@ class Product:
         renamed_xarr.attrs["product_path"] = str(self.path)  # Convert to string
         renamed_xarr.attrs["product_name"] = self.name
         renamed_xarr.attrs["product_filename"] = self.filename
+        renamed_xarr.attrs["instrument"] = (
+            self.instrument
+            if isinstance(self.instrument, str)
+            else self.instrument.value
+        )
         renamed_xarr.attrs["product_type"] = (
             self.product_type
             if isinstance(self.product_type, str)

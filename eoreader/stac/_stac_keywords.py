@@ -97,7 +97,7 @@ class StacCommonNames(ListEnum):
     GREEN = "green"  # Band 3, Sentinel-2
     RED = "red"  # Band 4, Sentinel-2
     YELLOW = "yellow"  # Band Oa07, Sentinel-3 OLCI
-    PAN = "pan"  # Band 8, Landsat OLCI
+    PAN = "pan"  # Band 8, Landsat OLI
     RE = "rededge"  # Band 5,6,7, Sentinel-2
     NIR = "nir"  # Band 8, Sentinel-2
     NIR08 = "nir08"  # Band 8a, Sentinel-2
@@ -106,8 +106,8 @@ class StacCommonNames(ListEnum):
     SWIR16 = "swir16"  # Band 11, Sentinel-2
     SWIR22 = "swir22"  # Band 12, Sentinel-2
     LWIR = "lwir"  # Band 6, Landsat TM
-    LWIR11 = "lwir11"  # Band 10, Landsat OLCI
-    LWIR12 = "lwir12"  # Band 11, Landsat OLCI
+    LWIR11 = "lwir11"  # Band 10, Landsat TIRS
+    LWIR12 = "lwir12"  # Band 11, Landsat TIRS
 
 
 # Asset roles: https://github.com/stac-extensions/eo/#best-practices
