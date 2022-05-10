@@ -22,13 +22,13 @@ mostly because SNAP doesn't handle them.
 
 ## Product type handling
 
-| Sensors | Product Type | Handled |
+| Constellations | Product Type | Handled |
 | --- | --- | --- |
 | `COSMO-Skymed` | SCS | ✅ |
 | `COSMO-SkyMed` 1st Generation | DGM | ✅ |
 | `COSMO-SkyMed` 2nd Generation | DGM | ⚠️ |
 | `COSMO-SkyMed` | GEC, GTC | ⚠️ | 
-| `ICEYE` | SLC | ❌* |
+| `ICEYE` | SLC | ✅ |
 | `ICEYE` |GRD | ✅ | 
 | `ICEYE` | ORTHO | 💤 |
 | `RADARSAT Constellation Mission` | SLC | ⚠️ | 
@@ -47,8 +47,6 @@ mostly because SNAP doesn't handle them.
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | MGD | ✅ |
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | GEC | ⚠️ |
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | EEC | ✅ |
-
-\**always given with a GRD image*
 
 ✅: Tested   
 ⚠️: Never tested, **use it at your own risk!**  

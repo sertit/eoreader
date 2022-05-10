@@ -288,7 +288,7 @@ def _test_core(
                             nof_assets -= 1  # remove one VRE, except for S2 and S3 OLCI
                         if VRE_1 in existing_bands and VRE_3 in existing_bands:
                             nof_assets -= 1  # remove one VRE, except for S2 and S3 OLCI
-                    if prod.product_type == LandsatInstrument.TM:
+                    if prod.instrument == LandsatInstrument.TM:
                         if TIR_1 in existing_bands and TIR_2 in existing_bands:
                             nof_assets -= 1  # remove one TIR for TM data
                 else:
