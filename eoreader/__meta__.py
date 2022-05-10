@@ -20,7 +20,7 @@
 __version__ = "0.14.0"
 __title__ = "eoreader"
 __description__ = (
-    "Remote-sensing opensource python library reading optical and SAR sensors, "
+    "Remote-sensing opensource python library reading optical and SAR constellations, "
     "loading and stacking bands, clouds, DEM and spectral indices in a sensor-agnostic way."
 )
 __author__ = "ICube-SERTIT"

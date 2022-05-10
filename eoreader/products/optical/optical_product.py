@@ -771,11 +771,11 @@ class OpticalProduct(Product):
         )
         return 0.0
 
-    def _update_attrs_sensor_specific(
+    def _update_attrs_constellation_specific(
         self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
     ) -> xr.DataArray:
         """
-        Update attributes of the given array (sensor specific)
+        Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
@@ -812,12 +812,12 @@ class OpticalProduct(Product):
         # All optical satellite are descending by default
         return OrbitDirection.DESCENDING
 
-    def _to_repr_sensor_specific(self) -> list:
+    def _to_repr_constellation_specific(self) -> list:
         """
-        Representation specific to the sensor
+        Representation specific to the constellation
 
         Returns:
-            list: Representation list (sensor specific)
+            list: Representation list (constellation specific)
         """
         repr = []
         if self._has_cloud_cover:

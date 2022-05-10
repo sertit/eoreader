@@ -65,6 +65,7 @@ class CustomFields(ListEnum):
     DATETIME = "datetime"
     BAND_MAP = "band_map"
     CONSTELLATION = "constellation"
+    INSTRUMENT = "instrument"
     RES = "resolution"
     PROD_TYPE = "product_type"
     SUN_AZ = "sun_azimuth"
@@ -88,11 +89,16 @@ class CustomProduct(Product):
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
-        self.kwargs = None
+        self.kwargs = kwargs
         """Custom kwargs"""
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+        # (Custom products arte managing constellation on their own)
+        super_kwargs = kwargs.copy()
+        super_kwargs.pop("constellation", None)
+        super().__init__(
+            product_path, archive_path, output_path, remove_tmp, **super_kwargs
+        )
 
     def _pre_init(self, **kwargs) -> None:
         """
@@ -107,8 +113,6 @@ class CustomProduct(Product):
         )
 
         # Process kwargs
-        self.kwargs = kwargs
-
         for key in self.kwargs.keys():
             try:
                 CustomFields.from_value(key)  # noqa
@@ -166,7 +170,7 @@ class CustomProduct(Product):
         except InvalidProductError as msg:
             LOGGER.warning(msg)
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -214,6 +218,15 @@ class CustomProduct(Product):
                 return ds.res[0]
         else:
             return resolution
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        TSX+TDX: https://earth.esa.int/eogateway/missions/terrasar-x-and-tandem-x
+        PAZ: https://earth.esa.int/eogateway/missions/paz
+        """
+        self.instrument = self.kwargs.get(CustomFields.INSTRUMENT.value, CUSTOM)
 
     def _set_product_type(self) -> None:
         """Set products type"""
@@ -551,7 +564,12 @@ class CustomProduct(Product):
         Returns:
             str: Condensed name
         """
-        return f"{self.get_datetime()}_{self.constellation.name}_{self.product_type}"
+        const = (
+            self.constellation
+            if isinstance(self.constellation, str)
+            else self.constellation.name
+        )
+        return f"{self.get_datetime()}_{const}_{self.product_type}"
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
@@ -620,11 +638,11 @@ class CustomProduct(Product):
 
         return od
 
-    def _update_attrs_sensor_specific(
+    def _update_attrs_constellation_specific(
         self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
     ) -> xr.DataArray:
         """
-        Update attributes of the given array (sensor specific)
+        Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
@@ -634,11 +652,11 @@ class CustomProduct(Product):
         """
         return xarr
 
-    def _to_repr_sensor_specific(self) -> list:
+    def _to_repr_constellation_specific(self) -> list:
         """
-        Representation specific to the sensor
+        Representation specific to the constellation
 
         Returns:
-            list: Representation list (sensor specific)
+            list: Representation list (constellation specific)
         """
         return []

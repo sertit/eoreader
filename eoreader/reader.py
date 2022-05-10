@@ -418,12 +418,12 @@ class Reader:
                 if is_valid:
                     sat_class = constellation.name.lower() + "_product"
 
-                    # Channel correctly the sensors to their generic files (just in case)
-                    # TerraSAR-like sensors
+                    # Channel correctly the constellations to their generic files (just in case)
+                    # TerraSAR-like constellations
                     if constellation in [Constellation.TDX, constellation.PAZ]:
                         sat_class = "tsx_product"
                         constellation = None  # All product names are the same, so assess it with MTD
-                    # Maxar-like sensors
+                    # Maxar-like constellations
                     elif constellation in [
                         Constellation.QB,
                         Constellation.GE01,
@@ -434,7 +434,7 @@ class Reader:
                     ]:
                         sat_class = "maxar_product"
                         constellation = None  # All product names are the same, so assess it with MTD
-                    # Lansat sensors
+                    # Lansat constellations
                     elif constellation in [
                         Constellation.L1,
                         Constellation.L2,
@@ -446,7 +446,7 @@ class Reader:
                         Constellation.L9,
                     ]:
                         sat_class = "landsat_product"
-                    # SPOT sensors
+                    # SPOT constellations
                     elif constellation in [Constellation.SPOT6, Constellation.SPOT7]:
                         sat_class = "spot_product"
 

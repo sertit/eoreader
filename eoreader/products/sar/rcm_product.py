@@ -329,7 +329,7 @@ class RcmProduct(SarProduct):
 
         return date
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -385,7 +385,7 @@ class RcmProduct(SarProduct):
         Returns:
             str: Condensed RCM name
         """
-        # Get back the correct sensor name
+        # Get back the correct sensor mode name
         if self.sensor_mode == RcmSensorMode.THREE_M:
             mode_name = "3M"
         elif self.sensor_mode == RcmSensorMode.FIVE_M:

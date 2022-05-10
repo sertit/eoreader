@@ -198,8 +198,8 @@ class Product:
         Used to shorten names and paths.
         """
 
-        self.sat_id = None
-        """Satellite ID, i.e. :code:`S2` for :code:`Sentinel-2`"""
+        self.constellation_id = None
+        """Constellation ID, i.e. :code:`S2` for :code:`Sentinel-2`"""
 
         self.is_ortho = True
         """True if the images are orthorectified and the footprint is retrieved easily."""
@@ -232,7 +232,11 @@ class Product:
             # Constellation and satellite ID
             if not self.constellation:
                 self.constellation = self._get_constellation()
-            self.sat_id = self.constellation.name
+            self.constellation_id = (
+                self.constellation
+                if isinstance(self.constellation, str)
+                else self.constellation.name
+            )
             self._set_instrument()
 
             # Post initialization
@@ -389,8 +393,8 @@ class Product:
     @classmethod
     def _get_constellation(cls) -> Constellation:
         class_module = cls.__module__.split(".")[-1]
-        sat_id = class_module.replace("_product", "").upper()
-        return getattr(Constellation, sat_id)
+        constellation_id = class_module.replace("_product", "").upper()
+        return getattr(Constellation, constellation_id)
 
     def _get_name(self) -> str:
         """
@@ -406,12 +410,12 @@ class Product:
         ):
             name = self.filename
         else:
-            name = self._get_name_sensor_specific()
+            name = self._get_name_constellation_specific()
 
         return name
 
     @abstractmethod
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -860,11 +864,11 @@ class Product:
 
         - For Optical data:
             The bands will be purged of nodata and invalid pixels (if specified with the CLEAN_OPTICAL keyword),
-            the nodata will be set to -9999 and the bands will be `xarray.DataArray`s in float32.
+            the nodata will be set to -9999 and the bands will be DataArrays in float32.
 
         - For SAR data:
             The bands will be purged of nodata (not over the sea),
-            the nodata will be set to 0 to respect SNAP's behavior and the bands will be `xarray.DataArray`s in float32.
+            the nodata will be set to 0 to respect SNAP's behavior and the bands will be DataArray in float32.
 
         Bands that come out this function at the same time are collocated and therefore have the same shapes.
         This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
@@ -1496,11 +1500,11 @@ class Product:
         return stack
 
     @abstractmethod
-    def _update_attrs_sensor_specific(
+    def _update_attrs_constellation_specific(
         self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
     ) -> xr.DataArray:
         """
-        Update attributes of the given array (sensor specific)
+        Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
@@ -1528,8 +1532,12 @@ class Product:
 
         renamed_xarr = xarr.rename(xr_name)
         renamed_xarr.attrs["long_name"] = attr_name
-        renamed_xarr.attrs["sensor"] = self.constellation.value
-        renamed_xarr.attrs["sensor_id"] = self.sat_id
+        renamed_xarr.attrs["constellation"] = (
+            self.constellation
+            if isinstance(self.constellation, str)
+            else self.constellation.value
+        )
+        renamed_xarr.attrs["constellation_id"] = self.constellation_id
         renamed_xarr.attrs["product_path"] = str(self.path)  # Convert to string
         renamed_xarr.attrs["product_name"] = self.name
         renamed_xarr.attrs["product_filename"] = self.filename
@@ -1549,7 +1557,7 @@ class Product:
         renamed_xarr.attrs["orbit_direction"] = od.value if od is not None else str(od)
 
         # kwargs attrs
-        renamed_xarr = self._update_attrs_sensor_specific(
+        renamed_xarr = self._update_attrs_constellation_specific(
             renamed_xarr, long_name, **kwargs
         )
 
@@ -1732,15 +1740,15 @@ class Product:
             f"\tneeds extraction: {self.needs_extraction}",
         ]
 
-        return repr + self._to_repr_sensor_specific()
+        return repr + self._to_repr_constellation_specific()
 
     @abstractmethod
-    def _to_repr_sensor_specific(self) -> list:
+    def _to_repr_constellation_specific(self) -> list:
         """
-        Representation specific to the sensor
+        Representation specific to the constellation
 
         Returns:
-            list: Representation list (sensor specific)
+            list: Representation list (constellation specific)
         """
         raise NotImplementedError
 
