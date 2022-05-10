@@ -32,16 +32,24 @@ extensions:
 """
 import os
 from datetime import datetime
-from typing import Union
+from pprint import pformat
 
 import geopandas as gpd
 from sertit.vectors import WGS84
-from shapely.geometry import mapping
 
 from eoreader import cache
-from eoreader.stac import DESCRIPTION, GSD
-from eoreader.stac._stac_keywords import TITLE, StacCommonNames
-from eoreader.stac.stac_extensions import EoExtension, ProjExtension, ViewExtension
+from eoreader.stac import GSD, stac_utils
+from eoreader.stac._stac_keywords import (
+    BBOX,
+    CONSTELLATION,
+    DATETIME,
+    GEOMETRY,
+    ID,
+    STAC_EXTENSIONS,
+    TITLE,
+)
+from eoreader.stac.stac_extensions import EoExt, ProjExt, ViewExt
+from eoreader.stac.stac_utils import gdf_to_bbox, gdf_to_geometry
 
 SAR_STAC_EXTENSIONS = [
     "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
@@ -62,18 +70,37 @@ class StacItem:
     """
 
     def __init__(self, prod, **kwargs):
-        self.eo = EoExtension(prod, **kwargs)
+        self.eo = EoExt(prod, **kwargs)
         """
         STAC Electro-Optical Extension Specification
         """
-        self.proj = ProjExtension(prod, **kwargs)
+        self.proj = ProjExt(prod, **kwargs)
         """
         STAC Projection Extension Specification
         """
-        self.view = ViewExtension(prod, **kwargs)
+        self.view = ViewExt(prod, **kwargs)
         """
         STAC View Extension Specification
         """
+
+        self._prod = prod
+
+        # STAC fields
+        self.id = self._prod.condensed_name
+        self.datetime = self._prod.datetime
+        self.geometry = gdf_to_geometry(self.geometry_fct())
+        self.bbox = gdf_to_bbox(self.bbox_fct())
+        self.extensions = (
+            SAR_STAC_EXTENSIONS
+            if self._prod.sensor_type.value == "SAR"
+            else OPTICAL_STAC_EXTENSIONS
+        )
+
+        # Common mtd
+        self.gsd = self._prod.resolution
+        self.title = self._prod.condensed_name
+        self.constellation = self._prod.constellation.value.lower()
+        self.created = datetime.utcnow()
 
         # Keep others as dict and set them into metadata properties
         self.properties = {"tilename": prod.tile_name}
@@ -82,68 +109,34 @@ class StacItem:
         REQUIRED. A dictionary of additional metadata for the Item.
         """
 
-        self._prod = prod
-
     @cache
-    def geometry(self) -> gpd.GeoDataFrame:
+    def geometry_fct(self) -> gpd.GeoDataFrame:
         if self._prod.is_ortho:
             return self._prod.footprint().to_crs(WGS84)
         else:
-            return self.bbox()
+            return self.bbox_fct()
 
     @cache
-    def bbox(self) -> gpd.GeoDataFrame:
+    def bbox_fct(self) -> gpd.GeoDataFrame:
         return self._prod.extent().to_crs(WGS84)
 
     @cache
     def create_item(self):
         try:
             import pystac
-            from pystac.extensions.eo import Band, EOExtension
-            from pystac.extensions.projection import ProjectionExtension
-            from pystac.extensions.view import ViewExtension
         except ImportError:
             raise ImportError(
                 "You need to install 'pystac[validation]' to export your product to a STAC Item!"
             )
 
-        def fill_common_mtd(asset: Union[pystac.Asset, pystac.Item], **kwargs):
-
-            # Basics
-            asset.common_metadata.title = kwargs.get(TITLE)
-            asset.common_metadata.description = kwargs.get(DESCRIPTION)
-
-            # Date and Time
-            asset.common_metadata.created = datetime.utcnow()
-            asset.common_metadata.updated = None  # TODO
-
-            # Licensing
-            # asset.common_metadata.license = None  # Collection level if possible
-
-            # Provider
-            # asset.common_metadata.providers = None  # Collection level if possible
-
-            # Date and Time Range
-            asset.common_metadata.start_datetime = None  # TODO
-            asset.common_metadata.end_datetime = None  # TODO
-
-            # Instrument
-            asset.common_metadata.platform = None  # TODO
-            asset.common_metadata.instruments = None  # TODO
-            asset.common_metadata.constellation = self._prod.constellation.value.lower()
-            asset.common_metadata.mission = None
-            asset.common_metadata.gsd = kwargs.get(GSD)
-
         # Item creation
         item = pystac.Item(
-            id=self._prod.condensed_name,
-            datetime=self._prod.datetime,
-            geometry=mapping(self.geometry().geometry.values[0]),
-            bbox=list(self.bbox().bounds.values[0]),
+            id=self.id,
+            datetime=self.datetime,
+            geometry=self.geometry,
+            bbox=self.bbox,
             properties=self.properties,
-            stac_extensions=SAR_STAC_EXTENSIONS
-            if self._prod.sensor_type.value == "SAR"
-            else OPTICAL_STAC_EXTENSIONS,
+            stac_extensions=self.extensions,
         )
 
         # Add assets
@@ -165,97 +158,17 @@ class StacItem:
                 pystac.Asset(href=str(thumbnail_path), media_type=media_type),  # TODO
             )
 
-        # Add the EO extension
-        eo_ext = EOExtension.ext(item, add_if_missing=True)
-        if self.eo.cloud_cover is not None:
-            eo_ext.cloud_cover = self.eo.cloud_cover
-
-        # Add band asset
-        band_paths = self._prod.get_raw_band_paths()
-        for band_name, band_path in band_paths.items():
-            band = self._prod.bands[band_name]
-            try:
-                suffix = os.path.splitext(band_path)[-1]
-                if suffix.lower() in [".tiff", ".tif"]:
-                    # Manage COGs
-                    media_type = pystac.MediaType.GEOTIFF
-                elif suffix.lower() == ".jp2":
-                    media_type = pystac.MediaType.JPEG2000
-                elif suffix.lower() == ".xml":
-                    media_type = pystac.MediaType.XML
-                elif suffix.lower() == ".til":
-                    media_type = None  # Not existing
-                elif suffix.lower() == ".nc":
-                    media_type = None  # Not existing
-                else:
-                    media_type = None  # Not recognized
-                band_asset = pystac.Asset(
-                    href=str(band_path),
-                    media_type=media_type,
-                    roles=[band.asset_role],
-                    extra_fields={"eoreader_name": band.eoreader_name.value},
-                )
-
-                # Spectral bands
-                try:
-                    center_wavelength = band.center_wavelength
-                    solar_illumination = band.solar_illumination
-                    full_width_half_max = band.full_width_half_max
-                except AttributeError:
-                    center_wavelength = None
-                    solar_illumination = None
-                    full_width_half_max = None
-
-                asset_eo_ext = EOExtension.ext(band_asset)
-                common_name = (
-                    band.common_name.value
-                    if isinstance(band.common_name, StacCommonNames)
-                    else None
-                )
-                asset_eo_ext.bands = [
-                    Band.create(
-                        name=band.name,
-                        common_name=common_name,
-                        description=band.description,
-                        center_wavelength=center_wavelength,
-                        full_width_half_max=full_width_half_max,
-                        solar_illumination=solar_illumination,
-                    )
-                ]
-                fill_common_mtd(
-                    band_asset,
-                    **{TITLE: band.name, GSD: band.gsd, DESCRIPTION: band.description},
-                )
-
-                item.add_asset(band.name, band_asset)
-            except ValueError:
-                continue
+        # Add EO extension
+        self.eo.add_to_item(item)
 
         # Add the PROJ extension
-        proj_ext = ProjectionExtension.ext(item, add_if_missing=True)
-        proj_ext.epsg = self.proj.crs().to_epsg()
-        proj_ext.wkt2 = self.proj.crs().to_wkt()
-        # proj_ext.projjson = None
+        self.proj.add_to_item(item)
 
-        proj_geom = self.proj.geometry()
-        proj_ext.geometry = mapping(proj_geom.geometry.values[0])
-        proj_ext.bbox = list(self.proj.bbox().bounds.values[0])
-        centroid = proj_geom.centroid.to_crs(WGS84).values[0]
-        proj_ext.centroid = {"lat": centroid.y, "lon": centroid.x}
+        # Add the View extension
+        self.view.add_to_item(item)
 
-        if self._prod.is_ortho:
-            transform, width, height, _ = self._prod.default_transform()
-            proj_ext.shape = [height, width]
-            proj_ext.transform = transform
-
-        # The View Geometry extension specifies information related to angles of sensors and other radiance angles that affect the view of resulting data
-        if self.view.sun_az is not None and self.view.sun_el is not None:
-            view_ext = ViewExtension.ext(item, add_if_missing=True)
-            view_ext.sun_azimuth = self.view.sun_az
-            view_ext.sun_elevation = self.view.sun_el
-
-        fill_common_mtd(
-            item, **{TITLE: self._prod.condensed_name, GSD: self._prod.resolution}
+        stac_utils.fill_common_mtd(
+            item, self._prod, **{TITLE: self.title, GSD: self.gsd}
         )
 
         # Now that we've added all the metadata to the item,
@@ -265,3 +178,37 @@ class StacItem:
         item.validate()
 
         return item
+
+    def _to_repr(self) -> list:
+        """
+        Get repr list.
+        Returns:
+            list: repr list
+        """
+        repr = [
+            "STAC Item attributes:",
+            f"\t{ID}: {self.id}",
+            f"\t{CONSTELLATION}: {self.constellation}",
+            f"\t{GSD}: {self.gsd}",
+            f"\t{DATETIME}: {self.datetime}",
+            f"\t{GEOMETRY}:\n\t\t{pformat(self.geometry)}",
+            f"\t{BBOX}: {self.bbox}",
+            f"\t{STAC_EXTENSIONS}: {self.extensions}",
+        ]
+
+        for key, val in self.properties.items():
+            if val is not None:
+                repr.append(f"properties:{key}: {val}")
+
+        return repr
+
+    def __repr__(self):
+        repr = "\n".join(self._to_repr())
+        repr += "\n\t"
+        repr += "\n\t".join(self.eo._to_repr())
+        repr += "\n\t"
+        repr += "\n\t".join(self.proj._to_repr())
+        repr += "\n\t"
+        repr += "\n\t".join(self.view._to_repr())
+
+        return repr
