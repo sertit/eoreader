@@ -163,7 +163,7 @@ def _test_core(
                 compare(item.id, prod.condensed_name, "item.id")
 
                 # Extensions
-                if prod.constellation_type == SensorType.OPTICAL:
+                if prod.sensor_type == SensorType.OPTICAL:
                     compare(
                         item.stac_extensions,
                         [

@@ -160,7 +160,7 @@ def _test_core(
                 prod.output = os.path.join(output, f"{prod.condensed_name}{is_zip}")
 
                 # Manage S3 resolution to speed up processes
-                if prod.constellation_type == SensorType.SAR:
+                if prod.sensor_type == SensorType.SAR:
                     res = 1000.0
                     os.environ[SAR_DEF_RES] = str(res)
                 else:
