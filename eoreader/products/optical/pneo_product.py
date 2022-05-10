@@ -119,4 +119,4 @@ class PneoProduct(DimapProduct):
 
         Pleiades: https://earth.esa.int/eogateway/missions/pleiades-neo
         """
-        self.instrument = "Pleiades Neo Imager"
+        self.instrument = "Pleiades-Neo Imager"
