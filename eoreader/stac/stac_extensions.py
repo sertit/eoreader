@@ -25,19 +25,45 @@ STAC extensions:
     - Sun angles
     - Viewing position (in progress)
 """
+import os
+from pprint import pformat
+
 import geopandas as gpd
 from rasterio.crs import CRS
 
 from eoreader import cache
+from eoreader.stac import StacCommonNames
+from eoreader.stac._stac_keywords import (
+    DESCRIPTION,
+    EO_BANDS,
+    EO_CC,
+    GSD,
+    PROJ_BBOX,
+    PROJ_CENTROID,
+    PROJ_EPSG,
+    PROJ_GEOMETRY,
+    PROJ_SHAPE,
+    PROJ_TRANSFORM,
+    TITLE,
+    VIEW_SUN_AZIMUTH,
+    VIEW_SUN_ELEVATION,
+)
+from eoreader.stac.stac_utils import (
+    fill_common_mtd,
+    gdf_to_bbox,
+    gdf_to_centroid,
+    gdf_to_geometry,
+)
 
 
-class EoExtension:
+class EoExt:
     """
     Class of `Electro-Optical Extension Specification <https://github.com/stac-extensions/eo/>`_ of STAC items.
     """
 
     def __init__(self, prod, **kwargs):
         self.cloud_cover = None
+        self._prod = prod
 
         try:
             if prod._has_cloud_cover:
@@ -47,14 +73,133 @@ class EoExtension:
 
         self.bands = prod.bands
 
+    def _to_repr(self) -> list:
+        """
+        Get repr list.
+        Returns:
+            list: repr list
+        """
+        band_repr = "\n".join(
+            [
+                f"\t\t\t{band.value}: {val.id}"
+                for band, val in self.bands.items()
+                if val is not None
+            ]
+        )
+        repr = ["Electro-Optical STAC Extension attributes:"]
 
-class ProjExtension:
+        if self.cloud_cover is not None:
+            repr.append(f"\t{EO_CC}: {self.cloud_cover}")
+
+        repr.append(f"\t{EO_BANDS}:\n{band_repr}")
+
+        return repr
+
+    def __repr__(self):
+        return "\n".join(self._to_repr())
+
+    def add_to_item(self, item) -> None:
+        """
+        Add extension to selected item.
+
+        Args:
+            item (pystac.Item): Selected item
+        """
+        try:
+            import pystac
+            from pystac.extensions.eo import Band, EOExtension
+        except ImportError:
+            raise ImportError(
+                "You need to install 'pystac[validation]' to export your product to a STAC Item!"
+            )
+        # Add the EO extension
+        eo_ext = EOExtension.ext(item, add_if_missing=True)
+        if self.cloud_cover is not None:
+            eo_ext.cloud_cover = self.cloud_cover
+
+        # Add band asset
+        band_paths = self._prod.get_raw_band_paths()
+        for band_name, band_path in band_paths.items():
+            band = self._prod.bands[band_name]
+            try:
+                suffix = os.path.splitext(band_path)[-1]
+                if suffix.lower() in [".tiff", ".tif"]:
+                    # Manage COGs
+                    media_type = pystac.MediaType.GEOTIFF
+                elif suffix.lower() == ".jp2":
+                    media_type = pystac.MediaType.JPEG2000
+                elif suffix.lower() == ".xml":
+                    media_type = pystac.MediaType.XML
+                elif suffix.lower() == ".til":
+                    media_type = None  # Not existing
+                elif suffix.lower() == ".nc":
+                    media_type = None  # Not existing
+                else:
+                    media_type = None  # Not recognized
+                band_asset = pystac.Asset(
+                    href=str(band_path),
+                    media_type=media_type,
+                    roles=[band.asset_role],
+                    extra_fields={"eoreader_name": band.eoreader_name.value},
+                )
+
+                # Spectral bands
+                try:
+                    center_wavelength = band.center_wavelength
+                    solar_illumination = band.solar_illumination
+                    full_width_half_max = band.full_width_half_max
+                except AttributeError:
+                    center_wavelength = None
+                    solar_illumination = None
+                    full_width_half_max = None
+
+                asset_eo_ext = EOExtension.ext(band_asset)
+                common_name = (
+                    band.common_name.value
+                    if isinstance(band.common_name, StacCommonNames)
+                    else None
+                )
+                asset_eo_ext.bands = [
+                    Band.create(
+                        name=band.name,
+                        common_name=common_name,
+                        description=band.description,
+                        center_wavelength=center_wavelength,
+                        full_width_half_max=full_width_half_max,
+                        solar_illumination=solar_illumination,
+                    )
+                ]
+                fill_common_mtd(
+                    band_asset,
+                    self._prod,
+                    **{TITLE: band.name, GSD: band.gsd, DESCRIPTION: band.description},
+                )
+
+                item.add_asset(band.name, band_asset)
+            except ValueError:
+                continue
+
+
+class ProjExt:
     """
     Class `Projection Extension Specification <https://github.com/stac-extensions/projection/>`_ of STAC items.
     """
 
     def __init__(self, prod, **kwargs):
         self._prod = prod
+        self.epsg = self.crs().to_epsg()
+        self.wkt2 = self.crs().to_wkt()
+        self.geometry = gdf_to_geometry(self.geometry_fct())
+        self.bbox = gdf_to_bbox(self.bbox_fct())
+        self.centroid = gdf_to_centroid(self.geometry_fct())
+
+        if self._prod.is_ortho:
+            transform, width, height, _ = self._prod.default_transform()
+            self.shape = [height, width]
+            self.transform = transform
+        else:
+            self.shape = None
+            self.transform = None
 
     @cache
     def crs(self) -> CRS:
@@ -67,7 +212,7 @@ class ProjExtension:
         return self._prod.crs()
 
     @cache
-    def geometry(self) -> gpd.GeoDataFrame:
+    def geometry_fct(self) -> gpd.GeoDataFrame:
         """
         Getter of the projected geometry (footprint)
 
@@ -77,10 +222,10 @@ class ProjExtension:
         if self._prod.is_ortho:
             return self._prod.footprint().to_crs(self.crs())
         else:
-            return self.bbox()
+            return self.bbox_fct()
 
     @cache
-    def bbox(self) -> gpd.GeoDataFrame:
+    def bbox_fct(self) -> gpd.GeoDataFrame:
         """
         Getter of the projected bbox (extent)
 
@@ -89,8 +234,61 @@ class ProjExtension:
         """
         return self._prod.extent().to_crs(self.crs())
 
+    def _to_repr(self) -> list:
+        """
+        Get repr list.
+        Returns:
+            list: repr list
+        """
+        repr = [
+            "Projection STAC Extension attributes:",
+            f"\t{PROJ_EPSG}: {self.epsg}",
+            # f"\t{PROJ_WKT}: {self.wkt2}",  # Too long to display
+            f"\t{PROJ_GEOMETRY}:\n\t\t\t{pformat(self.geometry)}",
+            f"\t{PROJ_BBOX}: {self.bbox}",
+            f"\t{PROJ_CENTROID}: {self.centroid}",
+        ]
 
-class ViewExtension:
+        if self.shape is not None:
+            repr.append(f"\t{PROJ_SHAPE}: {self.shape}")
+
+        if self.transform is not None:
+            repr.append(f"\t{PROJ_TRANSFORM}: {self.transform}")
+
+        return repr
+
+    def __repr__(self):
+        return "\n".join(self._to_repr())
+
+    def add_to_item(self, item) -> None:
+        """
+        Add extension to selected item.
+
+        Args:
+            item (pystac.Item): Selected item
+        """
+        try:
+            from pystac.extensions.projection import ProjectionExtension
+        except ImportError:
+            raise ImportError(
+                "You need to install 'pystac[validation]' to export your product to a STAC Item!"
+            )
+        # Add the proj extension
+        proj_ext = ProjectionExtension.ext(item, add_if_missing=True)
+        proj_ext.epsg = self.epsg
+        proj_ext.wkt2 = self.wkt2
+        # proj_ext.projjson = None
+
+        proj_ext.geometry = self.geometry
+        proj_ext.bbox = self.bbox
+        proj_ext.centroid = self.centroid
+
+        if self._prod.is_ortho:
+            proj_ext.shape = self.shape
+            proj_ext.transform = self.transform
+
+
+class ViewExt:
     """
     Class `View Extension Specification <https://github.com/stac-extensions/view/>`_ of STAC items.
     """
@@ -108,3 +306,43 @@ class ViewExtension:
         # VIEW_OFF_NADIR = "view:off_nadir"
         # VIEW_INCIDENCE_ANGLE = "view:incidence_angle"
         # VIEW_AZIMUTH = "view:azimuth"
+
+    def _to_repr(self) -> list:
+        """
+        Get repr list.
+        Returns:
+            list: repr list
+        """
+        if self.sun_az is not None and self.sun_el is not None:
+            repr = [
+                "View STAC Extension attributes:",
+                f"\t{VIEW_SUN_AZIMUTH}: {self.sun_az}",
+                f"\t{VIEW_SUN_ELEVATION}: {self.sun_el}",
+            ]
+        else:
+            repr = []
+
+        return repr
+
+    def __repr__(self):
+        return "\n".join(self._to_repr())
+
+    def add_to_item(self, item) -> None:
+        """
+        Add extension to selected item.
+
+        Args:
+            item (pystac.Item): Selected item
+        """
+        try:
+            from pystac.extensions.view import ViewExtension
+        except ImportError:
+            raise ImportError(
+                "You need to install 'pystac[validation]' to export your product to a STAC Item!"
+            )
+        # Add the view extension
+        # The View Geometry extension specifies information related to angles of sensors and other radiance angles that affect the view of resulting data
+        if self.sun_az is not None and self.sun_el is not None:
+            view_ext = ViewExtension.ext(item, add_if_missing=True)
+            view_ext.sun_azimuth = self.sun_az
+            view_ext.sun_elevation = self.sun_el

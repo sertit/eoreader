@@ -21,33 +21,39 @@ SAR and Optical products
 from ._stac_keywords import (
     AMPLITUDE,
     ASSET_ROLE,
-    BBOX_FCT,
+    BBOX,
     BT,
     CENTER_WV,
     CLOUD,
     CLOUD_SHADOW,
     COHERENCE,
     COMMON_NAME,
-    CRS_FCT,
+    CONSTELLATION,
     DATETIME,
     DESCRIPTION,
     EO_BANDS,
     EO_CC,
     FWHM,
-    GEOMETRY_FCT,
+    GEOMETRY,
     GSD,
     ID,
+    INSTRUMENTS,
     INTENSITY,
     NA,
     NAME,
+    PLATFORM,
     PROJ_BBOX,
+    PROJ_CENTROID,
     PROJ_EPSG,
     PROJ_GEOMETRY,
     PROJ_SHAPE,
     PROJ_TRANSFORM,
+    PROJ_WKT,
     REFLECTANCE,
     SATURATION,
     SOLAR_ILLUMINATION,
+    STAC_EXTENSIONS,
+    TITLE,
     VIEW_AZIMUTH,
     VIEW_INCIDENCE_ANGLE,
     VIEW_OFF_NADIR,
@@ -60,12 +66,12 @@ from ._stac_keywords import (
 
 __all__ = _stac_keywords.__all__
 
-from .stac_extensions import EoExtension, ProjExtension, ViewExtension
+from .stac_extensions import EoExt, ProjExt, ViewExt
 
 __all__ += [
-    "EoExtension",
-    "ViewExtension",
-    "ProjExtension",
+    "EoExt",
+    "ViewExt",
+    "ProjExt",
 ]
 
 from .stac_item import StacItem

@@ -57,8 +57,8 @@ autodoc_default_options = {
 }
 
 # Notebook integration parameters
-jupyter_execute_notebooks = "cache"
-execution_timeout = -1
+nb_execution_mode = "cache"
+nb_execution_timeout = -1
 
 # Merge stderr and stdout
 nb_merge_streams = True

@@ -22,6 +22,9 @@ __all__ = [
     "GSD",
     "TITLE",
     "DATETIME",
+    "GEOMETRY",
+    "BBOX",
+    "STAC_EXTENSIONS",
     "NA",
     "CONSTELLATION",
     "PLATFORM",
@@ -52,6 +55,7 @@ __all__ = [
     "PROJ_SHAPE",
     "PROJ_GEOMETRY",
     "PROJ_TRANSFORM",
+    "PROJ_CENTROID",
     "VIEW_AZIMUTH",
     "VIEW_OFF_NADIR",
     "VIEW_SUN_AZIMUTH",
@@ -64,14 +68,14 @@ __all__ = [
 ID = "id"
 GSD = "gsd"
 TITLE = "title"
-GEOMETRY_FCT = "geometry_fct"
-BBOX_FCT = "bbox_fct"
-CRS_FCT = "crs_fct"
+GEOMETRY = "geometry"
+BBOX = "bbox"
 DATETIME = "datetime"
 NA = "N/A"
 CONSTELLATION = "constellation"
 PLATFORM = "platform"
 INSTRUMENTS = "instruments"
+STAC_EXTENSIONS = "stac_extensions"
 
 # ---------------- Electro-Optical Extension Specification ----------------
 
@@ -132,6 +136,7 @@ PROJ_EPSG = "proj:epsg"
 PROJ_WKT = "proj:wkt2"
 PROJ_GEOMETRY = "proj:geometry"
 PROJ_BBOX = "proj:bbox"
+PROJ_CENTROID = "proj:centroid"
 PROJ_SHAPE = "proj:shape"
 PROJ_TRANSFORM = "proj:transform"
 
