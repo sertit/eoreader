@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Maxar sensors (GeoEye, WorldViews...) class.
+Maxar satellites (GeoEye, WorldViews...) class.
 See `here <https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-Standard-Imagery.pdf>`_
 for more information.
 """
@@ -426,13 +426,13 @@ class MaxarProduct(VhrProduct):
 
     def _get_constellation(self) -> Constellation:
         """ Getter of the constellation """
-        # Maxar products are all similar, we must check into the metadata to know the sensor
+        # Maxar products are all similar, we must check into the metadata to know the constellation
         root, _ = self.read_mtd()
-        sat_id = root.findtext(".//IMAGE/SATID")
-        if not sat_id:
+        constellation_id = root.findtext(".//IMAGE/SATID")
+        if not constellation_id:
             raise InvalidProductError("Cannot find SATID in the metadata file")
-        sat_id = getattr(MaxarSatId, sat_id).name
-        return getattr(Constellation, sat_id)
+        constellation_id = getattr(MaxarSatId, constellation_id).name
+        return getattr(Constellation, constellation_id)
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -445,11 +445,6 @@ class MaxarProduct(VhrProduct):
         if not band_combi:
             raise InvalidProductError("Cannot find from BANDID in the metadata file")
         self.band_combi = getattr(MaxarBandId, band_combi)
-
-        # Maxar products are all similar, we must check into the metadata to know the sensor
-        sat_id = root.findtext(".//IMAGE/SATID")
-        if not sat_id:
-            raise InvalidProductError("Cannot find SATID in the metadata file")
 
         # Post init done by the super class
         super()._post_init(**kwargs)
@@ -748,7 +743,7 @@ class MaxarProduct(VhrProduct):
                 spb.CA: ca.update(id=4, gsd=self.resolution),
             }
         elif self.band_combi == MaxarBandId.Multi:
-            if self.sat_id in (MaxarSatId.WV02.name, MaxarSatId.WV03.name):
+            if self.constellation_id in (MaxarSatId.WV02.name, MaxarSatId.WV03.name):
                 band_map = {
                     spb.CA: ca.update(id=1, gsd=self.resolution),
                     spb.BLUE: blue.update(id=2, gsd=self.resolution),
@@ -950,7 +945,7 @@ class MaxarProduct(VhrProduct):
 
         return datetime_str
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -1104,7 +1099,7 @@ class MaxarProduct(VhrProduct):
                 "ABSCALFACTOR or EFFECTIVEBANDWIDTH not found in metadata!"
             )
 
-        # Get sensor-specific gain and offset (latest)
+        # Get constellation-specific gain and offset (latest)
         gain, offset = _MAXAR_GAIN_OFFSET[self.constellation][band]
 
         # Compute the coefficient converting DN in TOA radiance

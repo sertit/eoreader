@@ -105,8 +105,8 @@ class Band:
                 else:
                     repr.append(f"\t{attr}: {attr_str}")
 
-        # Specific to sensor
-        repr += self._to_repr_sensor_specific()
+        # Specific to constellation
+        repr += self._to_repr_constellation_specific()
 
         # Final: description
         if self.description:
@@ -115,12 +115,12 @@ class Band:
         return repr
 
     @abstractmethod
-    def _to_repr_sensor_specific(self) -> list:
+    def _to_repr_constellation_specific(self) -> list:
         """
-        Representation specific to the sensor
+        Representation specific to the constellation
 
         Returns:
-            list: Representation list (sensor specific)
+            list: Representation list (constellation specific)
         """
         raise NotImplementedError
 

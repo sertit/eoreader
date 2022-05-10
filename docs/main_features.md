@@ -156,7 +156,7 @@ Landsat Collection 1 have no metadata with XML format, so the XML is simulated f
 ```
 
 ```{note}
-Sentinel-3 sensors have no metadata file but have global attributes repeated in every NetCDF files.
+Sentinel-3 constellations have no metadata file but have global attributes repeated in every NetCDF files.
 This is what you will have when calling this function:
 
 - `absolute_orbit_number`
@@ -181,7 +181,7 @@ This is what you will have when calling this function:
 
 ## Plot
 If a quicklook exists, the user can plot the product.
-Always existing for VHR and SAR data, more rarely for other optical sensors.
+Always existing for VHR and SAR data, more rarely for other optical constellations.
 See [Optical](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html) and [SAR](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html) tutorials for examples.
 
 ```python
@@ -246,7 +246,7 @@ Get optical product cloud cover as specified in the metadata
 ### Orbit direction
 
 Get product optical direction (useful especially for SAR data), as a {meth}`~eoreader.product.OrbitDirection` (`ASCENDING` or `DESCENDING`).
-Always specified in the metadata for SAR sensors, set to `DESCENDING` by default for optical data if not existing.
+Always specified in the metadata for SAR constellations, set to `DESCENDING` by default for optical data if not existing.
 
 ```python
 >>>  # Get orbit direction

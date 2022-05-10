@@ -357,15 +357,15 @@ class LandsatProduct(OpticalProduct):
 
     def _get_constellation(self) -> Constellation:
         """ Getter of the constellation """
-        sat_id = f"L{int(self.split_name[0][2:4])}"
-        return getattr(Constellation, sat_id)
+        constellation_id = f"L{int(self.split_name[0][2:4])}"
+        return getattr(Constellation, constellation_id)
 
     def _map_bands(self) -> None:
         """
         Map bands
         """
         if self.instrument == LandsatInstrument.MSS:
-            self._map_bands_mss(version=int(self.sat_id[-1]))
+            self._map_bands_mss(version=int(self.constellation_id[-1]))
         elif self.instrument == LandsatInstrument.TM:
             self._map_bands_tm()
         elif self.instrument == LandsatInstrument.ETM:
@@ -850,7 +850,7 @@ class LandsatProduct(OpticalProduct):
 
         return date
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -1176,7 +1176,7 @@ class LandsatProduct(OpticalProduct):
             except ValueError:
                 if (
                     band in [spb.TIR_1, spb.TIR_2]
-                    and self.sat_id == Constellation.L7.name
+                    and self.constellation_id == Constellation.L7.name
                 ):
                     band_id = 6
                 else:
@@ -1450,7 +1450,7 @@ class LandsatProduct(OpticalProduct):
                 cloud = qa_arr
             else:
                 raise InvalidTypeError(
-                    f"Non existing cloud band for Landsat-MSS sensor: {band}"
+                    f"Non existing cloud band for Landsat-MSS constellation: {band}"
                 )
 
             # Rename
@@ -1520,7 +1520,7 @@ class LandsatProduct(OpticalProduct):
                 cloud = qa_arr
             else:
                 raise InvalidTypeError(
-                    f"Non existing cloud band for Landsat-(E)TM sensor: {band}"
+                    f"Non existing cloud band for Landsat-(E)TM constellations: {band}"
                 )
 
             # Rename
@@ -1614,7 +1614,7 @@ class LandsatProduct(OpticalProduct):
                 cloud = qa_arr
             else:
                 raise InvalidTypeError(
-                    f"Non existing cloud band for Landsat-OLI sensor: {band}"
+                    f"Non existing cloud band for {self.instrument.value} constellations: {band}"
                 )
 
             # Rename

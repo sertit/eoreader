@@ -723,7 +723,11 @@ class SarProduct(Product):
 
                 # Pre-process graph
                 if PP_GRAPH not in os.environ:
-                    sat = "s1" if self.sat_id == Constellation.S1.name else "sar"
+                    sat = (
+                        "s1"
+                        if self.constellation_id == Constellation.S1.name
+                        else "sar"
+                    )
                     spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
                     pp_graph = utils.get_data_dir().joinpath(
                         f"{spt}_{sat}_preprocess_default.xml"
@@ -953,11 +957,11 @@ class SarProduct(Product):
         """
         return f"{self.get_datetime()}_{self.constellation.name}_{self.sensor_mode.name}_{self.product_type.value}"
 
-    def _update_attrs_sensor_specific(
+    def _update_attrs_constellation_specific(
         self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
     ) -> xr.DataArray:
         """
-        Update attributes of the given array (sensor specific)
+        Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
@@ -968,12 +972,12 @@ class SarProduct(Product):
 
         return xarr
 
-    def _to_repr_sensor_specific(self) -> list:
+    def _to_repr_constellation_specific(self) -> list:
         """
-        Representation specific to the sensor
+        Representation specific to the constellation
 
         Returns:
-            list: Representation list (sensor specific)
+            list: Representation list (constellation specific)
         """
         return [
             f"\torbit direction: {self.get_orbit_direction().value}",

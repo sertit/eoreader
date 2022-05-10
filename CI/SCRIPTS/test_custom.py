@@ -44,6 +44,7 @@ def test_custom():
         datetime="20200310T030415",
         sensor_type=SensorType.OPTICAL,
         constellation="WV02",
+        instrument="WW110",
         resolution=2.0,
         product_type="Ortho",
         band_map={BLUE: 1, GREEN: 2, RED: 3, NIR: 4, SWIR_1: 5},
@@ -56,9 +57,10 @@ def test_custom():
 
     # Check attributes
     assert stack.attrs["long_name"] == "BLUE GREEN RED NIR"
-    assert stack.attrs["sensor"] == "WorldView-2"
-    assert stack.attrs["sensor_id"] == "WV02"
+    assert stack.attrs["constellation"] == "WorldView-2"
+    assert stack.attrs["constellation_id"] == "WV02"
     assert stack.attrs["product_type"] == "Ortho"
+    assert stack.attrs["instrument"] == "WW110"
     assert stack.attrs["acquisition_date"] == "20200310T030415"
     assert stack.attrs["condensed_name"] == "20200310T030415_WV02_Ortho"
     assert stack.attrs["product_path"] == str(opt_stack)
@@ -80,9 +82,10 @@ def test_custom():
     # Check attributes
     assert bands[BLUE].attrs["long_name"] == "BLUE"
     assert bands[NIR].attrs["long_name"] == "NIR"
-    assert bands[BLUE].attrs["sensor"] == "CUSTOM"
-    assert bands[BLUE].attrs["sensor_id"] == "CUSTOM"
+    assert bands[BLUE].attrs["constellation"] == "CUSTOM"
+    assert bands[BLUE].attrs["constellation_id"] == "CUSTOM"
     assert bands[BLUE].attrs["product_type"] == "CUSTOM"
+    assert bands[BLUE].attrs["instrument"] == "CUSTOM"
     # assert bands[BLUE].attrs["acquisition_date"] == "20200310T030415"  Don't test this, datetime == now
     assert bands[BLUE].attrs["condensed_name"].endswith("CUSTOM_CUSTOM")
     assert bands[BLUE].attrs["product_path"] == str(opt_stack)
@@ -117,8 +120,9 @@ def test_custom():
 
     # Check attributes
     assert bands[HILLSHADE].attrs["long_name"] == "HILLSHADE"
-    assert bands[HILLSHADE].attrs["sensor"] == "CUSTOM"
-    assert bands[HILLSHADE].attrs["sensor_id"] == "CUSTOM"
+    assert bands[HILLSHADE].attrs["constellation"] == "CUSTOM"
+    assert bands[HILLSHADE].attrs["constellation_id"] == "CUSTOM"
+    assert bands[HILLSHADE].attrs["instrument"] == "CUSTOM"
     assert bands[HILLSHADE].attrs["product_type"] == "wonderful_type"
     assert bands[HILLSHADE].attrs["acquisition_date"] == "20200310T030415"
     assert (
@@ -151,6 +155,7 @@ def test_custom():
         name="20210827T162210_ICEYE_SC_GRD",
         datetime="20210827T162210",
         constellation="ICEYE",
+        instrument="SAR X-band",
         resolution=6.0,
         product_type="GRD",
         band_map={VV: 1, VV_DSPK: 2},
@@ -163,9 +168,10 @@ def test_custom():
 
     # Check attributes
     assert stack_sar.attrs["long_name"] == "VV VV_DSPK"
-    assert stack_sar.attrs["sensor"] == "ICEYE"
-    assert stack_sar.attrs["sensor_id"] == "ICEYE"
+    assert stack_sar.attrs["constellation"] == "ICEYE"
+    assert stack_sar.attrs["constellation_id"] == "ICEYE"
     assert stack_sar.attrs["product_type"] == "GRD"
+    assert stack_sar.attrs["instrument"] == "SAR X-band"
     assert stack_sar.attrs["acquisition_date"] == "20210827T162210"
     assert stack_sar.attrs["condensed_name"] == "20210827T162210_ICEYE_GRD"
     assert stack_sar.attrs["product_path"] == str(sar_stack)
@@ -200,6 +206,7 @@ def test_custom():
         datetime="20181218T090308",
         constellation="SPOT6",
         resolution=1.5 * 15,
+        instrument="NAOMI",
         product_type="ORT",
         band_map={RED: 1, GREEN: 2, BLUE: 3, NIR: 4},
     )
@@ -229,6 +236,7 @@ def test_custom():
     assert root.findtext("sun_zenith") == "None"
     assert root.findtext("orbit_direction") == "None"
     assert root.findtext("cloud_cover") == "None"
+    assert root.findtext("instrument") == "NAOMI"
 
     # Band paths
     assert prod_wgs84.get_existing_bands() == [BLUE, GREEN, RED, NIR]

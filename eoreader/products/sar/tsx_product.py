@@ -231,13 +231,13 @@ class TsxProduct(SarProduct):
 
     def _get_constellation(self) -> Constellation:
         """ Getter of the constellation """
-        # TerraSAR-X & TanDEM-X products are all similar, we must check into the metadata to know the sensor
+        # TerraSAR-X & TanDEM-X products are all similar, we must check into the metadata to know the constellation
         root, _ = self.read_mtd()
-        sat_id = root.findtext(".//mission")
-        if not sat_id:
+        mission = root.findtext(".//mission")
+        if not mission:
             raise InvalidProductError("Cannot find mission in the metadata file")
-        sat_id = getattr(TsxSatId, sat_id.split("-")[0]).name
-        return getattr(Constellation, sat_id)
+        constellation_id = getattr(TsxSatId, mission.split("-")[0]).name
+        return getattr(Constellation, constellation_id)
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -415,7 +415,7 @@ class TsxProduct(SarProduct):
 
         return date
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 

@@ -51,8 +51,8 @@ class SpotProduct(DimapProduct):
 
     def _get_constellation(self) -> Constellation:
         """ Getter of the constellation """
-        sat_id = self.split_name[0]
-        return getattr(Constellation, sat_id)
+        constellation_id = self.split_name[0]
+        return getattr(Constellation, constellation_id)
 
     def _map_bands(self) -> None:
         """Set products type"""

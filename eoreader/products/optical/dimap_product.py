@@ -563,7 +563,7 @@ class DimapProduct(VhrProduct):
 
         return date_str
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 

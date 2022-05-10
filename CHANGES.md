@@ -5,7 +5,10 @@
 ### Breaking Changes
 
 - **BREAKING CHANGES: `Optical` becomes `Spectral` when more appropriate**
-- **BREAKING CHANGES: `Platform` becomes `Constellation` to fit STAC vocabulary** ([#29](https://github.com/sertit/eoreader/issues/29))
+- **BREAKING CHANGES: `Platform` and `Sensor` become `Constellation` when more appropriate, to fit STAC vocabulary** ([#29](https://github.com/sertit/eoreader/issues/29)):
+  - `Platform` enum becomes `Constellation`
+  - `prod.platform` becomes `prod.constellation`
+  - `prod.sat_id` becomes `prod.constellation_id`
 - **BREAKING CHANGES: File `alias` is removed, replaced by `*_bands` files and proper imports in `bands.__init__`**
 - **BREAKING CHANGES: Product attribute `band_names` becomes `bands` in order to be STAC compliant ([#29](https://github.com/sertit/eoreader/issues/29))**
 - **BREAKING CHANGES: Better use of `NIR` and `NARROW_NIR` in the `indices` file (according to the gsd of `Sentinel-2` bands composing the indices)**

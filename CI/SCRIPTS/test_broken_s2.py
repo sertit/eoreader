@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @s3_env
 @dask_env
 def test_broken_s2():
-    """Function testing the support of broken Sentinel-2 sensor"""
+    """Function testing the support of broken Sentinel-2 constellation"""
     res = 10.0 * 100
 
     # # Broken MTD
