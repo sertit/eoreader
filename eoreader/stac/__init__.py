@@ -74,8 +74,6 @@ __all__ += [
     "ProjExt",
 ]
 
-from .stac_item import StacItem
+from .stac_item import OPTICAL_STAC_EXTENSIONS, SAR_STAC_EXTENSIONS, StacItem
 
-__all__ += [
-    "StacItem",
-]
+__all__ += ["StacItem", "OPTICAL_STAC_EXTENSIONS", "SAR_STAC_EXTENSIONS"]

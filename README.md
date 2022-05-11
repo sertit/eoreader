@@ -99,6 +99,7 @@ Available notebooks provided as examples:
 - [Methods to clean optical bands](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html)
 - [S3 Compatible Storage](https://eoreader.readthedocs.io/en/latest/notebooks/s3_compatible_storage.html)
 - [Dask](https://eoreader.readthedocs.io/en/latest/notebooks/dask.html)
+- [STAC](https://eoreader.readthedocs.io/en/latest/notebooks/stac.html)
 
 ## Installation
 
