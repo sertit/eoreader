@@ -6,4 +6,5 @@
 
    s3_compatible_storage
    dask
+   stac
 ```

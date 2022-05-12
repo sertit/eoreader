@@ -32,7 +32,6 @@ extensions:
 """
 import os
 from datetime import datetime
-from pprint import pformat
 
 import geopandas as gpd
 from sertit.vectors import WGS84
@@ -49,7 +48,7 @@ from eoreader.stac._stac_keywords import (
     TITLE,
 )
 from eoreader.stac.stac_extensions import EoExt, ProjExt, ViewExt
-from eoreader.stac.stac_utils import gdf_to_bbox, gdf_to_geometry
+from eoreader.stac.stac_utils import gdf_to_bbox, gdf_to_geometry, repr_multiline_str
 
 SAR_STAC_EXTENSIONS = [
     "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
@@ -135,7 +134,7 @@ class StacItem:
             datetime=self.datetime,
             geometry=self.geometry,
             bbox=self.bbox,
-            properties=self.properties,
+            properties=self.properties.copy(),
             stac_extensions=self.extensions,
         )
 
@@ -191,20 +190,20 @@ class StacItem:
             f"\t{CONSTELLATION}: {self.constellation}",
             f"\t{GSD}: {self.gsd}",
             f"\t{DATETIME}: {self.datetime}",
-            f"\t{GEOMETRY}:\n\t\t{pformat(self.geometry)}",
-            f"\t{BBOX}: {self.bbox}",
-            f"\t{STAC_EXTENSIONS}: {self.extensions}",
+            f"\t{GEOMETRY}:{repr_multiline_str(self.geometry, nof_tabs=2)}",
+            f"\t{BBOX}: {repr_multiline_str(self.bbox, nof_tabs=2)}",
+            f"\t{STAC_EXTENSIONS}: {repr_multiline_str(self.extensions, nof_tabs=2)}",
         ]
 
         for key, val in self.properties.items():
             if val is not None:
-                repr.append(f"properties:{key}: {val}")
+                repr.append(f"\tproperties - {key}: {val}")
 
         return repr
 
     def __repr__(self):
         repr = "\n".join(self._to_repr())
-        repr += "\n\t"
+        repr += "\n\n\t"
         repr += "\n\t".join(self.eo._to_repr())
         repr += "\n\t"
         repr += "\n\t".join(self.proj._to_repr())
