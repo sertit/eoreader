@@ -18,7 +18,8 @@
 STAC utils
 """
 from datetime import datetime
-from typing import Union
+from pprint import pformat
+from typing import Any, Union
 
 import geopandas as gpd
 import pystac
@@ -97,3 +98,22 @@ def gdf_to_centroid(gdf: gpd.GeoDataFrame) -> dict:
     """
     centroid = gdf.centroid.to_crs(WGS84).values[0]
     return {"lat": centroid.y, "lon": centroid.x}
+
+
+def repr_multiline_str(to_str: Any, nof_tabs: int) -> str:
+    """
+    Format multiline string repr of a list, dict... by adding tabs at the beginning of every new line.
+
+    Begins with a new line.
+
+    Args:
+        to_str (Any): List, dict... to convert to tabbed string
+        nof_tabs (int): Number of tabs to put at the beginning of the lines
+
+    Returns:
+
+    """
+    nof_tabs_str = "\t" * nof_tabs
+    return f"\n{nof_tabs_str}" + f"{nof_tabs_str}".join(
+        pformat(to_str).splitlines(True)
+    )

@@ -26,7 +26,6 @@ STAC extensions:
     - Viewing position (in progress)
 """
 import os
-from pprint import pformat
 
 import geopandas as gpd
 from rasterio.crs import CRS
@@ -53,6 +52,7 @@ from eoreader.stac.stac_utils import (
     gdf_to_bbox,
     gdf_to_centroid,
     gdf_to_geometry,
+    repr_multiline_str,
 )
 
 
@@ -81,7 +81,9 @@ class EoExt:
         """
         band_repr = "\n".join(
             [
-                f"\t\t\t{band.value}: {val.id}"
+                f"\t\t\t{band.value}:"
+                f"\n\t\t\t\t{val.id}"
+                f"\n\t\t\t\t{val.common_name.value}"
                 for band, val in self.bands.items()
                 if val is not None
             ]
@@ -244,16 +246,18 @@ class ProjExt:
             "Projection STAC Extension attributes:",
             f"\t{PROJ_EPSG}: {self.epsg}",
             # f"\t{PROJ_WKT}: {self.wkt2}",  # Too long to display
-            f"\t{PROJ_GEOMETRY}:\n\t\t\t{pformat(self.geometry)}",
-            f"\t{PROJ_BBOX}: {self.bbox}",
-            f"\t{PROJ_CENTROID}: {self.centroid}",
+            f"\t{PROJ_GEOMETRY}: {repr_multiline_str(self.geometry, nof_tabs=3)}",
+            f"\t{PROJ_BBOX}: {repr_multiline_str(self.bbox, nof_tabs=3)}",
+            f"\t{PROJ_CENTROID}: {repr_multiline_str(self.centroid, nof_tabs=3)}",
         ]
 
         if self.shape is not None:
             repr.append(f"\t{PROJ_SHAPE}: {self.shape}")
 
         if self.transform is not None:
-            repr.append(f"\t{PROJ_TRANSFORM}: {self.transform}")
+            repr.append(
+                f"\t{PROJ_TRANSFORM}: {repr_multiline_str(self.transform, nof_tabs=3)}"
+            )
 
         return repr
 
