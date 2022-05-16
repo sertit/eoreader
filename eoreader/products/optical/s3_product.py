@@ -24,6 +24,7 @@ Sentinel-3 products
 import io
 import logging
 import re
+import warnings
 import zipfile
 from abc import abstractmethod
 from datetime import datetime
@@ -39,6 +40,7 @@ from lxml import etree
 from lxml.builder import E
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
+from rasterio.errors import NotGeoreferencedWarning
 from sertit import files, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
@@ -746,20 +748,22 @@ class S3Product(OpticalProduct):
 
         # Open the netcdf file as a dataset (from bytes)
         # mask_and_scale=True => offset and scale are automatically applied !
-        if bytes_file:
-            with io.BytesIO(bytes_file) as bf:
-                # We need to load the dataset as we will do some operations and bf will close
-                nc = xr.open_dataset(bf, mask_and_scale=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=NotGeoreferencedWarning)
+            if bytes_file:
+                with io.BytesIO(bytes_file) as bf:
+                    # We need to load the dataset as we will do some operations and bf will close
+                    nc = xr.open_dataset(bf, mask_and_scale=True)
+                    if subdataset:
+                        nc = getattr(nc, subdataset)
+
+                    nc.load()
+            else:
+                # No need to load here
+                nc = xr.open_dataset(nc_path, mask_and_scale=True, engine="h5netcdf")
+
                 if subdataset:
-                    nc = getattr(nc, subdataset)
-
-                nc.load()
-        else:
-            # No need to load here
-            nc = xr.open_dataset(nc_path, mask_and_scale=True, engine="h5netcdf")
-
-            if subdataset:
-                nc = nc[subdataset]
+                    nc = nc[subdataset]
 
         # WARNING: rioxarray doesn't like bytesIO -> open with xarray.h5netcdf engine
         # BUT the xr.DataArray dimensions wont be correctly formatted !
