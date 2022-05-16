@@ -778,7 +778,7 @@ class S2Product(OpticalProduct):
                 with zipfile.ZipFile(self.path, "r") as zip_ds:
                     filenames = [f.filename for f in zip_ds.filelist]
                     regex = re.compile(
-                        f".*GRANULE.*QI_DATA.*MSK_{mask_id.value}_B{band_name}.gml"
+                        f".*GRANULE.*QI_DATA.*{mask_id.value}_B{band_name}.gml"
                     )
                     mask_path = zip_ds.extract(
                         list(filter(regex.match, filenames))[0], tmp_dir.name
@@ -787,7 +787,7 @@ class S2Product(OpticalProduct):
                 # Get mask path
                 mask_path = files.get_file_in_dir(
                     self.path,
-                    f"**/*GRANULE/*/QI_DATA/MSK_{mask_id.value}_B{band_name}.gml",
+                    f"**/*GRANULE/*/QI_DATA/*{mask_id.value}_B{band_name}.gml",
                     exact_name=True,
                 )
 
@@ -841,13 +841,13 @@ class S2Product(OpticalProduct):
 
         if self.is_archived:
             mask_path = files.get_archived_rio_path(
-                self.path, f".*GRANULE.*QI_DATA.*MSK_{mask_id.value}_B{band_id}.jp2"
+                self.path, f".*GRANULE.*QI_DATA.*{mask_id.value}_B{band_id}.jp2"
             )
         else:
             # Get mask path
             mask_path = files.get_file_in_dir(
                 self.path,
-                f"**/*GRANULE/*/QI_DATA/MSK_{mask_id.value}_B{band_id}.jp2",
+                f"**/*GRANULE/*/QI_DATA/*{mask_id.value}_B{band_id}.jp2",
                 exact_name=True,
             )
 
