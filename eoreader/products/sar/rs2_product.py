@@ -20,13 +20,11 @@ More info `here <https://catalyst.earth/catalyst-system-files/help/references/gd
 """
 import difflib
 import logging
-import warnings
 from datetime import datetime
 from enum import unique
 from typing import Union
 
 import geopandas as gpd
-import rasterio
 from lxml import etree
 from sertit import files, vectors
 from sertit.misc import ListEnum
@@ -40,9 +38,6 @@ from eoreader.reader import Reader
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique

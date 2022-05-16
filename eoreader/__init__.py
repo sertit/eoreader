@@ -18,8 +18,11 @@
 **EOReader** library
 """
 # flake8: noqa
+import warnings
 from functools import wraps
 from typing import Callable
+
+from rasterio.errors import NotGeoreferencedWarning
 
 try:
     from methodtools import lru_cache
@@ -80,3 +83,6 @@ from .__meta__ import (
     __url__,
     __version__,
 )
+
+# Disable georef warnings here as the SAR/Sentinel-3 products are not georeferenced
+warnings.filterwarnings("ignore", category=NotGeoreferencedWarning)

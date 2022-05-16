@@ -19,13 +19,11 @@ TerraSAR-X & TanDEM-X & PAZ products.
 More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
 """
 import logging
-import warnings
 from datetime import datetime
 from enum import unique
 from typing import Union
 
 import geopandas as gpd
-import rasterio
 from lxml import etree
 from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
@@ -40,9 +38,6 @@ from eoreader.products.sar.sar_product import _ExtendedFormatter
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique

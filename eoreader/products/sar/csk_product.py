@@ -19,10 +19,8 @@ COSMO-SkyMed products.
 More info `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
 """
 import logging
-import warnings
 from enum import unique
 
-import rasterio
 from sertit.misc import ListEnum
 
 from eoreader.exceptions import InvalidProductError
@@ -30,9 +28,6 @@ from eoreader.products import CosmoProduct, CosmoProductType
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique

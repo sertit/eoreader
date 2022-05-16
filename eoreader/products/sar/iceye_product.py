@@ -20,14 +20,12 @@ Take a look
 `here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
 """
 import logging
-import warnings
 from datetime import datetime
 from enum import unique
 from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
-import rasterio
 from cloudpathlib import CloudPath
 from lxml import etree
 from sertit import files, vectors
@@ -42,9 +40,6 @@ from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique

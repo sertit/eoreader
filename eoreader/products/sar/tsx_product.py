@@ -19,7 +19,6 @@ TerraSAR-X & TanDEM-X & PAZ products.
 More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
 """
 import logging
-import warnings
 from datetime import datetime
 from enum import unique
 from typing import Union
@@ -39,9 +38,6 @@ from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique
