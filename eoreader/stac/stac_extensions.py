@@ -88,14 +88,14 @@ class EoExt:
                 if val is not None
             ]
         )
-        repr = ["Electro-Optical STAC Extension attributes:"]
+        repr_list = ["Electro-Optical STAC Extension attributes:"]
 
         if self.cloud_cover is not None:
-            repr.append(f"\t{EO_CC}: {self.cloud_cover}")
+            repr_list.append(f"\t{EO_CC}: {self.cloud_cover}")
 
-        repr.append(f"\t{EO_BANDS}:\n{band_repr}")
+        repr_list.append(f"\t{EO_BANDS}:\n{band_repr}")
 
-        return repr
+        return repr_list
 
     def __repr__(self):
         return "\n".join(self._to_repr())
@@ -242,7 +242,7 @@ class ProjExt:
         Returns:
             list: repr list
         """
-        repr = [
+        repr_list = [
             "Projection STAC Extension attributes:",
             f"\t{PROJ_EPSG}: {self.epsg}",
             # f"\t{PROJ_WKT}: {self.wkt2}",  # Too long to display
@@ -252,14 +252,14 @@ class ProjExt:
         ]
 
         if self.shape is not None:
-            repr.append(f"\t{PROJ_SHAPE}: {self.shape}")
+            repr_list.append(f"\t{PROJ_SHAPE}: {self.shape}")
 
         if self.transform is not None:
-            repr.append(
+            repr_list.append(
                 f"\t{PROJ_TRANSFORM}: {repr_multiline_str(self.transform, nof_tabs=3)}"
             )
 
-        return repr
+        return repr_list
 
     def __repr__(self):
         return "\n".join(self._to_repr())
@@ -318,15 +318,15 @@ class ViewExt:
             list: repr list
         """
         if self.sun_az is not None and self.sun_el is not None:
-            repr = [
+            repr_list = [
                 "View STAC Extension attributes:",
                 f"\t{VIEW_SUN_AZIMUTH}: {self.sun_az}",
                 f"\t{VIEW_SUN_ELEVATION}: {self.sun_el}",
             ]
         else:
-            repr = []
+            repr_list = []
 
-        return repr
+        return repr_list
 
     def __repr__(self):
         return "\n".join(self._to_repr())
