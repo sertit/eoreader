@@ -184,7 +184,7 @@ class StacItem:
         Returns:
             list: repr list
         """
-        repr = [
+        repr_list = [
             "STAC Item attributes:",
             f"\t{ID}: {self.id}",
             f"\t{CONSTELLATION}: {self.constellation}",
@@ -197,17 +197,17 @@ class StacItem:
 
         for key, val in self.properties.items():
             if val is not None:
-                repr.append(f"\tproperties - {key}: {val}")
+                repr_list.append(f"\tproperties - {key}: {val}")
 
-        return repr
+        return repr_list
 
     def __repr__(self):
-        repr = "\n".join(self._to_repr())
-        repr += "\n\n\t"
-        repr += "\n\t".join(self.eo._to_repr())
-        repr += "\n\t"
-        repr += "\n\t".join(self.proj._to_repr())
-        repr += "\n\t"
-        repr += "\n\t".join(self.view._to_repr())
+        repr_list = "\n".join(self._to_repr())
+        repr_list += "\n\n\t"
+        repr_list += "\n\t".join(self.eo._to_repr())
+        repr_list += "\n\t"
+        repr_list += "\n\t".join(self.proj._to_repr())
+        repr_list += "\n\t"
+        repr_list += "\n\t".join(self.view._to_repr())
 
-        return repr
+        return repr_list
