@@ -18,6 +18,7 @@
 import logging
 import os
 import platform
+import warnings
 from pathlib import Path
 from typing import Union
 
@@ -29,6 +30,7 @@ from lxml import etree
 from rasterio import errors
 from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
+from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
 from sertit import rasters
 
@@ -159,16 +161,19 @@ def read(
         chunks = None
 
     try:
-        return rasters.read(
-            path,
-            resolution=resolution,
-            size=size,
-            resampling=resampling,
-            masked=masked,
-            indexes=indexes,
-            chunks=chunks,
-            **_prune_keywords(**kwargs),
-        )
+        # Disable georef warnings here as the SAR/Sentinel-3 products are not georeferenced
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=NotGeoreferencedWarning)
+            return rasters.read(
+                path,
+                resolution=resolution,
+                size=size,
+                resampling=resampling,
+                masked=masked,
+                indexes=indexes,
+                chunks=chunks,
+                **_prune_keywords(**kwargs),
+            )
     except errors.RasterioIOError as ex:
         if str(path).endswith("jp2") or str(path).endswith("tif"):
             raise InvalidProductError(f"Corrupted file: {path}") from ex
