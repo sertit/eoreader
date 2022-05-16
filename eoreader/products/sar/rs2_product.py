@@ -458,7 +458,7 @@ class Rs2Product(SarProduct):
         try:
             if self.is_archived:
                 quicklook_path = files.get_archived_rio_path(
-                    self.path, file_regex=".*BrowseImage\.tif"
+                    self.path, file_regex=r".*BrowseImage\.tif"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("BrowseImage.tif")))

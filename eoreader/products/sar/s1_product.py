@@ -299,7 +299,7 @@ class S1Product(SarProduct):
         """
         try:
             if self.is_archived:
-                pdf_file = files.get_archived_path(self.path, ".*\.pdf", as_list=False)
+                pdf_file = files.get_archived_path(self.path, r".*\.pdf", as_list=False)
             else:
                 pdf_file = next(self.path.glob("*.pdf"))
         except (FileNotFoundError, StopIteration):

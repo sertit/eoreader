@@ -353,7 +353,7 @@ class Reader:
             eoreader.S2Product 'S2B_MSIL1C_20210517T103619_N7990_R008_T30QVE_20210929T075738'
             Attributes:
                 condensed_name: 20210517T103619_S2_T30QVE_L1C_075738
-                path: D:\S2B_MSIL1C_20210517T103619_N7990_R008_T30QVE_20210929T075738.SAFE.zip
+                path: D:/S2B_MSIL1C_20210517T103619_N7990_R008_T30QVE_20210929T075738.SAFE.zip
                 constellation: Sentinel-2
                 sensor type: Optical
                 product type: MSIL1C
