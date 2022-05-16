@@ -10,6 +10,7 @@ import xarray as xr
 from cloudpathlib import AnyPath
 from geopandas import gpd
 from lxml import etree
+from matplotlib import pyplot as plt
 from sertit import ci, files, rasters
 
 from eoreader.bands import *
@@ -360,7 +361,9 @@ def _test_core(
                 if qck_path is not None:
                     assert isinstance(qck_path, str)
 
+                # Plot and close figure
                 prod.plot()
+                plt.close()
 
                 # Orbit direction
                 orbit_dir = prod.get_orbit_direction()
