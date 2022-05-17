@@ -90,9 +90,9 @@ class S1Product(SarProduct):
     You can use directly the .zip file
     """
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         See here
         <here](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected>`_
         for more information

@@ -226,9 +226,9 @@ class LandsatProduct(OpticalProduct):
 
         return path
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         if self.constellation in [
             Constellation.L8,

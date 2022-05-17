@@ -78,7 +78,7 @@ class Rs2ProductType(ListEnum):
 @unique
 class Rs2SensorMode(ListEnum):
     """
-    Set product default resolution (in meters)
+    Get product default resolution (in meters)
     See here
     <here](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
     for more information (Beam Modes)
@@ -170,9 +170,9 @@ class Rs2Product(SarProduct):
     You can use directly the .zip file
     """
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         # -------------------------------------------------------------
         # Selective Single or Dual Polarization

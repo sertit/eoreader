@@ -66,9 +66,9 @@ class CskProduct(CosmoProduct):
         >>> prod = Reader().open(path)
     """
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         See here
         `here <https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Mission-Products-Description.pdf>`_
         for more information (p. 30)

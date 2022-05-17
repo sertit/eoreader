@@ -21,10 +21,12 @@ More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Product
 import logging
 from datetime import datetime
 from enum import unique
+from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import rasterio
+from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs
 from sertit import files, rasters, vectors
@@ -130,21 +132,60 @@ class TsxSatId(ListEnum):
     """
 
 
+@unique
+class TsxGeometricResolution(ListEnum):
+    """
+    TerraSAR-X & TanDEM-X & PAZ geometric resolution, either Radiometrically Enhanced Products or Spatially Enhanced Products.
+    This would infer on the resolution of the band, but Copernicus EMS doesn't handled this so we keep SSC resolution as is ESA Data Access Portfolio.
+
+    Take a look
+    `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
+    """
+
+    RE = "Radiometrically Enhanced Products "
+    """The radiometrically enhanced product is optimized with respect to radiometry."""
+
+    SE = "Spatially Enhanced Products "
+    """The spatially enhanced product is designed for the highest possible square ground resolution."""
+
+
 class TsxProduct(SarProduct):
     """Class for TerraSAR-X & TanDEM-X & PAZ Products"""
 
-    def _set_resolution(self) -> float:
+    class IceyeProduct(SarProduct):
         """
-        Set product default resolution (in meters)
+        Class for ICEYE Products
+        Take a look
+        `here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
+        """
+
+        def __init__(
+            self,
+            product_path: Union[str, CloudPath, Path],
+            archive_path: Union[str, CloudPath, Path] = None,
+            output_path: Union[str, CloudPath, Path] = None,
+            remove_tmp: bool = False,
+            **kwargs,
+        ) -> None:
+            self._geometric_res = None
+
+            # Initialization from the super class
+            super().__init__(
+                product_path, archive_path, output_path, remove_tmp, **kwargs
+            )
+
+    def _get_resolution(self) -> float:
+        """
+        Get product default resolution (in meters)
         See here
         <here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
         for more information (Beam Modes)
 
         .. WARNING::
-            For SSC data:
-                - We assume being in High Resolution (SE)
-                - Incidence angle: we consider the worst option, around 20 degrees
+            - We force Spatially Enhanced Resolution (SE) as we keep SSC resolutions (as per the ESA Data Access Portfolio)
         """
+        # TODO: Manage RE case ? Not handled by Copernicus EMS, so be careful...
+
         # Read metadata
         try:
             root, _ = self.read_mtd()
@@ -241,6 +282,9 @@ class TsxProduct(SarProduct):
         (setting product-type, band names and so on)
         """
         self.snap_filename = f"{self.name}.xml"
+
+        # Geometric resolution
+        self._geometric_res = getattr(TsxGeometricResolution, self.split_name[3])
 
         # Post init done by the super class
         super()._post_init(**kwargs)

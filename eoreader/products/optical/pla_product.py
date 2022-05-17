@@ -218,9 +218,9 @@ class PlaProduct(OpticalProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         # Ortho Tiles
         if self.product_type == PlaProductType.L3A:

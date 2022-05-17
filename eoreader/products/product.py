@@ -246,7 +246,7 @@ class Product:
             self._set_product_type()
 
             # Set the resolution, needs to be done when knowing the product type
-            self.resolution = self._set_resolution()
+            self.resolution = self._get_resolution()
 
             self._map_bands()
 
@@ -370,9 +370,9 @@ class Product:
         return band_folder
 
     @abstractmethod
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         raise NotImplementedError
 

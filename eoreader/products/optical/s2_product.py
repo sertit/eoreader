@@ -190,9 +190,9 @@ class S2Product(OpticalProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         # S2: use 10m resolution, even if we have 60m and 20m resolution
         # In the future maybe use one resolution per band ?

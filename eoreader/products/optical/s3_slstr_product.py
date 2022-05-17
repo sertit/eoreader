@@ -311,9 +311,9 @@ class S3SlstrProduct(S3Product):
         # Other
         self._exception_name = "{band}_exception_{suffix}"
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         return 500.0
 

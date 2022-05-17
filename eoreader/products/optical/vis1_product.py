@@ -145,9 +145,9 @@ class Vis1Product(VhrProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         # Not Pansharpened images
         if self.band_combi == Vis1BandCombination.MS4:
