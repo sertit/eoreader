@@ -159,9 +159,9 @@ class S3OlciProduct(S3Product):
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         return 300.0
 

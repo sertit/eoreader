@@ -450,9 +450,9 @@ class MaxarProduct(VhrProduct):
         super()._post_init(**kwargs)
 
     @abstractmethod
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
 
         # Band combination

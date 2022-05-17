@@ -208,9 +208,9 @@ class CustomProduct(Product):
             self.kwargs.get(CustomFields.CONSTELLATION.value, CUSTOM)
         )[0]
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         resolution = self.kwargs.get(CustomFields.RES.value, None)
         if resolution is None:

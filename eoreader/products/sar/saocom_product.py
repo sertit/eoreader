@@ -124,9 +124,9 @@ class SaocomPolarization(ListEnum):
 class SaocomProduct(SarProduct):
     """Class for SAOCOM-1 Products"""
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         See here
         <here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
         for more information (Beam Modes)
