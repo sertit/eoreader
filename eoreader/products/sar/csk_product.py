@@ -19,10 +19,8 @@ COSMO-SkyMed products.
 More info `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
 """
 import logging
-import warnings
 from enum import unique
 
-import rasterio
 from sertit.misc import ListEnum
 
 from eoreader.exceptions import InvalidProductError
@@ -30,9 +28,6 @@ from eoreader.products import CosmoProduct, CosmoProductType
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique
@@ -71,9 +66,9 @@ class CskProduct(CosmoProduct):
         >>> prod = Reader().open(path)
     """
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         See here
         `here <https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Mission-Products-Description.pdf>`_
         for more information (p. 30)
@@ -113,5 +108,13 @@ class CskProduct(CosmoProduct):
 
         if not self.sensor_mode:
             raise InvalidProductError(
-                f"Invalid {self.platform.value} name: {self.name}"
+                f"Invalid {self.constellation.value} name: {self.name}"
             )
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        CSK: https://earth.esa.int/eogateway/missions/cosmo-skymed
+        """
+        self.instrument = "SAR-2000"

@@ -20,13 +20,11 @@ More info `here <https://catalyst.earth/catalyst-system-files/help/references/gd
 """
 import difflib
 import logging
-import warnings
 from datetime import datetime
 from enum import unique
 from typing import Union
 
 import geopandas as gpd
-import rasterio
 from lxml import etree
 from sertit import files, vectors
 from sertit.misc import ListEnum
@@ -40,9 +38,6 @@ from eoreader.reader import Reader
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique
@@ -83,7 +78,7 @@ class Rs2ProductType(ListEnum):
 @unique
 class Rs2SensorMode(ListEnum):
     """
-    Set product default resolution (in meters)
+    Get product default resolution (in meters)
     See here
     <here](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
     for more information (Beam Modes)
@@ -175,9 +170,9 @@ class Rs2Product(SarProduct):
     You can use directly the .zip file
     """
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         # -------------------------------------------------------------
         # Selective Single or Dual Polarization
@@ -244,6 +239,14 @@ class Rs2Product(SarProduct):
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
         return def_res
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        RADARSAT: https://earth.esa.int/eogateway/missions/radarsat
+        """
+        self.instrument = "SAR C-band"
 
     def _pre_init(self, **kwargs) -> None:
         """
@@ -330,7 +333,7 @@ class Rs2Product(SarProduct):
             LOGGER.warning(
                 "Other product types than SGF or SLC haven't been tested for %s data. "
                 "Use it at your own risks !",
-                self.platform.value,
+                self.constellation.value,
             )
 
     def _set_sensor_mode(self) -> None:
@@ -397,7 +400,7 @@ class Rs2Product(SarProduct):
 
         return date
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -408,7 +411,7 @@ class Rs2Product(SarProduct):
 
         # Test filename
         reader = Reader()
-        if not reader.valid_name(name, self._get_platform()):
+        if not reader.valid_name(name, self._get_constellation()):
             LOGGER.warning(
                 "This RADARSAT-2 filename is not valid. "
                 "However RADARSAT-2 files do not provide anywhere the true name of the product. "
@@ -450,7 +453,7 @@ class Rs2Product(SarProduct):
         try:
             if self.is_archived:
                 quicklook_path = files.get_archived_rio_path(
-                    self.path, file_regex=".*BrowseImage\.tif"
+                    self.path, file_regex=r".*BrowseImage\.tif"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("BrowseImage.tif")))

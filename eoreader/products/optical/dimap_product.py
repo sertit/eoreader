@@ -37,6 +37,7 @@ from rasterio import crs as riocrs
 from rasterio import features, transform
 from sertit import files, rasters_rio, vectors
 from sertit.misc import ListEnum
+from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
@@ -44,7 +45,7 @@ from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import VhrProduct
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -267,9 +268,9 @@ class DimapProduct(VhrProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         # Not Pansharpened images
         if self.band_combi in [
@@ -283,8 +284,10 @@ class DimapProduct(VhrProduct):
         else:
             return self._pan_res
 
-    def _set_product_type_core(self, **kwargs) -> None:
-        """Set products type"""
+    def _map_bands_core(self, **kwargs) -> None:
+        """
+        Map bands
+        """
         # Open spectral bands
         pan = kwargs.get("pan")
         blue = kwargs.get("blue")
@@ -293,10 +296,6 @@ class DimapProduct(VhrProduct):
         nir = kwargs.get("nir")
         ca = kwargs.get("ca")
         vre = kwargs.get("vre")
-
-        # get product type
-        prod_type = self.split_name[3]
-        self.product_type = getattr(DimapProductType, prod_type)
 
         # Manage bands of the product
         if self.band_combi == DimapBandCombination.P:
@@ -390,6 +389,17 @@ class DimapProduct(VhrProduct):
                 f"Unusual band combination: {self.band_combi.name}"
             )
 
+    def _set_product_type(self) -> None:
+        """Set products type"""
+
+        # get product type
+        prod_type = self.split_name[3]
+        self.product_type = getattr(DimapProductType, prod_type)
+
+        # Manage not orthorectified product
+        if self.product_type in [DimapProductType.SEN, DimapProductType.PRJ]:
+            self.is_ortho = False
+
     def _get_raw_crs(self) -> riocrs.CRS:
         """
         Get raw CRS of the tile
@@ -446,23 +456,34 @@ class DimapProduct(VhrProduct):
     @cache
     def extent(self, **kwargs) -> gpd.GeoDataFrame:
         """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1B_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.footprint()
-                                                         gml_id  ...                                           geometry
-            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
-            [1 rows x 3 columns]
+        Get UTM extent of the tile.
 
         Returns:
-            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+            gpd.GeoDataFrame: Extent in UTM
         """
-        # TODO: parse KMZ - product - xxxx ?
-        return super().extent()
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Compute extent corners
+        corners = [
+            [float(vertex.findtext("LON")), float(vertex.findtext("LAT"))]
+            for vertex in root.iterfind(".//Dataset_Extent/Vertex")
+        ]
+
+        extent_wgs84 = gpd.GeoDataFrame(
+            geometry=[Polygon(corners)],
+            crs=vectors.WGS84,
+        )
+
+        # Not square extent
+        utm_extent_raw = extent_wgs84.to_crs(self.crs())
+
+        utm_extent = gpd.GeoDataFrame(
+            geometry=[box(*utm_extent_raw.total_bounds)],
+            crs=self.crs(),
+        )
+
+        return utm_extent
 
     @cache
     def footprint(self, **kwargs) -> gpd.GeoDataFrame:
@@ -542,7 +563,7 @@ class DimapProduct(VhrProduct):
 
         return date_str
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -1008,7 +1029,7 @@ class DimapProduct(VhrProduct):
         Returns:
             xr.DataArray: TOA Radiance array
         """
-        if self.platform == Platform.PNEO:
+        if self.constellation == Constellation.PNEO:
             band_mtd_str = _PNEO_BAND_MTD[band]
         else:
             band_mtd_str = _DIMAP_BAND_MTD[band]
@@ -1053,7 +1074,7 @@ class DimapProduct(VhrProduct):
         Returns:
             xr.DataArray: TOA Reflectance array
         """
-        if self.platform == Platform.PNEO:
+        if self.constellation == Constellation.PNEO:
             band_mtd_str = _PNEO_BAND_MTD[band]
         else:
             band_mtd_str = _DIMAP_BAND_MTD[band]

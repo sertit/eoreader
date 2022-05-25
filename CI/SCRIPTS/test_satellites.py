@@ -10,6 +10,7 @@ import xarray as xr
 from cloudpathlib import AnyPath
 from geopandas import gpd
 from lxml import etree
+from matplotlib import pyplot as plt
 from sertit import ci, files, rasters
 
 from eoreader.bands import *
@@ -158,6 +159,9 @@ def _test_core(
             LOGGER.info(prod)
             LOGGER.info(prod.bands)
 
+            # Instrument
+            assert prod.instrument is not None
+
             with tempfile.TemporaryDirectory() as tmp_dir:
                 # tmp_dir = os.path.join(
                 #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
@@ -172,7 +176,7 @@ def _test_core(
                 if prod.sensor_type == SensorType.SAR:
                     res = 1000.0
                     os.environ[SAR_DEF_RES] = str(res)
-                elif prod.sat_id in ["S2", "S2_THEIA"]:
+                elif prod.constellation_id in ["S2", "S2_THEIA"]:
                     res = 20.0 * 50  # Legacy
                 else:
                     res = prod.resolution * 50
@@ -195,7 +199,6 @@ def _test_core(
                 try:
                     ci.assert_geom_equal(extent, extent_path)
                 except AssertionError:
-                    # TODO: WHY ???
                     LOGGER.warning("Extent not equal, trying almost equal.")
                     assert_geom_almost_equal(extent, extent_path)
 
@@ -260,9 +263,14 @@ def _test_core(
 
                 # Check attributes
                 assert stack.attrs["long_name"] == " ".join(to_str(stack_bands))
-                assert stack.attrs["sensor"] == prod._get_platform().value
-                assert stack.attrs["sensor_id"] == prod.sat_id
+                assert stack.attrs["constellation"] == prod._get_constellation().value
+                assert stack.attrs["constellation_id"] == prod.constellation_id
                 assert stack.attrs["product_type"] == prod.product_type.value
+                assert (
+                    stack.attrs["instrument"] == prod.instrument
+                    if isinstance(prod.instrument, str)
+                    else prod.instrument.value
+                )
                 assert stack.attrs["acquisition_date"] == prod.get_datetime(
                     as_datetime=False
                 )
@@ -301,8 +309,10 @@ def _test_core(
 
                 # Check attributes
                 assert band_arr.attrs["long_name"] == first_band.name
-                assert band_arr.attrs["sensor"] == prod._get_platform().value
-                assert band_arr.attrs["sensor_id"] == prod.sat_id
+                assert (
+                    band_arr.attrs["constellation"] == prod._get_constellation().value
+                )
+                assert band_arr.attrs["constellation_id"] == prod.constellation_id
                 assert band_arr.attrs["product_type"] == prod.product_type.value
                 assert band_arr.attrs["acquisition_date"] == prod.get_datetime(
                     as_datetime=False
@@ -351,7 +361,9 @@ def _test_core(
                 if qck_path is not None:
                     assert isinstance(qck_path, str)
 
+                # Plot and close figure
                 prod.plot()
+                plt.close()
 
                 # Orbit direction
                 orbit_dir = prod.get_orbit_direction()
@@ -369,21 +381,21 @@ def _test_core(
 @s3_env
 @dask_env
 def test_s2():
-    """Function testing the support of Sentinel-2 sensor"""
+    """Function testing the support of Sentinel-2 constellation"""
     _test_core_optical("*S2*_MSI*")
 
 
 @s3_env
 @dask_env
 def test_s2_theia():
-    """Function testing the support of Sentinel-2 Theia sensor"""
+    """Function testing the support of Sentinel-2 Theia constellation"""
     _test_core_optical("*SENTINEL2*")
 
 
 @s3_env
 @dask_env
 def test_s3_olci():
-    """Function testing the support of Sentinel-3 OLCI sensor"""
+    """Function testing the support of Sentinel-3 OLCI constellation"""
     # Init logger
     _test_core_optical("*S3*_OL_1_*")
 
@@ -391,7 +403,7 @@ def test_s3_olci():
 @s3_env
 @dask_env
 def test_s3_slstr():
-    """Function testing the support of Sentinel-3 SLSTR sensor"""
+    """Function testing the support of Sentinel-3 SLSTR constellation"""
     # Init logger
     _test_core_optical("*S3*_SL_1_*", **{SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP})
 
@@ -399,7 +411,7 @@ def test_s3_slstr():
 @s3_env
 @dask_env
 def test_l9():
-    """Function testing the support of Landsat-9 sensor"""
+    """Function testing the support of Landsat-9 constellation"""
     # Init logger
     _test_core_optical("*LC09*")
 
@@ -407,7 +419,7 @@ def test_l9():
 @s3_env
 @dask_env
 def test_l8():
-    """Function testing the support of Landsat-8 sensor"""
+    """Function testing the support of Landsat-8 constellation"""
     # Init logger
     _test_core_optical("*LC08*")
 
@@ -415,21 +427,21 @@ def test_l8():
 @s3_env
 @dask_env
 def test_l7():
-    """Function testing the support of Landsat-7 sensor"""
+    """Function testing the support of Landsat-7 constellation"""
     _test_core_optical("*LE07*")
 
 
 @s3_env
 @dask_env
 def test_l5_tm():
-    """Function testing the support of Landsat-5 TM sensor"""
+    """Function testing the support of Landsat-5 TM constellation"""
     _test_core_optical("*LT05*")
 
 
 @s3_env
 @dask_env
 def test_l4_tm():
-    """Function testing the support of Landsat-4 TM sensor"""
+    """Function testing the support of Landsat-4 TM constellation"""
     _test_core_optical("*LT04*")
 
 
@@ -440,70 +452,70 @@ def test_l4_tm():
 @s3_env
 @dask_env
 def test_l5_mss():
-    """Function testing the support of Landsat-5 MSS sensor"""
+    """Function testing the support of Landsat-5 MSS constellation"""
     _test_core_optical("*LM05*")
 
 
 @s3_env
 @dask_env
 def test_l4_mss():
-    """Function testing the support of Landsat-4 MSS sensor"""
+    """Function testing the support of Landsat-4 MSS constellation"""
     _test_core_optical("*LM04*")
 
 
 @s3_env
 @dask_env
 def test_l3_mss():
-    """Function testing the support of Landsat-3 sensor"""
+    """Function testing the support of Landsat-3 constellation"""
     _test_core_optical("*LM03*")
 
 
 @s3_env
 @dask_env
 def test_l2_mss():
-    """Function testing the support of Landsat-2 sensor"""
+    """Function testing the support of Landsat-2 constellation"""
     _test_core_optical("*LM02*")
 
 
 @s3_env
 @dask_env
 def test_l1_mss():
-    """Function testing the support of Landsat-1 sensor"""
+    """Function testing the support of Landsat-1 constellation"""
     _test_core_optical("*LM01*")
 
 
 @s3_env
 @dask_env
 def test_pla():
-    """Function testing the support of PlanetScope sensor"""
+    """Function testing the support of PlanetScope constellation"""
     _test_core_optical("*202*1014*")
 
 
 @s3_env
 @dask_env
 def test_pld():
-    """Function testing the support of Pleiades sensor"""
+    """Function testing the support of Pleiades constellation"""
     _test_core_optical("*IMG_PHR*")
 
 
 @s3_env
 @dask_env
 def test_pneo():
-    """Function testing the support of Pleiades-Neo sensor"""
+    """Function testing the support of Pleiades-Neo constellation"""
     _test_core_optical("*IMG_*_PNEO*")
 
 
 @s3_env
 @dask_env
 def test_spot6():
-    """Function testing the support of SPOT-6 sensor"""
+    """Function testing the support of SPOT-6 constellation"""
     _test_core_optical("*IMG_SPOT6*")
 
 
 @s3_env
 @dask_env
 def test_spot7():
-    """Function testing the support of SPOT-7 sensor"""
+    """Function testing the support of SPOT-7 constellation"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*IMG_SPOT7*", dem_path=dem_path)
@@ -512,7 +524,7 @@ def test_spot7():
 @s3_env
 @dask_env
 def test_wv02_wv03():
-    """Function testing the support of WorldView-2/3 sensors"""
+    """Function testing the support of WorldView-2/3 constellations"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*P001_MUL*", dem_path=dem_path)
@@ -521,14 +533,14 @@ def test_wv02_wv03():
 @s3_env
 @dask_env
 def test_ge01_wv04():
-    """Function testing the support of GeoEye-1/WorldView-4 sensors"""
+    """Function testing the support of GeoEye-1/WorldView-4 constellations"""
     _test_core_optical("*P001_PSH*")
 
 
 @s3_env
 @dask_env
 def test_vs1():
-    """Function testing the support of Vision-1 sensor"""
+    """Function testing the support of Vision-1 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*VIS1_MS4*", dem_path=dem_path)
 
@@ -536,28 +548,28 @@ def test_vs1():
 @s3_env
 @dask_env
 def test_s1():
-    """Function testing the support of Sentinel-1 sensor"""
+    """Function testing the support of Sentinel-1 constellation"""
     _test_core_sar("*S1*_IW*")
 
 
 @s3_env
 @dask_env
 def test_csk():
-    """Function testing the support of COSMO-Skymed sensor"""
+    """Function testing the support of COSMO-Skymed constellation"""
     _test_core_sar("*csk_*")
 
 
 @s3_env
 @dask_env
 def test_csg():
-    """Function testing the support of COSMO-Skymed 2nd Generation sensor"""
+    """Function testing the support of COSMO-Skymed 2nd Generation constellation"""
     _test_core_sar("*CSG_*")
 
 
 @s3_env
 @dask_env
 def test_tsx():
-    """Function testing the support of TerraSAR-X sensors"""
+    """Function testing the support of TerraSAR-X constellations"""
     _test_core_sar("*TSX*")
 
 
@@ -565,35 +577,35 @@ def test_tsx():
 @s3_env
 @dask_env
 def test_tdx():
-    """Function testing the support of PAS SAR and TanDEM-X sensors"""
+    """Function testing the support of PAZ SAR and TanDEM-X constellations"""
     _test_core_sar("*TDX*")
 
 
 @s3_env
 @dask_env
 def test_rs2():
-    """Function testing the support of RADARSAT-2 sensor"""
+    """Function testing the support of RADARSAT-2 constellation"""
     _test_core_sar("*RS2_*")
 
 
 @s3_env
 @dask_env
 def test_rcm():
-    """Function testing the support of RADARSAT-Constellation sensor"""
+    """Function testing the support of RADARSAT-Constellation constellation"""
     _test_core_sar("*RCM*")
 
 
 @s3_env
 @dask_env
 def test_iceye():
-    """Function testing the support of ICEYE sensor"""
+    """Function testing the support of ICEYE constellation"""
     _test_core_sar("*SC_*")
 
 
 @s3_env
 @dask_env
 def test_saocom():
-    """Function testing the support of SAOCOM sensor"""
+    """Function testing the support of SAOCOM constellation"""
     _test_core_sar("*SAO*")
 
 

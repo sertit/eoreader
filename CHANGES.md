@@ -5,36 +5,52 @@
 ### Breaking Changes
 
 - **BREAKING CHANGES: `Optical` becomes `Spectral` when more appropriate**
+- **BREAKING CHANGES: `Platform` and `Sensor` become `Constellation` when more appropriate, to fit STAC vocabulary** ([#29](https://github.com/sertit/eoreader/issues/29)):
+  - `Platform` enum becomes `Constellation`
+  - `prod.platform` becomes `prod.constellation`
+  - `prod.sat_id` becomes `prod.constellation_id`
 - **BREAKING CHANGES: File `alias` is removed, replaced by `*_bands` files and proper imports in `bands.__init__`**
 - **BREAKING CHANGES: Product attribute `band_names` becomes `bands` in order to be STAC compliant ([#29](https://github.com/sertit/eoreader/issues/29))**
 - **BREAKING CHANGES: Better use of `NIR` and `NARROW_NIR` in the `indices` file (according to the gsd of `Sentinel-2` bands composing the indices)**
+- **BREAKING CHANGES: Correcting Landsat product types to better manage processing levels and instrument. Landsat-8/9 condensed name may change!**
 
 ### Enhancements
 
 - **ENH: Bands in mapping are now objects, instead of just IDs** ([#29](https://github.com/sertit/eoreader/issues/29)). This allows us to:
-    - Add band metadata (such as center wavelength, bandwidth...)
-    - Map spectral bands between STAC spec and EOReader format
-    - Add a better `__repr__` functions
+  - Add band metadata (such as center wavelength, bandwidth...)
+  - Map spectral bands between STAC spec and EOReader format ([#29](https://github.com/sertit/eoreader/issues/29))
+  - Add a better `__repr__` functions
 - **ENH: Handling 8 bands `PlanetScope` data** ([#20](https://github.com/sertit/eoreader/issues/20))
 - **ENH: Adding the `GREEN1` mapped band, corresponding to PlanetScope `GREEN I` and `Sentinel-3 OLCI` `Oa05` band**
-- **ENH: Handle some slightly broken `Sentinel-2` products, i.e. when the metadata files are corrupted or when the detfoo vectors are empty ([#34](https://github.com/sertit/eoreader/issues/34))**
+- **ENH: Handle some slightly broken `Sentinel-2` products:**
+  - when the metadata files are corrupted or when the detfoo vectors are empty ([#34](https://github.com/sertit/eoreader/issues/34))
+  - with missing MSK prefix for QI_DATA files (i.e `DETFOO` instead of `MSK_DETFOO`)
 - **ENH: Handle exception for corrupted bands (in `Sentinel-2` and `utils.read`) ([#34](https://github.com/sertit/eoreader/issues/34))**
+- **ENH: Add a STAC object that can be used to retrieve STAC Items from every Product (`prod.stac.create_item()`) ([#29](https://github.com/sertit/eoreader/issues/29))**
+- **ENH: Extending `get_raw_band_paths` to every product ([#31](https://github.com/sertit/eoreader/issues/31))**
+- **ENH: Adding a `is_ortho` attribute corresponding to when the product is already orthorectified/geocoded, in order to avoid computing heavy processes without wanting it (i.e. footprint...)**
+- **ENH: Adding the instrument name of every constellation, under `prod.instrument`**
 
 ### Optimizations
 
-- OPTIM: retrieve name from filename if possible
+- OPTIM: Retrieve name from filename if possible
+- OPTIM: Retrieve extent from metadata when possible (for VHR data)
+- OPTIM: Refactoring Landsat-XX products into `LandsatProduct`, this should bee invisible for user.
 
 ### Bug Fixes
 
 - FIX: Fixing the band mapping of `WorldView-2/3 Multi` (8 bands)
 - FIX: Retrieval (if possible) of Sentinel-1 [unique ID](https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-1-sar/naming-conventions) (was missing from the product name, as it is not in the product preview)
+- FIX: Fixing PAZ/TDX MTD regex
 
 ### Other
 
 - INTERNAL: File `spot_6` and `spot_7` are removed, replaced by a unique `spot` file. This shouldn't affect the user.
 - INTERNAL: Some refactoring in `VHR` files
+- WARNINGS: Filter warnings from `__init__`
 - CI: Do not process two times the zipped Sentinel-1 in end-to-end tests and manage when the runner kills SNAP
-- DOC: Updates
+- DOC: Adding a STAC notebook
+- DOC: Various updates
 
 ## 0.14.0 (2022-04-14)
 

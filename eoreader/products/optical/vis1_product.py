@@ -27,6 +27,7 @@ from enum import unique
 from pathlib import Path
 from typing import Union
 
+import geopandas as gpd
 import numpy as np
 import xarray as xr
 from cloudpathlib import CloudPath
@@ -34,13 +35,14 @@ from lxml import etree
 from rasterio import crs as riocrs
 from sertit import files, vectors
 from sertit.misc import ListEnum
+from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
-from eoreader._stac import *
 from eoreader.bands import BandNames, SpectralBand
 from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
+from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -143,9 +145,9 @@ class Vis1Product(VhrProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         # Not Pansharpened images
         if self.band_combi == Vis1BandCombination.MS4:
@@ -153,6 +155,14 @@ class Vis1Product(VhrProduct):
         # Pansharpened images
         else:
             return self._pan_res
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Vision-1: https://earth.esa.int/eogateway/missions/vision-1
+        """
+        self.instrument = "Vision-1 optical sensor"
 
     def _set_product_type(self) -> None:
         """
@@ -164,6 +174,14 @@ class Vis1Product(VhrProduct):
         prod_type = self.split_name[3]
         self.product_type = getattr(Vis1ProductType, prod_type)
 
+        # Manage not orthorectified product
+        if self.product_type == Vis1ProductType.PRJ:
+            self.is_ortho = False
+
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
         # Create spectral bands
         pan = SpectralBand(
             eoreader_name=spb.PAN,
@@ -278,6 +296,37 @@ class Vis1Product(VhrProduct):
 
         return riocrs.CRS.from_string(crs_name)
 
+    @cache
+    def extent(self, **kwargs) -> gpd.GeoDataFrame:
+        """
+        Get UTM extent of the tile.
+
+        Returns:
+            gpd.GeoDataFrame: Extent in UTM
+        """
+
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Compute extent corners
+        corners = [
+            [float(vertex.findtext("FRAME_LON")), float(vertex.findtext("FRAME_LAT"))]
+            for vertex in root.iterfind(".//Dataset_Frame/Vertex")
+        ]
+
+        # When PRJ, Dataset_Frame is the footprint
+        ds_frame = gpd.GeoDataFrame(
+            geometry=[Polygon(corners)],
+            crs=vectors.WGS84,
+        ).to_crs(self.crs())
+
+        extent = gpd.GeoDataFrame(
+            geometry=[box(*ds_frame.total_bounds)],
+            crs=self.crs(),
+        )
+
+        return extent
+
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
@@ -332,7 +381,7 @@ class Vis1Product(VhrProduct):
 
         return date_str
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 

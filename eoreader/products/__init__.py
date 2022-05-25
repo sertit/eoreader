@@ -76,28 +76,14 @@ __all__ += [
     "LandsatProduct",
     "LandsatProductType",
     "LandsatCollection",
-    "L1Product",
-    "L2Product",
-    "L3Product",
-    "L4Product",
-    "L5Product",
-    "L7Product",
-    "L8Product",
-    "L9Product",
+    "LandsatInstrument",
 ]
 from .optical.landsat_product import (
     LandsatProduct,
     LandsatProductType,
     LandsatCollection,
+    LandsatInstrument,
 )
-from .optical.l1_product import L1Product
-from .optical.l2_product import L2Product
-from .optical.l3_product import L3Product
-from .optical.l4_product import L4Product
-from .optical.l5_product import L5Product
-from .optical.l7_product import L7Product
-from .optical.l8_product import L8Product
-from .optical.l9_product import L9Product
 
 # Sentinel
 __all__ += [

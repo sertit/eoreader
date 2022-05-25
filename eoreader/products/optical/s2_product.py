@@ -41,7 +41,6 @@ from sertit.misc import ListEnum
 from shapely.geometry import box
 
 from eoreader import cache, utils
-from eoreader._stac import *
 from eoreader.bands import (
     ALL_CLOUDS,
     CIRRUS,
@@ -56,6 +55,7 @@ from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
 from eoreader.products.product import OrbitDirection
+from eoreader.stac import CENTER_WV, FWHM, GSD, ID, NAME
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -190,9 +190,9 @@ class S2Product(OpticalProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         # S2: use 10m resolution, even if we have 60m and 20m resolution
         # In the future maybe use one resolution per band ?
@@ -209,7 +209,20 @@ class S2Product(OpticalProduct):
 
     def _set_product_type(self) -> None:
         """Set products type"""
+        self.product_type = S2ProductType.from_value(self.split_name[1])
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Sentinel-2: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2/instrument-payload/
+        """
+        self.instrument = "MSI"
+
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
         l2a_bands = {
             spb.CA: SpectralBand(
                 eoreader_name=spb.CA,
@@ -256,13 +269,10 @@ class S2Product(OpticalProduct):
                 **{NAME: "B11", ID: "11", GSD: 20, CENTER_WV: 1612, FWHM: 92},
             ),
             spb.SWIR_2: SpectralBand(
-                eoreader_name=spb.SWIR_1,
+                eoreader_name=spb.SWIR_2,
                 **{NAME: "B12", ID: "12", GSD: 20, CENTER_WV: 2190, FWHM: 180},
             ),
         }
-
-        # Open identifier
-        self.product_type = S2ProductType.from_value(self.split_name[1])
 
         if self.product_type == S2ProductType.L2A:
             self.bands.map_bands(l2a_bands)
@@ -325,7 +335,7 @@ class S2Product(OpticalProduct):
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         if self._processing_baseline < 2.07:
             tf, width, height, crs = self.default_transform()
@@ -407,7 +417,7 @@ class S2Product(OpticalProduct):
 
         return date
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -768,7 +778,7 @@ class S2Product(OpticalProduct):
                 with zipfile.ZipFile(self.path, "r") as zip_ds:
                     filenames = [f.filename for f in zip_ds.filelist]
                     regex = re.compile(
-                        f".*GRANULE.*QI_DATA.*MSK_{mask_id.value}_B{band_name}.gml"
+                        f".*GRANULE.*QI_DATA.*{mask_id.value}_B{band_name}.gml"
                     )
                     mask_path = zip_ds.extract(
                         list(filter(regex.match, filenames))[0], tmp_dir.name
@@ -777,7 +787,7 @@ class S2Product(OpticalProduct):
                 # Get mask path
                 mask_path = files.get_file_in_dir(
                     self.path,
-                    f"**/*GRANULE/*/QI_DATA/MSK_{mask_id.value}_B{band_name}.gml",
+                    f"**/*GRANULE/*/QI_DATA/*{mask_id.value}_B{band_name}.gml",
                     exact_name=True,
                 )
 
@@ -831,13 +841,13 @@ class S2Product(OpticalProduct):
 
         if self.is_archived:
             mask_path = files.get_archived_rio_path(
-                self.path, f".*GRANULE.*QI_DATA.*MSK_{mask_id.value}_B{band_id}.jp2"
+                self.path, f".*GRANULE.*QI_DATA.*{mask_id.value}_B{band_id}.jp2"
             )
         else:
             # Get mask path
             mask_path = files.get_file_in_dir(
                 self.path,
-                f"**/*GRANULE/*/QI_DATA/MSK_{mask_id.value}_B{band_id}.jp2",
+                f"**/*GRANULE/*/QI_DATA/*{mask_id.value}_B{band_id}.jp2",
                 exact_name=True,
             )
 
@@ -1121,7 +1131,7 @@ class S2Product(OpticalProduct):
         # Used to make the difference between 2 products acquired on the same tile at the same date but cut differently
         # Sentinel-2 generation time: "%Y%m%dT%H%M%S" -> save only %H%M%S
         gen_time = self.split_name[-1].split("T")[-1]
-        return f"{self.get_datetime()}_{self.platform.name}_{self.tile_name}_{self.product_type.name}_{gen_time}"
+        return f"{self.get_datetime()}_{self.constellation.name}_{self.tile_name}_{self.product_type.name}_{gen_time}"
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
