@@ -163,9 +163,9 @@ def _test_core(
             assert prod.instrument is not None
 
             with tempfile.TemporaryDirectory() as tmp_dir:
-                tmp_dir = os.path.join(
-                    "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                )
+                # tmp_dir = os.path.join(
+                #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
+                # )
                 prod.output = tmp_dir
 
                 os.environ[CI_EOREADER_BAND_FOLDER] = str(
