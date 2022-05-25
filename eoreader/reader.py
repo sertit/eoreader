@@ -188,7 +188,8 @@ CONSTELLATION_REGEX = {
     Constellation.L3: r"LM03_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
     Constellation.L2: r"LM02_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
     Constellation.L1: r"LM01_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
-    Constellation.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}",
+    Constellation.SKY: r"\d{8}_\d{6}_ssc\w{1,4}_\w{4,5}",
+    Constellation.PLA: r"\d{8}_\d{6}_(\d{2}_|)\d{4}",
     Constellation.CSK: [
         r".+",  # Need to check inside as the folder does not have any recognizable name
         r"CSKS\d_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
@@ -241,7 +242,11 @@ MTD_REGEX = {
     Constellation.L1: rf"{CONSTELLATION_REGEX[Constellation.L1]}_MTL\.txt",
     Constellation.PLA: {
         "nested": -1,  # File that can be found at any level (product/**/file)
-        "regex": r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*metadata.*\.xml",
+        "regex": r"\d{8}_\d{6}_(\d{2}_|)\d{4}_[13][AB]_.*metadata.*\.xml",
+    },
+    Constellation.SKY: {
+        "nested": -1,  # File that can be found at any level (product/**/file)
+        "regex": r"\d{8}_\d{6}_ssc\w{1,4}_\w{4,5}_.*metadata.*\.json",
     },
     Constellation.CSK: rf"{CONSTELLATION_REGEX[Constellation.CSK][1]}\.xml",
     Constellation.CSG: rf"{CONSTELLATION_REGEX[Constellation.CSG][1]}\.xml",

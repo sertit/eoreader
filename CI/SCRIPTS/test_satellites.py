@@ -163,9 +163,9 @@ def _test_core(
             assert prod.instrument is not None
 
             with tempfile.TemporaryDirectory() as tmp_dir:
-                # tmp_dir = os.path.join(
-                #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                # )
+                tmp_dir = os.path.join(
+                    "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
+                )
                 prod.output = tmp_dir
 
                 os.environ[CI_EOREADER_BAND_FOLDER] = str(
@@ -489,6 +489,13 @@ def test_l1_mss():
 def test_pla():
     """Function testing the support of PlanetScope constellation"""
     _test_core_optical("*202*1014*")
+
+
+@s3_env
+@dask_env
+def test_sky():
+    """Function testing the support of SkySat constellation"""
+    _test_core_optical("*ssc*")
 
 
 @s3_env
