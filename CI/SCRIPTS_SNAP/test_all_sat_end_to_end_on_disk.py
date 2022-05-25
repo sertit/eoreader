@@ -424,6 +424,12 @@ def test_pla():
 
 
 @dask_env
+def test_sky():
+    """Function testing the support of SkySat constellation"""
+    _test_core_optical("*ssc*")
+
+
+@dask_env
 def test_pld():
     """Function testing the support of Pleiades constellation"""
     _test_core_optical("*IMG_PHR*")

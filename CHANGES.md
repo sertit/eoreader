@@ -16,6 +16,7 @@
 
 ### Enhancements
 
+- **ENH: Adding the support of `SkySat` (Collect) products** ([#20](https://github.com/sertit/eoreader/issues/20))
 - **ENH: Bands in mapping are now objects, instead of just IDs** ([#29](https://github.com/sertit/eoreader/issues/29)). This allows us to:
   - Add band metadata (such as center wavelength, bandwidth...)
   - Map spectral bands between STAC spec and EOReader format ([#29](https://github.com/sertit/eoreader/issues/29))

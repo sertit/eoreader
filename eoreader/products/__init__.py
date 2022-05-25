@@ -63,13 +63,21 @@ from .optical.maxar_product import (
 )
 from .optical.vis1_product import Vis1Product, Vis1ProductType, Vis1BandCombination
 
-# Planet
+# PlanetScope
 __all__ += [
     "PlaProduct",
     "PlaProductType",
     "PlaInstrument",
 ]
 from .optical.pla_product import PlaProduct, PlaProductType, PlaInstrument
+
+# SkySat
+__all__ += [
+    "SkyProductType",
+    "SkyProduct",
+    "SkyInstrument",
+]
+from .optical.sky_product import SkyProductType, SkyProduct, SkyInstrument
 
 # Landsat
 __all__ += [

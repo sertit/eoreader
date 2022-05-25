@@ -479,6 +479,13 @@ def test_pla():
 
 @s3_env
 @dask_env
+def test_sky():
+    """Function testing the support of SkySat constellation"""
+    _test_core_optical("*ssc*")
+
+
+@s3_env
+@dask_env
 def test_pld():
     """Function testing the support of Pleiades constellation"""
     _test_core_optical("*IMG_PHR*")
