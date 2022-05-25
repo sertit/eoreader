@@ -3,7 +3,7 @@
 [![Tests](https://github.com/sertit/eoreader/actions/workflows/test.yml/badge.svg)](https://github.com/sertit/eoreader/actions/workflows/test.yml)
 [![Gitter](https://badges.gitter.im/eoreader/community.svg)](https://gitter.im/eoreader/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/sertit/eoreader/blob/master/LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5082051.svg)](https://doi.org/10.5281/zenodo.5082051)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6461738.svg)](https://doi.org/10.5281/zenodo.6461738)
 [![stars](https://img.shields.io/github/stars/sertit/eoreader?style=social)](https://github.com/sertit/eoreader)
 
 # ![eoreader_logo](https://eoreader.readthedocs.io/en/latest/_static/favicon.png) EOReader
