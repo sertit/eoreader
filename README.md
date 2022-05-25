@@ -162,6 +162,7 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 ## Authors
 
 **EOReader** has been created by [ICube-SERTIT](https://sertit.unistra.fr/).
+Follow us on [twitter](https://twitter.com/eoreader)
 
 ## Credits
 
