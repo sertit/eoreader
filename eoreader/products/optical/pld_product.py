@@ -21,10 +21,10 @@ for more information.
 """
 import logging
 
-from eoreader._stac import *
 from eoreader.bands import SpectralBand
 from eoreader.bands import spectral_bands as spb
 from eoreader.products import DimapProduct
+from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -48,8 +48,10 @@ class PldProduct(DimapProduct):
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
-    def _set_product_type(self) -> None:
-        """Set products type"""
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
         # Create spectral bands
         pan = SpectralBand(
             eoreader_name=spb.PAN,
@@ -75,4 +77,13 @@ class PldProduct(DimapProduct):
             eoreader_name=spb.NIR,
             **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 750, WV_MAX: 830}
         )
-        self._set_product_type_core(blue=blue, green=green, red=red, nir=nir, pan=pan)
+        self._map_bands_core(blue=blue, green=green, red=red, nir=nir, pan=pan)
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Pleiades: https://earth.esa.int/eogateway/missions/pleiades
+        """
+        # HiRI: High Resolution Imager
+        self.instrument = "HiRI"

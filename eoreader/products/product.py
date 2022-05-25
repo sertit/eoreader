@@ -64,7 +64,8 @@ from eoreader.bands import (
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
-from eoreader.reader import Platform, Reader
+from eoreader.reader import Constellation, Reader
+from eoreader.stac import StacItem
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -155,6 +156,9 @@ class Product:
         self.product_type = None
         """Product type, satellite-related field, such as L1C or L2A for Sentinel-2 data."""
 
+        self.instrument = None
+        """Product instrument, such as MSI for Sentinel-2 data."""
+
         self.bands = None
         """
         Band mapping between band wrapping names such as
@@ -177,8 +181,8 @@ class Product:
         self._mask_false = 0
         self._mask_nodata = 255
 
-        self.platform = kwargs.get("platform")
-        """Product platform, such as Sentinel-2"""
+        self.constellation = kwargs.get("constellation")
+        """Product constellation, such as Sentinel-2"""
 
         # Set the resolution, needs to be done when knowing the product type
         self.resolution = None
@@ -194,8 +198,13 @@ class Product:
         Used to shorten names and paths.
         """
 
-        self.sat_id = None
-        """Satellite ID, i.e. :code:`S2` for :code:`Sentinel-2`"""
+        self.constellation_id = None
+        """Constellation ID, i.e. :code:`S2` for :code:`Sentinel-2`"""
+
+        self.is_ortho = True
+        """True if the images are orthorectified and the footprint is retrieved easily."""
+
+        self._stac = None
 
         # Manage output
         if output_path:
@@ -220,9 +229,15 @@ class Product:
             self.datetime = self.get_datetime(as_datetime=True)
             self.date = self.get_date(as_date=True)
 
-            # Platform and satellite ID
-            self.platform = self._get_platform()
-            self.sat_id = self.platform.name
+            # Constellation and satellite ID
+            if not self.constellation:
+                self.constellation = self._get_constellation()
+            self.constellation_id = (
+                self.constellation
+                if isinstance(self.constellation, str)
+                else self.constellation.name
+            )
+            self._set_instrument()
 
             # Post initialization
             self._post_init(**kwargs)
@@ -231,7 +246,9 @@ class Product:
             self._set_product_type()
 
             # Set the resolution, needs to be done when knowing the product type
-            self.resolution = self._set_resolution()
+            self.resolution = self._get_resolution()
+
+            self._map_bands()
 
             # Condensed name
             self.condensed_name = self._get_condensed_name()
@@ -302,7 +319,7 @@ class Product:
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         raise NotImplementedError
 
@@ -322,6 +339,13 @@ class Product:
 
         Returns:
             crs.CRS: CRS object
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _map_bands(self):
+        """
+        Map bands
         """
         raise NotImplementedError
 
@@ -346,9 +370,9 @@ class Product:
         return band_folder
 
     @abstractmethod
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         raise NotImplementedError
 
@@ -359,11 +383,18 @@ class Product:
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def _set_instrument(self) -> None:
+        """
+        Set product type
+        """
+        raise NotImplementedError
+
     @classmethod
-    def _get_platform(cls) -> Platform:
+    def _get_constellation(cls) -> Constellation:
         class_module = cls.__module__.split(".")[-1]
-        sat_id = class_module.replace("_product", "").upper()
-        return getattr(Platform, sat_id)
+        constellation_id = class_module.replace("_product", "").upper()
+        return getattr(Constellation, constellation_id)
 
     def _get_name(self) -> str:
         """
@@ -374,17 +405,17 @@ class Product:
         """
         if (
             self._use_filename
-            and self.platform
-            and Reader().valid_name(self.path, self.platform)
+            and self.constellation
+            and Reader().valid_name(self.path, self.constellation)
         ):
             name = self.filename
         else:
-            name = self._get_name_sensor_specific()
+            name = self._get_name_constellation_specific()
 
         return name
 
     @abstractmethod
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -538,7 +569,7 @@ class Product:
     @abstractmethod
     def get_existing_band_paths(self) -> dict:
         """
-        Return the existing band paths.
+        Return the existing band paths (orthorectified if needed).
 
         .. code-block:: python
 
@@ -556,6 +587,18 @@ class Product:
             dict: Dictionary containing the path of each queried band
         """
         raise NotImplementedError
+
+    def get_raw_band_paths(self, **kwargs) -> dict:
+        """
+        Return the raw band paths.
+
+        Args:
+            kwargs: Additional arguments
+
+        Returns:
+            dict: Dictionary containing the path of each queried band
+        """
+        return self.get_existing_band_paths()
 
     @abstractmethod
     def get_band_paths(
@@ -819,8 +862,13 @@ class Product:
         """
         Open the bands and compute the wanted index.
 
-        The bands will be purged of nodata and invalid pixels,
-        the nodata will be set to 0 and the bands will be masked arrays in float.
+        - For Optical data:
+            The bands will be purged of nodata and invalid pixels (if specified with the CLEAN_OPTICAL keyword),
+            the nodata will be set to -9999 and the bands will be DataArrays in float32.
+
+        - For SAR data:
+            The bands will be purged of nodata (not over the sea),
+            the nodata will be set to 0 to respect SNAP's behavior and the bands will be DataArray in float32.
 
         Bands that come out this function at the same time are collocated and therefore have the same shapes.
         This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
@@ -1118,6 +1166,13 @@ class Product:
 
         self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
         os.makedirs(self._tmp_process, exist_ok=True)
+
+    @property
+    def stac(self) -> StacItem:
+        if not self._stac:
+            self._stac = StacItem(self)
+
+        return self._stac
 
     def _warp_dem(
         self,
@@ -1445,11 +1500,11 @@ class Product:
         return stack
 
     @abstractmethod
-    def _update_attrs_sensor_specific(
+    def _update_attrs_constellation_specific(
         self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
     ) -> xr.DataArray:
         """
-        Update attributes of the given array (sensor specific)
+        Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
@@ -1477,11 +1532,20 @@ class Product:
 
         renamed_xarr = xarr.rename(xr_name)
         renamed_xarr.attrs["long_name"] = attr_name
-        renamed_xarr.attrs["sensor"] = self.platform.value
-        renamed_xarr.attrs["sensor_id"] = self.sat_id
+        renamed_xarr.attrs["constellation"] = (
+            self.constellation
+            if isinstance(self.constellation, str)
+            else self.constellation.value
+        )
+        renamed_xarr.attrs["constellation_id"] = self.constellation_id
         renamed_xarr.attrs["product_path"] = str(self.path)  # Convert to string
         renamed_xarr.attrs["product_name"] = self.name
         renamed_xarr.attrs["product_filename"] = self.filename
+        renamed_xarr.attrs["instrument"] = (
+            self.instrument
+            if isinstance(self.instrument, str)
+            else self.instrument.value
+        )
         renamed_xarr.attrs["product_type"] = (
             self.product_type
             if isinstance(self.product_type, str)
@@ -1493,7 +1557,7 @@ class Product:
         renamed_xarr.attrs["orbit_direction"] = od.value if od is not None else str(od)
 
         # kwargs attrs
-        renamed_xarr = self._update_attrs_sensor_specific(
+        renamed_xarr = self._update_attrs_constellation_specific(
             renamed_xarr, long_name, **kwargs
         )
 
@@ -1667,7 +1731,7 @@ class Product:
             "Attributes:",
             f"\tcondensed_name: {self.condensed_name}",
             f"\tpath: {self.path}",
-            f"\tplatform: {self.platform if isinstance(self.platform, str) else self.platform.value}",
+            f"\tconstellation: {self.constellation if isinstance(self.constellation, str) else self.constellation.value}",
             f"\tsensor type: {self.sensor_type if isinstance(self.sensor_type, str) else self.sensor_type.value}",
             f"\tproduct type: {self.product_type if isinstance(self.product_type, str) else self.product_type.value}",
             f"\tdefault resolution: {self.resolution}",
@@ -1676,15 +1740,15 @@ class Product:
             f"\tneeds extraction: {self.needs_extraction}",
         ]
 
-        return repr + self._to_repr_sensor_specific()
+        return repr + self._to_repr_constellation_specific()
 
     @abstractmethod
-    def _to_repr_sensor_specific(self) -> list:
+    def _to_repr_constellation_specific(self) -> list:
         """
-        Representation specific to the sensor
+        Representation specific to the constellation
 
         Returns:
-            list: Representation list (sensor specific)
+            list: Representation list (constellation specific)
         """
         raise NotImplementedError
 
@@ -1698,7 +1762,7 @@ class Product:
         Returns:
             str: Quicklook path
         """
-        LOGGER.warning(f"No quicklook available for {self.platform.value} data!")
+        LOGGER.warning(f"No quicklook available for {self.constellation.value} data!")
         return None
 
     def plot(self) -> None:

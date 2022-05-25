@@ -202,7 +202,7 @@ def _test_core(
 )
 @dask_env
 def test_spot6():
-    """Function testing the support of SPOT-6 sensor"""
+    """Function testing the support of SPOT-6 constellation"""
     _test_core_optical("*IMG_SPOT6*")
 
 
@@ -212,7 +212,7 @@ def test_spot6():
 )
 @dask_env
 def test_spot7():
-    """Function testing the support of SPOT-7 sensor"""
+    """Function testing the support of SPOT-7 constellation"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*IMG_SPOT7*", dem_path=dem_path)
@@ -223,5 +223,5 @@ def test_spot7():
 )
 @dask_env
 def test_iceye():
-    """Function testing the support of ICEYE sensor"""
+    """Function testing the support of ICEYE constellation"""
     _test_core_sar("*SLH_*")

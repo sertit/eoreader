@@ -9,12 +9,12 @@
 # ![eoreader_logo](https://eoreader.readthedocs.io/en/latest/_static/favicon.png) EOReader
 
 **EOReader** is a remote-sensing opensource python library reading [optical](https://eoreader.readthedocs.io/en/latest/optical.html)
-and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) sensors, loading and stacking bands,
+and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) constellations, loading and stacking bands,
 clouds, DEM and spectral indices in a sensor-agnostic way.
 
-|**Optical sensors** | **SAR sensors**|
+|**Optical** | **SAR**|
 | --- | ---|
-|`Sentinel-2` and `Sentinel-2 Theia`<br>`Sentinel-3 OLCI` and `SLSTR`<br>`Landsat` 1 to 9<br>`PlanetScope`<br>`Pleiades` and `Pleiades-Neo`<br>`SPOT 6-7`<br>`Vision-1`<br>`Maxar` (WorldViews, GeoEye)| `Sentinel-1`<br>`COSMO-Skymed` 1st and 2nd Generation<br>`TerraSAR-X`, `TanDEM-X` and `PAS SAR`<br>`RADARSAT-2` and `RADARSAT-Constellation`<br>`ICEYE`<br>`SAOCOM`|
+|`Sentinel-2` and `Sentinel-2 Theia`<br>`Sentinel-3 OLCI` and `SLSTR`<br>`Landsat` 1 to 9<br>`PlanetScope`<br>`Pleiades` and `Pleiades-Neo`<br>`SPOT 6-7`<br>`Vision-1`<br>`Maxar` (WorldViews, GeoEye)| `Sentinel-1`<br>`COSMO-Skymed` 1st and 2nd Generation<br>`TerraSAR-X`, `TanDEM-X` and `PAZ SAR`<br>`RADARSAT-2` and `RADARSAT-Constellation`<br>`ICEYE`<br>`SAOCOM`|
 
 It also implements additional **sensor-agnostic** features:
 
@@ -43,7 +43,7 @@ and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_struc
 >>> # Create the reader object and open satellite data
 >>> reader = Reader()
 
->>> # The reader will recognize the sensor from its product structure
+>>> # The reader will recognize the constellation from its product structure
 >>> s2_prod = reader.open(s2_path)
 
 >>> # Load some bands and index
@@ -65,7 +65,7 @@ and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_struc
 >>>  # Create the reader object and open satellite data
 >>> reader = Reader()
 
->>> # The reader will recognize the sensor from its product structure
+>>> # The reader will recognize the constellation from its product structure
 >>> s1_prod = reader.open(s1_path)
 
 >>> # Load some bands and index
@@ -99,6 +99,7 @@ Available notebooks provided as examples:
 - [Methods to clean optical bands](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html)
 - [S3 Compatible Storage](https://eoreader.readthedocs.io/en/latest/notebooks/s3_compatible_storage.html)
 - [Dask](https://eoreader.readthedocs.io/en/latest/notebooks/dask.html)
+- [STAC](https://eoreader.readthedocs.io/en/latest/notebooks/stac.html)
 
 ## Installation
 
@@ -119,31 +120,14 @@ to learn more about that.
 ### Conda
 
 #### Command line
+
 You can install EOReader via conda:
 
-`conda config --env --set channel_priority strict`
-
-`conda install -c conda-forge eoreader`
-
-But for the moment, the lib used for caching objects (`methodtools`) is not available on conda.
-So please install it via pip (`pip install methodtools`) before using **EOReader** !
-
-#### Configuration file (preferred method)
-You can use a configuration file like this (`environment.yml`) for conda to create your environment:
-
-```yaml
-name: eoreader
-channels:
-  - conda-forge
-dependencies:         # everything under this, installed by conda
-  - python=3.7
-  - eoreader
-  - pip
-  - pip:                # everything under this, installed by pip
-      - methodtools
+```
+conda config --env --set channel_priority strict
+conda install -c conda-forge eoreader
 ```
 
-And create your environment like that: `conda env create -f environment.yml`.
 
 ## Context
 
@@ -151,19 +135,19 @@ SERTIT is part of the [Copernicus Emergency Management Service](https://emergenc
 rapid mapping and risk and recovery teams.
 
 In these activations, we need to deliver information (such as flood or fire delineations, landslides mapping, etc.)
-based on various sensors (more than 10 optical and 5 SAR). As every minute counts in production,
+based on various constellations (more than 10 optical and 5 SAR). As every minute counts in production,
 it seemed crucial to harmonize the ground on which are built our production tools, in order to make them
 as sensor-agnostic as possible.
 
-Thus, thanks to **EOReader**, these tools are made independent to the sensor:
+Thus, thanks to **EOReader**, these tools are made independent to the constellation:
 - the algorithm (and its developer) can focus on its core tasks (such as extraction)
-without taking into account the sensor characteristics
+without taking into account the constellation characteristics
 (how to load a band, which band correspond to which band number, which band to use for this index...)
-- the addition of a new sensor is done effortlessly (if existing in **EOReader**) and without any modification of the algorithm
+- the addition of a new constellation is done effortlessly (if existing in **EOReader**) and without any modification of the algorithm
 - the maintenance is simplified and the code is way more readable (no more ifs regarding the sensor type!)
 - the testing is also simplified as the sensor-related parts are tested in this library
 
-However, keep in mind that the support of all the sensors used in CEMS is done in a best effort mode, especially for commercial data.
+However, keep in mind that the support of all the constellations used in CEMS is done in a best effort mode, especially for commercial data.
 Indeed, we may not have faced every product type, sensor mode or order configuration, so some details may be missing.
 If this happens to you, do not hesitate to make a PR or write an issue about that !
 

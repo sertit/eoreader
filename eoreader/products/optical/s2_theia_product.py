@@ -34,7 +34,6 @@ from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio, vectors
 
 from eoreader import cache, utils
-from eoreader._stac import *
 from eoreader.bands import (
     ALL_CLOUDS,
     CIRRUS,
@@ -48,6 +47,7 @@ from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct, S2ProductType
+from eoreader.stac import CENTER_WV, FWHM, GSD, ID, NAME
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -82,9 +82,9 @@ class S2TheiaProduct(OpticalProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         # S2: use 10m resolution, even if we have 60m and 20m resolution
         # In the future maybe set one resolution per band ?
@@ -109,7 +109,20 @@ class S2TheiaProduct(OpticalProduct):
 
     def _set_product_type(self) -> None:
         """Set products type"""
+        self.product_type = S2ProductType.L2A
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Sentinel-2: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2/instrument-payload/
+        """
+        self.instrument = "MSI"
+
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
         l2a_bands = {
             spb.BLUE: SpectralBand(
                 eoreader_name=spb.BLUE,
@@ -148,11 +161,10 @@ class S2TheiaProduct(OpticalProduct):
                 **{NAME: "B11", ID: "11", GSD: 20, CENTER_WV: 1612, FWHM: 92},
             ),
             spb.SWIR_2: SpectralBand(
-                eoreader_name=spb.SWIR_1,
+                eoreader_name=spb.SWIR_2,
                 **{NAME: "B12", ID: "12", GSD: 20, CENTER_WV: 2190, FWHM: 180},
             ),
         }
-        self.product_type = S2ProductType.L2A
         self.bands.map_bands(l2a_bands)
 
         # TODO: bands 1 and 9 are in ATB_R1 (10m) and ATB_R2 (20m)
@@ -239,7 +251,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return date
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 

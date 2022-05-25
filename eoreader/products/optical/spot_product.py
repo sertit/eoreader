@@ -21,11 +21,11 @@ for more information.
 """
 import logging
 
-from eoreader._stac import *
 from eoreader.bands import SpectralBand
 from eoreader.bands import spectral_bands as spb
 from eoreader.products import DimapProduct
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
+from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -49,12 +49,12 @@ class SpotProduct(DimapProduct):
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
-    def _get_platform(self) -> Platform:
-        """ Getter of the platform """
-        sat_id = self.split_name[0]
-        return getattr(Platform, sat_id)
+    def _get_constellation(self) -> Constellation:
+        """ Getter of the constellation """
+        constellation_id = self.split_name[0]
+        return getattr(Constellation, constellation_id)
 
-    def _set_product_type(self) -> None:
+    def _map_bands(self) -> None:
         """Set products type"""
         # Create spectral bands
         pan = SpectralBand(
@@ -81,4 +81,13 @@ class SpotProduct(DimapProduct):
             eoreader_name=spb.NIR,
             **{NAME: "NIR", ID: 4, GSD: 6, WV_MIN: 760, WV_MAX: 900}
         )
-        self._set_product_type_core(blue=blue, green=green, red=red, nir=nir, pan=pan)
+        self._map_bands_core(blue=blue, green=green, red=red, nir=nir, pan=pan)
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        SPOT-6/7: https://earth.esa.int/eogateway/missions/spot-6
+        """
+        # NAOMI: New Astrosat Optical Modular Instrument
+        self.instrument = "NAOMI"

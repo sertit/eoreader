@@ -20,13 +20,11 @@ More info `here <https://catalyst.earth/catalyst-system-files/help/references/gd
 """
 import difflib
 import logging
-import warnings
 from datetime import datetime
 from enum import unique
 from typing import Union
 
 import geopandas as gpd
-import rasterio
 from lxml import etree
 from sertit import vectors
 from sertit.misc import ListEnum
@@ -39,9 +37,6 @@ from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique
@@ -140,9 +135,9 @@ class RcmProduct(SarProduct):
     You can use directly the .zip file
     """
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         See here
         <here](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
         for more information (Beam Modes)
@@ -227,6 +222,14 @@ class RcmProduct(SarProduct):
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        RCM: https://earth.esa.int/web/eoportal/satellite-missions/r/rcm
+        """
+        self.instrument = "SAR C-band"
+
     def _set_product_type(self) -> None:
         """Set products type"""
         # Get MTD XML file
@@ -257,7 +260,7 @@ class RcmProduct(SarProduct):
             LOGGER.warning(
                 "Other products type than SGF has not been tested for %s data. "
                 "Use it at your own risks !",
-                self.platform.value,
+                self.constellation.value,
             )
 
     def _set_sensor_mode(self) -> None:
@@ -321,7 +324,7 @@ class RcmProduct(SarProduct):
 
         return date
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -377,7 +380,7 @@ class RcmProduct(SarProduct):
         Returns:
             str: Condensed RCM name
         """
-        # Get back the correct sensor name
+        # Get back the correct sensor mode name
         if self.sensor_mode == RcmSensorMode.THREE_M:
             mode_name = "3M"
         elif self.sensor_mode == RcmSensorMode.FIVE_M:
@@ -393,7 +396,7 @@ class RcmProduct(SarProduct):
         else:
             mode_name = self.sensor_mode.name
 
-        return f"{self.get_datetime()}_{self.platform.name}_{mode_name}_{self.product_type.value}"
+        return f"{self.get_datetime()}_{self.constellation.name}_{mode_name}_{self.product_type.value}"
 
     def get_quicklook_path(self) -> str:
         """

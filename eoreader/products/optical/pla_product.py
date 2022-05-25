@@ -37,7 +37,6 @@ from sertit import files, rasters
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
-from eoreader._stac import *
 from eoreader.bands import (
     ALL_CLOUDS,
     CIRRUS,
@@ -52,6 +51,7 @@ from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
 from eoreader.products.product import OrbitDirection
+from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -218,9 +218,9 @@ class PlaProduct(OpticalProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         # Ortho Tiles
         if self.product_type == PlaProductType.L3A:
@@ -228,6 +228,25 @@ class PlaProduct(OpticalProduct):
         # Ortho Scene
         else:
             return 3.0
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Pleiades: https://earth.esa.int/eogateway/missions/pleiades-neo
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Manage constellation
+        instr_node = root.find(f".//{nsmap['eop']}Instrument")
+        instrument = instr_node.findtext(f"{nsmap['eop']}shortName")
+
+        if not instrument:
+            raise InvalidProductError("Cannot find the Instrument in the metadata file")
+
+        # Set correct constellation
+        self.instrument = getattr(PlaInstrument, instrument.replace(".", "_"))
 
     def _get_spectral_bands(self) -> dict:
         """
@@ -303,11 +322,9 @@ class PlaProduct(OpticalProduct):
 
         return spectral_bands
 
-    def _set_band_map(self, nof_bands, **kwargs) -> None:
+    def _get_band_map(self, nof_bands, **kwargs) -> None:
         """
-        Set products type
-
-        https://developers.planet.com/docs/apis/data/sensors/
+        Get band map
         """
         # Open spectral bands
         ca = kwargs.get("ca")
@@ -320,55 +337,64 @@ class PlaProduct(OpticalProduct):
         yellow = kwargs.get("yellow")
 
         if nof_bands == 3:
-            self.bands.map_bands(
-                {
-                    spb.BLUE: blue.update(id=1),
-                    spb.GREEN: green.update(id=2),
-                    spb.RED: red.update(id=3),
-                }
-            )
+            band_map = {
+                spb.BLUE: blue.update(id=1),
+                spb.GREEN: green.update(id=2),
+                spb.RED: red.update(id=3),
+            }
         elif nof_bands == 4:
-            self.bands.map_bands(
-                {
-                    spb.BLUE: blue.update(id=1),
-                    spb.GREEN: green.update(id=2),
-                    spb.RED: red.update(id=3),
-                    spb.NIR: nir.update(id=4),
-                    spb.NARROW_NIR: nir.update(id=4),
-                }
-            )
+            band_map = {
+                spb.BLUE: blue.update(id=1),
+                spb.GREEN: green.update(id=2),
+                spb.RED: red.update(id=3),
+                spb.NIR: nir.update(id=4),
+                spb.NARROW_NIR: nir.update(id=4),
+            }
         elif nof_bands == 5:
-            self.bands.map_bands(
-                {
-                    spb.BLUE: blue.update(id=1),
-                    spb.GREEN: green.update(id=2),
-                    spb.RED: red.update(id=3),
-                    spb.VRE_1: vre.update(id=4),
-                    spb.VRE_2: vre.update(id=4),
-                    spb.VRE_3: vre.update(id=4),
-                    spb.NIR: nir.update(id=5),
-                    spb.NARROW_NIR: nir.update(id=5),
-                }
-            )
+            band_map = {
+                spb.BLUE: blue.update(id=1),
+                spb.GREEN: green.update(id=2),
+                spb.RED: red.update(id=3),
+                spb.VRE_1: vre.update(id=4),
+                spb.VRE_2: vre.update(id=4),
+                spb.VRE_3: vre.update(id=4),
+                spb.NIR: nir.update(id=5),
+                spb.NARROW_NIR: nir.update(id=5),
+            }
         elif nof_bands == 8:
-            self.bands.map_bands(
-                {
-                    spb.CA: ca,
-                    spb.BLUE: blue,
-                    spb.GREEN1: green1,
-                    spb.GREEN: green,
-                    spb.RED: red,
-                    spb.YELLOW: yellow,
-                    spb.VRE_1: vre,
-                    spb.NIR: nir,
-                    spb.NARROW_NIR: nir,
-                }
-            )
+            band_map = {
+                spb.CA: ca,
+                spb.BLUE: blue,
+                spb.GREEN1: green1,
+                spb.GREEN: green,
+                spb.RED: red,
+                spb.YELLOW: yellow,
+                spb.VRE_1: vre,
+                spb.NIR: nir,
+                spb.NARROW_NIR: nir,
+            }
         else:
             raise InvalidProductError(
                 f"Unusual number of bands ({nof_bands}) for {self.path}. "
                 f"Please check the validity of your product"
             )
+
+        return band_map
+
+    def _map_bands(self):
+        """
+        Map bands
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Manage bands of the product
+        nof_bands = int(root.findtext(f".//{nsmap['ps']}numBands"))
+
+        # Set the band map
+        self.bands.map_bands(
+            self._get_band_map(nof_bands, **self._get_spectral_bands())
+        )
 
     def _set_product_type(self) -> None:
         """Set products type"""
@@ -393,22 +419,6 @@ class PlaProduct(OpticalProduct):
                 f"Ortho Tile Product are not well tested for Planet products {self.path}."
                 f"Use it at your own risk !"
             )
-
-        # Manage platform
-        instr_node = root.find(f".//{nsmap['eop']}Instrument")
-        instrument = instr_node.findtext(f"{nsmap['eop']}shortName")
-
-        if not instrument:
-            raise InvalidProductError("Cannot find the Instrument in the metadata file")
-
-        # Set correct platform
-        self.instrument = getattr(PlaInstrument, instrument.replace(".", "_"))
-
-        # Manage bands of the product
-        nof_bands = int(root.findtext(f".//{nsmap['ps']}numBands"))
-
-        # Set the band map
-        self._set_band_map(nof_bands, **self._get_spectral_bands())
 
     @cache
     def footprint(self) -> gpd.GeoDataFrame:
@@ -488,7 +498,7 @@ class PlaProduct(OpticalProduct):
 
         return datetime_str
 
-    def _get_name_sensor_specific(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -725,7 +735,9 @@ class PlaProduct(OpticalProduct):
         Returns:
             str: Condensed name
         """
-        return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}"
+        return (
+            f"{self.get_datetime()}_{self.constellation.name}_{self.product_type.name}"
+        )
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):

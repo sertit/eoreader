@@ -84,7 +84,7 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 
 >>> # Get the wanted bands and check if the product can produce them
 >>> band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
->>> ok_bands = [band for band in band_list if prod.has_band(band)]
+>>> ok_bands = to_str([band for band in band_list if prod.has_band(band)])
 [GREEN, NDVI, HILLSHADE]
 >>>  # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
 
@@ -139,24 +139,22 @@ EOReader gives you the access to the metadata of your product as a `lxml.etree._
 
 >>> # Access the raw metadata as an lxml.etree._Element and its namespaces as a dict:
 >>> mtd, nmsp = prod.read_mtd()
-(
-    <Element {https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}Level-1C_Tile_ID at 0x1e396036ec8>, 
-    {'n1': '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}'}
-)
 
 >>> # You can access a field like that: 
 >>> datastrip_id = mtd.findtext(".//DATASTRIP_ID")
+'S2B_OPER_MSI_L1C_DS_VGSR_20210929T075738_S20210517T104617_N79.90'
 
 >>> # Pay attention, for some products you will need a namespace, i.e. for planet data:
 >>> # name = mtd.findtext(f".//{nsmap['eop']}identifier")
 ```
+
 
 ```{note}
 Landsat Collection 1 have no metadata with XML format, so the XML is simulated from the text file.
 ```
 
 ```{note}
-Sentinel-3 sensors have no metadata file but have global attributes repeated in every NetCDF files.
+Sentinel-3 constellations have no metadata file but have global attributes repeated in every NetCDF files.
 This is what you will have when calling this function:
 
 - `absolute_orbit_number`
@@ -181,7 +179,7 @@ This is what you will have when calling this function:
 
 ## Plot
 If a quicklook exists, the user can plot the product.
-Always existing for VHR and SAR data, more rarely for other optical sensors.
+Always existing for VHR and SAR data, more rarely for other optical constellations.
 See [Optical](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html) and [SAR](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html) tutorials for examples.
 
 ```python
@@ -230,7 +228,7 @@ Get optical product azimuth (between [0, 360] degrees) and
 ```python
 >>>  # Get azimuth and zenith solar angles
 >>> prod.get_mean_sun_angles()
-(151.750970396115, 35.4971906983449)
+(81.0906721240477, 17.5902388851456)
 ```
 
 ### Cloud Cover
@@ -240,16 +238,31 @@ Get optical product cloud cover as specified in the metadata
 ```python
 >>>  # Get cloud cover
 >>> prod.get_cloud_cover()
-55.5
+0.155752635193646
 ```
 
 ### Orbit direction
 
 Get product optical direction (useful especially for SAR data), as a {meth}`~eoreader.product.OrbitDirection` (`ASCENDING` or `DESCENDING`).
-Always specified in the metadata for SAR sensors, set to `DESCENDING` by default for optical data if not existing.
+Always specified in the metadata for SAR constellations, set to `DESCENDING` by default for optical data if not existing.
 
 ```python
 >>>  # Get orbit direction
 >>> prod.get_orbit_direction()
-< OrbitDirection.DESCENDING: 'DESCENDING' >
+<OrbitDirection.DESCENDING: 'DESCENDING'>
+```
+
+## STAC
+
+**EOReader** can help you create [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) items from every supported products, included custom ones.
+Those items are ready to be added in any STAC catalogue or collection. 
+See [STAC Notebook](https://eoreader.readthedocs.io/en/latest/notebooks/stac.html) to learn more about this feature.
+
+```python
+>>>  # Get STAC object
+>>> prod.stac
+
+>>>  # Create STAC item
+>>> prod.stac.create_item()
+<Item id = 20210517T103619_S2_T30QVE_L1C_075738>
 ```

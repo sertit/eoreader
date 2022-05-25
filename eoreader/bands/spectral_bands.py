@@ -17,9 +17,16 @@
 """ Spectral Bands """
 import numpy as np
 
-from eoreader._stac import *
 from eoreader.bands.bands import Band, BandMap, BandNames
 from eoreader.exceptions import InvalidTypeError
+from eoreader.stac import (
+    CENTER_WV,
+    FWHM,
+    SOLAR_ILLUMINATION,
+    WV_MAX,
+    WV_MIN,
+    StacCommonNames,
+)
 
 
 class SpectralBand(Band):
@@ -86,12 +93,12 @@ class SpectralBand(Band):
         except TypeError:
             raise InvalidTypeError
 
-    def _to_repr_sensor_specific(self) -> list:
+    def _to_repr_constellation_specific(self) -> list:
         """
-        Representation specific to the sensor
+        Representation specific to the constellation
 
         Returns:
-            list: Representation list (sensor specific)
+            list: Representation list (constellation specific)
         """
         repr = []
 
@@ -255,7 +262,7 @@ class SpectralBandNames(BandNames):
     F2
     """
 
-    # OLCI additional band names
+    # S3-OLCI additional band names
     Oa01 = "Oa01"
     """
     Oa01
