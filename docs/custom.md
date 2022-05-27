@@ -38,7 +38,7 @@ If you know them, it is best to give **EOReader** all the data you know about yo
 - `name`: product name. If not provided, the filename will be used
 - `acquisition_datetime`: product acquisition datetime. If not provided, the datetime of the creation of the object will
   be used
-- `platform`: product platform. If not provided, `CUSTOM` will be set. Either a string of a Platform enum.
+- `constellation`: product constellation. If not provided, `CUSTOM` will be set. Either a string of a `Constellation` enum.
 - `product_type`: product type. If not provided, `CUSTOM` will be set.
 - `default_resolution`: product default resolution. If not provided, the stack resolution will be used.
 
@@ -58,7 +58,7 @@ custom_prod = Reader().open(
     name="20200310T030415_WV02_Ortho",
     acquisition_datetime="20200310T030415",
     sensor_type="OPTICAL",
-    platform="WV02",
+    constellation="WV02",
     product_type="Ortho",
     default_resolution=2.0,
     sun_azimuth=10.0,

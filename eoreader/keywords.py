@@ -41,7 +41,7 @@ SLSTR_VIEW = "slstr_view"
 
 CLEAN_OPTICAL = "clean_optical"
 """
-Method to clean optical band (manage invalid pixels, only nodata or directly raw data).
+Method to clean spectral band (manage invalid pixels, only nodata or directly raw data).
 This can speed up the process.
 """
 
@@ -77,7 +77,7 @@ Convert optical data to reflectance (default is :code:`True`). If :code:`False`,
 """
 
 
-def prune_keywords(**kwargs) -> dict:
+def _prune_keywords(**kwargs) -> dict:
     """
     Prune EOReader keywords from kwargs in order to avoid the GDAL warning
     CPLE_NotSupported in driver GTiff does not support open option XXX

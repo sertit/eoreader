@@ -298,3 +298,7 @@ def sar_path():
 
 def others_path():
     return get_ci_db_dir().joinpath("others")
+
+
+def broken_s2_path():
+    return get_ci_db_dir().joinpath("broken_s2")

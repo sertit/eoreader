@@ -34,11 +34,20 @@ from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio, vectors
 
 from eoreader import cache, utils
-from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
-from eoreader.bands import OpticalBandNames as obn
+from eoreader.bands import (
+    ALL_CLOUDS,
+    CIRRUS,
+    CLOUDS,
+    RAW_CLOUDS,
+    SHADOWS,
+    BandNames,
+    SpectralBand,
+)
+from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct, S2ProductType
+from eoreader.stac import CENTER_WV, FWHM, GSD, ID, NAME
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -58,6 +67,7 @@ class S2TheiaProduct(OpticalProduct):
         """
         self._has_cloud_cover = True
         self.needs_extraction = False
+        self._use_filename = True
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
@@ -72,9 +82,9 @@ class S2TheiaProduct(OpticalProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         # S2: use 10m resolution, even if we have 60m and 20m resolution
         # In the future maybe set one resolution per band ?
@@ -100,20 +110,62 @@ class S2TheiaProduct(OpticalProduct):
     def _set_product_type(self) -> None:
         """Set products type"""
         self.product_type = S2ProductType.L2A
-        self.band_names.map_bands(
-            {
-                obn.BLUE: "2",
-                obn.GREEN: "3",
-                obn.RED: "4",
-                obn.VRE_1: "5",
-                obn.VRE_2: "6",
-                obn.VRE_3: "7",
-                obn.NIR: "8A",
-                obn.NARROW_NIR: "8",
-                obn.SWIR_1: "11",
-                obn.SWIR_2: "12",
-            }
-        )
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Sentinel-2: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2/instrument-payload/
+        """
+        self.instrument = "MSI"
+
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
+        l2a_bands = {
+            spb.BLUE: SpectralBand(
+                eoreader_name=spb.BLUE,
+                **{NAME: "B2", ID: "2", GSD: 10, CENTER_WV: 492, FWHM: 66},
+            ),
+            spb.GREEN: SpectralBand(
+                eoreader_name=spb.GREEN,
+                **{NAME: "B3", ID: "3", GSD: 10, CENTER_WV: 560, FWHM: 36},
+            ),
+            spb.RED: SpectralBand(
+                eoreader_name=spb.RED,
+                **{NAME: "B4", ID: "4", GSD: 10, CENTER_WV: 665, FWHM: 31},
+            ),
+            spb.VRE_1: SpectralBand(
+                eoreader_name=spb.VRE_1,
+                **{NAME: "B5", ID: "5", GSD: 20, CENTER_WV: 704, FWHM: 15},
+            ),
+            spb.VRE_2: SpectralBand(
+                eoreader_name=spb.VRE_2,
+                **{NAME: "B6", ID: "6", GSD: 20, CENTER_WV: 740, FWHM: 15},
+            ),
+            spb.VRE_3: SpectralBand(
+                eoreader_name=spb.VRE_3,
+                **{NAME: "B7", ID: "7", GSD: 20, CENTER_WV: 781, FWHM: 20},
+            ),
+            spb.NIR: SpectralBand(
+                eoreader_name=spb.NIR,
+                **{NAME: "B8A", ID: "8A", GSD: 10, CENTER_WV: 833, FWHM: 106},
+            ),
+            spb.NARROW_NIR: SpectralBand(
+                eoreader_name=spb.NARROW_NIR,
+                **{NAME: "B8", ID: "8", GSD: 20, CENTER_WV: 864, FWHM: 21},
+            ),
+            spb.SWIR_1: SpectralBand(
+                eoreader_name=spb.SWIR_1,
+                **{NAME: "B11", ID: "11", GSD: 20, CENTER_WV: 1612, FWHM: 92},
+            ),
+            spb.SWIR_2: SpectralBand(
+                eoreader_name=spb.SWIR_2,
+                **{NAME: "B12", ID: "12", GSD: 20, CENTER_WV: 2190, FWHM: 180},
+            ),
+        }
+        self.bands.map_bands(l2a_bands)
 
         # TODO: bands 1 and 9 are in ATB_R1 (10m) and ATB_R2 (20m)
         # B1 to be divided by 20
@@ -199,7 +251,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -222,6 +274,9 @@ class S2TheiaProduct(OpticalProduct):
         """
         Return the paths of required bands.
 
+        For Theia products, FRE bands are given because, it is written in the <documentation `https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/`>_
+        that "After having compiled the user feedback, it is likely that we will only distribute « FRE » files to reduce the data volume."
+
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
@@ -230,8 +285,8 @@ class S2TheiaProduct(OpticalProduct):
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])
             {
-                <OpticalBandNames.GREEN: 'GREEN'>: 'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2/SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B3.tif',
-                <OpticalBandNames.RED: 'RED'>: 'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2/SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B4.tif'
+                <SpectralBandNames.GREEN: 'GREEN'>: 'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2/SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B3.tif',
+                <SpectralBandNames.RED: 'RED'>: 'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2/SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B4.tif'
             }
 
         Args:
@@ -250,18 +305,19 @@ class S2TheiaProduct(OpticalProduct):
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
+                band_id = self.bands[band].id
                 try:
                     if self.is_archived:
                         band_paths[band] = files.get_archived_rio_path(
-                            self.path, rf".*FRE_B{self.band_names[band]}\.tif"
+                            self.path, rf".*FRE_B{band_id}\.tif"
                         )
                     else:
                         band_paths[band] = files.get_file_in_dir(
-                            self.path, f"FRE_B{self.band_names[band]}.tif"
+                            self.path, f"FRE_B{band_id}.tif"
                         )
                 except (FileNotFoundError, IndexError) as ex:
                     raise InvalidProductError(
-                        f"Non existing {band} ({self.band_names[band]}) band for {self.path}"
+                        f"Non existing {band.name} ({band_id}) band for {self.path}"
                     ) from ex
 
         return band_paths
@@ -334,7 +390,7 @@ class S2TheiaProduct(OpticalProduct):
         return band_arr
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -343,7 +399,7 @@ class S2TheiaProduct(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -382,14 +438,14 @@ class S2TheiaProduct(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -447,7 +503,7 @@ class S2TheiaProduct(OpticalProduct):
     def open_mask(
         self,
         mask_id: str,
-        band: Union[obn, str],
+        band: Union[BandNames, str],
         resolution: float = None,
         size: Union[list, tuple] = None,
     ) -> np.ndarray:
@@ -482,7 +538,7 @@ class S2TheiaProduct(OpticalProduct):
 
         Args:
             mask_id: Mask ID
-            band (Union[obn, str]): Band name as an OpticalBandNames or resolution ID: ['R1', 'R2']
+            band (Union[BandNames, str]): Band name as an SpectralBandNames or resolution ID: ['R1', 'R2']
             resolution (float): Band resolution in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
 
@@ -492,14 +548,14 @@ class S2TheiaProduct(OpticalProduct):
         """
         # https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
         # For r_1, the band order is: B2, B3, B4, B8 and for r_2: B5, B6, B7, B8a, B11, B12
-        res_10m = [obn.BLUE, obn.GREEN, obn.RED, obn.NIR, "R1"]
+        res_10m = [spb.BLUE, spb.GREEN, spb.RED, spb.NIR, "R1"]
         res_20m = [
-            obn.VRE_1,
-            obn.VRE_2,
-            obn.VRE_3,
-            obn.NARROW_NIR,
-            obn.SWIR_1,
-            obn.SWIR_2,
+            spb.VRE_1,
+            spb.VRE_2,
+            spb.VRE_3,
+            spb.NARROW_NIR,
+            spb.SWIR_1,
+            spb.SWIR_2,
             "R2",
         ]
         if band in res_10m:

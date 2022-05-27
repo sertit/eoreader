@@ -32,12 +32,11 @@ import numpy as np
 import rasterio
 import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
-from rasterio import rpc, transform, warp
+from rasterio import rpc, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.snap import MAX_CORES
-from shapely.geometry import box
 
 from eoreader import cache, utils
 from eoreader.bands.bands import BandNames
@@ -74,9 +73,16 @@ class VhrProduct(OpticalProduct):
         self._proj_prod_type = []
 
         self.band_combi = None
+        """
+        Band combination, i.e. PAN, PMS, MS...
+        """
 
         # Order id (product name more or less)
         self._order_id = None
+
+        # Resolutions
+        self._pan_res = None
+        self._ms_res = None
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
@@ -116,27 +122,6 @@ class VhrProduct(OpticalProduct):
             rasterio.crs.CRS: CRS object
         """
         raise NotImplementedError
-
-    @cache
-    def extent(self) -> gpd.GeoDataFrame:
-        """
-        Get UTM extent of the tile
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.utm_extent()
-                                                        geometry
-            0  POLYGON ((309780.000 4390200.000, 309780.000 4...
-
-        Returns:
-            gpd.GeoDataFrame: Footprint in UTM
-        """
-        def_tr, def_w, def_h, def_crs = self.default_transform()
-        bounds = transform.array_bounds(def_h, def_w, def_tr)
-        return gpd.GeoDataFrame(geometry=[box(*bounds)], crs=def_crs).to_crs(self.crs())
 
     @cache
     def footprint(self) -> gpd.GeoDataFrame:
@@ -216,9 +201,9 @@ class VhrProduct(OpticalProduct):
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])
             {
-                <OpticalBandNames.GREEN: 'GREEN'>:
+                <SpectralBandNames.GREEN: 'GREEN'>:
                 'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML',
-                <OpticalBandNames.RED: 'RED'>:
+                <SpectralBandNames.RED: 'RED'>:
                 'IMG_PHR1A_PMS_001/DIM_PHR1A_PMS_202005110231585_ORT_5547047101.XML'
             }
 
@@ -418,7 +403,7 @@ class VhrProduct(OpticalProduct):
                     resolution=resolution,
                     size=size,
                     resampling=Resampling.bilinear,
-                    indexes=[self.band_names[band]],
+                    indexes=[self.bands[band].id],
                     **kwargs,
                 )
 
@@ -467,13 +452,10 @@ class VhrProduct(OpticalProduct):
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
-        See
-        `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
-        (unusable data mask) for more information.
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -489,7 +471,7 @@ class VhrProduct(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -508,7 +490,7 @@ class VhrProduct(OpticalProduct):
         Returns:
             str: Condensed name
         """
-        return f"{self.get_datetime()}_{self.platform.name}_{self.product_type.name}_{self.band_combi.name}"
+        return f"{self.get_datetime()}_{self.constellation.name}_{self.product_type.name}_{self.band_combi.name}"
 
     def _get_path(
         self, filename: str = "", extension: str = ""
@@ -597,7 +579,7 @@ class VhrProduct(OpticalProduct):
 
         # Read band
         with rasterio.open(str(path)) as src:
-            band_nb = self.band_names[band]
+            band_id = self.bands[band].id
             meta = src.meta.copy()
 
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
@@ -615,7 +597,7 @@ class VhrProduct(OpticalProduct):
             # If the CRS is not in UTM, reproject it
             out_arr = np.empty((1, utm_h, utm_w), dtype=meta["dtype"])
             warp.reproject(
-                source=src.read(band_nb),
+                source=src.read(band_id),
                 destination=out_arr,
                 src_crs=src.crs,
                 dst_crs=self.crs(),
@@ -730,3 +712,18 @@ class VhrProduct(OpticalProduct):
             Union[CloudPath, Path]: DIMAP filepath
         """
         raise NotImplementedError
+
+    def get_raw_band_paths(self, **kwargs) -> dict:
+        """
+        Return the raw band paths.
+
+        Args:
+            kwargs: Additional arguments
+
+        Returns:
+            dict: Dictionary containing the path of each queried band
+        """
+        raw_band_paths = {}
+        for band in self.get_existing_bands():
+            raw_band_paths[band] = self._get_tile_path()
+        return raw_band_paths

@@ -30,16 +30,16 @@ import rasterio
 import xarray as xr
 from cloudpathlib import CloudPath
 from rasterio.enums import Resampling
-from sertit import rasters, rasters_rio
+from sertit import files, rasters, rasters_rio
 from sertit.rasters import MAX_CORES
 from sertit.vectors import WGS84
 
 from eoreader import cache, utils
-from eoreader.bands import BandNames
-from eoreader.bands import OpticalBandNames as obn
-from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products import S3DataType, S3Instrument, S3Product, S3ProductType
-from eoreader.reader import Platform
+from eoreader.bands import BandNames, SpectralBand
+from eoreader.bands import spectral_bands as spb
+from eoreader.exceptions import InvalidTypeError
+from eoreader.products import S3DataType, S3Product, S3ProductType
+from eoreader.stac import CENTER_WV, DESCRIPTION, FWHM, GSD, ID, NAME
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -48,28 +48,28 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 # https://github.com/senbox-org/s3tbx/blob/197c9a471002eb2ec1fbd54e9a31bfc963446645/s3tbx-rad2refl/src/main/java/org/esa/s3tbx/processor/rad2refl/Rad2ReflConstants.java#L97
 # Not used for now
 OLCI_SOLAR_FLUXES_DEFAULT = {
-    obn.Oa01: 1714.9084,
-    obn.Oa02: 1872.3961,
-    obn.CA: 1926.6102,
-    obn.BLUE: 1930.2483,
-    obn.Oa05: 1804.2762,
-    obn.GREEN: 1651.5836,
-    obn.YELLOW: 1531.4067,
-    obn.RED: 1475.615,
-    obn.Oa09: 1408.9949,
-    obn.Oa10: 1265.5425,
-    obn.VRE_1: 1255.4227,
-    obn.VRE_2: 1178.0286,
-    obn.Oa13: 955.07043,
-    obn.Oa14: 914.18945,
-    obn.Oa15: 882.8275,
-    obn.VRE_3: 882.8275,
-    obn.NIR: 882.8275,
-    obn.NARROW_NIR: 882.8275,
-    obn.Oa18: 882.8275,
-    obn.Oa19: 882.8275,
-    obn.WV: 882.8275,
-    obn.Oa21: 882.8275,
+    spb.Oa01: 1714.9084,
+    spb.Oa02: 1872.3961,
+    spb.CA: 1926.6102,
+    spb.BLUE: 1930.2483,
+    spb.GREEN1: 1804.2762,
+    spb.GREEN: 1651.5836,
+    spb.YELLOW: 1531.4067,
+    spb.RED: 1475.615,
+    spb.Oa09: 1408.9949,
+    spb.Oa10: 1265.5425,
+    spb.VRE_1: 1255.4227,
+    spb.VRE_2: 1178.0286,
+    spb.Oa13: 955.07043,
+    spb.Oa14: 914.18945,
+    spb.Oa15: 882.8275,
+    spb.VRE_3: 882.8275,
+    spb.NIR: 882.8275,
+    spb.NARROW_NIR: 882.8275,
+    spb.Oa18: 882.8275,
+    spb.Oa19: 882.8275,
+    spb.WV: 882.8275,
+    spb.Oa21: 882.8275,
 }
 
 
@@ -100,7 +100,7 @@ class S3OlciProduct(S3Product):
 
     def _get_preprocessed_band_path(
         self,
-        band: Union[obn, str],
+        band: Union[BandNames, str],
         resolution: Union[float, tuple, list] = None,
         writable=True,
     ) -> Union[CloudPath, Path]:
@@ -108,7 +108,7 @@ class S3OlciProduct(S3Product):
         Create the pre-processed band path
 
         Args:
-            band (band: Union[obn, str]): Wanted band (quality flags accepted)
+            band (band: Union[BandNames, str]): Wanted band (quality flags accepted)
             resolution (Union[float, tuple, list]): Resolution of the wanted UTM band
             writable (bool): Do we need to write the pre-processed band ?
 
@@ -116,7 +116,7 @@ class S3OlciProduct(S3Product):
             Union[CloudPath, Path]: Pre-processed band path
         """
         res_str = self._resolution_to_str(resolution)
-        band_str = band.name if isinstance(band, obn) else band
+        band_str = band.name if isinstance(band, BandNames) else band
 
         return self._get_band_folder(writable=writable).joinpath(
             f"{self.condensed_name}_{band_str}_{res_str}.tif"
@@ -159,27 +159,18 @@ class S3OlciProduct(S3Product):
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
-    def _get_platform(self) -> Platform:
-        """ Getter of the platform """
-        if "OL" in self.name:
-            # Instrument
-            self._instrument = S3Instrument.OLCI
-            sat_id = self._instrument.value
-        else:
-            raise InvalidProductError(
-                f"Only OLCI and SLSTR are valid Sentinel-3 instruments : {self.name}"
-            )
-
-        return getattr(Platform, sat_id)
-
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         return 300.0
 
     def _set_product_type(self) -> None:
-        """Set products type"""
+        """
+        Set products type
+
+        More on spectral bands <here `https://sentinel.esa.int/web/sentinel/user-guides/sentinel-3-olci/resolutions/radiometric`_>.
+        """
         # Product type
         if self.name[7] != "1":
             raise InvalidTypeError("Only L1 products are used for Sentinel-3 data.")
@@ -187,33 +178,256 @@ class S3OlciProduct(S3Product):
         self.product_type = S3ProductType.OLCI_EFR
         self._data_type = S3DataType.EFR
 
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
         # Bands
-        self.band_names.map_bands(
-            {
-                obn.Oa01: "Oa01",
-                obn.Oa02: "Oa02",
-                obn.CA: "Oa03",
-                obn.BLUE: "Oa04",
-                obn.Oa05: "Oa05",
-                obn.GREEN: "Oa06",
-                obn.YELLOW: "Oa07",
-                obn.RED: "Oa08",
-                obn.Oa09: "Oa09",
-                obn.Oa10: "Oa10",
-                obn.VRE_1: "Oa11",
-                obn.VRE_2: "Oa12",
-                obn.Oa13: "Oa13",
-                obn.Oa14: "Oa14",
-                obn.Oa15: "Oa15",
-                obn.VRE_3: "Oa16",
-                obn.NIR: "Oa17",
-                obn.NARROW_NIR: "Oa17",
-                obn.Oa18: "Oa18",
-                obn.Oa19: "Oa19",
-                obn.WV: "Oa20",
-                obn.Oa21: "Oa21",
-            }
-        )
+        olci_bands = {
+            spb.Oa01: SpectralBand(
+                eoreader_name=spb.Oa01,
+                **{
+                    NAME: "Oa01",
+                    ID: "Oa01",
+                    GSD: self.resolution,
+                    CENTER_WV: 400,
+                    FWHM: 15,
+                    DESCRIPTION: "Aerosol correction, improved water constituent retrieval",
+                },
+            ),
+            spb.Oa02: SpectralBand(
+                eoreader_name=spb.Oa02,
+                **{
+                    NAME: "Oa02",
+                    ID: "Oa02",
+                    GSD: self.resolution,
+                    CENTER_WV: 412.5,
+                    FWHM: 10,
+                    DESCRIPTION: "Yellow substance and detrital pigments (turbidity)",
+                },
+            ),
+            spb.CA: SpectralBand(
+                eoreader_name=spb.CA,
+                **{
+                    NAME: "Oa03",
+                    ID: "Oa03",
+                    GSD: self.resolution,
+                    CENTER_WV: 442.5,
+                    FWHM: 10,
+                    DESCRIPTION: "Chlorophyll absorption maximum, biogeochemistry, vegetation",
+                },
+            ),
+            spb.BLUE: SpectralBand(
+                eoreader_name=spb.BLUE,
+                **{
+                    NAME: "Oa04",
+                    ID: "Oa04",
+                    GSD: self.resolution,
+                    CENTER_WV: 490,
+                    FWHM: 10,
+                    DESCRIPTION: "High Chlorophyll",
+                },
+            ),
+            spb.GREEN1: SpectralBand(
+                eoreader_name=spb.GREEN1,
+                **{
+                    NAME: "Oa05",
+                    ID: "Oa05",
+                    GSD: self.resolution,
+                    CENTER_WV: 510,
+                    FWHM: 10,
+                    DESCRIPTION: "Chlorophyll, sediment, turbidity, red tide",
+                },
+            ),
+            spb.GREEN: SpectralBand(
+                eoreader_name=spb.GREEN,
+                **{
+                    NAME: "Oa06",
+                    ID: "Oa06",
+                    GSD: self.resolution,
+                    CENTER_WV: 560,
+                    FWHM: 10,
+                    DESCRIPTION: "Chlorophyll reference (Chlorophyll minimum)",
+                },
+            ),
+            spb.YELLOW: SpectralBand(
+                eoreader_name=spb.YELLOW,
+                **{
+                    NAME: "Oa07",
+                    ID: "Oa07",
+                    GSD: self.resolution,
+                    CENTER_WV: 620,
+                    FWHM: 10,
+                    DESCRIPTION: "Sediment loading",
+                },
+            ),
+            spb.RED: SpectralBand(
+                eoreader_name=spb.RED,
+                **{
+                    NAME: "Oa08",
+                    ID: "Oa08",
+                    GSD: self.resolution,
+                    CENTER_WV: 665,
+                    FWHM: 10,
+                    DESCRIPTION: "Chlorophyll (2nd Chlorophyll absorption maximum), sediment, yellow substance / vegetation",
+                },
+            ),
+            spb.Oa09: SpectralBand(
+                eoreader_name=spb.Oa09,
+                **{
+                    NAME: "Oa09",
+                    ID: "Oa09",
+                    GSD: self.resolution,
+                    CENTER_WV: 673.75,
+                    FWHM: 7.5,
+                    DESCRIPTION: "For improved fluorescence retrieval and to better account for smile together with the bands 665 and 680 nm",
+                },
+            ),
+            spb.Oa10: SpectralBand(
+                eoreader_name=spb.Oa10,
+                **{
+                    NAME: "Oa10",
+                    ID: "Oa10",
+                    GSD: self.resolution,
+                    CENTER_WV: 681.25,
+                    FWHM: 7.5,
+                    DESCRIPTION: "Chlorophyll fluorescence peak, red edge",
+                },
+            ),
+            spb.VRE_1: SpectralBand(
+                eoreader_name=spb.VRE_1,
+                **{
+                    NAME: "Oa11",
+                    ID: "Oa11",
+                    GSD: self.resolution,
+                    CENTER_WV: 708.75,
+                    FWHM: 10,
+                    DESCRIPTION: "Chlorophyll fluorescence baseline, red edge transition",
+                },
+            ),
+            spb.VRE_2: SpectralBand(
+                eoreader_name=spb.VRE_2,
+                **{
+                    NAME: "Oa12",
+                    ID: "Oa12",
+                    GSD: self.resolution,
+                    CENTER_WV: 753.75,
+                    FWHM: 7.5,
+                    DESCRIPTION: "O2 absorption/clouds, vegetation",
+                },
+            ),
+            spb.Oa13: SpectralBand(
+                eoreader_name=spb.Oa13,
+                **{
+                    NAME: "Oa13",
+                    ID: "Oa13",
+                    GSD: self.resolution,
+                    CENTER_WV: 761.25,
+                    FWHM: 2.5,
+                    DESCRIPTION: "O2 absorption band/aerosol correction.",
+                },
+            ),
+            spb.Oa14: SpectralBand(
+                eoreader_name=spb.Oa14,
+                **{
+                    NAME: "Oa14",
+                    ID: "Oa14",
+                    GSD: self.resolution,
+                    CENTER_WV: 764.375,
+                    FWHM: 3.75,
+                    DESCRIPTION: "Atmospheric correction",
+                },
+            ),
+            spb.Oa15: SpectralBand(
+                eoreader_name=spb.Oa15,
+                **{
+                    NAME: "Oa15",
+                    ID: "Oa15",
+                    GSD: self.resolution,
+                    CENTER_WV: 767.5,
+                    FWHM: 2.5,
+                    DESCRIPTION: "O2A used for cloud top pressure, fluorescence over land",
+                },
+            ),
+            spb.VRE_3: SpectralBand(
+                eoreader_name=spb.VRE_3,
+                **{
+                    NAME: "Oa16",
+                    ID: "Oa16",
+                    GSD: self.resolution,
+                    CENTER_WV: 778.75,
+                    FWHM: 15,
+                    DESCRIPTION: "Atmos. corr./aerosol corr.",
+                },
+            ),
+            spb.NIR: SpectralBand(
+                eoreader_name=spb.NIR,
+                **{
+                    NAME: "Oa17",
+                    ID: "Oa17",
+                    GSD: self.resolution,
+                    CENTER_WV: 865,
+                    FWHM: 20,
+                    DESCRIPTION: "Atmospheric correction/aerosol correction, clouds, pixel co-registration",
+                },
+            ),
+            spb.NARROW_NIR: SpectralBand(
+                eoreader_name=spb.NARROW_NIR,
+                **{
+                    NAME: "Oa17",
+                    ID: "Oa17",
+                    GSD: self.resolution,
+                    CENTER_WV: 865,
+                    FWHM: 20,
+                    DESCRIPTION: "Atmospheric correction/aerosol correction, clouds, pixel co-registration",
+                },
+            ),
+            spb.Oa18: SpectralBand(
+                eoreader_name=spb.Oa18,
+                **{
+                    NAME: "Oa18",
+                    ID: "Oa18",
+                    GSD: self.resolution,
+                    CENTER_WV: 885,
+                    FWHM: 10,
+                    DESCRIPTION: "Water vapour absorption reference band. Common reference band with SLSTR instrument. Vegetation monitoring",
+                },
+            ),
+            spb.Oa19: SpectralBand(
+                eoreader_name=spb.Oa19,
+                **{
+                    NAME: "Oa19",
+                    ID: "Oa19",
+                    GSD: self.resolution,
+                    CENTER_WV: 900,
+                    FWHM: 10,
+                    DESCRIPTION: "Water vapour absorption/vegetation monitoring (maximum reflectance)",
+                },
+            ),
+            spb.WV: SpectralBand(
+                eoreader_name=spb.WV,
+                **{
+                    NAME: "Oa20",
+                    ID: "Oa20",
+                    GSD: self.resolution,
+                    CENTER_WV: 940,
+                    FWHM: 20,
+                    DESCRIPTION: "Water vapour absorption, Atmospheric correction/aerosol correction",
+                },
+            ),
+            spb.Oa21: SpectralBand(
+                eoreader_name=spb.Oa21,
+                **{
+                    NAME: "Oa21",
+                    ID: "Oa21",
+                    GSD: self.resolution,
+                    CENTER_WV: 1020,
+                    FWHM: 40,
+                    DESCRIPTION: "Atmospheric correction/aerosol correction",
+                },
+            ),
+        }
+        self.bands.map_bands(olci_bands)
 
     def _create_gcps(self) -> None:
         """
@@ -230,9 +444,35 @@ class S3OlciProduct(S3Product):
             # Create GCPs
             self._gcps = utils.create_gcps(lon, lat, alt)
 
+    def get_raw_band_paths(self, **kwargs) -> dict:
+        """
+        Return the raw band paths.
+
+        Args:
+            kwargs: Additional arguments
+
+        Returns:
+            dict: Dictionary containing the path of each queried band
+        """
+        raw_band_paths = {}
+        for band in self.get_existing_bands():
+            band_id = self.bands[band].id
+
+            # Get band filename and subdataset
+            filename = self._replace(self._radiance_file, band=band_id)
+
+            if self.is_archived:
+                raw_path = files.get_archived_path(self.path, f".*{filename}")
+            else:
+                raw_path = next(self.path.glob(f".*{filename}"))
+
+            raw_band_paths[band] = raw_path
+
+        return raw_band_paths
+
     def _preprocess(
         self,
-        band: Union[obn, str],
+        band: Union[BandNames, str],
         resolution: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
@@ -244,7 +484,7 @@ class S3OlciProduct(S3Product):
         - Geocode
 
         Args:
-            band (Union[obn, str]): Band to preprocess (quality flags or others are accepted)
+            band (Union[BandNames, str]): Band to preprocess (quality flags or others are accepted)
             resolution (float): Resolution
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
@@ -265,11 +505,11 @@ class S3OlciProduct(S3Product):
             )
 
             # Get band regex
-            if isinstance(band, obn):
-                band_name = self.band_names[band]
+            if isinstance(band, BandNames):
+                band_id = self.bands[band].id
                 if not subdataset:
-                    subdataset = self._replace(self._radiance_subds, band=band_name)
-                filename = self._replace(self._radiance_file, band=band_name)
+                    subdataset = self._replace(self._radiance_subds, band=band_id)
+                filename = self._replace(self._radiance_file, band=band_id)
             else:
                 filename = band
 
@@ -315,7 +555,9 @@ class S3OlciProduct(S3Product):
             **{"SRC_METHOD": "GCP_TPS"},
         )
 
-    def _rad_2_refl(self, band_arr: xr.DataArray, band: obn = None) -> xr.DataArray:
+    def _rad_2_refl(
+        self, band_arr: xr.DataArray, band: BandNames = None
+    ) -> xr.DataArray:
         """
         Convert radiance to reflectance
 
@@ -332,7 +574,7 @@ class S3OlciProduct(S3Product):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Optical Band (for SLSTR only)
+            band (BandNames): Spectral Band (for SLSTR only)
 
         Returns:
             dict: Dictionary containing {band: path}
@@ -377,12 +619,12 @@ class S3OlciProduct(S3Product):
 
         return band_arr * rad_2_refl_coeff
 
-    def _compute_e0(self, band: obn = None) -> np.ndarray:
+    def _compute_e0(self, band: BandNames = None) -> np.ndarray:
         """
         Compute the solar spectral flux in mW / (m^2 * sr * nm)
 
         Args:
-            band (obn): Optical Band (for SLSTR only)
+            band (BandNames): Spectral Band (for SLSTR only)
 
         Returns:
             np.ndarray: Solar Flux
@@ -393,7 +635,7 @@ class S3OlciProduct(S3Product):
         e0_det = self._read_nc(self._misc_file, self._solar_flux_name).data
 
         # Get band slice and open corresponding e0 for the detectors
-        band_slice = int(self.band_names[band][-2:]) - 1
+        band_slice = int(self.bands[band].id[-2:]) - 1
         e0_det = np.squeeze(e0_det[0, band_slice, :])
 
         # Create e0
@@ -404,7 +646,7 @@ class S3OlciProduct(S3Product):
         return e0
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...) for OLCI data.
@@ -449,7 +691,7 @@ class S3OlciProduct(S3Product):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -457,28 +699,28 @@ class S3OlciProduct(S3Product):
         """
         # Bit ids
         band_bit_id = {
-            obn.Oa01: 20,  # Band 1
-            obn.Oa02: 19,  # Band 2
-            obn.CA: 18,  # Band 3
-            obn.BLUE: 17,  # Band 4
-            obn.Oa05: 16,  # Band 5
-            obn.GREEN: 15,  # Band 6
-            obn.YELLOW: 14,  # Band 7
-            obn.RED: 13,  # Band 8
-            obn.Oa09: 12,  # Band 9
-            obn.Oa10: 11,  # Band 10
-            obn.VRE_1: 10,  # Band 11
-            obn.VRE_2: 9,  # Band 12
-            obn.Oa13: 8,  # Band 13
-            obn.Oa14: 7,  # Band 14
-            obn.Oa15: 6,  # Band 15
-            obn.VRE_3: 5,  # Band 16
-            obn.NIR: 4,  # Band 17
-            obn.NARROW_NIR: 4,  # Band 17
-            obn.Oa18: 3,  # Band 18
-            obn.Oa19: 2,  # Band 19
-            obn.WV: 1,  # Band 20
-            obn.Oa21: 0,  # Band 21
+            spb.Oa01: 20,  # Band 1
+            spb.Oa02: 19,  # Band 2
+            spb.CA: 18,  # Band 3
+            spb.BLUE: 17,  # Band 4
+            spb.GREEN1: 16,  # Band 5
+            spb.GREEN: 15,  # Band 6
+            spb.YELLOW: 14,  # Band 7
+            spb.RED: 13,  # Band 8
+            spb.Oa09: 12,  # Band 9
+            spb.Oa10: 11,  # Band 10
+            spb.VRE_1: 10,  # Band 11
+            spb.VRE_2: 9,  # Band 12
+            spb.Oa13: 8,  # Band 13
+            spb.Oa14: 7,  # Band 14
+            spb.Oa15: 6,  # Band 15
+            spb.VRE_3: 5,  # Band 16
+            spb.NIR: 4,  # Band 17
+            spb.NARROW_NIR: 4,  # Band 17
+            spb.Oa18: 3,  # Band 18
+            spb.Oa19: 2,  # Band 19
+            spb.WV: 1,  # Band 20
+            spb.Oa21: 0,  # Band 21
         }
         invalid_id = 25
         sat_band_id = band_bit_id[band]

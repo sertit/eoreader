@@ -19,7 +19,6 @@ COSMO-SkyMed 2nd Generation products.
 More info `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
 """
 import logging
-import warnings
 from enum import unique
 from pathlib import Path
 from typing import Union
@@ -35,9 +34,6 @@ from eoreader.products import CosmoProduct
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique
@@ -110,9 +106,9 @@ class CsgProduct(CosmoProduct):
     `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
     """
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         See here
         <here](https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Second-Generation-Mission-Products-Description.pdf>`_
         for more information (tables 20).
@@ -138,6 +134,14 @@ class CsgProduct(CosmoProduct):
 
         return def_res
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        CSG: https://earth.esa.int/eogateway/missions/cosmo-skymed-second-generation
+        """
+        self.instrument = "SAR X-band"
+
     def _set_sensor_mode(self) -> None:
         """
         Get products type from S2 products name (could check the metadata too)
@@ -155,7 +159,7 @@ class CsgProduct(CosmoProduct):
 
         if not self.sensor_mode:
             raise InvalidProductError(
-                f"Invalid {self.platform.value} name: {self.name}"
+                f"Invalid {self.constellation.value} name: {self.name}"
             )
 
     def _read_band(

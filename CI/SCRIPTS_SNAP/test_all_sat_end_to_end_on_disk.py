@@ -77,6 +77,7 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
         PAN,
         RED,
         NARROW_NIR,
+        NIR,
         Oa01,
         TIR_1,
         F1,
@@ -230,121 +231,225 @@ def _test_core(
             prod.clear()
 
 
+def test_s1_slc(capfd):
+    @dask_env
+    def test_s1_slc_core():
+        """Function testing the support of Sentinel-1 constellation"""
+        try:
+            _test_core_sar("*S1*_IW_SLC*.SAFE")
+        except RuntimeError:
+            # Sometimes SNAP kills the process when out of memory: assert OK in this case
+            out, err = capfd.readouterr()
+            assert "90%" in out
+            LOGGER.warning("SNAP killed the process!")
+
+    test_s1_slc_core()
+
+
+def test_s1_slc_zip(capfd):
+    @dask_env
+    def test_s1_slc_zip_core():
+        """Function testing the support of Sentinel-1 constellation"""
+        try:
+            _test_core_sar("*S1*_IW_SLC*.zip")
+        except RuntimeError:
+            # Sometimes SNAP kills the process when out of memory: assert OK in this case
+            out, err = capfd.readouterr()
+            assert "90%" in out
+            LOGGER.warning("SNAP killed the process!")
+
+    test_s1_slc_zip_core()
+
+
+@dask_env
+def test_s1_grdh():
+    """Function testing the support of Sentinel-1 constellation"""
+    _test_core_sar("*S1*_IW_GRDH*.SAFE")
+
+
+@dask_env
+def test_s1_grdh_zip():
+    """Function testing the support of Sentinel-1 constellation"""
+    _test_core_sar("*S1*_IW_GRDH*.zip")
+
+
+@dask_env
+def test_csk():
+    """Function testing the support of COSMO-Skymed constellation"""
+    _test_core_sar("*CSK*")
+
+
+@dask_env
+def test_csg():
+    """Function testing the support of COSMO-Skymed 2nd Generation constellation"""
+    _test_core_sar("*CSG*")
+
+
+@dask_env
+def test_tsx():
+    """Function testing the support of TerraSAR-X constellation"""
+    _test_core_sar("*TSX*")
+
+
+# Assume that tests TDX and PAZ constellations
+@dask_env
+def test_tdx():
+    """Function testing the support of TanDEM-X constellation"""
+    _test_core_sar("*TDX*")
+
+
+# Assume that tests TDX and PAZ constellations
+@dask_env
+def test_paz():
+    """Function testing the support of PAZ SAR constellation"""
+    _test_core_sar("*PAZ*")
+
+
+@dask_env
+def test_rs2():
+    """Function testing the support of RADARSAT-2 constellation"""
+    _test_core_sar("*RS2_*")
+
+
+@dask_env
+def test_rcm():
+    """Function testing the support of RADARSAT-Constellation constellation"""
+    _test_core_sar("*RCM*")
+
+
+@dask_env
+def test_iceye():
+    """Function testing the support of ICEYE constellation"""
+    _test_core_sar("*SLH_*")
+
+
+@dask_env
+def test_saocom():
+    """Function testing the support of SAOCOM constellation"""
+    _test_core_sar("*SAO*")
+
+
 @dask_env
 def test_s2():
-    """Function testing the support of Sentinel-2 sensor"""
+    """Function testing the support of Sentinel-2 constellation"""
     _test_core_optical("*S2*_MSI*T30*")
 
 
 @dask_env
 def test_s2_theia():
-    """Function testing the support of Sentinel-2 Theia sensor"""
+    """Function testing the support of Sentinel-2 Theia constellation"""
     _test_core_optical("*SENTINEL2*")
 
 
 @dask_env
 def test_s3_olci():
-    """Function testing the support of Sentinel-3 OLCI sensor"""
+    """Function testing the support of Sentinel-3 OLCI constellation"""
     # Init logger
     _test_core_optical("*S3*_OL_1_*")
 
 
 @dask_env
 def test_s3_slstr():
-    """Function testing the support of Sentinel-3 SLSTR sensor"""
+    """Function testing the support of Sentinel-3 SLSTR constellation"""
     # Init logger
     _test_core_optical("*S3*_SL_1_*", **{SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP})
 
 
 @dask_env
 def test_l9():
-    """Function testing the support of Landsat-9 sensor"""
+    """Function testing the support of Landsat-9 constellation"""
     # Init logger
     _test_core_optical("*LC09*")
 
 
 @dask_env
 def test_l8():
-    """Function testing the support of Landsat-8 sensor"""
+    """Function testing the support of Landsat-8 constellation"""
     # Init logger
     _test_core_optical("*LC08*")
 
 
 @dask_env
 def test_l7():
-    """Function testing the support of Landsat-7 sensor"""
+    """Function testing the support of Landsat-7 constellation"""
     _test_core_optical("*LE07*")
 
 
 @dask_env
 def test_l5_tm():
-    """Function testing the support of Landsat-5 TM sensor"""
+    """Function testing the support of Landsat-5 TM constellation"""
     _test_core_optical("*LT05*")
 
 
 @dask_env
 def test_l4_tm():
-    """Function testing the support of Landsat-4 TM sensor"""
+    """Function testing the support of Landsat-4 TM constellation"""
     _test_core_optical("*LT04*")
 
 
 @dask_env
 def test_l5_mss():
-    """Function testing the support of Landsat-5 MSS sensor"""
+    """Function testing the support of Landsat-5 MSS constellation"""
     _test_core_optical("*LM05*")
 
 
 @dask_env
 def test_l4_mss():
-    """Function testing the support of Landsat-4 MSS sensor"""
+    """Function testing the support of Landsat-4 MSS constellation"""
     _test_core_optical("*LM04*")
 
 
 @dask_env
 def test_l3_mss():
-    """Function testing the support of Landsat-3 sensor"""
+    """Function testing the support of Landsat-3 constellation"""
     _test_core_optical("*LM03*")
 
 
 @dask_env
 def test_l2_mss():
-    """Function testing the support of Landsat-2 sensor"""
+    """Function testing the support of Landsat-2 constellation"""
     _test_core_optical("*LM02*")
 
 
 @dask_env
 def test_l1_mss():
-    """Function testing the support of Landsat-1 sensor"""
+    """Function testing the support of Landsat-1 constellation"""
     _test_core_optical("*LM01*")
 
 
 @dask_env
 def test_pla():
-    """Function testing the support of PlanetScope sensor"""
+    """Function testing the support of PlanetScope constellation"""
     _test_core_optical("*202*1014*")
 
 
 @dask_env
+def test_sky():
+    """Function testing the support of SkySat constellation"""
+    _test_core_optical("*ssc*")
+
+
+@dask_env
 def test_pld():
-    """Function testing the support of Pleiades sensor"""
+    """Function testing the support of Pleiades constellation"""
     _test_core_optical("*IMG_PHR*")
 
 
 @dask_env
 def test_pneo():
-    """Function testing the support of Pleiades-Neo sensor"""
+    """Function testing the support of Pleiades-Neo constellation"""
     _test_core_optical("*IMG_*_PNEO*")
 
 
 @dask_env
 def test_spot6():
-    """Function testing the support of SPOT-6 sensor"""
+    """Function testing the support of SPOT-6 constellation"""
     _test_core_optical("*IMG_SPOT6*")
 
 
 @dask_env
 def test_spot7():
-    """Function testing the support of SPOT-7 sensor"""
+    """Function testing the support of SPOT-7 constellation"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*IMG_SPOT7*", dem_path=dem_path)
@@ -352,7 +457,7 @@ def test_spot7():
 
 @dask_env
 def test_wv02_wv03():
-    """Function testing the support of WorldView-2/3 sensors"""
+    """Function testing the support of WorldView-2/3 constellations"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*P001_MUL*", dem_path=dem_path)
@@ -360,83 +465,15 @@ def test_wv02_wv03():
 
 @dask_env
 def test_ge01_wv04():
-    """Function testing the support of GeoEye-1/WorldView-4 sensors"""
+    """Function testing the support of GeoEye-1/WorldView-4 constellations"""
     _test_core_optical("*P001_PSH*")
 
 
 @dask_env
 def test_vs1():
-    """Function testing the support of Vision-1 sensor"""
+    """Function testing the support of Vision-1 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*VIS1*", dem_path=dem_path)
-
-
-@dask_env
-def test_s1():
-    """Function testing the support of Sentinel-1 sensor"""
-    _test_core_sar("*S1*_IW*")
-
-
-@dask_env
-def test_s1_zip():
-    """Function testing the support of Sentinel-1 sensor"""
-    _test_core_sar("*S1*_IW*.zip")
-
-
-@dask_env
-def test_csk():
-    """Function testing the support of COSMO-Skymed sensor"""
-    _test_core_sar("*CSK*")
-
-
-@dask_env
-def test_csg():
-    """Function testing the support of COSMO-Skymed 2nd Generation sensor"""
-    _test_core_sar("*CSG*")
-
-
-@dask_env
-def test_tsx():
-    """Function testing the support of TerraSAR-X sensor"""
-    _test_core_sar("*TSX*")
-
-
-# Assume that tests TDX and PAZ sensors
-@dask_env
-def test_tdx():
-    """Function testing the support of TanDEM-X sensor"""
-    _test_core_sar("*TDX*")
-
-
-# Assume that tests TDX and PAZ sensors
-@dask_env
-def test_paz():
-    """Function testing the support of PAZ SAR sensor"""
-    _test_core_sar("*PAZ*")
-
-
-@dask_env
-def test_rs2():
-    """Function testing the support of RADARSAT-2 sensor"""
-    _test_core_sar("*RS2_*")
-
-
-@dask_env
-def test_rcm():
-    """Function testing the support of RADARSAT-Constellation sensor"""
-    _test_core_sar("*RCM*")
-
-
-@dask_env
-def test_iceye():
-    """Function testing the support of ICEYE sensor"""
-    _test_core_sar("*SLH_*")
-
-
-@dask_env
-def test_saocom():
-    """Function testing the support of SAOCOM sensor"""
-    _test_core_sar("*SAO*")
 
 
 # TODO:

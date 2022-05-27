@@ -19,14 +19,12 @@ import logging
 import os
 import re
 import tempfile
-import warnings
 import zipfile
 from datetime import datetime
 from enum import unique
 from typing import Union
 
 import geopandas as gpd
-import rasterio
 from lxml import etree
 from sertit import files, vectors
 from sertit.misc import ListEnum
@@ -38,9 +36,6 @@ from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique
@@ -95,9 +90,9 @@ class S1Product(SarProduct):
     You can use directly the .zip file
     """
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         See here
         <here](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected>`_
         for more information
@@ -114,6 +109,14 @@ class S1Product(SarProduct):
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
         return def_res
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Sentinel-1: https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-1/instrument-payload
+        """
+        self.instrument = "SAR C-band"
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
@@ -123,6 +126,9 @@ class S1Product(SarProduct):
         self._raw_band_regex = "*-{!l}-*.tiff"  # Just get the SLC-iw1 image for now
         self._band_folder = self.path.joinpath("measurement")
         self.snap_filename = ""
+
+        # Its original filename is its name
+        self._use_filename = True
 
         # Zipped and SNAP can process its archive
         self.needs_extraction = False
@@ -237,7 +243,7 @@ class S1Product(SarProduct):
             )
         if not self.sensor_mode:
             raise InvalidProductError(
-                f"Invalid {self.platform.value} name: {self.name}"
+                f"Invalid {self.constellation.value} name: {self.name}"
             )
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
@@ -279,30 +285,41 @@ class S1Product(SarProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
         Returns:
             str: True name of the product (from metadata)
         """
-        # The name is not in the classic metadata, but can be found in the manifest
         try:
-            mtd_from_path = "preview/product-preview.html"
-            mtd_archived = r"preview.*product-preview\.html"
+            if self.is_archived:
+                pdf_file = files.get_archived_path(self.path, r".*\.pdf", as_list=False)
+            else:
+                pdf_file = next(self.path.glob("*.pdf"))
+        except (FileNotFoundError, StopIteration):
+            # The name is not in the classic metadata, but can be found in the product-preview
+            try:
+                mtd_from_path = "preview/product-preview.html"
+                mtd_archived = r"preview.*product-preview\.html"
 
-            root = self._read_mtd_html(mtd_from_path, mtd_archived)
+                root = self._read_mtd_html(mtd_from_path, mtd_archived)
 
-            # Open identifier
-            name = root.findtext(".//head/title")
-            if not name:
-                raise InvalidProductError("title not found in metadata!")
+                # Open identifier
+                name = root.findtext(".//head/title")
+                if not name:
+                    raise InvalidProductError("title not found in metadata!")
 
-        except InvalidProductError:
-            LOGGER.warning(
-                "product-preview.html not found in the product, the name will be the filename"
-            )
-            name = self.filename
+                LOGGER.warning(
+                    "Product filename is not a valid Sentinel-1 name, and the retrieved name is missing the unique ID."
+                )
+
+            except InvalidProductError:
+                raise InvalidProductError(
+                    "product-preview.html not found in the product, the name will be the filename (which is not a valid Sentinel-1 name)"
+                )
+        else:
+            name = files.get_filename(pdf_file)
 
         return name
 

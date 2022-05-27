@@ -19,13 +19,14 @@ TerraSAR-X & TanDEM-X & PAZ products.
 More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
 """
 import logging
-import warnings
 from datetime import datetime
 from enum import unique
+from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import rasterio
+from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs
 from sertit import files, rasters, vectors
@@ -35,13 +36,10 @@ from eoreader import cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique
@@ -134,21 +132,60 @@ class TsxSatId(ListEnum):
     """
 
 
+@unique
+class TsxGeometricResolution(ListEnum):
+    """
+    TerraSAR-X & TanDEM-X & PAZ geometric resolution, either Radiometrically Enhanced Products or Spatially Enhanced Products.
+    This would infer on the resolution of the band, but Copernicus EMS doesn't handled this so we keep SSC resolution as is ESA Data Access Portfolio.
+
+    Take a look
+    `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
+    """
+
+    RE = "Radiometrically Enhanced Products "
+    """The radiometrically enhanced product is optimized with respect to radiometry."""
+
+    SE = "Spatially Enhanced Products "
+    """The spatially enhanced product is designed for the highest possible square ground resolution."""
+
+
 class TsxProduct(SarProduct):
     """Class for TerraSAR-X & TanDEM-X & PAZ Products"""
 
-    def _set_resolution(self) -> float:
+    class IceyeProduct(SarProduct):
         """
-        Set product default resolution (in meters)
+        Class for ICEYE Products
+        Take a look
+        `here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
+        """
+
+        def __init__(
+            self,
+            product_path: Union[str, CloudPath, Path],
+            archive_path: Union[str, CloudPath, Path] = None,
+            output_path: Union[str, CloudPath, Path] = None,
+            remove_tmp: bool = False,
+            **kwargs,
+        ) -> None:
+            self._geometric_res = None
+
+            # Initialization from the super class
+            super().__init__(
+                product_path, archive_path, output_path, remove_tmp, **kwargs
+            )
+
+    def _get_resolution(self) -> float:
+        """
+        Get product default resolution (in meters)
         See here
         <here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
         for more information (Beam Modes)
 
         .. WARNING::
-            For SSC data:
-                - We assume being in High Resolution (SE)
-                - Incidence angle: we consider the worst option, around 20 degrees
+            - We force Spatially Enhanced Resolution (SE) as we keep SSC resolutions (as per the ESA Data Access Portfolio)
         """
+        # TODO: Manage RE case ? Not handled by Copernicus EMS, so be careful...
+
         # Read metadata
         try:
             root, _ = self.read_mtd()
@@ -202,6 +239,15 @@ class TsxProduct(SarProduct):
 
         return def_res
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        TSX+TDX: https://earth.esa.int/eogateway/missions/terrasar-x-and-tandem-x
+        PAZ: https://earth.esa.int/eogateway/missions/paz
+        """
+        self.instrument = "SAR X-band"
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
@@ -214,18 +260,21 @@ class TsxProduct(SarProduct):
         # SNAP cannot process its archive
         self.needs_extraction = True
 
+        # Its original filename is its name
+        self._use_filename = True
+
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
-    def _get_platform(self) -> Platform:
-        """ Getter of the platform """
-        # TerraSAR-X & TanDEM-X products are all similar, we must check into the metadata to know the sensor
+    def _get_constellation(self) -> Constellation:
+        """ Getter of the constellation """
+        # TerraSAR-X & TanDEM-X products are all similar, we must check into the metadata to know the constellation
         root, _ = self.read_mtd()
-        sat_id = root.findtext(".//mission")
-        if not sat_id:
+        mission = root.findtext(".//mission")
+        if not mission:
             raise InvalidProductError("Cannot find mission in the metadata file")
-        sat_id = getattr(TsxSatId, sat_id.split("-")[0]).name
-        return getattr(Platform, sat_id)
+        constellation_id = getattr(TsxSatId, mission.split("-")[0]).name
+        return getattr(Constellation, constellation_id)
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -233,6 +282,10 @@ class TsxProduct(SarProduct):
         (setting product-type, band names and so on)
         """
         self.snap_filename = f"{self.name}.xml"
+
+        # Geometric resolution
+        if self.product_type != TsxProductType.SSC:
+            self._geometric_res = getattr(TsxGeometricResolution, self.split_name[3])
 
         # Post init done by the super class
         super()._post_init(**kwargs)
@@ -253,7 +306,7 @@ class TsxProduct(SarProduct):
             [1 rows x 12 columns]
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         if self.product_type == TsxProductType.EEC:
             return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
@@ -341,8 +394,10 @@ class TsxProduct(SarProduct):
             LOGGER.warning(
                 "GEC (Geocoded Ellipsoid Corrected) products type has never been tested for %s data. "
                 "Use it at your own risks !",
-                self.platform.value,
+                self.constellation.value,
             )
+        elif self.product_type == TsxProductType.EEC:
+            self.is_ortho = True
 
     def _set_sensor_mode(self) -> None:
         """
@@ -401,7 +456,7 @@ class TsxProduct(SarProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 

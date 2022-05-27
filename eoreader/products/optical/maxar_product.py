@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Maxar sensors (GeoEye, WorldViews...) class.
+Maxar satellites (GeoEye, WorldViews...) class.
 See `here <https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-Standard-Imagery.pdf>`_
 for more information.
 """
@@ -27,6 +27,7 @@ from enum import unique
 from pathlib import Path
 from typing import Union
 
+import geopandas as gpd
 import numpy as np
 import xarray as xr
 from cloudpathlib import CloudPath
@@ -34,88 +35,90 @@ from lxml import etree
 from rasterio import crs as riocrs
 from sertit import files, vectors
 from sertit.misc import ListEnum
+from shapely.geometry import Polygon
 
 from eoreader import cache
-from eoreader.bands import BandNames
-from eoreader.bands import OpticalBandNames as obn
+from eoreader.bands import BandNames, SpectralBand
+from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
+from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 _MAXAR_BAND_MTD = {
-    obn.NIR: "N",
-    obn.NARROW_NIR: "N",
-    obn.RED: "R",
-    obn.GREEN: "G",
-    obn.BLUE: "B",
-    obn.WV: "N2",
-    obn.VRE_1: "RE",
-    obn.VRE_2: "RE",
-    obn.VRE_3: "RE",
-    obn.YELLOW: "Y",
-    obn.CA: "C",
-    obn.PAN: "P",
+    spb.NIR: "N",
+    spb.NARROW_NIR: "N",
+    spb.RED: "R",
+    spb.GREEN: "G",
+    spb.BLUE: "B",
+    spb.WV: "N2",
+    spb.VRE_1: "RE",
+    spb.VRE_2: "RE",
+    spb.VRE_3: "RE",
+    spb.YELLOW: "Y",
+    spb.CA: "C",
+    spb.PAN: "P",
 }
 
 GainOffset = namedtuple("GainOffset", ["gain", "offset"], defaults=[1.0, 0.0])
 _MAXAR_GAIN_OFFSET = {
-    Platform.GE01: {
-        obn.PAN: GainOffset(gain=1.001, offset=0.0),
-        obn.BLUE: GainOffset(gain=1.041, offset=0.0),
-        obn.GREEN: GainOffset(gain=0.972, offset=0.0),
-        obn.RED: GainOffset(gain=0.979, offset=0.0),
-        obn.NIR: GainOffset(gain=0.951, offset=0.0),
-        obn.NARROW_NIR: GainOffset(gain=0.951, offset=0.0),
+    Constellation.GE01: {
+        spb.PAN: GainOffset(gain=1.001, offset=0.0),
+        spb.BLUE: GainOffset(gain=1.041, offset=0.0),
+        spb.GREEN: GainOffset(gain=0.972, offset=0.0),
+        spb.RED: GainOffset(gain=0.979, offset=0.0),
+        spb.NIR: GainOffset(gain=0.951, offset=0.0),
+        spb.NARROW_NIR: GainOffset(gain=0.951, offset=0.0),
     },  # 2018v0
-    Platform.WV02: {
-        obn.PAN: GainOffset(gain=0.949, offset=-5.523),
-        obn.CA: GainOffset(gain=1.203, offset=-11.839),
-        obn.BLUE: GainOffset(gain=1.002, offset=-9.835),
-        obn.GREEN: GainOffset(gain=0.953, offset=-7.218),
-        obn.YELLOW: GainOffset(gain=0.946, offset=-5.675),
-        obn.RED: GainOffset(gain=0.955, offset=-5.046),
-        obn.VRE_1: GainOffset(gain=0.980, offset=-6.114),
-        obn.VRE_2: GainOffset(gain=0.980, offset=-6.114),
-        obn.VRE_3: GainOffset(gain=0.980, offset=-6.114),
-        obn.NIR: GainOffset(gain=0.966, offset=-5.096),
-        obn.NARROW_NIR: GainOffset(gain=0.966, offset=-5.096),
-        obn.WV: GainOffset(gain=1.01, offset=-4.059),
+    Constellation.WV02: {
+        spb.PAN: GainOffset(gain=0.949, offset=-5.523),
+        spb.CA: GainOffset(gain=1.203, offset=-11.839),
+        spb.BLUE: GainOffset(gain=1.002, offset=-9.835),
+        spb.GREEN: GainOffset(gain=0.953, offset=-7.218),
+        spb.YELLOW: GainOffset(gain=0.946, offset=-5.675),
+        spb.RED: GainOffset(gain=0.955, offset=-5.046),
+        spb.VRE_1: GainOffset(gain=0.980, offset=-6.114),
+        spb.VRE_2: GainOffset(gain=0.980, offset=-6.114),
+        spb.VRE_3: GainOffset(gain=0.980, offset=-6.114),
+        spb.NIR: GainOffset(gain=0.966, offset=-5.096),
+        spb.NARROW_NIR: GainOffset(gain=0.966, offset=-5.096),
+        spb.WV: GainOffset(gain=1.01, offset=-4.059),
     },  # 2018v0
-    Platform.WV03: {
-        obn.PAN: GainOffset(gain=0.955, offset=-5.505),
-        obn.CA: GainOffset(gain=0.938, offset=-13.099),
-        obn.BLUE: GainOffset(gain=0.946, offset=-9.409),
-        obn.GREEN: GainOffset(gain=0.958, offset=-7.771),
-        obn.YELLOW: GainOffset(gain=0.979, offset=-5.489),
-        obn.RED: GainOffset(gain=0.969, offset=-4.579),
-        obn.VRE_1: GainOffset(gain=1.027, offset=-5.552),
-        obn.VRE_2: GainOffset(gain=1.027, offset=-5.552),
-        obn.VRE_3: GainOffset(gain=1.027, offset=-5.552),
-        obn.NIR: GainOffset(gain=0.977, offset=-6.508),
-        obn.NARROW_NIR: GainOffset(gain=0.977, offset=-6.508),
-        obn.WV: GainOffset(gain=1.007, offset=-3.699),
+    Constellation.WV03: {
+        spb.PAN: GainOffset(gain=0.955, offset=-5.505),
+        spb.CA: GainOffset(gain=0.938, offset=-13.099),
+        spb.BLUE: GainOffset(gain=0.946, offset=-9.409),
+        spb.GREEN: GainOffset(gain=0.958, offset=-7.771),
+        spb.YELLOW: GainOffset(gain=0.979, offset=-5.489),
+        spb.RED: GainOffset(gain=0.969, offset=-4.579),
+        spb.VRE_1: GainOffset(gain=1.027, offset=-5.552),
+        spb.VRE_2: GainOffset(gain=1.027, offset=-5.552),
+        spb.VRE_3: GainOffset(gain=1.027, offset=-5.552),
+        spb.NIR: GainOffset(gain=0.977, offset=-6.508),
+        spb.NARROW_NIR: GainOffset(gain=0.977, offset=-6.508),
+        spb.WV: GainOffset(gain=1.007, offset=-3.699),
     },  # 2018v0
-    Platform.WV04: {
-        obn.PAN: GainOffset(gain=1.0, offset=0.0),
-        obn.BLUE: GainOffset(gain=1.0, offset=0.0),
-        obn.GREEN: GainOffset(gain=1.0, offset=0.0),
-        obn.RED: GainOffset(gain=1.0, offset=0.0),
-        obn.NIR: GainOffset(gain=1.0, offset=0.0),
-        obn.NARROW_NIR: GainOffset(gain=1.0, offset=0.0),
+    Constellation.WV04: {
+        spb.PAN: GainOffset(gain=1.0, offset=0.0),
+        spb.BLUE: GainOffset(gain=1.0, offset=0.0),
+        spb.GREEN: GainOffset(gain=1.0, offset=0.0),
+        spb.RED: GainOffset(gain=1.0, offset=0.0),
+        spb.NIR: GainOffset(gain=1.0, offset=0.0),
+        spb.NARROW_NIR: GainOffset(gain=1.0, offset=0.0),
     },  # 2017v0
-    Platform.QB: {
-        obn.PAN: GainOffset(gain=0.870, offset=-1.491),
-        obn.BLUE: GainOffset(gain=1.105, offset=-2.820),
-        obn.GREEN: GainOffset(gain=1.071, offset=-3.338),
-        obn.RED: GainOffset(gain=1.060, offset=-2.954),
-        obn.NIR: GainOffset(gain=1.020, offset=-4.722),
-        obn.NARROW_NIR: GainOffset(gain=1.020, offset=-4.722),
+    Constellation.QB: {
+        spb.PAN: GainOffset(gain=0.870, offset=-1.491),
+        spb.BLUE: GainOffset(gain=1.105, offset=-2.820),
+        spb.GREEN: GainOffset(gain=1.071, offset=-3.338),
+        spb.RED: GainOffset(gain=1.060, offset=-2.954),
+        spb.NIR: GainOffset(gain=1.020, offset=-4.722),
+        spb.NARROW_NIR: GainOffset(gain=1.020, offset=-4.722),
     },  # 2016v0.Int
-    Platform.WV01: {
-        obn.PAN: GainOffset(gain=1.016, offset=-1.824),
+    Constellation.WV01: {
+        spb.PAN: GainOffset(gain=1.016, offset=-1.824),
     },  # 2016v0.Int
 }
 """
@@ -126,69 +129,69 @@ stagnant values and they are revisited annually.
 
 Only using last calibration as the Maxar sensors have been found to be very stable throughout their lifetime.
 
-See `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>_` for the values.
+See `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_ for the values.
 """
 
 _MAXAR_E0 = {
-    Platform.GE01: {
-        obn.PAN: 1610.73,
-        obn.BLUE: 1993.18,
-        obn.GREEN: 1828.83,
-        obn.RED: 1491.49,
-        obn.NIR: 1022.58,
-        obn.NARROW_NIR: 1022.58,
+    Constellation.GE01: {
+        spb.PAN: 1610.73,
+        spb.BLUE: 1993.18,
+        spb.GREEN: 1828.83,
+        spb.RED: 1491.49,
+        spb.NIR: 1022.58,
+        spb.NARROW_NIR: 1022.58,
     },
-    Platform.WV02: {
-        obn.PAN: 1571.36,
-        obn.CA: 1773.81,
-        obn.BLUE: 2007.27,
-        obn.GREEN: 1829.62,
-        obn.YELLOW: 1701.85,
-        obn.RED: 1538.85,
-        obn.VRE_1: 1346.09,
-        obn.VRE_2: 1346.09,
-        obn.VRE_3: 1346.09,
-        obn.NIR: 1053.21,
-        obn.NARROW_NIR: 1053.21,
-        obn.WV: 856.599,
+    Constellation.WV02: {
+        spb.PAN: 1571.36,
+        spb.CA: 1773.81,
+        spb.BLUE: 2007.27,
+        spb.GREEN: 1829.62,
+        spb.YELLOW: 1701.85,
+        spb.RED: 1538.85,
+        spb.VRE_1: 1346.09,
+        spb.VRE_2: 1346.09,
+        spb.VRE_3: 1346.09,
+        spb.NIR: 1053.21,
+        spb.NARROW_NIR: 1053.21,
+        spb.WV: 856.599,
     },
-    Platform.WV03: {
-        obn.PAN: 1574.41,
-        obn.CA: 1757.89,
-        obn.BLUE: 2004.61,
-        obn.GREEN: 1830.18,
-        obn.YELLOW: 1712.07,
-        obn.RED: 1535.33,
-        obn.VRE_1: 1348.08,
-        obn.VRE_2: 1348.08,
-        obn.VRE_3: 1348.08,
-        obn.NIR: 1055.94,
-        obn.NARROW_NIR: 1055.94,
-        obn.WV: 858.77,
+    Constellation.WV03: {
+        spb.PAN: 1574.41,
+        spb.CA: 1757.89,
+        spb.BLUE: 2004.61,
+        spb.GREEN: 1830.18,
+        spb.YELLOW: 1712.07,
+        spb.RED: 1535.33,
+        spb.VRE_1: 1348.08,
+        spb.VRE_2: 1348.08,
+        spb.VRE_3: 1348.08,
+        spb.NIR: 1055.94,
+        spb.NARROW_NIR: 1055.94,
+        spb.WV: 858.77,
     },
-    Platform.WV04: {
-        obn.PAN: 1608.01,
-        obn.BLUE: 2009.45,
-        obn.GREEN: 1831.88,
-        obn.RED: 1492.12,
-        obn.NIR: 937.8,
-        obn.NARROW_NIR: 937.8,
+    Constellation.WV04: {
+        spb.PAN: 1608.01,
+        spb.BLUE: 2009.45,
+        spb.GREEN: 1831.88,
+        spb.RED: 1492.12,
+        spb.NIR: 937.8,
+        spb.NARROW_NIR: 937.8,
     },
-    Platform.QB: {
-        obn.PAN: 1370.92,
-        obn.BLUE: 1949.59,
-        obn.GREEN: 1823.64,
-        obn.RED: 1553.78,
-        obn.NIR: 1102.85,
-        obn.NARROW_NIR: 1102.85,
+    Constellation.QB: {
+        spb.PAN: 1370.92,
+        spb.BLUE: 1949.59,
+        spb.GREEN: 1823.64,
+        spb.RED: 1553.78,
+        spb.NIR: 1102.85,
+        spb.NARROW_NIR: 1102.85,
     },
-    Platform.WV01: {
-        obn.PAN: 1478.62,
+    Constellation.WV01: {
+        spb.PAN: 1478.62,
     },
 }
 """
 Esun is the band-averaged Solar exoatmospheric irradiance @1AU (see Slide 7&8). DG calibration team uses the Thuillier 2003 solar curve for their calculations.
-See `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>_` for the values.
+See `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_ for the values.
 """
 
 
@@ -340,9 +343,9 @@ class MaxarSatId(ListEnum):
     See `here <https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf>`_ (p. 29)
     """
 
-    QB02 = "Quickbird-2"
+    QB02 = "Quickbird"
     """
-    Quickbird-2
+    Quickbird
     """
 
     GE01 = "GeoEye-1"
@@ -387,18 +390,49 @@ class MaxarProduct(VhrProduct):
         self.needs_extraction = False
         self._proj_prod_type = [MaxarProductType.Standard]
 
+        # Not exact resolutions but usual ones
+        self._pan_res = 0.5
+        self._ms_res = 2.0
+
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
-    def _get_platform(self) -> Platform:
-        """ Getter of the platform """
-        # Maxar products are all similar, we must check into the metadata to know the sensor
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        WV01: https://earth.esa.int/eogateway/missions/worldview-1
+        WV02: https://earth.esa.int/eogateway/missions/worldview-2
+        WV03: https://earth.esa.int/eogateway/missions/worldview-3
+        WV04: https://space.oscar.wmo.int/satellites/view/worldview_4
+        Quickbird: https://earth.esa.int/eogateway/missions/quickbird-2
+        GeoEye: https://earth.esa.int/eogateway/missions/worldview-3
+        """
+        if self.constellation == Constellation.WV01:
+            # WorldView-60 camera (WV60)
+            self.instrument = "WV60"
+        elif self.constellation in [Constellation.WV02, Constellation.WV03]:
+            # WorldView-110 camera (WV110)
+            self.instrument = "WV110"
+        elif self.constellation == Constellation.WV04:
+            # SpaceView-110 camera
+            self.instrument = "SpaceView-110 camera"
+        elif self.constellation == Constellation.QB:
+            # Ball Global Imaging System 2000
+            self.instrument = "BGIS-2000"
+        elif self.constellation == Constellation.GE01:
+            # GeoEye Imaging System (GIS)
+            self.instrument = "GIS"
+
+    def _get_constellation(self) -> Constellation:
+        """ Getter of the constellation """
+        # Maxar products are all similar, we must check into the metadata to know the constellation
         root, _ = self.read_mtd()
-        sat_id = root.findtext(".//IMAGE/SATID")
-        if not sat_id:
+        constellation_id = root.findtext(".//IMAGE/SATID")
+        if not constellation_id:
             raise InvalidProductError("Cannot find SATID in the metadata file")
-        sat_id = getattr(MaxarSatId, sat_id).name
-        return getattr(Platform, sat_id)
+        constellation_id = getattr(MaxarSatId, constellation_id).name
+        return getattr(Constellation, constellation_id)
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -412,18 +446,13 @@ class MaxarProduct(VhrProduct):
             raise InvalidProductError("Cannot find from BANDID in the metadata file")
         self.band_combi = getattr(MaxarBandId, band_combi)
 
-        # Maxar products are all similar, we must check into the metadata to know the sensor
-        sat_id = root.findtext(".//IMAGE/SATID")
-        if not sat_id:
-            raise InvalidProductError("Cannot find SATID in the metadata file")
-
         # Post init done by the super class
         super()._post_init(**kwargs)
 
     @abstractmethod
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
 
         # Band combination
@@ -434,6 +463,320 @@ class MaxarProduct(VhrProduct):
                 "Cannot find PRODUCTGSD type in the metadata file"
             )
         return float(resol)
+
+    def _get_spectral_bands(self) -> dict:
+        """
+        https://docs.sentinel-hub.com/api/latest/static/files/data/maxar/world-view/resources/brochures/EUSI_Satellite_Booklet_digital.pdf
+        https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+
+        Returns:
+            dict: Maxar spectral bands
+        """
+        # Create spectral bands
+        if self.constellation in [Constellation.WV02, Constellation.WV03]:
+            spectral_bands = {
+                "pan": SpectralBand(
+                    eoreader_name=spb.PAN,
+                    **{
+                        NAME: "PAN",
+                        ID: 1,
+                        GSD: self._pan_res,
+                        WV_MIN: 450,
+                        WV_MAX: 800,
+                    },
+                ),
+                "ca": SpectralBand(
+                    eoreader_name=spb.CA,
+                    **{
+                        NAME: "COASTAL BLUE",
+                        ID: 1,
+                        GSD: self._ms_res,
+                        WV_MIN: 400,
+                        WV_MAX: 450,
+                    },
+                ),
+                "blue": SpectralBand(
+                    eoreader_name=spb.BLUE,
+                    **{
+                        NAME: "BLUE",
+                        ID: 2,
+                        GSD: self._ms_res,
+                        WV_MIN: 450,
+                        WV_MAX: 510,
+                    },
+                ),
+                "green": SpectralBand(
+                    eoreader_name=spb.GREEN,
+                    **{
+                        NAME: "GREEN",
+                        ID: 3,
+                        GSD: self._ms_res,
+                        WV_MIN: 510,
+                        WV_MAX: 580,
+                    },
+                ),
+                "yellow": SpectralBand(
+                    eoreader_name=spb.YELLOW,
+                    **{
+                        NAME: "YELLOW",
+                        ID: 7,
+                        GSD: self._ms_res,
+                        WV_MIN: 585,
+                        WV_MAX: 625,
+                    },
+                ),
+                "red": SpectralBand(
+                    eoreader_name=spb.RED,
+                    **{NAME: "RED", ID: 5, GSD: self._ms_res, WV_MIN: 630, WV_MAX: 690},
+                ),
+                "vre": SpectralBand(
+                    eoreader_name=spb.VRE_1,
+                    **{
+                        NAME: "RED EDGE",
+                        ID: 6,
+                        GSD: self._ms_res,
+                        WV_MIN: 705,
+                        WV_MAX: 745,
+                    },
+                ),
+                "nir": SpectralBand(
+                    eoreader_name=spb.NIR,
+                    **{
+                        NAME: "NIR1",
+                        ID: 7,
+                        GSD: self._ms_res,
+                        WV_MIN: 770,
+                        WV_MAX: 895,
+                    },
+                ),
+                "wv": SpectralBand(
+                    eoreader_name=spb.WV,
+                    **{
+                        NAME: "NIR2",
+                        ID: 8,
+                        GSD: self._ms_res,
+                        WV_MIN: 860,
+                        WV_MAX: 1040,
+                    },
+                ),
+            }
+        elif self.constellation == Constellation.QB:
+            spectral_bands = {
+                "pan": SpectralBand(
+                    eoreader_name=spb.PAN,
+                    **{
+                        NAME: "PAN",
+                        ID: 1,
+                        GSD: self._pan_res,
+                        WV_MIN: 405,
+                        WV_MAX: 1053,
+                    },
+                ),
+                "blue": SpectralBand(
+                    eoreader_name=spb.BLUE,
+                    **{
+                        NAME: "BLUE",
+                        ID: 1,
+                        GSD: self._ms_res,
+                        WV_MIN: 430,
+                        WV_MAX: 545,
+                    },
+                ),
+                "green": SpectralBand(
+                    eoreader_name=spb.GREEN,
+                    **{
+                        NAME: "GREEN",
+                        ID: 2,
+                        GSD: self._ms_res,
+                        WV_MIN: 466,
+                        WV_MAX: 620,
+                    },
+                ),
+                "red": SpectralBand(
+                    eoreader_name=spb.RED,
+                    **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 590, WV_MAX: 710},
+                ),
+                "nir": SpectralBand(
+                    eoreader_name=spb.NIR,
+                    **{
+                        NAME: "NIR1",
+                        ID: 4,
+                        GSD: self._ms_res,
+                        WV_MIN: 715,
+                        WV_MAX: 918,
+                    },
+                ),
+            }
+        elif self.constellation == Constellation.WV01:
+            spectral_bands = {
+                "pan": SpectralBand(
+                    eoreader_name=spb.PAN,
+                    **{
+                        NAME: "PAN",
+                        ID: 1,
+                        GSD: self._pan_res,
+                        WV_MIN: 400,
+                        WV_MAX: 900,
+                    },
+                )
+            }
+        elif self.constellation in [Constellation.GE01, Constellation.WV04]:
+            spectral_bands = {
+                "pan": SpectralBand(
+                    eoreader_name=spb.PAN,
+                    **{
+                        NAME: "PAN",
+                        ID: 1,
+                        GSD: self._pan_res,
+                        WV_MIN: 450,
+                        WV_MAX: 800,
+                    },
+                ),
+                "blue": SpectralBand(
+                    eoreader_name=spb.BLUE,
+                    **{
+                        NAME: "BLUE",
+                        ID: 1 if self.constellation == Constellation.GE01 else 3,
+                        GSD: self._ms_res,
+                        WV_MIN: 450,
+                        WV_MAX: 510,
+                    },
+                ),
+                "green": SpectralBand(
+                    eoreader_name=spb.GREEN,
+                    **{
+                        NAME: "GREEN",
+                        ID: 2,
+                        GSD: self._ms_res,
+                        WV_MIN: 510,
+                        WV_MAX: 580,
+                    },
+                ),
+                "red": SpectralBand(
+                    eoreader_name=spb.RED,
+                    **{
+                        NAME: "RED",
+                        ID: 3 if self.constellation == Constellation.GE01 else 1,
+                        GSD: self._ms_res,
+                        WV_MIN: 655,
+                        WV_MAX: 690,
+                    },
+                ),
+                "nir": SpectralBand(
+                    eoreader_name=spb.NIR,
+                    **{
+                        NAME: "NIR1",
+                        ID: 4,
+                        GSD: self._ms_res,
+                        WV_MIN: 780,
+                        WV_MAX: 920,
+                    },
+                ),
+            }
+        else:
+            raise InvalidProductError(f"Unknown platform: {self.constellation}")
+
+        return spectral_bands
+
+    def _get_band_map(self, **kwargs) -> dict:
+        """Get band map"""
+        # Open spectral bands
+        pan = kwargs.get("pan")
+        blue = kwargs.get("blue")
+        green = kwargs.get("green")
+        red = kwargs.get("red")
+        nir = kwargs.get("nir")
+        ca = kwargs.get("ca")
+        vre = kwargs.get("vre")
+        yellow = kwargs.get("yellow")
+        wv = kwargs.get("wv")
+
+        # Manage bands of the product
+        if self.band_combi in [
+            MaxarBandId.P,
+            MaxarBandId.N,
+            MaxarBandId.R,
+            MaxarBandId.G,
+            MaxarBandId.B,
+            MaxarBandId.N2,
+            MaxarBandId.RE,
+            MaxarBandId.Y,
+            MaxarBandId.C,
+        ]:
+            band_map = {spb.PAN: pan.update(id=1, gsd=self.resolution)}
+        elif self.band_combi == MaxarBandId.RGB:
+            band_map = {
+                spb.RED: red.update(id=1, gsd=self.resolution),
+                spb.GREEN: green.update(id=2, gsd=self.resolution),
+                spb.BLUE: blue.update(id=3, gsd=self.resolution),
+            }
+        elif self.band_combi == MaxarBandId.NRG:
+            band_map = {
+                spb.NIR: nir.update(id=1, gsd=self.resolution),
+                spb.NARROW_NIR: nir.update(id=1, gsd=self.resolution),
+                spb.RED: red.update(id=2, gsd=self.resolution),
+                spb.GREEN: green.update(id=3, gsd=self.resolution),
+            }
+        elif self.band_combi == MaxarBandId.BGRN:
+            band_map = {
+                spb.BLUE: blue.update(id=1, gsd=self.resolution),
+                spb.GREEN: green.update(id=2, gsd=self.resolution),
+                spb.RED: red.update(id=3, gsd=self.resolution),
+                spb.NIR: nir.update(id=4, gsd=self.resolution),
+                spb.NARROW_NIR: nir.update(id=4, gsd=self.resolution),
+            }
+        elif self.band_combi == MaxarBandId.MS1:
+            band_map = {
+                spb.NIR: nir.update(id=1, gsd=self.resolution),
+                spb.NARROW_NIR: nir.update(id=1, gsd=self.resolution),
+                spb.RED: red.update(id=2, gsd=self.resolution),
+                spb.GREEN: green.update(id=3, gsd=self.resolution),
+                spb.BLUE: blue.update(id=4, gsd=self.resolution),
+            }
+        elif self.band_combi == MaxarBandId.MS2:
+            band_map = {
+                spb.WV: wv.update(id=1, gsd=self.resolution),
+                spb.VRE_1: vre.update(id=2, gsd=self.resolution),
+                spb.VRE_2: vre.update(id=2, gsd=self.resolution),
+                spb.VRE_3: vre.update(id=2, gsd=self.resolution),
+                spb.YELLOW: yellow.update(id=3, gsd=self.resolution),
+                spb.CA: ca.update(id=4, gsd=self.resolution),
+            }
+        elif self.band_combi == MaxarBandId.Multi:
+            if self.constellation_id in (MaxarSatId.WV02.name, MaxarSatId.WV03.name):
+                band_map = {
+                    spb.CA: ca.update(id=1, gsd=self.resolution),
+                    spb.BLUE: blue.update(id=2, gsd=self.resolution),
+                    spb.GREEN: green.update(id=3, gsd=self.resolution),
+                    spb.YELLOW: yellow.update(id=4, gsd=self.resolution),
+                    spb.RED: red.update(id=5, gsd=self.resolution),
+                    spb.VRE_1: vre.update(id=6, gsd=self.resolution),
+                    spb.VRE_2: vre.update(id=6, gsd=self.resolution),
+                    spb.VRE_3: vre.update(id=6, gsd=self.resolution),
+                    spb.NIR: nir.update(id=7, gsd=self.resolution),
+                    spb.NARROW_NIR: nir.update(id=7, gsd=self.resolution),
+                    spb.WV: wv.update(id=8, gsd=self.resolution),
+                }
+            else:
+                band_map = {
+                    spb.NIR: nir.update(id=1, gsd=self.resolution),
+                    spb.NARROW_NIR: nir.update(id=1, gsd=self.resolution),
+                    spb.RED: red.update(id=2, gsd=self.resolution),
+                    spb.GREEN: green.update(id=3, gsd=self.resolution),
+                    spb.BLUE: blue.update(id=4, gsd=self.resolution),
+                }
+        else:
+            raise InvalidProductError(
+                f"Unusual band combination: {self.band_combi.name}"
+            )
+
+        return band_map
+
+    def _map_bands(self):
+        """
+        Map bands
+        """
+        self.bands.map_bands(self._get_band_map(**self._get_spectral_bands()))
 
     def _set_product_type(self) -> None:
         """Set products type"""
@@ -452,66 +795,8 @@ class MaxarProduct(VhrProduct):
                 f"product types are supported for Maxar products."
             )
 
-        # Manage bands of the product
-        if self.band_combi in [
-            MaxarBandId.P,
-            MaxarBandId.N,
-            MaxarBandId.R,
-            MaxarBandId.G,
-            MaxarBandId.B,
-            MaxarBandId.N2,
-            MaxarBandId.RE,
-            MaxarBandId.Y,
-            MaxarBandId.C,
-        ]:
-            self.band_names.map_bands({obn.PAN: 1})
-        elif self.band_combi == MaxarBandId.RGB:
-            self.band_names.map_bands({obn.RED: 1, obn.GREEN: 2, obn.BLUE: 3})
-        elif self.band_combi == MaxarBandId.NRG:
-            self.band_names.map_bands(
-                {obn.NIR: 1, obn.NARROW_NIR: 1, obn.RED: 2, obn.GREEN: 3}
-            )
-        elif self.band_combi == MaxarBandId.BGRN:
-            self.band_names.map_bands(
-                {obn.BLUE: 1, obn.GREEN: 2, obn.RED: 3, obn.NIR: 4, obn.NARROW_NIR: 4}
-            )
-        elif self.band_combi == MaxarBandId.MS1:
-            self.band_names.map_bands(
-                {obn.NIR: 1, obn.NARROW_NIR: 1, obn.RED: 2, obn.GREEN: 3, obn.BLUE: 4}
-            )
-        elif self.band_combi == MaxarBandId.MS2:
-            self.band_names.map_bands({obn.WV: 1, obn.RE: 2, obn.YELLOW: 3, obn.CA: 4})
-        elif self.band_combi == MaxarBandId.Multi:
-            if self.sat_id in (MaxarSatId.WV02.name, MaxarSatId.WV03.name):
-                self.band_names.map_bands(
-                    {
-                        obn.NIR: 1,
-                        obn.NARROW_NIR: 1,
-                        obn.RED: 2,
-                        obn.GREEN: 3,
-                        obn.BLUE: 4,
-                        obn.WV: 5,
-                        obn.VRE_1: 6,
-                        obn.VRE_2: 6,
-                        obn.VRE_3: 6,
-                        obn.YELLOW: 7,
-                        obn.CA: 8,
-                    }
-                )
-            else:
-                self.band_names.map_bands(
-                    {
-                        obn.NIR: 1,
-                        obn.NARROW_NIR: 1,
-                        obn.RED: 2,
-                        obn.GREEN: 3,
-                        obn.BLUE: 4,
-                    }
-                )
-        else:
-            raise InvalidProductError(
-                f"Unusual band combination: {self.band_combi.name}"
-            )
+        if self.product_type == MaxarProductType.Standard:
+            self.is_ortho = False
 
     def _get_raw_crs(self) -> riocrs.CRS:
         """
@@ -582,6 +867,40 @@ class MaxarProduct(VhrProduct):
 
         return utm
 
+    @cache
+    def extent(self, **kwargs) -> gpd.GeoDataFrame:
+        """
+        Get UTM extent of the tile.
+
+        Returns:
+            gpd.GeoDataFrame: Extent in UTM
+        """
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Compute extent corners
+        default_extent = root.find(".//MAP_PROJECTED_PRODUCT")
+        ul_corner = float(default_extent.findtext("ULX")), float(
+            default_extent.findtext("ULY")
+        )
+        ur_corner = float(default_extent.findtext("URX")), float(
+            default_extent.findtext("URY")
+        )
+        lr_corner = float(default_extent.findtext("LRX")), float(
+            default_extent.findtext("LRY")
+        )
+        ll_corner = float(default_extent.findtext("LLX")), float(
+            default_extent.findtext("LLY")
+        )
+        corners = [ul_corner, ur_corner, lr_corner, ll_corner]
+
+        raw_extent = gpd.GeoDataFrame(
+            geometry=[Polygon(corners)],
+            crs=self._get_raw_crs(),
+        )
+
+        return raw_extent.to_crs(self.crs())
+
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
         Get the product's acquisition datetime, with format  :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
@@ -626,7 +945,7 @@ class MaxarProduct(VhrProduct):
 
         return datetime_str
 
-    def _get_name(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -759,7 +1078,7 @@ class MaxarProduct(VhrProduct):
         for more information.
 
         Args:
-            rad_arr (xr.DataArray): DN array
+            dn_arr (xr.DataArray): DN array
             band (BandNames): Band
 
         Returns:
@@ -780,8 +1099,8 @@ class MaxarProduct(VhrProduct):
                 "ABSCALFACTOR or EFFECTIVEBANDWIDTH not found in metadata!"
             )
 
-        # Get sensor-specific gain and offset (latest)
-        gain, offset = _MAXAR_GAIN_OFFSET[self.platform][band]
+        # Get constellation-specific gain and offset (latest)
+        gain, offset = _MAXAR_GAIN_OFFSET[self.constellation][band]
 
         # Compute the coefficient converting DN in TOA radiance
         coeff = gain * abs_factor / effective_bandwidth
@@ -813,7 +1132,7 @@ class MaxarProduct(VhrProduct):
         dt = self._sun_earth_distance_variation() ** 2
         _, sun_zen = self.get_mean_sun_angles()
         rad_sun_zen = np.deg2rad(sun_zen)
-        e0 = _MAXAR_E0[self.platform][band]
+        e0 = _MAXAR_E0[self.constellation][band]
         toa_refl_coeff = np.pi / (e0 * dt * np.cos(rad_sun_zen))
 
         # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")

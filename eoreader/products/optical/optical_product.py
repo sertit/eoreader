@@ -33,16 +33,15 @@ from sertit import files, rasters
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
-from eoreader.bands import BandNames
-from eoreader.bands import OpticalBandNames as obn
+from eoreader.bands import BandNames, SpectralBandMap
+from eoreader.bands import SpectralBandNames as spb
 from eoreader.bands import (
-    OpticalBands,
-    index,
+    indices,
     is_clouds,
     is_dem,
     is_index,
-    is_optical_band,
     is_sar_band,
+    is_spectral_band,
     to_str,
 )
 from eoreader.exceptions import InvalidBandError, InvalidIndexError
@@ -100,8 +99,8 @@ class OpticalProduct(Product):
         (setting needs_extraction and so on)
         """
         # They may be overloaded
-        if not self.band_names:
-            self.band_names = OpticalBands()
+        if not self.bands:
+            self.bands = SpectralBandMap()
         self.sensor_type = SensorType.OPTICAL
 
     def _post_init(self, **kwargs) -> None:
@@ -121,12 +120,12 @@ class OpticalProduct(Product):
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> prod.get_default_band()
-            <OpticalBandNames.GREEN: 'GREEN'>
+            <SpectralBandNames.GREEN: 'GREEN'>
 
         Returns:
             str: Default band
         """
-        return obn.GREEN
+        return spb.GREEN
 
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
@@ -185,14 +184,14 @@ class OpticalProduct(Product):
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         # Get extent
         return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
 
     def get_existing_bands(self) -> list:
         """
-        Return the existing band paths.
+        Return the existing band.
 
         .. code-block:: python
 
@@ -200,28 +199,28 @@ class OpticalProduct(Product):
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> prod.get_existing_bands()
-            [<OpticalBandNames.CA: 'COASTAL_AEROSOL'>,
-            <OpticalBandNames.BLUE: 'BLUE'>,
-            <OpticalBandNames.GREEN: 'GREEN'>,
-            <OpticalBandNames.RED: 'RED'>,
-            <OpticalBandNames.VRE_1: 'VEGETATION_RED_EDGE_1'>,
-            <OpticalBandNames.VRE_2: 'VEGETATION_RED_EDGE_2'>,
-            <OpticalBandNames.VRE_3: 'VEGETATION_RED_EDGE_3'>,
-            <OpticalBandNames.NIR: 'NIR'>,
-            <OpticalBandNames.NNIR: 'NARROW_NIR'>,
-            <OpticalBandNames.WV: 'WATER_VAPOUR'>,
-            <OpticalBandNames.CIRRUS: 'CIRRUS'>,
-            <OpticalBandNames.SWIR_1: 'SWIR_1'>,
-            <OpticalBandNames.SWIR_2: 'SWIR_2'>]
+            [<SpectralBandNames.CA: 'COASTAL_AEROSOL'>,
+            <SpectralBandNames.BLUE: 'BLUE'>,
+            <SpectralBandNames.GREEN: 'GREEN'>,
+            <SpectralBandNames.RED: 'RED'>,
+            <SpectralBandNames.VRE_1: 'VEGETATION_RED_EDGE_1'>,
+            <SpectralBandNames.VRE_2: 'VEGETATION_RED_EDGE_2'>,
+            <SpectralBandNames.VRE_3: 'VEGETATION_RED_EDGE_3'>,
+            <SpectralBandNames.NIR: 'NIR'>,
+            <SpectralBandNames.NNIR: 'NARROW_NIR'>,
+            <SpectralBandNames.WV: 'WATER_VAPOUR'>,
+            <SpectralBandNames.CIRRUS: 'CIRRUS'>,
+            <SpectralBandNames.SWIR_1: 'SWIR_1'>,
+            <SpectralBandNames.SWIR_2: 'SWIR_2'>]
 
         Returns:
             list: List of existing bands in the products
         """
-        return [name for name, nb in self.band_names.items() if nb]
+        return [name for name, nb in self.bands.items() if nb]
 
     def get_existing_band_paths(self) -> dict:
         """
-        Return the existing band paths.
+        Return the existing band paths (orthorectified if needed).
 
         .. code-block:: python
 
@@ -230,9 +229,9 @@ class OpticalProduct(Product):
             >>> prod = Reader().open(path)
             >>> prod.get_existing_band_paths()
             {
-                <OpticalBandNames.CA: 'COASTAL_AEROSOL'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2',
+                <SpectralBandNames.CA: 'COASTAL_AEROSOL'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2',
                 ...,
-                <OpticalBandNames.SWIR_2: 'SWIR_2'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2'
+                <SpectralBandNames.SWIR_2: 'SWIR_2'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2'
             }
 
         Returns:
@@ -361,14 +360,14 @@ class OpticalProduct(Product):
 
     @abstractmethod
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -378,14 +377,14 @@ class OpticalProduct(Product):
 
     @abstractmethod
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -452,7 +451,7 @@ class OpticalProduct(Product):
                 raise TypeError(
                     f"You should ask for Optical bands as {self.name} is an optical product."
                 )
-            elif is_optical_band(idx_or_band):
+            elif is_spectral_band(idx_or_band):
                 if self.has_band(idx_or_band):
                     band_list.append(idx_or_band)
                 else:
@@ -471,7 +470,7 @@ class OpticalProduct(Product):
         # Get all bands to be open
         bands_to_load = band_list.copy()
         for idx in index_list:
-            bands_to_load += index.NEEDED_BANDS[idx]
+            bands_to_load += indices.NEEDED_BANDS[idx]
 
         # Load band arrays (only keep unique bands: open them only one time !)
         unique_bands = list(set(bands_to_load))
@@ -660,7 +659,11 @@ class OpticalProduct(Product):
         return mask
 
     def _get_clean_band_path(
-        self, band: obn, resolution: float = None, writable: bool = False, **kwargs
+        self,
+        band: BandNames,
+        resolution: float = None,
+        writable: bool = False,
+        **kwargs,
     ) -> Union[CloudPath, Path]:
         """
         Get clean band path.
@@ -668,7 +671,7 @@ class OpticalProduct(Product):
         The clean band is the opened band where invalid pixels have been managed.
 
         Args:
-            band (OpticalBandNames): Wanted band
+            band (BandNames): Wanted band
             resolution (float): Band resolution in meters
             writable (bool): True if we want the band folder to be writeable
             kwargs: Additional arguments
@@ -691,7 +694,7 @@ class OpticalProduct(Product):
 
     def _get_cloud_band_path(
         self,
-        band: obn,
+        band: BandNames,
         resolution: float = None,
         size: Union[list, tuple] = None,
         writable: bool = False,
@@ -701,7 +704,7 @@ class OpticalProduct(Product):
         Get cloud band path.
 
         Args:
-            band (OpticalBandNames): Wanted band
+            band (BandNames): Wanted band
             resolution (float): Band resolution in meters
             writable (bool): True if we want the band folder to be writeable
             kwargs: Additional arguments
@@ -763,28 +766,36 @@ class OpticalProduct(Product):
         Returns:
             float: Cloud cover as given in the metadata
         """
-        LOGGER.warning(f"No cloud cover available for {self.platform.value} data !")
+        LOGGER.warning(
+            f"No cloud cover available for {self.constellation.value} data !"
+        )
         return 0.0
 
-    def _update_attrs_sensor_specific(
-        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+    def _update_attrs_constellation_specific(
+        self, xarr: xr.DataArray, bands: list, **kwargs
     ) -> xr.DataArray:
         """
-        Update attributes of the given array (sensor specific)
+        Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
-            long_name (str): Array name (as a str or a list)
+            bands (list): Array name (as a str or a list)
         Returns:
             xr.DataArray: Updated array
         """
-        if kwargs.get(TO_REFLECTANCE, True):
-            xarr.attrs["radiometry"] = "reflectance"
-        else:
-            xarr.attrs["radiometry"] = "as is"
+        has_spectral_bands = [is_spectral_band(band) for band in bands]
 
-        if self._has_cloud_cover:
-            xarr.attrs["cloud_cover"] = self.get_cloud_cover()
+        # Do not add this if one non-spectral bands exists
+        if all(has_spectral_bands):
+            if kwargs.get(TO_REFLECTANCE, True):
+                xarr.attrs["radiometry"] = "reflectance"
+            else:
+                xarr.attrs["radiometry"] = "as is"
+
+        # Add this if at least one spectral bands exists
+        if any(has_spectral_bands):
+            if self._has_cloud_cover:
+                xarr.attrs["cloud_cover"] = self.get_cloud_cover()
 
         return xarr
 
@@ -807,12 +818,12 @@ class OpticalProduct(Product):
         # All optical satellite are descending by default
         return OrbitDirection.DESCENDING
 
-    def _to_repr_sensor_specific(self) -> list:
+    def _to_repr_constellation_specific(self) -> list:
         """
-        Representation specific to the sensor
+        Representation specific to the constellation
 
         Returns:
-            list: Representation list (sensor specific)
+            list: Representation list (constellation specific)
         """
         repr = []
         if self._has_cloud_cover:
