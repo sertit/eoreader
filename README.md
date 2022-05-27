@@ -119,8 +119,6 @@ to learn more about that.
 
 ### Conda
 
-#### Command line
-
 You can install EOReader via conda:
 
 ```
