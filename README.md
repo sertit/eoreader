@@ -126,7 +126,6 @@ conda config --env --set channel_priority strict
 conda install -c conda-forge eoreader
 ```
 
-
 ## Context
 
 SERTIT is part of the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/)
