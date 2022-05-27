@@ -772,24 +772,30 @@ class OpticalProduct(Product):
         return 0.0
 
     def _update_attrs_constellation_specific(
-        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+        self, xarr: xr.DataArray, bands: list, **kwargs
     ) -> xr.DataArray:
         """
         Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
-            long_name (str): Array name (as a str or a list)
+            bands (list): Array name (as a str or a list)
         Returns:
             xr.DataArray: Updated array
         """
-        if kwargs.get(TO_REFLECTANCE, True):
-            xarr.attrs["radiometry"] = "reflectance"
-        else:
-            xarr.attrs["radiometry"] = "as is"
+        has_spectral_bands = [is_spectral_band(band) for band in bands]
 
-        if self._has_cloud_cover:
-            xarr.attrs["cloud_cover"] = self.get_cloud_cover()
+        # Do not add this if one non-spectral bands exists
+        if all(has_spectral_bands):
+            if kwargs.get(TO_REFLECTANCE, True):
+                xarr.attrs["radiometry"] = "reflectance"
+            else:
+                xarr.attrs["radiometry"] = "as is"
+
+        # Add this if at least one spectral bands exists
+        if any(has_spectral_bands):
+            if self._has_cloud_cover:
+                xarr.attrs["cloud_cover"] = self.get_cloud_cover()
 
         return xarr
 

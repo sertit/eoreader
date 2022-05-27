@@ -920,7 +920,7 @@ class Product:
 
         # Rename all bands and add attributes
         for key, val in band_dict.items():
-            band_dict[key] = self._update_attrs(val, to_str(key)[0], **kwargs)
+            band_dict[key] = self._update_attrs(val, key, **kwargs)
 
         return band_dict
 
@@ -1484,7 +1484,7 @@ class Product:
                 )  # NaN values are already set
 
         # Update stack's attributes
-        stack = self._update_attrs(stack, to_str(bands), **kwargs)
+        stack = self._update_attrs(stack, bands, **kwargs)
 
         # Write on disk
         if stack_path:
@@ -1501,34 +1501,31 @@ class Product:
 
     @abstractmethod
     def _update_attrs_constellation_specific(
-        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+        self, xarr: xr.DataArray, bands: list, **kwargs
     ) -> xr.DataArray:
         """
         Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
-            long_name (str): Array name (as a str or a list)
+            bands (list): Array name (as a str or a list)
         """
         raise NotImplementedError
 
-    def _update_attrs(
-        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
-    ) -> xr.DataArray:
+    def _update_attrs(self, xarr: xr.DataArray, bands: list, **kwargs) -> xr.DataArray:
         """
         Update attributes of the given array
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
-            long_name (str): Array name (as a str or a list)
+            bands (list): Bands
         Returns:
             xr.DataArray: Updated array
         """
-        if isinstance(long_name, list):
-            xr_name = "_".join(long_name)
-            attr_name = " ".join(long_name)
-        else:
-            xr_name = long_name
-            attr_name = long_name
+        if not isinstance(bands, list):
+            bands = [bands]
+        long_name = to_str(bands)
+        xr_name = "_".join(long_name)
+        attr_name = " ".join(long_name)
 
         renamed_xarr = xarr.rename(xr_name)
         renamed_xarr.attrs["long_name"] = attr_name
@@ -1558,7 +1555,7 @@ class Product:
 
         # kwargs attrs
         renamed_xarr = self._update_attrs_constellation_specific(
-            renamed_xarr, long_name, **kwargs
+            renamed_xarr, bands, **kwargs
         )
 
         return renamed_xarr

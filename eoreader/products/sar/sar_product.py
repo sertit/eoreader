@@ -958,14 +958,14 @@ class SarProduct(Product):
         return f"{self.get_datetime()}_{self.constellation.name}_{self.sensor_mode.name}_{self.product_type.value}"
 
     def _update_attrs_constellation_specific(
-        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+        self, xarr: xr.DataArray, bands: list, **kwargs
     ) -> xr.DataArray:
         """
         Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
-            long_name (str): Array name (as a str or a list)
+            bands (list): Array name (as a str or a list)
         Returns:
             xr.DataArray: Updated array
         """
