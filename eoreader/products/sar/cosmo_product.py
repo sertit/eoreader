@@ -26,11 +26,13 @@ from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
+import h5netcdf
 import numpy as np
 import rasterio
 import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
+from lxml.builder import E
 from sertit import files, rasters, strings, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
@@ -342,9 +344,97 @@ class CosmoProduct(SarProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = "DFDN_*.h5.xml"
+        try:
+            mtd_from_path = "DFDN_*.h5.xml"
 
-        return self._read_mtd_xml(mtd_from_path)
+            return self._read_mtd_xml(mtd_from_path)
+        except InvalidProductError:
+            try:
+                field_map = {
+                    # ProductInfo
+                    "ProductName": "Product Filename",
+                    # "ProductId": ,
+                    "MissionId": "Mission ID",
+                    # "UniqueIdentifier": ,
+                    "ProductGenerationDate": "Product Generation UTC",
+                    # "UserRequestId": ,
+                    # "ServiceRequestName": ,
+                    # ProductDefinitionData
+                    "ProductType": "Product Type",
+                    "SceneSensingStartUTC": "Scene Sensing Start UTC",
+                    "SceneSensingStopUTC": "Scene Sensing Stop UTC",
+                    # "GeoCoordTopRightEN": ,
+                    "GeoCoordSceneCentre": "Scene Centre Geodetic Coordinates",
+                    "SatelliteId": "Satellite ID",
+                    "AcquisitionMode": "Acquisition Mode",
+                    "LookSide": "Look Side",
+                    "ProjectionId": "Projection ID",
+                    "DeliveryMode": "Delivery Mode",
+                    "AcquisitionStationId": "Acquisition Station ID",
+                    # ProcessingInfo
+                    # "ProcessingLevel":,
+                    # ProductCharacteristics
+                    "AzimuthGeometricResolution": "Azimuth Geometric Resolution",
+                    "GroundRangeGeometricResolution": "Ground Range Geometric Resolution",
+                }
+
+                sbi_field_map = {
+                    "GeoCoordBottomLeft": "Bottom Left Geodetic Coordinates",
+                    "GeoCoordBottomRight": "Bottom Right Geodetic Coordinates",
+                    "GeoCoordTopLeft": "Top Left Geodetic Coordinates",
+                    "GeoCoordTopRight": "Top Right Geodetic Coordinates",
+                    "GeoCoordTopRightEN": "Top Right East-North",
+                    "NearLookAngle": "Near Look Angle",
+                    "FarLookAngle": "Far Look Angle",
+                }
+
+                def h5_to_str(h5_val):
+                    str_val = str(h5_val)
+                    str_val = str_val.replace("[", "")
+                    str_val = str_val.replace("]", "")
+                    return str_val
+
+                with h5netcdf.File(self._img_path) as netcdf_ds:
+
+                    # Create XML attributes
+                    global_attr = []
+                    for xml_attr, h5_attr in field_map.items():
+                        try:
+                            global_attr.append(
+                                E(xml_attr, h5_to_str(netcdf_ds.attrs[h5_attr]))
+                            )
+                        except KeyError:
+                            # CSG products don't have their ProductName in the h5 file...
+                            if xml_attr == "ProductName":
+                                global_attr.append(
+                                    E(xml_attr, files.get_filename(self._img_path))
+                                )
+
+                    try:
+                        # CSK products
+                        sbi = netcdf_ds.groups["S01"].variables["SBI"]
+                    except KeyError:
+                        # CSG products
+                        sbi = netcdf_ds.groups["S01"].variables["IMG"]
+
+                    for xml_attr, h5_attr in sbi_field_map.items():
+                        global_attr.append(E(xml_attr, h5_to_str(sbi.attrs[h5_attr])))
+
+                    mtd = E.s3_global_attributes(*global_attr)
+                    mtd_el = etree.fromstring(
+                        etree.tostring(
+                            mtd,
+                            pretty_print=True,
+                            xml_declaration=True,
+                            encoding="UTF-8",
+                        )
+                    )
+
+                return mtd_el, {}
+            except KeyError:
+                raise InvalidProductError(
+                    "Missing the XML metadata file. Cannot read the product."
+                )
 
     def get_quicklook_path(self) -> str:
         """

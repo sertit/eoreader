@@ -248,8 +248,8 @@ MTD_REGEX = {
         "nested": -1,  # File that can be found at any level (product/**/file)
         "regex": r"\d{8}_\d{6}_ssc\w{1,4}_\w{4,5}_.*metadata.*\.json",
     },
-    Constellation.CSK: rf"{CONSTELLATION_REGEX[Constellation.CSK][1]}\.xml",
-    Constellation.CSG: rf"{CONSTELLATION_REGEX[Constellation.CSG][1]}\.xml",
+    Constellation.CSK: rf"{CONSTELLATION_REGEX[Constellation.CSK][1]}",
+    Constellation.CSG: rf"{CONSTELLATION_REGEX[Constellation.CSG][1]}",
     Constellation.TSX: rf"{CONSTELLATION_REGEX[Constellation.TSX]}\.xml",
     Constellation.TDX: rf"{CONSTELLATION_REGEX[Constellation.TDX]}\.xml",
     Constellation.PAZ: rf"{CONSTELLATION_REGEX[Constellation.PAZ]}\.xml",

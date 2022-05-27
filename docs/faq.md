@@ -69,9 +69,22 @@ os.environ["PATH"] += r";C:\Program Files\snap\bin"
 
 ### SNAP known bugs
 
+#### SNAP `secure-processing` not recognized
 Sometimes SNAP process returns `Feature 'http://javax.xml.XMLConstants/feature/secure-processing' is not recognized.`
 
 This is a known SNAP bug.  
 
 Just add the line `-Djavax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl` to your `gpt.vmoptions` file.  
 Please look at [this issue](https://forum.step.esa.int/t/xmlfactory-error-using-snap-8/26566) for more information.
+
+#### COSMO-SkyMed orthorectified files are empty
+
+For an unknown reason, the SNAP calibration step doesn't work and set nodata everywhere.
+A workaround is to set the file `cplx_no_calib_preprocess_default.xml` stored in `eoreader/data` in the `EOREADER_PP_GRAPH` environment variable.
+Even if the product won't be calibrated, you will be able to work with some orthorectified data.
+
+```python
+import os
+os.env["EOREADER_PP_GRAPH"] = "/home/eoreader/data/cplx_no_calib_preprocess_default.xml"
+prod.load(VV)
+```
