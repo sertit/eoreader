@@ -32,6 +32,7 @@
 - **ENH: Extending `get_raw_band_paths` to every product ([#31](https://github.com/sertit/eoreader/issues/31))**
 - **ENH: Adding a `is_ortho` attribute corresponding to when the product is already orthorectified/geocoded, in order to avoid computing heavy processes without wanting it (i.e. footprint...)**
 - **ENH: Adding the instrument name of every constellation, under `prod.instrument`**
+- **ENH: Handling `COSMO` product with only the `h5` file in it (if missing XML metadata file)** ([#36](https://github.com/sertit/eoreader/issues/36))
 
 ### Optimizations
 
