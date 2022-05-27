@@ -572,6 +572,36 @@ class PlaProduct(PlanetProduct):
         return azimuth_angle, zenith_angle
 
     @cache
+    def get_mean_viewing_angles(self) -> (float, float, float):
+        """
+        Get Mean Viewing angles (azimuth, off-nadir and incidence angles)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_viewing_angles()
+
+        Returns:
+            (float, float, float): Mean azimuth, off-nadir and incidence angles
+        """
+        # Get MTD XML file
+        root, nsmap = self.read_mtd()
+
+        # Open zenith and azimuth angle
+        try:
+            az = float(root.findtext(f".//{nsmap['ps']}azimuthAngle"))
+            off_nadir = float(root.findtext(f".//{nsmap['ps']}spaceCraftViewAngle"))
+            incidence_angle = float(root.findtext(f".//{nsmap['eop']}incidenceAngle"))
+        except TypeError:
+            raise InvalidProductError(
+                "azimuthAngle, spaceCraftViewAngle or incidenceAngle not found in metadata!"
+            )
+
+        return az, off_nadir, incidence_angle
+
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict

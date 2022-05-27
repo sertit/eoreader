@@ -28,6 +28,7 @@
   - with missing MSK prefix for QI_DATA files (i.e `DETFOO` instead of `MSK_DETFOO`)
 - **ENH: Handle exception for corrupted bands (in `Sentinel-2` and `utils.read`) ([#34](https://github.com/sertit/eoreader/issues/34))**
 - **ENH: Add a STAC object that can be used to retrieve STAC Items from every Product (`prod.stac.create_item()`) ([#29](https://github.com/sertit/eoreader/issues/29))**
+- **ENH: Add a `get_mean_viewing_angles` for Optical Products to fill STAC View Extension ([#29](https://github.com/sertit/eoreader/issues/29))**
 - **ENH: Extending `get_raw_band_paths` to every product ([#31](https://github.com/sertit/eoreader/issues/31))**
 - **ENH: Adding a `is_ortho` attribute corresponding to when the product is already orthorectified/geocoded, in order to avoid computing heavy processes without wanting it (i.e. footprint...)**
 - **ENH: Adding the instrument name of every constellation, under `prod.instrument`**

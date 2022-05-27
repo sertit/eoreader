@@ -45,6 +45,7 @@ class SpotProduct(DimapProduct):
         """
         self._pan_res = 1.5
         self._ms_res = 6.0
+        self._altitude = 697000
 
         # Post init done by the super class
         super()._pre_init(**kwargs)

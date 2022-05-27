@@ -426,6 +426,41 @@ class Vis1Product(VhrProduct):
 
         return azimuth_angle, zenith_angle
 
+    @cache
+    def get_mean_viewing_angles(self) -> (float, float, float):
+        """
+        Get Mean Viewing angles (azimuth, off-nadir and incidence angles)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_viewing_angles()
+
+        Returns:
+            (float, float, float): Mean azimuth, off-nadir and incidence angles
+        """
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open zenith and azimuth angle
+        try:
+            az = None
+            for a in root.iterfind(".//Quality_Parameter"):
+                if a.findtext("QUALITY_PARAMETER_CODE") == "SPACEMETRIC:SENSOR_AZIMUTH":
+                    az = float(a.findtext("QUALITY_PARAMETER_VALUE"))
+                    break
+
+            incidence_angle = 90 - float(root.findtext(".//INCIDENCE_ANGLE"))
+            off_nadir = float(root.findtext(".//VIEWING_ANGLE"))
+        except TypeError:
+            raise InvalidProductError(
+                "SPACEMETRIC:SENSOR_AZIMUTH, INCIDENCE_ANGLE or VIEWING_ANGLE not found in metadata!"
+            )
+
+        return az, off_nadir, incidence_angle
+
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
