@@ -284,7 +284,8 @@ class TsxProduct(SarProduct):
         self.snap_filename = f"{self.name}.xml"
 
         # Geometric resolution
-        self._geometric_res = getattr(TsxGeometricResolution, self.split_name[3])
+        if self.product_type != TsxProductType.SSC:
+            self._geometric_res = getattr(TsxGeometricResolution, self.split_name[3])
 
         # Post init done by the super class
         super()._post_init(**kwargs)
