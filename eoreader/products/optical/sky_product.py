@@ -38,6 +38,7 @@ from eoreader import cache
 from eoreader.bands import BandNames, SpectralBand
 from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
+from eoreader.keywords import TO_REFLECTANCE
 from eoreader.products.optical.planet_product import PlanetProduct
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
@@ -392,24 +393,36 @@ class SkyProduct(PlanetProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        import json
+        refl_coef = None
+        # Only Ortho Analytic and Ortho Panchromatic are calibrated
+        # https://developers.planet.com/docs/data/skysat/
+        # (when managing SkySatScene, add Basic Panchromatic and Basic Analytic)
+        if self.product_type in [SkyProductType.ORTHO_ANA, SkyProductType.ORTHO_PAN]:
+            import json
 
-        import rasterio
+            import rasterio
 
-        with rasterio.open(path) as ds:
-            tags = ds.tags()["TIFFTAG_IMAGEDESCRIPTION"]
-            prop = json.loads(tags)["properties"]
+            with rasterio.open(path) as ds:
+                tags = ds.tags()["TIFFTAG_IMAGEDESCRIPTION"]
+                prop = json.loads(tags)["properties"]
 
-        coeffs = prop.get("reflectance_coefficients")
-        if coeffs:
-            # "reflectance_coefficients": [1: Blue, 2: Green, 3: Red, 4: Near-infrared]
-            # https://support.planet.com/hc/en-us/articles/4406644970513-What-is-the-order-of-reflectance-coefficients-in-the-GeoTIFF-Header-for-SkaySat-imagery-
-            refl_coef = coeffs[band.id - 1]
+            coeffs = prop.get("reflectance_coefficients")
+            if coeffs:
+                # "reflectance_coefficients": [1: Blue, 2: Green, 3: Red, 4: Near-infrared]
+                # https://support.planet.com/hc/en-us/articles/4406644970513-What-is-the-order-of-reflectance-coefficients-in-the-GeoTIFF-Header-for-SkaySat-imagery-
+                refl_coef = coeffs[band.id - 1]
+            else:
+                LOGGER.warning(
+                    "No reflectance coefficients are found. Your product will be read as is."
+                )
+
+        if refl_coef is None:
+            # https://support.planet.com/hc/en-us/articles/4408818004497/comments/5291365958429
+            # Makes no sense to try to get reflectance data. Keep them as is.
+            kwargs[TO_REFLECTANCE] = False
+            return band_arr
         else:
-            refl_coef = 1
-
-        # To reflectance
-        return band_arr * refl_coef
+            return band_arr * refl_coef
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
