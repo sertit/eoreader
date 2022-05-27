@@ -118,32 +118,11 @@ to learn more about that.
 
 ### Conda
 
-#### Command line
 You can install EOReader via conda:
 
 `conda config --env --set channel_priority strict`
 
 `conda install -c conda-forge eoreader`
-
-But for the moment, the lib used for caching objects (`methodtools`) is not available on conda.
-So please install it via pip (`pip install methodtools`) before using **EOReader** !
-
-#### Configuration file (preferred method)
-You can use a configuration file like this (`environment.yml`) for conda to create your environment:
-
-```yaml
-name: eoreader
-channels:
-  - conda-forge
-dependencies:         # everything under this, installed by conda
-  - python=3.7
-  - eoreader
-  - pip
-  - pip:                # everything under this, installed by pip
-      - methodtools
-```
-
-And create your environment like that: `conda env create -f environment.yml`.
 
 ## Context
 
@@ -178,6 +157,7 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 ## Authors
 
 **EOReader** has been created by [ICube-SERTIT](https://sertit.unistra.fr/).
+Follow us on [twitter](https://twitter.com/eoreader)
 
 ## Credits
 
