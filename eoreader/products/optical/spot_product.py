@@ -58,29 +58,30 @@ class SpotProduct(DimapProduct):
     def _map_bands(self) -> None:
         """Set products type"""
         # Create spectral bands
+        # https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTMyMw==/ZG9jdXRoZXF1ZS1maWxlLTU1MzIy/spot-brochure-2019.pdf
         pan = SpectralBand(
             eoreader_name=spb.PAN,
-            **{NAME: "PAN", ID: 1, GSD: 1.5, WV_MIN: 455, WV_MAX: 744}
+            **{NAME: "PAN", ID: 1, GSD: 1.5, WV_MIN: 450, WV_MAX: 745}
         )
 
         blue = SpectralBand(
             eoreader_name=spb.BLUE,
-            **{NAME: "BLUE", ID: 1, GSD: 6, WV_MIN: 454, WV_MAX: 519}
+            **{NAME: "BLUE", ID: 1, GSD: 6, WV_MIN: 450, WV_MAX: 520}
         )
 
         green = SpectralBand(
             eoreader_name=spb.GREEN,
-            **{NAME: "GREEN", ID: 2, GSD: 6, WV_MIN: 527, WV_MAX: 587}
+            **{NAME: "GREEN", ID: 2, GSD: 6, WV_MIN: 530, WV_MAX: 590}
         )
 
         red = SpectralBand(
             eoreader_name=spb.RED,
-            **{NAME: "RED", ID: 3, GSD: 6, WV_MIN: 624, WV_MAX: 694}
+            **{NAME: "RED", ID: 3, GSD: 6, WV_MIN: 625, WV_MAX: 695}
         )
 
         nir = SpectralBand(
             eoreader_name=spb.NIR,
-            **{NAME: "NIR", ID: 4, GSD: 6, WV_MIN: 760, WV_MAX: 900}
+            **{NAME: "NIR", ID: 4, GSD: 6, WV_MIN: 760, WV_MAX: 890}
         )
         self._map_bands_core(blue=blue, green=green, red=red, nir=nir, pan=pan)
 

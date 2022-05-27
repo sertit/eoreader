@@ -54,29 +54,30 @@ class PldProduct(DimapProduct):
         Map bands
         """
         # Create spectral bands
+        # https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTMxNw==/ZG9jdXRoZXF1ZS1maWxlLTU1MzE2/pleiades-brochure-2019.pdf
         pan = SpectralBand(
             eoreader_name=spb.PAN,
-            **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 480, WV_MAX: 830}
+            **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 470, WV_MAX: 830}
         )
 
         blue = SpectralBand(
             eoreader_name=spb.BLUE,
-            **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 430, WV_MAX: 550}
+            **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 460, WV_MAX: 530}
         )
 
         green = SpectralBand(
             eoreader_name=spb.GREEN,
-            **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 490, WV_MAX: 610}
+            **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 500, WV_MAX: 620}
         )
 
         red = SpectralBand(
             eoreader_name=spb.RED,
-            **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 600, WV_MAX: 720}
+            **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 590, WV_MAX: 710}
         )
 
         nir = SpectralBand(
             eoreader_name=spb.NIR,
-            **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 750, WV_MAX: 830}
+            **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 740, WV_MAX: 940}
         )
         self._map_bands_core(blue=blue, green=green, red=red, nir=nir, pan=pan)
 

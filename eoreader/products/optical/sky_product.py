@@ -60,6 +60,45 @@ class SkyInstrument(ListEnum):
 
 
 @unique
+class SkyItemType(ListEnum):
+    """
+    Skysat item types (processing levels)
+
+    Only SkySat Collect items are managed for now: https://developers.planet.com/docs/data/skysat/
+    """
+
+    SCENE = "SkySat Scene Product"
+    """
+    A SkySat Scene Product is an individual framed scene within a strip,
+    captured by the satellite in its line-scan of the Earth.
+    SkySat Satellites have three cameras per satellite, which capture three overlapping strips.
+    Each of these strips contain overlapping scenes, not organized to any particular tiling grid system.
+    SkySat Scene products are approximately 1 x 2.5 square kilometers in size. They are represented in the Planet Platform as the SkySatScene item type.
+
+    Not handled by EOReader for now.
+    """
+
+    COLLECT = "SkySat Collect Product"
+    """
+    A SkySat Collect Product is created by composing roughly 60 SkySat Scenes along an imaging strip into an orthorectified segment,
+    approximately 20 x 5.9 square kilometers in size. They are represented in the Planet Platform as the SkySatCollect item type.
+    This product may be easier to handle, if you're looking at larger areas of interest with SkySat imagery.
+    Due to the image rectification process involved in creating this product, Collect is generally recommended over the Scene product when the AOI spans multiple scenes,
+    particularly if a mosaic or composite image of the individual scenes is required. Collect performs necessary rectification steps automatically.
+    This is especially useful for users who don't feel comfortable doing orthorectification manually.
+    """
+
+    VIDEO = "SkySat Video "
+    """
+    A SkySat Video Product is a full motion video are collected between 30 and 120 seconds by a single camera from any of the SkySats.
+    Its size is comparable to a SkySat Scene, about 1 x 2.5 square kilometers.
+    They are represented in the Planet Platform as the SkySatVideo item type.
+
+    Not handled by EOReader.
+    """
+
+
+@unique
 class SkyProductType(ListEnum):
     """
     Skysat product types (processing levels)
