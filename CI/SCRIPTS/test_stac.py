@@ -47,6 +47,9 @@ from eoreader.stac._stac_keywords import (
     PROJ_TRANSFORM,
     PROJ_WKT,
     TITLE,
+    VIEW_AZIMUTH,
+    VIEW_INCIDENCE_ANGLE,
+    VIEW_OFF_NADIR,
     VIEW_SUN_AZIMUTH,
     VIEW_SUN_ELEVATION,
 )
@@ -266,7 +269,25 @@ def _test_core(
                         f"{VIEW_SUN_ELEVATION} (item.properties)",
                     )
 
-                    # TODO: Add other when needed
+                    azimuth, off_nadir, incidence_angle = prod.get_mean_viewing_angles()
+                    if azimuth is not None:
+                        compare(
+                            item.properties[VIEW_AZIMUTH],
+                            azimuth,
+                            f"{VIEW_AZIMUTH} (item.properties)",
+                        )
+                    if off_nadir is not None:
+                        compare(
+                            item.properties[VIEW_OFF_NADIR],
+                            off_nadir,
+                            f"{VIEW_OFF_NADIR} (item.properties)",
+                        )
+                    if incidence_angle is not None:
+                        compare(
+                            item.properties[VIEW_INCIDENCE_ANGLE],
+                            incidence_angle,
+                            f"{VIEW_INCIDENCE_ANGLE} (item.properties)",
+                        )
 
                 # Assets
                 if prod.sensor_type == SensorType.OPTICAL:

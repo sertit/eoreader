@@ -235,6 +235,7 @@ class DimapProduct(VhrProduct):
         **kwargs,
     ) -> None:
         self._empty_mask = []
+        self._altitude = None
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
@@ -739,6 +740,62 @@ class DimapProduct(VhrProduct):
         zenith_angle = 90.0 - elev_angle
 
         return azimuth_angle, zenith_angle
+
+    @cache
+    def get_mean_viewing_angles(self) -> (float, float, float):
+        """
+        Get Mean Viewing angles (azimuth, off-nadir and incidence angles)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_viewing_angles()
+
+        Returns:
+            (float, float, float): Mean azimuth, off-nadir and incidence angles
+        """
+
+        def incidence_to_off_nadir(
+            incidence_angle: float, orbit_height: float = 695000
+        ) -> float:
+            """
+
+            Args:
+                incidence_angle:
+                orbit_height:
+
+            Returns:
+
+            """
+            earth_radius = 6378137
+            orbit_coeff = (earth_radius + orbit_height) / earth_radius
+            return np.rad2deg(
+                np.arcsin(np.sin(np.deg2rad(90 - incidence_angle)) / orbit_coeff)
+            )
+
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open zenith and azimuth angle
+        try:
+            center_vals = [
+                a
+                for a in root.iterfind(".//Located_Geometric_Values")
+                if a.findtext("LOCATION_TYPE") == "Center"
+            ][0]
+            incidence_angle = float(center_vals.findtext(".//INCIDENCE_ANGLE"))
+            az = float(center_vals.findtext(".//AZIMUTH_ANGLE"))
+        except TypeError:
+            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
+
+        # Compute off nadir angles
+        off_nadir = incidence_to_off_nadir(
+            incidence_angle=incidence_angle, orbit_height=self._altitude
+        )
+
+        return az, off_nadir, incidence_angle
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):

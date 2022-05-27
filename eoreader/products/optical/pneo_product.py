@@ -48,6 +48,7 @@ class PneoProduct(DimapProduct):
         """
         self._pan_res = 0.3
         self._ms_res = 1.2
+        self._altitude = 620000
 
         # Post init done by the super class
         super()._pre_init(**kwargs)

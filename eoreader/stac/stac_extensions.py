@@ -44,6 +44,9 @@ from eoreader.stac._stac_keywords import (
     PROJ_SHAPE,
     PROJ_TRANSFORM,
     TITLE,
+    VIEW_AZIMUTH,
+    VIEW_INCIDENCE_ANGLE,
+    VIEW_OFF_NADIR,
     VIEW_SUN_AZIMUTH,
     VIEW_SUN_ELEVATION,
 )
@@ -298,6 +301,15 @@ class ViewExt:
     """
 
     def __init__(self, prod, **kwargs):
+
+        self.extension_fields = {
+            "sun_az": VIEW_SUN_AZIMUTH,
+            "sun_el": VIEW_SUN_ELEVATION,
+            "view_az": VIEW_AZIMUTH,
+            "off_nadir": VIEW_OFF_NADIR,
+            "incidence_angle": VIEW_INCIDENCE_ANGLE,
+        }
+
         try:
             sun_az, sun_el = prod.get_mean_sun_angles()
             self.sun_az = sun_az
@@ -306,10 +318,28 @@ class ViewExt:
             self.sun_az = None
             self.sun_el = None
 
-        # TODO: Others will come
-        # VIEW_OFF_NADIR = "view:off_nadir"
-        # VIEW_INCIDENCE_ANGLE = "view:incidence_angle"
-        # VIEW_AZIMUTH = "view:azimuth"
+        try:
+            view_az, off_nadir, incidence_angle = prod.get_mean_viewing_angles()
+            self.view_az = view_az
+            self.off_nadir = off_nadir
+            self.incidence_angle = incidence_angle
+        except AttributeError:
+            self.view_az = None
+            self.off_nadir = None
+            self.incidence_angle = None
+
+    @cache
+    def create_ext(self) -> bool:
+        """
+        Returns True if at least one attribute is not None.
+        If False, do not create the extension.
+
+        Returns:
+            bool: True if at least one attribute is not None
+        """
+        return any(
+            [getattr(self, attr) is not None for attr in self.extension_fields.keys()]
+        )
 
     def _to_repr(self) -> list:
         """
@@ -317,12 +347,17 @@ class ViewExt:
         Returns:
             list: repr list
         """
-        if self.sun_az is not None and self.sun_el is not None:
+
+        if self.create_ext():
             repr_list = [
                 "View STAC Extension attributes:",
-                f"\t{VIEW_SUN_AZIMUTH}: {self.sun_az}",
-                f"\t{VIEW_SUN_ELEVATION}: {self.sun_el}",
             ]
+
+            for attr, kw in self.extension_fields.items():
+                val = getattr(self, attr)
+                if val is not None:
+                    repr_list.append(f"\t{kw}: {val}")
+
         else:
             repr_list = []
 
@@ -346,7 +381,19 @@ class ViewExt:
             )
         # Add the view extension
         # The View Geometry extension specifies information related to angles of sensors and other radiance angles that affect the view of resulting data
-        if self.sun_az is not None and self.sun_el is not None:
+        if self.create_ext():
             view_ext = ViewExtension.ext(item, add_if_missing=True)
-            view_ext.sun_azimuth = self.sun_az
-            view_ext.sun_elevation = self.sun_el
+            if self.sun_az:
+                view_ext.sun_azimuth = self.sun_az
+
+            if self.sun_el:
+                view_ext.sun_elevation = self.sun_el
+
+            if self.view_az:
+                view_ext.azimuth = self.view_az
+
+            if self.off_nadir:
+                view_ext.off_nadir = self.off_nadir
+
+            if self.incidence_angle:
+                view_ext.incidence_angle = self.incidence_angle

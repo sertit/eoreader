@@ -456,6 +456,35 @@ class SkyProduct(PlanetProduct):
         return azimuth_angle, zenith_angle
 
     @cache
+    def get_mean_viewing_angles(self) -> (float, float, float):
+        """
+        Get Mean Viewing angles (azimuth, off-nadir and incidence angles)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_viewing_angles()
+
+        Returns:
+            (float, float, float): Mean azimuth, off-nadir and incidence angles
+        """
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Open zenith and azimuth angle
+        try:
+            az = float(root.findtext(".//satellite_azimuth"))
+            off_nadir = float(root.findtext(".//view_angle"))
+        except TypeError:
+            raise InvalidProductError(
+                "satellite_azimuth or view_angle angles not found in metadata!"
+            )
+
+        return az, off_nadir, None
+
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read GeoJSON metadata and outputs its as a metadata XML root and its namespaces as an empty dict

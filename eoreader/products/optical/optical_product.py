@@ -523,6 +523,23 @@ class OpticalProduct(Product):
         """
         raise NotImplementedError
 
+    @cache
+    def get_mean_viewing_angles(self) -> (float, float, float):
+        """
+        Get Mean Viewing angles (azimuth, off-nadir and incidence angles)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_mean_viewing_angles()
+
+        Returns:
+            (float, float, float): Mean azimuth, off-nadir and incidence angles
+        """
+        return None, None, None
+
     def _compute_hillshade(
         self,
         dem_path: str = "",
