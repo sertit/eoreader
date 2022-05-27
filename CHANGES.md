@@ -1,5 +1,59 @@
 # Release History
 
+## 0.15.0 (2022-MM-DD)
+
+### Breaking Changes
+
+- **BREAKING CHANGES: `Optical` becomes `Spectral` when more appropriate**
+- **BREAKING CHANGES: `Platform` and `Sensor` become `Constellation` when more appropriate, to fit STAC vocabulary** ([#29](https://github.com/sertit/eoreader/issues/29)):
+  - `Platform` enum becomes `Constellation`
+  - `prod.platform` becomes `prod.constellation`
+  - `prod.sat_id` becomes `prod.constellation_id`
+- **BREAKING CHANGES: File `alias` is removed, replaced by `*_bands` files and proper imports in `bands.__init__`**
+- **BREAKING CHANGES: Product attribute `band_names` becomes `bands` in order to be STAC compliant ([#29](https://github.com/sertit/eoreader/issues/29))**
+- **BREAKING CHANGES: Better use of `NIR` and `NARROW_NIR` in the `indices` file (according to the gsd of `Sentinel-2` bands composing the indices)**
+- **BREAKING CHANGES: Correcting Landsat product types to better manage processing levels and instrument. Landsat-8/9 condensed name may change!**
+
+### Enhancements
+
+- **ENH: Adding the support of `SkySat` (Collect) products** ([#20](https://github.com/sertit/eoreader/issues/20))
+- **ENH: Bands in mapping are now objects, instead of just IDs** ([#29](https://github.com/sertit/eoreader/issues/29)). This allows us to:
+  - Add band metadata (such as center wavelength, bandwidth...)
+  - Map spectral bands between STAC spec and EOReader format ([#29](https://github.com/sertit/eoreader/issues/29))
+  - Add a better `__repr__` functions
+- **ENH: Handling 8 bands `PlanetScope` data** ([#20](https://github.com/sertit/eoreader/issues/20))
+- **ENH: Adding the `GREEN1` mapped band, corresponding to PlanetScope `GREEN I` and `Sentinel-3 OLCI` `Oa05` band**
+- **ENH: Handle some slightly broken `Sentinel-2` products:**
+  - when the metadata files are corrupted or when the detfoo vectors are empty ([#34](https://github.com/sertit/eoreader/issues/34))
+  - with missing MSK prefix for QI_DATA files (i.e `DETFOO` instead of `MSK_DETFOO`)
+- **ENH: Handle exception for corrupted bands (in `Sentinel-2` and `utils.read`) ([#34](https://github.com/sertit/eoreader/issues/34))**
+- **ENH: Add a STAC object that can be used to retrieve STAC Items from every Product (`prod.stac.create_item()`) ([#29](https://github.com/sertit/eoreader/issues/29))**
+- **ENH: Extending `get_raw_band_paths` to every product ([#31](https://github.com/sertit/eoreader/issues/31))**
+- **ENH: Adding a `is_ortho` attribute corresponding to when the product is already orthorectified/geocoded, in order to avoid computing heavy processes without wanting it (i.e. footprint...)**
+- **ENH: Adding the instrument name of every constellation, under `prod.instrument`**
+
+### Optimizations
+
+- OPTIM: Retrieve name from filename if possible
+- OPTIM: Retrieve extent from metadata when possible (for VHR data)
+- OPTIM: Refactoring Landsat-XX products into `LandsatProduct`, this should bee invisible for user.
+
+### Bug Fixes
+
+- FIX: Fixing the band mapping of `WorldView-2/3 Multi` (8 bands)
+- FIX: Retrieval (if possible) of Sentinel-1 [unique ID](https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-1-sar/naming-conventions) (was missing from the product name, as it is not in the product preview)
+- FIX: Fixing PAZ/TDX MTD regex
+- FIX: Optical products: Only set cloud cover and radiometry attributes if spectral bands are asked
+
+### Other
+
+- INTERNAL: File `spot_6` and `spot_7` are removed, replaced by a unique `spot` file. This shouldn't affect the user.
+- INTERNAL: Some refactoring in `VHR` files
+- WARNINGS: Filter warnings from `__init__`
+- CI: Do not process two times the zipped Sentinel-1 in end-to-end tests and manage when the runner kills SNAP
+- DOC: Adding a STAC notebook
+- DOC: Various updates
+
 ## 0.14.0 (2022-04-14)
 
 ### Breaking Changes
@@ -11,24 +65,24 @@
 ### Enhancements
 
 - **ENH: Adding spectral indices:**
-  - Shadow Index (`SI`)
-  - Global Vegetation Moisture Index (`GVMI`)
-  - Soil Brightness Index (`SBI`), Soil Cuirass Index (`SCI`)
-  - Panchromatic mocking Index (`PANI`)
-  - Green-to-Red ratio Index (`GRI`)
-  - Soil Adjusted Vegetation Index (`SAVI`)
-  - Optimized Soil Adjusted Vegetation Index (`OSAVI`)
-  - Visible Atmospherically Resistant Index (Green) (`VARI`)
-  - Enhanced Vegetation Index (`EVI`)
-  - Chlorophyll Index RedEdge VRE_3/VRE_2 (`CI1`)
-  - Chlorophyll Index RedEdge VRE_2/VRE_1 (`CI2`)
-  - Normalized Difference Moisture Index (with SWIR_21) (`NDMI21`)
+    - Shadow Index (`SI`)
+    - Global Vegetation Moisture Index (`GVMI`)
+    - Soil Brightness Index (`SBI`), Soil Cuirass Index (`SCI`)
+    - Panchromatic mocking Index (`PANI`)
+    - Green-to-Red ratio Index (`GRI`)
+    - Soil Adjusted Vegetation Index (`SAVI`)
+    - Optimized Soil Adjusted Vegetation Index (`OSAVI`)
+    - Visible Atmospherically Resistant Index (Green) (`VARI`)
+    - Enhanced Vegetation Index (`EVI`)
+    - Chlorophyll Index RedEdge VRE_3/VRE_2 (`CI1`)
+    - Chlorophyll Index RedEdge VRE_2/VRE_1 (`CI2`)
+    - Normalized Difference Moisture Index (with SWIR_21) (`NDMI21`)
 - **ENH: Making SAR attribute `snap_filename` public**
 - **ENH: Handling `ICEYE` pure SLC products**
 - **ENH: Allowing the user to choose if they want the GRD or SLC image for `ICEYE` products**
-- **ENH: Add the possibility to directly load the cloud cover for optical data (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/30))**
-- **ENH: Add the possibility to retrieve the quicklook path (if existing) and add the `plot` function allowing the user to plot the quicklook (if existing) ([#28](https://github.com/sertit/eoreader/issues/30))**
-- **ENH: Add the possibility to retrieve the orbit direction (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/30))**
+- **ENH: Add the possibility to directly load the cloud cover for optical data (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/28))**
+- **ENH: Add the possibility to retrieve the quicklook path (if existing) and add the `plot` function allowing the user to plot the quicklook (if existing) ([#28](https://github.com/sertit/eoreader/issues/28))**
+- **ENH: Add the possibility to retrieve the orbit direction (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/28))**
 
 ### Bug Fixes
 

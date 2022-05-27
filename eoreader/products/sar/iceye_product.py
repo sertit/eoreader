@@ -20,21 +20,19 @@ Take a look
 `here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
 """
 import logging
-import warnings
 from datetime import datetime
 from enum import unique
 from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
-import rasterio
 from cloudpathlib import CloudPath
 from lxml import etree
 from sertit import files, vectors
 from sertit.misc import ListEnum
 
 from eoreader import cache
-from eoreader.bands.bands import SarBandNames as sbn
+from eoreader.bands import SarBandNames as sab
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import ICEYE_USE_SLC
 from eoreader.products import SarProduct, SarProductType
@@ -42,9 +40,6 @@ from eoreader.products.product import OrbitDirection
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique
@@ -104,9 +99,9 @@ class IceyeProduct(SarProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         See here
         <here](https://www.iceye.com/hubfs/Downloadables/ICEYE_SAR_Product_Guide_2021_V4.0.pdf>`_
         for more information (table B.3).
@@ -121,6 +116,14 @@ class IceyeProduct(SarProduct):
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
         return def_res
 
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        ICEYE: https://earth.esa.int/eogateway/missions/iceye
+        """
+        self.instrument = "SAR X-band"
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
@@ -130,6 +133,9 @@ class IceyeProduct(SarProduct):
 
         # SNAP cannot process its archive
         self.needs_extraction = True
+
+        # Its original filename is its name
+        self._use_filename = True
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
@@ -270,7 +276,7 @@ class IceyeProduct(SarProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -341,17 +347,20 @@ class IceyeProduct(SarProduct):
 
         return root, nsmap
 
-    def _get_raw_band_paths(self) -> dict:
+    def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing path of the VV band (as they come with the archived products).
         ICEYE product only contains a VV band !
+
+        Args:
+            **kwargs: Additional arguments
 
         Returns:
             dict: Dictionary containing the path of every band existing in the raw products
         """
         band_paths = {}
         try:
-            band_paths[sbn.VV] = files.get_file_in_dir(
+            band_paths[sab.VV] = files.get_file_in_dir(
                 self._band_folder, self._raw_band_regex, exact_name=True, get_list=False
             )
         except FileNotFoundError:

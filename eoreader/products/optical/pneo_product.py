@@ -25,7 +25,10 @@ from typing import Union
 
 from cloudpathlib import CloudPath
 
-from eoreader.products import DimapBandCombination, DimapProduct
+from eoreader.bands import SpectralBand
+from eoreader.bands import spectral_bands as spb
+from eoreader.products import DimapProduct
+from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -38,21 +41,16 @@ class PneoProduct(DimapProduct):
     for more information.
     """
 
-    def _set_resolution(self) -> float:
+    def _pre_init(self, **kwargs) -> None:
         """
-        Set product default resolution (in meters)
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
         """
-        # Not Pansharpened images
-        if self.band_combi in [
-            DimapBandCombination.MS,
-            DimapBandCombination.MS_X,
-            DimapBandCombination.MS_N,
-            DimapBandCombination.MS_FS,
-        ]:
-            return 1.2
-        # Pansharpened images
-        else:
-            return 0.3
+        self._pan_res = 0.3
+        self._ms_res = 1.2
+
+        # Post init done by the super class
+        super()._pre_init(**kwargs)
 
     def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
@@ -73,3 +71,52 @@ class PneoProduct(DimapProduct):
             ortho_path = self._get_tile_path()
 
         return ortho_path
+
+    def _map_bands(self) -> None:
+        """Set products type"""
+        # Create spectral bands
+        ca = SpectralBand(
+            eoreader_name=spb.CA,
+            **{NAME: "DEEP BLUE", ID: 5, GSD: self._ms_res, WV_MIN: 400, WV_MAX: 450}
+        )
+
+        pan = SpectralBand(
+            eoreader_name=spb.PAN,
+            **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 450, WV_MAX: 800}
+        )
+
+        blue = SpectralBand(
+            eoreader_name=spb.BLUE,
+            **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 450, WV_MAX: 520}
+        )
+
+        green = SpectralBand(
+            eoreader_name=spb.GREEN,
+            **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 490, WV_MAX: 610}
+        )
+
+        red = SpectralBand(
+            eoreader_name=spb.RED,
+            **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 600, WV_MAX: 720}
+        )
+
+        nir = SpectralBand(
+            eoreader_name=spb.NIR,
+            **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 750, WV_MAX: 830}
+        )
+
+        vre = SpectralBand(
+            eoreader_name=spb.VRE_1,
+            **{NAME: "RED EDGE", ID: 6, GSD: self._ms_res, WV_MIN: 700, WV_MAX: 750}
+        )
+        self._map_bands_core(
+            blue=blue, green=green, red=red, nir=nir, pan=pan, vre=vre, ca=ca
+        )
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        Pleiades: https://earth.esa.int/eogateway/missions/pleiades-neo
+        """
+        self.instrument = "Pleiades-Neo Imager"

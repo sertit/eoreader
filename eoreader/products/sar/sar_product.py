@@ -36,21 +36,15 @@ from sertit import files, misc, rasters, snap, strings, vectors
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
-from eoreader.bands import BandNames
-from eoreader.bands import SarBandNames as sbn
-from eoreader.bands import (
-    SarBands,
-    is_clouds,
-    is_dem,
-    is_index,
-    is_optical_band,
-    is_sar_band,
-)
+from eoreader.bands import BandNames, SarBand, SarBandMap
+from eoreader.bands import SarBandNames as sab
+from eoreader.bands import is_clouds, is_dem, is_index, is_sar_band, is_spectral_band
 from eoreader.env_vars import DEM_PATH, DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES, SNAP_DEM_NAME
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.keywords import SAR_INTERP_NA
 from eoreader.products.product import Product, SensorType
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
+from eoreader.stac import INTENSITY
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -186,6 +180,23 @@ class SarProduct(Product):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
+        self.bands.map_bands(
+            {
+                band_name: SarBand(
+                    eoreader_name=band_name,
+                    name=band_name.name,
+                    gsd=self.resolution,
+                    id=band_name.value,
+                    asset_role=INTENSITY,
+                )
+                for band_name in self.get_existing_bands()
+            }
+        )
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
@@ -193,7 +204,8 @@ class SarProduct(Product):
         """
         self.tile_name = None
         self.sensor_type = SensorType.SAR
-        self.band_names = SarBands()
+        self.bands = SarBandMap()
+        self.is_ortho = False
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -211,7 +223,7 @@ class SarProduct(Product):
         .. code-block:: python
 
             >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
             >>> prod = Reader().open(path)
             >>> prod.footprint()
                index                                           geometry
@@ -245,14 +257,14 @@ class SarProduct(Product):
             raise InvalidProductError(f"No band exists for products: {self.name}")
 
         # The order matters, as we almost always prefer VV and HH
-        if sbn.VV in existing_bands:
-            default_band = sbn.VV
-        elif sbn.HH in existing_bands:
-            default_band = sbn.HH
-        elif sbn.VH in existing_bands:
-            default_band = sbn.VH
-        elif sbn.HV in existing_bands:
-            default_band = sbn.HV
+        if sab.VV in existing_bands:
+            default_band = sab.VV
+        elif sab.HH in existing_bands:
+            default_band = sab.HH
+        elif sab.VH in existing_bands:
+            default_band = sab.VH
+        elif sab.HV in existing_bands:
+            default_band = sab.HV
         else:
             raise InvalidTypeError(f"Invalid bands for products: {existing_bands}")
 
@@ -323,7 +335,7 @@ class SarProduct(Product):
             [1 rows x 12 columns]
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         # Get WGS84 extent
         extent_wgs84 = self.wgs84_extent()
@@ -399,27 +411,27 @@ class SarProduct(Product):
         """
         band_paths = {}
         for band in band_list:
-            bname = self.band_names[band]
-            if bname is None:
+            if self.bands[band] is None:
                 raise InvalidProductError(
                     f"Non existing band ({band.name}) for {self.name}"
                 )
             try:
                 # Try to load orthorectified bands
+                band_id = self.bands[band].id
                 band_paths[band] = files.get_file_in_dir(
                     self._get_band_folder(),
-                    f"*{self.condensed_name}_{bname}.tif",
+                    f"*{self.condensed_name}_{band_id}.tif",
                     exact_name=True,
                 )
             except FileNotFoundError:
-                speckle_band = sbn.corresponding_speckle(band)
+                speckle_band = sab.corresponding_speckle(band)
                 if speckle_band in self.pol_channels:
-                    if sbn.is_despeckle(band):
+                    if sab.is_despeckle(band):
                         # Check if existing speckle ortho band
                         try:
                             files.get_file_in_dir(
                                 self._get_band_folder(),
-                                f"*{self.condensed_name}_{self.band_names[speckle_band]}.tif",
+                                f"*{self.condensed_name}_{self.bands[speckle_band].id}.tif",
                                 exact_name=True,
                             )
                         except FileNotFoundError:
@@ -434,17 +446,20 @@ class SarProduct(Product):
 
         return band_paths
 
-    def _get_raw_band_paths(self) -> dict:
+    def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing band paths (as they come with the archived products).
+
+        Args:
+            **kwargs: Additional arguments
 
         Returns:
             dict: Dictionary containing the path of every band existing in the raw products
         """
         extended_fmt = _ExtendedFormatter()
         band_paths = {}
-        for band, band_name in self.band_names.items():
-            band_regex = extended_fmt.format(self._raw_band_regex, band_name)
+        for band in sab.speckle_list():
+            band_regex = extended_fmt.format(self._raw_band_regex, band.value)
 
             if self.is_archived:
                 if self.path.suffix == ".zip":
@@ -477,7 +492,7 @@ class SarProduct(Product):
         Returns:
             list: List of existing bands in the raw products (vv, hh, vh, hv)
         """
-        band_paths = self._get_raw_band_paths()
+        band_paths = self.get_raw_band_paths()
         return list(band_paths.keys())
 
     def get_existing_band_paths(self) -> dict:
@@ -533,7 +548,7 @@ class SarProduct(Product):
         # Get raw bands (maximum number of bands)
         raw_bands = self._get_raw_bands()
         existing_bands = raw_bands + [
-            sbn.corresponding_despeckle(band) for band in raw_bands
+            sab.corresponding_despeckle(band) for band in raw_bands
         ]
 
         return existing_bands
@@ -638,7 +653,7 @@ class SarProduct(Product):
                 raise NotImplementedError(
                     "For now, no index is implemented for SAR data."
                 )
-            elif is_optical_band(band):
+            elif is_spectral_band(band):
                 raise TypeError(
                     f"You should ask for SAR bands as {self.name} is a SAR product."
                 )
@@ -672,7 +687,7 @@ class SarProduct(Product):
 
         return bands
 
-    def _pre_process_sar(self, band: sbn, resolution: float = None, **kwargs) -> str:
+    def _pre_process_sar(self, band: sab, resolution: float = None, **kwargs) -> str:
         """
         Pre-process SAR data (geocoding...)
 
@@ -684,7 +699,7 @@ class SarProduct(Product):
         Returns:
             str: Band path
         """
-        raw_band_path = str(self._get_raw_band_paths()[band])
+        raw_band_path = str(self.get_raw_band_paths(**kwargs)[band])
         with rasterio.open(raw_band_path) as ds:
             raw_crs = ds.crs
 
@@ -708,7 +723,11 @@ class SarProduct(Product):
 
                 # Pre-process graph
                 if PP_GRAPH not in os.environ:
-                    sat = "s1" if self.sat_id == Platform.S1.name else "sar"
+                    sat = (
+                        "s1"
+                        if self.constellation_id == Constellation.S1.name
+                        else "sar"
+                    )
                     spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
                     pp_graph = utils.get_data_dir().joinpath(
                         f"{spt}_{sat}_preprocess_default.xml"
@@ -793,7 +812,7 @@ class SarProduct(Product):
                 LOGGER.debug("Converting DIMAP to GeoTiff")
                 return self._write_sar(pp_dim, band.value, **kwargs)
 
-    def _despeckle_sar(self, band: sbn, **kwargs) -> str:
+    def _despeckle_sar(self, band: sab, **kwargs) -> str:
         """
         Pre-process SAR data (geocode...)
 
@@ -936,29 +955,29 @@ class SarProduct(Product):
         Returns:
             str: Condensed name
         """
-        return f"{self.get_datetime()}_{self.platform.name}_{self.sensor_mode.name}_{self.product_type.value}"
+        return f"{self.get_datetime()}_{self.constellation.name}_{self.sensor_mode.name}_{self.product_type.value}"
 
-    def _update_attrs_sensor_specific(
-        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+    def _update_attrs_constellation_specific(
+        self, xarr: xr.DataArray, bands: list, **kwargs
     ) -> xr.DataArray:
         """
-        Update attributes of the given array (sensor specific)
+        Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
-            long_name (str): Array name (as a str or a list)
+            bands (list): Array name (as a str or a list)
         Returns:
             xr.DataArray: Updated array
         """
 
         return xarr
 
-    def _to_repr_sensor_specific(self) -> list:
+    def _to_repr_constellation_specific(self) -> list:
         """
-        Representation specific to the sensor
+        Representation specific to the constellation
 
         Returns:
-            list: Representation list (sensor specific)
+            list: Representation list (constellation specific)
         """
         return [
             f"\torbit direction: {self.get_orbit_direction().value}",

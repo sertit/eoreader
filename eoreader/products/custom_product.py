@@ -36,8 +36,10 @@ from sertit.misc import ListEnum
 from eoreader import cache, utils
 from eoreader.bands import (
     BandNames,
-    OpticalBands,
-    SarBands,
+    SarBand,
+    SarBandMap,
+    SpectralBand,
+    SpectralBandMap,
     is_clouds,
     is_dem,
     is_index,
@@ -46,7 +48,7 @@ from eoreader.bands import (
 )
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.products.product import OrbitDirection, Product, SensorType
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -62,7 +64,8 @@ class CustomFields(ListEnum):
     SENSOR_TYPE = "sensor_type"
     DATETIME = "datetime"
     BAND_MAP = "band_map"
-    PLATFORM = "platform"
+    CONSTELLATION = "constellation"
+    INSTRUMENT = "instrument"
     RES = "resolution"
     PROD_TYPE = "product_type"
     SUN_AZ = "sun_azimuth"
@@ -86,11 +89,16 @@ class CustomProduct(Product):
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
-        self.kwargs = None
+        self.kwargs = kwargs
         """Custom kwargs"""
 
         # Initialization from the super class
-        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+        # (Custom products arte managing constellation on their own)
+        super_kwargs = kwargs.copy()
+        super_kwargs.pop("constellation", None)
+        super().__init__(
+            product_path, archive_path, output_path, remove_tmp, **super_kwargs
+        )
 
     def _pre_init(self, **kwargs) -> None:
         """
@@ -104,29 +112,7 @@ class CustomProduct(Product):
             kwargs, [CustomFields.BAND_MAP.value, CustomFields.SENSOR_TYPE.value]
         )
 
-        # Sensor type
-        self.sensor_type = SensorType.convert_from(
-            kwargs.pop(CustomFields.SENSOR_TYPE.value)
-        )[0]
-        self.band_names = (
-            OpticalBands() if self.sensor_type == SensorType.OPTICAL else SarBands()
-        )
-
-        # Band map
-        band_names = kwargs.pop(CustomFields.BAND_MAP.value)  # Shouldn't be empty
-        assert isinstance(band_names, dict)
-        band_names = {to_band(key)[0]: val for key, val in band_names.items()}
-        assert [is_sat_band(band) for band in band_names.keys()]
-        self.band_names.map_bands(band_names)
-
-        # Test on the product
-        with rasterio.open(str(self.get_default_band_path())) as ds:
-            assert (
-                len(band_names) == ds.count
-            ), f"You should specify {ds.count} bands in band_map, not {len(band_names)} !"
-
-        self.kwargs = kwargs
-
+        # Process kwargs
         for key in self.kwargs.keys():
             try:
                 CustomFields.from_value(key)  # noqa
@@ -134,6 +120,44 @@ class CustomProduct(Product):
                 LOGGER.warning(
                     f"{key} is not taken into account as it doesn't belong to the handled keys: {CustomFields.list_values()}"
                 )
+
+        # Sensor type
+        self.sensor_type = SensorType.convert_from(
+            kwargs.pop(CustomFields.SENSOR_TYPE.value)
+        )[0]
+
+    def _map_bands(self):
+        """
+        Map bands
+        """
+        if self.sensor_type == SensorType.OPTICAL:
+            band_map = SpectralBandMap()
+            band = SpectralBand
+        else:
+            band_map = SarBandMap()
+            band = SarBand
+
+        self.bands = band_map
+
+        # Band map
+        band_names = self.kwargs.pop(CustomFields.BAND_MAP.value)  # Shouldn't be empty
+        assert isinstance(band_names, dict)
+
+        band_map = {}
+        for key, val in band_names.items():
+            assert is_sat_band(key), "Custom bands should be satellite band"
+            band_name = to_band(key)[0]
+            band_map[band_name] = band(
+                eoreader_name=band_name, name=band_name.value, id=val
+            )
+
+        self.bands.map_bands(band_map)
+
+        # Test on the product
+        with rasterio.open(str(self.get_default_band_path())) as ds:
+            assert (
+                len(band_names) == ds.count
+            ), f"You should specify {ds.count} bands in band_map, not {len(band_names)} !"
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -146,7 +170,7 @@ class CustomProduct(Product):
         except InvalidProductError as msg:
             LOGGER.warning(msg)
 
-    def _get_name(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -179,14 +203,14 @@ class CustomProduct(Product):
 
         return date
 
-    def _get_platform(self) -> Platform:
-        return Platform.convert_from(
-            self.kwargs.get(CustomFields.PLATFORM.value, CUSTOM)
+    def _get_constellation(self) -> Constellation:
+        return Constellation.convert_from(
+            self.kwargs.get(CustomFields.CONSTELLATION.value, CUSTOM)
         )[0]
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         resolution = self.kwargs.get(CustomFields.RES.value, None)
         if resolution is None:
@@ -194,6 +218,15 @@ class CustomProduct(Product):
                 return ds.res[0]
         else:
             return resolution
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        TSX+TDX: https://earth.esa.int/eogateway/missions/terrasar-x-and-tandem-x
+        PAZ: https://earth.esa.int/eogateway/missions/paz
+        """
+        self.instrument = self.kwargs.get(CustomFields.INSTRUMENT.value, CUSTOM)
 
     def _set_product_type(self) -> None:
         """Set products type"""
@@ -225,7 +258,7 @@ class CustomProduct(Product):
         Get UTM extent of stack.
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         # Get extent
         return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
@@ -312,7 +345,7 @@ class CustomProduct(Product):
         Returns:
             list: List of existing bands in the products
         """
-        return [name for name, nb in self.band_names.items() if nb]
+        return [name for name, nb in self.bands.items() if nb]
 
     # unused band_name (compatibility reasons)
     # pylint: disable=W0613
@@ -345,7 +378,7 @@ class CustomProduct(Product):
             resolution=resolution,
             size=size,
             resampling=Resampling.bilinear,
-            indexes=[self.band_names[band]],
+            indexes=[self.bands[band].id],
             **kwargs,
         ).astype(np.float32)
 
@@ -526,12 +559,17 @@ class CustomProduct(Product):
 
     def _get_condensed_name(self) -> str:
         """
-        Get products condensed name ({acq_datetime}_{platform}_{product_type}).
+        Get products condensed name ({acq_datetime}_{constellation}_{product_type}).
 
         Returns:
             str: Condensed name
         """
-        return f"{self.get_datetime()}_{self.platform.name}_{self.product_type}"
+        const = (
+            self.constellation
+            if isinstance(self.constellation, str)
+            else self.constellation.name
+        )
+        return f"{self.get_datetime()}_{const}_{self.product_type}"
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
@@ -550,9 +588,9 @@ class CustomProduct(Product):
             if attr == CustomFields.BAND_MAP.value:
                 str_attr = str(
                     {
-                        key.name: val
-                        for key, val in self.band_names.items()
-                        if isinstance(val, int)
+                        key.name: val.id
+                        for key, val in self.bands.items()
+                        if val is not None
                     }
                 )
             elif hasattr(self, attr):
@@ -600,11 +638,11 @@ class CustomProduct(Product):
 
         return od
 
-    def _update_attrs_sensor_specific(
+    def _update_attrs_constellation_specific(
         self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
     ) -> xr.DataArray:
         """
-        Update attributes of the given array (sensor specific)
+        Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
@@ -614,11 +652,11 @@ class CustomProduct(Product):
         """
         return xarr
 
-    def _to_repr_sensor_specific(self) -> list:
+    def _to_repr_constellation_specific(self) -> list:
         """
-        Representation specific to the sensor
+        Representation specific to the constellation
 
         Returns:
-            list: Representation list (sensor specific)
+            list: Representation list (constellation specific)
         """
         return []

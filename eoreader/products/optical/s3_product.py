@@ -24,6 +24,7 @@ Sentinel-3 products
 import io
 import logging
 import re
+import warnings
 import zipfile
 from abc import abstractmethod
 from datetime import datetime
@@ -39,15 +40,17 @@ from lxml import etree
 from lxml.builder import E
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
+from rasterio.errors import NotGeoreferencedWarning
 from sertit import files, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
 from eoreader.bands import BandNames
-from eoreader.bands import OpticalBandNames as obn
+from eoreader.bands import SpectralBandNames as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import OpticalProduct
+from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -99,7 +102,6 @@ class S3Product(OpticalProduct):
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
-        self._instrument = None
         self._data_type = None
         self._gcps = None
 
@@ -131,6 +133,42 @@ class S3Product(OpticalProduct):
 
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
+    def _pre_init(self, **kwargs) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        self.needs_extraction = False
+        self._use_filename = True
+        self.is_ortho = False
+
+        # Post init done by the super class
+        super()._pre_init(**kwargs)
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+        """
+        if self.constellation == Constellation.S3_OLCI:
+            self.instrument = S3Instrument.OLCI
+        elif self.constellation == Constellation.S3_SLSTR:
+            self.instrument = S3Instrument.SLSTR
+        else:
+            raise InvalidProductError(
+                f"Only OLCI and SLSTR are valid Sentinel-3 instruments : {self.name}"
+            )
+
+    def _get_constellation(self) -> Constellation:
+        """ Getter of the constellation """
+        if "OL" in self.name:
+            return Constellation.S3_OLCI
+        elif "SL" in self.name:
+            return Constellation.S3_SLSTR
+        else:
+            raise InvalidProductError(
+                f"Only OLCI and SLSTR are valid Sentinel-3 instruments : {self.name}"
+            )
+
     @abstractmethod
     def _set_preprocess_members(self):
         """ Set pre-process members """
@@ -151,7 +189,7 @@ class S3Product(OpticalProduct):
             0  POLYGON ((1488846.028 6121896.451, 1488846.028...
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         # --- EXTENT IN UTM ---
         extent = gpd.GeoDataFrame(
@@ -283,7 +321,7 @@ class S3Product(OpticalProduct):
             Completed preprocessed member
         """
         substitutions = {
-            "{band}": self.band_names[band] if isinstance(band, obn) else band,
+            "{band}": self.bands[band].id if isinstance(band, BandNames) else band,
             "{suffix}": suffix,
             "{view}": view,
         }
@@ -332,7 +370,7 @@ class S3Product(OpticalProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -367,8 +405,8 @@ class S3Product(OpticalProduct):
             Executing processing graph
             ...11%...21%...31%...42%...52%...62%...73%...83%... done.
             {
-                <OpticalBandNames.GREEN: 'GREEN'>: '20191115T233722_S3_SLSTR_RBT/S1_reflectance.tif',
-                <OpticalBandNames.RED: 'RED'>: '20191115T233722_S3_SLSTR_RBT/S2_reflectance.tif',
+                <SpectralBandNames.GREEN: 'GREEN'>: '20191115T233722_S3_SLSTR_RBT/S1_reflectance.tif',
+                <SpectralBandNames.RED: 'RED'>: '20191115T233722_S3_SLSTR_RBT/S2_reflectance.tif',
             }
 
         Args:
@@ -457,14 +495,14 @@ class S3Product(OpticalProduct):
 
     @abstractmethod
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -473,14 +511,14 @@ class S3Product(OpticalProduct):
         raise NotImplementedError
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -531,7 +569,7 @@ class S3Product(OpticalProduct):
     @abstractmethod
     def _preprocess(
         self,
-        band: Union[obn, str],
+        band: Union[BandNames, str],
         resolution: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
@@ -543,7 +581,7 @@ class S3Product(OpticalProduct):
         - Convert radiance to reflectance
 
         Args:
-            band (Union[obn, str]): Band to preprocess (quality flags or others are accepted)
+            band (Union[BandNames, str]): Band to preprocess (quality flags or others are accepted)
             resolution (float): Resolution
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
@@ -561,7 +599,7 @@ class S3Product(OpticalProduct):
         Returns:
             str: Condensed name
         """
-        return f"{self.get_datetime()}_{self.platform.name}_{self._data_type.name}"
+        return f"{self.get_datetime()}_{self.constellation.name}_{self._data_type.name}"
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
@@ -580,7 +618,7 @@ class S3Product(OpticalProduct):
             (etree._Element, dict): Metadata XML root and its namespace
         """
         # Open first nc file as every file should have the global attributes
-        # Here in read_mtd we don't know which type of product we have (before we have the correct platform)
+        # Here in read_mtd we don't know which type of product we have (before we have the correct constellation)
         # Manage archives
         if self.is_archived:
             if isinstance(self.path, CloudPath):
@@ -655,7 +693,7 @@ class S3Product(OpticalProduct):
         return mtd_el, {}
 
     def _read_nc(
-        self, filename: Union[str, obn], subdataset: str = None, dtype=np.float32
+        self, filename: Union[str, BandNames], subdataset: str = None, dtype=np.float32
     ) -> xr.DataArray:
         """
         Read NetCDF file (as float32) and rescaled them to their true values
@@ -667,7 +705,7 @@ class S3Product(OpticalProduct):
         Caches the file if needed (rasterio does not seem to be able to open a netcdf stored in the cloud).
 
         Args:
-            filename (Union[str, obn]): Filename or band
+            filename (Union[str, BandNames]): Filename or band
             subdataset (str): NetCDF subdataset if needed
 
         Returns:
@@ -676,9 +714,9 @@ class S3Product(OpticalProduct):
         bytes_file = None
         nc_path = None
 
-        # Try to convert to obn if existing
+        # Try to convert to spb if existing
         try:
-            filename = obn.convert_from(filename)[0]
+            filename = spb.convert_from(filename)[0]
         except TypeError:
             pass
 
@@ -710,20 +748,22 @@ class S3Product(OpticalProduct):
 
         # Open the netcdf file as a dataset (from bytes)
         # mask_and_scale=True => offset and scale are automatically applied !
-        if bytes_file:
-            with io.BytesIO(bytes_file) as bf:
-                # We need to load the dataset as we will do some operations and bf will close
-                nc = xr.open_dataset(bf, mask_and_scale=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=NotGeoreferencedWarning)
+            if bytes_file:
+                with io.BytesIO(bytes_file) as bf:
+                    # We need to load the dataset as we will do some operations and bf will close
+                    nc = xr.open_dataset(bf, mask_and_scale=True)
+                    if subdataset:
+                        nc = getattr(nc, subdataset)
+
+                    nc.load()
+            else:
+                # No need to load here
+                nc = xr.open_dataset(nc_path, mask_and_scale=True, engine="h5netcdf")
+
                 if subdataset:
-                    nc = getattr(nc, subdataset)
-
-                nc.load()
-        else:
-            # No need to load here
-            nc = xr.open_dataset(nc_path, mask_and_scale=True, engine="h5netcdf")
-
-            if subdataset:
-                nc = nc[subdataset]
+                    nc = nc[subdataset]
 
         # WARNING: rioxarray doesn't like bytesIO -> open with xarray.h5netcdf engine
         # BUT the xr.DataArray dimensions wont be correctly formatted !
@@ -774,9 +814,9 @@ class S3Product(OpticalProduct):
         raise NotImplementedError
 
     @abstractmethod
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         raise NotImplementedError
 

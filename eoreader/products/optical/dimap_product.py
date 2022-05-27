@@ -21,7 +21,6 @@ for more information.
 """
 import logging
 import time
-from abc import abstractmethod
 from datetime import date, datetime
 from enum import unique
 from pathlib import Path
@@ -38,38 +37,39 @@ from rasterio import crs as riocrs
 from rasterio import features, transform
 from sertit import files, rasters_rio, vectors
 from sertit.misc import ListEnum
+from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
 from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
-from eoreader.bands import OpticalBandNames as obn
+from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import VhrProduct
-from eoreader.reader import Platform
+from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 _DIMAP_BAND_MTD = {
-    obn.PAN: "P",
-    obn.BLUE: "B0",
-    obn.GREEN: "B1",
-    obn.RED: "B2",
-    obn.NIR: "B3",
-    obn.NARROW_NIR: "B3",
+    spb.PAN: "P",
+    spb.BLUE: "B0",
+    spb.GREEN: "B1",
+    spb.RED: "B2",
+    spb.NIR: "B3",
+    spb.NARROW_NIR: "B3",
 }
 
 _PNEO_BAND_MTD = {
-    obn.PAN: "P",
-    obn.BLUE: "B",
-    obn.GREEN: "G",
-    obn.RED: "R",
-    obn.NIR: "NIR",
-    obn.NARROW_NIR: "NIR",
-    obn.VRE_1: "RE",
-    obn.VRE_2: "RE",
-    obn.VRE_3: "RE",
-    obn.CA: "DB",  # deep blue
+    spb.PAN: "P",
+    spb.BLUE: "B",
+    spb.GREEN: "G",
+    spb.RED: "R",
+    spb.NIR: "NIR",
+    spb.NARROW_NIR: "NIR",
+    spb.VRE_1: "RE",
+    spb.VRE_2: "RE",
+    spb.VRE_3: "RE",
+    spb.CA: "DB",  # deep blue
 }
 
 
@@ -235,6 +235,7 @@ class DimapProduct(VhrProduct):
         **kwargs,
     ) -> None:
         self._empty_mask = []
+
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
@@ -267,57 +268,137 @@ class DimapProduct(VhrProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    @abstractmethod
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
-        raise NotImplementedError
+        # Not Pansharpened images
+        if self.band_combi in [
+            DimapBandCombination.MS,
+            DimapBandCombination.MS_X,
+            DimapBandCombination.MS_N,
+            DimapBandCombination.MS_FS,
+        ]:
+            return self._ms_res
+        # Pansharpened images
+        else:
+            return self._pan_res
 
-    def _set_product_type(self) -> None:
-        """Set products type"""
-        # Get MTD XML file
-        prod_type = self.split_name[3]
-        self.product_type = getattr(DimapProductType, prod_type)
+    def _map_bands_core(self, **kwargs) -> None:
+        """
+        Map bands
+        """
+        # Open spectral bands
+        pan = kwargs.get("pan")
+        blue = kwargs.get("blue")
+        green = kwargs.get("green")
+        red = kwargs.get("red")
+        nir = kwargs.get("nir")
+        ca = kwargs.get("ca")
+        vre = kwargs.get("vre")
 
         # Manage bands of the product
         if self.band_combi == DimapBandCombination.P:
-            self.band_names.map_bands({obn.PAN: 1})
-        elif self.band_combi in [DimapBandCombination.MS, DimapBandCombination.PMS]:
-            self.band_names.map_bands(
-                {obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1, obn.NIR: 4, obn.NARROW_NIR: 4}
-            )
-        elif self.band_combi in [
-            DimapBandCombination.MS_N,
-            DimapBandCombination.PMS_N,
-            DimapBandCombination.PMS_FS,
-        ]:
-            self.band_names.map_bands({obn.BLUE: 3, obn.GREEN: 2, obn.RED: 1})
-        elif self.band_combi in [
-            DimapBandCombination.MS_FS,
-            DimapBandCombination.PMS_FS,
-        ]:
-            self.band_names.map_bands(
+            self.bands.map_bands({spb.PAN: pan.update(id=1)})
+        elif self.band_combi == DimapBandCombination.MS:
+            self.bands.map_bands(
                 {
-                    obn.BLUE: 3,
-                    obn.GREEN: 2,
-                    obn.RED: 1,
-                    obn.NIR: 4,
-                    obn.NARROW_NIR: 4,
-                    obn.VRE_1: 5,
-                    obn.VRE_2: 5,
-                    obn.VRE_3: 5,
-                    obn.CA: 6,
+                    spb.BLUE: blue.update(id=3),
+                    spb.GREEN: green.update(id=2),
+                    spb.RED: red.update(id=1),
+                    spb.NARROW_NIR: nir.update(id=4),
+                    spb.NIR: nir.update(id=4),
                 }
             )
-        elif self.band_combi in [DimapBandCombination.MS_X, DimapBandCombination.PMS_X]:
-            self.band_names.map_bands(
-                {obn.GREEN: 1, obn.RED: 2, obn.NIR: 3, obn.NARROW_NIR: 3}
+        elif self.band_combi == DimapBandCombination.PMS:
+            self.bands.map_bands(
+                {
+                    spb.BLUE: blue.update(id=3, gsd=self._pan_res),
+                    spb.GREEN: green.update(id=2, gsd=self._pan_res),
+                    spb.RED: red.update(id=1, gsd=self._pan_res),
+                    spb.NARROW_NIR: nir.update(id=4, gsd=self._pan_res),
+                    spb.NIR: nir.update(id=4, gsd=self._pan_res),
+                }
+            )
+        elif self.band_combi == DimapBandCombination.MS_N:
+            self.bands.map_bands(
+                {
+                    spb.BLUE: blue.update(id=3),
+                    spb.GREEN: green.update(id=2),
+                    spb.RED: red.update(id=1),
+                }
+            )
+        elif self.band_combi == DimapBandCombination.PMS_N:
+            self.bands.map_bands(
+                {
+                    spb.BLUE: blue.update(id=3, gsd=self._pan_res),
+                    spb.GREEN: green.update(id=2, gsd=self._pan_res),
+                    spb.RED: red.update(id=1, gsd=self._pan_res),
+                }
+            )
+        elif self.band_combi == DimapBandCombination.MS_X:
+            self.bands.map_bands(
+                {
+                    spb.GREEN: green.update(id=1),
+                    spb.RED: red.update(id=2),
+                    spb.NIR: nir.update(id=3),
+                    spb.NARROW_NIR: nir.update(id=3),
+                }
+            )
+        elif self.band_combi == DimapBandCombination.PMS_X:
+            self.bands.map_bands(
+                {
+                    spb.GREEN: green.update(id=1, gsd=self._pan_res),
+                    spb.RED: red.update(id=2, gsd=self._pan_res),
+                    spb.NIR: nir.update(id=3, gsd=self._pan_res),
+                    spb.NARROW_NIR: nir.update(id=3, gsd=self._pan_res),
+                }
+            )
+        elif self.band_combi == DimapBandCombination.MS_FS:
+            # Only PLD-Neo
+            self.bands.map_bands(
+                {
+                    spb.BLUE: blue.update(id=3),
+                    spb.GREEN: green.update(id=2),
+                    spb.RED: red.update(id=1),
+                    spb.NIR: nir.update(id=4),
+                    spb.NARROW_NIR: nir.update(id=4),
+                    spb.VRE_1: vre.update(id=5),
+                    spb.VRE_2: vre.update(id=5),
+                    spb.VRE_3: vre.update(id=5),
+                    spb.CA: ca.update(id=6),
+                }
+            )
+        elif self.band_combi == DimapBandCombination.PMS_FS:
+            # Only PLD-Neo
+            self.bands.map_bands(
+                {
+                    spb.BLUE: blue.update(id=3, gsd=self._pan_res),
+                    spb.GREEN: green.update(id=2, gsd=self._pan_res),
+                    spb.RED: red.update(id=1, gsd=self._pan_res),
+                    spb.NIR: nir.update(id=4, gsd=self._pan_res),
+                    spb.NARROW_NIR: nir.update(id=4, gsd=self._pan_res),
+                    spb.VRE_1: vre.update(id=5, gsd=self._pan_res),
+                    spb.VRE_2: vre.update(id=5, gsd=self._pan_res),
+                    spb.VRE_3: vre.update(id=5, gsd=self._pan_res),
+                    spb.CA: ca.update(id=6, gsd=self._pan_res),
+                }
             )
         else:
             raise InvalidProductError(
                 f"Unusual band combination: {self.band_combi.name}"
             )
+
+    def _set_product_type(self) -> None:
+        """Set products type"""
+
+        # get product type
+        prod_type = self.split_name[3]
+        self.product_type = getattr(DimapProductType, prod_type)
+
+        # Manage not orthorectified product
+        if self.product_type in [DimapProductType.SEN, DimapProductType.PRJ]:
+            self.is_ortho = False
 
     def _get_raw_crs(self) -> riocrs.CRS:
         """
@@ -375,23 +456,34 @@ class DimapProduct(VhrProduct):
     @cache
     def extent(self, **kwargs) -> gpd.GeoDataFrame:
         """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1B_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.footprint()
-                                                         gml_id  ...                                           geometry
-            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
-            [1 rows x 3 columns]
+        Get UTM extent of the tile.
 
         Returns:
-            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+            gpd.GeoDataFrame: Extent in UTM
         """
-        # TODO: parse KMZ - product - xxxx ?
-        return super().extent()
+        # Get MTD XML file
+        root, _ = self.read_mtd()
+
+        # Compute extent corners
+        corners = [
+            [float(vertex.findtext("LON")), float(vertex.findtext("LAT"))]
+            for vertex in root.iterfind(".//Dataset_Extent/Vertex")
+        ]
+
+        extent_wgs84 = gpd.GeoDataFrame(
+            geometry=[Polygon(corners)],
+            crs=vectors.WGS84,
+        )
+
+        # Not square extent
+        utm_extent_raw = extent_wgs84.to_crs(self.crs())
+
+        utm_extent = gpd.GeoDataFrame(
+            geometry=[box(*utm_extent_raw.total_bounds)],
+            crs=self.crs(),
+        )
+
+        return utm_extent
 
     @cache
     def footprint(self, **kwargs) -> gpd.GeoDataFrame:
@@ -471,7 +563,7 @@ class DimapProduct(VhrProduct):
 
         return date_str
 
-    def _get_name(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -481,17 +573,14 @@ class DimapProduct(VhrProduct):
         return files.get_filename(self._get_tile_path()).replace("DIM_", "")
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
-        See
-        `here <https://earth.esa.int/eogateway/documents/20142/37627/Planet-combined-imagery-product-specs-2020.pdf>`_
-        (unusable data mask) for more information.
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as a SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -590,14 +679,14 @@ class DimapProduct(VhrProduct):
         return band_arr
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: obn, **kwargs
+        self, band_arr: xr.DataArray, band: BandNames, **kwargs
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (obn): Band name as an OpticalBandNames
+            band (BandNames): Band name as an SpectralBandNames
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -708,7 +797,7 @@ class DimapProduct(VhrProduct):
                         dst,
                         resolution=resolution,
                         size=size,
-                        indexes=[self.band_names[self.get_default_band()]],
+                        indexes=[self.bands[self.get_default_band()].id],
                     )
                 else:
                     def_xarr = utils.read(dst, resolution=resolution, size=size)
@@ -940,7 +1029,7 @@ class DimapProduct(VhrProduct):
         Returns:
             xr.DataArray: TOA Radiance array
         """
-        if self.platform == Platform.PNEO:
+        if self.constellation == Constellation.PNEO:
             band_mtd_str = _PNEO_BAND_MTD[band]
         else:
             band_mtd_str = _DIMAP_BAND_MTD[band]
@@ -985,7 +1074,7 @@ class DimapProduct(VhrProduct):
         Returns:
             xr.DataArray: TOA Reflectance array
         """
-        if self.platform == Platform.PNEO:
+        if self.constellation == Constellation.PNEO:
             band_mtd_str = _PNEO_BAND_MTD[band]
         else:
             band_mtd_str = _DIMAP_BAND_MTD[band]

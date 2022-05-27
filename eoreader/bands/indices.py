@@ -30,9 +30,9 @@ from typing import Callable
 
 import numpy as np
 import xarray as xr
-from sertit import rasters
+from sertit import files, rasters
 
-from eoreader.bands.bands import OpticalBandNames as obn
+from eoreader.bands.spectral_bands import SpectralBandNames as spb
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -95,7 +95,7 @@ def RGI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return bands[obn.RED] / bands[obn.GREEN]
+    return bands[spb.RED] / bands[spb.GREEN]
 
 
 @_idx_fct
@@ -110,7 +110,7 @@ def GRI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return bands[obn.GREEN] / bands[obn.RED]
+    return bands[spb.GREEN] / bands[spb.RED]
 
 
 @_idx_fct
@@ -125,13 +125,13 @@ def NDVI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NARROW_NIR], bands[obn.RED])
+    return _norm_diff(bands[spb.NIR], bands[spb.RED])
 
 
 @_idx_fct
 def SAVI(bands: dict) -> xr.DataArray:
     """
-    `Soil Adjusted Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=87>_` with L=0.5
+    `Soil Adjusted Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=87>`_ with L=0.5
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -143,15 +143,15 @@ def SAVI(bands: dict) -> xr.DataArray:
     coeff = 0.5
     return (
         (1 + coeff)
-        * (bands[obn.NARROW_NIR] - bands[obn.RED])
-        / (bands[obn.NARROW_NIR] + bands[obn.RED] + coeff)
+        * (bands[spb.NIR] - bands[spb.RED])
+        / (bands[spb.NIR] + bands[spb.RED] + coeff)
     )
 
 
 @_idx_fct
 def OSAVI(bands: dict) -> xr.DataArray:
     """
-    `Optimized Soil Adjusted Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=63>_` with L=0.16
+    `Optimized Soil Adjusted Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=63>`_ with L=0.16
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -163,15 +163,15 @@ def OSAVI(bands: dict) -> xr.DataArray:
     coeff = 0.16
     return (
         (1 + coeff)
-        * (bands[obn.NARROW_NIR] - bands[obn.RED])
-        / (bands[obn.NARROW_NIR] + bands[obn.RED] + coeff)
+        * (bands[spb.NIR] - bands[spb.RED])
+        / (bands[spb.NIR] + bands[spb.RED] + coeff)
     )
 
 
 @_idx_fct
 def VARI(bands: dict) -> xr.DataArray:
     """
-    `Visible Atmospherically Resistant Index (Green)<https://www.indexdatabase.de/db/i-single.php?id=356>_`
+    `Visible Atmospherically Resistant Index (Green) <https://www.indexdatabase.de/db/i-single.php?id=356>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -180,15 +180,15 @@ def VARI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return (bands[obn.GREEN] - bands[obn.RED]) / (
-        bands[obn.GREEN] + bands[obn.RED] - bands[obn.BLUE]
+    return (bands[spb.GREEN] - bands[spb.RED]) / (
+        bands[spb.GREEN] + bands[spb.RED] - bands[spb.BLUE]
     )
 
 
 @_idx_fct
 def EVI(bands: dict) -> xr.DataArray:
     """
-    `Enhanced Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=16>_`
+    `Enhanced Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=16>`_
 
     Args:
         bands (dict): Bands as {band_name: xr.DataArray}
@@ -199,8 +199,8 @@ def EVI(bands: dict) -> xr.DataArray:
     """
     return (
         2.5
-        * (bands[obn.NARROW_NIR] - bands[obn.RED])
-        / (bands[obn.NARROW_NIR] + 6 * bands[obn.RED] - 7.5 * bands[obn.BLUE] + 1)
+        * (bands[spb.NIR] - bands[spb.RED])
+        / (bands[spb.NIR] + 6 * bands[spb.RED] - 7.5 * bands[spb.BLUE] + 1)
     )
 
 
@@ -220,12 +220,12 @@ def TCBRI(bands: dict) -> xr.DataArray:
 
     """
     return (
-        0.3037 * bands[obn.BLUE]
-        + 0.2793 * bands[obn.GREEN]
-        + 0.4743 * bands[obn.RED]
-        + 0.5585 * bands[obn.NIR]
-        + 0.5082 * bands[obn.SWIR_1]
-        + 0.1863 * bands[obn.SWIR_2]
+        0.3037 * bands[spb.BLUE]
+        + 0.2793 * bands[spb.GREEN]
+        + 0.4743 * bands[spb.RED]
+        + 0.5585 * bands[spb.NIR]
+        + 0.5082 * bands[spb.SWIR_1]
+        + 0.1863 * bands[spb.SWIR_2]
     )
 
 
@@ -245,12 +245,12 @@ def TCGRE(bands: dict) -> xr.DataArray:
 
     """
     return (
-        -0.2848 * bands[obn.BLUE]
-        - 0.2435 * bands[obn.GREEN]
-        - 0.5436 * bands[obn.RED]
-        + 0.7243 * bands[obn.NIR]
-        + 0.0840 * bands[obn.SWIR_1]
-        - 0.1800 * bands[obn.SWIR_2]
+        -0.2848 * bands[spb.BLUE]
+        - 0.2435 * bands[spb.GREEN]
+        - 0.5436 * bands[spb.RED]
+        + 0.7243 * bands[spb.NIR]
+        + 0.0840 * bands[spb.SWIR_1]
+        - 0.1800 * bands[spb.SWIR_2]
     )
 
 
@@ -270,12 +270,12 @@ def TCWET(bands: dict) -> xr.DataArray:
 
     """
     return (
-        0.1509 * bands[obn.BLUE]
-        + 0.1973 * bands[obn.GREEN]
-        + 0.3279 * bands[obn.RED]
-        + 0.3406 * bands[obn.NIR]
-        - 0.7112 * bands[obn.SWIR_1]
-        - 0.4572 * bands[obn.SWIR_2]
+        0.1509 * bands[spb.BLUE]
+        + 0.1973 * bands[spb.GREEN]
+        + 0.3279 * bands[spb.RED]
+        + 0.3406 * bands[spb.NIR]
+        - 0.7112 * bands[spb.SWIR_1]
+        - 0.4572 * bands[spb.SWIR_2]
     )
 
 
@@ -291,7 +291,7 @@ def NDRE2(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NIR], bands[obn.VRE_1])
+    return _norm_diff(bands[spb.NARROW_NIR], bands[spb.VRE_1])
 
 
 @_idx_fct
@@ -306,7 +306,7 @@ def NDRE3(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NIR], bands[obn.VRE_2])
+    return _norm_diff(bands[spb.NARROW_NIR], bands[spb.VRE_2])
 
 
 @_idx_fct
@@ -321,7 +321,7 @@ def CI1(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return bands[obn.VRE_3] / bands[obn.VRE_2] - 1
+    return bands[spb.VRE_3] / bands[spb.VRE_2] - 1
 
 
 @_idx_fct
@@ -336,7 +336,7 @@ def CI2(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return bands[obn.VRE_2] / bands[obn.VRE_1] - 1
+    return bands[spb.VRE_2] / bands[spb.VRE_1] - 1
 
 
 @_idx_fct
@@ -351,8 +351,8 @@ def GLI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return (2 * bands[obn.GREEN] - bands[obn.RED] - bands[obn.BLUE]) / (
-        2 * bands[obn.GREEN] + bands[obn.RED] + bands[obn.BLUE]
+    return (2 * bands[spb.GREEN] - bands[spb.RED] - bands[spb.BLUE]) / (
+        2 * bands[spb.GREEN] + bands[spb.RED] + bands[spb.BLUE]
     )
 
 
@@ -368,7 +368,7 @@ def GNDVI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NARROW_NIR], bands[obn.GREEN])
+    return _norm_diff(bands[spb.NIR], bands[spb.GREEN])
 
 
 @_idx_fct
@@ -383,7 +383,7 @@ def RI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.VRE_1], bands[obn.GREEN])
+    return _norm_diff(bands[spb.VRE_1], bands[spb.GREEN])
 
 
 @_idx_fct
@@ -400,7 +400,7 @@ def NDGRI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.GREEN], bands[obn.RED])
+    return _norm_diff(bands[spb.GREEN], bands[spb.RED])
 
 
 @_idx_fct
@@ -415,7 +415,7 @@ def CIG(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return (bands[obn.NARROW_NIR] / bands[obn.GREEN]) - 1
+    return (bands[spb.NIR] / bands[spb.GREEN]) - 1
 
 
 @_idx_fct
@@ -430,7 +430,7 @@ def NDMI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NIR], bands[obn.SWIR_1])
+    return _norm_diff(bands[spb.NARROW_NIR], bands[spb.SWIR_1])
 
 
 @_idx_fct
@@ -445,7 +445,7 @@ def NDMI21(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NIR], bands[obn.SWIR_2])
+    return _norm_diff(bands[spb.NARROW_NIR], bands[spb.SWIR_2])
 
 
 @_idx_fct
@@ -460,7 +460,7 @@ def DSWI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return (bands[obn.NIR] + bands[obn.GREEN]) / (bands[obn.SWIR_1] + bands[obn.RED])
+    return (bands[spb.NIR] + bands[spb.GREEN]) / (bands[spb.SWIR_1] + bands[spb.RED])
 
 
 @_idx_fct
@@ -475,7 +475,7 @@ def SRSWIR(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return bands[obn.SWIR_1] / bands[obn.SWIR_2]
+    return bands[spb.SWIR_1] / bands[spb.SWIR_2]
 
 
 @_idx_fct
@@ -490,7 +490,7 @@ def RDI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return bands[obn.SWIR_2] / bands[obn.NIR]
+    return bands[spb.SWIR_2] / bands[spb.NARROW_NIR]
 
 
 @_idx_fct
@@ -510,7 +510,7 @@ def NDWI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.GREEN], bands[obn.NARROW_NIR])
+    return _norm_diff(bands[spb.GREEN], bands[spb.NIR])
 
 
 @_idx_fct
@@ -524,7 +524,7 @@ def BAI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return 1.0 / ((0.1 - bands[obn.RED]) ** 2 + (0.06 - bands[obn.NARROW_NIR]) ** 2)
+    return 1.0 / ((0.1 - bands[spb.RED]) ** 2 + (0.06 - bands[spb.NIR]) ** 2)
 
 
 @_idx_fct
@@ -540,9 +540,9 @@ def BAIS2(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
     """
     # (1-((B06*B07*B8A)/B04)**0.5)*((B12-B8A)/((B12+B8A)**0.5)+1);
-    a = ((bands[obn.VRE_2] * bands[obn.VRE_3] * bands[obn.NIR]) / bands[obn.RED]) ** 0.5
-    b = (bands[obn.SWIR_2] - bands[obn.NIR]) / (
-        (bands[obn.SWIR_2] + bands[obn.NIR]) ** 0.5
+    a = ((bands[spb.VRE_2] * bands[spb.VRE_3] * bands[spb.NIR]) / bands[spb.RED]) ** 0.5
+    b = (bands[spb.SWIR_2] - bands[spb.NIR]) / (
+        (bands[spb.SWIR_2] + bands[spb.NIR]) ** 0.5
     )
     return (1 - a) * (1 + b)
 
@@ -559,7 +559,7 @@ def NBR(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.NIR], bands[obn.SWIR_2])
+    return _norm_diff(bands[spb.NARROW_NIR], bands[spb.SWIR_2])
 
 
 @_idx_fct
@@ -574,7 +574,7 @@ def MNDWI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return _norm_diff(bands[obn.GREEN], bands[obn.SWIR_1])
+    return _norm_diff(bands[spb.GREEN], bands[spb.SWIR_1])
 
 
 @_idx_fct
@@ -589,8 +589,8 @@ def AWEInsh(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
 
     """
-    return 4 * (bands[obn.GREEN] - bands[obn.SWIR_1]) - (
-        0.25 * bands[obn.NIR] + 2.75 * bands[obn.SWIR_2]
+    return 4 * (bands[spb.GREEN] - bands[spb.SWIR_1]) - (
+        0.25 * bands[spb.NIR] + 2.75 * bands[spb.SWIR_2]
     )
 
 
@@ -607,10 +607,10 @@ def AWEIsh(bands: dict) -> xr.DataArray:
 
     """
     return (
-        bands[obn.BLUE]
-        + 2.5 * bands[obn.GREEN]
-        - 1.5 * (bands[obn.NIR] + bands[obn.SWIR_1])
-        - 0.25 * bands[obn.SWIR_2]
+        bands[spb.BLUE]
+        + 2.5 * bands[spb.GREEN]
+        - 1.5 * (bands[spb.NIR] + bands[spb.SWIR_1])
+        - 0.25 * bands[spb.SWIR_2]
     )
 
 
@@ -627,11 +627,11 @@ def WI(bands: dict) -> xr.DataArray:
     """
     return (
         1.7204
-        + 171 * bands[obn.GREEN]
-        + 3 * bands[obn.RED]
-        - 70 * bands[obn.NIR]
-        - 45 * bands[obn.SWIR_1]
-        - 71 * bands[obn.SWIR_2]
+        + 171 * bands[spb.GREEN]
+        + 3 * bands[spb.RED]
+        - 70 * bands[spb.NIR]
+        - 45 * bands[spb.SWIR_1]
+        - 71 * bands[spb.SWIR_2]
     )
 
 
@@ -646,7 +646,7 @@ def AFRI_1_6(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return _norm_diff(bands[obn.NIR], 0.66 * bands[obn.SWIR_1])
+    return _norm_diff(bands[spb.NARROW_NIR], 0.66 * bands[spb.SWIR_1])
 
 
 @_idx_fct
@@ -664,7 +664,7 @@ def AFRI_2_1(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return _norm_diff(bands[obn.NIR], 0.5 * bands[obn.SWIR_2])
+    return _norm_diff(bands[spb.NARROW_NIR], 0.5 * bands[spb.SWIR_2])
 
 
 @_idx_fct
@@ -683,7 +683,7 @@ def BSI(bands: dict) -> xr.DataArray:
         xr.DataArray: Computed index
     """
     return _norm_diff(
-        bands[obn.RED] + bands[obn.SWIR_1], bands[obn.NIR] + bands[obn.BLUE]
+        bands[spb.RED] + bands[spb.SWIR_1], bands[spb.NIR] + bands[spb.BLUE]
     )
 
 
@@ -706,7 +706,7 @@ def WV_WI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return _norm_diff(bands[obn.WV], bands[obn.CA])
+    return _norm_diff(bands[spb.WV], bands[spb.CA])
 
 
 @_idx_fct
@@ -724,7 +724,7 @@ def WV_VI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return _norm_diff(bands[obn.WV], bands[obn.RED])
+    return _norm_diff(bands[spb.WV], bands[spb.RED])
 
 
 @_idx_fct
@@ -742,7 +742,7 @@ def WV_SI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return _norm_diff(bands[obn.YELLOW], bands[obn.GREEN])
+    return _norm_diff(bands[spb.YELLOW], bands[spb.GREEN])
 
 
 @_idx_fct
@@ -760,7 +760,7 @@ def WV_BI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return _norm_diff(bands[obn.VRE_1], bands[obn.CA])
+    return _norm_diff(bands[spb.VRE_1], bands[spb.CA])
 
 
 @_idx_fct
@@ -778,9 +778,9 @@ def SI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    green = np.nanpercentile(bands[obn.GREEN], 99) - bands[obn.GREEN]
+    green = np.nanpercentile(bands[spb.GREEN], 99) - bands[spb.GREEN]
     green = np.where(green < 0, 0, green)
-    red = np.nanpercentile(bands[obn.RED], 99) - bands[obn.RED]
+    red = np.nanpercentile(bands[spb.RED], 99) - bands[spb.RED]
     red = np.where(red < 0, 0, red)
     return np.sqrt(green * red)
 
@@ -798,7 +798,7 @@ def GVMI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return _norm_diff(bands[obn.NIR] + 0.1, bands[obn.SWIR_2] + 0.02)
+    return _norm_diff(bands[spb.NARROW_NIR] + 0.1, bands[spb.SWIR_2] + 0.02)
 
 
 @_idx_fct
@@ -818,7 +818,7 @@ def SBI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return np.sqrt(bands[obn.RED] ** 2 + bands[obn.NARROW_NIR] ** 2)
+    return np.sqrt(bands[spb.RED] ** 2 + bands[spb.NIR] ** 2)
 
 
 @_idx_fct
@@ -837,7 +837,7 @@ def SCI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return 3 * bands[obn.GREEN] - bands[obn.RED] - 100
+    return 3 * bands[spb.GREEN] - bands[spb.RED] - 100
 
 
 @_idx_fct
@@ -853,7 +853,7 @@ def PANI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return np.sqrt(bands[obn.RED] ** 2 + bands[obn.GREEN] ** 2 + bands[obn.BLUE] ** 2)
+    return np.sqrt(bands[spb.RED] ** 2 + bands[spb.GREEN] ** 2 + bands[spb.BLUE] ** 2)
 
 
 def get_all_index_names() -> list:
@@ -905,7 +905,7 @@ def get_needed_bands(index: Callable) -> list:
     .. code-block:: python
 
         >>> index.get_needed_bands(NDVI)
-        [<OpticalBandNames.NIR: 'NIR'>, <OpticalBandNames.RED: 'RED'>]
+        [<SpectralBandNames.NIR: 'NIR'>, <SpectralBandNames.RED: 'RED'>]
 
     Returns:
         list: Needed bands for the index function
@@ -914,9 +914,9 @@ def get_needed_bands(index: Callable) -> list:
     code = inspect.getsource(index)
 
     # Parse band's signature
-    b_regex = r"obn\.\w+"
+    b_regex = r"spb\.\w+"
 
-    return [getattr(obn, b.split(".")[-1]) for b in re.findall(b_regex, code)]
+    return [getattr(spb, b.split(".")[-1]) for b in re.findall(b_regex, code)]
 
 
 def get_all_needed_bands() -> dict:
@@ -927,9 +927,9 @@ def get_all_needed_bands() -> dict:
 
         >>> index.get_all_needed_bands()
         {
-            <function AFRI_1_6 at 0x00000261F6FF36A8>: [<OpticalBandNames.NIR: 'NIR'>, <OpticalBandNames.SWIR_2: 'SWIR_2'>],
+            <function AFRI_1_6 at 0x00000261F6FF36A8>: [<SpectralBandNames.NIR: 'NIR'>, <SpectralBandNames.SWIR_2: 'SWIR_2'>],
             ...
-            <function WI at 0x00000261F6FF3620>: [<OpticalBandNames.NIR: 'NIR'>, <OpticalBandNames.SWIR_1: 'SWIR_1'>]
+            <function WI at 0x00000261F6FF3620>: [<SpectralBandNames.NIR: 'NIR'>, <SpectralBandNames.SWIR_1: 'SWIR_1'>]
         }
 
         >>> # Or written in a more readable fashion:
@@ -955,6 +955,41 @@ def get_all_needed_bands() -> dict:
             needed_bands[function] = get_needed_bands(function)
 
     return needed_bands
+
+
+def is_index(idx) -> bool:
+    """
+    Returns True if is an index function from the :code:`bands.index` module
+
+    .. code-block:: python
+
+        >>> from eoreader.bands import *
+        >>> is_index(NDVI)
+        True
+        >>> is_index(HH)
+        False
+        >>> is_index(GREEN)
+        False
+        >>> is_index(SLOPE)
+        False
+        >>> is_index(CLOUDS)
+        False
+
+    Args:
+        idx (Any): Anything that could be an index
+
+    Returns:
+        bool: True if the index asked is an index function (such as :code:`index.NDVI`)
+
+    """
+    if isinstance(idx, str):
+        is_idx = idx in get_all_index_names()
+    else:
+        is_idx = (
+            files.get_filename(__file__) in idx.__module__
+            and idx.__name__ in get_all_index_names()
+        )
+    return is_idx
 
 
 NEEDED_BANDS = get_all_needed_bands()

@@ -48,13 +48,24 @@ from sertit.misc import ListEnum
 from sertit.snap import MAX_CORES
 
 from eoreader import cache, utils
-from eoreader.bands import *
-from eoreader.bands import index
-from eoreader.bands.bands import BandNames
+from eoreader.bands import (
+    DEM,
+    HILLSHADE,
+    SLOPE,
+    BandNames,
+    indices,
+    is_clouds,
+    is_dem,
+    is_index,
+    is_sat_band,
+    to_band,
+    to_str,
+)
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
-from eoreader.reader import Platform, Reader
+from eoreader.reader import Constellation, Reader
+from eoreader.stac import StacItem
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -107,6 +118,7 @@ class Product:
         self.filename = files.get_filename(self.path)
         """Product filename"""
 
+        self._use_filename = False
         self.name = None
         """Product true name (as specified in the metadata)"""
 
@@ -144,7 +156,10 @@ class Product:
         self.product_type = None
         """Product type, satellite-related field, such as L1C or L2A for Sentinel-2 data."""
 
-        self.band_names = None
+        self.instrument = None
+        """Product instrument, such as MSI for Sentinel-2 data."""
+
+        self.bands = None
         """
         Band mapping between band wrapping names such as
         :code:`GREEN` and band real number such as :code:`03` for Sentinel-2.
@@ -166,8 +181,8 @@ class Product:
         self._mask_false = 0
         self._mask_nodata = 255
 
-        self.platform = None
-        """Product platform, such as Sentinel-2"""
+        self.constellation = kwargs.get("constellation")
+        """Product constellation, such as Sentinel-2"""
 
         # Set the resolution, needs to be done when knowing the product type
         self.resolution = None
@@ -183,8 +198,13 @@ class Product:
         Used to shorten names and paths.
         """
 
-        self.sat_id = None
-        """Satellite ID, i.e. :code:`S2` for :code:`Sentinel-2`"""
+        self.constellation_id = None
+        """Constellation ID, i.e. :code:`S2` for :code:`Sentinel-2`"""
+
+        self.is_ortho = True
+        """True if the images are orthorectified and the footprint is retrieved easily."""
+
+        self._stac = None
 
         # Manage output
         if output_path:
@@ -209,9 +229,15 @@ class Product:
             self.datetime = self.get_datetime(as_datetime=True)
             self.date = self.get_date(as_date=True)
 
-            # Platform and satellite ID
-            self.platform = self._get_platform()
-            self.sat_id = self.platform.name
+            # Constellation and satellite ID
+            if not self.constellation:
+                self.constellation = self._get_constellation()
+            self.constellation_id = (
+                self.constellation
+                if isinstance(self.constellation, str)
+                else self.constellation.name
+            )
+            self._set_instrument()
 
             # Post initialization
             self._post_init(**kwargs)
@@ -220,7 +246,9 @@ class Product:
             self._set_product_type()
 
             # Set the resolution, needs to be done when knowing the product type
-            self.resolution = self._set_resolution()
+            self.resolution = self._get_resolution()
+
+            self._map_bands()
 
             # Condensed name
             self.condensed_name = self._get_condensed_name()
@@ -291,7 +319,7 @@ class Product:
             0  POLYGON ((309780.000 4390200.000, 309780.000 4...
 
         Returns:
-            gpd.GeoDataFrame: Footprint in UTM
+            gpd.GeoDataFrame: Extent in UTM
         """
         raise NotImplementedError
 
@@ -311,6 +339,13 @@ class Product:
 
         Returns:
             crs.CRS: CRS object
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _map_bands(self):
+        """
+        Map bands
         """
         raise NotImplementedError
 
@@ -335,9 +370,9 @@ class Product:
         return band_folder
 
     @abstractmethod
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         """
         raise NotImplementedError
 
@@ -348,14 +383,39 @@ class Product:
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def _set_instrument(self) -> None:
+        """
+        Set product type
+        """
+        raise NotImplementedError
+
     @classmethod
-    def _get_platform(cls) -> Platform:
+    def _get_constellation(cls) -> Constellation:
         class_module = cls.__module__.split(".")[-1]
-        sat_id = class_module.replace("_product", "").upper()
-        return getattr(Platform, sat_id)
+        constellation_id = class_module.replace("_product", "").upper()
+        return getattr(Constellation, constellation_id)
+
+    def _get_name(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        if (
+            self._use_filename
+            and self.constellation
+            and Reader().valid_name(self.path, self.constellation)
+        ):
+            name = self.filename
+        else:
+            name = self._get_name_constellation_specific()
+
+        return name
 
     @abstractmethod
-    def _get_name(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 
@@ -468,7 +528,7 @@ class Product:
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> prod.get_default_band()
-            <OpticalBandNames.GREEN: 'GREEN'>
+            <SpectralBandNames.GREEN: 'GREEN'>
 
 
         Returns:
@@ -487,19 +547,19 @@ class Product:
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> prod.get_existing_bands()
-            [<OpticalBandNames.CA: 'COASTAL_AEROSOL'>,
-            <OpticalBandNames.BLUE: 'BLUE'>,
-            <OpticalBandNames.GREEN: 'GREEN'>,
-            <OpticalBandNames.RED: 'RED'>,
-            <OpticalBandNames.VRE_1: 'VEGETATION_RED_EDGE_1'>,
-            <OpticalBandNames.VRE_2: 'VEGETATION_RED_EDGE_2'>,
-            <OpticalBandNames.VRE_3: 'VEGETATION_RED_EDGE_3'>,
-            <OpticalBandNames.NIR: 'NIR'>,
-            <OpticalBandNames.NNIR: 'NARROW_NIR'>,
-            <OpticalBandNames.WV: 'WATER_VAPOUR'>,
-            <OpticalBandNames.CIRRUS: 'CIRRUS'>,
-            <OpticalBandNames.SWIR_1: 'SWIR_1'>,
-            <OpticalBandNames.SWIR_2: 'SWIR_2'>]
+            [<SpectralBandNames.CA: 'COASTAL_AEROSOL'>,
+            <SpectralBandNames.BLUE: 'BLUE'>,
+            <SpectralBandNames.GREEN: 'GREEN'>,
+            <SpectralBandNames.RED: 'RED'>,
+            <SpectralBandNames.VRE_1: 'VEGETATION_RED_EDGE_1'>,
+            <SpectralBandNames.VRE_2: 'VEGETATION_RED_EDGE_2'>,
+            <SpectralBandNames.VRE_3: 'VEGETATION_RED_EDGE_3'>,
+            <SpectralBandNames.NIR: 'NIR'>,
+            <SpectralBandNames.NNIR: 'NARROW_NIR'>,
+            <SpectralBandNames.WV: 'WATER_VAPOUR'>,
+            <SpectralBandNames.CIRRUS: 'CIRRUS'>,
+            <SpectralBandNames.SWIR_1: 'SWIR_1'>,
+            <SpectralBandNames.SWIR_2: 'SWIR_2'>]
 
         Returns:
             list: List of existing bands in the products
@@ -509,7 +569,7 @@ class Product:
     @abstractmethod
     def get_existing_band_paths(self) -> dict:
         """
-        Return the existing band paths.
+        Return the existing band paths (orthorectified if needed).
 
         .. code-block:: python
 
@@ -518,15 +578,27 @@ class Product:
             >>> prod = Reader().open(path)
             >>> prod.get_existing_band_paths()
             {
-                <OpticalBandNames.CA: 'COASTAL_AEROSOL'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2',
+                <SpectralBandNames.CA: 'COASTAL_AEROSOL'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B01.jp2',
                 ...,
-                <OpticalBandNames.SWIR_2: 'SWIR_2'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2'
+                <SpectralBandNames.SWIR_2: 'SWIR_2'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B12.jp2'
             }
 
         Returns:
             dict: Dictionary containing the path of each queried band
         """
         raise NotImplementedError
+
+    def get_raw_band_paths(self, **kwargs) -> dict:
+        """
+        Return the raw band paths.
+
+        Args:
+            kwargs: Additional arguments
+
+        Returns:
+            dict: Dictionary containing the path of each queried band
+        """
+        return self.get_existing_band_paths()
 
     @abstractmethod
     def get_band_paths(
@@ -543,8 +615,8 @@ class Product:
             >>> prod = Reader().open(path)
             >>> prod.get_band_paths([GREEN, RED])
             {
-                <OpticalBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
-                <OpticalBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
+                <SpectralBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
+                <SpectralBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
             }
 
         Args:
@@ -581,34 +653,37 @@ class Product:
             (etree._Element, dict): Metadata XML root and its namespaces
 
         """
-        if self.is_archived:
-            root = files.read_archived_xml(self.path, f".*{mtd_archived}")
-        else:
-            try:
+        try:
+            if self.is_archived:
+                root = files.read_archived_xml(self.path, f".*{mtd_archived}")
+            else:
                 try:
-                    mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
-                except ValueError:
-                    mtd_file = next(self.path.glob(f"*{mtd_from_path}"))
-
-                if isinstance(mtd_file, CloudPath):
                     try:
-                        # Try using read_text (faster)
-                        root = etree.fromstring(mtd_file.read_text())
+                        mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
                     except ValueError:
-                        # Try using read_bytes
-                        # Slower but works with:
-                        # {ValueError}Unicode strings with encoding declaration are not supported.
-                        # Please use bytes input or XML fragments without declaration.
-                        root = etree.fromstring(mtd_file.read_bytes())
-                else:
-                    # pylint: disable=I1101:
-                    # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                    xml_tree = etree.parse(str(mtd_file))
-                    root = xml_tree.getroot()
-            except StopIteration as ex:
-                raise InvalidProductError(
-                    f"Metadata file ({mtd_from_path}) not found in {self.path}"
-                ) from ex
+                        mtd_file = next(self.path.glob(f"*{mtd_from_path}"))
+
+                    if isinstance(mtd_file, CloudPath):
+                        try:
+                            # Try using read_text (faster)
+                            root = etree.fromstring(mtd_file.read_text())
+                        except ValueError:
+                            # Try using read_bytes
+                            # Slower but works with:
+                            # {ValueError}Unicode strings with encoding declaration are not supported.
+                            # Please use bytes input or XML fragments without declaration.
+                            root = etree.fromstring(mtd_file.read_bytes())
+                    else:
+                        # pylint: disable=I1101:
+                        # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
+                        xml_tree = etree.parse(str(mtd_file))
+                        root = xml_tree.getroot()
+                except StopIteration as ex:
+                    raise InvalidProductError(
+                        f"Metadata file ({mtd_from_path}) not found in {self.path}"
+                    ) from ex
+        except etree.XMLSyntaxError:
+            raise InvalidProductError(f"Invalid metadata XML for {self.path}!")
 
         # Get namespaces map (only useful ones)
         nsmap = {key: f"{{{ns}}}" for key, ns in root.nsmap.items()}
@@ -787,8 +862,13 @@ class Product:
         """
         Open the bands and compute the wanted index.
 
-        The bands will be purged of nodata and invalid pixels,
-        the nodata will be set to 0 and the bands will be masked arrays in float.
+        - For Optical data:
+            The bands will be purged of nodata and invalid pixels (if specified with the CLEAN_OPTICAL keyword),
+            the nodata will be set to -9999 and the bands will be DataArrays in float32.
+
+        - For SAR data:
+            The bands will be purged of nodata (not over the sea),
+            the nodata will be set to 0 to respect SNAP's behavior and the bands will be DataArray in float32.
 
         Bands that come out this function at the same time are collocated and therefore have the same shapes.
         This can be broken if you load data separately. Its is best to always load DEM data with some real bands.
@@ -800,47 +880,6 @@ class Product:
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> bands = prod.load([GREEN, NDVI], resolution=20)
-            >>> bands
-            {
-                <function NDVI at 0x000001EFFFF5DD08>: <xarray.DataArray 'NDVI' (band: 1, y: 5490, x: 5490)>
-                array([[[0.949506  , 0.92181516, 0.9279379 , ..., 1.8002278 ,
-                         1.5424857 , 1.6747767 ],
-                        [0.95369846, 0.91685396, 0.8957871 , ..., 1.5847116 ,
-                         1.5248713 , 1.5011379 ],
-                        [2.9928885 , 1.3031474 , 1.0076253 , ..., 1.5969834 ,
-                         1.5590671 , 1.5018653 ],
-                        ...,
-                        [1.4245619 , 1.6115025 , 1.6201663 , ..., 1.2387121 ,
-                         1.4025431 , 1.800678  ],
-                        [1.5627214 , 1.822388  , 1.7245892 , ..., 1.1694248 ,
-                         1.2573677 , 1.5767351 ],
-                        [1.653781  , 1.6424649 , 1.5923225 , ..., 1.3072611 ,
-                         1.2181134 , 1.2478763 ]]], dtype=float32)
-                Coordinates:
-                  * band         (band) int32 1
-                  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-                  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-                    spatial_ref  int32 0,
-                <OpticalBandNames.GREEN: 'GREEN'>: <xarray.DataArray (band: 1, y: 5490, x: 5490)>
-                array([[[0.0615  , 0.061625, 0.061   , ..., 0.12085 , 0.120225,
-                         0.113575],
-                        [0.061075, 0.06045 , 0.06025 , ..., 0.114625, 0.119625,
-                         0.117625],
-                        [0.06475 , 0.06145 , 0.060925, ..., 0.111475, 0.114925,
-                         0.115175],
-                        ...,
-                        [0.1516  , 0.14195 , 0.1391  , ..., 0.159975, 0.14145 ,
-                         0.127075],
-                        [0.140325, 0.125975, 0.131875, ..., 0.18245 , 0.1565  ,
-                         0.13015 ],
-                        [0.133475, 0.1341  , 0.13345 , ..., 0.15565 , 0.170675,
-                         0.16405 ]]], dtype=float32)
-                Coordinates:
-                  * band         (band) int32 1
-                  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-                  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-                    spatial_ref  int32 0
-            }
 
         Args:
             bands (Union[list, BandNames, Callable]): Band list
@@ -881,7 +920,7 @@ class Product:
 
         # Rename all bands and add attributes
         for key, val in band_dict.items():
-            band_dict[key] = self._update_attrs(val, to_str(key)[0], **kwargs)
+            band_dict[key] = self._update_attrs(val, key, **kwargs)
 
         return band_dict
 
@@ -1014,7 +1053,7 @@ class Product:
         Returns:
             bool: True if the specified index can be computed with this product's bands
         """
-        index_bands = index.get_needed_bands(idx)
+        index_bands = indices.get_needed_bands(idx)
         return all(np.isin(index_bands, self.get_existing_bands()))
 
     def __gt__(self, other: Product) -> bool:
@@ -1127,6 +1166,13 @@ class Product:
 
         self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
         os.makedirs(self._tmp_process, exist_ok=True)
+
+    @property
+    def stac(self) -> StacItem:
+        if not self._stac:
+            self._stac = StacItem(self)
+
+        return self._stac
 
     def _warp_dem(
         self,
@@ -1367,55 +1413,6 @@ class Product:
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
             >>> stack = prod.stack([NDVI, MNDWI, GREEN], resolution=20)  # In meters
-            >>> stack
-            <xarray.DataArray 'NDVI_MNDWI_GREEN' (z: 3, y: 5490, x: 5490)>
-            array([[[ 0.949506  ,  0.92181516,  0.9279379 , ...,  1.8002278 ,
-                      1.5424857 ,  1.6747767 ],
-                    [ 0.95369846,  0.91685396,  0.8957871 , ...,  1.5847116 ,
-                      1.5248713 ,  1.5011379 ],
-                    [ 2.9928885 ,  1.3031474 ,  1.0076253 , ...,  1.5969834 ,
-                      1.5590671 ,  1.5018653 ],
-                    ...,
-                    [ 1.4245619 ,  1.6115025 ,  1.6201663 , ...,  1.2387121 ,
-                      1.4025431 ,  1.800678  ],
-                    [ 1.5627214 ,  1.822388  ,  1.7245892 , ...,  1.1694248 ,
-                      1.2573677 ,  1.5767351 ],
-                    [ 1.653781  ,  1.6424649 ,  1.5923225 , ...,  1.3072611 ,
-                      1.2181134 ,  1.2478763 ]],
-                   [[ 0.27066118,  0.23466069,  0.18792598, ..., -0.4611526 ,
-                     -0.49751845, -0.4865216 ],
-                    [ 0.22425456,  0.28004232,  0.27851456, ..., -0.5032771 ,
-                     -0.501796  , -0.502669  ],
-                    [-0.07466951,  0.06360884,  0.1207174 , ..., -0.50617427,
-                     -0.50219285, -0.5034222 ],
-                    [-0.47076276, -0.4705828 , -0.4747971 , ..., -0.32138503,
-                     -0.36619243, -0.37428448],
-                    [-0.4826967 , -0.5032287 , -0.48544118, ..., -0.278925  ,
-                     -0.31404778, -0.36052078],
-                    [-0.488381  , -0.48253912, -0.4697526 , ..., -0.38105175,
-                     -0.30813277, -0.27739233]],
-                   [[ 0.0615    ,  0.061625  ,  0.061     , ...,  0.12085   ,
-                      0.120225  ,  0.113575  ],
-                    [ 0.061075  ,  0.06045   ,  0.06025   , ...,  0.114625  ,
-                      0.119625  ,  0.117625  ],
-                    [ 0.06475   ,  0.06145   ,  0.060925  , ...,  0.111475  ,
-                      0.114925  ,  0.115175  ],
-                    ...,
-                    [ 0.1516    ,  0.14195   ,  0.1391    , ...,  0.159975  ,
-                      0.14145   ,  0.127075  ],
-                    [ 0.140325  ,  0.125975  ,  0.131875  , ...,  0.18245   ,
-                      0.1565    ,  0.13015   ],
-                    [ 0.133475  ,  0.1341    ,  0.13345   , ...,  0.15565   ,
-                      0.170675  ,  0.16405   ]]], dtype=float32)
-            Coordinates:
-              * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-              * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-                spatial_ref  int32 0
-              * z            (z) MultiIndex
-              - variable     (z) object 'NDVI' 'MNDWI' 'GREEN'
-              - band         (z) int64 1 1 1
-            -Attributes:
-                long_name:  ['NDVI', 'MNDWI', 'GREEN']
 
         Args:
             bands (list): Bands and index combination
@@ -1487,7 +1484,7 @@ class Product:
                 )  # NaN values are already set
 
         # Update stack's attributes
-        stack = self._update_attrs(stack, to_str(bands), **kwargs)
+        stack = self._update_attrs(stack, bands, **kwargs)
 
         # Write on disk
         if stack_path:
@@ -1503,43 +1500,49 @@ class Product:
         return stack
 
     @abstractmethod
-    def _update_attrs_sensor_specific(
-        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+    def _update_attrs_constellation_specific(
+        self, xarr: xr.DataArray, bands: list, **kwargs
     ) -> xr.DataArray:
         """
-        Update attributes of the given array (sensor specific)
+        Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
-            long_name (str): Array name (as a str or a list)
+            bands (list): Array name (as a str or a list)
         """
         raise NotImplementedError
 
-    def _update_attrs(
-        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
-    ) -> xr.DataArray:
+    def _update_attrs(self, xarr: xr.DataArray, bands: list, **kwargs) -> xr.DataArray:
         """
         Update attributes of the given array
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
-            long_name (str): Array name (as a str or a list)
+            bands (list): Bands
         Returns:
             xr.DataArray: Updated array
         """
-        if isinstance(long_name, list):
-            xr_name = "_".join(long_name)
-            attr_name = " ".join(long_name)
-        else:
-            xr_name = long_name
-            attr_name = long_name
+        if not isinstance(bands, list):
+            bands = [bands]
+        long_name = to_str(bands)
+        xr_name = "_".join(long_name)
+        attr_name = " ".join(long_name)
 
         renamed_xarr = xarr.rename(xr_name)
         renamed_xarr.attrs["long_name"] = attr_name
-        renamed_xarr.attrs["sensor"] = self.platform.value
-        renamed_xarr.attrs["sensor_id"] = self.sat_id
+        renamed_xarr.attrs["constellation"] = (
+            self.constellation
+            if isinstance(self.constellation, str)
+            else self.constellation.value
+        )
+        renamed_xarr.attrs["constellation_id"] = self.constellation_id
         renamed_xarr.attrs["product_path"] = str(self.path)  # Convert to string
         renamed_xarr.attrs["product_name"] = self.name
         renamed_xarr.attrs["product_filename"] = self.filename
+        renamed_xarr.attrs["instrument"] = (
+            self.instrument
+            if isinstance(self.instrument, str)
+            else self.instrument.value
+        )
         renamed_xarr.attrs["product_type"] = (
             self.product_type
             if isinstance(self.product_type, str)
@@ -1551,8 +1554,8 @@ class Product:
         renamed_xarr.attrs["orbit_direction"] = od.value if od is not None else str(od)
 
         # kwargs attrs
-        renamed_xarr = self._update_attrs_sensor_specific(
-            renamed_xarr, long_name, **kwargs
+        renamed_xarr = self._update_attrs_constellation_specific(
+            renamed_xarr, bands, **kwargs
         )
 
         return renamed_xarr
@@ -1715,18 +1718,17 @@ class Product:
         """
         band_repr = "\n".join(
             [
-                f"\t\t{band.value}: {nb}"
-                for band, nb in self.band_names.items()
-                if nb is not None
+                f"\t\t{band.value}: {val.id}"
+                for band, val in self.bands.items()
+                if val is not None
             ]
         )
         repr = [
-            f"EOReader {self.__class__.__name__}",
+            f"eoreader.{self.__class__.__name__} '{self.name}'",
             "Attributes:",
             f"\tcondensed_name: {self.condensed_name}",
-            f"\tname: {self.name}",
             f"\tpath: {self.path}",
-            f"\tplatform: {self.platform if isinstance(self.platform, str) else self.platform.value}",
+            f"\tconstellation: {self.constellation if isinstance(self.constellation, str) else self.constellation.value}",
             f"\tsensor type: {self.sensor_type if isinstance(self.sensor_type, str) else self.sensor_type.value}",
             f"\tproduct type: {self.product_type if isinstance(self.product_type, str) else self.product_type.value}",
             f"\tdefault resolution: {self.resolution}",
@@ -1735,15 +1737,15 @@ class Product:
             f"\tneeds extraction: {self.needs_extraction}",
         ]
 
-        return repr + self._to_repr_sensor_specific()
+        return repr + self._to_repr_constellation_specific()
 
     @abstractmethod
-    def _to_repr_sensor_specific(self) -> list:
+    def _to_repr_constellation_specific(self) -> list:
         """
-        Representation specific to the sensor
+        Representation specific to the constellation
 
         Returns:
-            list: Representation list (sensor specific)
+            list: Representation list (constellation specific)
         """
         raise NotImplementedError
 
@@ -1757,7 +1759,7 @@ class Product:
         Returns:
             str: Quicklook path
         """
-        LOGGER.warning(f"No quicklook available for {self.platform.value} data!")
+        LOGGER.warning(f"No quicklook available for {self.constellation.value} data!")
         return None
 
     def plot(self) -> None:

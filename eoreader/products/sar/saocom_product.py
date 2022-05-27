@@ -19,19 +19,18 @@ TerraSAR-X & TanDEM-X & PAZ products.
 More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
 """
 import logging
-import warnings
 from datetime import datetime
 from enum import unique
 from typing import Union
 
 import geopandas as gpd
-import rasterio
 from lxml import etree
 from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
 from eoreader import cache
+from eoreader.bands import SarBandNames
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
@@ -39,9 +38,6 @@ from eoreader.products.sar.sar_product import _ExtendedFormatter
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-
-# Disable georef warnings here as the SAR products are not georeferenced
-warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
 
 
 @unique
@@ -128,9 +124,9 @@ class SaocomPolarization(ListEnum):
 class SaocomProduct(SarProduct):
     """Class for SAOCOM-1 Products"""
 
-    def _set_resolution(self) -> float:
+    def _get_resolution(self) -> float:
         """
-        Set product default resolution (in meters)
+        Get product default resolution (in meters)
         See here
         <here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
         for more information (Beam Modes)
@@ -164,6 +160,14 @@ class SaocomProduct(SarProduct):
                 def_res = 50.0
 
         return def_res
+
+    def _set_instrument(self) -> None:
+        """
+        Set instrument
+
+        SAOCOM: https://earth.esa.int/eogateway/missions/saocom
+        """
+        self.instrument = "SAR L-band"
 
     def _pre_init(self, **kwargs) -> None:
         """
@@ -262,9 +266,12 @@ class SaocomProduct(SarProduct):
             self.get_default_band_path()
         )  # Processed by SNAP: the nodata is set
 
-    def _get_raw_band_paths(self) -> dict:
+    def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing band paths (as they come with the archived products).
+
+        Args:
+            **kwargs: Additional arguments
 
         Returns:
             dict: Dictionary containing the path of every band existing in the raw products
@@ -272,8 +279,8 @@ class SaocomProduct(SarProduct):
         extended_fmt = _ExtendedFormatter()
         cuss_file = next(self.path.glob("*.zip"))
         band_paths = {}
-        for band, band_name in self.band_names.items():
-            band_regex = extended_fmt.format(self._raw_band_regex, band_name)
+        for band in SarBandNames.speckle_list():
+            band_regex = extended_fmt.format(self._raw_band_regex, band.value)
 
             try:
                 # Get as a list but keep only the first item (SLC with multiple swaths)
@@ -318,7 +325,7 @@ class SaocomProduct(SarProduct):
             LOGGER.warning(
                 "DI (Detected Image) product type has never been tested for %s data. "
                 "Use it at your own risks !",
-                self.platform.value,
+                self.constellation.value,
             )
 
     def _set_sensor_mode(self) -> None:
@@ -380,7 +387,7 @@ class SaocomProduct(SarProduct):
 
         return date
 
-    def _get_name(self) -> str:
+    def _get_name_constellation_specific(self) -> str:
         """
         Set product real name from metadata
 

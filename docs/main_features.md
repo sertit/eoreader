@@ -73,81 +73,25 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 >>> import os
 >>> from eoreader.env_vars import DEM_PATH
 
->>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip"
+>>> path = r"S2B_MSIL1C_20210517T103619_N7990_R008_T30QVE_20210929T075738.SAFE"
 >>> output = os.path.abspath("./output")
->>>  # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
->>>  # and you won't be able to retrieve what's has been written on disk
+>>> # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
+>>> # and you won't be able to retrieve what's has been written on disk
 >>> prod = Reader().open(path, output_path=output)
 
->>>  # Specify a DEM to load DEM bands
+>>> # Specify a DEM to load DEM bands
 >>> os.environ[DEM_PATH] = r"my_dem.tif"
 
 >>> # Get the wanted bands and check if the product can produce them
 >>> band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
->>> ok_bands = [band for band in band_list if prod.has_band(band)]
+>>> ok_bands = to_str([band for band in band_list if prod.has_band(band)])
 [GREEN, NDVI, HILLSHADE]
->>> # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
+>>>  # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
 
->>> # Load bands
+>>>  # Load bands
 >>> bands = prod.load(ok_bands, resolution=20.)  # if resolution is not specified -> load at default resolution (10.0 m for S2 data)
->>> # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
->>> # (important for DEM data as they may have different grids)
-
->>> bands
-{<function NDVI at 0x000001C47FF05E18>: <xarray.DataArray 'NDVI' (band: 1, y: 5490, x: 5490)>
-array([[[0.94786006, 0.92717856, 0.92240528, ..., 1.73572724,
-         1.55314477, 1.63242706],
-        [1.04147187, 0.93668633, 0.91499688, ..., 1.59941784,
-         1.52895995, 1.51386761],
-        [2.86996677, 1.69360304, 1.2413562 , ..., 1.61172353,
-         1.55742907, 1.50568275],
-        ...,
-        [1.45807257, 1.61071344, 1.64620751, ..., 1.25498441,
-         1.42998927, 1.70447076],
-        [1.57802352, 1.77086658, 1.69901482, ..., 1.19999853,
-         1.27813254, 1.52287237],
-        [1.63569594, 1.66751277, 1.63474646, ..., 1.27617084,
-         1.22456033, 1.27022877]]])
-Coordinates:
-  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-  * band         (band) int32 1
-    spatial_ref  int32 0,
-<OpticalBandNames.GREEN: 'GREEN'>: <xarray.DataArray 'T30TTK_20200824T110631_B03' (band: 1, y: 5490, x: 5490)>
-array([[[0.06146327, 0.06141786, 0.06100179, ..., 0.11880179,
-         0.12087143, 0.11468571],
-        [0.06123214, 0.06071094, 0.06029063, ..., 0.11465781,
-         0.11858906, 0.11703929],
-        [0.06494643, 0.06226562, 0.06169219, ..., 0.11174062,
-         0.11434844, 0.11491964],
-        ...,
-        [0.1478125 , 0.13953906, 0.13751719, ..., 0.15949688,
-         0.14200781, 0.12982321],
-        [0.14091429, 0.12959531, 0.13144844, ..., 0.17246719,
-         0.156175  , 0.13453036],
-        [0.13521429, 0.13274286, 0.13084821, ..., 0.16064821,
-         0.16847143, 0.16009592]]])
-Coordinates:
-  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-  * band         (band) int32 1
-    spatial_ref  int32 0,
-<DemBandNames.HILLSHADE: 'HILLSHADE'>: <xarray.DataArray '20200824T110631_S2_T30TTK_L1C_150432_HILLSHADE' (band: 1, y: 5490, x: 5490)>
-array([[[220., 221., 221., ..., 210., 210., 210.],
-        [222., 222., 221., ..., 210., 210., 210.],
-        [221., 221., 220., ..., 210., 210., 210.],
-        ...,
-        [215., 214., 212., ..., 207., 207., 207.],
-        [214., 212., 211., ..., 206., 205., 205.],
-        [213., 211., 209., ..., 205., 204., 205.]]])
-Coordinates:
-  * band         (band) int32 1
-  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-    spatial_ref  int32 0
-Attributes:
-    grid_mapping:    spatial_ref
-    original_dtype:  uint8}
+>>>  # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
+>>>  # (important for DEM data as they may have different grids)
 ```
 
 ```{note}
@@ -180,54 +124,6 @@ If the same band is asked several time, its order will be the one of the last de
 ```python
 >>> # Create a stack with the previous OK bands
 >>> stack = prod.stack(ok_bands, resolution=300., stack_path=os.path.join(prod.output, "stack.tif")
-<xarray.DataArray 'GREEN_NDVI_HILLSHADE' (z: 3, y: 5490, x: 5490)>
-array([[[9.47860062e-01, 9.27178562e-01, 9.22405303e-01, ...,
-         1.73572719e+00, 1.55314481e+00, 1.63242710e+00],
-        [1.04147184e+00, 9.36686337e-01, 9.14996862e-01, ...,
-         1.59941781e+00, 1.52895999e+00, 1.51386762e+00],
-        [2.86996675e+00, 1.69360304e+00, 1.24135625e+00, ...,
-         1.61172354e+00, 1.55742908e+00, 1.50568271e+00],
-        ...,
-        [1.45807254e+00, 1.61071348e+00, 1.64620745e+00, ...,
-         1.25498438e+00, 1.42998922e+00, 1.70447075e+00],
-        [1.57802355e+00, 1.77086663e+00, 1.69901478e+00, ...,
-         1.19999850e+00, 1.27813256e+00, 1.52287233e+00],
-        [1.63569593e+00, 1.66751277e+00, 1.63474643e+00, ...,
-         1.27617085e+00, 1.22456038e+00, 1.27022874e+00]],
-       [[6.14632666e-02, 6.14178553e-02, 6.10017851e-02, ...,
-         1.18801787e-01, 1.20871432e-01, 1.14685714e-01],
-        [6.12321422e-02, 6.07109368e-02, 6.02906235e-02, ...,
-         1.14657812e-01, 1.18589066e-01, 1.17039286e-01],
-        [6.49464279e-02, 6.22656234e-02, 6.16921857e-02, ...,
-         1.11740626e-01, 1.14348434e-01, 1.14919640e-01],
-        [1.47812501e-01, 1.39539063e-01, 1.37517184e-01, ...,
-         1.59496874e-01, 1.42007813e-01, 1.29823208e-01],
-        [1.40914291e-01, 1.29595309e-01, 1.31448433e-01, ...,
-         1.72467187e-01, 1.56175002e-01, 1.34530351e-01],
-        [1.35214284e-01, 1.32742852e-01, 1.30848214e-01, ...,
-         1.60648212e-01, 1.68471426e-01, 1.60095915e-01]],
-       [[2.20000000e+02, 2.21000000e+02, 2.21000000e+02, ...,
-         2.10000000e+02, 2.10000000e+02, 2.10000000e+02],
-        [2.22000000e+02, 2.22000000e+02, 2.21000000e+02, ...,
-         2.10000000e+02, 2.10000000e+02, 2.10000000e+02],
-        [2.21000000e+02, 2.21000000e+02, 2.20000000e+02, ...,
-         2.10000000e+02, 2.10000000e+02, 2.10000000e+02],
-        ...,
-        [2.15000000e+02, 2.14000000e+02, 2.12000000e+02, ...,
-         2.07000000e+02, 2.07000000e+02, 2.07000000e+02],
-        [2.14000000e+02, 2.12000000e+02, 2.11000000e+02, ...,
-         2.06000000e+02, 2.05000000e+02, 2.05000000e+02],
-        [2.13000000e+02, 2.11000000e+02, 2.09000000e+02, ...,
-         2.05000000e+02, 2.04000000e+02, 2.05000000e+02]]], dtype=float32)
-Coordinates:
-  * x            (x) float64 2e+05 2e+05 2e+05 ... 3.097e+05 3.098e+05 3.098e+05
-  * y            (y) float64 4.5e+06 4.5e+06 4.5e+06 ... 4.39e+06 4.39e+06
-    spatial_ref  int32 0
-  * z            (z) MultiIndex
-  - variable     (z) object 'GREEN' 'NDVI' 'HILLSHADE'
-  - band         (z) int64 1 1 1
-Attributes:
-    long_name:  ['GREEN', 'NDVI', 'HILLSHADE']
 ```
 
 Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
@@ -243,24 +139,22 @@ EOReader gives you the access to the metadata of your product as a `lxml.etree._
 
 >>> # Access the raw metadata as an lxml.etree._Element and its namespaces as a dict:
 >>> mtd, nmsp = prod.read_mtd()
-(
-    <Element {https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}Level-1C_Tile_ID at 0x1e396036ec8>, 
-    {'n1': '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}'}
-)
 
 >>> # You can access a field like that: 
 >>> datastrip_id = mtd.findtext(".//DATASTRIP_ID")
+'S2B_OPER_MSI_L1C_DS_VGSR_20210929T075738_S20210517T104617_N79.90'
 
 >>> # Pay attention, for some products you will need a namespace, i.e. for planet data:
 >>> # name = mtd.findtext(f".//{nsmap['eop']}identifier")
 ```
+
 
 ```{note}
 Landsat Collection 1 have no metadata with XML format, so the XML is simulated from the text file.
 ```
 
 ```{note}
-Sentinel-3 sensors have no metadata file but have global attributes repeated in every NetCDF files.
+Sentinel-3 constellations have no metadata file but have global attributes repeated in every NetCDF files.
 This is what you will have when calling this function:
 
 - `absolute_orbit_number`
@@ -285,7 +179,7 @@ This is what you will have when calling this function:
 
 ## Plot
 If a quicklook exists, the user can plot the product.
-Always existing for VHR and SAR data, more rarely for other optical sensors.
+Always existing for VHR and SAR data, more rarely for other optical constellations.
 See [Optical](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html) and [SAR](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html) tutorials for examples.
 
 ```python
@@ -332,9 +226,9 @@ Get optical product azimuth (between [0, 360] degrees) and
 [zenith solar angles](https://en.wikipedia.org/wiki/Solar_zenith_angle), useful for computing the Hillshade for example.
 
 ```python
->> >  # Get azimuth and zenith solar angles
->> > prod.get_mean_sun_angles()
-(151.750970396115, 35.4971906983449)
+>>>  # Get azimuth and zenith solar angles
+>>> prod.get_mean_sun_angles()
+(81.0906721240477, 17.5902388851456)
 ```
 
 ### Cloud Cover
@@ -342,18 +236,33 @@ Get optical product azimuth (between [0, 360] degrees) and
 Get optical product cloud cover as specified in the metadata
 
 ```python
->> >  # Get cloud cover
->> > prod.get_cloud_cover()
-55.5
+>>>  # Get cloud cover
+>>> prod.get_cloud_cover()
+0.155752635193646
 ```
 
 ### Orbit direction
 
 Get product optical direction (useful especially for SAR data), as a {meth}`~eoreader.product.OrbitDirection` (`ASCENDING` or `DESCENDING`).
-Always specified in the metadata for SAR sensors, set to `DESCENDING` by default for optical data if not existing.
+Always specified in the metadata for SAR constellations, set to `DESCENDING` by default for optical data if not existing.
 
 ```python
->> >  # Get orbit direction
->> > prod.get_orbit_direction()
-< OrbitDirection.DESCENDING: 'DESCENDING' >
+>>>  # Get orbit direction
+>>> prod.get_orbit_direction()
+<OrbitDirection.DESCENDING: 'DESCENDING'>
+```
+
+## STAC
+
+**EOReader** can help you create [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) items from every supported products, included custom ones.
+Those items are ready to be added in any STAC catalogue or collection. 
+See [STAC Notebook](https://eoreader.readthedocs.io/en/latest/notebooks/stac.html) to learn more about this feature.
+
+```python
+>>>  # Get STAC object
+>>> prod.stac
+
+>>>  # Create STAC item
+>>> prod.stac.create_item()
+<Item id = 20210517T103619_S2_T30QVE_L1C_075738>
 ```

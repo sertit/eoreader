@@ -14,7 +14,7 @@ EOReader always loads orthorectified bands, you cannot get raw bands !
     - `gdalwarp` cannot access DEM through S3-compatible storage or https links. Be sure to link a DEM stored on disk.
     - This step is very time-consuming as the whole stack is reprojected for once. It may even never finish on your computer with very big images (sometimes VHR data can weight more than 15Go). It is best to give an already orthorectified stack on
       the side, you can see an example in the [VHR Notebook](https://eoreader.readthedocs.io/en/latest/notebooks/VHR.html)
-- For other sensors, non-orthorectified bands are not supported yet.
+- For other constellations, non-orthorectified bands are not supported yet.
 
 ### I want to load projected bands, what do I need to do ?
 

@@ -129,10 +129,19 @@ dl.function dt {
 dl.class dl dt,
 dl.exception dl dt,
 dl.data dl dt,
-dl.function dl dt {
+dl.function dl dt,
+dl.py.method dd dl dt{
     margin-bottom: 6px;
     border: none;
     border-left: solid 3px #ccc;
+    background: #f0f0f0;
+    color: #555;
+}
+
+dl.py.method dt{
+    margin-bottom: 6px;
+    border: none;
+    border-left: solid 3px rgba(27, 93, 163, 0.5);
     background: #f0f0f0;
     color: #555;
 }
@@ -143,4 +152,14 @@ dl.data .viewcode-link,
 dl.function .viewcode-link {
     color: #27AE60;
     font-size: 80%;
+}
+
+
+dl.py.attribute dt,
+dl.py.property dt{
+    margin-bottom: 6px;
+    border: none;
+    border-left: solid 3px #c4d5e7;
+    background: #f0f0f0;
+    color: #555;
 }

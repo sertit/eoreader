@@ -18,6 +18,7 @@
 import logging
 import os
 import platform
+import warnings
 from pathlib import Path
 from typing import Union
 
@@ -26,13 +27,16 @@ import pandas as pd
 import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
+from rasterio import errors
 from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
+from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
 from sertit import rasters
 
 from eoreader.env_vars import USE_DASK
-from eoreader.keywords import prune_keywords
+from eoreader.exceptions import InvalidProductError
+from eoreader.keywords import _prune_keywords
 
 EOREADER_NAME = "eoreader"
 DATETIME_FMT = "%Y%m%dT%H%M%S"
@@ -156,16 +160,25 @@ def read(
     else:
         chunks = None
 
-    return rasters.read(
-        path,
-        resolution=resolution,
-        size=size,
-        resampling=resampling,
-        masked=masked,
-        indexes=indexes,
-        chunks=chunks,
-        **prune_keywords(**kwargs),
-    )
+    try:
+        # Disable georef warnings here as the SAR/Sentinel-3 products are not georeferenced
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=NotGeoreferencedWarning)
+            return rasters.read(
+                path,
+                resolution=resolution,
+                size=size,
+                resampling=resampling,
+                masked=masked,
+                indexes=indexes,
+                chunks=chunks,
+                **_prune_keywords(**kwargs),
+            )
+    except errors.RasterioIOError as ex:
+        if str(path).endswith("jp2") or str(path).endswith("tif"):
+            raise InvalidProductError(f"Corrupted file: {path}") from ex
+        else:
+            raise
 
 
 def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> None:
@@ -207,7 +220,7 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
             pass
 
     # Write
-    rasters.write(xds, path=path, lock=lock, **prune_keywords(**kwargs))
+    rasters.write(xds, path=path, lock=lock, **_prune_keywords(**kwargs))
 
     # Set back the previous long name
     if previous_long_name and xds.rio.count > 1:

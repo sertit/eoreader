@@ -42,8 +42,7 @@ __all__ += [
     "DimapProduct",
     "DimapProductType",
     "PldProduct",
-    "Spot6Product",
-    "Spot7Product",
+    "SpotProduct",
     "MaxarProduct",
     "MaxarProductType",
     "MaxarSatId",
@@ -55,8 +54,7 @@ __all__ += [
 from .optical.vhr_product import VhrProduct
 from .optical.dimap_product import DimapBandCombination, DimapProduct, DimapProductType
 from .optical.pld_product import PldProduct
-from .optical.spot6_product import Spot6Product
-from .optical.spot7_product import Spot7Product
+from .optical.spot_product import SpotProduct
 from .optical.maxar_product import (
     MaxarProduct,
     MaxarProductType,
@@ -65,7 +63,7 @@ from .optical.maxar_product import (
 )
 from .optical.vis1_product import Vis1Product, Vis1ProductType, Vis1BandCombination
 
-# Planet
+# PlanetScope
 __all__ += [
     "PlaProduct",
     "PlaProductType",
@@ -73,33 +71,27 @@ __all__ += [
 ]
 from .optical.pla_product import PlaProduct, PlaProductType, PlaInstrument
 
+# SkySat
+__all__ += [
+    "SkyProductType",
+    "SkyProduct",
+    "SkyInstrument",
+]
+from .optical.sky_product import SkyProductType, SkyProduct, SkyInstrument
+
 # Landsat
 __all__ += [
     "LandsatProduct",
     "LandsatProductType",
     "LandsatCollection",
-    "L1Product",
-    "L2Product",
-    "L3Product",
-    "L4Product",
-    "L5Product",
-    "L7Product",
-    "L8Product",
-    "L9Product",
+    "LandsatInstrument",
 ]
 from .optical.landsat_product import (
     LandsatProduct,
     LandsatProductType,
     LandsatCollection,
+    LandsatInstrument,
 )
-from .optical.l1_product import L1Product
-from .optical.l2_product import L2Product
-from .optical.l3_product import L3Product
-from .optical.l4_product import L4Product
-from .optical.l5_product import L5Product
-from .optical.l7_product import L7Product
-from .optical.l8_product import L8Product
-from .optical.l9_product import L9Product
 
 # Sentinel
 __all__ += [
