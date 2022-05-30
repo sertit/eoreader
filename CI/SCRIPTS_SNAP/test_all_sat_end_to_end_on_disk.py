@@ -474,14 +474,3 @@ def test_vs1():
     """Function testing the support of Vision-1 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*VIS1*", dem_path=dem_path)
-
-
-# TODO:
-# check non existing bands
-# check cloud results
-
-
-def test_invalid():
-    wrong_path = "dzfdzef"
-    assert READER.open(wrong_path) is None
-    assert not READER.valid_name(wrong_path, "S2")
