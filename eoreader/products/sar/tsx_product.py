@@ -174,6 +174,12 @@ class TsxProduct(SarProduct):
                 product_path, archive_path, output_path, remove_tmp, **kwargs
             )
 
+            # Geometric resolution
+            if self.product_type != TsxProductType.SSC:
+                self._geometric_res = getattr(
+                    TsxGeometricResolution, self.split_name[3]
+                )
+
     def _get_resolution(self) -> float:
         """
         Get product default resolution (in meters)
@@ -282,10 +288,6 @@ class TsxProduct(SarProduct):
         (setting product-type, band names and so on)
         """
         self.snap_filename = f"{self.name}.xml"
-
-        # Geometric resolution
-        if self.product_type != TsxProductType.SSC:
-            self._geometric_res = getattr(TsxGeometricResolution, self.split_name[3])
 
         # Post init done by the super class
         super()._post_init(**kwargs)
