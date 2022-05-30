@@ -134,6 +134,7 @@ def _test_core(
                 # Extent
                 LOGGER.info("Computing STAC item")
                 item: pystac.Item = prod.stac.create_item()
+                LOGGER.info(prod.stac)
 
                 # Object type
                 compare(
