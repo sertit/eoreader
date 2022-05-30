@@ -45,6 +45,9 @@ def test_broken_s2():
     LOGGER.info(broken_detfoo_prod)
     LOGGER.info(broken_detfoo_prod.bands)
 
+    # Should pass with warning
+    broken_detfoo_prod.footprint()
+
     broken_detfoo_prod.load(
         RED, resolution=res, clean_optical="clean"
     )  # Not corrupted band

@@ -82,15 +82,20 @@ class EoExt:
         Returns:
             list: repr list
         """
-        band_repr = "\n".join(
-            [
-                f"\t\t\t{band.value}:"
-                f"\n\t\t\t\t{val.id}"
-                f"\n\t\t\t\t{val.common_name.value}"
-                for band, val in self.bands.items()
-                if val is not None
-            ]
-        )
+        band_list = []
+        for band, val in self.bands.items():
+            if val is not None:
+                band_list.append(f"\t\t\t{band.value}:")
+                band_list.append(f"\t\t\t\t{val.id}")
+                if val.common_name is not None:
+                    common_name = (
+                        val.common_name
+                        if isinstance(val.common_name, str)
+                        else val.common_name.value
+                    )
+                    band_list.append(f"\t\t\t\t{common_name}")
+
+        band_repr = "\n".join(band_list)
         repr_list = ["Electro-Optical STAC Extension attributes:"]
 
         if self.cloud_cover is not None:

@@ -266,3 +266,10 @@ See [STAC Notebook](https://eoreader.readthedocs.io/en/latest/notebooks/stac.htm
 >>> prod.stac.create_item()
 <Item id = 20210517T103619_S2_T30QVE_L1C_075738>
 ```
+
+Some functions have different names between EOReader and STAC vocabulary. 
+For legacy purpose, this has not been changed. Hereunder is the mapping:
+- `prod.stac.bbox` is equivalent to `prod.extent` but in `WGS84` (`EPSG:4326`)
+- `prod.stac.proj.bbox` is equivalent to `prod.extent`
+- `prod.stac.geometry` is equivalent to `prod.footprint` but in `WGS84` (`EPSG:4326`)
+- `prod.stac.proj.geometry` is equivalent to `prod.footprint`

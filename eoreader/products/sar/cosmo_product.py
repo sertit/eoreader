@@ -383,7 +383,7 @@ class CosmoProduct(SarProduct):
                     "GeoCoordBottomRight": "Bottom Right Geodetic Coordinates",
                     "GeoCoordTopLeft": "Top Left Geodetic Coordinates",
                     "GeoCoordTopRight": "Top Right Geodetic Coordinates",
-                    "GeoCoordTopRightEN": "Top Right East-North",
+                    # "GeoCoordTopRightEN": "Top Right East-North",
                     "NearLookAngle": "Near Look Angle",
                     "FarLookAngle": "Far Look Angle",
                 }

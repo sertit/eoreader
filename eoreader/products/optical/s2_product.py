@@ -368,6 +368,15 @@ class S2Product(OpticalProduct):
             footprint = gpd.GeoDataFrame(
                 geometry=footprint_gs.geometry, crs=footprint_gs.crs
             )
+
+            # Manage broken GML
+            if all(footprint.is_empty):
+                LOGGER.warning(
+                    "Invalid DETFOO mask. Trying to vectorize nodata from GREEN band. Your product may be broken and the results may be inaccurate!"
+                )
+                footprint = rasters.get_footprint(self.get_default_band_path()).to_crs(
+                    self.crs()
+                )
         else:
             det_footprint = self._open_mask_gt_4_0(S2Jp2Masks.FOOTPRINT, def_band)
             footprint = rasters.vectorize(
