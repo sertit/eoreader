@@ -10,6 +10,7 @@
 - FIX: Remove import of pystac in `stac_utils`
 - FIX: Fix bug for `Vision-1` data looking for non-existing RPC files in case of `ORTP` product type
 - FIX: Fix quicklook regex for `Vision-1` data
+- FIX: Fix regex for raw bands for extracted `Sentinel-3 OLCI` products
 
 
 ## 0.15.0 (2022-05-30)
@@ -61,6 +62,7 @@
 ### Other
 
 - INTERNAL: File `spot_6` and `spot_7` are removed, replaced by a unique `spot` file. This shouldn't affect the user.
+- INTERNAL: Refactoring Landsat-XX products into `LandsatProduct`, this should be invisible for user.
 - INTERNAL: Some refactoring in `VHR` files
 - WARNINGS: Filter warnings from `__init__`
 - CI: Do not process two times the zipped Sentinel-1 in end-to-end tests and manage when the runner kills SNAP
