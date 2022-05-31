@@ -16,6 +16,8 @@
 - FIX: Fix `PlanetScope` identifying regex to handle products with a satellite_id containing a letter
 - FIX: Force metadata regex for `Maxar` products to look for a file with pattern `{name}.XML` to avoid other misplaced XML to be found in place of the true XML.
 
+### Other
+- CI: Add new optical products to be tested for end-to-end tests
 
 ## 0.15.0 (2022-05-30)
 

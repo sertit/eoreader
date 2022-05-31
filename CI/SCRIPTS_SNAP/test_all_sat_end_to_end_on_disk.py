@@ -2,6 +2,7 @@
 import logging
 import os
 import tempfile
+from typing import Union
 
 import xarray as xr
 from cloudpathlib import AnyPath
@@ -86,7 +87,14 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
         CLOUDS,
         ALL_CLOUDS,
     ]
-    _test_core(pattern, opt_path(), possible_bands, dem_path, debug, **kwargs)
+    _test_core(
+        pattern,
+        [opt_path(), get_ci_db_dir().joinpath("more_optical")],
+        possible_bands,
+        dem_path,
+        debug,
+        **kwargs,
+    )
 
 
 def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
@@ -109,7 +117,7 @@ def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
 
 def _test_core(
     pattern: str,
-    prod_dir: str,
+    prod_dirs: Union[str, list],
     possible_bands: list,
     dem_path=None,
     debug=False,
@@ -119,7 +127,7 @@ def _test_core(
     Core function testing all data
     Args:
         pattern (str): Pattern of the satellite
-        prod_dir (str): Product directory
+        prod_dirs (Union[str, list]): Product directory
         possible_bands(list): Possible bands
         debug (bool): Debug option
     """
@@ -129,9 +137,14 @@ def _test_core(
     with xr.set_options(warn_for_unclosed_files=debug):
 
         # DATA paths
-        pattern_paths = files.get_file_in_dir(
-            prod_dir, pattern, exact_name=True, get_list=True
-        )
+        if not isinstance(prod_dirs, list):
+            prod_dirs = [prod_dirs]
+
+        pattern_paths = []
+        for prod_dir in prod_dirs:
+            pattern_paths += files.get_file_in_dir(
+                prod_dir, pattern, exact_name=True, get_list=True
+            )
 
         for path in pattern_paths:
             LOGGER.info(
