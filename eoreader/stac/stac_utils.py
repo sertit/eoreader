@@ -19,21 +19,20 @@ STAC utils
 """
 from datetime import datetime
 from pprint import pformat
-from typing import Any, Union
+from typing import Any
 
 import geopandas as gpd
-import pystac
 from sertit.vectors import WGS84
 from shapely.geometry import mapping
 
 from eoreader.stac._stac_keywords import DESCRIPTION, GSD, TITLE
 
 
-def fill_common_mtd(asset: Union[pystac.Asset, pystac.Item], prod, **kwargs) -> None:
+def fill_common_mtd(asset: Any, prod, **kwargs) -> None:
     """
     Fill common metadata of STAC assets or items
     Args:
-        asset (Union[pystac.Asset, pystac.Item]): Asset or item
+        asset (pystac.Asset, pystac.Item): Asset or item
         prod (product): EOReader product
         **kwargs: Additional arguments
     """
