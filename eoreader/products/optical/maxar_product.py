@@ -33,7 +33,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import files, vectors
+from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
@@ -866,6 +866,32 @@ class MaxarProduct(VhrProduct):
             utm = raw_crs
 
         return utm
+
+    @cache
+    def footprint(self) -> gpd.GeoDataFrame:
+        """
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"IMG_PHR1B_PMS_001"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint()
+                                                         gml_id  ...                                           geometry
+            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
+            [1 rows x 3 columns]
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        """
+        # Get footprint of the first band of the stack
+        arr = rasters.read(self.get_default_band_path(), indexes=[1])
+
+        # Vectorize the nodata band (rasters_rio is faster)
+        footprint = rasters.vectorize(arr, values=0, keep_values=False, dissolve=True)
+
+        return footprint.to_crs(self.crs())
 
     @cache
     def extent(self, **kwargs) -> gpd.GeoDataFrame:

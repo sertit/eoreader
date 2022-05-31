@@ -5,6 +5,7 @@
 ### Optimizations
 
 - OPTIM: Try to create `Vision-1` footprint from the preview file instead of from the stack.
+- OPTIM: Create `Maxar` footprints with opening only the first band of the stack.
 
 ### Bug Fixes
 - FIX: Remove import of pystac in `stac_utils`
