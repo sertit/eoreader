@@ -1,5 +1,11 @@
 # Release History
 
+## 0.15.1 (2022-05-30)
+
+### Bug Fixes
+- FIX: Remove import of pystac in `stac_utils`
+
+
 ## 0.15.0 (2022-05-30)
 
 ### Breaking Changes
