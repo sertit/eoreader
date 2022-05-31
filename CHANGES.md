@@ -11,6 +11,7 @@
 - FIX: Fix bug for `Vision-1` data looking for non-existing RPC files in case of `ORTP` product type
 - FIX: Fix quicklook regex for `Vision-1` data
 - FIX: Fix regex for raw bands for extracted `Sentinel-3 OLCI` products
+- FIX: Fix `PlanetScope` identifying regex to handle products with a satellite_id containing a letter
 
 
 ## 0.15.0 (2022-05-30)
