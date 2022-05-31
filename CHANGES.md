@@ -1,9 +1,15 @@
 # Release History
 
-## 0.15.1 (2022-05-30)
+## 0.15.1 (2022-MM-DD)
+
+### Optimizations
+
+- OPTIM: Try to create `Vision-1` footprint from the preview file instead of from the stack.
 
 ### Bug Fixes
 - FIX: Remove import of pystac in `stac_utils`
+- FIX: Fix bug for `Vision-1` data looking for non-existing RPC files in case of `ORTP` product type
+- FIX: Fix quicklook regex for `Vision-1` data
 
 
 ## 0.15.0 (2022-05-30)
@@ -44,7 +50,6 @@
 
 - OPTIM: Retrieve name from filename if possible
 - OPTIM: Retrieve extent from metadata when possible (for VHR data)
-- OPTIM: Refactoring Landsat-XX products into `LandsatProduct`, this should bee invisible for user.
 
 ### Bug Fixes
 

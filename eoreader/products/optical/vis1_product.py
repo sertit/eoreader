@@ -33,7 +33,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import files, vectors
+from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
 
@@ -297,6 +297,35 @@ class Vis1Product(VhrProduct):
         return riocrs.CRS.from_string(crs_name)
 
     @cache
+    def footprint(self) -> gpd.GeoDataFrame:
+        """
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"IMG_PHR1B_PMS_001"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint()
+                                                         gml_id  ...                                           geometry
+            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
+            [1 rows x 3 columns]
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        """
+        # Get footprint of the preview
+        path = self.get_quicklook_path()
+        if path is None:
+            path = self.get_default_band_path()
+        arr = rasters.read(path, indexes=[1])
+
+        # Vectorize the nodata band (rasters_rio is faster)
+        footprint = rasters.vectorize(arr, values=0, keep_values=False, dissolve=True)
+
+        return footprint.to_crs(self.crs())
+
+    @cache
     def extent(self, **kwargs) -> gpd.GeoDataFrame:
         """
         Get UTM extent of the tile.
@@ -547,13 +576,16 @@ class Vis1Product(VhrProduct):
         Returns:
             Union[CloudPath, Path]: Orthorectified path
         """
-        # Compute RPCSs
-        if self.is_archived:
-            rpcs_file = io.BytesIO(files.read_archived_file(self.path, r".*\.rpc"))
-        else:
-            rpcs_file = self.path.joinpath(self.name + ".rpc")
+        if self.product_type in self._proj_prod_type:
+            # Compute RPCSs
+            if self.is_archived:
+                rpcs_file = io.BytesIO(files.read_archived_file(self.path, r".*\.rpc"))
+            else:
+                rpcs_file = self.path.joinpath(self.name + ".rpc")
 
-        rpcs = utils.open_rpc_file(rpcs_file)
+            rpcs = utils.open_rpc_file(rpcs_file)
+        else:
+            rpcs = None
         return super()._get_ortho_path(rpcs=rpcs, **kwargs)
 
     def _toa_rad_to_toa_refl(
@@ -596,10 +628,10 @@ class Vis1Product(VhrProduct):
         try:
             if self.is_archived:
                 quicklook_path = files.get_archived_rio_path(
-                    self.path, file_regex="Preview.tif"
+                    self.path, file_regex=".*Preview\.tif"
                 )
             else:
-                quicklook_path = str(next(self.path.glob("Preview.tif")))
+                quicklook_path = str(next(self.path.glob("*Preview.tif")))
         except (StopIteration, FileNotFoundError):
             LOGGER.warning(f"No quicklook found in {self.condensed_name}")
 
