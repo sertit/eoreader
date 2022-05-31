@@ -8,11 +8,13 @@
 - OPTIM: Create `Maxar` footprints with opening only the first band of the stack.
 
 ### Bug Fixes
+
 - FIX: Remove import of pystac in `stac_utils`
 - FIX: Fix bug for `Vision-1` data looking for non-existing RPC files in case of `ORTP` product type
 - FIX: Fix quicklook regex for `Vision-1` data
 - FIX: Fix regex for raw bands for extracted `Sentinel-3 OLCI` products
 - FIX: Fix `PlanetScope` identifying regex to handle products with a satellite_id containing a letter
+- FIX: Force metadata regex for `Maxar` products to look for a file with pattern `{name}.XML` to avoid other misplaced XML to be found in place of the true XML.
 
 
 ## 0.15.0 (2022-05-30)
