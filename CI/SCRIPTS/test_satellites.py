@@ -191,7 +191,9 @@ def _test_core(
                 )
                 # Write to path if needed
                 if not extent_path.exists():
-                    raise FileNotFoundError(f"Extent not found for {prod}!")
+                    raise FileNotFoundError(
+                        f"Extent not found for {prod.condensed_name}!"
+                    )
                     # extent_path = os.path.join(
                     #     tmp_dir, f"{prod.condensed_name}_extent.geojson"
                     # )
@@ -218,7 +220,9 @@ def _test_core(
                 )
                 # Write to path if needed
                 if not footprint_path.exists():
-                    raise FileNotFoundError(f"Footprint not found for {prod}!")
+                    raise FileNotFoundError(
+                        f"Footprint not found for {prod.condensed_name}!"
+                    )
                     # footprint_path = os.path.join(
                     #     tmp_dir, f"{prod.condensed_name}_footprint.geojson"
                     # )

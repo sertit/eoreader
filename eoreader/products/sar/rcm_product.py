@@ -113,21 +113,6 @@ class RcmSensorMode(ListEnum):
     """ Spotlight Mode [FSL] """
 
 
-@unique
-class RcmPolarization(ListEnum):
-    """
-    RADARSAT-Constellation polarization mode.
-    Take a look `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT_Constellation.html>`_.
-    """
-
-    RH = "RH"
-    RV = "RV"
-    HH = "HH"
-    VV = "VV"
-    VH = "VH"
-    HV = "HV"
-
-
 class RcmProduct(SarProduct):
     """
     Class for RADARSAT-Constellation Products
@@ -375,7 +360,7 @@ class RcmProduct(SarProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get products condensed name ({acq_datetime}_RCM_{sensor_mode}_{product_type}).
+        Get products condensed name ({acq_datetime}_{constellation}_{polarization}_{sensor_mode}_{product_type}).
 
         Returns:
             str: Condensed RCM name
@@ -396,7 +381,8 @@ class RcmProduct(SarProduct):
         else:
             mode_name = self.sensor_mode.name
 
-        return f"{self.get_datetime()}_{self.constellation.name}_{mode_name}_{self.product_type.value}"
+        pol_chan = [pol.value for pol in self.pol_channels]
+        return f"{self.get_datetime()}_{self.constellation.name}_{'_'.join(pol_chan)}_{mode_name}_{self.product_type.value}"
 
     def get_quicklook_path(self) -> str:
         """

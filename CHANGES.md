@@ -11,6 +11,9 @@
 
 ### Bug Fixes
 
+- FIX: Fixing condensed name to avoid duplicates:
+  - adding the `job_id` for `VHR` products
+  - adding the polarization channels for `SAR` products
 - FIX: Remove import of pystac in `stac_utils`
 - FIX: Fix bug for `Vision-1` data looking for non-existing RPC files in case of `ORTP` product type
 - FIX: Fix quicklook regex for `Vision-1` data

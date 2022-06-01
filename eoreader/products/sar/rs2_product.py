@@ -150,19 +150,6 @@ class Rs2SensorMode(ListEnum):
     """Spotlight Mode"""
 
 
-@unique
-class Rs2Polarization(ListEnum):
-    """
-    RADARSAT-2 polarization mode.
-    Take a look `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs>`_
-    """
-
-    HH = "HH"
-    VV = "VV"
-    VH = "VH"
-    HV = "HV"
-
-
 class Rs2Product(SarProduct):
     """
     Class for RADARSAT-2 Products

@@ -73,27 +73,6 @@ class CosmoProductType(ListEnum):
     """Level 1D, Geocoded Terrain Corrected"""
 
 
-@unique
-class CosmoPolarization(ListEnum):
-    """
-    COSMO-SkyMed (both generations) polarizations used during the acquisition.
-    More info
-    `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
-    """
-
-    HH = "HH"
-    """Horizontal Tx/Horizontal Rx for Himage, ScanSAR and Spotlight modes"""
-
-    VV = "VV"
-    """Vertical Tx/Vertical Rx for Himage, ScanSAR and Spotlight modes"""
-
-    HV = "HV"
-    """Horizontal Tx/Vertical Rx for Himage, ScanSAR"""
-
-    VH = "VH"
-    """Vertical Tx/Horizontal Rx for Himage, ScanSAR"""
-
-
 class CosmoProduct(SarProduct):
     """
     Class for COSMO-SkyMed (both generations) Products

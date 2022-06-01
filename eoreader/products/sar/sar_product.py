@@ -950,12 +950,13 @@ class SarProduct(Product):
 
     def _get_condensed_name(self) -> str:
         """
-        Get products condensed name ({acq_datetime}_S1_{sensor_mode}_{product_type}).
+        Get products condensed name ({acq_datetime}_{constellation}_{polarization}_{sensor_mode}_{product_type}).
 
         Returns:
             str: Condensed name
         """
-        return f"{self.get_datetime()}_{self.constellation.name}_{self.sensor_mode.name}_{self.product_type.value}"
+        pol_chan = [pol.value for pol in self.pol_channels]
+        return f"{self.get_datetime()}_{self.constellation.name}_{'_'.join(pol_chan)}_{self.sensor_mode.name}_{self.product_type.value}"
 
     def _update_attrs_constellation_specific(
         self, xarr: xr.DataArray, bands: list, **kwargs

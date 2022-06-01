@@ -129,7 +129,6 @@ __all__ += [
     "SnapDems",
     "CosmoProduct",
     "CosmoProductType",
-    "CosmoPolarization",
     "CsgProduct",
     "CsgSensorMode",
     "CskProduct",
@@ -138,12 +137,10 @@ __all__ += [
     "IceyeProductType",
     "IceyeSensorMode",
     "RcmProduct",
-    "RcmPolarization",
     "RcmProductType",
     "RcmSensorMode",
     "Rs2Product",
     "Rs2ProductType",
-    "Rs2Polarization",
     "Rs2SensorMode",
     "S1Product",
     "S1SensorMode",
@@ -158,12 +155,12 @@ __all__ += [
     "TsxSensorMode",
 ]
 from .sar.sar_product import SarProduct, SarProductType, SnapDems
-from .sar.cosmo_product import CosmoProduct, CosmoProductType, CosmoPolarization
+from .sar.cosmo_product import CosmoProduct, CosmoProductType
 from .sar.csg_product import CsgProduct, CsgSensorMode
 from .sar.csk_product import CskProduct, CskSensorMode
 from .sar.iceye_product import IceyeProduct, IceyeProductType, IceyeSensorMode
-from .sar.rcm_product import RcmProduct, RcmPolarization, RcmProductType, RcmSensorMode
-from .sar.rs2_product import Rs2Product, Rs2ProductType, Rs2Polarization, Rs2SensorMode
+from .sar.rcm_product import RcmProduct, RcmProductType, RcmSensorMode
+from .sar.rs2_product import Rs2Product, Rs2ProductType, Rs2SensorMode
 from .sar.s1_product import S1Product, S1SensorMode, S1ProductType
 from .sar.saocom_product import (
     SaocomProduct,
