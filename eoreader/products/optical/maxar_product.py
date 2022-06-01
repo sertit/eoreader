@@ -1235,6 +1235,11 @@ class MaxarProduct(VhrProduct):
         except TypeError:
             raise InvalidProductError("CLOUDCOVER not found in metadata!")
 
+        # Manage the case with cloud_cover == -999.0
+        # i.e. 17APR05171409-M1BS_R1C1-000000010003_01_P001 (WV04)
+        if cc < 0.0:
+            cc = None
+
         return cc
 
     def get_quicklook_path(self) -> str:

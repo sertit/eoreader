@@ -18,6 +18,7 @@
 - FIX: Fix `PlanetScope` identifying regex to handle products with a satellite_id containing a letter
 - FIX: Force metadata regex for `Maxar` products to look for a file with pattern `{name}.XML` to avoid other misplaced XML to be found in place of the true XML.
 - FIX: Fix regression for `Landsat-7` footprint
+- FIX: Manage the case with `cloud_cover = -999.0` for `Maxar` products (returns `None`)
 
 ### Other
 - CI: Add new optical products to be tested for end-to-end tests
