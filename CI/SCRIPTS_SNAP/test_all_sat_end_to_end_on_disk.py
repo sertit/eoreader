@@ -142,9 +142,12 @@ def _test_core(
 
         pattern_paths = []
         for prod_dir in prod_dirs:
-            pattern_paths += files.get_file_in_dir(
-                prod_dir, pattern, exact_name=True, get_list=True
-            )
+            try:
+                pattern_paths += files.get_file_in_dir(
+                    prod_dir, pattern, exact_name=True, get_list=True
+                )
+            except FileNotFoundError:
+                continue
 
         for path in pattern_paths:
             LOGGER.info(
@@ -434,6 +437,7 @@ def test_l1_mss():
 def test_pla():
     """Function testing the support of PlanetScope constellation"""
     _test_core_optical("*202*1014*")
+    _test_core_optical("*202*245e*")
 
 
 @dask_env
