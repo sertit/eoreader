@@ -1261,3 +1261,12 @@ class MaxarProduct(VhrProduct):
             LOGGER.warning(f"No quicklook found in {self.condensed_name}")
 
         return quicklook_path
+
+    def _get_job_id(self) -> str:
+        """
+        Get VHR job ID
+
+        Returns:
+            str: VHR product ID
+        """
+        return self.split_name[0].split("-")[-1]

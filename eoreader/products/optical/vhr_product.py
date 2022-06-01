@@ -83,8 +83,21 @@ class VhrProduct(OpticalProduct):
         self._pan_res = None
         self._ms_res = None
 
+        self._job_id = None
+
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+
+    def _post_init(self, **kwargs) -> None:
+        """
+        Function used to post_init the products
+        (setting sensor type, band names and so on)
+        """
+        # Job ID
+        self._job_id = self._get_job_id()
+
+        # Post init done by the super class
+        super()._post_init(**kwargs)
 
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
@@ -467,7 +480,7 @@ class VhrProduct(OpticalProduct):
         Returns:
             str: Condensed name
         """
-        return f"{self.get_datetime()}_{self.constellation.name}_{self.product_type.name}_{self.band_combi.name}"
+        return f"{self.get_datetime()}_{self.constellation.name}_{self.product_type.name}_{self.band_combi.name}_{self._job_id}"
 
     def _get_path(
         self, filename: str = "", extension: str = ""
@@ -683,10 +696,20 @@ class VhrProduct(OpticalProduct):
     @abstractmethod
     def _get_tile_path(self) -> Union[CloudPath, Path]:
         """
-        Get the DIMAP filepath
+        Get the VHR tile path
 
         Returns:
-            Union[CloudPath, Path]: DIMAP filepath
+            Union[CloudPath, Path]: VHR filepath
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_job_id(self) -> Union[CloudPath, Path]:
+        """
+        Get VHR job ID
+
+        Returns:
+            Union[CloudPath, Path]: VHR product ID
         """
         raise NotImplementedError
 

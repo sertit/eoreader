@@ -121,3 +121,12 @@ class PneoProduct(DimapProduct):
         Pleiades: https://earth.esa.int/eogateway/missions/pleiades-neo
         """
         self.instrument = "Pleiades-Neo Imager"
+
+    def _get_job_id(self) -> str:
+        """
+        Get VHR job ID
+
+        Returns:
+            str: VHR product ID
+        """
+        return self.split_name[-5]
