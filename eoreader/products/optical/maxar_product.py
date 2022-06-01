@@ -44,7 +44,7 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
 from eoreader.reader import Constellation
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -868,6 +868,7 @@ class MaxarProduct(VhrProduct):
         return utm
 
     @cache
+    @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -885,11 +886,24 @@ class MaxarProduct(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        # Get footprint of the first band of the stack
-        arr = rasters.read(self.get_default_band_path(), indexes=[1])
+        # If ortho -> nodata is not set !
+        if self.is_ortho:
+            # Get footprint of the first band of the stack
+            footprint_dezoom = 10
+            arr = rasters.read(
+                self.get_default_band_path(),
+                resolution=self.resolution * footprint_dezoom,
+                indexes=[1],
+            )
 
-        # Vectorize the nodata band (rasters_rio is faster)
-        footprint = rasters.vectorize(arr, values=0, keep_values=False, dissolve=True)
+            # Vectorize the nodata band (rasters_rio is faster)
+            footprint = rasters.vectorize(
+                arr, values=0, keep_values=False, dissolve=True
+            )
+            footprint = vectors.get_wider_exterior(footprint)
+        else:
+            # If not ortho -> default band has been orthorectified and nodata will be set
+            footprint = rasters.get_footprint(self.get_default_band_path())
 
         return footprint.to_crs(self.crs())
 

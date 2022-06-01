@@ -185,20 +185,26 @@ def _test_core(
                 LOGGER.info("Checking extent")
                 extent = prod.extent()
                 assert isinstance(extent, gpd.GeoDataFrame)
-                assert extent.crs.is_projected
+                assert extent.crs.is_projected and extent.crs == prod.crs()
                 extent_path = get_ci_data_dir().joinpath(
                     prod.condensed_name, f"{prod.condensed_name}_extent.geojson"
                 )
                 # Write to path if needed
                 if not extent_path.exists():
+                    raise FileNotFoundError(f"Extent not found for {prod}!")
+                    # extent_path = os.path.join(
+                    #     tmp_dir, f"{prod.condensed_name}_extent.geojson"
+                    # )
+                    # extent.to_file(extent_path, driver="GeoJSON")
+
+                try:
+                    ci.assert_geom_equal(extent, extent_path)
+                except AssertionError:
                     extent_path = os.path.join(
                         tmp_dir, f"{prod.condensed_name}_extent.geojson"
                     )
                     extent.to_file(extent_path, driver="GeoJSON")
 
-                try:
-                    ci.assert_geom_equal(extent, extent_path)
-                except AssertionError:
                     LOGGER.warning("Extent not equal, trying almost equal.")
                     assert_geom_almost_equal(extent, extent_path)
 
@@ -206,21 +212,27 @@ def _test_core(
                 LOGGER.info("Checking footprint")
                 footprint = prod.footprint()
                 assert isinstance(footprint, gpd.GeoDataFrame)
-                assert footprint.crs.is_projected
+                assert footprint.crs.is_projected and footprint.crs == prod.crs()
                 footprint_path = get_ci_data_dir().joinpath(
                     prod.condensed_name, f"{prod.condensed_name}_footprint.geojson"
                 )
                 # Write to path if needed
                 if not footprint_path.exists():
-                    footprint_path = os.path.join(
-                        tmp_dir, f"{prod.condensed_name}_footprint.geojson"
-                    )
-                    footprint.to_file(footprint_path, driver="GeoJSON")
+                    raise FileNotFoundError(f"Footprint not found for {prod}!")
+                    # footprint_path = os.path.join(
+                    #     tmp_dir, f"{prod.condensed_name}_footprint.geojson"
+                    # )
+                    # footprint.to_file(footprint_path, driver="GeoJSON")
 
                 try:
                     ci.assert_geom_equal(footprint, footprint_path)
                 except AssertionError:
                     # Has not happened for now
+                    footprint_path = os.path.join(
+                        tmp_dir, f"{prod.condensed_name}_footprint.geojson"
+                    )
+                    footprint.to_file(footprint_path, driver="GeoJSON")
+
                     LOGGER.warning("Footprint not equal, trying almost equal.")
                     assert_geom_almost_equal(footprint, footprint_path)
 

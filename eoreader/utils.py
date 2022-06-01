@@ -19,9 +19,11 @@ import logging
 import os
 import platform
 import warnings
+from functools import wraps
 from pathlib import Path
-from typing import Union
+from typing import Callable, Union
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -361,3 +363,61 @@ def open_rpc_file(path: Union[CloudPath, Path]) -> RPC:
         )
     except KeyError as msg:
         raise KeyError(f"Invalid RPC file, missing key: {msg}")
+
+
+def simplify_footprint(
+    footprint: gpd.GeoDataFrame, resolution: float, max_nof_vertices: int = 50
+) -> gpd.GeoDataFrame:
+    """
+    Simplify footprint
+
+    Args:
+        footprint (gpd.GeoDataFrame): Footprint to be simplified
+        resolution (float): Corresponding resolution
+        max_nof_vertices (int): Maximum number of vertices of the wanted footprint
+
+    Returns:
+        gpd.GeoDataFrame: Simplified footprint
+    """
+    # Number of pixels of tolerance
+    tolerance = [1, 2, 4, 8, 16, 32, 64]
+
+    # Process only if given footprint is too complex (too many vertices)
+    def simplify_geom(value):
+        nof_vertices = len(value.exterior.coords)
+        if nof_vertices > max_nof_vertices:
+            for tol in tolerance:
+                # Simplify footprint
+                value = value.simplify(
+                    tolerance=tol * resolution, preserve_topology=True
+                )
+
+                # Check if OK
+                nof_vertices = len(value.exterior.coords)
+                if nof_vertices < max_nof_vertices:
+                    break
+        return value
+
+    footprint.geometry = footprint.geometry.apply(simplify_geom)
+
+    return footprint
+
+
+def simplify(footprint_fct: Callable):
+    """
+    Simplify footprint decorator
+
+    Args:
+        function (Callable): Function to decorate
+
+    Returns:
+        Callable: decorated function
+    """
+
+    @wraps(footprint_fct)
+    def simplify_wrapper(self):
+        """ Simplify footprint wrapper """
+        footprint = footprint_fct(self)
+        return simplify_footprint(footprint, self.resolution)
+
+    return simplify_wrapper

@@ -49,7 +49,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
 from eoreader.reader import Constellation
 from eoreader.stac import ASSET_ROLE, BT, DESCRIPTION, GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -245,6 +245,7 @@ class LandsatProduct(OpticalProduct):
         return res
 
     @cache
+    @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -269,12 +270,27 @@ class LandsatProduct(OpticalProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        nodata_band = self._get_path(self._pixel_quality_id)
+        if self.instrument == LandsatInstrument.ETM:
+            LOGGER.warning(
+                "Due to the Landsat-7 gaps, this function returns a rounded footprint on the corners. "
+                "Sorry for the inconvenience."
+            )
+            footprint_dezoom = 50
+        else:
+            footprint_dezoom = 1
+
+        # Read the file with a very low resolution
+        nodata_band = utils.read(
+            self._get_path(self._pixel_quality_id),
+            resolution=self.resolution * footprint_dezoom,
+            masked=False,
+        )
 
         # Vectorize the nodata band (rasters_rio is faster)
         footprint = rasters_rio.vectorize(
             nodata_band, values=1, keep_values=False, dissolve=True
         )
+        # footprint = vectors.get_wider_exterior(footprint)  # No need here
 
         # Keep only the convex hull
         footprint.geometry = footprint.geometry.convex_hull

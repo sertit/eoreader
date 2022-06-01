@@ -35,7 +35,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
 from eoreader.products.sar.sar_product import _ExtendedFormatter
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -244,6 +244,7 @@ class SaocomProduct(SarProduct):
         #     return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
     @cache
+    @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)

@@ -56,7 +56,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
 from eoreader.products.product import OrbitDirection
 from eoreader.stac import CENTER_WV, FWHM, GSD, ID, NAME
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -345,6 +345,7 @@ class S2Product(OpticalProduct):
             return super().extent()
 
     @cache
+    @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint in UTM of the products (without nodata, *in french == emprise utile*)
@@ -371,12 +372,22 @@ class S2Product(OpticalProduct):
 
             # Manage broken GML
             if all(footprint.is_empty):
-                LOGGER.warning(
-                    "Invalid DETFOO mask. Trying to vectorize nodata from GREEN band. Your product may be broken and the results may be inaccurate!"
-                )
-                footprint = rasters.get_footprint(self.get_default_band_path()).to_crs(
-                    self.crs()
-                )
+                try:
+                    LOGGER.warning(
+                        "Invalid DETFOO mask. Trying to vectorize nodata from GREEN band. Your product may be broken and the results may be inaccurate!"
+                    )
+
+                    footprint = rasters.vectorize(
+                        det_footprint, values=0, keep_values=False, dissolve=True
+                    )
+
+                    footprint = vectors.get_wider_exterior(footprint).to_crs(self.crs())
+                except Exception:
+                    LOGGER.error(
+                        "Impossible to return the footprint. Returning the extent instead."
+                    )
+                    footprint = self.extent()
+
         else:
             det_footprint = self._open_mask_gt_4_0(S2Jp2Masks.FOOTPRINT, def_band)
             footprint = rasters.vectorize(

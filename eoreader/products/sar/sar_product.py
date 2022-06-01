@@ -45,7 +45,7 @@ from eoreader.keywords import SAR_INTERP_NA
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import Constellation
 from eoreader.stac import INTENSITY
-from eoreader.utils import EOREADER_NAME
+from eoreader.utils import EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -216,6 +216,7 @@ class SarProduct(Product):
         self.pol_channels = self._get_raw_bands()
 
     @cache
+    @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
@@ -232,9 +233,8 @@ class SarProduct(Product):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        return rasters.get_footprint(
-            self.get_default_band_path()
-        )  # Processed by SNAP: the nodata is set
+        # Processed by SNAP: the nodata is set -> use get_footprint instead of vectorize
+        return rasters.get_footprint(self.get_default_band_path())
 
     def get_default_band(self) -> BandNames:
         """
