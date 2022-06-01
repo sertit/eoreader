@@ -1,11 +1,13 @@
 # Release History
 
-## 0.15.1 (2022-MM-DD)
+## 0.15.1 (2022-06-DD)
 
 ### Optimizations
 
 - OPTIM: Try to create `Vision-1` footprint from the preview file instead of from the stack.
-- OPTIM: Create `Maxar` footprints with opening only the first band of the stack.
+- OPTIM: Create footprints for stacked products (i.e. `Maxar`, `SkySat`, `Custom`...) without mask by opening only the first band of the stack
+- OPTIM: Create footprints for `Maxar` Products with a resolution 10 times lower.
+- OPTIM: Footprints have now maximum 50 vertices in order to avoid pixelized footprints
 
 ### Bug Fixes
 
@@ -15,6 +17,7 @@
 - FIX: Fix regex for raw bands for extracted `Sentinel-3 OLCI` products
 - FIX: Fix `PlanetScope` identifying regex to handle products with a satellite_id containing a letter
 - FIX: Force metadata regex for `Maxar` products to look for a file with pattern `{name}.XML` to avoid other misplaced XML to be found in place of the true XML.
+- FIX: Fix regression for `Landsat-7` footprint
 
 ### Other
 - CI: Add new optical products to be tested for end-to-end tests

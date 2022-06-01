@@ -41,7 +41,7 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import TO_REFLECTANCE
 from eoreader.products.optical.planet_product import PlanetProduct
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -189,6 +189,7 @@ class SkyProduct(PlanetProduct):
         super()._post_init(**kwargs)
 
     @cache
+    @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
@@ -207,9 +208,8 @@ class SkyProduct(PlanetProduct):
         """
         # WARNING: Sometimes the product seems to contain several tiles that are not contiguous
         # Do not simplify geometry then
-        return rasters.get_valid_vector(
-            self.get_default_band_path()
-        )  # Processed by SNAP: the nodata is set
+        arr = rasters.read(self.get_default_band_path(), indexes=[1])
+        return rasters.get_valid_vector(arr, default_nodata=0)
 
     def _get_resolution(self) -> float:
         """

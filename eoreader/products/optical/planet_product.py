@@ -43,7 +43,7 @@ from eoreader.bands import (
 )
 from eoreader.exceptions import InvalidTypeError
 from eoreader.products import OpticalProduct
-from eoreader.utils import EOREADER_NAME
+from eoreader.utils import EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -69,6 +69,7 @@ class PlanetProduct(OpticalProduct):
         super()._pre_init(**kwargs)
 
     @cache
+    @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint of the products (without nodata, in french == emprise utile)

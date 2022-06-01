@@ -985,7 +985,7 @@ class DimapProduct(VhrProduct):
             ]:
                 LOGGER.info(f"Orthorectifying {mask_str}")
                 with rasterio.open(str(self._get_tile_path())) as dim_dst:
-                    # Rasterize mask (no transform as we have teh vector in image geometry)
+                    # Rasterize mask (no transform as we have the vector in image geometry)
                     LOGGER.debug(f"\tRasterizing {mask_str}")
                     mask_raster = features.rasterize(
                         mask.geometry,
@@ -1009,6 +1009,9 @@ class DimapProduct(VhrProduct):
                         values=self._mask_true,
                         default_nodata=self._mask_false,
                     )
+
+                    # Do not keep pixelized mask
+                    mask = utils.simplify_footprint(mask, self.resolution)
 
             # Sometimes the GML mask lacks crs (why ?)
             elif (

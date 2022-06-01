@@ -49,7 +49,7 @@ from eoreader.bands import (
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.products.product import OrbitDirection, Product, SensorType
 from eoreader.reader import Constellation
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -264,6 +264,7 @@ class CustomProduct(Product):
         return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
 
     @cache
+    @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint of the products (without nodata, *in french == emprise utile*)
@@ -280,7 +281,8 @@ class CustomProduct(Product):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        return rasters.get_footprint(self.get_default_band_path()).to_crs(self.crs())
+        arr = rasters.read(self.get_default_band_path(), indexes=[1])
+        return rasters.get_footprint(arr).to_crs(self.crs())
 
     @cache
     def crs(self) -> crs.CRS:
