@@ -1759,7 +1759,7 @@ class Product:
         Returns:
             str: Quicklook path
         """
-        LOGGER.warning(f"No quicklook available for {self.constellation.value} data!")
+        LOGGER.debug(f"No quicklook available for {self.constellation.value} data!")
         return None
 
     def plot(self) -> None:

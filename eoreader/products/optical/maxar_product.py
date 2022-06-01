@@ -900,7 +900,7 @@ class MaxarProduct(VhrProduct):
             footprint = rasters.vectorize(
                 arr, values=0, keep_values=False, dissolve=True
             )
-            footprint = vectors.get_wider_exterior(footprint)
+            footprint = vectors.get_wider_exterior(footprint.convex_hull)
         else:
             # If not ortho -> default band has been orthorectified and nodata will be set
             footprint = rasters.get_footprint(self.get_default_band_path())

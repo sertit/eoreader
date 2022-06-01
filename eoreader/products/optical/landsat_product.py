@@ -1692,7 +1692,7 @@ class LandsatProduct(OpticalProduct):
             if self._collection == LandsatCollection.COL_2:
                 LOGGER.warning(f"No quicklook found in {self.condensed_name}")
             else:
-                LOGGER.warning(
+                LOGGER.debug(
                     f"No quicklook available for {self.constellation.value} Collection-1 data!"
                 )
 
