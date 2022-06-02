@@ -344,7 +344,8 @@ class Reader:
         output_path: Union[str, CloudPath, Path] = None,
         method: CheckMethod = CheckMethod.MTD,
         remove_tmp: bool = False,
-        custom=False,
+        custom: bool = False,
+        constellation: Union[Constellation, str, list] = None,
         **kwargs,
     ) -> "Product":  # noqa: F821
         """
@@ -389,6 +390,7 @@ class Reader:
             method (CheckMethod): Checking method used to recognize the products
             remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
             custom (bool): True if we want to use a custom stack
+            constellation (Union[Constellation, str, list]): One or several constellations to help the Reader to choose more rapidly the correct Product
 
         Returns:
             Product: Correct products
@@ -410,26 +412,31 @@ class Reader:
             )
         else:
             prod = None
-            for constellation in CONSTELLATION_REGEX.keys():
+            if constellation is None:
+                const_list = CONSTELLATION_REGEX.keys()
+            else:
+                const_list = Constellation.convert_from(constellation)
+
+            for const in const_list:
                 if method == CheckMethod.MTD:
-                    is_valid = self.valid_mtd(product_path, constellation)
+                    is_valid = self.valid_mtd(product_path, const)
                 elif method == CheckMethod.NAME:
-                    is_valid = self.valid_name(product_path, constellation)
+                    is_valid = self.valid_name(product_path, const)
                 else:
-                    is_valid = self.valid_name(
-                        product_path, constellation
-                    ) and self.valid_mtd(product_path, constellation)
+                    is_valid = self.valid_name(product_path, const) and self.valid_mtd(
+                        product_path, const
+                    )
 
                 if is_valid:
-                    sat_class = constellation.name.lower() + "_product"
+                    sat_class = const.name.lower() + "_product"
 
                     # Channel correctly the constellations to their generic files (just in case)
                     # TerraSAR-like constellations
-                    if constellation in [Constellation.TDX, constellation.PAZ]:
+                    if const in [Constellation.TDX, Constellation.PAZ]:
                         sat_class = "tsx_product"
-                        constellation = None  # All product names are the same, so assess it with MTD
+                        const = None  # All product names are the same, so assess it with MTD
                     # Maxar-like constellations
-                    elif constellation in [
+                    elif const in [
                         Constellation.QB,
                         Constellation.GE01,
                         Constellation.WV01,
@@ -438,9 +445,9 @@ class Reader:
                         Constellation.WV04,
                     ]:
                         sat_class = "maxar_product"
-                        constellation = None  # All product names are the same, so assess it with MTD
+                        const = None  # All product names are the same, so assess it with MTD
                     # Lansat constellations
-                    elif constellation in [
+                    elif const in [
                         Constellation.L1,
                         Constellation.L2,
                         Constellation.L3,
@@ -452,7 +459,7 @@ class Reader:
                     ]:
                         sat_class = "landsat_product"
                     # SPOT constellations
-                    elif constellation in [Constellation.SPOT6, Constellation.SPOT7]:
+                    elif const in [Constellation.SPOT6, Constellation.SPOT7]:
                         sat_class = "spot_product"
 
                     # Manage both optical and SAR
@@ -471,7 +478,7 @@ class Reader:
                         archive_path=archive_path,
                         output_path=output_path,
                         remove_tmp=remove_tmp,
-                        constellation=constellation,
+                        constellation=const,
                         **kwargs,
                     )
                     break
@@ -578,7 +585,7 @@ class Reader:
         nested = self._mtd_nested[constellation]
 
         # False by default
-        is_valid = [False for idx in regex_list]
+        is_valid = [False for _ in regex_list]
 
         # Folder
         if product_path.is_dir():
@@ -589,7 +596,7 @@ class Reader:
                     path for path in product_path.iterdir() if path.is_file()
                 )
             else:
-                nested_wildcard = "/".join(["*" for i in range(nested)])
+                nested_wildcard = "/".join(["*" for _ in range(nested)])
                 prod_files = list(product_path.glob(f"*{nested_wildcard}/*.*"))
 
         # Archive

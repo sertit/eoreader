@@ -1,5 +1,12 @@
 # Release History
 
+## 0.16.0 (2022-MM-DD)
+
+### Enhancements
+
+- **ENH: Allow the possibility to pass a constellation (or a constellation list) to `Reader().open()` to speed up the opening of a product**
+
+
 ## 0.15.1 (2022-06-02)
 
 ### Optimizations
