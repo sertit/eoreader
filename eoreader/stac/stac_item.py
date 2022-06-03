@@ -30,7 +30,6 @@ extensions:
     - Sun angles
     - Viewing position (in progress)
 """
-import os
 from datetime import datetime
 
 import geopandas as gpd
@@ -48,7 +47,12 @@ from eoreader.stac._stac_keywords import (
     TITLE,
 )
 from eoreader.stac.stac_extensions import EoExt, ProjExt, ViewExt
-from eoreader.stac.stac_utils import gdf_to_bbox, gdf_to_geometry, repr_multiline_str
+from eoreader.stac.stac_utils import (
+    gdf_to_bbox,
+    gdf_to_geometry,
+    get_media_type,
+    repr_multiline_str,
+)
 
 SAR_STAC_EXTENSIONS = [
     "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
@@ -143,18 +147,11 @@ class StacItem:
         # TODO: relative path ?
         thumbnail_path = self._prod.get_quicklook_path()
         if thumbnail_path:
-            suffix = os.path.splitext(thumbnail_path)[-1]
-            if suffix.lower() == ".png":
-                media_type = pystac.MediaType.PNG
-            elif suffix.lower() == ".tif":
-                media_type = pystac.MediaType.GEOTIFF
-            elif suffix.lower() in [".jpeg", ".jpg"]:
-                media_type = pystac.MediaType.JPEG
-            else:
-                raise ValueError(f"Not recognized media type: {suffix}")
             item.add_asset(
                 "thumbnail",
-                pystac.Asset(href=str(thumbnail_path), media_type=media_type),  # TODO
+                pystac.Asset(
+                    href=str(thumbnail_path), media_type=get_media_type(thumbnail_path)
+                ),  # TODO
             )
 
         # Add EO extension
