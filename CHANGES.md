@@ -10,6 +10,7 @@
 ### Bug Fixes
 
 - FIX: Fix quicklook media type with `JP2` files
+- FIX: Fix `Sentinel-3 SLSTR` `F1` bands based on F grid
 
 ## 0.15.1 (2022-06-02)
 
