@@ -25,8 +25,6 @@ STAC extensions:
     - Sun angles
     - Viewing position (in progress)
 """
-import os
-
 import geopandas as gpd
 from rasterio.crs import CRS
 
@@ -55,6 +53,7 @@ from eoreader.stac.stac_utils import (
     gdf_to_bbox,
     gdf_to_centroid,
     gdf_to_geometry,
+    get_media_type,
     repr_multiline_str,
 )
 
@@ -132,23 +131,9 @@ class EoExt:
         for band_name, band_path in band_paths.items():
             band = self._prod.bands[band_name]
             try:
-                suffix = os.path.splitext(band_path)[-1]
-                if suffix.lower() in [".tiff", ".tif"]:
-                    # Manage COGs
-                    media_type = pystac.MediaType.GEOTIFF
-                elif suffix.lower() == ".jp2":
-                    media_type = pystac.MediaType.JPEG2000
-                elif suffix.lower() == ".xml":
-                    media_type = pystac.MediaType.XML
-                elif suffix.lower() == ".til":
-                    media_type = None  # Not existing
-                elif suffix.lower() == ".nc":
-                    media_type = None  # Not existing
-                else:
-                    media_type = None  # Not recognized
                 band_asset = pystac.Asset(
                     href=str(band_path),
-                    media_type=media_type,
+                    media_type=get_media_type(band_path),
                     roles=[band.asset_role],
                     extra_fields={"eoreader_name": band.eoreader_name.value},
                 )

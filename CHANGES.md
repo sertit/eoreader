@@ -6,6 +6,9 @@
 
 - **ENH: Allow the possibility to pass a constellation (or a constellation list) to `Reader().open()` to speed up the opening of a product**
 
+### Bug Fixes
+
+- FIX: Fix quicklook media type with `JP2` files
 
 ## 0.15.1 (2022-06-02)
 
