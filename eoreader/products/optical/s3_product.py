@@ -834,11 +834,14 @@ class S3Product(OpticalProduct):
         Returns:
             str: Quicklook path
         """
-        if self.is_archived:
-            quicklook_path = files.get_archived_rio_path(
-                self.path, file_regex=r".*.jpg"
-            )
-        else:
-            quicklook_path = str(next(self.path.glob("**/*.jpg")))
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=r".*.jpg"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("**/*.jpg")))
+        except (FileNotFoundError, StopIteration):
+            quicklook_path = None
 
         return quicklook_path

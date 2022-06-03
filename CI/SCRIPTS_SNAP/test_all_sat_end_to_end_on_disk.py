@@ -82,6 +82,7 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
         Oa01,
         TIR_1,
         F1,
+        F2,
         SWIR_2,
         HILLSHADE,
         CLOUDS,
