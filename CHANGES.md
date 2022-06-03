@@ -5,6 +5,7 @@
 ### Enhancements
 
 - **ENH: Allow the possibility to pass a constellation (or a constellation list) to `Reader().open()` to speed up the opening of a product**
+- **ENH: Add a quicklook search for `Sentinel-3` products**
 
 ### Bug Fixes
 
