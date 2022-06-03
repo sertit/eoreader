@@ -1205,8 +1205,8 @@ class S2Product(OpticalProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = "GRANULE/*/*.xml"
-        mtd_archived = r"GRANULE.*\.xml"
+        mtd_from_path = "GRANULE/*/MTD*.xml"
+        mtd_archived = r"GRANULE.*MTD.*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 

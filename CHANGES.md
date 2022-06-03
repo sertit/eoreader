@@ -12,6 +12,7 @@
 - FIX: Fix quicklook media type with `JP2` files
 - FIX: Fix `Sentinel-3 SLSTR` `F1` bands based on F grid
 - FIX: Fix handling of zipped `Sentinel-2 L2Ap`
+- FIX: Fix zipped `Sentinel-2` with other XML files in GRANULE subdirectories
 
 ## 0.15.1 (2022-06-02)
 
