@@ -156,7 +156,7 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 
 ## Talks
 
-- GeoPython 2022 [[PDF](https://seafile.unistra.fr/f/be2b461af970465b903e/)] [[YouTube](https://www.youtube.com/watch?v=mKxOiRULOJA&t=14303s)]
+- GeoPython 2022 [ [PDF](https://seafile.unistra.fr/f/be2b461af970465b903e/) ] [ [YouTube](https://www.youtube.com/watch?v=mKxOiRULOJA&t=14303s) ]
 
 ## License
 
