@@ -3,8 +3,10 @@
 [![Tests](https://github.com/sertit/eoreader/actions/workflows/test.yml/badge.svg)](https://github.com/sertit/eoreader/actions/workflows/test.yml)
 [![Gitter](https://badges.gitter.im/eoreader/community.svg)](https://gitter.im/eoreader/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/sertit/eoreader/blob/master/LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6461738.svg)](https://doi.org/10.5281/zenodo.6461738)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6605956.svg)](https://doi.org/10.5281/zenodo.6605956)
 [![stars](https://img.shields.io/github/stars/sertit/eoreader?style=social)](https://github.com/sertit/eoreader)
+[![Conda](https://img.shields.io/conda/dn/conda-forge/eoreader.svg)](https://anaconda.org/conda-forge/eoreader)
+[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/eoreader.svg?style=social&label=EOReader)](https://twitter.com/eoreader)
 
 # ![eoreader_logo](https://eoreader.readthedocs.io/en/latest/_static/favicon.png) EOReader
 
@@ -151,6 +153,10 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 ## Press Release
 
 - [ESA Success Story](https://earth.esa.int/eogateway/news/new-open-source-python-library-improves-rapid-mapping-services)
+
+## Talks
+
+- GeoPython 2022 [[PDF](https://seafile.unistra.fr/f/be2b461af970465b903e/)] [[YouTube](https://www.youtube.com/watch?v=mKxOiRULOJA&t=14303s)]
 
 ## License
 
