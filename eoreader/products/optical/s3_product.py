@@ -297,7 +297,7 @@ class S3Product(OpticalProduct):
         mid_lon = lon[0, mid_y, mid_x].data
 
         # Deduce UTM proj from the central lon/lat
-        utm = vectors.corresponding_utm_projection(mid_lat, mid_lon)
+        utm = vectors.corresponding_utm_projection(mid_lon, mid_lat)
 
         return riocrs.CRS.from_string(utm)
 
