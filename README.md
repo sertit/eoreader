@@ -90,6 +90,7 @@ The API documentation can be found [here](https://eoreader.readthedocs.io/en/lat
 
 Available notebooks provided as examples:
 
+- [Why EOReader?](https://eoreader.readthedocs.io/en/latest/notebooks/why_eoreader.html)
 - [Basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html)
 - [Optical data](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html)
 - [SAR data](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html)
