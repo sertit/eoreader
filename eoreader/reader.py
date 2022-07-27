@@ -107,12 +107,6 @@ class Constellation(ListEnum):
     SKY = "SkySat"
     """SkySat"""
 
-    CSK = "COSMO-SkyMed"
-    """COSMO-SkyMed"""
-
-    CSG = "COSMO-SkyMed 2nd Generation"
-    """COSMO-SkyMed 2nd Generation"""
-
     TSX = "TerraSAR-X"
     """TerraSAR-X"""
 
@@ -170,6 +164,15 @@ class Constellation(ListEnum):
     SAOCOM = "SAOCOM-1"
     """SAOCOM-1"""
 
+    SV1 = "SuperView-1"
+    """SuperView-1"""
+
+    CSK = "COSMO-SkyMed"
+    """COSMO-SkyMed"""
+
+    CSG = "COSMO-SkyMed 2nd Generation"
+    """COSMO-SkyMed 2nd Generation"""
+
     CUSTOM = "CUSTOM"
     """Custom stack"""
 
@@ -220,6 +223,10 @@ CONSTELLATION_REGEX = {
     Constellation.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Constellation.ICEYE: r"((SM|SL|SC|SLEA)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC|SLEA)H*_\d{5,}_\d{8}T\d{6})",
     Constellation.SAOCOM: r".+EOL1[ABCD]SARSAO1[AB]\d+(-product|)",
+    Constellation.SV1: [
+        r"\d{13}_\d{2}",
+        r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
+    ],
 }
 
 MTD_REGEX = {
@@ -278,6 +285,10 @@ MTD_REGEX = {
     Constellation.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Constellation.ICEYE: r"ICEYE_(X\d{1,}_|)(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
     Constellation.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
+    Constellation.SV1: {
+        "nested": 1,  # File that can be found at 1st folder level (product/*/file)
+        "regex": r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
+    },
 }
 
 

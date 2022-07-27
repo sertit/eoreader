@@ -492,3 +492,10 @@ def test_vs1():
     """Function testing the support of Vision-1 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*VIS1*", dem_path=dem_path)
+
+
+@dask_env
+def test_sv1():
+    """Function testing the support of SuperView-1 constellation"""
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
+    _test_core_optical("*0001_01*", dem_path=dem_path)
