@@ -131,6 +131,12 @@ class Constellation(ListEnum):
     SPOT6 = "Spot-6"
     """SPOT-6"""
 
+    SPOT5 = "Spot-5"
+    """SPOT-5"""
+
+    SPOT4 = "Spot-4"
+    """SPOT-4"""
+
     VIS1 = "Vision-1"
     """Vision-1"""
 
@@ -173,6 +179,9 @@ class Constellation(ListEnum):
     CSG = "COSMO-SkyMed 2nd Generation"
     """COSMO-SkyMed 2nd Generation"""
 
+    SPOT45 = "Spot-4/5"
+    """SPOT-4/5 (not a real constellation, but used as a template for SPOT4/5 products)"""
+
     CUSTOM = "CUSTOM"
     """Custom stack"""
 
@@ -212,6 +221,9 @@ CONSTELLATION_REGEX = {
     Constellation.PNEO: r"IMG_\d+_PNEO\d_(P|MS|PMS|MS-FS|PMS-FS)",
     Constellation.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Constellation.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
+    Constellation.SPOT45: r"SPVIEW_.+",
+    Constellation.SPOT4: r"SP04_HIR_(M_|I_|MI|X_|MX)___\d_\d{8}T\d{6}_\d{8}T\d{6}_.*",
+    Constellation.SPOT5: r"SP05_HRG_(HM_|J__|T__|X__|TX__|HMX)__\d_\d{8}T\d{6}_\d{8}T\d{6}_.*",
     Constellation.VIS1: r"VIS1_(PAN|BUN|PSH|MS4)_.+_\d{2}-\d",
     Constellation.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
     Constellation.QB: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
@@ -285,9 +297,13 @@ MTD_REGEX = {
     Constellation.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Constellation.ICEYE: r"ICEYE_(X\d{1,}_|)(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
     Constellation.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
-    Constellation.SV1: {
-        "nested": 1,  # File that can be found at 1st folder level (product/*/file)
-        "regex": r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
+    Constellation.SV1: r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
+    Constellation.SPOT45: {
+        "nested": -1,  # File that can be found at any level (product/**/file)
+        "regex": [
+            r"METADATA\.DIM",  # Too generic name, check also a band
+            r"IMAGERY\.TIF",
+        ],
     },
 }
 
@@ -470,9 +486,12 @@ class Reader:
                         Constellation.L9,
                     ]:
                         sat_class = "landsat_product"
-                    # SPOT constellations
+                    # SPOT-6/7 constellations
                     elif const in [Constellation.SPOT6, Constellation.SPOT7]:
-                        sat_class = "spot_product"
+                        sat_class = "spot67_product"
+                    # SPOT-4/5 constellations
+                    elif const in [Constellation.SPOT4, Constellation.SPOT5]:
+                        sat_class = "spot45_product"
 
                     # Manage both optical and SAR
                     try:
