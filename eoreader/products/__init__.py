@@ -42,7 +42,7 @@ __all__ += [
     "DimapProduct",
     "DimapProductType",
     "PldProduct",
-    "SpotProduct",
+    "Spot67Product",
     "MaxarProduct",
     "MaxarProductType",
     "MaxarSatId",
@@ -50,11 +50,14 @@ __all__ += [
     "Vis1Product",
     "Vis1ProductType",
     "Vis1BandCombination",
+    "Sv1Product",
+    "Sv1ProductType",
+    "Sv1BandCombination",
 ]
 from .optical.vhr_product import VhrProduct
 from .optical.dimap_product import DimapBandCombination, DimapProduct, DimapProductType
 from .optical.pld_product import PldProduct
-from .optical.spot_product import SpotProduct
+from .optical.spot67_product import Spot67Product
 from .optical.maxar_product import (
     MaxarProduct,
     MaxarProductType,
@@ -62,6 +65,21 @@ from .optical.maxar_product import (
     MaxarBandId,
 )
 from .optical.vis1_product import Vis1Product, Vis1ProductType, Vis1BandCombination
+from .optical.sv1_product import Sv1Product, Sv1ProductType, Sv1BandCombination
+
+# SPOT4/5
+__all__ += [
+    "Spot45ProductType",
+    "Spot4BandCombination",
+    "Spot5BandCombination",
+    "Spot45Product",
+]
+from .optical.spot45_product import (
+    Spot45ProductType,
+    Spot4BandCombination,
+    Spot5BandCombination,
+    Spot45Product,
+)
 
 # PlanetScope
 __all__ += [
