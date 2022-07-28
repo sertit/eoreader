@@ -204,9 +204,11 @@ class CustomProduct(Product):
         return date
 
     def _get_constellation(self) -> Constellation:
-        return Constellation.convert_from(
-            self.kwargs.get(CustomFields.CONSTELLATION.value, CUSTOM)
-        )[0]
+        """ Getter of the constellation """
+        const = self.kwargs.get(CustomFields.CONSTELLATION.value)
+        if const is None:
+            const = CUSTOM
+        return Constellation.convert_from(const)[0]
 
     def _get_resolution(self) -> float:
         """

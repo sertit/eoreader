@@ -31,7 +31,7 @@ import numpy as np
 import rasterio
 import xarray as xr
 from affine import Affine
-from cloudpathlib import CloudPath
+from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from rasterio import errors, features, transform
 from rasterio.crs import CRS
@@ -1205,8 +1205,8 @@ class S2Product(OpticalProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = "GRANULE/*/*.xml"
-        mtd_archived = r"GRANULE.*\.xml"
+        mtd_from_path = "GRANULE/*/MTD*.xml"
+        mtd_archived = r"GRANULE.*MTD.*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
@@ -1439,8 +1439,19 @@ class S2Product(OpticalProduct):
     def _l2ap_geocode_data(
         self, path: Union[CloudPath, Path]
     ) -> (Affine, int, int, CRS):
-        """"""
+        """
+        Geocode L2Ap data.
+
+        Args:
+            path (Union[CloudPath, Path]): Band path to be geocoded
+
+        Returns:
+            (Affine, int, int, CRS): Transform, width, height and CRS of the band
+        """
         try:
+            if isinstance(path, str):
+                path = AnyPath(path)
+
             # Read metadata
             root, ns = self.read_mtd()
 

@@ -14,9 +14,9 @@
 and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) constellations, loading and stacking bands,
 clouds, DEM and spectral indices in a sensor-agnostic way.
 
-|**Optical** | **SAR**|
-| --- | ---|
-|`Sentinel-2` and `Sentinel-2 Theia`<br>`Sentinel-3 OLCI` and `SLSTR`<br>`Landsat` 1 to 9<br>`PlanetScope` and `SkySat`<br>`Pleiades` and `Pleiades-Neo`<br>`SPOT 6-7`<br>`Vision-1`<br>`Maxar` (WorldViews, GeoEye)| `Sentinel-1`<br>`COSMO-Skymed` 1st and 2nd Generation<br>`TerraSAR-X`, `TanDEM-X` and `PAZ SAR`<br>`RADARSAT-2` and `RADARSAT-Constellation`<br>`ICEYE`<br>`SAOCOM`|
+| **Optical**                                                                                                                                                                                                                                               | **SAR**|
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ---|
+| `Sentinel-2` and `Sentinel-2 Theia`<br>`Sentinel-3 OLCI` and `SLSTR`<br>`Landsat` 1 to 9<br>`PlanetScope` and `SkySat`<br>`Pleiades` and `Pleiades-Neo`<br>`SPOT 6-7`<br>`Vision-1`<br>`Maxar` (WorldViews, GeoEye)<br>`SuperView-1` | `Sentinel-1`<br>`COSMO-Skymed` 1st and 2nd Generation<br>`TerraSAR-X`, `TanDEM-X` and `PAZ SAR`<br>`RADARSAT-2` and `RADARSAT-Constellation`<br>`ICEYE`<br>`SAOCOM`|
 
 It also implements additional **sensor-agnostic** features:
 
@@ -90,6 +90,7 @@ The API documentation can be found [here](https://eoreader.readthedocs.io/en/lat
 
 Available notebooks provided as examples:
 
+- [Why EOReader?](https://eoreader.readthedocs.io/en/latest/notebooks/why_eoreader.html)
 - [Basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html)
 - [Optical data](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html)
 - [SAR data](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html)
@@ -157,6 +158,10 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 ## Press Release
 
 - [ESA Success Story](https://earth.esa.int/eogateway/news/new-open-source-python-library-improves-rapid-mapping-services)
+
+## Talks
+
+- GeoPython 2022 [ [PDF](https://seafile.unistra.fr/f/be2b461af970465b903e/) ] [ [YouTube](https://www.youtube.com/watch?v=mKxOiRULOJA&t=14303s) ]
 
 ## License
 

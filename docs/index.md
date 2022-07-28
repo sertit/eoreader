@@ -6,6 +6,14 @@
 ```{eval-rst}
 .. toctree::
    :maxdepth: 1
+   :hidden:
+
+   notebooks/why_eoreader 
+```
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 1
    :caption: For Users
    :hidden:
 

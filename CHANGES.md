@@ -1,5 +1,21 @@
 # Release History
 
+## 0.16.0 (2022-MM-DD)
+
+### Enhancements
+
+- **ENH: Adding the support of SuperView-1 constellation ([#21](https://github.com/sertit/eoreader/issues/21)) **
+- **ENH: Allow the possibility to pass a constellation (or a constellation list) to `Reader().open()` to speed up the opening of a product**
+- **ENH: Add a quicklook search for `Sentinel-3` products**
+
+### Bug Fixes
+
+- FIX: Fix quicklook media type with `JP2` files
+- FIX: Fix `Sentinel-3 SLSTR` `F1` bands based on F grid
+- FIX: Correct the UTM projection for `Sentinel-3` data
+- FIX: Fix handling of zipped `Sentinel-2 L2Ap`
+- FIX: Fix zipped `Sentinel-2` with other XML files in GRANULE subdirectories
+
 ## 0.15.1 (2022-06-02)
 
 ### Optimizations

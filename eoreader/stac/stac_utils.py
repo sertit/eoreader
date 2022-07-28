@@ -17,6 +17,7 @@
 """
 STAC utils
 """
+import os
 from datetime import datetime
 from pprint import pformat
 from typing import Any
@@ -116,3 +117,38 @@ def repr_multiline_str(to_str: Any, nof_tabs: int) -> str:
     return f"\n{nof_tabs_str}" + f"{nof_tabs_str}".join(
         pformat(to_str).splitlines(True)
     )
+
+
+def get_media_type(band_path: str) -> Any:
+    """
+    Get media type
+
+    Args:
+        band_path (str): Band path
+
+    Returns:
+        Any: Media Type
+
+    """
+    import pystac
+
+    suffix = os.path.splitext(band_path)[-1]
+    if suffix.lower() in [".tiff", ".tif"]:
+        # Manage COGs
+        media_type = pystac.MediaType.GEOTIFF
+    elif suffix.lower() == ".jp2":
+        media_type = pystac.MediaType.JPEG2000
+    elif suffix.lower() == ".xml":
+        media_type = pystac.MediaType.XML
+    elif suffix.lower() == ".png":
+        media_type = pystac.MediaType.PNG
+    elif suffix.lower() in [".jpeg", ".jpg"]:
+        media_type = pystac.MediaType.JPEG
+    elif suffix.lower() == ".til":
+        media_type = None  # Not existing
+    elif suffix.lower() == ".nc":
+        media_type = None  # Not existing
+    else:
+        media_type = None  # Not recognized
+
+    return media_type

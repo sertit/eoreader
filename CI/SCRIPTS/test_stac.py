@@ -559,6 +559,13 @@ def test_vs1():
 
 @s3_env
 @dask_env
+def test_sv1():
+    """Function testing the support of SuperView-1 constellation"""
+    _test_core_optical("*0001_01*")
+
+
+@s3_env
+@dask_env
 def test_s1():
     """Function testing the support of Sentinel-1 constellation"""
     _test_core_sar("*S1*_IW*")
