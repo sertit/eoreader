@@ -74,6 +74,7 @@ SLSTR_SOLAR_FLUXES_DEFAULT = {
 # Link band names to their stripe
 SLSTR_A_BANDS = ["S1", "S2", "S3"]
 SLSTR_ABC_BANDS = ["S4", "S5", "S6"]
+SLSTR_F_BANDS = ["F1"]
 SLSTR_I_BANDS = ["S7", "S8", "S9", "F1", "F2"]
 
 # Link band names to their physical quantity (radiance vs brilliance temperature)
@@ -251,6 +252,11 @@ class S3SlstrProduct(S3Product):
         )  # Order is important here, gcps NEED to be after this
 
         self._gcps = defaultdict(list)
+        self._F1_is_f = True
+        try:
+            self._get_raw_band_path(spb.F1)
+        except (FileNotFoundError, StopIteration):
+            self._F1_is_f = False
 
     def _get_preprocessed_band_path(
         self,
@@ -487,27 +493,40 @@ class S3SlstrProduct(S3Product):
         """
         raw_band_paths = {}
         for band in self.get_existing_bands():
-            band_id = self.bands[band].id
-
-            # Get this band's suffix
-            suffix = kwargs.get("suffix", self._get_suffix(band, **kwargs))
-
-            # Get band filename and subdataset
-            if band_id in SLSTR_RAD_BANDS:
-                filename = self._replace(self._radiance_file, band=band, suffix=suffix)
-            elif band_id in SLSTR_BT_BANDS:
-                filename = self._replace(self._bt_file, band=band, suffix=suffix)
-            else:
-                filename = band
-
-            if self.is_archived:
-                raw_path = files.get_archived_path(self.path, f".*{filename}*")
-            else:
-                raw_path = next(self.path.glob(f"*{filename}*"))
-
-            raw_band_paths[band] = raw_path
+            raw_band_paths[band] = self._get_raw_band_path(band, **kwargs)
 
         return raw_band_paths
+
+    def _get_raw_band_path(self, band: BandNames, **kwargs) -> Union[Path, CloudPath]:
+        """
+        Return the raw band path.
+
+        Args:
+            band (BandNames): Wanted band
+            kwargs: Additional arguments
+
+        Returns:
+            Union[Path, CloudPath]: Raw path of queried band
+        """
+        band_id = self.bands[band].id
+
+        # Get this band's suffix
+        suffix = kwargs.get("suffix", self._get_suffix(band, **kwargs))
+
+        # Get band filename and subdataset
+        if band_id in SLSTR_RAD_BANDS:
+            filename = self._replace(self._radiance_file, band=band, suffix=suffix)
+        elif band_id in SLSTR_BT_BANDS:
+            filename = self._replace(self._bt_file, band=band, suffix=suffix)
+        else:
+            filename = band
+
+        if self.is_archived:
+            raw_path = files.get_archived_path(self.path, f".*{filename}*")
+        else:
+            raw_path = next(self.path.glob(f"*{filename}*"))
+
+        return raw_path
 
     def _preprocess(
         self,
@@ -636,12 +655,20 @@ class S3SlstrProduct(S3Product):
             if isinstance(band, BandNames):
                 band = self.bands[band].id
 
-            if band in SLSTR_I_BANDS:
-                stripe = SlstrStripe.I
-            elif band in SLSTR_ABC_BANDS:
-                stripe = SlstrStripe.from_value(kwargs.get(SLSTR_STRIPE, SlstrStripe.A))
+            if band == spb.F1.value:
+                if self._F1_is_f:
+                    stripe = SlstrStripe.F
+                else:
+                    stripe = SlstrStripe.I
             else:
-                stripe = SlstrStripe.A
+                if band in SLSTR_I_BANDS:
+                    stripe = SlstrStripe.I
+                elif band in SLSTR_ABC_BANDS:
+                    stripe = SlstrStripe.from_value(
+                        kwargs.get(SLSTR_STRIPE, SlstrStripe.A)
+                    )
+                else:
+                    stripe = SlstrStripe.A
         else:
             stripe = SlstrStripe.from_value(kwargs.get(SLSTR_STRIPE, SlstrStripe.A))
 

@@ -297,7 +297,7 @@ class S3Product(OpticalProduct):
         mid_lon = lon[0, mid_y, mid_x].data
 
         # Deduce UTM proj from the central lon/lat
-        utm = vectors.corresponding_utm_projection(mid_lat, mid_lon)
+        utm = vectors.corresponding_utm_projection(mid_lon, mid_lat)
 
         return riocrs.CRS.from_string(utm)
 
@@ -826,3 +826,22 @@ class S3Product(OpticalProduct):
         Set product type
         """
         raise NotImplementedError
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing (some providers are providing one quicklook, such as creodias)
+
+        Returns:
+            str: Quicklook path
+        """
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=r".*.jpg"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("**/*.jpg")))
+        except (FileNotFoundError, StopIteration):
+            quicklook_path = None
+
+        return quicklook_path
