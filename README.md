@@ -14,9 +14,9 @@
 and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) constellations, loading and stacking bands,
 clouds, DEM and spectral indices in a sensor-agnostic way.
 
-|**Optical** | **SAR**|
-| --- | ---|
-|`Sentinel-2` and `Sentinel-2 Theia`<br>`Sentinel-3 OLCI` and `SLSTR`<br>`Landsat` 1 to 9<br>`PlanetScope` and `SkySat`<br>`Pleiades` and `Pleiades-Neo`<br>`SPOT 6-7`<br>`Vision-1`<br>`Maxar` (WorldViews, GeoEye)| `Sentinel-1`<br>`COSMO-Skymed` 1st and 2nd Generation<br>`TerraSAR-X`, `TanDEM-X` and `PAZ SAR`<br>`RADARSAT-2` and `RADARSAT-Constellation`<br>`ICEYE`<br>`SAOCOM`|
+| **Optical**                                                                                                                                                                                                                                               | **SAR**|
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ---|
+| `Sentinel-2` and `Sentinel-2 Theia`<br>`Sentinel-3 OLCI` and `SLSTR`<br>`Landsat` 1 to 9<br>`PlanetScope` and `SkySat`<br>`Pleiades` and `Pleiades-Neo`<br>`SPOT 6-7`<br>`Vision-1`<br>`Maxar` (WorldViews, GeoEye)<br>`SuperView-1` | `Sentinel-1`<br>`COSMO-Skymed` 1st and 2nd Generation<br>`TerraSAR-X`, `TanDEM-X` and `PAZ SAR`<br>`RADARSAT-2` and `RADARSAT-Constellation`<br>`ICEYE`<br>`SAOCOM`|
 
 It also implements additional **sensor-agnostic** features:
 

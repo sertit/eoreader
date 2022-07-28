@@ -189,7 +189,7 @@ class Sv1Product(VhrProduct):
 
         blue = SpectralBand(
             eoreader_name=spb.BLUE,
-            **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 450, WV_MAX: 590},
+            **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 450, WV_MAX: 520},
         )
 
         green = SpectralBand(
@@ -360,6 +360,9 @@ class Sv1Product(VhrProduct):
 
         else:
             date_utc = self.datetime
+
+        # Remove timezone
+        date_utc = date_utc.replace(tzinfo=None)
 
         # Convert to str
         if not as_datetime:
