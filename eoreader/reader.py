@@ -305,6 +305,20 @@ MTD_REGEX = {
             r"IMAGERY\.TIF",
         ],
     },
+    Constellation.SPOT4: {
+        "nested": -1,  # File that can be found at any level (product/**/file)
+        "regex": [
+            r"METADATA\.DIM",  # Too generic name, check also a band
+            r"IMAGERY\.TIF",
+        ],
+    },
+    Constellation.SPOT5: {
+        "nested": -1,  # File that can be found at any level (product/**/file)
+        "regex": [
+            r"METADATA\.DIM",  # Too generic name, check also a band
+            r"IMAGERY\.TIF",
+        ],
+    },
 }
 
 
