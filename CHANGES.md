@@ -4,8 +4,8 @@
 
 ### Enhancements
 
-- **ENH: Adding the support of SuperView-1 constellation ([#21](https://github.com/sertit/eoreader/issues/21)) **
-- **ENH: Adding the support of SPOT-4/5 constellations ([#39](https://github.com/sertit/eoreader/issues/39)) **
+- **ENH: Adding the support of SuperView-1 constellation ([#21](https://github.com/sertit/eoreader/issues/21))**
+- **ENH: Adding the support of SPOT-4/5 constellations ([#39](https://github.com/sertit/eoreader/issues/39))**
 - **ENH: Allow the possibility to pass a constellation (or a constellation list) to `Reader().open()` to speed up the opening of a product**
 - **ENH: Add a quicklook search for `Sentinel-3` products**
 
