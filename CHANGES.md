@@ -736,7 +736,7 @@
 - **ENH: Adding THR data support:**
     - **PlanetScope**
     - **Pleiades**
-    - **SPOT 6-7**
+    - **SPOT-6/7**
 - **ENH: Better handling of SNAP DEMs (using External DEM and other available SNAP DEMs)**
 
 ### Bug Fixes
