@@ -807,7 +807,7 @@ class Spot45Product(VhrProduct):
         Returns:
             Union[CloudPath, Path]: DIMAP filepath
         """
-        return self._get_path("IMAGERY", "TIF")
+        return self._get_path("**/IMAGERY", "TIF")
 
     def _dn_to_toa_rad(self, dn_arr: xr.DataArray, band: BandNames) -> xr.DataArray:
         """
