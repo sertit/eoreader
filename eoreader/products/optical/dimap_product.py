@@ -46,7 +46,7 @@ from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import VhrProduct
 from eoreader.reader import Constellation
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -487,6 +487,7 @@ class DimapProduct(VhrProduct):
         return utm_extent
 
     @cache
+    @simplify
     def footprint(self, **kwargs) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
