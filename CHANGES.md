@@ -17,6 +17,10 @@
 - FIX: Fix handling of zipped `Sentinel-2 L2Ap`
 - FIX: Fix zipped `Sentinel-2` with other XML files in GRANULE subdirectories
 
+### Other
+
+- Renaming `master` branch to `main`
+
 ## 0.15.1 (2022-06-02)
 
 ### Optimizations
@@ -29,8 +33,8 @@
 ### Bug Fixes
 
 - FIX: Fixing condensed name to avoid duplicates:
-  - adding the `job_id` for `VHR` products
-  - adding the polarization channels for `SAR` products
+    - adding the `job_id` for `VHR` products
+    - adding the polarization channels for `SAR` products
 - FIX: Remove import of pystac in `stac_utils`
 - FIX: Fix bug for `Vision-1` data looking for non-existing RPC files in case of `ORTP` product type
 - FIX: Fix quicklook regex for `Vision-1` data
@@ -41,6 +45,7 @@
 - FIX: Manage the case with `cloud_cover = -999.0` for `Maxar` products (returns `None`)
 
 ### Other
+
 - CI: Add new optical products to be tested for end-to-end tests
 
 ## 0.15.0 (2022-05-30)
@@ -49,9 +54,9 @@
 
 - **BREAKING CHANGES: `Optical` becomes `Spectral` when more appropriate**
 - **BREAKING CHANGES: `Platform` and `Sensor` become `Constellation` when more appropriate, to fit STAC vocabulary** ([#29](https://github.com/sertit/eoreader/issues/29)):
-  - `Platform` enum becomes `Constellation`
-  - `prod.platform` becomes `prod.constellation`
-  - `prod.sat_id` becomes `prod.constellation_id`
+    - `Platform` enum becomes `Constellation`
+    - `prod.platform` becomes `prod.constellation`
+    - `prod.sat_id` becomes `prod.constellation_id`
 - **BREAKING CHANGES: File `alias` is removed, replaced by `*_bands` files and proper imports in `bands.__init__`**
 - **BREAKING CHANGES: Product attribute `band_names` becomes `bands` in order to be STAC compliant ([#29](https://github.com/sertit/eoreader/issues/29))**
 - **BREAKING CHANGES: Better use of `NIR` and `NARROW_NIR` in the `indices` file (according to the gsd of `Sentinel-2` bands composing the indices)**
@@ -61,14 +66,14 @@
 
 - **ENH: Adding the support of `SkySat` (Collect) products** ([#20](https://github.com/sertit/eoreader/issues/20))
 - **ENH: Bands in mapping are now objects, instead of just IDs** ([#29](https://github.com/sertit/eoreader/issues/29)). This allows us to:
-  - Add band metadata (such as center wavelength, bandwidth...)
-  - Map spectral bands between STAC spec and EOReader format ([#29](https://github.com/sertit/eoreader/issues/29))
-  - Add a better `__repr__` functions
+    - Add band metadata (such as center wavelength, bandwidth...)
+    - Map spectral bands between STAC spec and EOReader format ([#29](https://github.com/sertit/eoreader/issues/29))
+    - Add a better `__repr__` functions
 - **ENH: Handling 8 bands `PlanetScope` data** ([#20](https://github.com/sertit/eoreader/issues/20))
 - **ENH: Adding the `GREEN1` mapped band, corresponding to PlanetScope `GREEN I` and `Sentinel-3 OLCI` `Oa05` band**
 - **ENH: Handle some slightly broken `Sentinel-2` products:**
-  - when the metadata files are corrupted or when the detfoo vectors are empty ([#34](https://github.com/sertit/eoreader/issues/34))
-  - with missing MSK prefix for QI_DATA files (i.e `DETFOO` instead of `MSK_DETFOO`)
+    - when the metadata files are corrupted or when the detfoo vectors are empty ([#34](https://github.com/sertit/eoreader/issues/34))
+    - with missing MSK prefix for QI_DATA files (i.e `DETFOO` instead of `MSK_DETFOO`)
 - **ENH: Handle exception for corrupted bands (in `Sentinel-2` and `utils.read`) ([#34](https://github.com/sertit/eoreader/issues/34))**
 - **ENH: Add a STAC object that can be used to retrieve STAC Items from every Product (`prod.stac.create_item()`) ([#29](https://github.com/sertit/eoreader/issues/29))**
 - **ENH: Add a `get_mean_viewing_angles` for Optical Products to fill STAC View Extension ([#29](https://github.com/sertit/eoreader/issues/29))**
