@@ -173,9 +173,9 @@ def _test_core(
             assert prod.instrument is not None
 
             with tempfile.TemporaryDirectory() as tmp_dir:
-                tmp_dir = os.path.join(
-                    "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                )
+                # tmp_dir = os.path.join(
+                #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
+                # )
                 prod.output = tmp_dir
 
                 os.environ[CI_EOREADER_BAND_FOLDER] = str(
@@ -201,13 +201,13 @@ def _test_core(
                 )
                 # Write to path if needed
                 if not extent_path.exists():
-                    # raise FileNotFoundError(
-                    #     f"Extent not found for {prod.condensed_name}!"
-                    # )
-                    extent_path = os.path.join(
-                        tmp_dir, f"{prod.condensed_name}_extent.geojson"
+                    raise FileNotFoundError(
+                        f"Extent not found for {prod.condensed_name}!"
                     )
-                    extent.to_file(extent_path, driver="GeoJSON")
+                    # extent_path = os.path.join(
+                    #     tmp_dir, f"{prod.condensed_name}_extent.geojson"
+                    # )
+                    # extent.to_file(extent_path, driver="GeoJSON")
 
                 try:
                     ci.assert_geom_equal(extent, extent_path)
@@ -230,13 +230,13 @@ def _test_core(
                 )
                 # Write to path if needed
                 if not footprint_path.exists():
-                    # raise FileNotFoundError(
-                    #     f"Footprint not found for {prod.condensed_name}!"
-                    # )
-                    footprint_path = os.path.join(
-                        tmp_dir, f"{prod.condensed_name}_footprint.geojson"
+                    raise FileNotFoundError(
+                        f"Footprint not found for {prod.condensed_name}!"
                     )
-                    footprint.to_file(footprint_path, driver="GeoJSON")
+                    # footprint_path = os.path.join(
+                    #     tmp_dir, f"{prod.condensed_name}_footprint.geojson"
+                    # )
+                    # footprint.to_file(footprint_path, driver="GeoJSON")
 
                 try:
                     ci.assert_geom_equal(footprint, footprint_path)
@@ -536,6 +536,20 @@ def test_pld():
 def test_pneo():
     """Function testing the support of Pleiades-Neo constellation"""
     _test_core_optical("*IMG_*_PNEO*")
+
+
+@s3_env
+@dask_env
+def test_spot4():
+    """Function testing the support of SPOT-4 constellation"""
+    _test_core_optical("*SP04*")
+
+
+@s3_env
+@dask_env
+def test_spot5():
+    """Function testing the support of SPOT-5 constellation"""
+    _test_core_optical("*SP05*")
 
 
 @s3_env

@@ -126,9 +126,6 @@ def _test_core(
             prod: Product = READER.open(path, method=CheckMethod.MTD, remove_tmp=True)
 
             with tempfile.TemporaryDirectory() as tmp_dir:
-                # tmp_dir = os.path.join(
-                #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "STAC"
-                # )
                 prod.output = tmp_dir
 
                 # Extent
@@ -518,6 +515,20 @@ def test_pld():
 def test_pneo():
     """Function testing the support of Pleiades-Neo constellation"""
     _test_core_optical("*IMG_*_PNEO*")
+
+
+@s3_env
+@dask_env
+def test_spot4():
+    """Function testing the support of SPOT-4 constellation"""
+    _test_core_optical("*SP04*")
+
+
+@s3_env
+@dask_env
+def test_spot5():
+    """Function testing the support of SPOT-5 constellation"""
+    _test_core_optical("*SP05*")
 
 
 @s3_env

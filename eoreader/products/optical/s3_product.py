@@ -51,7 +51,7 @@ from eoreader.bands import SpectralBandNames as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import OpticalProduct
 from eoreader.reader import Constellation
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -223,6 +223,7 @@ class S3Product(OpticalProduct):
         return extent
 
     @cache
+    @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get UTM footprint in UTM of the products (without nodata, *in french == emprise utile*)

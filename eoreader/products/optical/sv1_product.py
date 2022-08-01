@@ -43,7 +43,7 @@ from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -290,6 +290,7 @@ class Sv1Product(VhrProduct):
         return riocrs.CRS.from_string(crs_name)
 
     @cache
+    @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -322,8 +323,8 @@ class Sv1Product(VhrProduct):
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         **Note**:
-        According to :code:`http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf:,
-        all absolute times are in Beijing Time in the format of :code:`YYYY-MM-DDThh:mm:ss.ddddddZ:, unless otherwise specified!
+        According to :code:`http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf`:,
+        all absolute times are in Beijing Time in the format of :code:`YYYY-MM-DDThh:mm:ss.ddddddZ`:, unless otherwise specified!
 
         The datetime is then be converted to UTC.
 

@@ -460,6 +460,19 @@ def test_pneo():
 
 
 @dask_env
+def test_spot4():
+    """Function testing the support of SPOT-4 constellation"""
+    _test_core_optical("*SP04*")
+
+
+@dask_env
+def test_spot5():
+    """Function testing the support of SPOT-5 constellation"""
+    _test_core_optical("*SP05*")
+    _test_core_optical("*SPVIEW*")
+
+
+@dask_env
 def test_spot6():
     """Function testing the support of SPOT-6 constellation"""
     _test_core_optical("*IMG_SPOT6*")
