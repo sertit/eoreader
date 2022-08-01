@@ -85,7 +85,7 @@ The values of the normalized solar irradiance have been computed using WMO (Worl
 class Spot4BandCombination(ListEnum):
     """
     Band combination for SPOT4 data
-    See `here <https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
+    See `this <https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
     """
 
     M = "M"
@@ -118,7 +118,7 @@ class Spot4BandCombination(ListEnum):
 class Spot5BandCombination(ListEnum):
     """
     Band combination for SPOT4/5 data
-    See `here <https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
+    See `this <https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
     """
 
     T = "T"
@@ -593,7 +593,7 @@ class Spot45Product(VhrProduct):
         if self.split_name[0] == "SP04":
             const = Constellation.SPOT4
         elif self.split_name[0] == "SP05":
-            const = Constellation.SPOT55
+            const = Constellation.SPOT5
         else:
             raise InvalidProductError(
                 f"Invalid name: {self.name}, should start with SP04 or SP05."
