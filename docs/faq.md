@@ -56,17 +56,6 @@ We are using some optimizations in order to optimize SNAP's GPT speed, as specif
 - **CPU**: We are allowing GPT to use `max_core` - 2 cores of your computer (i.e. 14 cores out of 16)
 - **Tiles**: Width and height are set to 2048 pixels (instead of 512x512) and cache to 50% of your max memory (instead of 1024Mo)
 
-### I have installed EOReader with Conda and I have troubles with SNAP
-
-- Please remember that conda modifies your `PATH`, so the `gpt` exe can be lost.   
-  Do not hesitate to include it once again. For example:
-
-```python
-import os
-
-os.environ["PATH"] += r";C:\Program Files\snap\bin"
-```
-
 ### SNAP known bugs
 
 #### SNAP `secure-processing` not recognized
