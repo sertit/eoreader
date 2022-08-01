@@ -43,7 +43,7 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
 from eoreader.reader import Constellation
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -316,8 +316,14 @@ class Spot45Product(VhrProduct):
             )
 
             swir1 = SpectralBand(
-                eoreader_name=spb.NIR,
-                **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 1580, WV_MAX: 1750},
+                eoreader_name=spb.SWIR_1,
+                **{
+                    NAME: "SWIR_1",
+                    ID: 4,
+                    GSD: self._ms_res,
+                    WV_MIN: 1580,
+                    WV_MAX: 1750,
+                },
             )
         else:
             # Create spectral bands
@@ -342,8 +348,8 @@ class Spot45Product(VhrProduct):
             )
 
             swir1 = SpectralBand(
-                eoreader_name=spb.NIR,
-                **{NAME: "NIR", ID: 4, GSD: 20.0, WV_MIN: 1580, WV_MAX: 1750},
+                eoreader_name=spb.SWIR_1,
+                **{NAME: "SWIR_1", ID: 4, GSD: 20.0, WV_MIN: 1580, WV_MAX: 1750},
             )
 
         # Manage bands of the product
@@ -470,6 +476,7 @@ class Spot45Product(VhrProduct):
         return riocrs.CRS.from_string(crs_name)
 
     @cache
+    @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """
         Get real footprint in UTM of the products (without nodata, in french == emprise utile)
@@ -681,14 +688,26 @@ class Spot45Product(VhrProduct):
         # Get MTD XML file
         root, _ = self.read_mtd()
 
-        # Open zenith and azimuth angle
+        # Open incidence and off-nadir angle
+        az = None
         try:
-            az = None
-            incidence_angle = 90 - float(root.findtext(".//INCIDENCE_ANGLE"))
-            off_nadir = float(root.findtext(".//VIEWING_ANGLE"))
+            incidence_angle = abs(float(root.findtext(".//INCIDENCE_ANGLE")))
         except TypeError:
             raise InvalidProductError(
                 "INCIDENCE_ANGLE or VIEWING_ANGLE not found in metadata!"
+            )
+        if self.constellation == Constellation.SPOT5:
+            try:
+                off_nadir = abs(float(root.findtext(".//VIEWING_ANGLE")))
+            except TypeError:
+                raise InvalidProductError("VIEWING_ANGLE not found in metadata!")
+        else:
+            # See: https://earth.esa.int/eogateway/missions/spot-4
+            orbit_height = 832000
+            earth_radius = 6378137
+            orbit_coeff = (earth_radius + orbit_height) / earth_radius
+            off_nadir = np.rad2deg(
+                np.arcsin(np.sin(np.deg2rad(90 - incidence_angle)) / orbit_coeff)
             )
 
         return az, off_nadir, incidence_angle
