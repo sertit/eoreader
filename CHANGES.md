@@ -1,5 +1,11 @@
 # Release History
 
+## 0.16.1 (2022-08-03)
+
+### Regression Fixes
+
+- Add the missing conversion to reflectance for `Sentinel-3 OLCI`
+
 ## 0.16.0 (2022-08-01)
 
 ### Enhancements

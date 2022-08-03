@@ -518,6 +518,12 @@ class S3OlciProduct(S3Product):
                 filename, subdataset, dtype=kwargs.get("dtype", np.float32)
             )
 
+            # Convert radiance to reflectances if needed
+            # Convert first pixel by pixel before reprojection !
+            if to_reflectance:
+                LOGGER.debug(f"Converting {band_str} to reflectance")
+                band_arr = self._rad_2_refl(band_arr, band)
+
             # Geocode
             LOGGER.debug(f"Geocoding {band_str}")
             pp_arr = self._geocode(band_arr, resolution=resolution)
