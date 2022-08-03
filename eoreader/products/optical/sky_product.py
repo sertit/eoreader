@@ -35,10 +35,9 @@ from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 
 from eoreader import cache
-from eoreader.bands import BandNames, SpectralBand
+from eoreader.bands import BandNames, SpectralBand, is_spectral_band
 from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
-from eoreader.keywords import TO_REFLECTANCE
 from eoreader.products.optical.planet_product import PlanetProduct
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
@@ -454,14 +453,47 @@ class SkyProduct(PlanetProduct):
                 LOGGER.warning(
                     "No reflectance coefficients are found. Your product will be read as is."
                 )
+        else:
+            LOGGER.warning(
+                f"Impossible to convert the data to reflectance ({self.product_type.value}). "
+                f"Only {SkyProductType.ORTHO_ANA.value} and {SkyProductType.ORTHO_PAN.value} products can be."
+                "See https://support.planet.com/hc/en-us/articles/4408818004497/comments/5291365958429 for more information."
+            )
 
         if refl_coef is None:
             # https://support.planet.com/hc/en-us/articles/4408818004497/comments/5291365958429
             # Makes no sense to try to get reflectance data. Keep them as is.
-            kwargs[TO_REFLECTANCE] = False
             return band_arr
         else:
             return band_arr * refl_coef
+
+    def _update_attrs_constellation_specific(
+        self, xarr: xr.DataArray, bands: list, **kwargs
+    ) -> xr.DataArray:
+        """
+        Update attributes of the given array (constellation specific)
+
+        Args:
+            xarr (xr.DataArray): Array whose attributes need an update
+            bands (list): Array name (as a str or a list)
+        Returns:
+            xr.DataArray: Updated array
+        """
+
+        xarr = super()._update_attrs_constellation_specific(xarr, bands, **kwargs)
+
+        # Do not add this if one non-spectral bands exists
+        has_spectral_bands = [is_spectral_band(band) for band in bands]
+        if all(has_spectral_bands):
+            if self.product_type in [
+                SkyProductType.ORTHO_ANA,
+                SkyProductType.ORTHO_PAN,
+            ]:
+                xarr.attrs["radiometry"] = "reflectance"
+            else:
+                xarr.attrs["radiometry"] = "as is"
+
+        return xarr
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):

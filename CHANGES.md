@@ -2,9 +2,15 @@
 
 ## 0.16.1 (2022-08-03)
 
-### Regression Fixes
+### Bug Fixes
 
-- Add the missing conversion to reflectance for `Sentinel-3 OLCI`
+- FIX: Add the missing conversion to reflectance for `Sentinel-3 OLCI`
+- FIX: Better condition for the conversion to reflectance for `Sentinel-2 THEIA`
+- FIX: Add logs for `SkySat` data that cannot been converted to reflectance and fix the `radiometry` field of its band xarrays
+
+### Other
+
+- CI: Test reflectance values
 
 ## 0.16.0 (2022-08-01)
 
