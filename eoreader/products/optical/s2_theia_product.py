@@ -379,9 +379,8 @@ class S2TheiaProduct(OpticalProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        # Compute the correct radiometry of the band (Theia product are stored into int16 bits)
-        original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
-        if original_dtype == "int16":
+        # Compute the correct radiometry of the band for raw band
+        if files.get_filename(path).startswith("SENTINEL"):
             band_arr /= 10000.0
 
         # Convert type if needed

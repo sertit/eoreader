@@ -596,10 +596,11 @@ class S3OlciProduct(S3Product):
             sza_path = self._get_band_folder() / "sza.tif"
             if not sza_path.is_file():
                 sza_path = self._get_band_folder(writable=True) / "sza.tif"
-                sza_nc = self._read_nc(self._geom_file, self._sza_name)
-                utils.write(sza_nc, sza_path)
+                if not sza_path.is_file():
+                    sza_nc = self._read_nc(self._geom_file, self._sza_name)
+                    utils.write(sza_nc, sza_path)
 
-            with rasterio.open(sza_path) as ds_sza:
+            with rasterio.open(str(sza_path)) as ds_sza:
                 # Values can be easily interpolated at pixels from Tie Points by linear interpolation using the
                 # image column coordinate.
                 sza, _ = rasters_rio.read(

@@ -173,9 +173,9 @@ def _test_core(
             assert prod.instrument is not None
 
             with tempfile.TemporaryDirectory() as tmp_dir:
-                # tmp_dir = os.path.join(
-                #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                # )
+                tmp_dir = os.path.join(
+                    "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
+                )
                 prod.output = tmp_dir
 
                 os.environ[CI_EOREADER_BAND_FOLDER] = str(
@@ -332,6 +332,15 @@ def _test_core(
                 )[first_band]
                 rasters.write(band_arr, curr_path_band)
                 assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
+
+                # Check reflectance validity
+                if (
+                    prod.sensor_type == SensorType.OPTICAL
+                    and band_arr.attrs["radiometry"] == "reflectance"
+                ):
+                    assert np.nanmax(band_arr) < 10.0
+                    assert np.nanpercentile(band_arr, 95) < 1.0
+                    assert np.nanmin(band_arr) > 0.0
 
                 # Check attributes
                 assert band_arr.attrs["long_name"] == first_band.name
