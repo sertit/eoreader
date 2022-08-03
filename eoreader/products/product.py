@@ -1448,6 +1448,7 @@ class Product:
             )
 
             # Set memory free (for big stacks)
+            band_dict[key].close()
             band_dict[key] = None
 
         # Create dataset
@@ -1502,10 +1503,6 @@ class Product:
             if not stack_path.parent.exists():
                 os.makedirs(str(stack_path.parent), exist_ok=True)
             utils.write(stack, stack_path, dtype=dtype, **kwargs)
-
-        # Close datasets
-        for val in band_dict.values():
-            val.close()
 
         return stack
 
