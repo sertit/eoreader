@@ -1439,6 +1439,7 @@ class Product:
         band_dict = self.load(bands, resolution=resolution, size=size, **kwargs)
 
         # Convert into dataset with str as names
+        LOGGER.debug("Creating dataset")
         data_vars = {}
         coords = band_dict[bands[0]].coords
         for key in bands:
@@ -1458,6 +1459,7 @@ class Product:
         )
 
         # Force nodata
+        LOGGER.debug("Stacking")
         stack = stack.to_stacked_array(new_dim="z", sample_dims=("x", "y"))
         stack = stack.transpose("z", "y", "x")
 
@@ -1479,7 +1481,8 @@ class Product:
 
                 # CONVERSION
                 dtype = np.uint16
-                stack = stack.fillna(65535).astype(
+                nodata = kwargs.get("nodata", 65535)  # Can be 0
+                stack = stack.fillna(nodata).astype(
                     dtype
                 )  # Scale to uint16, fill nan and convert to uint16
 
@@ -1498,6 +1501,7 @@ class Product:
         stack = self._update_attrs(stack, bands, **kwargs)
 
         # Write on disk
+        LOGGER.debug("Saving stack")
         if stack_path:
             stack_path = AnyPath(stack_path)
             if not stack_path.parent.exists():
