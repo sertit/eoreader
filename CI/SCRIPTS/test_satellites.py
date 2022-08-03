@@ -340,7 +340,8 @@ def _test_core(
                 ):
                     assert np.nanmax(band_arr) < 10.0
                     assert np.nanpercentile(band_arr, 95) < 1.0
-                    assert np.nanmin(band_arr) > 0.0
+                    assert np.nanmin(band_arr) > -1.0
+                    assert np.nanpercentile(band_arr, 5) > 0.0
 
                 # Check attributes
                 assert band_arr.attrs["long_name"] == first_band.name
