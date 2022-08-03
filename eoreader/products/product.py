@@ -1439,16 +1439,25 @@ class Product:
         band_dict = self.load(bands, resolution=resolution, size=size, **kwargs)
 
         # Convert into dataset with str as names
-        xds = xr.Dataset(
-            data_vars={
-                to_str(key)[0]: (band_dict[key].coords.dims, band_dict[key].data)
-                for key in bands
-            },
-            coords=band_dict[bands[0]].coords,
+        data_vars = {}
+        coords = band_dict[bands[0]].coords
+        for key in bands:
+            data_vars[to_str(key)[0]] = (
+                band_dict[key].coords.dims,
+                band_dict[key].data,
+            )
+
+            # Set memory free (for big stacks)
+            band_dict[key] = None
+
+        # Create dataset
+        stack = xr.Dataset(
+            data_vars=data_vars,
+            coords=coords,
         )
 
         # Force nodata
-        stack = xds.to_stacked_array(new_dim="z", sample_dims=("x", "y"))
+        stack = stack.to_stacked_array(new_dim="z", sample_dims=("x", "y"))
         stack = stack.transpose("z", "y", "x")
 
         # Save as integer
