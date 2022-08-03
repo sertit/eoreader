@@ -8,6 +8,10 @@
 - FIX: Better condition for the conversion to reflectance for `Sentinel-2 THEIA`
 - FIX: Add logs for `SkySat` data that cannot been converted to reflectance and fix the `radiometry` field of its band xarrays
 
+### Optimizations
+
+- OPTIM: Reduce memory usage during stacking
+
 ### Other
 
 - CI: Test reflectance values
