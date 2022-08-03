@@ -7,6 +7,7 @@
 - FIX: Add the missing conversion to reflectance for `Sentinel-3 OLCI`
 - FIX: Better condition for the conversion to reflectance for `Sentinel-2 THEIA`
 - FIX: Add logs for `SkySat` data that cannot been converted to reflectance and fix the `radiometry` field of its band xarrays
+- FIX: Add the correct nodata (when overridden by the user) to stacks saved as uint16
 
 ### Optimizations
 
