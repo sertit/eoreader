@@ -1,5 +1,11 @@
 # Release History
 
+## 0.Y.Z (2022-MM-DD)
+
+### Optimizations
+
+- OPTIM: Reduce memory usage when updating all the bands attributes
+
 ## 0.16.1 (2022-08-03)
 
 ### Bug Fixes
