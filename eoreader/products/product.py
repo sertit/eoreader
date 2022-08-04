@@ -1439,7 +1439,7 @@ class Product:
         band_dict = self.load(bands, resolution=resolution, size=size, **kwargs)
 
         # Convert into dataset with str as names
-        LOGGER.debug("Creating dataset")
+        LOGGER.debug("Stacking")
         data_vars = {}
         coords = band_dict[bands[0]].coords
         for key in bands:
@@ -1452,16 +1452,15 @@ class Product:
             band_dict[key].close()
             band_dict[key] = None
 
-        # Create dataset
-        stack = xr.Dataset(
-            data_vars=data_vars,
-            coords=coords,
+        # Create dataset, with dims well-ordered
+        stack = (
+            xr.Dataset(
+                data_vars=data_vars,
+                coords=coords,
+            )
+            .to_stacked_array(new_dim="z", sample_dims=("x", "y"))
+            .transpose("z", "y", "x")
         )
-
-        # Force nodata
-        LOGGER.debug("Stacking")
-        stack = stack.to_stacked_array(new_dim="z", sample_dims=("x", "y"))
-        stack = stack.transpose("z", "y", "x")
 
         # Save as integer
         dtype = np.float32
@@ -1538,38 +1537,36 @@ class Product:
         xr_name = "_".join(long_name)
         attr_name = " ".join(long_name)
 
-        renamed_xarr = xarr.rename(xr_name)
-        renamed_xarr.attrs["long_name"] = attr_name
-        renamed_xarr.attrs["constellation"] = (
+        xarr = xarr.rename(xr_name)
+        xarr.attrs["long_name"] = attr_name
+        xarr.attrs["constellation"] = (
             self.constellation
             if isinstance(self.constellation, str)
             else self.constellation.value
         )
-        renamed_xarr.attrs["constellation_id"] = self.constellation_id
-        renamed_xarr.attrs["product_path"] = str(self.path)  # Convert to string
-        renamed_xarr.attrs["product_name"] = self.name
-        renamed_xarr.attrs["product_filename"] = self.filename
-        renamed_xarr.attrs["instrument"] = (
+        xarr.attrs["constellation_id"] = self.constellation_id
+        xarr.attrs["product_path"] = str(self.path)  # Convert to string
+        xarr.attrs["product_name"] = self.name
+        xarr.attrs["product_filename"] = self.filename
+        xarr.attrs["instrument"] = (
             self.instrument
             if isinstance(self.instrument, str)
             else self.instrument.value
         )
-        renamed_xarr.attrs["product_type"] = (
+        xarr.attrs["product_type"] = (
             self.product_type
             if isinstance(self.product_type, str)
             else self.product_type.value
         )
-        renamed_xarr.attrs["acquisition_date"] = self.get_datetime(as_datetime=False)
-        renamed_xarr.attrs["condensed_name"] = self.condensed_name
+        xarr.attrs["acquisition_date"] = self.get_datetime(as_datetime=False)
+        xarr.attrs["condensed_name"] = self.condensed_name
         od = self.get_orbit_direction()
-        renamed_xarr.attrs["orbit_direction"] = od.value if od is not None else str(od)
+        xarr.attrs["orbit_direction"] = od.value if od is not None else str(od)
 
         # kwargs attrs
-        renamed_xarr = self._update_attrs_constellation_specific(
-            renamed_xarr, bands, **kwargs
-        )
+        xarr = self._update_attrs_constellation_specific(xarr, bands, **kwargs)
 
-        return renamed_xarr
+        return xarr
 
     @staticmethod
     def _check_dem_path(bands: list, **kwargs) -> None:
