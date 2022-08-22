@@ -2,6 +2,10 @@
 
 ## 0.Y.Z (2022-MM-DD)
 
+### Bug Fixes
+
+- FIX: Stacks saved as integers on disk keep their original dtype (float32) in Python
+
 ### Optimizations
 
 - OPTIM: Reduce memory usage when updating all the bands attributes

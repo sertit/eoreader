@@ -3,6 +3,7 @@ import sys
 import tempfile
 
 import pytest
+import rasterio
 import tempenv
 import xarray as xr
 from cloudpathlib import AnyPath, S3Client
@@ -132,8 +133,17 @@ def test_products():
         prod1.load("TEST")
 
     # Test stack as int
-    stack = prod1.stack(BLUE, resolution=prod1.resolution * 100, save_as_int=True)
-    assert stack.dtype == "uint16"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        stack_path = os.path.join(tmp_dir, "stack.tif")
+        stack = prod1.stack(
+            BLUE,
+            resolution=prod1.resolution * 100,
+            save_as_int=True,
+            stack_path=stack_path,
+        )
+        with rasterio.open(stack_path) as ds:
+            assert ds.dtypes[0] == "uint16"
+            assert stack.dtype == "float32"
 
     # SAR
     sar = sar_path().joinpath("SC_124020")
