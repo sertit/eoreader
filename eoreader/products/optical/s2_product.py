@@ -642,10 +642,10 @@ class S2Product(OpticalProduct):
                             geocoded_path = on_disk_path
 
                         # Get and write geocode data if not already existing
-                        with rasterio.open(str(geocoded_path), "r+") as ds:
+                        with rasterio.open(str(geocoded_path), "r+") as out_ds:
                             tf, _, _, crs = self._l2ap_geocode_data(path)
-                            ds.crs = crs
-                            ds.transform = tf
+                            out_ds.crs = crs
+                            out_ds.transform = tf
         except errors.RasterioIOError as ex:
             if str(path).endswith("jp2") or str(path).endswith("tif"):
                 raise InvalidProductError(f"Corrupted file: {path}") from ex
@@ -754,6 +754,7 @@ class S2Product(OpticalProduct):
             >>> from eoreader.reader import Reader
             >>> from eoreader.bands import *
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader.open(r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip")
             >>> prod.open_mask("NODATA", GREEN)
             Empty GeoDataFrame
             Columns: [geometry]
@@ -1491,7 +1492,7 @@ class S2Product(OpticalProduct):
         Args:
             kwargs: Additional arguments
         Returns:
-            Affine, int, int: transform, width, height
+            Affine, int, int, CRS: transform, width, height, CRS
 
         """
         if self._processing_baseline < 2.07:

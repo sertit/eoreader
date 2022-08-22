@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Spectral Bands """
+from typing import Any
+
 import numpy as np
 
 from eoreader.bands.bands import Band, BandMap, BandNames
@@ -347,15 +349,15 @@ class SpectralBandNames(BandNames):
         return eoreader_name
 
     @classmethod
-    def eoreader_to_stac(cls, eoreader_name: "SpectralBandNames") -> str:
+    def eoreader_to_stac(cls, eoreader_name: "SpectralBandNames") -> StacCommonNames:
         """
-        Convert STAC common names or name to EOReader bands
+        Convert EOReader bands to STAC common names
 
         Args:
             eoreader_name (SpectralBandNames): EOReader name
 
         Returns:
-            SpectralBandNames: EOReader name
+            StacCommonNames: STAC common name
         """
         return _EOREADER_STAC_MAP.get(eoreader_name, "")
 
@@ -420,7 +422,7 @@ _EOREADER_STAC_MAP = {
 }
 
 
-def is_spectral_band(band) -> bool:
+def is_spectral_band(band: Any) -> bool:
     """
     Returns True if is an spectral band (from :code:`SpectralBandNames`)
 
@@ -445,8 +447,9 @@ def is_spectral_band(band) -> bool:
         bool: True if the band asked is an optical band
 
     """
+    is_valid = True
     try:
-        is_valid = SpectralBandNames(band)
+        SpectralBandNames(band)
     except ValueError:
         is_valid = False
     return is_valid

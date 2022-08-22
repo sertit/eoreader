@@ -82,9 +82,10 @@ SLSTR_RAD_BANDS = SLSTR_A_BANDS + SLSTR_ABC_BANDS
 SLSTR_BT_BANDS = SLSTR_I_BANDS
 
 # Radiance adjustment
+# Nadir and Oblique
 FIELDS = [f"{rad}_n" for rad in SLSTR_A_BANDS + SLSTR_ABC_BANDS] + [
     f"{rad}_o" for rad in SLSTR_A_BANDS + SLSTR_ABC_BANDS
-]  # Nadir and Oblique
+]
 
 SlstrRadAdjustTuple = namedtuple(
     "SlstrRadAdjustTuple", FIELDS, defaults=(1.0,) * len(FIELDS)

@@ -683,7 +683,7 @@ class VhrProduct(OpticalProduct):
             kwargs: Additional arguments
 
         Returns:
-            Affine, int, int: transform, width, height
+            Affine, int, int, CRS: transform, width, height, CRS
 
         """
         default_band = self.get_default_band()
