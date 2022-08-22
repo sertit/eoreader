@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ SAR Bands """
+from typing import Any
+
 from eoreader.bands.bands import Band, BandMap, BandNames
 from eoreader.exceptions import InvalidTypeError
 
@@ -204,7 +206,7 @@ RV = SarBandNames.RV
 RV_DSPK = SarBandNames.RV_DSPK
 
 
-def is_sar_band(band) -> bool:
+def is_sar_band(band: Any) -> bool:
     """
     Returns True if is a SAR band (from :code:`SarBandNames`)
 
@@ -229,8 +231,9 @@ def is_sar_band(band) -> bool:
         bool: True if the band asked is a SAR band
 
     """
+    is_valid = True
     try:
-        is_valid = SarBandNames(band)
+        SarBandNames(band)
     except ValueError:
         is_valid = False
     return is_valid

@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ DEM Bands """
+from typing import Any
+
 from eoreader.bands.bands import BandNames
 
 
@@ -36,7 +38,7 @@ SLOPE = DemBandNames.SLOPE
 HILLSHADE = DemBandNames.HILLSHADE
 
 
-def is_dem(dem) -> bool:
+def is_dem(dem: Any) -> bool:
     """
     Returns True if we have a DEM-related keyword
 
@@ -54,8 +56,9 @@ def is_dem(dem) -> bool:
         >>> is_dem(CLOUDS)
         False
     """
+    is_valid = True
     try:
-        is_valid = DemBandNames(dem)
+        DemBandNames(dem)
     except ValueError:
         is_valid = False
     return is_valid

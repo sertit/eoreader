@@ -1605,7 +1605,7 @@ class Product:
         Args:
             kwargs: Additional arguments
         Returns:
-            Affine, int, int: transform, width, height
+            Affine, int, int, CRS: transform, width, height, CRS
 
         """
         with rasterio.open(str(self.get_default_band_path(**kwargs))) as dst:

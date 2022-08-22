@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Cloud Bands """
+from typing import Any
+
 from eoreader.bands.bands import BandNames
 
 
@@ -44,7 +46,7 @@ CIRRUS = CloudsBandNames.CIRRUS  # Cirrus detected
 ALL_CLOUDS = CloudsBandNames.ALL_CLOUDS
 
 
-def is_clouds(clouds) -> bool:
+def is_clouds(clouds: Any) -> bool:
     """
     Returns True if we have a Clouds-related keyword
 
@@ -62,8 +64,9 @@ def is_clouds(clouds) -> bool:
         >>> is_clouds(CLOUDS)
         True
     """
+    is_valid = True
     try:
-        is_valid = CloudsBandNames(clouds)
+        CloudsBandNames(clouds)
     except ValueError:
         is_valid = False
     return is_valid
