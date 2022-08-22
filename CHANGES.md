@@ -7,6 +7,10 @@
 - OPTIM: Reduce memory usage when updating all the bands attributes
 - OPTIM: Reduce memory usage when stacking as integers
 
+### Other
+
+- DOC: Add the need of using SNAP 8.0 up-to-date or SNAP 9.0 ([#42](https://github.com/sertit/eoreader/issues/42))
+
 ## 0.16.1 (2022-08-03)
 
 ### Bug Fixes
