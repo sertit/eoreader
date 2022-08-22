@@ -82,6 +82,7 @@ and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_struc
 > SAR products need [`ESA SNAP`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph)
 > free software to be orthorectified and calibrated.
 > Ensure that you have the folder containing your `gpt` executable in your `PATH`.
+> If you are using SNAP 8.0, be sure to have your software up-to-date.
 
 ## Documentation
 The API documentation can be found [here](https://eoreader.readthedocs.io/en/latest/).

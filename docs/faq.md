@@ -39,6 +39,8 @@ Dask is a functionality not really tested on EOReader, use it at your own risk
 
 ## SNAP
 
+> ⚠ Be sure to use SNAP 8.0 or more, and please verify that your software is up-to-date.
+
 ### SNAP DEM vs other DEM
 
 SNAP has a capability to use its own DEMs. This does **not** interfere with the DEM provided to load a DEM band for example.
@@ -57,6 +59,13 @@ We are using some optimizations in order to optimize SNAP's GPT speed, as specif
 - **Tiles**: Width and height are set to 2048 pixels (instead of 512x512) and cache to 50% of your max memory (instead of 1024Mo)
 
 ### SNAP known bugs
+
+#### SNAP error: `Absolute radiometric calibration has already been applied to the product`
+
+If SNAP 8.0 is used without any updates, the calibration step seems not be able to be skipped if the calibration step has already been applied. (see this [issue](https://github.com/sertit/eoreader/issues/42))
+This is resolved when the software is updated.
+
+Using SNAP 9.0 also resolves this.
 
 #### SNAP `secure-processing` not recognized
 Sometimes SNAP process returns `Feature 'http://javax.xml.XMLConstants/feature/secure-processing' is not recognized.`
