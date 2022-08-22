@@ -1470,31 +1470,24 @@ class Product:
                     "Cannot convert the stack to uint16 as it has negative values. Keeping it in float32."
                 )
             else:
-                # SCALING
-                # NOT ALL bands need to be scaled, only:
-                # - Satellite bands
-                # - index
+                # Scale to uint16, fill nan and convert to uint16
+                dtype = np.uint16
+                nodata = kwargs.get("nodata", 65535)  # Can be 0
                 for b_id, band in enumerate(bands):
+                    # SCALING
+                    # NOT ALL bands need to be scaled, only:
+                    # - Satellite bands
+                    # - index
                     if is_sat_band(band) or is_index(band):
                         stack[b_id, ...] = stack[b_id, ...] * 10000
 
-                # CONVERSION
-                dtype = np.uint16
-                nodata = kwargs.get("nodata", 65535)  # Can be 0
-                stack = stack.fillna(nodata).astype(
-                    dtype
-                )  # Scale to uint16, fill nan and convert to uint16
+                    # Fill no data (done here to avoid RAM saturation)
+                    stack[b_id, ...] = stack[b_id, ...].fillna(nodata)
 
         if dtype == np.float32:
-            # Convert dtype if needed
-            if stack.dtype != dtype:
-                stack = stack.astype(dtype)
-
-            # Set nodata if needed
+            # Set nodata if needed (NaN values are already set)
             if stack.rio.encoded_nodata != self.nodata:
-                stack = stack.rio.write_nodata(
-                    self.nodata, encoded=True, inplace=True
-                )  # NaN values are already set
+                stack = stack.rio.write_nodata(self.nodata, encoded=True, inplace=True)
 
         # Update stack's attributes
         stack = self._update_attrs(stack, bands, **kwargs)

@@ -5,6 +5,7 @@
 ### Optimizations
 
 - OPTIM: Reduce memory usage when updating all the bands attributes
+- OPTIM: Reduce memory usage when stacking as integers
 
 ## 0.16.1 (2022-08-03)
 
