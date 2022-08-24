@@ -110,7 +110,7 @@ class Product:
         **kwargs,
     ) -> None:
         self.needs_extraction = True
-        """Does this products needs to be extracted to be processed ? (:code:`True` by default)."""
+        """Does this product needs to be extracted to be processed ? (:code:`True` by default)."""
 
         self.path = AnyPath(product_path)
         """Usable path to the product, either extracted or archived path, according to the satellite."""
@@ -949,7 +949,7 @@ class Product:
 
     def has_band(self, band: Union[BandNames, Callable]) -> bool:
         """
-        Does this products has the specified band ?
+        Does this product has the specified band ?
 
         By band, we mean:
 
@@ -997,7 +997,7 @@ class Product:
 
     def has_bands(self, bands: Union[list, BandNames, Callable]) -> bool:
         """
-        Does this products has the specified bands ?
+        Does this product has the specified bands ?
 
         By band, we mean:
 
@@ -1022,7 +1022,7 @@ class Product:
     @abstractmethod
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
 
         .. code-block:: python
 
@@ -1037,7 +1037,7 @@ class Product:
 
     def _has_index(self, idx: Callable) -> bool:
         """
-        Cen the specified index be computed from this products ?
+        Cen the specified index be computed from this product ?
 
         .. code-block:: python
 
@@ -1066,7 +1066,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this products has been acquired after the other
+            bool: True if this product has been acquired after the other
 
         """
         return self.date > other.date
@@ -1080,7 +1080,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this products has been acquired after or in the same time than the other
+            bool: True if this product has been acquired after or in the same time than the other
 
         """
         return self.date >= other.date
@@ -1094,7 +1094,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this products has been acquired in the same time than the other
+            bool: True if this product has been acquired in the same time than the other
 
         """
         return self.date == other.date
@@ -1108,7 +1108,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this products has been acquired not in the same time than the other
+            bool: True if this product has been acquired not in the same time than the other
 
         """
         return self.date != other.date
@@ -1122,7 +1122,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this products has been acquired before or in the same time than the other
+            bool: True if this product has been acquired before or in the same time than the other
 
         """
         return self.date <= other.date
@@ -1136,7 +1136,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this products has been acquired before the other
+            bool: True if this product has been acquired before the other
 
         """
         return self.date < other.date
@@ -1184,7 +1184,7 @@ class Product:
         **kwargs,
     ) -> str:
         """
-        Get this products DEM, warped to this products footprint and CRS.
+        Get this product DEM, warped to this product footprint and CRS.
 
         .. code-block:: python
 

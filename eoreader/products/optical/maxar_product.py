@@ -1087,8 +1087,6 @@ class MaxarProduct(VhrProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        # Delivered in uint16
-
         # Convert DN into radiance
         band_arr = self._dn_to_toa_rad(band_arr, band)
 
@@ -1103,7 +1101,7 @@ class MaxarProduct(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         """
         return False
 
