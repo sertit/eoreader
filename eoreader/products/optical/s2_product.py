@@ -139,7 +139,7 @@ class S2Product(OpticalProduct):
 
         # Processing baseline < 02.07: images not georeferenced (L2Ap and after)
 
-        # Is this products comes from a processing baseline less than 4.0
+        # Is this product comes from a processing baseline less than 4.0
         # The processing baseline 4.0 introduces format changes:
         # - masks are given as GeoTIFFs instead of GML files
         # - an offset is added to keep the zero as no-data value
@@ -1236,7 +1236,7 @@ class S2Product(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
         """
         if band == SHADOWS:

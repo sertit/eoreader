@@ -1004,7 +1004,7 @@ class S3SlstrProduct(S3Product):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         -> SLSTR does
         """
         if band in [

@@ -1335,7 +1335,7 @@ class LandsatProduct(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
 
         - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
         - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
@@ -1358,7 +1358,7 @@ class LandsatProduct(OpticalProduct):
     @staticmethod
     def _mss_has_cloud_band(band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         """
         if band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS]:
             has_band = True
@@ -1369,7 +1369,7 @@ class LandsatProduct(OpticalProduct):
     @staticmethod
     def _e_tm_has_cloud_band(band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         """
         if band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS, SHADOWS]:
             has_band = True
