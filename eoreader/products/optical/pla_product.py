@@ -185,10 +185,6 @@ class PlaProduct(PlanetProduct):
         """
         self._has_cloud_cover = True
 
-        # Ortho Tiles
-        if self.product_type == PlaProductType.L3A:
-            self.tile_name = self.split_name[1]
-
         # Post init done by the super class
         super()._post_init(**kwargs)
 
@@ -361,7 +357,7 @@ class PlaProduct(PlanetProduct):
         root, nsmap = self.read_mtd()
 
         # Manage bands of the product
-        nof_bands = int(root.findtext(f".//{nsmap['ps']}numBands"))
+        nof_bands = int(root.findtext(f".//{nsmap[self._nsmap_key]}numBands"))
 
         # Set the band map
         self.bands.map_bands(
@@ -493,13 +489,17 @@ class PlaProduct(PlanetProduct):
 
         # Open identifier
         refl_coef = None
-        for band_mtd in root.iterfind(f".//{nsmap['ps']}bandSpecificMetadata"):
+        for band_mtd in root.iterfind(
+            f".//{nsmap[self._nsmap_key]}bandSpecificMetadata"
+        ):
             if (
-                int(band_mtd.findtext(f".//{nsmap['ps']}bandNumber"))
+                int(band_mtd.findtext(f".//{nsmap[self._nsmap_key]}bandNumber"))
                 == self.bands[band].id
             ):
                 refl_coef = float(
-                    band_mtd.findtext(f".//{nsmap['ps']}reflectanceCoefficient")
+                    band_mtd.findtext(
+                        f".//{nsmap[self._nsmap_key]}reflectanceCoefficient"
+                    )
                 )
                 break
 
