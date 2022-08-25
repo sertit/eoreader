@@ -101,9 +101,9 @@ class Constellation(ListEnum):
     PLA = "PlanetScope"
     """PlanetScope"""
 
-    # RPD = "RapidEye"
-    # """RapidEye"""
-    #
+    RE = "RapidEye"
+    """RapidEye"""
+
     SKY = "SkySat"
     """SkySat"""
 
@@ -202,6 +202,7 @@ CONSTELLATION_REGEX = {
     Constellation.L1: r"LM01_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
     Constellation.SKY: r"\d{8}_\d{6}_ssc\w{1,4}_\w{4,5}",
     Constellation.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}",
+    Constellation.RE: r"(\d{7}_\d{4}-\d{2}-\d{2}_RE\d_3A_\d{6}|\d{4}-\d{2}-\d{2}T\d{6}_RE\d_1B_.+|RE_.+_RE\d_(1B|3A)_.+)",
     Constellation.CSK: [
         r".+",  # Need to check inside as the folder does not have any recognizable name
         r"CSKS\d_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
@@ -262,6 +263,10 @@ MTD_REGEX = {
     Constellation.PLA: {
         "nested": -1,  # File that can be found at any level (product/**/file)
         "regex": r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*metadata.*\.xml",
+    },
+    Constellation.RE: {
+        "nested": -1,  # File that can be found at any level (product/**/file)
+        "regex": r"(\d{7}_\d{4}-\d{2}-\d{2}_RE\d_3A_\d{7}|\d{4}-\d{2}-\d{2}T\d{6}_RE\d_1B.+)(_.*metadata|).*\.xml",
     },
     Constellation.SKY: {
         "nested": -1,  # File that can be found at any level (product/**/file)
