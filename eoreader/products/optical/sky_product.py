@@ -17,7 +17,7 @@
 """
 SkySat products.
 See
-`Earth Online <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
+`Product specs <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
 and `Planet documentation <https://developers.planet.com/docs/data/skysat/>`_
 for more information.
 """
@@ -171,8 +171,6 @@ class SkyProduct(PlanetProduct):
     Class of SkySat products.
     See `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`__
     for more information.
-
-    The scaling factor to retrieve the calibrated radiance is 0.01.
 
     Only SkySat Collect items are managed for now.
     """
@@ -359,23 +357,6 @@ class SkyProduct(PlanetProduct):
 
         return datetime_str
 
-    def _get_name_constellation_specific(self) -> str:
-        """
-        Set product real name from metadata
-
-        Returns:
-            str: True name of the product (from metadata)
-        """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Open identifier
-        name = root.findtext(".//id")
-        if not name:
-            raise InvalidProductError("id not found in metadata!")
-
-        return name
-
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
     ) -> dict:
@@ -405,10 +386,9 @@ class SkyProduct(PlanetProduct):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
+        path = self._get_path(self.product_type.value, "tif", invalid_lookahead="_udm")
         for band in band_list:
-            band_paths[band] = self._get_path(
-                self.product_type.value, "tif", invalid_lookahead="_udm"
-            )
+            band_paths[band] = path
 
         return band_paths
 
@@ -496,66 +476,6 @@ class SkyProduct(PlanetProduct):
         return xarr
 
     @cache
-    def get_mean_sun_angles(self) -> (float, float):
-        """
-        Get Mean Sun angles (Azimuth and Zenith angles)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
-            >>> prod = Reader().open(path)
-            >>> prod.get_mean_sun_angles()
-            (154.554755774838, 27.5941391571236)
-
-        Returns:
-            (float, float): Mean Azimuth and Zenith angle
-        """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Open zenith and azimuth angle
-        try:
-            elev_angle = float(root.findtext(".//sun_elevation"))
-            azimuth_angle = float(root.findtext(".//sun_azimuth"))
-        except TypeError:
-            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
-
-        # From elevation to zenith
-        zenith_angle = 90.0 - elev_angle
-
-        return azimuth_angle, zenith_angle
-
-    @cache
-    def get_mean_viewing_angles(self) -> (float, float, float):
-        """
-        Get Mean Viewing angles (azimuth, off-nadir and incidence angles)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.get_mean_viewing_angles()
-
-        Returns:
-            (float, float, float): Mean azimuth, off-nadir and incidence angles
-        """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Open zenith and azimuth angle
-        try:
-            az = float(root.findtext(".//satellite_azimuth"))
-            off_nadir = float(root.findtext(".//view_angle"))
-        except TypeError:
-            raise InvalidProductError(
-                "satellite_azimuth or view_angle angles not found in metadata!"
-            )
-
-        return az, off_nadir, None
-
-    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read GeoJSON metadata and outputs its as a metadata XML root and its namespaces as an empty dict
@@ -585,34 +505,6 @@ class SkyProduct(PlanetProduct):
         root = etree.fromstring(bytes(data.to_xml(), "utf-8"))
 
         return root, {}
-
-    @cache
-    def get_cloud_cover(self) -> float:
-        """
-        Get cloud cover as given in the metadata
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.get_cloud_cover()
-            55.5
-
-        Returns:
-            float: Cloud cover as given in the metadata
-        """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Get the cloud cover
-        try:
-            cc = float(root.findtext(".//cloud_percent"))
-
-        except TypeError:
-            raise InvalidProductError("cloud_percent not found in metadata!")
-
-        return cc
 
     def _get_condensed_name(self) -> str:
         """

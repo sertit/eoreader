@@ -1,6 +1,10 @@
 # Release History
 
-## 0.Y.Z (2022-MM-DD)
+## 0.17.0 (2022-MM-DD)
+
+### Enhancements
+
+- **ENH: Adding the support of RapidEye constellation**
 
 ### Bug Fixes
 

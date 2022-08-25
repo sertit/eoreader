@@ -17,7 +17,7 @@
 """
 PlanetScope products.
 See
-`Earth Online <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
+`Product specs <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
 and `Planet documentation <https://developers.planet.com/docs/data/planetscope/>`_
 for more information.
 """
@@ -29,15 +29,12 @@ from typing import Union
 
 import xarray as xr
 from cloudpathlib import CloudPath
-from lxml import etree
 from sertit.misc import ListEnum
 
-from eoreader import cache
 from eoreader.bands import BandNames, SpectralBand
 from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.optical.planet_product import PlanetProduct
-from eoreader.products.product import OrbitDirection
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
@@ -421,7 +418,7 @@ class PlaProduct(PlanetProduct):
             datetime_str = root.findtext(f".//{nsmap['eop']}acquisitionDate")
             if not datetime_str:
                 raise InvalidProductError(
-                    "Cannot find EARLIESTACQTIME in the metadata file."
+                    "Cannot find acquisitionDate in the metadata file."
                 )
 
             # Convert to datetime
@@ -429,34 +426,13 @@ class PlaProduct(PlanetProduct):
                 datetime_str.split("+")[0], "%Y-%m-%dT%H:%M:%S"
             )
 
-            if not as_datetime:
-                datetime_str = datetime_str.strftime(DATETIME_FMT)
-
         else:
             datetime_str = self.datetime
-            if not as_datetime:
-                datetime_str = datetime_str.strftime(DATETIME_FMT)
+
+        if not as_datetime:
+            datetime_str = datetime_str.strftime(DATETIME_FMT)
 
         return datetime_str
-
-    def _get_name_constellation_specific(self) -> str:
-        """
-        Set product real name from metadata
-
-        Returns:
-            str: True name of the product (from metadata)
-        """
-        # Get MTD XML file
-        root, nsmap = self.read_mtd()
-
-        # Open identifier
-        name = root.findtext(f".//{nsmap['eop']}identifier")
-        if not name:
-            raise InvalidProductError(
-                f"{nsmap['eop']}identifier not found in metadata!"
-            )
-
-        return name
 
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
@@ -487,10 +463,9 @@ class PlaProduct(PlanetProduct):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
+        path = self._get_path("AnalyticMS", "tif", invalid_lookahead="_DN_")
         for band in band_list:
-            band_paths[band] = self._get_path(
-                "AnalyticMS", "tif", invalid_lookahead="_DN_"
-            )
+            band_paths[band] = path
 
         return band_paths
 
@@ -535,165 +510,3 @@ class PlaProduct(PlanetProduct):
 
         # To reflectance
         return band_arr * refl_coef
-
-    @cache
-    def get_mean_sun_angles(self) -> (float, float):
-        """
-        Get Mean Sun angles (Azimuth and Zenith angles)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
-            >>> prod = Reader().open(path)
-            >>> prod.get_mean_sun_angles()
-            (154.554755774838, 27.5941391571236)
-
-        Returns:
-            (float, float): Mean Azimuth and Zenith angle
-        """
-        # Get MTD XML file
-        root, nsmap = self.read_mtd()
-
-        # Open zenith and azimuth angle
-        try:
-            elev_angle = float(
-                root.findtext(f".//{nsmap['opt']}illuminationElevationAngle")
-            )
-            azimuth_angle = float(
-                root.findtext(f".//{nsmap['opt']}illuminationAzimuthAngle")
-            )
-        except TypeError:
-            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
-
-        # From elevation to zenith
-        zenith_angle = 90.0 - elev_angle
-
-        return azimuth_angle, zenith_angle
-
-    @cache
-    def get_mean_viewing_angles(self) -> (float, float, float):
-        """
-        Get Mean Viewing angles (azimuth, off-nadir and incidence angles)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.get_mean_viewing_angles()
-
-        Returns:
-            (float, float, float): Mean azimuth, off-nadir and incidence angles
-        """
-        # Get MTD XML file
-        root, nsmap = self.read_mtd()
-
-        # Open zenith and azimuth angle
-        try:
-            az = float(root.findtext(f".//{nsmap['ps']}azimuthAngle"))
-            off_nadir = float(root.findtext(f".//{nsmap['ps']}spaceCraftViewAngle"))
-            incidence_angle = float(root.findtext(f".//{nsmap['eop']}incidenceAngle"))
-        except TypeError:
-            raise InvalidProductError(
-                "azimuthAngle, spaceCraftViewAngle or incidenceAngle not found in metadata!"
-            )
-
-        return az, off_nadir, incidence_angle
-
-    @cache
-    def _read_mtd(self) -> (etree._Element, dict):
-        """
-        Read metadata and outputs the metadata XML root and its namespaces as a dict
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"20210406_015904_37_2407.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.read_mtd()
-            (<Element {http://schemas.planet.com/ps/v1/planet_product_metadata_geocorrected_level}
-            EarthObservation at 0x1a2621f03c8>,
-            {
-                'opt': '{http://earth.esa.int/opt}',
-                'gml': '{http://www.opengis.net/gml}',
-                'eop': '{http://earth.esa.int/eop}',
-                'ps': '{http://schemas.planet.com/ps/v1/planet_product_metadata_geocorrected_level}'
-            })
-
-        Returns:
-            (etree._Element, dict): Metadata XML root and its namespaces as a dict
-        """
-        mtd_from_path = "metadata*.xml"
-        mtd_archived = r"metadata.*\.xml"
-
-        return self._read_mtd_xml(mtd_from_path, mtd_archived)
-
-    @cache
-    def get_cloud_cover(self) -> float:
-        """
-        Get cloud cover as given in the metadata
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.get_cloud_cover()
-            55.5
-
-        Returns:
-            float: Cloud cover as given in the metadata
-        """
-        # Get MTD XML file
-        root, nsmap = self.read_mtd()
-
-        # Get the cloud cover
-        try:
-            cc = float(root.findtext(f".//{nsmap['opt']}cloudCoverPercentage"))
-
-        except TypeError:
-            raise InvalidProductError("opt:cloudCoverPercentage not found in metadata!")
-
-        return cc
-
-    @cache
-    def get_orbit_direction(self) -> OrbitDirection:
-        """
-        Get cloud cover as given in the metadata
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.get_orbit_direction().value
-            "DESCENDING"
-
-        Returns:
-            OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
-        """
-        # Get MTD XML file
-        root, nsmap = self.read_mtd()
-
-        # Get the orbit direction
-        try:
-            od = OrbitDirection.from_value(
-                root.findtext(f".//{nsmap['eop']}orbitDirection")
-            )
-
-        except TypeError:
-            raise InvalidProductError("eop:orbitDirection not found in metadata!")
-
-        return od
-
-    def _get_condensed_name(self) -> str:
-        """
-        Get Planet products condensed name ({date}_{constellation}_{product_type}).
-
-        Returns:
-            str: Condensed name
-        """
-        return (
-            f"{self.get_datetime()}_{self.constellation.name}_{self.product_type.name}"
-        )
