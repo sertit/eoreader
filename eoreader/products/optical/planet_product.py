@@ -833,6 +833,7 @@ class PlanetProduct(OpticalProduct):
             try:
                 az = float(root.findtext(".//satellite_azimuth"))
                 off_nadir = float(root.findtext(".//view_angle"))
+                incidence_angle = None
             except TypeError:
                 raise InvalidProductError(
                     "satellite_azimuth or view_angle angles not found in metadata!"
