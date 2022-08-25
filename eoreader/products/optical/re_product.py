@@ -98,14 +98,6 @@ class ReProduct(PlanetProduct):
 
         self._has_cloud_cover = True
 
-        # Ortho Tiles
-        if self.product_type == ReProductType.L3A:
-            self.tile_name = self.split_name[0]
-
-            # Manage old tiled versions (no name)
-            if self.tile_name[4] == "-":
-                self.tile_name = None
-
         # Post init done by the super class
         super()._post_init(**kwargs)
 
@@ -290,13 +282,17 @@ class ReProduct(PlanetProduct):
 
         # Open identifier
         rad_coef = None
-        for band_mtd in root.iterfind(f".//{nsmap['re']}bandSpecificMetadata"):
+        for band_mtd in root.iterfind(
+            f".//{nsmap[self._nsmap_key]}bandSpecificMetadata"
+        ):
             if (
-                int(band_mtd.findtext(f".//{nsmap['re']}bandNumber"))
+                int(band_mtd.findtext(f".//{nsmap[self._nsmap_key]}bandNumber"))
                 == self.bands[band].id
             ):
                 rad_coef = float(
-                    band_mtd.findtext(f".//{nsmap['re']}radiometricScaleFactor")
+                    band_mtd.findtext(
+                        f".//{nsmap[self._nsmap_key]}radiometricScaleFactor"
+                    )
                 )
                 break
 

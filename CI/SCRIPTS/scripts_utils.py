@@ -4,7 +4,7 @@ import os
 import sys
 from functools import wraps
 from pathlib import Path
-from typing import Callable, Union
+from typing import Any, Callable, Union
 
 import geopandas as gpd
 import numpy as np
@@ -302,3 +302,15 @@ def others_path():
 
 def broken_s2_path():
     return get_ci_db_dir().joinpath("broken_s2")
+
+
+def _assert(val_1: Any, val_2: Any, field: str) -> None:
+    """
+    Compare two values corresponding to a field
+
+    Args:
+        val_1 (Any): Value 1
+        val_2 (Any): Value 2
+        field (str): Field to compare
+    """
+    assert val_1 == val_2, f"{field} incoherent:\n{val_1} != {val_2}"

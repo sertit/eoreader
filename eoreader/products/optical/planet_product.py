@@ -128,6 +128,8 @@ class PlanetProduct(OpticalProduct):
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
+        self._nsmap_key = None
+
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
@@ -136,6 +138,20 @@ class PlanetProduct(OpticalProduct):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        # Update namespace map key (if needed)
+        if self.constellation == Constellation.RE:
+            self._nsmap_key = "re"
+        elif self.constellation == Constellation.PLA:
+            self._nsmap_key = "ps"
+
+        # Tilename
+        if self.constellation in [Constellation.RE, Constellation.PLA]:
+            # Get MTD XML file
+            root, nsmap = self.read_mtd()
+
+            # Manage constellation
+            self.tile_name = root.findtext(f".//{nsmap[self._nsmap_key]}tileId")
+
         self.needs_extraction = False
 
         # Manage mask type
@@ -839,11 +855,10 @@ class PlanetProduct(OpticalProduct):
                     "satellite_azimuth or view_angle angles not found in metadata!"
                 )
         else:
-            nsmap_key = "re" if self.constellation == Constellation.RE else "ps"
             try:
-                az = float(root.findtext(f".//{nsmap[nsmap_key]}azimuthAngle"))
+                az = float(root.findtext(f".//{nsmap[self._nsmap_key]}azimuthAngle"))
                 off_nadir = float(
-                    root.findtext(f".//{nsmap[nsmap_key]}spaceCraftViewAngle")
+                    root.findtext(f".//{nsmap[self._nsmap_key]}spaceCraftViewAngle")
                 )
                 incidence_angle = float(
                     root.findtext(f".//{nsmap['eop']}incidenceAngle")
@@ -959,11 +974,11 @@ class PlanetProduct(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get Planet products condensed name ({date}_{constellation}_{product_type}).
+        Get Planet products condensed name ({date}_{constellation}_{product_type}_{tile}).
 
         Returns:
             str: Condensed name
         """
-        return (
-            f"{self.get_datetime()}_{self.constellation.name}_{self.product_type.name}"
-        )
+        tile = f"_{self.tile_name}" if self.tile_name is not None else ""
+        condensed_name = f"{self.get_datetime()}_{self.constellation.name}_{self.product_type.name}{tile}"
+        return condensed_name

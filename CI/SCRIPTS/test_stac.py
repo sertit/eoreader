@@ -505,6 +505,13 @@ def test_sky():
 
 @s3_env
 @dask_env
+def test_re():
+    """Function testing the support of RapidEye constellation"""
+    _test_core_optical("*_RE4_*")
+
+
+@s3_env
+@dask_env
 def test_pld():
     """Function testing the support of Pleiades constellation"""
     _test_core_optical("*IMG_PHR*")
