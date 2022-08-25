@@ -3,7 +3,7 @@
 [![Tests](https://github.com/sertit/eoreader/actions/workflows/test.yml/badge.svg)](https://github.com/sertit/eoreader/actions/workflows/test.yml)
 [![Gitter](https://badges.gitter.im/eoreader/community.svg)](https://gitter.im/eoreader/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/sertit/eoreader/blob/master/LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6605956.svg)](https://doi.org/10.5281/zenodo.6605956)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6958233.svg)](https://doi.org/10.5281/zenodo.6958233)
 [![stars](https://img.shields.io/github/stars/sertit/eoreader?style=social)](https://github.com/sertit/eoreader)
 [![Conda](https://img.shields.io/conda/dn/conda-forge/eoreader.svg)](https://anaconda.org/conda-forge/eoreader)
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/eoreader.svg?style=social&label=EOReader)](https://twitter.com/eoreader)
@@ -14,9 +14,9 @@
 and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) constellations, loading and stacking bands,
 clouds, DEM and spectral indices in a sensor-agnostic way.
 
-| **Optical**                                                                                                                                                                                                                                        | **SAR**|
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ---|
-| `Sentinel-2` and `Sentinel-2 Theia`<br>`Sentinel-3 OLCI` and `SLSTR`<br>`Landsat` 1 to 9<br>`PlanetScope` and `SkySat`<br>`Pleiades` and `Pleiades-Neo`<br>`SPOT-6/7`<br>`SPOT-4/5`<br>`Vision-1`<br>`Maxar` (WorldViews, GeoEye)<br>`SuperView-1` | `Sentinel-1`<br>`COSMO-Skymed` 1st and 2nd Generation<br>`TerraSAR-X`, `TanDEM-X` and `PAZ SAR`<br>`RADARSAT-2` and `RADARSAT-Constellation`<br>`ICEYE`<br>`SAOCOM`|
+| **Optical**                                                                                                                                                                                                                                        | **SAR**                                                                                                                                                             |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Sentinel-2` and `Sentinel-2 Theia`<br>`Sentinel-3 OLCI` and `SLSTR`<br>`Landsat` 1 to 9<br>`PlanetScope` and `SkySat`<br>`Pleiades` and `Pleiades-Neo`<br>`SPOT-6/7`<br>`SPOT-4/5`<br>`Vision-1`<br>`Maxar` (WorldViews, GeoEye)<br>`SuperView-1` | `Sentinel-1`<br>`COSMO-Skymed` 1st and 2nd Generation<br>`TerraSAR-X`, `TanDEM-X` and `PAZ SAR`<br>`RADARSAT-2` and `RADARSAT-Constellation`<br>`ICEYE`<br>`SAOCOM` |
 
 It also implements additional **sensor-agnostic** features:
 
@@ -36,45 +36,45 @@ and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_struc
 ### Optical
 
 ```python
->>> from eoreader.reader import Reader
->>> from eoreader.bands import *
+from eoreader.reader import Reader
+from eoreader.bands import *
 
->>> # Sentinel-2 path
->>> s2_path = "S2B_MSIL1C_20181126T022319_N0207_R103_T51PWM_20181126T050025.SAFE"
+# Sentinel-2 path
+s2_path = "S2B_MSIL1C_20181126T022319_N0207_R103_T51PWM_20181126T050025.SAFE"
 
->>> # Create the reader object and open satellite data
->>> reader = Reader()
+# Create the reader object and open satellite data
+reader = Reader()
 
->>> # The reader will recognize the constellation from its product structure
->>> s2_prod = reader.open(s2_path)
+# The reader will recognize the constellation from its product structure
+s2_prod = reader.open(s2_path)
 
->>> # Load some bands and index
->>> bands = s2_prod.load([NDVI, GREEN, CLOUDS])
+# Load some bands and index
+bands = s2_prod.load([NDVI, GREEN, CLOUDS])
 
->>> # Create a stack with some bands
->>> stack = s2_prod.stack([RED, GREEN, BLUE], stack_path="s2_rgb_stack.tif")
+# Create a stack with some bands
+stack = s2_prod.stack([RED, GREEN, BLUE], stack_path="s2_rgb_stack.tif")
 ```
 
 ### SAR
 
 ```python
->>> from eoreader.reader import Reader
->>> from eoreader.bands import *
+from eoreader.reader import Reader
+from eoreader.bands import *
 
->>> # Sentinel-1 GRD path
->>> s1_path = "S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip"
+# Sentinel-1 GRD path
+s1_path = "S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip"
 
->>>  # Create the reader object and open satellite data
->>> reader = Reader()
+# Create the reader object and open satellite data
+reader = Reader()
 
->>> # The reader will recognize the constellation from its product structure
->>> s1_prod = reader.open(s1_path)
+# The reader will recognize the constellation from its product structure
+s1_prod = reader.open(s1_path)
 
->>> # Load some bands and index
->>> bands = s1_prod.load([VV, VV_DSPK])
+# Load some bands and index
+bands = s1_prod.load([VV, VH])
 
->>> # Create a stack with some bands
->>> stack = s1_prod.stack([VV, VV_DSPK], stack_path="s1_vv_stack.tif")
+# Create a stack with some bands
+stack = s1_prod.stack([VV_DSPK, VH_DSPK], stack_path="s1_stack.tif")
 ```
 
 > ⚠️**SNAP and SAR**
@@ -82,7 +82,7 @@ and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_struc
 > SAR products need [`ESA SNAP`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph)
 > free software to be orthorectified and calibrated.
 > Ensure that you have the folder containing your `gpt` executable in your `PATH`.
-> If you are using SNAP 8.0, be sure to have your software up-to-date.
+> If you are using SNAP 8.0, be sure to have your software up-to-date (SNAP version >= 8.0).
 
 ## Documentation
 The API documentation can be found [here](https://eoreader.readthedocs.io/en/latest/).
@@ -148,7 +148,7 @@ without taking into account the constellation characteristics
 - the maintenance is simplified and the code is way more readable (no more ifs regarding the sensor type!)
 - the testing is also simplified as the sensor-related parts are tested in this library
 
-However, keep in mind that the support of all the constellations used in CEMS is done in a best effort mode, especially for commercial data.
+However, keep in mind that the support of all the constellations used in CEMS is done in the best effort mode, especially for commercial data.
 Indeed, we may not have faced every product type, sensor mode or order configuration, so some details may be missing.
 If this happens to you, do not hesitate to make a PR or write an issue about that !
 
@@ -160,10 +160,6 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 
 - [ESA Success Story](https://earth.esa.int/eogateway/news/new-open-source-python-library-improves-rapid-mapping-services)
 
-## Talks
-
-- GeoPython 2022 [ [PDF](https://seafile.unistra.fr/f/be2b461af970465b903e/) ] [ [YouTube](https://www.youtube.com/watch?v=mKxOiRULOJA&t=14303s) ]
-
 ## License
 
 **EOReader** is licensed under Apache License v2.0. See LICENSE file for details.
@@ -171,7 +167,7 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 ## Authors
 
 **EOReader** has been created by [ICube-SERTIT](https://sertit.unistra.fr/).
-Follow us on [twitter](https://twitter.com/eoreader)
+Follow us on [Twitter](https://twitter.com/eoreader)
 
 ## Credits
 
