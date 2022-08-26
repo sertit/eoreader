@@ -363,3 +363,23 @@ class ReProduct(PlanetProduct):
             band_arr = band_arr.astype(np.float32)
 
         return band_arr
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing
+
+        Returns:
+            str: Quicklook path
+        """
+        quicklook_path = None
+        try:
+            if self.is_archived:
+                quicklook_path = files.get_archived_rio_path(
+                    self.path, file_regex=r".*_browse\.tif"
+                )
+            else:
+                quicklook_path = str(next(self.path.glob("**/*_browse.tif")))
+        except (StopIteration, FileNotFoundError):
+            pass
+
+        return quicklook_path
