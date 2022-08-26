@@ -32,6 +32,7 @@ from eoreader.stac._stac_keywords import DESCRIPTION, GSD, TITLE
 def fill_common_mtd(asset: Any, prod, **kwargs) -> None:
     """
     Fill common metadata of STAC assets or items
+
     Args:
         asset (pystac.Asset, pystac.Item): Asset or item
         prod (product): EOReader product
@@ -66,6 +67,7 @@ def fill_common_mtd(asset: Any, prod, **kwargs) -> None:
 def gdf_to_geometry(gdf: gpd.GeoDataFrame) -> dict:
     """
     Convert a geodataframe to a STAC geometry
+
     Args:
         gdf (gpd.GeoDataFrame): Geodataframe to convert to geometry
 
@@ -78,6 +80,7 @@ def gdf_to_geometry(gdf: gpd.GeoDataFrame) -> dict:
 def gdf_to_bbox(gdf: gpd.GeoDataFrame) -> list:
     """
     Convert a geodataframe to a STAC bbox
+
     Args:
         gdf (gpd.GeoDataFrame): Geodataframe to convert to bbox
 
@@ -90,6 +93,7 @@ def gdf_to_bbox(gdf: gpd.GeoDataFrame) -> list:
 def gdf_to_centroid(gdf: gpd.GeoDataFrame) -> dict:
     """
     Convert a geodataframe to a STAC centroid
+
     Args:
         gdf (gpd.GeoDataFrame): Geodataframe to convert to centroid
 
