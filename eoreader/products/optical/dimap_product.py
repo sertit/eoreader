@@ -438,19 +438,24 @@ class DimapProduct(VhrProduct):
         Returns:
             rasterio.crs.CRS: CRS object
         """
-        # Open metadata
-        root, _ = self.read_mtd()
+        raw_crs = self._get_raw_crs()
 
-        # Open the Bounding_Polygon
-        vertices = list(root.iterfind(".//Vertex"))
+        if raw_crs.is_projected:
+            utm = raw_crs
+        else:
+            # Open metadata
+            root, _ = self.read_mtd()
 
-        # Get the mean lon lat
-        lon = float(np.mean([float(v.findtext("LON")) for v in vertices]))
-        lat = float(np.mean([float(v.findtext("LAT")) for v in vertices]))
+            # Open the Bounding_Polygon
+            vertices = list(root.iterfind(".//Vertex"))
 
-        # Compute UTM crs from center long/lat
-        utm = vectors.corresponding_utm_projection(lon, lat)
-        utm = riocrs.CRS.from_string(utm)
+            # Get the mean lon lat
+            lon = float(np.mean([float(v.findtext("LON")) for v in vertices]))
+            lat = float(np.mean([float(v.findtext("LAT")) for v in vertices]))
+
+            # Compute UTM crs from center long/lat
+            utm = vectors.corresponding_utm_projection(lon, lat)
+            utm = riocrs.CRS.from_string(utm)
 
         return utm
 
