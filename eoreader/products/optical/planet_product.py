@@ -754,10 +754,9 @@ class PlanetProduct(OpticalProduct):
                 ]
                 if invalid_lookahead:
                     for path in paths:
-                        for il in invalid_lookahead:
-                            if il not in path:
-                                ok_path = path
-                                break
+                        if all(il not in path for il in invalid_lookahead):
+                            ok_path = path
+                            break
                 else:
                     ok_path = paths[0]
                 if not ok_path:
