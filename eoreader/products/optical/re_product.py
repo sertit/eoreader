@@ -50,11 +50,19 @@ _RE_EAI = {
     spb.NIR: 1124.4,
     spb.NARROW_NIR: 1124.4,
 }
+"""
+From RE specifications: https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf
+"""
 
 
 @unique
 class ReProductType(ListEnum):
-    """RapidEye product types (processing levels)"""
+    """
+    RapidEye product types (processing levels)
+
+    See `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
+    for more information.
+    """
 
     L1B = "RapidEye Basic Scene Product"
     """
@@ -72,7 +80,7 @@ class ReProductType(ListEnum):
 class ReProduct(PlanetProduct):
     """
     Class of PlanetScope products.
-    See `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`__
+    See `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
     for more information.
 
     The scaling factor to retrieve the calibrated radiance is 0.01.
