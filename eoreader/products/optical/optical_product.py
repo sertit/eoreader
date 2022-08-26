@@ -641,7 +641,7 @@ class OpticalProduct(Product):
                 else:
                     bands_to_load.append(band)
 
-            # Then load other bands that haven't be loaded before
+            # Then load other bands that haven't been loaded before
             loaded_bands = self._open_clouds(bands_to_load, resolution, size, **kwargs)
 
             # Write them on disk
