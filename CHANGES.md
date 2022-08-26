@@ -19,6 +19,7 @@
 ### Other
 
 - DOC: Add the need of using SNAP 8.0 up-to-date or SNAP 9.0 ([#42](https://github.com/sertit/eoreader/issues/42))
+- DOC: Add the STAC session in API documentation
 
 ## 0.16.1 (2022-08-03)
 

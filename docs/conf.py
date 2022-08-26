@@ -197,7 +197,7 @@ latex_documents = [
     (
         master_doc,
         "eoreader.tex",
-        "EOreader Documentation",
+        "EOReader Documentation",
         "ICube-SERTIT",
         "manual",
     )
