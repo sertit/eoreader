@@ -44,7 +44,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class PlaInstrument(ListEnum):
     """PlanetScope instrument
-    See `here <https://developers.planet.com/docs/apis/data/sensors/>`__
+    See `Planet documentation <https://developers.planet.com/docs/apis/data/sensors/>`__
     for more information.
     """
 

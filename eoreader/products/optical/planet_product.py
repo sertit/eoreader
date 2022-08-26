@@ -65,14 +65,14 @@ class PlanetMaskType(ListEnum):
     The pixel size after orthorectification will be 3.125 m for PlanetScope OrthoTiles and 3.0m for PlanetScope Scenes.
     The usable data mask is a raster image having the same dimensions as the image product, comprised of 8 bands, where each band represents a specific usability class mask.
     The usability masks are mutually exclusive, and a value of one indicates that the pixel is assigned to that usability class.
-        - Band 1: clear mask (a value of “1” indicates the pixel is clear, a value of “0” indicates that the pixel is not clear and is one of the 5 remaining classes below)
-        - Band 2: snow mask
-        - Band 3: shadow mask
-        - Band 4: light haze mask
-        - Band 5: heavy haze mask
-        - Band 6: cloud mask
-        - Band 7: confidence map (a value of “0” indicates a low confidence in the assigned classification, a value of “100” indicates a high confidence in the assigned classification)
-        - Band 8: unusable data mask
+    - Band 1: clear mask (a value of “1” indicates the pixel is clear, a value of “0” indicates that the pixel is not clear and is one of the 5 remaining classes below)
+    - Band 2: snow mask
+    - Band 3: shadow mask
+    - Band 4: light haze mask
+    - Band 5: heavy haze mask
+    - Band 6: cloud mask
+    - Band 7: confidence map (a value of “0” indicates a low confidence in the assigned classification, a value of “100” indicates a high confidence in the assigned classification)
+    - Band 8: unusable data mask
     """
 
     UDM = "Unusable Data Mask"
@@ -81,25 +81,25 @@ class PlanetMaskType(ListEnum):
     The pixel size after orthorectification will be 3.125 m for PlanetScope OrthoTiles, 3.0m for PlanetScope Scenes, 50m for RapidEye, and 0.8 m for SkySat.
     It is suggested that when using the file to check for usable data, a buffer of at least 1 pixel should be considered.
     Each bit in the 8-bit pixel identifies whether the corresponding part of the product contains useful imagery:
-        - Bit 0: Identifies whether the area contains blackfill in all bands (this area was not imaged). A value of “1” indicates blackfill.
-        - Bit 1: Identifies whether the area is cloud covered. A value of “1” indicates cloud coverage.
-            Cloud detection is performed on a decimated version of the image (i.e. the browse image) and hence small clouds may be missed.
-            Cloud areas are those that have pixel values in the assessed band (Red, NIR or Green) that are above a configurable threshold.
-            This algorithm will:
-                - Assess snow as cloud
-                - Assess cloud shadow as cloud free
-                - Assess haze as cloud free
-        - Bit 2: Identifies whether the area contains missing (lost during downlink) or suspect (contains down-link errors) data in band 1.
-            A value of “1” indicates missing/suspect data. If the product does not include this band, the value is set to “0”.
-        - Bit 3: Identifies whether the area contains missing (lost during downlink and hence blackfilled) or suspect (contains downlink errors) data in the band 2.
-            A value of “1” indicates missing/suspect data. If the product does not include this band, the value is set to “0”.
-        - Bit 4: Identifies whether the area contains missing (lost during downlink) or suspect (contains downlink errors) data in the band 3.
-            A value of “1” indicates missing/suspect data. If the product does not include this band, the value is set to “0”.
-        - Bit 5: Identifies whether the area contains missing (lost during downlink) or suspect (contains downlink errors) data in band 4.
-            A value of “1” indicates missing/suspect data. If the product does not include this band, the value is set to “0”.
-        - Bit 6: Identifies whether the area contains missing (lost during downlink) or suspect (contains downlink errors) data in band 5.
-            A value of “1” indicates missing/suspect data. If the product does not include this band, the value is set to “0”.
-        - Bit 7: Is currently set to “0”.
+    - Bit 0: Identifies whether the area contains blackfill in all bands (this area was not imaged). A value of “1” indicates blackfill.
+    - Bit 1: Identifies whether the area is cloud covered. A value of “1” indicates cloud coverage.
+    Cloud detection is performed on a decimated version of the image (i.e. the browse image) and hence small clouds may be missed.
+    Cloud areas are those that have pixel values in the assessed band (Red, NIR or Green) that are above a configurable threshold.
+    This algorithm will:
+    - Assess snow as cloud
+    - Assess cloud shadow as cloud free
+    - Assess haze as cloud free
+    - Bit 2: Identifies whether the area contains missing (lost during downlink) or suspect (contains down-link errors) data in band 1.
+    A value of “1” indicates missing/suspect data. If the product does not include this band, the value is set to “0”.
+    - Bit 3: Identifies whether the area contains missing (lost during downlink and hence blackfilled) or suspect (contains downlink errors) data in the band 2.
+    A value of “1” indicates missing/suspect data. If the product does not include this band, the value is set to “0”.
+    - Bit 4: Identifies whether the area contains missing (lost during downlink) or suspect (contains downlink errors) data in the band 3.
+    A value of “1” indicates missing/suspect data. If the product does not include this band, the value is set to “0”.
+    - Bit 5: Identifies whether the area contains missing (lost during downlink) or suspect (contains downlink errors) data in band 4.
+    A value of “1” indicates missing/suspect data. If the product does not include this band, the value is set to “0”.
+    - Bit 6: Identifies whether the area contains missing (lost during downlink) or suspect (contains downlink errors) data in band 5.
+    A value of “1” indicates missing/suspect data. If the product does not include this band, the value is set to “0”.
+    - Bit 7: Is currently set to “0”.
 
     The UDM information is found in band 8 of the Usable Data Mask file.
     """
@@ -546,7 +546,7 @@ class PlanetProduct(OpticalProduct):
 
         Do not open cloud mask with this function. Use :code:`load` instead.
 
-        See `here <https://developers.planet.com/docs/data/udm-2/>`_ for more
+        See `UDM2 specifications <https://developers.planet.com/docs/data/udm-2/>`_ for more
         information.
 
         Accepted mask IDs:
@@ -605,7 +605,7 @@ class PlanetProduct(OpticalProduct):
 
         Do not open cloud mask with this function. Use :code:`load` instead.
 
-        See `here <https://developers.planet.com/docs/data/udm-2/>`_ for more
+        See `UDM2 specifications <https://developers.planet.com/docs/data/udm-2/>`_ for more
         information.
 
         Accepted mask IDs:
@@ -721,40 +721,53 @@ class PlanetProduct(OpticalProduct):
         nodata = udm.copy(data=rasters.read_bit_array(udm.compute(), 0))
         return nodata.rename("NODATA")
 
-    def _get_path(self, filename: str, extension: str, invalid_lookahead=None) -> str:
+    def _get_path(
+        self, filename: str, extension: str, invalid_lookahead: Union[str, list] = None
+    ) -> str:
         """
         Get either the archived path of the normal path of an asset
 
         Args:
             filename (str): Filename with wildcards
             extension (str): Extension
+            invalid_lookahead (Union[str, list]): Invalid lookahed (string that cannot be placed after the filename)
 
         Returns:
             str: Path
 
         """
-        path = ""
+        if invalid_lookahead is not None and not isinstance(invalid_lookahead, list):
+            invalid_lookahead = list(invalid_lookahead)
+
+        ok_path = ""
         try:
             if self.is_archived:
                 if invalid_lookahead:
-                    regex = rf".*{filename}(?!{invalid_lookahead})\w*[_]*\.{extension}"
+                    regex = rf".*{filename}(?!{'|'.join(invalid_lookahead)})\w*[_]*\.{extension}"
                 else:
                     regex = rf".*{filename}\w*[_]*\.{extension}"
 
-                path = files.get_archived_rio_path(self.path, regex)
+                ok_path = files.get_archived_rio_path(self.path, regex)
             else:
-                paths = list(self.path.glob(f"**/*{filename}*.{extension}"))
+                paths = [
+                    str(path) for path in self.path.glob(f"**/*{filename}*.{extension}")
+                ]
                 if invalid_lookahead:
-                    paths = [
-                        path for path in paths if invalid_lookahead not in str(path)
-                    ]
-                path = str(paths[0])
+                    for path in paths:
+                        for il in invalid_lookahead:
+                            if il not in path:
+                                ok_path = path
+                                break
+                else:
+                    ok_path = paths[0]
+                if not ok_path:
+                    raise FileNotFoundError
         except (FileNotFoundError, IndexError):
             LOGGER.warning(
                 f"No file corresponding to *{filename}*.{extension} found in {self.path}"
             )
 
-        return path
+        return ok_path
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):

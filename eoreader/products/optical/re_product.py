@@ -251,7 +251,7 @@ class ReProduct(PlanetProduct):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
-        path = self._get_path(self.name, "tif", invalid_lookahead="(_udm|_browse)")
+        path = self._get_path(self.name, "tif", invalid_lookahead=["_udm", "_browse"])
 
         # Older products
         if not path:
@@ -267,7 +267,7 @@ class ReProduct(PlanetProduct):
         Compute DN to TOA radiance
 
         See
-        `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_
+        `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
         for more information.
 
         Args:

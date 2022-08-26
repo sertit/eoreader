@@ -48,7 +48,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class SkyInstrument(ListEnum):
     """Skysat instrument
-    See `here <https://space-test.oscar.wmo.int/oscar-test/instruments/view/skysat>`__
+    See `OSCAR instrument <https://space-test.oscar.wmo.int/oscar-test/instruments/view/skysat>`__
     for more information.
     """
 
