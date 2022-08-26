@@ -857,8 +857,10 @@ class PlanetProduct(OpticalProduct):
         else:
             try:
                 az = float(root.findtext(f".//{nsmap[self._nsmap_key]}azimuthAngle"))
-                off_nadir = float(
-                    root.findtext(f".//{nsmap[self._nsmap_key]}spaceCraftViewAngle")
+                off_nadir = abs(
+                    float(
+                        root.findtext(f".//{nsmap[self._nsmap_key]}spaceCraftViewAngle")
+                    )
                 )
                 incidence_angle = float(
                     root.findtext(f".//{nsmap['eop']}incidenceAngle")
