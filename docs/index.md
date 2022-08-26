@@ -45,6 +45,7 @@
    eoreader.reader
    eoreader.products
    eoreader.bands
+   eoreader.stac
    eoreader.env_vars
    eoreader.keywords
    eoreader.exceptions
