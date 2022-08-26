@@ -4,16 +4,16 @@ You will find a SAR tutorial [here](https://eoreader.readthedocs.io/en/latest/no
 
 ## Implemented SAR constellations
 
-|Constellations | Class | Use archive|
-|--- | --- |  ---|
-|`COSMO-Skymed 1st Generation`| {meth}`~eoreader.products.CskProduct` | ❌|
-|`COSMO-Skymed 2nd Generation`| {meth}`~eoreader.products.CsgProduct` | ❌|
-|`ICEYE` | {meth}`~eoreader.products.IceyeProduct` | ❌|
-|`RADARSAT Constellation Mission` | {meth}`~eoreader.products.RcmProduct` | ❌|
-|`RADARSAT-2` | {meth}`~eoreader.products.Rs2Product` | ✅ for ground range data, ❌ for complex data|
-|`Sentinel-1` | {meth}`~eoreader.products.S1Product` | ✅|
-|`SAOCOM-1` | {meth}`~eoreader.products.SaocomProduct` | ❌|
-|`TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.TsxProduct` | ❌|
+| Constellations                      | Class                                    | Use archive                                 |
+|-------------------------------------|------------------------------------------|---------------------------------------------|
+| `COSMO-Skymed 1st Generation`       | {meth}`~eoreader.products.CskProduct`    | ❌                                           |
+| `COSMO-Skymed 2nd Generation`       | {meth}`~eoreader.products.CsgProduct`    | ❌                                           |
+| `ICEYE`                             | {meth}`~eoreader.products.IceyeProduct`  | ❌                                           |
+| `RADARSAT Constellation Mission`    | {meth}`~eoreader.products.RcmProduct`    | ❌                                           |
+| `RADARSAT-2`                        | {meth}`~eoreader.products.Rs2Product`    | ✅ for ground range data, ❌ for complex data |
+| `Sentinel-1`                        | {meth}`~eoreader.products.S1Product`     | ✅                                           |
+| `SAOCOM-1`                          | {meth}`~eoreader.products.SaocomProduct` | ❌                                           |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.TsxProduct`    | ❌                                           |
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use, 
@@ -22,38 +22,38 @@ mostly because SNAP doesn't handle them.
 
 ## Product type handling
 
-| Constellations | Product Type | Handled |
-| --- | --- | --- |
-| `COSMO-Skymed` | SCS | ✅ |
-| `COSMO-SkyMed` 1st Generation | DGM | ✅ |
-| `COSMO-SkyMed` 2nd Generation | DGM | ⚠️ |
-| `COSMO-SkyMed` | GEC, GTC | ⚠️ | 
-| `ICEYE` | SLC | ✅ |
-| `ICEYE` |GRD | ✅ | 
-| `ICEYE` | ORTHO | 💤 |
-| `RADARSAT Constellation Mission` | SLC | ⚠️ | 
-| `RADARSAT Constellation Mission` | GRC, GCC, GCD | ⚠️ |
-| `RADARSAT Constellation Mission` | GRD | ✅ | 
-| `RADARSAT-2` | SLC | ✅| 
-| `RADARSAT-2` | SGX, SCN, SCW,<br>SCF, SCS, SSG, SPG | ⚠️ |
-| `RADARSAT-2` | SGF | ✅ |
-| `Sentinel-1` | SLC | ✅ | 
-| `Sentinel-1` | GRD | ✅ |
-| `SAOCOM-1` | SLC | ✅ | 
-| `SAOCOM-1` | ID | ⚠ |
-| `SAOCOM-1` | GEC | ✅ |
-| `SAOCOM-1` | GTC | ✅ |
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | SSC | ✅ | 
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | MGD | ✅ |
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | GEC | ⚠️ |
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | EEC | ✅ |
+| Constellations                      | Product Type                         | Handled |
+|-------------------------------------|--------------------------------------|---------|
+| `COSMO-Skymed`                      | SCS                                  | ✅       |
+| `COSMO-SkyMed` 1st Generation       | DGM                                  | ✅       |
+| `COSMO-SkyMed` 2nd Generation       | DGM                                  | ⚠️      |
+| `COSMO-SkyMed`                      | GEC, GTC                             | ⚠️      | 
+| `ICEYE`                             | SLC                                  | ✅       |
+| `ICEYE`                             | GRD                                  | ✅       | 
+| `ICEYE`                             | ORTHO                                | 💤      |
+| `RADARSAT Constellation Mission`    | SLC                                  | ⚠️      | 
+| `RADARSAT Constellation Mission`    | GRC, GCC, GCD                        | ⚠️      |
+| `RADARSAT Constellation Mission`    | GRD                                  | ✅       | 
+| `RADARSAT-2`                        | SLC                                  | ✅       | 
+| `RADARSAT-2`                        | SGX, SCN, SCW,<br>SCF, SCS, SSG, SPG | ⚠️      |
+| `RADARSAT-2`                        | SGF                                  | ✅       |
+| `Sentinel-1`                        | SLC                                  | ✅       | 
+| `Sentinel-1`                        | GRD                                  | ✅       |
+| `SAOCOM-1`                          | SLC                                  | ✅       | 
+| `SAOCOM-1`                          | ID                                   | ⚠       |
+| `SAOCOM-1`                          | GEC                                  | ✅       |
+| `SAOCOM-1`                          | GTC                                  | ✅       |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | SSC                                  | ✅       | 
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | MGD                                  | ✅       |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | GEC                                  | ⚠️      |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | EEC                                  | ✅       |
 
 ✅: Tested   
 ⚠️: Never tested, **use it at your own risk!**  
 ❌: Not handled   
 💤: Waiting for the release  
 
-The goal of **EOReader** is to implement every constellations that can be used in
+The goal of **EOReader** is to implement every constellation that can be used in
 the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/).
 The constellations that can be used during CEMS activations are (as of 09/2021):  
 ![cems_constellations](https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2021/09/copernicus_contributing_missions_overview/23461131-1-eng-GB/Copernicus_Contributing_Missions_overview_pillars.jpg)
@@ -114,111 +114,111 @@ Resolutions not found in this paper have been looked for in the constructor's do
 
 ### Sentinel-1
 
-| **Sentinel-1** | Ground Range Detected (GRD)<br>Full Resolution (FR) | Ground Range Detected (GRD)<br>High Resolution (HR) | Ground Range Detected (GRD)<br>Medium Resolution (MR)|
-|--- | --- | --- | ---|
-|StripMap (SM) |  9.0m | 23.0m | 84.0m|
-|Interferometric Wide swath (IW) |  | 20.0m | 88.0m|
-|Extra-Wide swath (EW) |  | 50.0m | 93.0m|
-|Wave (WV) | | | 52.0m|
+| **Sentinel-1**                  | Ground Range Detected (GRD)<br>Full Resolution (FR) | Ground Range Detected (GRD)<br>High Resolution (HR) | Ground Range Detected (GRD)<br>Medium Resolution (MR) |
+|---------------------------------|-----------------------------------------------------|-----------------------------------------------------|-------------------------------------------------------|
+| StripMap (SM)                   | 9.0m                                                | 23.0m                                               | 84.0m                                                 |
+| Interferometric Wide swath (IW) |                                                     | 20.0m                                               | 88.0m                                                 |
+| Extra-Wide swath (EW)           |                                                     | 50.0m                                               | 93.0m                                                 |
+| Wave (WV)                       |                                                     |                                                     | 52.0m                                                 |
 
 ### COSMO-Skymed 1st Generation
 
-| **COSMO-Skymed<br>1st Generation** | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
-|--- | ---|
-|**Spotlight**<br>Mode-2 (S2) | 1.0m| 
-|**StripMap**<br>Himage from SCS (HI) | 3.0m|
-|**StripMap**<br>Himage GRD (HI) | 5.0m|
-|**StripMap**<br>PingPong (PP) | 20.0m|
-|**ScanSAR**<br>Wide Region (WR) | 30.0m|
-|**ScanSAR**<br>Huge Region (HR) | 100.0m|
+| **COSMO-Skymed<br>1st Generation**   | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC) |
+|--------------------------------------|------------------------------------------------------------------------------------------------------------|
+| **Spotlight**<br>Mode-2 (S2)         | 1.0m                                                                                                       | 
+| **StripMap**<br>Himage from SCS (HI) | 3.0m                                                                                                       |
+| **StripMap**<br>Himage GRD (HI)      | 5.0m                                                                                                       |
+| **StripMap**<br>PingPong (PP)        | 20.0m                                                                                                      |
+| **ScanSAR**<br>Wide Region (WR)      | 30.0m                                                                                                      |
+| **ScanSAR**<br>Huge Region (HR)      | 100.0m                                                                                                     |
 
 ### COSMO-Skymed 2nd Generation
 
 > ⚠️*TO BE CHECKED*
 
-| **COSMO-Skymed<br>2nd Generation** | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
-|--- | ---|
-|SPOTLIGHT_2_A | 0.4m |
-|SPOTLIGHT_2_B | 0.63m |
-|SPOTLIGHT-2_C | 0.8m |
-|STRIPMAP & QUADPOL | 3.0m|
-|SCANSAR1 | 20.0m|
-|SCANSAR2 | 40.0m|
-|PINGPONG | 12.0m|
+| **COSMO-Skymed<br>2nd Generation** | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC) |
+|------------------------------------|------------------------------------------------------------------------------------------------------------|
+| SPOTLIGHT_2_A                      | 0.4m                                                                                                       |
+| SPOTLIGHT_2_B                      | 0.63m                                                                                                      |
+| SPOTLIGHT-2_C                      | 0.8m                                                                                                       |
+| STRIPMAP & QUADPOL                 | 3.0m                                                                                                       |
+| SCANSAR1                           | 20.0m                                                                                                      |
+| SCANSAR2                           | 40.0m                                                                                                      |
+| PINGPONG                           | 12.0m                                                                                                      |
 
 ### TerraSAR-X & TanDEM-X & PAZ SAR
 
-|**TerraSAR-X<br>TanDEM-X<br>PAZ SAR** | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced<br>(high resolution, SE)| Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE)|
-|--- | --- | ---|
-|**StripMap (SM)**<br>Single-Pol | 3.3m | 7.0m|
-|**StripMap (SM)**<br>Dual-Pol | 6.6m | 9.9m|
-|**High Resolution Spotlight (HS)**<br>Single-Pol | 1.1m | 3.0m|
-|**High Resolution Spotlight (HS)**<br>Dual-Pol |2.2m | 4.4m|
-|**Spotlight (SL)**<br>Single-Pol | 1.7m | 3.8m|
-|**Spotlight (SL)**<br>Dual-Pol | 3.4m | 5.5m|
-|**Staring Spotlight (ST)**<br>Single-Pol |  0.24m | 0.9m|
-|**ScanSAR (SC)**<br>Four Beams | | 18.5m|
-|**ScanSAR (SC)**<br>Six Beams | | 40.0m|
+| **TerraSAR-X<br>TanDEM-X<br>PAZ SAR**            | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced<br>(high resolution, SE) | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE) |
+|--------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **StripMap (SM)**<br>Single-Pol                  | 3.3m                                                                                                                                                     | 7.0m                                                                                                                                                           |
+| **StripMap (SM)**<br>Dual-Pol                    | 6.6m                                                                                                                                                     | 9.9m                                                                                                                                                           |
+| **High Resolution Spotlight (HS)**<br>Single-Pol | 1.1m                                                                                                                                                     | 3.0m                                                                                                                                                           |
+| **High Resolution Spotlight (HS)**<br>Dual-Pol   | 2.2m                                                                                                                                                     | 4.4m                                                                                                                                                           |
+| **Spotlight (SL)**<br>Single-Pol                 | 1.7m                                                                                                                                                     | 3.8m                                                                                                                                                           |
+| **Spotlight (SL)**<br>Dual-Pol                   | 3.4m                                                                                                                                                     | 5.5m                                                                                                                                                           |
+| **Staring Spotlight (ST)**<br>Single-Pol         | 0.24m                                                                                                                                                    | 0.9m                                                                                                                                                           |
+| **ScanSAR (SC)**<br>Four Beams                   |                                                                                                                                                          | 18.5m                                                                                                                                                          |
+| **ScanSAR (SC)**<br>Six Beams                    |                                                                                                                                                          | 40.0m                                                                                                                                                          |
 
 ### RADARSAT-2
 
-|**RADARSAT-2** | Maximal spatial resolution |
-|--- | ---|
-|Spotlight | 1.0m |
-|Ultra-Fine | 3.0m |
-|Wide Ultra-Fine | 3.0m |
-|Multi-Look Fine | 5.0m |
-|Wide Multi-Look Fine | 5.0m |
-|Extra-Fine | 5.0m |
-|Fine | 8.0m |
-|Wide-Fine | 8.0m |
-|Standard | 25.0m |
-|Wide | 25.0m |
-|Extended High | 25.0m |
-|Extended Low | 25.0m |
-|Fine Quad-Pol | 12.0m |
-|Wide Quad-Pol | 12.0m |
-|Standard Quad-Pol | 25.0m |
-|Wide Standard Quad-Pol | 25.0m |
-|ScanSAR Narrow | 60.0m |
-|ScanSAR Wide | 100.0m |
-|Ship (Detection of vessels) | 35.0m |
-|Ocean Surveillance | 50.0m |
+| **RADARSAT-2**              | Maximal spatial resolution |
+|-----------------------------|----------------------------|
+| Spotlight                   | 1.0m                       |
+| Ultra-Fine                  | 3.0m                       |
+| Wide Ultra-Fine             | 3.0m                       |
+| Multi-Look Fine             | 5.0m                       |
+| Wide Multi-Look Fine        | 5.0m                       |
+| Extra-Fine                  | 5.0m                       |
+| Fine                        | 8.0m                       |
+| Wide-Fine                   | 8.0m                       |
+| Standard                    | 25.0m                      |
+| Wide                        | 25.0m                      |
+| Extended High               | 25.0m                      |
+| Extended Low                | 25.0m                      |
+| Fine Quad-Pol               | 12.0m                      |
+| Wide Quad-Pol               | 12.0m                      |
+| Standard Quad-Pol           | 25.0m                      |
+| Wide Standard Quad-Pol      | 25.0m                      |
+| ScanSAR Narrow              | 60.0m                      |
+| ScanSAR Wide                | 100.0m                     |
+| Ship (Detection of vessels) | 35.0m                      |
+| Ocean Surveillance          | 50.0m                      |
 
 
 ### RADARSAT-Constellation
 
-|**RADARSAT-Constellation** | Resolution|
-|--- | ---|
-|Spotlight [FSL] | 1.0m|
-|Very-High Resolution, 3 meters [3M] | 3.0m |
-|High Resolution, 5 meters [5M] | 5.0m|
-|Quad-Polarization [QP]| 9.0m|
-|Medium Resolution, 16 meters [16M] | 16.0m|
-|Medium Resolution, 30 meters [SC30] | 30.0m|
-|Medium Resolution, 50 meters [SC50] | 50.0m|
-|Low Noise [SCLN] | 100.0m|
-|Low Resolution, 100 meters [SC100] | 100.0m|
-|Ship Detection | Variable|
+| **RADARSAT-Constellation**          | Resolution |
+|-------------------------------------|------------|
+| Spotlight [FSL]                     | 1.0m       |
+| Very-High Resolution, 3 meters [3M] | 3.0m       |
+| High Resolution, 5 meters [5M]      | 5.0m       |
+| Quad-Polarization [QP]              | 9.0m       |
+| Medium Resolution, 16 meters [16M]  | 16.0m      |
+| Medium Resolution, 30 meters [SC30] | 30.0m      |
+| Medium Resolution, 50 meters [SC50] | 50.0m      |
+| Low Noise [SCLN]                    | 100.0m     |
+| Low Resolution, 100 meters [SC100]  | 100.0m     |
+| Ship Detection                      | Variable   |
 
 ### ICEYE
 
-|**ICEYE** | Resolution|
-|--- | ---|
-|Spotlight [SL(H)] |1.0m|
-|StripMap [SM(H)] |3.0m|
-|Scan [SC] |< 15.0m|
+| **ICEYE**         | Resolution |
+|-------------------|------------|
+| Spotlight [SL(H)] | 1.0m       |
+| StripMap [SM(H)]  | 3.0m       |
+| Scan [SC]         | < 15.0m    |
 
 ### SAOCOM-1
 
-|**SAOCOM-1** | Detected Image (DI)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)|
-|--- | ---|
-|**StripMap (SM)**<br>Single and Dual Pol | 10.0m|
-|**StripMap (SM)**<br>Quad Pol | 10.0m|
-|**TOPSAR Narrow (TN)**<br>Single and Dual Pol | 30.0m|
-|**TOPSAR Narrow (TN)**<br>Quad Pol | 50.0m|
-|**TOPSAR Wide (TW)**<br>Single and Dual Pol | 50.0m|
-|**TOPSAR Wide (TW)**<br>Quad Pol | 100.0m|
+| **SAOCOM-1**                                  | Detected Image (DI)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC) |
+|-----------------------------------------------|-----------------------------------------------------------------------------------------------|
+| **StripMap (SM)**<br>Single and Dual Pol      | 10.0m                                                                                         |
+| **StripMap (SM)**<br>Quad Pol                 | 10.0m                                                                                         |
+| **TOPSAR Narrow (TN)**<br>Single and Dual Pol | 30.0m                                                                                         |
+| **TOPSAR Narrow (TN)**<br>Quad Pol            | 50.0m                                                                                         |
+| **TOPSAR Wide (TW)**<br>Single and Dual Pol   | 50.0m                                                                                         |
+| **TOPSAR Wide (TW)**<br>Quad Pol              | 100.0m                                                                                        |
 
 ## GPT graphs
 
