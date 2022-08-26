@@ -9,6 +9,7 @@
 ### Bug Fixes
 
 - FIX: Stacks saved as integers on disk keep their original dtype (float32) in Python
+- FIX: Using stack CRS (if projected) for `DIMAP` products instead of recomputing from lat/lon, solving potential discrepencies between stack and product CRS
 
 ### Optimizations
 
