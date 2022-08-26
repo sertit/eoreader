@@ -737,7 +737,7 @@ class PlanetProduct(OpticalProduct):
 
         """
         if invalid_lookahead is not None and not isinstance(invalid_lookahead, list):
-            invalid_lookahead = list(invalid_lookahead)
+            invalid_lookahead = [invalid_lookahead]
 
         ok_path = ""
         try:
