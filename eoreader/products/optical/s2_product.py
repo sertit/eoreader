@@ -642,15 +642,32 @@ class S2Product(OpticalProduct):
                             geocoded_path = on_disk_path
 
                         # Get and write geocode data if not already existing
-                        with rasterio.open(str(geocoded_path), "r+") as out_ds:
-                            tf, _, _, crs = self._l2ap_geocode_data(path)
-                            out_ds.crs = crs
-                            out_ds.transform = tf
+                        try:
+                            with rasterio.open(str(geocoded_path), "r+") as out_ds:
+                                tf, _, _, crs = self._l2ap_geocode_data(path)
+                                out_ds.crs = crs
+                                out_ds.transform = tf
+                        except SystemError:
+                            # Workaround for jp2 file that for a reason or another fails to be updated
+                            # Maybe linked to https://github.com/rasterio/rasterio/issues/2528?
+                            jp2_geocoded_path = geocoded_path
+                            geocoded_path = jp2_geocoded_path.with_suffix(".tif")
+                            with rasterio.open(str(jp2_geocoded_path), "r") as jp2_ds:
+                                tif_meta = jp2_ds.meta
+                                tif_meta["driver"] = "GTiff"
+                                with rasterio.open(
+                                    str(geocoded_path), "w", **tif_meta
+                                ) as out_ds:
+                                    out_ds.write(jp2_ds.read())
+                                    tf, _, _, crs = self._l2ap_geocode_data(path)
+                                    out_ds.crs = crs
+                                    out_ds.transform = tf
+
         except errors.RasterioIOError as ex:
             if str(path).endswith("jp2") or str(path).endswith("tif"):
                 raise InvalidProductError(f"Corrupted file: {path}") from ex
             else:
-                raise
+                raise ex
 
         # Read band
         return utils.read(
@@ -680,7 +697,11 @@ class S2Product(OpticalProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        if str(path).endswith(".jp2"):
+        # Only on raw files
+        if str(path).endswith(".jp2") or (
+            self._processing_baseline < 2.07
+            and files.get_filename(path).startswith("T")
+        ):
             try:
                 # Get MTD XML file
                 root, _ = self.read_datatake_mtd()
