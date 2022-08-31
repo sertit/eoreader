@@ -25,7 +25,7 @@ lint:
 
 # Test with data on local disk
 pytest:
-  image: $EEO_DEPS:latest
+  image: $EEO_DEPS:38
   stage: test
   variables:
     CI_EOREADER_USE_S3: "0"
