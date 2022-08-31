@@ -10,7 +10,7 @@ variables:
   EO_CONTAINER: $REGISTRY_GITLAB/eo-containers/python
 
 lint:
-  image: python:3.7-buster
+  image: python:3.8-buster
   stage: lint
   script:
     - python -m pip install --upgrade pip
@@ -58,7 +58,7 @@ pytest:
 # Test with data on S3
 # TODO: create S3-specific CI ?
 pytest_s3:
-  image: $EEO_DEPS:latest
+  image: $EEO_DEPS:38
   stage: test
   before_script:
     - python -m pip install --upgrade pip
@@ -88,7 +88,7 @@ pytest_s3:
 
 # Test SNAP with SNAP
 pytest_end_to_end:
-  image: $EEO_DEPS:latest
+  image: $EEO_DEPS:38
   stage: test
   before_script:
     - python -m pip install --upgrade pip
@@ -110,20 +110,53 @@ pytest_end_to_end:
     - if: $CI_COMMIT_TAG
       when: always
 
-tox-linux-3.7:on-schedule:
-  image: $EO_CONTAINER:3.7
-  stage: weekly_tests
+pytest_end_to_end39:
+  image: $EEO_DEPS:latest
+  stage: test
   before_script:
     - python -m pip install --upgrade pip
-    - pip install tox
+    - pip install --ignore-installed PyYAML
+    - pip install -e .
   script:
-    - tox -c tox.ini -e py37
+    - pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_SNAP/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=tee-sys
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/cov_e2e.html
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - sertit
     - linux
     - high_memory
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "END_TO_END"'
+      when: always
+    - if: $CI_COMMIT_TAG
+      when: always
+  needs: [ "pytest_end_to_end" ]
+
+pytest_end_to_end310:
+  image: $EEO_DEPS:310
+  stage: test
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install --ignore-installed PyYAML
+    - pip install -e .
+  script:
+    - pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_SNAP/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=tee-sys
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/cov_e2e.html
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  tags:
+    - sertit
+    - linux
+    - high_memory
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "END_TO_END"'
+      when: always
+    - if: $CI_COMMIT_TAG
+      when: always
+  needs: [ "pytest_end_to_end39" ]
 
 tox-linux-3.8:on-schedule:
   image: $EO_CONTAINER:3.8
@@ -139,7 +172,6 @@ tox-linux-3.8:on-schedule:
     - high_memory
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "WEEKLY"'
-  needs: [ "tox-linux-3.7:on-schedule" ]
 
 tox-linux-3.9:on-schedule:
   image: $EO_CONTAINER:3.9
