@@ -2,7 +2,7 @@ name: eoreader-doc
 channels:
   - conda-forge
 dependencies:         # everything under this, installed by conda
-  - python>=3.7.3
+  - python=3.8
   - pip
   - pip:                # everything under this, installed by pip
       - --extra-index-url ${WINDOWS_WHEELS}  # Use windows wheels on windows
