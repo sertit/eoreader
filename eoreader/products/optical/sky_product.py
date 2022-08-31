@@ -333,27 +333,13 @@ class SkyProduct(PlanetProduct):
                 raise InvalidProductError("Cannot find acquired in the metadata file.")
 
             # Convert to datetime
-            # SkySat datetime are messy as hell
-            try:
-                if "+" in datetime_str:
-                    datetime_str = datetime_str.split("+")[0]
-                    datetime_str = datetime.strptime(
-                        datetime_str, "%Y-%m-%dT%H:%M:%S.%f"
-                    )
-                else:
-                    datetime_str = datetime.strptime(
-                        datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ"
-                    )
-            except ValueError:
-                datetime_str = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S")
-
-            if not as_datetime:
-                datetime_str = datetime_str.strftime(DATETIME_FMT)
+            datetime_str = datetime.strptime(datetime_str, DATETIME_FMT)
 
         else:
             datetime_str = self.datetime
-            if not as_datetime:
-                datetime_str = datetime_str.strftime(DATETIME_FMT)
+
+        if not as_datetime:
+            datetime_str = datetime_str.strftime(DATETIME_FMT)
 
         return datetime_str
 
@@ -501,6 +487,9 @@ class SkyProduct(PlanetProduct):
                     ) from ex
         except etree.XMLSyntaxError:
             raise InvalidProductError(f"Invalid metadata XML for {self.path}!")
+
+        # Format datetime
+        data["acquired"] = data["acquired"].dt.strftime(DATETIME_FMT)
 
         root = etree.fromstring(bytes(data.to_xml(), "utf-8"))
 
