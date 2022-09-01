@@ -651,7 +651,7 @@ class Vis1Product(VhrProduct):
         try:
             if self.is_archived:
                 quicklook_path = files.get_archived_rio_path(
-                    self.path, file_regex=".*Preview\.tif"
+                    self.path, file_regex=r".*Preview\.tif"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("*Preview.tif")))

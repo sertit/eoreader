@@ -12,6 +12,8 @@
 - FIX: Using stack CRS (if projected) for `DIMAP` products instead of recomputing from lat/lon, solving potential discrepencies between stack and product CRS
 - FIX: Workaround for JP2 bug when updating an existing raster (maybe related to [this bug](https://github.com/rasterio/rasterio/issues/2528))
 - FIX: Better management of SkySat datetime conversion from JSON to XML (deterministic way)
+- FIX: Fixing pandas FutureWarning `The frame.append method is deprecated and will be removed from pandas in a future version.`
+- FIX: Fixing DeprecationWarning `invalid escape sequence \.`
 
 ### Optimizations
 
