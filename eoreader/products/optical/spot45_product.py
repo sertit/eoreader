@@ -895,7 +895,7 @@ class Spot45Product(VhrProduct):
         try:
             if self.is_archived:
                 quicklook_path = files.get_archived_rio_path(
-                    self.path, file_regex=".*PREVIEW\.JPG"
+                    self.path, file_regex=r".*PREVIEW\.JPG"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("*PREVIEW.JPG")))
