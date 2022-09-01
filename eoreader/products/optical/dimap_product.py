@@ -606,13 +606,16 @@ class DimapProduct(VhrProduct):
 
         #  Load masks and merge them into the nodata
         try:
-            nodata_vec = self.open_mask("DET", **kwargs)  # Out of order detectors
-            nodata_vec = pd.concat(
-                [nodata_vec, self.open_mask("VIS", **kwargs)]
-            )  # Hidden area vector mask
-            nodata_vec = nodata_vec.concat(
-                [nodata_vec, self.open_mask("SLT", **kwargs)]
-            )  # Straylight vector mask
+            # Out of order detectors
+            nodata_vec = self.open_mask("DET", **kwargs)
+
+            # Hidden area vector mask
+            nodata_vec = pd.concat([nodata_vec, self.open_mask("VIS", **kwargs)])
+
+            # # Straylight vector mask
+            # nodata_vec = pd.concat(
+            #     [nodata_vec, self.open_mask("SLT", **kwargs)]
+            # )
 
             if len(nodata_vec) > 0:
                 # Rasterize mask
