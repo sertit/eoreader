@@ -11,11 +11,11 @@ The Data Access Portfolio Document presents the offer of the datasets and data a
 | Sentinel-2 Theia   | {meth}`~eoreader.products.S2TheiaProduct`               | L2A                       | 10m                                  | ✅                 |
 | Sentinel-3 SLSTR   | {meth}`~eoreader.products.S3Product`                    | RBT                       | 300m                                 | ✅                 |
 | Sentinel-3 OLCI    | {meth}`~eoreader.products.S3Product`                    | EFR                       | 500m                                 | ✅                 |
-| Landsat 9 OLI-TIRS | {meth}`~eoreader.products.L9Product`                    | Level 1                   | 30m                                  | ✅                 |
-| Landsat 8 OLI-TIRS | {meth}`~eoreader.products.L8Product`                    | Level 1                   | 30m                                  | COL1*: ❌, COL2: ✅ |
-| Landsat 7 ETM      | {meth}`~eoreader.products.L7Product`                    | Level 1                   | 30m                                  | COL1*: ❌, COL2: ✅ |
-| Landsat 5 TM       | {meth}`~eoreader.products.L5Product`                    | Level 1                   | 30m                                  | COL1*: ❌, COL2: ✅ |
-| Landsat 4 TM       | {meth}`~eoreader.products.L4Product`                    | Level 1                   | 30m                                  | COL1*: ❌, COL2: ✅ |
+| Landsat 9 OLI-TIRS | {meth}`~eoreader.products.L9Product`                    | Level 1 & 2               | 30m                                  | ✅                 |
+| Landsat 8 OLI-TIRS | {meth}`~eoreader.products.L8Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅ |
+| Landsat 7 ETM      | {meth}`~eoreader.products.L7Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅ |
+| Landsat 5 TM       | {meth}`~eoreader.products.L5Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅ |
+| Landsat 4 TM       | {meth}`~eoreader.products.L4Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅ |
 | Landsat 5 MSS      | {meth}`~eoreader.products.L5Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅ |
 | Landsat 4 MSS      | {meth}`~eoreader.products.L4Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅ |
 | Landsat 3 MSS      | {meth}`~eoreader.products.L3Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅ |
