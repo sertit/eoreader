@@ -119,7 +119,7 @@ ASSET_ROLE = "asset_role"
 
 # Optical
 REFLECTANCE = "reflectance"
-BT = "brilliance_temperature"
+BT = "brightness_temperature"
 SATURATION = "saturation"
 CLOUD = "cloud"
 CLOUD_SHADOW = "cloud-shadow"

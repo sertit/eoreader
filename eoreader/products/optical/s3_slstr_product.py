@@ -58,7 +58,7 @@ from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-# FROM SNAP (only for radiance bands, not for brilliance temperatures)
+# FROM SNAP (only for radiance bands, not for brightness temperatures)
 # https://github.com/senbox-org/s3tbx/blob/197c9a471002eb2ec1fbd54e9a31bfc963446645/s3tbx-rad2refl/src/main/java/org/esa/s3tbx/processor/rad2refl/Rad2ReflConstants.java#L141
 # Not used for now
 SLSTR_SOLAR_FLUXES_DEFAULT = {
@@ -77,7 +77,7 @@ SLSTR_ABC_BANDS = ["S4", "S5", "S6"]
 SLSTR_F_BANDS = ["F1"]
 SLSTR_I_BANDS = ["S7", "S8", "S9", "F1", "F2"]
 
-# Link band names to their physical quantity (radiance vs brilliance temperature)
+# Link band names to their physical quantity (radiance vs brightness temperature)
 SLSTR_RAD_BANDS = SLSTR_A_BANDS + SLSTR_ABC_BANDS
 SLSTR_BT_BANDS = SLSTR_I_BANDS
 
@@ -244,7 +244,7 @@ class S3SlstrProduct(S3Product):
         self._view = SlstrView.NADIR
         self._rad_adjust = SlstrRadAdjust.S3_PN_SLSTR_L1_08
 
-        # Brilliance temperature
+        # Brightness temperature
         self._bt_file = "{band}_BT_{suffix}.nc"
         self._bt_subds = "{band}_BT_{suffix}"
 
@@ -425,7 +425,7 @@ class S3SlstrProduct(S3Product):
                     GSD: bt_res,
                     CENTER_WV: 3742.00,
                     FWHM: 398.00,
-                    DESCRIPTION: "SST, LST, Active fire, brilliance temperature, 1km",
+                    DESCRIPTION: "SST, LST, Active fire, brightness temperature, 1km",
                     ASSET_ROLE: BT,
                 },
             ),
@@ -437,7 +437,7 @@ class S3SlstrProduct(S3Product):
                     GSD: bt_res,
                     CENTER_WV: 10854.00,
                     FWHM: 776.00,
-                    DESCRIPTION: "SST, LST, Active fire, brilliance temperature, 1km",
+                    DESCRIPTION: "SST, LST, Active fire, brightness temperature, 1km",
                     ASSET_ROLE: BT,
                 },
             ),
@@ -449,7 +449,7 @@ class S3SlstrProduct(S3Product):
                     GSD: bt_res,
                     CENTER_WV: 12022.50,
                     FWHM: 905.00,
-                    DESCRIPTION: "SST, LST, brilliance temperature, 1km",
+                    DESCRIPTION: "SST, LST, brightness temperature, 1km",
                     ASSET_ROLE: BT,
                 },
             ),
@@ -461,7 +461,7 @@ class S3SlstrProduct(S3Product):
                     GSD: bt_res,
                     CENTER_WV: 3742.00,
                     FWHM: 398.00,
-                    DESCRIPTION: "Active fire, brilliance temperature, 1km",
+                    DESCRIPTION: "Active fire, brightness temperature, 1km",
                     ASSET_ROLE: BT,
                 },
             ),
@@ -473,7 +473,7 @@ class S3SlstrProduct(S3Product):
                     GSD: bt_res,
                     CENTER_WV: 10854.00,
                     FWHM: 776.00,
-                    DESCRIPTION: "Active fire, brilliance temperature, 1km",
+                    DESCRIPTION: "Active fire, brightness temperature, 1km",
                     ASSET_ROLE: BT,
                 },
             ),
@@ -896,7 +896,7 @@ class S3SlstrProduct(S3Product):
                 rad_coeff = getattr(rad_adjust_tuple, f"{band_id}_{view}")
                 band_arr *= rad_coeff
         except KeyError:
-            # Not a band (ie Quality Flags) or Brilliance temperature: no adjust needed
+            # Not a band (ie Quality Flags) or Brightness temperature: no adjust needed
             pass
 
         return band_arr
