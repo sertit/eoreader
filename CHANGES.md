@@ -5,6 +5,7 @@
 ### Enhancements
 
 - **ENH: Adding the support of RapidEye constellation**
+- **ENH: Adding the support of Landsat Level-2 products** ([#49](https://github.com/sertit/eoreader/issues/49))
 
 ### Bug Fixes
 
@@ -15,6 +16,7 @@
 - FIX: Fixing computation of invalid pixels for `Sentinel-2` and `DIMAP` products (do not remove straylight mask)
 - FIX: Fixing pandas FutureWarning `The frame.append method is deprecated and will be removed from pandas in a future version.`
 - FIX: Fixing DeprecationWarning `invalid escape sequence \.`
+- FIX: Computing Brightness Temperature of `Landsat` TIR bands instead of leaving them as is
 
 ### Optimizations
 
