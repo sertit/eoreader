@@ -96,23 +96,32 @@ class LandsatProductType(ListEnum):
 class LandsatInstrument(ListEnum):
     """Landsat products types"""
 
-    OLI_TIRS = "C"
+    OLI_TIRS = "OLI-TIRS"
     """OLI-TIRS instruments combined, for Landsat-8 and 9 constellation"""
 
-    OLI = "O"
+    OLI = "OLI"
     """OLI Instrument, for Landsat-8 and 9 constellation"""
 
     TIRS = "TIRS"
     """TIRS Instrument, for Landsat-8 and 9 constellation"""
 
-    ETM = "E"
+    ETM = "ETM+"
     """ETM+ Instrument, for Landsat-7 constellation"""
 
-    TM = "T"
+    TM = "TM"
     """TM Instrument, for Landsat-5 and 4 constellation"""
 
-    MSS = "M"
+    MSS = "MSS"
     """MSS Instrument, for Landsat-5, 4, 3, 2, 1 constellation"""
+
+
+_LETTER_TO_INSTRUMENT = {
+    "C": LandsatInstrument.OLI_TIRS,
+    "O": LandsatInstrument.OLI,
+    "T": LandsatInstrument.TM,
+    "E": LandsatInstrument.ETM,
+    "M": LandsatInstrument.MSS,
+}
 
 
 @unique
@@ -365,7 +374,7 @@ class LandsatProduct(OpticalProduct):
         ]:
             self.instrument = LandsatInstrument.TIRS
         else:
-            self.instrument = LandsatInstrument.from_value(instrument_letter)
+            self.instrument = _LETTER_TO_INSTRUMENT[instrument_letter]
 
         if self.instrument in [LandsatInstrument.OLI, LandsatInstrument.TIRS]:
             LOGGER.warning(
