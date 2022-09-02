@@ -560,6 +560,7 @@ class LandsatProduct(OpticalProduct):
                 },
             ),
         }
+
         self.bands.map_bands(tm_bands)
 
     def _map_bands_etm(self) -> None:
@@ -680,6 +681,12 @@ class LandsatProduct(OpticalProduct):
                 },
             ),
         }
+
+        if self.product_type == LandsatProductType.L2:
+            etm_bands.pop(spb.PAN)
+            etm_bands.pop(spb.TIR_2)
+            etm_bands[spb.TIR_1] = etm_bands[spb.TIR_1].update(name="B6", id="6")
+
         self.bands.map_bands(etm_bands)
 
     def _map_bands_oli(self) -> None:
@@ -822,6 +829,11 @@ class LandsatProduct(OpticalProduct):
                 },
             ),
         }
+
+        if self.product_type == LandsatProductType.L2:
+            oli_bands.pop(spb.SWIR_CIRRUS)
+            oli_bands.pop(spb.TIR_2)
+            oli_bands.pop(spb.PAN)
 
         self.bands.map_bands(oli_bands)
 
