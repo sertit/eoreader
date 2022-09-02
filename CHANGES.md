@@ -18,6 +18,7 @@
 - FIX: Fixing pandas FutureWarning `The frame.append method is deprecated and will be removed from pandas in a future version.`
 - FIX: Fixing DeprecationWarning `invalid escape sequence \.`
 - FIX: Computing Brightness Temperature of `Landsat` TIR bands instead of leaving them as is
+- FIX: Changing `Brilliance Temperature` to the correct `Brightness Temperature`
 
 ### Optimizations
 
