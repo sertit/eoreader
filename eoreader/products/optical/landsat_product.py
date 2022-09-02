@@ -160,17 +160,6 @@ class LandsatProduct(OpticalProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-    def _set_collection(self):
-        """Set Landsat collection"""
-        mtd, _ = self.read_mtd()
-
-        # Open identifier
-        col_nb = mtd.findtext(".//COLLECTION_NUMBER")
-        if not col_nb:
-            raise InvalidProductError("COLLECTION_NUMBER not found in metadata!")
-
-        return LandsatCollection.from_value(col_nb)
-
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
@@ -187,10 +176,16 @@ class LandsatProduct(OpticalProduct):
             raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
 
         # Collections are not set yet
+        col_nb = mtd.findtext(".//COLLECTION_NUMBER")
+        if not col_nb:
+            raise InvalidProductError("COLLECTION_NUMBER not found in metadata!")
+        self._collection = LandsatCollection.from_value(col_nb)
+
         # Collection 2 do not need to be extracted. Set True by default
         if utils.get_split_name(name)[-2] == "02":
             self.needs_extraction = False  # Fine to read .tar files
         else:
+            self._collection = LandsatCollection.COL_1
             self.needs_extraction = True  # Too slow to read directly tar.gz files
 
         # Post init done by the super class
@@ -202,7 +197,6 @@ class LandsatProduct(OpticalProduct):
         (setting sensor type, band names and so on)
         """
         self.tile_name = self._get_tile_name()
-        self._collection = self._set_collection()
         if self._collection == LandsatCollection.COL_1:
             self._pixel_quality_id = "_BQA"
             self._radsat_id = "_BQA"
