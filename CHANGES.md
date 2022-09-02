@@ -6,6 +6,7 @@
 
 - **ENH: Adding the support of RapidEye constellation**
 - **ENH: Adding the support of Landsat Level-2 products** ([#49](https://github.com/sertit/eoreader/issues/49))
+- **ENH: Adding the function `bands.is_thermal_band`**
 
 ### Bug Fixes
 
