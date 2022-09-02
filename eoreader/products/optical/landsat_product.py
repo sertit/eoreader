@@ -66,26 +66,27 @@ class LandsatProductType(ListEnum):
     Each Level-1 data product includes individual spectral band files, a metadata file, and additional ancillary files.
     """
 
-    ARD = "ARD"
-    """
-    Uses Landsat Collections Level-1 data as input
-    to provide data that is processed to the highest scientific standards and placed in a tile-based structure to support time-series analysis.
-
-    Not handled by EOReader.
-    """
-
     L2 = "L2"
     """
-    Level-2 and Level-3 products that are processed to include
-    atmospherically corrected data, surface reflectance, provisional surface temperature, and biophysical properties of the Earth’s surface.
+    Level-2 Science Products are time-series observational data of sufficient length, consistency, and continuity to record effects of climate change,
+    and serve as input into Landsat Level-3 Science Products.
 
-    Not handled by EOReader.
+    Only for Landsat 4 to 9.
+
+    Only Surface Reflectances and Temperatures are handled by EOReader
     """
 
     L3 = "L3"
     """
-    Level-2 and Level-3 products that are processed to include
-    atmospherically corrected data, surface reflectance, provisional surface temperature, and biophysical properties of the Earth’s surface.
+    Level-3 science products represent biophysical properties of the Earth's surface and are generated from Landsat U.S. Analysis Ready Data (ARD) inputs.
+
+    Not handled by EOReader.
+    """
+
+    ARD = "ARD"
+    """
+    Uses Landsat Collections Level-1 data as input
+    to provide data that is processed to the highest scientific standards and placed in a tile-based structure to support time-series analysis.
 
     Not handled by EOReader.
     """
@@ -334,9 +335,9 @@ class LandsatProduct(OpticalProduct):
 
             self.product_type = LandsatProductType.from_value(proc_lvl[:-2])
 
-            if self.product_type != LandsatProductType.L1:
+            if self.product_type not in [LandsatProductType.L1, LandsatProductType.L2]:
                 LOGGER.warning(
-                    "Only Landsat level 1 have been tested on EOReader, ise it at your own risk."
+                    "Only Landsat level 1 and 2 have been tested on EOReader, ise it at your own risk."
                 )
             else:
                 # Warning if GS (L1 only)
@@ -1099,53 +1100,111 @@ class LandsatProduct(OpticalProduct):
         if not (self._pixel_quality_id in filename or self._radsat_id in filename):
             # Convert raw bands from DN to correct reflectance
             if not filename.startswith(self.condensed_name):
-                # Original band name
-                band_name = filename[-1]
-
                 # Open mtd
                 mtd_data, _ = self._read_mtd()
 
                 # Get band nb and corresponding coeff
-                c_mul_str = "REFLECTANCE_MULT_BAND_" + band_name
-                c_add_str = "REFLECTANCE_ADD_BAND_" + band_name
-
-                # Get coeffs to convert DN to reflectance
+                band_name = filename[-1]
                 try:
-                    c_mul = mtd_data.findtext(f".//{c_mul_str}")
-                    c_add = mtd_data.findtext(f".//{c_add_str}")
-
-                    # Manage some cases where the values are set to NULL
-                    if c_mul == "NULL":
-                        c_mul = 1.0
-                    else:
-                        c_mul = float(c_mul)
-                    if c_add == "NULL":
-                        c_add = 1.0
-                    else:
-                        c_add = float(c_add)
-                except TypeError:
+                    # Thermal (10/11)
                     if band in [spb.TIR_1, spb.TIR_2]:
-                        c_mul = 1.0
-                        c_add = 0.0
+                        band_name = filename[-2:]
+                        band_arr = self._to_tb(band_arr, band, mtd_data, band_name)
+
                     else:
-                        raise InvalidProductError(
-                            f"Cannot find additive or multiplicative "
-                            f"rescaling factor for bands ({band.name}, "
-                            f"number {band_name}) in metadata"
-                        )
+                        # Original band name
+                        band_arr = self._to_refl(band_arr, band, mtd_data, band_name)
+                except TypeError:
+                    raise InvalidProductError(
+                        f"Cannot find additive or multiplicative "
+                        f"rescaling factor for bands ({band.name}, "
+                        f"number {band_name}) in metadata"
+                    )
 
-                # Manage NULL values
-                try:
-                    c_mul = float(c_mul)
-                except ValueError:
-                    c_mul = 1.0
-                try:
-                    c_add = float(c_add)
-                except ValueError:
-                    c_add = 0.0
+        return band_arr
 
-                # Compute the correct reflectance of the band and set no data to 0
-                band_arr = c_mul * band_arr + c_add  # Already in float
+    def _to_tb(
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        mtd_data,
+        band_name,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to brightness temperatue
+
+        https://www.usna.edu/Users/oceano/pguth/md_help/remote_sensing_course/landsat_thermal.htm
+
+
+        Args:
+
+        Returns:
+            xr.DataArray: Band in brightness temperature
+        """
+        # Get coeffs to convert DN to radiance
+        c_mul_str = "RADIANCE_MULT_BAND_" + band_name
+        c_add_str = "RADIANCE_ADD_BAND_" + band_name
+        c_mul = mtd_data.findtext(f".//{c_mul_str}")
+        c_add = mtd_data.findtext(f".//{c_add_str}")
+
+        # Manage NULL values
+        try:
+            c_mul = float(c_mul)
+        except ValueError:
+            c_mul = 1.0
+        try:
+            c_add = float(c_add)
+        except ValueError:
+            c_add = 0.0
+
+        band_arr = c_mul * band_arr + c_add
+
+        # Get coeffs to convert radiance to TB
+        k1_str = "K1_CONSTANT_BAND_" + band_name
+        k2_str = "K2_CONSTANT_BAND_" + band_name
+        k1 = float(mtd_data.findtext(f".//{k1_str}"))
+        k2 = float(mtd_data.findtext(f".//{k2_str}"))
+
+        band_arr = k2 / np.log(k1 / band_arr + 1)
+
+        return band_arr
+
+    def _to_refl(
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        mtd_data,
+        band_name,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
+        c_mul_str = "REFLECTANCE_MULT_BAND_" + band_name
+        c_add_str = "REFLECTANCE_ADD_BAND_" + band_name
+
+        # Get coeffs to convert DN to reflectance
+        c_mul = mtd_data.findtext(f".//{c_mul_str}")
+        c_add = mtd_data.findtext(f".//{c_add_str}")
+
+        # Manage NULL values
+        try:
+            c_mul = float(c_mul)
+        except ValueError:
+            c_mul = 1.0
+        try:
+            c_add = float(c_add)
+        except ValueError:
+            c_add = 0.0
+
+        # Compute the correct reflectance of the band and set no data to 0
+        band_arr = c_mul * band_arr + c_add  # Already in float
 
         return band_arr
 
