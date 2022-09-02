@@ -73,7 +73,7 @@ Force use the SLC image for GRD_SLC ICEYE products which contains both.
 
 TO_REFLECTANCE = "to_reflectance"
 """
-Convert optical data to reflectance (default is :code:`True`). If :code:`False`, it loads the values as is.
+Convert optical data to reflectance or brightness temperature (default is :code:`True`). If :code:`False`, it loads the values as is.
 """
 
 

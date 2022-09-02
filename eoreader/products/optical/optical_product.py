@@ -42,6 +42,7 @@ from eoreader.bands import (
     is_index,
     is_sar_band,
     is_spectral_band,
+    is_thermal_band,
     to_str,
 )
 from eoreader.exceptions import InvalidBandError, InvalidIndexError
@@ -805,7 +806,13 @@ class OpticalProduct(Product):
         # Do not add this if one non-spectral bands exists
         if all(has_spectral_bands):
             if kwargs.get(TO_REFLECTANCE, True):
-                xarr.attrs["radiometry"] = "reflectance"
+                has_thermal = [is_thermal_band(band) for band in bands]
+                if all(has_thermal):
+                    xarr.attrs["radiometry"] = "brightness temperature"
+                elif any(has_thermal):
+                    xarr.attrs["radiometry"] = "reflectance and brightness temperature"
+                else:
+                    xarr.attrs["radiometry"] = "reflectance"
             else:
                 xarr.attrs["radiometry"] = "as is"
 
