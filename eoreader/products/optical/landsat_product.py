@@ -1119,11 +1119,10 @@ class LandsatProduct(OpticalProduct):
                 mtd_data, _ = self._read_mtd()
 
                 # Get band nb and corresponding coeff
-                band_name = filename[-1]
+                band_name = band.id
                 try:
                     # Thermal (10/11)
                     if band in [spb.TIR_1, spb.TIR_2]:
-                        band_name = filename[-2:]
                         band_arr = self._to_tb(band_arr, band, mtd_data, band_name)
 
                     else:
