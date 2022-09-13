@@ -20,7 +20,6 @@ See `here <https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-St
 for more information.
 """
 import logging
-import math
 import os
 from abc import abstractmethod
 from pathlib import Path
@@ -31,7 +30,7 @@ import numpy as np
 import rasterio
 import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
-from rasterio import MemoryFile, rpc, warp
+from rasterio import rpc, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
@@ -288,9 +287,9 @@ class VhrProduct(OpticalProduct):
             src_arr,
             rpcs=rpcs,
             src_crs=self._get_raw_crs(),
-            dst_crs=self.crs(),
-            resolution=self.resolution,
             src_nodata=0,
+            dst_crs=self.crs(),
+            dst_resolution=self.resolution,
             dst_nodata=0,  # input data should be in integer
             num_threads=MAX_CORES,
             resampling=Resampling.bilinear,
@@ -309,22 +308,6 @@ class VhrProduct(OpticalProduct):
         meta["width"] = width
         meta["height"] = height
         meta["count"] = count
-
-        # Just in case, read the array with the most appropriate resolution
-        # as the warping sometimes gives not the closest resolution possible to the wanted one
-        if not math.isclose(dst_transform.a, self.resolution, rel_tol=1e-4):
-            LOGGER.debug(
-                f"Reproject resolution ({dst_transform.a}) is too far from the wanted one ({self.resolution}). "
-                "Resampling the stack."
-                ""
-            )
-            with MemoryFile() as memfile:
-                with memfile.open(
-                    **meta, BIGTIFF=rasters_rio.bigtiff_value(out_arr)
-                ) as dst:
-                    dst.write(out_arr)
-                    out_arr = None  # free memory
-                    out_arr, meta = rasters_rio.read(dst, resolution=self.resolution)
 
         return out_arr, meta
 

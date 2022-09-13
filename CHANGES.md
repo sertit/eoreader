@@ -21,6 +21,7 @@
 - FIX: Computing Brightness Temperature of `Landsat` TIR bands instead of leaving them as is
 - FIX: Better management of Landsat Instrument values
 - FIX: Better radiometry attribute (adding `brightness temperature` and `reflectance and brightness temperature` values)
+- FIX: Fixing reprojection resolution of VHR data
 - FIX: Changing `Brilliance Temperature` to the correct `Brightness Temperature`
 
 ### Optimizations
