@@ -24,19 +24,21 @@ The Data Access Portfolio Document presents the offer of the datasets and data a
 | PlanetScope        | {meth}`~eoreader.products.PlaProduct`                   | L3A & L3B                 | 3m                                   | ✅                 |
 | SkySat             | {meth}`~eoreader.products.SkyProduct`                   | (Collect Product) ortho_* | 0.5m                                 | ✅                 |
 | RapidEye           | {meth}`~eoreader.products.ReProduct`                    | L3A                       | 5m                                   | ✅                 |
-| Pleiades-Neo       | {meth}`~eoreader.products.PneoProduct`                  | SEN, PRJ, ORT & MOS                       | 0.3 (PAN), 1.2m (MS)                 | ✅                 |
-| Pleiades           | {meth}`~eoreader.products.PldProduct`                   | SEN, PRJ, ORT & MOS       | 0.5 (PAN), 2m (MS)                   | ✅                 |
+| Pleiades-Neo       | {meth}`~eoreader.products.PneoProduct`                  | SEN**, PRJ, ORT & MOS     | 0.3 (PAN), 1.2m (MS)                 | ✅                 |
+| Pleiades           | {meth}`~eoreader.products.PldProduct`                   | SEN**, PRJ, ORT & MOS     | 0.5 (PAN), 2m (MS)                   | ✅                 |
 | Vision-1           | {meth}`~eoreader.products.Vis1Product`                  | PRJ & ORTP                | 0.9 (PAN), 3.5m (MS)                 | ✅                 |
-| SPOT 4             | {meth}`~eoreader.products.Spot45Product`                | L1A, M1B, L2A             | 10 (PAN), 20m (MS)                   | ✅                 |
-| SPOT 5             | {meth}`~eoreader.products.Spot45Product`                | L1A, M1B, L2A             | 2.5 (SuperMode), 5.0 (PAN), 10m (MS) | ✅                 |
-| SPOT 7             | {meth}`~eoreader.products.Spot7Product`                 | SEN, PRJ, ORT & MOS       | 1.5 (PAN), 6m (MS)                   | ✅                 |
-| SPOT 6             | {meth}`~eoreader.products.Spot6Product`                 | SEN, PRJ, ORT & MOS       | 1.5 (PAN), 6m (MS)                   | ✅                 |
-| Maxar**            | {meth}`~eoreader.products.MaxarProduct`                 | Standard & Ortho          | 0.5 (PAN), 2m (MS)                   | ✅                 |
+| SPOT 4             | {meth}`~eoreader.products.Spot45Product`                | L1A, L1B, L2A             | 10 (PAN), 20m (MS)                   | ✅                 |
+| SPOT 5             | {meth}`~eoreader.products.Spot45Product`                | L1A, L1B, L2A             | 2.5 (SuperMode), 5.0 (PAN), 10m (MS) | ✅                 |
+| SPOT 7             | {meth}`~eoreader.products.Spot7Product`                 | SEN**, PRJ, ORT & MOS     | 1.5 (PAN), 6m (MS)                   | ✅                 |
+| SPOT 6             | {meth}`~eoreader.products.Spot6Product`                 | SEN**, PRJ, ORT & MOS     | 1.5 (PAN), 6m (MS)                   | ✅                 |
+| Maxar***           | {meth}`~eoreader.products.MaxarProduct`                 | Standard & Ortho          | 0.5 (PAN), 2m (MS)                   | ✅                 |
 | SuperView-1        | {meth}`~eoreader.products.Sv1Product`                   | L1B & L2A                 | 0.5 (PAN), 2m (MS)                   | ✅                 |
 
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
 
-\*\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, however they don't have been tested). The resolution can vary around the one given here.*
+\*\* ⚠ *DIMAP SEN products are orthorectified using RPCs and not the rigorous sensor model. Shift can occur. Please refer to [this issue](https://github.com/sertit/eoreader/issues/53).*
+
+\*\*\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, however they don't have been tested). The resolution can vary around the one given here.*
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
