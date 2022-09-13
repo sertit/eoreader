@@ -32,6 +32,7 @@
 
 - DOC: Add the need of using SNAP 8.0 up-to-date or SNAP 9.0 ([#42](https://github.com/sertit/eoreader/issues/42))
 - DOC: Add the STAC session in API documentation
+- DOC: Add warnings for shifts when orthorectifying DIMAP SEN products (using RPCs) ([#53](https://github.com/sertit/eoreader/issues/53))
 - DEPS: Dropping support of Python 3.7 ([#18](https://github.com/sertit/eoreader/issues/18))
 - DEPS: Update minimum version of libs *(geopadans 0.11.0+, rasterio 1.3.0+...)*
 
