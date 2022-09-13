@@ -24,7 +24,7 @@ The Data Access Portfolio Document presents the offer of the datasets and data a
 | PlanetScope        | {meth}`~eoreader.products.PlaProduct`                   | L3A & L3B                 | 3m                                   | ✅                 |
 | SkySat             | {meth}`~eoreader.products.SkyProduct`                   | (Collect Product) ortho_* | 0.5m                                 | ✅                 |
 | RapidEye           | {meth}`~eoreader.products.ReProduct`                    | L3A                       | 5m                                   | ✅                 |
-| Pleiades-Neo       | {meth}`~eoreader.products.PneoProduct`                  | ORT                       | 0.3 (PAN), 1.2m (MS)                 | ✅                 |
+| Pleiades-Neo       | {meth}`~eoreader.products.PneoProduct`                  | SEN, PRJ, ORT & MOS                       | 0.3 (PAN), 1.2m (MS)                 | ✅                 |
 | Pleiades           | {meth}`~eoreader.products.PldProduct`                   | SEN, PRJ, ORT & MOS       | 0.5 (PAN), 2m (MS)                   | ✅                 |
 | Vision-1           | {meth}`~eoreader.products.Vis1Product`                  | PRJ & ORTP                | 0.9 (PAN), 3.5m (MS)                 | ✅                 |
 | SPOT 4             | {meth}`~eoreader.products.Spot45Product`                | L1A, M1B, L2A             | 10 (PAN), 20m (MS)                   | ✅                 |
