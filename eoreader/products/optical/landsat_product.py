@@ -1123,6 +1123,12 @@ class LandsatProduct(OpticalProduct):
                 try:
                     # Thermal (10/11)
                     if band in [spb.TIR_1, spb.TIR_2]:
+                        # For Landsat L2 products, the band name in metadata don't change compared to L1 (only one band left)
+                        if (
+                            self.constellation == Constellation.L7
+                            and self.product_type == LandsatProductType.L2
+                        ):
+                            band_name = "6_VCID_1"
                         band_arr = self._to_tb(band_arr, band, mtd_data, band_name)
 
                     else:
