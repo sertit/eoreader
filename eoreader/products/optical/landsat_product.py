@@ -221,7 +221,7 @@ class LandsatProduct(OpticalProduct):
         if self.is_archived:
             # Because of gap_mask files that have the same name structure and exists only for L7
             if self.instrument == LandsatInstrument.ETM:
-                regex = rf".*RT{band_id}\."
+                regex = rf".*(RT|T1|T2)(_SR|_ST|){band_id}\."
             else:
                 regex = rf".*{band_id}\."
             path = files.get_archived_rio_path(self.path, regex)
