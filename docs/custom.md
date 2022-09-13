@@ -71,3 +71,7 @@ custom_prod = Reader().open(
     }
 )
 ```
+
+## Limitations
+
+- ⚠ For now, stacks must be projected in **UTM** (and orthorectified)
