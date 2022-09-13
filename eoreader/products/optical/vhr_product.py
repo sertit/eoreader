@@ -31,7 +31,7 @@ import numpy as np
 import rasterio
 import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
-from rasterio import rpc, warp
+from rasterio import MemoryFile, rpc, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
@@ -279,6 +279,7 @@ class VhrProduct(OpticalProduct):
             "RPC_DEM": dem_path,
             "RPC_DEM_MISSING_VALUE": 0,
             "OSR_USE_ETMERC": "YES",
+            "BIGTIFF": "IF_NEEDED",
         }
 
         # Reproject
@@ -312,9 +313,18 @@ class VhrProduct(OpticalProduct):
         # Just in case, read the array with the most appropriate resolution
         # as the warping sometimes gives not the closest resolution possible to the wanted one
         if not math.isclose(dst_transform.a, self.resolution, rel_tol=1e-4):
-            out_arr, meta = rasters_rio.read(
-                (out_arr, meta), resolution=self.resolution
+            LOGGER.debug(
+                f"Reproject resolution ({dst_transform.a}) is too far from the wanted one ({self.resolution}). "
+                "Resampling the stack."
+                ""
             )
+            with MemoryFile() as memfile:
+                with memfile.open(
+                    **meta, BIGTIFF=rasters_rio.bigtiff_value(out_arr)
+                ) as dst:
+                    dst.write(out_arr)
+                    out_arr = None  # free memory
+                    out_arr, meta = rasters_rio.read(dst, resolution=self.resolution)
 
         return out_arr, meta
 

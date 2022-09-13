@@ -38,6 +38,7 @@ from rasterio import crs as riocrs
 from rasterio import features, transform
 from sertit import files, rasters_rio, vectors
 from sertit.misc import ListEnum
+from sertit.vectors import WGS84
 from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
@@ -995,6 +996,11 @@ class DimapProduct(VhrProduct):
                 DimapProductType.SEN,
                 DimapProductType.PRJ,
             ]:
+                # Sometimes the GML mask lacks crs (why ?)
+                if not mask.crs:
+                    mask.crs = self._get_raw_crs()
+
+                mask.crs = WGS84
                 LOGGER.info(f"Orthorectifying {mask_str}")
                 with rasterio.open(str(self._get_tile_path())) as dim_dst:
                     # Rasterize mask (no transform as we have the vector in image geometry)
@@ -1006,24 +1012,31 @@ class DimapProduct(VhrProduct):
                         default_value=self._mask_true,  # Inside vector
                         dtype=np.uint8,
                     )
+                    # Check mask validity (to avoid reprojecting)
+                    # All null
+                    if mask_raster.max() == 0:
+                        mask = gpd.GeoDataFrame(geometry=[], crs=crs)
+                    # All valid
+                    elif mask_raster.min() == 1:
+                        pass
+                    else:
+                        # Reproject mask raster
+                        LOGGER.debug(f"\tReprojecting {mask_str}")
+                        dem_path = self._get_dem_path(**kwargs)
+                        reproj_data = self._reproject(
+                            mask_raster, dim_dst.meta, dim_dst.rpcs, dem_path, **kwargs
+                        )
 
-                    # Reproject mask raster
-                    LOGGER.debug(f"\tReprojecting {mask_str}")
-                    dem_path = self._get_dem_path(**kwargs)
-                    reproj_data = self._reproject(
-                        mask_raster, dim_dst.meta, dim_dst.rpcs, dem_path, **kwargs
-                    )
+                        # Vectorize mask raster
+                        LOGGER.debug(f"\tRevectorizing {mask_str}")
+                        mask = rasters_rio.vectorize(
+                            reproj_data,
+                            values=self._mask_true,
+                            default_nodata=self._mask_false,
+                        )
 
-                    # Vectorize mask raster
-                    LOGGER.debug(f"\tRevectorizing {mask_str}")
-                    mask = rasters_rio.vectorize(
-                        reproj_data,
-                        values=self._mask_true,
-                        default_nodata=self._mask_false,
-                    )
-
-                    # Do not keep pixelized mask
-                    mask = utils.simplify_footprint(mask, self.resolution)
+                        # Do not keep pixelized mask
+                        mask = utils.simplify_footprint(mask, self.resolution)
 
             # Sometimes the GML mask lacks crs (why ?)
             elif (
@@ -1036,8 +1049,7 @@ class DimapProduct(VhrProduct):
                 ]
             ):
                 # Convert to target CRS
-                mask.crs = self._get_raw_crs()
-                mask = mask.to_crs(self.crs())
+                mask.crs = self.crs()
 
             # Save to file
             if mask.empty:
@@ -1066,15 +1078,19 @@ class DimapProduct(VhrProduct):
         """
         nodata_det = self.open_mask("ROI", **kwargs)
 
-        # Rasterize nodata
-        return features.rasterize(
-            nodata_det.geometry,
-            out_shape=(height, width),
-            fill=self._mask_true,  # Outside ROI = nodata (inverted compared to the usual)
-            default_value=self._mask_false,  # Inside ROI = not nodata
-            transform=transform,
-            dtype=np.uint8,
-        )
+        if all(nodata_det.is_empty):
+            return np.zeros((1, height, width), dtype=np.uint8)
+        else:
+
+            # Rasterize nodata
+            return features.rasterize(
+                nodata_det.geometry,
+                out_shape=(height, width),
+                fill=self._mask_true,  # Outside ROI = nodata (inverted compared to the usual)
+                default_value=self._mask_false,  # Inside ROI = not nodata
+                transform=transform,
+                dtype=np.uint8,
+            )
 
     def _get_tile_path(self) -> Union[CloudPath, Path]:
         """

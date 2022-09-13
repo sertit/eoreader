@@ -20,10 +20,6 @@ See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>
 for more information.
 """
 import logging
-from pathlib import Path
-from typing import Union
-
-from cloudpathlib import CloudPath
 
 from eoreader.bands import SpectralBand
 from eoreader.bands import spectral_bands as spb
@@ -52,26 +48,6 @@ class PneoProduct(DimapProduct):
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
-
-    def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
-        """
-        Get the orthorectified path of the bands.
-
-        Returns:
-            Union[CloudPath, Path]: Orthorectified path
-        """
-        if self.product_type in self._proj_prod_type:
-            # ERROR BECAUSE RASTERIO/GDAL DOES NOT HANDLE PLEIADES-NEO RPCs
-            raise NotImplementedError(
-                "Pleiades-Neo RPCs file nomenclature is not yet handled by rasterio. "
-                "See https://github.com/rasterio/rasterio/issues/2388. "
-                "GDAL PR is here: https://github.com/OSGeo/gdal/pull/5090"
-            )
-
-        else:
-            ortho_path = self._get_tile_path()
-
-        return ortho_path
 
     def _map_bands(self) -> None:
         """Set products type"""
