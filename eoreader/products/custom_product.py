@@ -501,12 +501,20 @@ class CustomProduct(Product):
             unique_bands, resolution=resolution, size=size, **kwargs
         )
 
+        # Compute index (they conserve the nodata)
+        if index_list:
+            LOGGER.debug(f"Loading indices {to_str(index_list)}")
+        bands_dict = {idx: idx(bands) for idx in index_list}
+
+        # Add bands
+        bands_dict.update({band: bands[band] for band in band_list})
+
         # Add DEM
-        bands.update(
+        bands_dict.update(
             self._load_dem(dem_list, resolution=resolution, size=size, **kwargs)
         )
 
-        return bands
+        return bands_dict
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
