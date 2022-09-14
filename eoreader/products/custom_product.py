@@ -40,13 +40,20 @@ from eoreader.bands import (
     SarBandMap,
     SpectralBand,
     SpectralBandMap,
+    indices,
     is_clouds,
     is_dem,
     is_index,
     is_sat_band,
     to_band,
+    to_str,
 )
-from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
+from eoreader.exceptions import (
+    InvalidBandError,
+    InvalidIndexError,
+    InvalidProductError,
+    InvalidTypeError,
+)
 from eoreader.products.product import OrbitDirection, Product, SensorType
 from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
@@ -447,11 +454,20 @@ class CustomProduct(Product):
         """
         band_list = []
         dem_list = []
+        index_list = []
         for band in bands:
             if is_index(band):
-                raise NotImplementedError(
-                    "For now, no index is implemented for SAR data."
-                )
+                if self.sensor_type == SensorType.OPTICAL:
+                    if self._has_index(band):
+                        index_list.append(band)
+                    else:
+                        raise InvalidIndexError(
+                            f"{band} cannot be computed from custom data {self.condensed_name}."
+                        )
+                else:
+                    raise NotImplementedError(
+                        "For now, no index is implemented for SAR data."
+                    )
             elif is_sat_band(band):
                 if not self.has_band(band):
                     raise InvalidBandError(
@@ -472,8 +488,18 @@ class CustomProduct(Product):
         if dem_list:
             self._check_dem_path(bands, **kwargs)
 
-        # Load bands
-        bands = self._load_bands(band_list, resolution=resolution, size=size, **kwargs)
+        # Get all bands to be open
+        bands_to_load = band_list.copy()
+        for idx in index_list:
+            bands_to_load += indices.NEEDED_BANDS[idx]
+
+        # Load band arrays (only keep unique bands: open them only one time !)
+        unique_bands = list(set(bands_to_load))
+        if unique_bands:
+            LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
+        bands = self._load_bands(
+            unique_bands, resolution=resolution, size=size, **kwargs
+        )
 
         # Add DEM
         bands.update(

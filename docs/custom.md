@@ -36,11 +36,11 @@ custom_prod = Reader().open(
 If you know them, it is best to give **EOReader** all the data you know about your stack:
 
 - `name`: product name. If not provided, the filename will be used
-- `acquisition_datetime`: product acquisition datetime. If not provided, the datetime of the creation of the object will
+- `datetime`: product acquisition datetime. If not provided, the datetime of the creation of the object will
   be used
 - `constellation`: product constellation. If not provided, `CUSTOM` will be set. Either a string of a `Constellation` enum.
 - `product_type`: product type. If not provided, `CUSTOM` will be set.
-- `default_resolution`: product default resolution. If not provided, the stack resolution will be used.
+- `resolution`: product default resolution. If not provided, the stack resolution will be used.
 
 For optical products, two additional keyword can be set to compute the hillshade band:
 
@@ -56,11 +56,11 @@ custom_prod = Reader().open(
     "stack_path.tif",
     custom=True,
     name="20200310T030415_WV02_Ortho",
-    acquisition_datetime="20200310T030415",
+    datetime="20200310T030415",
     sensor_type="OPTICAL",
     constellation="WV02",
     product_type="Ortho",
-    default_resolution=2.0,
+    resolution=2.0,
     sun_azimuth=10.0,
     sun_zenith=20.0,
     band_map={
