@@ -8,6 +8,7 @@
 - **ENH: Adding the support of Landsat Level-2 products** ([#49](https://github.com/sertit/eoreader/issues/49))
 - **ENH: Adding the support of Pleides Neo SEN and PRJ products** *(needs GDAL 3.5+ or rasterio 1.3.0+)*
 - **ENH: Adding the function `bands.is_thermal_band`**
+- **ENH: Adding the ability for optical custom stacks to load indices**
 
 ### Bug Fixes
 
