@@ -81,6 +81,7 @@ def test_custom():
     bands = prod_min.load([BLUE, NIR, NDVI])
 
     # Check attributes
+    assert NDVI in bands
     assert bands[BLUE].attrs["long_name"] == "BLUE"
     assert bands[NIR].attrs["long_name"] == "NIR"
     assert bands[BLUE].attrs["constellation"] == "CUSTOM"
