@@ -1465,21 +1465,35 @@ class Product:
         # Save as integer
         dtype = np.float32
         if save_as_int:
-            if np.min(stack) < 0:
+            default_nodata = 65535
+            scale = 10000
+            stack_min = np.min(stack)
+            if stack_min < -0.1:
                 LOGGER.warning(
-                    "Cannot convert the stack to uint16 as it has negative values. Keeping it in float32."
+                    "Cannot convert the stack to uint16 as it has negative values (< -0.1). Keeping it in float32."
                 )
             else:
+                if stack_min < 0:
+                    LOGGER.warning(
+                        "Small negative values have been found. Clipping to 0."
+                    )
+                    stack = stack.copy(data=np.clip(stack.data, a_min=0))
+
                 # Scale to uint16, fill nan and convert to uint16
                 dtype = np.uint16
-                nodata = kwargs.get("nodata", 65535)  # Can be 0
+                nodata = kwargs.get("nodata", default_nodata)  # Can be 0
                 for b_id, band in enumerate(bands):
                     # SCALING
                     # NOT ALL bands need to be scaled, only:
                     # - Satellite bands
                     # - index
                     if is_sat_band(band) or is_index(band):
-                        stack[b_id, ...] = stack[b_id, ...] * 10000
+                        if np.max(stack[b_id, ...]) > default_nodata / scale:
+                            LOGGER.debug(
+                                "Band not in reflectance, keeping them as is (the values will be rounded)"
+                            )
+                        else:
+                            stack[b_id, ...] = stack[b_id, ...] * scale
 
                     # Fill no data (done here to avoid RAM saturation)
                     stack[b_id, ...] = stack[b_id, ...].fillna(nodata)
