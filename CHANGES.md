@@ -13,6 +13,7 @@
 ### Bug Fixes
 
 - FIX: Stacks saved as integers on disk keep their original dtype (float32) in Python
+- FIX: Stacks with bands loaded "as is" are correctly saved as integers on disk ([#52](https://github.com/sertit/eoreader/issues/52))
 - FIX: Using stack CRS (if projected) for `DIMAP` products instead of recomputing from lat/lon, solving potential discrepencies between stack and product CRS
 - FIX: Workaround for JP2 bug when updating an existing raster (maybe related to [this bug](https://github.com/rasterio/rasterio/issues/2528))
 - FIX: Better management of SkySat datetime conversion from JSON to XML (deterministic way)
