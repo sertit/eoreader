@@ -152,33 +152,22 @@ class TsxGeometricResolution(ListEnum):
 class TsxProduct(SarProduct):
     """Class for TerraSAR-X & TanDEM-X & PAZ Products"""
 
-    class IceyeProduct(SarProduct):
-        """
-        Class for ICEYE Products
-        Take a look
-        `here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
-        """
+    def __init__(
+        self,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
+        remove_tmp: bool = False,
+        **kwargs,
+    ) -> None:
+        self._geometric_res = None
 
-        def __init__(
-            self,
-            product_path: Union[str, CloudPath, Path],
-            archive_path: Union[str, CloudPath, Path] = None,
-            output_path: Union[str, CloudPath, Path] = None,
-            remove_tmp: bool = False,
-            **kwargs,
-        ) -> None:
-            self._geometric_res = None
+        # Initialization from the super class
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-            # Initialization from the super class
-            super().__init__(
-                product_path, archive_path, output_path, remove_tmp, **kwargs
-            )
-
-            # Geometric resolution
-            if self.product_type != TsxProductType.SSC:
-                self._geometric_res = getattr(
-                    TsxGeometricResolution, self.split_name[3]
-                )
+        # Geometric resolution
+        if self.product_type != TsxProductType.SSC:
+            self._geometric_res = getattr(TsxGeometricResolution, self.split_name[3])
 
     def _get_resolution(self) -> float:
         """
