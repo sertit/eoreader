@@ -528,6 +528,20 @@ def BAI(bands: dict) -> xr.DataArray:
 
 
 @_idx_fct
+def BAIM(bands: dict) -> xr.DataArray:
+    """
+    `MODIS Burned Area Index <https://www.researchgate.net/publication/248428333_Burnt_Area_Index_BAIM_for_burned_area_discrimination_at_regional_scale_using_MODIS_data>`_
+
+    Args:
+        bands (dict): Bands as {band_name: xr.DataArray}
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+    return 1.0 / ((0.2 - bands[spb.SWIR_1]) ** 2 + (0.05 - bands[spb.NIR]) ** 2)
+
+
+@_idx_fct
 def BAIS2(bands: dict) -> xr.DataArray:
     """
     `Burn Area Index for Sentinel-2
