@@ -19,10 +19,10 @@
 - FIX: Workaround for JP2 bug when updating an existing raster (maybe related to [this bug](https://github.com/rasterio/rasterio/issues/2528))
 - FIX: Better management of SkySat datetime conversion from JSON to XML (deterministic way)
 - FIX: Fixing computation of invalid pixels for `Sentinel-2` and `DIMAP` products (do not remove straylight mask)
+- FIX: Fixing reprojection resolution of VHR data
 - FIX: Computing Brightness Temperature of `Landsat` TIR bands instead of leaving them as is
 - FIX: Better management of Landsat Instrument values
 - FIX: Better radiometry attribute (adding `brightness temperature` and `reflectance and brightness temperature` values)
-- FIX: Fixing reprojection resolution of VHR data
 - FIX: Changing `Brilliance Temperature` to the correct `Brightness Temperature`
 - FIX: Fixing pandas FutureWarning `The frame.append method is deprecated and will be removed from pandas in a future version.`
 - FIX: Fixing DeprecationWarning `invalid escape sequence \.`
