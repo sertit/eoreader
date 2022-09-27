@@ -239,8 +239,8 @@ Available DEMs are:
 - `ACE2_5Min` 
 - `ACE30`
 - `ASTER 1sec GDEM`
-- `Copernicus 30m Global DEM` ([buggy](https://forum.step.esa.int/t/terrain-correction-with-copernicus-dem/29025/11) for now, do not use it)
-- `Copernicus 90m Global DEM` ([buggy](https://forum.step.esa.int/t/terrain-correction-with-copernicus-dem/29025/11) for now, do not use it)
+- `Copernicus 30m Global DEM`
+- `Copernicus 90m Global DEM`
 - `GETASSE30` (by default)
 - `SRTM 1Sec HGT`
 - `SRTM 3Sec`
