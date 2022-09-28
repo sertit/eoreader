@@ -31,7 +31,7 @@ import geopandas as gpd
 import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
-from sertit import files, rasters, vectors
+from sertit import files, rasters, vectors, xml
 from sertit.misc import ListEnum
 
 from eoreader import cache
@@ -491,7 +491,7 @@ class SkyProduct(PlanetProduct):
         # Format datetime
         data["acquired"] = data["acquired"].dt.strftime(DATETIME_FMT)
 
-        root = etree.fromstring(bytes(data.to_xml(), "utf-8"))
+        root = xml.df_to_xml(data)
 
         return root, {}
 

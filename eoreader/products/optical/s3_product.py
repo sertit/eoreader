@@ -37,11 +37,10 @@ import numpy as np
 import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
-from lxml.builder import E
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
-from sertit import files, vectors
+from sertit import files, vectors, xml
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
 
@@ -675,18 +674,7 @@ class S3Product(OpticalProduct):
             "track_offset",
         ]
 
-        # Create XML attributes
-        global_attr = []
-        for attr in global_attr_names:
-            if hasattr(netcdf_ds, attr):
-                global_attr.append(E(attr, str(getattr(netcdf_ds, attr))))
-
-        mtd = E.s3_global_attributes(*global_attr)
-        mtd_el = etree.fromstring(
-            etree.tostring(
-                mtd, pretty_print=True, xml_declaration=True, encoding="UTF-8"
-            )
-        )
+        mtd_el = xml.convert_to_xml(netcdf_ds, attributes=global_attr_names)
 
         # Close dataset
         netcdf_ds.close()

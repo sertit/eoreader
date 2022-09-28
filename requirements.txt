@@ -33,4 +33,4 @@ cloudpathlib>=0.10.0
 pystac[validation]
 
 # SERTIT libs
-sertit[full]>=1.17.1
+sertit[full]>=1.18.0
