@@ -43,7 +43,7 @@ from lxml import etree, html
 from rasterio import transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
-from sertit import files, rasters, strings
+from sertit import files, rasters, strings, xml
 from sertit.misc import ListEnum
 from sertit.snap import MAX_CORES
 
@@ -656,7 +656,7 @@ class Product:
         """
         try:
             if self.is_archived:
-                root = files.read_archived_xml(self.path, f".*{mtd_archived}")
+                root = xml.read_archive(self.path, f".*{mtd_archived}")
             else:
                 try:
                     try:
@@ -664,21 +664,7 @@ class Product:
                     except ValueError:
                         mtd_file = next(self.path.glob(f"*{mtd_from_path}"))
 
-                    if isinstance(mtd_file, CloudPath):
-                        try:
-                            # Try using read_text (faster)
-                            root = etree.fromstring(mtd_file.read_text())
-                        except ValueError:
-                            # Try using read_bytes
-                            # Slower but works with:
-                            # {ValueError}Unicode strings with encoding declaration are not supported.
-                            # Please use bytes input or XML fragments without declaration.
-                            root = etree.fromstring(mtd_file.read_bytes())
-                    else:
-                        # pylint: disable=I1101:
-                        # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                        xml_tree = etree.parse(str(mtd_file))
-                        root = xml_tree.getroot()
+                    root = xml.read(mtd_file)
                 except StopIteration as ex:
                     raise InvalidProductError(
                         f"Metadata file ({mtd_from_path}) not found in {self.path}"
