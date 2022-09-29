@@ -49,6 +49,7 @@ from eoreader.bands import BandNames
 from eoreader.bands import SpectralBandNames as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import OpticalProduct
+from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
@@ -140,6 +141,7 @@ class S3Product(OpticalProduct):
         self.needs_extraction = False
         self._use_filename = True
         self.is_ortho = False
+        self._raw_units = RawUnits.RAD
 
         # Post init done by the super class
         super()._pre_init(**kwargs)

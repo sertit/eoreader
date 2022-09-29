@@ -47,6 +47,7 @@ from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import VhrProduct
+from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
@@ -250,6 +251,22 @@ class DimapProduct(VhrProduct):
         self._has_cloud_cover = True
         self.needs_extraction = False
         self._proj_prod_type = [DimapProductType.SEN, DimapProductType.PRJ]
+
+        # Raw units
+        root, _ = self.read_mtd()
+        rad_proc = DimapRadiometricProcessing.from_value(
+            root.findtext(".//RADIOMETRIC_PROCESSING")
+        )
+
+        if rad_proc == DimapRadiometricProcessing.REFLECTANCE:
+            self._raw_units = RawUnits.REFL
+        elif rad_proc in [
+            DimapRadiometricProcessing.BASIC,
+            DimapRadiometricProcessing.LINEAR_STRETCH,
+        ]:
+            self._raw_units = RawUnits.DN
+        else:
+            self._raw_units = RawUnits.NONE
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
@@ -657,21 +674,12 @@ class DimapProduct(VhrProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-        rad_proc = DimapRadiometricProcessing.from_value(
-            root.findtext(".//RADIOMETRIC_PROCESSING")
-        )
-
-        if rad_proc == DimapRadiometricProcessing.REFLECTANCE:
+        if self._raw_units == RawUnits.REFLECTANCE:
             # Compute the correct radiometry of the band
             original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
             if original_dtype == "uint16":
                 band_arr /= 10000.0
-        elif rad_proc in [
-            DimapRadiometricProcessing.BASIC,
-            DimapRadiometricProcessing.LINEAR_STRETCH,
-        ]:
+        elif self._raw_units == RawUnits.DN:
             # Convert DN into radiance
             band_arr = self._dn_to_toa_rad(band_arr, band)
 

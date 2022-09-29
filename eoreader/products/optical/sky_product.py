@@ -38,6 +38,7 @@ from eoreader import cache
 from eoreader.bands import BandNames, SpectralBand, is_spectral_band
 from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
+from eoreader.products.optical.optical_product import RawUnits
 from eoreader.products.optical.planet_product import PlanetProduct
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
@@ -372,7 +373,7 @@ class SkyProduct(PlanetProduct):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
-        path = self._get_path(self.product_type.value, "tif", invalid_lookahead="_udm")
+        path = self._get_path(self.name, "tif", invalid_lookahead="_udm")
         for band in band_list:
             band_paths[band] = path
 
@@ -402,23 +403,24 @@ class SkyProduct(PlanetProduct):
         # https://developers.planet.com/docs/data/skysat/
         # (when managing SkySatScene, add Basic Panchromatic and Basic Analytic)
         if self.product_type in [SkyProductType.ORTHO_ANA, SkyProductType.ORTHO_PAN]:
-            import json
+            if self._raw_units != RawUnits.REFL:
+                import json
 
-            import rasterio
+                import rasterio
 
-            with rasterio.open(path) as ds:
-                tags = ds.tags()["TIFFTAG_IMAGEDESCRIPTION"]
-                prop = json.loads(tags)["properties"]
+                with rasterio.open(path) as ds:
+                    tags = ds.tags()["TIFFTAG_IMAGEDESCRIPTION"]
+                    prop = json.loads(tags)["properties"]
 
-            coeffs = prop.get("reflectance_coefficients")
-            if coeffs:
-                # "reflectance_coefficients": [1: Blue, 2: Green, 3: Red, 4: Near-infrared]
-                # https://support.planet.com/hc/en-us/articles/4406644970513-What-is-the-order-of-reflectance-coefficients-in-the-GeoTIFF-Header-for-SkaySat-imagery-
-                refl_coef = coeffs[band.id - 1]
-            else:
-                LOGGER.warning(
-                    "No reflectance coefficients are found. Your product will be read as is."
-                )
+                coeffs = prop.get("reflectance_coefficients")
+                if coeffs:
+                    # "reflectance_coefficients": [1: Blue, 2: Green, 3: Red, 4: Near-infrared]
+                    # https://support.planet.com/hc/en-us/articles/4406644970513-What-is-the-order-of-reflectance-coefficients-in-the-GeoTIFF-Header-for-SkaySat-imagery-
+                    refl_coef = coeffs[band.id - 1]
+                else:
+                    LOGGER.warning(
+                        "No reflectance coefficients are found. Your product will be read as is."
+                    )
         else:
             LOGGER.warning(
                 f"Impossible to convert the data to reflectance ({self.product_type.value}). "

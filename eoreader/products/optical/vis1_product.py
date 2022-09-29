@@ -42,6 +42,7 @@ from eoreader.bands import BandNames, SpectralBand
 from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
+from eoreader.products.optical.optical_product import RawUnits
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
@@ -131,6 +132,7 @@ class Vis1Product(VhrProduct):
         self._ms_res = 3.5
         self.needs_extraction = False
         self._proj_prod_type = [Vis1ProductType.PRJ]
+        self._raw_units = RawUnits.RAD
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
