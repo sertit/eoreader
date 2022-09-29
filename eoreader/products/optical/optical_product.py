@@ -575,7 +575,7 @@ class OpticalProduct(Product):
         resolution: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> str:
+    ) -> Union[Path, CloudPath]:
         """
         Compute Hillshade mask
 
@@ -586,7 +586,7 @@ class OpticalProduct(Product):
             resampling (Resampling): Resampling method
 
         Returns:
-            str: Hillshade mask path
+            Union[Path, CloudPath]: Hillshade mask path
 
         """
         # Warp DEM
@@ -596,15 +596,13 @@ class OpticalProduct(Product):
         hillshade_name = (
             f"{self.condensed_name}_HILLSHADE_{files.get_filename(dem_path)}.tif"
         )
-        hillshade_path = self._get_band_folder().joinpath(hillshade_name)
-        if hillshade_path.is_file():
+
+        hillshade_path, hillshade_exists = self._get_out_path(hillshade_name)
+        if hillshade_exists:
             LOGGER.debug(
                 "Already existing hillshade DEM for %s. Skipping process.", self.name
             )
         else:
-            hillshade_path = self._get_band_folder(writable=True).joinpath(
-                hillshade_name
-            )
             LOGGER.debug("Computing hillshade DEM for %s", self.name)
 
             # Get angles

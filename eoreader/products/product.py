@@ -29,7 +29,7 @@ from abc import abstractmethod
 from enum import unique
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Union
+from typing import Callable, Tuple, Union
 from zipfile import ZipFile
 
 import geopandas as gpd
@@ -1130,6 +1130,24 @@ class Product:
     def __hash__(self):
         return hash(self.condensed_name)
 
+    def _get_out_path(self, filename: str) -> Tuple[Union[Path, CloudPath], bool]:
+        """
+        Returns the output path of a file to be written, depending on if it already exists or not (manages CI folders)
+
+        Args:
+            filename (str): Filename
+
+        Returns:
+            Tuple[Union[Path, CloudPath], bool]: Output path and if the file already exists or not
+        """
+        out = self._get_band_folder() / filename
+        exists = True
+        if not out.exists():
+            exists = False
+            out = self._get_band_folder(writable=True) / filename
+
+        return out, exists
+
     @property
     def output(self) -> Union[CloudPath, Path]:
         """Output directory of the product, to write orthorectified data for example."""
@@ -1168,7 +1186,7 @@ class Product:
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
         **kwargs,
-    ) -> str:
+    ) -> Union[Path, CloudPath]:
         """
         Get this product DEM, warped to this product footprint and CRS.
 
@@ -1189,16 +1207,16 @@ class Product:
             kwargs: Other arguments used to load bands
 
         Returns:
-            str: DEM path (as a VRT)
+            Union[Path, CloudPath]: DEM path (as a VRT)
         """
         dem_name = f"{self.condensed_name}_DEM_{files.get_filename(dem_path)}.tif"
-        warped_dem_path = self._get_band_folder().joinpath(dem_name)
-        if warped_dem_path.is_file():
+
+        warped_dem_path, warped_dem_exists = self._get_out_path(dem_name)
+        if warped_dem_exists:
             LOGGER.debug(
                 "Already existing DEM for %s. Skipping process.", self.condensed_name
             )
         else:
-            warped_dem_path = self._get_band_folder(writable=True).joinpath(dem_name)
             LOGGER.debug("Warping DEM for %s", self.condensed_name)
 
             # Allow S3 HTTP Urls only on Linux because rasterio bugs on Windows
@@ -1292,7 +1310,7 @@ class Product:
         resolution: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> str:
+    ) -> Union[Path, CloudPath]:
         """
         Compute Hillshade mask
 
@@ -1303,7 +1321,7 @@ class Product:
             resampling (Resampling): Resampling method
 
         Returns:
-            str: Hillshade mask path
+            Union[Path, CloudPath]: Hillshade mask path
 
         """
         raise NotImplementedError
@@ -1314,7 +1332,7 @@ class Product:
         resolution: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> str:
+    ) -> Union[Path, CloudPath]:
         """
         Compute slope mask
 
@@ -1325,7 +1343,7 @@ class Product:
             resampling (Resampling): Resampling method
 
         Returns:
-            str: Slope mask path
+            Union[Path, CloudPath]: Slope mask path
 
         """
         # Warp DEM
@@ -1333,14 +1351,14 @@ class Product:
 
         # Get slope path
         slope_name = f"{self.condensed_name}_SLOPE_{files.get_filename(dem_path)}.tif"
-        slope_path = self._get_band_folder().joinpath(slope_name)
-        if slope_path.is_file():
+
+        slope_path, slope_exists = self._get_out_path(slope_name)
+        if slope_exists:
             LOGGER.debug(
                 "Already existing slope DEM for %s. Skipping process.",
                 self.condensed_name,
             )
         else:
-            slope_path = self._get_band_folder(writable=True).joinpath(slope_name)
             LOGGER.debug("Computing slope for %s", self.condensed_name)
 
             # Compute slope

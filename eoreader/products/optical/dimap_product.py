@@ -674,7 +674,7 @@ class DimapProduct(VhrProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        if self._raw_units == RawUnits.REFLECTANCE:
+        if self._raw_units == RawUnits.REFL:
             # Compute the correct radiometry of the band
             original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
             if original_dtype == "uint16":
@@ -960,8 +960,9 @@ class DimapProduct(VhrProduct):
         crs = self.crs()
 
         mask_name = f"{self.condensed_name}_MSK_{mask_str}.geojson"
-        mask_path = self._get_band_folder().joinpath(mask_name)
-        if mask_path.is_file():
+
+        mask_path, mask_exists = self._get_out_path(mask_name)
+        if mask_exists:
             mask = vectors.read(mask_path)
         elif mask_str in self._empty_mask:
             # Empty mask cannot be written on file
@@ -1064,7 +1065,6 @@ class DimapProduct(VhrProduct):
                 # Empty mask cannot be written on file
                 self._empty_mask.append(mask_str)
             else:
-                mask_path = self._get_band_folder(writable=True).joinpath(mask_name)
                 mask.to_file(str(mask_path), driver="GeoJSON")
 
         return mask

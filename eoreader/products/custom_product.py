@@ -544,7 +544,7 @@ class CustomProduct(Product):
         resolution: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> str:
+    ) -> Union[Path, CloudPath]:
         """
         Compute Hillshade mask
 
@@ -554,7 +554,7 @@ class CustomProduct(Product):
             resampling (Resampling): Resampling method
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            str: Hillshade mask path
+            Union[Path, CloudPath]: Hillshade mask path
         """
         sun_az, sun_zen = self.get_mean_sun_angles()
         if sun_az is not None and sun_zen is not None:
@@ -565,16 +565,14 @@ class CustomProduct(Product):
             hillshade_name = (
                 f"{self.condensed_name}_HILLSHADE_{files.get_filename(dem_path)}.tif"
             )
-            hillshade_path = self._get_band_folder().joinpath(hillshade_name)
-            if hillshade_path.is_file():
+
+            hillshade_path, hillshade_exists = self._get_out_path(hillshade_name)
+            if hillshade_exists:
                 LOGGER.debug(
                     "Already existing hillshade DEM for %s. Skipping process.",
                     self.name,
                 )
             else:
-                hillshade_path = self._get_band_folder(writable=True).joinpath(
-                    hillshade_name
-                )
                 LOGGER.debug("Computing hillshade DEM for %s", self.name)
 
                 # Compute hillshade
