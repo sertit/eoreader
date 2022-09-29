@@ -75,6 +75,33 @@ class CleanMethod(ListEnum):
     """ Return raw band without any cleaning (fastest method) """
 
 
+@unique
+class RawUnits(ListEnum):
+    """
+    Units of the raw band
+    """
+
+    DN = "digital number"
+    """
+    Digital Number
+    """
+
+    RAD = "radiance"
+    """
+    Radiance
+    """
+
+    REFL = "reflectance"
+    """
+    Reflectance
+    """
+
+    NONE = "none"
+    """
+    No relevant unit (i.e. SEAMLESS bands for DIMAP or visualisation bands)
+    """
+
+
 DEF_CLEAN_METHOD = CleanMethod.NODATA
 
 
@@ -90,6 +117,7 @@ class OpticalProduct(Product):
         **kwargs,
     ) -> None:
         self._has_cloud_cover = False
+        self._raw_units = None
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)

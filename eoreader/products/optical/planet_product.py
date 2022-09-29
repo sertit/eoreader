@@ -46,6 +46,7 @@ from eoreader.bands import (
 )
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct, OrbitDirection
+from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
 from eoreader.utils import EOREADER_NAME, simplify
 
@@ -176,6 +177,28 @@ class PlanetProduct(OpticalProduct):
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
+
+    def _post_init(self, **kwargs) -> None:
+        """
+        Function used to post_init the products
+        (setting sensor type, band names and so on)
+        """
+        # Manage Raw unit
+        band_name = files.get_filename(self.get_default_band_path()).upper().split("_")
+        if "SR" in band_name:
+            self._raw_units = RawUnits.REFL
+        elif "DN" in band_name:
+            # Seems only for basic products
+            self._raw_units = RawUnits.DN
+        elif "VISUAL" in band_name:
+            # Seems only for basic products
+            self._raw_units = RawUnits.NONE
+        else:
+            # If not specified, Planet product are in scaled radiance (*0.01)
+            self._raw_units = RawUnits.RAD
+
+        # Post init done by the super class
+        super()._post_init(**kwargs)
 
     @cache
     @simplify
@@ -722,8 +745,12 @@ class PlanetProduct(OpticalProduct):
         return nodata.rename("NODATA")
 
     def _get_path(
-        self, filename: str, extension: str, invalid_lookahead: Union[str, list] = None
-    ) -> str:
+        self,
+        filename: str,
+        extension: str,
+        invalid_lookahead: Union[str, list] = None,
+        as_list=False,
+    ) -> Union[list, str]:
         """
         Get either the archived path of the normal path of an asset
 
@@ -733,13 +760,13 @@ class PlanetProduct(OpticalProduct):
             invalid_lookahead (Union[str, list]): Invalid lookahed (string that cannot be placed after the filename)
 
         Returns:
-            str: Path
+            Union[list, str]: Paths(s)
 
         """
         if invalid_lookahead is not None and not isinstance(invalid_lookahead, list):
             invalid_lookahead = [invalid_lookahead]
 
-        ok_path = ""
+        ok_paths = []
         try:
             if self.is_archived:
                 if invalid_lookahead:
@@ -747,26 +774,29 @@ class PlanetProduct(OpticalProduct):
                 else:
                     regex = rf".*{filename}\w*[_]*\.{extension}"
 
-                ok_path = files.get_archived_rio_path(self.path, regex)
+                ok_paths = files.get_archived_rio_path(self.path, regex, as_list)
             else:
-                paths = [
+                ok_paths = [
                     str(path) for path in self.path.glob(f"**/*{filename}*.{extension}")
                 ]
                 if invalid_lookahead:
-                    for path in paths:
-                        if all(il not in path for il in invalid_lookahead):
-                            ok_path = path
-                            break
-                else:
-                    ok_path = paths[0]
-                if not ok_path:
+                    for path in ok_paths.copy():
+                        if any(
+                            il in files.get_filename(path) for il in invalid_lookahead
+                        ):
+                            ok_paths.remove(path)
+
+                if not ok_paths:
                     raise FileNotFoundError
+
+                if not as_list:
+                    ok_paths = ok_paths[0]
         except (FileNotFoundError, IndexError):
             LOGGER.warning(
                 f"No file corresponding to *{filename}*.{extension} found in {self.path}"
             )
 
-        return ok_path
+        return ok_paths
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
