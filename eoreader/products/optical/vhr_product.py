@@ -143,9 +143,9 @@ class VhrProduct(OpticalProduct):
         """
         if self.product_type in self._proj_prod_type:
             ortho_name = f"{self.condensed_name}_ortho.tif"
-            ortho_path = self._get_band_folder().joinpath(ortho_name)
-            if not ortho_path.is_file():
-                ortho_path = self._get_band_folder(writable=True).joinpath(ortho_name)
+
+            ortho_path, ortho_exists = self._get_out_path(ortho_name)
+            if not ortho_exists:
                 LOGGER.info(
                     "Manually orthorectified stack not given by the user. "
                     "Reprojecting whole stack, this may take a while. "

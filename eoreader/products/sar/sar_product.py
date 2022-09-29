@@ -919,7 +919,7 @@ class SarProduct(Product):
         resolution: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> str:
+    ) -> Union[Path, CloudPath]:
         """
         Compute Hillshade mask
 
@@ -929,7 +929,7 @@ class SarProduct(Product):
             resampling (Resampling): Resampling method
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            str: Hillshade mask path
+            Union[Path, CloudPath]: Hillshade mask path
         """
         raise InvalidProductError("Impossible to compute hillshade mask for SAR data.")
 

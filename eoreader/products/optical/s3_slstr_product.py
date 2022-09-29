@@ -815,16 +815,10 @@ class S3SlstrProduct(S3Product):
         Returns:
             dict: Dictionary containing {band: path}
         """
-        rad_2_refl_path = (
-            self._get_band_folder() / f"rad_2_refl_{band.name}_{suffix}.npy"
+        rad_2_refl_path, rad_2_refl_exists = self._get_out_path(
+            f"rad_2_refl_{band.name}_{suffix}.npy"
         )
-
-        if not rad_2_refl_path.is_file():
-            rad_2_refl_path = (
-                self._get_band_folder(writable=True)
-                / f"rad_2_refl_{band.name}_{suffix}.npy"
-            )
-
+        if not rad_2_refl_exists:
             # Open SZA array (resampled to band_arr size)
             sza = self._compute_sza_img_grid(suffix)
 
@@ -835,11 +829,14 @@ class S3SlstrProduct(S3Product):
             rad_2_refl_coeff = (np.pi / e0 / np.cos(sza)).astype(np.float32)
 
             # Write on disk
-            np.save(rad_2_refl_path, rad_2_refl_coeff)
+            np.save(str(rad_2_refl_path), rad_2_refl_coeff)
 
         else:
             # Open rad_2_refl_coeff (resampled to band_arr size)
-            rad_2_refl_coeff = np.load(rad_2_refl_path)
+            if isinstance(rad_2_refl_path, CloudPath):
+                rad_2_refl_path = rad_2_refl_path.fspath
+
+            rad_2_refl_coeff = np.load(str(rad_2_refl_path))
 
         return band_arr * rad_2_refl_coeff
 
@@ -910,10 +907,8 @@ class S3SlstrProduct(S3Product):
         Returns:
             np.ndarray: Resampled Sun Zenith Angle as a numpy array
         """
-        sza_img_path = self._get_band_folder() / f"sza_{suffix}.npy"
-        if not sza_img_path.exists():
-            sza_img_path = self._get_band_folder(writable=True) / f"sza_{suffix}.npy"
-
+        sza_img_path, sza_exists = self._get_out_path(f"sza_{suffix}.npy")
+        if not sza_exists:
             geom_file = self._replace(self._geom_file, view=suffix[-1])
             sza_name = self._replace(self._sza_name, view=suffix[-1])
             sza = self._read_nc(geom_file, sza_name)
@@ -923,11 +918,14 @@ class S3SlstrProduct(S3Product):
             sza_img = self._tie_to_img(sza_rad, suffix)
 
             # Write on disk
-            np.save(sza_img_path, sza_img)
+            np.save(str(sza_img_path), sza_img)
 
         else:
-            # Open rad_2_refl_coeff (resampled to band_arr size)
-            sza_img = np.load(sza_img_path)
+            # Open sza_img (resampled to band_arr size)
+            if isinstance(sza_img_path, CloudPath):
+                sza_img_path = sza_img_path.fspath
+
+            sza_img = np.load(str(sza_img_path))
 
         return sza_img
 
