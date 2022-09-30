@@ -22,14 +22,20 @@ and `Planet documentation <https://developers.planet.com/docs/data/planetscope/>
 for more information.
 """
 import logging
+from collections import defaultdict
 from datetime import datetime
 from enum import unique
 from pathlib import Path
 from typing import Union
 
+import numpy as np
+import rasterio
 import xarray as xr
 from cloudpathlib import CloudPath
+from lxml import etree
+from sertit import files, rasters, xml
 from sertit.misc import ListEnum
+from sertit.vectors import WGS84
 
 from eoreader.bands import BandNames, SpectralBand
 from eoreader.bands import spectral_bands as spb
@@ -133,7 +139,7 @@ class PlaProductType(ListEnum):
     basic_analytic_8b_xml   Unorthorectified radiometrically-calibrated analytic image metadata
     basic_analytic_4b_rpc   RPC for unorthorectified analytic image stored as 12-bit digital numbers.
     basic_analytic_4b_xml   Unorthorectified radiometrically-calibrated analytic image metadata.
-    basic_udm2              Unorthorectified usable data mask (Cloud 2.0) Read more about this new asset here.
+    basic_udm2              Unorthorectified usable data mask (Cloud 2.0)
     ortho_udm2              Usable data mask (Cloud 2.0)
     ortho_visual            Visual image with color-correction
     """
@@ -418,9 +424,11 @@ class PlaProduct(PlanetProduct):
                 )
 
             # Convert to datetime
-            datetime_str = datetime.strptime(
-                datetime_str.split("+")[0], "%Y-%m-%dT%H:%M:%S"
-            )
+            datetime_str = datetime_str.split("+")[0]
+            try:
+                datetime_str = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S")
+            except ValueError:
+                datetime_str = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%f")
 
         else:
             datetime_str = self.datetime
@@ -429,6 +437,27 @@ class PlaProduct(PlanetProduct):
             datetime_str = datetime_str.strftime(DATETIME_FMT)
 
         return datetime_str
+
+    def _get_stack_path(self, as_list: bool = False) -> Union[str, list]:
+        """
+        Get Planet stack path(s)
+
+        Args:
+            as_list (bool): Get stack path as a list (useful if several subdatasets are present)
+
+        Returns:
+            Union[str, list]: Stack path(s)
+        """
+        if self._merged:
+            stack_path, _ = self._get_out_path(f"{self.condensed_name}_analytic.vrt")
+            if as_list:
+                stack_path = [stack_path]
+        else:
+            stack_path = self._get_path(
+                "Analytic", "tif", invalid_lookahead="udm", as_list=as_list
+            )
+
+        return stack_path
 
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
@@ -459,7 +488,7 @@ class PlaProduct(PlanetProduct):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
-        path = self._get_path("AnalyticMS", "tif", invalid_lookahead="_DN_")
+        path = self._get_stack_path(as_list=False)
         for band in band_list:
             band_paths[band] = path
 
@@ -510,3 +539,206 @@ class PlaProduct(PlanetProduct):
 
         # To reflectance
         return band_arr * refl_coef
+
+    def _merge_subdatasets_mtd(self):
+        """
+        Merge subdataset, when several Planet products avec been ordered together
+        Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT and a merged metadata XML file.
+        """
+
+        def update_corner_dict(key, lon, lat):
+            try:
+                lon = lon.values[0]
+            except Exception:
+                pass
+            try:
+                lat = lat.values[0]
+            except Exception:
+                pass
+            xml.update_txt(
+                mtd,
+                f"{nsmap[self._nsmap_key]}{key}/{nsmap[self._nsmap_key]}longitude",
+                lon,
+            )
+            xml.update_txt(
+                mtd,
+                f"{nsmap[self._nsmap_key]}{key}/{nsmap[self._nsmap_key]}latitude",
+                lat,
+            )
+
+        # Merge datasets
+        analytic_vrt_path, analytic_vrt_exists = self._merge_subdatasets()
+
+        # Check if mtd needs an update
+        mtd_file, mtd_exists = self._get_out_path(f"{self.condensed_name}_metadata.xml")
+
+        # -- Update VRT
+        scales = defaultdict(dict)
+        cloud_cover = []
+        udp = []
+        if not mtd_exists or not analytic_vrt_exists:
+            # Get all scales, cloud cloudCoverPercentage, unusableDataPercentage
+            for mtd_file in self._get_path("metadata", "xml", as_list=True):
+                mtd_filename = files.get_filename(mtd_file)
+                subprod_name = mtd_filename.split("_Analytic")[0]
+                mtd, nsmap = self._read_mtd_xml(
+                    f"{subprod_name}*metadata*xml", f"{subprod_name}.*metadata.*xml"
+                )
+
+                # reflectanceCoefficient
+                for band_mtd in mtd.iterfind(
+                    f".//{nsmap[self._nsmap_key]}bandSpecificMetadata"
+                ):
+                    band_nb = band_mtd.findtext(f"{nsmap[self._nsmap_key]}bandNumber")
+                    refl_coef = band_mtd.findtext(
+                        f"{nsmap[self._nsmap_key]}reflectanceCoefficient"
+                    )
+                    scales[subprod_name][band_nb] = refl_coef
+
+                # cloudCoverPercentage
+                cloud_cover.append(
+                    float(mtd.findtext(f".//{nsmap['opt']}cloudCoverPercentage"))
+                )
+
+                # unusableDataPercentage
+                udp.append(
+                    float(
+                        mtd.findtext(
+                            f".//{nsmap[self._nsmap_key]}unusableDataPercentage"
+                        )
+                    )
+                )
+
+        if not analytic_vrt_exists:
+            LOGGER.debug("Update raster VRT")
+            vrt = etree.parse(analytic_vrt_path).getroot()
+
+            # Remove stats and histograms
+            xml.remove(vrt, "Metadata")
+            xml.remove(vrt, "Histograms")
+
+            # Convert to Float32
+            xml.update_attrib(
+                vrt, "VRTRasterBand[@dataType='UInt16']", "dataType", "Float32"
+            )  # datatype with d!
+            xml.update_attrib(
+                vrt, "SourceProperties[@DataType='UInt16']", "DataType", "Float32"
+            )  # datatype with D!
+
+            # Scale the VRT
+            for el in vrt.iterfind(".//ComplexSource"):
+                band_name = files.get_filename(el.findtext("SourceFilename")).split(
+                    "_Analytic"
+                )[0]
+                band_number = el.findtext("SourceBand")
+
+                # Set scaleRatio in VRT
+                xml.add(el, "ScaleRatio", scales[band_name][band_number])
+
+            # Write VRT on disk
+            xml.write(vrt, analytic_vrt_path)
+
+        # -- Update MTD
+        if not mtd_exists:
+            LOGGER.debug("Merge metadata")
+            mtd, nsmap = self.read_mtd()
+
+            # Remove all reflectance scaling
+            xml.remove(mtd, f"{nsmap[self._nsmap_key]}reflectanceCoefficient")
+
+            # Get new size from VRT
+            with rasterio.open(str(analytic_vrt_path)) as ds:
+                xml.update_txt(mtd, f"{nsmap[self._nsmap_key]}numRows", ds.height)
+                xml.update_txt(mtd, f"{nsmap[self._nsmap_key]}numColumns", ds.width)
+
+            # Get new extent from VRT
+            extent = rasters.get_extent(analytic_vrt_path)
+            extent_wgs84 = extent.to_crs(WGS84)
+
+            # Compute centroid and reproject to WGS84 after
+            pos = extent.centroid.to_crs(WGS84).values[0]
+            xml.update_txt(mtd, f"{nsmap['gml']}pos", f"{pos.x} {pos.y}")
+
+            # Get extent coordinates (should be footprint but too long to compute IMHO)
+            coordinates_str = " ".join(
+                f"{coord[0]},{coord[1]}"
+                for coord in extent_wgs84.boundary.values[0].coords
+            )
+            xml.update_txt(mtd, f"{nsmap['gml']}coordinates", coordinates_str)
+
+            # Get corners
+            bounds_wgs84 = extent_wgs84.bounds
+            update_corner_dict("topLeft", bounds_wgs84.maxx, bounds_wgs84.miny)
+            update_corner_dict("topRight", bounds_wgs84.maxx, bounds_wgs84.maxy)
+            update_corner_dict("bottomRight", bounds_wgs84.minx, bounds_wgs84.maxy)
+            update_corner_dict("bottomLeft", bounds_wgs84.minx, bounds_wgs84.miny)
+
+            # Manage cloudCoverPercentage, unusableDataPercentage
+            xml.update_txt(
+                mtd, f"{nsmap['opt']}cloudCoverPercentage", np.mean(cloud_cover)
+            )
+            xml.update_txt(
+                mtd, f"{nsmap[self._nsmap_key]}unusableDataPercentage", np.mean(udp)
+            )
+
+            if self.product_type == PlaProductType.L3A:
+                # -- PSOrthoTile
+
+                # identifier: keep the one opened
+
+                # Remove tileId
+                xml.remove(mtd, f"{nsmap[self._nsmap_key]}tileId")
+
+                # Round incidenceAngle
+                xml.update_txt_fct(
+                    mtd,
+                    f"{nsmap['eop']}incidenceAngle",
+                    lambda x: np.round(float(x), decimals=1),
+                )
+
+            elif self.product_type == PlaProductType.L3B:
+                # -- PSOrthoScene
+                # identifier: replace satellite ID by XX: 20210902_093940_06_245d_3B_AnalyticMS_8b -> 20210902_093940_XX_245d_3B_AnalyticMS_8b
+                xml.update_txt_fct(
+                    mtd,
+                    f"{nsmap['eop']}identifier",
+                    lambda x: "_".join(
+                        "XX" if i == 2 else z for i, z in enumerate(x.split("_"))
+                    ),
+                )
+
+                # Remove filename
+                xml.remove(mtd, f"{nsmap['eop']}fileName")
+
+                # Round incidenceAngle, illuminationAzimuthAngle, illuminationElevationAngle, azimuthAngle, spaceCraftViewAngle
+                xml.update_txt_fct(
+                    mtd,
+                    f"{nsmap['eop']}incidenceAngle",
+                    lambda x: np.round(float(x), decimals=1),
+                )
+                xml.update_txt_fct(
+                    mtd,
+                    f"{nsmap['opt']}illuminationAzimuthAngle",
+                    lambda x: np.round(float(x), decimals=1),
+                )
+                xml.update_txt_fct(
+                    mtd,
+                    f"{nsmap['opt']}illuminationElevationAngle",
+                    lambda x: np.round(float(x), decimals=1),
+                )
+                xml.update_txt_fct(
+                    mtd,
+                    f"{nsmap[self._nsmap_key]}azimuthAngle",
+                    lambda x: np.round(float(x), decimals=1),
+                )
+                xml.update_txt_fct(
+                    mtd,
+                    f"{nsmap[self._nsmap_key]}spaceCraftViewAngle",
+                    lambda x: np.round(float(x), decimals=1),
+                )
+
+            else:
+                raise NotImplementedError
+
+            # Write XML on disk
+            xml.write(mtd, mtd_file)

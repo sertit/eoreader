@@ -5,6 +5,7 @@
 ### Enhancements
 
 - **ENH: Adding the support of RapidEye constellation**
+- **ENH: Handling Planet data with multiple subdatasets** ([#45](https://github.com/sertit/eoreader/issues/45))
 - **ENH: Adding the support of Landsat Level-2 products** ([#49](https://github.com/sertit/eoreader/issues/49))
 - **ENH: Adding the support of Pleides Neo SEN and PRJ products** *(needs GDAL 3.5+ or rasterio 1.3.0+)*
 - **ENH: Adding the function `bands.is_thermal_band`**
