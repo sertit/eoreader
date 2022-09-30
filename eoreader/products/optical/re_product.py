@@ -230,6 +230,29 @@ class ReProduct(PlanetProduct):
 
         return datetime_str
 
+    def _get_stack_path(self, as_list: bool = False) -> Union[str, list]:
+        """
+        Get Planet stack path(s)
+
+        Args:
+            as_list (bool): Get stack path as a list (useful if several subdatasets are present)
+
+        Returns:
+            Union[str, list]: Stack path(s)
+        """
+        if self._merged:
+            stack_path, _ = self._get_out_path(f"{self.condensed_name}_analytic.vrt")
+            if as_list:
+                stack_path = [stack_path]
+        else:
+            stack_path = self._get_path(
+                self.name, "tif", invalid_lookahead=["_udm", "_browse"], as_list=as_list
+            )
+            if not stack_path:
+                stack_path = self._get_path(self.name, "TIF", as_list=as_list)
+
+        return stack_path
+
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
     ) -> dict:
@@ -259,11 +282,7 @@ class ReProduct(PlanetProduct):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
-        path = self._get_path(self.name, "tif", invalid_lookahead=["_udm", "_browse"])
-
-        # Older products
-        if not path:
-            path = self._get_path(self.name, "TIF")
+        path = self._get_stack_path(as_list=False)
 
         for band in band_list:
             band_paths[band] = path
@@ -391,3 +410,18 @@ class ReProduct(PlanetProduct):
             pass
 
         return quicklook_path
+
+    def _merge_subdatasets_mtd(self):
+        """
+        Merge subdataset, when several Planet products avec been ordered together
+        Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT and a merged metadata XML file.
+        """
+        LOGGER.warning(
+            "_merge_subdatasets_mtd is not yet implemented (because of lack of tiled RapideEye product), only copying the first metadata file!"
+        )
+
+        mtd_file, mtd_exists = self._get_out_path(
+            f"{self.condensed_name}_metadata.json"
+        )
+        if not mtd_exists:
+            files.copy(self._get_path("metadata", "xml"), mtd_file)

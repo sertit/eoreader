@@ -22,12 +22,14 @@ and `Planet documentation <https://developers.planet.com/docs/data/skysat/>`_
 for more information.
 """
 import logging
+from collections import defaultdict
 from datetime import datetime
 from enum import unique
 from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
+import numpy as np
 import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
@@ -344,6 +346,27 @@ class SkyProduct(PlanetProduct):
 
         return datetime_str
 
+    def _get_stack_path(self, as_list: bool = False) -> Union[str, list]:
+        """
+        Get Planet stack path(s)
+
+        Args:
+            as_list (bool): Get stack path as a list (useful if several subdatasets are present)
+
+        Returns:
+            Union[str, list]: Stack path(s)
+        """
+        if self._merged:
+            stack_path, _ = self._get_out_path(f"{self.condensed_name}_analytic.vrt")
+            if as_list:
+                stack_path = [stack_path]
+        else:
+            stack_path = self._get_path(
+                "ssc", "tif", invalid_lookahead="_udm", as_list=as_list
+            )
+
+        return stack_path
+
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
     ) -> dict:
@@ -373,7 +396,7 @@ class SkyProduct(PlanetProduct):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
-        path = self._get_path(self.name, "tif", invalid_lookahead="_udm")
+        path = self._get_stack_path(as_list=False)
         for band in band_list:
             band_paths[band] = path
 
@@ -408,11 +431,15 @@ class SkyProduct(PlanetProduct):
 
                 import rasterio
 
-                with rasterio.open(path) as ds:
-                    tags = ds.tags()["TIFFTAG_IMAGEDESCRIPTION"]
-                    prop = json.loads(tags)["properties"]
+                try:
+                    with rasterio.open(path) as ds:
+                        tags = ds.tags()["TIFFTAG_IMAGEDESCRIPTION"]
+                        prop = json.loads(tags)["properties"]
 
-                coeffs = prop.get("reflectance_coefficients")
+                    coeffs = prop.get("reflectance_coefficients")
+                except (AttributeError, KeyError):
+                    coeffs = None
+
                 if coeffs:
                     # "reflectance_coefficients": [1: Blue, 2: Green, 3: Red, 4: Near-infrared]
                     # https://support.planet.com/hc/en-us/articles/4406644970513-What-is-the-order-of-reflectance-coefficients-in-the-GeoTIFF-Header-for-SkaySat-imagery-
@@ -506,3 +533,56 @@ class SkyProduct(PlanetProduct):
         """
         unique_id = self.split_name[-1]
         return f"{self.get_datetime()}_{self.constellation.name}_{self.product_type.name}_{unique_id}"
+
+    def _merge_subdatasets_mtd(self):
+        """
+        Merge subdataset, when several Planet products avec been ordered together (for SkySat Scenes)
+        Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT and a merged metadata XML file.
+        """
+        # Merge datasets
+        analytic_vrt_path, analytic_vrt_exists = self._merge_subdatasets()
+
+        # Get all attributes to mean
+        mtd_file, mtd_exists = self._get_out_path(
+            f"{self.condensed_name}_metadata.json"
+        )
+        if not mtd_exists:
+            attrs_to_mean = [
+                "clear_confidence_percent",
+                "clear_percent",
+                "cloud_cover",
+                "cloud_percent",
+                "heavy_haze_percent",
+                "light_haze_percent",
+                "satellite_azimuth",
+                "shadow_percent",
+                "snow_ice_percent",
+                "sun_azimuth",
+                "sun_elevation",
+                "view_angle",
+                "visible_confidence_percent",
+                "visible_percent",
+            ]
+            attrs = defaultdict(list)
+            geometry = None
+            default_mtd = None
+
+            for mtd_file in self._get_path("metadata", "json", as_list=True):
+                mtd = vectors.read(mtd_file)
+
+                for attr in attrs_to_mean:
+                    attrs[attr].append(getattr(mtd, attr))
+
+                if geometry is None:
+                    default_mtd = mtd
+                    geometry = mtd.geometry
+                else:
+                    geometry = geometry.union(mtd.geometry)
+
+            # Update mtd
+            default_mtd.geometry = geometry
+
+            for attr in attrs_to_mean:
+                setattr(default_mtd, attr, np.mean(attrs[attr]))
+
+            default_mtd.to_file(mtd_file, driver="GeoJSON")

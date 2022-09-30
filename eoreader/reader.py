@@ -262,7 +262,7 @@ MTD_REGEX = {
     Constellation.L1: rf"{CONSTELLATION_REGEX[Constellation.L1]}_MTL\.txt",
     Constellation.PLA: {
         "nested": -1,  # File that can be found at any level (product/**/file)
-        "regex": r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*metadata.*\.xml",
+        "regex": r"(\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]|\d{7}_\d{7}_\d{4}-\d{2}-\d{2})_.*metadata.*\.xml",
     },
     Constellation.RE: {
         "nested": -1,  # File that can be found at any level (product/**/file)

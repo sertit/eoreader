@@ -21,9 +21,10 @@ See
 for more information.
 """
 import logging
+from abc import abstractmethod
 from enum import unique
 from pathlib import Path
-from typing import Union
+from typing import Tuple, Union
 
 import geopandas as gpd
 import numpy as np
@@ -130,9 +131,15 @@ class PlanetProduct(OpticalProduct):
         **kwargs,
     ) -> None:
         self._nsmap_key = None
+        self._merged = False
+        self._to_merge = False
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+
+        if len(self._get_stack_path(as_list=True)) > 1:
+            # self._to_merge = True
+            self._merge_subdatasets_mtd()
 
     def _pre_init(self, **kwargs) -> None:
         """
@@ -199,6 +206,114 @@ class PlanetProduct(OpticalProduct):
 
         # Post init done by the super class
         super()._post_init(**kwargs)
+
+    @abstractmethod
+    def _get_stack_path(self, as_list: bool = False) -> Union[str, list]:
+        """
+        Get Planet stack path(s)
+
+        Args:
+            as_list (bool): Get stack path as a list (useful if several subdatasets are present)
+
+        Returns:
+            Union[str, list]: Stack path(s)
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_udm_path(self, as_list: bool = False) -> Union[str, list]:
+        """
+        Get Planet UDM path
+
+        Args:
+            as_list (bool): Get stack path as a list (useful if several subdatasets are present)
+
+        Returns:
+            Union[str, list]: Stack path(s)
+        """
+        if self._merged:
+            udm_path, _ = self._get_out_path(f"{self.condensed_name}_udm.vrt")
+            if as_list:
+                udm_path = [udm_path]
+        else:
+            udm_path = self._get_path(
+                "udm", "tif", invalid_lookahead="udm2", as_list=as_list
+            )
+
+        return udm_path
+
+    @abstractmethod
+    def _get_udm2_path(self, as_list: bool = False) -> Union[str, list]:
+        """
+        Get Planet UDM2 path
+
+        Args:
+            as_list (bool): Get stack path as a list (useful if several subdatasets are present)
+
+        Returns:
+            Union[str, list]: Stack path(s)
+        """
+        if self._merged:
+            udm2_path, _ = self._get_out_path(f"{self.condensed_name}_udm2.vrt")
+            if as_list:
+                udm2_path = [udm2_path]
+        else:
+            udm2_path = self._get_path("udm2", "tif", as_list=as_list)
+
+        return udm2_path
+
+    def _merge_subdatasets(self) -> Tuple[Union[Path, CloudPath], bool]:
+        """
+        Merge subdataset, when several Planet products avec been ordered together
+        Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT.
+
+        Returns:
+            Tuple[Union[Path, CloudPath], bool]: Analytic VRT and if already existing
+        """
+        if self.is_archived:
+            # VRT cannot be created from inside a ZIP
+            raise InvalidProductError(
+                "EOReader doens't handle archived Planet data with multiple subdataset. Please extract this product."
+            )
+            # TODO: merge_geotiff BUT handle reflectances for every subdataset!
+            # Relevant ? Maybe not as it takes would a lot of time to merge
+
+        analytic_vrt_path, analytic_vrt_exists = self._get_out_path(
+            f"{self.condensed_name}_analytic.vrt"
+        )
+        if not analytic_vrt_exists:
+            LOGGER.debug("Creating raster VRT")
+            rasters.merge_vrt(self._get_stack_path(as_list=True), analytic_vrt_path)
+
+        udm_vrt_path, udm_vrt_exists = self._get_out_path(
+            f"{self.condensed_name}_udm.vrt"
+        )
+        if not udm_vrt_exists:
+            udm_paths = self._get_udm_path(as_list=True)
+            if udm_paths:
+                LOGGER.debug("Creating UDM VRT")
+                rasters.merge_vrt(self._get_udm_path(as_list=True), udm_vrt_path)
+
+        udm2_vrt_path, udm2_vrt_exists = self._get_out_path(
+            f"{self.condensed_name}_udm2.vrt"
+        )
+        if not udm2_vrt_exists:
+            LOGGER.debug("Creating UDM2 VRT")
+            rasters.merge_vrt(self._get_udm2_path(as_list=True), udm2_vrt_path)
+
+        self._merged = True
+
+        return analytic_vrt_path, analytic_vrt_exists
+
+    @abstractmethod
+    def _merge_subdatasets_mtd(self) -> None:
+        """
+        Merge subdataset, when several Planet products avec been ordered together
+        Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT and a merged metadata XML file.
+
+        Constellation specific
+        """
+        raise NotImplementedError
 
     @cache
     @simplify
@@ -709,7 +824,7 @@ class PlanetProduct(OpticalProduct):
             Union[xarray.DataArray, None]: Mask array
 
         """
-        mask_path = self._get_path("udm", "tif")
+        mask_path = self._get_path("udm", "tif", invalid_lookahead="udm2")
 
         # Open mask band
         return utils.read(
@@ -769,28 +884,24 @@ class PlanetProduct(OpticalProduct):
         ok_paths = []
         try:
             if self.is_archived:
-                if invalid_lookahead:
-                    regex = rf".*{filename}(?!{'|'.join(invalid_lookahead)})\w*[_]*\.{extension}"
-                else:
-                    regex = rf".*{filename}\w*[_]*\.{extension}"
+                regex = rf".*{filename}\w*[_]*\.{extension}"
 
-                ok_paths = files.get_archived_rio_path(self.path, regex, as_list)
+                ok_paths = files.get_archived_rio_path(self.path, regex, as_list=True)
             else:
                 ok_paths = [
                     str(path) for path in self.path.glob(f"**/*{filename}*.{extension}")
                 ]
-                if invalid_lookahead:
-                    for path in ok_paths.copy():
-                        if any(
-                            il in files.get_filename(path) for il in invalid_lookahead
-                        ):
-                            ok_paths.remove(path)
+
+            if invalid_lookahead:
+                for path in ok_paths.copy():
+                    if any(il in files.get_filename(path) for il in invalid_lookahead):
+                        ok_paths.remove(path)
 
                 if not ok_paths:
                     raise FileNotFoundError
 
-                if not as_list:
-                    ok_paths = ok_paths[0]
+            if not as_list:
+                ok_paths = ok_paths[0]
         except (FileNotFoundError, IndexError):
             LOGGER.warning(
                 f"No file corresponding to *{filename}*.{extension} found in {self.path}"
