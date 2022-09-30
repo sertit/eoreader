@@ -24,6 +24,7 @@ import gc
 import logging
 import os
 import platform
+import shutil
 import tempfile
 from abc import abstractmethod
 from enum import unique
@@ -1156,21 +1157,28 @@ class Product:
     @output.setter
     def output(self, value: str):
         """Output directory of the product, to write orthorectified data for example."""
-        # Remove old output if existing
-        if self._tmp_output:
-            self._tmp_output.cleanup()
-            self._tmp_output = None
-
-        if self._output.exists() and self._remove_tmp_process:
-            files.remove(self._tmp_process)
-
         # Set the new output
         self._output = AnyPath(value)
         if not isinstance(self._output, CloudPath):
             self._output = self._output.resolve()
 
+        # Create temporary process folder
+        old_tmp_process = self._tmp_process
         self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
         os.makedirs(self._tmp_process, exist_ok=True)
+
+        # Move all files from old process folder into the new one
+        for file in files.listdir_abspath(old_tmp_process):
+            try:
+                shutil.move(str(file), self._tmp_process)
+            except shutil.Error:
+                # Don't overwrite file
+                pass
+
+        # Remove old output if existing into the new output
+        if self._tmp_output:
+            self._tmp_output.cleanup()
+            self._tmp_output = None
 
     @property
     def stac(self) -> StacItem:
