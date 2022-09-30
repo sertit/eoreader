@@ -278,6 +278,13 @@ class PlanetProduct(OpticalProduct):
             # TODO: merge_geotiff BUT handle reflectances for every subdataset!
             # Relevant ? Maybe not as it takes would a lot of time to merge
 
+        if isinstance(self.path, CloudPath):
+            # VRT cannot be created from data stored in the cloud
+            raise InvalidProductError(
+                "EOReader doens't handle cloud-stored Planet data with multiple subdataset. Please download this product on disk."
+            )
+            # Relevant ? Maybe not as it takes would a lot of time to download, or a lot of time to merge as geotiffs
+
         analytic_vrt_path, analytic_vrt_exists = self._get_out_path(
             f"{self.condensed_name}_analytic.vrt"
         )
