@@ -665,7 +665,10 @@ class Product:
                     except ValueError:
                         mtd_file = next(self.path.glob(f"*{mtd_from_path}"))
 
-                    root = xml.read(mtd_file)
+                    try:
+                        root = xml.read(mtd_file)
+                    except ValueError as ex:
+                        raise InvalidProductError from ex
                 except StopIteration as ex:
                     raise InvalidProductError(
                         f"Metadata file ({mtd_from_path}) not found in {self.path}"
