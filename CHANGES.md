@@ -11,6 +11,7 @@
 - **ENH: Adding the ability for optical custom stacks to load indices**
 - **ENH: Adding [BAIM (MODIS Burned Area Index)](https://www.researchgate.net/publication/248428333_Burnt_Area_Index_BAIM_for_burned_area_discrimination_at_regional_scale_using_MODIS_datafire) spectral index**
 - **ENH: Better management of raw units of the bands of optical products**
+- **ENH: Copying files from `tmp_process` when changing product's output**
 
 ### Bug Fixes
 
