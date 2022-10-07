@@ -290,7 +290,9 @@ class PlanetProduct(OpticalProduct):
         )
         if not analytic_vrt_exists:
             LOGGER.debug("Creating raster VRT")
-            rasters.merge_vrt(self._get_stack_path(as_list=True), analytic_vrt_path)
+            rasters.merge_vrt(
+                self._get_stack_path(as_list=True), analytic_vrt_path, abs_path=True
+            )
 
         udm_vrt_path, udm_vrt_exists = self._get_out_path(
             f"{self.condensed_name}_udm.vrt"
@@ -299,14 +301,18 @@ class PlanetProduct(OpticalProduct):
             udm_paths = self._get_udm_path(as_list=True)
             if udm_paths:
                 LOGGER.debug("Creating UDM VRT")
-                rasters.merge_vrt(self._get_udm_path(as_list=True), udm_vrt_path)
+                rasters.merge_vrt(
+                    self._get_udm_path(as_list=True), udm_vrt_path, abs_path=True
+                )
 
         udm2_vrt_path, udm2_vrt_exists = self._get_out_path(
             f"{self.condensed_name}_udm2.vrt"
         )
         if not udm2_vrt_exists:
             LOGGER.debug("Creating UDM2 VRT")
-            rasters.merge_vrt(self._get_udm2_path(as_list=True), udm2_vrt_path)
+            rasters.merge_vrt(
+                self._get_udm2_path(as_list=True), udm2_vrt_path, abs_path=True
+            )
 
         self._merged = True
 
@@ -423,15 +429,23 @@ class PlanetProduct(OpticalProduct):
         dubious_bands = {
             key: val.id + 1 for key, val in self.bands.items() if val is not None
         }
-        udm = self.open_mask("UNUSABLE", size=(band_arr.rio.width, band_arr.rio.height))
-        # Workaround:
-        # FutureWarning: The :code:`numpy.expand_dims` function is not implemented by Dask array.
-        # You may want to use the da.map_blocks function or something similar to silence this warning.
-        # Your code may stop working in a future release.
-        dubious_mask = rasters.read_bit_array(udm.values, dubious_bands[band])
+        if dubious_bands[band] < 7:
+            udm = self.open_mask(
+                "UNUSABLE", size=(band_arr.rio.width, band_arr.rio.height)
+            )
+            # Workaround:
+            # FutureWarning: The :code:`numpy.expand_dims` function is not implemented by Dask array.
+            # You may want to use the da.map_blocks function or something similar to silence this warning.
+            # Your code may stop working in a future release.
+            dubious_mask = rasters.read_bit_array(udm.values, dubious_bands[band])
 
-        # Combine masks
-        mask = no_data_mask | dubious_mask
+            # Combine masks
+            mask = no_data_mask | dubious_mask
+        else:
+            LOGGER.debug(
+                f"Unable to retrieve dubious pixel for band {band.name} as the dubious pixels for bands > 5 are not handled in Planet specifications"
+            )
+            mask = no_data_mask
 
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
@@ -603,7 +617,7 @@ class PlanetProduct(OpticalProduct):
                         nodata,
                     )
                 elif band == RAW_CLOUDS:
-                    cloud = utils.read(self._get_path("udm2", "tif"), resolution, size)
+                    cloud = utils.read(self._get_udm2_path(), resolution, size)
                 else:
                     raise InvalidTypeError(
                         f"Non existing cloud band for {self.constellation.value}: {band}"
@@ -794,7 +808,7 @@ class PlanetProduct(OpticalProduct):
         }
 
         assert mask_id in band_mapping
-        mask_path = self._get_path("udm2", "tif")
+        mask_path = self._get_udm2_path()
 
         # Open mask band
         mask = utils.read(
@@ -831,7 +845,7 @@ class PlanetProduct(OpticalProduct):
             Union[xarray.DataArray, None]: Mask array
 
         """
-        mask_path = self._get_path("udm", "tif", invalid_lookahead="udm2")
+        mask_path = self._get_udm_path()
 
         # Open mask band
         return utils.read(

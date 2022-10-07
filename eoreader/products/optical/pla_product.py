@@ -388,11 +388,11 @@ class PlaProduct(PlanetProduct):
             raise NotImplementedError(
                 f"Basic Scene Product are not managed for Planet products {self.path}"
             )
-        elif self.product_type == PlaProductType.L3A:
-            LOGGER.warning(
-                f"Ortho Tile Product are not well tested for Planet products {self.path}."
-                f"Use it at your own risk !"
-            )
+        # elif self.product_type == PlaProductType.L3A:
+        #     LOGGER.warning(
+        #         f"Ortho Tile Product are not well tested for Planet products {self.path}."
+        #         f"Use it at your own risk !"
+        #     )
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -513,32 +513,36 @@ class PlaProduct(PlanetProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        # Get MTD XML file
-        root, nsmap = self.read_mtd()
+        if self._merged:
+            return band_arr
+        else:
+            # Get MTD XML file
+            root, nsmap = self.read_mtd()
 
-        # Open identifier
-        refl_coef = None
-        for band_mtd in root.iterfind(
-            f".//{nsmap[self._nsmap_key]}bandSpecificMetadata"
-        ):
-            if (
-                int(band_mtd.findtext(f".//{nsmap[self._nsmap_key]}bandNumber"))
-                == self.bands[band].id
+            # Open identifier
+            refl_coef = None
+
+            for band_mtd in root.iterfind(
+                f".//{nsmap[self._nsmap_key]}bandSpecificMetadata"
             ):
-                refl_coef = float(
-                    band_mtd.findtext(
-                        f".//{nsmap[self._nsmap_key]}reflectanceCoefficient"
+                if (
+                    int(band_mtd.findtext(f".//{nsmap[self._nsmap_key]}bandNumber"))
+                    == self.bands[band].id
+                ):
+                    refl_coef = float(
+                        band_mtd.findtext(
+                            f".//{nsmap[self._nsmap_key]}reflectanceCoefficient"
+                        )
                     )
+                    break
+
+            if refl_coef is None:
+                raise InvalidProductError(
+                    "Couldn't find any reflectanceCoefficient in the product metadata!"
                 )
-                break
 
-        if refl_coef is None:
-            raise InvalidProductError(
-                "Couldn't find any reflectanceCoefficient in the product metadata!"
-            )
-
-        # To reflectance
-        return band_arr * refl_coef
+            # To reflectance
+            return band_arr * refl_coef
 
     def _merge_subdatasets_mtd(self):
         """
