@@ -42,6 +42,7 @@ from eoreader.bands import BandNames, SpectralBand
 from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
+from eoreader.products.optical.optical_product import RawUnits
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
@@ -122,6 +123,7 @@ class Sv1Product(VhrProduct):
         self._ms_res = 2.0
         self.needs_extraction = False
         self._proj_prod_type = [Sv1ProductType.L1B]
+        self._raw_units = RawUnits.DN
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
@@ -510,7 +512,7 @@ class Sv1Product(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         """
         return False
 
@@ -626,9 +628,9 @@ class Sv1Product(VhrProduct):
 
         if self.product_type in self._proj_prod_type:
             ortho_name = f"{self.condensed_name}_ortho.tif"
-            ortho_path = self._get_band_folder().joinpath(ortho_name)
-            if not ortho_path.is_file():
-                ortho_path = self._get_band_folder(writable=True).joinpath(ortho_name)
+
+            ortho_path, ortho_exists = self._get_out_path(ortho_name)
+            if not ortho_exists:
                 LOGGER.info(
                     "Manually orthorectified stack not given by the user. "
                     "Reprojecting whole stack, this may take a while. "

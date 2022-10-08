@@ -11,6 +11,7 @@ from eoreader.bands import (
     GREEN,
     HH,
     HILLSHADE,
+    NDVI,
     NIR,
     RED,
     RH,
@@ -77,9 +78,10 @@ def test_custom():
     extent_min = prod_min.extent()
     footprint_min = prod_min.footprint()
     crs_min = prod_min.crs()
-    bands = prod_min.load([BLUE, NIR])
+    bands = prod_min.load([BLUE, NIR, NDVI])
 
     # Check attributes
+    assert NDVI in bands
     assert bands[BLUE].attrs["long_name"] == "BLUE"
     assert bands[NIR].attrs["long_name"] == "NIR"
     assert bands[BLUE].attrs["constellation"] == "CUSTOM"
@@ -165,6 +167,10 @@ def test_custom():
     footprint_sar = prod_sar.footprint()
     crs_sar = prod_sar.crs()
     stack_sar = prod_sar.stack([VV, VV_DSPK], prod_sar.resolution * 10)
+
+    # Errors
+    with pytest.raises(AssertionError):
+        prod_sar.load(NDVI)
 
     # Check attributes
     assert stack_sar.attrs["long_name"] == "VV VV_DSPK"

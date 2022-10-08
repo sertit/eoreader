@@ -42,6 +42,7 @@ from eoreader.bands import BandNames, SpectralBand
 from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
+from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
@@ -386,6 +387,7 @@ class MaxarProduct(VhrProduct):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        self._raw_units = RawUnits.DN
         self._has_cloud_cover = True
         self.needs_extraction = False
         self._proj_prod_type = [MaxarProductType.Standard]
@@ -1087,8 +1089,6 @@ class MaxarProduct(VhrProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        # Delivered in uint16
-
         # Convert DN into radiance
         band_arr = self._dn_to_toa_rad(band_arr, band)
 
@@ -1103,7 +1103,7 @@ class MaxarProduct(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         """
         return False
 

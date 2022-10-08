@@ -47,6 +47,7 @@ from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
+from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
 from eoreader.stac import ASSET_ROLE, BT, DESCRIPTION, GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
@@ -66,26 +67,27 @@ class LandsatProductType(ListEnum):
     Each Level-1 data product includes individual spectral band files, a metadata file, and additional ancillary files.
     """
 
-    ARD = "ARD"
-    """
-    Uses Landsat Collections Level-1 data as input
-    to provide data that is processed to the highest scientific standards and placed in a tile-based structure to support time-series analysis.
-
-    Not handled by EOReader.
-    """
-
     L2 = "L2"
     """
-    Level-2 and Level-3 products that are processed to include
-    atmospherically corrected data, surface reflectance, provisional surface temperature, and biophysical properties of the Earth’s surface.
+    Level-2 Science Products are time-series observational data of sufficient length, consistency, and continuity to record effects of climate change,
+    and serve as input into Landsat Level-3 Science Products.
 
-    Not handled by EOReader.
+    Only for Landsat 4 to 9.
+
+    Only Surface Reflectances and Temperatures are handled by EOReader
     """
 
     L3 = "L3"
     """
-    Level-2 and Level-3 products that are processed to include
-    atmospherically corrected data, surface reflectance, provisional surface temperature, and biophysical properties of the Earth’s surface.
+    Level-3 science products represent biophysical properties of the Earth's surface and are generated from Landsat U.S. Analysis Ready Data (ARD) inputs.
+
+    Not handled by EOReader.
+    """
+
+    ARD = "ARD"
+    """
+    Uses Landsat Collections Level-1 data as input
+    to provide data that is processed to the highest scientific standards and placed in a tile-based structure to support time-series analysis.
 
     Not handled by EOReader.
     """
@@ -95,23 +97,32 @@ class LandsatProductType(ListEnum):
 class LandsatInstrument(ListEnum):
     """Landsat products types"""
 
-    OLI_TIRS = "C"
+    OLI_TIRS = "OLI-TIRS"
     """OLI-TIRS instruments combined, for Landsat-8 and 9 constellation"""
 
-    OLI = "O"
+    OLI = "OLI"
     """OLI Instrument, for Landsat-8 and 9 constellation"""
 
     TIRS = "TIRS"
     """TIRS Instrument, for Landsat-8 and 9 constellation"""
 
-    ETM = "E"
+    ETM = "ETM+"
     """ETM+ Instrument, for Landsat-7 constellation"""
 
-    TM = "T"
+    TM = "TM"
     """TM Instrument, for Landsat-5 and 4 constellation"""
 
-    MSS = "M"
+    MSS = "MSS"
     """MSS Instrument, for Landsat-5, 4, 3, 2, 1 constellation"""
+
+
+_LETTER_TO_INSTRUMENT = {
+    "C": LandsatInstrument.OLI_TIRS,
+    "O": LandsatInstrument.OLI,
+    "T": LandsatInstrument.TM,
+    "E": LandsatInstrument.ETM,
+    "M": LandsatInstrument.MSS,
+}
 
 
 @unique
@@ -150,22 +161,12 @@ class LandsatProduct(OpticalProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-    def _set_collection(self):
-        """Set Landsat collection"""
-        mtd, _ = self.read_mtd()
-
-        # Open identifier
-        col_nb = mtd.findtext(".//COLLECTION_NUMBER")
-        if not col_nb:
-            raise InvalidProductError("COLLECTION_NUMBER not found in metadata!")
-
-        return LandsatCollection.from_value(col_nb)
-
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        self._raw_units = RawUnits.DN
         self._has_cloud_cover = True
         self._use_filename = True
 
@@ -177,10 +178,16 @@ class LandsatProduct(OpticalProduct):
             raise InvalidProductError("LANDSAT_PRODUCT_ID not found in metadata !")
 
         # Collections are not set yet
+        col_nb = mtd.findtext(".//COLLECTION_NUMBER")
+        if not col_nb:
+            raise InvalidProductError("COLLECTION_NUMBER not found in metadata!")
+        self._collection = LandsatCollection.from_value(col_nb)
+
         # Collection 2 do not need to be extracted. Set True by default
         if utils.get_split_name(name)[-2] == "02":
             self.needs_extraction = False  # Fine to read .tar files
         else:
+            self._collection = LandsatCollection.COL_1
             self.needs_extraction = True  # Too slow to read directly tar.gz files
 
         # Post init done by the super class
@@ -192,7 +199,6 @@ class LandsatProduct(OpticalProduct):
         (setting sensor type, band names and so on)
         """
         self.tile_name = self._get_tile_name()
-        self._collection = self._set_collection()
         if self._collection == LandsatCollection.COL_1:
             self._pixel_quality_id = "_BQA"
             self._radsat_id = "_BQA"
@@ -217,7 +223,7 @@ class LandsatProduct(OpticalProduct):
         if self.is_archived:
             # Because of gap_mask files that have the same name structure and exists only for L7
             if self.instrument == LandsatInstrument.ETM:
-                regex = rf".*RT{band_id}\."
+                regex = rf".*(RT|T1|T2)(_SR|_ST|){band_id}\."
             else:
                 regex = rf".*{band_id}\."
             path = files.get_archived_rio_path(self.path, regex)
@@ -334,9 +340,9 @@ class LandsatProduct(OpticalProduct):
 
             self.product_type = LandsatProductType.from_value(proc_lvl[:-2])
 
-            if self.product_type != LandsatProductType.L1:
+            if self.product_type not in [LandsatProductType.L1, LandsatProductType.L2]:
                 LOGGER.warning(
-                    "Only Landsat level 1 have been tested on EOReader, ise it at your own risk."
+                    "Only Landsat level 1 and 2 have been tested on EOReader, ise it at your own risk."
                 )
             else:
                 # Warning if GS (L1 only)
@@ -364,7 +370,7 @@ class LandsatProduct(OpticalProduct):
         ]:
             self.instrument = LandsatInstrument.TIRS
         else:
-            self.instrument = LandsatInstrument.from_value(instrument_letter)
+            self.instrument = _LETTER_TO_INSTRUMENT[instrument_letter]
 
         if self.instrument in [LandsatInstrument.OLI, LandsatInstrument.TIRS]:
             LOGGER.warning(
@@ -556,6 +562,7 @@ class LandsatProduct(OpticalProduct):
                 },
             ),
         }
+
         self.bands.map_bands(tm_bands)
 
     def _map_bands_etm(self) -> None:
@@ -676,6 +683,12 @@ class LandsatProduct(OpticalProduct):
                 },
             ),
         }
+
+        if self.product_type == LandsatProductType.L2:
+            etm_bands.pop(spb.PAN)
+            etm_bands.pop(spb.TIR_2)
+            etm_bands[spb.TIR_1] = etm_bands[spb.TIR_1].update(name="B6", id="6")
+
         self.bands.map_bands(etm_bands)
 
     def _map_bands_oli(self) -> None:
@@ -818,6 +831,11 @@ class LandsatProduct(OpticalProduct):
                 },
             ),
         }
+
+        if self.product_type == LandsatProductType.L2:
+            oli_bands.pop(spb.SWIR_CIRRUS)
+            oli_bands.pop(spb.TIR_2)
+            oli_bands.pop(spb.PAN)
 
         self.bands.map_bands(oli_bands)
 
@@ -1099,53 +1117,116 @@ class LandsatProduct(OpticalProduct):
         if not (self._pixel_quality_id in filename or self._radsat_id in filename):
             # Convert raw bands from DN to correct reflectance
             if not filename.startswith(self.condensed_name):
-                # Original band name
-                band_name = filename[-1]
-
                 # Open mtd
                 mtd_data, _ = self._read_mtd()
 
                 # Get band nb and corresponding coeff
-                c_mul_str = "REFLECTANCE_MULT_BAND_" + band_name
-                c_add_str = "REFLECTANCE_ADD_BAND_" + band_name
-
-                # Get coeffs to convert DN to reflectance
+                band_name = self.bands[band].id
                 try:
-                    c_mul = mtd_data.findtext(f".//{c_mul_str}")
-                    c_add = mtd_data.findtext(f".//{c_add_str}")
-
-                    # Manage some cases where the values are set to NULL
-                    if c_mul == "NULL":
-                        c_mul = 1.0
-                    else:
-                        c_mul = float(c_mul)
-                    if c_add == "NULL":
-                        c_add = 1.0
-                    else:
-                        c_add = float(c_add)
-                except TypeError:
+                    # Thermal (10/11)
                     if band in [spb.TIR_1, spb.TIR_2]:
-                        c_mul = 1.0
-                        c_add = 0.0
+                        # For Landsat L2 products, the band name in metadata don't change compared to L1 (only one band left)
+                        if (
+                            self.constellation == Constellation.L7
+                            and self.product_type == LandsatProductType.L2
+                        ):
+                            band_name = "6_VCID_1"
+                        band_arr = self._to_tb(band_arr, band, mtd_data, band_name)
+
                     else:
-                        raise InvalidProductError(
-                            f"Cannot find additive or multiplicative "
-                            f"rescaling factor for bands ({band.name}, "
-                            f"number {band_name}) in metadata"
-                        )
+                        # Original band name
+                        band_arr = self._to_refl(band_arr, band, mtd_data, band_name)
+                except TypeError:
+                    raise InvalidProductError(
+                        f"Cannot find additive or multiplicative "
+                        f"rescaling factor for bands ({band.name}, "
+                        f"number {band_name}) in metadata"
+                    )
 
-                # Manage NULL values
-                try:
-                    c_mul = float(c_mul)
-                except ValueError:
-                    c_mul = 1.0
-                try:
-                    c_add = float(c_add)
-                except ValueError:
-                    c_add = 0.0
+        return band_arr
 
-                # Compute the correct reflectance of the band and set no data to 0
-                band_arr = c_mul * band_arr + c_add  # Already in float
+    def _to_tb(
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        mtd_data,
+        band_name,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to brightness temperatue
+
+        https://www.usna.edu/Users/oceano/pguth/md_help/remote_sensing_course/landsat_thermal.htm
+
+
+        Args:
+
+        Returns:
+            xr.DataArray: Band in brightness temperature
+        """
+        # Get coeffs to convert DN to radiance
+        c_mul_str = "RADIANCE_MULT_BAND_" + band_name
+        c_add_str = "RADIANCE_ADD_BAND_" + band_name
+        c_mul = mtd_data.findtext(f".//{c_mul_str}")
+        c_add = mtd_data.findtext(f".//{c_add_str}")
+
+        # Manage NULL values
+        try:
+            c_mul = float(c_mul)
+        except ValueError:
+            c_mul = 1.0
+        try:
+            c_add = float(c_add)
+        except ValueError:
+            c_add = 0.0
+
+        band_arr = c_mul * band_arr + c_add
+
+        # Get coeffs to convert radiance to TB
+        k1_str = "K1_CONSTANT_BAND_" + band_name
+        k2_str = "K2_CONSTANT_BAND_" + band_name
+        k1 = float(mtd_data.findtext(f".//{k1_str}"))
+        k2 = float(mtd_data.findtext(f".//{k2_str}"))
+
+        band_arr = k2 / np.log(k1 / band_arr + 1)
+
+        return band_arr
+
+    def _to_refl(
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        mtd_data,
+        band_name,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Converts band to reflectance
+
+        Args:
+
+        Returns:
+            xr.DataArray: Band in reflectance
+        """
+        c_mul_str = "REFLECTANCE_MULT_BAND_" + band_name
+        c_add_str = "REFLECTANCE_ADD_BAND_" + band_name
+
+        # Get coeffs to convert DN to reflectance
+        c_mul = mtd_data.findtext(f".//{c_mul_str}")
+        c_add = mtd_data.findtext(f".//{c_add_str}")
+
+        # Manage NULL values
+        try:
+            c_mul = float(c_mul)
+        except ValueError:
+            c_mul = 1.0
+        try:
+            c_add = float(c_add)
+        except ValueError:
+            c_add = 0.0
+
+        # Compute the correct reflectance of the band and set no data to 0
+        band_arr = c_mul * band_arr + c_add  # Already in float
 
         return band_arr
 
@@ -1335,7 +1416,7 @@ class LandsatProduct(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
 
         - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
         - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
@@ -1358,7 +1439,7 @@ class LandsatProduct(OpticalProduct):
     @staticmethod
     def _mss_has_cloud_band(band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         """
         if band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS]:
             has_band = True
@@ -1369,7 +1450,7 @@ class LandsatProduct(OpticalProduct):
     @staticmethod
     def _e_tm_has_cloud_band(band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         """
         if band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS, SHADOWS]:
             has_band = True

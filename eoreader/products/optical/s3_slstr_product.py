@@ -58,7 +58,7 @@ from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-# FROM SNAP (only for radiance bands, not for brilliance temperatures)
+# FROM SNAP (only for radiance bands, not for brightness temperatures)
 # https://github.com/senbox-org/s3tbx/blob/197c9a471002eb2ec1fbd54e9a31bfc963446645/s3tbx-rad2refl/src/main/java/org/esa/s3tbx/processor/rad2refl/Rad2ReflConstants.java#L141
 # Not used for now
 SLSTR_SOLAR_FLUXES_DEFAULT = {
@@ -77,7 +77,7 @@ SLSTR_ABC_BANDS = ["S4", "S5", "S6"]
 SLSTR_F_BANDS = ["F1"]
 SLSTR_I_BANDS = ["S7", "S8", "S9", "F1", "F2"]
 
-# Link band names to their physical quantity (radiance vs brilliance temperature)
+# Link band names to their physical quantity (radiance vs brightness temperature)
 SLSTR_RAD_BANDS = SLSTR_A_BANDS + SLSTR_ABC_BANDS
 SLSTR_BT_BANDS = SLSTR_I_BANDS
 
@@ -244,7 +244,7 @@ class S3SlstrProduct(S3Product):
         self._view = SlstrView.NADIR
         self._rad_adjust = SlstrRadAdjust.S3_PN_SLSTR_L1_08
 
-        # Brilliance temperature
+        # Brightness temperature
         self._bt_file = "{band}_BT_{suffix}.nc"
         self._bt_subds = "{band}_BT_{suffix}"
 
@@ -425,7 +425,7 @@ class S3SlstrProduct(S3Product):
                     GSD: bt_res,
                     CENTER_WV: 3742.00,
                     FWHM: 398.00,
-                    DESCRIPTION: "SST, LST, Active fire, brilliance temperature, 1km",
+                    DESCRIPTION: "SST, LST, Active fire, brightness temperature, 1km",
                     ASSET_ROLE: BT,
                 },
             ),
@@ -437,7 +437,7 @@ class S3SlstrProduct(S3Product):
                     GSD: bt_res,
                     CENTER_WV: 10854.00,
                     FWHM: 776.00,
-                    DESCRIPTION: "SST, LST, Active fire, brilliance temperature, 1km",
+                    DESCRIPTION: "SST, LST, Active fire, brightness temperature, 1km",
                     ASSET_ROLE: BT,
                 },
             ),
@@ -449,7 +449,7 @@ class S3SlstrProduct(S3Product):
                     GSD: bt_res,
                     CENTER_WV: 12022.50,
                     FWHM: 905.00,
-                    DESCRIPTION: "SST, LST, brilliance temperature, 1km",
+                    DESCRIPTION: "SST, LST, brightness temperature, 1km",
                     ASSET_ROLE: BT,
                 },
             ),
@@ -461,7 +461,7 @@ class S3SlstrProduct(S3Product):
                     GSD: bt_res,
                     CENTER_WV: 3742.00,
                     FWHM: 398.00,
-                    DESCRIPTION: "Active fire, brilliance temperature, 1km",
+                    DESCRIPTION: "Active fire, brightness temperature, 1km",
                     ASSET_ROLE: BT,
                 },
             ),
@@ -473,7 +473,7 @@ class S3SlstrProduct(S3Product):
                     GSD: bt_res,
                     CENTER_WV: 10854.00,
                     FWHM: 776.00,
-                    DESCRIPTION: "Active fire, brilliance temperature, 1km",
+                    DESCRIPTION: "Active fire, brightness temperature, 1km",
                     ASSET_ROLE: BT,
                 },
             ),
@@ -815,16 +815,10 @@ class S3SlstrProduct(S3Product):
         Returns:
             dict: Dictionary containing {band: path}
         """
-        rad_2_refl_path = (
-            self._get_band_folder() / f"rad_2_refl_{band.name}_{suffix}.npy"
+        rad_2_refl_path, rad_2_refl_exists = self._get_out_path(
+            f"rad_2_refl_{band.name}_{suffix}.npy"
         )
-
-        if not rad_2_refl_path.is_file():
-            rad_2_refl_path = (
-                self._get_band_folder(writable=True)
-                / f"rad_2_refl_{band.name}_{suffix}.npy"
-            )
-
+        if not rad_2_refl_exists:
             # Open SZA array (resampled to band_arr size)
             sza = self._compute_sza_img_grid(suffix)
 
@@ -835,11 +829,14 @@ class S3SlstrProduct(S3Product):
             rad_2_refl_coeff = (np.pi / e0 / np.cos(sza)).astype(np.float32)
 
             # Write on disk
-            np.save(rad_2_refl_path, rad_2_refl_coeff)
+            np.save(str(rad_2_refl_path), rad_2_refl_coeff)
 
         else:
             # Open rad_2_refl_coeff (resampled to band_arr size)
-            rad_2_refl_coeff = np.load(rad_2_refl_path)
+            if isinstance(rad_2_refl_path, CloudPath):
+                rad_2_refl_path = rad_2_refl_path.fspath
+
+            rad_2_refl_coeff = np.load(str(rad_2_refl_path))
 
         return band_arr * rad_2_refl_coeff
 
@@ -896,7 +893,7 @@ class S3SlstrProduct(S3Product):
                 rad_coeff = getattr(rad_adjust_tuple, f"{band_id}_{view}")
                 band_arr *= rad_coeff
         except KeyError:
-            # Not a band (ie Quality Flags) or Brilliance temperature: no adjust needed
+            # Not a band (ie Quality Flags) or Brightness temperature: no adjust needed
             pass
 
         return band_arr
@@ -910,10 +907,8 @@ class S3SlstrProduct(S3Product):
         Returns:
             np.ndarray: Resampled Sun Zenith Angle as a numpy array
         """
-        sza_img_path = self._get_band_folder() / f"sza_{suffix}.npy"
-        if not sza_img_path.exists():
-            sza_img_path = self._get_band_folder(writable=True) / f"sza_{suffix}.npy"
-
+        sza_img_path, sza_exists = self._get_out_path(f"sza_{suffix}.npy")
+        if not sza_exists:
             geom_file = self._replace(self._geom_file, view=suffix[-1])
             sza_name = self._replace(self._sza_name, view=suffix[-1])
             sza = self._read_nc(geom_file, sza_name)
@@ -923,11 +918,14 @@ class S3SlstrProduct(S3Product):
             sza_img = self._tie_to_img(sza_rad, suffix)
 
             # Write on disk
-            np.save(sza_img_path, sza_img)
+            np.save(str(sza_img_path), sza_img)
 
         else:
-            # Open rad_2_refl_coeff (resampled to band_arr size)
-            sza_img = np.load(sza_img_path)
+            # Open sza_img (resampled to band_arr size)
+            if isinstance(sza_img_path, CloudPath):
+                sza_img_path = sza_img_path.fspath
+
+            sza_img = np.load(str(sza_img_path))
 
         return sza_img
 
@@ -1004,7 +1002,7 @@ class S3SlstrProduct(S3Product):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         -> SLSTR does
         """
         if band in [

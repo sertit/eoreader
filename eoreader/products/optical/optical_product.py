@@ -42,6 +42,7 @@ from eoreader.bands import (
     is_index,
     is_sar_band,
     is_spectral_band,
+    is_thermal_band,
     to_str,
 )
 from eoreader.exceptions import InvalidBandError, InvalidIndexError
@@ -74,6 +75,33 @@ class CleanMethod(ListEnum):
     """ Return raw band without any cleaning (fastest method) """
 
 
+@unique
+class RawUnits(ListEnum):
+    """
+    Units of the raw band
+    """
+
+    DN = "digital number"
+    """
+    Digital Number
+    """
+
+    RAD = "radiance"
+    """
+    Radiance
+    """
+
+    REFL = "reflectance"
+    """
+    Reflectance
+    """
+
+    NONE = "none"
+    """
+    No relevant unit (i.e. SEAMLESS bands for DIMAP or visualisation bands)
+    """
+
+
 DEF_CLEAN_METHOD = CleanMethod.NODATA
 
 
@@ -89,6 +117,7 @@ class OpticalProduct(Product):
         **kwargs,
     ) -> None:
         self._has_cloud_cover = False
+        self._raw_units = None
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
@@ -546,7 +575,7 @@ class OpticalProduct(Product):
         resolution: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> str:
+    ) -> Union[Path, CloudPath]:
         """
         Compute Hillshade mask
 
@@ -557,7 +586,7 @@ class OpticalProduct(Product):
             resampling (Resampling): Resampling method
 
         Returns:
-            str: Hillshade mask path
+            Union[Path, CloudPath]: Hillshade mask path
 
         """
         # Warp DEM
@@ -567,15 +596,13 @@ class OpticalProduct(Product):
         hillshade_name = (
             f"{self.condensed_name}_HILLSHADE_{files.get_filename(dem_path)}.tif"
         )
-        hillshade_path = self._get_band_folder().joinpath(hillshade_name)
-        if hillshade_path.is_file():
+
+        hillshade_path, hillshade_exists = self._get_out_path(hillshade_name)
+        if hillshade_exists:
             LOGGER.debug(
                 "Already existing hillshade DEM for %s. Skipping process.", self.name
             )
         else:
-            hillshade_path = self._get_band_folder(writable=True).joinpath(
-                hillshade_name
-            )
             LOGGER.debug("Computing hillshade DEM for %s", self.name)
 
             # Get angles
@@ -641,7 +668,7 @@ class OpticalProduct(Product):
                 else:
                     bands_to_load.append(band)
 
-            # Then load other bands that haven't be loaded before
+            # Then load other bands that haven't been loaded before
             loaded_bands = self._open_clouds(bands_to_load, resolution, size, **kwargs)
 
             # Write them on disk
@@ -805,7 +832,13 @@ class OpticalProduct(Product):
         # Do not add this if one non-spectral bands exists
         if all(has_spectral_bands):
             if kwargs.get(TO_REFLECTANCE, True):
-                xarr.attrs["radiometry"] = "reflectance"
+                has_thermal = [is_thermal_band(band) for band in bands]
+                if all(has_thermal):
+                    xarr.attrs["radiometry"] = "brightness temperature"
+                elif any(has_thermal):
+                    xarr.attrs["radiometry"] = "reflectance and brightness temperature"
+                else:
+                    xarr.attrs["radiometry"] = "reflectance"
             else:
                 xarr.attrs["radiometry"] = "as is"
 

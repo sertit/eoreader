@@ -13,24 +13,24 @@ S3 and S3 Compatible Storage are working and maybe Google and Azure if `rasterio
 but they have not been tested.
 
 ```python
->>> import os
->>> from reader import Reader
+import os
+from reader import Reader
 
->>> # Path to your satellite data, ie. Sentinel-2
->>> path = r'S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip'  # You can work with the archive for S2 data
+# Path to your satellite data, ie. Sentinel-2
+path = r'S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip'  # You can work with the archive for S2 data
 
->>> # Path to your output directory (if not set, it will work in a temp directory)
->>> output = os.path.abspath('.')
+# Path to your output directory (if not set, it will work in a temp directory)
+output = os.path.abspath('.')
 
->>> # Create the reader singleton
->>> reader = Reader()
->>> prod = reader.open(path, output_path=output, remove_tmp=True)
->>> # remove_tmp allows you to automatically delete processing files 
->>> # such as cleaned or orthorectified bands when the product is deleted
->>> # False by default to speed up the computation if you want to use the same product in several part of your code
+# Create the reader singleton
+reader = Reader()
+prod = reader.open(path, output_path=output, remove_tmp=True)
+# remove_tmp allows you to automatically delete processing files 
+# such as cleaned or orthorectified bands when the product is deleted
+# False by default to speed up the computation if you want to use the same product in several part of your code
 
->>> # NOTE: you can set the output directory after the creation, that allows you to use the product condensed name
->>> prod.output = os.path.join(output, prod.condensed_name)  # It will automatically create it if needed
+# NOTE: you can set the output directory after the creation, that allows you to use the product condensed name
+prod.output = os.path.join(output, prod.condensed_name)  # It will automatically create it if needed
 ```
 
 ### Recognized paths
@@ -45,7 +45,7 @@ Hereunder are the paths meant to be given to the reader.
 | `Sentinel-2 and 3`                             | Main directory, `.SAFE`, `.SEN3` or `.zip`,<br>i.e. `S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE` |
 | `Sentinel-2 Theia`                             | Main directory containing the `.tif` images,<br>i.e. `SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2`                 |
 | `Landsats`                                     | Main directory extracted or archived if Collection 2 (`.tar`),<br>i.e. `LC08_L1TP_200030_20201220_20210310_02_T1.tar`   |
-| `PlanetScope`                                  | Directory containing the `manifest.json` file,<br>i.e. `20210406_015904_37_2407`                                        |
+| `PlanetScope`, `SkySat` and `RapidEye`         | Directory containing the `manifest.json` file,<br>i.e. `20210406_015904_37_2407`                                        |
 | `DIMAP`<br>(Pleiades, SPOTs,<br>Vision-1, ...) | Directory containing the `.JP2` files,<br>i.e. `IMG_PHR1B_PMS_001`                                                      |
 | `Maxar`<br>(WorldViews,<br>GeoEye...)          | Directory containing the `.TIL` file,<br>i.e. `013187549010_01_P001_PSH`                                                |
 | `SuperView-1`                                  | Directory containing the `.shp` file,<br>i.e. `0032100150001_01`                                                        |  
@@ -68,31 +68,30 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 ![load_workflow](https://zupimages.net/up/22/12/9mz0.png)
 
 ```python
->>> import os
->>> from eoreader.reader import Reader
->>> from eoreader.bands import *
->>> import os
->>> from eoreader.env_vars import DEM_PATH
+import os
+from eoreader.reader import Reader
+from eoreader.bands import *
+from eoreader.env_vars import DEM_PATH
 
->>> path = r"S2B_MSIL1C_20210517T103619_N7990_R008_T30QVE_20210929T075738.SAFE"
->>> output = os.path.abspath("./output")
->>> # WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
->>> # and you won't be able to retrieve what's has been written on disk
->>> prod = Reader().open(path, output_path=output)
+path = r"S2B_MSIL1C_20210517T103619_N7990_R008_T30QVE_20210929T075738.SAFE"
+output = os.path.abspath("./output")
+# WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
+# and you won't be able to retrieve what's has been written on disk
+prod = Reader().open(path, output_path=output)
 
->>> # Specify a DEM to load DEM bands
->>> os.environ[DEM_PATH] = r"my_dem.tif"
+# Specify a DEM to load DEM bands
+os.environ[DEM_PATH] = r"my_dem.tif"
 
->>> # Get the wanted bands and check if the product can produce them
->>> band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
->>> ok_bands = to_str([band for band in band_list if prod.has_band(band)])
-[GREEN, NDVI, HILLSHADE]
->>>  # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
+# Get the wanted bands and check if the product can produce them
+band_list = [GREEN, NDVI, TIR_1, SHADOWS, HILLSHADE]
+ok_bands = to_str([band for band in band_list if prod.has_band(band)])
+# [GREEN, NDVI, HILLSHADE]
+# Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
 
->>>  # Load bands
->>> bands = prod.load(ok_bands, resolution=20.)  # if resolution is not specified -> load at default resolution (10.0 m for S2 data)
->>>  # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
->>>  # (important for DEM data as they may have different grids)
+# Load bands
+bands = prod.load(ok_bands, resolution=20.)  # if resolution is not specified -> load at default resolution (10.0 m for S2 data)
+# NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
+# (important for DEM data as they may have different grids)
 ```
 
 ```{note}
@@ -123,8 +122,8 @@ However, they cannot be duplicated (the stack cannot contain 2 `RED` bands for i
 If the same band is asked several time, its order will be the one of the last demand.
 
 ```python
->>> # Create a stack with the previous OK bands
->>> stack = prod.stack(ok_bands, resolution=300., stack_path=os.path.join(prod.output, "stack.tif")
+# Create a stack with the previous OK bands
+stack = prod.stack(ok_bands, resolution=300., stack_path=os.path.join(prod.output, "stack.tif")
 ```
 
 Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
@@ -138,15 +137,15 @@ EOReader gives you the access to the metadata of your product as a `lxml.etree._
 
 ```python
 
->>> # Access the raw metadata as an lxml.etree._Element and its namespaces as a dict:
->>> mtd, nmsp = prod.read_mtd()
+# Access the raw metadata as an lxml.etree._Element and its namespaces as a dict:
+mtd, nmsp = prod.read_mtd()
 
->>> # You can access a field like that: 
->>> datastrip_id = mtd.findtext(".//DATASTRIP_ID")
-'S2B_OPER_MSI_L1C_DS_VGSR_20210929T075738_S20210517T104617_N79.90'
+# You can access a field like that: 
+datastrip_id = mtd.findtext(".//DATASTRIP_ID")
+# 'S2B_OPER_MSI_L1C_DS_VGSR_20210929T075738_S20210517T104617_N79.90'
 
->>> # Pay attention, for some products you will need a namespace, i.e. for planet data:
->>> # name = mtd.findtext(f".//{nsmap['eop']}identifier")
+# Pay attention, for some products you will need a namespace, i.e. for planet data:
+# name = mtd.findtext(f".//{nsmap['eop']}identifier")
 ```
 
 
@@ -184,8 +183,8 @@ Always existing for VHR and SAR data, more rarely for other optical constellatio
 See [Optical](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html) and [SAR](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html) tutorials for examples.
 
 ```python
->>> # Plot product
->>> prod.plot()
+# Plot product
+prod.plot()
 ```
 
 
@@ -194,9 +193,9 @@ See [Optical](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html) 
 ### CRS
 Get the product CRS, always in UTM
 ```python
->>> # Product CRS (always in UTM)
->>> prod.crs()
-CRS.from_epsg(32630)
+# Product CRS (always in UTM)
+prod.crs()
+# CRS.from_epsg(32630)
 ```
 
 ### Extent and footprint
@@ -204,15 +203,15 @@ CRS.from_epsg(32630)
 Get the product extent and footprint, always in UTM as a `gpd.GeoDataFrame`
 
 ```python
->>> # Full extent of the bands as a geopandas GeoDataFrame
->>> prod.extent()
-                                            geometry
-0   POLYGON((309780.000 4390200.000, 309780.000 4...
+# Full extent of the bands as a geopandas GeoDataFrame
+prod.extent()
+#                                            geometry
+#0   POLYGON((309780.000 4390200.000, 309780.000 4...
 
->>> # Footprint: extent of the useful pixels (minus nodata) as a geopandas GeoDataFrame
->>> prod.footprint()
-                                            geometry
-0 POLYGON Z((199980.000 4390200.000 0.000, 1999...
+# Footprint: extent of the useful pixels (minus nodata) as a geopandas GeoDataFrame
+prod.footprint()
+#                                            geometry
+#0 POLYGON Z((199980.000 4390200.000 0.000, 1999...
 ```
 
 Please note the difference between `footprint` and `extent`:
@@ -227,9 +226,9 @@ Get optical product azimuth (between [0, 360] degrees) and
 [zenith solar angles](https://en.wikipedia.org/wiki/Solar_zenith_angle), useful for computing the Hillshade for example.
 
 ```python
->>>  # Get azimuth and zenith solar angles
->>> prod.get_mean_sun_angles()
-(81.0906721240477, 17.5902388851456)
+# Get azimuth and zenith solar angles
+prod.get_mean_sun_angles()
+# (81.0906721240477, 17.5902388851456)
 ```
 
 ### Cloud Cover
@@ -237,9 +236,9 @@ Get optical product azimuth (between [0, 360] degrees) and
 Get optical product cloud cover as specified in the metadata
 
 ```python
->>>  # Get cloud cover
->>> prod.get_cloud_cover()
-0.155752635193646
+# Get cloud cover
+prod.get_cloud_cover()
+# 0.155752635193646
 ```
 
 ### Orbit direction
@@ -248,9 +247,9 @@ Get product optical direction (useful especially for SAR data), as a {meth}`~eor
 Always specified in the metadata for SAR constellations, set to `DESCENDING` by default for optical data if not existing.
 
 ```python
->>>  # Get orbit direction
->>> prod.get_orbit_direction()
-<OrbitDirection.DESCENDING: 'DESCENDING'>
+# Get orbit direction
+prod.get_orbit_direction()
+# <OrbitDirection.DESCENDING: 'DESCENDING'>
 ```
 
 ## STAC
@@ -260,12 +259,12 @@ Those items are ready to be added in any STAC catalogue or collection.
 See [STAC Notebook](https://eoreader.readthedocs.io/en/latest/notebooks/stac.html) to learn more about this feature.
 
 ```python
->>>  # Get STAC object
->>> prod.stac
+# Get STAC object
+prod.stac
 
->>>  # Create STAC item
->>> prod.stac.create_item()
-<Item id = 20210517T103619_S2_T30QVE_L1C_075738>
+# Create STAC item
+prod.stac.create_item()
+# <Item id = 20210517T103619_S2_T30QVE_L1C_075738>
 ```
 
 Some functions have different names between EOReader and STAC vocabulary. 

@@ -42,7 +42,7 @@ ensure the code base is homogeneously formatted and easier to read. It's importa
 exact same hooks in the Continuous Integration.
 
 For now, you won't be able to run the test suite as we cannot provide an example of each product (some are licensed). We
-will take care of that for you. Please be sure that your code is running on Python 3.7+.
+will take care of that for you. Please be sure that your code is running on Python 3.8+.
 
 ## Release EOReader
 

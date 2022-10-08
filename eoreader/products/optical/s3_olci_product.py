@@ -585,20 +585,17 @@ class S3OlciProduct(S3Product):
         Returns:
             dict: Dictionary containing {band: path}
         """
-        rad_2_refl_path = self._get_band_folder() / f"rad_2_refl_{band.name}.npy"
-
-        if not rad_2_refl_path.is_file():
-            rad_2_refl_path = (
-                self._get_band_folder(writable=True) / f"rad_2_refl_{band.name}.npy"
-            )
-
+        rad_2_refl_path, rad_2_refl_exists = self._get_out_path(
+            f"rad_2_refl_{band.name}.npy"
+        )
+        if not rad_2_refl_exists:
             # Open SZA array (resampled to band_arr size)
-            sza_path = self._get_band_folder() / "sza.tif"
-            if not sza_path.is_file():
-                sza_path = self._get_band_folder(writable=True) / "sza.tif"
-                if not sza_path.is_file():
-                    sza_nc = self._read_nc(self._geom_file, self._sza_name)
-                    utils.write(sza_nc, sza_path)
+            sza_path, sza_exists = self._get_out_path("sza.tif")
+
+            # May have been created before (don't recreate it)
+            if not sza_exists and not sza_path.is_file():
+                sza_nc = self._read_nc(self._geom_file, self._sza_name)
+                utils.write(sza_nc, sza_path)
 
             with rasterio.open(str(sza_path)) as ds_sza:
                 # Values can be easily interpolated at pixels from Tie Points by linear interpolation using the
@@ -618,11 +615,11 @@ class S3OlciProduct(S3Product):
             rad_2_refl_coeff = (np.pi / e0 / np.cos(sza_rad)).astype(np.float32)
 
             # Write on disk
-            np.save(rad_2_refl_path, rad_2_refl_coeff)
+            np.save(str(rad_2_refl_path), rad_2_refl_coeff)
 
         else:
             # Open rad_2_refl_coeff (resampled to band_arr size)
-            rad_2_refl_coeff = np.load(rad_2_refl_path)
+            rad_2_refl_coeff = np.load(str(rad_2_refl_path))
 
         return band_arr * rad_2_refl_coeff
 
@@ -764,7 +761,7 @@ class S3OlciProduct(S3Product):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         -> OLCI does not provide any cloud mask
         """
         return False

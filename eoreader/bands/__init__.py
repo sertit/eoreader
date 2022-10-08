@@ -240,6 +240,7 @@ from eoreader.bands.spectral_bands import (
     SpectralBandMap,
     SpectralBandNames,
     is_spectral_band,
+    is_thermal_band,
 )
 
 __all__ += [
@@ -278,6 +279,7 @@ __all__ += [
     "Oa19",
     "Oa21",
     "is_spectral_band",
+    "is_thermal_band",
 ]
 
 __all__ += ["is_sat_band", "to_band", "to_str"]

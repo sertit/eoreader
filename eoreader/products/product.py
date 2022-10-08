@@ -24,12 +24,13 @@ import gc
 import logging
 import os
 import platform
+import shutil
 import tempfile
 from abc import abstractmethod
 from enum import unique
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Union
+from typing import Callable, Tuple, Union
 from zipfile import ZipFile
 
 import geopandas as gpd
@@ -43,7 +44,7 @@ from lxml import etree, html
 from rasterio import transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
-from sertit import files, rasters, strings
+from sertit import files, rasters, strings, xml
 from sertit.misc import ListEnum
 from sertit.snap import MAX_CORES
 
@@ -110,7 +111,7 @@ class Product:
         **kwargs,
     ) -> None:
         self.needs_extraction = True
-        """Does this products needs to be extracted to be processed ? (:code:`True` by default)."""
+        """Does this product needs to be extracted to be processed ? (:code:`True` by default)."""
 
         self.path = AnyPath(product_path)
         """Usable path to the product, either extracted or archived path, according to the satellite."""
@@ -656,7 +657,7 @@ class Product:
         """
         try:
             if self.is_archived:
-                root = files.read_archived_xml(self.path, f".*{mtd_archived}")
+                root = xml.read_archive(self.path, f".*{mtd_archived}")
             else:
                 try:
                     try:
@@ -664,21 +665,10 @@ class Product:
                     except ValueError:
                         mtd_file = next(self.path.glob(f"*{mtd_from_path}"))
 
-                    if isinstance(mtd_file, CloudPath):
-                        try:
-                            # Try using read_text (faster)
-                            root = etree.fromstring(mtd_file.read_text())
-                        except ValueError:
-                            # Try using read_bytes
-                            # Slower but works with:
-                            # {ValueError}Unicode strings with encoding declaration are not supported.
-                            # Please use bytes input or XML fragments without declaration.
-                            root = etree.fromstring(mtd_file.read_bytes())
-                    else:
-                        # pylint: disable=I1101:
-                        # Module 'lxml.etree' has no 'parse' member, but source is unavailable.
-                        xml_tree = etree.parse(str(mtd_file))
-                        root = xml_tree.getroot()
+                    try:
+                        root = xml.read(mtd_file)
+                    except ValueError as ex:
+                        raise InvalidProductError from ex
                 except StopIteration as ex:
                     raise InvalidProductError(
                         f"Metadata file ({mtd_from_path}) not found in {self.path}"
@@ -949,7 +939,7 @@ class Product:
 
     def has_band(self, band: Union[BandNames, Callable]) -> bool:
         """
-        Does this products has the specified band ?
+        Does this product has the specified band ?
 
         By band, we mean:
 
@@ -997,7 +987,7 @@ class Product:
 
     def has_bands(self, bands: Union[list, BandNames, Callable]) -> bool:
         """
-        Does this products has the specified bands ?
+        Does this product has the specified bands ?
 
         By band, we mean:
 
@@ -1022,7 +1012,7 @@ class Product:
     @abstractmethod
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
 
         .. code-block:: python
 
@@ -1037,7 +1027,7 @@ class Product:
 
     def _has_index(self, idx: Callable) -> bool:
         """
-        Cen the specified index be computed from this products ?
+        Cen the specified index be computed from this product ?
 
         .. code-block:: python
 
@@ -1066,7 +1056,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this products has been acquired after the other
+            bool: True if this product has been acquired after the other
 
         """
         return self.date > other.date
@@ -1080,7 +1070,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this products has been acquired after or in the same time than the other
+            bool: True if this product has been acquired after or in the same time than the other
 
         """
         return self.date >= other.date
@@ -1094,7 +1084,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this products has been acquired in the same time than the other
+            bool: True if this product has been acquired in the same time than the other
 
         """
         return self.date == other.date
@@ -1108,7 +1098,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this products has been acquired not in the same time than the other
+            bool: True if this product has been acquired not in the same time than the other
 
         """
         return self.date != other.date
@@ -1122,7 +1112,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this products has been acquired before or in the same time than the other
+            bool: True if this product has been acquired before or in the same time than the other
 
         """
         return self.date <= other.date
@@ -1136,13 +1126,31 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this products has been acquired before the other
+            bool: True if this product has been acquired before the other
 
         """
         return self.date < other.date
 
     def __hash__(self):
         return hash(self.condensed_name)
+
+    def _get_out_path(self, filename: str) -> Tuple[Union[Path, CloudPath], bool]:
+        """
+        Returns the output path of a file to be written, depending on if it already exists or not (manages CI folders)
+
+        Args:
+            filename (str): Filename
+
+        Returns:
+            Tuple[Union[Path, CloudPath], bool]: Output path and if the file already exists or not
+        """
+        out = self._get_band_folder() / filename
+        exists = True
+        if not out.exists():
+            exists = False
+            out = self._get_band_folder(writable=True) / filename
+
+        return out, exists
 
     @property
     def output(self) -> Union[CloudPath, Path]:
@@ -1152,21 +1160,28 @@ class Product:
     @output.setter
     def output(self, value: str):
         """Output directory of the product, to write orthorectified data for example."""
-        # Remove old output if existing
-        if self._tmp_output:
-            self._tmp_output.cleanup()
-            self._tmp_output = None
-
-        if self._output.exists() and self._remove_tmp_process:
-            files.remove(self._tmp_process)
-
         # Set the new output
         self._output = AnyPath(value)
         if not isinstance(self._output, CloudPath):
             self._output = self._output.resolve()
 
+        # Create temporary process folder
+        old_tmp_process = self._tmp_process
         self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
         os.makedirs(self._tmp_process, exist_ok=True)
+
+        # Move all files from old process folder into the new one
+        for file in files.listdir_abspath(old_tmp_process):
+            try:
+                shutil.move(str(file), self._tmp_process)
+            except shutil.Error:
+                # Don't overwrite file
+                pass
+
+        # Remove old output if existing into the new output
+        if self._tmp_output:
+            self._tmp_output.cleanup()
+            self._tmp_output = None
 
     @property
     def stac(self) -> StacItem:
@@ -1182,9 +1197,9 @@ class Product:
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
         **kwargs,
-    ) -> str:
+    ) -> Union[Path, CloudPath]:
         """
-        Get this products DEM, warped to this products footprint and CRS.
+        Get this product DEM, warped to this product footprint and CRS.
 
         .. code-block:: python
 
@@ -1203,16 +1218,16 @@ class Product:
             kwargs: Other arguments used to load bands
 
         Returns:
-            str: DEM path (as a VRT)
+            Union[Path, CloudPath]: DEM path (as a VRT)
         """
         dem_name = f"{self.condensed_name}_DEM_{files.get_filename(dem_path)}.tif"
-        warped_dem_path = self._get_band_folder().joinpath(dem_name)
-        if warped_dem_path.is_file():
+
+        warped_dem_path, warped_dem_exists = self._get_out_path(dem_name)
+        if warped_dem_exists:
             LOGGER.debug(
                 "Already existing DEM for %s. Skipping process.", self.condensed_name
             )
         else:
-            warped_dem_path = self._get_band_folder(writable=True).joinpath(dem_name)
             LOGGER.debug("Warping DEM for %s", self.condensed_name)
 
             # Allow S3 HTTP Urls only on Linux because rasterio bugs on Windows
@@ -1306,7 +1321,7 @@ class Product:
         resolution: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> str:
+    ) -> Union[Path, CloudPath]:
         """
         Compute Hillshade mask
 
@@ -1317,7 +1332,7 @@ class Product:
             resampling (Resampling): Resampling method
 
         Returns:
-            str: Hillshade mask path
+            Union[Path, CloudPath]: Hillshade mask path
 
         """
         raise NotImplementedError
@@ -1328,7 +1343,7 @@ class Product:
         resolution: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> str:
+    ) -> Union[Path, CloudPath]:
         """
         Compute slope mask
 
@@ -1339,7 +1354,7 @@ class Product:
             resampling (Resampling): Resampling method
 
         Returns:
-            str: Slope mask path
+            Union[Path, CloudPath]: Slope mask path
 
         """
         # Warp DEM
@@ -1347,14 +1362,14 @@ class Product:
 
         # Get slope path
         slope_name = f"{self.condensed_name}_SLOPE_{files.get_filename(dem_path)}.tif"
-        slope_path = self._get_band_folder().joinpath(slope_name)
-        if slope_path.is_file():
+
+        slope_path, slope_exists = self._get_out_path(slope_name)
+        if slope_exists:
             LOGGER.debug(
                 "Already existing slope DEM for %s. Skipping process.",
                 self.condensed_name,
             )
         else:
-            slope_path = self._get_band_folder(writable=True).joinpath(slope_name)
             LOGGER.debug("Computing slope for %s", self.condensed_name)
 
             # Compute slope
@@ -1465,21 +1480,35 @@ class Product:
         # Save as integer
         dtype = np.float32
         if save_as_int:
-            if np.min(stack) < 0:
+            default_nodata = 65535
+            scale = 10000
+            stack_min = np.min(stack)
+            if stack_min < -0.1:
                 LOGGER.warning(
-                    "Cannot convert the stack to uint16 as it has negative values. Keeping it in float32."
+                    "Cannot convert the stack to uint16 as it has negative values (< -0.1). Keeping it in float32."
                 )
             else:
+                if stack_min < 0:
+                    LOGGER.warning(
+                        "Small negative values have been found. Clipping to 0."
+                    )
+                    stack = stack.copy(data=np.clip(stack.data, a_min=0))
+
                 # Scale to uint16, fill nan and convert to uint16
                 dtype = np.uint16
-                nodata = kwargs.get("nodata", 65535)  # Can be 0
+                nodata = kwargs.get("nodata", default_nodata)  # Can be 0
                 for b_id, band in enumerate(bands):
                     # SCALING
                     # NOT ALL bands need to be scaled, only:
                     # - Satellite bands
                     # - index
                     if is_sat_band(band) or is_index(band):
-                        stack[b_id, ...] = stack[b_id, ...] * 10000
+                        if np.max(stack[b_id, ...]) > default_nodata / scale:
+                            LOGGER.debug(
+                                "Band not in reflectance, keeping them as is (the values will be rounded)"
+                            )
+                        else:
+                            stack[b_id, ...] = stack[b_id, ...] * scale
 
                     # Fill no data (done here to avoid RAM saturation)
                     stack[b_id, ...] = stack[b_id, ...].fillna(nodata)

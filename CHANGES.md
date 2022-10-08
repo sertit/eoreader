@@ -1,10 +1,34 @@
 # Release History
 
-## 0.Y.Z (2022-MM-DD)
+## 0.17.0 (2022-MM-DD)
+
+### Enhancements
+
+- **ENH: Adding the support of RapidEye constellation**
+- **ENH: Handling Planet data with multiple subdatasets** ([#45](https://github.com/sertit/eoreader/issues/45))
+- **ENH: Adding the support of Landsat Level-2 products** ([#49](https://github.com/sertit/eoreader/issues/49))
+- **ENH: Adding the support of Pleides Neo SEN and PRJ products** *(needs GDAL 3.5+ or rasterio 1.3.0+)*
+- **ENH: Adding the function `bands.is_thermal_band`**
+- **ENH: Adding the ability for optical custom stacks to load indices**
+- **ENH: Adding [BAIM (MODIS Burned Area Index)](https://www.researchgate.net/publication/248428333_Burnt_Area_Index_BAIM_for_burned_area_discrimination_at_regional_scale_using_MODIS_datafire) spectral index**
+- **ENH: Better management of raw units of the bands of optical products**
+- **ENH: Copying files from `tmp_process` when changing product's output**
 
 ### Bug Fixes
 
 - FIX: Stacks saved as integers on disk keep their original dtype (float32) in Python
+- FIX: Stacks with bands loaded "as is" are correctly saved as integers on disk ([#52](https://github.com/sertit/eoreader/issues/52))
+- FIX: Using stack CRS (if projected) for `DIMAP` products instead of recomputing from lat/lon, solving potential discrepencies between stack and product CRS
+- FIX: Workaround for JP2 bug when updating an existing raster (maybe related to [this bug](https://github.com/rasterio/rasterio/issues/2528))
+- FIX: Better management of SkySat datetime conversion from JSON to XML (deterministic way)
+- FIX: Fixing computation of invalid pixels for `Sentinel-2` and `DIMAP` products (do not remove straylight mask)
+- FIX: Fixing reprojection resolution of VHR data
+- FIX: Computing Brightness Temperature of `Landsat` TIR bands instead of leaving them as is
+- FIX: Better management of Landsat Instrument values
+- FIX: Better radiometry attribute (adding `brightness temperature` and `reflectance and brightness temperature` values)
+- FIX: Changing `Brilliance Temperature` to the correct `Brightness Temperature`
+- FIX: Fixing pandas FutureWarning `The frame.append method is deprecated and will be removed from pandas in a future version.`
+- FIX: Fixing DeprecationWarning `invalid escape sequence \.`
 
 ### Optimizations
 
@@ -14,6 +38,11 @@
 ### Other
 
 - DOC: Add the need of using SNAP 8.0 up-to-date or SNAP 9.0 ([#42](https://github.com/sertit/eoreader/issues/42))
+- DOC: Add the STAC session in API documentation
+- DOC: Add warnings for shifts when orthorectifying DIMAP SEN products (using RPCs) ([#53](https://github.com/sertit/eoreader/issues/53))
+- DOC: Add limitations to custom stacks
+- DEPS: Dropping support of Python 3.7 ([#18](https://github.com/sertit/eoreader/issues/18))
+- DEPS: Update minimum version of libs *(geopadans 0.11.0+, rasterio 1.3.0+...)*
 
 ## 0.16.1 (2022-08-03)
 
