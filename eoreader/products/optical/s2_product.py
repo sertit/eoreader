@@ -28,6 +28,7 @@ from typing import Union
 
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import rasterio
 import xarray as xr
 from affine import Affine
@@ -54,6 +55,7 @@ from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
+from eoreader.products.optical.optical_product import RawUnits
 from eoreader.products.product import OrbitDirection
 from eoreader.stac import CENTER_WV, FWHM, GSD, ID, NAME
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
@@ -139,7 +141,7 @@ class S2Product(OpticalProduct):
 
         # Processing baseline < 02.07: images not georeferenced (L2Ap and after)
 
-        # Is this products comes from a processing baseline less than 4.0
+        # Is this product comes from a processing baseline less than 4.0
         # The processing baseline 4.0 introduces format changes:
         # - masks are given as GeoTIFFs instead of GML files
         # - an offset is added to keep the zero as no-data value
@@ -172,6 +174,7 @@ class S2Product(OpticalProduct):
         self._has_cloud_cover = True
         self.needs_extraction = False
         self._use_filename = True
+        self._raw_units = RawUnits.REFL
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
@@ -642,15 +645,32 @@ class S2Product(OpticalProduct):
                             geocoded_path = on_disk_path
 
                         # Get and write geocode data if not already existing
-                        with rasterio.open(str(geocoded_path), "r+") as out_ds:
-                            tf, _, _, crs = self._l2ap_geocode_data(path)
-                            out_ds.crs = crs
-                            out_ds.transform = tf
+                        try:
+                            with rasterio.open(str(geocoded_path), "r+") as out_ds:
+                                tf, _, _, crs = self._l2ap_geocode_data(path)
+                                out_ds.crs = crs
+                                out_ds.transform = tf
+                        except SystemError:
+                            # Workaround for jp2 file that for a reason or another fails to be updated
+                            # Maybe linked to https://github.com/rasterio/rasterio/issues/2528?
+                            jp2_geocoded_path = geocoded_path
+                            geocoded_path = jp2_geocoded_path.with_suffix(".tif")
+                            with rasterio.open(str(jp2_geocoded_path), "r") as jp2_ds:
+                                tif_meta = jp2_ds.meta
+                                tif_meta["driver"] = "GTiff"
+                                with rasterio.open(
+                                    str(geocoded_path), "w", **tif_meta
+                                ) as out_ds:
+                                    out_ds.write(jp2_ds.read())
+                                    tf, _, _, crs = self._l2ap_geocode_data(path)
+                                    out_ds.crs = crs
+                                    out_ds.transform = tf
+
         except errors.RasterioIOError as ex:
             if str(path).endswith("jp2") or str(path).endswith("tif"):
                 raise InvalidProductError(f"Corrupted file: {path}") from ex
             else:
-                raise
+                raise ex
 
         # Read band
         return utils.read(
@@ -680,7 +700,11 @@ class S2Product(OpticalProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        if str(path).endswith(".jp2"):
+        # Only on raw files
+        if str(path).endswith(".jp2") or (
+            self._processing_baseline < 2.07
+            and files.get_filename(path).startswith("T")
+        ):
             try:
                 # Get MTD XML file
                 root, _ = self.read_datatake_mtd()
@@ -970,15 +994,19 @@ class S2Product(OpticalProduct):
         if len(nodata_pix) > 0:
             # Discard pixels corrected during crosstalk
             nodata_pix = nodata_pix[nodata_pix.gml_id == "QT_NODATA_PIXELS"]
-        nodata_pix.append(self._open_mask_lt_4_0(S2GmlMasks.DEFECT, band))
-        nodata_pix.append(self._open_mask_lt_4_0(S2GmlMasks.SATURATION, band))
+        nodata_pix = pd.concat(
+            [nodata_pix, self._open_mask_lt_4_0(S2GmlMasks.DEFECT, band)]
+        )
+        nodata_pix = pd.concat(
+            [nodata_pix, self._open_mask_lt_4_0(S2GmlMasks.SATURATION, band)]
+        )
 
         # Technical quality mask
         tecqua = self._open_mask_lt_4_0(S2GmlMasks.QUALITY, band)
         if len(tecqua) > 0:
             # Do not take into account ancillary data
             tecqua = tecqua[tecqua.gml_id.isin(["MSI_LOST", "MSI_DEG"])]
-        nodata_pix.append(tecqua)
+        nodata_pix = pd.concat([nodata_pix, tecqua])
 
         if len(nodata_pix) > 0:
             # Rasterize mask
@@ -1236,7 +1264,7 @@ class S2Product(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
         """
         if band == SHADOWS:

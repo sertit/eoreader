@@ -20,7 +20,6 @@ See `here <https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-St
 for more information.
 """
 import logging
-import math
 import os
 from abc import abstractmethod
 from pathlib import Path
@@ -144,9 +143,9 @@ class VhrProduct(OpticalProduct):
         """
         if self.product_type in self._proj_prod_type:
             ortho_name = f"{self.condensed_name}_ortho.tif"
-            ortho_path = self._get_band_folder().joinpath(ortho_name)
-            if not ortho_path.is_file():
-                ortho_path = self._get_band_folder(writable=True).joinpath(ortho_name)
+
+            ortho_path, ortho_exists = self._get_out_path(ortho_name)
+            if not ortho_exists:
                 LOGGER.info(
                     "Manually orthorectified stack not given by the user. "
                     "Reprojecting whole stack, this may take a while. "
@@ -279,6 +278,7 @@ class VhrProduct(OpticalProduct):
             "RPC_DEM": dem_path,
             "RPC_DEM_MISSING_VALUE": 0,
             "OSR_USE_ETMERC": "YES",
+            "BIGTIFF": "IF_NEEDED",
         }
 
         # Reproject
@@ -287,9 +287,9 @@ class VhrProduct(OpticalProduct):
             src_arr,
             rpcs=rpcs,
             src_crs=self._get_raw_crs(),
-            dst_crs=self.crs(),
-            resolution=self.resolution,
             src_nodata=0,
+            dst_crs=self.crs(),
+            dst_resolution=self.resolution,
             dst_nodata=0,  # input data should be in integer
             num_threads=MAX_CORES,
             resampling=Resampling.bilinear,
@@ -308,13 +308,6 @@ class VhrProduct(OpticalProduct):
         meta["width"] = width
         meta["height"] = height
         meta["count"] = count
-
-        # Just in case, read the array with the most appropriate resolution
-        # as the warping sometimes gives not the closest resolution possible to the wanted one
-        if not math.isclose(dst_transform.a, self.resolution, rel_tol=1e-4):
-            out_arr, meta = rasters_rio.read(
-                (out_arr, meta), resolution=self.resolution
-            )
 
         return out_arr, meta
 

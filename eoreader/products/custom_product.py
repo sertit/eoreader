@@ -40,13 +40,20 @@ from eoreader.bands import (
     SarBandMap,
     SpectralBand,
     SpectralBandMap,
+    indices,
     is_clouds,
     is_dem,
     is_index,
     is_sat_band,
     to_band,
+    to_str,
 )
-from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
+from eoreader.exceptions import (
+    InvalidBandError,
+    InvalidIndexError,
+    InvalidProductError,
+    InvalidTypeError,
+)
 from eoreader.products.product import OrbitDirection, Product, SensorType
 from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
@@ -447,11 +454,20 @@ class CustomProduct(Product):
         """
         band_list = []
         dem_list = []
+        index_list = []
         for band in bands:
             if is_index(band):
-                raise NotImplementedError(
-                    "For now, no index is implemented for SAR data."
-                )
+                if self.sensor_type == SensorType.OPTICAL:
+                    if self._has_index(band):
+                        index_list.append(band)
+                    else:
+                        raise InvalidIndexError(
+                            f"{band} cannot be computed from custom data {self.condensed_name}."
+                        )
+                else:
+                    raise NotImplementedError(
+                        "For now, no index is implemented for SAR data."
+                    )
             elif is_sat_band(band):
                 if not self.has_band(band):
                     raise InvalidBandError(
@@ -472,15 +488,33 @@ class CustomProduct(Product):
         if dem_list:
             self._check_dem_path(bands, **kwargs)
 
-        # Load bands
-        bands = self._load_bands(band_list, resolution=resolution, size=size, **kwargs)
+        # Get all bands to be open
+        bands_to_load = band_list.copy()
+        for idx in index_list:
+            bands_to_load += indices.NEEDED_BANDS[idx]
+
+        # Load band arrays (only keep unique bands: open them only one time !)
+        unique_bands = list(set(bands_to_load))
+        if unique_bands:
+            LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
+        bands = self._load_bands(
+            unique_bands, resolution=resolution, size=size, **kwargs
+        )
+
+        # Compute index (they conserve the nodata)
+        if index_list:
+            LOGGER.debug(f"Loading indices {to_str(index_list)}")
+        bands_dict = {idx: idx(bands) for idx in index_list}
+
+        # Add bands
+        bands_dict.update({band: bands[band] for band in band_list})
 
         # Add DEM
-        bands.update(
+        bands_dict.update(
             self._load_dem(dem_list, resolution=resolution, size=size, **kwargs)
         )
 
-        return bands
+        return bands_dict
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
@@ -510,7 +544,7 @@ class CustomProduct(Product):
         resolution: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> str:
+    ) -> Union[Path, CloudPath]:
         """
         Compute Hillshade mask
 
@@ -520,7 +554,7 @@ class CustomProduct(Product):
             resampling (Resampling): Resampling method
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
         Returns:
-            str: Hillshade mask path
+            Union[Path, CloudPath]: Hillshade mask path
         """
         sun_az, sun_zen = self.get_mean_sun_angles()
         if sun_az is not None and sun_zen is not None:
@@ -531,16 +565,14 @@ class CustomProduct(Product):
             hillshade_name = (
                 f"{self.condensed_name}_HILLSHADE_{files.get_filename(dem_path)}.tif"
             )
-            hillshade_path = self._get_band_folder().joinpath(hillshade_name)
-            if hillshade_path.is_file():
+
+            hillshade_path, hillshade_exists = self._get_out_path(hillshade_name)
+            if hillshade_exists:
                 LOGGER.debug(
                     "Already existing hillshade DEM for %s. Skipping process.",
                     self.name,
                 )
             else:
-                hillshade_path = self._get_band_folder(writable=True).joinpath(
-                    hillshade_name
-                )
                 LOGGER.debug("Computing hillshade DEM for %s", self.name)
 
                 # Compute hillshade
@@ -556,7 +588,7 @@ class CustomProduct(Product):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         """
         # TODO ?
         return False

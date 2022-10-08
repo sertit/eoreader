@@ -424,7 +424,7 @@ _EOREADER_STAC_MAP = {
 
 def is_spectral_band(band: Any) -> bool:
     """
-    Returns True if is an spectral band (from :code:`SpectralBandNames`)
+    Returns True if is a spectral band (from :code:`SpectralBandNames`)
 
     .. code-block:: python
 
@@ -453,3 +453,31 @@ def is_spectral_band(band: Any) -> bool:
     except ValueError:
         is_valid = False
     return is_valid
+
+
+def is_thermal_band(band: Any) -> bool:
+    """
+    Returns True if is a spectral and a thermal band (from :code:`SpectralBandNames`)
+
+    .. code-block:: python
+
+        >>> from eoreader.bands import *
+        >>> is_spectral_band(NDVI)
+        False
+        >>> is_spectral_band(HH)
+        False
+        >>> is_spectral_band(GREEN)
+        True
+        >>> is_spectral_band(SLOPE)
+        False
+        >>> is_spectral_band(CLOUDS)
+        False
+
+    Args:
+        band (Any): Anything that could be an optical band
+
+    Returns:
+        bool: True if the band asked is an optical band
+
+    """
+    return is_spectral_band(band) and band in [TIR_1, TIR_2, F1, F2, S7]

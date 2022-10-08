@@ -29,6 +29,7 @@ from typing import Union
 import affine
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import rasterio
 import xarray as xr
 from cloudpathlib import CloudPath
@@ -37,6 +38,7 @@ from rasterio import crs as riocrs
 from rasterio import features, transform
 from sertit import files, rasters_rio, vectors
 from sertit.misc import ListEnum
+from sertit.vectors import WGS84
 from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
@@ -45,6 +47,7 @@ from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import VhrProduct
+from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
@@ -249,6 +252,22 @@ class DimapProduct(VhrProduct):
         self.needs_extraction = False
         self._proj_prod_type = [DimapProductType.SEN, DimapProductType.PRJ]
 
+        # Raw units
+        root, _ = self.read_mtd()
+        rad_proc = DimapRadiometricProcessing.from_value(
+            root.findtext(".//RADIOMETRIC_PROCESSING")
+        )
+
+        if rad_proc == DimapRadiometricProcessing.REFLECTANCE:
+            self._raw_units = RawUnits.REFL
+        elif rad_proc in [
+            DimapRadiometricProcessing.BASIC,
+            DimapRadiometricProcessing.LINEAR_STRETCH,
+        ]:
+            self._raw_units = RawUnits.DN
+        else:
+            self._raw_units = RawUnits.NONE
+
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
@@ -438,19 +457,24 @@ class DimapProduct(VhrProduct):
         Returns:
             rasterio.crs.CRS: CRS object
         """
-        # Open metadata
-        root, _ = self.read_mtd()
+        raw_crs = self._get_raw_crs()
 
-        # Open the Bounding_Polygon
-        vertices = list(root.iterfind(".//Vertex"))
+        if raw_crs.is_projected:
+            utm = raw_crs
+        else:
+            # Open metadata
+            root, _ = self.read_mtd()
 
-        # Get the mean lon lat
-        lon = float(np.mean([float(v.findtext("LON")) for v in vertices]))
-        lat = float(np.mean([float(v.findtext("LAT")) for v in vertices]))
+            # Open the Bounding_Polygon
+            vertices = list(root.iterfind(".//Vertex"))
 
-        # Compute UTM crs from center long/lat
-        utm = vectors.corresponding_utm_projection(lon, lat)
-        utm = riocrs.CRS.from_string(utm)
+            # Get the mean lon lat
+            lon = float(np.mean([float(v.findtext("LON")) for v in vertices]))
+            lat = float(np.mean([float(v.findtext("LAT")) for v in vertices]))
+
+            # Compute UTM crs from center long/lat
+            utm = vectors.corresponding_utm_projection(lon, lat)
+            utm = riocrs.CRS.from_string(utm)
 
         return utm
 
@@ -600,11 +624,16 @@ class DimapProduct(VhrProduct):
 
         #  Load masks and merge them into the nodata
         try:
-            nodata_vec = self.open_mask("DET", **kwargs)  # Out of order detectors
-            nodata_vec.append(
-                self.open_mask("VIS", **kwargs)
-            )  # Hidden area vector mask
-            nodata_vec.append(self.open_mask("SLT", **kwargs))  # Straylight vector mask
+            # Out of order detectors
+            nodata_vec = self.open_mask("DET", **kwargs)
+
+            # Hidden area vector mask
+            nodata_vec = pd.concat([nodata_vec, self.open_mask("VIS", **kwargs)])
+
+            # # Straylight vector mask
+            # nodata_vec = pd.concat(
+            #     [nodata_vec, self.open_mask("SLT", **kwargs)]
+            # )
 
             if len(nodata_vec) > 0:
                 # Rasterize mask
@@ -645,21 +674,12 @@ class DimapProduct(VhrProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-        rad_proc = DimapRadiometricProcessing.from_value(
-            root.findtext(".//RADIOMETRIC_PROCESSING")
-        )
-
-        if rad_proc == DimapRadiometricProcessing.REFLECTANCE:
+        if self._raw_units == RawUnits.REFL:
             # Compute the correct radiometry of the band
             original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
             if original_dtype == "uint16":
                 band_arr /= 10000.0
-        elif rad_proc in [
-            DimapRadiometricProcessing.BASIC,
-            DimapRadiometricProcessing.LINEAR_STRETCH,
-        ]:
+        elif self._raw_units == RawUnits.DN:
             # Convert DN into radiance
             band_arr = self._dn_to_toa_rad(band_arr, band)
 
@@ -940,8 +960,9 @@ class DimapProduct(VhrProduct):
         crs = self.crs()
 
         mask_name = f"{self.condensed_name}_MSK_{mask_str}.geojson"
-        mask_path = self._get_band_folder().joinpath(mask_name)
-        if mask_path.is_file():
+
+        mask_path, mask_exists = self._get_out_path(mask_name)
+        if mask_exists:
             mask = vectors.read(mask_path)
         elif mask_str in self._empty_mask:
             # Empty mask cannot be written on file
@@ -984,6 +1005,11 @@ class DimapProduct(VhrProduct):
                 DimapProductType.SEN,
                 DimapProductType.PRJ,
             ]:
+                # Sometimes the GML mask lacks crs (why ?)
+                if not mask.crs:
+                    mask.crs = self._get_raw_crs()
+
+                mask.crs = WGS84
                 LOGGER.info(f"Orthorectifying {mask_str}")
                 with rasterio.open(str(self._get_tile_path())) as dim_dst:
                     # Rasterize mask (no transform as we have the vector in image geometry)
@@ -995,24 +1021,31 @@ class DimapProduct(VhrProduct):
                         default_value=self._mask_true,  # Inside vector
                         dtype=np.uint8,
                     )
+                    # Check mask validity (to avoid reprojecting)
+                    # All null
+                    if mask_raster.max() == 0:
+                        mask = gpd.GeoDataFrame(geometry=[], crs=crs)
+                    # All valid
+                    elif mask_raster.min() == 1:
+                        pass
+                    else:
+                        # Reproject mask raster
+                        LOGGER.debug(f"\tReprojecting {mask_str}")
+                        dem_path = self._get_dem_path(**kwargs)
+                        reproj_data = self._reproject(
+                            mask_raster, dim_dst.meta, dim_dst.rpcs, dem_path, **kwargs
+                        )
 
-                    # Reproject mask raster
-                    LOGGER.debug(f"\tReprojecting {mask_str}")
-                    dem_path = self._get_dem_path(**kwargs)
-                    reproj_data = self._reproject(
-                        mask_raster, dim_dst.meta, dim_dst.rpcs, dem_path, **kwargs
-                    )
+                        # Vectorize mask raster
+                        LOGGER.debug(f"\tRevectorizing {mask_str}")
+                        mask = rasters_rio.vectorize(
+                            reproj_data,
+                            values=self._mask_true,
+                            default_nodata=self._mask_false,
+                        )
 
-                    # Vectorize mask raster
-                    LOGGER.debug(f"\tRevectorizing {mask_str}")
-                    mask = rasters_rio.vectorize(
-                        reproj_data,
-                        values=self._mask_true,
-                        default_nodata=self._mask_false,
-                    )
-
-                    # Do not keep pixelized mask
-                    mask = utils.simplify_footprint(mask, self.resolution)
+                        # Do not keep pixelized mask
+                        mask = utils.simplify_footprint(mask, self.resolution)
 
             # Sometimes the GML mask lacks crs (why ?)
             elif (
@@ -1025,15 +1058,13 @@ class DimapProduct(VhrProduct):
                 ]
             ):
                 # Convert to target CRS
-                mask.crs = self._get_raw_crs()
-                mask = mask.to_crs(self.crs())
+                mask.crs = self.crs()
 
             # Save to file
             if mask.empty:
                 # Empty mask cannot be written on file
                 self._empty_mask.append(mask_str)
             else:
-                mask_path = self._get_band_folder(writable=True).joinpath(mask_name)
                 mask.to_file(str(mask_path), driver="GeoJSON")
 
         return mask
@@ -1055,15 +1086,19 @@ class DimapProduct(VhrProduct):
         """
         nodata_det = self.open_mask("ROI", **kwargs)
 
-        # Rasterize nodata
-        return features.rasterize(
-            nodata_det.geometry,
-            out_shape=(height, width),
-            fill=self._mask_true,  # Outside ROI = nodata (inverted compared to the usual)
-            default_value=self._mask_false,  # Inside ROI = not nodata
-            transform=transform,
-            dtype=np.uint8,
-        )
+        if all(nodata_det.is_empty):
+            return np.zeros((1, height, width), dtype=np.uint8)
+        else:
+
+            # Rasterize nodata
+            return features.rasterize(
+                nodata_det.geometry,
+                out_shape=(height, width),
+                fill=self._mask_true,  # Outside ROI = nodata (inverted compared to the usual)
+                default_value=self._mask_false,  # Inside ROI = not nodata
+                transform=transform,
+                dtype=np.uint8,
+            )
 
     def _get_tile_path(self) -> Union[CloudPath, Path]:
         """

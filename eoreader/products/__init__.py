@@ -81,6 +81,13 @@ from .optical.spot45_product import (
     Spot45Product,
 )
 
+# Planet
+__all__ += [
+    "PlanetMaskType",
+]
+
+from .optical.planet_product import PlanetMaskType
+
 # PlanetScope
 __all__ += [
     "PlaProduct",
@@ -96,6 +103,14 @@ __all__ += [
     "SkyInstrument",
 ]
 from .optical.sky_product import SkyProductType, SkyProduct, SkyInstrument
+
+# RapidEye
+__all__ += [
+    "ReProductType",
+    "ReProduct",
+    "ReInstrument",
+]
+from .optical.re_product import ReProductType, ReProduct
 
 # Landsat
 __all__ += [

@@ -30,6 +30,7 @@ from eoreader.utils import EOREADER_NAME
 from .scripts_utils import (
     CI_EOREADER_S3,
     READER,
+    _assert,
     assert_geom_almost_equal,
     assert_raster_almost_equal,
     dask_env,
@@ -50,6 +51,8 @@ MERIT_DEM_SUB_DIR_PATH = [
     "MERIT_Hydrologically_Adjusted_Elevations",
     "MERIT_DEM.vrt",
 ]
+
+WRITE_ON_DISK = False
 
 
 def set_dem(dem_path):
@@ -173,9 +176,10 @@ def _test_core(
             assert prod.instrument is not None
 
             with tempfile.TemporaryDirectory() as tmp_dir:
-                tmp_dir = os.path.join(
-                    "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                )
+                if WRITE_ON_DISK:
+                    tmp_dir = os.path.join(
+                        "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
+                    )
                 prod.output = tmp_dir
 
                 os.environ[CI_EOREADER_BAND_FOLDER] = str(
@@ -201,13 +205,15 @@ def _test_core(
                 )
                 # Write to path if needed
                 if not extent_path.exists():
-                    raise FileNotFoundError(
-                        f"Extent not found for {prod.condensed_name}!"
-                    )
-                    # extent_path = os.path.join(
-                    #     tmp_dir, f"{prod.condensed_name}_extent.geojson"
-                    # )
-                    # extent.to_file(extent_path, driver="GeoJSON")
+                    if WRITE_ON_DISK:
+                        extent_path = os.path.join(
+                            tmp_dir, f"{prod.condensed_name}_extent.geojson"
+                        )
+                        extent.to_file(extent_path, driver="GeoJSON")
+                    else:
+                        raise FileNotFoundError(
+                            f"Extent not found for {prod.condensed_name}!"
+                        )
 
                 try:
                     ci.assert_geom_equal(extent, extent_path)
@@ -230,13 +236,15 @@ def _test_core(
                 )
                 # Write to path if needed
                 if not footprint_path.exists():
-                    raise FileNotFoundError(
-                        f"Footprint not found for {prod.condensed_name}!"
-                    )
-                    # footprint_path = os.path.join(
-                    #     tmp_dir, f"{prod.condensed_name}_footprint.geojson"
-                    # )
-                    # footprint.to_file(footprint_path, driver="GeoJSON")
+                    if WRITE_ON_DISK:
+                        footprint_path = os.path.join(
+                            tmp_dir, f"{prod.condensed_name}_footprint.geojson"
+                        )
+                        footprint.to_file(footprint_path, driver="GeoJSON")
+                    else:
+                        raise FileNotFoundError(
+                            f"Footprint not found for {prod.condensed_name}!"
+                        )
 
                 try:
                     ci.assert_geom_equal(footprint, footprint_path)
@@ -266,10 +274,10 @@ def _test_core(
                 )[first_band]
                 band_arr2 = prod.load(first_band, resolution=res)[first_band]
                 np.testing.assert_array_almost_equal(band_arr1, band_arr2)
-                assert band_arr_raw.dtype == np.float32
-                assert band_arr1.dtype == np.float32
-                assert band_arr2.dtype == np.float32
-                assert band_arr_raw.shape == band_arr1.shape
+                _assert(band_arr_raw.dtype, np.float32, "band_arr_raw dtype")
+                _assert(band_arr1.dtype, np.float32, "band_arr1 dtype")
+                _assert(band_arr2.dtype, np.float32, "band_arr2 dtype")
+                _assert(band_arr_raw.shape, band_arr1.shape, "band_arr1 shape")
 
                 # Get stack bands
                 # Stack data
@@ -285,28 +293,48 @@ def _test_core(
                     clean_optical="clean",
                     **kwargs,
                 )
-                assert stack.dtype == np.float32
+                _assert(stack.dtype, np.float32, "dtype")
 
                 # Check attributes
-                assert stack.attrs["long_name"] == " ".join(to_str(stack_bands))
-                assert stack.attrs["constellation"] == prod._get_constellation().value
-                assert stack.attrs["constellation_id"] == prod.constellation_id
-                assert stack.attrs["product_type"] == prod.product_type.value
-                assert (
-                    stack.attrs["instrument"] == prod.instrument
+                _assert(
+                    stack.attrs["long_name"], " ".join(to_str(stack_bands)), "long_name"
+                )
+                _assert(
+                    stack.attrs["constellation"],
+                    prod._get_constellation().value,
+                    "constellation",
+                )
+                _assert(
+                    stack.attrs["constellation_id"],
+                    prod.constellation_id,
+                    "constellation_id",
+                )
+                _assert(
+                    stack.attrs["product_type"], prod.product_type.value, "product_type"
+                )
+                _assert(
+                    stack.attrs["instrument"],
+                    prod.instrument
                     if isinstance(prod.instrument, str)
-                    else prod.instrument.value
+                    else prod.instrument.value,
+                    "instrument",
                 )
-                assert stack.attrs["acquisition_date"] == prod.get_datetime(
-                    as_datetime=False
+                _assert(
+                    stack.attrs["acquisition_date"],
+                    prod.get_datetime(as_datetime=False),
+                    "acquisition_date",
                 )
-                assert stack.attrs["condensed_name"] == prod.condensed_name
-                assert stack.attrs["product_path"] == str(prod.path)
+                _assert(
+                    stack.attrs["condensed_name"], prod.condensed_name, "condensed_name"
+                )
+                _assert(stack.attrs["product_path"], str(prod.path), "product_path")
 
                 # Write to path if needed
                 if not ci_stack.exists():
-                    raise FileNotFoundError(f"{ci_stack} not found !")
-                    # ci_stack = curr_path
+                    if WRITE_ON_DISK:
+                        ci_stack = curr_path
+                    else:
+                        raise FileNotFoundError(f"{ci_stack} not found !")
 
                 else:
                     # Test
@@ -321,8 +349,12 @@ def _test_core(
                 curr_path_band = os.path.join(
                     tmp_dir, f"{prod.condensed_name}_{first_band.name}_test.tif"
                 )
+
                 if not ci_band.exists():
-                    ci_band = curr_path_band
+                    if WRITE_ON_DISK:
+                        ci_band = curr_path_band
+                    else:
+                        raise FileNotFoundError(f"{ci_band} not found !")
 
                 band_arr = prod.load(
                     first_band,
@@ -339,22 +371,38 @@ def _test_core(
                     and band_arr.attrs["radiometry"] == "reflectance"
                 ):
                     assert np.nanmax(band_arr) < 10.0
-                    assert np.nanpercentile(band_arr, 95) < 1.0
+                    assert np.nanpercentile(band_arr, 95) <= 1.0
                     assert np.nanmin(band_arr) > -1.0
-                    assert np.nanpercentile(band_arr, 5) > 0.0
+                    assert np.nanpercentile(band_arr, 5) >= 0.0
 
                 # Check attributes
-                assert band_arr.attrs["long_name"] == first_band.name
-                assert (
-                    band_arr.attrs["constellation"] == prod._get_constellation().value
+                _assert(band_arr.attrs["long_name"], first_band.name, "long_name")
+                _assert(
+                    band_arr.attrs["constellation"],
+                    prod._get_constellation().value,
+                    "constellation",
                 )
-                assert band_arr.attrs["constellation_id"] == prod.constellation_id
-                assert band_arr.attrs["product_type"] == prod.product_type.value
-                assert band_arr.attrs["acquisition_date"] == prod.get_datetime(
-                    as_datetime=False
+                _assert(
+                    band_arr.attrs["constellation_id"],
+                    prod.constellation_id,
+                    "constellation_id",
                 )
-                assert band_arr.attrs["condensed_name"] == prod.condensed_name
-                assert band_arr.attrs["product_path"] == str(prod.path)
+                _assert(
+                    band_arr.attrs["product_type"],
+                    prod.product_type.value,
+                    "product_type",
+                )
+                _assert(
+                    band_arr.attrs["acquisition_date"],
+                    prod.get_datetime(as_datetime=False),
+                    "acquisition_date",
+                )
+                _assert(
+                    band_arr.attrs["condensed_name"],
+                    prod.condensed_name,
+                    "condensed_name",
+                )
+                _assert(band_arr.attrs["product_path"], str(prod.path), "product_path")
 
                 # CLOUDS: just try to load them without testing it
                 LOGGER.info("Loading clouds")
@@ -409,7 +457,11 @@ def _test_core(
                 if not debug:
                     LOGGER.info("Cleaning tmp")
                     prod.clean_tmp()
-                    assert len(list(prod._tmp_process.glob("*"))) == 0
+                    _assert(
+                        len(list(prod._tmp_process.glob("*"))),
+                        0,
+                        "Number of file in temp directory",
+                    )
 
             prod.clear()
 
@@ -532,6 +584,13 @@ def test_pla():
 def test_sky():
     """Function testing the support of SkySat constellation"""
     _test_core_optical("*ssc*")
+
+
+@s3_env
+@dask_env
+def test_re():
+    """Function testing the support of RapidEye constellation"""
+    _test_core_optical("*_RE4_*")
 
 
 @s3_env

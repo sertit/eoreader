@@ -47,6 +47,7 @@ from eoreader.bands import spectral_bands as spb
 from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct, S2ProductType
+from eoreader.products.optical.optical_product import RawUnits
 from eoreader.stac import CENTER_WV, FWHM, GSD, ID, NAME
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
@@ -68,6 +69,7 @@ class S2TheiaProduct(OpticalProduct):
         self._has_cloud_cover = True
         self.needs_extraction = False
         self._use_filename = True
+        self._raw_units = RawUnits.REFL
 
         # Post init done by the super class
         super()._pre_init(**kwargs)
@@ -681,7 +683,7 @@ class S2TheiaProduct(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this products has the specified cloud band ?
+        Does this product has the specified cloud band ?
         """
         return True
 

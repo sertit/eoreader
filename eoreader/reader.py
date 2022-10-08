@@ -101,9 +101,9 @@ class Constellation(ListEnum):
     PLA = "PlanetScope"
     """PlanetScope"""
 
-    # RPD = "RapidEye"
-    # """RapidEye"""
-    #
+    RE = "RapidEye"
+    """RapidEye"""
+
     SKY = "SkySat"
     """SkySat"""
 
@@ -192,16 +192,17 @@ CONSTELLATION_REGEX = {
     Constellation.S2_THEIA: r"SENTINEL2[AB]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
     Constellation.S3_OLCI: r"S3[AB]_OL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
     Constellation.S3_SLSTR: r"S3[AB]_SL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
-    Constellation.L9: r"L[OTC]09_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
-    Constellation.L8: r"L[OTC]08_L1(GT|TP)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
-    Constellation.L7: r"LE07_L1(GT|TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
-    Constellation.L5: r"L[TM]05_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
-    Constellation.L4: r"L[TM]04_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
+    Constellation.L9: r"L[OTC]09_(L1(GT|TP)|L2(SP|SR))_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
+    Constellation.L8: r"L[OTC]08_(L1(GT|TP)|L2(SP|SR))_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
+    Constellation.L7: r"LE07_(L1(GT|TP|GS)|L2(SP|SR))_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
+    Constellation.L5: r"L[TM]05_(L1(TP|GS)|L2(SP|SR))_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
+    Constellation.L4: r"L[TM]04_(L1(TP|GS)|L2(SP|SR))_\d{6}_\d{8}_\d{8}_\d{2}_(T1|T2)",
     Constellation.L3: r"LM03_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
     Constellation.L2: r"LM02_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
     Constellation.L1: r"LM01_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
     Constellation.SKY: r"\d{8}_\d{6}_ssc\w{1,4}_\w{4,5}",
     Constellation.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}",
+    Constellation.RE: r"(\d{7}_\d{4}-\d{2}-\d{2}_RE\d_3A_\d{6}|\d{4}-\d{2}-\d{2}T\d{6}_RE\d_1B_.+|RE_.+_RE\d_(1B|3A)_.+)",
     Constellation.CSK: [
         r".+",  # Need to check inside as the folder does not have any recognizable name
         r"CSKS\d_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
@@ -261,7 +262,11 @@ MTD_REGEX = {
     Constellation.L1: rf"{CONSTELLATION_REGEX[Constellation.L1]}_MTL\.txt",
     Constellation.PLA: {
         "nested": -1,  # File that can be found at any level (product/**/file)
-        "regex": r"\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]_.*metadata.*\.xml",
+        "regex": r"(\d{8}_\d{6}_(\d{2}_|)\w{4}_[13][AB]|\d{7}_\d{7}_\d{4}-\d{2}-\d{2})_.*metadata.*\.xml",
+    },
+    Constellation.RE: {
+        "nested": -1,  # File that can be found at any level (product/**/file)
+        "regex": r"(\d{7}_\d{4}-\d{2}-\d{2}_RE\d_3A_\d{7}|\d{4}-\d{2}-\d{2}T\d{6}_RE\d_1B.+)(_.*metadata|).*\.xml",
     },
     Constellation.SKY: {
         "nested": -1,  # File that can be found at any level (product/**/file)

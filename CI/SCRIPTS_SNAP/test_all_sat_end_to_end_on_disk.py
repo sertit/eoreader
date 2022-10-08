@@ -437,6 +437,8 @@ def test_l1_mss():
 @dask_env
 def test_pla():
     """Function testing the support of PlanetScope constellation"""
+    _test_core_optical("*_psscene_*")
+    _test_core_optical("*_psorthotile_*")
     _test_core_optical("*202*1014*")
     _test_core_optical("*202*245e*")
 
@@ -444,7 +446,14 @@ def test_pla():
 @dask_env
 def test_sky():
     """Function testing the support of SkySat constellation"""
-    _test_core_optical("*ssc*")
+    _test_core_optical("*_ssc*")
+    _test_core_optical("*_skysatscene_*")
+
+
+@dask_env
+def test_re():
+    """Function testing the support of RapidEye constellation"""
+    _test_core_optical("*_RE4_*")
 
 
 @dask_env

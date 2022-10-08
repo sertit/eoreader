@@ -17,27 +17,30 @@
 """
 SkySat products.
 See
-`Earth Online <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
+`Product specs <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
 and `Planet documentation <https://developers.planet.com/docs/data/skysat/>`_
 for more information.
 """
 import logging
+from collections import defaultdict
 from datetime import datetime
 from enum import unique
 from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
+import numpy as np
 import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
-from sertit import files, rasters, vectors
+from sertit import files, rasters, vectors, xml
 from sertit.misc import ListEnum
 
 from eoreader import cache
 from eoreader.bands import BandNames, SpectralBand, is_spectral_band
 from eoreader.bands import spectral_bands as spb
 from eoreader.exceptions import InvalidProductError
+from eoreader.products.optical.optical_product import RawUnits
 from eoreader.products.optical.planet_product import PlanetProduct
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
@@ -48,7 +51,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class SkyInstrument(ListEnum):
     """Skysat instrument
-    See `here <https://space-test.oscar.wmo.int/oscar-test/instruments/view/skysat>`__
+    See `OSCAR instrument <https://space-test.oscar.wmo.int/oscar-test/instruments/view/skysat>`__
     for more information.
     """
 
@@ -171,8 +174,6 @@ class SkyProduct(PlanetProduct):
     Class of SkySat products.
     See `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`__
     for more information.
-
-    The scaling factor to retrieve the calibrated radiance is 0.01.
 
     Only SkySat Collect items are managed for now.
     """
@@ -335,46 +336,36 @@ class SkyProduct(PlanetProduct):
                 raise InvalidProductError("Cannot find acquired in the metadata file.")
 
             # Convert to datetime
-            # SkySat datetime are messy as hell
-            try:
-                if "+" in datetime_str:
-                    datetime_str = datetime_str.split("+")[0]
-                    datetime_str = datetime.strptime(
-                        datetime_str, "%Y-%m-%dT%H:%M:%S.%f"
-                    )
-                else:
-                    datetime_str = datetime.strptime(
-                        datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ"
-                    )
-            except ValueError:
-                datetime_str = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S")
-
-            if not as_datetime:
-                datetime_str = datetime_str.strftime(DATETIME_FMT)
+            datetime_str = datetime.strptime(datetime_str, DATETIME_FMT)
 
         else:
             datetime_str = self.datetime
-            if not as_datetime:
-                datetime_str = datetime_str.strftime(DATETIME_FMT)
+
+        if not as_datetime:
+            datetime_str = datetime_str.strftime(DATETIME_FMT)
 
         return datetime_str
 
-    def _get_name_constellation_specific(self) -> str:
+    def _get_stack_path(self, as_list: bool = False) -> Union[str, list]:
         """
-        Set product real name from metadata
+        Get Planet stack path(s)
+
+        Args:
+            as_list (bool): Get stack path as a list (useful if several subdatasets are present)
 
         Returns:
-            str: True name of the product (from metadata)
+            Union[str, list]: Stack path(s)
         """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
+        if self._merged:
+            stack_path, _ = self._get_out_path(f"{self.condensed_name}_analytic.vrt")
+            if as_list:
+                stack_path = [stack_path]
+        else:
+            stack_path = self._get_path(
+                "ssc", "tif", invalid_lookahead="_udm", as_list=as_list
+            )
 
-        # Open identifier
-        name = root.findtext(".//id")
-        if not name:
-            raise InvalidProductError("id not found in metadata!")
-
-        return name
+        return stack_path
 
     def get_band_paths(
         self, band_list: list, resolution: float = None, **kwargs
@@ -405,10 +396,9 @@ class SkyProduct(PlanetProduct):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
+        path = self._get_stack_path(as_list=False)
         for band in band_list:
-            band_paths[band] = self._get_path(
-                self.product_type.value, "tif", invalid_lookahead="_udm"
-            )
+            band_paths[band] = path
 
         return band_paths
 
@@ -436,23 +426,28 @@ class SkyProduct(PlanetProduct):
         # https://developers.planet.com/docs/data/skysat/
         # (when managing SkySatScene, add Basic Panchromatic and Basic Analytic)
         if self.product_type in [SkyProductType.ORTHO_ANA, SkyProductType.ORTHO_PAN]:
-            import json
+            if self._raw_units != RawUnits.REFL:
+                import json
 
-            import rasterio
+                import rasterio
 
-            with rasterio.open(path) as ds:
-                tags = ds.tags()["TIFFTAG_IMAGEDESCRIPTION"]
-                prop = json.loads(tags)["properties"]
+                try:
+                    with rasterio.open(path) as ds:
+                        tags = ds.tags()["TIFFTAG_IMAGEDESCRIPTION"]
+                        prop = json.loads(tags)["properties"]
 
-            coeffs = prop.get("reflectance_coefficients")
-            if coeffs:
-                # "reflectance_coefficients": [1: Blue, 2: Green, 3: Red, 4: Near-infrared]
-                # https://support.planet.com/hc/en-us/articles/4406644970513-What-is-the-order-of-reflectance-coefficients-in-the-GeoTIFF-Header-for-SkaySat-imagery-
-                refl_coef = coeffs[band.id - 1]
-            else:
-                LOGGER.warning(
-                    "No reflectance coefficients are found. Your product will be read as is."
-                )
+                    coeffs = prop.get("reflectance_coefficients")
+                except (AttributeError, KeyError):
+                    coeffs = None
+
+                if coeffs:
+                    # "reflectance_coefficients": [1: Blue, 2: Green, 3: Red, 4: Near-infrared]
+                    # https://support.planet.com/hc/en-us/articles/4406644970513-What-is-the-order-of-reflectance-coefficients-in-the-GeoTIFF-Header-for-SkaySat-imagery-
+                    refl_coef = coeffs[band.id - 1]
+                else:
+                    LOGGER.warning(
+                        "No reflectance coefficients are found. Your product will be read as is."
+                    )
         else:
             LOGGER.warning(
                 f"Impossible to convert the data to reflectance ({self.product_type.value}). "
@@ -496,66 +491,6 @@ class SkyProduct(PlanetProduct):
         return xarr
 
     @cache
-    def get_mean_sun_angles(self) -> (float, float):
-        """
-        Get Mean Sun angles (Azimuth and Zenith angles)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
-            >>> prod = Reader().open(path)
-            >>> prod.get_mean_sun_angles()
-            (154.554755774838, 27.5941391571236)
-
-        Returns:
-            (float, float): Mean Azimuth and Zenith angle
-        """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Open zenith and azimuth angle
-        try:
-            elev_angle = float(root.findtext(".//sun_elevation"))
-            azimuth_angle = float(root.findtext(".//sun_azimuth"))
-        except TypeError:
-            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
-
-        # From elevation to zenith
-        zenith_angle = 90.0 - elev_angle
-
-        return azimuth_angle, zenith_angle
-
-    @cache
-    def get_mean_viewing_angles(self) -> (float, float, float):
-        """
-        Get Mean Viewing angles (azimuth, off-nadir and incidence angles)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.get_mean_viewing_angles()
-
-        Returns:
-            (float, float, float): Mean azimuth, off-nadir and incidence angles
-        """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Open zenith and azimuth angle
-        try:
-            az = float(root.findtext(".//satellite_azimuth"))
-            off_nadir = float(root.findtext(".//view_angle"))
-        except TypeError:
-            raise InvalidProductError(
-                "satellite_azimuth or view_angle angles not found in metadata!"
-            )
-
-        return az, off_nadir, None
-
-    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read GeoJSON metadata and outputs its as a metadata XML root and its namespaces as an empty dict
@@ -582,37 +517,12 @@ class SkyProduct(PlanetProduct):
         except etree.XMLSyntaxError:
             raise InvalidProductError(f"Invalid metadata XML for {self.path}!")
 
-        root = etree.fromstring(bytes(data.to_xml(), "utf-8"))
+        # Format datetime
+        data["acquired"] = data["acquired"].dt.strftime(DATETIME_FMT)
+
+        root = xml.df_to_xml(data)
 
         return root, {}
-
-    @cache
-    def get_cloud_cover(self) -> float:
-        """
-        Get cloud cover as given in the metadata
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.get_cloud_cover()
-            55.5
-
-        Returns:
-            float: Cloud cover as given in the metadata
-        """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Get the cloud cover
-        try:
-            cc = float(root.findtext(".//cloud_percent"))
-
-        except TypeError:
-            raise InvalidProductError("cloud_percent not found in metadata!")
-
-        return cc
 
     def _get_condensed_name(self) -> str:
         """
@@ -623,3 +533,56 @@ class SkyProduct(PlanetProduct):
         """
         unique_id = self.split_name[-1]
         return f"{self.get_datetime()}_{self.constellation.name}_{self.product_type.name}_{unique_id}"
+
+    def _merge_subdatasets_mtd(self):
+        """
+        Merge subdataset, when several Planet products avec been ordered together (for SkySat Scenes)
+        Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT and a merged metadata XML file.
+        """
+        # Merge datasets
+        analytic_vrt_path, analytic_vrt_exists = self._merge_subdatasets()
+
+        # Get all attributes to mean
+        mtd_file, mtd_exists = self._get_out_path(
+            f"{self.condensed_name}_metadata.json"
+        )
+        if not mtd_exists:
+            attrs_to_mean = [
+                "clear_confidence_percent",
+                "clear_percent",
+                "cloud_cover",
+                "cloud_percent",
+                "heavy_haze_percent",
+                "light_haze_percent",
+                "satellite_azimuth",
+                "shadow_percent",
+                "snow_ice_percent",
+                "sun_azimuth",
+                "sun_elevation",
+                "view_angle",
+                "visible_confidence_percent",
+                "visible_percent",
+            ]
+            attrs = defaultdict(list)
+            geometry = None
+            default_mtd = None
+
+            for mtd_file in self._get_path("metadata", "json", as_list=True):
+                mtd = vectors.read(mtd_file)
+
+                for attr in attrs_to_mean:
+                    attrs[attr].append(getattr(mtd, attr))
+
+                if geometry is None:
+                    default_mtd = mtd
+                    geometry = mtd.geometry
+                else:
+                    geometry = geometry.union(mtd.geometry)
+
+            # Update mtd
+            default_mtd.geometry = geometry
+
+            for attr in attrs_to_mean:
+                setattr(default_mtd, attr, np.mean(attrs[attr]))
+
+            default_mtd.to_file(mtd_file, driver="GeoJSON")
