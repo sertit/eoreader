@@ -19,7 +19,7 @@
 
    main_features
    optical
-   Optical Band Mapping <https://eoreader.readthedocs.io/en/latest/_static/optical_band_mapping.html>
+   optical_band_mapping
    sar
    custom
    faq
