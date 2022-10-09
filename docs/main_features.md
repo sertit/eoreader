@@ -16,8 +16,9 @@ but they have not been tested.
 import os
 from reader import Reader
 
-# Path to your satellite data, ie. Sentinel-2
-path = r'S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip'  # You can work with the archive for S2 data
+# Path to your satellite data, i.e. Sentinel-2
+# You can directly work with archived S2 data
+path = r'S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip'
 
 # Path to your output directory (if not set, it will work in a temp directory)
 output = os.path.abspath('.')
@@ -30,7 +31,8 @@ prod = reader.open(path, output_path=output, remove_tmp=True)
 # False by default to speed up the computation if you want to use the same product in several part of your code
 
 # NOTE: you can set the output directory after the creation, that allows you to use the product condensed name
-prod.output = os.path.join(output, prod.condensed_name)  # It will automatically create it if needed
+# It will automatically create the output directory if needed
+prod.output = os.path.join(output, prod.condensed_name)
 ```
 
 ### Recognized paths
@@ -40,6 +42,7 @@ Hereunder are the paths meant to be given to the reader.
 
 #### Optical
 
+``` {container} full-width
 | Sensor group                                   | Folder to link                                                                                                          |
 |------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
 | `Sentinel-2 and 3`                             | Main directory, `.SAFE`, `.SEN3` or `.zip`,<br>i.e. `S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE` |
@@ -49,9 +52,10 @@ Hereunder are the paths meant to be given to the reader.
 | `DIMAP`<br>(Pleiades, SPOTs,<br>Vision-1, ...) | Directory containing the `.JP2` files,<br>i.e. `IMG_PHR1B_PMS_001`                                                      |
 | `Maxar`<br>(WorldViews,<br>GeoEye...)          | Directory containing the `.TIL` file,<br>i.e. `013187549010_01_P001_PSH`                                                |
 | `SuperView-1`                                  | Directory containing the `.shp` file,<br>i.e. `0032100150001_01`                                                        |  
-
+```
 #### SAR
 
+``` {container} full-width
 |Sensor group | Folder to link|
 |--- | ---|
 |`Sentinel-1`<br>`RADARSAT-Constellation` | SAFE directory containing the `manifest.safe` file,<br>i.e. `S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.SAFE`|
@@ -60,12 +64,16 @@ Hereunder are the paths meant to be given to the reader.
 |`TerraSAR-X`<br>`TanDEM-X`<br>`PAZ SAR`| Directory containing the `IMAGEDATA` directory,<br>i.e. `TDX1_SAR__MGD_SE___SM_S_SRA_20201016T231611_20201016T231616`|
 |`ICEYE`| Directory containing the `.tif` file,<br>i.e. `SC_124020`|
 |`SAOCOM` | Directory containing the `.xemt` **AND** the `.zip` files,<br>i.e. `11245-EOL1CSARSAO1A198523`|
+```
 
 ## Load
 
 {meth}`~eoreader.products.product.Product.load` is the function for accessing product-related bands.
 It can load satellite bands, index, DEM bands and cloud bands according to this workflow:
+
+``` {container} full-width
 ![load_workflow](https://zupimages.net/up/22/12/9mz0.png)
+``` 
 
 ```python
 import os
@@ -89,7 +97,8 @@ ok_bands = to_str([band for band in band_list if prod.has_band(band)])
 # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
 
 # Load bands
-bands = prod.load(ok_bands, resolution=20.)  # if resolution is not specified -> load at default resolution (10.0 m for S2 data)
+# if resolution is not specified -> load at default resolution (10.0 m for S2 data)
+bands = prod.load(ok_bands, resolution=20.)  
 # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
 # (important for DEM data as they may have different grids)
 ```
@@ -123,7 +132,11 @@ If the same band is asked several time, its order will be the one of the last de
 
 ```python
 # Create a stack with the previous OK bands
-stack = prod.stack(ok_bands, resolution=300., stack_path=os.path.join(prod.output, "stack.tif")
+stack = prod.stack(
+  ok_bands, 
+  resolution=300., 
+  stack_path=os.path.join(prod.output, "stack.tif")
+)
 ```
 
 Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
@@ -216,9 +229,11 @@ prod.footprint()
 
 Please note the difference between `footprint` and `extent`:
 
+``` {container} full-width
 |Without nodata | With nodata|
 |--- | ---|
 | ![without_nodata](https://zupimages.net/up/21/14/69i6.gif) | ![with_nodata](https://zupimages.net/up/21/14/vg6w.gif) |
+```
 
 ### Solar angles
 
