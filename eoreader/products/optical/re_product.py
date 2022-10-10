@@ -17,7 +17,7 @@
 """
 RapidEye products.
 See
-`Product specs <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
+`Product specifications <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
 and `Planet documentation <https://developers.planet.com/docs/data/rapideye/>`_
 for more information.
 """
@@ -51,7 +51,7 @@ _RE_EAI = {
     spb.NARROW_NIR: 1124.4,
 }
 """
-From RE specifications: https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf
+From RE `Product specifications <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
 """
 
 
@@ -60,7 +60,7 @@ class ReProductType(ListEnum):
     """
     RapidEye product types (processing levels)
 
-    See `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
+    See `Product specs <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
     for more information.
     """
 
@@ -80,7 +80,7 @@ class ReProductType(ListEnum):
 class ReProduct(PlanetProduct):
     """
     Class of PlanetScope products.
-    See `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
+    See `Product specs <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
     for more information.
 
     The scaling factor to retrieve the calibrated radiance is 0.01.
@@ -126,7 +126,7 @@ class ReProduct(PlanetProduct):
     def _map_bands(self):
         """
         Map bands
-        See <here `https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf`_> for more information.
+        See <Product specs `https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf`>_ for more information.
         """
         gsd = 6.5
 
@@ -294,7 +294,7 @@ class ReProduct(PlanetProduct):
         Compute DN to TOA radiance
 
         See
-        `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
+        `Product specs <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
         for more information.
 
         Args:
@@ -338,7 +338,7 @@ class ReProduct(PlanetProduct):
         Compute TOA reflectance from TOA radiance
 
         See
-        `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
+        `Product specs <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
         for more information.
 
         WARNING: in this formula, d**2 = 1 / sqrt(dt) !

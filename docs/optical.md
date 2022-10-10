@@ -145,9 +145,6 @@ But the bands that are not present in the `alias` file won't be recognized.
 ```
 ````
 
-[Click here](_static/optical_band_mapping.html) to see the graph in a larger format.
-
-
 ### Cloud bands
 
 Maximum 5 cloud bands are available, according to the files provided in the data. All the bands are rasterized and
