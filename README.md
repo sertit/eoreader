@@ -155,7 +155,9 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 ## Talks
 
 - GeoPython 2022 [ [PDF](https://seafile.unistra.fr/f/be2b461af970465b903e/) ] [ [YouTube](https://www.youtube.com/watch?v=mKxOiRULOJA&t=14303s) ]
-- Mentionned in **[Live+]SIG 2022 by ESRI France** (in French): `Enrichir ArcgisPro grâce à des processus personnalisés d'observation de la Terre`  [ [PDF]() ] [ []() ]
+- Mentionned in **[Live+]SIG 2022 by ESRI France** (in French):
+ `Enrichir ArcgisPro grâce à des processus personnalisés d'observation de la Terre`
+ [ [PDF](https://seafile.unistra.fr/f/9502a14f142041468837/) ]
 
 ## Press Release
 
