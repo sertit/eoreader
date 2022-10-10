@@ -29,6 +29,7 @@
 - FIX: Changing `Brilliance Temperature` to the correct `Brightness Temperature`
 - FIX: Fixing pandas FutureWarning `The frame.append method is deprecated and will be removed from pandas in a future version.`
 - FIX: Fixing DeprecationWarning `invalid escape sequence \.`
+- FIX: Manage correctly Planet dubious pixels [(especially for 8 bands products)](https://community.planet.com/planet-s-community-forum-3/planetscope-8-bands-and-udm-mask-245?postid=427#post427)
 
 ### Optimizations
 

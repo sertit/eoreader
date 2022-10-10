@@ -38,10 +38,19 @@ from sertit.misc import ListEnum
 from eoreader import cache, utils
 from eoreader.bands import (
     ALL_CLOUDS,
+    BLUE,
+    CA,
     CIRRUS,
     CLOUDS,
+    GREEN,
+    GREEN1,
+    NARROW_NIR,
+    NIR,
     RAW_CLOUDS,
+    RED,
     SHADOWS,
+    VRE_1,
+    YELLOW,
     BandNames,
     to_str,
 )
@@ -426,26 +435,29 @@ class PlanetProduct(OpticalProduct):
         ).values
 
         # Dubious pixels mapping
+        # See: https://community.planet.com/planet-s-community-forum-3/planetscope-8-bands-and-udm-mask-245?postid=436#post436
         dubious_bands = {
-            key: val.id + 1 for key, val in self.bands.items() if val is not None
+            BLUE: 2,
+            GREEN: 3,
+            RED: 4,
+            VRE_1: 5,
+            NIR: 6,
+            NARROW_NIR: 6,
+            CA: 7,
+            GREEN1: 7,
+            YELLOW: 7,
         }
-        if dubious_bands[band] < 7:
-            udm = self.open_mask(
-                "UNUSABLE", size=(band_arr.rio.width, band_arr.rio.height)
-            )
-            # Workaround:
-            # FutureWarning: The :code:`numpy.expand_dims` function is not implemented by Dask array.
-            # You may want to use the da.map_blocks function or something similar to silence this warning.
-            # Your code may stop working in a future release.
-            dubious_mask = rasters.read_bit_array(udm.values, dubious_bands[band])
 
-            # Combine masks
-            mask = no_data_mask | dubious_mask
-        else:
-            LOGGER.debug(
-                f"Unable to retrieve dubious pixel for band {band.name} as the dubious pixels for bands > 5 are not handled in Planet specifications"
-            )
-            mask = no_data_mask
+        # Open unusable mask
+        udm = self.open_mask("UNUSABLE", size=(band_arr.rio.width, band_arr.rio.height))
+        # Workaround:
+        # FutureWarning: The :code:`numpy.expand_dims` function is not implemented by Dask array.
+        # You may want to use the da.map_blocks function or something similar to silence this warning.
+        # Your code may stop working in a future release.
+        dubious_mask = rasters.read_bit_array(udm.values, dubious_bands[band])
+
+        # Combine masks
+        mask = no_data_mask | dubious_mask
 
         # -- Merge masks
         return self._set_nodata_mask(band_arr, mask)
