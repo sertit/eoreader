@@ -547,11 +547,11 @@ class PlaProduct(PlanetProduct):
 
         def update_corner_dict(key, lon, lat):
             try:
-                lon = lon.values[0]
+                lon = lon.iat[0]
             except Exception:
                 pass
             try:
-                lat = lat.values[0]
+                lat = lat.iat[0]
             except Exception:
                 pass
             xml.update_txt(
@@ -655,13 +655,13 @@ class PlaProduct(PlanetProduct):
             extent_wgs84 = extent.to_crs(WGS84)
 
             # Compute centroid and reproject to WGS84 after
-            pos = extent.centroid.to_crs(WGS84).values[0]
+            pos = extent.centroid.to_crs(WGS84).iat[0]
             xml.update_txt(mtd, f"{nsmap['gml']}pos", f"{pos.x} {pos.y}")
 
             # Get extent coordinates (should be footprint but too long to compute IMHO)
             coordinates_str = " ".join(
                 f"{coord[0]},{coord[1]}"
-                for coord in extent_wgs84.boundary.values[0].coords
+                for coord in extent_wgs84.boundary.iat[0].coords
             )
             xml.update_txt(mtd, f"{nsmap['gml']}coordinates", coordinates_str)
 
