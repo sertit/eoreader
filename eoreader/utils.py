@@ -315,7 +315,7 @@ def open_rpc_file(path: Union[CloudPath, Path]) -> RPC:
     def to_float(pd_table, field) -> float:
         pd_field = pd_table.T[field]
         val = None
-        for val in pd_field.values[0].split(" "):
+        for val in pd_field.iat[0].split(" "):
             if val:
                 break
         return float(val)

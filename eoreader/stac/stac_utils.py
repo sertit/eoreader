@@ -74,7 +74,7 @@ def gdf_to_geometry(gdf: gpd.GeoDataFrame) -> dict:
     Returns:
         dict: STAC Geometry
     """
-    return mapping(gdf.geometry.values[0])
+    return mapping(gdf.geometry.iat[0])
 
 
 def gdf_to_bbox(gdf: gpd.GeoDataFrame) -> list:
@@ -87,7 +87,7 @@ def gdf_to_bbox(gdf: gpd.GeoDataFrame) -> list:
     Returns:
         dict: STAC bbox
     """
-    return list(gdf.bounds.values[0])
+    return list(gdf.bounds.iat[0])
 
 
 def gdf_to_centroid(gdf: gpd.GeoDataFrame) -> dict:
@@ -100,7 +100,7 @@ def gdf_to_centroid(gdf: gpd.GeoDataFrame) -> dict:
     Returns:
         dict: STAC centroid
     """
-    centroid = gdf.centroid.to_crs(WGS84).values[0]
+    centroid = gdf.centroid.to_crs(WGS84).iat[0]
     return {"lat": centroid.y, "lon": centroid.x}
 
 
