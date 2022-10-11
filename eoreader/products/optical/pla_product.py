@@ -388,11 +388,6 @@ class PlaProduct(PlanetProduct):
             raise NotImplementedError(
                 f"Basic Scene Product are not managed for Planet products {self.path}"
             )
-        # elif self.product_type == PlaProductType.L3A:
-        #     LOGGER.warning(
-        #         f"Ortho Tile Product are not well tested for Planet products {self.path}."
-        #         f"Use it at your own risk !"
-        #     )
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -582,8 +577,8 @@ class PlaProduct(PlanetProduct):
         udp = []
         if not mtd_exists or not analytic_vrt_exists:
             # Get all scales, cloud cloudCoverPercentage, unusableDataPercentage
-            for mtd_file in self._get_path("metadata", "xml", as_list=True):
-                mtd_filename = files.get_filename(mtd_file)
+            for mtd_f in self._get_path("metadata", "xml", as_list=True):
+                mtd_filename = files.get_filename(mtd_f)
                 subprod_name = mtd_filename.split("_Analytic")[0]
                 mtd, nsmap = self._read_mtd_xml(
                     f"{subprod_name}*metadata*xml", f"{subprod_name}.*metadata.*xml"

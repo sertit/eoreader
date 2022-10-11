@@ -32,7 +32,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import files, rasters
+from sertit import files, rasters, strings
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
@@ -310,8 +310,12 @@ class PlanetProduct(OpticalProduct):
             udm_paths = self._get_udm_path(as_list=True)
             if udm_paths:
                 LOGGER.debug("Creating UDM VRT")
+                nodata = "1"
                 rasters.merge_vrt(
-                    self._get_udm_path(as_list=True), udm_vrt_path, abs_path=True
+                    self._get_udm_path(as_list=True),
+                    udm_vrt_path,
+                    abs_path=True,
+                    **{"-srcnodata": nodata, "-vrtnodata": nodata},
                 )
 
         udm2_vrt_path, udm2_vrt_exists = self._get_out_path(
@@ -319,8 +323,22 @@ class PlanetProduct(OpticalProduct):
         )
         if not udm2_vrt_exists:
             LOGGER.debug("Creating UDM2 VRT")
+            # Nodata values
+            # see: https://developers.planet.com/docs/data/udm-2/#udm2-bands
+            # Band 1    Clear map       [0, 1] 	    0: not clear, 1: clear
+            # Band 2 	Snow map 	    [0, 1] 	    0: no snow or ice, 1: snow or ice
+            # Band 3 	Shadow map 	    [0, 1] 	    0: no shadow, 1: shadow
+            # Band 4 	Light haze map 	[0, 1] 	    0: no light haze, 1: light haze
+            # Band 5 	Heavy haze map 	[0, 1] 	    0: no heavy haze, 1: heavy haze
+            # Band 6 	Cloud map 	    [0, 1] 	    0: no cloud, 1: cloud
+            # Band 7 	Confidence map 	[ 0 - 100] 	percentage value: per-pixel algorithmic confidence in classification
+            # Band 8 	Unusable pixels  --         Equivalent to the UDM asset: a value of “1” indicates blackfill.
+            nodata = strings.to_cmd_string("0 0 0 0 0 0 0 1")
             rasters.merge_vrt(
-                self._get_udm2_path(as_list=True), udm2_vrt_path, abs_path=True
+                self._get_udm2_path(as_list=True),
+                udm2_vrt_path,
+                abs_path=True,
+                **{"-srcnodata": nodata, "-vrtnodata": nodata},
             )
 
         self._merged = True
@@ -366,9 +384,10 @@ class PlanetProduct(OpticalProduct):
         nodata = self._load_nodata()
 
         # Vectorize the nodata band (rasters_rio is faster)
+        # Don't use convex hull as the product can be cropped to an AOI!
         footprint = rasters.vectorize(
             nodata, values=1, keep_values=False, dissolve=True
-        ).convex_hull
+        )
 
         return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)
 
