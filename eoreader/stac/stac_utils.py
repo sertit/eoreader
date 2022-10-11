@@ -87,7 +87,7 @@ def gdf_to_bbox(gdf: gpd.GeoDataFrame) -> list:
     Returns:
         dict: STAC bbox
     """
-    return list(gdf.bounds.iat[0])
+    return list(gdf.bounds.values[0])
 
 
 def gdf_to_centroid(gdf: gpd.GeoDataFrame) -> dict:

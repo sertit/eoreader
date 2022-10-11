@@ -143,7 +143,7 @@ def _test_core(
                 # Geometry and bbox
                 compare(
                     item.bbox,
-                    list(prod.extent().to_crs(WGS84).bounds.iat[0]),
+                    list(prod.extent().to_crs(WGS84).bounds.values[0]),
                     "item.bbox",
                 )
                 if prod.is_ortho:
@@ -220,7 +220,7 @@ def _test_core(
                 )
                 compare(
                     item.properties[PROJ_BBOX],
-                    list(prod.extent().bounds.iat[0]),
+                    list(prod.extent().bounds.values[0]),
                     f"{PROJ_BBOX} (item.properties)",
                 )
                 compare(
