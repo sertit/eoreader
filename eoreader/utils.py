@@ -394,7 +394,7 @@ def simplify_footprint(
 
                 # Check if OK
                 nof_vertices = len(value.exterior.coords)
-                if nof_vertices < max_nof_vertices:
+                if nof_vertices <= max_nof_vertices:
                     break
         return value
 

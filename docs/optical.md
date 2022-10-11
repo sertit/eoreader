@@ -22,9 +22,9 @@ The Data Access Portfolio Document presents the offer of the datasets and data a
 | Landsat 3 MSS      | {meth}`~eoreader.products.L3Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅ |
 | Landsat 2 MSS      | {meth}`~eoreader.products.L2Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅ |
 | Landsat 1 MSS      | {meth}`~eoreader.products.L1Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅ |
-| PlanetScope        | {meth}`~eoreader.products.PlaProduct`                   | L3A & L3B                 | 3m                                   | ✅                 |
-| SkySat             | {meth}`~eoreader.products.SkyProduct`                   | (Collect Product) ortho_* | 0.5m                                 | ✅                 |
-| RapidEye           | {meth}`~eoreader.products.ReProduct`                    | L3A                       | 5m                                   | ✅                 |
+| PlanetScope        | {meth}`~eoreader.products.PlaProduct`                   | L3A & L3B                 | 3m                                   | ✅(❌ if multiple subdatasets) |
+| SkySat             | {meth}`~eoreader.products.SkyProduct`                   | (Collect Product) ortho_* | 0.5m                                 | ✅(❌ if multiple subdatasets) |
+| RapidEye           | {meth}`~eoreader.products.ReProduct`                    | L3A                       | 5m                                   | ✅(❌ if multiple subdatasets) |
 | Pleiades-Neo       | {meth}`~eoreader.products.PneoProduct`                  | SEN**, PRJ, ORT & MOS     | 0.3 (PAN), 1.2m (MS)                 | ✅                 |
 | Pleiades           | {meth}`~eoreader.products.PldProduct`                   | SEN**, PRJ, ORT & MOS     | 0.5 (PAN), 2m (MS)                   | ✅                 |
 | Vision-1           | {meth}`~eoreader.products.Vis1Product`                  | PRJ & ORTP                | 0.9 (PAN), 3.5m (MS)                 | ✅                 |
