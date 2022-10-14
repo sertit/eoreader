@@ -49,7 +49,7 @@
 - DOC: Add warnings for shifts when orthorectifying DIMAP SEN products (using RPCs) ([#53](https://github.com/sertit/eoreader/issues/53))
 - DOC: Add limitations to custom stacks
 - DEPS: Dropping support of Python 3.7 ([#18](https://github.com/sertit/eoreader/issues/18))
-- DEPS: Update minimum version of libs *(geopadans 0.11.0+, rasterio 1.3.0+...)*
+- DEPS: Update minimum version of libs *(geopandas 0.11.0+, rasterio 1.3.0+...)*
 
 ## 0.16.1 (2022-08-03)
 
