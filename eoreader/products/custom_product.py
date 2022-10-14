@@ -184,7 +184,10 @@ class CustomProduct(Product):
         Returns:
             str: True name of the product (from metadata)
         """
-        return self.kwargs.get(CustomFields.NAME.value, files.get_filename(self.path))
+        name = self.kwargs.get(CustomFields.NAME.value)
+        if name is None:
+            name = files.get_filename(self.path)
+        return name
 
     def get_datetime(self, as_datetime: bool = False) -> str:
         """
@@ -221,7 +224,7 @@ class CustomProduct(Product):
         """
         Get product default resolution (in meters)
         """
-        resolution = self.kwargs.get(CustomFields.RES.value, None)
+        resolution = self.kwargs.get(CustomFields.RES.value)
         if resolution is None:
             with rasterio.open(str(self.get_default_band_path())) as ds:
                 return ds.res[0]
@@ -231,15 +234,17 @@ class CustomProduct(Product):
     def _set_instrument(self) -> None:
         """
         Set instrument
-
-        TSX+TDX: https://earth.esa.int/eogateway/missions/terrasar-x-and-tandem-x
-        PAZ: https://earth.esa.int/eogateway/missions/paz
         """
-        self.instrument = self.kwargs.get(CustomFields.INSTRUMENT.value, CUSTOM)
+        self.instrument = self.kwargs.get(CustomFields.INSTRUMENT.value)
+        if self.instrument is None:
+            self.instrument = CUSTOM
 
     def _set_product_type(self) -> None:
         """Set products type"""
-        self.product_type = self.kwargs.get(CustomFields.PROD_TYPE.value, CUSTOM)
+
+        self.product_type = self.kwargs.get(CustomFields.PROD_TYPE.value)
+        if self.product_type is None:
+            self.product_type = CUSTOM
 
     def get_default_band(self) -> BandNames:
         """
@@ -533,8 +538,8 @@ class CustomProduct(Product):
             (float, float): Mean Azimuth and Zenith angle
         """
         # Sun angles
-        sun_az = self.kwargs.get(CustomFields.SUN_AZ.value, None)
-        sun_zen = self.kwargs.get(CustomFields.SUN_ZEN.value, None)
+        sun_az = self.kwargs.get(CustomFields.SUN_AZ.value)
+        sun_zen = self.kwargs.get(CustomFields.SUN_ZEN.value)
 
         return sun_az, sun_zen
 
@@ -639,7 +644,7 @@ class CustomProduct(Product):
                 else:
                     str_attr = str(val)
             else:
-                str_attr = str(self.kwargs.get(attr, None))
+                str_attr = str(self.kwargs.get(attr))
 
             global_attr.append(E(attr, str_attr))
 
@@ -668,7 +673,7 @@ class CustomProduct(Product):
         Returns:
             OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
         """
-        od = self.kwargs.get(CustomFields.ORBIT_DIR.value, None)
+        od = self.kwargs.get(CustomFields.ORBIT_DIR.value)
         if od is not None:
             od = OrbitDirection.from_value(od)
 

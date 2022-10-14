@@ -1,5 +1,11 @@
 # Release History
 
+## 0.17.1 (2022-MM-DD)
+
+### Bug Fixes
+
+- FIX: Fixing `CustomProduct` initialization when fields are set to None (instead of not declaring them)
+
 ## 0.17.0 (2022-10-12)
 
 ### Enhancements

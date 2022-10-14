@@ -188,6 +188,9 @@ def test_custom():
         custom=True,
         sensor_type=SensorType.SAR,
         band_map={HH: 1, RH: 2},
+        name=None,
+        product_type=None,
+        instrument=None,
         resolution=6.0,
     )
     LOGGER.info(prod_wtf)
@@ -199,6 +202,9 @@ def test_custom():
     ci.assert_geom_equal(extent_sar, extent_wtf)
     ci.assert_geom_equal(footprint_sar, footprint_wtf)
     assert crs_sar == crs_wtf
+    assert prod_wtf.name is not None
+    assert prod_wtf.product_type is not None
+    assert prod_wtf.instrument is not None
 
     np.testing.assert_array_equal(stack_sar.data, stack_wtf.data)
 
