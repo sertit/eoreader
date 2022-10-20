@@ -163,6 +163,10 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 
 - [ESA Success Story](https://earth.esa.int/eogateway/news/new-open-source-python-library-improves-rapid-mapping-services)
 
+## Articles
+
+- [Maxant, J.; Braun, R.; Caspard, M.; Clandillon, S. ExtractEO, a Pipeline for Disaster Extent Mapping in the Context of Emergency Management. Remote Sens. 2022, 14, 5253. https://doi.org/10.3390/rs14205253 (Technical Note)](https://www.mdpi.com/1896792)
+
 ## License
 
 **EOReader** is licensed under Apache License v2.0. See LICENSE file for details.

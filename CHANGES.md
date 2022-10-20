@@ -6,6 +6,10 @@
 
 - FIX: Fixing `CustomProduct` initialization when fields are set to None (instead of not declaring them)
 
+### Other
+
+- DOC: Add Technical Note published in Remote Sensing MDPI in Readme
+
 ## 0.17.0 (2022-10-12)
 
 ### Enhancements
