@@ -971,6 +971,8 @@ class Product:
         Returns:
             bool: True if the products has the specified band
         """
+        band = to_band(band)[0]
+
         if is_dem(band):
             if self.sensor_type == SensorType.SAR and band == HILLSHADE:
                 has_band = False
@@ -1044,7 +1046,7 @@ class Product:
         Returns:
             bool: True if the specified index can be computed with this product's bands
         """
-        index_bands = indices.get_needed_bands(idx)
+        index_bands = to_band(indices.get_needed_bands(idx))
         return all(np.isin(index_bands, self.get_existing_bands()))
 
     def __gt__(self, other: Product) -> bool:
