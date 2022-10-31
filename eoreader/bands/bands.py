@@ -80,6 +80,11 @@ class Band:
         Asset role, as described in the best-practices paragraph.
         """
 
+        self.spyndex_name = None
+        """
+        Spyndex standard name, can be found here: https://awesome-ee-spectral-indices.readthedocs.io/en/latest/
+        """
+
     def _to_repr(self) -> list:
         """
         Returns a representation of the product as a list

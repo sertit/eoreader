@@ -152,7 +152,13 @@ class SpectralBandMap(BandMap):
         """
         for band_name, band in band_map.items():
             if not isinstance(band, SpectralBand):
-                band = SpectralBand(eoreader_name=band_name, name=band, id=band)
+
+                band = SpectralBand(
+                    eoreader_name=band_name,
+                    name=band,
+                    id=band,
+                    spyndex_name=EOREADER_TO_SPYNDEX_DICT.get(band_name),
+                )
             if band_name not in self._band_map or not isinstance(
                 band_name, SpectralBandNames
             ):
@@ -222,10 +228,10 @@ class SpectralBandNames(BandNames):
     """Vegetation red edge, Band 3"""
 
     NIR = "NIR"
-    """NIR"""
+    """NIR (B8A for Sentinel-2)"""
 
     NARROW_NIR = "NARROW_NIR"
-    """Narrow NIR"""
+    """Narrow NIR, spectrally narrow NIR band, equivalent to B8 for Sentinel-2 products, equivalent to NIR band for other products"""
 
     WV = "WATER_VAPOUR"
     """Water vapour"""
@@ -481,3 +487,26 @@ def is_thermal_band(band: Any) -> bool:
 
     """
     return is_spectral_band(band) and band in [TIR_1, TIR_2, F1, F2, S7]
+
+
+EOREADER_TO_SPYNDEX_DICT = {
+    SpectralBandNames.CA: "A",
+    SpectralBandNames.BLUE: "B",
+    SpectralBandNames.GREEN: "G",
+    SpectralBandNames.RED: "R",
+    SpectralBandNames.VRE_1: "RE1",
+    SpectralBandNames.VRE_2: "RE2",
+    SpectralBandNames.VRE_3: "RE3",
+    SpectralBandNames.NIR: "N2",
+    SpectralBandNames.NARROW_NIR: "N",
+    SpectralBandNames.SWIR_1: "S1",
+    SpectralBandNames.SWIR_2: "S2",
+    SpectralBandNames.TIR_1: "T1",
+    SpectralBandNames.TIR_2: "T2",
+    SpectralBandNames.WV: "WV",
+    SpectralBandNames.YELLOW: "Y",
+}
+
+SPYNDEX_TO_EOREADER_DICT = dict(
+    zip(EOREADER_TO_SPYNDEX_DICT.values(), EOREADER_TO_SPYNDEX_DICT.keys())
+)
