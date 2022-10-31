@@ -73,7 +73,16 @@ class SarBandMap(BandMap):
         """
         for band_name, band in band_map.items():
             if not isinstance(band, SarBand):
-                band = SarBand(eoreader_name=band_name, name=band, id=band)
+                spyndex_name = band_name.split("_")[0]
+                if spyndex_name in [SarBandNames.RH.name, SarBandNames.RVname]:
+                    spyndex_name = None
+                band = SarBand(
+                    eoreader_name=band_name,
+                    name=band,
+                    id=band,
+                    spyndex_name=spyndex_name,
+                )
+
             if band_name not in self._band_map or not isinstance(
                 band_name, SarBandNames
             ):

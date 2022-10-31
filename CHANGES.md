@@ -1,5 +1,18 @@
 # Release History
 
+## 0.18.0 (2022-MM-DD)
+
+### Breaking Changes
+
+- **BREAKING CHANGES: Refactoring spectral indices management** ([#47](https://github.com/sertit/eoreader/issues/47))
+  - Using [spyndex](https://github.com/awesome-spectral-indices/spyndex) library, allowing to use all spectral indices listed [here](https://github.com/awesome-spectral-indices/awesome-spectral-indices/blob/main/output/spectral-indices-table.csv)
+  - Old EOReader indices are still available for legacy purposes, with some changes:
+    - For Sentinel-2 data, the band `NIR` and `NARROW_NIR` may be interchanged for some index
+    - OSAVI formula has changed to stick with the original paper definition (see issue [here](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/12))
+    - `NDRE2/3` formula are fixed, now using `VRE_2/3` and `NDRE1` corresponds to `NDREI` and uses `VRE_1`
+    - `NDWI21` can be written `NDWI2100` for homogeneity purposes
+    -  `RDI` (or `DSI`) uses now `SWIR_1` instead of `SWIR_2` (see [this](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/18) issue)
+
 ## 0.17.1 (2022-MM-DD)
 
 ### Bug Fixes
