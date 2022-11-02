@@ -8,6 +8,8 @@
 
 ### Other
 
+- DOC: Add FAQ entry concerning SAR constellations extent KML files failing to be read (TLDR: needs `ogr2ogr` in your
+  PATH)
 - DOC: Add Technical Note published in Remote Sensing MDPI in Readme
 - DOC: Update optical band mapping graphs (fix regression to 0.15.0 supported constellation)
 - CI: Update Github actions

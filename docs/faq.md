@@ -37,6 +37,12 @@ However, EOReader still relies a lot on `rasterio` (to orthorectify DIMAP produc
 Dask is a functionality not really tested on EOReader, use it at your own risk
 ```
 
+### SAR data fails to load extent
+
+Sentinel-1 or other SAR constellations may fail to load KML extent files.
+The cause is unknown, but a workaround based on `ogr2ogr` has been written.
+Please be sure to have `ogr2ogr` (and other `GDAL` scripts available in your PATH)
+
 ## SNAP
 
 > ⚠ Be sure to use SNAP 8.0 or more, and please verify that your software is up-to-date.
