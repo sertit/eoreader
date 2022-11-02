@@ -215,7 +215,7 @@ class CustomProduct(Product):
         return date
 
     def _get_constellation(self) -> Constellation:
-        """ Getter of the constellation """
+        """Getter of the constellation"""
         const = self.kwargs.get(CustomFields.CONSTELLATION.value)
         if const is None:
             const = CUSTOM

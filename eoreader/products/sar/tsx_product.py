@@ -262,7 +262,7 @@ class TsxProduct(SarProduct):
         super()._pre_init(**kwargs)
 
     def _get_constellation(self) -> Constellation:
-        """ Getter of the constellation """
+        """Getter of the constellation"""
         # TerraSAR-X & TanDEM-X products are all similar, we must check into the metadata to know the constellation
         root, _ = self.read_mtd()
         mission = root.findtext(".//mission")

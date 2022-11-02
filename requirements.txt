@@ -28,7 +28,7 @@ dask[complete]==2021.10.0
 rtree
 validators
 cloudpathlib>=0.10.0
-spyndex
+git+https://github.com/awesome-spectral-indices/spyndex.git
 
 # STAC
 pystac[validation]

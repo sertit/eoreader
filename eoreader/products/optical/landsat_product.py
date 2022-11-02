@@ -36,15 +36,29 @@ from sertit.misc import ListEnum
 from eoreader import cache, utils
 from eoreader.bands import (
     ALL_CLOUDS,
+    BLUE,
+    CA,
     CIRRUS,
     CLOUDS,
+    GREEN,
+    NARROW_NIR,
+    NIR,
+    PAN,
     RAW_CLOUDS,
+    RED,
     SHADOWS,
+    SWIR_1,
+    SWIR_2,
+    SWIR_CIRRUS,
+    TIR_1,
+    TIR_2,
+    VRE_1,
+    VRE_2,
+    VRE_3,
     BandNames,
     SpectralBand,
+    to_str,
 )
-from eoreader.bands import spectral_bands as spb
-from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
 from eoreader.products.optical.optical_product import RawUnits
@@ -378,7 +392,7 @@ class LandsatProduct(OpticalProduct):
             )
 
     def _get_constellation(self) -> Constellation:
-        """ Getter of the constellation """
+        """Getter of the constellation"""
         constellation_id = f"L{int(self.split_name[0][2:4])}"
         return getattr(Constellation, constellation_id)
 
@@ -425,8 +439,8 @@ class LandsatProduct(OpticalProduct):
         }
 
         mss_bands = {
-            spb.GREEN: SpectralBand(
-                eoreader_name=spb.GREEN,
+            GREEN: SpectralBand(
+                eoreader_name=GREEN,
                 **{
                     NAME: "B4" if version < 4 else "B1",
                     ID: "4" if version < 4 else "1",
@@ -436,8 +450,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Sediment-laden water, delineates areas of shallow water",
                 },
             ),
-            spb.RED: SpectralBand(
-                eoreader_name=spb.RED,
+            RED: SpectralBand(
+                eoreader_name=RED,
                 **{
                     NAME: "B5" if version < 4 else "B2",
                     ID: "5" if version < 4 else "2",
@@ -447,11 +461,11 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Cultural features",
                 },
             ),
-            spb.VRE_1: SpectralBand(eoreader_name=spb.VRE_1, **vre_dict),
-            spb.VRE_2: SpectralBand(eoreader_name=spb.VRE_2, **vre_dict),
-            spb.VRE_3: SpectralBand(eoreader_name=spb.VRE_3, **vre_dict),
-            spb.NARROW_NIR: SpectralBand(eoreader_name=spb.NARROW_NIR, **nir_dict),
-            spb.NIR: SpectralBand(eoreader_name=spb.NIR, **nir_dict),
+            VRE_1: SpectralBand(eoreader_name=VRE_1, **vre_dict),
+            VRE_2: SpectralBand(eoreader_name=VRE_2, **vre_dict),
+            VRE_3: SpectralBand(eoreader_name=VRE_3, **vre_dict),
+            NARROW_NIR: SpectralBand(eoreader_name=NARROW_NIR, **nir_dict),
+            NIR: SpectralBand(eoreader_name=NIR, **nir_dict),
         }
         self.bands.map_bands(mss_bands)
 
@@ -460,8 +474,8 @@ class LandsatProduct(OpticalProduct):
         Map bands TM
         """
         tm_bands = {
-            spb.BLUE: SpectralBand(
-                eoreader_name=spb.BLUE,
+            BLUE: SpectralBand(
+                eoreader_name=BLUE,
                 **{
                     NAME: "B1",
                     ID: "1",
@@ -471,8 +485,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Bathymetric mapping, distinguishing soil from vegetation and deciduous from coniferous vegetation",
                 },
             ),
-            spb.GREEN: SpectralBand(
-                eoreader_name=spb.GREEN,
+            GREEN: SpectralBand(
+                eoreader_name=GREEN,
                 **{
                     NAME: "B2",
                     ID: "2",
@@ -482,8 +496,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Emphasizes peak vegetation, which is useful for assessing plant vigor",
                 },
             ),
-            spb.RED: SpectralBand(
-                eoreader_name=spb.RED,
+            RED: SpectralBand(
+                eoreader_name=RED,
                 **{
                     NAME: "B3",
                     ID: "3",
@@ -493,8 +507,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Discriminates vegetation slopes",
                 },
             ),
-            spb.NARROW_NIR: SpectralBand(
-                eoreader_name=spb.NARROW_NIR,
+            NARROW_NIR: SpectralBand(
+                eoreader_name=NARROW_NIR,
                 **{
                     NAME: "B4",
                     ID: "4",
@@ -504,8 +518,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Emphasizes biomass content and shorelines",
                 },
             ),
-            spb.NIR: SpectralBand(
-                eoreader_name=spb.NIR,
+            NIR: SpectralBand(
+                eoreader_name=NIR,
                 **{
                     NAME: "B4",
                     ID: "4",
@@ -515,8 +529,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Emphasizes biomass content and shorelines",
                 },
             ),
-            spb.SWIR_1: SpectralBand(
-                eoreader_name=spb.SWIR_1,
+            SWIR_1: SpectralBand(
+                eoreader_name=SWIR_1,
                 **{
                     NAME: "B5",
                     ID: "5",
@@ -526,8 +540,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Discriminates moisture content of soil and vegetation; penetrates thin clouds",
                 },
             ),
-            spb.SWIR_2: SpectralBand(
-                eoreader_name=spb.SWIR_2,
+            SWIR_2: SpectralBand(
+                eoreader_name=SWIR_2,
                 **{
                     NAME: "B7",
                     ID: "7",
@@ -537,8 +551,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Hydrothermally altered rocks associated with mineral depositsn",
                 },
             ),
-            spb.TIR_1: SpectralBand(
-                eoreader_name=spb.TIR_1,
+            TIR_1: SpectralBand(
+                eoreader_name=TIR_1,
                 **{
                     NAME: "B6",
                     ID: "6",
@@ -549,8 +563,8 @@ class LandsatProduct(OpticalProduct):
                     ASSET_ROLE: BT,
                 },
             ),
-            spb.TIR_2: SpectralBand(
-                eoreader_name=spb.TIR_2,
+            TIR_2: SpectralBand(
+                eoreader_name=TIR_2,
                 **{
                     NAME: "B6",
                     ID: "6",
@@ -570,8 +584,8 @@ class LandsatProduct(OpticalProduct):
         Map bands ETM
         """
         etm_bands = {
-            spb.BLUE: SpectralBand(
-                eoreader_name=spb.BLUE,
+            BLUE: SpectralBand(
+                eoreader_name=BLUE,
                 **{
                     NAME: "B1",
                     ID: "1",
@@ -581,8 +595,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Bathymetric mapping, distinguishing soil from vegetation and deciduous from coniferous vegetation",
                 },
             ),
-            spb.GREEN: SpectralBand(
-                eoreader_name=spb.GREEN,
+            GREEN: SpectralBand(
+                eoreader_name=GREEN,
                 **{
                     NAME: "B2",
                     ID: "2",
@@ -592,8 +606,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Emphasizes peak vegetation, which is useful for assessing plant vigor",
                 },
             ),
-            spb.RED: SpectralBand(
-                eoreader_name=spb.RED,
+            RED: SpectralBand(
+                eoreader_name=RED,
                 **{
                     NAME: "B3",
                     ID: "3",
@@ -603,8 +617,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Discriminates vegetation slopes",
                 },
             ),
-            spb.NARROW_NIR: SpectralBand(
-                eoreader_name=spb.NARROW_NIR,
+            NARROW_NIR: SpectralBand(
+                eoreader_name=NARROW_NIR,
                 **{
                     NAME: "B4",
                     ID: "4",
@@ -614,8 +628,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Emphasizes biomass content and shorelines",
                 },
             ),
-            spb.NIR: SpectralBand(
-                eoreader_name=spb.NIR,
+            NIR: SpectralBand(
+                eoreader_name=NIR,
                 **{
                     NAME: "B4",
                     ID: "4",
@@ -625,8 +639,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Emphasizes biomass content and shorelines",
                 },
             ),
-            spb.SWIR_1: SpectralBand(
-                eoreader_name=spb.SWIR_1,
+            SWIR_1: SpectralBand(
+                eoreader_name=SWIR_1,
                 **{
                     NAME: "B5",
                     ID: "5",
@@ -636,8 +650,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Discriminates moisture content of soil and vegetation; penetrates thin clouds",
                 },
             ),
-            spb.SWIR_2: SpectralBand(
-                eoreader_name=spb.SWIR_2,
+            SWIR_2: SpectralBand(
+                eoreader_name=SWIR_2,
                 **{
                     NAME: "B7",
                     ID: "7",
@@ -647,8 +661,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Hydrothermally altered rocks associated with mineral deposits",
                 },
             ),
-            spb.PAN: SpectralBand(
-                eoreader_name=spb.PAN,
+            PAN: SpectralBand(
+                eoreader_name=PAN,
                 **{
                     NAME: "B8",
                     ID: "8",
@@ -658,8 +672,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "15 meter resolution, sharper image definition",
                 },
             ),
-            spb.TIR_1: SpectralBand(
-                eoreader_name=spb.TIR_1,
+            TIR_1: SpectralBand(
+                eoreader_name=TIR_1,
                 **{
                     NAME: "B6_VCID_1",
                     ID: "6_VCID_1",
@@ -670,8 +684,8 @@ class LandsatProduct(OpticalProduct):
                     ASSET_ROLE: BT,
                 },
             ),
-            spb.TIR_2: SpectralBand(
-                eoreader_name=spb.TIR_2,
+            TIR_2: SpectralBand(
+                eoreader_name=TIR_2,
                 **{
                     NAME: "B6_VCID_2",
                     ID: "6_VCID_2",
@@ -685,9 +699,9 @@ class LandsatProduct(OpticalProduct):
         }
 
         if self.product_type == LandsatProductType.L2:
-            etm_bands.pop(spb.PAN)
-            etm_bands.pop(spb.TIR_2)
-            etm_bands[spb.TIR_1] = etm_bands[spb.TIR_1].update(name="B6", id="6")
+            etm_bands.pop(PAN)
+            etm_bands.pop(TIR_2)
+            etm_bands[TIR_1] = etm_bands[TIR_1].update(name="B6", id="6")
 
         self.bands.map_bands(etm_bands)
 
@@ -696,8 +710,8 @@ class LandsatProduct(OpticalProduct):
         Map bands OLI-TIRS
         """
         oli_bands = {
-            spb.CA: SpectralBand(
-                eoreader_name=spb.CA,
+            CA: SpectralBand(
+                eoreader_name=CA,
                 **{
                     NAME: "Coastal aerosol",
                     ID: "1",
@@ -707,8 +721,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Coastal and aerosol studies",
                 },
             ),
-            spb.BLUE: SpectralBand(
-                eoreader_name=spb.BLUE,
+            BLUE: SpectralBand(
+                eoreader_name=BLUE,
                 **{
                     NAME: "Blue",
                     ID: "2",
@@ -718,8 +732,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Bathymetric mapping, distinguishing soil from vegetation and deciduous from coniferous vegetation",
                 },
             ),
-            spb.GREEN: SpectralBand(
-                eoreader_name=spb.GREEN,
+            GREEN: SpectralBand(
+                eoreader_name=GREEN,
                 **{
                     NAME: "Green",
                     ID: "3",
@@ -729,8 +743,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Emphasizes peak vegetation, which is useful for assessing plant vigor",
                 },
             ),
-            spb.RED: SpectralBand(
-                eoreader_name=spb.RED,
+            RED: SpectralBand(
+                eoreader_name=RED,
                 **{
                     NAME: "Red",
                     ID: "4",
@@ -740,8 +754,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Discriminates vegetation slopes",
                 },
             ),
-            spb.NARROW_NIR: SpectralBand(
-                eoreader_name=spb.NARROW_NIR,
+            NARROW_NIR: SpectralBand(
+                eoreader_name=NARROW_NIR,
                 **{
                     NAME: "Near Infrared (NIR)",
                     ID: "5",
@@ -751,8 +765,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Emphasizes biomass content and shorelines",
                 },
             ),
-            spb.NIR: SpectralBand(
-                eoreader_name=spb.NIR,
+            NIR: SpectralBand(
+                eoreader_name=NIR,
                 **{
                     NAME: "Near Infrared (NIR)",
                     ID: "5",
@@ -762,8 +776,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Emphasizes biomass content and shorelines",
                 },
             ),
-            spb.SWIR_1: SpectralBand(
-                eoreader_name=spb.SWIR_1,
+            SWIR_1: SpectralBand(
+                eoreader_name=SWIR_1,
                 **{
                     NAME: "SWIR 1",
                     ID: "6",
@@ -773,8 +787,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Discriminates moisture content of soil and vegetation; penetrates thin clouds",
                 },
             ),
-            spb.SWIR_2: SpectralBand(
-                eoreader_name=spb.SWIR_2,
+            SWIR_2: SpectralBand(
+                eoreader_name=SWIR_2,
                 **{
                     NAME: "SWIR 2",
                     ID: "7",
@@ -784,8 +798,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Improved moisture content of soil and vegetation; penetrates thin clouds",
                 },
             ),
-            spb.PAN: SpectralBand(
-                eoreader_name=spb.PAN,
+            PAN: SpectralBand(
+                eoreader_name=PAN,
                 **{
                     NAME: "Panchromatic",
                     ID: "8",
@@ -795,8 +809,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "15 meter resolution, sharper image definition",
                 },
             ),
-            spb.SWIR_CIRRUS: SpectralBand(
-                eoreader_name=spb.SWIR_CIRRUS,
+            SWIR_CIRRUS: SpectralBand(
+                eoreader_name=SWIR_CIRRUS,
                 **{
                     NAME: "Cirrus",
                     ID: "9",
@@ -806,8 +820,8 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "Improved detection of cirrus cloud contamination",
                 },
             ),
-            spb.TIR_1: SpectralBand(
-                eoreader_name=spb.TIR_1,
+            TIR_1: SpectralBand(
+                eoreader_name=TIR_1,
                 **{
                     NAME: "Thermal Infrared (TIRS) 1",
                     ID: "10",
@@ -818,8 +832,8 @@ class LandsatProduct(OpticalProduct):
                     ASSET_ROLE: BT,
                 },
             ),
-            spb.TIR_2: SpectralBand(
-                eoreader_name=spb.TIR_2,
+            TIR_2: SpectralBand(
+                eoreader_name=TIR_2,
                 **{
                     NAME: "Thermal Infrared (TIRS) 2",
                     ID: "11",
@@ -833,9 +847,9 @@ class LandsatProduct(OpticalProduct):
         }
 
         if self.product_type == LandsatProductType.L2:
-            oli_bands.pop(spb.SWIR_CIRRUS)
-            oli_bands.pop(spb.TIR_2)
-            oli_bands.pop(spb.PAN)
+            oli_bands.pop(SWIR_CIRRUS)
+            oli_bands.pop(TIR_2)
+            oli_bands.pop(PAN)
 
         self.bands.map_bands(oli_bands)
 
@@ -1124,7 +1138,7 @@ class LandsatProduct(OpticalProduct):
                 band_name = self.bands[band].id
                 try:
                     # Thermal (10/11)
-                    if band in [spb.TIR_1, spb.TIR_2]:
+                    if band in [TIR_1, TIR_2]:
                         # For Landsat L2 products, the band name in metadata don't change compared to L1 (only one band left)
                         if (
                             self.constellation == Constellation.L7
@@ -1272,7 +1286,7 @@ class LandsatProduct(OpticalProduct):
                 band_id = int(self.bands[band].id)
             except ValueError:
                 if (
-                    band in [spb.TIR_1, spb.TIR_2]
+                    band in [TIR_1, TIR_2]
                     and self.constellation_id == Constellation.L7.name
                 ):
                     band_id = 6

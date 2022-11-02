@@ -21,8 +21,7 @@ for more information.
 """
 import logging
 
-from eoreader.bands import SpectralBand
-from eoreader.bands import spectral_bands as spb
+from eoreader.bands import BLUE, CA, GREEN, NIR, PAN, RED, VRE_1, SpectralBand
 from eoreader.products import DimapProduct
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import EOREADER_NAME
@@ -53,37 +52,37 @@ class PneoProduct(DimapProduct):
         """Set products type"""
         # Create spectral bands
         ca = SpectralBand(
-            eoreader_name=spb.CA,
+            eoreader_name=CA,
             **{NAME: "DEEP BLUE", ID: 5, GSD: self._ms_res, WV_MIN: 400, WV_MAX: 450}
         )
 
         pan = SpectralBand(
-            eoreader_name=spb.PAN,
+            eoreader_name=PAN,
             **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 450, WV_MAX: 800}
         )
 
         blue = SpectralBand(
-            eoreader_name=spb.BLUE,
+            eoreader_name=BLUE,
             **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 450, WV_MAX: 520}
         )
 
         green = SpectralBand(
-            eoreader_name=spb.GREEN,
+            eoreader_name=GREEN,
             **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 490, WV_MAX: 610}
         )
 
         red = SpectralBand(
-            eoreader_name=spb.RED,
+            eoreader_name=RED,
             **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 600, WV_MAX: 720}
         )
 
         nir = SpectralBand(
-            eoreader_name=spb.NIR,
+            eoreader_name=NIR,
             **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 750, WV_MAX: 830}
         )
 
         vre = SpectralBand(
-            eoreader_name=spb.VRE_1,
+            eoreader_name=VRE_1,
             **{NAME: "RED EDGE", ID: 6, GSD: self._ms_res, WV_MIN: 700, WV_MAX: 750}
         )
         self._map_bands_core(

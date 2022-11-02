@@ -33,11 +33,12 @@ from sertit import files, rasters
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
-from eoreader.bands import BandNames, SpectralBandMap
-from eoreader.bands import SpectralBandNames as spb
 from eoreader.bands import (
+    GREEN,
+    NEEDED_BANDS,
+    BandNames,
+    SpectralBandMap,
     compute_index,
-    indices,
     is_clouds,
     is_dem,
     is_index,
@@ -155,7 +156,7 @@ class OpticalProduct(Product):
         Returns:
             str: Default band
         """
-        return spb.GREEN
+        return GREEN
 
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
@@ -500,23 +501,23 @@ class OpticalProduct(Product):
         # Get all bands to be open
         bands_to_load = band_list.copy()
         for idx in index_list:
-            bands_to_load += indices.NEEDED_BANDS[idx]
+            bands_to_load += NEEDED_BANDS[idx]
 
         # Load band arrays (only keep unique bands: open them only one time !)
         unique_bands = list(set(bands_to_load))
         if unique_bands:
             LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
-        bands = self._load_bands(
+        loaded_bands = self._load_bands(
             unique_bands, resolution=resolution, size=size, **kwargs
         )
 
         # Compute index (they conserve the nodata)
         if index_list:
             LOGGER.debug(f"Loading indices {to_str(index_list)}")
-        bands_dict = {idx: compute_index(idx, bands) for idx in index_list}
+        bands_dict = {idx: compute_index(idx, loaded_bands) for idx in index_list}
 
         # Add bands
-        bands_dict.update({band: bands[band] for band in band_list})
+        bands_dict.update({band: loaded_bands[band] for band in band_list})
 
         # Add DEM
         if dem_list:
