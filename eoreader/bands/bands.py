@@ -20,12 +20,10 @@
 import copy
 from abc import abstractmethod
 from collections.abc import MutableMapping
-from typing import Union
 
 from sertit import misc
 from sertit.misc import ListEnum
 
-from eoreader.exceptions import InvalidTypeError
 from eoreader.stac import ASSET_ROLE, DESCRIPTION, GSD, ID, NAME, REFLECTANCE
 
 
@@ -169,72 +167,3 @@ class BandMap(MutableMapping):
             band.__repr__() for band in self._band_map.values() if band is not None
         ]
         return "\n".join(band_repr)
-
-
-# ---------------------- BAND NAMES ----------------------
-
-
-class BandNames(ListEnum):
-    """Super class for band names, **do not use it**."""
-
-    @classmethod
-    def from_list(cls, name_list: Union[list, str]) -> list:
-        """
-        Get the band enums from list of band names
-
-        .. code-block:: python
-
-            >>> SarBandNames.from_list("VV")
-            [<SarBandNames.VV: 'VV'>]
-
-        Args:
-            name_list (Union[list, str]): List of names
-
-        Returns:
-            list: List of enums
-        """
-        if not isinstance(name_list, list):
-            name_list = [name_list]
-        try:
-            band_names = [cls(name) for name in name_list]
-        except ValueError as ex:
-            raise InvalidTypeError(
-                f"Band names ({name_list}) should be chosen among: {cls.list_names()}"
-            ) from ex
-
-        return band_names
-
-    @classmethod
-    def to_value_list(cls, name_list: list = None) -> list:
-        """
-        Get a list from the values of the bands
-
-        .. code-block:: python
-
-             >>> SarBandNames.to_name_list([SarBandNames.HV_DSPK, SarBandNames.VV])
-            ['HV_DSPK', 'VV']
-            >>> SarBandNames.to_name_list()
-            ['VV', 'VV_DSPK', 'HH', 'HH_DSPK', 'VH', 'VH_DSPK', 'HV', 'HV_DSPK']
-
-        Args:
-            name_list (list): List of band names
-
-        Returns:
-            list: List of band values
-
-        """
-        if name_list:
-            out_list = []
-            for key in name_list:
-                if isinstance(key, str):
-                    out_list.append(getattr(cls, key).value)
-                elif isinstance(key, cls):
-                    out_list.append(key.value)
-                else:
-                    raise InvalidTypeError(
-                        "The list should either contain strings or BandNames"
-                    )
-        else:
-            out_list = cls.list_values()
-
-        return out_list

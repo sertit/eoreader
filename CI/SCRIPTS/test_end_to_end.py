@@ -37,7 +37,7 @@ MERIT_DEM_SUB_DIR_PATH = [
 
 
 def set_dem(dem_path):
-    """ Set DEM"""
+    """Set DEM"""
     if dem_path:
         dem_path = AnyPath(dem_path)
         if not dem_path.is_file():

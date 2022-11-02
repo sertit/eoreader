@@ -45,8 +45,7 @@ from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
-from eoreader.bands import BandNames
-from eoreader.bands import SpectralBandNames as spb
+from eoreader.bands import BandNames, SpectralBandNames
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import OpticalProduct
 from eoreader.products.optical.optical_product import RawUnits
@@ -160,7 +159,7 @@ class S3Product(OpticalProduct):
             )
 
     def _get_constellation(self) -> Constellation:
-        """ Getter of the constellation """
+        """Getter of the constellation"""
         if "OL" in self.name:
             return Constellation.S3_OLCI
         elif "SL" in self.name:
@@ -172,7 +171,7 @@ class S3Product(OpticalProduct):
 
     @abstractmethod
     def _set_preprocess_members(self):
-        """ Set pre-process members """
+        """Set pre-process members"""
         raise NotImplementedError
 
     @cache
@@ -707,7 +706,7 @@ class S3Product(OpticalProduct):
 
         # Try to convert to spb if existing
         try:
-            filename = spb.convert_from(filename)[0]
+            filename = SpectralBandNames.convert_from(filename)[0]
         except TypeError:
             pass
 

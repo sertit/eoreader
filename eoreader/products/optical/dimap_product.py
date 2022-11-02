@@ -42,9 +42,25 @@ from sertit.vectors import WGS84
 from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
-from eoreader.bands import ALL_CLOUDS, CIRRUS, CLOUDS, RAW_CLOUDS, SHADOWS, BandNames
-from eoreader.bands import spectral_bands as spb
-from eoreader.bands import to_str
+from eoreader.bands import (
+    ALL_CLOUDS,
+    BLUE,
+    CA,
+    CIRRUS,
+    CLOUDS,
+    GREEN,
+    NARROW_NIR,
+    NIR,
+    PAN,
+    RAW_CLOUDS,
+    RED,
+    SHADOWS,
+    VRE_1,
+    VRE_2,
+    VRE_3,
+    BandNames,
+    to_str,
+)
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
@@ -54,25 +70,25 @@ from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 _DIMAP_BAND_MTD = {
-    spb.PAN: "P",
-    spb.BLUE: "B0",
-    spb.GREEN: "B1",
-    spb.RED: "B2",
-    spb.NIR: "B3",
-    spb.NARROW_NIR: "B3",
+    PAN: "P",
+    BLUE: "B0",
+    GREEN: "B1",
+    RED: "B2",
+    NIR: "B3",
+    NARROW_NIR: "B3",
 }
 
 _PNEO_BAND_MTD = {
-    spb.PAN: "P",
-    spb.BLUE: "B",
-    spb.GREEN: "G",
-    spb.RED: "R",
-    spb.NIR: "NIR",
-    spb.NARROW_NIR: "NIR",
-    spb.VRE_1: "RE",
-    spb.VRE_2: "RE",
-    spb.VRE_3: "RE",
-    spb.CA: "DB",  # deep blue
+    PAN: "P",
+    BLUE: "B",
+    GREEN: "G",
+    RED: "R",
+    NIR: "NIR",
+    NARROW_NIR: "NIR",
+    VRE_1: "RE",
+    VRE_2: "RE",
+    VRE_3: "RE",
+    CA: "DB",  # deep blue
 }
 
 
@@ -319,89 +335,89 @@ class DimapProduct(VhrProduct):
 
         # Manage bands of the product
         if self.band_combi == DimapBandCombination.P:
-            self.bands.map_bands({spb.PAN: pan.update(id=1)})
+            self.bands.map_bands({PAN: pan.update(id=1)})
         elif self.band_combi == DimapBandCombination.MS:
             self.bands.map_bands(
                 {
-                    spb.BLUE: blue.update(id=3),
-                    spb.GREEN: green.update(id=2),
-                    spb.RED: red.update(id=1),
-                    spb.NARROW_NIR: nir.update(id=4),
-                    spb.NIR: nir.update(id=4),
+                    BLUE: blue.update(id=3),
+                    GREEN: green.update(id=2),
+                    RED: red.update(id=1),
+                    NARROW_NIR: nir.update(id=4),
+                    NIR: nir.update(id=4),
                 }
             )
         elif self.band_combi == DimapBandCombination.PMS:
             self.bands.map_bands(
                 {
-                    spb.BLUE: blue.update(id=3, gsd=self._pan_res),
-                    spb.GREEN: green.update(id=2, gsd=self._pan_res),
-                    spb.RED: red.update(id=1, gsd=self._pan_res),
-                    spb.NARROW_NIR: nir.update(id=4, gsd=self._pan_res),
-                    spb.NIR: nir.update(id=4, gsd=self._pan_res),
+                    BLUE: blue.update(id=3, gsd=self._pan_res),
+                    GREEN: green.update(id=2, gsd=self._pan_res),
+                    RED: red.update(id=1, gsd=self._pan_res),
+                    NARROW_NIR: nir.update(id=4, gsd=self._pan_res),
+                    NIR: nir.update(id=4, gsd=self._pan_res),
                 }
             )
         elif self.band_combi == DimapBandCombination.MS_N:
             self.bands.map_bands(
                 {
-                    spb.BLUE: blue.update(id=3),
-                    spb.GREEN: green.update(id=2),
-                    spb.RED: red.update(id=1),
+                    BLUE: blue.update(id=3),
+                    GREEN: green.update(id=2),
+                    RED: red.update(id=1),
                 }
             )
         elif self.band_combi == DimapBandCombination.PMS_N:
             self.bands.map_bands(
                 {
-                    spb.BLUE: blue.update(id=3, gsd=self._pan_res),
-                    spb.GREEN: green.update(id=2, gsd=self._pan_res),
-                    spb.RED: red.update(id=1, gsd=self._pan_res),
+                    BLUE: blue.update(id=3, gsd=self._pan_res),
+                    GREEN: green.update(id=2, gsd=self._pan_res),
+                    RED: red.update(id=1, gsd=self._pan_res),
                 }
             )
         elif self.band_combi == DimapBandCombination.MS_X:
             self.bands.map_bands(
                 {
-                    spb.GREEN: green.update(id=1),
-                    spb.RED: red.update(id=2),
-                    spb.NIR: nir.update(id=3),
-                    spb.NARROW_NIR: nir.update(id=3),
+                    GREEN: green.update(id=1),
+                    RED: red.update(id=2),
+                    NIR: nir.update(id=3),
+                    NARROW_NIR: nir.update(id=3),
                 }
             )
         elif self.band_combi == DimapBandCombination.PMS_X:
             self.bands.map_bands(
                 {
-                    spb.GREEN: green.update(id=1, gsd=self._pan_res),
-                    spb.RED: red.update(id=2, gsd=self._pan_res),
-                    spb.NIR: nir.update(id=3, gsd=self._pan_res),
-                    spb.NARROW_NIR: nir.update(id=3, gsd=self._pan_res),
+                    GREEN: green.update(id=1, gsd=self._pan_res),
+                    RED: red.update(id=2, gsd=self._pan_res),
+                    NIR: nir.update(id=3, gsd=self._pan_res),
+                    NARROW_NIR: nir.update(id=3, gsd=self._pan_res),
                 }
             )
         elif self.band_combi == DimapBandCombination.MS_FS:
             # Only PLD-Neo
             self.bands.map_bands(
                 {
-                    spb.BLUE: blue.update(id=3),
-                    spb.GREEN: green.update(id=2),
-                    spb.RED: red.update(id=1),
-                    spb.NIR: nir.update(id=4),
-                    spb.NARROW_NIR: nir.update(id=4),
-                    spb.VRE_1: vre.update(id=5),
-                    spb.VRE_2: vre.update(id=5),
-                    spb.VRE_3: vre.update(id=5),
-                    spb.CA: ca.update(id=6),
+                    BLUE: blue.update(id=3),
+                    GREEN: green.update(id=2),
+                    RED: red.update(id=1),
+                    NIR: nir.update(id=4),
+                    NARROW_NIR: nir.update(id=4),
+                    VRE_1: vre.update(id=5),
+                    VRE_2: vre.update(id=5),
+                    VRE_3: vre.update(id=5),
+                    CA: ca.update(id=6),
                 }
             )
         elif self.band_combi == DimapBandCombination.PMS_FS:
             # Only PLD-Neo
             self.bands.map_bands(
                 {
-                    spb.BLUE: blue.update(id=3, gsd=self._pan_res),
-                    spb.GREEN: green.update(id=2, gsd=self._pan_res),
-                    spb.RED: red.update(id=1, gsd=self._pan_res),
-                    spb.NIR: nir.update(id=4, gsd=self._pan_res),
-                    spb.NARROW_NIR: nir.update(id=4, gsd=self._pan_res),
-                    spb.VRE_1: vre.update(id=5, gsd=self._pan_res),
-                    spb.VRE_2: vre.update(id=5, gsd=self._pan_res),
-                    spb.VRE_3: vre.update(id=5, gsd=self._pan_res),
-                    spb.CA: ca.update(id=6, gsd=self._pan_res),
+                    BLUE: blue.update(id=3, gsd=self._pan_res),
+                    GREEN: green.update(id=2, gsd=self._pan_res),
+                    RED: red.update(id=1, gsd=self._pan_res),
+                    NIR: nir.update(id=4, gsd=self._pan_res),
+                    NARROW_NIR: nir.update(id=4, gsd=self._pan_res),
+                    VRE_1: vre.update(id=5, gsd=self._pan_res),
+                    VRE_2: vre.update(id=5, gsd=self._pan_res),
+                    VRE_3: vre.update(id=5, gsd=self._pan_res),
+                    CA: ca.update(id=6, gsd=self._pan_res),
                 }
             )
         else:
