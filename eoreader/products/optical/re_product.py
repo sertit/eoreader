@@ -33,8 +33,16 @@ from cloudpathlib import CloudPath
 from sertit import files
 from sertit.misc import ListEnum
 
-from eoreader.bands import BandNames, SpectralBand
-from eoreader.bands import spectral_bands as spb
+from eoreader.bands import (
+    BLUE,
+    GREEN,
+    NARROW_NIR,
+    NIR,
+    RED,
+    VRE_1,
+    BandNames,
+    SpectralBand,
+)
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.optical.planet_product import PlanetProduct
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
@@ -43,12 +51,12 @@ from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 _RE_EAI = {
-    spb.BLUE: 1997.8,
-    spb.GREEN: 1863.5,
-    spb.RED: 1560.4,
-    spb.VRE_1: 1395.0,
-    spb.NIR: 1124.4,
-    spb.NARROW_NIR: 1124.4,
+    BLUE: 1997.8,
+    GREEN: 1863.5,
+    RED: 1560.4,
+    VRE_1: 1395.0,
+    NIR: 1124.4,
+    NARROW_NIR: 1124.4,
 }
 """
 From RE `Product specifications <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
@@ -131,39 +139,39 @@ class ReProduct(PlanetProduct):
         gsd = 6.5
 
         blue = SpectralBand(
-            eoreader_name=spb.BLUE,
+            eoreader_name=BLUE,
             **{NAME: "Blue", ID: 1, GSD: gsd, WV_MIN: 440, WV_MAX: 510},
         )
 
         green = SpectralBand(
-            eoreader_name=spb.GREEN,
+            eoreader_name=GREEN,
             **{NAME: "Green", ID: 2, GSD: gsd, WV_MIN: 520, WV_MAX: 590},
         )
 
         red = SpectralBand(
-            eoreader_name=spb.RED,
+            eoreader_name=RED,
             **{NAME: "Red", ID: 3, GSD: gsd, WV_MIN: 630, WV_MAX: 685},
         )
 
         vre = SpectralBand(
-            eoreader_name=spb.VRE_1,
+            eoreader_name=VRE_1,
             **{NAME: "Red Edge", ID: 4, GSD: gsd, WV_MIN: 690, WV_MAX: 730},
         )
 
         nir = SpectralBand(
-            eoreader_name=spb.NIR,
+            eoreader_name=NIR,
             **{NAME: "NIR", ID: 5, GSD: gsd, WV_MIN: 760, WV_MAX: 850},
         )
 
         # Set the band map
         self.bands.map_bands(
             {
-                spb.BLUE: blue,
-                spb.GREEN: green,
-                spb.RED: red,
-                spb.VRE_1: vre,
-                spb.NIR: nir,
-                spb.NARROW_NIR: nir,
+                BLUE: blue,
+                GREEN: green,
+                RED: red,
+                VRE_1: vre,
+                NIR: nir,
+                NARROW_NIR: nir,
             }
         )
 

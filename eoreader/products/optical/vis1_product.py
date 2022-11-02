@@ -38,8 +38,16 @@ from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
-from eoreader.bands import BandNames, SpectralBand
-from eoreader.bands import spectral_bands as spb
+from eoreader.bands import (
+    BLUE,
+    GREEN,
+    NARROW_NIR,
+    NIR,
+    PAN,
+    RED,
+    BandNames,
+    SpectralBand,
+)
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
@@ -49,12 +57,12 @@ from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 _VIS1_E0 = {
-    spb.PAN: 1828,
-    spb.BLUE: 2003,
-    spb.GREEN: 1828,
-    spb.RED: 1618,
-    spb.NIR: 1042,
-    spb.NARROW_NIR: 1042,
+    PAN: 1828,
+    BLUE: 2003,
+    GREEN: 1828,
+    RED: 1618,
+    NIR: 1042,
+    NARROW_NIR: 1042,
 }
 """
 Solar spectral irradiance, E0b, (commonly known as ESUN) is a constant value specific to each band of the Vision-1 imager.
@@ -186,44 +194,44 @@ class Vis1Product(VhrProduct):
         """
         # Create spectral bands
         pan = SpectralBand(
-            eoreader_name=spb.PAN,
+            eoreader_name=PAN,
             **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 450, WV_MAX: 650},
         )
 
         blue = SpectralBand(
-            eoreader_name=spb.BLUE,
+            eoreader_name=BLUE,
             **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 440, WV_MAX: 510},
         )
 
         green = SpectralBand(
-            eoreader_name=spb.GREEN,
+            eoreader_name=GREEN,
             **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 510, WV_MAX: 590},
         )
 
         red = SpectralBand(
-            eoreader_name=spb.RED,
+            eoreader_name=RED,
             **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 600, WV_MAX: 670},
         )
 
         nir = SpectralBand(
-            eoreader_name=spb.NIR,
+            eoreader_name=NIR,
             **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 760, WV_MAX: 910},
         )
 
         # Manage bands of the product
         if self.band_combi == Vis1BandCombination.PAN:
-            self.bands.map_bands({spb.PAN: pan})
+            self.bands.map_bands({PAN: pan})
         elif self.band_combi in [
             Vis1BandCombination.MS4,
             Vis1BandCombination.BUN,
         ]:
             self.bands.map_bands(
                 {
-                    spb.BLUE: blue,
-                    spb.GREEN: green,
-                    spb.RED: red,
-                    spb.NIR: nir,
-                    spb.NARROW_NIR: nir,
+                    BLUE: blue,
+                    GREEN: green,
+                    RED: red,
+                    NIR: nir,
+                    NARROW_NIR: nir,
                 }
             )
             if self.band_combi == Vis1BandCombination.BUN:
@@ -233,11 +241,11 @@ class Vis1Product(VhrProduct):
         elif self.band_combi == Vis1BandCombination.PSH:
             self.bands.map_bands(
                 {
-                    spb.BLUE: blue.update(gsd=self._pan_res),
-                    spb.GREEN: green.update(gsd=self._pan_res),
-                    spb.RED: red.update(gsd=self._pan_res),
-                    spb.NIR: nir.update(gsd=self._pan_res),
-                    spb.NARROW_NIR: nir.update(gsd=self._pan_res),
+                    BLUE: blue.update(gsd=self._pan_res),
+                    GREEN: green.update(gsd=self._pan_res),
+                    RED: red.update(gsd=self._pan_res),
+                    NIR: nir.update(gsd=self._pan_res),
+                    NARROW_NIR: nir.update(gsd=self._pan_res),
                 }
             )
         else:

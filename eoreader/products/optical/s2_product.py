@@ -44,15 +44,27 @@ from shapely.geometry import box
 from eoreader import cache, utils
 from eoreader.bands import (
     ALL_CLOUDS,
+    BLUE,
+    CA,
     CIRRUS,
     CLOUDS,
+    GREEN,
+    NARROW_NIR,
+    NIR,
     RAW_CLOUDS,
+    RED,
     SHADOWS,
+    SWIR_1,
+    SWIR_2,
+    SWIR_CIRRUS,
+    VRE_1,
+    VRE_2,
+    VRE_3,
+    WV,
     BandNames,
     SpectralBand,
+    to_str,
 )
-from eoreader.bands import spectral_bands as spb
-from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
 from eoreader.products.optical.optical_product import RawUnits
@@ -227,52 +239,52 @@ class S2Product(OpticalProduct):
         Map bands
         """
         l2a_bands = {
-            spb.CA: SpectralBand(
-                eoreader_name=spb.CA,
+            CA: SpectralBand(
+                eoreader_name=CA,
                 **{NAME: "B01", ID: "01", GSD: 60, CENTER_WV: 442, FWHM: 21},
             ),
-            spb.BLUE: SpectralBand(
-                eoreader_name=spb.BLUE,
+            BLUE: SpectralBand(
+                eoreader_name=BLUE,
                 **{NAME: "B02", ID: "02", GSD: 10, CENTER_WV: 492, FWHM: 66},
             ),
-            spb.GREEN: SpectralBand(
-                eoreader_name=spb.GREEN,
+            GREEN: SpectralBand(
+                eoreader_name=GREEN,
                 **{NAME: "B03", ID: "03", GSD: 10, CENTER_WV: 560, FWHM: 36},
             ),
-            spb.RED: SpectralBand(
-                eoreader_name=spb.RED,
+            RED: SpectralBand(
+                eoreader_name=RED,
                 **{NAME: "B04", ID: "04", GSD: 10, CENTER_WV: 665, FWHM: 31},
             ),
-            spb.VRE_1: SpectralBand(
-                eoreader_name=spb.VRE_1,
+            VRE_1: SpectralBand(
+                eoreader_name=VRE_1,
                 **{NAME: "B05", ID: "05", GSD: 20, CENTER_WV: 704, FWHM: 15},
             ),
-            spb.VRE_2: SpectralBand(
-                eoreader_name=spb.VRE_2,
+            VRE_2: SpectralBand(
+                eoreader_name=VRE_2,
                 **{NAME: "B06", ID: "06", GSD: 20, CENTER_WV: 740, FWHM: 15},
             ),
-            spb.VRE_3: SpectralBand(
-                eoreader_name=spb.VRE_3,
+            VRE_3: SpectralBand(
+                eoreader_name=VRE_3,
                 **{NAME: "B07", ID: "07", GSD: 20, CENTER_WV: 781, FWHM: 20},
             ),
-            spb.NIR: SpectralBand(
-                eoreader_name=spb.NIR,
+            NIR: SpectralBand(
+                eoreader_name=NIR,
                 **{NAME: "B8A", ID: "8A", GSD: 10, CENTER_WV: 833, FWHM: 106},
             ),
-            spb.NARROW_NIR: SpectralBand(
-                eoreader_name=spb.NARROW_NIR,
+            NARROW_NIR: SpectralBand(
+                eoreader_name=NARROW_NIR,
                 **{NAME: "B08", ID: "08", GSD: 20, CENTER_WV: 864, FWHM: 21},
             ),
-            spb.WV: SpectralBand(
-                eoreader_name=spb.WV,
+            WV: SpectralBand(
+                eoreader_name=WV,
                 **{NAME: "B09", ID: "09", GSD: 60, CENTER_WV: 944, FWHM: 20},
             ),
-            spb.SWIR_1: SpectralBand(
-                eoreader_name=spb.SWIR_1,
+            SWIR_1: SpectralBand(
+                eoreader_name=SWIR_1,
                 **{NAME: "B11", ID: "11", GSD: 20, CENTER_WV: 1612, FWHM: 92},
             ),
-            spb.SWIR_2: SpectralBand(
-                eoreader_name=spb.SWIR_2,
+            SWIR_2: SpectralBand(
+                eoreader_name=SWIR_2,
                 **{NAME: "B12", ID: "12", GSD: 20, CENTER_WV: 2190, FWHM: 180},
             ),
         }
@@ -283,8 +295,8 @@ class S2Product(OpticalProduct):
             self.bands.map_bands(
                 {
                     **l2a_bands,
-                    spb.SWIR_CIRRUS: SpectralBand(
-                        eoreader_name=spb.SWIR_CIRRUS,
+                    SWIR_CIRRUS: SpectralBand(
+                        eoreader_name=SWIR_CIRRUS,
                         **{NAME: "B10", ID: "10", GSD: 60, CENTER_WV: 1380, FWHM: 30},
                     ),
                 }
@@ -730,7 +742,7 @@ class S2Product(OpticalProduct):
                     offset = 0.0
                 else:
                     try:
-                        if band == spb.NIR:
+                        if band == NIR:
                             band_id = 8
                         else:
                             band_id = int(self.bands[band].id)

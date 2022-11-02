@@ -37,8 +37,21 @@ from sertit import files, rasters, xml
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 
-from eoreader.bands import BandNames, SpectralBand
-from eoreader.bands import spectral_bands as spb
+from eoreader.bands import (
+    BLUE,
+    CA,
+    GREEN,
+    GREEN1,
+    NARROW_NIR,
+    NIR,
+    RED,
+    VRE_1,
+    VRE_2,
+    VRE_3,
+    YELLOW,
+    BandNames,
+    SpectralBand,
+)
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.optical.planet_product import PlanetProduct
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
@@ -232,22 +245,22 @@ class PlaProduct(PlanetProduct):
         gsd = 3.7
 
         blue = SpectralBand(
-            eoreader_name=spb.BLUE,
+            eoreader_name=BLUE,
             **{NAME: "Blue", ID: 2, GSD: gsd, WV_MIN: 465, WV_MAX: 515},
         )
 
         green = SpectralBand(
-            eoreader_name=spb.GREEN,
+            eoreader_name=GREEN,
             **{NAME: "Green", ID: 4, GSD: gsd, WV_MIN: 547, WV_MAX: 583},
         )
 
         red = SpectralBand(
-            eoreader_name=spb.RED,
+            eoreader_name=RED,
             **{NAME: "Red", ID: 6, GSD: gsd, WV_MIN: 650, WV_MAX: 680},
         )
 
         nir = SpectralBand(
-            eoreader_name=spb.NIR,
+            eoreader_name=NIR,
             **{NAME: "NIR", ID: 8, GSD: gsd, WV_MIN: 845, WV_MAX: 885},
         )
 
@@ -255,22 +268,22 @@ class PlaProduct(PlanetProduct):
         if self.instrument == PlaInstrument.PSB_SD:
             spectral_bands = {
                 "ca": SpectralBand(
-                    eoreader_name=spb.CA,
+                    eoreader_name=CA,
                     **{NAME: "Coastal Blue", ID: 1, GSD: gsd, WV_MIN: 431, WV_MAX: 452},
                 ),
                 "blue": blue,
                 "green1": SpectralBand(
-                    eoreader_name=spb.GREEN,
+                    eoreader_name=GREEN,
                     **{NAME: "Green I", ID: 3, GSD: gsd, WV_MIN: 513, WV_MAX: 549},
                 ),
                 "green": green.update(name="Green II"),
                 "yellow": SpectralBand(
-                    eoreader_name=spb.YELLOW,
+                    eoreader_name=YELLOW,
                     **{NAME: "Yellow", ID: 5, GSD: gsd, WV_MIN: 600, WV_MAX: 620},
                 ),
                 "red": red,
                 "vre": SpectralBand(
-                    eoreader_name=spb.VRE_1,
+                    eoreader_name=VRE_1,
                     **{NAME: "Red-Edge", ID: 7, GSD: gsd, WV_MIN: 697, WV_MAX: 713},
                 ),
                 "nir": nir,
@@ -312,40 +325,40 @@ class PlaProduct(PlanetProduct):
 
         if nof_bands == 3:
             band_map = {
-                spb.BLUE: blue.update(id=1),
-                spb.GREEN: green.update(id=2),
-                spb.RED: red.update(id=3),
+                BLUE: blue.update(id=1),
+                GREEN: green.update(id=2),
+                RED: red.update(id=3),
             }
         elif nof_bands == 4:
             band_map = {
-                spb.BLUE: blue.update(id=1),
-                spb.GREEN: green.update(id=2),
-                spb.RED: red.update(id=3),
-                spb.NIR: nir.update(id=4),
-                spb.NARROW_NIR: nir.update(id=4),
+                BLUE: blue.update(id=1),
+                GREEN: green.update(id=2),
+                RED: red.update(id=3),
+                NIR: nir.update(id=4),
+                NARROW_NIR: nir.update(id=4),
             }
         elif nof_bands == 5:
             band_map = {
-                spb.BLUE: blue.update(id=1),
-                spb.GREEN: green.update(id=2),
-                spb.RED: red.update(id=3),
-                spb.VRE_1: vre.update(id=4),
-                spb.VRE_2: vre.update(id=4),
-                spb.VRE_3: vre.update(id=4),
-                spb.NIR: nir.update(id=5),
-                spb.NARROW_NIR: nir.update(id=5),
+                BLUE: blue.update(id=1),
+                GREEN: green.update(id=2),
+                RED: red.update(id=3),
+                VRE_1: vre.update(id=4),
+                VRE_2: vre.update(id=4),
+                VRE_3: vre.update(id=4),
+                NIR: nir.update(id=5),
+                NARROW_NIR: nir.update(id=5),
             }
         elif nof_bands == 8:
             band_map = {
-                spb.CA: ca,
-                spb.BLUE: blue,
-                spb.GREEN1: green1,
-                spb.GREEN: green,
-                spb.RED: red,
-                spb.YELLOW: yellow,
-                spb.VRE_1: vre,
-                spb.NIR: nir,
-                spb.NARROW_NIR: nir,
+                CA: ca,
+                BLUE: blue,
+                GREEN1: green1,
+                GREEN: green,
+                RED: red,
+                YELLOW: yellow,
+                VRE_1: vre,
+                NIR: nir,
+                NARROW_NIR: nir,
             }
         else:
             raise InvalidProductError(

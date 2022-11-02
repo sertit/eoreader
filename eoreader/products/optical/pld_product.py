@@ -21,8 +21,7 @@ for more information.
 """
 import logging
 
-from eoreader.bands import SpectralBand
-from eoreader.bands import spectral_bands as spb
+from eoreader.bands import BLUE, GREEN, NIR, PAN, RED, SpectralBand
 from eoreader.products import DimapProduct
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import EOREADER_NAME
@@ -56,27 +55,27 @@ class PldProduct(DimapProduct):
         # Create spectral bands
         # https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTMxNw==/ZG9jdXRoZXF1ZS1maWxlLTU1MzE2/pleiades-brochure-2019.pdf
         pan = SpectralBand(
-            eoreader_name=spb.PAN,
+            eoreader_name=PAN,
             **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 470, WV_MAX: 830}
         )
 
         blue = SpectralBand(
-            eoreader_name=spb.BLUE,
+            eoreader_name=BLUE,
             **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 460, WV_MAX: 530}
         )
 
         green = SpectralBand(
-            eoreader_name=spb.GREEN,
+            eoreader_name=GREEN,
             **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 500, WV_MAX: 620}
         )
 
         red = SpectralBand(
-            eoreader_name=spb.RED,
+            eoreader_name=RED,
             **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 590, WV_MAX: 710}
         )
 
         nir = SpectralBand(
-            eoreader_name=spb.NIR,
+            eoreader_name=NIR,
             **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 740, WV_MAX: 940}
         )
         self._map_bands_core(blue=blue, green=green, red=red, nir=nir, pan=pan)

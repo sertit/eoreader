@@ -1,7 +1,6 @@
 """ Utils module for scripts """
 import logging
 import os
-import sys
 from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, Union
@@ -218,7 +217,7 @@ def dask_env(function: Callable):
 
     @wraps(function)
     def dask_env_wrapper():
-        """ S3 environment wrapper """
+        """S3 environment wrapper"""
         os.environ[
             USE_DASK
         ] = "0"  # For now, our CI cannot create a cluster (memory insufficient)
@@ -249,11 +248,11 @@ def s3_env(function: Callable):
 
     @wraps(function)
     def s3_env_wrapper():
-        """ S3 environment wrapper """
+        """S3 environment wrapper"""
         if (
             int(os.getenv(CI_EOREADER_S3, 1))
             and os.getenv(AWS_SECRET_ACCESS_KEY)
-            and sys.platform != "win32"
+            # and sys.platform != "win32"
         ):
             # Define S3 client for S3 paths
             define_s3_client()
