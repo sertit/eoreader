@@ -416,7 +416,7 @@ def simplify(footprint_fct: Callable):
 
     @wraps(footprint_fct)
     def simplify_wrapper(self):
-        """ Simplify footprint wrapper """
+        """Simplify footprint wrapper"""
         footprint = footprint_fct(self)
         return simplify_footprint(footprint, self.resolution)
 

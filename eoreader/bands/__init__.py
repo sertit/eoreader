@@ -33,19 +33,24 @@ To use it, simply type:
     >>> NDVI
     <function NDVI at 0x00000261F6FFA950>
 """
+from typing import Any
+
 # flake8: noqa
-from eoreader.bands.bands import Band, BandMap, BandNames
+from eoreader.bands.bands import Band, BandMap
 
-__all__ = ["Band", "BandMap", "BandNames"]
+__all__ = ["Band", "BandMap"]
 
-from eoreader.bands.cloud_bands import (
+from eoreader.bands.band_names import BandNames
+
+__all__ += ["BandNames"]
+
+from eoreader.bands.band_names import (
     ALL_CLOUDS,
     CIRRUS,
     CLOUDS,
     RAW_CLOUDS,
     SHADOWS,
     CloudsBandNames,
-    is_clouds,
 )
 
 __all__ += [
@@ -55,12 +60,11 @@ __all__ += [
     "SHADOWS",
     "CIRRUS",
     "ALL_CLOUDS",
-    "is_clouds",
 ]
 
-from eoreader.bands.dem_bands import DEM, HILLSHADE, SLOPE, DemBandNames, is_dem
+from eoreader.bands.band_names import DEM, HILLSHADE, SLOPE, DemBandNames
 
-__all__ += ["DemBandNames", "DEM", "SLOPE", "HILLSHADE", "is_dem"]
+__all__ += ["DemBandNames", "DEM", "SLOPE", "HILLSHADE"]
 
 from eoreader.bands.indices import (
     get_all_index_names,
@@ -78,8 +82,7 @@ __all__ += [
 
 # Spyndex indices
 __all__ += get_all_index_names()
-from eoreader.bands.indices import *
-from eoreader.bands.sar_bands import (
+from eoreader.bands.band_names import (
     HH,
     HH_DSPK,
     HV,
@@ -92,11 +95,10 @@ from eoreader.bands.sar_bands import (
     VH_DSPK,
     VV,
     VV_DSPK,
-    SarBand,
-    SarBandMap,
     SarBandNames,
-    is_sar_band,
 )
+from eoreader.bands.indices import *
+from eoreader.bands.sar_bands import SarBand, SarBandMap
 
 __all__ += [
     "SarBand",
@@ -114,13 +116,11 @@ __all__ += [
     "RH_DSPK",
     "RV",
     "RV_DSPK",
-    "is_sar_band",
 ]
 
-from eoreader.bands.spectral_bands import (
+from eoreader.bands.band_names import (
     BLUE,
     CA,
-    EOREADER_TO_SPYNDEX_DICT,
     F1,
     F2,
     GREEN,
@@ -130,7 +130,6 @@ from eoreader.bands.spectral_bands import (
     PAN,
     RED,
     S7,
-    SPYNDEX_TO_EOREADER_DICT,
     SWIR_1,
     SWIR_2,
     SWIR_CIRRUS,
@@ -151,12 +150,9 @@ from eoreader.bands.spectral_bands import (
     Oa18,
     Oa19,
     Oa21,
-    SpectralBand,
-    SpectralBandMap,
     SpectralBandNames,
-    is_spectral_band,
-    is_thermal_band,
 )
+from eoreader.bands.spectral_bands import SpectralBand, SpectralBandMap
 
 __all__ += [
     "SpectralBand",
@@ -193,15 +189,122 @@ __all__ += [
     "Oa18",
     "Oa19",
     "Oa21",
-    "is_spectral_band",
-    "is_thermal_band",
-    "EOREADER_TO_SPYNDEX_DICT",
-    "SPYNDEX_TO_EOREADER_DICT",
 ]
 
-__all__ += ["is_sat_band", "to_band", "to_str"]
+from eoreader.bands.mappings import (
+    EOREADER_STAC_MAP,
+    EOREADER_TO_SPYNDEX_DICT,
+    SPYNDEX_TO_EOREADER_DICT,
+)
+
+__all__ += ["EOREADER_TO_SPYNDEX_DICT", "SPYNDEX_TO_EOREADER_DICT", "EOREADER_STAC_MAP"]
+
+__all__ += [
+    "is_spectral_band",
+    "is_thermal_band",
+    "is_sar_band",
+    "is_sat_band",
+    "is_clouds",
+    "is_dem",
+    "to_band",
+    "to_str",
+]
 
 from eoreader.exceptions import InvalidTypeError as _ite
+
+
+def is_spectral_band(band: Any) -> bool:
+    """
+    Returns True if is a spectral band (from :code:`SpectralBandNames`)
+
+    .. code-block:: python
+
+        >>> from eoreader.bands import *
+        >>> is_spectral_band(NDVI)
+        False
+        >>> is_spectral_band(HH)
+        False
+        >>> is_spectral_band(GREEN)
+        True
+        >>> is_spectral_band(SLOPE)
+        False
+        >>> is_spectral_band(CLOUDS)
+        False
+
+    Args:
+        band (Any): Anything that could be an optical band
+
+    Returns:
+        bool: True if the band asked is an optical band
+
+    """
+    is_valid = True
+    try:
+        SpectralBandNames(band)
+    except ValueError:
+        is_valid = False
+    return is_valid
+
+
+def is_thermal_band(band: Any) -> bool:
+    """
+    Returns True if is a spectral and a thermal band (from :code:`SpectralBandNames`)
+
+    .. code-block:: python
+
+        >>> from eoreader.bands import *
+        >>> is_spectral_band(NDVI)
+        False
+        >>> is_spectral_band(HH)
+        False
+        >>> is_spectral_band(GREEN)
+        True
+        >>> is_spectral_band(SLOPE)
+        False
+        >>> is_spectral_band(CLOUDS)
+        False
+
+    Args:
+        band (Any): Anything that could be an optical band
+
+    Returns:
+        bool: True if the band asked is an optical band
+
+    """
+    return is_spectral_band(band) and band in [TIR_1, TIR_2, F1, F2, S7]
+
+
+def is_sar_band(band: Any) -> bool:
+    """
+    Returns True if is a SAR band (from :code:`SarBandNames`)
+
+    .. code-block:: python
+
+        >>> from eoreader.bands import *
+        >>> is_sar_band(NDVI)
+        False
+        >>> is_sar_band(HH)
+        True
+        >>> is_sar_band(GREEN)
+        False
+        >>> is_sar_band(SLOPE)
+        False
+        >>> is_sar_band(CLOUDS)
+        False
+
+    Args:
+        band (Any): Anything that could be a SAR band
+
+    Returns:
+        bool: True if the band asked is a SAR band
+
+    """
+    is_valid = True
+    try:
+        SarBandNames(band)
+    except ValueError:
+        is_valid = False
+    return is_valid
 
 
 def is_sat_band(band) -> bool:
@@ -230,6 +333,58 @@ def is_sat_band(band) -> bool:
 
     """
     return is_sar_band(band) or is_spectral_band(band)
+
+
+def is_clouds(clouds: Any) -> bool:
+    """
+    Returns True if we have a Clouds-related keyword
+
+    .. code-block:: python
+
+        >>> from eoreader.bands import *
+        >>> is_clouds(NDVI)
+        False
+        >>> is_clouds(HH)
+        False
+        >>> is_clouds(GREEN)
+        False
+        >>> is_clouds(SLOPE)
+        False
+        >>> is_clouds(CLOUDS)
+        True
+    """
+    is_valid = True
+    try:
+        CloudsBandNames(clouds)
+    except ValueError:
+        is_valid = False
+    return is_valid
+
+
+def is_dem(dem: Any) -> bool:
+    """
+    Returns True if we have a DEM-related keyword
+
+    .. code-block:: python
+
+        >>> from eoreader.bands import *
+        >>> is_dem(NDVI)
+        False
+        >>> is_dem(HH)
+        False
+        >>> is_dem(GREEN)
+        False
+        >>> is_dem(SLOPE)
+        True
+        >>> is_dem(CLOUDS)
+        False
+    """
+    is_valid = True
+    try:
+        DemBandNames(dem)
+    except ValueError:
+        is_valid = False
+    return is_valid
 
 
 def to_band(to_convert: list) -> list:

@@ -37,7 +37,7 @@ from sertit import files, rasters, rasters_rio
 from sertit.snap import MAX_CORES
 
 from eoreader import utils
-from eoreader.bands.bands import BandNames
+from eoreader.bands import BandNames
 from eoreader.env_vars import DEM_PATH
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import DEM_KW

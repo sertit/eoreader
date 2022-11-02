@@ -33,13 +33,13 @@ import spyndex
 import xarray as xr
 from sertit import rasters
 
-from eoreader.bands.spectral_bands import (
+from eoreader.bands.band_names import (
+    BLUE,
     CA,
-    EOREADER_TO_SPYNDEX_DICT,
     GREEN,
     NARROW_NIR,
+    NIR,
     RED,
-    SPYNDEX_TO_EOREADER_DICT,
     SWIR_1,
     SWIR_2,
     VRE_1,
@@ -47,8 +47,9 @@ from eoreader.bands.spectral_bands import (
     VRE_3,
     WV,
     YELLOW,
+    SpectralBandNames,
 )
-from eoreader.bands.spectral_bands import SpectralBandNames as spb
+from eoreader.bands.mappings import EOREADER_TO_SPYNDEX_DICT, SPYNDEX_TO_EOREADER_DICT
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -200,12 +201,12 @@ def TCBRI(bands: dict) -> xr.DataArray:
 
     """
     return (
-        0.3037 * bands[spb.BLUE]
-        + 0.2793 * bands[spb.GREEN]
-        + 0.4743 * bands[spb.RED]
-        + 0.5585 * bands[spb.NIR]
-        + 0.5082 * bands[spb.SWIR_1]
-        + 0.1863 * bands[spb.SWIR_2]
+        0.3037 * bands[BLUE]
+        + 0.2793 * bands[GREEN]
+        + 0.4743 * bands[RED]
+        + 0.5585 * bands[NIR]
+        + 0.5082 * bands[SWIR_1]
+        + 0.1863 * bands[SWIR_2]
     )
 
 
@@ -225,12 +226,12 @@ def TCGRE(bands: dict) -> xr.DataArray:
 
     """
     return (
-        -0.2848 * bands[spb.BLUE]
-        - 0.2435 * bands[spb.GREEN]
-        - 0.5436 * bands[spb.RED]
-        + 0.7243 * bands[spb.NIR]
-        + 0.0840 * bands[spb.SWIR_1]
-        - 0.1800 * bands[spb.SWIR_2]
+        -0.2848 * bands[BLUE]
+        - 0.2435 * bands[GREEN]
+        - 0.5436 * bands[RED]
+        + 0.7243 * bands[NIR]
+        + 0.0840 * bands[SWIR_1]
+        - 0.1800 * bands[SWIR_2]
     )
 
 
@@ -250,12 +251,12 @@ def TCWET(bands: dict) -> xr.DataArray:
 
     """
     return (
-        0.1509 * bands[spb.BLUE]
-        + 0.1973 * bands[spb.GREEN]
-        + 0.3279 * bands[spb.RED]
-        + 0.3406 * bands[spb.NIR]
-        - 0.7112 * bands[spb.SWIR_1]
-        - 0.4572 * bands[spb.SWIR_2]
+        0.1509 * bands[BLUE]
+        + 0.1973 * bands[GREEN]
+        + 0.3279 * bands[RED]
+        + 0.3406 * bands[NIR]
+        - 0.7112 * bands[SWIR_1]
+        - 0.4572 * bands[SWIR_2]
     )
 
 
@@ -276,7 +277,7 @@ def SBI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return np.sqrt(bands[spb.RED] ** 2 + bands[spb.NIR] ** 2)
+    return np.sqrt(bands[RED] ** 2 + bands[NIR] ** 2)
 
 
 @_idx_fct
@@ -292,7 +293,7 @@ def PANI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return np.sqrt(bands[spb.RED] ** 2 + bands[spb.GREEN] ** 2 + bands[spb.BLUE] ** 2)
+    return np.sqrt(bands[RED] ** 2 + bands[GREEN] ** 2 + bands[BLUE] ** 2)
 
 
 @_idx_fct
@@ -311,7 +312,7 @@ def SCI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return 3 * bands[spb.GREEN] - bands[spb.RED] - 100
+    return 3 * bands[GREEN] - bands[RED] - 100
 
 
 def get_all_index_names() -> list:
@@ -392,7 +393,10 @@ def get_needed_bands(index: str) -> list:
             # Parse band's signature
             b_regex = r"spb\.\w+"
 
-            return [getattr(spb, b.split(".")[-1]) for b in re.findall(b_regex, code)]
+            return [
+                getattr(SpectralBandNames, b.split(".")[-1])
+                for b in re.findall(b_regex, code)
+            ]
     elif is_spyndex_idx(index):
         # Don't need gamma etc.
         return [
