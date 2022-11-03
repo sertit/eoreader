@@ -31,7 +31,7 @@
   PATH)
 - DOC: Add Technical Note published in Remote Sensing MDPI in Readme
 - DOC: Update optical band mapping graphs (fix regression to 0.15.0 supported constellation)
-- CI: Update Github actions
+- CI: Update GitHub actions
 
 ## 0.17.0 (2022-10-12)
 
@@ -51,7 +51,7 @@
 
 - FIX: Stacks saved as integers on disk keep their original dtype (float32) in Python
 - FIX: Stacks with bands loaded "as is" are correctly saved as integers on disk ([#52](https://github.com/sertit/eoreader/issues/52))
-- FIX: Using stack CRS (if projected) for `DIMAP` products instead of recomputing from lat/lon, solving potential discrepencies between stack and product CRS
+- FIX: Using stack CRS (if projected) for `DIMAP` products instead of recomputing from lat/lon, solving potential discrepancies between stack and product CRS
 - FIX: Workaround for JP2 bug when updating an existing raster (maybe related to [this bug](https://github.com/rasterio/rasterio/issues/2528))
 - FIX: Better management of SkySat datetime conversion from JSON to XML (deterministic way)
 - FIX: Fixing computation of invalid pixels for `Sentinel-2` and `DIMAP` products (do not remove straylight mask)
@@ -168,7 +168,7 @@
 - **ENH: Adding the `GREEN1` mapped band, corresponding to PlanetScope `GREEN I` and `Sentinel-3 OLCI` `Oa05` band**
 - **ENH: Handle some slightly broken `Sentinel-2` products:**
     - when the metadata files are corrupted or when the detfoo vectors are empty ([#34](https://github.com/sertit/eoreader/issues/34))
-    - with missing MSK prefix for QI_DATA files (i.e `DETFOO` instead of `MSK_DETFOO`)
+    - with missing MSK prefix for QI_DATA files (i.e. `DETFOO` instead of `MSK_DETFOO`)
 - **ENH: Handle exception for corrupted bands (in `Sentinel-2` and `utils.read`) ([#34](https://github.com/sertit/eoreader/issues/34))**
 - **ENH: Add a STAC object that can be used to retrieve STAC Items from every Product (`prod.stac.create_item()`) ([#29](https://github.com/sertit/eoreader/issues/29))**
 - **ENH: Add a `get_mean_viewing_angles` for Optical Products to fill STAC View Extension ([#29](https://github.com/sertit/eoreader/issues/29))**
@@ -284,7 +284,7 @@
 ### Other
 
 - CI: Do not try to process SAR end to end if GPT cannot be found
-- CI: Publishing wheel from Github instead of Gitlab
+- CI: Publishing wheel from GitHub instead of Gitlab
 - REPO: Setting GitHub as the main repository and using new Gitlab runners
 
 ## 0.12.0 (2022-02-09)
@@ -381,8 +381,8 @@
 - DOC: Update README, documentation and notebooks
 - DOC: Water Extraction notebook has been refined to show how to manage multiple products
 - DOC: Update the installation paragraph in README
-- DOC: Adding a `For Contributors` section in the documentation (contributing, release history and Github repository)
-- DOC: Remove doc testing in Github (as the docs are built with readthedocs)
+- DOC: Adding a `For Contributors` section in the documentation (contributing, release history and GitHub repository)
+- DOC: Remove doc testing in GitHub (as the docs are built with readthedocs)
 - INTERNAL: Better management of project metadata (version...) in a dedicated file
 
 ## 0.10.1 (2022-01-04)
@@ -511,7 +511,7 @@
 - **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for OLCI)** [#14](https://github.com/sertit/eoreader/issues/14)
 - **ENH: `YELLOW` band is mapped to `Oa07` band of Sentinel-3 OLCI**
 - **ENH: Zipped Sentinel-3 products can now be processed**
-- **ENH: Allow the use of `kwargs` in `load`, mainly for `rasters.read` (and allowing ie. radiance adjustment in S3-SLSTR)**
+- **ENH: Allow the use of `kwargs` in `load`, mainly for `rasters.read` (and allowing i.e. radiance adjustment in S3-SLSTR)**
 
 ### Optimizations
 
@@ -914,7 +914,7 @@
     - SAR DSPK bands always recomputed
     - SAR nodata set to 0 as SNAP expects it
     - Bad mask nodata setting when computing invalid pixels
-    - Interverted default resolution between L4/5 MSS and TM sensors
+    - Inverted default resolution between L4/5 MSS and TM sensors
 - Removing useless logs when missing DEM but no computed DEM bands
 - Adding copyright headers to every python files
 - Fixing and adding examples
