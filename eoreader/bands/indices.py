@@ -74,8 +74,8 @@ EOREADER_DERIVATIVES = {
     "NDRE3": ["NDREI", {"N": NARROW_NIR, "RE1": VRE_3}],
     "NDMI21": ["NDMI", {"N": NARROW_NIR, "S1": SWIR_2}],
     "NDMI2100": ["NDMI", {"N": NARROW_NIR, "S1": SWIR_2}],
-    "CI2": ["CIRE", {"N": VRE_2, "RE1": VRE_1}],
-    "CI1": ["CIRE", {"N": VRE_3, "RE1": VRE_2}],
+    "CI21": ["CIRE", {"N": VRE_2, "RE1": VRE_1}],
+    "CI32": ["CIRE", {"N": VRE_3, "RE1": VRE_2}],
     # https://resources.maxar.com/optical-imagery/multispectral-reference-guide
     "WV_WI": ["NHFD", {"RE1": WV, "A": CA}],
     "WV_VI": ["NHFD", {"RE1": WV, "A": RED}],

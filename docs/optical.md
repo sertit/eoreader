@@ -90,7 +90,7 @@ Some additions to the Sentinel-2 bands have been made (`YELLOW`, `PAN`...):
 - {meth}`~eoreader.bands.SpectralBandNames.VRE_2`: Vegetation Red Edge 2
 - {meth}`~eoreader.bands.SpectralBandNames.VRE_3`: Vegetation Red Edge 3
 - {meth}`~eoreader.bands.SpectralBandNames.NIR`: Near Infrared
-- {meth}`~eoreader.bands.SpectralBandNames.NARROW_NIR`: Narrow Near Infrared (band `8A` for `Sentinel-2`, same as `NIR` for other sensors)
+- {meth}`~eoreader.bands.SpectralBandNames.NARROW_NIR`: Spectrally resolved Narrow Near Infrared (band `8A` for `Sentinel-2`, same as `NIR` for other sensors)
 - {meth}`~eoreader.bands.SpectralBandNames.WV`: Water vapour
 - {meth}`~eoreader.bands.SpectralBandNames.SWIR_CIRRUS`: Cirrus band
 - {meth}`~eoreader.bands.SpectralBandNames.SWIR_1`: Short Wave Infrared 1
@@ -204,54 +204,40 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 
 ### Available spectral indices
 
+EOReader uses (from version 0.18.0) the indices described in the 
+[awesome spectral indices (ASI)](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/) project.
+
+In addition to all these indices, EOReader kept the following indices for legacy purposes:
+
 ``` {container} full-width
-| Spectral Indices                         | Needed bands                                      | Accepted constellations                                                                                                       |
-|------------------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| {meth}`~eoreader.bands.indices.AFRI_1_6` | `NIR`, `SWIR_1`                                   | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM, SPOT-4/5                                                                   |
-| {meth}`~eoreader.bands.indices.AFRI_2_1` | `NIR`, `SWIR_2`                                   | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.AWEInsh`  | `BLUE`, `GREEN`, `NIR`, `SWIR_1`, `SWIR_2`        | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.AWEIsh`   | `GREEN`, `NIR`, `SWIR_1`, `SWIR_2`                | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.BAI`      | `RED`, `NIR`                                      | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.BAIS2`    | `RED`, `NIR`, `VRE_1`, `VRE_2`, `VRE_3`, `SWIR_2` | Sentinel-2                                                                                                                    |
-| {meth}`~eoreader.bands.indices.BSI`      | `BLUE`, `RED`, `NIR`, `SWIR_1`                    | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.CIG`      | `GREEN`, `NIR`                                    | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.DSWI`     | `GREEN`, `RED`, `NIR`, `SWIR_1`                   | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.VARI`     | `NIR`, `RED`, `BLUE`                              | All optical constellations except for Landsat MSS, SPOT-4/5 and Sentinel-3 SLSTR                                              |
-| {meth}`~eoreader.bands.indices.GLI`      | `GREEN`, `RED`, `BLUE`                            | All optical constellations except for Landsat MSS, SPOT-4/5 and Sentinel-3 SLSTR                                              |
-| {meth}`~eoreader.bands.indices.EVI`      | `NIR`, `RED`, `BLUE`                              | All optical constellations except for Landsat MSS, SPOT-4/5 and Sentinel-3 SLSTR                                              |
-| {meth}`~eoreader.bands.indices.GNDVI`    | `GREEN`, `NIR`                                    | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.GVMI`     | `NIR`, `SWIR_2`                                   | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.GRI`      | `GREEN`, `RED`                                    | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.MNDWI`    | `GREEN`, `SWIR_1`                                 | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM, SPOT-4/5                                                                   |
-| {meth}`~eoreader.bands.indices.NBR`      | `NIR`, `SWIR_2`                                   | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.NDGRI`    | `GREEN`, `RED`                                    | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.NDMI`     | `NIR`, `SWIR_1`                                   | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM, SPOT-4/5                                                                   |
-| {meth}`~eoreader.bands.indices.NDMI21`   | `NIR`, `SWIR_2`                                   | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.NDRE2`    | `NIR`, `VRE_1`                                    | Sentinel-2, Sentinel-3 OLCI, Landsat MSS, RapidEye                                                                            |
-| {meth}`~eoreader.bands.indices.NDRE3`    | `NIR`, `VRE_2`                                    | Sentinel-2, Sentinel-3 OLCI, Landsat MSS                                                                                      |
-| {meth}`~eoreader.bands.indices.CI1`      | `VRE_3`, `VRE_2`                                  | Sentinel-2, Sentinel-3 OLCI                                                                                                   |
-| {meth}`~eoreader.bands.indices.CI2`      | `VRE_2`, `VRE_1`                                  | Sentinel-2, Sentinel-3 OLCI                                                                                                   |
-| {meth}`~eoreader.bands.indices.NDVI`     | `RED`, `NIR`                                      | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.NDWI`     | `GREEN`, `NIR`                                    | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.OSAVI`    | `RED`, `NIR`                                      | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.PANI`     | `RED`, `GREEN`, `BLUE`                            | All optical constellations except for Landsat MSS, SPOT-4/5 and Sentinel-3 SLSTR                                              |
-| {meth}`~eoreader.bands.indices.RDI`      | `NIR`, `SWIR_2`                                   | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.RGI`      | `GREEN`, `RED`                                    | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.RI`       | `GREEN`, `VRE_1`                                  | Sentinel-2, Sentinel-3 OLCI, Landsat MSS, PlanetScope (5 and 8 bands), RapidEye, WorldView-2/3 (8 bands), Pleiades-Neo (full) |
-| {meth}`~eoreader.bands.indices.SBI`      | `RED`, `NIR`                                      | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.SAVI`     | `RED`, `NIR`                                      | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.SCI`      | `RED`, `GREEN`                                    | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.SI`       | `GREEN`, `RED`                                    | All optical constellations                                                                                                    |
-| {meth}`~eoreader.bands.indices.SRSWIR`   | `SWIR_1`, `SWIR_2`                                | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.TCBRI`    | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.TCGRE`    | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.TCWET`    | `BLUE`, `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2` | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.VARI`     | `GREEN`, `RED`, `BLUE`                            | All optical constellations except for Landsat MSS, SPOT-4/5 and Sentinel-3 SLSTR                                              |
-| {meth}`~eoreader.bands.indices.WI`       | `GREEN`, `RED`, `NIR`, `SWIR_1`, `SWIR_2`         | Sentinel-2, Sentinel-3 SLSTR, Landsat OLCI, (E)TM                                                                             |
-| {meth}`~eoreader.bands.indices.WV_BI`    | `VRE_1`, `CA`                                     | Sentinel-2, Sentinel-3 OLCI, Landsat OLCI, WorldView-2/3 (8 bands), Pleiades-Neo (full)                                       |
-| {meth}`~eoreader.bands.indices.WV_SI`    | `YELLOW`, `GREEN`                                 | Sentinel-3 OLCI, WorldView-2/3 (8 bands)                                                                                      |
-| {meth}`~eoreader.bands.indices.WV_VI`    | `WV`, `RED`                                       | Sentinel-2, Sentinel-3 OLCI, WorldView-2/3 (8 bands)                                                                          |
-| {meth}`~eoreader.bands.indices.WV_WI`    | `WV`, `CA`                                        | Sentinel-2, Sentinel-3 OLCI, WorldView-2/3 (8 bands)                                                                          |
+| Spectral Indices                      | ASI equivalent | Formulas (with ASI syntax)                                                     | Name                                                |
+|---------------------------------------|----------------|--------------------------------------------------------------------------------|-----------------------------------------------------|
+| `AFRI_1_6`                            | `AFRI1600`     | `(N - 0.66 * S1) / (N + 0.66 * S1)`                                            | Aerosol Free Vegetation Index (1600 nm)             |
+| `AFRI_2_1`                            | `AFRI2100`     | `(N - 0.5 * S2) / (N + 0.5 * S2)`                                              | Aerosol Free Vegetation Index (2100 nm)             |
+| `BSI`                                 | `BI`           | `((S1 + R) - (N + B))/((S1 + R) + (N + B))`                                    | Barren Soil Index                                   |
+| `DSWI`                                | `DSWI5`        | `(N + G)/(S1 + R)`                                                             | Disease water stress index                          |
+| `GRI`                                 | `DSWI4`        | `G/R`                                                                          | Green-to-Red ratio Index                            |
+| `NDGRI`                               | `NGRDI`        | `(G - R) / (G + R)`                                                            | Normalized Green Red Difference Index               |
+| `NDMI21` (or `NDMI2100`)              | ❌              | `(N - S2) / (N + S2)`                                                          | Normalized Difference Moisture Index (with 2100 nm) |
+| `NDRE1`                               | `NDREI`        | `(N - RE1) / (N + RE1)`                                                        | Normalized Difference Red Edge Index                |
+| `NDRE2`                               | ❌              | `(N - RE2) / (N + RE2)`                                                        | Normalized Difference Red-Edge Index with RE2       |
+| `NDRE3`                               | ❌              | `(N - RE3) / (N + RE3)`                                                        | Normalized Difference Red-Edge Index with RE1       |
+| `CI32`                                | ❌              | `(RE3 / RE2) - 1`                                                              | Chlorophyll Index RedEdge RE3/RE2                   |
+| `CI21`                                | ❌              | `(RE2 / RE1) - 1`                                                              | Chlorophyll Index RedEdge RE2/RE1                   |
+| {meth}`~eoreader.bands.indices.PANI`  | ❌              | `(R**2 + B**2 + G**2)**0.5`                                                    | Panchromatic mocking index                          |
+| `RDI`                                 | `DSI`          | `S1/N`                                                                         | Ratio Drought Index / Drought Stress Index          |
+| `RGI`                                 | `RGRI`         | `R/G`                                                                          | Relative Greenness Index / Red-Green Ratio Index    |
+| {meth}`~eoreader.bands.indices.SBI`   | ❌              | `(R**2 + N**2)**0.5`                                                           | Soil Brightness Index                               |
+| {meth}`~eoreader.bands.indices.SCI`   | ❌              | `3*G - R - 100`                                                                | Soil Cuirass Index                                  |
+| `SRSWIR`                              | ❌              | `S1/S2`                                                                        | Simple Ratio SWIR16/SWIR21 Clay Minerals            |
+| {meth}`~eoreader.bands.indices.TCBRI` | ❌              | `0.3037 *B + 0.2793 * G + 0.4743 * R + 0.5585 * N + 0.5082 * S1 + 0.1863 * S2` | Tasseled Cap Brightness                             |
+| {meth}`~eoreader.bands.indices.TCGRE` | ❌              | `0.2848 *B + 0.2435 * G + 0.5436 * R + 0.7243 * N + 0.0840 * S1 + 0.1800 * S2` | Tasseled Cap Greenness                              |
+| {meth}`~eoreader.bands.indices.TCWET` | ❌              | `0.1509 *B + 0.1973 * G + 0.3279 * R + 0.3406 * N + 0.7112 * S1 + 0.4572 * S2` | Tasseled Cap Wetness                                |
+| `WI`                                  | `WI2015`       | `1.7204 + 171 * G + 3 * R - 70 * N - 45 * S1 - 71 * S2`                        | Water Index (2015)                                  |
+| `WV_BI`                               | `NHFD`         | `(RE1 - A) / (RE1 + A)`                                                        | WorldView Built-up Index                            |
+| `WV_SI`                               | ❌              | `(Y - G) / (Y + G)`                                                            | WorldView Soil Index                                |
+| `WV_VI`                               | ❌              | `(WV - R) / (WV + R)`                                                          | WorldView Vegetation Index                          |
+| `WV_WI`                               | ❌              | `(WV - A) / (WV + A)`                                                          | WorldView Water Index                               |
 ```
 
 ```{note}

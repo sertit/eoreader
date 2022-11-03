@@ -86,6 +86,12 @@ You also can load despeckled bands:
 - {meth}`~eoreader.bands.SarBandNames.RH_DSPK` (only for RADARSAT-Constellation)
 - {meth}`~eoreader.bands.SarBandNames.RV_DSPK` (only for RADARSAT-Constellation)
 
+### Available indices
+
+EOReader uses (from version 0.18.0) the indices described in
+the [awesome spectral indices (ASI)](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/) project.
+
+ASI implements SAR indices, with the list available [here](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/list.html#radar).
 
 ## DEM bands
 
