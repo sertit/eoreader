@@ -1,12 +1,9 @@
 """ Script testing EOReader satellites in a push routine """
-import logging
 import os
 import shutil
-import sys
 import tempfile
 
 import pytest
-import xarray as xr
 from cloudpathlib import AnyPath
 from sertit import ci, files
 

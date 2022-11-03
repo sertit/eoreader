@@ -877,11 +877,11 @@ class OpticalProduct(Product):
         Returns:
             list: Representation list (constellation specific)
         """
-        repr = []
+        repr_str = []
         if self._has_cloud_cover:
-            repr.append(f"\tcloud cover: {self.get_cloud_cover()}")
+            repr_str.append(f"\tcloud cover: {self.get_cloud_cover()}")
 
         if self.tile_name is not None:
-            repr.append(f"\ttile name: {self.tile_name}")
+            repr_str.append(f"\ttile name: {self.tile_name}")
 
-        return repr
+        return repr_str

@@ -113,52 +113,52 @@ def _idx_fct(function: Callable) -> Callable:
     return _idx_fct_wrapper
 
 
-def compute_index(idx: str, bands: dict, **kwargs):
+def compute_index(index: str, bands: dict, **kwargs) -> xr.DataArray:
     """
 
     Args:
-        idx:
-        bands:
-        **kwargs:
+        index (str): Index name (as a string)
+        bands (dict): Band dictionary
+        **kwargs: Kwargs
 
     Returns:
-
+        xr.DataArray: Computed index
     """
 
     def _compute_params(_bands, **_kwargs):
-        params = {
+        prms = {
             EOREADER_TO_SPYNDEX_DICT[key]: value.data for key, value in _bands.items()
         }
-        params.update(_kwargs)
+        prms.update(_kwargs)
 
-        return params
+        return prms
 
-    if hasattr(spyndex.indices, idx):
+    if hasattr(spyndex.indices, index):
         parameters = _compute_params(bands, **kwargs)
 
-        if idx == "SAVI":
+        if index == "SAVI":
             parameters["L"] = 0.5
-        elif idx == "EVI":
+        elif index == "EVI":
             parameters["g"] = 2.5
             parameters["C1"] = 6.0
             parameters["C2"] = 7.5
             parameters["L"] = 1.0
 
-        index = spyndex.computeIndex(idx, parameters)
+        index = spyndex.computeIndex(index, parameters)
 
-    elif idx in EOREADER_ALIASES:
+    elif index in EOREADER_ALIASES:
         index = spyndex.computeIndex(
-            EOREADER_ALIASES[idx], _compute_params(bands, **kwargs)
+            EOREADER_ALIASES[index], _compute_params(bands, **kwargs)
         )
-    elif idx in EOREADER_DERIVATIVES:
-        idx_name = EOREADER_DERIVATIVES[idx][0]
+    elif index in EOREADER_DERIVATIVES:
+        idx_name = EOREADER_DERIVATIVES[index][0]
         params = {
             key: bands[value].data
-            for key, value in EOREADER_DERIVATIVES[idx][1].items()
+            for key, value in EOREADER_DERIVATIVES[index][1].items()
         }
         index = spyndex.computeIndex(idx_name, params)
     else:
-        index = eval(idx)(bands)
+        index = eval(index)(bands)
 
     # TODO: check if metadata is kept with spyndex
 
@@ -166,7 +166,7 @@ def compute_index(idx: str, bands: dict, **kwargs):
     first_xda = list(bands.values())[0]
     out_xda = first_xda.copy(data=index)
 
-    return rasters.set_metadata(out_xda, first_xda, new_name=idx)
+    return rasters.set_metadata(out_xda, first_xda, new_name=index)
 
 
 def _norm_diff(band_1: xr.DataArray, band_2: xr.DataArray) -> xr.DataArray:
@@ -332,7 +332,13 @@ def get_all_index_names() -> list:
     return get_spyndex_indices() + get_eoreader_indices()
 
 
-def get_eoreader_indices():
+def get_eoreader_indices() -> list:
+    """
+    Get list of all EOReader indices
+
+    Returns:
+        list: list of all EOReader indices
+    """
     eoreader_indices = []
 
     functions = inspect.getmembers(sys.modules[__name__], predicate=inspect.isfunction)
@@ -348,16 +354,40 @@ def get_eoreader_indices():
     return eoreader_indices
 
 
-def get_spyndex_indices():
+def get_spyndex_indices() -> list:
+    """
+    Get list of all Spyndex indices
+
+    Returns:
+        list: list of all Spyndex indices
+    """
     return list(spyndex.indices)
 
 
-def is_eoreader_idx(idx: str) -> bool:
-    return idx in get_eoreader_indices()
+def is_eoreader_idx(index: str) -> bool:
+    """
+    Yes if the string is an EOReader index
+
+    Args:
+        index (str): String to test
+
+    Returns:
+        bool: True if the string is an EOReader index
+    """
+    return index in get_eoreader_indices()
 
 
-def is_spyndex_idx(idx: str) -> bool:
-    return idx in get_spyndex_indices()
+def is_spyndex_idx(index: str) -> bool:
+    """
+    Yes if the string is a Spyndex index
+
+    Args:
+        index (str): String to test
+
+    Returns:
+        bool: True if the string is a Spyndex index
+    """
+    return index in get_spyndex_indices()
 
 
 # Check that no EOReader index name shadows Spyndex indices
@@ -435,10 +465,10 @@ def get_all_needed_bands() -> dict:
         dict: Needed bands for all index functions
 
     """
-    return {idx: get_needed_bands(idx) for idx in get_all_index_names()}
+    return {index: get_needed_bands(index) for index in get_all_index_names()}
 
 
-def is_index(idx) -> bool:
+def is_index(index) -> bool:
     """
     Returns True if is an index function from the :code:`bands.index` module
 
@@ -457,13 +487,13 @@ def is_index(idx) -> bool:
         False
 
     Args:
-        idx (Any): Anything that could be an index
+        index (Any): Anything that could be an index
 
     Returns:
         bool: True if the index asked is an index function (such as :code:`index.NDVI`)
 
     """
-    return str(idx) in get_all_index_names()
+    return str(index) in get_all_index_names()
 
 
 NEEDED_BANDS = get_all_needed_bands()

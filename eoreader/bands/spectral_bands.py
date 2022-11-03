@@ -95,20 +95,22 @@ class SpectralBand(Band):
         Returns:
             list: Representation list (constellation specific)
         """
-        repr = []
+        repr_str = []
 
         if self.center_wavelength is not None:
-            repr.append(f"\tCenter wavelength (nm): {self.center_wavelength * 1000}")
+            repr_str.append(
+                f"\tCenter wavelength (nm): {self.center_wavelength * 1000}"
+            )
 
         if self.full_width_half_max is not None:
-            repr.append(f"\tBandwidth (nm): {self.full_width_half_max * 1000}")
+            repr_str.append(f"\tBandwidth (nm): {self.full_width_half_max * 1000}")
 
         if self.solar_illumination is not None:
-            repr.append(
+            repr_str.append(
                 f"\tSolar Illumination (W/m2/micrometers): {self.solar_illumination}"
             )
 
-        return repr
+        return repr_str
 
 
 # too many ancestors

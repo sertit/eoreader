@@ -415,7 +415,7 @@ def to_band(to_convert: list) -> list:
     if not isinstance(to_convert, list):
         to_convert = [to_convert]
 
-    bands = []
+    band_list = []
     for tc in to_convert:
         band_or_idx = None
         # Try legit types
@@ -445,11 +445,11 @@ def to_band(to_convert: list) -> list:
 
         # Store it
         if band_or_idx:
-            bands.append(band_or_idx)
+            band_list.append(band_or_idx)
         else:
             raise _ite(f"Unknown band or index: {tc}")
 
-    return bands
+    return band_list
 
 
 def to_str(to_convert: list) -> list:

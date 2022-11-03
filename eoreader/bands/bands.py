@@ -91,7 +91,7 @@ class Band:
             list: Representation of the product
         """
         # Mandatory fields
-        repr = [
+        repr_str = [
             f"eoreader.{self.__class__.__name__} '{self.name}'",
             "Attributes:",
             f"\tid: {self.id}",
@@ -104,18 +104,18 @@ class Band:
                 if isinstance(attr_str, ListEnum):
                     attr_str = attr_str.value
                 if attr == "gsd":
-                    repr.append(f"\t{attr} (m): {attr_str}")
+                    repr_str.append(f"\t{attr} (m): {attr_str}")
                 else:
-                    repr.append(f"\t{attr}: {attr_str}")
+                    repr_str.append(f"\t{attr}: {attr_str}")
 
         # Specific to constellation
-        repr += self._to_repr_constellation_specific()
+        repr_str += self._to_repr_constellation_specific()
 
         # Final: description
         if self.description:
-            repr.append(f"\tdescription: {self.description}")
+            repr_str.append(f"\tdescription: {self.description}")
 
-        return repr
+        return repr_str
 
     @abstractmethod
     def _to_repr_constellation_specific(self) -> list:

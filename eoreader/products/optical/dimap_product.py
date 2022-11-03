@@ -21,6 +21,7 @@ for more information.
 """
 import logging
 import time
+from abc import abstractmethod
 from datetime import date, datetime
 from enum import unique
 from pathlib import Path
@@ -794,22 +795,11 @@ class DimapProduct(VhrProduct):
             (float, float, float): Mean azimuth, off-nadir and incidence angles
         """
 
-        def incidence_to_off_nadir(
-            incidence_angle: float, orbit_height: float = 695000
-        ) -> float:
-            """
-
-            Args:
-                incidence_angle:
-                orbit_height:
-
-            Returns:
-
-            """
+        def incidence_to_off_nadir(inc_angle: float, orbit_h: float = 695000) -> float:
             earth_radius = 6378137
-            orbit_coeff = (earth_radius + orbit_height) / earth_radius
+            orbit_coeff = (earth_radius + orbit_h) / earth_radius
             return np.rad2deg(
-                np.arcsin(np.sin(np.deg2rad(90 - incidence_angle)) / orbit_coeff)
+                np.arcsin(np.sin(np.deg2rad(90 - inc_angle)) / orbit_coeff)
             )
 
         # Get MTD XML file
@@ -829,7 +819,7 @@ class DimapProduct(VhrProduct):
 
         # Compute off nadir angles
         off_nadir = incidence_to_off_nadir(
-            incidence_angle=incidence_angle, orbit_height=self._altitude
+            inc_angle=incidence_angle, orbit_h=self._altitude
         )
 
         return az, off_nadir, incidence_angle
@@ -1086,7 +1076,7 @@ class DimapProduct(VhrProduct):
         return mask
 
     def _load_nodata(
-        self, width: int, height: int, transform: affine.Affine, **kwargs
+        self, width: int, height: int, trf: affine.Affine, **kwargs
     ) -> Union[np.ndarray, None]:
         """
         Load nodata (unimaged pixels) as a numpy array.
@@ -1094,7 +1084,7 @@ class DimapProduct(VhrProduct):
         Args:
             width (int): Array width
             height (int): Array height
-            transform (affine.Affine): Transform to georeference array
+            trf (affine.Affine): Transform to georeference array
 
         Returns:
             Union[np.ndarray, None]: Nodata array
@@ -1112,7 +1102,7 @@ class DimapProduct(VhrProduct):
                 out_shape=(height, width),
                 fill=self._mask_true,  # Outside ROI = nodata (inverted compared to the usual)
                 default_value=self._mask_false,  # Inside ROI = not nodata
-                transform=transform,
+                transform=trf,
                 dtype=np.uint8,
             )
 
@@ -1278,3 +1268,17 @@ class DimapProduct(VhrProduct):
             str: VHR product ID
         """
         return self.split_name[-1]
+
+    @abstractmethod
+    def _map_bands(self) -> None:
+        """
+        Map bands
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _set_instrument(self) -> None:
+        """
+        Set product type
+        """
+        raise NotImplementedError

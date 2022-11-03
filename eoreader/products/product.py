@@ -1755,7 +1755,7 @@ class Product:
                 if val is not None
             ]
         )
-        repr = [
+        repr_str = [
             f"eoreader.{self.__class__.__name__} '{self.name}'",
             "Attributes:",
             f"\tcondensed_name: {self.condensed_name}",
@@ -1769,7 +1769,7 @@ class Product:
             f"\tneeds extraction: {self.needs_extraction}",
         ]
 
-        return repr + self._to_repr_constellation_specific()
+        return repr_str + self._to_repr_constellation_specific()
 
     @abstractmethod
     def _to_repr_constellation_specific(self) -> list:
