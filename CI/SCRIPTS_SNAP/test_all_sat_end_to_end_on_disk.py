@@ -1,10 +1,8 @@
 """ Script testing EOReader satellites in a push routine """
-import logging
 import os
 import tempfile
 from typing import Union
 
-import xarray as xr
 from cloudpathlib import AnyPath
 from lxml import etree
 from sertit import ci, files

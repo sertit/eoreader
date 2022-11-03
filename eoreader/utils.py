@@ -110,17 +110,17 @@ def get_split_name(name: str) -> list:
 def use_dask():
     """Use Dask or not"""
     # Check environment variable
-    use_dask = os.getenv(USE_DASK, "0").lower() in ("1", "true")
+    _use_dask = os.getenv(USE_DASK, "0").lower() in ("1", "true")
 
     # Check installed libs
-    if use_dask:
+    if _use_dask:
         try:
             import dask
             import distributed
         except ImportError:
-            use_dask = False
+            _use_dask = False
 
-    return use_dask
+    return _use_dask
 
 
 def read(
@@ -408,7 +408,7 @@ def simplify(footprint_fct: Callable):
     Simplify footprint decorator
 
     Args:
-        function (Callable): Function to decorate
+        footprint_fct (Callable): Function to decorate
 
     Returns:
         Callable: decorated function

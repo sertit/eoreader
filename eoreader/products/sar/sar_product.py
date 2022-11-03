@@ -898,21 +898,21 @@ class SarProduct(Product):
             str: SAR path
         """
 
-        def interp_na(arr, dim):
+        def interp_na(array, dim):
             try:
-                arr = arr.interpolate_na(dim=dim, limit=10, keep_attrs=True)
+                array = array.interpolate_na(dim=dim, limit=10, keep_attrs=True)
             except ValueError:
                 try:
                     # ValueError: Index 'y' must be monotonically increasing
-                    dim_idx = getattr(arr, dim)
+                    dim_idx = getattr(array, dim)
                     reversed_dim_idx = list(reversed(dim_idx))
-                    arr = arr.reindex(**{dim: reversed_dim_idx})
-                    arr = arr.interpolate_na(dim=dim, limit=10, keep_attrs=True)
-                    arr = arr.reindex(**{dim: dim_idx})
+                    array = array.reindex(**{dim: reversed_dim_idx})
+                    array = array.interpolate_na(dim=dim, limit=10, keep_attrs=True)
+                    array = array.reindex(**{dim: dim_idx})
                 except ValueError:
                     pass
 
-            return arr
+            return array
 
         # Get .img file path (readable by rasterio)
         try:

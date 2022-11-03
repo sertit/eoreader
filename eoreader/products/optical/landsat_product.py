@@ -1132,7 +1132,7 @@ class LandsatProduct(OpticalProduct):
             # Convert raw bands from DN to correct reflectance
             if not filename.startswith(self.condensed_name):
                 # Open mtd
-                mtd_data, _ = self._read_mtd()
+                mtd, _ = self._read_mtd()
 
                 # Get band nb and corresponding coeff
                 band_name = self.bands[band].id
@@ -1145,11 +1145,11 @@ class LandsatProduct(OpticalProduct):
                             and self.product_type == LandsatProductType.L2
                         ):
                             band_name = "6_VCID_1"
-                        band_arr = self._to_tb(band_arr, band, mtd_data, band_name)
+                        band_arr = self._to_tb(band_arr, mtd, band_name)
 
                     else:
                         # Original band name
-                        band_arr = self._to_refl(band_arr, band, mtd_data, band_name)
+                        band_arr = self._to_refl(band_arr, mtd, band_name)
                 except TypeError:
                     raise InvalidProductError(
                         f"Cannot find additive or multiplicative "
@@ -1162,18 +1162,18 @@ class LandsatProduct(OpticalProduct):
     def _to_tb(
         self,
         band_arr: xr.DataArray,
-        band: BandNames,
-        mtd_data,
-        band_name,
-        **kwargs,
+        mtd: etree._Element,
+        band_name: str,
     ) -> xr.DataArray:
         """
-        Converts band to brightness temperatue
+        Converts band to brightness temperature
 
         https://www.usna.edu/Users/oceano/pguth/md_help/remote_sensing_course/landsat_thermal.htm
 
-
         Args:
+            band_arr (xr.DataArray): Band array
+            mtd (etree._Element): Metadata
+            band_name (str): Band name
 
         Returns:
             xr.DataArray: Band in brightness temperature
@@ -1181,8 +1181,8 @@ class LandsatProduct(OpticalProduct):
         # Get coeffs to convert DN to radiance
         c_mul_str = "RADIANCE_MULT_BAND_" + band_name
         c_add_str = "RADIANCE_ADD_BAND_" + band_name
-        c_mul = mtd_data.findtext(f".//{c_mul_str}")
-        c_add = mtd_data.findtext(f".//{c_add_str}")
+        c_mul = mtd.findtext(f".//{c_mul_str}")
+        c_add = mtd.findtext(f".//{c_add_str}")
 
         # Manage NULL values
         try:
@@ -1199,8 +1199,8 @@ class LandsatProduct(OpticalProduct):
         # Get coeffs to convert radiance to TB
         k1_str = "K1_CONSTANT_BAND_" + band_name
         k2_str = "K2_CONSTANT_BAND_" + band_name
-        k1 = float(mtd_data.findtext(f".//{k1_str}"))
-        k2 = float(mtd_data.findtext(f".//{k2_str}"))
+        k1 = float(mtd.findtext(f".//{k1_str}"))
+        k2 = float(mtd.findtext(f".//{k2_str}"))
 
         band_arr = k2 / np.log(k1 / band_arr + 1)
 
@@ -1209,15 +1209,16 @@ class LandsatProduct(OpticalProduct):
     def _to_refl(
         self,
         band_arr: xr.DataArray,
-        band: BandNames,
-        mtd_data,
-        band_name,
-        **kwargs,
+        mtd: etree._Element,
+        band_name: str,
     ) -> xr.DataArray:
         """
         Converts band to reflectance
 
         Args:
+            band_arr (xr.DataArray): Band array
+            mtd (etree._Element): Metadata
+            band_name (str): Band name
 
         Returns:
             xr.DataArray: Band in reflectance
@@ -1226,8 +1227,8 @@ class LandsatProduct(OpticalProduct):
         c_add_str = "REFLECTANCE_ADD_BAND_" + band_name
 
         # Get coeffs to convert DN to reflectance
-        c_mul = mtd_data.findtext(f".//{c_mul_str}")
-        c_add = mtd_data.findtext(f".//{c_add_str}")
+        c_mul = mtd.findtext(f".//{c_mul_str}")
+        c_add = mtd.findtext(f".//{c_add_str}")
 
         # Manage NULL values
         try:
