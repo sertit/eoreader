@@ -30,7 +30,6 @@ It also implements additional **sensor-agnostic** features:
 EOReader works with [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray)
 and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_structures.html#geodataframe)
 
-
 ## Python Quickstart
 
 ### Optical
@@ -85,6 +84,7 @@ stack = s1_prod.stack([VV_DSPK, VH_DSPK], stack_path="s1_stack.tif")
 > If you are using SNAP 8.0, be sure to have your software up-to-date (SNAP version >= 8.0).
 
 ## Documentation
+
 The API documentation can be found [here](https://eoreader.readthedocs.io/en/latest/).
 
 ## Examples
@@ -132,21 +132,27 @@ conda install -c conda-forge eoreader
 
 ## Context
 
-SERTIT is part of the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/)
-rapid mapping and risk and recovery teams.
+As one of the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/) Rapid Mapping and Risk and Recovery Mapping operators, 
+SERTIT needs to deliver geoinformation (such as flood or fire delineation, landslides mapping, etc.) based on multiple EO constellations.
 
-In these activations, we need to deliver information (such as flood or fire delineations, landslides mapping, etc.)
-based on various constellations (more than 10 optical and 5 SAR). As every minute counts in production,
-it seemed crucial to harmonize the ground on which are built our production tools, in order to make them
-as sensor-agnostic as possible.
+In rapid mapping, it is always important to have access to various sensor types, resolutions, and satellites. Indeed, SAR sensors are able to detect through clouds and during nighttime 
+(which is particularly useful during flood and storm events), while optical sensors benefit from of multi spectral bands to better analyze and classify the crisis information.
+
+As every minute counts in the production of geoinformation in an emergency mode, it seemed crucial to harmonize the ground on which are built our production tools, in order to make them as
+sensor-agnostic as possible.
+
+This is why SERTIT decided to decouple the sensor handling from the extraction algorithms: the latter should be able to ingest semantic bands 
+(i.e. `RED` or `VV`) without worrying about how to load the specific sensor band or in what unit it is.  
+The assumption was made that all the spectral bands from optical sensors could be mapped between each other (see Figure 2), in addition to the natural
+mapping between SAR bands.
 
 Thus, thanks to **EOReader**, these tools are made independent to the constellation:
-- the algorithm (and its developer) can focus on its core tasks (such as extraction)
-without taking into account the constellation characteristics
-(how to load a band, which band correspond to which band number, which band to use for this index...)
-- the addition of a new constellation is done effortlessly (if existing in **EOReader**) and without any modification of the algorithm
-- the maintenance is simplified and the code is way more readable (no more ifs regarding the sensor type!)
-- the testing is also simplified as the sensor-related parts are tested in this library
+
+✅ the algorithm (and its developer) can focus on its core tasks (such as extraction) without taking into account the sensor characteristics 
+(how to load a band, which band correspond to which band number, …)  
+✅ new sensor addition is effortless (if existing in **EOReader**) and requires no algorithm modification  
+✅ maintenance is simplified and the code quality is significantly improved  
+✅ testing is also simplified as the sensor-related parts are tested in EOReader library  
 
 However, keep in mind that the support of all the constellations used in CEMS is done in the best effort mode, especially for commercial data.
 Indeed, we may not have faced every product type, sensor mode or order configuration, so some details may be missing.
@@ -156,8 +162,8 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 
 - GeoPython 2022 [ [PDF](https://seafile.unistra.fr/f/be2b461af970465b903e/) ] [ [YouTube](https://www.youtube.com/watch?v=mKxOiRULOJA&t=14303s) ]
 - Mentionned in **[Live+]SIG 2022 by ESRI France** (in French):
- `Enrichir ArcgisPro grâce à des processus personnalisés d'observation de la Terre`
- [ [PDF](https://seafile.unistra.fr/f/9502a14f142041468837/) ]
+  `Enrichir ArcgisPro grâce à des processus personnalisés d'observation de la Terre`
+  [ [PDF](https://seafile.unistra.fr/f/9502a14f142041468837/) ]
 
 ## Press Release
 

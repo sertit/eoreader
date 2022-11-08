@@ -1,5 +1,6 @@
 exclude: |
-  (?x)^(docs/.*)$
+  (?x)^(docs/.*)$ |
+  .*\.md
 fail_fast: false
 repos:
 
