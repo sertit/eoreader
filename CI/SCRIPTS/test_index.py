@@ -33,7 +33,7 @@ ci.reduce_verbosity()
 
 @s3_env
 @dask_env
-def ___test_index():
+def test_index():
     """Function testing the correct functioning of the indices"""
     # Load S2 products as it can load every index
     s2_path = opt_path().joinpath(
@@ -42,7 +42,7 @@ def ___test_index():
     prod = READER.open(s2_path)
     failed_idx = []
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_dir = os.path.join("/mnt", "ds2_db3", "CI", "eoreader", "DATA", "INDEX")
+        # tmp_dir = os.path.join("/mnt", "ds2_db3", "CI", "eoreader", "DATA", "INDEX")
         prod.output = os.path.join(tmp_dir, prod.condensed_name)
 
         # Load every index
