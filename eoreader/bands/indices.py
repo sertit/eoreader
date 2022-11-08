@@ -37,7 +37,6 @@ from eoreader.bands.band_names import (
     BLUE,
     CA,
     GREEN,
-    NARROW_NIR,
     NIR,
     RED,
     SWIR_1,
@@ -69,13 +68,16 @@ EOREADER_ALIASES = {
     "GRI": "DSWI4",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/16
 }
 
+# Using NIR instead of NARROW_NIR to follow ASI approach
+# (see: https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/27)
+# Goal with this dict: to have as many indices as possible implemented in ASI
 EOREADER_DERIVATIVES = {
-    "NDRE2": ["NDREI", {"N": NARROW_NIR, "RE1": VRE_2}],
-    "NDRE3": ["NDREI", {"N": NARROW_NIR, "RE1": VRE_3}],
-    "NDMI21": ["NDMI", {"N": NARROW_NIR, "S1": SWIR_2}],
-    "NDMI2100": ["NDMI", {"N": NARROW_NIR, "S1": SWIR_2}],
-    "CI21": ["CIRE", {"N": VRE_2, "RE1": VRE_1}],
-    "CI32": ["CIRE", {"N": VRE_3, "RE1": VRE_2}],
+    "NDRE2": ["NDREI", {"N": NIR, "RE1": VRE_2}],
+    "NDRE3": ["NDREI", {"N": NIR, "RE1": VRE_3}],
+    "NDMI21": ["NDMI", {"N": NIR, "S1": SWIR_2}],
+    "NDMI2100": ["NDMI", {"N": NIR, "S1": SWIR_2}],
+    "CI2": ["CIRE", {"N": VRE_2, "RE1": VRE_1}],
+    "CI1": ["CIRE", {"N": VRE_3, "RE1": VRE_2}],
     # https://resources.maxar.com/optical-imagery/multispectral-reference-guide
     "WV_WI": ["NHFD", {"RE1": WV, "A": CA}],
     "WV_VI": ["NHFD", {"RE1": WV, "A": RED}],
@@ -144,10 +146,10 @@ def compute_index(index: str, bands: dict, **kwargs) -> xr.DataArray:
             parameters["C2"] = 7.5
             parameters["L"] = 1.0
 
-        index = spyndex.computeIndex(index, parameters)
+        index_arr = spyndex.computeIndex(index, parameters)
 
     elif index in EOREADER_ALIASES:
-        index = spyndex.computeIndex(
+        index_arr = spyndex.computeIndex(
             EOREADER_ALIASES[index], _compute_params(bands, **kwargs)
         )
     elif index in EOREADER_DERIVATIVES:
@@ -156,15 +158,15 @@ def compute_index(index: str, bands: dict, **kwargs) -> xr.DataArray:
             key: bands[value].data
             for key, value in EOREADER_DERIVATIVES[index][1].items()
         }
-        index = spyndex.computeIndex(idx_name, params)
+        index_arr = spyndex.computeIndex(idx_name, params)
     else:
-        index = eval(index)(bands)
+        index_arr = eval(index)(bands)
 
     # TODO: check if metadata is kept with spyndex
 
     # Take the first band as a template for xarray
     first_xda = list(bands.values())[0]
-    out_xda = first_xda.copy(data=index)
+    out_xda = first_xda.copy(data=index_arr)
 
     return rasters.set_metadata(out_xda, first_xda, new_name=index)
 

@@ -514,7 +514,9 @@ class OpticalProduct(Product):
         # Compute index (they conserve the nodata)
         if index_list:
             LOGGER.debug(f"Loading indices {to_str(index_list)}")
-        bands_dict = {idx: compute_index(idx, loaded_bands) for idx in index_list}
+        bands_dict = {
+            idx: compute_index(index=idx, bands=loaded_bands) for idx in index_list
+        }
 
         # Add bands
         bands_dict.update({band: loaded_bands[band] for band in band_list})
