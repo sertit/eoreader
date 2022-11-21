@@ -1,9 +1,12 @@
 """ Script testing EOReader satellites in a push routine """
+import logging
 import os
 import shutil
+import sys
 import tempfile
 
 import pytest
+import xarray as xr
 from cloudpathlib import AnyPath
 from sertit import ci, files
 
@@ -16,7 +19,23 @@ from CI.SCRIPTS.scripts_utils import (
     get_db_dir_on_disk,
     opt_path,
 )
-from eoreader.bands import *
+from eoreader.bands import (
+    ALL_CLOUDS,
+    CLOUDS,
+    F1,
+    HH,
+    HH_DSPK,
+    HILLSHADE,
+    NARROW_NIR,
+    PAN,
+    RED,
+    SLOPE,
+    SWIR_2,
+    TIR_1,
+    VV,
+    VV_DSPK,
+    Oa01,
+)
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT, SAR_DEF_RES, TEST_USING_S3_DB
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod

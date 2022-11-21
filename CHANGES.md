@@ -14,6 +14,9 @@
     - `CI1` is renamed `CI32` and `CI2` is renamed `CI21` for readability purposes
     - `NDWI21` can be written `NDWI2100` for homogeneity purposes
     - `RDI` (or `DSI`) uses now `SWIR_1` instead of `SWIR_2` (see [this](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/18) issue)
+### Bug Fixes
+
+- FIX: SNAP cannot handle float predictors other than 1! Set it to 1 when saving ortho SAR images to disk, in order for SNAP to be able to despeckle them (https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7).
 
 ### Other
 
