@@ -10,7 +10,40 @@ from cloudpathlib import AnyPath, S3Client
 from sertit import ci, files
 
 from eoreader import utils
-from eoreader.bands import *
+from eoreader.bands import (
+    BLUE,
+    CA,
+    CLOUDS,
+    DEM,
+    GREEN,
+    HH,
+    HILLSHADE,
+    HV,
+    HV_DSPK,
+    NARROW_NIR,
+    NDVI,
+    NIR,
+    RED,
+    SLOPE,
+    SWIR_1,
+    SWIR_2,
+    VH,
+    VH_DSPK,
+    VRE_1,
+    VRE_2,
+    VRE_3,
+    VV,
+    VV_DSPK,
+    WV,
+    SarBandMap,
+    SarBandNames,
+    SpectralBandMap,
+    is_clouds,
+    is_dem,
+    is_index,
+    is_sat_band,
+    to_band,
+)
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
 from eoreader.exceptions import InvalidTypeError
 from eoreader.products import SensorType

@@ -936,7 +936,17 @@ class SarProduct(Product):
                 f"{files.get_filename(dim_path)}_{pol}{'_DSPK' if dspk else ''}.tif",
             )
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
-            utils.write(arr, file_path, dtype=np.float32, nodata=self._snap_no_data)
+
+            # SNAP fails with classic predictor !!! Set the predictor to the default value (1) !!!
+            # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
+            # https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7
+            utils.write(
+                arr,
+                file_path,
+                dtype=np.float32,
+                nodata=self._snap_no_data,
+                predictor=1,  # workaround
+            )
 
         return file_path
 
