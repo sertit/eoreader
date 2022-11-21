@@ -45,7 +45,6 @@ from eoreader.bands.band_names import (
     VRE_2,
     VRE_3,
     WV,
-    YELLOW,
     SpectralBandNames,
 )
 from eoreader.bands.mappings import EOREADER_TO_SPYNDEX_DICT, SPYNDEX_TO_EOREADER_DICT
@@ -66,6 +65,8 @@ EOREADER_ALIASES = {
     "RDI": "DSI",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/18
     "DSWI": "DSWI5",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/16
     "GRI": "DSWI4",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/16
+    "WV_SI": "NDSIWV",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/26
+    "PANI": "BITM",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/22
 }
 
 # Using NIR instead of NARROW_NIR to follow ASI approach
@@ -81,9 +82,10 @@ EOREADER_DERIVATIVES = {
     # https://resources.maxar.com/optical-imagery/multispectral-reference-guide
     "WV_WI": ["NHFD", {"RE1": WV, "A": CA}],
     "WV_VI": ["NHFD", {"RE1": WV, "A": RED}],
-    "WV_SI": ["NHFD", {"RE1": YELLOW, "A": GREEN}],
     # https://www.indexdatabase.de/db/i-single.php?id=204
     "SRSWIR": ["DSI", {"S1": SWIR_1, "N": SWIR_2}],
+    # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/22
+    "SBI": ["BIXS", {"G": RED, "R": NIR}],
 }
 
 
@@ -260,42 +262,6 @@ def TCWET(bands: dict) -> xr.DataArray:
         - 0.7112 * bands[SWIR_1]
         - 0.4572 * bands[SWIR_2]
     )
-
-
-@_idx_fct
-def SBI(bands: dict) -> xr.DataArray:
-    """
-    `Soil Brightness Index <https://hal.archives-ouvertes.fr/hal-03207299/document>`_ (p.4)
-
-    The role of the brightness index is to identify the reflectance of soil
-    and to highlight the vegetal cover of bare areas.
-    *Bannari et al. 1996; Soufiane Maimouni and Bannari 2011*
-
-    :code:`SBI = sqrt(RED**2 + NIR**2)`
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return np.sqrt(bands[RED] ** 2 + bands[NIR] ** 2)
-
-
-@_idx_fct
-def PANI(bands: dict) -> xr.DataArray:
-    """
-    Panchromatic mocking index
-
-    :code:`PAN = sqrt(RED**2 + GREEN**2 + BLUE**2)`
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return np.sqrt(bands[RED] ** 2 + bands[GREEN] ** 2 + bands[BLUE] ** 2)
 
 
 @_idx_fct
