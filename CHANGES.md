@@ -24,6 +24,7 @@
 ### Other
 
 - DOC: Updating indices paragraphs
+- LIBS: Updating `requirements.txt` and `setup.py` to add `pyresample` and `zarr`
 
 ## 0.17.1 (2022-MM-DD)
 
