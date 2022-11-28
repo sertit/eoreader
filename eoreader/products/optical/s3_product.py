@@ -603,6 +603,7 @@ class S3Product(OpticalProduct):
         suffix: str = None,
         resolution: float = None,
         resampling: Resampling = Resampling.nearest,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Geocode Sentinel-3 bands (using cartesian coordinates)
@@ -611,6 +612,7 @@ class S3Product(OpticalProduct):
             band_arr (xr.DataArray): Band array
             suffix (str): Suffix (for the grid)
             resolution (float): Resolution
+            kwargs: Other arguments
 
         Returns:
             xr.DataArray: Geocoded DataArray
@@ -642,7 +644,9 @@ class S3Product(OpticalProduct):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             logging.captureWarnings(True)
-            logging.getLogger().setLevel(logging.ERROR)
+            default_logger = logging.getLogger()
+            old_lvl = default_logger.getEffectiveLevel()
+            default_logger.setLevel(logging.ERROR)
 
             # Create area definition
             area_def = create_area_def(
@@ -681,6 +685,7 @@ class S3Product(OpticalProduct):
                     resampler.save_resampling_info(cache_file)
 
             logging.captureWarnings(False)
+            default_logger.setLevel(old_lvl)
 
         # COnvert to wanted dtype and shape
         band_arr_resampled = band_arr_resampled.astype(np.float32).expand_dims(
