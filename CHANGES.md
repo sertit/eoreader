@@ -28,6 +28,7 @@
 ### Other
 
 - DOC: Updating indices paragraphs
+- CI: Using actions/checkout@v3
 - LIBS: Updating `requirements.txt` and `setup.py` to add `pyresample` and `zarr`
 
 ## 0.17.1 (2022-MM-DD)
