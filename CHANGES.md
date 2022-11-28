@@ -5,25 +5,28 @@
 ### Breaking Changes
 
 - **BREAKING CHANGES: Refactoring spectral indices management** ([#47](https://github.com/sertit/eoreader/issues/47))
-  - Using [spyndex](https://github.com/awesome-spectral-indices/spyndex) library, allowing to use all spectral indices listed [here](https://github.com/awesome-spectral-indices/awesome-spectral-indices/blob/main/output/spectral-indices-table.csv)
-  - SAR products may now compute indices if possible (see [this list](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/list.html#radar))
-  - Old EOReader indices are still available for legacy purposes, with some changes:
-    - For Sentinel-2 data, the band `NIR` and `NARROW_NIR` may be interchanged for some index (see [this discussion](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/27))
-    - OSAVI formula has changed to stick with the original paper definition (see [issue](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/12))
-    - `NDRE2/3` formula are fixed, now using `VRE_2/3` and `NDRE1` corresponds to `NDREI` and uses `VRE_1`
-    - `CI1` is renamed `CI32` and `CI2` is renamed `CI21` for readability purposes
-    - `NDWI21` can be written `NDWI2100` for homogeneity purposes
-    - `RDI` (or `DSI`) uses now `SWIR_1` instead of `SWIR_2` (see [this](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/18) issue)
-    - `PANI` equivalent is now `BITM` and is normalised ! (/3.)
-    - `SBI` is normalized (/2.) to fit with `BIXS` definition
+    - Using [spyndex](https://github.com/awesome-spectral-indices/spyndex) library, allowing to use all spectral indices
+      listed [here](https://github.com/awesome-spectral-indices/awesome-spectral-indices/blob/main/output/spectral-indices-table.csv)
+    - SAR products may now compute indices if possible (see [this list](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/list.html#radar))
+    - Old EOReader indices are still available for legacy purposes, with some changes:
+        - For Sentinel-2 data, the band `NIR` and `NARROW_NIR` may be interchanged for some index (
+          see [this discussion](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/27))
+        - OSAVI formula has changed to stick with the original paper definition (see [issue](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/12))
+        - `NDRE2/3` formula are fixed, now using `VRE_2/3` and `NDRE1` corresponds to `NDREI` and uses `VRE_1`
+        - `CI1` is renamed `CI32` and `CI2` is renamed `CI21` for readability purposes
+        - `NDWI21` can be written `NDWI2100` for homogeneity purposes
+        - `RDI` (or `DSI`) uses now `SWIR_1` instead of `SWIR_2` (see [this](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/18) issue)
+        - `PANI` equivalent is now `BITM` and is normalised ! (/3.)
+        - `SBI` is normalized (/2.) to fit with `BIXS` definition
 - **BREAKING CHANGES: Using `pyresample` to geocode Sentinel-3 data**  ([#55](https://github.com/sertit/eoreader/issues/55))
-  - Cleaner: better conversion from swath to grid
-  - Faster: Up to 4 times faster
-  - Allows code refactoring between OLCI and SLSTR
+    - Cleaner: better conversion from swath to grid
+    - Faster: Up to 4 times faster
+    - Allows code refactoring between OLCI and SLSTR
 
 ### Bug Fixes
 
-- FIX: SNAP cannot handle float predictors other than 1! Set it to 1 when saving ortho SAR images to disk, in order for SNAP to be able to despeckle them (https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7).
+- FIX: SNAP cannot handle float predictors other than 1! Set it to 1 when saving ortho SAR images to disk, in order for SNAP to be able to despeckle
+  them (https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7).
 
 ### Other
 
@@ -55,7 +58,8 @@
 - **ENH: Adding the support of Pleides Neo SEN and PRJ products** *(needs GDAL 3.5+ or rasterio 1.3.0+)*
 - **ENH: Adding the function `bands.is_thermal_band`**
 - **ENH: Adding the ability for optical custom stacks to load indices**
-- **ENH: Adding [BAIM (MODIS Burned Area Index)](https://www.researchgate.net/publication/248428333_Burnt_Area_Index_BAIM_for_burned_area_discrimination_at_regional_scale_using_MODIS_datafire) spectral index**
+- **ENH: Adding [BAIM (MODIS Burned Area Index)](https://www.researchgate.net/publication/248428333_Burnt_Area_Index_BAIM_for_burned_area_discrimination_at_regional_scale_using_MODIS_datafire)
+  spectral index**
 - **ENH: Better management of raw units of the bands of optical products**
 - **ENH: Copying files from `tmp_process` when changing product's output**
 
@@ -197,7 +201,8 @@
 ### Bug Fixes
 
 - FIX: Fixing the band mapping of `WorldView-2/3 Multi` (8 bands)
-- FIX: Retrieval (if possible) of Sentinel-1 [unique ID](https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-1-sar/naming-conventions) (was missing from the product name, as it is not in the product preview)
+- FIX: Retrieval (if possible) of Sentinel-1 [unique ID](https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-1-sar/naming-conventions) (was missing from the product name, as it is not in
+  the product preview)
 - FIX: Fixing PAZ/TDX MTD regex
 - FIX: Optical products: Only set cloud cover and radiometry attributes if spectral bands are asked
 
@@ -215,9 +220,11 @@
 
 ### Breaking Changes
 
-- **BREAKING CHANGES: `footprint`, `extent`, `wgs84_extent` and `crs` properties are converted back to methods in order to prevent side effects of expensive computation when displaying the object when debugging (rollback before version 0.8.0)**
+- **BREAKING CHANGES: `footprint`, `extent`, `wgs84_extent` and `crs` properties are converted back to methods in order to prevent side effects of expensive computation when displaying the object when
+  debugging (rollback before version 0.8.0)**
 - **BREAKING CHANGES: `get_all_index` becomes `get_all_indices`**
-- **BREAKING CHANGES: `acquisition_datetime` becomes `datetime` and `default_resolution`becomes `resolution` for `CustomProduct` in accepted keywords, and the metadata fields have been renamed according to the `CustomFields` enum**
+- **BREAKING CHANGES: `acquisition_datetime` becomes `datetime` and `default_resolution`becomes `resolution` for `CustomProduct` in accepted keywords, and the metadata fields have been renamed
+  according to the `CustomFields` enum**
 
 ### Enhancements
 
@@ -238,7 +245,8 @@
 - **ENH: Handling `ICEYE` pure SLC products**
 - **ENH: Allowing the user to choose if they want the GRD or SLC image for `ICEYE` products**
 - **ENH: Add the possibility to directly load the cloud cover for optical data (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/28))**
-- **ENH: Add the possibility to retrieve the quicklook path (if existing) and add the `plot` function allowing the user to plot the quicklook (if existing) ([#28](https://github.com/sertit/eoreader/issues/28))**
+- **ENH: Add the possibility to retrieve the quicklook path (if existing) and add the `plot` function allowing the user to plot the quicklook (if
+  existing) ([#28](https://github.com/sertit/eoreader/issues/28))**
 - **ENH: Add the possibility to retrieve the orbit direction (and add it in the band attributes) ([#28](https://github.com/sertit/eoreader/issues/28))**
 
 ### Bug Fixes
@@ -283,7 +291,9 @@
 
 ### Bug Fixes
 
-- FIX: Using default SAR resolution from official [Copernicus Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589) (Sentinel-2 default
+- FIX: Using default SAR resolution from
+  official [Copernicus Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589) (
+  Sentinel-2 default
   resolution goes to 10.0 m !)
 - FIX: Use `--no-binary fiona,rasterio` directly in `requirements.txt`
 - FIX: Removing useless `outputComplex` line in GPT graphs that is breaking SNAP on Linux
@@ -516,7 +526,8 @@
 ### Enhancements
 
 - **ENH: Adding the support of the PAZ SAR sensor**
-- **ENH: Adding the support of the Sentinel-2 processed with the [processing baseline 4.0](https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming)** [#11](https://github.com/sertit/eoreader/issues/11)
+- **ENH: Adding the support of the Sentinel-2 processed with
+  the [processing baseline 4.0](https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming)** [#11](https://github.com/sertit/eoreader/issues/11)
 - **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !** [#12](https://github.com/sertit/eoreader/issues/12)
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
 - **ENH: Thermal bands of Sentinel-3 SLSTR can now be used**
@@ -688,7 +699,8 @@
 
 - FIX: Decoupling classic metadata reading from the name as EOReader accepts now modified product names (#9)
 - FIX: Better handling of cloud-stored DEM (raising an exception for non-ortho DIMAP data as GDAL and rasterio does not handle that case)
-- FIX: `environment.yml` to respect the stricter use of `file:` syntax. See [here](https://stackoverflow.com/questions/68571543/using-a-pip-requirements-file-in-a-conda-yml-file-throws-attributeerror-fileno)
+- FIX: `environment.yml` to respect the stricter use of `file:` syntax.
+  See [here](https://stackoverflow.com/questions/68571543/using-a-pip-requirements-file-in-a-conda-yml-file-throws-attributeerror-fileno)
   for more information.
 - FIX: Fixing bug when opening an archive product with `name` mode and nested dictionary (when looking for a filename instead of the directory name)
 
