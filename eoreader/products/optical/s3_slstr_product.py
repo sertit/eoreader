@@ -634,6 +634,7 @@ class S3SlstrProduct(S3Product):
 
             # Geocode
             LOGGER.debug(f"Geocoding {pp_name}")
+            kwargs.pop("suffix", None)
             pp_arr = self._geocode(
                 band_arr, resolution=resolution, suffix=suffix, **kwargs
             )

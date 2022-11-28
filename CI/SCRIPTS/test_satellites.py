@@ -470,7 +470,7 @@ def _test_core(
                 assert isinstance(orbit_dir, OrbitDirection)
 
                 # Clean temp
-                if not debug:
+                if not WRITE_ON_DISK:
                     LOGGER.info("Cleaning tmp")
                     prod.clean_tmp()
                     _assert(
