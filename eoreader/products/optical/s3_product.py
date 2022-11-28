@@ -37,11 +37,15 @@ import numpy as np
 import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
+from pyresample import XArrayResamplerNN, create_area_def
+from pyresample import geometry as geom
+from pyresample.bilinear import XArrayBilinearResampler
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from sertit import files, vectors, xml
 from sertit.misc import ListEnum
+from sertit.rasters import MAX_CORES
 from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
@@ -593,6 +597,103 @@ class S3Product(OpticalProduct):
         """
         raise NotImplementedError
 
+    def _geocode(
+        self,
+        band_arr: xr.DataArray,
+        suffix: str = None,
+        resolution: float = None,
+        resampling: Resampling = Resampling.nearest,
+    ) -> xr.DataArray:
+        """
+        Geocode Sentinel-3 bands (using cartesian coordinates)
+
+        Args:
+            band_arr (xr.DataArray): Band array
+            suffix (str): Suffix (for the grid)
+            resolution (float): Resolution
+
+        Returns:
+            xr.DataArray: Geocoded DataArray
+        """
+        rs_methods = [Resampling.nearest, Resampling.bilinear]
+        assert (
+            resampling in rs_methods
+        ), f"resampling method ({resampling}) should be chosen among {rs_methods}"
+
+        # Open lat/lon arrays
+        geo_file = self._replace(self._geo_file, suffix=suffix)
+        lon_nc_name = self._replace(self._lon_nc_name, suffix=suffix)
+        lat_nc_name = self._replace(self._lat_nc_name, suffix=suffix)
+
+        # Open cartesian files to populate the GCPs
+        lat = self._read_nc(geo_file, lat_nc_name, squeeze=True)
+        lon = self._read_nc(geo_file, lon_nc_name, squeeze=True)
+
+        # Create swath
+        swath_def = geom.SwathDefinition(lons=lon, lats=lat)
+
+        # Create corresponding UTM area
+        suffix_str = " " + suffix if suffix else ""
+
+        # Determine nodata
+        nodata = self._mask_nodata if band_arr.dtype == np.uint8 else self.nodata
+
+        # Filter warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            logging.captureWarnings(True)
+            logging.getLogger().setLevel(logging.ERROR)
+
+            # Create area definition
+            area_def = create_area_def(
+                area_id=f"{self.condensed_name}_grid{suffix_str}",
+                projection=self.crs(),
+                resolution=self.resolution,
+                area_extent=self.extent().bounds.values[0],
+            )
+
+            # Resampling Nearest
+            if resampling == Resampling.nearest:
+                resampler = XArrayResamplerNN(swath_def, area_def, self.resolution * 3)
+                resampler.get_neighbour_info()
+                band_arr_resampled = resampler.get_sample_from_neighbour_info(
+                    band_arr.squeeze(), fill_value=nodata
+                )
+
+            # Resampling Bilinear
+            else:
+                # Create resampler
+                resampler = XArrayBilinearResampler(swath_def, area_def, 30e3)
+
+                # Load resampling info if existing
+                cache_file, exists = self._get_out_path(
+                    f"{self.condensed_name}_bilinear_resampling_luts{suffix_str}.zarr"
+                )
+                if exists:
+                    resampler.load_resampling_info(cache_file)
+
+                band_arr_resampled = resampler.resample(
+                    band_arr.squeeze(), nprocs=MAX_CORES, fill_value=nodata
+                )
+
+                # Save resampling info if needed
+                if not exists:
+                    resampler.save_resampling_info(cache_file)
+
+            logging.captureWarnings(False)
+
+        # COnvert to wanted dtype and shape
+        band_arr_resampled = band_arr_resampled.astype(np.float32).expand_dims(
+            dim={"band": 1}, axis=0
+        )
+
+        # Write array data
+        band_arr_resampled.rio.write_crs(self.crs(), inplace=True)
+        band_arr_resampled.rio.update_attrs(band_arr.attrs, inplace=True)
+        band_arr_resampled.rio.update_encoding(band_arr.encoding, inplace=True)
+
+        return band_arr_resampled
+
     def _get_condensed_name(self) -> str:
         """
         Get S3 products condensed name ({date}_S3_{tile]_{product_type}).
@@ -683,7 +784,11 @@ class S3Product(OpticalProduct):
         return mtd_el, {}
 
     def _read_nc(
-        self, filename: Union[str, BandNames], subdataset: str = None, dtype=np.float32
+        self,
+        filename: Union[str, BandNames],
+        subdataset: str = None,
+        dtype=np.float32,
+        squeeze: bool = False,
     ) -> xr.DataArray:
         """
         Read NetCDF file (as float32) and rescaled them to their true values
@@ -697,6 +802,8 @@ class S3Product(OpticalProduct):
         Args:
             filename (Union[str, BandNames]): Filename or band
             subdataset (str): NetCDF subdataset if needed
+            dtype: Dtype
+            squeeze(bool): Squeeze array or not
 
         Returns:
             xr.DataArray: NetCDF file as a xr.DataArray
@@ -755,6 +862,10 @@ class S3Product(OpticalProduct):
                 if subdataset:
                     nc = nc[subdataset]
 
+        # Convert to dataarray if not already the case
+        if not isinstance(nc, xr.DataArray):
+            nc = nc.to_array()
+
         # WARNING: rioxarray doesn't like bytesIO -> open with xarray.h5netcdf engine
         # BUT the xr.DataArray dimensions wont be correctly formatted !
         # Align the NetCDF behaviour on rasterio's
@@ -773,6 +884,9 @@ class S3Product(OpticalProduct):
         # Set spatial dims: x = cols, y = rows, rasterio order = count, rows, cols
         dims = np.array(nc.dims)
         nc = nc.rename({dims[-1]: "x", dims[-2]: "y"})
+
+        if squeeze:
+            nc = nc.squeeze()
 
         # http://xarray.pydata.org/en/latest/generated/xarray.open_dataset.html
         # open_dataset opens the file with read-only access.

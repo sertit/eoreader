@@ -31,8 +31,6 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
-from sertit.rasters import MAX_CORES
-from sertit.vectors import WGS84
 
 from eoreader import cache, utils
 from eoreader.bands import (
@@ -550,40 +548,12 @@ class S3OlciProduct(S3Product):
 
             # Geocode
             LOGGER.debug(f"Geocoding {band_str}")
-            pp_arr = self._geocode(band_arr, resolution=resolution)
+            pp_arr = self._geocode(band_arr, resolution=resolution, **kwargs)
 
             # Write on disk
             utils.write(pp_arr, path)
 
         return path
-
-    def _geocode(
-        self, band_arr: xr.DataArray, resolution: float = None
-    ) -> xr.DataArray:
-        """
-        Geocode Sentinel-3 bands
-
-        Args:
-            band_arr (xr.DataArray): Band array
-            resolution (float): Resolution
-
-        Returns:
-            xr.DataArray: Geocoded DataArray
-        """
-        # Create GCPs if not existing
-        self._create_gcps()
-
-        # Assign a projection
-        band_arr.rio.write_crs(WGS84, inplace=True)
-
-        return band_arr.rio.reproject(
-            dst_crs=self.crs(),
-            resolution=resolution,
-            gcps=self._gcps,
-            nodata=self._mask_nodata if band_arr.dtype == np.uint8 else self.nodata,
-            num_threads=MAX_CORES,
-            **{"SRC_METHOD": "GCP_TPS"},
-        )
 
     def _rad_2_refl(
         self, band_arr: xr.DataArray, band: BandNames = None
