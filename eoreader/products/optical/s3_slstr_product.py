@@ -35,8 +35,6 @@ from rasterio import features
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
-from sertit.rasters import MAX_CORES
-from sertit.vectors import WGS84
 
 from eoreader import cache, utils
 from eoreader.bands import (
@@ -636,7 +634,9 @@ class S3SlstrProduct(S3Product):
 
             # Geocode
             LOGGER.debug(f"Geocoding {pp_name}")
-            pp_arr = self._geocode(band_arr, resolution=resolution, suffix=suffix)
+            pp_arr = self._geocode(
+                band_arr, resolution=resolution, suffix=suffix, **kwargs
+            )
 
             # Write on disk
             utils.write(pp_arr, path)
@@ -704,36 +704,6 @@ class S3SlstrProduct(S3Product):
 
             # Create GCPs
             self._gcps[suffix] = utils.create_gcps(lon, lat, alt)
-
-    def _geocode(
-        self, band_arr: xr.DataArray, suffix: str, resolution: float = None
-    ) -> xr.DataArray:
-        """
-        Geocode Sentinel-3 SLSTR bands (using cartesian coordinates)
-
-        Args:
-            band_arr (xr.DataArray): Band array
-            suffix (str): Suffix (for the grid)
-            resolution (float): Resolution
-
-        Returns:
-            xr.DataArray: Geocoded DataArray
-        """
-        # Create GCPs if not existing
-        self._create_gcps(suffix)
-
-        # Assign a projection
-        band_arr.rio.write_crs(WGS84, inplace=True)
-
-        return band_arr.rio.reproject(
-            dst_crs=self.crs(),
-            resolution=resolution,
-            gcps=self._gcps[suffix],
-            nodata=self._mask_nodata if band_arr.dtype == np.uint8 else self.nodata,
-            num_threads=MAX_CORES,
-            resampling=Resampling.nearest,
-            **{"SRC_METHOD": "GCP_TPS"},
-        )
 
     def _tie_to_img(self, tie_arr: np.ndarray, suffix: str) -> np.ndarray:
         """
