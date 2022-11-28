@@ -33,7 +33,7 @@ setuptools.setup(
         "xarray>=0.18.0",
         "rioxarray>=0.4.0",
         "geopandas>=0.11.0",
-        "sertit[full]>=1.19.0",
+        "sertit[full]>=1.19.6",
         "pyresample",
         "zarr" "rtree",
         "validators",
