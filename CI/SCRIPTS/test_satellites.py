@@ -13,7 +13,23 @@ from lxml import etree
 from matplotlib import pyplot as plt
 from sertit import ci, files, rasters
 
-from eoreader.bands import *
+from eoreader.bands import (
+    ALL_CLOUDS,
+    CIRRUS,
+    CLOUDS,
+    HH,
+    HH_DSPK,
+    HILLSHADE,
+    NARROW_NIR,
+    RAW_CLOUDS,
+    RED,
+    SHADOWS,
+    SLOPE,
+    SWIR_2,
+    VV,
+    VV_DSPK,
+    to_str,
+)
 from eoreader.env_vars import (
     CI_EOREADER_BAND_FOLDER,
     DEM_PATH,
