@@ -121,10 +121,10 @@ class SpectralBandNames(BandNames):
     """Vegetation red edge, Band 3"""
 
     NIR = "NIR"
-    """NIR (B8A for Sentinel-2)"""
+    """NIR (B8 for Sentinel-2)"""
 
     NARROW_NIR = "NARROW_NIR"
-    """Narrow NIR, spectrally narrow NIR band, equivalent to B8 for Sentinel-2 products, equivalent to NIR band for other products"""
+    """Narrow NIR, spectrally narrow NIR band, equivalent to B8A (gsd 20m) for Sentinel-2 products, equivalent to NIR band for other products"""
 
     WV = "WATER_VAPOUR"
     """Water vapour"""

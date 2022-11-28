@@ -28,6 +28,7 @@
 - FIX: Fixing `CustomProduct` initialization when fields are set to None (instead of not declaring them)
 - FIX: SNAP cannot handle float predictors other than 1! Set it to 1 when saving ortho SAR images to disk, in order for SNAP to be able to despeckle
   them (https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7).
+- FIX: Fixing mix in `Sentinel-2` mapping for `B8` (`NIR`, 10m resolution, large spectral bandwidth) and `B8A` (`NARROW_NIR`, 20m resolution, narrow spectral bandwidth)
 
 ### Other
 
