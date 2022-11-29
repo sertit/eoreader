@@ -43,6 +43,7 @@
 - DOC: Add information about DEM management in SAR notebook ([#61](https://github.com/sertit/eoreader/issues/61))
 - DOC: Updating indices paragraphs
 - CI: Using actions/checkout@v3
+- CI: Updating versions of pre-commit hooks
 - LIBS: Updating `requirements.txt` and `setup.py` to add `pyresample` and `zarr`
 
 ## 0.17.0 (2022-10-12)
