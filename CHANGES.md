@@ -36,6 +36,7 @@
   PATH)
 - DOC: Add Technical Note published in Remote Sensing MDPI in Readme
 - DOC: Update optical band mapping graphs (fix regression to 0.15.0 supported constellation)
+- DOC: Add information about DEM management in SAR notebook ([#61](https://github.com/sertit/eoreader/issues/61))
 - DOC: Updating indices paragraphs
 - CI: Using actions/checkout@v3
 - LIBS: Updating `requirements.txt` and `setup.py` to add `pyresample` and `zarr`
