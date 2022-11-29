@@ -742,7 +742,7 @@ class S2Product(OpticalProduct):
                     offset = 0.0
                 else:
                     try:
-                        if band == NIR:
+                        if band == NARROW_NIR:
                             band_id = 8
                         else:
                             band_id = int(self.bands[band].id)
