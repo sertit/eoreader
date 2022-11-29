@@ -182,11 +182,15 @@ class Constellation(ListEnum):
     SPOT45 = "Spot-4/5"
     """SPOT-4/5 (not a real constellation, but used as a template for SPOT4/5 products)"""
 
+    HLS = "HLS"
+    """Harmonized Landsat-Sentinel (not a real constellation, but used as a template for HLS.S30 and HLS.L30 products)"""
+
     CUSTOM = "CUSTOM"
     """Custom stack"""
 
 
 CONSTELLATION_REGEX = {
+    Constellation.HLS: r"HLS\.[LS]30\.T\d{2}\w{3}\.\d{7}T\d{6}\.v2\.0",
     Constellation.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
     Constellation.S2: r"S2[AB]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
     Constellation.S2_THEIA: r"SENTINEL2[AB]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
@@ -303,6 +307,7 @@ MTD_REGEX = {
     Constellation.ICEYE: r"ICEYE_(X\d{1,}_|)(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
     Constellation.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
     Constellation.SV1: r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
+    Constellation.HLS: rf"{CONSTELLATION_REGEX[Constellation.HLS]}\.Fmask\.tif",
     Constellation.SPOT45: {
         "nested": -1,  # File that can be found at any level (product/**/file)
         "regex": [
@@ -685,7 +690,11 @@ def is_filename_valid(
         bool: True if the filename corresponds to the given satellite regex
     """
     product_path = AnyPath(product_path)
-    product_file_name = files.get_filename(product_path)
+    # Handle HLS folders...
+    if product_path.is_dir() and product_path.suffix in [".0"]:
+        product_file_name = product_path.name
+    else:
+        product_file_name = files.get_filename(product_path)
 
     # Case folder is not enough to identify the products (ie. COSMO Skymed)
     # WARNING: Two level max for the moment
