@@ -269,11 +269,11 @@ class S2Product(OpticalProduct):
             ),
             NIR: SpectralBand(
                 eoreader_name=NIR,
-                **{NAME: "B8A", ID: "8A", GSD: 10, CENTER_WV: 833, FWHM: 106},
+                **{NAME: "B08", ID: "08", GSD: 10, CENTER_WV: 833, FWHM: 106},
             ),
             NARROW_NIR: SpectralBand(
                 eoreader_name=NARROW_NIR,
-                **{NAME: "B08", ID: "08", GSD: 20, CENTER_WV: 864, FWHM: 21},
+                **{NAME: "B8A", ID: "8A", GSD: 20, CENTER_WV: 864, FWHM: 21},
             ),
             WV: SpectralBand(
                 eoreader_name=WV,
@@ -742,7 +742,7 @@ class S2Product(OpticalProduct):
                     offset = 0.0
                 else:
                     try:
-                        if band == NIR:
+                        if band == NARROW_NIR:
                             band_id = 8
                         else:
                             band_id = int(self.bands[band].id)

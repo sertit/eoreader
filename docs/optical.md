@@ -6,34 +6,35 @@ The product resolution is the one given in [Data Access Portfolio (2014-2022, se
 The Data Access Portfolio Document presents the offer of the datasets and data access services that are made available to the Copernicus Users in response to their Earth Observation data requirements.
 
 ``` {container} full-width
-| Constellations     | Class                                                   | Product Types             | Default Resolution                   | Use archive       |
-|--------------------|---------------------------------------------------------|---------------------------|--------------------------------------|-------------------|
-| Sentinel-2         | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A & L2Ap          | 10m                                  | ✅                 |
-| Sentinel-2 Theia   | {meth}`~eoreader.products.S2TheiaProduct`               | L2A                       | 10m                                  | ✅                 |
-| Sentinel-3 SLSTR   | {meth}`~eoreader.products.S3Product`                    | RBT                       | 300m                                 | ✅                 |
-| Sentinel-3 OLCI    | {meth}`~eoreader.products.S3Product`                    | EFR                       | 500m                                 | ✅                 |
-| Landsat 9 OLI-TIRS | {meth}`~eoreader.products.L9Product`                    | Level 1 & 2               | 30m                                  | ✅                 |
-| Landsat 8 OLI-TIRS | {meth}`~eoreader.products.L8Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅ |
-| Landsat 7 ETM      | {meth}`~eoreader.products.L7Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅ |
-| Landsat 5 TM       | {meth}`~eoreader.products.L5Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅ |
-| Landsat 4 TM       | {meth}`~eoreader.products.L4Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅ |
-| Landsat 5 MSS      | {meth}`~eoreader.products.L5Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅ |
-| Landsat 4 MSS      | {meth}`~eoreader.products.L4Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅ |
-| Landsat 3 MSS      | {meth}`~eoreader.products.L3Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅ |
-| Landsat 2 MSS      | {meth}`~eoreader.products.L2Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅ |
-| Landsat 1 MSS      | {meth}`~eoreader.products.L1Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅ |
-| PlanetScope        | {meth}`~eoreader.products.PlaProduct`                   | L3A & L3B                 | 3m                                   | ✅(❌ if multiple subdatasets) |
-| SkySat             | {meth}`~eoreader.products.SkyProduct`                   | (Collect Product) ortho_* | 0.5m                                 | ✅(❌ if multiple subdatasets) |
-| RapidEye           | {meth}`~eoreader.products.ReProduct`                    | L3A                       | 5m                                   | ✅(❌ if multiple subdatasets) |
-| Pleiades-Neo       | {meth}`~eoreader.products.PneoProduct`                  | SEN**, PRJ, ORT & MOS     | 0.3 (PAN), 1.2m (MS)                 | ✅                 |
-| Pleiades           | {meth}`~eoreader.products.PldProduct`                   | SEN**, PRJ, ORT & MOS     | 0.5 (PAN), 2m (MS)                   | ✅                 |
-| Vision-1           | {meth}`~eoreader.products.Vis1Product`                  | PRJ & ORTP                | 0.9 (PAN), 3.5m (MS)                 | ✅                 |
-| SPOT 4             | {meth}`~eoreader.products.Spot45Product`                | L1A, L1B, L2A             | 10 (PAN), 20m (MS)                   | ✅                 |
-| SPOT 5             | {meth}`~eoreader.products.Spot45Product`                | L1A, L1B, L2A             | 2.5 (SuperMode), 5.0 (PAN), 10m (MS) | ✅                 |
-| SPOT 7             | {meth}`~eoreader.products.Spot7Product`                 | SEN**, PRJ, ORT & MOS     | 1.5 (PAN), 6m (MS)                   | ✅                 |
-| SPOT 6             | {meth}`~eoreader.products.Spot6Product`                 | SEN**, PRJ, ORT & MOS     | 1.5 (PAN), 6m (MS)                   | ✅                 |
-| Maxar***           | {meth}`~eoreader.products.MaxarProduct`                 | Standard & Ortho          | 0.5 (PAN), 2m (MS)                   | ✅                 |
-| SuperView-1        | {meth}`~eoreader.products.Sv1Product`                   | L1B & L2A                 | 0.5 (PAN), 2m (MS)                   | ✅                 |
+| Constellations               | Class                                                   | Product Types             | Default Resolution                   | Use archive                  |
+|------------------------------|---------------------------------------------------------|---------------------------|--------------------------------------|------------------------------|
+| Sentinel-2                   | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A & L2Ap          | 10m                                  | ✅                            |
+| Sentinel-2 Theia             | {meth}`~eoreader.products.S2TheiaProduct`               | L2A                       | 10m                                  | ✅                            |
+| Sentinel-3 SLSTR             | {meth}`~eoreader.products.S3Product`                    | RBT                       | 300m                                 | ✅                            |
+| Sentinel-3 OLCI              | {meth}`~eoreader.products.S3Product`                    | EFR                       | 500m                                 | ✅                            |
+| Landsat 9 OLI-TIRS           | {meth}`~eoreader.products.L9Product`                    | Level 1 & 2               | 30m                                  | ✅                            |
+| Landsat 8 OLI-TIRS           | {meth}`~eoreader.products.L8Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅            |
+| Landsat 7 ETM                | {meth}`~eoreader.products.L7Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅            |
+| Landsat 5 TM                 | {meth}`~eoreader.products.L5Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅            |
+| Landsat 4 TM                 | {meth}`~eoreader.products.L4Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅            |
+| Landsat 5 MSS                | {meth}`~eoreader.products.L5Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅            |
+| Landsat 4 MSS                | {meth}`~eoreader.products.L4Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅            |
+| Landsat 3 MSS                | {meth}`~eoreader.products.L3Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅            |
+| Landsat 2 MSS                | {meth}`~eoreader.products.L2Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅            |
+| Landsat 1 MSS                | {meth}`~eoreader.products.L1Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅            |
+| Harmonized Landsat-Sentinel | {meth}`~eoreader.products.HlsProduct`                   | L30 & S30                 | 30m                                  | ✅                            |
+| PlanetScope                  | {meth}`~eoreader.products.PlaProduct`                   | L3A & L3B                 | 3m                                   | ✅(❌ if multiple subdatasets) |
+| SkySat                       | {meth}`~eoreader.products.SkyProduct`                   | (Collect Product) ortho_* | 0.5m                                 | ✅(❌ if multiple subdatasets) |
+| RapidEye                     | {meth}`~eoreader.products.ReProduct`                    | L3A                       | 5m                                   | ✅(❌ if multiple subdatasets) |
+| Pleiades-Neo                 | {meth}`~eoreader.products.PneoProduct`                  | SEN**, PRJ, ORT & MOS     | 0.3 (PAN), 1.2m (MS)                 | ✅                            |
+| Pleiades                     | {meth}`~eoreader.products.PldProduct`                   | SEN**, PRJ, ORT & MOS     | 0.5 (PAN), 2m (MS)                   | ✅                            |
+| Vision-1                     | {meth}`~eoreader.products.Vis1Product`                  | PRJ & ORTP                | 0.9 (PAN), 3.5m (MS)                 | ✅                            |
+| SPOT 4                       | {meth}`~eoreader.products.Spot45Product`                | L1A, L1B, L2A             | 10 (PAN), 20m (MS)                   | ✅                            |
+| SPOT 5                       | {meth}`~eoreader.products.Spot45Product`                | L1A, L1B, L2A             | 2.5 (SuperMode), 5.0 (PAN), 10m (MS) | ✅                            |
+| SPOT 7                       | {meth}`~eoreader.products.Spot7Product`                 | SEN**, PRJ, ORT & MOS     | 1.5 (PAN), 6m (MS)                   | ✅                            |
+| SPOT 6                       | {meth}`~eoreader.products.Spot6Product`                 | SEN**, PRJ, ORT & MOS     | 1.5 (PAN), 6m (MS)                   | ✅                            |
+| Maxar***                     | {meth}`~eoreader.products.MaxarProduct`                 | Standard & Ortho          | 0.5 (PAN), 2m (MS)                   | ✅                            |
+| SuperView-1                  | {meth}`~eoreader.products.Sv1Product`                   | L1B & L2A                 | 0.5 (PAN), 2m (MS)                   | ✅                            |
 ```
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
 
@@ -43,6 +44,12 @@ The Data Access Portfolio Document presents the offer of the datasets and data a
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
+```
+
+```{note}
+Note that for the rest of this documentation: 
+- HLS.S30 and Sentinel-2 data are equivalent (only 30m gsd).
+- HLS.L30 and Landsat-OLI-TIRS data are equivalent.
 ```
 
 The goal of **EOReader** is to implement every constellation that can be used in the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/).
@@ -138,6 +145,7 @@ But the bands that are not present in the `alias` file won't be recognized.
 | Superview-1                      |                  | **1** (0.5m/2m)  |              | **2** (0.5m/2m)   |                 | **3** (0.5m/2m)   |                     |                     |                     | **4** (0.5m/2m)   | **4** (0.5m/2m)   |                 |               |                   |              | **1** (0.5m)   |                               |
 ```
 \* *Not all bands of these constellations are mapped in EOReader. However, they can still be used by using directly their name (i.e. `F1` or `Oa05`)*  
+
 
 ```` {container} full-width
 ```{raw} html
@@ -268,6 +276,9 @@ WorldView-1 is not concerned by spectral indices as it only has a panchromatic b
 - [Cloud masks](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks)
 - [Product Specification (Processing Baseline < 4.0)](https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf)
 - [Product Specification (Processing Baseline > 4.0)](https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2-Products-Specification-Document-14_8.pdf)
+
+### Harmonize Landsat-Sentinel
+- [Product Guide v2.0](https://lpdaac.usgs.gov/documents/1326/HLS_User_Guide_V2.pdf)
 
 ### Sentinel-2 Theia
 

@@ -18,16 +18,21 @@
         - `RDI` (or `DSI`) uses now `SWIR_1` instead of `SWIR_2` (see [this](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/18) issue)
         - `PANI` equivalent is now `BITM` and is normalised ! (/3.)
         - `SBI` is normalized (/2.) to fit with `BIXS` definition
-- **BREAKING CHANGES: Using `pyresample` to geocode Sentinel-3 data**  ([#55](https://github.com/sertit/eoreader/issues/55))
+- **BREAKING CHANGES: Using `pyresample` to geocode Sentinel-3 data** ([#55](https://github.com/sertit/eoreader/issues/55))
     - Cleaner: better conversion from swath to grid
     - Faster: Up to 4 times faster
     - Allows code refactoring between OLCI and SLSTR
 
+### Enhancements
+
+- **ENH: Adding the support of Harmonized Landsat-Sentinel constellation** ([#49](https://github.com/sertit/eoreader/issues/49))
+- 
 ### Bug Fixes
 
 - FIX: Fixing `CustomProduct` initialization when fields are set to None (instead of not declaring them)
 - FIX: SNAP cannot handle float predictors other than 1! Set it to 1 when saving ortho SAR images to disk, in order for SNAP to be able to despeckle
   them (https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7).
+- FIX: Fixing mix in `Sentinel-2` mapping for `B8` (`NIR`, 10m resolution, large spectral bandwidth) and `B8A` (`NARROW_NIR`, 20m resolution, narrow spectral bandwidth)
 
 ### Other
 
@@ -35,8 +40,10 @@
   PATH)
 - DOC: Add Technical Note published in Remote Sensing MDPI in Readme
 - DOC: Update optical band mapping graphs (fix regression to 0.15.0 supported constellation)
+- DOC: Add information about DEM management in SAR notebook ([#61](https://github.com/sertit/eoreader/issues/61))
 - DOC: Updating indices paragraphs
 - CI: Using actions/checkout@v3
+- CI: Updating versions of pre-commit hooks
 - LIBS: Updating `requirements.txt` and `setup.py` to add `pyresample` and `zarr`
 
 ## 0.17.0 (2022-10-12)
