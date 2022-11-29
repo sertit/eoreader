@@ -161,11 +161,11 @@ class S2TheiaProduct(OpticalProduct):
             ),
             NIR: SpectralBand(
                 eoreader_name=NIR,
-                **{NAME: "B8A", ID: "8A", GSD: 10, CENTER_WV: 833, FWHM: 106},
+                **{NAME: "B8", ID: "8", GSD: 10, CENTER_WV: 833, FWHM: 106},
             ),
             NARROW_NIR: SpectralBand(
                 eoreader_name=NARROW_NIR,
-                **{NAME: "B8", ID: "8", GSD: 20, CENTER_WV: 864, FWHM: 21},
+                **{NAME: "B8A", ID: "8A", GSD: 20, CENTER_WV: 864, FWHM: 21},
             ),
             SWIR_1: SpectralBand(
                 eoreader_name=SWIR_1,
