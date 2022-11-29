@@ -109,7 +109,7 @@ class LandsatProductType(ListEnum):
 
 @unique
 class LandsatInstrument(ListEnum):
-    """Landsat products types"""
+    """Landsat instruments"""
 
     OLI_TIRS = "OLI-TIRS"
     """OLI-TIRS instruments combined, for Landsat-8 and 9 constellation"""
@@ -155,7 +155,7 @@ class LandsatCollection(ListEnum):
 
 class LandsatProduct(OpticalProduct):
     """
-    Super Class of Landsat Products
+    Class for Landsat Products
 
     You can use directly the .tar file in case of collection 2 products.
     """
@@ -1416,7 +1416,9 @@ class LandsatProduct(OpticalProduct):
             azimuth_angle = float(mtd_data.findtext(".//SUN_AZIMUTH"))
             zenith_angle = 90.0 - float(mtd_data.findtext(".//SUN_ELEVATION"))
         except TypeError:
-            raise InvalidProductError("ACQUISITION_DATE not found in metadata!")
+            raise InvalidProductError(
+                "SUN_AZIMUTH or SUN_ELEVATION not found in metadata!"
+            )
 
         return azimuth_angle, zenith_angle
 

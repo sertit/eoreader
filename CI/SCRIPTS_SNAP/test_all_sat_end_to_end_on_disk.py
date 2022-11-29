@@ -456,6 +456,12 @@ def test_l1_mss():
 
 
 @dask_env
+def test_hls():
+    """Function testing the support of HLS constellation"""
+    _test_core_optical("*HLS*")
+
+
+@dask_env
 def test_pla():
     """Function testing the support of PlanetScope constellation"""
     _test_core_optical("*_psscene_*")
