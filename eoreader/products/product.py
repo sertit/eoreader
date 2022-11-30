@@ -1492,9 +1492,9 @@ class Product:
             else:
                 if stack_min < 0:
                     LOGGER.warning(
-                        "Small negative values have been found. Clipping to 0."
+                        "Small negative values ]-0.1, 0] have been found. Clipping to 0."
                     )
-                    stack = stack.copy(data=np.clip(stack.data, a_min=0))
+                    stack = stack.copy(data=np.clip(stack.data, a_min=0, a_max=None))
 
                 # Scale to uint16, fill nan and convert to uint16
                 dtype = np.uint16

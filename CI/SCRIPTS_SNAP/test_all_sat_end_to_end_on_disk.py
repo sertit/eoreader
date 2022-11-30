@@ -548,3 +548,11 @@ def test_sv1():
     """Function testing the support of SuperView-1 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*0001_01*", dem_path=dem_path)
+
+
+@dask_env
+def test_gs2():
+    """Function testing the support of GEOSAT-2 constellation"""
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
+    _test_core_optical("*DE2_*", dem_path=dem_path)
+    _test_core_optical("*Turkey*", dem_path=dem_path)

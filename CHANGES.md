@@ -26,6 +26,7 @@
 ### Enhancements
 
 - **ENH: Adding the support of Harmonized Landsat-Sentinel constellation** ([#49](https://github.com/sertit/eoreader/issues/49))
+- **ENH: Adding the support of GEOSAT-2 constellation** ([#59](https://github.com/sertit/eoreader/issues/59))
 - 
 ### Bug Fixes
 

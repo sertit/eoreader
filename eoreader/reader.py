@@ -140,11 +140,11 @@ class Constellation(ListEnum):
     VIS1 = "Vision-1"
     """Vision-1"""
 
-    RCM = "RADARSAT-Constellation Mission"
-    """RADARSAT-Constellation Mission"""
+    GS2 = "GEOSAT-2"
+    """GEOSAT-2 (ex. DEIMOS-2)"""
 
-    MAXAR = "Maxar"
-    """Maxar (not a real constellation, but used as a template for every Maxar products)"""
+    HLS = "HLS"
+    """Harmonized Landsat-Sentinel"""
 
     QB = "QuickBird"
     """QuickBird"""
@@ -164,6 +164,9 @@ class Constellation(ListEnum):
     WV04 = "WorldView-4"
     """WorldView-4"""
 
+    RCM = "RADARSAT-Constellation Mission"
+    """RADARSAT-Constellation Mission"""
+
     ICEYE = "ICEYE"
     """ICEYE"""
 
@@ -182,15 +185,14 @@ class Constellation(ListEnum):
     SPOT45 = "Spot-4/5"
     """SPOT-4/5 (not a real constellation, but used as a template for SPOT4/5 products)"""
 
-    HLS = "HLS"
-    """Harmonized Landsat-Sentinel (not a real constellation, but used as a template for HLS.S30 and HLS.L30 products)"""
+    MAXAR = "Maxar"
+    """Maxar (not a real constellation, but used as a template for every Maxar products)"""
 
     CUSTOM = "CUSTOM"
     """Custom stack"""
 
 
 CONSTELLATION_REGEX = {
-    Constellation.HLS: r"HLS\.[LS]30\.T\d{2}\w{3}\.\d{7}T\d{6}\.v2\.0",
     Constellation.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
     Constellation.S2: r"S2[AB]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
     Constellation.S2_THEIA: r"SENTINEL2[AB]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
@@ -244,6 +246,8 @@ CONSTELLATION_REGEX = {
         r"\d{13}_\d{2}",
         r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
     ],
+    Constellation.HLS: r"HLS\.[LS]30\.T\d{2}\w{3}\.\d{7}T\d{6}\.v2\.0",
+    Constellation.GS2: r"DE2_(PM4|PSH|PS3|PS4|MS4|PAN)_L1[A-D]_\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_DE2_\d{5}_.{4}",
 }
 
 MTD_REGEX = {
@@ -308,6 +312,7 @@ MTD_REGEX = {
     Constellation.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
     Constellation.SV1: r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
     Constellation.HLS: rf"{CONSTELLATION_REGEX[Constellation.HLS]}\.Fmask\.tif",
+    Constellation.GS2: rf"{CONSTELLATION_REGEX[Constellation.GS2]}\.dim",
     Constellation.SPOT45: {
         "nested": -1,  # File that can be found at any level (product/**/file)
         "regex": [

@@ -328,11 +328,6 @@ class OpticalProduct(Product):
             )
             # If raw data, clean it !
             if AnyPath(band_path).name != clean_band_path.name:
-                # Manage reflectance
-                if kwargs.get(TO_REFLECTANCE, True):
-                    LOGGER.debug(f"Converting {band.name} to reflectance")
-                    band_arr = self._to_reflectance(band_arr, band_path, band)
-
                 # Clean pixels
                 cleaning_method = CleanMethod.from_value(
                     kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
@@ -348,6 +343,12 @@ class OpticalProduct(Product):
                         band_arr, band=band, **kwargs
                     )
                 band_arr.attrs["cleaning_method"] = cleaning_method.value
+
+                # Manage reflectance
+                # (after cleaning -> don't alter pixel value before managing nodata)
+                if kwargs.get(TO_REFLECTANCE, True):
+                    LOGGER.debug(f"Converting {band.name} to reflectance")
+                    band_arr = self._to_reflectance(band_arr, band_path, band)
 
                 # Write on disk
                 try:
