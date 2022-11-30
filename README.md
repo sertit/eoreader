@@ -169,7 +169,7 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 
 ## Articles
 
-- [Maxant, J.; Braun, R.; Caspard, M.; Clandillon, S. ExtractEO, a Pipeline for Disaster Extent Mapping in the Context of Emergency Management. Remote Sens. 2022, 14, 5253. https://doi.org/10.3390/rs14205253 (Technical Note)](https://www.mdpi.com/1896792)
+- [Maxant, J.; Braun, R.; Caspard, M.; Clandillon, S. ExtractEO, a Pipeline for Disaster Extent Mapping in the Context of Emergency Management. Remote Sens. 2022, 14, 5253. (Technical Note)](https://doi.org/10.3390/rs14205253)
 
 ## License
 
@@ -178,7 +178,7 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 ## Authors
 
 **EOReader** has been created by [ICube-SERTIT](https://sertit.unistra.fr/).
-Follow us on [Twitter](https://twitter.com/eoreader)
+Follow us on [Twitter](https://twitter.com/eoreader).
 
 ## Credits
 
