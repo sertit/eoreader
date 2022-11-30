@@ -68,7 +68,7 @@ MERIT_DEM_SUB_DIR_PATH = [
     "MERIT_DEM.vrt",
 ]
 
-WRITE_ON_DISK = False
+WRITE_ON_DISK = True
 
 
 def set_dem(dem_path):
@@ -690,6 +690,13 @@ def test_sv1():
     """Function testing the support of SuperView-1 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*0001_01*", dem_path=dem_path)
+
+
+@s3_env
+@dask_env
+def test_gs2():
+    """Function testing the support of GEOSAT-2 constellation"""
+    _test_core_optical("*DE2_*")
 
 
 @s3_env

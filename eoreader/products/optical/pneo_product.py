@@ -22,14 +22,14 @@ for more information.
 import logging
 
 from eoreader.bands import BLUE, CA, GREEN, NIR, PAN, RED, VRE_1, SpectralBand
-from eoreader.products import DimapProduct
+from eoreader.products import DimapV2Product
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 
-class PneoProduct(DimapProduct):
+class PneoProduct(DimapV2Product):
     """
     Class of Pleiades-Neo products.
     See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_

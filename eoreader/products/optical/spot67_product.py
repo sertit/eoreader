@@ -22,7 +22,7 @@ for more information.
 import logging
 
 from eoreader.bands import BLUE, GREEN, NIR, PAN, RED, SpectralBand
-from eoreader.products import DimapProduct
+from eoreader.products import DimapV2Product
 from eoreader.reader import Constellation
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import EOREADER_NAME
@@ -30,7 +30,7 @@ from eoreader.utils import EOREADER_NAME
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 
-class Spot67Product(DimapProduct):
+class Spot67Product(DimapV2Product):
     """
     Class of SPOT-6/7 products.
     See `here <https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf>`_

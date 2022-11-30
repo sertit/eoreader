@@ -491,6 +491,13 @@ def test_l1_mss():
 
 @s3_env
 @dask_env
+def test_hls():
+    """Function testing the support of HLS constellation"""
+    _test_core_optical("*HLS*")
+
+
+@s3_env
+@dask_env
 def test_pla():
     """Function testing the support of PlanetScope constellation"""
     _test_core_optical("*202*1014*")
@@ -580,6 +587,13 @@ def test_vs1():
 def test_sv1():
     """Function testing the support of SuperView-1 constellation"""
     _test_core_optical("*0001_01*")
+
+
+@s3_env
+@dask_env
+def test_gs2():
+    """Function testing the support of GEOSAT-2 constellation"""
+    _test_core_optical("*DE2_*")
 
 
 @s3_env

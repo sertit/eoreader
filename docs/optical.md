@@ -35,6 +35,7 @@ The Data Access Portfolio Document presents the offer of the datasets and data a
 | SPOT 6                       | {meth}`~eoreader.products.Spot6Product`                 | SEN**, PRJ, ORT & MOS     | 1.5 (PAN), 6m (MS)                   | ✅                            |
 | Maxar***                     | {meth}`~eoreader.products.MaxarProduct`                 | Standard & Ortho          | 0.5 (PAN), 2m (MS)                   | ✅                            |
 | SuperView-1                  | {meth}`~eoreader.products.Sv1Product`                   | L1B & L2A                 | 0.5 (PAN), 2m (MS)                   | ✅                            |
+| GEOSAT-2                     | {meth}`~eoreader.products.Gs2Product`                   | L1B & L1C & L1D & L1S     | 0.4 (PAN), 2m (MS) for L1D data      | ✅                            |
 ```
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
 
@@ -143,6 +144,7 @@ But the bands that are not present in the `alias` file won't be recognized.
 | WorldView-4, GeoEye-1, QuickBird |                  | **1** (0.5m/2m)  |              | **2** (0.5m/2m)   |                 | **3** (0.5m/2m)   |                     |                     |                     | **4** (0.5m/2m)   | **4** (0.5m/2m)   |                 |               |                   |              | **1** (0.5m)   |                               |                               |
 | WorldView-2/3                    | **1** (0.5m/2m)  | **2** (0.5m/2m)  |              | **3** (0.5m/2m)   | **4** (0.5m/2m) | **5** (0.5m/2m)   | **6** (0.5m/2m)     | **6** (0.5m/2m)     | **6** (0.5m/2m)     | **7** (0.5m/2m)   | **7** (0.5m/2m)   | **8** (0.5m/2m) |               |                   |              | **1** (0.5m)   |                               |                               |
 | Superview-1                      |                  | **1** (0.5m/2m)  |              | **2** (0.5m/2m)   |                 | **3** (0.5m/2m)   |                     |                     |                     | **4** (0.5m/2m)   | **4** (0.5m/2m)   |                 |               |                   |              | **1** (0.5m)   |                               |
+| Superview-1                      |                  | **4** (0.4m/2m)  |              | **3** (0.4m/2m)   |                 | **2** (0.4m/2m)   |                     |                     |                     | **1** (0.4m/2m)   | **1** (0.4m/2m)   |                 |               |                   |              | **1** (0.4m)   |                               |
 ```
 \* *Not all bands of these constellations are mapped in EOReader. However, they can still be used by using directly their name (i.e. `F1` or `Oa05`)*  
 
@@ -187,6 +189,7 @@ The only difference with the other bands is that the cloud bands are provided in
 | Landsat 3                    | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
 | Landsat 2                    | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
 | Landsat 1                    | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
+| Harmonized Landsat-Sentinel  | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
 | PlanetScope                  | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
 | SkySat                       | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
 | RapidEye                     | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
@@ -197,6 +200,7 @@ The only difference with the other bands is that the cloud bands are provided in
 | Vision-1                     | ❌           |                                                           |
 | Maxar (GeoEye-1, WorldViews) | ❌           |                                                           |
 | SuperView-1                  | ❌           |                                                           |
+| GEOSAT-2                     | ❌           |                                                           |
 
 ### DEM bands
 
@@ -333,6 +337,9 @@ WorldView-1 is not concerned by spectral indices as it only has a panchromatic b
 
 ### SuperView-1
 - [Imagery Product Guide](http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf)
+
+### GeoSat-2 (ex Deimos-2)
+- [Imagery User Guide](https://geosat.space/wp-content/uploads/2022/04/GEOSAT-2-Imagery-User-Guide-v3.2.pdf)
 
 ### Instruments
 
