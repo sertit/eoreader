@@ -33,6 +33,7 @@ from eoreader.products import (
     SensorType,
     SlstrRadAdjust,
 )
+from eoreader.products.optical.hls_product import HlsProductType
 from eoreader.reader import CheckMethod, Constellation
 from eoreader.stac import EO_BANDS
 from eoreader.stac._stac_keywords import (
@@ -288,21 +289,19 @@ def _test_core(
                         )
 
                 # Assets
+                is_not_s2 = (
+                    prod.constellation not in [Constellation.S2, Constellation.S2_THEIA]
+                    and prod.product_type != HlsProductType.S30
+                )
+
                 if prod.sensor_type == SensorType.OPTICAL:
                     existing_bands = prod.get_existing_bands()
                     nof_assets = len(existing_bands)
 
-                    if prod.constellation not in [
-                        Constellation.S2,
-                        Constellation.S2_THEIA,
-                    ]:
+                    if is_not_s2:
                         if NARROW_NIR in existing_bands:
                             nof_assets -= 1  # remove NARROW NIR, except for S2
-                    if prod.constellation not in [
-                        Constellation.S2,
-                        Constellation.S2_THEIA,
-                        Constellation.S3_OLCI,
-                    ]:
+                    if is_not_s2 and prod.constellation != Constellation.S3_OLCI:
                         if VRE_1 in existing_bands and VRE_2 in existing_bands:
                             nof_assets -= 1  # remove one VRE, except for S2 and S3 OLCI
                         if VRE_1 in existing_bands and VRE_3 in existing_bands:
