@@ -1555,6 +1555,10 @@ class Product:
         Returns:
             xr.DataArray: Updated array
         """
+        # Clean attributes, we don't want to pollute our attributes by default ones (not deterministic)
+        # Are we sure of that ?
+        xarr.attrs = {}
+
         if not isinstance(bands, list):
             bands = [bands]
         long_name = to_str(bands)

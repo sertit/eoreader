@@ -170,11 +170,7 @@ class VhrProduct(OpticalProduct):
                     out_arr, meta = self._reproject(
                         src.read(), src.meta, rpcs, dem_path, **kwargs
                     )
-                    rasters_rio.write(out_arr, meta, ortho_path)
-
-                    # Workaround to write tags
-                    with rasterio.open(ortho_path, "r+") as ds:
-                        ds.update_tags(**src.tags())
+                    rasters_rio.write(out_arr, meta, ortho_path, tags=src.tags())
 
         else:
             ortho_path = self._get_tile_path()
