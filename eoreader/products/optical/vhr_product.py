@@ -292,10 +292,10 @@ class VhrProduct(OpticalProduct):
             src_arr,
             rpcs=rpcs,
             src_crs=self._get_raw_crs(),
-            src_nodata=0,
+            src_nodata=self._raw_nodata,
             dst_crs=self.crs(),
             dst_resolution=self.resolution,
-            dst_nodata=0,  # input data should be in integer
+            dst_nodata=self._raw_nodata,  # input data should be in integer
             num_threads=MAX_CORES,
             resampling=Resampling.bilinear,
             **kwargs,

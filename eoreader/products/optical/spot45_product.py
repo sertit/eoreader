@@ -752,7 +752,7 @@ class Spot45Product(VhrProduct):
         """
         if self._raw_units == RawUnits.REFL:
             # Compute the correct radiometry of the band
-            original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
+            original_dtype = band_arr.encoding["dtype"]
             if original_dtype == "uint16":
                 band_arr /= 10000.0
         elif self._raw_units == RawUnits.DN:

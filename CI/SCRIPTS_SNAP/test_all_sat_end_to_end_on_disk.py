@@ -48,6 +48,7 @@ from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
 
 ci.reduce_verbosity()
+logging.getLogger("rasterio._env").setLevel(logging.ERROR)
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
