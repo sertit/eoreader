@@ -344,7 +344,7 @@ class Vis1Product(DimapV1Product):
         """
 
         # Compute the correct radiometry of the band
-        original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
+        original_dtype = band_arr.encoding["dtype"]
         if original_dtype == "uint16":
             band_arr /= 100.0
 

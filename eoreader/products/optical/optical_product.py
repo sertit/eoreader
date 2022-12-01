@@ -444,7 +444,7 @@ class OpticalProduct(Product):
             mask = np.expand_dims(mask, axis=0)
 
         # Set masked values to nodata
-        return band_arr.where(mask == 0)
+        return band_arr.copy(data=np.where(mask == 0, band_arr, np.nan))
 
     def _load(
         self,
