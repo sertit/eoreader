@@ -30,14 +30,14 @@ import geopandas as gpd
 import numpy as np
 import xarray as xr
 from rasterio import crs as riocrs
-from sertit import vectors
+from sertit import rasters, vectors
 from shapely.geometry import Polygon, box
 
 from eoreader import cache
 from eoreader.bands import BandNames
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -63,19 +63,24 @@ class DimapV1Product(VhrProduct):
         Returns:
             rasterio.crs.CRS: CRS object
         """
-        # Open metadata
-        root, _ = self.read_mtd()
+        raw_crs = self._get_raw_crs()
 
-        # Open the Bounding_Polygon
-        vertices = list(root.iterfind(".//Dataset_Frame/Vertex"))
+        if raw_crs.is_projected:
+            utm = raw_crs
+        else:
+            # Open metadata
+            root, _ = self.read_mtd()
 
-        # Get the mean lon lat
-        lon = float(np.mean([float(v.findtext("FRAME_LON")) for v in vertices]))
-        lat = float(np.mean([float(v.findtext("FRAME_LAT")) for v in vertices]))
+            # Open the Bounding_Polygon
+            vertices = list(root.iterfind(".//Dataset_Frame/Vertex"))
 
-        # Compute UTM crs from center long/lat
-        utm = vectors.corresponding_utm_projection(lon, lat)
-        utm = riocrs.CRS.from_string(utm)
+            # Get the mean lon lat
+            lon = float(np.mean([float(v.findtext("FRAME_LON")) for v in vertices]))
+            lat = float(np.mean([float(v.findtext("FRAME_LAT")) for v in vertices]))
+
+            # Compute UTM crs from center long/lat
+            utm = vectors.corresponding_utm_projection(lon, lat)
+            utm = riocrs.CRS.from_string(utm)
 
         return utm
 
@@ -98,7 +103,6 @@ class DimapV1Product(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Extent in UTM
         """
-
         # Get MTD XML file
         root, _ = self.read_mtd()
 
@@ -120,6 +124,46 @@ class DimapV1Product(VhrProduct):
         )
 
         return extent
+
+    @cache
+    @simplify
+    def footprint(self) -> gpd.GeoDataFrame:
+        """
+        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"IMG_PHR1B_PMS_001"
+            >>> prod = Reader().open(path)
+            >>> prod.footprint()
+                                                         gml_id  ...                                           geometry
+            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
+            [1 rows x 3 columns]
+
+        Returns:
+            gpd.GeoDataFrame: Footprint as a GeoDataFrame
+        """
+        # If ortho -> nodata is not set !
+        if self.is_ortho:
+            # Get footprint of the first band of the stack
+            footprint_dezoom = 10
+            arr = rasters.read(
+                self.get_default_band_path(),
+                resolution=self.resolution * footprint_dezoom,
+                indexes=[1],
+            )
+
+            # Vectorize the nodata band (rasters_rio is faster)
+            footprint = rasters.vectorize(
+                arr, values=0, keep_values=False, dissolve=True
+            )
+            footprint = vectors.get_wider_exterior(footprint)
+        else:
+            # If not ortho -> default band has been orthorectified and nodata will be set
+            footprint = rasters.get_footprint(self.get_default_band_path())
+
+        return footprint.to_crs(self.crs())
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -166,9 +210,12 @@ class DimapV1Product(VhrProduct):
                 try:
                     time_dt = time.strptime(time_str, "%H:%M:%S.%fZ")
                 except ValueError:
-                    time_dt = time.strptime(
-                        time_str, "%H:%M:%S.%f"
-                    )  # Sometimes without a Z
+                    # Sometimes without a Z
+                    try:
+                        time_dt = time.strptime(time_str, "%H:%M:%S.%f")
+                    except ValueError:
+                        # Sometimes without MICROSECONDS
+                        time_dt = time.strptime(time_str, "%H:%M:%S")
 
                 date_str = (
                     f"{date_dt.strftime('%Y%m%d')}T{time.strftime('%H%M%S', time_dt)}"

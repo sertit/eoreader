@@ -25,13 +25,12 @@ from enum import unique
 from pathlib import Path
 from typing import Union
 
-import geopandas as gpd
 import numpy as np
 import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import files, rasters, vectors
+from sertit import files
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
@@ -49,7 +48,7 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.products.optical.dimap_v1_product import DimapV1Product
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import EOREADER_NAME, simplify
+from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -337,46 +336,6 @@ class Gs2Product(DimapV1Product):
         crs_name = root.findtext(".//Projection_OGCWKT")
 
         return riocrs.CRS.from_string(crs_name)
-
-    @cache
-    @simplify
-    def footprint(self) -> gpd.GeoDataFrame:
-        """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1B_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.footprint()
-                                                         gml_id  ...                                           geometry
-            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
-            [1 rows x 3 columns]
-
-        Returns:
-            gpd.GeoDataFrame: Footprint as a GeoDataFrame
-        """
-        # If ortho -> nodata is not set !
-        if self.is_ortho:
-            # Get footprint of the first band of the stack
-            footprint_dezoom = 10
-            arr = rasters.read(
-                self.get_default_band_path(),
-                resolution=self.resolution * footprint_dezoom,
-                indexes=[1],
-            )
-
-            # Vectorize the nodata band
-            footprint = rasters.vectorize(
-                arr, values=0, keep_values=False, dissolve=True
-            )
-            footprint = vectors.get_wider_exterior(footprint)
-        else:
-            # If not ortho -> default band has been orthorectified and nodata will be set
-            footprint = rasters.get_footprint(self.get_default_band_path())
-
-        return footprint.to_crs(self.crs())
 
     def _to_reflectance(
         self,
