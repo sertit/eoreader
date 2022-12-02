@@ -136,7 +136,7 @@ class TsxSatId(ListEnum):
 class TsxGeometricResolution(ListEnum):
     """
     TerraSAR-X & TanDEM-X & PAZ geometric resolution, either Radiometrically Enhanced Products or Spatially Enhanced Products.
-    This would infer on the resolution of the band, but Copernicus EMS doesn't handled this so we keep SSC resolution as is ESA Data Access Portfolio.
+    This would infer on the resolution of the band, but Copernicus EMS doesn't handle this, so we keep SSC resolution as is ESA Data Access Portfolio.
 
     Take a look
     `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_

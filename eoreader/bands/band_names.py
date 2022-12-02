@@ -75,7 +75,7 @@ class BandNames(ListEnum):
 class SpectralBandNames(BandNames):
     """
     This class aims to regroup equivalent bands under the same nomenclature.
-    Each products will set their band number in regard to their corresponding name.
+    Each product will set their band number in regard to their corresponding name.
 
     **Note**: The mapping is based on Sentinel-2 spectral bands.
 
@@ -232,7 +232,7 @@ class SpectralBandNames(BandNames):
         Returns:
             SpectralBandNames: EOReader name
         """
-        # Try directly from raw name (especially for Sentinel-3 raw bands etc)
+        # Try directly from raw name (especially for Sentinel-3 raw bands etc.)
         try:
             return cls.from_value(name)
         except ValueError:

@@ -385,7 +385,7 @@ class Reader:
         def _compile_(regex_str: str):
             return re.compile(f"{prefix}{regex_str}{suffix}")
 
-        # Case folder is not enough to identify the products (ie. COSMO Skymed)
+        # Case folder is not enough to identify the products (i.e. COSMO Skymed)
         if isinstance(regex, list):
             comp = [_compile_(regex) for regex in regex]
         else:
@@ -701,7 +701,7 @@ def is_filename_valid(
     else:
         product_file_name = files.get_filename(product_path)
 
-    # Case folder is not enough to identify the products (ie. COSMO Skymed)
+    # Case folder is not enough to identify the products (i.e. COSMO Skymed)
     # WARNING: Two level max for the moment
     is_valid = bool(regex[0].match(product_file_name))
     if is_valid and len(regex) > 1:

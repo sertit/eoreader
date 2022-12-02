@@ -294,7 +294,7 @@ class IceyeProduct(SarProduct):
         if not name:
             raise InvalidProductError("product_name not found in metadata!")
 
-        # Check if use_slc is compatible
+        # Check if `use_slc` is compatible
         if self._use_slc and IceyeProductType.SLC.value not in name:
             raise InvalidProductError(f"This product {self.name} has no SLC image!")
         elif not self._use_slc and IceyeProductType.GRD.value not in name:

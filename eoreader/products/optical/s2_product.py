@@ -977,7 +977,7 @@ class S2Product(OpticalProduct):
         # Get detector footprint to deduce the outside nodata
         nodata_det = self._open_mask_lt_4_0(
             S2GmlMasks.FOOTPRINT, band
-        )  # Detector nodata, -> pixels that are outside of the detectors
+        )  # Detector nodata, -> pixels that are outside the detectors
 
         if len(nodata_det) > 0:
             # Rasterize nodata
@@ -1002,7 +1002,7 @@ class S2Product(OpticalProduct):
         #  Load masks and merge them into the nodata
         nodata_pix = self._open_mask_lt_4_0(
             S2GmlMasks.NODATA, band
-        )  # Pixel nodata, not pixels that are outside of the detectors !!!
+        )  # Pixel nodata, not pixels that are outside the detectors !!!
         if len(nodata_pix) > 0:
             # Discard pixels corrected during crosstalk
             nodata_pix = nodata_pix[nodata_pix.gml_id == "QT_NODATA_PIXELS"]
@@ -1101,7 +1101,7 @@ class S2Product(OpticalProduct):
         # Get detector footprint to deduce the outside nodata
         nodata_det = self._open_mask_lt_4_0(
             S2GmlMasks.FOOTPRINT, band
-        )  # Detector nodata, -> pixels that are outside of the detectors
+        )  # Detector nodata, -> pixels that are outside the detectors
 
         if len(nodata_det) > 0:
             # Rasterize nodata

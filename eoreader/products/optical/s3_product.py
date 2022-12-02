@@ -872,7 +872,7 @@ class S3Product(OpticalProduct):
             nc = nc.to_array()
 
         # WARNING: rioxarray doesn't like bytesIO -> open with xarray.h5netcdf engine
-        # BUT the xr.DataArray dimensions wont be correctly formatted !
+        # BUT the xr.DataArray dimensions won't be correctly formatted !
         # Align the NetCDF behaviour on rasterio's
 
         # Read as float32 (by default) or with given type

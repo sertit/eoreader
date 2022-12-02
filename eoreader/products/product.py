@@ -254,7 +254,7 @@ class Product:
             # Condensed name
             self.condensed_name = self._get_condensed_name()
 
-            # Temporary files path (private)
+            # Temporary file path (private)
             self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
             os.makedirs(self._tmp_process, exist_ok=True)
 
@@ -1072,7 +1072,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this product has been acquired after or in the same time than the other
+            bool: True if this product has been acquired after or in the same time as the other
 
         """
         return self.date >= other.date
@@ -1086,7 +1086,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this product has been acquired in the same time than the other
+            bool: True if this product has been acquired in the same time as the other
 
         """
         return self.date == other.date
@@ -1100,7 +1100,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this product has been acquired not in the same time than the other
+            bool: True if this product has been acquired not in the same time as the other
 
         """
         return self.date != other.date
@@ -1114,7 +1114,7 @@ class Product:
             other (Product): Other products to be compared with this one
 
         Returns:
-            bool: True if this product has been acquired before or in the same time than the other
+            bool: True if this product has been acquired before or in the same time as the other
 
         """
         return self.date <= other.date

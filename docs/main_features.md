@@ -86,7 +86,7 @@ from eoreader.env_vars import DEM_PATH
 
 path = r"S2B_MSIL1C_20210517T103619_N7990_R008_T30QVE_20210929T075738.SAFE"
 output = os.path.abspath("./output")
-# WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory
+# WARNING: you can leave the output_path empty, but EOReader will create a temporary output directory,
 # and you won't be able to retrieve what's has been written on disk
 prod = Reader().open(path, output_path=output)
 
