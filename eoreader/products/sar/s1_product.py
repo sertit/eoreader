@@ -42,7 +42,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class S1ProductType(ListEnum):
     """
     S1 products types. Take a look here:
-    https://earth.esa.int/web/sentinel/missions/sentinel-1/data-products
+    https://sentinel.esa.int/web/sentinel/missions/sentinel-1/data-products
     """
 
     RAW = "RAW"
@@ -62,7 +62,7 @@ class S1ProductType(ListEnum):
 class S1SensorMode(ListEnum):
     """
     S1 sensor mode. Take a look here:
-    https://earth.esa.int/web/sentinel/user-guides/sentinel-1-sar/acquisition-modes
+    https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/acquisition-modes
 
     The primary conflict-free modes are IW, with VV+VH polarisation over land,
     and WV, with VV polarisation, over open ocean.
@@ -83,6 +83,26 @@ class S1SensorMode(ListEnum):
     """Wave (WV) -> single polarisation only (HH or VV)"""
 
 
+@unique
+class S1ResolutionClass(ListEnum):
+    """
+    S1 resolution class:
+    https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected
+    """
+
+    FR = "F"
+    """Full Resolution (FR)"""
+
+    HR = "H"
+    """High Resolution (HR)"""
+
+    MR = "M"
+    """Medium Resolution (MR)"""
+
+    NONE = "_"
+    """No specified resolution for other product type than GRD"""
+
+
 class S1Product(SarProduct):
     """
     Class for Sentinel-1 Products
@@ -97,16 +117,40 @@ class S1Product(SarProduct):
         <here](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected>`_
         for more information
         """
-        if self.sensor_mode == S1SensorMode.SM:
-            def_res = 9.0  # Full Resolution GRD
-        elif self.sensor_mode == S1SensorMode.IW:
-            def_res = 20.0  # High  Resolution GRD
-        elif self.sensor_mode == S1SensorMode.EW:
-            def_res = 50.0  # High  Resolution GRD
-        elif self.sensor_mode == S1SensorMode.WV:
-            def_res = 52.0  # Medium Resolution GRD
+
+        if self.product_type == S1ProductType.GRD:
+            res_class = S1ResolutionClass.from_value(self.split_name[2][-1])
         else:
+            res_class = S1ResolutionClass.NONE
+
+        default_res = {
+            S1SensorMode.SM: {
+                S1ResolutionClass.NONE: 3.5,
+                S1ResolutionClass.FR: 3.5,
+                S1ResolutionClass.HR: 10.0,
+                S1ResolutionClass.MR: 40.0,
+            },
+            S1SensorMode.IW: {
+                S1ResolutionClass.NONE: 20.0,
+                S1ResolutionClass.HR: 20.0,  # Force it from Data Access Portfolio
+                S1ResolutionClass.MR: 40.0,
+            },
+            S1SensorMode.EW: {
+                S1ResolutionClass.NONE: 25.0,
+                S1ResolutionClass.HR: 25.0,
+                S1ResolutionClass.MR: 40.0,
+            },
+            S1SensorMode.WV: {
+                S1ResolutionClass.NONE: 25.0,
+                S1ResolutionClass.MR: 25.0,
+            },
+        }
+
+        try:
+            def_res = default_res[self.sensor_mode][res_class]
+        except KeyError:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
+
         return def_res
 
     def _set_instrument(self) -> None:

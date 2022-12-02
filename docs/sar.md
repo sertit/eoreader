@@ -111,21 +111,27 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 
 ## Default resolution
 
-The default resolution of SAR products depends on their type. Complex data are **always** converted back to ground range
-to be used, so the complex resolution is **never** used by EOReader.
+The default resolution of SAR products is the one given in 
+[Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Document+-+current+(10).pdf). 
+For resolutions not available in this document, we are using the pixel spacing given by the constellation's provider.
+Complex data are **always** converted back to ground range to be used, so the complex resolution is **never** used by EOReader.
 
-The product resolution is the one given in [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589). 
-The Data Access Portfolio Document presents the offer of the datasets and data access services that are made available to the Copernicus Users in response to their Earth Observation data requirements.
-Resolutions not found in this paper have been looked for in the constructor's documents (see sources).
+SAR default resolution is the **pixel spacing** given by the constellation provider, to follow common habits.
+Sometimes, especially when converting complex data to ground range, this resolution needs to be adaptated.
+
+> ⚠ Pay attention that for a pixel spacing of 10 meters and a rg x az resolution of 23m, objects under 23m won't be resolved !
+> As this may be counter-intuitive, it is recommanded to **always** specify the resolution when loading SAR data.
 
 ### Sentinel-1
 
-| **Sentinel-1**                  | Ground Range Detected (GRD)<br>Full Resolution (FR) | Ground Range Detected (GRD)<br>High Resolution (HR) | Ground Range Detected (GRD)<br>Medium Resolution (MR) |
-|---------------------------------|-----------------------------------------------------|-----------------------------------------------------|-------------------------------------------------------|
-| StripMap (SM)                   | 9.0m                                                | 23.0m                                               | 84.0m                                                 |
-| Interferometric Wide swath (IW) |                                                     | 20.0m                                               | 88.0m                                                 |
-| Extra-Wide swath (EW)           |                                                     | 50.0m                                               | 93.0m                                                 |
-| Wave (WV)                       |                                                     |                                                     | 52.0m                                                 |
+| **Sentinel-1**                  | Ground Range Detected (GRD)<br>Full Resolution (FR)   | Ground Range Detected (GRD)<br>High Resolution (HR)   | Ground Range Detected (GRD)<br>Medium Resolution (MR)      |
+|---------------------------------|-------------------------------------------------------|-------------------------------------------------------|------------------------------------------------------------|
+| StripMap (SM) \*                | **pixel spacing: 3.5m**<br>rg x az resolution: 9.0m   | **pixel spacing: 10.0m**<br>rg x az resolution: 23.0m | **pixel spacing: 40.0m**<br>rg x az resolution: 84.0m      |
+| Interferometric Wide swath (IW) |                                                       | 20.0m                                                 | **pixel spacing: 40.0m**<br>rg x az resolution: 88.0x87.0m |
+| Extra-Wide swath (EW)           |                                                       | **pixel spacing: 25.0m**<br>rg x az resolution: 25.0m | **pixel spacing: 40.0m**<br>rg x az resolution: 93.0x87.0m |
+| Wave (WV) \*                    |                                                       |                                                       | **pixel spacing: 25.0m**<br>rg x az resolution: 52.0x51.0m |
+
+\* Resolutions not provided in the Data Access Portfolio. Available [here](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected).
 
 ### COSMO-Skymed 1st Generation
 
@@ -140,31 +146,34 @@ Resolutions not found in this paper have been looked for in the constructor's do
 
 ### COSMO-Skymed 2nd Generation
 
-> ⚠️*TO BE CHECKED*
+Resolutions not provided in the Data Access Portfolio. 
+Available [here](https://www.e-geos.it/assets/images/test-img/cosmo-document/gd-com-20-001-e-geos-official-pricelist-june-22nd-2020.pdf).
 
 | **COSMO-Skymed<br>2nd Generation** | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC) |
 |------------------------------------|------------------------------------------------------------------------------------------------------------|
-| SPOTLIGHT_2_A                      | 0.4m                                                                                                       |
-| SPOTLIGHT_2_B                      | 0.63m                                                                                                      |
-| SPOTLIGHT-2_C                      | 0.8m                                                                                                       |
-| STRIPMAP & QUADPOL                 | 3.0m                                                                                                       |
-| SCANSAR1                           | 20.0m                                                                                                      |
-| SCANSAR2                           | 40.0m                                                                                                      |
-| PINGPONG                           | 12.0m                                                                                                      |
+| SPOTLIGHT_2_A                      | ~0.4m                                                                                                      |
+| SPOTLIGHT_2_B                      | ~0.63m                                                                                                      |
+| SPOTLIGHT-2_C                      | ~0.8m                                                                                                       |
+| STRIPMAP & QUADPOL                 | ~3.0m                                                                                                       |
+| SCANSAR1                           | ~20.0m                                                                                                      |
+| SCANSAR2                           | ~40.0m                                                                                                      |
+| PINGPONG                           | ~12.0m                                                                                                      |
 
 ### TerraSAR-X & TanDEM-X & PAZ SAR
 
 | **TerraSAR-X<br>TanDEM-X<br>PAZ SAR**            | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced<br>(high resolution, SE) | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE) |
-|--------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **StripMap (SM)**<br>Single-Pol                  | 3.3m                                                                                                                                                     | 7.0m                                                                                                                                                           |
-| **StripMap (SM)**<br>Dual-Pol                    | 6.6m                                                                                                                                                     | 9.9m                                                                                                                                                           |
-| **High Resolution Spotlight (HS)**<br>Single-Pol | 1.1m                                                                                                                                                     | 3.0m                                                                                                                                                           |
-| **High Resolution Spotlight (HS)**<br>Dual-Pol   | 2.2m                                                                                                                                                     | 4.4m                                                                                                                                                           |
-| **Spotlight (SL)**<br>Single-Pol                 | 1.7m                                                                                                                                                     | 3.8m                                                                                                                                                           |
-| **Spotlight (SL)**<br>Dual-Pol                   | 3.4m                                                                                                                                                     | 5.5m                                                                                                                                                           |
-| **Staring Spotlight (ST)**<br>Single-Pol         | 0.24m                                                                                                                                                    | 0.9m                                                                                                                                                           |
-| **ScanSAR (SC)**<br>Four Beams                   |                                                                                                                                                          | 18.5m                                                                                                                                                          |
-| **ScanSAR (SC)**<br>Six Beams                    |                                                                                                                                                          | 40.0m                                                                                                                                                          |
+|--------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **StripMap (SM)**<br>Single-Pol                  | 3.3m                                                                                                                                                     | 7.0m   \*                                                                                                                                                    |
+| **StripMap (SM)**<br>Dual-Pol                    | 6.6m                                                                                                                                                     | 9.9m   \*                                                                                                                                                    |
+| **High Resolution Spotlight (HS)**<br>Single-Pol | 1.1m                                                                                                                                                     | 3.0m   \*                                                                                                                                                    |
+| **High Resolution Spotlight (HS)**<br>Dual-Pol   | 2.2m                                                                                                                                                     | 4.4m   \*                                                                                                                                                    |
+| **Spotlight (SL)**<br>Single-Pol                 | 1.7m                                                                                                                                                     | 3.8m   \*                                                                                                                                                    |
+| **Spotlight (SL)**<br>Dual-Pol                   | 3.4m                                                                                                                                                     | 5.5m   \*                                                                                                                                                    |
+| **Staring Spotlight (ST)**<br>Single-Pol         | 0.24m                                                                                                                                                    | 0.9m   \*                                                                                                                                                    |
+| **ScanSAR (SC)**<br>Four Beams                   |                                                                                                                                                          | 18.5m                                                                                                                                                       |
+| **ScanSAR (SC)**<br>Six Beams                    |                                                                                                                                                          | 40.0m                                                                                                                                                    |
+
+\* Resolutions not provided in the Data Access Portfolio. Available [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf).
 
 ### RADARSAT-2
 
@@ -194,6 +203,9 @@ Resolutions not found in this paper have been looked for in the constructor's do
 
 ### RADARSAT-Constellation
 
+Resolutions not provided in the Data Access Portfolio. 
+Available [here](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp).
+
 | **RADARSAT-Constellation**          | Resolution |
 |-------------------------------------|------------|
 | Spotlight [FSL]                     | 1.0m       |
@@ -209,6 +221,9 @@ Resolutions not found in this paper have been looked for in the constructor's do
 
 ### ICEYE
 
+Resolutions not provided in the Data Access Portfolio. 
+Available [here](https://iceye-ltd.github.io/product-documentation/latest/productguide/collectioncharacteristics/).
+
 | **ICEYE**         | Resolution |
 |-------------------|------------|
 | Spotlight [SL(H)] | 1.0m       |
@@ -216,6 +231,9 @@ Resolutions not found in this paper have been looked for in the constructor's do
 | Scan [SC]         | < 15.0m    |
 
 ### SAOCOM-1
+
+Resolutions not provided in the Data Access Portfolio. 
+Available [here](https://saocom.veng.com.ar/en/).
 
 | **SAOCOM-1**                                  | Detected Image (DI)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC) |
 |-----------------------------------------------|-----------------------------------------------------------------------------------------------|
@@ -374,8 +392,8 @@ variable:
 
 ## Documentary Sources
 
-- [Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589)
-- 
+- [Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Document+-+current+%2810%29.pdf)
+
 ### Copernicus 
 - [Copernicus Contributing Missions](https://www.esa.int/ESA_Multimedia/Images/2021/09/Copernicus_Contributing_Missions_overview)
 
@@ -408,7 +426,6 @@ variable:
 
 - [ICEYE Product Specifications](https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf)
 - [ICEYE Product Documentation](https://iceye-ltd.github.io/product-documentation/5.1/)
-- [ICEYE Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/ICEYE.html)
 
 ### SAOCOM-1
 - [SAOCOM Description](https://saocom.veng.com.ar/en/)
