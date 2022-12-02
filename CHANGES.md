@@ -23,6 +23,8 @@
     - Cleaner: better conversion from swath to grid
     - Faster: Up to 4 times faster
     - Allows code refactoring between OLCI and SLSTR
+- **BREAKING CHANGES: For SAR product types that are not available in the Data Access Portfolio, default resolution is now the pixel spacing instead of the rg x az resolution**
+  - Changes mainly Sentinel-1 default resolutions (except from IW mode)
 
 ### Enhancements
 
