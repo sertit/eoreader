@@ -29,14 +29,64 @@ from functools import wraps
 from typing import Callable
 
 import numpy as np
+import spyndex
 import xarray as xr
-from sertit import files, rasters
+from sertit import rasters
 
-from eoreader.bands.spectral_bands import SpectralBandNames as spb
+from eoreader.bands.band_names import (
+    BLUE,
+    CA,
+    GREEN,
+    NIR,
+    RED,
+    SWIR_1,
+    SWIR_2,
+    VRE_1,
+    VRE_2,
+    VRE_3,
+    WV,
+    SpectralBandNames,
+)
+from eoreader.bands.mappings import EOREADER_TO_SPYNDEX_DICT, SPYNDEX_TO_EOREADER_DICT
 from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 np.seterr(divide="ignore", invalid="ignore")
+
+EOREADER_ALIASES = {
+    "AFRI_1_6": "AFRI1600",
+    "AFRI_2_1": "AFRI2100",
+    "BSI": "BI",
+    "NDGRI": "NGRDI",
+    "NDRE1": "NDREI",
+    "RGI": "RGRI",
+    "WV_BI": "NHFD",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/20
+    "WI": "WI2015",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/19
+    "RDI": "DSI",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/18
+    "DSWI": "DSWI5",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/16
+    "GRI": "DSWI4",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/16
+    "WV_SI": "NDSIWV",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/26
+    "PANI": "BITM",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/22
+}
+
+# Using NIR instead of NARROW_NIR to follow ASI approach
+# (see: https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/27)
+# Goal with this dict: to have as many indices as possible implemented in ASI
+EOREADER_DERIVATIVES = {
+    "NDRE2": ["NDREI", {"N": NIR, "RE1": VRE_2}],
+    "NDRE3": ["NDREI", {"N": NIR, "RE1": VRE_3}],
+    "NDMI21": ["NDMI", {"N": NIR, "S1": SWIR_2}],
+    "NDMI2100": ["NDMI", {"N": NIR, "S1": SWIR_2}],
+    "CI2": ["CIRE", {"N": VRE_2, "RE1": VRE_1}],
+    "CI1": ["CIRE", {"N": VRE_3, "RE1": VRE_2}],
+    # https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+    "WV_WI": ["NHFD", {"RE1": WV, "A": CA}],
+    "WV_VI": ["NHFD", {"RE1": WV, "A": RED}],
+    # https://www.indexdatabase.de/db/i-single.php?id=204
+    "SRSWIR": ["DSI", {"S1": SWIR_1, "N": SWIR_2}],
+    # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/22
+    "SBI": ["BIXS", {"G": RED, "R": NIR}],
+}
 
 
 def _idx_fct(function: Callable) -> Callable:
@@ -67,6 +117,62 @@ def _idx_fct(function: Callable) -> Callable:
     return _idx_fct_wrapper
 
 
+def compute_index(index: str, bands: dict, **kwargs) -> xr.DataArray:
+    """
+
+    Args:
+        index (str): Index name (as a string)
+        bands (dict): Band dictionary
+        **kwargs: Kwargs
+
+    Returns:
+        xr.DataArray: Computed index
+    """
+
+    def _compute_params(_bands, **_kwargs):
+        prms = {
+            EOREADER_TO_SPYNDEX_DICT[key]: value.data for key, value in _bands.items()
+        }
+        prms.update(_kwargs)
+
+        return prms
+
+    if hasattr(spyndex.indices, index):
+        parameters = _compute_params(bands, **kwargs)
+
+        if index == "SAVI":
+            parameters["L"] = 0.5
+        elif index == "EVI":
+            parameters["g"] = 2.5
+            parameters["C1"] = 6.0
+            parameters["C2"] = 7.5
+            parameters["L"] = 1.0
+
+        index_arr = spyndex.computeIndex(index, parameters)
+
+    elif index in EOREADER_ALIASES:
+        index_arr = spyndex.computeIndex(
+            EOREADER_ALIASES[index], _compute_params(bands, **kwargs)
+        )
+    elif index in EOREADER_DERIVATIVES:
+        idx_name = EOREADER_DERIVATIVES[index][0]
+        params = {
+            key: bands[value].data
+            for key, value in EOREADER_DERIVATIVES[index][1].items()
+        }
+        index_arr = spyndex.computeIndex(idx_name, params)
+    else:
+        index_arr = eval(index)(bands)
+
+    # TODO: check if metadata is kept with spyndex
+
+    # Take the first band as a template for xarray
+    first_xda = list(bands.values())[0]
+    out_xda = first_xda.copy(data=index_arr)
+
+    return rasters.set_metadata(out_xda, first_xda, new_name=index)
+
+
 def _norm_diff(band_1: xr.DataArray, band_2: xr.DataArray) -> xr.DataArray:
     """
     Get normalized difference index between band 1 and band 2:
@@ -81,127 +187,6 @@ def _norm_diff(band_1: xr.DataArray, band_2: xr.DataArray) -> xr.DataArray:
     """
     norm = (band_1 - band_2) / (band_1 + band_2)
     return norm
-
-
-@_idx_fct
-def RGI(bands: dict) -> xr.DataArray:
-    """
-    `Relative Greenness Index <https://www.indexdatabase.de/db/i-single.php?id=326>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return bands[spb.RED] / bands[spb.GREEN]
-
-
-@_idx_fct
-def GRI(bands: dict) -> xr.DataArray:
-    """
-    Green-to-Red ratio Index
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return bands[spb.GREEN] / bands[spb.RED]
-
-
-@_idx_fct
-def NDVI(bands: dict) -> xr.DataArray:
-    """
-    `Normalized Difference Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=58>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return _norm_diff(bands[spb.NIR], bands[spb.RED])
-
-
-@_idx_fct
-def SAVI(bands: dict) -> xr.DataArray:
-    """
-    `Soil Adjusted Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=87>`_ with L=0.5
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    coeff = 0.5
-    return (
-        (1 + coeff)
-        * (bands[spb.NIR] - bands[spb.RED])
-        / (bands[spb.NIR] + bands[spb.RED] + coeff)
-    )
-
-
-@_idx_fct
-def OSAVI(bands: dict) -> xr.DataArray:
-    """
-    `Optimized Soil Adjusted Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=63>`_ with L=0.16
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    coeff = 0.16
-    return (
-        (1 + coeff)
-        * (bands[spb.NIR] - bands[spb.RED])
-        / (bands[spb.NIR] + bands[spb.RED] + coeff)
-    )
-
-
-@_idx_fct
-def VARI(bands: dict) -> xr.DataArray:
-    """
-    `Visible Atmospherically Resistant Index (Green) <https://www.indexdatabase.de/db/i-single.php?id=356>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return (bands[spb.GREEN] - bands[spb.RED]) / (
-        bands[spb.GREEN] + bands[spb.RED] - bands[spb.BLUE]
-    )
-
-
-@_idx_fct
-def EVI(bands: dict) -> xr.DataArray:
-    """
-    `Enhanced Vegetation Index <https://www.indexdatabase.de/db/i-single.php?id=16>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return (
-        2.5
-        * (bands[spb.NIR] - bands[spb.RED])
-        / (bands[spb.NIR] + 6 * bands[spb.RED] - 7.5 * bands[spb.BLUE] + 1)
-    )
 
 
 @_idx_fct
@@ -220,12 +205,12 @@ def TCBRI(bands: dict) -> xr.DataArray:
 
     """
     return (
-        0.3037 * bands[spb.BLUE]
-        + 0.2793 * bands[spb.GREEN]
-        + 0.4743 * bands[spb.RED]
-        + 0.5585 * bands[spb.NIR]
-        + 0.5082 * bands[spb.SWIR_1]
-        + 0.1863 * bands[spb.SWIR_2]
+        0.3037 * bands[BLUE]
+        + 0.2793 * bands[GREEN]
+        + 0.4743 * bands[RED]
+        + 0.5585 * bands[NIR]
+        + 0.5082 * bands[SWIR_1]
+        + 0.1863 * bands[SWIR_2]
     )
 
 
@@ -245,12 +230,12 @@ def TCGRE(bands: dict) -> xr.DataArray:
 
     """
     return (
-        -0.2848 * bands[spb.BLUE]
-        - 0.2435 * bands[spb.GREEN]
-        - 0.5436 * bands[spb.RED]
-        + 0.7243 * bands[spb.NIR]
-        + 0.0840 * bands[spb.SWIR_1]
-        - 0.1800 * bands[spb.SWIR_2]
+        -0.2848 * bands[BLUE]
+        - 0.2435 * bands[GREEN]
+        - 0.5436 * bands[RED]
+        + 0.7243 * bands[NIR]
+        + 0.0840 * bands[SWIR_1]
+        - 0.1800 * bands[SWIR_2]
     )
 
 
@@ -270,569 +255,13 @@ def TCWET(bands: dict) -> xr.DataArray:
 
     """
     return (
-        0.1509 * bands[spb.BLUE]
-        + 0.1973 * bands[spb.GREEN]
-        + 0.3279 * bands[spb.RED]
-        + 0.3406 * bands[spb.NIR]
-        - 0.7112 * bands[spb.SWIR_1]
-        - 0.4572 * bands[spb.SWIR_2]
+        0.1509 * bands[BLUE]
+        + 0.1973 * bands[GREEN]
+        + 0.3279 * bands[RED]
+        + 0.3406 * bands[NIR]
+        - 0.7112 * bands[SWIR_1]
+        - 0.4572 * bands[SWIR_2]
     )
-
-
-@_idx_fct
-def NDRE2(bands: dict) -> xr.DataArray:
-    """
-    `Normalized Difference Red-Edge <https://www.indexdatabase.de/db/i-single.php?id=223>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return _norm_diff(bands[spb.NARROW_NIR], bands[spb.VRE_1])
-
-
-@_idx_fct
-def NDRE3(bands: dict) -> xr.DataArray:
-    """
-    `Normalized Difference Red-Edge <https://www.indexdatabase.de/db/i-single.php?id=223>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return _norm_diff(bands[spb.NARROW_NIR], bands[spb.VRE_2])
-
-
-@_idx_fct
-def CI1(bands: dict) -> xr.DataArray:
-    """
-    Chlorophyll Index RedEdge VRE_3/VRE_2
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return bands[spb.VRE_3] / bands[spb.VRE_2] - 1
-
-
-@_idx_fct
-def CI2(bands: dict) -> xr.DataArray:
-    """
-    Chlorophyll Index RedEdge VRE_2/VRE_1
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return bands[spb.VRE_2] / bands[spb.VRE_1] - 1
-
-
-@_idx_fct
-def GLI(bands: dict) -> xr.DataArray:
-    """
-    `Green leaf index <https://www.indexdatabase.de/db/i-single.php?id=375>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return (2 * bands[spb.GREEN] - bands[spb.RED] - bands[spb.BLUE]) / (
-        2 * bands[spb.GREEN] + bands[spb.RED] + bands[spb.BLUE]
-    )
-
-
-@_idx_fct
-def GNDVI(bands: dict) -> xr.DataArray:
-    """
-    `Green NDVI <https://www.indexdatabase.de/db/i-single.php?id=401>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return _norm_diff(bands[spb.NIR], bands[spb.GREEN])
-
-
-@_idx_fct
-def RI(bands: dict) -> xr.DataArray:
-    """
-    `Normalized Difference RED/GREEN Redness Index <https://www.indexdatabase.de/db/i-single.php?id=74>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return _norm_diff(bands[spb.VRE_1], bands[spb.GREEN])
-
-
-@_idx_fct
-def NDGRI(bands: dict) -> xr.DataArray:
-    """
-    `Normalized Difference GREEN/RED Index <https://www.indexdatabase.de/db/i-single.php?id=390>`_
-
-    Also known as NDGR.
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return _norm_diff(bands[spb.GREEN], bands[spb.RED])
-
-
-@_idx_fct
-def CIG(bands: dict) -> xr.DataArray:
-    """
-    `Chlorophyll Index Green <https://www.indexdatabase.de/db/i-single.php?id=128>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return (bands[spb.NIR] / bands[spb.GREEN]) - 1
-
-
-@_idx_fct
-def NDMI(bands: dict) -> xr.DataArray:
-    """
-    `Normalized Difference Moisture Index <https://www.indexdatabase.de/db/i-single.php?id=56>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return _norm_diff(bands[spb.NARROW_NIR], bands[spb.SWIR_1])
-
-
-@_idx_fct
-def NDMI21(bands: dict) -> xr.DataArray:
-    """
-    Normalized Difference Moisture Index (with SWIR_21)
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return _norm_diff(bands[spb.NARROW_NIR], bands[spb.SWIR_2])
-
-
-@_idx_fct
-def DSWI(bands: dict) -> xr.DataArray:
-    """
-    `Disease water stress index <https://www.indexdatabase.de/db/i-single.php?id=106>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return (bands[spb.NIR] + bands[spb.GREEN]) / (bands[spb.SWIR_1] + bands[spb.RED])
-
-
-@_idx_fct
-def SRSWIR(bands: dict) -> xr.DataArray:
-    """
-    `Simple Ratio SWIR_1/SWIR_2 Clay Minerals <https://www.indexdatabase.de/db/i-single.php?id=204>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return bands[spb.SWIR_1] / bands[spb.SWIR_2]
-
-
-@_idx_fct
-def RDI(bands: dict) -> xr.DataArray:
-    """
-    `Ratio Drought Index <https://www.indexdatabase.de/db/i-single.php?id=71>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return bands[spb.SWIR_2] / bands[spb.NARROW_NIR]
-
-
-@_idx_fct
-def NDWI(bands: dict) -> xr.DataArray:
-    """
-    `Normalized Difference Water Index <https://pro.arcgis.com/fr/pro-app/2.7/arcpy/image-analyst/ndwi.htm>`_
-    (GREEN Version)
-
-    :code:`NDWI = (GREEN - NIR) / (GREEN + NIR)`
-
-    For the SWIR version, see the NDMI.
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return _norm_diff(bands[spb.GREEN], bands[spb.NIR])
-
-
-@_idx_fct
-def BAI(bands: dict) -> xr.DataArray:
-    """
-    `Burn Area Index <https://www.harrisgeospatial.com/docs/BackgroundBurnIndices.html>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return 1.0 / ((0.1 - bands[spb.RED]) ** 2 + (0.06 - bands[spb.NIR]) ** 2)
-
-
-@_idx_fct
-def BAIM(bands: dict) -> xr.DataArray:
-    """
-    `MODIS Burned Area Index <https://www.researchgate.net/publication/248428333_Burnt_Area_Index_BAIM_for_burned_area_discrimination_at_regional_scale_using_MODIS_data>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return 1.0 / ((0.2 - bands[spb.SWIR_1]) ** 2 + (0.05 - bands[spb.NIR]) ** 2)
-
-
-@_idx_fct
-def BAIS2(bands: dict) -> xr.DataArray:
-    """
-    `Burn Area Index for Sentinel-2
-    <https://www.researchgate.net/publication/323964124_BAIS2_Burned_Area_Index_for_Sentinel-2>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    # (1-((B06*B07*B8A)/B04)**0.5)*((B12-B8A)/((B12+B8A)**0.5)+1);
-    a = ((bands[spb.VRE_2] * bands[spb.VRE_3] * bands[spb.NIR]) / bands[spb.RED]) ** 0.5
-    b = (bands[spb.SWIR_2] - bands[spb.NIR]) / (
-        (bands[spb.SWIR_2] + bands[spb.NIR]) ** 0.5
-    )
-    return (1 - a) * (1 + b)
-
-
-@_idx_fct
-def NBR(bands: dict) -> xr.DataArray:
-    """
-    `Normalized Burn Ratio <https://www.indexdatabase.de/db/i-single.php?id=53>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return _norm_diff(bands[spb.NARROW_NIR], bands[spb.SWIR_2])
-
-
-@_idx_fct
-def MNDWI(bands: dict) -> xr.DataArray:
-    """
-    `Modified Normalised Difference Water Index <https://wiki.orfeo-toolbox.org/index.php/MNDWI>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return _norm_diff(bands[spb.GREEN], bands[spb.SWIR_1])
-
-
-@_idx_fct
-def AWEInsh(bands: dict) -> xr.DataArray:
-    """
-    Automated Water Extraction Index not shadow: Feyisa et al. (2014)
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return 4 * (bands[spb.GREEN] - bands[spb.SWIR_1]) - (
-        0.25 * bands[spb.NIR] + 2.75 * bands[spb.SWIR_2]
-    )
-
-
-@_idx_fct
-def AWEIsh(bands: dict) -> xr.DataArray:
-    """
-    Automated Water Extraction Index shadow: Feyisa et al. (2014)
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-
-    """
-    return (
-        bands[spb.BLUE]
-        + 2.5 * bands[spb.GREEN]
-        - 1.5 * (bands[spb.NIR] + bands[spb.SWIR_1])
-        - 0.25 * bands[spb.SWIR_2]
-    )
-
-
-@_idx_fct
-def WI(bands: dict) -> xr.DataArray:
-    """
-    Water Index (2015): Fisher et al. (2016)
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return (
-        1.7204
-        + 171 * bands[spb.GREEN]
-        + 3 * bands[spb.RED]
-        - 70 * bands[spb.NIR]
-        - 45 * bands[spb.SWIR_1]
-        - 71 * bands[spb.SWIR_2]
-    )
-
-
-@_idx_fct
-def AFRI_1_6(bands: dict) -> xr.DataArray:
-    """
-    `Aerosol free vegetation index 1600 <https://www.indexdatabase.de/db/i-single.php?id=393>`_
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return _norm_diff(bands[spb.NARROW_NIR], 0.66 * bands[spb.SWIR_1])
-
-
-@_idx_fct
-def AFRI_2_1(bands: dict) -> xr.DataArray:
-    """
-    `Aerosol free vegetation index 2100 <https://www.indexdatabase.de/db/i-single.php?id=395>`_
-
-    .. WARNING::
-        There is an error in the formula, go see the papers to get the right one (0.56 instead of 0.5):
-        https://core.ac.uk/download/pdf/130673386.pdf
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return _norm_diff(bands[spb.NARROW_NIR], 0.5 * bands[spb.SWIR_2])
-
-
-@_idx_fct
-def BSI(bands: dict) -> xr.DataArray:
-    """
-    `Barren Soil Index <http://tropecol.com/pdf/open/PDF_43_1/43104.pdf>`_
-    Rikimaru et al., 2002. Tropical forest cover density mapping.
-
-
-    :code:`BSI = ((RED+SWIR) – (NIR+BLUE)) / ((RED+SWIR) + (NIR+BLUE))`
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return _norm_diff(
-        bands[spb.RED] + bands[spb.SWIR_1], bands[spb.NIR] + bands[spb.BLUE]
-    )
-
-
-# WorldView index (without the ones with SWIR)
-# https://resources.maxar.com/optical-imagery/multispectral-reference-guide
-
-
-@_idx_fct
-def WV_WI(bands: dict) -> xr.DataArray:
-    """
-    `WorldView-Water (WV-WI) <https://resources.maxar.com/optical-imagery/multispectral-reference-guide>`_
-
-    Useful for detecting standing, flowing water, or shadow in VNIR imagery
-
-    :code:`WV_WI = ((B8-B1)/(B8+B1))`
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return _norm_diff(bands[spb.WV], bands[spb.CA])
-
-
-@_idx_fct
-def WV_VI(bands: dict) -> xr.DataArray:
-    """
-    `WorldView-Vegetation (WV-VI) <https://resources.maxar.com/optical-imagery/multispectral-reference-guide>`_
-
-    Useful for detecting vegetation and assessing vegetation health
-
-    :code:`WV_VI = ((B8-B5)/(B8+B5))`
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return _norm_diff(bands[spb.WV], bands[spb.RED])
-
-
-@_idx_fct
-def WV_SI(bands: dict) -> xr.DataArray:
-    """
-    `WorldView-Soil (WV-SI) <https://resources.maxar.com/optical-imagery/multispectral-reference-guide>`_
-
-    Useful for detecting and differentiating exposed soil
-
-    :code:`WV_SI = ((B4-B3)/(B4+B3))`
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return _norm_diff(bands[spb.YELLOW], bands[spb.GREEN])
-
-
-@_idx_fct
-def WV_BI(bands: dict) -> xr.DataArray:
-    """
-    `WorldView-Built-up (WV-BI) <https://resources.maxar.com/optical-imagery/multispectral-reference-guide>`_
-
-    Useful for detecting impervious surfaces such as buildings and roads
-
-    :code:`WV_BI = ((B6-B1)/(B6+B1))`
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return _norm_diff(bands[spb.VRE_1], bands[spb.CA])
-
-
-@_idx_fct
-def SI(bands: dict) -> xr.DataArray:
-    """
-    Shadow Index
-
-    Replacing maxima by percentile_98 in order to discard potential outliers
-
-    :code:`SI = sqrt((perc_98(GREEN) - GREEN)*(perc_98(RED) - RED))`
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    green = np.nanpercentile(bands[spb.GREEN], 99) - bands[spb.GREEN]
-    green = np.where(green < 0, 0, green)
-    red = np.nanpercentile(bands[spb.RED], 99) - bands[spb.RED]
-    red = np.where(red < 0, 0, red)
-    return np.sqrt(green * red)
-
-
-@_idx_fct
-def GVMI(bands: dict) -> xr.DataArray:
-    """
-    `Global Vegetation Moisture Index <https://www.indexdatabase.de/db/i-single.php?id=372>`_
-
-    :code:`GVMI = norm_diff(NIR+0.1), SWIR_2 + 0.02))`
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return _norm_diff(bands[spb.NARROW_NIR] + 0.1, bands[spb.SWIR_2] + 0.02)
-
-
-@_idx_fct
-def SBI(bands: dict) -> xr.DataArray:
-    """
-    `Soil Brightness Index <https://hal.archives-ouvertes.fr/hal-03207299/document>`_ (p.4)
-
-    The role of the brightness index is to identify the reflectance of soil
-    and to highlight the vegetal cover of bare areas.
-    *Bannari et al. 1996; Soufiane Maimouni and Bannari 2011*
-
-    :code:`SBI = sqrt(RED**2 + NIR**2)`
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return np.sqrt(bands[spb.RED] ** 2 + bands[spb.NIR] ** 2)
 
 
 @_idx_fct
@@ -851,23 +280,7 @@ def SCI(bands: dict) -> xr.DataArray:
     Returns:
         xr.DataArray: Computed index
     """
-    return 3 * bands[spb.GREEN] - bands[spb.RED] - 100
-
-
-@_idx_fct
-def PANI(bands: dict) -> xr.DataArray:
-    """
-    Panchromatic mocking index
-
-    :code:`PAN = sqrt(RED**2 + GREEN**2 + BLUE**2)`
-
-    Args:
-        bands (dict): Bands as {band_name: xr.DataArray}
-
-    Returns:
-        xr.DataArray: Computed index
-    """
-    return np.sqrt(bands[spb.RED] ** 2 + bands[spb.GREEN] ** 2 + bands[spb.BLUE] ** 2)
+    return 3 * bands[GREEN] - bands[RED] - 100
 
 
 def get_all_index_names() -> list:
@@ -884,35 +297,80 @@ def get_all_index_names() -> list:
         list: Index names
 
     """
-    return [idx_fct.__name__ for idx_fct in get_all_indices()]
+    return get_spyndex_indices() + get_eoreader_indices()
 
 
-def get_all_indices() -> list:
+def get_eoreader_indices() -> list:
     """
-    Get all index functions contained in this file
-
-    .. code-block:: python
-
-        >>> from eoreader.bands import index
-        >>> index.get_all_indices()
-        [<function AFRI_1_6 at 0x00000118FFFB51E0>, ..., <function WI at 0x00000118FFFB5158>]
+    Get list of all EOReader indices
 
     Returns:
-        list: Index functions
-
+        list: list of all EOReader indices
     """
-    idx = []
+    eoreader_indices = []
+
     functions = inspect.getmembers(sys.modules[__name__], predicate=inspect.isfunction)
 
     for (name, fct) in functions:
         # Do not gather this fct nor da.true_divide
         if name[0].isupper():
-            idx.append(fct)
+            eoreader_indices.append(fct.__name__)
 
-    return idx
+    # Add aliases
+    for idx in EOREADER_ALIASES.keys():
+        if hasattr(spyndex.indices, idx):
+            eoreader_indices.append(idx)
+
+    # Add derivatives
+    for idx, deriv_list in EOREADER_DERIVATIVES.items():
+        if hasattr(spyndex.indices, deriv_list[0]):
+            eoreader_indices.append(idx)
+
+    return eoreader_indices
 
 
-def get_needed_bands(index: Callable) -> list:
+def get_spyndex_indices() -> list:
+    """
+    Get list of all Spyndex indices
+
+    Returns:
+        list: list of all Spyndex indices
+    """
+    return list(spyndex.indices)
+
+
+def is_eoreader_idx(index: str) -> bool:
+    """
+    Yes if the string is an EOReader index
+
+    Args:
+        index (str): String to test
+
+    Returns:
+        bool: True if the string is an EOReader index
+    """
+    return index in get_eoreader_indices()
+
+
+def is_spyndex_idx(index: str) -> bool:
+    """
+    Yes if the string is a Spyndex index
+
+    Args:
+        index (str): String to test
+
+    Returns:
+        bool: True if the string is a Spyndex index
+    """
+    return index in get_spyndex_indices()
+
+
+# Check that no EOReader index name shadows Spyndex indices
+assert not any(is_spyndex_idx(alias) for alias in EOREADER_ALIASES.keys())
+assert not any(is_spyndex_idx(alias) for alias in EOREADER_DERIVATIVES.keys())
+
+
+def get_needed_bands(index: str) -> list:
     """
     Gather all the needed bands for the specified index function
 
@@ -924,13 +382,37 @@ def get_needed_bands(index: Callable) -> list:
     Returns:
         list: Needed bands for the index function
     """
-    # Get source code from this fct
-    code = inspect.getsource(index)
+    if is_eoreader_idx(index):
+        if index in EOREADER_DERIVATIVES:
+            return list(EOREADER_DERIVATIVES[index][1].values())
+        elif index in EOREADER_ALIASES:
+            # Don't need gamma etc.
+            return [
+                SPYNDEX_TO_EOREADER_DICT.get(band)
+                for band in getattr(spyndex.indices, EOREADER_ALIASES[index]).bands
+            ]
+        else:
+            # Get source code from this fct
+            code = inspect.getsource(eval(index))
 
-    # Parse band's signature
-    b_regex = r"spb\.\w+"
+            # Parse band's signature
+            b_regex = r"spb\.\w+"
 
-    return [getattr(spb, b.split(".")[-1]) for b in re.findall(b_regex, code)]
+            return [
+                getattr(SpectralBandNames, b.split(".")[-1])
+                for b in re.findall(b_regex, code)
+            ]
+    elif is_spyndex_idx(index):
+        # Don't need gamma etc.
+        return [
+            SPYNDEX_TO_EOREADER_DICT.get(band)
+            for band in getattr(spyndex.indices, index).bands
+            if SPYNDEX_TO_EOREADER_DICT.get(band) is not None
+        ]
+    else:
+        raise NotImplementedError(
+            f"Non existing index, please chose a spectral indice among {get_all_index_names()}"
+        )
 
 
 def get_all_needed_bands() -> dict:
@@ -958,20 +440,10 @@ def get_all_needed_bands() -> dict:
         dict: Needed bands for all index functions
 
     """
-    needed_bands = {}
-
-    # Get all function from this file
-    functions = inspect.getmembers(sys.modules[__name__], predicate=inspect.isfunction)
-
-    for (name, function) in functions:
-        # Do not gather this fct nor da.true_divide
-        if name[0].isupper():
-            needed_bands[function] = get_needed_bands(function)
-
-    return needed_bands
+    return {index: get_needed_bands(index) for index in get_all_index_names()}
 
 
-def is_index(idx) -> bool:
+def is_index(index) -> bool:
     """
     Returns True if is an index function from the :code:`bands.index` module
 
@@ -990,20 +462,18 @@ def is_index(idx) -> bool:
         False
 
     Args:
-        idx (Any): Anything that could be an index
+        index (Any): Anything that could be an index
 
     Returns:
         bool: True if the index asked is an index function (such as :code:`index.NDVI`)
 
     """
-    if isinstance(idx, str):
-        is_idx = idx in get_all_index_names()
-    else:
-        is_idx = (
-            files.get_filename(__file__) in idx.__module__
-            and idx.__name__ in get_all_index_names()
-        )
-    return is_idx
+    return str(index) in get_all_index_names()
 
 
 NEEDED_BANDS = get_all_needed_bands()
+
+# Set all indices
+for idx in get_all_index_names():
+    vars()[idx] = idx
+    # TODO: set another thing than str ? Create an IndexName object ?

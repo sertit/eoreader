@@ -37,8 +37,16 @@ from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
 
 from eoreader import cache
-from eoreader.bands import BandNames, SpectralBand
-from eoreader.bands import spectral_bands as spb
+from eoreader.bands import (
+    GREEN,
+    NARROW_NIR,
+    NIR,
+    PAN,
+    RED,
+    SWIR_1,
+    BandNames,
+    SpectralBand,
+)
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
@@ -49,33 +57,33 @@ from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 _DIMAP_BAND_MTD = {
-    spb.PAN: "PAN",
-    spb.GREEN: "XS1",
-    spb.RED: "XS2",
-    spb.NIR: "XS3",
-    spb.NARROW_NIR: "XS3",
-    spb.SWIR_1: "XS4",
+    PAN: "PAN",
+    GREEN: "XS1",
+    RED: "XS2",
+    NIR: "XS3",
+    NARROW_NIR: "XS3",
+    SWIR_1: "XS4",
 }
 
 # https://spot.cnes.fr/sites/default/files/migration/smsc/spot/calibration_synthesis_SPOT1245_ed1.pdf (3.3)
 # HRVIR 1, 2
 _SPOT4_E0 = {
-    spb.PAN: [1570.2, 1589],
-    spb.GREEN: [1842.9, 1850.9],
-    spb.RED: [1570.2, 1589],
-    spb.NIR: [1052.1, 1054.8],
-    spb.NARROW_NIR: [1052.1, 1054.8],
-    spb.SWIR_1: [235.84, 241.93],
+    PAN: [1570.2, 1589],
+    GREEN: [1842.9, 1850.9],
+    RED: [1570.2, 1589],
+    NIR: [1052.1, 1054.8],
+    NARROW_NIR: [1052.1, 1054.8],
+    SWIR_1: [235.84, 241.93],
 }
 
 # HRG 1, 2
 _SPOT5_E0 = {
-    spb.PAN: [1764.2, 1775],
-    spb.GREEN: [1859.8, 1859.8],
-    spb.RED: [1575.3, 1577.6],
-    spb.NIR: [1043.9, 1048.2],
-    spb.NARROW_NIR: [1043.9, 1048.2],
-    spb.SWIR_1: [238.87, 237.78],
+    PAN: [1764.2, 1775],
+    GREEN: [1859.8, 1859.8],
+    RED: [1575.3, 1577.6],
+    NIR: [1043.9, 1048.2],
+    NARROW_NIR: [1043.9, 1048.2],
+    SWIR_1: [238.87, 237.78],
 }
 """
 The values of the normalized solar irradiance have been computed using WMO (World Meteorogical Organization) spectral solar irradiance.
@@ -307,27 +315,27 @@ class Spot45Product(VhrProduct):
         if self.constellation == Constellation.SPOT4:
             # Create spectral bands
             pan = SpectralBand(
-                eoreader_name=spb.PAN,
+                eoreader_name=PAN,
                 **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 610, WV_MAX: 680},
             )
 
             green = SpectralBand(
-                eoreader_name=spb.GREEN,
+                eoreader_name=GREEN,
                 **{NAME: "GREEN", ID: 3, GSD: self._ms_res, WV_MIN: 500, WV_MAX: 590},
             )
 
             red = SpectralBand(
-                eoreader_name=spb.RED,
+                eoreader_name=RED,
                 **{NAME: "RED", ID: 2, GSD: self._ms_res, WV_MIN: 610, WV_MAX: 680},
             )
 
             nir = SpectralBand(
-                eoreader_name=spb.NIR,
+                eoreader_name=NIR,
                 **{NAME: "NIR", ID: 1, GSD: self._ms_res, WV_MIN: 790, WV_MAX: 890},
             )
 
             swir1 = SpectralBand(
-                eoreader_name=spb.SWIR_1,
+                eoreader_name=SWIR_1,
                 **{
                     NAME: "SWIR_1",
                     ID: 4,
@@ -339,43 +347,43 @@ class Spot45Product(VhrProduct):
         else:
             # Create spectral bands
             pan = SpectralBand(
-                eoreader_name=spb.PAN,
+                eoreader_name=PAN,
                 **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 490, WV_MAX: 690},
             )
 
             green = SpectralBand(
-                eoreader_name=spb.GREEN,
+                eoreader_name=GREEN,
                 **{NAME: "GREEN", ID: 3, GSD: self._ms_res, WV_MIN: 490, WV_MAX: 610},
             )
 
             red = SpectralBand(
-                eoreader_name=spb.RED,
+                eoreader_name=RED,
                 **{NAME: "RED", ID: 2, GSD: self._ms_res, WV_MIN: 610, WV_MAX: 680},
             )
 
             nir = SpectralBand(
-                eoreader_name=spb.NIR,
+                eoreader_name=NIR,
                 **{NAME: "NIR", ID: 1, GSD: self._ms_res, WV_MIN: 780, WV_MAX: 890},
             )
 
             swir1 = SpectralBand(
-                eoreader_name=spb.SWIR_1,
+                eoreader_name=SWIR_1,
                 **{NAME: "SWIR_1", ID: 4, GSD: 20.0, WV_MIN: 1580, WV_MAX: 1750},
             )
 
         # Manage bands of the product
         if self.band_combi in [Spot4BandCombination.M, Spot5BandCombination.HM]:
-            self.bands.map_bands({spb.PAN: pan})
+            self.bands.map_bands({PAN: pan})
         elif self.band_combi in [
             Spot4BandCombination.X,
             Spot5BandCombination.X,
         ]:
             self.bands.map_bands(
                 {
-                    spb.GREEN: green,
-                    spb.RED: red,
-                    spb.NIR: nir,
-                    spb.NARROW_NIR: nir,
+                    GREEN: green,
+                    RED: red,
+                    NIR: nir,
+                    NARROW_NIR: nir,
                 }
             )
         elif self.band_combi in [
@@ -384,21 +392,21 @@ class Spot45Product(VhrProduct):
         ]:
             self.bands.map_bands(
                 {
-                    spb.GREEN: green.update(gsd=self._pan_res),
-                    spb.RED: red.update(gsd=self._pan_res),
-                    spb.NIR: nir.update(gsd=self._pan_res),
-                    spb.NARROW_NIR: nir.update(gsd=self._pan_res),
+                    GREEN: green.update(gsd=self._pan_res),
+                    RED: red.update(gsd=self._pan_res),
+                    NIR: nir.update(gsd=self._pan_res),
+                    NARROW_NIR: nir.update(gsd=self._pan_res),
                 }
             )
         elif self.band_combi == Spot5BandCombination.T:
-            self.bands.map_bands({spb.PAN: pan.update(gsd=self._supermode_res)})
+            self.bands.map_bands({PAN: pan.update(gsd=self._supermode_res)})
         elif self.band_combi == Spot5BandCombination.TX:
             self.bands.map_bands(
                 {
-                    spb.GREEN: green.update(gsd=self._supermode_res),
-                    spb.RED: red.update(gsd=self._supermode_res),
-                    spb.NIR: nir.update(gsd=self._supermode_res),
-                    spb.NARROW_NIR: nir.update(gsd=self._supermode_res),
+                    GREEN: green.update(gsd=self._supermode_res),
+                    RED: red.update(gsd=self._supermode_res),
+                    NIR: nir.update(gsd=self._supermode_res),
+                    NARROW_NIR: nir.update(gsd=self._supermode_res),
                 }
             )
         elif self.band_combi in [
@@ -407,21 +415,21 @@ class Spot45Product(VhrProduct):
         ]:
             self.bands.map_bands(
                 {
-                    spb.GREEN: green,
-                    spb.RED: red,
-                    spb.NIR: nir,
-                    spb.NARROW_NIR: nir,
-                    spb.SWIR_1: swir1,
+                    GREEN: green,
+                    RED: red,
+                    NIR: nir,
+                    NARROW_NIR: nir,
+                    SWIR_1: swir1,
                 }
             )
         elif self.band_combi == Spot4BandCombination.MI:
             self.bands.map_bands(
                 {
-                    spb.GREEN: green.update(gsd=self._pan_res),
-                    spb.RED: red.update(gsd=self._pan_res),
-                    spb.NIR: nir.update(gsd=self._pan_res),
-                    spb.NARROW_NIR: nir.update(gsd=self._pan_res),
-                    spb.SWIR_1: swir1.update(gsd=self._pan_res),
+                    GREEN: green.update(gsd=self._pan_res),
+                    RED: red.update(gsd=self._pan_res),
+                    NIR: nir.update(gsd=self._pan_res),
+                    NARROW_NIR: nir.update(gsd=self._pan_res),
+                    SWIR_1: swir1.update(gsd=self._pan_res),
                 }
             )
         else:
@@ -607,7 +615,7 @@ class Spot45Product(VhrProduct):
         return date_str
 
     def _get_constellation(self) -> Constellation:
-        """ Getter of the constellation """
+        """Getter of the constellation"""
         if self.split_name[0] == "SP04":
             const = Constellation.SPOT4
         elif self.split_name[0] == "SP05":
@@ -744,7 +752,7 @@ class Spot45Product(VhrProduct):
         """
         if self._raw_units == RawUnits.REFL:
             # Compute the correct radiometry of the band
-            original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
+            original_dtype = band_arr.encoding["dtype"]
             if original_dtype == "uint16":
                 band_arr /= 10000.0
         elif self._raw_units == RawUnits.DN:

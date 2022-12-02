@@ -40,6 +40,7 @@ from eoreader.bands import (
     SarBandMap,
     SpectralBand,
     SpectralBandMap,
+    compute_index,
     indices,
     is_clouds,
     is_dem,
@@ -214,7 +215,7 @@ class CustomProduct(Product):
         return date
 
     def _get_constellation(self) -> Constellation:
-        """ Getter of the constellation """
+        """Getter of the constellation"""
         const = self.kwargs.get(CustomFields.CONSTELLATION.value)
         if const is None:
             const = CUSTOM
@@ -509,7 +510,7 @@ class CustomProduct(Product):
         # Compute index (they conserve the nodata)
         if index_list:
             LOGGER.debug(f"Loading indices {to_str(index_list)}")
-        bands_dict = {idx: idx(bands) for idx in index_list}
+        bands_dict = {idx: compute_index(idx, bands) for idx in index_list}
 
         # Add bands
         bands_dict.update({band: bands[band] for band in band_list})

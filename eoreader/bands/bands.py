@@ -20,12 +20,10 @@
 import copy
 from abc import abstractmethod
 from collections.abc import MutableMapping
-from typing import Union
 
 from sertit import misc
 from sertit.misc import ListEnum
 
-from eoreader.exceptions import InvalidTypeError
 from eoreader.stac import ASSET_ROLE, DESCRIPTION, GSD, ID, NAME, REFLECTANCE
 
 
@@ -80,6 +78,11 @@ class Band:
         Asset role, as described in the best-practices paragraph.
         """
 
+        self.spyndex_name = None
+        """
+        Spyndex standard name, can be found here: https://awesome-ee-spectral-indices.readthedocs.io/en/latest/
+        """
+
     def _to_repr(self) -> list:
         """
         Returns a representation of the product as a list
@@ -88,7 +91,7 @@ class Band:
             list: Representation of the product
         """
         # Mandatory fields
-        repr = [
+        repr_str = [
             f"eoreader.{self.__class__.__name__} '{self.name}'",
             "Attributes:",
             f"\tid: {self.id}",
@@ -101,18 +104,18 @@ class Band:
                 if isinstance(attr_str, ListEnum):
                     attr_str = attr_str.value
                 if attr == "gsd":
-                    repr.append(f"\t{attr} (m): {attr_str}")
+                    repr_str.append(f"\t{attr} (m): {attr_str}")
                 else:
-                    repr.append(f"\t{attr}: {attr_str}")
+                    repr_str.append(f"\t{attr}: {attr_str}")
 
         # Specific to constellation
-        repr += self._to_repr_constellation_specific()
+        repr_str += self._to_repr_constellation_specific()
 
         # Final: description
         if self.description:
-            repr.append(f"\tdescription: {self.description}")
+            repr_str.append(f"\tdescription: {self.description}")
 
-        return repr
+        return repr_str
 
     @abstractmethod
     def _to_repr_constellation_specific(self) -> list:
@@ -164,72 +167,3 @@ class BandMap(MutableMapping):
             band.__repr__() for band in self._band_map.values() if band is not None
         ]
         return "\n".join(band_repr)
-
-
-# ---------------------- BAND NAMES ----------------------
-
-
-class BandNames(ListEnum):
-    """Super class for band names, **do not use it**."""
-
-    @classmethod
-    def from_list(cls, name_list: Union[list, str]) -> list:
-        """
-        Get the band enums from list of band names
-
-        .. code-block:: python
-
-            >>> SarBandNames.from_list("VV")
-            [<SarBandNames.VV: 'VV'>]
-
-        Args:
-            name_list (Union[list, str]): List of names
-
-        Returns:
-            list: List of enums
-        """
-        if not isinstance(name_list, list):
-            name_list = [name_list]
-        try:
-            band_names = [cls(name) for name in name_list]
-        except ValueError as ex:
-            raise InvalidTypeError(
-                f"Band names ({name_list}) should be chosen among: {cls.list_names()}"
-            ) from ex
-
-        return band_names
-
-    @classmethod
-    def to_value_list(cls, name_list: list = None) -> list:
-        """
-        Get a list from the values of the bands
-
-        .. code-block:: python
-
-             >>> SarBandNames.to_name_list([SarBandNames.HV_DSPK, SarBandNames.VV])
-            ['HV_DSPK', 'VV']
-            >>> SarBandNames.to_name_list()
-            ['VV', 'VV_DSPK', 'HH', 'HH_DSPK', 'VH', 'VH_DSPK', 'HV', 'HV_DSPK']
-
-        Args:
-            name_list (list): List of band names
-
-        Returns:
-            list: List of band values
-
-        """
-        if name_list:
-            out_list = []
-            for key in name_list:
-                if isinstance(key, str):
-                    out_list.append(getattr(cls, key).value)
-                elif isinstance(key, cls):
-                    out_list.append(key.value)
-                else:
-                    raise InvalidTypeError(
-                        "The list should either contain strings or BandNames"
-                    )
-        else:
-            out_list = cls.list_values()
-
-        return out_list

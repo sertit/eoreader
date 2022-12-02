@@ -21,9 +21,8 @@ for more information.
 """
 import logging
 
-from eoreader.bands import SpectralBand
-from eoreader.bands import spectral_bands as spb
-from eoreader.products import DimapProduct
+from eoreader.bands import BLUE, GREEN, NIR, PAN, RED, SpectralBand
+from eoreader.products import DimapV2Product
 from eoreader.reader import Constellation
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import EOREADER_NAME
@@ -31,7 +30,7 @@ from eoreader.utils import EOREADER_NAME
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 
-class Spot67Product(DimapProduct):
+class Spot67Product(DimapV2Product):
     """
     Class of SPOT-6/7 products.
     See `here <https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf>`_
@@ -51,7 +50,7 @@ class Spot67Product(DimapProduct):
         super()._pre_init(**kwargs)
 
     def _get_constellation(self) -> Constellation:
-        """ Getter of the constellation """
+        """Getter of the constellation"""
         constellation_id = self.split_name[0]
         return getattr(Constellation, constellation_id)
 
@@ -60,28 +59,26 @@ class Spot67Product(DimapProduct):
         # Create spectral bands
         # https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTMyMw==/ZG9jdXRoZXF1ZS1maWxlLTU1MzIy/spot-brochure-2019.pdf
         pan = SpectralBand(
-            eoreader_name=spb.PAN,
+            eoreader_name=PAN,
             **{NAME: "PAN", ID: 1, GSD: 1.5, WV_MIN: 450, WV_MAX: 745}
         )
 
         blue = SpectralBand(
-            eoreader_name=spb.BLUE,
+            eoreader_name=BLUE,
             **{NAME: "BLUE", ID: 1, GSD: 6, WV_MIN: 450, WV_MAX: 520}
         )
 
         green = SpectralBand(
-            eoreader_name=spb.GREEN,
+            eoreader_name=GREEN,
             **{NAME: "GREEN", ID: 2, GSD: 6, WV_MIN: 530, WV_MAX: 590}
         )
 
         red = SpectralBand(
-            eoreader_name=spb.RED,
-            **{NAME: "RED", ID: 3, GSD: 6, WV_MIN: 625, WV_MAX: 695}
+            eoreader_name=RED, **{NAME: "RED", ID: 3, GSD: 6, WV_MIN: 625, WV_MAX: 695}
         )
 
         nir = SpectralBand(
-            eoreader_name=spb.NIR,
-            **{NAME: "NIR", ID: 4, GSD: 6, WV_MIN: 760, WV_MAX: 890}
+            eoreader_name=NIR, **{NAME: "NIR", ID: 4, GSD: 6, WV_MIN: 760, WV_MAX: 890}
         )
         self._map_bands_core(blue=blue, green=green, red=red, nir=nir, pan=pan)
 

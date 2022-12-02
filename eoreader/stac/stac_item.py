@@ -69,7 +69,6 @@ class StacItem:
     """
     Class of STAC object, mapping EOReader products to STAC Items.
     Implements STAC Spec basic and extensions
-    TODO
     """
 
     def __init__(self, prod, **kwargs):
@@ -151,7 +150,7 @@ class StacItem:
                 "thumbnail",
                 pystac.Asset(
                     href=str(thumbnail_path), media_type=get_media_type(thumbnail_path)
-                ),  # TODO
+                ),
             )
 
         # Add EO extension

@@ -19,6 +19,7 @@ COSMO-SkyMed 2nd Generation products.
 More info `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
 """
 import logging
+from abc import abstractmethod
 from datetime import datetime
 from enum import unique
 from io import BytesIO
@@ -478,3 +479,24 @@ class CosmoProduct(SarProduct):
                 raise InvalidProductError("Orbit Direction not found in metadata!")
 
         return od
+
+    @abstractmethod
+    def _set_sensor_mode(self) -> None:
+        """
+        Set SAR sensor mode
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_resolution(self) -> float:
+        """
+        Get product default resolution (in meters)
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _set_instrument(self) -> None:
+        """
+        Set product type
+        """
+        raise NotImplementedError

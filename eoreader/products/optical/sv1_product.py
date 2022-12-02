@@ -38,8 +38,16 @@ from sertit.misc import ListEnum
 from shapely.geometry import box
 
 from eoreader import cache
-from eoreader.bands import BandNames, SpectralBand
-from eoreader.bands import spectral_bands as spb
+from eoreader.bands import (
+    BLUE,
+    GREEN,
+    NARROW_NIR,
+    NIR,
+    PAN,
+    RED,
+    BandNames,
+    SpectralBand,
+)
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
@@ -185,27 +193,27 @@ class Sv1Product(VhrProduct):
         """
         # Create spectral bands
         pan = SpectralBand(
-            eoreader_name=spb.PAN,
+            eoreader_name=PAN,
             **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 450, WV_MAX: 900},
         )
 
         blue = SpectralBand(
-            eoreader_name=spb.BLUE,
+            eoreader_name=BLUE,
             **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 450, WV_MAX: 520},
         )
 
         green = SpectralBand(
-            eoreader_name=spb.GREEN,
+            eoreader_name=GREEN,
             **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 520, WV_MAX: 590},
         )
 
         red = SpectralBand(
-            eoreader_name=spb.RED,
+            eoreader_name=RED,
             **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 630, WV_MAX: 690},
         )
 
         nir = SpectralBand(
-            eoreader_name=spb.NIR,
+            eoreader_name=NIR,
             **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 770, WV_MAX: 890},
         )
 
@@ -213,22 +221,22 @@ class Sv1Product(VhrProduct):
         if self.band_combi == Sv1BandCombination.PMS:
             self.bands.map_bands(
                 {
-                    spb.PAN: pan,
-                    spb.BLUE: blue,
-                    spb.GREEN: green,
-                    spb.RED: red,
-                    spb.NIR: nir,
-                    spb.NARROW_NIR: nir,
+                    PAN: pan,
+                    BLUE: blue,
+                    GREEN: green,
+                    RED: red,
+                    NIR: nir,
+                    NARROW_NIR: nir,
                 }
             )
         elif self.band_combi == Sv1BandCombination.PSH:
             self.bands.map_bands(
                 {
-                    spb.BLUE: blue,
-                    spb.GREEN: green,
-                    spb.RED: red,
-                    spb.NIR: nir,
-                    spb.NARROW_NIR: nir,
+                    BLUE: blue,
+                    GREEN: green,
+                    RED: red,
+                    NIR: nir,
+                    NARROW_NIR: nir,
                 }
             )
             LOGGER.warning(
@@ -611,7 +619,7 @@ class Sv1Product(VhrProduct):
             Union[CloudPath, Path]: VHR filepath
         """
         band = kwargs.pop("band")
-        if band == spb.PAN:
+        if band == PAN:
             tile_path = self._get_path("PAN", "tiff")
         else:
             tile_path = self._get_path("MUX", "tiff")
@@ -666,7 +674,7 @@ class Sv1Product(VhrProduct):
         Returns:
             xr.DataArray: TOA Radiance array
         """
-        if band == spb.PAN:
+        if band == PAN:
             # Get PAN MTD XML file
             root, _ = self.read_pan_mtd()
             gain = float(root.findtext(".//Gain"))
@@ -702,7 +710,7 @@ class Sv1Product(VhrProduct):
         Returns:
             xr.DataArray: TOA Reflectance array
         """
-        if band == spb.PAN:
+        if band == PAN:
             # Get PAN MTD XML file
             root, _ = self.read_pan_mtd()
             e0 = float(root.findtext(".//ESUN"))

@@ -36,9 +36,17 @@ from sertit import files, misc, rasters, snap, strings, vectors
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
-from eoreader.bands import BandNames, SarBand, SarBandMap
+from eoreader.bands import NEEDED_BANDS, BandNames, SarBand, SarBandMap
 from eoreader.bands import SarBandNames as sab
-from eoreader.bands import is_clouds, is_dem, is_index, is_sar_band, is_spectral_band
+from eoreader.bands import (
+    compute_index,
+    is_clouds,
+    is_dem,
+    is_index,
+    is_sar_band,
+    is_spectral_band,
+    to_str,
+)
 from eoreader.env_vars import DEM_PATH, DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES, SNAP_DEM_NAME
 from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
 from eoreader.keywords import SAR_INTERP_NA
@@ -648,11 +656,12 @@ class SarProduct(Product):
         """
         band_list = []
         dem_list = []
+        index_list = []
+
         for band in bands:
             if is_index(band):
-                raise NotImplementedError(
-                    "For now, no index is implemented for SAR data."
-                )
+                if self._has_index(band):
+                    index_list.append(band)
             elif is_spectral_band(band):
                 raise TypeError(
                     f"You should ask for SAR bands as {self.name} is a SAR product."
@@ -677,15 +686,33 @@ class SarProduct(Product):
         if dem_list:
             self._check_dem_path(bands, **kwargs)
 
-        # Load bands
-        bands = self._load_bands(band_list, resolution=resolution, size=size, **kwargs)
+        # Get all bands to be open
+        bands_to_load = band_list.copy()
+        for idx in index_list:
+            bands_to_load += NEEDED_BANDS[idx]
+
+        # Load band arrays (only keep unique bands: open them only one time !)
+        unique_bands = list(set(bands_to_load))
+        if unique_bands:
+            LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
+        loaded_bands = self._load_bands(
+            unique_bands, resolution=resolution, size=size, **kwargs
+        )
+
+        # Compute index (they conserve the nodata)
+        if index_list:
+            LOGGER.debug(f"Loading indices {to_str(index_list)}")
+        bands_dict = {idx: compute_index(idx, loaded_bands) for idx in index_list}
+
+        # Add bands
+        bands_dict.update({band: loaded_bands[band] for band in band_list})
 
         # Add DEM
-        bands.update(
+        bands_dict.update(
             self._load_dem(dem_list, resolution=resolution, size=size, **kwargs)
         )
 
-        return bands
+        return bands_dict
 
     def _pre_process_sar(self, band: sab, resolution: float = None, **kwargs) -> str:
         """
@@ -871,21 +898,21 @@ class SarProduct(Product):
             str: SAR path
         """
 
-        def interp_na(arr, dim):
+        def interp_na(array, dim):
             try:
-                arr = arr.interpolate_na(dim=dim, limit=10, keep_attrs=True)
+                array = array.interpolate_na(dim=dim, limit=10, keep_attrs=True)
             except ValueError:
                 try:
                     # ValueError: Index 'y' must be monotonically increasing
-                    dim_idx = getattr(arr, dim)
+                    dim_idx = getattr(array, dim)
                     reversed_dim_idx = list(reversed(dim_idx))
-                    arr = arr.reindex(**{dim: reversed_dim_idx})
-                    arr = arr.interpolate_na(dim=dim, limit=10, keep_attrs=True)
-                    arr = arr.reindex(**{dim: dim_idx})
+                    array = array.reindex(**{dim: reversed_dim_idx})
+                    array = array.interpolate_na(dim=dim, limit=10, keep_attrs=True)
+                    array = array.reindex(**{dim: dim_idx})
                 except ValueError:
                     pass
 
-            return arr
+            return array
 
         # Get .img file path (readable by rasterio)
         try:
@@ -909,7 +936,17 @@ class SarProduct(Product):
                 f"{files.get_filename(dim_path)}_{pol}{'_DSPK' if dspk else ''}.tif",
             )
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
-            utils.write(arr, file_path, dtype=np.float32, nodata=self._snap_no_data)
+
+            # SNAP fails with classic predictor !!! Set the predictor to the default value (1) !!!
+            # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
+            # https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7
+            utils.write(
+                arr,
+                file_path,
+                dtype=np.float32,
+                nodata=self._snap_no_data,
+                predictor=1,  # workaround
+            )
 
         return file_path
 

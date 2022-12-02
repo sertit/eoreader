@@ -13,7 +13,23 @@ from lxml import etree
 from matplotlib import pyplot as plt
 from sertit import ci, files, rasters
 
-from eoreader.bands import *
+from eoreader.bands import (
+    ALL_CLOUDS,
+    CIRRUS,
+    CLOUDS,
+    HH,
+    HH_DSPK,
+    HILLSHADE,
+    NARROW_NIR,
+    RAW_CLOUDS,
+    RED,
+    SHADOWS,
+    SLOPE,
+    SWIR_2,
+    VV,
+    VV_DSPK,
+    to_str,
+)
 from eoreader.env_vars import (
     CI_EOREADER_BAND_FOLDER,
     DEM_PATH,
@@ -43,6 +59,7 @@ from .scripts_utils import (
 )
 
 ci.reduce_verbosity()
+logging.getLogger("rasterio._env").setLevel(logging.ERROR)
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -56,7 +73,7 @@ WRITE_ON_DISK = False
 
 
 def set_dem(dem_path):
-    """ Set DEM"""
+    """Set DEM"""
     if dem_path:
         dem_path = AnyPath(dem_path)
         if not dem_path.is_file():
@@ -454,7 +471,7 @@ def _test_core(
                 assert isinstance(orbit_dir, OrbitDirection)
 
                 # Clean temp
-                if not debug:
+                if not WRITE_ON_DISK:
                     LOGGER.info("Cleaning tmp")
                     prod.clean_tmp()
                     _assert(
@@ -574,6 +591,13 @@ def test_l1_mss():
 
 @s3_env
 @dask_env
+def test_hls():
+    """Function testing the support of HLS constellation"""
+    _test_core_optical("*HLS*")
+
+
+@s3_env
+@dask_env
 def test_pla():
     """Function testing the support of PlanetScope constellation"""
     _test_core_optical("*202*1014*")
@@ -667,6 +691,13 @@ def test_sv1():
     """Function testing the support of SuperView-1 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*0001_01*", dem_path=dem_path)
+
+
+@s3_env
+@dask_env
+def test_gs2():
+    """Function testing the support of GEOSAT-2 constellation"""
+    _test_core_optical("*DE2_*")
 
 
 @s3_env

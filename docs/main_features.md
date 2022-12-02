@@ -48,11 +48,14 @@ Hereunder are the paths meant to be given to the reader.
 | `Sentinel-2 and 3`                             | Main directory, `.SAFE`, `.SEN3` or `.zip`,<br>i.e. `S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE` |
 | `Sentinel-2 Theia`                             | Main directory containing the `.tif` images,<br>i.e. `SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2`                 |
 | `Landsats`                                     | Main directory extracted or archived if Collection 2 (`.tar`),<br>i.e. `LC08_L1TP_200030_20201220_20210310_02_T1.tar`   |
+| `Harmonized Landsat-Sentinel`                  | Main directory containing the `.tif` images,<br>i.e. `HLS.S30.T42RUS.2022241T060629.v2.0`                               |
 | `PlanetScope`, `SkySat` and `RapidEye`         | Directory containing the `manifest.json` file,<br>i.e. `20210406_015904_37_2407`                                        |
 | `DIMAP`<br>(Pleiades, SPOTs,<br>Vision-1, ...) | Directory containing the `.JP2` files,<br>i.e. `IMG_PHR1B_PMS_001`                                                      |
 | `Maxar`<br>(WorldViews,<br>GeoEye...)          | Directory containing the `.TIL` file,<br>i.e. `013187549010_01_P001_PSH`                                                |
 | `SuperView-1`                                  | Directory containing the `.shp` file,<br>i.e. `0032100150001_01`                                                        |  
+| `GEOSAT-2`                                     | Directory containing the `.dim` file,<br>i.e. `DE2_PM4_L1C_000000_20161107T013821_20161107T013826_DE2_12927_DE02`       |  
 ```
+
 #### SAR
 
 ``` {container} full-width
