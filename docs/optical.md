@@ -219,6 +219,9 @@ a URL pointing to a web resources hosted on a S3 compatible storage e.g.
 EOReader uses (from version 0.18.0) the indices described in the 
 [awesome spectral indices (ASI)](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/) project.
 
+> ⚠ You may need to install the last `spyndex` directly from GitHub latest version to have all available indices:
+> `pip uninstall spyndex && pip install -U --no-deps git+https://github.com/awesome-spectral-indices/spyndex.git`
+
 In addition to all these indices, EOReader kept the following indices for legacy purposes:
 
 ``` {container} full-width
