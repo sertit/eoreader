@@ -20,21 +20,18 @@ See `here <http://www.engesat.com.br/wp-content/uploads/S5-ST-73-1-CN_2_9-Spec-F
 for more information.
 """
 import logging
-import time
-from datetime import date, datetime, timedelta
+from datetime import timedelta
 from enum import unique
 from pathlib import Path
 from typing import Union
 
-import geopandas as gpd
 import numpy as np
 import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import files, rasters, vectors
+from sertit import files
 from sertit.misc import ListEnum
-from shapely.geometry import Polygon, box
 
 from eoreader import cache
 from eoreader.bands import (
@@ -48,11 +45,11 @@ from eoreader.bands import (
     SpectralBand,
 )
 from eoreader.exceptions import InvalidProductError
-from eoreader.products import VhrProduct
+from eoreader.products import DimapV1Product
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
+from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -189,7 +186,7 @@ class Spot45ProductType(ListEnum):
     """
 
 
-class Spot45Product(VhrProduct):
+class Spot45Product(DimapV1Product):
     """
     Class of SPOT4/5 products.
     See `here <http://www.engesat.com.br/wp-content/uploads/S5-ST-73-1-CN_2_9-Spec-Format-Produits-SPOT.pdf>`_
@@ -437,44 +434,6 @@ class Spot45Product(VhrProduct):
                 f"Unusual band combination: {self.band_combi.name}"
             )
 
-    @cache
-    def crs(self) -> riocrs.CRS:
-        """
-        Get UTM projection of the tile
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1B_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.crs()
-            CRS.from_epsg(32618)
-
-        Returns:
-            rasterio.crs.CRS: CRS object
-        """
-
-        raw_crs = self._get_raw_crs()
-
-        if raw_crs.is_projected:
-            utm = raw_crs
-        else:
-            # Open metadata
-            root, _ = self.read_mtd()
-
-            # Open the Bounding_Polygon
-            vertices = list(root.iterfind(".//Dataset_Frame/Vertex"))
-
-            # Get the mean lon lat
-            lon = float(np.mean([float(v.findtext("FRAME_LON")) for v in vertices]))
-            lat = float(np.mean([float(v.findtext("FRAME_LAT")) for v in vertices]))
-
-            # Compute UTM crs from center long/lat
-            utm = vectors.corresponding_utm_projection(lon, lat)
-            utm = riocrs.CRS.from_string(utm)
-
-        return utm
-
     def _get_raw_crs(self) -> riocrs.CRS:
         """
         Get raw CRS of the tile
@@ -493,126 +452,6 @@ class Spot45Product(VhrProduct):
             )
 
         return riocrs.CRS.from_string(crs_name)
-
-    @cache
-    @simplify
-    def footprint(self) -> gpd.GeoDataFrame:
-        """
-        Get real footprint in UTM of the products (without nodata, in french == emprise utile)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1B_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.footprint()
-                                                         gml_id  ...                                           geometry
-            0  source_image_footprint-DS_PHR1A_20200511023124...  ...  POLYGON ((707025.261 9688613.833, 707043.276 9...
-            [1 rows x 3 columns]
-
-        Returns:
-            gpd.GeoDataFrame: Footprint as a GeoDataFrame
-        """
-        # If ortho -> nodata is not set !
-        if self.is_ortho:
-            # Get footprint of the first band of the stack
-            footprint_dezoom = 10
-            arr = rasters.read(
-                self.get_default_band_path(),
-                resolution=self.resolution * footprint_dezoom,
-                indexes=[1],
-            )
-
-            # Vectorize the nodata band (rasters_rio is faster)
-            footprint = rasters.vectorize(
-                arr, values=0, keep_values=False, dissolve=True
-            )
-            footprint = vectors.get_wider_exterior(footprint)
-        else:
-            # If not ortho -> default band has been orthorectified and nodata will be set
-            footprint = rasters.get_footprint(self.get_default_band_path())
-
-        return footprint.to_crs(self.crs())
-
-    @cache
-    def extent(self, **kwargs) -> gpd.GeoDataFrame:
-        """
-        Get UTM extent of the tile.
-
-        Returns:
-            gpd.GeoDataFrame: Extent in UTM
-        """
-        # TODO: SAME AS DIMAP
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Compute extent corners
-        corners = [
-            [float(vertex.findtext("FRAME_LON")), float(vertex.findtext("FRAME_LAT"))]
-            for vertex in root.iterfind(".//Dataset_Frame/Vertex")
-        ]
-
-        # When PRJ, Dataset_Frame is the footprint
-        ds_frame = gpd.GeoDataFrame(
-            geometry=[Polygon(corners)],
-            crs=vectors.WGS84,
-        ).to_crs(self.crs())
-
-        extent = gpd.GeoDataFrame(
-            geometry=[box(*ds_frame.total_bounds)],
-            crs=self.crs(),
-        )
-
-        return extent
-
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
-        """
-        Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1B_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.get_datetime(as_datetime=True)
-            datetime.datetime(2020, 5, 11, 2, 31, 58)
-            >>> prod.get_datetime(as_datetime=False)
-            '20200511T023158'
-
-        Args:
-            as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
-
-        Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
-        """
-        # TODO: SAME AS DIMAP
-        if self.datetime is None:
-            # Get MTD XML file
-            root, _ = self.read_mtd()
-            date_str = root.findtext(".//IMAGING_DATE")
-            time_str = root.findtext(".//IMAGING_TIME")
-            if not date_str or not time_str:
-                raise InvalidProductError(
-                    "Cannot find the product imaging date and time in the metadata file."
-                )
-
-            # Convert to datetime
-            date_dt = date.fromisoformat(date_str)
-            time_dt = time.strptime(time_str, "%H:%M:%S")
-
-            date_str = (
-                f"{date_dt.strftime('%Y%m%d')}T{time.strftime('%H%M%S', time_dt)}"
-            )
-
-            if as_datetime:
-                date_str = datetime.strptime(date_str, DATETIME_FMT)
-
-        else:
-            date_str = self.datetime
-            if not as_datetime:
-                date_str = date_str.strftime(DATETIME_FMT)
-
-        return date_str
 
     def _get_constellation(self) -> Constellation:
         """Getter of the constellation"""
@@ -660,34 +499,6 @@ class Spot45Product(VhrProduct):
         name = f"SP0{mission_idx}_{instrument}_{band_combi}_{digit}_{start_dt}_{end_dt}_{suffix}"
 
         return name
-
-    @cache
-    def get_mean_sun_angles(self) -> (float, float):
-        """
-        Get Mean Sun angles (Azimuth and Zenith angles)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1A_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.get_mean_sun_angles()
-            (45.6624568841367, 30.219881316357643)
-
-        Returns:
-            (float, float): Mean Azimuth and Zenith angle
-        """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Open zenith and azimuth angle
-        elev_angle = float(root.findtext(".//SUN_ELEVATION"))
-        azimuth_angle = float(root.findtext(".//SUN_AZIMUTH"))
-
-        # From elevation to zenith
-        zenith_angle = 90.0 - elev_angle
-
-        return azimuth_angle, zenith_angle
 
     @cache
     def get_mean_viewing_angles(self) -> (float, float, float):
@@ -788,32 +599,6 @@ class Spot45Product(VhrProduct):
         mtd_archived = r"METADATA\.DIM"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
-
-    def _has_cloud_band(self, band: BandNames) -> bool:
-        """
-        Does this product has the specified cloud band ?
-        """
-        return False
-
-    def _open_clouds(
-        self,
-        bands: list,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-        **kwargs,
-    ) -> dict:
-        """
-        Load cloud files as xarrays.
-
-        Args:
-            bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-            kwargs: Additional arguments
-        Returns:
-            dict: Dictionary {band_name, band_xarray}
-        """
-        return {}
 
     def _get_tile_path(self) -> Union[CloudPath, Path]:
         """
