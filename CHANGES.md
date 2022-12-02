@@ -18,7 +18,7 @@
         - `RDI` (or `DSI`) uses now `SWIR_1` instead of `SWIR_2` (see [this](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/18) issue)
         - `PANI` equivalent is now `BITM` and is normalised ! (/3.)
         - `SBI` is normalized (/2.) to fit with `BIXS` definition
-        - ⚠: You may need to install the last `spyndex` directly from GitHub latest version to have all available indices
+        - ⚠ *You may need to install the last `spyndex` directly from GitHub latest version to have all available indices*
 - **BREAKING CHANGES: Using `pyresample` to geocode Sentinel-3 data** ([#55](https://github.com/sertit/eoreader/issues/55))
     - Cleaner: better conversion from swath to grid
     - Faster: Up to 4 times faster
