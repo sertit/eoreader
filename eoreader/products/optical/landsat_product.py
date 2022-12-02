@@ -972,11 +972,11 @@ class LandsatProduct(OpticalProduct):
         """
         Read Landsat metadata as:
 
-         - a :code:`pandas.DataFrame` whatever its collection is (by default for collection 1)
-         - a XML root + its namespace if the product is retrieved from the 2nd collection (by default for collection 2)
+         - :code:`pandas.DataFrame` whatever its collection is (by default for collection 1)
+         - XML root + its namespace if the product is retrieved from the 2nd collection (by default for collection 2)
 
         Args:
-            force_pd (bool): If collection 2, return a pandas.DataFrame instead of a XML root + namespace
+            force_pd (bool): If collection 2, return a pandas.DataFrame instead of an XML root + namespace
         Returns:
             Tuple[Union[pd.DataFrame, etree._Element], dict]:
                 Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces

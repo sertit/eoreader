@@ -114,7 +114,7 @@ class SnapDems(ListEnum):
 @unique
 class SarProductType(ListEnum):
     """
-    Generic products types, used to chose a SNAP graph.
+    Generic products types, used to choose a SNAP graph.
     """
 
     CPLX = "COMPLEX"
@@ -744,7 +744,7 @@ class SarProduct(Product):
         else:
             # Create target dir (tmp dir)
             with tempfile.TemporaryDirectory() as tmp_dir:
-                # Use dimap for speed and security (ie. GeoTiff's broken georef)
+                # Use dimap for speed and security (i.e. GeoTiff's broken georef)
                 pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
                 pp_dim = pp_target + ".dim"
 

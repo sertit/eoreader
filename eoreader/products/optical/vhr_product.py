@@ -105,10 +105,10 @@ class VhrProduct(OpticalProduct):
 
         .. WARNING:
             If you are using a non orthorectified product, this function will orthorectify the stack.
-            To do so, you **MUST** provide a DEM trough the EOREADER_DEM_PATH environment variable
+            To do so, you **MUST** provide a DEM through the EOREADER_DEM_PATH environment variable
 
         .. WARNING:
-            If you are using a non projected product, this function will reproject the stack.
+            If you are using a non-projected product, this function will reproject the stack.
 
         .. code-block:: python
 

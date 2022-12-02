@@ -65,7 +65,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class CustomFields(ListEnum):
     """
-    Custom fields, self explanatory
+    Custom fields, self-explanatory
     """
 
     NAME = "name"

@@ -570,8 +570,17 @@ class Spot45Product(DimapV1Product):
             # Convert DN into radiance
             band_arr = self._dn_to_toa_rad(band_arr, band)
 
+            # Get the solar irradiance value of raw radiometric Band (in watt/m2/micron)
+            root, _ = self.read_mtd()
+            instrument_idx = int(root.findtext(".//INSTRUMENT_INDEX")) - 1
+
+            if self.constellation == Constellation.SPOT4:
+                e0 = _SPOT4_E0[band][instrument_idx]
+            else:
+                e0 = _SPOT5_E0[band][instrument_idx]
+
             # Convert radiance into reflectance
-            band_arr = self._toa_rad_to_toa_refl(band_arr, band)
+            band_arr = self._toa_rad_to_toa_refl(band_arr, band, e0=e0)
 
         else:
             LOGGER.warning(
@@ -644,45 +653,6 @@ class Spot45Product(DimapV1Product):
                 "PHYSICAL_GAIN and PHYSICAL_BIAS from Spectral_Band_Info not found in metadata!"
             )
         return dn_arr / rad_gain + rad_bias
-
-    def _toa_rad_to_toa_refl(
-        self, rad_arr: xr.DataArray, band: BandNames
-    ) -> xr.DataArray:
-        """
-        Compute TOA reflectance from TOA radiance
-
-        See
-        `here <https://spot.cnes.fr/sites/default/files/migration/smsc/spot/calibration_synthesis_SPOT1245_ed1.pdf>`_
-        for more information.
-
-        Args:
-            rad_arr (xr.DataArray): TOA Radiance array
-            band (BandNames): Band
-
-        Returns:
-            xr.DataArray: TOA Reflectance array
-        """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Get the solar irradiance value of raw radiometric Band (in watt/m2/micron)
-        instrument_idx = int(root.findtext(".//INSTRUMENT_INDEX")) - 1
-
-        if self.constellation == Constellation.SPOT4:
-            e0 = _SPOT4_E0[band][instrument_idx]
-        else:
-            e0 = _SPOT5_E0[band][instrument_idx]
-
-        # Compute the coefficient converting TOA radiance in TOA reflectance
-        dt = self._sun_earth_distance_variation()
-        _, sun_zen = self.get_mean_sun_angles()
-        rad_sun_zen = np.deg2rad(sun_zen)
-
-        # WARNING: d = 1 / sqrt(d(t))
-        toa_refl_coeff = np.pi / (e0 * dt * np.cos(rad_sun_zen))
-
-        # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
-        return rad_arr.copy(data=toa_refl_coeff * rad_arr)
 
     def get_quicklook_path(self) -> str:
         """

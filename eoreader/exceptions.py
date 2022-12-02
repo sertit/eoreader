@@ -24,13 +24,13 @@ class EoReaderError(Exception):
 
 
 class InvalidBandError(EoReaderError):
-    """Invalid Band error, thrown when a non existing band is asked to a product."""
+    """Invalid Band error, thrown when a non-existing band is asked to a product."""
 
     pass
 
 
 class InvalidIndexError(InvalidBandError):
-    """Invalid Index error, thrown when a non existing band is asked to a product."""
+    """Invalid Index error, thrown when a non-existing band is asked to a product."""
 
     pass
 
@@ -42,6 +42,6 @@ class InvalidProductError(EoReaderError):
 
 
 class InvalidTypeError(EoReaderError, TypeError):
-    """Invalid Type Name error, thrown when an unknown type is given (shouldn't never happen)."""
+    """Invalid Type Name error, thrown when an unknown type is given (should never happen)."""
 
     pass

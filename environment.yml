@@ -5,5 +5,5 @@ dependencies:         # everything under this, installed by conda
   - python=3.8
   - pip
   - pip:                # everything under this, installed by pip
-      - --extra-index-url ${WINDOWS_WHEELS}  # Use windows wheels on windows
+      - --extra-index-url ${WINDOWS_WHEELS}  # Use windows wheels on Windows
       - -r requirements.txt

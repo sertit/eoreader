@@ -317,14 +317,14 @@ def get_eoreader_indices() -> list:
             eoreader_indices.append(fct.__name__)
 
     # Add aliases
-    for idx in EOREADER_ALIASES.keys():
-        if hasattr(spyndex.indices, idx):
-            eoreader_indices.append(idx)
+    for index in EOREADER_ALIASES.keys():
+        if hasattr(spyndex.indices, index):
+            eoreader_indices.append(index)
 
     # Add derivatives
-    for idx, deriv_list in EOREADER_DERIVATIVES.items():
+    for index, deriv_list in EOREADER_DERIVATIVES.items():
         if hasattr(spyndex.indices, deriv_list[0]):
-            eoreader_indices.append(idx)
+            eoreader_indices.append(index)
 
     return eoreader_indices
 
@@ -474,6 +474,6 @@ def is_index(index) -> bool:
 NEEDED_BANDS = get_all_needed_bands()
 
 # Set all indices
-for idx in get_all_index_names():
-    vars()[idx] = idx
+for _idx in get_all_index_names():
+    vars()[_idx] = _idx
     # TODO: set another thing than str ? Create an IndexName object ?

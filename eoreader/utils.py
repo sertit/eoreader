@@ -81,7 +81,7 @@ def get_data_dir() -> Union[CloudPath, Path]:
         else:
             data_dirs = AnyPath("/").glob("**/eoreader/data")
 
-        # Look for non empty directories
+        # Look for non-empty directories
         for ddir in data_dirs:
             if len(os.listdir(ddir)) > 0:
                 data_dir = ddir
@@ -154,7 +154,7 @@ def read(
         indexes (Union[int, list]): Indexes to load. Load the whole array if None.
         **kwargs: Optional keyword arguments to pass into rioxarray.open_rasterio().
     Returns:
-        xr.DataArray: Masked xarray corresponding to the raster data and its meta data
+        xr.DataArray: Masked xarray corresponding to the raster data and its metadata
 
     """
     if use_dask():

@@ -602,7 +602,7 @@ class S3SlstrProduct(S3Product):
                 filename, subdataset, dtype=kwargs.get("dtype", np.float32)
             )
 
-            # Radiance pre process (BT bands are given in BT !)
+            # Radiance preprocess (BT bands are given in BT !)
             if not kwargs.get("flags", False) and band_id in SLSTR_RAD_BANDS:
                 # Adjust radiance if needed
                 # Get the user's radiance adjustment if existing
@@ -939,7 +939,7 @@ class S3SlstrProduct(S3Product):
         """
         Manage invalid pixels (Nodata, saturated, defective...)
 
-        ISP_absent pixel_absent not_decompressed no_signal saturation invalid_radiance no_parameters unfilled_pixel"
+        ISP_absent pixel_absent not_decompressed no_signal saturation invalid_radiance no_parameters unfilled_pixel
 
         Args:
             band_arr (xr.DataArray): Band array
@@ -1115,7 +1115,7 @@ class S3SlstrProduct(S3Product):
         if not isinstance(bit_ids, list):
             bit_ids = [bit_ids]
         conds = rasters.read_bit_array(bit_array, bit_ids)
-        cond = reduce(lambda x, y: x | y, conds)  # Use every conditions (bitwise or)
+        cond = reduce(lambda x, y: x | y, conds)  # Use every condition (bitwise or)
 
         cond_arr = np.where(cond, self._mask_true, self._mask_false).astype(np.uint8)
         cond_arr = np.squeeze(cond_arr)
