@@ -381,8 +381,8 @@ variable:
 
 ### Sentinel-1
 
-- [Data Products](https://earth.esa.int/web/sentinel/missions/sentinel-1/data-products)
-- [Acquisition Mode](https://earth.esa.int/web/sentinel/user-guides/sentinel-1-sar/acquisition-modes)
+- [Data Products](https://sentinel.esa.int/web/sentinel/missions/sentinel-1/data-products)
+- [Acquisition Mode](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/acquisition-modes)
 
 ### RADARSAT
 
@@ -392,9 +392,9 @@ variable:
 
 ### COSMO-Skymed
 
-- [COSMO-Skymed 1st Generation Product Description](https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description)
+- [COSMO-Skymed 1st Generation Product Description](https://earth.esa.int/eogateway/missions/cosmo-skymed)
 - [COSMO-Skymed 1st Generation Product Description 2](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/SPW_reuse/COSMO-SkyMed.html)
-- [COSMO-Skymed 1st Generation Product Handbook](https://earth.esa.int/c/document_library/get_file?uuid=3b4bdce5-e75b-49fa-be10-113d22c86b74)
+- [COSMO-Skymed 1st Generation Product Handbook](https://earth.esa.int/eogateway/documents/20142/37627/Cosmo-SkyMed-Product-Handbook.pdf)
 - [COSMO-Skymed 2nd Generation System and Products Description](https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Second-Generation-Mission-Products-Description.pdf)
 
 ### TerraSAR-X, TanDEM-X and PAZ SAR
@@ -407,10 +407,12 @@ variable:
 ### ICEYE
 
 - [ICEYE Product Specifications](https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf)
-- [ICEYE Product Guide](https://www.iceye.com/hubfs/Downloadables/ICEYE_SAR_Product_Guide_2021_V4.0.pdf)
+- [ICEYE Product Documentation](https://iceye-ltd.github.io/product-documentation/5.1/)
 - [ICEYE Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/ICEYE.html)
 
 ### SAOCOM-1
 - [SAOCOM Description](https://saocom.veng.com.ar/en/)
 - [SAOCOM Product Format](https://saocom.veng.com.ar/L1-product-format-EN.pdf)
-- [SAOCOM Data Products](https://earth.esa.int/eogateway/catalog/saocom-data-products)
+- [SAOCOM Data Products](https://earth.esa.int/eogateway/catalog/saocom-data-products)*
+
+*Documentation last accessed on the 02/12/2022*
