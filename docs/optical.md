@@ -303,7 +303,6 @@ WorldView-1 is not concerned by spectral indices as it only has a panchromatic b
 - [Product Specification](https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf)
 - [Instruments](https://developers.planet.com/docs/apis/data/sensors/)
 - [Usable Data Mask](https://developers.planet.com/docs/data/udm-2/)
-- [On Medium](https://medium.com/geoplexing/getting-started-with-planet-imagery-part-3-items-and-ordering-476a1a21618c)
 
 ### Vision-1
 
@@ -358,6 +357,9 @@ Most instruments can be found on [OSCAR](https://space-test.oscar.wmo.int/oscar-
 
 ### Index
 
+- [Awesome Spectral Indices](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/)
 - [Index consistency](https://www.indexdatabase.de/)
 - [WorldView Index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide)
 - Specific sources inside the index function documentation in {meth}`~eoreader.bands.indices`
+
+*Documentation last accessed on the 02/12/2022*
