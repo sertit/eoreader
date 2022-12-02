@@ -971,6 +971,8 @@ class Product:
         Returns:
             bool: True if the products has the specified band
         """
+        band = to_band(band)[0]
+
         if is_dem(band):
             if self.sensor_type == SensorType.SAR and band == HILLSHADE:
                 has_band = False
@@ -1044,7 +1046,7 @@ class Product:
         Returns:
             bool: True if the specified index can be computed with this product's bands
         """
-        index_bands = indices.get_needed_bands(idx)
+        index_bands = to_band(indices.get_needed_bands(idx))
         return all(np.isin(index_bands, self.get_existing_bands()))
 
     def __gt__(self, other: Product) -> bool:
@@ -1490,9 +1492,9 @@ class Product:
             else:
                 if stack_min < 0:
                     LOGGER.warning(
-                        "Small negative values have been found. Clipping to 0."
+                        "Small negative values ]-0.1, 0] have been found. Clipping to 0."
                     )
-                    stack = stack.copy(data=np.clip(stack.data, a_min=0))
+                    stack = stack.copy(data=np.clip(stack.data, a_min=0, a_max=None))
 
                 # Scale to uint16, fill nan and convert to uint16
                 dtype = np.uint16
@@ -1553,6 +1555,10 @@ class Product:
         Returns:
             xr.DataArray: Updated array
         """
+        # Clean attributes, we don't want to pollute our attributes by default ones (not deterministic)
+        # Are we sure of that ?
+        xarr.attrs = {}
+
         if not isinstance(bands, list):
             bands = [bands]
         long_name = to_str(bands)
@@ -1753,7 +1759,7 @@ class Product:
                 if val is not None
             ]
         )
-        repr = [
+        repr_str = [
             f"eoreader.{self.__class__.__name__} '{self.name}'",
             "Attributes:",
             f"\tcondensed_name: {self.condensed_name}",
@@ -1767,7 +1773,7 @@ class Product:
             f"\tneeds extraction: {self.needs_extraction}",
         ]
 
-        return repr + self._to_repr_constellation_specific()
+        return repr_str + self._to_repr_constellation_specific()
 
     @abstractmethod
     def _to_repr_constellation_specific(self) -> list:

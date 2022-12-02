@@ -229,7 +229,6 @@ class PlanetProduct(OpticalProduct):
         """
         raise NotImplementedError
 
-    @abstractmethod
     def _get_udm_path(self, as_list: bool = False) -> Union[str, list]:
         """
         Get Planet UDM path
@@ -251,7 +250,6 @@ class PlanetProduct(OpticalProduct):
 
         return udm_path
 
-    @abstractmethod
     def _get_udm2_path(self, as_list: bool = False) -> Union[str, list]:
         """
         Get Planet UDM2 path

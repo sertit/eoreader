@@ -41,7 +41,6 @@ try:
 
         return wrapper
 
-
 except ImportError:
     print(
         "WARNING!\n"

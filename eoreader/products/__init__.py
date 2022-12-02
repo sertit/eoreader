@@ -38,9 +38,10 @@ from .optical.optical_product import OpticalProduct, CleanMethod
 # VHR
 __all__ += [
     "VhrProduct",
-    "DimapBandCombination",
-    "DimapProduct",
-    "DimapProductType",
+    "DimapV1Product",
+    "DimapV2Product",
+    "DimapV2BandCombination",
+    "DimapV2ProductType",
     "PldProduct",
     "Spot67Product",
     "MaxarProduct",
@@ -53,9 +54,17 @@ __all__ += [
     "Sv1Product",
     "Sv1ProductType",
     "Sv1BandCombination",
+    "Gs2Product",
+    "Gs2ProductType",
+    "Gs2BandCombination",
 ]
 from .optical.vhr_product import VhrProduct
-from .optical.dimap_product import DimapBandCombination, DimapProduct, DimapProductType
+from .optical.dimap_v1_product import DimapV1Product
+from .optical.dimap_v2_product import (
+    DimapV2BandCombination,
+    DimapV2Product,
+    DimapV2ProductType,
+)
 from .optical.pld_product import PldProduct
 from .optical.spot67_product import Spot67Product
 from .optical.maxar_product import (
@@ -66,6 +75,7 @@ from .optical.maxar_product import (
 )
 from .optical.vis1_product import Vis1Product, Vis1ProductType, Vis1BandCombination
 from .optical.sv1_product import Sv1Product, Sv1ProductType, Sv1BandCombination
+from .optical.gs2_product import Gs2Product, Gs2ProductType, Gs2BandCombination
 
 # SPOT4/5
 __all__ += [

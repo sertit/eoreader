@@ -37,7 +37,7 @@ from sertit import files, rasters, rasters_rio
 from sertit.snap import MAX_CORES
 
 from eoreader import utils
-from eoreader.bands.bands import BandNames
+from eoreader.bands import BandNames
 from eoreader.env_vars import DEM_PATH
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import DEM_KW
@@ -83,6 +83,7 @@ class VhrProduct(OpticalProduct):
         self._ms_res = None
 
         self._job_id = None
+        self._raw_nodata = 0
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
@@ -169,7 +170,7 @@ class VhrProduct(OpticalProduct):
                     out_arr, meta = self._reproject(
                         src.read(), src.meta, rpcs, dem_path, **kwargs
                     )
-                    rasters_rio.write(out_arr, meta, ortho_path)
+                    rasters_rio.write(out_arr, meta, ortho_path, tags=src.tags())
 
         else:
             ortho_path = self._get_tile_path()
@@ -287,10 +288,10 @@ class VhrProduct(OpticalProduct):
             src_arr,
             rpcs=rpcs,
             src_crs=self._get_raw_crs(),
-            src_nodata=0,
+            src_nodata=self._raw_nodata,
             dst_crs=self.crs(),
             dst_resolution=self.resolution,
-            dst_nodata=0,  # input data should be in integer
+            dst_nodata=self._raw_nodata,  # input data should be in integer
             num_threads=MAX_CORES,
             resampling=Resampling.bilinear,
             **kwargs,
@@ -303,7 +304,7 @@ class VhrProduct(OpticalProduct):
         meta["transform"] = dst_transform
         meta["driver"] = "GTiff"
         meta["compress"] = "lzw"
-        meta["nodata"] = 0
+        meta["nodata"] = self._raw_nodata
         meta["crs"] = self.crs()
         meta["width"] = width
         meta["height"] = height
@@ -462,7 +463,7 @@ class VhrProduct(OpticalProduct):
         """
         # If nodata not set, set it here
         if not band_arr.rio.encoded_nodata:
-            band_arr = rasters.set_nodata(band_arr, 0)
+            band_arr = rasters.set_nodata(band_arr, self._raw_nodata)
 
         return band_arr
 
@@ -575,7 +576,7 @@ class VhrProduct(OpticalProduct):
             )
 
             # If nodata not set, set it here
-            meta["nodata"] = 0
+            meta["nodata"] = self._raw_nodata
 
             # If the CRS is not in UTM, reproject it
             out_arr = np.empty((1, utm_h, utm_w), dtype=meta["dtype"])
@@ -586,8 +587,8 @@ class VhrProduct(OpticalProduct):
                 dst_crs=self.crs(),
                 src_transform=src.transform,
                 dst_transform=utm_tr,
-                src_nodata=0,
-                dst_nodata=0,  # input data should be in integer
+                src_nodata=self._raw_nodata,
+                dst_nodata=self._raw_nodata,  # input data should be in integer
                 num_threads=MAX_CORES,
             )
             meta["transform"] = utm_tr

@@ -35,20 +35,29 @@ from rasterio import features
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
-from sertit.rasters import MAX_CORES
-from sertit.vectors import WGS84
 
 from eoreader import cache, utils
 from eoreader.bands import (
     ALL_CLOUDS,
     CIRRUS,
     CLOUDS,
+    F1,
+    F2,
+    GREEN,
+    NARROW_NIR,
+    NIR,
     RAW_CLOUDS,
+    RED,
+    S7,
+    SWIR_1,
+    SWIR_2,
+    SWIR_CIRRUS,
+    TIR_1,
+    TIR_2,
     BandNames,
     SpectralBand,
+    to_str,
 )
-from eoreader.bands import spectral_bands as spb
-from eoreader.bands import to_str
 from eoreader.exceptions import InvalidTypeError
 from eoreader.keywords import CLEAN_OPTICAL, SLSTR_RAD_ADJUST, SLSTR_STRIPE, SLSTR_VIEW
 from eoreader.products import S3DataType, S3Product, S3ProductType
@@ -62,13 +71,13 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 # https://github.com/senbox-org/s3tbx/blob/197c9a471002eb2ec1fbd54e9a31bfc963446645/s3tbx-rad2refl/src/main/java/org/esa/s3tbx/processor/rad2refl/Rad2ReflConstants.java#L141
 # Not used for now
 SLSTR_SOLAR_FLUXES_DEFAULT = {
-    spb.GREEN: 1837.39,
-    spb.RED: 1525.94,
-    spb.NIR: 956.17,
-    spb.NARROW_NIR: 956.17,
-    spb.SWIR_CIRRUS: 365.90,
-    spb.SWIR_1: 248.33,
-    spb.SWIR_2: 78.33,
+    GREEN: 1837.39,
+    RED: 1525.94,
+    NIR: 956.17,
+    NARROW_NIR: 956.17,
+    SWIR_CIRRUS: 365.90,
+    SWIR_1: 248.33,
+    SWIR_2: 78.33,
 }
 
 # Link band names to their stripe
@@ -255,7 +264,7 @@ class S3SlstrProduct(S3Product):
         self._gcps = defaultdict(list)
         self._F1_is_f = True
         try:
-            self._get_raw_band_path(spb.F1)
+            self._get_raw_band_path(F1)
         except (FileNotFoundError, StopIteration):
             self._F1_is_f = False
 
@@ -286,7 +295,7 @@ class S3SlstrProduct(S3Product):
         return self._get_band_folder(writable=writable).joinpath(pp_name)
 
     def _set_preprocess_members(self):
-        """ Set pre-process members """
+        """Set pre-process members"""
         # Radiance bands
         self._radiance_file = "{band}_radiance_{suffix}.nc"
         self._radiance_subds = "{band}_radiance_{suffix}"
@@ -340,8 +349,8 @@ class S3SlstrProduct(S3Product):
         # Bands
         bt_res = 1000.0
         slstr_bands = {
-            spb.GREEN: SpectralBand(
-                eoreader_name=spb.GREEN,
+            GREEN: SpectralBand(
+                eoreader_name=GREEN,
                 **{
                     NAME: SLSTR_A_BANDS[0],
                     ID: SLSTR_A_BANDS[0],
@@ -351,8 +360,8 @@ class S3SlstrProduct(S3Product):
                     DESCRIPTION: "Cloud screening, vegetation monitoring, aerosol",
                 },
             ),
-            spb.RED: SpectralBand(
-                eoreader_name=spb.RED,
+            RED: SpectralBand(
+                eoreader_name=RED,
                 **{
                     NAME: SLSTR_A_BANDS[1],
                     ID: SLSTR_A_BANDS[1],
@@ -362,8 +371,8 @@ class S3SlstrProduct(S3Product):
                     DESCRIPTION: "NDVI, vegetation monitoring, aerosol",
                 },
             ),
-            spb.NIR: SpectralBand(
-                eoreader_name=spb.NIR,
+            NIR: SpectralBand(
+                eoreader_name=NIR,
                 **{
                     NAME: SLSTR_A_BANDS[2],
                     ID: SLSTR_A_BANDS[2],
@@ -373,8 +382,8 @@ class S3SlstrProduct(S3Product):
                     DESCRIPTION: "NDVI, cloud flagging, pixel co-registration",
                 },
             ),
-            spb.NARROW_NIR: SpectralBand(
-                eoreader_name=spb.NARROW_NIR,
+            NARROW_NIR: SpectralBand(
+                eoreader_name=NARROW_NIR,
                 **{
                     NAME: SLSTR_A_BANDS[2],
                     ID: SLSTR_A_BANDS[2],
@@ -384,8 +393,8 @@ class S3SlstrProduct(S3Product):
                     DESCRIPTION: "NDVI, cloud flagging, pixel co-registration",
                 },
             ),
-            spb.SWIR_CIRRUS: SpectralBand(
-                eoreader_name=spb.SWIR_CIRRUS,
+            SWIR_CIRRUS: SpectralBand(
+                eoreader_name=SWIR_CIRRUS,
                 **{
                     NAME: SLSTR_ABC_BANDS[0],
                     ID: SLSTR_ABC_BANDS[0],
@@ -395,8 +404,8 @@ class S3SlstrProduct(S3Product):
                     DESCRIPTION: "Cirrus detection over land",
                 },
             ),
-            spb.SWIR_1: SpectralBand(
-                eoreader_name=spb.SWIR_1,
+            SWIR_1: SpectralBand(
+                eoreader_name=SWIR_1,
                 **{
                     NAME: SLSTR_ABC_BANDS[1],
                     ID: SLSTR_ABC_BANDS[1],
@@ -406,8 +415,8 @@ class S3SlstrProduct(S3Product):
                     DESCRIPTION: "Cloud clearing, ice, snow, vegetation monitoring",
                 },
             ),
-            spb.SWIR_2: SpectralBand(
-                eoreader_name=spb.SWIR_2,
+            SWIR_2: SpectralBand(
+                eoreader_name=SWIR_2,
                 **{
                     NAME: SLSTR_ABC_BANDS[2],
                     ID: SLSTR_ABC_BANDS[2],
@@ -417,8 +426,8 @@ class S3SlstrProduct(S3Product):
                     DESCRIPTION: "Vegetation state and cloud clearing",
                 },
             ),
-            spb.S7: SpectralBand(
-                eoreader_name=spb.S7,
+            S7: SpectralBand(
+                eoreader_name=S7,
                 **{
                     NAME: SLSTR_I_BANDS[0],
                     ID: SLSTR_I_BANDS[0],
@@ -429,8 +438,8 @@ class S3SlstrProduct(S3Product):
                     ASSET_ROLE: BT,
                 },
             ),
-            spb.TIR_1: SpectralBand(
-                eoreader_name=spb.TIR_1,
+            TIR_1: SpectralBand(
+                eoreader_name=TIR_1,
                 **{
                     NAME: SLSTR_I_BANDS[1],
                     ID: SLSTR_I_BANDS[1],
@@ -441,8 +450,8 @@ class S3SlstrProduct(S3Product):
                     ASSET_ROLE: BT,
                 },
             ),
-            spb.TIR_2: SpectralBand(
-                eoreader_name=spb.TIR_2,
+            TIR_2: SpectralBand(
+                eoreader_name=TIR_2,
                 **{
                     NAME: SLSTR_I_BANDS[2],
                     ID: SLSTR_I_BANDS[2],
@@ -453,8 +462,8 @@ class S3SlstrProduct(S3Product):
                     ASSET_ROLE: BT,
                 },
             ),
-            spb.F1: SpectralBand(
-                eoreader_name=spb.F1,
+            F1: SpectralBand(
+                eoreader_name=F1,
                 **{
                     NAME: SLSTR_I_BANDS[3],
                     ID: SLSTR_I_BANDS[3],
@@ -465,8 +474,8 @@ class S3SlstrProduct(S3Product):
                     ASSET_ROLE: BT,
                 },
             ),
-            spb.F2: SpectralBand(
-                eoreader_name=spb.F2,
+            F2: SpectralBand(
+                eoreader_name=F2,
                 **{
                     NAME: SLSTR_I_BANDS[4],
                     ID: SLSTR_I_BANDS[4],
@@ -625,7 +634,10 @@ class S3SlstrProduct(S3Product):
 
             # Geocode
             LOGGER.debug(f"Geocoding {pp_name}")
-            pp_arr = self._geocode(band_arr, resolution=resolution, suffix=suffix)
+            kwargs.pop("suffix", None)
+            pp_arr = self._geocode(
+                band_arr, resolution=resolution, suffix=suffix, **kwargs
+            )
 
             # Write on disk
             utils.write(pp_arr, path)
@@ -656,7 +668,7 @@ class S3SlstrProduct(S3Product):
             if isinstance(band, BandNames):
                 band = self.bands[band].id
 
-            if band == spb.F1.value:
+            if band == F1.value:
                 if self._F1_is_f:
                     stripe = SlstrStripe.F
                 else:
@@ -693,36 +705,6 @@ class S3SlstrProduct(S3Product):
 
             # Create GCPs
             self._gcps[suffix] = utils.create_gcps(lon, lat, alt)
-
-    def _geocode(
-        self, band_arr: xr.DataArray, suffix: str, resolution: float = None
-    ) -> xr.DataArray:
-        """
-        Geocode Sentinel-3 SLSTR bands (using cartesian coordinates)
-
-        Args:
-            band_arr (xr.DataArray): Band array
-            suffix (str): Suffix (for the grid)
-            resolution (float): Resolution
-
-        Returns:
-            xr.DataArray: Geocoded DataArray
-        """
-        # Create GCPs if not existing
-        self._create_gcps(suffix)
-
-        # Assign a projection
-        band_arr.rio.write_crs(WGS84, inplace=True)
-
-        return band_arr.rio.reproject(
-            dst_crs=self.crs(),
-            resolution=resolution,
-            gcps=self._gcps[suffix],
-            nodata=self._mask_nodata if band_arr.dtype == np.uint8 else self.nodata,
-            num_threads=MAX_CORES,
-            resampling=Resampling.nearest,
-            **{"SRC_METHOD": "GCP_TPS"},
-        )
 
     def _tie_to_img(self, tie_arr: np.ndarray, suffix: str) -> np.ndarray:
         """

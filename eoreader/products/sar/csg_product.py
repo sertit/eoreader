@@ -28,7 +28,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from sertit.misc import ListEnum
 
-from eoreader.bands.bands import BandNames
+from eoreader.bands import BandNames
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import CosmoProduct
 from eoreader.utils import EOREADER_NAME

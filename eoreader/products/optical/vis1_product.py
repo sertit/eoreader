@@ -21,8 +21,6 @@ for more information.
 """
 import io
 import logging
-import time
-from datetime import date, datetime
 from enum import unique
 from pathlib import Path
 from typing import Union
@@ -35,26 +33,33 @@ from lxml import etree
 from rasterio import crs as riocrs
 from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
-from shapely.geometry import Polygon, box
 
 from eoreader import cache, utils
-from eoreader.bands import BandNames, SpectralBand
-from eoreader.bands import spectral_bands as spb
+from eoreader.bands import (
+    BLUE,
+    GREEN,
+    NARROW_NIR,
+    NIR,
+    PAN,
+    RED,
+    BandNames,
+    SpectralBand,
+)
 from eoreader.exceptions import InvalidProductError
-from eoreader.products import VhrProduct
+from eoreader.products.optical.dimap_v1_product import DimapV1Product
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
+from eoreader.utils import EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 _VIS1_E0 = {
-    spb.PAN: 1828,
-    spb.BLUE: 2003,
-    spb.GREEN: 1828,
-    spb.RED: 1618,
-    spb.NIR: 1042,
-    spb.NARROW_NIR: 1042,
+    PAN: 1828,
+    BLUE: 2003,
+    GREEN: 1828,
+    RED: 1618,
+    NIR: 1042,
+    NARROW_NIR: 1042,
 }
 """
 Solar spectral irradiance, E0b, (commonly known as ESUN) is a constant value specific to each band of the Vision-1 imager.
@@ -116,7 +121,7 @@ class Vis1ProductType(ListEnum):
     """
 
 
-class Vis1Product(VhrProduct):
+class Vis1Product(DimapV1Product):
     """
     Class of Vision-1 products.
     See `here <https://www.intelligence-airbusds.com/imagery/constellation/vision1/>`_
@@ -186,44 +191,44 @@ class Vis1Product(VhrProduct):
         """
         # Create spectral bands
         pan = SpectralBand(
-            eoreader_name=spb.PAN,
+            eoreader_name=PAN,
             **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 450, WV_MAX: 650},
         )
 
         blue = SpectralBand(
-            eoreader_name=spb.BLUE,
+            eoreader_name=BLUE,
             **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 440, WV_MAX: 510},
         )
 
         green = SpectralBand(
-            eoreader_name=spb.GREEN,
+            eoreader_name=GREEN,
             **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 510, WV_MAX: 590},
         )
 
         red = SpectralBand(
-            eoreader_name=spb.RED,
+            eoreader_name=RED,
             **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 600, WV_MAX: 670},
         )
 
         nir = SpectralBand(
-            eoreader_name=spb.NIR,
+            eoreader_name=NIR,
             **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 760, WV_MAX: 910},
         )
 
         # Manage bands of the product
         if self.band_combi == Vis1BandCombination.PAN:
-            self.bands.map_bands({spb.PAN: pan})
+            self.bands.map_bands({PAN: pan})
         elif self.band_combi in [
             Vis1BandCombination.MS4,
             Vis1BandCombination.BUN,
         ]:
             self.bands.map_bands(
                 {
-                    spb.BLUE: blue,
-                    spb.GREEN: green,
-                    spb.RED: red,
-                    spb.NIR: nir,
-                    spb.NARROW_NIR: nir,
+                    BLUE: blue,
+                    GREEN: green,
+                    RED: red,
+                    NIR: nir,
+                    NARROW_NIR: nir,
                 }
             )
             if self.band_combi == Vis1BandCombination.BUN:
@@ -233,49 +238,17 @@ class Vis1Product(VhrProduct):
         elif self.band_combi == Vis1BandCombination.PSH:
             self.bands.map_bands(
                 {
-                    spb.BLUE: blue.update(gsd=self._pan_res),
-                    spb.GREEN: green.update(gsd=self._pan_res),
-                    spb.RED: red.update(gsd=self._pan_res),
-                    spb.NIR: nir.update(gsd=self._pan_res),
-                    spb.NARROW_NIR: nir.update(gsd=self._pan_res),
+                    BLUE: blue.update(gsd=self._pan_res),
+                    GREEN: green.update(gsd=self._pan_res),
+                    RED: red.update(gsd=self._pan_res),
+                    NIR: nir.update(gsd=self._pan_res),
+                    NARROW_NIR: nir.update(gsd=self._pan_res),
                 }
             )
         else:
             raise InvalidProductError(
                 f"Unusual band combination: {self.band_combi.name}"
             )
-
-    @cache
-    def crs(self) -> riocrs.CRS:
-        """
-        Get UTM projection of the tile
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1B_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.crs()
-            CRS.from_epsg(32618)
-
-        Returns:
-            rasterio.crs.CRS: CRS object
-        """
-        # Open metadata
-        root, _ = self.read_mtd()
-
-        # Open the Bounding_Polygon
-        vertices = list(root.iterfind(".//Dataset_Frame/Vertex"))
-
-        # Get the mean lon lat
-        lon = float(np.mean([float(v.findtext("FRAME_LON")) for v in vertices]))
-        lat = float(np.mean([float(v.findtext("FRAME_LAT")) for v in vertices]))
-
-        # Compute UTM crs from center long/lat
-        utm = vectors.corresponding_utm_projection(lon, lat)
-        utm = riocrs.CRS.from_string(utm)
-
-        return utm
 
     def _get_raw_crs(self) -> riocrs.CRS:
         """
@@ -339,7 +312,7 @@ class Vis1Product(VhrProduct):
                     indexes=[1],
                 )
 
-                # Vectorize the nodata band (rasters_rio is faster)
+                # Vectorize the nodata band
                 footprint = rasters.vectorize(
                     arr, values=0, keep_values=False, dissolve=True
                 )
@@ -349,171 +322,6 @@ class Vis1Product(VhrProduct):
                 footprint = rasters.get_footprint(self.get_default_band_path())
 
         return footprint.to_crs(self.crs())
-
-    @cache
-    def extent(self, **kwargs) -> gpd.GeoDataFrame:
-        """
-        Get UTM extent of the tile.
-
-        Returns:
-            gpd.GeoDataFrame: Extent in UTM
-        """
-
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Compute extent corners
-        corners = [
-            [float(vertex.findtext("FRAME_LON")), float(vertex.findtext("FRAME_LAT"))]
-            for vertex in root.iterfind(".//Dataset_Frame/Vertex")
-        ]
-
-        # When PRJ, Dataset_Frame is the footprint
-        ds_frame = gpd.GeoDataFrame(
-            geometry=[Polygon(corners)],
-            crs=vectors.WGS84,
-        ).to_crs(self.crs())
-
-        extent = gpd.GeoDataFrame(
-            geometry=[box(*ds_frame.total_bounds)],
-            crs=self.crs(),
-        )
-
-        return extent
-
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
-        """
-        Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1B_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.get_datetime(as_datetime=True)
-            datetime.datetime(2020, 5, 11, 2, 31, 58)
-            >>> prod.get_datetime(as_datetime=False)
-            '20200511T023158'
-
-        Args:
-            as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
-
-        Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
-        """
-        # TODO: SAME AS DIMAP
-        if self.datetime is None:
-            # Get MTD XML file
-            root, _ = self.read_mtd()
-            date_str = root.findtext(".//IMAGING_DATE")
-            time_str = root.findtext(".//IMAGING_TIME")
-            if not date_str or not time_str:
-                raise InvalidProductError(
-                    "Cannot find the product imaging date and time in the metadata file."
-                )
-
-            # Convert to datetime
-            date_dt = date.fromisoformat(date_str)
-            try:
-                time_dt = time.strptime(time_str, "%H:%M:%S.%fZ")
-            except ValueError:
-                time_dt = time.strptime(
-                    time_str, "%H:%M:%S.%f"
-                )  # Sometimes without a Z
-
-            date_str = (
-                f"{date_dt.strftime('%Y%m%d')}T{time.strftime('%H%M%S', time_dt)}"
-            )
-
-            if as_datetime:
-                date_str = datetime.strptime(date_str, DATETIME_FMT)
-
-        else:
-            date_str = self.datetime
-            if not as_datetime:
-                date_str = date_str.strftime(DATETIME_FMT)
-
-        return date_str
-
-    def _get_name_constellation_specific(self) -> str:
-        """
-        Set product real name from metadata
-
-        Returns:
-            str: True name of the product (from metadata)
-        """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Open identifier
-        name = root.findtext(".//DATASET_NAME")
-        if not name:
-            raise InvalidProductError("DATASET_NAME not found in metadata!")
-
-        return name
-
-    @cache
-    def get_mean_sun_angles(self) -> (float, float):
-        """
-        Get Mean Sun angles (Azimuth and Zenith angles)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"IMG_PHR1A_PMS_001"
-            >>> prod = Reader().open(path)
-            >>> prod.get_mean_sun_angles()
-            (45.6624568841367, 30.219881316357643)
-
-        Returns:
-            (float, float): Mean Azimuth and Zenith angle
-        """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Open zenith and azimuth angle
-        elev_angle = float(root.findtext(".//SUN_ELEVATION"))
-        azimuth_angle = float(root.findtext(".//SUN_AZIMUTH"))
-
-        # From elevation to zenith
-        zenith_angle = 90.0 - elev_angle
-
-        return azimuth_angle, zenith_angle
-
-    @cache
-    def get_mean_viewing_angles(self) -> (float, float, float):
-        """
-        Get Mean Viewing angles (azimuth, off-nadir and incidence angles)
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.get_mean_viewing_angles()
-
-        Returns:
-            (float, float, float): Mean azimuth, off-nadir and incidence angles
-        """
-        # Get MTD XML file
-        root, _ = self.read_mtd()
-
-        # Open zenith and azimuth angle
-        try:
-            az = None
-            for a in root.iterfind(".//Quality_Parameter"):
-                if a.findtext("QUALITY_PARAMETER_CODE") == "SPACEMETRIC:SENSOR_AZIMUTH":
-                    az = float(a.findtext("QUALITY_PARAMETER_VALUE"))
-                    break
-
-            incidence_angle = 90 - float(root.findtext(".//INCIDENCE_ANGLE"))
-            off_nadir = float(root.findtext(".//VIEWING_ANGLE"))
-        except TypeError:
-            raise InvalidProductError(
-                "SPACEMETRIC:SENSOR_AZIMUTH, INCIDENCE_ANGLE or VIEWING_ANGLE not found in metadata!"
-            )
-
-        return az, off_nadir, incidence_angle
 
     def _to_reflectance(
         self,
@@ -536,7 +344,7 @@ class Vis1Product(VhrProduct):
         """
 
         # Compute the correct radiometry of the band
-        original_dtype = band_arr.encoding.get("dtype", band_arr.dtype)
+        original_dtype = band_arr.encoding["dtype"]
         if original_dtype == "uint16":
             band_arr /= 100.0
 
@@ -544,7 +352,7 @@ class Vis1Product(VhrProduct):
         if band_arr.dtype != np.float32:
             band_arr = band_arr.astype(np.float32)
 
-        return self._toa_rad_to_toa_refl(band_arr, band)
+        return self._toa_rad_to_toa_refl(band_arr, band, _VIS1_E0[band])
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
@@ -558,32 +366,6 @@ class Vis1Product(VhrProduct):
         mtd_archived = r"DIM_.*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
-
-    def _has_cloud_band(self, band: BandNames) -> bool:
-        """
-        Does this product has the specified cloud band ?
-        """
-        return False
-
-    def _open_clouds(
-        self,
-        bands: list,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-        **kwargs,
-    ) -> dict:
-        """
-        Load cloud files as xarrays.
-
-        Args:
-            bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-            kwargs: Additional arguments
-        Returns:
-            dict: Dictionary {band_name, band_xarray}
-        """
-        return {}
 
     def _get_tile_path(self) -> Union[CloudPath, Path]:
         """
@@ -613,35 +395,6 @@ class Vis1Product(VhrProduct):
             rpcs = None
         return super()._get_ortho_path(rpcs=rpcs, **kwargs)
 
-    def _toa_rad_to_toa_refl(
-        self, rad_arr: xr.DataArray, band: BandNames
-    ) -> xr.DataArray:
-        """
-        Compute TOA reflectance from TOA radiance
-
-        See
-        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC02ODMwNQ==/ZG9jdXRoZXF1ZS1maWxlLTY4MzAy/vision-1-imagery-user-guide-20210217>`_
-        (3.2.2) for more information.
-
-        WARNING: in this formula, d**2 = 1 / sqrt(dt) !
-
-        Args:
-            rad_arr (xr.DataArray): TOA Radiance array
-            band (BandNames): Band
-
-        Returns:
-            xr.DataArray: TOA Reflectance array
-        """
-        # Compute the coefficient converting TOA radiance in TOA reflectance
-        dt = self._sun_earth_distance_variation()
-        _, sun_zen = self.get_mean_sun_angles()
-        rad_sun_zen = np.deg2rad(sun_zen)
-        e0 = _VIS1_E0[band]
-        toa_refl_coeff = np.pi / (e0 * dt * np.cos(rad_sun_zen))
-
-        # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
-        return rad_arr.copy(data=toa_refl_coeff * rad_arr)
-
     def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing.
@@ -661,12 +414,3 @@ class Vis1Product(VhrProduct):
             LOGGER.warning(f"No quicklook found in {self.condensed_name}")
 
         return quicklook_path
-
-    def _get_job_id(self) -> str:
-        """
-        Get VHR job ID
-
-        Returns:
-            str: VHR product ID
-        """
-        return self.split_name[-2]

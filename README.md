@@ -14,9 +14,9 @@
 and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) constellations, loading and stacking bands,
 clouds, DEM and spectral indices in a sensor-agnostic way.
 
-| **Optical**                                                                                                                                                                                                                                                    | **SAR**                                                                                                                                                             |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `Sentinel-2` and `Sentinel-2 Theia`<br>`Sentinel-3 OLCI` and `SLSTR`<br>`Landsat` 1 to 9<br>`PlanetScope`, `SkySat` and `RapidEye`<br>`Pleiades` and `Pleiades-Neo`<br>`SPOT-6/7`<br>`SPOT-4/5`<br>`Vision-1`<br>`Maxar` (WorldViews, GeoEye)<br>`SuperView-1` | `Sentinel-1`<br>`COSMO-Skymed` 1st and 2nd Generation<br>`TerraSAR-X`, `TanDEM-X` and `PAZ SAR`<br>`RADARSAT-2` and `RADARSAT-Constellation`<br>`ICEYE`<br>`SAOCOM` |
+| **Optical**                                                                                                                                                                                                                                                                                                   | **SAR**                                                                                                                                                             |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Sentinel-2` and `Sentinel-2 Theia`<br>`Sentinel-3 OLCI` and `SLSTR`<br>`Landsat` 1 to 9<br>`Harmonized Landsat-Sentinel`<br>`PlanetScope`, `SkySat` and `RapidEye`<br>`Pleiades` and `Pleiades-Neo`<br>`SPOT-6/7`<br>`SPOT-4/5`<br>`Vision-1`<br>`Maxar` (WorldViews, GeoEye)<br>`SuperView-1`<br>`GEOSAT-2` | `Sentinel-1`<br>`COSMO-Skymed` 1st and 2nd Generation<br>`TerraSAR-X`, `TanDEM-X` and `PAZ SAR`<br>`RADARSAT-2` and `RADARSAT-Constellation`<br>`ICEYE`<br>`SAOCOM` |
 
 It also implements additional **sensor-agnostic** features:
 
@@ -169,7 +169,7 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 
 ## Articles
 
-- [Maxant, J.; Braun, R.; Caspard, M.; Clandillon, S. ExtractEO, a Pipeline for Disaster Extent Mapping in the Context of Emergency Management. Remote Sens. 2022, 14, 5253. https://doi.org/10.3390/rs14205253 (Technical Note)](https://www.mdpi.com/1896792)
+- [Maxant, J.; Braun, R.; Caspard, M.; Clandillon, S. ExtractEO, a Pipeline for Disaster Extent Mapping in the Context of Emergency Management. Remote Sens. 2022, 14, 5253. (Technical Note)](https://doi.org/10.3390/rs14205253)
 
 ## License
 
@@ -178,7 +178,7 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 ## Authors
 
 **EOReader** has been created by [ICube-SERTIT](https://sertit.unistra.fr/).
-Follow us on [Twitter](https://twitter.com/eoreader)
+Follow us on [Twitter](https://twitter.com/eoreader).
 
 ## Credits
 
@@ -188,3 +188,4 @@ Follow us on [Twitter](https://twitter.com/eoreader)
 - [`rasterio`](https://rasterio.readthedocs.io/en/latest/)
 - [`xarray`](http://xarray.pydata.org/en/stable/)
 - [`rioxarray`](https://corteva.github.io/rioxarray/stable/)
+- [`awesome-spectral-indices` and `spyndex`](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/index.html)

@@ -37,8 +37,16 @@ from sertit import files, rasters, vectors, xml
 from sertit.misc import ListEnum
 
 from eoreader import cache
-from eoreader.bands import BandNames, SpectralBand, is_spectral_band
-from eoreader.bands import spectral_bands as spb
+from eoreader.bands import (
+    BLUE,
+    GREEN,
+    NIR,
+    PAN,
+    RED,
+    BandNames,
+    SpectralBand,
+    is_spectral_band,
+)
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.products.optical.planet_product import PlanetProduct
@@ -234,8 +242,8 @@ class SkyProduct(PlanetProduct):
         """
         if self.product_type == SkyProductType.ORTHO_PAN:
             band_map = {
-                spb.PAN: SpectralBand(
-                    eoreader_name=spb.PAN,
+                PAN: SpectralBand(
+                    eoreader_name=PAN,
                     **{
                         NAME: "PAN",
                         ID: 1,
@@ -247,8 +255,8 @@ class SkyProduct(PlanetProduct):
             }
         else:
             band_map = {
-                spb.BLUE: SpectralBand(
-                    eoreader_name=spb.BLUE,
+                BLUE: SpectralBand(
+                    eoreader_name=BLUE,
                     **{
                         NAME: "Blue",
                         ID: 1,
@@ -257,8 +265,8 @@ class SkyProduct(PlanetProduct):
                         WV_MAX: 515,
                     },
                 ),
-                spb.GREEN: SpectralBand(
-                    eoreader_name=spb.GREEN,
+                GREEN: SpectralBand(
+                    eoreader_name=GREEN,
                     **{
                         NAME: "Green",
                         ID: 2,
@@ -267,8 +275,8 @@ class SkyProduct(PlanetProduct):
                         WV_MAX: 595,
                     },
                 ),
-                spb.RED: SpectralBand(
-                    eoreader_name=spb.RED,
+                RED: SpectralBand(
+                    eoreader_name=RED,
                     **{
                         NAME: "Red",
                         ID: 3,
@@ -277,8 +285,8 @@ class SkyProduct(PlanetProduct):
                         WV_MAX: 695,
                     },
                 ),
-                spb.NIR: SpectralBand(
-                    eoreader_name=spb.NIR,
+                NIR: SpectralBand(
+                    eoreader_name=NIR,
                     **{
                         NAME: "NIR",
                         ID: 4,

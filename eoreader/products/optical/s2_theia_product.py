@@ -36,15 +36,24 @@ from sertit import files, rasters, rasters_rio, vectors
 from eoreader import cache, utils
 from eoreader.bands import (
     ALL_CLOUDS,
+    BLUE,
     CIRRUS,
     CLOUDS,
+    GREEN,
+    NARROW_NIR,
+    NIR,
     RAW_CLOUDS,
+    RED,
     SHADOWS,
+    SWIR_1,
+    SWIR_2,
+    VRE_1,
+    VRE_2,
+    VRE_3,
     BandNames,
     SpectralBand,
+    to_str,
 )
-from eoreader.bands import spectral_bands as spb
-from eoreader.bands import to_str
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct, S2ProductType
 from eoreader.products.optical.optical_product import RawUnits
@@ -126,44 +135,44 @@ class S2TheiaProduct(OpticalProduct):
         Map bands
         """
         l2a_bands = {
-            spb.BLUE: SpectralBand(
-                eoreader_name=spb.BLUE,
+            BLUE: SpectralBand(
+                eoreader_name=BLUE,
                 **{NAME: "B2", ID: "2", GSD: 10, CENTER_WV: 492, FWHM: 66},
             ),
-            spb.GREEN: SpectralBand(
-                eoreader_name=spb.GREEN,
+            GREEN: SpectralBand(
+                eoreader_name=GREEN,
                 **{NAME: "B3", ID: "3", GSD: 10, CENTER_WV: 560, FWHM: 36},
             ),
-            spb.RED: SpectralBand(
-                eoreader_name=spb.RED,
+            RED: SpectralBand(
+                eoreader_name=RED,
                 **{NAME: "B4", ID: "4", GSD: 10, CENTER_WV: 665, FWHM: 31},
             ),
-            spb.VRE_1: SpectralBand(
-                eoreader_name=spb.VRE_1,
+            VRE_1: SpectralBand(
+                eoreader_name=VRE_1,
                 **{NAME: "B5", ID: "5", GSD: 20, CENTER_WV: 704, FWHM: 15},
             ),
-            spb.VRE_2: SpectralBand(
-                eoreader_name=spb.VRE_2,
+            VRE_2: SpectralBand(
+                eoreader_name=VRE_2,
                 **{NAME: "B6", ID: "6", GSD: 20, CENTER_WV: 740, FWHM: 15},
             ),
-            spb.VRE_3: SpectralBand(
-                eoreader_name=spb.VRE_3,
+            VRE_3: SpectralBand(
+                eoreader_name=VRE_3,
                 **{NAME: "B7", ID: "7", GSD: 20, CENTER_WV: 781, FWHM: 20},
             ),
-            spb.NIR: SpectralBand(
-                eoreader_name=spb.NIR,
-                **{NAME: "B8A", ID: "8A", GSD: 10, CENTER_WV: 833, FWHM: 106},
+            NIR: SpectralBand(
+                eoreader_name=NIR,
+                **{NAME: "B8", ID: "8", GSD: 10, CENTER_WV: 833, FWHM: 106},
             ),
-            spb.NARROW_NIR: SpectralBand(
-                eoreader_name=spb.NARROW_NIR,
-                **{NAME: "B8", ID: "8", GSD: 20, CENTER_WV: 864, FWHM: 21},
+            NARROW_NIR: SpectralBand(
+                eoreader_name=NARROW_NIR,
+                **{NAME: "B8A", ID: "8A", GSD: 20, CENTER_WV: 864, FWHM: 21},
             ),
-            spb.SWIR_1: SpectralBand(
-                eoreader_name=spb.SWIR_1,
+            SWIR_1: SpectralBand(
+                eoreader_name=SWIR_1,
                 **{NAME: "B11", ID: "11", GSD: 20, CENTER_WV: 1612, FWHM: 92},
             ),
-            spb.SWIR_2: SpectralBand(
-                eoreader_name=spb.SWIR_2,
+            SWIR_2: SpectralBand(
+                eoreader_name=SWIR_2,
                 **{NAME: "B12", ID: "12", GSD: 20, CENTER_WV: 2190, FWHM: 180},
             ),
         }
@@ -550,14 +559,14 @@ class S2TheiaProduct(OpticalProduct):
         """
         # https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-product-format/
         # For r_1, the band order is: B2, B3, B4, B8 and for r_2: B5, B6, B7, B8a, B11, B12
-        res_10m = [spb.BLUE, spb.GREEN, spb.RED, spb.NIR, "R1"]
+        res_10m = [BLUE, GREEN, RED, NIR, "R1"]
         res_20m = [
-            spb.VRE_1,
-            spb.VRE_2,
-            spb.VRE_3,
-            spb.NARROW_NIR,
-            spb.SWIR_1,
-            spb.SWIR_2,
+            VRE_1,
+            VRE_2,
+            VRE_3,
+            NARROW_NIR,
+            SWIR_1,
+            SWIR_2,
             "R2",
         ]
         if band in res_10m:

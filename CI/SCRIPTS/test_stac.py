@@ -33,6 +33,7 @@ from eoreader.products import (
     SensorType,
     SlstrRadAdjust,
 )
+from eoreader.products.optical.hls_product import HlsProductType
 from eoreader.reader import CheckMethod, Constellation
 from eoreader.stac import EO_BANDS
 from eoreader.stac._stac_keywords import (
@@ -58,6 +59,7 @@ from eoreader.utils import EOREADER_NAME
 from .scripts_utils import CI_EOREADER_S3, READER, dask_env, opt_path, s3_env, sar_path
 
 ci.reduce_verbosity()
+logging.getLogger("rasterio._env").setLevel(logging.ERROR)
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -288,21 +290,19 @@ def _test_core(
                         )
 
                 # Assets
+                is_not_s2 = (
+                    prod.constellation not in [Constellation.S2, Constellation.S2_THEIA]
+                    and prod.product_type != HlsProductType.S30
+                )
+
                 if prod.sensor_type == SensorType.OPTICAL:
                     existing_bands = prod.get_existing_bands()
                     nof_assets = len(existing_bands)
 
-                    if prod.constellation not in [
-                        Constellation.S2,
-                        Constellation.S2_THEIA,
-                    ]:
+                    if is_not_s2:
                         if NARROW_NIR in existing_bands:
                             nof_assets -= 1  # remove NARROW NIR, except for S2
-                    if prod.constellation not in [
-                        Constellation.S2,
-                        Constellation.S2_THEIA,
-                        Constellation.S3_OLCI,
-                    ]:
+                    if is_not_s2 and prod.constellation != Constellation.S3_OLCI:
                         if VRE_1 in existing_bands and VRE_2 in existing_bands:
                             nof_assets -= 1  # remove one VRE, except for S2 and S3 OLCI
                         if VRE_1 in existing_bands and VRE_3 in existing_bands:
@@ -491,6 +491,13 @@ def test_l1_mss():
 
 @s3_env
 @dask_env
+def test_hls():
+    """Function testing the support of HLS constellation"""
+    _test_core_optical("*HLS*")
+
+
+@s3_env
+@dask_env
 def test_pla():
     """Function testing the support of PlanetScope constellation"""
     _test_core_optical("*202*1014*")
@@ -580,6 +587,13 @@ def test_vs1():
 def test_sv1():
     """Function testing the support of SuperView-1 constellation"""
     _test_core_optical("*0001_01*")
+
+
+@s3_env
+@dask_env
+def test_gs2():
+    """Function testing the support of GEOSAT-2 constellation"""
+    _test_core_optical("*DE2_*")
 
 
 @s3_env

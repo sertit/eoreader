@@ -18,7 +18,28 @@ from CI.SCRIPTS.scripts_utils import (
     get_db_dir_on_disk,
     opt_path,
 )
-from eoreader.bands import *
+from eoreader.bands import (
+    ALL_CLOUDS,
+    CIRRUS,
+    CLOUDS,
+    F1,
+    F2,
+    HH,
+    HH_DSPK,
+    HILLSHADE,
+    NARROW_NIR,
+    NIR,
+    PAN,
+    RAW_CLOUDS,
+    RED,
+    SHADOWS,
+    SLOPE,
+    SWIR_2,
+    TIR_1,
+    VV,
+    VV_DSPK,
+    Oa01,
+)
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT, SAR_DEF_RES, TEST_USING_S3_DB
 from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import S2Product, SlstrRadAdjust
@@ -27,6 +48,7 @@ from eoreader.reader import CheckMethod
 from eoreader.utils import EOREADER_NAME
 
 ci.reduce_verbosity()
+logging.getLogger("rasterio._env").setLevel(logging.ERROR)
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -38,7 +60,7 @@ MERIT_DEM_SUB_DIR_PATH = [
 
 
 def set_dem(dem_path):
-    """ Set DEM"""
+    """Set DEM"""
     if dem_path:
         dem_path = AnyPath(dem_path)
         if not dem_path.is_file():
@@ -435,6 +457,12 @@ def test_l1_mss():
 
 
 @dask_env
+def test_hls():
+    """Function testing the support of HLS constellation"""
+    _test_core_optical("*HLS*")
+
+
+@dask_env
 def test_pla():
     """Function testing the support of PlanetScope constellation"""
     _test_core_optical("*_psscene_*")
@@ -521,3 +549,11 @@ def test_sv1():
     """Function testing the support of SuperView-1 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
     _test_core_optical("*0001_01*", dem_path=dem_path)
+
+
+@dask_env
+def test_gs2():
+    """Function testing the support of GEOSAT-2 constellation"""
+    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
+    _test_core_optical("*DE2_*", dem_path=dem_path)
+    _test_core_optical("*Turkey*", dem_path=dem_path)
