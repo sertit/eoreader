@@ -57,6 +57,15 @@ from eoreader.utils import EOREADER_NAME, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
+_SAR_PREDICTOR = 1
+"""
+Set LZW predictor to 1 in order SNAP to be able to read this GEoTiff.
+
+Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
+https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7
+
+"""
+
 
 @unique
 class SnapDems(ListEnum):
@@ -739,7 +748,13 @@ class SarProduct(Product):
                     self._get_band_folder(writable=True),
                     f"{self.condensed_name}_{band.name}.tif",
                 )
-                utils.write(arr, file_path, dtype=np.float32, nodata=self._snap_no_data)
+                utils.write(
+                    arr,
+                    file_path,
+                    dtype=np.float32,
+                    nodata=self._snap_no_data,
+                    predictor=_SAR_PREDICTOR,
+                )
             return file_path
         else:
             # Create target dir (tmp dir)
@@ -945,7 +960,7 @@ class SarProduct(Product):
                 file_path,
                 dtype=np.float32,
                 nodata=self._snap_no_data,
-                predictor=1,  # workaround
+                predictor=_SAR_PREDICTOR,
             )
 
         return file_path
