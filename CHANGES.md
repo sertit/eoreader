@@ -16,8 +16,8 @@
         - `CI1` is renamed `CI32` and `CI2` is renamed `CI21` for readability purposes
         - `NDWI21` can be written `NDWI2100` for homogeneity purposes
         - `RDI` (or `DSI`) uses now `SWIR_1` instead of `SWIR_2` (see [this](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/18) issue)
-        - `PANI` equivalent is now `BITM` and is normalised ! (/3.)
-        - `SBI` is normalized (/2.) to fit with `BIXS` definition
+        - `PANI` equivalent is now `BITM` and is normalised ! (divided by 3)
+        - `SBI` is normalized (divided by 2) to fit with `BIXS` definition
         - ⚠ *You may need to install the last `spyndex` directly from GitHub latest version to have all available indices*
 - **BREAKING CHANGES: Using `pyresample` to geocode Sentinel-3 data** ([#55](https://github.com/sertit/eoreader/issues/55))
     - Cleaner: better conversion from swath to grid
@@ -30,12 +30,12 @@
 
 - **ENH: Adding the support of Harmonized Landsat-Sentinel constellation** ([#49](https://github.com/sertit/eoreader/issues/49))
 - **ENH: Adding the support of GEOSAT-2 constellation** ([#59](https://github.com/sertit/eoreader/issues/59))
-- 
+
 ### Bug Fixes
 
 - FIX: Fixing `CustomProduct` initialization when fields are set to None (instead of not declaring them)
 - FIX: SNAP cannot handle float predictors other than 1! Set it to 1 when saving ortho SAR images to disk, in order for SNAP to be able to despeckle
-  them (https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7).
+  them (https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7). ([#62](https://github.com/sertit/eoreader/issues/62))
 - FIX: Fixing mix in `Sentinel-2` mapping for `B8` (`NIR`, 10m resolution, large spectral bandwidth) and `B8A` (`NARROW_NIR`, 20m resolution, narrow spectral bandwidth)
 
 ### Other
