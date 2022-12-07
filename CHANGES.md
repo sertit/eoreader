@@ -1,5 +1,15 @@
 # Release History
 
+## 0.18.1 (2022-YY-XX)
+
+### Bug Fixes
+
+- FIX: Fix regression for missing EOReader aliases for `spyndex` spectral indices
+
+### Other
+
+- DOC: Add latest DOI link 
+
 ## 0.18.0 (2022-12-06)
 
 ### Breaking Changes
@@ -24,7 +34,7 @@
     - Faster: Up to 4 times faster
     - Allows code refactoring between OLCI and SLSTR
 - **BREAKING CHANGES: For SAR product types that are not available in the Data Access Portfolio, default resolution is now the pixel spacing instead of the rg x az resolution**
-  - Changes mainly Sentinel-1 default resolutions (except from IW mode)
+    - Changes mainly Sentinel-1 default resolutions (except from IW mode)
 
 ### Enhancements
 
@@ -35,7 +45,7 @@
 
 - FIX: Fixing `CustomProduct` initialization when fields are set to None (instead of not declaring them)
 - FIX: SNAP cannot handle float predictors other than 1! Set it to 1 when saving ortho SAR images to disk, in order for SNAP to be able to despeckle
-  them (https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7). ([#62](https://github.com/sertit/eoreader/issues/62))
+  them. See [SNAP issue](https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7). ([#62](https://github.com/sertit/eoreader/issues/62))
 - FIX: Fixing mix in `Sentinel-2` mapping for `B8` (`NIR`, 10m resolution, large spectral bandwidth) and `B8A` (`NARROW_NIR`, 20m resolution, narrow spectral bandwidth)
 
 ### Other

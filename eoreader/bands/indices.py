@@ -317,9 +317,9 @@ def get_eoreader_indices() -> list:
             eoreader_indices.append(fct.__name__)
 
     # Add aliases
-    for index in EOREADER_ALIASES.keys():
-        if hasattr(spyndex.indices, index):
-            eoreader_indices.append(index)
+    for eoreader_idx, spyndex_idx in EOREADER_ALIASES.items():
+        if hasattr(spyndex.indices, spyndex_idx):
+            eoreader_indices.append(eoreader_idx)
 
     # Add derivatives
     for index, deriv_list in EOREADER_DERIVATIVES.items():
