@@ -765,15 +765,26 @@ class SarProduct(Product):
 
                 # Pre-process graph
                 if PP_GRAPH not in os.environ:
-                    sat = (
-                        "s1"
-                        if self.constellation_id == Constellation.S1.name
-                        else "sar"
-                    )
-                    spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
-                    pp_graph = utils.get_data_dir().joinpath(
-                        f"{spt}_{sat}_preprocess_default.xml"
-                    )
+                    if self.constellation == Constellation.CAPELLA:
+                        # TODO: Error: [NodeId: Calibration] Mission Capella is currently not supported for calibration.
+                        pp_graph = utils.get_data_dir().joinpath(
+                            "grd_sar_preprocess_fallback.xml"
+                        )
+
+                    else:
+                        sat = (
+                            "s1"
+                            if self.constellation_id == Constellation.S1.name
+                            else "sar"
+                        )
+                        spt = (
+                            "grd"
+                            if self.sar_prod_type == SarProductType.GDRG
+                            else "cplx"
+                        )
+                        pp_graph = utils.get_data_dir().joinpath(
+                            f"{spt}_{sat}_preprocess_default.xml"
+                        )
                 else:
                     pp_graph = AnyPath(os.environ[PP_GRAPH])
                     if not pp_graph.is_file() or not pp_graph.suffix == ".xml":

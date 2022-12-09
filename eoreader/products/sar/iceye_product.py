@@ -212,9 +212,7 @@ class IceyeProduct(SarProduct):
             )
 
     def _set_sensor_mode(self) -> None:
-        """
-        Get products type from S2 products name (could check the metadata too)
-        """
+        """Get sensor mode"""
         # Get MTD XML file
         root, nsmap = self.read_mtd()
 
