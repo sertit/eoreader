@@ -1,5 +1,11 @@
 # Release History
 
+## 0.19.0 (202Y-MM-DD)
+
+### Enhancements
+
+- **ENH: Adding the support of Capella constellation** ([#74](https://github.com/sertit/eoreader/issues/74))
+
 ## 0.18.1 (2022-12-08)
 
 ### Bug Fixes

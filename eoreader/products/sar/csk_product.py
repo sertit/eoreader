@@ -92,9 +92,7 @@ class CskProduct(CosmoProduct):
         return def_res
 
     def _set_sensor_mode(self) -> None:
-        """
-        Get products type from S2 products name (could check the metadata too)
-        """
+        """Get sensor mode"""
         # Get MTD XML file
         root, _ = self.read_mtd()
 
