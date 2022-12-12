@@ -59,14 +59,15 @@ Hereunder are the paths meant to be given to the reader.
 #### SAR
 
 ``` {container} full-width
-|Sensor group | Folder to link|
-|--- | ---|
-|`Sentinel-1`<br>`RADARSAT-Constellation` | SAFE directory containing the `manifest.safe` file,<br>i.e. `S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.SAFE`|
-|`COSMO-Skymed`<br>1st and 2nd Gen | Directory containing the `.h5` image,<br>i.e. `1011117-766193`|
-|`RADARSAT-2` | Main directory containing the `.tif` image,<br>i.e. `RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip`|
-|`TerraSAR-X`<br>`TanDEM-X`<br>`PAZ SAR`| Directory containing the `IMAGEDATA` directory,<br>i.e. `TDX1_SAR__MGD_SE___SM_S_SRA_20201016T231611_20201016T231616`|
-|`ICEYE`| Directory containing the `.tif` file,<br>i.e. `SC_124020`|
-|`SAOCOM` | Directory containing the `.xemt` **AND** the `.zip` files,<br>i.e. `11245-EOL1CSARSAO1A198523`|
+| Sensor group                             | Folder to link                                                                                                                         |
+|------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| `Sentinel-1`<br>`RADARSAT-Constellation` | SAFE directory containing the `manifest.safe` file,<br>i.e. `S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.SAFE` |
+| `COSMO-Skymed`<br>1st and 2nd Gen        | Directory containing the `.h5` image,<br>i.e. `1011117-766193`                                                                         |
+| `RADARSAT-2`                             | Main directory containing the `.tif` image,<br>i.e. `RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip`                   |
+| `TerraSAR-X`<br>`TanDEM-X`<br>`PAZ SAR`  | Directory containing the `IMAGEDATA` directory,<br>i.e. `TDX1_SAR__MGD_SE___SM_S_SRA_20201016T231611_20201016T231616`                  |
+| `ICEYE`                                  | Directory containing the `.tif` file,<br>i.e. `SC_124020`                                                                              |
+| `SAOCOM`                                 | Directory containing the `.xemt` **AND** the `.zip` files,<br>i.e. `11245-EOL1CSARSAO1A198523`                                         |
+| `CAPELLA`                                | Directory containing the `.tif` file,<br>i.e. `CAPELLA_C05_SP_SLC_HH_20220320114010_20220320114013`                                    |
 ```
 
 ## Load
