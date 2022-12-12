@@ -40,6 +40,7 @@ setuptools.setup(
         "rtree",
         "validators",
         "methodtools",
+        "dicttoxml",
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",

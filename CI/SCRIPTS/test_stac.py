@@ -658,3 +658,10 @@ def test_iceye():
 def test_saocom():
     """Function testing the support of SAOCOM constellation"""
     _test_core_sar("*SAO*")
+
+
+@s3_env
+@dask_env
+def test_capella():
+    """Function testing the support of CAPELLA constellation"""
+    _test_core_sar("*CAPELLA*")

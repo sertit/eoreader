@@ -369,6 +369,12 @@ def test_saocom():
 
 
 @dask_env
+def test_capella():
+    """Function testing the support of CAPELLA constellation"""
+    _test_core_sar("*CAPELLA*")
+
+
+@dask_env
 def test_s2():
     """Function testing the support of Sentinel-2 constellation"""
     _test_core_optical("*S2*_MSI*T30*")
