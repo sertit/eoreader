@@ -6,22 +6,26 @@
 
 - **ENH: Adding the support of Capella constellation** ([#74](https://github.com/sertit/eoreader/issues/74))
 
+### Bug Fixes
+
+- FIX: Fix metadata reading for `CSG` with Shapely 2.0
+
 ### Other
 
 - DEPR: Add deprecation warning for EOReader spectral indices (used for legacy in 0.18.0) that are aliases of ASI names ([#72](https://github.com/sertit/eoreader/issues/72)):
-  - "AFRI_1_6": "AFRI1600",
-  - "AFRI_2_1": "AFRI2100",
-  - "BSI": "BI",
-  - "NDGRI": "NGRDI",
-  - "NDRE1": "NDREI",
-  - "RGI": "RGRI",
-  - "WV_BI": "NHFD",
-  - "WI": "WI2015",
-  - "RDI": "DSI",
-  - "DSWI": "DSWI5",
-  - "GRI": "DSWI4",
-  - "WV_SI": "NDSIWV",
-  - "PANI": "BITM"
+  - `AFRI_1_6`: `AFRI1600`,
+  - `AFRI_2_1`: `AFRI2100`,
+  - `BSI`: `BI`,
+  - `NDGRI`: `NGRDI`,
+  - `NDRE1`: `NDREI`,
+  - `RGI`: `RGRI`,
+  - `WV_BI`: `NHFD`,
+  - `WI`: `WI2015`,
+  - `RDI`: `DSI`,
+  - `DSWI`: `DSWI5`,
+  - `GRI`: `DSWI4`,
+  - `WV_SI`: `NDSIWV`,
+  - `PANI`: `BITM`
 
 ## 0.18.1 (2022-12-08)
 
