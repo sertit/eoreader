@@ -58,7 +58,7 @@ from .scripts_utils import (
     sar_path,
 )
 
-ci.reduce_verbosity()
+ci.reduce_verbosity(["dicttoxml"])
 logging.getLogger("rasterio._env").setLevel(logging.ERROR)
 
 LOGGER = logging.getLogger(EOREADER_NAME)

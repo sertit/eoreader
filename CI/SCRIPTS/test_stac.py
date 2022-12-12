@@ -58,7 +58,7 @@ from eoreader.utils import EOREADER_NAME
 
 from .scripts_utils import CI_EOREADER_S3, READER, dask_env, opt_path, s3_env, sar_path
 
-ci.reduce_verbosity()
+ci.reduce_verbosity(["dicttoxml"])
 logging.getLogger("rasterio._env").setLevel(logging.ERROR)
 
 LOGGER = logging.getLogger(EOREADER_NAME)
