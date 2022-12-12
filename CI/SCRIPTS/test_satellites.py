@@ -764,6 +764,13 @@ def test_saocom():
     _test_core_sar("*SAO*")
 
 
+@s3_env
+@dask_env
+def test_capella():
+    """Function testing the support of CAPELLA constellation"""
+    _test_core_sar("*CAPELLA*")
+
+
 # TODO:
 # check non existing bands
 # check cloud results
