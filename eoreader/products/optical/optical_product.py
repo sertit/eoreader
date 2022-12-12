@@ -39,6 +39,7 @@ from eoreader.bands import (
     BandNames,
     SpectralBandMap,
     compute_index,
+    indices,
     is_clouds,
     is_dem,
     is_index,
@@ -474,6 +475,14 @@ class OpticalProduct(Product):
         for idx_or_band in bands:
             if is_index(idx_or_band):
                 if self._has_index(idx_or_band):
+                    if idx_or_band in indices.EOREADER_ALIASES:
+                        from warnings import warn
+
+                        warn(
+                            "Aliases of Awesome Spectral Indices won't be available in future versions of EOReader. "
+                            f"Please use {indices.EOREADER_ALIASES[idx_or_band]} instead of {idx_or_band}",
+                            category=DeprecationWarning,
+                        )
                     index_list.append(idx_or_band)
                 else:
                     raise InvalidIndexError(
