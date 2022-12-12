@@ -196,6 +196,9 @@ __all__ += [
     "TsxSatId",
     "TsxProductType",
     "TsxSensorMode",
+    "CapellaProduct",
+    "CapellaProductType",
+    "CapellaSensorMode" "",
 ]
 from .sar.sar_product import SarProduct, SarProductType, SnapDems
 from .sar.cosmo_product import CosmoProduct, CosmoProductType
@@ -217,4 +220,9 @@ from .sar.tsx_product import (
     TsxSatId,
     TsxProductType,
     TsxSensorMode,
+)
+from .sar.capella_product import (
+    CapellaProduct,
+    CapellaProductType,
+    CapellaSensorMode,
 )
