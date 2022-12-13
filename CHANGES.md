@@ -32,6 +32,7 @@
 ### Bug Fixes
 
 - FIX: Fix regression for missing EOReader aliases for `spyndex` spectral indices
+- FIX: Fix bug in footprint computation of DIMAP V1 data
 
 ### Other
 

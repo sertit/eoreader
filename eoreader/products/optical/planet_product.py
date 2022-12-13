@@ -381,7 +381,7 @@ class PlanetProduct(OpticalProduct):
         """
         nodata = self._load_nodata()
 
-        # Vectorize the nodata band (rasters_rio is faster)
+        # Vectorize the nodata band
         # Don't use convex hull as the product can be cropped to an AOI!
         footprint = rasters.vectorize(
             nodata, values=1, keep_values=False, dissolve=True
