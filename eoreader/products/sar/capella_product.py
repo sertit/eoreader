@@ -409,7 +409,7 @@ class CapellaProduct(SarProduct):
                         f"Metadata file not found in {self.path}"
                     ) from ex
 
-            data = files.read_json(mtd_file)
+            data = files.read_json(mtd_file, print_file=False)
             root = etree.fromstring(dicttoxml(data))
         except etree.XMLSyntaxError:
             raise InvalidProductError(
