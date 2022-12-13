@@ -36,6 +36,7 @@
 ### Other
 
 - DOC: Add latest DOI link 
+- LIB: Pass to `sertit==1.21.0` to handle windowed data in read natively
 
 ## 0.18.0 (2022-12-06)
 
