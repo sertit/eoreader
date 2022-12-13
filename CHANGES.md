@@ -8,7 +8,7 @@
 
 ### Bug Fixes
 
-- FIX: Fix metadata reading for `CSG` with Shapely 2.0
+- FIX: Fix extent computation for `CSG` products with Shapely 2.0
 
 ### Other
 
