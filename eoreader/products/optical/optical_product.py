@@ -748,7 +748,9 @@ class OpticalProduct(Product):
 
         # Window
         window = kwargs.get("window")
-        win_suffix = f"win{files.hash_file_content(str(window))}_" if window else ""
+        win_suffix = (
+            f"win{files.hash_file_content(str(window))}_" if window is not None else ""
+        )
 
         return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{win_suffix}{cleaning_method.value}{rad_proc}.tif",

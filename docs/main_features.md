@@ -124,6 +124,7 @@ but this can be changed according to the user's needs (see below).
 Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
 - Methods to clean optical bands are best described [here](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html),
 - Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html).
+- Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html)).
 
 ## Stack
 
@@ -146,8 +147,8 @@ stack = prod.stack(
 Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
 - Methods to clean optical bands are best
   described [here](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html),
-- Sentinel-3 additional keywords use is highlighted in
-  the [corresponding notebook](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html).
+- Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html).
+- Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html)).
 
 ## Read Metadata
 EOReader gives you the access to the metadata of your product as a `lxml.etree._Element` followed by the namespace you may need to read them 

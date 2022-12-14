@@ -98,6 +98,7 @@ Available notebooks provided as examples:
 - [VHR data](https://eoreader.readthedocs.io/en/latest/notebooks/VHR.html)
 - [Sentinel-3 data](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html)
 - [Water detection on multiple products](https://eoreader.readthedocs.io/en/latest/notebooks/water_detection.html)
+- [Windowed Reading](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html)
 - [DEM](https://eoreader.readthedocs.io/en/latest/notebooks/dem.html)
 - [Custom stacks](https://eoreader.readthedocs.io/en/latest/notebooks/custom.html)
 - [Methods to clean optical bands](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html)
