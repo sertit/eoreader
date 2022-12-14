@@ -746,8 +746,12 @@ class OpticalProduct(Product):
         # Radiometric processing
         rad_proc = "" if kwargs.get(TO_REFLECTANCE, True) else "_as_is"
 
+        # Window
+        window = kwargs.get("window")
+        win_suffix = f"win{files.hash_file_content(str(window))}_" if window else ""
+
         return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{cleaning_method.value}{rad_proc}.tif",
+            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{win_suffix}{cleaning_method.value}{rad_proc}.tif",
         )
 
     def _get_cloud_band_path(

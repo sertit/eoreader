@@ -1055,7 +1055,10 @@ class S2Product(OpticalProduct):
         """
         # Get detector footprint to deduce the outside nodata
         nodata = self._open_mask_gt_4_0(
-            S2Jp2Masks.FOOTPRINT, band, size=(band_arr.rio.width, band_arr.rio.height)
+            S2Jp2Masks.FOOTPRINT,
+            band,
+            size=(band_arr.rio.width, band_arr.rio.height),
+            **kwargs,
         ).data
 
         nodata = np.where(nodata == 0, 1, 0).astype(np.uint8)
@@ -1073,6 +1076,7 @@ class S2Product(OpticalProduct):
                 size=(band_arr.rio.width, band_arr.rio.height),
                 indexes=[3, 4, 5, 6, 8],
                 masked=False,
+                **kwargs,
             )
             .astype(np.uint8)
             .data
@@ -1142,7 +1146,10 @@ class S2Product(OpticalProduct):
         """
         # Get detector footprint to deduce the outside nodata
         nodata = self._open_mask_gt_4_0(
-            S2Jp2Masks.FOOTPRINT, band, size=(band_arr.rio.width, band_arr.rio.height)
+            S2Jp2Masks.FOOTPRINT,
+            band,
+            size=(band_arr.rio.width, band_arr.rio.height),
+            **kwargs,
         ).data
 
         nodata = np.where(nodata == 0, 1, 0).astype(np.uint8)
@@ -1379,7 +1386,7 @@ class S2Product(OpticalProduct):
 
         if bands:
             cloud_vec = self._open_mask_gt_4_0(
-                S2Jp2Masks.CLOUDS, "00", resolution=resolution, size=size
+                S2Jp2Masks.CLOUDS, "00", resolution=resolution, size=size, **kwargs
             ).astype(np.uint8)
 
             for band in bands:

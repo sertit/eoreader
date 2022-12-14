@@ -31,7 +31,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import files, rasters, rasters_rio, vectors
+from sertit import files, rasters, vectors
 
 from eoreader import cache, utils
 from eoreader.bands import (
@@ -425,12 +425,12 @@ class S2TheiaProduct(OpticalProduct):
 
         # Open NODATA pixels mask
         edg_mask = self.open_mask(
-            "EDG", band, size=(band_arr.rio.width, band_arr.rio.height)
+            "EDG", band, size=(band_arr.rio.width, band_arr.rio.height), **kwargs
         )
 
         # Open saturated pixels
         sat_mask = self.open_mask(
-            "SAT", band, size=(band_arr.rio.width, band_arr.rio.height)
+            "SAT", band, size=(band_arr.rio.width, band_arr.rio.height), **kwargs
         )
 
         # Combine masks
@@ -439,7 +439,7 @@ class S2TheiaProduct(OpticalProduct):
         # Open defective pixels (optional mask)
         try:
             def_mask = self.open_mask(
-                "DFP", band, size=(band_arr.rio.width, band_arr.rio.height)
+                "DFP", band, size=(band_arr.rio.width, band_arr.rio.height), **kwargs
             )
             mask = mask | def_mask
         except InvalidProductError:
@@ -517,6 +517,7 @@ class S2TheiaProduct(OpticalProduct):
         band: Union[BandNames, str],
         resolution: float = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> np.ndarray:
         """
         Open a Sentinel-2 THEIA mask as a numpy array.
@@ -581,16 +582,17 @@ class S2TheiaProduct(OpticalProduct):
         mask_path = self.get_mask_path(mask_id, res_id)
 
         # Open SAT band
-        mask, _ = rasters_rio.read(
+        mask = utils.read(
             mask_path,
             resolution=resolution,
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
-        )
+            **kwargs,
+        ).astype(np.uint8)
 
         if mask_id in ["SAT", "DFP"]:
-            bit_mask = rasters_rio.read_bit_array(mask, bit_id)
+            bit_mask = rasters.read_bit_array(mask, bit_id)
         else:
             bit_mask = mask
 
