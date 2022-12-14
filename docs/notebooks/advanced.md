@@ -9,4 +9,5 @@
    dem
    water_detection
    optical_cleaning_methods
+   windowed_reading
    ```
