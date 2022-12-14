@@ -5,6 +5,7 @@
 ### Enhancements
 
 - **ENH: Adding the support of Capella constellation** ([#74](https://github.com/sertit/eoreader/issues/74))
+- **ENH: Allow the user to load bands with a window (pixels and geo)** ([#25](https://github.com/sertit/eoreader/issues/25))
 
 ### Bug Fixes
 

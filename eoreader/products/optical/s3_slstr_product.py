@@ -33,7 +33,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from rasterio import features
 from rasterio.enums import Resampling
-from sertit import files, rasters, rasters_rio
+from sertit import files, rasters
 from sertit.misc import ListEnum
 
 from eoreader import cache, utils
@@ -963,12 +963,13 @@ class S3SlstrProduct(S3Product):
         )
 
         # Open flag file
-        qual_arr, _ = rasters_rio.read(
+        qual_arr = utils.read(
             qual_flags_path,
             size=(band_arr.rio.width, band_arr.rio.height),
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
-        )
+            **kwargs,
+        ).astype(np.uint8)
 
         # Set no data for everything that caused an exception (3 and more)
         exception = np.where(qual_arr >= 3, self._mask_true, self._mask_false)
@@ -1065,6 +1066,7 @@ class S3SlstrProduct(S3Product):
                 size=size,
                 resampling=Resampling.nearest,
                 masked=False,
+                **kwargs,
             ).astype(np.uint16)
 
             # Get nodata mask
