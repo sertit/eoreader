@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 
+import numpy as np
 import pytest
 import rasterio
 import tempenv
@@ -57,6 +58,7 @@ from .scripts_utils import (
     dask_env,
     get_db_dir,
     opt_path,
+    others_path,
     s3_env,
     sar_path,
 )
@@ -386,3 +388,27 @@ def test_reader_methods():
     READER.valid_mtd(prod_path, "Landsat-8")
     READER.valid_mtd(prod_path, Constellation.L8.name)
     READER.valid_mtd(prod_path, Constellation.L8.value)
+
+
+@s3_env
+def test_windowed_reading():
+    # Get paths
+    prod_path = opt_path().joinpath("LC08_L1TP_200030_20201220_20210310_02_T1.tar")
+    window_path = others_path().joinpath(
+        "20201220T104856_L8_200030_OLI_TIRS_window.geojson"
+    )
+
+    # Open with a window
+    prod = READER.open(prod_path)
+    red_raw = prod.load(RED, window=window_path, clean_optical="raw")[RED]
+    red_nodata = prod.load(RED, window=window_path, clean_optical="nodata")[RED]
+    red_clean = prod.load(RED, window=window_path, clean_optical="clean")[RED]
+
+    assert red_raw.shape == red_nodata.shape == red_clean.shape
+
+    # The arrays should be equal (outside nodata)
+    np.testing.assert_array_equal(red_raw.data, red_nodata.data)
+
+    # The arrays shouldn't be equal (some cleaning is done)
+    with pytest.raises(AssertionError):
+        np.testing.assert_array_equal(red_raw.data, red_clean.data)
