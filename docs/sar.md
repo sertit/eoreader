@@ -28,7 +28,7 @@ mostly because SNAP doesn't handle them.
 | `Capella`                           | SLC                                  | ✅       |
 | `Capella`                           | GEC                                  | ✅       |
 | `Capella`                           | GEO                                  | ✅       |
-| `Capella`                           | SICD, SIDD, CPHD                     | ❌      |
+| `Capella`                           | SICD, SIDD, CPHD                     | ❌       |
 | `COSMO-Skymed`                      | SCS                                  | ✅       |
 | `COSMO-SkyMed` 1st Generation       | DGM                                  | ✅       |
 | `COSMO-SkyMed` 2nd Generation       | DGM                                  | ⚠️      |
@@ -247,7 +247,7 @@ Available [here](https://saocom.veng.com.ar/en/).
 | **TOPSAR Narrow (TN)**<br>Single and Dual Pol | 30.0m                                                                                         |
 | **TOPSAR Narrow (TN)**<br>Quad Pol            | 50.0m                                                                                         |
 | **TOPSAR Wide (TW)**<br>Single and Dual Pol   | 50.0m                                                                                         |
-| **TOPSAR Wide (TW)**<br>Quad Pol              | 100.0m    |
+| **TOPSAR Wide (TW)**<br>Quad Pol              | 100.0m                                                                                        |
 
 ### Capella
 
@@ -256,8 +256,8 @@ Available [here](https://support.capellaspace.com/hc/en-us/articles/360059224291
 
 | **ICEYE**              | Resolution |
 |------------------------|------------|
-| Spotlight [SP)]        | 0.35m      |
-| StripMap [SM)]         | 0.8m       |
+| Spotlight [SP]         | 0.35m      |
+| StripMap [SM]          | 0.8m       |
 | Sliding Spotlight [SS] | 0.6m       |                                                                                    |
 
 ## GPT graphs
