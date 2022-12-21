@@ -159,8 +159,8 @@ def assert_geom_almost_equal(
     for idx in range(len(geom_1)):
         if geom_1.geometry.iat[idx].is_valid and geom_2.geometry.iat[idx].is_valid:
             # If valid geometries, assert that the both are equal
-            assert geom_1.geometry.iat[idx].almost_equals(
-                geom_2.geometry.iat[idx], decimal=decimal
+            assert geom_1.geometry.iat[idx].equals_exact(
+                geom_2.geometry.iat[idx], tolerance=10**-decimal
             )
 
 
