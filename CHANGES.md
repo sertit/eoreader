@@ -10,6 +10,7 @@
 ### Bug Fixes
 
 - FIX: Fix extent computation for `CSG` products with Shapely 2.0
+- FIX: Shapely 2.0 deprecation warnings
 
 ### Other
 
