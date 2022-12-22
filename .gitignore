@@ -37,3 +37,4 @@ dask-worker-space/*
 
 # Other files
 /CI/SCRIPTS/test.py
+/notebooks_tests/
