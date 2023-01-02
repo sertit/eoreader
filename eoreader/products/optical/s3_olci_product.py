@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022, SERTIT-ICube - France, https:#sertit.unistra.fr/
+# Copyright 2023, SERTIT-ICube - France, https:#sertit.unistra.fr/
 # This file is part of eoreader project
 #     https:#github.com/sertit/eoreader
 #
@@ -735,15 +735,14 @@ class S3OlciProduct(S3Product):
         )
 
         # Open flag file
-        qual_arr, _ = rasters_rio.read(
+        qual_arr = utils.read(
             qual_flags_path,
             size=(band_arr.rio.width, band_arr.rio.height),
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
-        )
-        invalid, sat = rasters.read_bit_array(
-            qual_arr.astype(np.uint32), [invalid_id, sat_band_id]
-        )
+            **kwargs,
+        ).astype(np.uint32)
+        invalid, sat = rasters.read_bit_array(qual_arr, [invalid_id, sat_band_id])
 
         # Get nodata mask
         no_data = np.where(np.isnan(band_arr.data), self._mask_true, self._mask_false)

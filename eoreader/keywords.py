@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2023, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -77,7 +77,7 @@ Convert optical data to reflectance or brightness temperature (default is :code:
 """
 
 
-def _prune_keywords(**kwargs) -> dict:
+def _prune_keywords(additional_keywords: list = None, **kwargs) -> dict:
     """
     Prune EOReader keywords from kwargs in order to avoid the GDAL warning
     CPLE_NotSupported in driver GTiff does not support open option XXX
@@ -91,8 +91,11 @@ def _prune_keywords(**kwargs) -> dict:
         prune_kwargs = kwargs.copy()
         for keyword in __all__:
             keyword_val = getattr(sys.modules[__name__], keyword)
-            if keyword_val in prune_kwargs:
-                prune_kwargs.pop(keyword_val)
+            prune_kwargs.pop(keyword_val, None)
+
+        if additional_keywords is not None:
+            for keyword in additional_keywords:
+                prune_kwargs.pop(keyword, None)
         return prune_kwargs
     else:
         return kwargs

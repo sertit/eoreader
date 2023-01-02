@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2023, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -163,9 +163,7 @@ class HlsProduct(OpticalProduct):
         return 30.0
 
     def open_mask(
-        self,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
+        self, resolution: float = None, size: Union[list, tuple] = None, **kwargs
     ) -> Union[xr.DataArray, None]:
         """
         Open a HLS Fmask
@@ -187,12 +185,11 @@ class HlsProduct(OpticalProduct):
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
+            **kwargs,
         ).astype(np.uint8)
 
     def _load_nodata(
-        self,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
+        self, resolution: float = None, size: Union[list, tuple] = None, **kwargs
     ) -> Union[xr.DataArray, None]:
         """
         Load nodata (unimaged pixels) as a numpy array.
@@ -209,7 +206,7 @@ class HlsProduct(OpticalProduct):
             Union[xarray.DataArray, None]: Nodata array
 
         """
-        fmask = self.open_mask()
+        fmask = self.open_mask(**kwargs)
         nodata = fmask.copy(
             data=np.where(fmask == self._mask_nodata, 1, 0).astype(np.uint8)
         )
@@ -945,7 +942,7 @@ class HlsProduct(OpticalProduct):
 
         if bands:
             # Open Fmask
-            fmask = self.open_mask(resolution, size)
+            fmask = self.open_mask(resolution, size, **kwargs)
 
             # Don't use load_nodata in order not to load a 2nd time fmask
             nodata = np.where(fmask == self._mask_nodata, 1, 0)

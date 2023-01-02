@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2023, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -381,7 +381,7 @@ class PlanetProduct(OpticalProduct):
         """
         nodata = self._load_nodata()
 
-        # Vectorize the nodata band (rasters_rio is faster)
+        # Vectorize the nodata band
         # Don't use convex hull as the product can be cropped to an AOI!
         footprint = rasters.vectorize(
             nodata, values=1, keep_values=False, dissolve=True
@@ -448,7 +448,7 @@ class PlanetProduct(OpticalProduct):
         """
         # Nodata
         no_data_mask = self._load_nodata(
-            size=(band_arr.rio.width, band_arr.rio.height)
+            size=(band_arr.rio.width, band_arr.rio.height), **kwargs
         ).values
 
         # Dubious pixels mapping
@@ -466,7 +466,9 @@ class PlanetProduct(OpticalProduct):
         }
 
         # Open unusable mask
-        udm = self.open_mask("UNUSABLE", size=(band_arr.rio.width, band_arr.rio.height))
+        udm = self.open_mask(
+            "UNUSABLE", size=(band_arr.rio.width, band_arr.rio.height), **kwargs
+        )
         # Workaround:
         # FutureWarning: The :code:`numpy.expand_dims` function is not implemented by Dask array.
         # You may want to use the da.map_blocks function or something similar to silence this warning.
@@ -495,7 +497,7 @@ class PlanetProduct(OpticalProduct):
         """
         # Nodata
         no_data_mask = self._load_nodata(
-            size=(band_arr.rio.width, band_arr.rio.height)
+            size=(band_arr.rio.width, band_arr.rio.height), **kwargs
         ).values
 
         # -- Merge masks
@@ -610,10 +612,11 @@ class PlanetProduct(OpticalProduct):
             band=self.get_default_band(),
             resolution=resolution,
             size=size,
+            **kwargs,
         )
 
         # Load nodata
-        nodata = self._load_nodata(resolution, size).data
+        nodata = self._load_nodata(resolution, size, **kwargs).data
 
         if bands:
             for band in bands:
@@ -621,32 +624,36 @@ class PlanetProduct(OpticalProduct):
                     cloud = self._create_mask(
                         def_xarr.rename(ALL_CLOUDS.name),
                         (
-                            self.open_mask("CLOUD", resolution, size).data
-                            & self.open_mask("SHADOW", resolution, size).data
-                            & self.open_mask("HEAVY_HAZE", resolution, size).data
+                            self.open_mask("CLOUD", resolution, size, **kwargs).data
+                            & self.open_mask("SHADOW", resolution, size, **kwargs).data
+                            & self.open_mask(
+                                "HEAVY_HAZE", resolution, size, **kwargs
+                            ).data
                         ),
                         nodata,
                     )
                 elif band == SHADOWS:
                     cloud = self._create_mask(
                         def_xarr.rename(SHADOWS.name),
-                        self.open_mask("SHADOW", resolution, size).data,
+                        self.open_mask("SHADOW", resolution, size, **kwargs).data,
                         nodata,
                     )
                 elif band == CLOUDS:
                     cloud = self._create_mask(
                         def_xarr.rename(CLOUDS.name),
-                        self.open_mask("CLOUD", resolution, size).data,
+                        self.open_mask("CLOUD", resolution, size, **kwargs).data,
                         nodata,
                     )
                 elif band == CIRRUS:
                     cloud = self._create_mask(
                         def_xarr.rename(CIRRUS.name),
-                        self.open_mask("HEAVY_HAZE", resolution, size).data,
+                        self.open_mask("HEAVY_HAZE", resolution, size, **kwargs).data,
                         nodata,
                     )
                 elif band == RAW_CLOUDS:
-                    cloud = utils.read(self._get_udm2_path(), resolution, size)
+                    cloud = utils.read(
+                        self._get_udm2_path(), resolution, size, **kwargs
+                    )
                 else:
                     raise InvalidTypeError(
                         f"Non existing cloud band for {self.constellation.value}: {band}"
@@ -690,9 +697,10 @@ class PlanetProduct(OpticalProduct):
             band=self.get_default_band(),
             resolution=resolution,
             size=size,
+            **kwargs,
         )
         # Open mask (here we know we have a UDM file, as the product is supposed to have the band)
-        udm = self.open_mask_udm(resolution, size)
+        udm = self.open_mask_udm(resolution, size, **kwargs)
 
         if bands:
             for band in bands:
@@ -727,6 +735,7 @@ class PlanetProduct(OpticalProduct):
         mask_id: str,
         resolution: float = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> Union[xr.DataArray, None]:
         """
         Open a Planet UDM2 (Usable Data Mask) mask, band by band, as a xarray.
@@ -767,15 +776,16 @@ class PlanetProduct(OpticalProduct):
 
         """
         if self._mask_type == PlanetMaskType.UDM2:
-            mask = self.open_mask_udm2(mask_id, resolution, size)
+            mask = self.open_mask_udm2(mask_id, resolution, size, **kwargs)
         elif self._mask_type == PlanetMaskType.UDM:
-            mask = self.open_mask_udm(resolution, size)
+            mask = self.open_mask_udm(resolution, size, **kwargs)
         else:
             def_xarr = self._read_band(
                 self.get_default_band_path(),
                 band=self.get_default_band(),
                 resolution=resolution,
                 size=size,
+                **kwargs,
             ).astype(np.uint8)
             mask = def_xarr.copy(data=np.zeros_like(def_xarr.data))
 
@@ -786,6 +796,7 @@ class PlanetProduct(OpticalProduct):
         mask_id: str,
         resolution: float = None,
         size: Union[list, tuple] = None,
+        **kwargs,
     ) -> Union[xr.DataArray, None]:
         """
         Open a Planet UDM2 (Usable Data Mask) mask, band by band, as a xarray.
@@ -847,14 +858,13 @@ class PlanetProduct(OpticalProduct):
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
             indexes=[band_mapping[mask_id]],
+            **kwargs,
         )
 
         return mask.astype(np.uint8)
 
     def open_mask_udm(
-        self,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
+        self, resolution: float = None, size: Union[list, tuple] = None, **kwargs
     ) -> Union[xr.DataArray, None]:
         """
         Open a Planet UDM (Unusable Data Mask) mask as a xarray.
@@ -883,12 +893,11 @@ class PlanetProduct(OpticalProduct):
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
+            **kwargs,
         ).astype(np.uint8)
 
     def _load_nodata(
-        self,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
+        self, resolution: float = None, size: Union[list, tuple] = None, **kwargs
     ) -> Union[xr.DataArray, None]:
         """
         Load nodata (unimaged pixels) as a numpy array.
@@ -905,7 +914,7 @@ class PlanetProduct(OpticalProduct):
             Union[xarray.DataArray, None]: Nodata array
 
         """
-        udm = self.open_mask("UNUSABLE", resolution, size)
+        udm = self.open_mask("UNUSABLE", resolution, size, **kwargs)
         nodata = udm.copy(data=rasters.read_bit_array(udm.compute(), 0))
         return nodata.rename("NODATA")
 
