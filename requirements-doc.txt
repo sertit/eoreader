@@ -1,7 +1,7 @@
 -r requirements.txt
 
 # Doc
-sphinx
+sphinx!=6.0.0  # workaround
 sphinx-book-theme
 sphinx-copybutton
 myst-nb
