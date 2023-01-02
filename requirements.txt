@@ -16,6 +16,7 @@ twine
 lxml
 zarr
 h5netcdf
+dicttoxml
 
 # Paths
 validators
@@ -35,12 +36,11 @@ geopandas>=0.11.0
 # Spectral indices
 git+https://github.com/awesome-spectral-indices/spyndex.git
 
-
 # STAC
 pystac[validation]
 
 # SERTIT libs
-sertit[full]>=1.20.3
+sertit[full]>=1.21.2
 
 # Optimizations
 dask[complete]==2021.10.0

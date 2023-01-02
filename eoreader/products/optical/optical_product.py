@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2023, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -39,6 +39,7 @@ from eoreader.bands import (
     BandNames,
     SpectralBandMap,
     compute_index,
+    indices,
     is_clouds,
     is_dem,
     is_index,
@@ -474,6 +475,14 @@ class OpticalProduct(Product):
         for idx_or_band in bands:
             if is_index(idx_or_band):
                 if self._has_index(idx_or_band):
+                    if idx_or_band in indices.EOREADER_ALIASES:
+                        from warnings import warn
+
+                        warn(
+                            "Aliases of Awesome Spectral Indices won't be available in future versions of EOReader. "
+                            f"Please use {indices.EOREADER_ALIASES[idx_or_band]} instead of {idx_or_band}",
+                            category=DeprecationWarning,
+                        )
                     index_list.append(idx_or_band)
                 else:
                     raise InvalidIndexError(
@@ -737,8 +746,14 @@ class OpticalProduct(Product):
         # Radiometric processing
         rad_proc = "" if kwargs.get(TO_REFLECTANCE, True) else "_as_is"
 
+        # Window
+        window = kwargs.get("window")
+        win_suffix = (
+            f"win{files.hash_file_content(str(window))}_" if window is not None else ""
+        )
+
         return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{cleaning_method.value}{rad_proc}.tif",
+            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{win_suffix}{cleaning_method.value}{rad_proc}.tif",
         )
 
     def _get_cloud_band_path(

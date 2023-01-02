@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2023, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -154,7 +154,10 @@ class DimapV1Product(VhrProduct):
                 indexes=[1],
             )
 
-            # Vectorize the nodata band (rasters_rio is faster)
+            # Just in case
+            arr = arr.fillna(0)
+
+            # Vectorize the nodata band
             footprint = rasters.vectorize(
                 arr, values=0, keep_values=False, dissolve=True
             )

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2023, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -175,7 +175,7 @@ class CosmoProduct(SarProduct):
 
                 # Create tuples of 2D coords
                 coord_list = []
-                coord = np.zeros((2, 1), dtype=float)
+                coord = [0.0, 0.0]
                 for it_id, it in enumerate(str_list):
                     if it_id % 3 == 0:
                         # Invert lat and lon
@@ -190,7 +190,7 @@ class CosmoProduct(SarProduct):
                         coord_list.append(coord.copy())
 
                         # And reinit it
-                        coord = np.zeros((2, 1), dtype=float)
+                        coord = [0.0, 0.0]
 
                 return coord_list
 

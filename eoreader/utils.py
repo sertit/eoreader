@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2023, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -157,6 +157,8 @@ def read(
         xr.DataArray: Masked xarray corresponding to the raster data and its metadata
 
     """
+    window = kwargs.get("window")
+
     if use_dask():
         chunks = True
     else:
@@ -169,12 +171,13 @@ def read(
             return rasters.read(
                 path,
                 resolution=resolution,
-                size=size,
                 resampling=resampling,
                 masked=masked,
                 indexes=indexes,
+                size=size if window is None else None,
+                window=window,
                 chunks=chunks,
-                **_prune_keywords(**kwargs),
+                **_prune_keywords(additional_keywords=["window"], **kwargs),
             )
     except errors.RasterioIOError as ex:
         if str(path).endswith("jp2") or str(path).endswith("tif"):
@@ -222,7 +225,7 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
             pass
 
     # Write
-    rasters.write(xds, path=path, lock=lock, **_prune_keywords(**kwargs))
+    rasters.write(xds, path=path, lock=lock, **_prune_keywords(["window"], **kwargs))
 
     # Set back the previous long name
     if previous_long_name and xds.rio.count > 1:

@@ -58,7 +58,7 @@ from .scripts_utils import (
     sar_path,
 )
 
-ci.reduce_verbosity()
+ci.reduce_verbosity(["dicttoxml"])
 logging.getLogger("rasterio._env").setLevel(logging.ERROR)
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -762,6 +762,13 @@ def test_iceye():
 def test_saocom():
     """Function testing the support of SAOCOM constellation"""
     _test_core_sar("*SAO*")
+
+
+@s3_env
+@dask_env
+def test_capella():
+    """Function testing the support of CAPELLA constellation"""
+    _test_core_sar("*CAPELLA*")
 
 
 # TODO:

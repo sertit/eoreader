@@ -59,14 +59,15 @@ Hereunder are the paths meant to be given to the reader.
 #### SAR
 
 ``` {container} full-width
-|Sensor group | Folder to link|
-|--- | ---|
-|`Sentinel-1`<br>`RADARSAT-Constellation` | SAFE directory containing the `manifest.safe` file,<br>i.e. `S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.SAFE`|
-|`COSMO-Skymed`<br>1st and 2nd Gen | Directory containing the `.h5` image,<br>i.e. `1011117-766193`|
-|`RADARSAT-2` | Main directory containing the `.tif` image,<br>i.e. `RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip`|
-|`TerraSAR-X`<br>`TanDEM-X`<br>`PAZ SAR`| Directory containing the `IMAGEDATA` directory,<br>i.e. `TDX1_SAR__MGD_SE___SM_S_SRA_20201016T231611_20201016T231616`|
-|`ICEYE`| Directory containing the `.tif` file,<br>i.e. `SC_124020`|
-|`SAOCOM` | Directory containing the `.xemt` **AND** the `.zip` files,<br>i.e. `11245-EOL1CSARSAO1A198523`|
+| Sensor group                             | Folder to link                                                                                                                         |
+|------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| `Sentinel-1`<br>`RADARSAT-Constellation` | SAFE directory containing the `manifest.safe` file,<br>i.e. `S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.SAFE` |
+| `COSMO-Skymed`<br>1st and 2nd Gen        | Directory containing the `.h5` image,<br>i.e. `1011117-766193`                                                                         |
+| `RADARSAT-2`                             | Main directory containing the `.tif` image,<br>i.e. `RS2_OK73950_PK661843_DK590667_U25W2_20160228_112418_HH_SGF.zip`                   |
+| `TerraSAR-X`<br>`TanDEM-X`<br>`PAZ SAR`  | Directory containing the `IMAGEDATA` directory,<br>i.e. `TDX1_SAR__MGD_SE___SM_S_SRA_20201016T231611_20201016T231616`                  |
+| `ICEYE`                                  | Directory containing the `.tif` file,<br>i.e. `SC_124020`                                                                              |
+| `SAOCOM`                                 | Directory containing the `.xemt` **AND** the `.zip` files,<br>i.e. `11245-EOL1CSARSAO1A198523`                                         |
+| `CAPELLA`                                | Directory containing the `.tif` file,<br>i.e. `CAPELLA_C05_SP_SLC_HH_20220320114010_20220320114013`                                    |
 ```
 
 ## Load
@@ -123,6 +124,7 @@ but this can be changed according to the user's needs (see below).
 Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
 - Methods to clean optical bands are best described [here](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html),
 - Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html).
+- Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html)).
 
 ## Stack
 
@@ -145,8 +147,8 @@ stack = prod.stack(
 Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
 - Methods to clean optical bands are best
   described [here](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html),
-- Sentinel-3 additional keywords use is highlighted in
-  the [corresponding notebook](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html).
+- Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html).
+- Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html)).
 
 ## Read Metadata
 EOReader gives you the access to the metadata of your product as a `lxml.etree._Element` followed by the namespace you may need to read them 

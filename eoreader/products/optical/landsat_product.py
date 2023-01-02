@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2023, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -1088,7 +1088,6 @@ class LandsatProduct(OpticalProduct):
                 masked=False,
                 **kwargs,
             ).astype(np.uint16)
-            band_arr = band_arr.astype(np.uint16)
         else:
             # Read band (call superclass generic method)
             band_arr = utils.read(
@@ -1098,7 +1097,6 @@ class LandsatProduct(OpticalProduct):
                 resampling=Resampling.bilinear,
                 **kwargs,
             ).astype(np.float32)
-            band_arr = band_arr.astype(np.float32)
 
         return band_arr
 
@@ -1262,8 +1260,7 @@ class LandsatProduct(OpticalProduct):
         # Open QA band
         landsat_qa_path = self._get_path(self._radsat_id)
         qa_arr = self._read_band(
-            landsat_qa_path,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            landsat_qa_path, size=(band_arr.rio.width, band_arr.rio.height), **kwargs
         ).data
 
         if self._collection == LandsatCollection.COL_1:
@@ -1312,7 +1309,9 @@ class LandsatProduct(OpticalProduct):
             # If collection 2, nodata has to be found in pixel QA file
             landsat_stat_path = self._get_path(self._pixel_quality_id)
             pixel_arr = self._read_band(
-                landsat_stat_path, size=(band_arr.rio.width, band_arr.rio.height)
+                landsat_stat_path,
+                size=(band_arr.rio.width, band_arr.rio.height),
+                **kwargs,
             ).data
             nodata = np.where(pixel_arr == 1, 1, 0)
 
@@ -1337,8 +1336,7 @@ class LandsatProduct(OpticalProduct):
         # Open QA band
         landsat_qa_path = self._get_path(self._radsat_id)
         qa_arr = self._read_band(
-            landsat_qa_path,
-            size=(band_arr.rio.width, band_arr.rio.height),
+            landsat_qa_path, size=(band_arr.rio.width, band_arr.rio.height), **kwargs
         ).data
 
         if self._collection == LandsatCollection.COL_1:
@@ -1351,7 +1349,9 @@ class LandsatProduct(OpticalProduct):
             # If collection 2, nodata has to be found in pixel QA file
             landsat_stat_path = self._get_path(self._pixel_quality_id)
             pixel_arr = self._read_band(
-                landsat_stat_path, size=(band_arr.rio.width, band_arr.rio.height)
+                landsat_stat_path,
+                size=(band_arr.rio.width, band_arr.rio.height),
+                **kwargs,
             ).data
             nodata = np.where(pixel_arr == 1, 1, 0).astype(np.uint8)
 

@@ -4,16 +4,17 @@ You will find a SAR tutorial [here](https://eoreader.readthedocs.io/en/latest/no
 
 ## Implemented SAR constellations
 
-| Constellations                      | Class                                    | Use archive                                 |
-|-------------------------------------|------------------------------------------|---------------------------------------------|
-| `COSMO-Skymed 1st Generation`       | {meth}`~eoreader.products.CskProduct`    | ❌                                           |
-| `COSMO-Skymed 2nd Generation`       | {meth}`~eoreader.products.CsgProduct`    | ❌                                           |
-| `ICEYE`                             | {meth}`~eoreader.products.IceyeProduct`  | ❌                                           |
-| `RADARSAT Constellation Mission`    | {meth}`~eoreader.products.RcmProduct`    | ❌                                           |
-| `RADARSAT-2`                        | {meth}`~eoreader.products.Rs2Product`    | ✅ for ground range data, ❌ for complex data |
-| `Sentinel-1`                        | {meth}`~eoreader.products.S1Product`     | ✅                                           |
-| `SAOCOM-1`                          | {meth}`~eoreader.products.SaocomProduct` | ❌                                           |
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.TsxProduct`    | ❌                                           |
+| Constellations                      | Class                                      | Use archive                                 |
+|-------------------------------------|--------------------------------------------|---------------------------------------------|
+| `Capella`                           | {meth}`~eoreader.products.CapellaProduct`  | ❌                                           |
+| `COSMO-Skymed 1st Generation`       | {meth}`~eoreader.products.CskProduct`      | ❌                                           |
+| `COSMO-Skymed 2nd Generation`       | {meth}`~eoreader.products.CsgProduct`      | ❌                                           |
+| `ICEYE`                             | {meth}`~eoreader.products.IceyeProduct`    | ❌                                           |
+| `RADARSAT Constellation Mission`    | {meth}`~eoreader.products.RcmProduct`      | ❌                                           |
+| `RADARSAT-2`                        | {meth}`~eoreader.products.Rs2Product`      | ✅ for ground range data, ❌ for complex data |
+| `Sentinel-1`                        | {meth}`~eoreader.products.S1Product`       | ✅                                           |
+| `SAOCOM-1`                          | {meth}`~eoreader.products.SaocomProduct`   | ❌                                           |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.TsxProduct`      | ❌                                           |
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use, 
@@ -24,6 +25,10 @@ mostly because SNAP doesn't handle them.
 
 | Constellations                      | Product Type                         | Handled |
 |-------------------------------------|--------------------------------------|---------|
+| `Capella`                           | SLC                                  | ✅       |
+| `Capella`                           | GEC                                  | ✅       |
+| `Capella`                           | GEO                                  | ✅       |
+| `Capella`                           | SICD, SIDD, CPHD                     | ❌       |
 | `COSMO-Skymed`                      | SCS                                  | ✅       |
 | `COSMO-SkyMed` 1st Generation       | DGM                                  | ✅       |
 | `COSMO-SkyMed` 2nd Generation       | DGM                                  | ⚠️      |
@@ -244,6 +249,17 @@ Available [here](https://saocom.veng.com.ar/en/).
 | **TOPSAR Wide (TW)**<br>Single and Dual Pol   | 50.0m                                                                                         |
 | **TOPSAR Wide (TW)**<br>Quad Pol              | 100.0m                                                                                        |
 
+### Capella
+
+Resolutions not provided in the Data Access Portfolio. 
+Available [here](https://support.capellaspace.com/hc/en-us/articles/360059224291-What-SAR-imagery-products-are-available-with-Capella-).
+
+| **ICEYE**              | Resolution |
+|------------------------|------------|
+| Spotlight [SP]         | 0.35m      |
+| StripMap [SM]          | 0.8m       |
+| Sliding Spotlight [SS] | 0.6m       |                                                                                    |
+
 ## GPT graphs
 
 You can change the SAR GPT graphs used by setting the following environment variables:
@@ -430,6 +446,11 @@ variable:
 ### SAOCOM-1
 - [SAOCOM Description](https://saocom.veng.com.ar/en/)
 - [SAOCOM Product Format](https://saocom.veng.com.ar/L1-product-format-EN.pdf)
-- [SAOCOM Data Products](https://earth.esa.int/eogateway/catalog/saocom-data-products)*
+- [SAOCOM Data Products](https://earth.esa.int/eogateway/catalog/saocom-data-products)
+
+### Capella
+- [Capella SAR Imagery Products](https://support.capellaspace.com/hc/en-us/categories/360002612692-SAR-Imagery-Products)
+- [Capella Product Guide](https://support.capellaspace.com/hc/en-us/articles/4626115099796-SAR-Imagery-Products-Guide)
+- [Capella Products Format Specification](https://support.capellaspace.com/hc/en-us/articles/5607458273940-SAR-Imagery-Products-Format-Specification)*
 
 *Documentation last accessed on the 02/12/2022*

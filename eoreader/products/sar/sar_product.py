@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2023, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -637,7 +637,7 @@ class SarProduct(Product):
         # Open bands and get array (resampled if needed)
         band_arrays = {}
         for band_name, band_path in band_paths.items():
-            # Read CSK band
+            # Read SAR band
             band_arrays[band_name] = self._read_band(
                 band_path, resolution=resolution, size=size, **kwargs
             )
@@ -765,15 +765,26 @@ class SarProduct(Product):
 
                 # Pre-process graph
                 if PP_GRAPH not in os.environ:
-                    sat = (
-                        "s1"
-                        if self.constellation_id == Constellation.S1.name
-                        else "sar"
-                    )
-                    spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
-                    pp_graph = utils.get_data_dir().joinpath(
-                        f"{spt}_{sat}_preprocess_default.xml"
-                    )
+                    if self.constellation == Constellation.CAPELLA:
+                        # TODO: Error: [NodeId: Calibration] Mission Capella is currently not supported for calibration.
+                        pp_graph = utils.get_data_dir().joinpath(
+                            "grd_sar_preprocess_fallback.xml"
+                        )
+
+                    else:
+                        sat = (
+                            "s1"
+                            if self.constellation_id == Constellation.S1.name
+                            else "sar"
+                        )
+                        spt = (
+                            "grd"
+                            if self.sar_prod_type == SarProductType.GDRG
+                            else "cplx"
+                        )
+                        pp_graph = utils.get_data_dir().joinpath(
+                            f"{spt}_{sat}_preprocess_default.xml"
+                        )
                 else:
                     pp_graph = AnyPath(os.environ[PP_GRAPH])
                     if not pp_graph.is_file() or not pp_graph.suffix == ".xml":

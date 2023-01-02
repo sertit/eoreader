@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2023, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -212,9 +212,7 @@ class IceyeProduct(SarProduct):
             )
 
     def _set_sensor_mode(self) -> None:
-        """
-        Get products type from S2 products name (could check the metadata too)
-        """
+        """Get sensor mode"""
         # Get MTD XML file
         root, nsmap = self.read_mtd()
 

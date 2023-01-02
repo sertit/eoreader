@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2023, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -182,6 +182,9 @@ class Constellation(ListEnum):
     CSG = "COSMO-SkyMed 2nd Generation"
     """COSMO-SkyMed 2nd Generation"""
 
+    CAPELLA = "Capella"
+    """Capella"""
+
     SPOT45 = "Spot-4/5"
     """SPOT-4/5 (not a real constellation, but used as a template for SPOT4/5 products)"""
 
@@ -242,6 +245,7 @@ CONSTELLATION_REGEX = {
     Constellation.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Constellation.ICEYE: r"((SM|SL|SC|SLEA)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC|SLEA)H*_\d{5,}_\d{8}T\d{6})",
     Constellation.SAOCOM: r".+EOL1[ABCD]SARSAO1[AB]\d+(-product|)",
+    Constellation.CAPELLA: r"CAPELLA_C\d{2}_S[PMS]_(GEO|GEC|SLC)_(HH|VV)_\d{14}_\d{14}",
     Constellation.SV1: [
         r"\d{13}_\d{2}",
         r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
@@ -310,6 +314,7 @@ MTD_REGEX = {
     Constellation.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
     Constellation.ICEYE: r"ICEYE_(X\d{1,}_|)(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
     Constellation.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
+    Constellation.CAPELLA: rf"{CONSTELLATION_REGEX[Constellation.CAPELLA]}.*\.json",
     Constellation.SV1: r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
     Constellation.HLS: rf"{CONSTELLATION_REGEX[Constellation.HLS]}\.Fmask\.tif",
     Constellation.GS2: rf"{CONSTELLATION_REGEX[Constellation.GS2]}\.dim",

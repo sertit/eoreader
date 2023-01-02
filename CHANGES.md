@@ -1,14 +1,46 @@
 # Release History
 
+## 0.19.0 (202Y-MM-DD)
+
+### Enhancements
+
+- **ENH: Adding the support of Capella constellation** ([#74](https://github.com/sertit/eoreader/issues/74))
+- **ENH: Allow the user to load bands with a window (pixels and geo)** ([#25](https://github.com/sertit/eoreader/issues/25), [notebook](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html))
+
+### Bug Fixes
+
+- FIX: Fix extent computation for `CSG` products with Shapely 2.0
+- FIX: Shapely 2.0 deprecation warnings
+
+### Other
+
+- DEPR: Add deprecation warning for EOReader spectral indices (used for legacy in 0.18.0) that are aliases of ASI names ([#72](https://github.com/sertit/eoreader/issues/72)):
+  - `AFRI_1_6`: `AFRI1600`,
+  - `AFRI_2_1`: `AFRI2100`,
+  - `BSI`: `BI`,
+  - `NDGRI`: `NGRDI`,
+  - `NDRE1`: `NDREI`,
+  - `RGI`: `RGRI`,
+  - `WV_BI`: `NHFD`,
+  - `WI`: `WI2015`,
+  - `RDI`: `DSI`,
+  - `DSWI`: `DSWI5`,
+  - `GRI`: `DSWI4`,
+  - `WV_SI`: `NDSIWV`,
+  - `PANI`: `BITM`
+- DOC: Changing copyright from 2022 to 2023
+
 ## 0.18.1 (2022-12-08)
 
 ### Bug Fixes
 
 - FIX: Fix regression for missing EOReader aliases for `spyndex` spectral indices
+- FIX: Fix bug in footprint computation of DIMAP V1 data
 
 ### Other
 
 - DOC: Add latest DOI link 
+- LIB: Pass to `sertit==1.21.0` to handle windowed data in read natively
 
 ## 0.18.0 (2022-12-06)
 
