@@ -690,7 +690,7 @@ def is_filename_valid(
     Checks also if a file inside the directory is correct.
 
     .. WARNING::
-        Two level max for the moment
+        Two levels maximum for the moment
 
     Args:
         product_path (Union[str, CloudPath, Path]): Product path
