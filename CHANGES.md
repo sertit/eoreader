@@ -28,6 +28,7 @@
   - `GRI`: `DSWI4`,
   - `WV_SI`: `NDSIWV`,
   - `PANI`: `BITM`
+- DOC: Changing copyright from 2022 to 2023
 
 ## 0.18.1 (2022-12-08)
 
