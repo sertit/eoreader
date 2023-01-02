@@ -10,7 +10,7 @@ linkify-it-py
 
 jupyter
 matplotlib
-cartopy
+cartopy==0.19.0.post1
 hvplot
 geoviews
 
