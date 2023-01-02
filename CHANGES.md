@@ -1,6 +1,6 @@
 # Release History
 
-## 0.19.0 (202Y-MM-DD)
+## 0.19.0 (2023-01-03)
 
 ### Enhancements
 
