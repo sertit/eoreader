@@ -2,7 +2,7 @@
 
 # Doc
 sphinx<6.0.0  # workaround
-pygments==2.13.0  # workaround
+ipython  # workaround
 sphinx-book-theme
 sphinx-copybutton
 myst-nb
