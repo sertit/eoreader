@@ -180,7 +180,7 @@ def read(
                 **_prune_keywords(additional_keywords=["window"], **kwargs),
             )
     except errors.RasterioIOError as ex:
-        if str(path).endswith("jp2") or str(path).endswith("tif"):
+        if (str(path).endswith("jp2") or str(path).endswith("tif")) and path.exists():
             raise InvalidProductError(f"Corrupted file: {path}") from ex
         else:
             raise

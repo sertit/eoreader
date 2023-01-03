@@ -974,23 +974,15 @@ class DimapV2Product(VhrProduct):
             # Empty mask cannot be written on file
             mask = gpd.GeoDataFrame(geometry=[], crs=crs)
         else:
-            if self.is_archived:
-                # Open the zip file
-                try:
+            try:
+                if self.is_archived:
+                    # Open the zip file
                     mask = vectors.read(
                         self.path,
                         archive_regex=rf".*MASKS.*{mask_str}.*\.GML",
                         crs=crs,
                     )
-                except Exception:
-                    if mask_str in optional_masks:
-                        mask = gpd.GeoDataFrame(geometry=[], crs=crs)
-                    else:
-                        raise InvalidProductError(
-                            f"Mask {mask_str} not found for {self.path}"
-                        )
-            else:
-                try:
+                else:
                     mask_gml_path = files.get_file_in_dir(
                         self.path.joinpath("MASKS"),
                         f"*{mask_str}*.GML",
@@ -998,13 +990,13 @@ class DimapV2Product(VhrProduct):
                     )
 
                     mask = vectors.read(mask_gml_path, crs=crs)
-                except FileNotFoundError:
-                    if mask_str in optional_masks:
-                        mask = gpd.GeoDataFrame(geometry=[], crs=crs)
-                    else:
-                        raise InvalidProductError(
-                            f"Mask {mask_str} not found for {self.path}"
-                        )
+            except FileNotFoundError:
+                if mask_str in optional_masks:
+                    mask = gpd.GeoDataFrame(geometry=[], crs=crs)
+                else:
+                    raise InvalidProductError(
+                        f"Mask {mask_str} not found for {self.path.joinpath('MASKS')}"
+                    )
 
             # Convert mask to correct CRS
             if not mask.empty and self.product_type in [
