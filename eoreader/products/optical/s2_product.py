@@ -679,7 +679,9 @@ class S2Product(OpticalProduct):
                                     out_ds.transform = tf
 
         except errors.RasterioIOError as ex:
-            if str(path).endswith("jp2") or str(path).endswith("tif"):
+            if (
+                str(path).endswith("jp2") or str(path).endswith("tif")
+            ) and path.exists():
                 raise InvalidProductError(f"Corrupted file: {path}") from ex
             else:
                 raise ex
