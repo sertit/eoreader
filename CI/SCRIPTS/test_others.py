@@ -7,7 +7,7 @@ import pytest
 import rasterio
 import tempenv
 import xarray as xr
-from cloudpathlib import AnyPath, S3Client
+from cloudpathlib import AnyPath
 from sertit import ci, files
 
 from eoreader import utils
@@ -51,12 +51,10 @@ from eoreader.products import SensorType
 from eoreader.reader import Constellation
 
 from .scripts_utils import (
-    AWS_ACCESS_KEY_ID,
-    AWS_S3_ENDPOINT,
-    AWS_SECRET_ACCESS_KEY,
     READER,
     dask_env,
     get_db_dir,
+    get_db_dir_on_disk,
     opt_path,
     others_path,
     s3_env,
@@ -302,15 +300,10 @@ def test_dems_S3():
         "MERIT_Hydrologically_Adjusted_Elevations",
         "MERIT_DEM.vrt",
     ]
-    local_path = str(get_db_dir().joinpath(*dem_sub_dir_path))
+    local_path = str(get_db_dir_on_disk().joinpath(*dem_sub_dir_path))
 
     # ON S3
-    client = S3Client(
-        endpoint_url=f"https://{AWS_S3_ENDPOINT}",
-        aws_access_key_id=os.getenv(AWS_ACCESS_KEY_ID),
-        aws_secret_access_key=os.getenv(AWS_SECRET_ACCESS_KEY),
-    )
-    client.set_as_default_client()
+    ci.define_s3_client()
     s3_path = str(AnyPath("s3://sertit-geodatastore").joinpath(*dem_sub_dir_path))
 
     # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)

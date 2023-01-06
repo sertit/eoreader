@@ -10,6 +10,7 @@ __pycache__/
 .coverage
 cov.xml
 *.lock
+.run
 
 # Discard CI/OUTPUTS
 CI/OUTPUT/*
