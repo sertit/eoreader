@@ -46,9 +46,6 @@ from eoreader.utils import EOREADER_NAME
 from .scripts_utils import (
     CI_EOREADER_S3,
     READER,
-    _assert,
-    assert_geom_almost_equal,
-    assert_raster_almost_equal,
     dask_env,
     get_ci_data_dir,
     get_db_dir,
@@ -241,7 +238,7 @@ def _test_core(
                     extent.to_file(extent_path, driver="GeoJSON")
 
                     LOGGER.warning("Extent not equal, trying almost equal.")
-                    assert_geom_almost_equal(extent, extent_path)
+                    ci.assert_geom_almost_equal(extent, extent_path)
 
                 # Footprint
                 LOGGER.info("Checking footprint")
@@ -273,7 +270,7 @@ def _test_core(
                     footprint.to_file(footprint_path, driver="GeoJSON")
 
                     LOGGER.warning("Footprint not equal, trying almost equal.")
-                    assert_geom_almost_equal(footprint, footprint_path)
+                    ci.assert_geom_almost_equal(footprint, footprint_path)
 
                 # BAND TESTS
                 LOGGER.info("Checking load and stack")
@@ -291,10 +288,10 @@ def _test_core(
                 )[first_band]
                 band_arr2 = prod.load(first_band, resolution=res)[first_band]
                 np.testing.assert_array_almost_equal(band_arr1, band_arr2)
-                _assert(band_arr_raw.dtype, np.float32, "band_arr_raw dtype")
-                _assert(band_arr1.dtype, np.float32, "band_arr1 dtype")
-                _assert(band_arr2.dtype, np.float32, "band_arr2 dtype")
-                _assert(band_arr_raw.shape, band_arr1.shape, "band_arr1 shape")
+                ci.assert_val(band_arr_raw.dtype, np.float32, "band_arr_raw dtype")
+                ci.assert_val(band_arr1.dtype, np.float32, "band_arr1 dtype")
+                ci.assert_val(band_arr2.dtype, np.float32, "band_arr2 dtype")
+                ci.assert_val(band_arr_raw.shape, band_arr1.shape, "band_arr1 shape")
 
                 # Get stack bands
                 # Stack data
@@ -310,41 +307,43 @@ def _test_core(
                     clean_optical="clean",
                     **kwargs,
                 )
-                _assert(stack.dtype, np.float32, "dtype")
+                ci.assert_val(stack.dtype, np.float32, "dtype")
 
                 # Check attributes
-                _assert(
+                ci.assert_val(
                     stack.attrs["long_name"], " ".join(to_str(stack_bands)), "long_name"
                 )
-                _assert(
+                ci.assert_val(
                     stack.attrs["constellation"],
                     prod._get_constellation().value,
                     "constellation",
                 )
-                _assert(
+                ci.assert_val(
                     stack.attrs["constellation_id"],
                     prod.constellation_id,
                     "constellation_id",
                 )
-                _assert(
+                ci.assert_val(
                     stack.attrs["product_type"], prod.product_type.value, "product_type"
                 )
-                _assert(
+                ci.assert_val(
                     stack.attrs["instrument"],
                     prod.instrument
                     if isinstance(prod.instrument, str)
                     else prod.instrument.value,
                     "instrument",
                 )
-                _assert(
+                ci.assert_val(
                     stack.attrs["acquisition_date"],
                     prod.get_datetime(as_datetime=False),
                     "acquisition_date",
                 )
-                _assert(
+                ci.assert_val(
                     stack.attrs["condensed_name"], prod.condensed_name, "condensed_name"
                 )
-                _assert(stack.attrs["product_path"], str(prod.path), "product_path")
+                ci.assert_val(
+                    stack.attrs["product_path"], str(prod.path), "product_path"
+                )
 
                 # Write to path if needed
                 if not ci_stack.exists():
@@ -355,7 +354,7 @@ def _test_core(
 
                 else:
                     # Test
-                    assert_raster_almost_equal(curr_path, ci_stack, decimal=4)
+                    ci.assert_raster_almost_equal(curr_path, ci_stack, decimal=4)
 
                 # Load a band with the size option
                 LOGGER.info("Checking load with size keyword")
@@ -380,7 +379,7 @@ def _test_core(
                     **kwargs,
                 )[first_band]
                 rasters.write(band_arr, curr_path_band)
-                assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
+                ci.assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
 
                 # Check reflectance validity
                 if (
@@ -393,33 +392,35 @@ def _test_core(
                     assert np.nanpercentile(band_arr, 5) >= 0.0
 
                 # Check attributes
-                _assert(band_arr.attrs["long_name"], first_band.name, "long_name")
-                _assert(
+                ci.assert_val(band_arr.attrs["long_name"], first_band.name, "long_name")
+                ci.assert_val(
                     band_arr.attrs["constellation"],
                     prod._get_constellation().value,
                     "constellation",
                 )
-                _assert(
+                ci.assert_val(
                     band_arr.attrs["constellation_id"],
                     prod.constellation_id,
                     "constellation_id",
                 )
-                _assert(
+                ci.assert_val(
                     band_arr.attrs["product_type"],
                     prod.product_type.value,
                     "product_type",
                 )
-                _assert(
+                ci.assert_val(
                     band_arr.attrs["acquisition_date"],
                     prod.get_datetime(as_datetime=False),
                     "acquisition_date",
                 )
-                _assert(
+                ci.assert_val(
                     band_arr.attrs["condensed_name"],
                     prod.condensed_name,
                     "condensed_name",
                 )
-                _assert(band_arr.attrs["product_path"], str(prod.path), "product_path")
+                ci.assert_val(
+                    band_arr.attrs["product_path"], str(prod.path), "product_path"
+                )
 
                 # CLOUDS: just try to load them without testing it
                 LOGGER.info("Loading clouds")
@@ -474,7 +475,7 @@ def _test_core(
                 if not WRITE_ON_DISK:
                     LOGGER.info("Cleaning tmp")
                     prod.clean_tmp()
-                    _assert(
+                    ci.assert_val(
                         len(list(prod._tmp_process.glob("*"))),
                         0,
                         "Number of file in temp directory",

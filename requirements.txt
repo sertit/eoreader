@@ -40,7 +40,7 @@ git+https://github.com/awesome-spectral-indices/spyndex.git
 pystac[validation]
 
 # SERTIT libs
-sertit[full]>=1.21.2
+sertit[full]>=1.22.0
 
 # Optimizations
 dask[complete]==2021.10.0
