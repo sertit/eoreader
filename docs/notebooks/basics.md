@@ -8,4 +8,5 @@
    optical
    SAR
    VHR
+   remove_clouds
 ```
