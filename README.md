@@ -96,6 +96,7 @@ Available notebooks provided as examples:
 - [Optical data](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html)
 - [SAR data](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html)
 - [VHR data](https://eoreader.readthedocs.io/en/latest/notebooks/VHR.html)
+- [Remove clouds](https://eoreader.readthedocs.io/en/latest/notebooks/remove_clouds.html)
 - [Sentinel-3 data](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html)
 - [Water detection on multiple products](https://eoreader.readthedocs.io/en/latest/notebooks/water_detection.html)
 - [Windowed Reading](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html)

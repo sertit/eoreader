@@ -2,6 +2,9 @@
 
 ## 0.YY.Z (2023-MM-DD)
 
+### Other
+
+- DOC: Adding a `Remove Clouds` notebook
 - LIB: Pinning `sertit` to 1.22.0
 
 ## 0.19.0 (2023-01-03)
