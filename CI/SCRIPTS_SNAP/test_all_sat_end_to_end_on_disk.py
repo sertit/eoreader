@@ -28,6 +28,7 @@ from eoreader.bands import (
     HH_DSPK,
     HILLSHADE,
     NARROW_NIR,
+    NDVI,
     NIR,
     PAN,
     RAW_CLOUDS,
@@ -109,6 +110,7 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
         HILLSHADE,
         CLOUDS,
         ALL_CLOUDS,
+        NDVI,
     ]
     _test_core(
         pattern,

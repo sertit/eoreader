@@ -130,9 +130,12 @@ def compute_index(index: str, bands: dict, **kwargs) -> xr.DataArray:
     """
 
     def _compute_params(_bands, **_kwargs):
-        prms = {
-            EOREADER_TO_SPYNDEX_DICT[key]: value.data for key, value in _bands.items()
-        }
+        prms = {}
+        for key, value in _bands.items():
+            try:
+                prms[EOREADER_TO_SPYNDEX_DICT[key]] = value.data
+            except KeyError:
+                pass
         prms.update(_kwargs)
 
         return prms
