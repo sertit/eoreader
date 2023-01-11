@@ -49,7 +49,7 @@ pytest:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - changes:
-        - eoreader/**/*.{py,xml}
+        - eoreader/**/[^_]*.{py,xml}
         - CI/**/*.{py,xml}
         - .gitlab-ci.yml
         - pytest.ini
@@ -80,7 +80,7 @@ pytest_s3:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - changes:
-        - eoreader/**/*.{py,xml}
+        - eoreader/**/[^_]*.{py,xml}
         - CI/**/*.{py,xml}
         - .gitlab-ci.yml
         - pytest.ini
