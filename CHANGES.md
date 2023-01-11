@@ -8,6 +8,7 @@
 
 ### Other
 
+- CLEAN: Removing useless GCP functions regarding Sentinel-3 data
 - DOC: Adding a `Remove Clouds` notebook
 - LIB: Pinning `sertit` to 1.22.0
 - CI: Don't run tests when only `__init__` or `__meta__` is updated

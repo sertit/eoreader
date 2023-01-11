@@ -106,7 +106,6 @@ class S3Product(OpticalProduct):
         **kwargs,
     ) -> None:
         self._data_type = None
-        self._gcps = None
 
         # Radiance bands
         self._radiance_file = None

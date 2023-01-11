@@ -22,7 +22,7 @@ Sentinel-3 SLSTR products
     -> use xr.open_dataset that manages that correctly
 """
 import logging
-from collections import defaultdict, namedtuple
+from collections import namedtuple
 from enum import unique
 from functools import reduce
 from pathlib import Path
@@ -261,7 +261,6 @@ class S3SlstrProduct(S3Product):
             product_path, archive_path, output_path, remove_tmp, **kwargs
         )  # Order is important here, gcps NEED to be after this
 
-        self._gcps = defaultdict(list)
         self._F1_is_f = True
         try:
             self._get_raw_band_path(F1)
@@ -687,24 +686,6 @@ class S3SlstrProduct(S3Product):
 
         # Return the prefix
         return f"{stripe.value}{view.value}"
-
-    def _create_gcps(self, suffix: str) -> None:
-        """
-        Create the GCPs sequence (WGS84)
-        """
-        if suffix not in self._gcps and not self._gcps[suffix]:
-            geo_file = self._replace(self._geo_file, suffix=suffix)
-            lon_nc_name = self._replace(self._lon_nc_name, suffix=suffix)
-            lat_nc_name = self._replace(self._lat_nc_name, suffix=suffix)
-            alt_nc_name = self._replace(self._alt_nc_name, suffix=suffix)
-
-            # Open cartesian files to populate the GCPs
-            lat = self._read_nc(geo_file, lat_nc_name)
-            lon = self._read_nc(geo_file, lon_nc_name)
-            alt = self._read_nc(geo_file, alt_nc_name)
-
-            # Create GCPs
-            self._gcps[suffix] = utils.create_gcps(lon, lat, alt)
 
     def _tie_to_img(self, tie_arr: np.ndarray, suffix: str) -> np.ndarray:
         """
