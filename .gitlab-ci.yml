@@ -8,6 +8,7 @@ stages:
 variables:
   EEO_DEPS: $REGISTRY_GITLAB/extracteo/extracteo_deps
   EO_CONTAINER: $REGISTRY_GITLAB/eo-containers/python
+  EOREADER_CHANGES: eoreader/**/[^_]*.{py,xml}
 
 lint:
   image: python:3.8-buster
@@ -49,7 +50,7 @@ pytest:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - changes:
-        - eoreader/**/[^_]*.{py,xml}
+        - $EOREADER_CHANGES
         - CI/**/*.{py,xml}
         - .gitlab-ci.yml
         - pytest.ini
@@ -80,7 +81,7 @@ pytest_s3:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - changes:
-        - eoreader/**/[^_]*.{py,xml}
+        - $EOREADER_CHANGES
         - CI/**/*.{py,xml}
         - .gitlab-ci.yml
         - pytest.ini
