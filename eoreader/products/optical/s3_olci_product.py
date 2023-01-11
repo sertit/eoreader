@@ -118,8 +118,6 @@ class S3OlciProduct(S3Product):
             product_path, archive_path, output_path, remove_tmp, **kwargs
         )  # Order is important here, gcps NEED to be after this
 
-        self._gcps = []
-
     def _get_preprocessed_band_path(
         self,
         band: Union[BandNames, str],
@@ -450,21 +448,6 @@ class S3OlciProduct(S3Product):
             ),
         }
         self.bands.map_bands(olci_bands)
-
-    def _create_gcps(self) -> None:
-        """
-        Create the GCPs sequence
-        """
-
-        # Compute only ig needed
-        if not self._gcps:
-            # Open lon/lat/alt files to populate the GCPs
-            lat = self._read_nc(self._geo_file, self._lat_nc_name)
-            lon = self._read_nc(self._geo_file, self._lon_nc_name)
-            alt = self._read_nc(self._geo_file, self._alt_nc_name)
-
-            # Create GCPs
-            self._gcps = utils.create_gcps(lon, lat, alt)
 
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
