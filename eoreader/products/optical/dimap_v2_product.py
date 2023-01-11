@@ -1056,7 +1056,8 @@ class DimapV2Product(VhrProduct):
                 ]
             ):
                 # Convert to target CRS
-                mask.crs = self.crs()
+                mask.crs = self._get_raw_crs()
+                mask = mask.to_crs(self.crs())
 
             # Save to file
             if mask.empty:

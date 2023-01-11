@@ -1,6 +1,10 @@
 # Release History
 
-## 0.YY.Z (2023-MM-DD)
+## 0.19.1 (2023-01-11)
+
+### Bug Fixes
+
+- FIX: Fixing a bug for DIMAP V2 products whith GML masks opening without CRS: assigning first the raw CRS before converting to the product's CRS
 
 ### Other
 
