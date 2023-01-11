@@ -5,6 +5,7 @@
 ### Bug Fixes
 
 - FIX: Fixing a bug for DIMAP V2 products whith GML masks opening without CRS: assigning first the raw CRS before converting to the product's CRS
+- FIX: Fixing index creation when exotic bands not handled by ASI have been loaded in the same time (i.e. stacking `NDWI` with `Oa21` band)
 
 ### Other
 
