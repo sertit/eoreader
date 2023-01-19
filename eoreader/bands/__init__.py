@@ -33,7 +33,7 @@ To use it, simply type:
     >>> NDVI
     <function NDVI at 0x00000261F6FFA950>
 """
-from typing import Any
+from typing import Any, Union
 
 # flake8: noqa
 from eoreader.bands.bands import Band, BandMap
