@@ -1,5 +1,11 @@
 # Release History
 
+## 0.YY.Z (2023-MM-DD)
+
+### Other
+
+- TYP: Fixing typos in typing
+
 ## 0.19.1 (2023-01-12)
 
 ### Bug Fixes
@@ -20,7 +26,8 @@
 ### Enhancements
 
 - **ENH: Adding the support of Capella constellation** ([#74](https://github.com/sertit/eoreader/issues/74))
-- **ENH: Allow the user to load bands with a window (pixels and geo)** ([#25](https://github.com/sertit/eoreader/issues/25), [notebook](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html))
+- **ENH: Allow the user to load bands with a window (pixels and geo)** ([#25](https://github.com/sertit/eoreader/issues/25)
+  , [notebook](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html))
 
 ### Bug Fixes
 
@@ -30,19 +37,19 @@
 ### Other
 
 - DEPR: Add deprecation warning for EOReader spectral indices (used for legacy in 0.18.0) that are aliases of ASI names ([#72](https://github.com/sertit/eoreader/issues/72)):
-  - `AFRI_1_6`: `AFRI1600`,
-  - `AFRI_2_1`: `AFRI2100`,
-  - `BSI`: `BI`,
-  - `NDGRI`: `NGRDI`,
-  - `NDRE1`: `NDREI`,
-  - `RGI`: `RGRI`,
-  - `WV_BI`: `NHFD`,
-  - `WI`: `WI2015`,
-  - `RDI`: `DSI`,
-  - `DSWI`: `DSWI5`,
-  - `GRI`: `DSWI4`,
-  - `WV_SI`: `NDSIWV`,
-  - `PANI`: `BITM`
+    - `AFRI_1_6`: `AFRI1600`,
+    - `AFRI_2_1`: `AFRI2100`,
+    - `BSI`: `BI`,
+    - `NDGRI`: `NGRDI`,
+    - `NDRE1`: `NDREI`,
+    - `RGI`: `RGRI`,
+    - `WV_BI`: `NHFD`,
+    - `WI`: `WI2015`,
+    - `RDI`: `DSI`,
+    - `DSWI`: `DSWI5`,
+    - `GRI`: `DSWI4`,
+    - `WV_SI`: `NDSIWV`,
+    - `PANI`: `BITM`
 - DOC: Changing copyright from 2022 to 2023
 
 ## 0.18.1 (2022-12-08)
@@ -54,7 +61,7 @@
 
 ### Other
 
-- DOC: Add latest DOI link 
+- DOC: Add latest DOI link
 - LIB: Pass to `sertit==1.21.0` to handle windowed data in read natively
 
 ## 0.18.0 (2022-12-06)

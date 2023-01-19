@@ -387,7 +387,7 @@ def is_dem(dem: Any) -> bool:
     return is_valid
 
 
-def to_band(to_convert: list) -> list:
+def to_band(to_convert: Union[list, BandNames, str]) -> list:
     """
     Convert a string (or real value) to any alias, band or index.
 
@@ -406,7 +406,7 @@ def to_band(to_convert: list) -> list:
         <ClassifBandNames.CLOUDS: 'CLOUDS'>]
 
     Args:
-        to_convert (list): Values to convert into band objects
+        to_convert (Union[list, BandNames, str]): Values to convert into band objects
 
     Returns:
         list: converted values
@@ -452,7 +452,7 @@ def to_band(to_convert: list) -> list:
     return band_list
 
 
-def to_str(to_convert: list) -> list:
+def to_str(to_convert: Union[list, BandNames, str]) -> list:
     """
     Convert a string (or real value) to any alias, band or index.
 
@@ -464,7 +464,7 @@ def to_str(to_convert: list) -> list:
         ['NDVI', 'GREEN', 'RED', 'VH_DSPK', 'SLOPE', 'DEM', 'CLOUDS', 'CLOUDS']
 
     Args:
-        to_convert (list): Values to convert into str
+        to_convert (Union[list, BandNames, str]): Values to convert into str
 
     Returns:
         list: str bands
