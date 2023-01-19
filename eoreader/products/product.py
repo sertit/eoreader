@@ -30,7 +30,7 @@ from abc import abstractmethod
 from enum import unique
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Tuple, Union
+from typing import Tuple, Union
 from zipfile import ZipFile
 
 import geopandas as gpd
@@ -845,7 +845,7 @@ class Product:
 
     def load(
         self,
-        bands: Union[list, BandNames, Callable],
+        bands: Union[list, BandNames, str],
         resolution: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
@@ -873,7 +873,7 @@ class Product:
             >>> bands = prod.load([GREEN, NDVI], resolution=20)
 
         Args:
-            bands (Union[list, BandNames, Callable]): Band list
+            bands (Union[list, BandNames, str]): Band list
             resolution (float): Resolution of the band, in meters
             size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
             kwargs: Other arguments used to load bands
@@ -937,7 +937,7 @@ class Product:
         """
         raise NotImplementedError
 
-    def has_band(self, band: Union[BandNames, Callable]) -> bool:
+    def has_band(self, band: Union[BandNames, str]) -> bool:
         """
         Does this product has the specified band ?
 
@@ -966,7 +966,7 @@ class Product:
             True
 
         Args:
-            band (Union[BandNames, Callable]): EOReader band (optical, SAR, clouds, DEM)
+            band (Union[BandNames, str]): EOReader band (optical, SAR, clouds, DEM)
 
         Returns:
             bool: True if the products has the specified band
@@ -987,7 +987,7 @@ class Product:
 
         return has_band
 
-    def has_bands(self, bands: Union[list, BandNames, Callable]) -> bool:
+    def has_bands(self, bands: Union[list, BandNames, str]) -> bool:
         """
         Does this product has the specified bands ?
 
@@ -1001,7 +1001,7 @@ class Product:
         See :code:`has_bands` for a code example.
 
         Args:
-            bands (Union[list, BandNames, Callable]): EOReader bands (optical, SAR, clouds, DEM)
+            bands (Union[list, BandNames, str]): EOReader bands (optical, SAR, clouds, DEM)
 
         Returns:
             bool: True if the products has the specified band
@@ -1027,7 +1027,7 @@ class Product:
         """
         raise NotImplementedError
 
-    def _has_index(self, idx: Callable) -> bool:
+    def _has_index(self, idx: str) -> bool:
         """
         Cen the specified index be computed from this product ?
 
@@ -1041,7 +1041,7 @@ class Product:
             True
 
         Args:
-            idx (Callable): Index
+            idx (str): Index
 
         Returns:
             bool: True if the specified index can be computed with this product's bands
