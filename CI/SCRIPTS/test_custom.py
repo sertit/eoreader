@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 from sertit import ci
 
+from eoreader import EOREADER_NAME
 from eoreader.bands import (
     BLUE,
     CLOUDS,
@@ -23,7 +24,6 @@ from eoreader.bands import (
 from eoreader.env_vars import DEM_PATH
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SensorType
-from eoreader.utils import EOREADER_NAME
 
 from .scripts_utils import READER, dask_env, get_db_dir, others_path, s3_env
 

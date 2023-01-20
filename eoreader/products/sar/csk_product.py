@@ -23,9 +23,9 @@ from enum import unique
 
 from sertit.misc import ListEnum
 
+from eoreader import EOREADER_NAME
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import CosmoProduct, CosmoProductType
-from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

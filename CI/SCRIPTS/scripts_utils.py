@@ -8,9 +8,10 @@ from typing import Callable, Union
 from cloudpathlib import AnyPath, CloudPath
 from sertit import ci
 
+from eoreader import EOREADER_NAME
 from eoreader.env_vars import USE_DASK
 from eoreader.reader import Reader
-from eoreader.utils import EOREADER_NAME, use_dask
+from eoreader.utils import use_dask
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 READER = Reader()

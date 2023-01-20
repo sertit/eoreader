@@ -30,18 +30,16 @@ import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from rasterio import errors
-from rasterio.control import GroundControlPoint
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
 from sertit import rasters
 
+from eoreader import EOREADER_NAME
 from eoreader.env_vars import USE_DASK
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import _prune_keywords
 
-EOREADER_NAME = "eoreader"
-DATETIME_FMT = "%Y%m%dT%H%M%S"
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 

@@ -38,11 +38,10 @@ from sertit import files, rasters, strings, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
 
-from eoreader import cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

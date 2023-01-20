@@ -37,7 +37,7 @@ from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
-from eoreader import cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import (
     BLUE,
     CA,
@@ -59,7 +59,7 @@ from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
+from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

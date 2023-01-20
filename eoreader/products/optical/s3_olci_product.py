@@ -32,7 +32,7 @@ from cloudpathlib import CloudPath
 from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 
-from eoreader import cache, utils
+from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
     BLUE,
     CA,
@@ -62,7 +62,6 @@ from eoreader.bands import (
 from eoreader.exceptions import InvalidTypeError
 from eoreader.products import S3DataType, S3Product, S3ProductType
 from eoreader.stac import CENTER_WV, DESCRIPTION, FWHM, GSD, ID, NAME
-from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

@@ -37,6 +37,7 @@ from sertit import files, rasters, xml
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 
+from eoreader import DATETIME_FMT, EOREADER_NAME
 from eoreader.bands import (
     BLUE,
     CA,
@@ -55,7 +56,6 @@ from eoreader.bands import (
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.optical.planet_product import PlanetProduct
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

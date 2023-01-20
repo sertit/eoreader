@@ -19,6 +19,7 @@ from CI.SCRIPTS.scripts_utils import (
     get_db_dir_on_disk,
     opt_path,
 )
+from eoreader import EOREADER_NAME
 from eoreader.bands import (
     ALL_CLOUDS,
     CLOUDS,
@@ -39,7 +40,6 @@ from eoreader.bands import (
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT, SAR_DEF_RES, TEST_USING_S3_DB
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
-from eoreader.utils import EOREADER_NAME
 
 ci.reduce_verbosity()
 

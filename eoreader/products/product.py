@@ -48,7 +48,7 @@ from sertit import files, rasters, strings, xml
 from sertit.misc import ListEnum
 from sertit.snap import MAX_CORES
 
-from eoreader import cache, utils
+from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
     DEM,
     HILLSHADE,
@@ -67,7 +67,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Constellation, Reader
 from eoreader.stac import StacItem
-from eoreader.utils import EOREADER_NAME, simplify
+from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
@@ -1543,6 +1543,9 @@ class Product:
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
             bands (list): Array name (as a str or a list)
+
+        Returns:
+            xr.DataArray: Updated array/dataset
         """
         raise NotImplementedError
 

@@ -35,7 +35,7 @@ from rasterio.enums import Resampling
 from sertit import files, misc, rasters, snap, strings, vectors
 from sertit.misc import ListEnum
 
-from eoreader import cache, utils
+from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import NEEDED_BANDS, BandNames, SarBand, SarBandMap
 from eoreader.bands import SarBandNames as sab
 from eoreader.bands import (
@@ -53,7 +53,7 @@ from eoreader.keywords import SAR_INTERP_NA
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import Constellation
 from eoreader.stac import INTENSITY
-from eoreader.utils import EOREADER_NAME, simplify
+from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -1030,8 +1030,9 @@ class SarProduct(Product):
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
             bands (list): Array name (as a str or a list)
+
         Returns:
-            xr.DataArray: Updated array
+            xr.DataArray: Updated array/dataset
         """
 
         return xarr

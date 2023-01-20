@@ -48,13 +48,13 @@ from sertit.misc import ListEnum
 from sertit.rasters import MAX_CORES
 from shapely.geometry import Polygon, box
 
-from eoreader import cache, utils
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import BandNames, SpectralBandNames
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import OpticalProduct
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
+from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

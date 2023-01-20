@@ -28,10 +28,10 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from sertit.misc import ListEnum
 
+from eoreader import EOREADER_NAME
 from eoreader.bands import BandNames
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import CosmoProduct
-from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

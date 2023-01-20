@@ -33,7 +33,7 @@ from lxml import etree
 from rasterio.enums import Resampling
 from sertit import files, rasters, vectors
 
-from eoreader import cache, utils
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
     ALL_CLOUDS,
     BLUE,
@@ -58,7 +58,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct, S2ProductType
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.stac import CENTER_WV, FWHM, GSD, ID, NAME
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
+from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

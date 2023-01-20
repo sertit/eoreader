@@ -30,7 +30,7 @@ from cloudpathlib import AnyPath, CloudPath
 from sertit import files, strings
 from sertit.misc import ListEnum
 
-from eoreader.utils import EOREADER_NAME
+from eoreader import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

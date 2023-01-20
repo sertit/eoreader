@@ -32,7 +32,7 @@ from rasterio.enums import Resampling
 from sertit import files, rasters
 from sertit.misc import ListEnum
 
-from eoreader import cache, utils
+from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
     GREEN,
     NEEDED_BANDS,
@@ -51,7 +51,6 @@ from eoreader.bands import (
 from eoreader.exceptions import InvalidBandError, InvalidIndexError
 from eoreader.keywords import CLEAN_OPTICAL, TO_REFLECTANCE
 from eoreader.products.product import OrbitDirection, Product, SensorType
-from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -844,8 +843,9 @@ class OpticalProduct(Product):
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
             bands (list): Array name (as a str or a list)
+
         Returns:
-            xr.DataArray: Updated array
+            xr.DataArray: Updated array/dataset
         """
         has_spectral_bands = [is_spectral_band(band) for band in bands]
 

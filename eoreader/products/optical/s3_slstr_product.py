@@ -36,7 +36,7 @@ from rasterio.enums import Resampling
 from sertit import files, rasters
 from sertit.misc import ListEnum
 
-from eoreader import cache, utils
+from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
     ALL_CLOUDS,
     CIRRUS,
@@ -63,7 +63,6 @@ from eoreader.keywords import CLEAN_OPTICAL, SLSTR_RAD_ADJUST, SLSTR_STRIPE, SLS
 from eoreader.products import S3DataType, S3Product, S3ProductType
 from eoreader.products.optical.optical_product import DEF_CLEAN_METHOD, CleanMethod
 from eoreader.stac import ASSET_ROLE, BT, CENTER_WV, DESCRIPTION, FWHM, GSD, ID, NAME
-from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

@@ -33,11 +33,11 @@ from rasterio import crs as riocrs
 from sertit import rasters, vectors
 from shapely.geometry import Polygon, box
 
-from eoreader import cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import BandNames
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
+from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
