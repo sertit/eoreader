@@ -36,11 +36,13 @@ from rasterio.rpc import RPC
 from sertit import rasters
 
 from eoreader import EOREADER_NAME
+from eoreader.bands import is_index, is_sat_band, to_str
 from eoreader.env_vars import USE_DASK
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import _prune_keywords
 
 LOGGER = logging.getLogger(EOREADER_NAME)
+UINT16_NODATA = 65535
 
 
 def get_src_dir() -> Union[CloudPath, Path]:
@@ -375,3 +377,84 @@ def simplify(footprint_fct: Callable):
         return simplify_footprint(footprint, self.resolution)
 
     return simplify_wrapper
+
+
+def stack_dict(
+    bands: list, band_dict: dict, save_as_int: bool, nodata: float, **kwargs
+) -> xr.DataArray:
+    """
+    Stack a dictionnary containing bands in a DataArray
+
+    Args:
+        bands (list): List of bands (to keep the right order of the stack)
+        band_dict (dict): Dict containing the bands as xr.DataArray {band_name, band}
+        save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
+        nodata (float): Nodata value
+
+    Returns:
+        xr.DataArray: Stack as a DataArray
+    """
+    # Convert into dataset with str as names
+    LOGGER.debug("Stacking")
+    data_vars = {}
+    coords = band_dict[bands[0]].coords
+    for key in bands:
+        data_vars[to_str(key)[0]] = (
+            band_dict[key].coords.dims,
+            band_dict[key].data,
+        )
+
+        # Set memory free (for big stacks)
+        band_dict[key].close()
+        band_dict[key] = None
+
+    # Create dataset, with dims well-ordered
+    stack = (
+        xr.Dataset(
+            data_vars=data_vars,
+            coords=coords,
+        )
+        .to_stacked_array(new_dim="z", sample_dims=("x", "y"))
+        .transpose("z", "y", "x")
+    )
+
+    # Save as integer
+    dtype = np.float32
+    if save_as_int:
+        scale = 10000
+        stack_min = np.min(stack)
+        if stack_min < -0.1:
+            LOGGER.warning(
+                "Cannot convert the stack to uint16 as it has negative values (< -0.1). Keeping it in float32."
+            )
+        else:
+            if stack_min < 0:
+                LOGGER.warning(
+                    "Small negative values ]-0.1, 0] have been found. Clipping to 0."
+                )
+                stack = stack.copy(data=np.clip(stack.data, a_min=0, a_max=None))
+
+            # Scale to uint16, fill nan and convert to uint16
+            dtype = np.uint16
+            for b_id, band in enumerate(bands):
+                # SCALING
+                # NOT ALL bands need to be scaled, only:
+                # - Satellite bands
+                # - index
+                if is_sat_band(band) or is_index(band):
+                    if np.max(stack[b_id, ...]) > UINT16_NODATA / scale:
+                        LOGGER.debug(
+                            "Band not in reflectance, keeping them as is (the values will be rounded)"
+                        )
+                    else:
+                        stack[b_id, ...] = stack[b_id, ...] * scale
+
+                # Fill no data (done here to avoid RAM saturation)
+                stack[b_id, ...] = stack[b_id, ...].fillna(nodata)
+
+    if dtype == np.float32:
+        # Set nodata if needed (NaN values are already set)
+        if stack.rio.encoded_nodata != nodata:
+            stack = stack.rio.write_nodata(nodata, encoded=True, inplace=True)
+
+    return stack

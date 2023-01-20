@@ -58,7 +58,6 @@ from eoreader.bands import (
     is_clouds,
     is_dem,
     is_index,
-    is_sat_band,
     to_band,
     to_str,
 )
@@ -67,7 +66,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Constellation, Reader
 from eoreader.stac import StacItem
-from eoreader.utils import simplify
+from eoreader.utils import UINT16_NODATA, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
@@ -881,16 +880,11 @@ class Product:
         Returns:
             dict: {band_name, band xarray}
         """
-
         # Check if all bands are valid
         bands = to_band(bands)
 
         for band in bands:
-            try:
-                band_name = band.value
-            except AttributeError:
-                band_name = band
-            assert self.has_band(band), f"{self.name} has not a {band_name} band."
+            assert self.has_band(band), f"{self.name} has not a {to_str(band)[0]} band."
 
         if not resolution and not size:
             resolution = self.resolution
@@ -1443,82 +1437,17 @@ class Product:
         Returns:
             xr.DataArray: Stack as a DataArray
         """
-        if not isinstance(bands, list):
-            bands = [bands]
-
-        # Ensure the bands are not in strings (otherwise will bug in Dataset conversion)
         bands = to_band(bands)
-
-        if not resolution and not size:
-            resolution = self.resolution
 
         # Create the analysis stack
         band_dict = self.load(bands, resolution=resolution, size=size, **kwargs)
 
-        # Convert into dataset with str as names
-        LOGGER.debug("Stacking")
-        data_vars = {}
-        coords = band_dict[bands[0]].coords
-        for key in bands:
-            data_vars[to_str(key)[0]] = (
-                band_dict[key].coords.dims,
-                band_dict[key].data,
-            )
-
-            # Set memory free (for big stacks)
-            band_dict[key].close()
-            band_dict[key] = None
-
-        # Create dataset, with dims well-ordered
-        stack = (
-            xr.Dataset(
-                data_vars=data_vars,
-                coords=coords,
-            )
-            .to_stacked_array(new_dim="z", sample_dims=("x", "y"))
-            .transpose("z", "y", "x")
-        )
-
-        # Save as integer
-        dtype = np.float32
+        # Stack bands
         if save_as_int:
-            default_nodata = 65535
-            scale = 10000
-            stack_min = np.min(stack)
-            if stack_min < -0.1:
-                LOGGER.warning(
-                    "Cannot convert the stack to uint16 as it has negative values (< -0.1). Keeping it in float32."
-                )
-            else:
-                if stack_min < 0:
-                    LOGGER.warning(
-                        "Small negative values ]-0.1, 0] have been found. Clipping to 0."
-                    )
-                    stack = stack.copy(data=np.clip(stack.data, a_min=0, a_max=None))
-
-                # Scale to uint16, fill nan and convert to uint16
-                dtype = np.uint16
-                nodata = kwargs.get("nodata", default_nodata)  # Can be 0
-                for b_id, band in enumerate(bands):
-                    # SCALING
-                    # NOT ALL bands need to be scaled, only:
-                    # - Satellite bands
-                    # - index
-                    if is_sat_band(band) or is_index(band):
-                        if np.max(stack[b_id, ...]) > default_nodata / scale:
-                            LOGGER.debug(
-                                "Band not in reflectance, keeping them as is (the values will be rounded)"
-                            )
-                        else:
-                            stack[b_id, ...] = stack[b_id, ...] * scale
-
-                    # Fill no data (done here to avoid RAM saturation)
-                    stack[b_id, ...] = stack[b_id, ...].fillna(nodata)
-
-        if dtype == np.float32:
-            # Set nodata if needed (NaN values are already set)
-            if stack.rio.encoded_nodata != self.nodata:
-                stack = stack.rio.write_nodata(self.nodata, encoded=True, inplace=True)
+            nodata = kwargs.get("nodata", UINT16_NODATA)
+        else:
+            nodata = kwargs.get("nodata", self.nodata)
+        stack = utils.stack_dict(bands, band_dict, save_as_int, nodata, **kwargs)
 
         # Update stack's attributes
         stack = self._update_attrs(stack, bands, **kwargs)
@@ -1526,9 +1455,11 @@ class Product:
         # Write on disk
         LOGGER.debug("Saving stack")
         if stack_path:
+            dtype = np.uint16 if save_as_int else np.float32
             stack_path = AnyPath(stack_path)
             if not stack_path.parent.exists():
                 os.makedirs(str(stack_path.parent), exist_ok=True)
+
             utils.write(stack, stack_path, dtype=dtype, **kwargs)
 
         return stack
