@@ -230,13 +230,13 @@ def test_dems():
             )
 
         assert next(
-            prod.output.glob(f"**/*DEM_{files.get_filename(dem)}.tif")
+            prod.output.glob(f"**/*DEM_{files.get_filename(dem)}.vrt")
         ).is_file()
         assert next(
-            prod.output.glob(f"**/*DEM_{files.get_filename(slope_dem)}.tif")
+            prod.output.glob(f"**/*DEM_{files.get_filename(slope_dem)}.vrt")
         ).is_file()
         assert next(
-            prod.output.glob(f"**/*DEM_{files.get_filename(hillshade_dem)}.tif")
+            prod.output.glob(f"**/*DEM_{files.get_filename(hillshade_dem)}.vrt")
         ).is_file()
         assert next(
             prod.output.glob(f"**/*SLOPE_{files.get_filename(slope_dem)}.tif")
