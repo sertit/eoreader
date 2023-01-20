@@ -381,7 +381,7 @@ def simplify(footprint_fct: Callable):
 
 def stack_dict(
     bands: list, band_dict: dict, save_as_int: bool, nodata: float, **kwargs
-) -> xr.DataArray:
+) -> (xr.DataArray, type):
     """
     Stack a dictionnary containing bands in a DataArray
 
@@ -392,7 +392,7 @@ def stack_dict(
         nodata (float): Nodata value
 
     Returns:
-        xr.DataArray: Stack as a DataArray
+        (xr.DataArray, type): Stack as a DataArray and its dtype
     """
     # Convert into dataset with str as names
     LOGGER.debug("Stacking")
@@ -422,10 +422,10 @@ def stack_dict(
     dtype = np.float32
     if save_as_int:
         scale = 10000
-        stack_min = np.min(stack)
-        if stack_min < -0.1:
+        stack_min = np.nanmin(stack.data)
+        if np.round(stack_min * 1000) / 1000 < -0.1:
             LOGGER.warning(
-                "Cannot convert the stack to uint16 as it has negative values (< -0.1). Keeping it in float32."
+                f"Cannot convert the stack to uint16 as it has negative values ({stack_min} < -0.1). Keeping it in float32."
             )
         else:
             if stack_min < 0:
@@ -442,7 +442,7 @@ def stack_dict(
                 # - Satellite bands
                 # - index
                 if is_sat_band(band) or is_index(band):
-                    if np.max(stack[b_id, ...]) > UINT16_NODATA / scale:
+                    if np.nanmax(stack[b_id, ...]) > UINT16_NODATA / scale:
                         LOGGER.debug(
                             "Band not in reflectance, keeping them as is (the values will be rounded)"
                         )
@@ -457,4 +457,4 @@ def stack_dict(
         if stack.rio.encoded_nodata != nodata:
             stack = stack.rio.write_nodata(nodata, encoded=True, inplace=True)
 
-    return stack
+    return stack, dtype
