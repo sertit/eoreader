@@ -33,7 +33,7 @@ from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.misc import ListEnum
 
-from eoreader import cache, utils
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
     ALL_CLOUDS,
     BLUE,
@@ -64,7 +64,7 @@ from eoreader.products import OpticalProduct
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
 from eoreader.stac import ASSET_ROLE, BT, DESCRIPTION, GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
+from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

@@ -12,6 +12,7 @@ from sertit import ci, files
 from sertit.vectors import WGS84
 from shapely.geometry import mapping
 
+from eoreader import EOREADER_NAME
 from eoreader.bands import (
     NARROW_NIR,
     TIR_1,
@@ -54,7 +55,6 @@ from eoreader.stac._stac_keywords import (
     VIEW_SUN_AZIMUTH,
     VIEW_SUN_ELEVATION,
 )
-from eoreader.utils import EOREADER_NAME
 
 from .scripts_utils import CI_EOREADER_S3, READER, dask_env, opt_path, s3_env, sar_path
 

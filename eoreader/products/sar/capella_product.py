@@ -36,12 +36,11 @@ from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 from shapely.geometry import Point, box
 
-from eoreader import cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import SarBandNames as sab
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

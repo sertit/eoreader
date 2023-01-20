@@ -4,9 +4,9 @@ import pytest
 from sertit import ci
 
 from CI.SCRIPTS.scripts_utils import READER, broken_s2_path, dask_env, s3_env
+from eoreader import EOREADER_NAME
 from eoreader.bands import NIR, RED
 from eoreader.exceptions import InvalidProductError
-from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

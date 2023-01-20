@@ -29,13 +29,13 @@ from sertit import files, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
-from eoreader import cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import SarBandNames
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
 from eoreader.products.sar.sar_product import _ExtendedFormatter
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
+from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

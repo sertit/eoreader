@@ -33,7 +33,7 @@ from rasterio import crs as riocrs
 from sertit import files
 from sertit.misc import ListEnum
 
-from eoreader import cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import (
     GREEN,
     NARROW_NIR,
@@ -49,7 +49,6 @@ from eoreader.products import DimapV1Product
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

@@ -37,7 +37,7 @@ from sertit import files, rasters_rio, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import box
 
-from eoreader import cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import (
     BLUE,
     GREEN,
@@ -52,7 +52,7 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
+from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

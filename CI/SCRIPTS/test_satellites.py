@@ -13,6 +13,7 @@ from lxml import etree
 from matplotlib import pyplot as plt
 from sertit import ci, files, rasters
 
+from eoreader import EOREADER_NAME
 from eoreader.bands import (
     ALL_CLOUDS,
     CIRRUS,
@@ -41,7 +42,6 @@ from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import Product, S2Product, SensorType, SlstrRadAdjust
 from eoreader.products.product import OrbitDirection
 from eoreader.reader import CheckMethod
-from eoreader.utils import EOREADER_NAME
 
 from .scripts_utils import (
     CI_EOREADER_S3,

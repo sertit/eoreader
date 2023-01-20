@@ -36,7 +36,7 @@ from lxml import etree
 from sertit import files, rasters, vectors, xml
 from sertit.misc import ListEnum
 
-from eoreader import cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import (
     BLUE,
     GREEN,
@@ -51,7 +51,7 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.products.optical.planet_product import PlanetProduct
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
+from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -479,8 +479,9 @@ class SkyProduct(PlanetProduct):
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
             bands (list): Array name (as a str or a list)
+
         Returns:
-            xr.DataArray: Updated array
+            xr.DataArray: Updated array/dataset
         """
 
         xarr = super()._update_attrs_constellation_specific(xarr, bands, **kwargs)

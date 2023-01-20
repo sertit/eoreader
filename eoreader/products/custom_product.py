@@ -33,7 +33,7 @@ from rasterio.enums import Resampling
 from sertit import files, misc, rasters, vectors
 from sertit.misc import ListEnum
 
-from eoreader import cache, utils
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
     BandNames,
     SarBand,
@@ -57,7 +57,7 @@ from eoreader.exceptions import (
 )
 from eoreader.products.product import OrbitDirection, Product, SensorType
 from eoreader.reader import Constellation
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME, simplify
+from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -681,16 +681,17 @@ class CustomProduct(Product):
         return od
 
     def _update_attrs_constellation_specific(
-        self, xarr: xr.DataArray, long_name: Union[str, list], **kwargs
+        self, xarr: xr.DataArray, bands: list, **kwargs
     ) -> xr.DataArray:
         """
         Update attributes of the given array (constellation specific)
 
         Args:
             xarr (xr.DataArray): Array whose attributes need an update
-            long_name (str): Array name (as a str or a list)
+            bands (list): Array name (as a str or a list)
+
         Returns:
-            xr.DataArray: Updated array
+            xr.DataArray: Updated array/dataset
         """
         return xarr
 

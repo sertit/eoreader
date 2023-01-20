@@ -36,13 +36,12 @@ from rasterio.enums import Resampling
 from sertit import files, rasters, rasters_rio
 from sertit.snap import MAX_CORES
 
-from eoreader import utils
+from eoreader import EOREADER_NAME, utils
 from eoreader.bands import BandNames
 from eoreader.env_vars import DEM_PATH
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import DEM_KW
 from eoreader.products import OpticalProduct
-from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

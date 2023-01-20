@@ -21,10 +21,10 @@ for more information.
 """
 import logging
 
+from eoreader import EOREADER_NAME
 from eoreader.bands import BLUE, GREEN, NIR, PAN, RED, SpectralBand
 from eoreader.products import DimapV2Product
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
-from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

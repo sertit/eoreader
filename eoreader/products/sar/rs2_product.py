@@ -30,12 +30,11 @@ from sertit import files, vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 
-from eoreader import cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
 from eoreader.reader import Reader
-from eoreader.utils import DATETIME_FMT, EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

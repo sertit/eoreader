@@ -6,6 +6,7 @@ import tempfile
 import numpy as np
 from sertit import ci, rasters
 
+from eoreader import EOREADER_NAME
 from eoreader.bands import (
     BAI,
     BAIM,
@@ -20,7 +21,6 @@ from eoreader.bands import (
     AWEIsh,
     get_eoreader_indices,
 )
-from eoreader.utils import EOREADER_NAME
 
 from .scripts_utils import READER, dask_env, get_ci_data_dir, opt_path, s3_env
 

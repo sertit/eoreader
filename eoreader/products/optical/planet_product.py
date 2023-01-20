@@ -35,7 +35,7 @@ from rasterio.enums import Resampling
 from sertit import files, rasters, strings
 from sertit.misc import ListEnum
 
-from eoreader import cache, utils
+from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
     ALL_CLOUDS,
     BLUE,
@@ -58,7 +58,7 @@ from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct, OrbitDirection
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.reader import Constellation
-from eoreader.utils import EOREADER_NAME, simplify
+from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

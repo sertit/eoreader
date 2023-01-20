@@ -18,6 +18,7 @@ from CI.SCRIPTS.scripts_utils import (
     get_db_dir_on_disk,
     opt_path,
 )
+from eoreader import EOREADER_NAME
 from eoreader.bands import (
     ALL_CLOUDS,
     CIRRUS,
@@ -46,7 +47,6 @@ from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import S2Product, SlstrRadAdjust
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
-from eoreader.utils import EOREADER_NAME
 
 ci.reduce_verbosity(["dicttoxml"])
 logging.getLogger("rasterio._env").setLevel(logging.ERROR)

@@ -33,6 +33,7 @@ import spyndex
 import xarray as xr
 from sertit import rasters
 
+from eoreader import EOREADER_NAME
 from eoreader.bands.band_names import (
     BLUE,
     CA,
@@ -48,7 +49,6 @@ from eoreader.bands.band_names import (
     SpectralBandNames,
 )
 from eoreader.bands.mappings import EOREADER_TO_SPYNDEX_DICT, SPYNDEX_TO_EOREADER_DICT
-from eoreader.utils import EOREADER_NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 np.seterr(divide="ignore", invalid="ignore")
