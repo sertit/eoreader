@@ -1217,7 +1217,7 @@ class Product:
         Returns:
             Union[Path, CloudPath]: DEM path (as a VRT)
         """
-        dem_name = f"{self.condensed_name}_DEM_{files.get_filename(dem_path)}.tif"
+        dem_name = f"{self.condensed_name}_DEM_{files.get_filename(dem_path)}.vrt"
 
         warped_dem_path, warped_dem_exists = self._get_out_path(dem_name)
         if warped_dem_exists:
@@ -1284,43 +1284,14 @@ class Product:
                     "transform": dst_tr,
                     "height": out_h,
                     "width": out_w,
+                    "nodata": self.nodata,
+                    "dtype": "float32",
                 }
 
                 with WarpedVRT(dem_ds, **vrt_options) as vrt:
                     # At this point 'vrt' is a full dataset with dimensions,
                     # CRS, and spatial extent matching 'vrt_options'.
                     rio_shutil.copy(vrt, warped_dem_path, driver="vrt")
-
-                # Get empty output
-                # reprojected_array = np.zeros(
-                #     (dem_ds.count, out_h, out_w), dtype=np.float32
-                # )
-
-                # # Write reprojected DEM: here do not use utils.write()
-                # out_meta = {
-                #     "driver": "GTiff",
-                #     "dtype": reprojected_array.dtype,
-                #     "nodata": self.nodata,
-                #     "width": out_w,
-                #     "height": out_h,
-                #     "count": dem_ds.count,
-                #     "crs": self.crs(),
-                #     "transform": dst_tr,
-                # }
-                # with rasterio.open(str(warped_dem_path), "w", **out_meta) as out_dst:
-                #     out_dst.write(reprojected_array)
-                #
-                #     # Reproject
-                #     warp.reproject(
-                #         source=rasterio.band(dem_ds, range(1, dem_ds.count + 1)),
-                #         destination=rasterio.band(out_dst, range(1, out_dst.count + 1)),
-                #         resampling=resampling,
-                #         num_threads=MAX_CORES,
-                #         dst_transform=dst_tr,
-                #         dst_crs=self.crs(),
-                #         src_crs=dem_ds.crs,
-                #         src_transform=dem_ds.transform,
-                #     )
 
         return warped_dem_path
 
@@ -1461,7 +1432,7 @@ class Product:
             nodata = kwargs.get("nodata", UINT16_NODATA)
         else:
             nodata = kwargs.get("nodata", self.nodata)
-        stack = utils.stack_dict(bands, band_dict, save_as_int, nodata, **kwargs)
+        stack, dtype = utils.stack_dict(bands, band_dict, save_as_int, nodata, **kwargs)
 
         # Update stack's attributes
         stack = self._update_attrs(stack, bands, **kwargs)
@@ -1469,7 +1440,6 @@ class Product:
         # Write on disk
         LOGGER.debug("Saving stack")
         if stack_path:
-            dtype = np.uint16 if save_as_int else np.float32
             stack_path = AnyPath(stack_path)
             if not stack_path.parent.exists():
                 os.makedirs(str(stack_path.parent), exist_ok=True)

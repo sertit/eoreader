@@ -534,7 +534,7 @@ class VhrProduct(OpticalProduct):
         res_str = self._resolution_to_str(resolution)
 
         return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{band}_{res_str}.tif"
+            f"{self.condensed_name}_{band}_{res_str}.vrt"
         )
 
     def _warp_band(
@@ -580,47 +580,13 @@ class VhrProduct(OpticalProduct):
                 "transform": utm_tr,
                 "height": utm_h,
                 "width": utm_w,
+                "nodata": self._raw_nodata,
             }
 
             with WarpedVRT(src, **vrt_options) as vrt:
                 # At this point 'vrt' is a full dataset with dimensions,
                 # CRS, and spatial extent matching 'vrt_options'.
                 rio_shutil.copy(vrt, reproj_path, driver="vrt")
-
-        # with rasterio.open(str(path)) as src:
-        #     band_id = self.bands[band].id
-        #     meta = src.meta.copy()
-        #
-        #     utm_tr, utm_w, utm_h = warp.calculate_default_transform(
-        #         src.crs,
-        #         self.crs(),
-        #         src.width,
-        #         src.height,
-        #         *src.bounds,
-        #         resolution=resolution,
-        #     )
-        #
-        #     # If nodata not set, set it here
-        #     meta["nodata"] = self._raw_nodata
-        #
-        #     # If the CRS is not in UTM, reproject it
-        #     out_arr = np.empty((1, utm_h, utm_w), dtype=meta["dtype"])
-        #     warp.reproject(
-        #         source=src.read(band_id),
-        #         destination=out_arr,
-        #         src_crs=src.crs,
-        #         dst_crs=self.crs(),
-        #         src_transform=src.transform,
-        #         dst_transform=utm_tr,
-        #         src_nodata=self._raw_nodata,
-        #         dst_nodata=self._raw_nodata,  # input data should be in integer
-        #         num_threads=MAX_CORES,
-        #     )
-        #     meta["transform"] = utm_tr
-        #     meta["crs"] = self.crs()
-        #     meta["driver"] = "GTiff"
-        #
-        #     rasters_rio.write(out_arr, meta, reproj_path)
 
     def _get_default_utm_band(
         self, resolution: float = None, size: Union[list, tuple] = None
