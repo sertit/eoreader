@@ -2,6 +2,10 @@
 
 ## 0.YY.Z (2023-MM-DD)
 
+### Bug Fixes
+
+- FIX: Fixing stack when saved as integer for some special cases 
+
 ### Other
 
 - OPTIM: Using warped VRT instead of reprojecting DEM/VHR stacks to UTM ([#58](https://github.com/sertit/eoreader/issues/58)
