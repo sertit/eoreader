@@ -30,9 +30,12 @@ import numpy as np
 import rasterio
 import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
-from rasterio import rpc, warp
+from rasterio import rpc
+from rasterio import shutil as rio_shutil
+from rasterio import warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
+from rasterio.vrt import WarpedVRT
 from sertit import files, rasters, rasters_rio
 from sertit.snap import MAX_CORES
 
@@ -353,19 +356,21 @@ class VhrProduct(OpticalProduct):
                     # Warp band if needed
                     self._warp_band(
                         path,
-                        band,
                         reproj_path=reproj_path,
                         resolution=resolution,
                     )
 
                 # Read band
+                LOGGER.debug(f"Reading warped {band.name}...")
                 band_arr = utils.read(
                     reproj_path,
                     resolution=resolution,
                     size=size,
                     resampling=Resampling.bilinear,
+                    indexes=[self.bands[band].id],
                     **kwargs,
                 )
+                LOGGER.debug(f"...Warped {band.name} read.")
 
             # Manage the case if we open a simple band (EOReader processed bands)
             elif dst.count == 1:
@@ -535,7 +540,6 @@ class VhrProduct(OpticalProduct):
     def _warp_band(
         self,
         path: Union[str, CloudPath, Path],
-        band: BandNames,
         reproj_path: Union[str, CloudPath, Path],
         resolution: float = None,
     ) -> None:
@@ -544,7 +548,6 @@ class VhrProduct(OpticalProduct):
 
         Args:
             path (Union[str, CloudPath, Path]): Band path to warp
-            band (band): Band to warp
             reproj_path (Union[str, CloudPath, Path]): Path where to write the reprojected band
             resolution (int): Band resolution in meters
 
@@ -556,15 +559,12 @@ class VhrProduct(OpticalProduct):
         if not resolution:
             resolution = self.resolution
 
-        LOGGER.info(
-            f"Reprojecting band {band.name} to UTM with a {resolution} m resolution."
-        )
+        LOGGER.info(f"Warping stack to UTM with a {resolution} m resolution.")
 
         # Read band
         with rasterio.open(str(path)) as src:
-            band_id = self.bands[band].id
-            meta = src.meta.copy()
 
+            # Calculate transform
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
                 src.crs,
                 self.crs(),
@@ -574,27 +574,53 @@ class VhrProduct(OpticalProduct):
                 resolution=resolution,
             )
 
-            # If nodata not set, set it here
-            meta["nodata"] = self._raw_nodata
+            vrt_options = {
+                "resampling": Resampling.bilinear,
+                "crs": self.crs(),
+                "transform": utm_tr,
+                "height": utm_h,
+                "width": utm_w,
+            }
 
-            # If the CRS is not in UTM, reproject it
-            out_arr = np.empty((1, utm_h, utm_w), dtype=meta["dtype"])
-            warp.reproject(
-                source=src.read(band_id),
-                destination=out_arr,
-                src_crs=src.crs,
-                dst_crs=self.crs(),
-                src_transform=src.transform,
-                dst_transform=utm_tr,
-                src_nodata=self._raw_nodata,
-                dst_nodata=self._raw_nodata,  # input data should be in integer
-                num_threads=MAX_CORES,
-            )
-            meta["transform"] = utm_tr
-            meta["crs"] = self.crs()
-            meta["driver"] = "GTiff"
+            with WarpedVRT(src, **vrt_options) as vrt:
+                # At this point 'vrt' is a full dataset with dimensions,
+                # CRS, and spatial extent matching 'vrt_options'.
+                rio_shutil.copy(vrt, reproj_path, driver="vrt")
 
-            rasters_rio.write(out_arr, meta, reproj_path)
+        # with rasterio.open(str(path)) as src:
+        #     band_id = self.bands[band].id
+        #     meta = src.meta.copy()
+        #
+        #     utm_tr, utm_w, utm_h = warp.calculate_default_transform(
+        #         src.crs,
+        #         self.crs(),
+        #         src.width,
+        #         src.height,
+        #         *src.bounds,
+        #         resolution=resolution,
+        #     )
+        #
+        #     # If nodata not set, set it here
+        #     meta["nodata"] = self._raw_nodata
+        #
+        #     # If the CRS is not in UTM, reproject it
+        #     out_arr = np.empty((1, utm_h, utm_w), dtype=meta["dtype"])
+        #     warp.reproject(
+        #         source=src.read(band_id),
+        #         destination=out_arr,
+        #         src_crs=src.crs,
+        #         dst_crs=self.crs(),
+        #         src_transform=src.transform,
+        #         dst_transform=utm_tr,
+        #         src_nodata=self._raw_nodata,
+        #         dst_nodata=self._raw_nodata,  # input data should be in integer
+        #         num_threads=MAX_CORES,
+        #     )
+        #     meta["transform"] = utm_tr
+        #     meta["crs"] = self.crs()
+        #     meta["driver"] = "GTiff"
+        #
+        #     rasters_rio.write(out_arr, meta, reproj_path)
 
     def _get_default_utm_band(
         self, resolution: float = None, size: Union[list, tuple] = None
@@ -648,7 +674,6 @@ class VhrProduct(OpticalProduct):
                         )
                         self._warp_band(
                             def_path,
-                            def_band,
                             reproj_path=path,
                             resolution=resolution,
                         )

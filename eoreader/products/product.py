@@ -41,12 +41,13 @@ import xarray as xr
 from affine import Affine
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree, html
+from rasterio import shutil as rio_shutil
 from rasterio import transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
+from rasterio.vrt import WarpedVRT
 from sertit import files, rasters, strings, xml
 from sertit.misc import ListEnum
-from sertit.snap import MAX_CORES
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -1277,36 +1278,49 @@ class Product:
                         resolution=resolution,
                     )
 
-                # Get empty output
-                reprojected_array = np.zeros(
-                    (dem_ds.count, out_h, out_w), dtype=np.float32
-                )
-
-                # Write reprojected DEM: here do not use utils.write()
-                out_meta = {
-                    "driver": "GTiff",
-                    "dtype": reprojected_array.dtype,
-                    "nodata": self.nodata,
-                    "width": out_w,
-                    "height": out_h,
-                    "count": dem_ds.count,
+                vrt_options = {
+                    "resampling": resampling,
                     "crs": self.crs(),
                     "transform": dst_tr,
+                    "height": out_h,
+                    "width": out_w,
                 }
-                with rasterio.open(str(warped_dem_path), "w", **out_meta) as out_dst:
-                    out_dst.write(reprojected_array)
 
-                    # Reproject
-                    warp.reproject(
-                        source=rasterio.band(dem_ds, range(1, dem_ds.count + 1)),
-                        destination=rasterio.band(out_dst, range(1, out_dst.count + 1)),
-                        resampling=resampling,
-                        num_threads=MAX_CORES,
-                        dst_transform=dst_tr,
-                        dst_crs=self.crs(),
-                        src_crs=dem_ds.crs,
-                        src_transform=dem_ds.transform,
-                    )
+                with WarpedVRT(dem_ds, **vrt_options) as vrt:
+                    # At this point 'vrt' is a full dataset with dimensions,
+                    # CRS, and spatial extent matching 'vrt_options'.
+                    rio_shutil.copy(vrt, warped_dem_path, driver="vrt")
+
+                # Get empty output
+                # reprojected_array = np.zeros(
+                #     (dem_ds.count, out_h, out_w), dtype=np.float32
+                # )
+
+                # # Write reprojected DEM: here do not use utils.write()
+                # out_meta = {
+                #     "driver": "GTiff",
+                #     "dtype": reprojected_array.dtype,
+                #     "nodata": self.nodata,
+                #     "width": out_w,
+                #     "height": out_h,
+                #     "count": dem_ds.count,
+                #     "crs": self.crs(),
+                #     "transform": dst_tr,
+                # }
+                # with rasterio.open(str(warped_dem_path), "w", **out_meta) as out_dst:
+                #     out_dst.write(reprojected_array)
+                #
+                #     # Reproject
+                #     warp.reproject(
+                #         source=rasterio.band(dem_ds, range(1, dem_ds.count + 1)),
+                #         destination=rasterio.band(out_dst, range(1, out_dst.count + 1)),
+                #         resampling=resampling,
+                #         num_threads=MAX_CORES,
+                #         dst_transform=dst_tr,
+                #         dst_crs=self.crs(),
+                #         src_crs=dem_ds.crs,
+                #         src_transform=dem_ds.transform,
+                #     )
 
         return warped_dem_path
 
