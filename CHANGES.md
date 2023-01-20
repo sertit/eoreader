@@ -6,6 +6,7 @@
 
 - TYP: Fixing typos in typing
 - Moving `EOREADER_NAME` and `DATETIME_FMT` into `__init__.py`
+- Moving stacking function into `utils`
 
 ## 0.19.1 (2023-01-12)
 
