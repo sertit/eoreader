@@ -4,6 +4,7 @@
 
 ### Other
 
+- OPTIM: Using warped VRT instead of reprojecting DEM/VHR stacks to UTM
 - TYP: Fixing typos in typing
 - Moving `EOREADER_NAME` and `DATETIME_FMT` into `__init__.py`
 - Moving stacking function into `utils`
