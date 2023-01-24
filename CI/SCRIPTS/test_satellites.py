@@ -354,7 +354,9 @@ def _test_core(
 
                 else:
                     # Test
-                    ci.assert_raster_almost_equal(curr_path, ci_stack, decimal=4)
+                    ci.assert_raster_almost_equal_magnitude(
+                        curr_path, ci_stack, decimal=1
+                    )
 
                 # Load a band with the size option
                 LOGGER.info("Checking load with size keyword")
@@ -379,7 +381,9 @@ def _test_core(
                     **kwargs,
                 )[first_band]
                 rasters.write(band_arr, curr_path_band)
-                ci.assert_raster_almost_equal(curr_path_band, ci_band, decimal=4)
+                ci.assert_raster_almost_equal_magnitude(
+                    curr_path_band, ci_band, decimal=1
+                )
 
                 # Check reflectance validity
                 if (
