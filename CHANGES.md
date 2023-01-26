@@ -13,6 +13,7 @@
 - Moving `EOREADER_NAME` and `DATETIME_FMT` into `__init__.py`
 - Moving stacking function into `utils`
 - CI: Using `assert_raster_almost_equal_magnitude` in CI to better check according to bands' content (sertit 1.24.0)
+- CI: Adding weekly tests on Python 3.11
 
 ## 0.19.1 (2023-01-12)
 
