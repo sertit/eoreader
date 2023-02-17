@@ -35,15 +35,6 @@ try:
 
         return wrapper
 
-    def cached_property(func: Callable) -> property:
-        @lru_cache()
-        @property
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
-
-        return wrapper
-
 except ImportError:
     print(
         "WARNING!\n"
@@ -54,15 +45,6 @@ except ImportError:
     from functools import lru_cache
 
     def cache(func: Callable) -> Callable:
-        @lru_cache(maxsize=None)
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
-
-        return wrapper
-
-    def cached_property(func: Callable) -> property:
-        @property
         @lru_cache(maxsize=None)
         @wraps(func)
         def wrapper(*args, **kwargs):
