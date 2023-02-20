@@ -5,6 +5,7 @@
 ### Bug Fixes
 
 - FIX: Fixing stack when saved as integer for some special cases 
+- FIX: Clipping negative reflectances to 0([#79](https://github.com/sertit/eoreader/issues/79)
 
 ### Other
 
