@@ -70,6 +70,20 @@ class S2TheiaProduct(OpticalProduct):
     for more information.
     """
 
+    def __init__(
+        self,
+        product_path: Union[str, CloudPath, Path],
+        archive_path: Union[str, CloudPath, Path] = None,
+        output_path: Union[str, CloudPath, Path] = None,
+        remove_tmp: bool = False,
+        **kwargs,
+    ) -> None:
+        # Theia native NODATA is -1
+        self._raw_nodata = -10000
+
+        # Initialization from the super class
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
@@ -418,9 +432,8 @@ class S2TheiaProduct(OpticalProduct):
         """
         # -- Manage nodata from Theia band array
         # Theia nodata is already processed
-        theia_nodata = -1.0
         no_data_mask = np.where(
-            band_arr.data == theia_nodata, self._mask_true, self._mask_false
+            band_arr.data == self._raw_nodata, self._mask_true, self._mask_false
         ).astype(np.uint8)
 
         # Open NODATA pixels mask
@@ -464,9 +477,8 @@ class S2TheiaProduct(OpticalProduct):
         """
         # -- Manage nodata from Theia band array
         # Theia nodata is already processed
-        theia_nodata = -1.0
         no_data_mask = np.where(
-            band_arr.data == theia_nodata, self._mask_true, self._mask_false
+            band_arr.data == self._raw_nodata, self._mask_true, self._mask_false
         ).astype(np.uint8)
 
         # -- Merge masks
