@@ -36,19 +36,10 @@ from sertit import files, misc, rasters, snap, strings, vectors
 from sertit.misc import ListEnum
 
 from eoreader import EOREADER_NAME, cache, utils
-from eoreader.bands import NEEDED_BANDS, BandNames, SarBand, SarBandMap
+from eoreader.bands import BandNames, SarBand, SarBandMap
 from eoreader.bands import SarBandNames as sab
-from eoreader.bands import (
-    compute_index,
-    is_clouds,
-    is_dem,
-    is_index,
-    is_sar_band,
-    is_spectral_band,
-    to_str,
-)
 from eoreader.env_vars import DEM_PATH, DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES, SNAP_DEM_NAME
-from eoreader.exceptions import InvalidBandError, InvalidProductError, InvalidTypeError
+from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import SAR_INTERP_NA
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import Constellation
@@ -643,85 +634,6 @@ class SarProduct(Product):
             )
 
         return band_arrays
-
-    def _load(
-        self,
-        bands: list,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-        **kwargs,
-    ) -> dict:
-        """
-        Core function loading SAR data bands
-
-        Args:
-            bands (list): Band list
-            resolution (float): Resolution of the band, in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-            kwargs: Other arguments used to load bands
-
-        Returns:
-            Dictionary {band_name, band_xarray}
-        """
-        band_list = []
-        dem_list = []
-        index_list = []
-
-        for band in bands:
-            if is_index(band):
-                if self._has_index(band):
-                    index_list.append(band)
-            elif is_spectral_band(band):
-                raise TypeError(
-                    f"You should ask for SAR bands as {self.name} is a SAR product."
-                )
-            elif is_sar_band(band):
-                if not self.has_band(band):
-                    raise InvalidBandError(
-                        f"{band} cannot be retrieved from {self.condensed_name}"
-                    )
-                else:
-                    band_list.append(band)
-            elif is_dem(band):
-                dem_list.append(band)
-            elif is_clouds(band):
-                raise NotImplementedError(
-                    f"Clouds cannot be retrieved from SAR data ({self.condensed_name})."
-                )
-            else:
-                raise InvalidTypeError(f"{band} is neither a band nor an index !")
-
-        # Check if DEM is set and exists
-        if dem_list:
-            self._check_dem_path(bands, **kwargs)
-
-        # Get all bands to be open
-        bands_to_load = band_list.copy()
-        for idx in index_list:
-            bands_to_load += NEEDED_BANDS[idx]
-
-        # Load band arrays (only keep unique bands: open them only one time !)
-        unique_bands = list(set(bands_to_load))
-        if unique_bands:
-            LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
-        loaded_bands = self._load_bands(
-            unique_bands, resolution=resolution, size=size, **kwargs
-        )
-
-        # Compute index (they conserve the nodata)
-        if index_list:
-            LOGGER.debug(f"Loading indices {to_str(index_list)}")
-        bands_dict = {idx: compute_index(idx, loaded_bands) for idx in index_list}
-
-        # Add bands
-        bands_dict.update({band: loaded_bands[band] for band in band_list})
-
-        # Add DEM
-        bands_dict.update(
-            self._load_dem(dem_list, resolution=resolution, size=size, **kwargs)
-        )
-
-        return bands_dict
 
     def _pre_process_sar(self, band: sab, resolution: float = None, **kwargs) -> str:
         """

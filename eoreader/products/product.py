@@ -53,17 +53,26 @@ from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
     DEM,
     HILLSHADE,
+    NEEDED_BANDS,
     SLOPE,
     BandNames,
+    compute_index,
     indices,
     is_clouds,
     is_dem,
     is_index,
+    is_sar_band,
+    is_spectral_band,
     to_band,
     to_str,
 )
 from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
-from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.exceptions import (
+    InvalidBandError,
+    InvalidIndexError,
+    InvalidProductError,
+    InvalidTypeError,
+)
 from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Constellation, Reader
 from eoreader.stac import StacItem
@@ -495,6 +504,40 @@ class Product:
 
         return date
 
+    def _construct_band_path(
+        self,
+        band: BandNames,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        writable: bool = False,
+        **kwargs,
+    ) -> Union[CloudPath, Path]:
+        """
+        Get cloud band path.
+
+        Args:
+            band (BandNames): Wanted band
+            resolution (float): Band resolution in meters
+            writable (bool): True if we want the band folder to be writeable
+            kwargs: Additional arguments
+
+        Returns:
+            Union[CloudPath, Path]: Clean band path
+        """
+        # Manage resolution
+        if resolution is None:
+            if size is not None:
+                resolution = self._resolution_from_size(size)
+            else:
+                resolution = self.resolution
+
+        # Convert to str
+        res_str = self._resolution_to_str(resolution)
+
+        return self._get_band_folder(writable).joinpath(
+            f"{self.condensed_name}_{to_str(band)[0]}_{res_str.replace('.', '-')}.tif",
+        )
+
     @abstractmethod
     def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
         """
@@ -771,78 +814,6 @@ class Product:
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def _load_bands(
-        self,
-        bands: list,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-        **kwargs,
-    ) -> dict:
-        """
-        Load bands as numpy arrays with the same resolution (and same metadata).
-
-        Args:
-            bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-            kwargs: Other arguments used to load bands
-        Returns:
-            dict: Dictionary {band_name, band_xarray}
-        """
-        raise NotImplementedError
-
-    def _load_dem(
-        self,
-        band_list: list,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-        **kwargs,
-    ) -> dict:
-        """
-        Load bands as numpy arrays with the same resolution (and same metadata).
-
-        Args:
-            band_list (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-            kwargs: Other arguments used to load bands
-        Returns:
-            dict: Dictionary {band_name, band_xarray}
-        """
-        dem_bands = {}
-        if band_list:
-            dem_path = os.environ.get(DEM_PATH)  # We already checked if it exists
-            for band in band_list:
-                assert is_dem(band)
-                if band == DEM:
-                    path = self._warp_dem(
-                        kwargs.get(DEM_KW, dem_path),
-                        resolution=resolution,
-                        size=size,
-                        **kwargs,
-                    )
-                elif band == SLOPE:
-                    path = self._compute_slope(
-                        kwargs.get(SLOPE_KW, dem_path),
-                        resolution=resolution,
-                        size=size,
-                    )
-                elif band == HILLSHADE:
-                    path = self._compute_hillshade(
-                        kwargs.get(HILLSHADE_KW, dem_path),
-                        resolution=resolution,
-                        size=size,
-                    )
-                else:
-                    raise InvalidTypeError(f"Unknown DEM band: {band}")
-
-                dem_bands[band] = utils.read(
-                    path, resolution=resolution, size=size
-                ).astype(np.float32)
-
-        return dem_bands
-
     def load(
         self,
         bands: Union[list, BandNames, str],
@@ -910,7 +881,6 @@ class Product:
 
         return band_dict
 
-    @abstractmethod
     def _load(
         self,
         bands: list,
@@ -919,7 +889,7 @@ class Product:
         **kwargs,
     ) -> dict:
         """
-        Core function loading data bands
+        Core function loading optical data bands
 
         Args:
             bands (list): Band list
@@ -930,7 +900,244 @@ class Product:
         Returns:
             Dictionary {band_name, band_xarray}
         """
+        band_list = []
+        index_list = []
+        dem_list = []
+        clouds_list = []
+
+        # Check if everything is valid
+        for band in bands:
+            if is_index(band):
+                if self._has_index(band):
+                    if band in indices.EOREADER_ALIASES:
+                        from warnings import warn
+
+                        warn(
+                            "Aliases of Awesome Spectral Indices won't be available in future versions of EOReader. "
+                            f"Please use {indices.EOREADER_ALIASES[band]} instead of {band}",
+                            category=DeprecationWarning,
+                        )
+                    index_list.append(band)
+                else:
+                    raise InvalidIndexError(
+                        f"{band} cannot be computed from {self.condensed_name}."
+                    )
+            elif is_sar_band(band):
+                if self.sensor_type == SensorType.SAR:
+                    if not self.has_band(band):
+                        raise InvalidBandError(
+                            f"{band} cannot be retrieved from {self.condensed_name}"
+                        )
+                    else:
+                        band_list.append(band)
+                else:
+                    raise TypeError(
+                        f"You should ask for Optical bands as {self.name} is an optical product."
+                    )
+            elif is_spectral_band(band):
+                if self.sensor_type == SensorType.OPTICAL:
+                    if self.has_band(band):
+                        band_list.append(band)
+                    else:
+                        raise InvalidBandError(
+                            f"{band} cannot be retrieved from {self.condensed_name}."
+                        )
+                else:
+                    raise TypeError(
+                        f"You should ask for SAR bands as {self.name} is a SAR product."
+                    )
+            elif is_dem(band):
+                dem_list.append(band)
+            elif is_clouds(band):
+                if self.sensor_type == SensorType.OPTICAL:
+                    clouds_list.append(band)
+                else:
+                    raise TypeError(
+                        f"You cannot ask for cloud bands as {self.name} is a SAR product."
+                    )
+
+        # Check if DEM is set and exists
+        if dem_list:
+            self._check_dem_path(bands, **kwargs)
+
+        # Get all bands to be open
+        bands_to_load = band_list.copy()
+        for idx in index_list:
+            bands_to_load += NEEDED_BANDS[idx]
+
+        # Load band arrays (only keep unique bands: open them only one time !)
+        unique_bands = list(set(bands_to_load))
+        bands_dict = {}
+        if unique_bands:
+            LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
+            loaded_bands = self._load_bands(
+                unique_bands, resolution=resolution, size=size, **kwargs
+            )
+
+            # Add bands
+            bands_dict.update({band: loaded_bands[band] for band in band_list})
+
+            # Compute index (they conserve the nodata)
+            if index_list:
+                LOGGER.debug(f"Loading indices {to_str(index_list)}")
+                bands_dict.update(
+                    self._load_spectral_indices(
+                        index_list,
+                        loaded_bands,
+                        resolution=resolution,
+                        size=size,
+                        **kwargs,
+                    )
+                )
+
+        # Add DEM
+        if dem_list:
+            LOGGER.debug(f"Loading DEM bands {to_str(dem_list)}")
+            bands_dict.update(
+                self._load_dem(dem_list, resolution=resolution, size=size, **kwargs)
+            )
+
+        # Add Clouds
+        if clouds_list:
+            LOGGER.debug(f"Loading Cloud bands {to_str(clouds_list)}")
+            bands_dict.update(
+                self._load_clouds(
+                    clouds_list, resolution=resolution, size=size, **kwargs
+                )
+            )
+
+        return bands_dict
+
+    def _load_clouds(
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load cloud files as xarrays.
+
+        Args:
+            bands (list): List of the wanted bands
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
         raise NotImplementedError
+
+    @abstractmethod
+    def _load_bands(
+        self,
+        bands: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load bands as numpy arrays with the same resolution (and same metadata).
+
+        Args:
+            bands (list): List of the wanted bands
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        raise NotImplementedError
+
+    def _load_spectral_indices(
+        self,
+        index_list: list,
+        loaded_bands: dict,
+        resolution: Union[float, tuple] = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load cloud files as xarrays.
+
+        Args:
+            bands (list): List of the wanted bands
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        band_dict = {}
+        for idx in index_list:
+            idx_path = self._construct_band_path(
+                idx, resolution, size, writable=False, **kwargs
+            )
+            if idx_path.is_file():
+                band_dict[idx] = utils.read(idx_path)
+            else:
+                idx_arr = compute_index(index=idx, bands=loaded_bands).rename(idx)
+                idx_arr.attrs["long_name"] = idx
+
+                # Write on disk
+                idx_path = self._construct_band_path(
+                    idx, resolution, size, writable=True, **kwargs
+                )
+                utils.write(idx_arr, idx_path)
+                band_dict[idx] = idx_arr
+
+        return band_dict
+
+    def _load_dem(
+        self,
+        band_list: list,
+        resolution: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load bands as numpy arrays with the same resolution (and same metadata).
+
+        Args:
+            band_list (list): List of the wanted bands
+            resolution (int): Band resolution in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            kwargs: Other arguments used to load bands
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        dem_bands = {}
+        if band_list:
+            dem_path = os.environ.get(DEM_PATH)  # We already checked if it exists
+            for band in band_list:
+                assert is_dem(band)
+                if band == DEM:
+                    path = self._warp_dem(
+                        kwargs.get(DEM_KW, dem_path),
+                        resolution=resolution,
+                        size=size,
+                        **kwargs,
+                    )
+                elif band == SLOPE:
+                    path = self._compute_slope(
+                        kwargs.get(SLOPE_KW, dem_path),
+                        resolution=resolution,
+                        size=size,
+                    )
+                elif band == HILLSHADE:
+                    path = self._compute_hillshade(
+                        kwargs.get(HILLSHADE_KW, dem_path),
+                        resolution=resolution,
+                        size=size,
+                    )
+                else:
+                    raise InvalidTypeError(f"Unknown DEM band: {band}")
+
+                dem_bands[band] = utils.read(
+                    path, resolution=resolution, size=size
+                ).astype(np.float32)
+
+        return dem_bands
 
     def has_band(self, band: Union[BandNames, str]) -> bool:
         """
