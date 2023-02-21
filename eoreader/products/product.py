@@ -1429,9 +1429,9 @@ class Product:
 
         # Stack bands
         if save_as_int:
-            nodata = kwargs.get("nodata", UINT16_NODATA)
+            nodata = kwargs.pop("nodata", UINT16_NODATA)
         else:
-            nodata = kwargs.get("nodata", self.nodata)
+            nodata = kwargs.pop("nodata", self.nodata)
         stack, dtype = utils.stack_dict(bands, band_dict, save_as_int, nodata, **kwargs)
 
         # Update stack's attributes
@@ -1444,7 +1444,7 @@ class Product:
             if not stack_path.parent.exists():
                 os.makedirs(str(stack_path.parent), exist_ok=True)
 
-            utils.write(stack, stack_path, dtype=dtype, **kwargs)
+            utils.write(stack, stack_path, dtype=dtype, nodata=nodata, **kwargs)
 
         return stack
 
