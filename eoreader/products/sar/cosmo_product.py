@@ -511,8 +511,8 @@ class CosmoProduct(SarProduct):
                         LOGGER.debug(f"Processing {group}")
 
                         # Create a mock-up of a COSMO product with only one swath and handled by SNAP
-                        prod_path = (
-                            rf"{tmp_dir}\{files.get_filename(self._img_path)}.h5"
+                        prod_path = os.path.join(
+                            tmp_dir, f"{files.get_filename(self._img_path)}.h5"
                         )
                         with h5netcdf.File(
                             prod_path, "w", phony_dims="access"
