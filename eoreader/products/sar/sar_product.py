@@ -57,7 +57,7 @@ from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-_SAR_PREDICTOR = 1
+SAR_PREDICTOR = 1
 """
 Set LZW predictor to 1 in order SNAP to be able to read this GEoTiff.
 
@@ -753,7 +753,7 @@ class SarProduct(Product):
                     file_path,
                     dtype=np.float32,
                     nodata=self._snap_no_data,
-                    predictor=_SAR_PREDICTOR,
+                    predictor=SAR_PREDICTOR,
                 )
             return file_path
         else:
@@ -766,9 +766,21 @@ class SarProduct(Product):
                 # Pre-process graph
                 if PP_GRAPH not in os.environ:
                     if self.constellation == Constellation.CAPELLA:
-                        # TODO: Error: [NodeId: Calibration] Mission Capella is currently not supported for calibration.
+                        LOGGER.debug(
+                            "SNAP Error: [NodeId: Calibration] Mission Capella is currently not supported for calibration. Removing this step."
+                        )
                         pp_graph = utils.get_data_dir().joinpath(
                             "grd_sar_preprocess_fallback.xml"
+                        )
+                    elif (
+                        self.constellation == Constellation.CSG
+                        and self.sar_prod_type == SarProductType.CPLX
+                    ):
+                        LOGGER.debug(
+                            "SNAP Error: Calibration currently fails for CSG complex data. Removing this step."
+                        )
+                        pp_graph = utils.get_data_dir().joinpath(
+                            "cplx_no_calib_preprocess_default.xml"
                         )
 
                     else:
@@ -822,21 +834,25 @@ class SarProduct(Product):
                         dem_path = ""
 
                     # Download cloud path to cache
-                    if isinstance(self.path, CloudPath):
-                        LOGGER.debug(
-                            f"Caching {self.path} to {os.path.join(tmp_dir, self.path.name)}"
-                        )
-                        if self.path.is_dir():
-                            prod_path = os.path.join(
-                                tmp_dir, self.path.name, self.snap_filename
+                    prod_path = kwargs.get("prod_path")
+                    if prod_path is None:
+                        if isinstance(self.path, CloudPath):
+                            LOGGER.debug(
+                                f"Caching {self.path} to {os.path.join(tmp_dir, self.path.name)}"
                             )
-                            self.path.download_to(os.path.join(tmp_dir, self.path.name))
+                            if self.path.is_dir():
+                                prod_path = os.path.join(
+                                    tmp_dir, self.path.name, self.snap_filename
+                                )
+                                self.path.download_to(
+                                    os.path.join(tmp_dir, self.path.name)
+                                )
+                            else:
+                                prod_path = (
+                                    self.path.fspath
+                                )  # In tmp file, no need to download_to
                         else:
-                            prod_path = (
-                                self.path.fspath
-                            )  # In tmp file, no need to download_to
-                    else:
-                        prod_path = self.path.joinpath(self.snap_filename)
+                            prod_path = self.path.joinpath(self.snap_filename)
 
                     # Create SNAP CLI
                     cmd_list = snap.get_gpt_cli(
@@ -956,10 +972,13 @@ class SarProduct(Product):
                 arr = interp_na(arr, dim="y")
                 arr = interp_na(arr, dim="x")
 
+            # Get suffix
+            suffix = kwargs.get("suffix")
+
             # Save the file as the terrain-corrected image
             file_path = os.path.join(
                 self._get_band_folder(writable=True),
-                f"{files.get_filename(dim_path)}_{pol}{'_DSPK' if dspk else ''}.tif",
+                f"{files.get_filename(dim_path)}_{pol}{'_DSPK' if dspk else ''}{f'_{suffix}' if suffix else ''}.tif",
             )
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
 
@@ -971,7 +990,7 @@ class SarProduct(Product):
                 file_path,
                 dtype=np.float32,
                 nodata=self._snap_no_data,
-                predictor=_SAR_PREDICTOR,
+                predictor=SAR_PREDICTOR,
             )
 
         return file_path

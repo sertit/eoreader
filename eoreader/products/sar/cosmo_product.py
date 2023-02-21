@@ -19,6 +19,8 @@ COSMO-SkyMed 2nd Generation products.
 More info `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
 """
 import logging
+import os
+import tempfile
 from abc import abstractmethod
 from datetime import datetime
 from enum import unique
@@ -34,7 +36,8 @@ import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from lxml.builder import E
-from sertit import files, rasters, strings, vectors
+from rasterio import merge
+from sertit import files, rasters, rasters_rio, strings, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
 
@@ -42,6 +45,7 @@ from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
+from eoreader.products.sar.sar_product import SAR_PREDICTOR
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -478,6 +482,124 @@ class CosmoProduct(SarProduct):
                 raise InvalidProductError("Orbit Direction not found in metadata!")
 
         return od
+
+    def _pre_process_sar(self, band, resolution: float = None, **kwargs) -> str:
+        """
+        Pre-process SAR data (geocoding...)
+
+        Args:
+            band (sbn): Band to preprocess
+            resolution (float): Resolution
+            kwargs: Additional arguments
+
+        Returns:
+            str: Band path
+        """
+        with h5netcdf.File(self._img_path, phony_dims="access") as raw_h5:
+            swaths = list(raw_h5.groups)
+            if len(swaths) == 1:
+                return super()._pre_process_sar(band, resolution, **kwargs)
+            else:
+                LOGGER.warning(
+                    "Currently, SNAP doesn't handle multiswath Cosmo-SkyMed products. This is a workaround. See https://github.com/sertit/eoreader/issues/78"
+                )
+
+                # For every swath, pre-process the swath array alone
+                pp_swath_path = []
+                for group in raw_h5.groups:
+                    with tempfile.TemporaryDirectory() as tmp_dir:
+                        LOGGER.debug(f"Processing {group}")
+
+                        # Create a mock-up of a COSMO product with only one swath and handled by SNAP
+                        prod_path = (
+                            rf"{tmp_dir}\{files.get_filename(self._img_path)}.h5"
+                        )
+                        with h5netcdf.File(
+                            prod_path, "w", phony_dims="access"
+                        ) as group_h5:
+                            # Basic layer
+                            group_h5.attrs.update(raw_h5.attrs)
+
+                            # Change the swath to S01 as it is the only one read by SNAP (and is mandatory for the file to be recognized)
+                            new_group = "S01"
+                            group_h5.create_group(new_group)
+                            group_h5.groups[new_group].attrs.update(
+                                raw_h5.groups[group].attrs
+                            )
+
+                            # Copy all variables
+                            for var_name in raw_h5.groups[group].variables:
+                                var = raw_h5.groups[group].variables[var_name]
+                                group_h5.groups[new_group].create_variable(
+                                    f"/{new_group}/{var_name}",
+                                    dimensions=var.dimensions,
+                                    dtype=var.dtype,
+                                    data=var,
+                                    chunks=var.chunks,
+                                )
+                                group_h5.groups[new_group].variables[
+                                    var_name
+                                ].attrs.update(var.attrs)
+
+                            # Copy all groups
+                            for grp_name in raw_h5.groups[group].groups:
+                                grp = raw_h5.groups[group].groups[grp_name]
+                                if grp_name not in group_h5.groups[new_group].groups:
+                                    group_h5.groups[new_group].create_group(grp_name)
+                                    group_h5.groups[new_group].groups[
+                                        grp_name
+                                    ].attrs.update(grp.attrs)
+
+                        # Pre-process swath
+                        pp_swath_path.append(
+                            super()._pre_process_sar(
+                                band,
+                                resolution,
+                                prod_path=prod_path,
+                                suffix=group,
+                                **kwargs,
+                            )
+                        )
+
+                # Merge the swaths
+                LOGGER.debug("Merging the swaths")
+                pp_path = os.path.join(
+                    self._get_band_folder(writable=True),
+                    f"{self.condensed_name}_{band.value.upper()}.tif",
+                )
+                # Force GTiff to be used in SNAP
+                # Don't use rasters.merge_gtiff because off the predictor and the nodata...
+                try:
+                    pp_ds = [rasterio.open(path) for path in pp_swath_path]
+                    merged_array, merged_transform = merge.merge(pp_ds, **kwargs)
+                    merged_meta = pp_ds[0].meta.copy()
+                    merged_meta.update(
+                        {
+                            "driver": "GTiff",
+                            "height": merged_array.shape[1],
+                            "width": merged_array.shape[2],
+                            "transform": merged_transform,
+                        }
+                    )
+                finally:
+                    for ds in pp_ds:
+                        ds.close()
+
+                # Write
+                # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
+
+                # SNAP fails with classic predictor !!! Set the predictor to the default value (1) !!!
+                # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
+                # https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7
+                rasters_rio.write(
+                    merged_array,
+                    merged_meta,
+                    pp_path,
+                    nodata=self._snap_no_data,
+                    predictor=SAR_PREDICTOR,
+                )
+
+                return pp_path
 
     @abstractmethod
     def _set_sensor_mode(self) -> None:

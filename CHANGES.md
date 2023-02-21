@@ -1,12 +1,13 @@
 # Release History
 
-## 0.YY.Z (2023-MM-DD)
+## 0.19.2 (2023-02-DD)
 
 ### Bug Fixes
 
 - FIX: Fixing stack when saved as integer for some special cases 
-- FIX: Clipping negative reflectances to 0([#79](https://github.com/sertit/eoreader/issues/79)
+- FIX: Clipping negative reflectances to 0 ([#79](https://github.com/sertit/eoreader/issues/79)
 - FIX: Fixing nodata mangement for Theia product
+- FIX: Fixing handling of SCS multi-swath `Cosmo-SkyMed` products ([#78](https://github.com/sertit/eoreader/issues/78)
 
 ### Other
 
