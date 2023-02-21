@@ -35,20 +35,12 @@ from sertit.misc import ListEnum
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
     GREEN,
-    NEEDED_BANDS,
     BandNames,
     SpectralBandMap,
-    compute_index,
-    indices,
-    is_clouds,
-    is_dem,
-    is_index,
-    is_sar_band,
     is_spectral_band,
     is_thermal_band,
     to_str,
 )
-from eoreader.exceptions import InvalidBandError, InvalidIndexError
 from eoreader.keywords import CLEAN_OPTICAL, TO_REFLECTANCE
 from eoreader.products.product import OrbitDirection, Product, SensorType
 
@@ -455,106 +447,6 @@ class OpticalProduct(Product):
         # Set masked values to nodata
         return band_arr.copy(data=np.where(mask == 0, band_arr, np.nan))
 
-    def _load(
-        self,
-        bands: list,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-        **kwargs,
-    ) -> dict:
-        """
-        Core function loading optical data bands
-
-        Args:
-            bands (list): Band list
-            resolution (float): Resolution of the band, in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-            kwargs: Other arguments used to load bands
-
-        Returns:
-            Dictionary {band_name, band_xarray}
-        """
-        band_list = []
-        index_list = []
-        dem_list = []
-        clouds_list = []
-
-        # Check if everything is valid
-        for idx_or_band in bands:
-            if is_index(idx_or_band):
-                if self._has_index(idx_or_band):
-                    if idx_or_band in indices.EOREADER_ALIASES:
-                        from warnings import warn
-
-                        warn(
-                            "Aliases of Awesome Spectral Indices won't be available in future versions of EOReader. "
-                            f"Please use {indices.EOREADER_ALIASES[idx_or_band]} instead of {idx_or_band}",
-                            category=DeprecationWarning,
-                        )
-                    index_list.append(idx_or_band)
-                else:
-                    raise InvalidIndexError(
-                        f"{idx_or_band} cannot be computed from {self.condensed_name}."
-                    )
-            elif is_sar_band(idx_or_band):
-                raise TypeError(
-                    f"You should ask for Optical bands as {self.name} is an optical product."
-                )
-            elif is_spectral_band(idx_or_band):
-                if self.has_band(idx_or_band):
-                    band_list.append(idx_or_band)
-                else:
-                    raise InvalidBandError(
-                        f"{idx_or_band} cannot be retrieved from {self.condensed_name}."
-                    )
-            elif is_dem(idx_or_band):
-                dem_list.append(idx_or_band)
-            elif is_clouds(idx_or_band):
-                clouds_list.append(idx_or_band)
-
-        # Check if DEM is set and exists
-        if dem_list:
-            self._check_dem_path(bands, **kwargs)
-
-        # Get all bands to be open
-        bands_to_load = band_list.copy()
-        for idx in index_list:
-            bands_to_load += NEEDED_BANDS[idx]
-
-        # Load band arrays (only keep unique bands: open them only one time !)
-        unique_bands = list(set(bands_to_load))
-        if unique_bands:
-            LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
-        loaded_bands = self._load_bands(
-            unique_bands, resolution=resolution, size=size, **kwargs
-        )
-
-        # Compute index (they conserve the nodata)
-        if index_list:
-            LOGGER.debug(f"Loading indices {to_str(index_list)}")
-        bands_dict = {
-            idx: compute_index(index=idx, bands=loaded_bands) for idx in index_list
-        }
-
-        # Add bands
-        bands_dict.update({band: loaded_bands[band] for band in band_list})
-
-        # Add DEM
-        if dem_list:
-            LOGGER.debug(f"Loading DEM bands {to_str(dem_list)}")
-        bands_dict.update(
-            self._load_dem(dem_list, resolution=resolution, size=size, **kwargs)
-        )
-
-        # Add Clouds
-        if clouds_list:
-            LOGGER.debug(f"Loading Cloud bands {to_str(clouds_list)}")
-        bands_dict.update(
-            self._load_clouds(clouds_list, resolution=resolution, size=size, **kwargs)
-        )
-
-        return bands_dict
-
     @abstractmethod
     @cache
     def get_mean_sun_angles(self) -> (float, float):
@@ -682,7 +574,7 @@ class OpticalProduct(Product):
             # First, try to open the cloud band written on disk
             bands_to_load = []
             for band in bands:
-                cloud_path = self._get_cloud_band_path(
+                cloud_path = self._construct_band_path(
                     band, resolution, size, writable=False, **kwargs
                 )
                 if cloud_path.is_file():
@@ -695,7 +587,7 @@ class OpticalProduct(Product):
 
             # Write them on disk
             for band_id, band_arr in loaded_bands.items():
-                cloud_path = self._get_cloud_band_path(
+                cloud_path = self._construct_band_path(
                     band_id, resolution, size, writable=True, **kwargs
                 )
                 utils.write(band_arr, cloud_path)
@@ -762,40 +654,6 @@ class OpticalProduct(Product):
 
         return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{win_suffix}{cleaning_method.value}{rad_proc}.tif",
-        )
-
-    def _get_cloud_band_path(
-        self,
-        band: BandNames,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-        writable: bool = False,
-        **kwargs,
-    ) -> Union[CloudPath, Path]:
-        """
-        Get cloud band path.
-
-        Args:
-            band (BandNames): Wanted band
-            resolution (float): Band resolution in meters
-            writable (bool): True if we want the band folder to be writeable
-            kwargs: Additional arguments
-
-        Returns:
-            Union[CloudPath, Path]: Clean band path
-        """
-        # Manage resolution
-        if resolution is None:
-            if size is not None:
-                resolution = self._resolution_from_size(size)
-            else:
-                resolution = self.resolution
-
-        # Convert to str
-        res_str = self._resolution_to_str(resolution)
-
-        return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}.tif",
         )
 
     @cache

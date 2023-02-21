@@ -40,21 +40,10 @@ from eoreader.bands import (
     SarBandMap,
     SpectralBand,
     SpectralBandMap,
-    compute_index,
-    indices,
-    is_clouds,
-    is_dem,
-    is_index,
     is_sat_band,
     to_band,
-    to_str,
 )
-from eoreader.exceptions import (
-    InvalidBandError,
-    InvalidIndexError,
-    InvalidProductError,
-    InvalidTypeError,
-)
+from eoreader.exceptions import InvalidProductError
 from eoreader.products.product import OrbitDirection, Product, SensorType
 from eoreader.reader import Constellation
 from eoreader.utils import simplify
@@ -438,89 +427,6 @@ class CustomProduct(Product):
             )
 
         return band_arrays
-
-    def _load(
-        self,
-        bands: list,
-        resolution: float = None,
-        size: Union[list, tuple] = None,
-        **kwargs,
-    ) -> dict:
-        """
-        Core function loading bands
-
-        Args:
-            bands (list): Band list
-            resolution (float): Resolution of the band, in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
-            kwargs: Other arguments used to load bands
-
-        Returns:
-            Dictionary {band_name, band_xarray}
-        """
-        band_list = []
-        dem_list = []
-        index_list = []
-        for band in bands:
-            if is_index(band):
-                if self.sensor_type == SensorType.OPTICAL:
-                    if self._has_index(band):
-                        index_list.append(band)
-                    else:
-                        raise InvalidIndexError(
-                            f"{band} cannot be computed from custom data {self.condensed_name}."
-                        )
-                else:
-                    raise NotImplementedError(
-                        "For now, no index is implemented for SAR data."
-                    )
-            elif is_sat_band(band):
-                if not self.has_band(band):
-                    raise InvalidBandError(
-                        f"{band} cannot be retrieved from {self.condensed_name}"
-                    )
-                else:
-                    band_list.append(band)
-            elif is_dem(band):
-                dem_list.append(band)
-            elif is_clouds(band):
-                raise NotImplementedError(
-                    f"Clouds cannot be retrieved from custom data ({self.condensed_name})."
-                )
-            else:
-                raise InvalidTypeError(f"{band} is neither a band nor an index !")
-
-        # Check if DEM is set and exists
-        if dem_list:
-            self._check_dem_path(bands, **kwargs)
-
-        # Get all bands to be open
-        bands_to_load = band_list.copy()
-        for idx in index_list:
-            bands_to_load += indices.NEEDED_BANDS[idx]
-
-        # Load band arrays (only keep unique bands: open them only one time !)
-        unique_bands = list(set(bands_to_load))
-        if unique_bands:
-            LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
-        bands = self._load_bands(
-            unique_bands, resolution=resolution, size=size, **kwargs
-        )
-
-        # Compute index (they conserve the nodata)
-        if index_list:
-            LOGGER.debug(f"Loading indices {to_str(index_list)}")
-        bands_dict = {idx: compute_index(idx, bands) for idx in index_list}
-
-        # Add bands
-        bands_dict.update({band: bands[band] for band in band_list})
-
-        # Add DEM
-        bands_dict.update(
-            self._load_dem(dem_list, resolution=resolution, size=size, **kwargs)
-        )
-
-        return bands_dict
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):

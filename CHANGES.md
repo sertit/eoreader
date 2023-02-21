@@ -8,16 +8,18 @@
 - FIX: Clipping negative reflectances to 0 ([#79](https://github.com/sertit/eoreader/issues/79)
 - FIX: Fixing nodata mangement for Theia product
 - FIX: Fixing handling of SCS multi-swath `Cosmo-SkyMed` products ([#78](https://github.com/sertit/eoreader/issues/78)
+- FIX: Writing spectral indices on disk to align with other bands ([#80](https://github.com/sertit/eoreader/issues/80)
 
 ### Other
 
 - OPTIM: Using warped VRT instead of reprojecting DEM/VHR stacks to UTM ([#58](https://github.com/sertit/eoreader/issues/58)
 - TYP: Fixing typos in typing
-- Moving `EOREADER_NAME` and `DATETIME_FMT` into `__init__.py`
-- Moving stacking function into `utils`
-- Removing unused `cache_property` decorator
+- INTERNAL: Moving `EOREADER_NAME` and `DATETIME_FMT` into `__init__.py`
+- INTERNAL: Moving stacking function into `utils`
+- INTERNAL: Removing unused `cache_property` decorator
+- INTERNAL: Factorizing `_load` function
 - CI: Using `assert_raster_almost_equal_magnitude` in CI to better check according to bands' content (sertit 1.24.0)
-- Officially handling Python 3.11 (adding weekly tests on Python 3.11) ([#71](https://github.com/sertit/eoreader/issues/71)
+- DEPS: Officially handling Python 3.11 (adding weekly tests on Python 3.11) ([#71](https://github.com/sertit/eoreader/issues/71)
 
 ## 0.19.1 (2023-01-12)
 
