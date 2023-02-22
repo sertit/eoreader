@@ -22,6 +22,7 @@
 - CI: Using `assert_raster_almost_equal_magnitude` in CI to better check according to bands' content (sertit 1.24.0)
 - DEPS: Officially handling Python 3.11 (adding weekly tests on Python 3.11) ([#71](https://github.com/sertit/eoreader/issues/71)
 - DOC: Updating `Custom` notebook
+- DOC: Updating jupyter cache to match new way of handling outputs in readthedocs
 
 ## 0.19.1 (2023-01-12)
 

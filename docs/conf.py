@@ -15,6 +15,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import eoreader
 
 # -- General configuration ------------------------------------------------
@@ -56,10 +57,15 @@ autodoc_default_options = {
     'show-inheritance': True,
 }
 
+
 # Notebook integration parameters
 nb_execution_mode = "cache"
-nb_execution_cache_path = "./docs/_build/.jupyter_cache"
 nb_execution_timeout = -1
+
+# Manage new READTHEDOCS output mechanism
+cache_path = os.getenv('READTHEDOCS_OUTPUT')
+if cache_path is not None:
+    nb_execution_cache_path = f"{cache_path}/../docs/_build/.jupyter_cache"
 
 # Merge stderr and stdout
 nb_merge_streams = True
