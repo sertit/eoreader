@@ -9,6 +9,7 @@
 - FIX: Fixing nodata mangement for Theia product
 - FIX: Fixing handling of SCS multi-swath `Cosmo-SkyMed` products ([#78](https://github.com/sertit/eoreader/issues/78)
 - FIX: Writing spectral indices on disk to align with other bands ([#80](https://github.com/sertit/eoreader/issues/80)
+- FIX: By default, calibration is not applied to slant range `CSG` data, avoiding producing an empty raster ([#48](https://github.com/sertit/eoreader/issues/48)
 
 ### Other
 
