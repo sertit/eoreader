@@ -58,7 +58,7 @@ autodoc_default_options = {
 
 # Notebook integration parameters
 nb_execution_mode = "cache"
-jupyter_cache = "docs/_build/.jupyter_cache"
+nb_execution_cache_path = "./docs/_build/.jupyter_cache"
 nb_execution_timeout = -1
 
 # Merge stderr and stdout
