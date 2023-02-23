@@ -5,22 +5,22 @@
 ### Bug Fixes
 
 - FIX: Fixing stack when saved as integer for some special cases 
-- FIX: Clipping negative reflectances to 0 ([#79](https://github.com/sertit/eoreader/issues/79)
+- FIX: Clipping negative reflectances to 0 ([#79](https://github.com/sertit/eoreader/issues/79))
 - FIX: Fixing nodata mangement for Theia product
-- FIX: Fixing handling of SCS multi-swath `Cosmo-SkyMed` products ([#78](https://github.com/sertit/eoreader/issues/78)
-- FIX: Writing spectral indices on disk to align with other bands ([#80](https://github.com/sertit/eoreader/issues/80)
-- FIX: By default, calibration is not applied to slant range `CSG` data, avoiding producing an empty raster ([#48](https://github.com/sertit/eoreader/issues/48)
+- FIX: Fixing handling of SCS multi-swath `Cosmo-SkyMed` products ([#78](https://github.com/sertit/eoreader/issues/78))
+- FIX: Writing spectral indices on disk to align with other bands ([#80](https://github.com/sertit/eoreader/issues/80))
+- FIX: By default, calibration is not applied to slant range `CSG` data, avoiding producing an empty raster ([#48](https://github.com/sertit/eoreader/issues/48))
 
 ### Other
 
-- OPTIM: Using warped VRT instead of reprojecting DEM/VHR stacks to UTM ([#58](https://github.com/sertit/eoreader/issues/58)
+- OPTIM: Using warped VRT instead of reprojecting DEM/VHR stacks to UTM ([#58](https://github.com/sertit/eoreader/issues/58))
 - TYP: Fixing typos in typing
 - INTERNAL: Moving `EOREADER_NAME` and `DATETIME_FMT` into `__init__.py`
 - INTERNAL: Moving stacking function into `utils`
 - INTERNAL: Removing unused `cache_property` decorator
 - INTERNAL: Factorizing `_load` function
 - CI: Using `assert_raster_almost_equal_magnitude` in CI to better check according to bands' content (sertit 1.24.0)
-- DEPS: Officially handling Python 3.11 (adding weekly tests on Python 3.11) ([#71](https://github.com/sertit/eoreader/issues/71)
+- DEPS: Officially handling Python 3.11 (adding weekly tests on Python 3.11) ([#71](https://github.com/sertit/eoreader/issues/71))
 - DOC: Updating `Custom` notebook
 - DOC: Updating jupyter cache to match new way of handling outputs in readthedocs
 
@@ -44,7 +44,7 @@
 ### Enhancements
 
 - **ENH: Adding the support of Capella constellation** ([#74](https://github.com/sertit/eoreader/issues/74))
-- **ENH: Allow the user to load bands with a window (pixels and geo)** ([#25](https://github.com/sertit/eoreader/issues/25)
+- **ENH: Allow the user to load bands with a window (pixels and geo)** ([#25](https://github.com/sertit/eoreader/issues/25))
   , [notebook](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html))
 
 ### Bug Fixes
@@ -467,7 +467,7 @@
 
 ### Enhancements
 
-- **ENH: Allowing the user to choose the pixel processing for optical bands: raw band, only nodata or total cleaning of defective pixels** [#16](https://github.com/sertit/eoreader/issues/16)
+- **ENH: Allowing the user to choose the pixel processing for optical bands: raw band, only nodata or total cleaning of defective pixels** ([#16](https://github.com/sertit/eoreader/issues/16))
 - **ENH: Adding a CustomProduct, allowing the user to load any stack as an EOReader Product !**
 - **ENH: Check if a band exists before trying to load it**
 
@@ -509,7 +509,7 @@
 
 ### Optimizations
 
-- OPTIM: Writing cloud bands on disk to speed up multiple calls to `load` or `stack` functions [#17](https://github.com/sertit/eoreader/issues/17)
+- OPTIM: Writing cloud bands on disk to speed up multiple calls to `load` or `stack` functions ([#17](https://github.com/sertit/eoreader/issues/17))
 
 ### Bug Fixes
 
@@ -579,7 +579,7 @@
 - **ENH: Adding the support of the COSMO-SkyMed 2nd Generation sensor**
 - **ENH: Adding some attributes to bands and stack: `sensor`, `sensor_id`, `product_type`, `acquisition_date`
   , `condensed_name`** [#7](https://github.com/sertit/eoreader/issues/7)
-- **ENH: Replace name by filename and read directly the true name of the product in the metadata** [#15](https://github.com/sertit/eoreader/issues/15)
+- **ENH: Replace name by filename and read directly the true name of the product in the metadata** ([#15](https://github.com/sertit/eoreader/issues/15))
 
 ### Bug Fixes
 
@@ -603,7 +603,7 @@
 ### Breaking Changes
 
 - **BREAKING CHANGE: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties !**
-- **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** [#10](https://github.com/sertit/eoreader/issues/10)
+- **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** ([#10](https://github.com/sertit/eoreader/issues/10))
 - **BREAKING CHANGE: `HILLSHADE` is given in `float32` instead of `uint8`**
 - **BREAKING CHANGE: `SLOPE` is given in degrees instead of percents**
 
@@ -611,11 +611,11 @@
 
 - **ENH: Adding the support of the PAZ SAR sensor**
 - **ENH: Adding the support of the Sentinel-2 processed with
-  the [processing baseline 4.0](https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming)** [#11](https://github.com/sertit/eoreader/issues/11)
-- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !** [#12](https://github.com/sertit/eoreader/issues/12)
+  the [processing baseline 4.0](https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming)** ([#11](https://github.com/sertit/eoreader/issues/11))
+- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !** ([#12](https://github.com/sertit/eoreader/issues/12))
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
 - **ENH: Thermal bands of Sentinel-3 SLSTR can now be used**
-- **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for OLCI)** [#14](https://github.com/sertit/eoreader/issues/14)
+- **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for OLCI)** ([#14](https://github.com/sertit/eoreader/issues/14))
 - **ENH: `YELLOW` band is mapped to `Oa07` band of Sentinel-3 OLCI**
 - **ENH: Zipped Sentinel-3 products can now be processed**
 - **ENH: Allow the use of `kwargs` in `load`, mainly for `rasters.read` (and allowing i.e. radiance adjustment in S3-SLSTR)**
@@ -623,10 +623,10 @@
 ### Optimizations
 
 - OPTIM: `crs`, `footprint`, `extent`, `default_transform`, `wgs84_extent` are cached (
-  using `@cached_property`) [#13](https://github.com/sertit/eoreader/issues/13)
+  using `@cached_property`) ([#13](https://github.com/sertit/eoreader/issues/13))
 - OPTIM: `get_mean_sun_angles` and `default_transform` are now cached (
-  using `@cache`) [#13](https://github.com/sertit/eoreader/issues/13)
-- OPTIM: `get_datetime`: Look for the date only if `datetime` attribute is None [#13](https://github.com/sertit/eoreader/issues/13)
+  using `@cache`) ([#13](https://github.com/sertit/eoreader/issues/13))
+- OPTIM: `get_datetime`: Look for the date only if `datetime` attribute is None ([#13](https://github.com/sertit/eoreader/issues/13))
 - OPTIM: Better management of `fspath` for cloud-stored products (download the files only once)
 - OPTIM: Stop downloading/extracting files if not necessary
 
