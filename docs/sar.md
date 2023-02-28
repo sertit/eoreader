@@ -279,9 +279,9 @@ Available DEMs are:
 - `ACE2_5Min` 
 - `ACE30`
 - `ASTER 1sec GDEM`
-- `Copernicus 30m Global DEM`
+- `Copernicus 30m Global DEM` (by default)
 - `Copernicus 90m Global DEM`
-- `GETASSE30` (by default)
+- `GETASSE30`
 - `SRTM 1Sec HGT`
 - `SRTM 3Sec`
 - `External DEM`
