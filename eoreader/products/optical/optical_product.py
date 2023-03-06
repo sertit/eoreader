@@ -445,8 +445,11 @@ class OpticalProduct(Product):
             mask = np.expand_dims(mask, axis=0)
 
         # Set masked values to nodata
+        band_arr_nodata = band_arr.where(mask == 0)
 
-        return band_arr.where(mask == 0)
+        # Where sadly drops the encoding dict...
+        band_arr_nodata.rio.update_encoding(band_arr.encoding, inplace=True)
+        return band_arr_nodata
 
     @abstractmethod
     @cache

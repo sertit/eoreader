@@ -43,6 +43,7 @@ from eoreader.keywords import _prune_keywords
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 UINT16_NODATA = 65535
+DEFAULT_TILE_SIZE = 2048
 
 
 def get_src_dir() -> Union[CloudPath, Path]:
@@ -160,7 +161,7 @@ def read(
     window = kwargs.get("window")
 
     # Always use chunks
-    tile_size = os.getenv(TILE_SIZE, 4096)
+    tile_size = os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE)
     chunks = [1, tile_size, tile_size]
 
     try:
