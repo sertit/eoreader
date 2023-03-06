@@ -55,3 +55,8 @@ USE_DASK = "EOREADER_USE_DASK"
 """
 If set and  :code:`dask` is installed, EOReader will read products as dask arrays instead of numpy arrays.
 """
+
+TILE_SIZE = "EOREADER_TILE_SIZE"
+"""
+If set, overrides the default tile size used in chunking (2048 by default)
+"""
