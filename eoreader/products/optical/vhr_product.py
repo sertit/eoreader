@@ -578,6 +578,7 @@ class VhrProduct(OpticalProduct):
                 "transform": utm_tr,
                 "height": utm_h,
                 "width": utm_w,
+                # TODO: go nearest to speed up results ?
                 "resampling": Resampling.bilinear,
                 "nodata": self._raw_nodata,
                 "warp_mem_limit": int(MAX_MEM * 1e-06),
