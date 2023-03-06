@@ -58,5 +58,5 @@ If set and  :code:`dask` is installed, EOReader will read products as dask array
 
 TILE_SIZE = "EOREADER_TILE_SIZE"
 """
-If set, overrides the default tile size used in chunking (2048 by default)
+If set, overrides the default tile size used in chunking (2048 by default, i.e. default chunk is [1, 2048, 2048])
 """
