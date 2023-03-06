@@ -161,7 +161,7 @@ def read(
 
     # Always use chunks
     tile_size = os.getenv(TILE_SIZE, 4096)
-    chunks = [tile_size, tile_size]
+    chunks = [1, tile_size, tile_size]
 
     try:
         # Disable georef warnings here as the SAR/Sentinel-3 products are not georeferenced
