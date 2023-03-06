@@ -1,5 +1,11 @@
 # Release History
 
+## 0.YY.Z (2023-MM-DD)
+
+### Other
+
+- OPTIM: Always use chunks when reading rasters ([#58](https://github.com/sertit/eoreader/issues/58))
+
 ## 0.19.2 (2023-02-23)
 
 ### Bug Fixes

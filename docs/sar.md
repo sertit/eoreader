@@ -31,16 +31,16 @@ mostly because SNAP doesn't handle them.
 | `Capella`                           | SICD, SIDD, CPHD                     | ❌       |
 | `COSMO-Skymed`                      | SCS                                  | ✅       |
 | `COSMO-SkyMed` 1st Generation       | DGM                                  | ✅       |
-| `COSMO-SkyMed` 2nd Generation       | DGM                                  | ⚠️      |
-| `COSMO-SkyMed`                      | GEC, GTC                             | ⚠️      | 
+| `COSMO-SkyMed` 2nd Generation       | DGM                                  | ⚠       |
+| `COSMO-SkyMed`                      | GEC, GTC                             | ⚠       | 
 | `ICEYE`                             | SLC                                  | ✅       |
 | `ICEYE`                             | GRD                                  | ✅       | 
 | `ICEYE`                             | ORTHO                                | 💤      |
-| `RADARSAT Constellation Mission`    | SLC                                  | ⚠️      | 
-| `RADARSAT Constellation Mission`    | GRC, GCC, GCD                        | ⚠️      |
+| `RADARSAT Constellation Mission`    | SLC                                  | ⚠       | 
+| `RADARSAT Constellation Mission`    | GRC, GCC, GCD                        | ⚠       |
 | `RADARSAT Constellation Mission`    | GRD                                  | ✅       | 
 | `RADARSAT-2`                        | SLC                                  | ✅       | 
-| `RADARSAT-2`                        | SGX, SCN, SCW,<br>SCF, SCS, SSG, SPG | ⚠️      |
+| `RADARSAT-2`                        | SGX, SCN, SCW,<br>SCF, SCS, SSG, SPG | ⚠       |
 | `RADARSAT-2`                        | SGF                                  | ✅       |
 | `Sentinel-1`                        | SLC                                  | ✅       | 
 | `Sentinel-1`                        | GRD                                  | ✅       |
@@ -50,11 +50,11 @@ mostly because SNAP doesn't handle them.
 | `SAOCOM-1`                          | GTC                                  | ✅       |
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | SSC                                  | ✅       | 
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | MGD                                  | ✅       |
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | GEC                                  | ⚠️      |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | GEC                                  | ⚠       |
 | `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | EEC                                  | ✅       |
 
 ✅: Tested   
-⚠️: Never tested, **use it at your own risk!**  
+⚠: Never tested, **use it at your own risk!**  
 ❌: Not handled   
 💤: Waiting for the release  
 

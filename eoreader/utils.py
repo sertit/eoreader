@@ -37,7 +37,7 @@ from sertit import rasters
 
 from eoreader import EOREADER_NAME
 from eoreader.bands import is_index, is_sat_band, to_str
-from eoreader.env_vars import USE_DASK
+from eoreader.env_vars import TILE_SIZE, USE_DASK
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import _prune_keywords
 
@@ -159,10 +159,9 @@ def read(
     """
     window = kwargs.get("window")
 
-    if use_dask():
-        chunks = True
-    else:
-        chunks = None
+    # Always use chunks
+    tile_size = os.getenv(TILE_SIZE, 2048)
+    chunks = [tile_size, tile_size]
 
     try:
         # Disable georef warnings here as the SAR/Sentinel-3 products are not georeferenced
