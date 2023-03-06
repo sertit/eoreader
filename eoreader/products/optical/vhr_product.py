@@ -37,7 +37,7 @@ from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
 from sertit import files, rasters, rasters_rio
-from sertit.snap import MAX_CORES
+from sertit.snap import MAX_CORES, MAX_MEM
 
 from eoreader import EOREADER_NAME, utils
 from eoreader.bands import BandNames
@@ -575,12 +575,14 @@ class VhrProduct(OpticalProduct):
             )
 
             vrt_options = {
-                "resampling": Resampling.bilinear,
                 "crs": self.crs(),
                 "transform": utm_tr,
                 "height": utm_h,
                 "width": utm_w,
+                "resampling": Resampling.nearest,
                 "nodata": self._raw_nodata,
+                "warp_mem_limit": int(MAX_MEM * 1e-06),
+                "dtype": src.meta["dtype"],
             }
 
             with WarpedVRT(src, **vrt_options) as vrt:

@@ -160,7 +160,7 @@ def read(
     window = kwargs.get("window")
 
     # Always use chunks
-    tile_size = os.getenv(TILE_SIZE, 2048)
+    tile_size = os.getenv(TILE_SIZE, 4096)
     chunks = [tile_size, tile_size]
 
     try:
