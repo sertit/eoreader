@@ -361,7 +361,7 @@ class VhrProduct(OpticalProduct):
                     )
 
                 # Read band
-                LOGGER.debug(f"Reading warped {band.name}...")
+                LOGGER.debug(f"Reading warped {band.name}.")
                 band_arr = utils.read(
                     reproj_path,
                     resolution=resolution,
@@ -370,7 +370,6 @@ class VhrProduct(OpticalProduct):
                     indexes=[self.bands[band].id],
                     **kwargs,
                 )
-                LOGGER.debug(f"...Warped {band.name} read.")
 
             # Manage the case if we open a simple band (EOReader processed bands)
             elif dst.count == 1:

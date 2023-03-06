@@ -5,6 +5,7 @@
 ### Other
 
 - OPTIM: Always use chunks when reading rasters ([#58](https://github.com/sertit/eoreader/issues/58))
+- OPTIM: Speed up VRT virtual warping
 
 ## 0.19.2 (2023-02-23)
 
