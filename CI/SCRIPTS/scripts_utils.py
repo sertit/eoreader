@@ -130,7 +130,7 @@ def dask_env(function: Callable):
                 LOGGER.info("Using DASK Local Cluster")
                 function()
         else:
-            os.environ[TILE_SIZE] = "4096"
+            os.environ[TILE_SIZE] = "512"
             LOGGER.info("Using DASK Threading")
             function()
 
