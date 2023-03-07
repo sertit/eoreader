@@ -188,7 +188,9 @@ class CustomProduct(Product):
         """
 
         # Datetime
-        dt = self.kwargs.get(CustomFields.DATETIME.value, datetime.now())
+        dt = self.kwargs.get(CustomFields.DATETIME.value)
+        if dt is None:
+            dt = datetime.now()
         if isinstance(dt, str):
             try:
                 dt = datetime.fromisoformat(dt)
