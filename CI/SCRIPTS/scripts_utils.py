@@ -9,7 +9,7 @@ from cloudpathlib import AnyPath, CloudPath
 from sertit import ci
 
 from eoreader import EOREADER_NAME
-from eoreader.env_vars import USE_DASK
+from eoreader.env_vars import TILE_SIZE, USE_DASK
 from eoreader.reader import Reader
 from eoreader.utils import use_dask
 
@@ -130,6 +130,7 @@ def dask_env(function: Callable):
                 LOGGER.info("Using DASK Local Cluster")
                 function()
         else:
+            os.environ[TILE_SIZE] = "4096"
             LOGGER.info("Using DASK Threading")
             function()
 
