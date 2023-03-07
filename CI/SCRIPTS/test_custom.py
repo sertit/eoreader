@@ -34,7 +34,7 @@ ci.reduce_verbosity()
 
 @s3_env
 @dask_env
-def test_custom():
+def test_custom_optical():
     # -- OPTICAL
     # Load with all info
     opt_stack = others_path() / "20200310T030415_WV02_Ortho_BGRN_STK.tif"
@@ -146,6 +146,8 @@ def test_custom():
             opt_stack, custom=True, band_map={BLUE: 1, "GREEN": 2, RED: 3, "NIR": 4}
         )
 
+
+def test_custom_sar():
     # SAR
     sar_stack = others_path() / "20210827T162210_ICEYE_SC_GRD_STK.tif"
 
@@ -183,6 +185,7 @@ def test_custom():
     assert stack_sar.attrs["product_path"] == str(sar_stack)
 
     # MIX
+    sar_stack = others_path() / "20210827T162210_ICEYE_SC_GRD_STK.tif"
     prod_wtf = READER.open(
         sar_stack,
         custom=True,
@@ -191,6 +194,7 @@ def test_custom():
         name=None,
         product_type=None,
         instrument=None,
+        datetime=None,
         resolution=6.0,
     )
     LOGGER.info(prod_wtf)
@@ -208,6 +212,8 @@ def test_custom():
 
     np.testing.assert_array_equal(stack_sar.data, stack_wtf.data)
 
+
+def test_custom_wgs84():
     # WGS84
     wgs84_stack = others_path() / "SPOT6_WGS84.tif"
     prod_wgs84 = READER.open(
@@ -267,7 +273,10 @@ def test_custom():
     with pytest.raises(AssertionError):
         prod_wgs84.load(CLOUDS, YELLOW)
 
+
+def test_custom_invalid():
     # Invalid tests
+    opt_stack = others_path() / "20200310T030415_WV02_Ortho_BGRN_STK.tif"
     with pytest.raises(InvalidTypeError):
         READER.open(
             opt_stack,

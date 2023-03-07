@@ -2,6 +2,10 @@
 
 ## 0.YY.Z (2023-MM-DD)
 
+### Bug Fixes
+
+FIX: Fixing `Custom Stacks` when specifying `datetime=None` on creation
+
 ### Other
 
 - OPTIM: Always use chunks when reading rasters ([#58](https://github.com/sertit/eoreader/issues/58))
