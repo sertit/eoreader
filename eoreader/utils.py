@@ -43,6 +43,7 @@ from eoreader.keywords import _prune_keywords
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 DEFAULT_TILE_SIZE = 2048
+UINT16_NODATA = rasters.UINT16_NODATA
 
 
 def get_src_dir() -> Union[CloudPath, Path]:
@@ -442,7 +443,7 @@ def stack_dict(
                 # - Satellite bands
                 # - index
                 if is_sat_band(band) or is_index(band):
-                    if np.nanmax(stack[b_id, ...]) > rasters.UINT16_NODATA / scale:
+                    if np.nanmax(stack[b_id, ...]) > UINT16_NODATA / scale:
                         LOGGER.debug(
                             "Band not in reflectance, keeping them as is (the values will be rounded)"
                         )
