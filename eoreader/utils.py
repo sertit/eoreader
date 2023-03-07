@@ -161,7 +161,7 @@ def read(
     window = kwargs.get("window")
 
     # Always use chunks
-    tile_size = os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE)
+    tile_size = int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE))
     chunks = [1, tile_size, tile_size]
     LOGGER.debug(f"Current chunking: {chunks}")
 
