@@ -42,7 +42,6 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import _prune_keywords
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-UINT16_NODATA = 65535
 DEFAULT_TILE_SIZE = 2048
 
 
@@ -163,6 +162,7 @@ def read(
     # Always use chunks
     tile_size = os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE)
     chunks = [1, tile_size, tile_size]
+    LOGGER.debug(f"Current chunking: {chunks}")
 
     try:
         # Disable georef warnings here as the SAR/Sentinel-3 products are not georeferenced
@@ -442,7 +442,7 @@ def stack_dict(
                 # - Satellite bands
                 # - index
                 if is_sat_band(band) or is_index(band):
-                    if np.nanmax(stack[b_id, ...]) > UINT16_NODATA / scale:
+                    if np.nanmax(stack[b_id, ...]) > rasters.UINT16_NODATA / scale:
                         LOGGER.debug(
                             "Band not in reflectance, keeping them as is (the values will be rounded)"
                         )
