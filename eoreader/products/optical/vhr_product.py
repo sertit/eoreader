@@ -37,14 +37,15 @@ from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
 from sertit import files, rasters, rasters_rio
-from sertit.snap import MAX_CORES, MAX_MEM
+from sertit.snap import MAX_CORES
 
 from eoreader import EOREADER_NAME, utils
 from eoreader.bands import BandNames
-from eoreader.env_vars import DEM_PATH
+from eoreader.env_vars import DEM_PATH, TILE_SIZE
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import DEM_KW
 from eoreader.products import OpticalProduct
+from eoreader.utils import DEFAULT_TILE_SIZE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -581,14 +582,18 @@ class VhrProduct(OpticalProduct):
                 # TODO: go nearest to speed up results ?
                 "resampling": Resampling.bilinear,
                 "nodata": self._raw_nodata,
-                "warp_mem_limit": int(MAX_MEM * 1e-06),
+                # Float32 is the max possible
+                "warp_mem_limit": 32
+                * int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE))
+                / 1e6,
                 "dtype": src.meta["dtype"],
+                "num_threads": MAX_CORES,
             }
-
-            with WarpedVRT(src, **vrt_options) as vrt:
-                # At this point 'vrt' is a full dataset with dimensions,
-                # CRS, and spatial extent matching 'vrt_options'.
-                rio_shutil.copy(vrt, reproj_path, driver="vrt")
+            with rasterio.Env(
+                **{"GDAL_NUM_THREADS": "ALL_CPUS", "NUM_THREADS": "ALL_CPUS"}
+            ):
+                with WarpedVRT(src, **vrt_options) as vrt:
+                    rio_shutil.copy(vrt, reproj_path, driver="vrt")
 
     def _get_default_utm_band(
         self, resolution: float = None, size: Union[list, tuple] = None
