@@ -584,7 +584,7 @@ class VhrProduct(OpticalProduct):
                 "nodata": self._raw_nodata,
                 # Float32 is the max possible
                 "warp_mem_limit": 32
-                * int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE))
+                * int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE)) ** 2
                 / 1e6,
                 "dtype": src.meta["dtype"],
                 "num_threads": MAX_CORES,
