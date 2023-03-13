@@ -43,7 +43,7 @@ pystac[validation]
 sertit[full]>=1.24.0
 
 # Optimizations
-dask[complete]==2021.10.0
+dask[complete]>=2021.10.0
 methodtools
 
 # Plot
