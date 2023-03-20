@@ -163,7 +163,7 @@ def read(
     # Always use chunks
     tile_size = int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE))
     chunks = [1, tile_size, tile_size]
-    LOGGER.debug(f"Current chunking: {chunks}")
+    # LOGGER.debug(f"Current chunking: {chunks}")
 
     try:
         # Disable georef warnings here as the SAR/Sentinel-3 products are not georeferenced
