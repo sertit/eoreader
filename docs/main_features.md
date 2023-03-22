@@ -126,6 +126,11 @@ Some additional arguments can be passed to this function, please see {meth}`~eor
 - Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html).
 - Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html)).
 
+💡 The bands will be opened with a chunk of `[1, TILE_SIZE, TILE_SIZE]` with `TILE_SIZE` coming from the 
+[`EOREADER_TILE_SIZE` environment variable](https://eoreader.readthedocs.io/en/latest/api/eoreader.env_vars.TILE_SIZE.html#eoreader.env_vars.TILE_SIZE). 
+The `TILE_SIZE` default value is 2048.
+
+
 ## Stack
 
 {meth}`~eoreader.products.product.Product.stack()` is the function stacking all possible bands.
