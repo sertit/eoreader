@@ -56,11 +56,11 @@ from eoreader.stac.stac_utils import (
 
 SAR_STAC_EXTENSIONS = [
     "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
-    "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+    "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
 ]
 OPTICAL_STAC_EXTENSIONS = [
     "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
-    "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+    "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
     "https://stac-extensions.github.io/view/v1.0.0/schema.json",
 ]
 
