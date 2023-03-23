@@ -53,10 +53,10 @@ in order to bypass SNAP process and DEM reprojection.
 
 USE_DASK = "EOREADER_USE_DASK"
 """
-If set and  :code:`dask` is installed, EOReader will read products as dask arrays instead of numpy arrays.
+If set (to 1) and :code:`dask` is installed, EOReader will read products as dask arrays instead of numpy arrays with the chunking defined in :code:`EOREADER_TILE_SIZE`.
 """
 
 TILE_SIZE = "EOREADER_TILE_SIZE"
 """
-If set, overrides the default tile size used in chunking (2048 by default, i.e. default chunk is [1, 2048, 2048])
+If set, overrides the default tile size used in chunking (2048 by default, i.e. default chunk is [1, 2048, 2048]). Only used if :code:`EOREADER_USE_DASK` is set to 1.
 """
