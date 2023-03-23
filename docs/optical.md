@@ -262,7 +262,7 @@ WorldView-1 is not concerned by spectral indices as it only has a panchromatic b
 
 ## Documentary Sources
 
-- [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Document+-+current+%2810%29.pdf)
+- [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20123/121286/DAP+Release+phase2_Latest.pdf)
 
 ### Copernicus
 
