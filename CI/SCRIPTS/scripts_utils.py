@@ -9,7 +9,7 @@ from cloudpathlib import AnyPath, CloudPath
 from sertit import ci
 
 from eoreader import EOREADER_NAME
-from eoreader.env_vars import TILE_SIZE, USE_DASK
+from eoreader.env_vars import TILE_SIZE
 from eoreader.reader import Reader
 from eoreader.utils import use_dask
 
@@ -118,21 +118,25 @@ def dask_env(function: Callable):
     @wraps(function)
     def dask_env_wrapper():
         """S3 environment wrapper"""
-        os.environ[
-            USE_DASK
-        ] = "0"  # For now, our CI cannot create a cluster (memory insufficient)
+        # os.environ[
+        #     USE_DASK
+        # ] = "0"  # For now, our CI cannot create a cluster (memory insufficient)
+        # if use_dask():
+        #     from dask.distributed import Client, LocalCluster
+        #
+        #     with LocalCluster(
+        #         n_workers=4, threads_per_worker=4, processes=True
+        #     ) as cluster, Client(cluster):
+        #         LOGGER.info("Using DASK Local Cluster")
+        #         function()
+        # else:
+        os.environ[TILE_SIZE] = "2048"
         if use_dask():
-            from dask.distributed import Client, LocalCluster
-
-            with LocalCluster(
-                n_workers=4, threads_per_worker=4, processes=True
-            ) as cluster, Client(cluster):
-                LOGGER.info("Using DASK Local Cluster")
-                function()
+            LOGGER.info("Using DASK threading by chunking the data")
         else:
-            os.environ[TILE_SIZE] = "2048"
-            LOGGER.info("Using DASK Threading")
-            function()
+            LOGGER.info("No chunking will be done. Beware of memory overflow errors!")
+
+        function()
 
     return dask_env_wrapper
 

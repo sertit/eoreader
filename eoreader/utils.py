@@ -111,7 +111,7 @@ def get_split_name(name: str) -> list:
 def use_dask():
     """Use Dask or not"""
     # Check environment variable
-    _use_dask = os.getenv(USE_DASK, "0").lower() in ("1", "true")
+    _use_dask = os.getenv(USE_DASK, "1").lower() in ("1", "true")
 
     # Check installed libs
     if _use_dask:
@@ -162,8 +162,13 @@ def read(
 
     # Always use chunks
     tile_size = int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE))
-    chunks = [1, tile_size, tile_size]
-    # LOGGER.debug(f"Current chunking: {chunks}")
+
+    if use_dask():
+        chunks = kwargs.get("chunks", [1, tile_size, tile_size])
+        # LOGGER.debug(f"Current chunking: {chunks}")
+    else:
+        # LOGGER.debug("Dask use is not enabled. No chunk will be used, but you may encounter memory overflow errors.")
+        chunks = None
 
     try:
         # Disable georef warnings here as the SAR/Sentinel-3 products are not georeferenced
@@ -178,7 +183,7 @@ def read(
                 size=size if window is None else None,
                 window=window,
                 chunks=chunks,
-                **_prune_keywords(additional_keywords=["window"], **kwargs),
+                **_prune_keywords(additional_keywords=["window", "chunks"], **kwargs),
             )
     except errors.RasterioIOError as ex:
         if (str(path).endswith("jp2") or str(path).endswith("tif")) and path.exists():
@@ -208,12 +213,14 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
         path (Union[str, CloudPath, Path]): Path where to save it (directories should be existing)
         **kwargs: Overloading metadata, ie :code:`nodata=255` or :code:`dtype=np.uint8`
     """
+    lock = None
     if use_dask():
         from distributed import Lock, get_client
 
-        lock = Lock("rio", client=get_client())
-    else:
-        lock = None
+        try:
+            lock = Lock("rio", client=get_client())
+        except ValueError:
+            pass
 
     # Reset the long name as a list to write it down
     previous_long_name = xds.attrs.get("long_name")

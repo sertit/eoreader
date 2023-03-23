@@ -61,6 +61,8 @@ pytest:
 pytest_s3:
   image: $EEO_DEPS:38
   stage: test
+  variables:
+    EOREADER_USE_DASK: "0"
   before_script:
     - python -m pip install --upgrade pip
     - pip install --ignore-installed PyYAML
@@ -91,6 +93,8 @@ pytest_s3:
 pytest_end_to_end:
   image: $EEO_DEPS:38
   stage: test
+  variables:
+    EOREADER_USE_DASK: "0"
   before_script:
     - python -m pip install --upgrade pip
     - pip install --ignore-installed PyYAML
@@ -114,6 +118,8 @@ pytest_end_to_end:
 pytest_end_to_end39:
   image: $EEO_DEPS:latest
   stage: test
+  variables:
+    EOREADER_USE_DASK: "0"
   before_script:
     - python -m pip install --upgrade pip
     - pip install --ignore-installed PyYAML
@@ -138,6 +144,9 @@ pytest_end_to_end39:
 pytest_end_to_end310:
   image: $EEO_DEPS:310
   stage: test
+  variables:
+    # Use Dask for python 3.10
+    EOREADER_USE_DASK: "1"
   before_script:
     - python -m pip install --upgrade pip
     - pip install --ignore-installed PyYAML
@@ -162,6 +171,9 @@ pytest_end_to_end310:
 pytest_end_to_end311:
   image: $EEO_DEPS:311
   stage: test
+  variables:
+    # Use Dask for python 3.11
+    EOREADER_USE_DASK: "1"
   before_script:
     - python -m pip install --upgrade pip
     - pip install --ignore-installed PyYAML
