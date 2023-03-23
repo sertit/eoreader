@@ -408,7 +408,7 @@ variable:
 
 ## Documentary Sources
 
-- [Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Document+-+current+%2810%29.pdf)
+- [Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20123/121286/DAP+Release+phase2_Latest.pdf)
 
 ### Copernicus 
 - [Copernicus Contributing Missions](https://www.esa.int/ESA_Multimedia/Images/2021/09/Copernicus_Contributing_Missions_overview)
