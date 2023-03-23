@@ -497,7 +497,7 @@ class CosmoProduct(SarProduct):
         """
         with h5netcdf.File(self._img_path, phony_dims="access") as raw_h5:
             swaths = list(raw_h5.groups)
-            if len(swaths) == 1:
+            if self.sar_prod_type == SarProductType.GDRG or len(swaths) == 1:
                 return super()._pre_process_sar(band, resolution, **kwargs)
             else:
                 LOGGER.warning(
