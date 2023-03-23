@@ -694,6 +694,16 @@ class SarProduct(Product):
                         pp_graph = utils.get_data_dir().joinpath(
                             "cplx_no_calib_preprocess_default.xml"
                         )
+                    elif (
+                        self.constellation == Constellation.CSK
+                        and self.sensor_mode.name == "HR"
+                    ):
+                        LOGGER.debug(
+                            "SNAP Error: Calibration currently fails for CSK HR data. Removing this step."
+                        )
+                        pp_graph = utils.get_data_dir().joinpath(
+                            "grd_sar_preprocess_fallback.xml"
+                        )
 
                     else:
                         sat = (

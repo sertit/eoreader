@@ -6,6 +6,7 @@
 
 - FIX: Fixing `Custom Stacks` when specifying `datetime=None` on creation
 - FIX: Fix regression for multi-swath DGM CSK data (huge region) ([#78](https://github.com/sertit/eoreader/issues/78))
+- FIX: Fix calibration issues with CSK HR data (using fallback GPT graph by default)
 
 ### Other
 
