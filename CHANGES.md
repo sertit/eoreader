@@ -4,7 +4,8 @@
 
 ### Bug Fixes
 
-FIX: Fixing `Custom Stacks` when specifying `datetime=None` on creation
+- FIX: Fixing `Custom Stacks` when specifying `datetime=None` on creation
+- FIX: Fix regression for multi-swath DGM CSK data (huge region) ([#78](https://github.com/sertit/eoreader/issues/78))
 
 ### Other
 
