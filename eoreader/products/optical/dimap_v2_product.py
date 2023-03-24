@@ -305,9 +305,9 @@ class DimapV2Product(VhrProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
         # Not Pansharpened images
         if self.band_combi in [
@@ -316,10 +316,10 @@ class DimapV2Product(VhrProduct):
             DimapV2BandCombination.MS_N,
             DimapV2BandCombination.MS_FS,
         ]:
-            return self._ms_res
+            self.pixel_size = self._ms_res
         # Pansharpened images
         else:
-            return self._pan_res
+            self.pixel_size = self._pan_res
 
     def _map_bands_core(self, **kwargs) -> None:
         """
@@ -850,7 +850,7 @@ class DimapV2Product(VhrProduct):
     def _open_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -859,8 +859,8 @@ class DimapV2Product(VhrProduct):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -873,18 +873,18 @@ class DimapV2Product(VhrProduct):
             has_vec = len(cld_vec) > 0
 
             # Load default xarray as a template
-            def_utm_path = self._get_default_utm_band(resolution=resolution, size=size)
+            def_utm_path = self._get_default_utm_band(pixel_size=pixel_size, size=size)
 
             with rasterio.open(str(def_utm_path)) as dst:
                 if dst.count > 1:
                     def_xarr = utils.read(
                         dst,
-                        resolution=resolution,
+                        pixel_size=pixel_size,
                         size=size,
                         indexes=[self.bands[self.get_default_band()].id],
                     )
                 else:
-                    def_xarr = utils.read(dst, resolution=resolution, size=size)
+                    def_xarr = utils.read(dst, pixel_size=pixel_size, size=size)
 
                 # Load nodata
                 width = def_xarr.rio.width
@@ -1043,7 +1043,7 @@ class DimapV2Product(VhrProduct):
                         )
 
                         # Do not keep pixelized mask
-                        mask = utils.simplify_footprint(mask, self.resolution)
+                        mask = utils.simplify_footprint(mask, self.pixel_size)
 
             # Sometimes the GML mask lacks crs (why ?)
             elif (

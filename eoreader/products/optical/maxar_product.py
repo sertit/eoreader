@@ -466,19 +466,19 @@ class MaxarProduct(VhrProduct):
         super()._post_init(**kwargs)
 
     @abstractmethod
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
 
         # Band combination
         root, _ = self.read_mtd()
-        resol = root.findtext(".//MAP_PROJECTED_PRODUCT/PRODUCTGSD")
-        if not resol:
+        gsd = root.findtext(".//MAP_PROJECTED_PRODUCT/PRODUCTGSD")
+        if not gsd:
             raise InvalidProductError(
                 "Cannot find PRODUCTGSD type in the metadata file"
             )
-        return float(resol)
+        self.pixel_size = float(gsd)
 
     def _get_spectral_bands(self) -> dict:
         """
@@ -719,67 +719,67 @@ class MaxarProduct(VhrProduct):
             MaxarBandId.Y,
             MaxarBandId.C,
         ]:
-            band_map = {PAN: pan.update(id=1, gsd=self.resolution)}
+            band_map = {PAN: pan.update(id=1, gsd=self.pixel_size)}
         elif self.band_combi == MaxarBandId.RGB:
             band_map = {
-                RED: red.update(id=1, gsd=self.resolution),
-                GREEN: green.update(id=2, gsd=self.resolution),
-                BLUE: blue.update(id=3, gsd=self.resolution),
+                RED: red.update(id=1, gsd=self.pixel_size),
+                GREEN: green.update(id=2, gsd=self.pixel_size),
+                BLUE: blue.update(id=3, gsd=self.pixel_size),
             }
         elif self.band_combi == MaxarBandId.NRG:
             band_map = {
-                NIR: nir.update(id=1, gsd=self.resolution),
-                NARROW_NIR: nir.update(id=1, gsd=self.resolution),
-                RED: red.update(id=2, gsd=self.resolution),
-                GREEN: green.update(id=3, gsd=self.resolution),
+                NIR: nir.update(id=1, gsd=self.pixel_size),
+                NARROW_NIR: nir.update(id=1, gsd=self.pixel_size),
+                RED: red.update(id=2, gsd=self.pixel_size),
+                GREEN: green.update(id=3, gsd=self.pixel_size),
             }
         elif self.band_combi == MaxarBandId.BGRN:
             band_map = {
-                BLUE: blue.update(id=1, gsd=self.resolution),
-                GREEN: green.update(id=2, gsd=self.resolution),
-                RED: red.update(id=3, gsd=self.resolution),
-                NIR: nir.update(id=4, gsd=self.resolution),
-                NARROW_NIR: nir.update(id=4, gsd=self.resolution),
+                BLUE: blue.update(id=1, gsd=self.pixel_size),
+                GREEN: green.update(id=2, gsd=self.pixel_size),
+                RED: red.update(id=3, gsd=self.pixel_size),
+                NIR: nir.update(id=4, gsd=self.pixel_size),
+                NARROW_NIR: nir.update(id=4, gsd=self.pixel_size),
             }
         elif self.band_combi == MaxarBandId.MS1:
             band_map = {
-                NIR: nir.update(id=1, gsd=self.resolution),
-                NARROW_NIR: nir.update(id=1, gsd=self.resolution),
-                RED: red.update(id=2, gsd=self.resolution),
-                GREEN: green.update(id=3, gsd=self.resolution),
-                BLUE: blue.update(id=4, gsd=self.resolution),
+                NIR: nir.update(id=1, gsd=self.pixel_size),
+                NARROW_NIR: nir.update(id=1, gsd=self.pixel_size),
+                RED: red.update(id=2, gsd=self.pixel_size),
+                GREEN: green.update(id=3, gsd=self.pixel_size),
+                BLUE: blue.update(id=4, gsd=self.pixel_size),
             }
         elif self.band_combi == MaxarBandId.MS2:
             band_map = {
-                WV: wv.update(id=1, gsd=self.resolution),
-                VRE_1: vre.update(id=2, gsd=self.resolution),
-                VRE_2: vre.update(id=2, gsd=self.resolution),
-                VRE_3: vre.update(id=2, gsd=self.resolution),
-                YELLOW: yellow.update(id=3, gsd=self.resolution),
-                CA: ca.update(id=4, gsd=self.resolution),
+                WV: wv.update(id=1, gsd=self.pixel_size),
+                VRE_1: vre.update(id=2, gsd=self.pixel_size),
+                VRE_2: vre.update(id=2, gsd=self.pixel_size),
+                VRE_3: vre.update(id=2, gsd=self.pixel_size),
+                YELLOW: yellow.update(id=3, gsd=self.pixel_size),
+                CA: ca.update(id=4, gsd=self.pixel_size),
             }
         elif self.band_combi == MaxarBandId.Multi:
             if self.constellation_id in (MaxarSatId.WV02.name, MaxarSatId.WV03.name):
                 band_map = {
-                    CA: ca.update(id=1, gsd=self.resolution),
-                    BLUE: blue.update(id=2, gsd=self.resolution),
-                    GREEN: green.update(id=3, gsd=self.resolution),
-                    YELLOW: yellow.update(id=4, gsd=self.resolution),
-                    RED: red.update(id=5, gsd=self.resolution),
-                    VRE_1: vre.update(id=6, gsd=self.resolution),
-                    VRE_2: vre.update(id=6, gsd=self.resolution),
-                    VRE_3: vre.update(id=6, gsd=self.resolution),
-                    NIR: nir.update(id=7, gsd=self.resolution),
-                    NARROW_NIR: nir.update(id=7, gsd=self.resolution),
-                    WV: wv.update(id=8, gsd=self.resolution),
+                    CA: ca.update(id=1, gsd=self.pixel_size),
+                    BLUE: blue.update(id=2, gsd=self.pixel_size),
+                    GREEN: green.update(id=3, gsd=self.pixel_size),
+                    YELLOW: yellow.update(id=4, gsd=self.pixel_size),
+                    RED: red.update(id=5, gsd=self.pixel_size),
+                    VRE_1: vre.update(id=6, gsd=self.pixel_size),
+                    VRE_2: vre.update(id=6, gsd=self.pixel_size),
+                    VRE_3: vre.update(id=6, gsd=self.pixel_size),
+                    NIR: nir.update(id=7, gsd=self.pixel_size),
+                    NARROW_NIR: nir.update(id=7, gsd=self.pixel_size),
+                    WV: wv.update(id=8, gsd=self.pixel_size),
                 }
             else:
                 band_map = {
-                    NIR: nir.update(id=1, gsd=self.resolution),
-                    NARROW_NIR: nir.update(id=1, gsd=self.resolution),
-                    RED: red.update(id=2, gsd=self.resolution),
-                    GREEN: green.update(id=3, gsd=self.resolution),
-                    BLUE: blue.update(id=4, gsd=self.resolution),
+                    NIR: nir.update(id=1, gsd=self.pixel_size),
+                    NARROW_NIR: nir.update(id=1, gsd=self.pixel_size),
+                    RED: red.update(id=2, gsd=self.pixel_size),
+                    GREEN: green.update(id=3, gsd=self.pixel_size),
+                    BLUE: blue.update(id=4, gsd=self.pixel_size),
                 }
         else:
             raise InvalidProductError(
@@ -908,7 +908,7 @@ class MaxarProduct(VhrProduct):
             footprint_dezoom = 10
             arr = rasters.read(
                 self.get_default_band_path(),
-                resolution=self.resolution * footprint_dezoom,
+                resolution=self.pixel_size * footprint_dezoom,
                 indexes=[1],
             )
 
@@ -1124,7 +1124,7 @@ class MaxarProduct(VhrProduct):
     def _open_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -1133,8 +1133,8 @@ class MaxarProduct(VhrProduct):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}

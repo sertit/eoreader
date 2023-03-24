@@ -152,16 +152,16 @@ class Vis1Product(DimapV1Product):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
         # Not Pansharpened images
         if self.band_combi == Vis1BandCombination.MS4:
-            return self._ms_res
+            self.pixel_size = self._ms_res
         # Pansharpened images
         else:
-            return self._pan_res
+            self.pixel_size = self._pan_res
 
     def _set_instrument(self) -> None:
         """
@@ -308,7 +308,7 @@ class Vis1Product(DimapV1Product):
                 footprint_dezoom = 10
                 arr = rasters.read(
                     self.get_default_band_path(),
-                    resolution=self.resolution * footprint_dezoom,
+                    resolution=self.pixel_size * footprint_dezoom,
                     indexes=[1],
                 )
 

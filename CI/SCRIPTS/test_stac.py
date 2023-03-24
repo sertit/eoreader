@@ -203,7 +203,7 @@ def _test_core(
                     f"{CONSTELLATION} (item.properties)",
                 )
                 compare(
-                    item.properties[GSD], prod.resolution, f"{GSD} (item.properties)"
+                    item.properties[GSD], prod.pixel_size, f"{GSD} (item.properties)"
                 )
                 compare(
                     item.properties[DATETIME],

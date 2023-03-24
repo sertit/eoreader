@@ -201,6 +201,13 @@ class Product:
         For SAR product, we use Ground Range resolution as we will automatically orthorectify the tiles.
         """
 
+        self.pixel_size = None
+        """
+        For SAR data, it is important to distinguish (square) pixel spacing from actual resolution.
+        (see `this <https://natural-resources.canada.ca/maps-tools-and-publications/satellite-imagery-and-air-photos/tutorial-fundamentals-remote-sensing/satellites-and-sensors/spatial-resolution-pixel-size-and-scale/9407>` for more information).
+        For optical data, those two terms have usually the same meaning (for a fully zoomed raster).
+        """
+
         self.condensed_name = None
         """
         Condensed name, the filename with only useful data to keep the name unique
@@ -255,8 +262,8 @@ class Product:
             # Set product type, needs to be done after the post-initialization
             self._set_product_type()
 
-            # Set the resolution, needs to be done when knowing the product type
-            self.resolution = self._get_resolution()
+            # Set the pixel size, needs to be done when knowing the product type
+            self._set_pixel_size()
 
             self._map_bands()
 
@@ -381,9 +388,9 @@ class Product:
         return band_folder
 
     @abstractmethod
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
         raise NotImplementedError
 
@@ -507,7 +514,7 @@ class Product:
     def _construct_band_path(
         self,
         band: BandNames,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         writable: bool = False,
         **kwargs,
@@ -517,22 +524,22 @@ class Product:
 
         Args:
             band (BandNames): Wanted band
-            resolution (float): Band resolution in meters
+            pixel_size (float): Band pixel size in meters
             writable (bool): True if we want the band folder to be writeable
             kwargs: Additional arguments
 
         Returns:
             Union[CloudPath, Path]: Clean band path
         """
-        # Manage resolution
-        if resolution is None:
+        # Manage pixel size
+        if pixel_size is None:
             if size is not None:
-                resolution = self._resolution_from_size(size)
+                pixel_size = self._pixel_size_from_img_size(size)
             else:
-                resolution = self.resolution
+                pixel_size = self.pixel_size
 
         # Convert to str
-        res_str = self._resolution_to_str(resolution)
+        res_str = self._pixel_size_to_str(pixel_size)
 
         return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{to_str(band)[0]}_{res_str.replace('.', '-')}.tif",
@@ -647,7 +654,7 @@ class Product:
 
     @abstractmethod
     def get_band_paths(
-        self, band_list: list, resolution: float = None, **kwargs
+        self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
         """
         Return the paths of required bands.
@@ -666,7 +673,7 @@ class Product:
 
         Args:
             band_list (list): List of the wanted bands
-            resolution (float): Band resolution
+            pixel_size (float): Band pixel size (in meters)
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -792,7 +799,7 @@ class Product:
         self,
         path: Union[CloudPath, Path],
         band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
+        pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> xr.DataArray:
@@ -805,8 +812,8 @@ class Product:
         Args:
             path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -817,7 +824,7 @@ class Product:
     def load(
         self,
         bands: Union[list, BandNames, str],
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -841,29 +848,35 @@ class Product:
             >>> from eoreader.bands import *
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> bands = prod.load([GREEN, NDVI], resolution=20)
+            >>> bands = prod.load([GREEN, NDVI], pixel_size=20)
 
         Args:
             bands (Union[list, BandNames, str]): Band list
-            resolution (float): Resolution of the band, in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Pixel size of the band, in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
 
         Returns:
             dict: {band_name, band xarray}
         """
+        if not pixel_size and "resolution" in kwargs:
+            from warnings import warn
+
+            warn(
+                "`resolution` is deprecated in favor of `pixel_size` to avoid confusion.",
+                category=DeprecationWarning,
+            )
+            pixel_size = kwargs.pop("resolution")
+
         # Check if all bands are valid
         bands = to_band(bands)
 
         for band in bands:
             assert self.has_band(band), f"{self.name} has not a {to_str(band)[0]} band."
 
-        if not resolution and not size:
-            resolution = self.resolution
-
         # Load bands (only once ! and convert the bands to be loaded to correct format)
         unique_bands = list(set(to_band(bands)))
-        band_dict = self._load(unique_bands, resolution, size, **kwargs)
+        band_dict = self._load(unique_bands, pixel_size, size, **kwargs)
 
         # Manage the case of arrays of different size -> collocate arrays if needed
         band_dict = self._collocate_bands(band_dict)
@@ -884,7 +897,7 @@ class Product:
     def _load(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -893,8 +906,8 @@ class Product:
 
         Args:
             bands (list): Band list
-            resolution (float): Resolution of the band, in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Pixel size of the band, in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -971,7 +984,7 @@ class Product:
         if unique_bands:
             LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
             loaded_bands = self._load_bands(
-                unique_bands, resolution=resolution, size=size, **kwargs
+                unique_bands, pixel_size=pixel_size, size=size, **kwargs
             )
 
             # Add bands
@@ -984,7 +997,7 @@ class Product:
                     self._load_spectral_indices(
                         index_list,
                         loaded_bands,
-                        resolution=resolution,
+                        pixel_size=pixel_size,
                         size=size,
                         **kwargs,
                     )
@@ -994,7 +1007,7 @@ class Product:
         if dem_list:
             LOGGER.debug(f"Loading DEM bands {to_str(dem_list)}")
             bands_dict.update(
-                self._load_dem(dem_list, resolution=resolution, size=size, **kwargs)
+                self._load_dem(dem_list, pixel_size=pixel_size, size=size, **kwargs)
             )
 
         # Add Clouds
@@ -1002,7 +1015,7 @@ class Product:
             LOGGER.debug(f"Loading Cloud bands {to_str(clouds_list)}")
             bands_dict.update(
                 self._load_clouds(
-                    clouds_list, resolution=resolution, size=size, **kwargs
+                    clouds_list, pixel_size=pixel_size, size=size, **kwargs
                 )
             )
 
@@ -1011,7 +1024,7 @@ class Product:
     def _load_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -1020,8 +1033,8 @@ class Product:
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1032,17 +1045,17 @@ class Product:
     def _load_bands(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
         """
-        Load bands as numpy arrays with the same resolution (and same metadata).
+        Load bands as numpy arrays with the same pixel size (and same metadata).
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1053,7 +1066,7 @@ class Product:
         self,
         index_list: list,
         loaded_bands: dict,
-        resolution: Union[float, tuple] = None,
+        pixel_size: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -1062,8 +1075,8 @@ class Product:
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1071,7 +1084,7 @@ class Product:
         band_dict = {}
         for idx in index_list:
             idx_path = self._construct_band_path(
-                idx, resolution, size, writable=False, **kwargs
+                idx, pixel_size, size, writable=False, **kwargs
             )
             if idx_path.is_file():
                 band_dict[idx] = utils.read(idx_path)
@@ -1081,7 +1094,7 @@ class Product:
 
                 # Write on disk
                 idx_path = self._construct_band_path(
-                    idx, resolution, size, writable=True, **kwargs
+                    idx, pixel_size, size, writable=True, **kwargs
                 )
                 utils.write(idx_arr, idx_path)
                 band_dict[idx] = idx_arr
@@ -1091,17 +1104,17 @@ class Product:
     def _load_dem(
         self,
         band_list: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
         """
-        Load bands as numpy arrays with the same resolution (and same metadata).
+        Load bands as numpy arrays with the same pixel size (and same metadata).
 
         Args:
             band_list (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1114,27 +1127,27 @@ class Product:
                 if band == DEM:
                     path = self._warp_dem(
                         kwargs.get(DEM_KW, dem_path),
-                        resolution=resolution,
+                        pixel_size=pixel_size,
                         size=size,
                         **kwargs,
                     )
                 elif band == SLOPE:
                     path = self._compute_slope(
                         kwargs.get(SLOPE_KW, dem_path),
-                        resolution=resolution,
+                        pixel_size=pixel_size,
                         size=size,
                     )
                 elif band == HILLSHADE:
                     path = self._compute_hillshade(
                         kwargs.get(HILLSHADE_KW, dem_path),
-                        resolution=resolution,
+                        pixel_size=pixel_size,
                         size=size,
                     )
                 else:
                     raise InvalidTypeError(f"Unknown DEM band: {band}")
 
                 dem_bands[band] = utils.read(
-                    path, resolution=resolution, size=size
+                    path, pixel_size=pixel_size, size=size
                 ).astype(np.float32)
 
         return dem_bands
@@ -1397,7 +1410,7 @@ class Product:
     def _warp_dem(
         self,
         dem_path: str = "",
-        resolution: Union[float, tuple] = None,
+        pixel_size: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
         **kwargs,
@@ -1411,14 +1424,14 @@ class Product:
             >>> from eoreader.bands import *
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.warp_dem(resolution=20)  # In meters
+            >>> prod.warp_dem(pixel_size=20)  # In meters
             '/path/to/20200824T110631_S2_T30TTK_L1C_150432_DEM.tif'
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
+            pixel_size (Union[float, tuple]): Pixel size in meters. If not specified, use the product pixel size.
             resampling (Resampling): Resampling method
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -1450,8 +1463,8 @@ class Product:
             LOGGER.debug("Using DEM: %s", dem_path)
             def_tr, def_w, def_h, def_crs = self.default_transform(**kwargs)
             with rasterio.open(str(dem_path)) as dem_ds:
-                # Get adjusted transform and shape (with new resolution)
-                if size is not None and resolution is None:
+                # Get adjusted transform and shape (with new pixel_size)
+                if size is not None and pixel_size is None:
                     try:
 
                         # Get destination transform
@@ -1466,14 +1479,14 @@ class Product:
 
                     except (TypeError, KeyError):
                         raise ValueError(
-                            f"Size should exist (as resolution is None)"
+                            f"Size should exist (as pixel_size is None)"
                             f" and castable to a list: {size}"
                         )
 
                 else:
-                    # Refine resolution
-                    if resolution is None:
-                        resolution = self.resolution
+                    # Refine pixel_size
+                    if pixel_size is None:
+                        pixel_size = self.pixel_size
 
                     bounds = transform.array_bounds(def_h, def_w, def_tr)
                     dst_tr, out_w, out_h = warp.calculate_default_transform(
@@ -1482,7 +1495,7 @@ class Product:
                         def_w,
                         def_h,
                         *bounds,
-                        resolution=resolution,
+                        resolution=pixel_size,
                     )
 
                 vrt_options = {
@@ -1506,7 +1519,7 @@ class Product:
     def _compute_hillshade(
         self,
         dem_path: str = "",
-        resolution: Union[float, tuple] = None,
+        pixel_size: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
     ) -> Union[Path, CloudPath]:
@@ -1515,8 +1528,8 @@ class Product:
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[float, tuple]): Pixel size in meters. If not specified, use the product pixel size.
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             resampling (Resampling): Resampling method
 
         Returns:
@@ -1528,7 +1541,7 @@ class Product:
     def _compute_slope(
         self,
         dem_path: str = "",
-        resolution: Union[float, tuple] = None,
+        pixel_size: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
     ) -> Union[Path, CloudPath]:
@@ -1537,8 +1550,8 @@ class Product:
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[float, tuple]): Pixel size in meters. If not specified, use the product pixel size.
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             resampling (Resampling): Resampling method
 
         Returns:
@@ -1546,7 +1559,7 @@ class Product:
 
         """
         # Warp DEM
-        warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
+        warped_dem_path = self._warp_dem(dem_path, pixel_size, size, resampling)
 
         # Get slope path
         slope_name = f"{self.condensed_name}_SLOPE_{files.get_filename(dem_path)}.tif"
@@ -1601,7 +1614,7 @@ class Product:
     def stack(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         stack_path: Union[str, CloudPath, Path] = None,
         save_as_int: bool = False,
@@ -1616,12 +1629,12 @@ class Product:
             >>> from eoreader.bands import *
             >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> stack = prod.stack([NDVI, MNDWI, GREEN], resolution=20)  # In meters
+            >>> stack = prod.stack([NDVI, MNDWI, GREEN], pixel_size=20)  # In meters
 
         Args:
             bands (list): Bands and index combination
-            resolution (float): Stack resolution. . If not specified, use the product resolution.
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Stack pixel size. . If not specified, use the product pixel size.
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             stack_path (Union[str, CloudPath, Path]): Stack path
             save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
             **kwargs: Other arguments passed to :code:`load` or :code:`rioxarray.to_raster()` (such as :code:`compress`)
@@ -1632,7 +1645,7 @@ class Product:
         bands = to_band(bands)
 
         # Create the analysis stack
-        band_dict = self.load(bands, resolution=resolution, size=size, **kwargs)
+        band_dict = self.load(bands, pixel_size=pixel_size, size=size, **kwargs)
 
         # Stack bands
         if save_as_int:
@@ -1771,15 +1784,15 @@ class Product:
         with rasterio.open(str(self.get_default_band_path(**kwargs))) as dst:
             return dst.transform, dst.width, dst.height, dst.crs
 
-    def _resolution_from_size(self, size: Union[list, tuple] = None) -> tuple:
+    def _pixel_size_from_img_size(self, size: Union[list, tuple] = None) -> tuple:
         """
-        Compute the corresponding resolution to a given size (positive resolution)
+        Compute the corresponding pixel size to a given image size (positive resolution)
 
         Args:
             size (Union[list, tuple]): Size
 
         Returns:
-            tuple: Resolution as a tuple (x, y)
+            tuple: Pixel size as a tuple (x, y)
         """
         def_tr, def_w, def_h, def_crs = self.default_transform()
         bounds = transform.array_bounds(def_h, def_w, def_tr)
@@ -1792,7 +1805,7 @@ class Product:
                 def_w,
                 def_h,
                 *bounds,
-                resolution=self.resolution,
+                resolution=self.pixel_size,
             )
             res_x = abs(utm_tr.a * utm_w / size[0])
             res_y = abs(utm_tr.e * utm_h / size[1])
@@ -1801,7 +1814,7 @@ class Product:
             res_x = abs(def_tr.a * def_w / size[0])
             res_y = abs(def_tr.e * def_h / size[1])
 
-        # Round resolution to the closest meter (under 1 meter, allow centimetric resolution)
+        # Round pixel_size to the closest meter (under 1 meter, allow centimetric pixel_size)
         if res_x < 1.0:
             res_x = np.round(res_x, 1)
         else:
@@ -1841,32 +1854,32 @@ class Product:
         for obj in objects:
             obj.cache_clear()
 
-    def _resolution_to_str(self, resolution: Union[float, tuple, list] = None):
+    def _pixel_size_to_str(self, pixel_size: Union[float, tuple, list] = None):
         """
-        Convert a resolution to a normalized string
+        Convert a pixel_size to a normalized string
 
         Args:
-            resolution (Union[float, tuple, list]): Resolution
+            pixel_size (Union[float, tuple, list]): Pixel size
 
         Returns:
-            str: Resolution as a string
+            str: Pixel size as a string
         """
 
         def _res_to_str(res):
             return f"{abs(res):.2f}m".replace(".", "-")
 
-        if resolution:
-            if isinstance(resolution, (tuple, list)):
-                res_x = _res_to_str(resolution[0])
-                res_y = _res_to_str(resolution[1])
+        if pixel_size:
+            if isinstance(pixel_size, (tuple, list)):
+                res_x = _res_to_str(pixel_size[0])
+                res_y = _res_to_str(pixel_size[1])
                 if res_x == res_y:
                     res_str = res_x
                 else:
                     res_str = f"{res_x}_{res_y}"
             else:
-                res_str = _res_to_str(resolution)
+                res_str = _res_to_str(pixel_size)
         else:
-            res_str = _res_to_str(self.resolution)
+            res_str = _res_to_str(self.pixel_size)
 
         return res_str
 
@@ -1892,6 +1905,7 @@ class Product:
             f"\tconstellation: {self.constellation if isinstance(self.constellation, str) else self.constellation.value}",
             f"\tsensor type: {self.sensor_type if isinstance(self.sensor_type, str) else self.sensor_type.value}",
             f"\tproduct type: {self.product_type if isinstance(self.product_type, str) else self.product_type.value}",
+            f"\tdefault pixel size: {self.pixel_size}",
             f"\tdefault resolution: {self.resolution}",
             f"\tacquisition datetime: {self.get_datetime(as_datetime=True).isoformat()}",
             f"\tband mapping:\n{band_repr}",

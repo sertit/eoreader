@@ -63,7 +63,7 @@ def test_index():
         idx_list = [
             idx for idx in spyndex_list + get_eoreader_indices() if prod.has_band(idx)
         ]
-        idx = prod.load(idx_list, resolution=RES)
+        idx = prod.load(idx_list, pixel_size=RES)
 
         for idx_name, idx_arr in idx.items():
             LOGGER.info("Write and compare: %s", idx_name)

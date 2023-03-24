@@ -120,7 +120,7 @@ class S3OlciProduct(S3Product):
     def _get_preprocessed_band_path(
         self,
         band: Union[BandNames, str],
-        resolution: Union[float, tuple, list] = None,
+        pixel_size: Union[float, tuple, list] = None,
         writable=True,
     ) -> Union[CloudPath, Path]:
         """
@@ -128,13 +128,13 @@ class S3OlciProduct(S3Product):
 
         Args:
             band (band: Union[BandNames, str]): Wanted band (quality flags accepted)
-            resolution (Union[float, tuple, list]): Resolution of the wanted UTM band
+            pixel_size (Union[float, tuple, list]): Resolution of the wanted UTM band
             writable (bool): Do we need to write the pre-processed band ?
 
         Returns:
             Union[CloudPath, Path]: Pre-processed band path
         """
-        res_str = self._resolution_to_str(resolution)
+        res_str = self._pixel_size_to_str(pixel_size)
         band_str = band.name if isinstance(band, BandNames) else band
 
         return self._get_band_folder(writable=writable).joinpath(
@@ -178,11 +178,11 @@ class S3OlciProduct(S3Product):
         # Post init done by the super class
         super()._pre_init(**kwargs)
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
-        return 300.0
+        self.pixel_size = 300.0
 
     def _set_product_type(self) -> None:
         """
@@ -208,7 +208,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa01",
                     ID: "Oa01",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 400,
                     FWHM: 15,
                     DESCRIPTION: "Aerosol correction, improved water constituent retrieval",
@@ -219,7 +219,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa02",
                     ID: "Oa02",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 412.5,
                     FWHM: 10,
                     DESCRIPTION: "Yellow substance and detrital pigments (turbidity)",
@@ -230,7 +230,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa03",
                     ID: "Oa03",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 442.5,
                     FWHM: 10,
                     DESCRIPTION: "Chlorophyll absorption maximum, biogeochemistry, vegetation",
@@ -241,7 +241,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa04",
                     ID: "Oa04",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 490,
                     FWHM: 10,
                     DESCRIPTION: "High Chlorophyll",
@@ -252,7 +252,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa05",
                     ID: "Oa05",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 510,
                     FWHM: 10,
                     DESCRIPTION: "Chlorophyll, sediment, turbidity, red tide",
@@ -263,7 +263,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa06",
                     ID: "Oa06",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 560,
                     FWHM: 10,
                     DESCRIPTION: "Chlorophyll reference (Chlorophyll minimum)",
@@ -274,7 +274,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa07",
                     ID: "Oa07",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 620,
                     FWHM: 10,
                     DESCRIPTION: "Sediment loading",
@@ -285,7 +285,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa08",
                     ID: "Oa08",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 665,
                     FWHM: 10,
                     DESCRIPTION: "Chlorophyll (2nd Chlorophyll absorption maximum), sediment, yellow substance / vegetation",
@@ -296,7 +296,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa09",
                     ID: "Oa09",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 673.75,
                     FWHM: 7.5,
                     DESCRIPTION: "For improved fluorescence retrieval and to better account for smile together with the bands 665 and 680 nm",
@@ -307,7 +307,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa10",
                     ID: "Oa10",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 681.25,
                     FWHM: 7.5,
                     DESCRIPTION: "Chlorophyll fluorescence peak, red edge",
@@ -318,7 +318,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa11",
                     ID: "Oa11",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 708.75,
                     FWHM: 10,
                     DESCRIPTION: "Chlorophyll fluorescence baseline, red edge transition",
@@ -329,7 +329,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa12",
                     ID: "Oa12",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 753.75,
                     FWHM: 7.5,
                     DESCRIPTION: "O2 absorption/clouds, vegetation",
@@ -340,7 +340,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa13",
                     ID: "Oa13",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 761.25,
                     FWHM: 2.5,
                     DESCRIPTION: "O2 absorption band/aerosol correction.",
@@ -351,7 +351,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa14",
                     ID: "Oa14",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 764.375,
                     FWHM: 3.75,
                     DESCRIPTION: "Atmospheric correction",
@@ -362,7 +362,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa15",
                     ID: "Oa15",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 767.5,
                     FWHM: 2.5,
                     DESCRIPTION: "O2A used for cloud top pressure, fluorescence over land",
@@ -373,7 +373,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa16",
                     ID: "Oa16",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 778.75,
                     FWHM: 15,
                     DESCRIPTION: "Atmos. corr./aerosol corr.",
@@ -384,7 +384,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa17",
                     ID: "Oa17",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 865,
                     FWHM: 20,
                     DESCRIPTION: "Atmospheric correction/aerosol correction, clouds, pixel co-registration",
@@ -395,7 +395,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa17",
                     ID: "Oa17",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 865,
                     FWHM: 20,
                     DESCRIPTION: "Atmospheric correction/aerosol correction, clouds, pixel co-registration",
@@ -406,7 +406,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa18",
                     ID: "Oa18",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 885,
                     FWHM: 10,
                     DESCRIPTION: "Water vapour absorption reference band. Common reference band with SLSTR instrument. Vegetation monitoring",
@@ -417,7 +417,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa19",
                     ID: "Oa19",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 900,
                     FWHM: 10,
                     DESCRIPTION: "Water vapour absorption/vegetation monitoring (maximum reflectance)",
@@ -428,7 +428,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa20",
                     ID: "Oa20",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 940,
                     FWHM: 20,
                     DESCRIPTION: "Water vapour absorption, Atmospheric correction/aerosol correction",
@@ -439,7 +439,7 @@ class S3OlciProduct(S3Product):
                 **{
                     NAME: "Oa21",
                     ID: "Oa21",
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 1020,
                     FWHM: 40,
                     DESCRIPTION: "Atmospheric correction/aerosol correction",
@@ -477,7 +477,7 @@ class S3OlciProduct(S3Product):
     def _preprocess(
         self,
         band: Union[BandNames, str],
-        resolution: float = None,
+        pixel_size: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
         **kwargs,
@@ -489,7 +489,7 @@ class S3OlciProduct(S3Product):
 
         Args:
             band (Union[BandNames, str]): Band to preprocess (quality flags or others are accepted)
-            resolution (float): Resolution
+            pixel_size (float): Pixl size
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
             kwargs: Other arguments used to load bands
@@ -500,12 +500,12 @@ class S3OlciProduct(S3Product):
         band_str = band if isinstance(band, str) else band.name
 
         path = self._get_preprocessed_band_path(
-            band, resolution=resolution, writable=False
+            band, pixel_size=pixel_size, writable=False
         )
 
         if not path.is_file():
             path = self._get_preprocessed_band_path(
-                band, resolution=resolution, writable=True
+                band, pixel_size=pixel_size, writable=True
             )
 
             # Get band regex
@@ -530,7 +530,7 @@ class S3OlciProduct(S3Product):
 
             # Geocode
             LOGGER.debug(f"Geocoding {band_str}")
-            pp_arr = self._geocode(band_arr, resolution=resolution, **kwargs)
+            pp_arr = self._geocode(band_arr, pixel_size=pixel_size, **kwargs)
 
             # Write on disk
             utils.write(pp_arr, path)
@@ -712,7 +712,7 @@ class S3OlciProduct(S3Product):
         qual_flags_path = self._preprocess(
             qual_regex,
             subdataset=subds,
-            resolution=band_arr.rio.resolution(),
+            pixel_size=band_arr.rio.resolution(),
             to_reflectance=False,
         )
 
@@ -744,7 +744,7 @@ class S3OlciProduct(S3Product):
     def _open_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -753,8 +753,8 @@ class S3OlciProduct(S3Product):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}

@@ -126,7 +126,7 @@ def use_dask():
 
 def read(
     path: Union[str, CloudPath, Path],
-    resolution: Union[tuple, list, float] = None,
+    pixel_size: Union[tuple, list, float] = None,
     size: Union[tuple, list] = None,
     resampling: Resampling = Resampling.nearest,
     masked: bool = True,
@@ -148,8 +148,8 @@ def read(
 
     Args:
         path (Union[str, CloudPath, Path]): Path to the raster
-        resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-        size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+        pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+        size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
         resampling (Resampling): Resampling method
         masked (bool): Get a masked array
         indexes (Union[int, list]): Indexes to load. Load the whole array if None.
@@ -176,7 +176,7 @@ def read(
             warnings.simplefilter("ignore", category=NotGeoreferencedWarning)
             return rasters.read(
                 path,
-                resolution=resolution,
+                resolution=pixel_size,
                 resampling=resampling,
                 masked=masked,
                 indexes=indexes,
@@ -382,7 +382,7 @@ def simplify(footprint_fct: Callable):
     def simplify_wrapper(self):
         """Simplify footprint wrapper"""
         footprint = footprint_fct(self)
-        return simplify_footprint(footprint, self.resolution)
+        return simplify_footprint(footprint, self.pixel_size)
 
     return simplify_wrapper
 

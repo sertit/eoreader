@@ -170,7 +170,7 @@ def test_products():
         stack_path = os.path.join(tmp_dir, "stack.tif")
         stack = prod1.stack(
             BLUE,
-            resolution=prod1.resolution * 100,
+            pixel_size=prod1.pixel_size * 100,
             save_as_int=True,
             stack_path=stack_path,
         )
@@ -278,10 +278,10 @@ def test_dems_https():
     # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
     with tempenv.TemporaryEnvironment({DEM_PATH: local_path}):  # Local DEM
         dem_local = prod.load(
-            [DEM], resolution=30
+            [DEM], pixel_size=30
         )  # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
     with tempenv.TemporaryEnvironment({DEM_PATH: remote_path}):  # Remote DEM
-        dem_remote = prod.load([DEM], resolution=30)
+        dem_remote = prod.load([DEM], pixel_size=30)
 
     xr.testing.assert_equal(dem_local[DEM], dem_remote[DEM])
 
@@ -309,10 +309,10 @@ def test_dems_S3():
     # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
     with tempenv.TemporaryEnvironment({DEM_PATH: local_path}):  # Local DEM
         dem_local = prod.load(
-            [DEM], resolution=30
+            [DEM], pixel_size=30
         )  # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
     with tempenv.TemporaryEnvironment({DEM_PATH: s3_path}):  # S3 DEM
-        dem_s3 = prod.load([DEM], resolution=30)
+        dem_s3 = prod.load([DEM], pixel_size=30)
 
     xr.testing.assert_equal(dem_local[DEM], dem_s3[DEM])
 
