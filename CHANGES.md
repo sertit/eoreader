@@ -1,6 +1,6 @@
 # Release History
 
-## 0.YY.Z (2023-MM-DD)
+## 0.19.3 (2023-03-24)
 
 ### Bug Fixes
 
