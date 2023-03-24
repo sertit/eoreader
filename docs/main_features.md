@@ -101,8 +101,8 @@ ok_bands = to_str([band for band in band_list if prod.has_band(band)])
 # Sentinel-2 cannot produce satellite band TIR_1 and cloud band SHADOWS
 
 # Load bands
-# if resolution is not specified -> load at default resolution (10.0 m for S2 data)
-bands = prod.load(ok_bands, resolution=20.)  
+# if pixel_size is not specified -> load at default pixel_size (10.0 m for S2 data)
+bands = prod.load(ok_bands, pixel_size=20.)
 # NOTE: every array that comes out `load` are collocated, which isn't the case if you load arrays separately
 # (important for DEM data as they may have different grids)
 ```
@@ -143,8 +143,8 @@ If the same band is asked several time, its order will be the one of the last de
 ```python
 # Create a stack with the previous OK bands
 stack = prod.stack(
-  ok_bands, 
-  resolution=300., 
+  ok_bands,
+  pixel_size=300.,
   stack_path=os.path.join(prod.output, "stack.tif")
 )
 ```

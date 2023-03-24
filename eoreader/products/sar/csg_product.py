@@ -106,33 +106,33 @@ class CsgProduct(CosmoProduct):
     `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
     """
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         See here
         <here](https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Second-Generation-Mission-Products-Description.pdf>`_
         for more information (tables 20).
         Taking the :code:`CSK legacy` values
         """
         if self.sensor_mode == CsgSensorMode.S2A:
-            def_res = 0.4
+            def_pixel_size = 0.4
         elif self.sensor_mode == CsgSensorMode.S2B:
-            def_res = 0.63
+            def_pixel_size = 0.63
         elif self.sensor_mode == CsgSensorMode.S2C:
-            def_res = 0.8
+            def_pixel_size = 0.8
         elif self.sensor_mode == CsgSensorMode.PP:
-            def_res = 12.0
+            def_pixel_size = 12.0
         elif self.sensor_mode == CsgSensorMode.SC1:
-            def_res = 20.0
+            def_pixel_size = 20.0
         elif self.sensor_mode == CsgSensorMode.SC2:
-            def_res = 40.0
+            def_pixel_size = 40.0
         elif self.sensor_mode in [CsgSensorMode.SM, CsgSensorMode.QP]:
-            def_res = 3.0
+            def_pixel_size = 3.0
         else:
-            # Complex data has an empty field and its resolution is not known
-            def_res = -1.0
+            # Complex data has an empty field and its pixel size is not known
+            def_pixel_size = -1.0
 
-        return def_res
+        self.pixel_size = def_pixel_size
 
     def _set_instrument(self) -> None:
         """
@@ -164,7 +164,7 @@ class CsgProduct(CosmoProduct):
         self,
         path: Union[CloudPath, Path],
         band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
+        pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> xr.DataArray:
@@ -172,29 +172,29 @@ class CsgProduct(CosmoProduct):
         Read band from disk.
 
         .. WARNING::
-            CSG SCS Products do not have a default resolution
+            CSG SCS Products do not have a default pixel size
 
         Args:
             path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
 
         """
-        # In case of SCS data that doesn't have any resolution in the mtd
-        if self.resolution < 0.0:
+        # In case of SCS data that doesn't have any pixel_size in the mtd
+        if self.pixel_size < 0.0:
             with rasterio.open(path) as ds:
-                self.resolution = ds.res[0]
+                self.pixel_size = ds.res[0]
 
         try:
-            if resolution < 0.0:
-                resolution = self.resolution
+            if pixel_size < 0.0:
+                pixel_size = self.pixel_size
         except TypeError:
             pass
 
         return super()._read_band(
-            path=path, band=band, resolution=resolution, size=size, **kwargs
+            path=path, band=band, pixel_size=pixel_size, size=size, **kwargs
         )

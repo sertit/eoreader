@@ -124,9 +124,9 @@ class SaocomPolarization(ListEnum):
 class SaocomProduct(SarProduct):
     """Class for SAOCOM-1 Products"""
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         See here
         <here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
         for more information (Beam Modes)
@@ -144,22 +144,22 @@ class SaocomProduct(SarProduct):
         if not polarization:
             raise InvalidProductError("polMode not found in metadata!")
 
-        def_res = None
-        # For complex data, set regular ground range resolution provided by the constructor
+        def_pixel_size = None
+        # For complex data, set regular ground range pixel_size and resolution provided by the constructor
         if self.sensor_mode == SaocomSensorMode.SM:
-            def_res = 10.0
+            def_pixel_size = 10.0
         elif self.sensor_mode == SaocomSensorMode.TN:
             if polarization == SaocomPolarization.QP:
-                def_res = 50.0
+                def_pixel_size = 50.0
             else:
-                def_res = 30.0
+                def_pixel_size = 30.0
         elif self.sensor_mode == SaocomSensorMode.TW:
             if polarization == SaocomPolarization.QP:
-                def_res = 100.0
+                def_pixel_size = 100.0
             else:
-                def_res = 50.0
+                def_pixel_size = 50.0
 
-        return def_res
+        self.pixel_size = def_pixel_size
 
     def _set_instrument(self) -> None:
         """

@@ -21,7 +21,6 @@ More info `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000J
 import logging
 import os
 import tempfile
-from abc import abstractmethod
 from datetime import datetime
 from enum import unique
 from io import BytesIO
@@ -483,13 +482,13 @@ class CosmoProduct(SarProduct):
 
         return od
 
-    def _pre_process_sar(self, band, resolution: float = None, **kwargs) -> str:
+    def _pre_process_sar(self, band, pixel_size: float = None, **kwargs) -> str:
         """
         Pre-process SAR data (geocoding...)
 
         Args:
             band (sbn): Band to preprocess
-            resolution (float): Resolution
+            pixel_size (float): Pixl size
             kwargs: Additional arguments
 
         Returns:
@@ -498,7 +497,7 @@ class CosmoProduct(SarProduct):
         with h5netcdf.File(self._img_path, phony_dims="access") as raw_h5:
             swaths = list(raw_h5.groups)
             if self.sar_prod_type == SarProductType.GDRG or len(swaths) == 1:
-                return super()._pre_process_sar(band, resolution, **kwargs)
+                return super()._pre_process_sar(band, pixel_size, **kwargs)
             else:
                 LOGGER.warning(
                     "Currently, SNAP doesn't handle multiswath Cosmo-SkyMed products. This is a workaround. See https://github.com/sertit/eoreader/issues/78"
@@ -554,7 +553,7 @@ class CosmoProduct(SarProduct):
                         pp_swath_path.append(
                             super()._pre_process_sar(
                                 band,
-                                resolution,
+                                pixel_size,
                                 prod_path=prod_path,
                                 suffix=group,
                                 **kwargs,
@@ -600,24 +599,3 @@ class CosmoProduct(SarProduct):
                 )
 
                 return pp_path
-
-    @abstractmethod
-    def _set_sensor_mode(self) -> None:
-        """
-        Set SAR sensor mode
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def _get_resolution(self) -> float:
-        """
-        Get product default resolution (in meters)
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def _set_instrument(self) -> None:
-        """
-        Set product type
-        """
-        raise NotImplementedError

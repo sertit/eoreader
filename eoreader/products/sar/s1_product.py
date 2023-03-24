@@ -109,9 +109,9 @@ class S1Product(SarProduct):
     You can use directly the .zip file
     """
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         See here
         <here](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected>`_
         for more information
@@ -146,11 +146,11 @@ class S1Product(SarProduct):
         }
 
         try:
-            def_res = default_res[self.sensor_mode][res_class]
+            def_pixel_size = default_res[self.sensor_mode][res_class]
         except KeyError:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
-        return def_res
+        self.pixel_size = def_pixel_size
 
     def _set_instrument(self) -> None:
         """

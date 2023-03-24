@@ -251,9 +251,9 @@ class Spot45Product(DimapV1Product):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
         # Not Pansharpened images
         if self.band_combi in [
@@ -262,7 +262,7 @@ class Spot45Product(DimapV1Product):
             Spot5BandCombination.X,
             Spot5BandCombination.J,
         ]:
-            return self._ms_res
+            self.pixel_size = self._ms_res
         # Pansharpened images
         elif self.band_combi in [
             Spot4BandCombination.M,
@@ -271,10 +271,10 @@ class Spot45Product(DimapV1Product):
             Spot5BandCombination.HM,
             Spot5BandCombination.HMX,
         ]:
-            return self._pan_res
+            self.pixel_size = self._pan_res
         # Supermode images
         else:
-            return self._supermode_res
+            self.pixel_size = self._supermode_res
 
     def _set_instrument(self) -> None:
         """

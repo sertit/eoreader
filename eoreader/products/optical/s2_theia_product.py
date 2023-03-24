@@ -107,13 +107,13 @@ class S2TheiaProduct(OpticalProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
         # S2: use 10m resolution, even if we have 60m and 20m resolution
         # In the future maybe set one resolution per band ?
-        return 10.0
+        self.pixel_size = 10.0
 
     def _get_tile_name(self) -> str:
         """
@@ -295,7 +295,7 @@ class S2TheiaProduct(OpticalProduct):
         return name
 
     def get_band_paths(
-        self, band_list: list, resolution: float = None, **kwargs
+        self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
         """
         Return the paths of required bands.
@@ -317,7 +317,7 @@ class S2TheiaProduct(OpticalProduct):
 
         Args:
             band_list (list): List of the wanted bands
-            resolution (float): Band resolution
+            pixel_size (float): Band pixel size
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -326,7 +326,7 @@ class S2TheiaProduct(OpticalProduct):
         band_paths = {}
         for band in band_list:  # Get clean band path
             clean_band = self._get_clean_band_path(
-                band, resolution=resolution, **kwargs
+                band, pixel_size=pixel_size, **kwargs
             )
             if clean_band.is_file():
                 band_paths[band] = clean_band
@@ -352,7 +352,7 @@ class S2TheiaProduct(OpticalProduct):
         self,
         path: Union[CloudPath, Path],
         band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
+        pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> xr.DataArray:
@@ -365,15 +365,15 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
         """
         band_arr = utils.read(
             path,
-            resolution=resolution,
+            pixel_size=pixel_size,
             size=size,
             resampling=Resampling.bilinear,
             **kwargs,
@@ -527,7 +527,7 @@ class S2TheiaProduct(OpticalProduct):
         self,
         mask_id: str,
         band: Union[BandNames, str],
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> np.ndarray:
@@ -563,8 +563,8 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             mask_id: Mask ID
             band (Union[BandNames, str]): Band name as an SpectralBandNames or resolution ID: ['R1', 'R2']
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
 
         Returns:
             np.ndarray: Mask array
@@ -596,7 +596,7 @@ class S2TheiaProduct(OpticalProduct):
         # Open SAT band
         mask = utils.read(
             mask_path,
-            resolution=resolution,
+            pixel_size=pixel_size,
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
@@ -613,17 +613,17 @@ class S2TheiaProduct(OpticalProduct):
     def _load_bands(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
         """
-        Load bands as numpy arrays with the same resolution (and same metadata).
+        Load bands as numpy arrays with the same pixel size (and same metadata).
 
         Args:
             bands list: List of the wanted bands
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -633,13 +633,13 @@ class S2TheiaProduct(OpticalProduct):
             return {}
 
         # Get band paths
-        if resolution is None and size is not None:
-            resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution=resolution, **kwargs)
+        if pixel_size is None and size is not None:
+            pixel_size = self._pixel_size_from_img_size(size)
+        band_paths = self.get_band_paths(bands, pixel_size=pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(
-            band_paths, resolution=resolution, size=size, **kwargs
+            band_paths, pixel_size=pixel_size, size=size, **kwargs
         )
 
         return band_arrays
@@ -713,7 +713,7 @@ class S2TheiaProduct(OpticalProduct):
     def _open_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -735,21 +735,21 @@ class S2TheiaProduct(OpticalProduct):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
         band_dict = {}
 
-        if resolution:
-            res_file = resolution
+        if pixel_size:
+            res_file = pixel_size
         else:
             if size:
-                res_file = self._resolution_from_size(size)[0]
+                res_file = self._pixel_size_from_img_size(size)[0]
             else:
-                res_file = self.resolution
+                res_file = self.pixel_size
 
         if bands:
             # Open 20m cloud file if resolution >= 20m
@@ -758,13 +758,13 @@ class S2TheiaProduct(OpticalProduct):
             cloud_path = self.get_mask_path("CLM", res_id)
             clouds_mask = utils.read(
                 cloud_path,
-                resolution=resolution,
+                pixel_size=pixel_size,
                 size=size,
                 resampling=Resampling.nearest,
             ).astype(np.float32)
 
             # Get nodata mask
-            nodata = self.open_mask("EDG", res_id, resolution=resolution, size=size)
+            nodata = self.open_mask("EDG", res_id, pixel_size=pixel_size, size=size)
 
             # Bit ids
             clouds_shadows_id = 0

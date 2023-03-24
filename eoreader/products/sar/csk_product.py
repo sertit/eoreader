@@ -66,30 +66,30 @@ class CskProduct(CosmoProduct):
         >>> prod = Reader().open(path)
     """
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         See here
         `here <https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Mission-Products-Description.pdf>`_
         for more information (p. 30)
         """
         if self.sensor_mode == CskSensorMode.HI:
             if self.product_type == CosmoProductType.SCS:
-                def_res = 3.0
+                def_pixel_size = 3.0
             else:
-                def_res = 5.0
+                def_pixel_size = 5.0
         elif self.sensor_mode == CskSensorMode.PP:
-            def_res = 20.0
+            def_pixel_size = 20.0
         elif self.sensor_mode == CskSensorMode.WR:
-            def_res = 30.0
+            def_pixel_size = 30.0
         elif self.sensor_mode == CskSensorMode.HR:
-            def_res = 100.0
+            def_pixel_size = 100.0
         elif self.sensor_mode == CskSensorMode.S2:
-            def_res = 1.0
+            def_pixel_size = 1.0
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
-        return def_res
+        self.pixel_size = def_pixel_size
 
     def _set_sensor_mode(self) -> None:
         """Get sensor mode"""

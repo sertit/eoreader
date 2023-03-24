@@ -1,5 +1,11 @@
 # Release History
 
+## 0.20.0 (2023-MM-DD)
+
+### Breaking Changes
+
+- **BREAKING CHANGES: Switching from `resolution` to `pixel_size` to avoid confusion about the definitions (especially for SAR data)** ([#82](https://github.com/sertit/eoreader/issues/82))
+
 ## 0.19.3 (2023-03-24)
 
 ### Bug Fixes

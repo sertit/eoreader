@@ -77,7 +77,7 @@ class Rs2ProductType(ListEnum):
 @unique
 class Rs2SensorMode(ListEnum):
     """
-    Get product default resolution (in meters)
+    Set product default pixel size (in meters)
     See here
     <here](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
     for more information (Beam Modes)
@@ -156,25 +156,25 @@ class Rs2Product(SarProduct):
     You can use directly the .zip file
     """
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
         # -------------------------------------------------------------
         # Selective Single or Dual Polarization
         # Transmit H and/or V, receive H and/or V
         # F = "Fine", WF = "Wide Fine"
         if self.sensor_mode in [Rs2SensorMode.F, Rs2SensorMode.WF]:
-            def_res = 8.0
+            def_pixel_size = 8.0
         # S = "Standard", W = "Wide"
         elif self.sensor_mode in [Rs2SensorMode.S, Rs2SensorMode.W]:
-            def_res = 25.0
+            def_pixel_size = 25.0
         # SCN = "ScanSAR Narrow"
         elif self.sensor_mode == Rs2SensorMode.SCN:
-            def_res = 50.0
+            def_pixel_size = 50.0
         # SCW = "ScanSAR Wide"
         elif self.sensor_mode == Rs2SensorMode.SCW:
-            def_res = 100.0
+            def_pixel_size = 100.0
 
         # -------------------------------------------------------------
         # Polarimetric
@@ -182,20 +182,20 @@ class Rs2Product(SarProduct):
         # receive H and V on any pulse
         # FQ = "Fine Quad-Pol", WFQ = "Wide Fine Quad-Pol"
         elif self.sensor_mode in [Rs2SensorMode.FQ, Rs2SensorMode.WFQ]:
-            def_res = 12.0
+            def_pixel_size = 12.0
         # SQ = "Standard Quad-Pol", "Wide Standard Quad-Pol"
         elif self.sensor_mode in [Rs2SensorMode.SQ, Rs2SensorMode.WSQ]:
-            def_res = 25.0
+            def_pixel_size = 25.0
 
         # -------------------------------------------------------------
         # Single Polarization HH
         # Transmit H, receive H
         # EH = "Extended High"
         elif self.sensor_mode == Rs2SensorMode.EH:
-            def_res = 25.0
+            def_pixel_size = 25.0
         # EL = "Extended Low"
         elif self.sensor_mode == Rs2SensorMode.EL:
-            def_res = 60.0
+            def_pixel_size = 60.0
 
         # -------------------------------------------------------------
         # Selective Single Polarization
@@ -203,28 +203,28 @@ class Rs2Product(SarProduct):
         # EH = "Extended High"
         # SLA = "Spotlight"
         elif self.sensor_mode == Rs2SensorMode.SLA:
-            def_res = 1.0
+            def_pixel_size = 1.0
         # U = "Ultra-Fine", WU = "Wide Ultra-Fine"
         elif self.sensor_mode in [Rs2SensorMode.U, Rs2SensorMode.WU]:
-            def_res = 3.0
+            def_pixel_size = 3.0
         # XF = "Extra-Fine"
         elif self.sensor_mode == Rs2SensorMode.XF:
-            def_res = 5.0
+            def_pixel_size = 5.0
         # MF = "Multi-Look Fine", WMF = "Wide Multi-Look Fine"
         elif self.sensor_mode in [Rs2SensorMode.MF, Rs2SensorMode.WMF]:
-            def_res = 8.0
+            def_pixel_size = 8.0
 
         # -------------------------------------------------------------
         # Ocean surveillance and detection of vessels
         elif self.sensor_mode == Rs2SensorMode.OSVN:
-            def_res = 50.0
+            def_pixel_size = 50.0
 
         elif self.sensor_mode == Rs2SensorMode.DVWF:
-            def_res = 35.0
+            def_pixel_size = 35.0
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
-        return def_res
+        self.pixel_size = def_pixel_size
 
     def _set_instrument(self) -> None:
         """

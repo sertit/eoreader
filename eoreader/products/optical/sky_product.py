@@ -219,13 +219,13 @@ class SkyProduct(PlanetProduct):
         arr = rasters.read(self.get_default_band_path(), indexes=[1])
         return rasters.get_valid_vector(arr, default_nodata=0)
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
         # Optical data: resolution = pixel_resolution (not gsd)
         root, _ = self.read_mtd()
-        return float(root.findtext(".//pixel_resolution"))
+        self.pixel_size = float(root.findtext(".//pixel_resolution"))
 
     def _set_instrument(self) -> None:
         """
@@ -247,7 +247,7 @@ class SkyProduct(PlanetProduct):
                     **{
                         NAME: "PAN",
                         ID: 1,
-                        GSD: self.resolution,
+                        GSD: self.pixel_size,
                         WV_MIN: 450,
                         WV_MAX: 900,
                     },
@@ -260,7 +260,7 @@ class SkyProduct(PlanetProduct):
                     **{
                         NAME: "Blue",
                         ID: 1,
-                        GSD: self.resolution,
+                        GSD: self.pixel_size,
                         WV_MIN: 450,
                         WV_MAX: 515,
                     },
@@ -270,7 +270,7 @@ class SkyProduct(PlanetProduct):
                     **{
                         NAME: "Green",
                         ID: 2,
-                        GSD: self.resolution,
+                        GSD: self.pixel_size,
                         WV_MIN: 515,
                         WV_MAX: 595,
                     },
@@ -280,7 +280,7 @@ class SkyProduct(PlanetProduct):
                     **{
                         NAME: "Red",
                         ID: 3,
-                        GSD: self.resolution,
+                        GSD: self.pixel_size,
                         WV_MIN: 605,
                         WV_MAX: 695,
                     },
@@ -290,7 +290,7 @@ class SkyProduct(PlanetProduct):
                     **{
                         NAME: "NIR",
                         ID: 4,
-                        GSD: self.resolution,
+                        GSD: self.pixel_size,
                         WV_MIN: 740,
                         WV_MAX: 900,
                     },
@@ -376,7 +376,7 @@ class SkyProduct(PlanetProduct):
         return stack_path
 
     def get_band_paths(
-        self, band_list: list, resolution: float = None, **kwargs
+        self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
         """
         Return the paths of required bands.
@@ -397,7 +397,7 @@ class SkyProduct(PlanetProduct):
 
         Args:
             band_list (list): List of the wanted bands
-            resolution (float): Band resolution
+            pixel_size (float): Band pixel size
             kwargs: Other arguments used to load bands
 
         Returns:

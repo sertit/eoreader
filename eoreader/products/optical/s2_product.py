@@ -205,13 +205,13 @@ class S2Product(OpticalProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
         # S2: use 10m resolution, even if we have 60m and 20m resolution
         # In the future maybe use one resolution per band ?
-        return 10.0
+        self.pixel_size = 10.0
 
     def _get_tile_name(self) -> str:
         """
@@ -486,22 +486,22 @@ class S2Product(OpticalProduct):
 
         return name
 
-    def _get_res_band_folder(self, band_list: list, resolution: float = None) -> dict:
+    def _get_res_band_folder(self, band_list: list, pixel_size: float = None) -> dict:
         """
         Return the folder containing the bands of a proper S2 products.
         (IMG_DATA for L1C, IMG_DATA/Rx0m for L2A)
 
         Args:
             band_list (list): Wanted bands (listed as 01, 02...)
-            resolution (float): Band resolution for Sentinel-2 products {R10m, R20m, R60m}.
+            pixel_size (float): Band resolution for Sentinel-2 products {R10m, R20m, R60m}.
                                 The wanted bands will be chosen in this proper folder.
 
         Returns:
             dict: Dictionary containing the folder path for each queried band
         """
-        if resolution is not None:
-            if isinstance(resolution, (list, tuple)):
-                resolution = resolution[0]
+        if pixel_size is not None:
+            if isinstance(pixel_size, (list, tuple)):
+                pixel_size = pixel_size[0]
 
         # Open the band directory names
         s2_bands_folder = {}
@@ -518,8 +518,8 @@ class S2Product(OpticalProduct):
             # If L2A products, we care about the resolution
             if self.product_type == S2ProductType.L2A:
                 # If we got a true S2 resolution, open the corresponding band
-                if resolution and f"R{int(resolution)}m" in band_dir[band_id]:
-                    dir_name = f"R{int(resolution)}m"
+                if pixel_size and f"R{int(pixel_size)}m" in band_dir[band_id]:
+                    dir_name = f"R{int(pixel_size)}m"
 
                 # Else open the first one, it will be resampled when the band will be read
                 else:
@@ -555,7 +555,7 @@ class S2Product(OpticalProduct):
         return s2_bands_folder
 
     def get_band_paths(
-        self, band_list: list, resolution: float = None, **kwargs
+        self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
         """
         Return the paths of required bands.
@@ -574,18 +574,18 @@ class S2Product(OpticalProduct):
 
         Args:
             band_list (list): List of the wanted bands
-            resolution (float): Band resolution
+            pixel_size (float): Band pixel size
             kwargs: Other arguments used to load bands
 
         Returns:
             dict: Dictionary containing the path of each queried band
         """
-        band_folders = self._get_res_band_folder(band_list, resolution)
+        band_folders = self._get_res_band_folder(band_list, pixel_size)
         band_paths = {}
         for band in band_list:
             # Get clean band path
             clean_band = self._get_clean_band_path(
-                band, resolution=resolution, **kwargs
+                band, pixel_size=pixel_size, **kwargs
             )
             if clean_band.is_file():
                 band_paths[band] = clean_band
@@ -614,7 +614,7 @@ class S2Product(OpticalProduct):
         self,
         path: Union[str, CloudPath, Path],
         band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
+        pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> xr.DataArray:
@@ -627,8 +627,8 @@ class S2Product(OpticalProduct):
         Args:
             path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -689,7 +689,7 @@ class S2Product(OpticalProduct):
         # Read band
         return utils.read(
             geocoded_path,
-            resolution=resolution,
+            pixel_size=pixel_size,
             size=size,
             resampling=Resampling.bilinear,
             **kwargs,
@@ -865,7 +865,7 @@ class S2Product(OpticalProduct):
         self,
         mask_id: Union[str, S2Jp2Masks],
         band: Union[BandNames, str] = None,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> xr.DataArray:
@@ -881,8 +881,8 @@ class S2Product(OpticalProduct):
         Args:
             mask_id (Union[str, S2GmlMasks]): Mask ID
             band (Union[BandNames, str]): Band number as an SpectralBandNames or str (for clouds: 00)
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
 
         Returns:
             gpd.GeoDataFrame: Mask as a DataArray
@@ -913,7 +913,7 @@ class S2Product(OpticalProduct):
         # Read mask
         mask = utils.read(
             mask_path,
-            resolution=resolution,
+            pixel_size=pixel_size,
             size=size,
             resampling=Resampling.nearest,
             **kwargs,
@@ -1161,17 +1161,17 @@ class S2Product(OpticalProduct):
     def _load_bands(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
         """
-        Load bands as numpy arrays with the same resolution (and same metadata).
+        Load bands as numpy arrays with the same pixel size (and same metadata).
 
         Args:
             bands (list): List of the wanted bands
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1180,13 +1180,13 @@ class S2Product(OpticalProduct):
         if not bands:
             return {}
 
-        if resolution is None and size is not None:
-            resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution=resolution, **kwargs)
+        if pixel_size is None and size is not None:
+            pixel_size = self._pixel_size_from_img_size(size)
+        band_paths = self.get_band_paths(bands, pixel_size=pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(
-            band_paths, resolution=resolution, size=size, **kwargs
+            band_paths, pixel_size=pixel_size, size=size, **kwargs
         )
 
         return band_arrays
@@ -1297,7 +1297,7 @@ class S2Product(OpticalProduct):
     def _open_clouds_lt_4_0(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -1309,8 +1309,8 @@ class S2Product(OpticalProduct):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1324,7 +1324,7 @@ class S2Product(OpticalProduct):
             def_band = self._read_band(
                 self.get_default_band_path(),
                 self.get_default_band(),
-                resolution=resolution,
+                pixel_size=pixel_size,
                 size=size,
             )
             nodata = np.where(np.isnan(def_band), 1, 0)
@@ -1366,7 +1366,7 @@ class S2Product(OpticalProduct):
     def _open_clouds_gt_4_0(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -1378,8 +1378,8 @@ class S2Product(OpticalProduct):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1388,7 +1388,7 @@ class S2Product(OpticalProduct):
 
         if bands:
             cloud_vec = self._open_mask_gt_4_0(
-                S2Jp2Masks.CLOUDS, "00", resolution=resolution, size=size, **kwargs
+                S2Jp2Masks.CLOUDS, "00", pixel_size=pixel_size, size=size, **kwargs
             ).astype(np.uint8)
 
             for band in bands:
@@ -1422,7 +1422,7 @@ class S2Product(OpticalProduct):
     def _open_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -1434,16 +1434,16 @@ class S2Product(OpticalProduct):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
         if self._processing_baseline < 4.0:
-            return self._open_clouds_lt_4_0(bands, resolution, size, **kwargs)
+            return self._open_clouds_lt_4_0(bands, pixel_size, size, **kwargs)
         else:
-            return self._open_clouds_gt_4_0(bands, resolution, size, **kwargs)
+            return self._open_clouds_gt_4_0(bands, pixel_size, size, **kwargs)
 
     def _rasterize(
         self, xds: xr.DataArray, geometry: gpd.GeoDataFrame, nodata: np.ndarray

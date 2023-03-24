@@ -158,21 +158,21 @@ class CapellaProduct(SarProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         See here
         `here <https://support.capellaspace.com/hc/en-us/articles/360059224291-What-SAR-imagery-products-are-available-with-Capella->`_
         """
         if self.sensor_mode == CapellaSensorMode.SM:
-            def_res = 0.35
+            def_pixel_size = 0.35
         elif self.sensor_mode == CapellaSensorMode.SP:
-            def_res = 0.6
+            def_pixel_size = 0.6
         elif self.sensor_mode == CapellaSensorMode.SS:
-            def_res = 0.8
+            def_pixel_size = 0.8
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
-        return def_res
+        self.pixel_size = def_pixel_size
 
     def _set_instrument(self) -> None:
         """

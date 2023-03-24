@@ -40,7 +40,7 @@ If you know them, it is best to give **EOReader** all the data you know about yo
   be used
 - `constellation`: product constellation. If not provided, `CUSTOM` will be set. Either a string of a `Constellation` enum.
 - `product_type`: product type. If not provided, `CUSTOM` will be set.
-- `resolution`: product default resolution. If not provided, the stack resolution will be used.
+- `pixel_size`: product default pixel size. If not provided, the stack pixel size will be used.
 
 For optical products, two additional keyword can be set to compute the hillshade band:
 
@@ -60,7 +60,7 @@ custom_prod = Reader().open(
     sensor_type="OPTICAL",
     constellation="WV02",
     product_type="Ortho",
-    resolution=2.0,
+    pixel_size=2.0,
     sun_azimuth=10.0,
     sun_zenith=20.0,
     band_map={
