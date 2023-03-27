@@ -43,6 +43,10 @@ Sentinel-1 or other SAR constellations may fail to load KML extent files.
 The cause is unknown, but a workaround based on `ogr2ogr` has been written.
 Please be sure to have `ogr2ogr` (and other `GDAL` scripts available in your PATH)
 
+For example, if you downloaded QGIS on Windows, you could simply put in your PATH:  
+![qgis](https://zupimages.net/up/23/13/njvv.png)  
+All GDAL scripts, exe, DLL, etc. are stored in the `bin` folder.
+
 ## SNAP
 
 > ⚠ Be sure to use SNAP 8.0 or more, and please verify that your software is up-to-date.
