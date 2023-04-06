@@ -1207,7 +1207,7 @@ class Product:
         - DEM band
         - cloud band
 
-        See :code:`has_bands` for a code example.
+        See :code:`has_band` for a code example.
 
         Args:
             bands (Union[list, BandNames, str]): EOReader bands (optical, SAR, clouds, DEM)
@@ -1636,6 +1636,14 @@ class Product:
         Returns:
             xr.DataArray: Stack as a DataArray
         """
+        # Manage already existing stack on disk
+        if stack_path:
+            stack_path = AnyPath(stack_path)
+            if stack_path.is_file():
+                return utils.read(stack_path, resolution=pixel_size, size=size)
+            else:
+                os.makedirs(str(stack_path.parent), exist_ok=True)
+
         bands = to_band(bands)
 
         # Create the analysis stack
@@ -1652,12 +1660,8 @@ class Product:
         stack = self._update_attrs(stack, bands, **kwargs)
 
         # Write on disk
-        LOGGER.debug("Saving stack")
         if stack_path:
-            stack_path = AnyPath(stack_path)
-            if not stack_path.parent.exists():
-                os.makedirs(str(stack_path.parent), exist_ok=True)
-
+            LOGGER.debug("Saving stack")
             utils.write(stack, stack_path, dtype=dtype, nodata=nodata, **kwargs)
 
         return stack

@@ -6,7 +6,6 @@
 
 - **BREAKING CHANGES: Switching from `resolution` to `pixel_size` to avoid confusion about the definitions (especially for SAR data)** ([#82](https://github.com/sertit/eoreader/issues/82))
 
-
 ### Other
 
 - INTERNAL: Better management of logs for deprecation warnings
@@ -17,6 +16,7 @@
 
 ### Bug Fixes
 
+- OPTIM: Don't recompute stacks if already existing on disk
 - FIX: Fixing `Custom Stacks` when specifying `datetime=None` on creation
 - FIX: Fix regression for multi-swath DGM CSK data (huge region) ([#78](https://github.com/sertit/eoreader/issues/78))
 - FIX: Fix calibration issues with CSK HR data (using fallback GPT graph by default)
@@ -32,7 +32,7 @@
 
 ### Bug Fixes
 
-- FIX: Fixing stack when saved as integer for some special cases 
+- FIX: Fixing stack when saved as integer for some special cases
 - FIX: Clipping negative reflectances to 0 ([#79](https://github.com/sertit/eoreader/issues/79))
 - FIX: Fixing nodata mangement for Theia product
 - FIX: Fixing handling of SCS multi-swath `Cosmo-SkyMed` products ([#78](https://github.com/sertit/eoreader/issues/78))
