@@ -46,7 +46,7 @@ from rasterio import transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
-from sertit import files, rasters, strings, xml
+from sertit import files, logs, rasters, strings, xml
 from sertit.misc import ListEnum
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -860,11 +860,8 @@ class Product:
             dict: {band_name, band xarray}
         """
         if not pixel_size and "resolution" in kwargs:
-            from warnings import warn
-
-            warn(
-                "`resolution` is deprecated in favor of `pixel_size` to avoid confusion.",
-                category=DeprecationWarning,
+            logs.deprecation_warning(
+                "`resolution` is deprecated in favor of `pixel_size` to avoid confusion."
             )
             pixel_size = kwargs.pop("resolution")
 
@@ -923,12 +920,9 @@ class Product:
             if is_index(band):
                 if self._has_index(band):
                     if band in indices.EOREADER_ALIASES:
-                        from warnings import warn
-
-                        warn(
+                        logs.deprecation_warning(
                             "Aliases of Awesome Spectral Indices won't be available in future versions of EOReader. "
-                            f"Please use {indices.EOREADER_ALIASES[band]} instead of {band}",
-                            category=DeprecationWarning,
+                            f"Please use {indices.EOREADER_ALIASES[band]} instead of {band}"
                         )
                     index_list.append(band)
                 else:

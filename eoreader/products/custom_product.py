@@ -30,7 +30,7 @@ from lxml import etree
 from lxml.builder import E
 from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import files, misc, rasters, vectors
+from sertit import files, logs, misc, rasters, vectors
 from sertit.misc import ListEnum
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
@@ -219,11 +219,8 @@ class CustomProduct(Product):
         """
         pixel_size = self.kwargs.get(CustomFields.PIX_SIZE.value)
         if pixel_size is None and CustomFields.RES.value in self.kwargs:
-            from warnings import warn
-
-            warn(
-                "`resolution` is deprecated in favor of `pixel_size` to avoid confusion.",
-                category=DeprecationWarning,
+            logs.deprecation_warning(
+                "`resolution` is deprecated in favor of `pixel_size` to avoid confusion."
             )
             pixel_size = self.kwargs.pop(CustomFields.RES.value)
 
