@@ -10,6 +10,7 @@
 ### Other
 
 - INTERNAL: Better management of logs for deprecation warnings
+- INTERNAL: Refactoring `simplify_footprint` in `sertit` library
 - DEPS: Pin sertit to 1.25.0
 
 ## 0.19.3 (2023-03-24)
