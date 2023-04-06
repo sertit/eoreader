@@ -1043,7 +1043,7 @@ class DimapV2Product(VhrProduct):
                         )
 
                         # Do not keep pixelized mask
-                        mask = utils.simplify_footprint(mask, self.pixel_size)
+                        mask = vectors.simplify_footprint(mask, self.pixel_size)
 
             # Sometimes the GML mask lacks crs (why ?)
             elif (
