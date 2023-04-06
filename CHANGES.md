@@ -6,6 +6,12 @@
 
 - **BREAKING CHANGES: Switching from `resolution` to `pixel_size` to avoid confusion about the definitions (especially for SAR data)** ([#82](https://github.com/sertit/eoreader/issues/82))
 
+
+### Other
+
+- INTERNAL: Better management of logs for deprecation warnings
+- DEPS: Pin sertit to 1.25.0
+
 ## 0.19.3 (2023-03-24)
 
 ### Bug Fixes
