@@ -1603,19 +1603,19 @@ class S2Product(OpticalProduct):
                 else:
                     quicklook_path = str(next(self.path.glob("**/preview.jpg")))
             except (StopIteration, FileNotFoundError):
-                # Use the TCI
+                # Use the TCI_60m or PVI
                 try:
                     if self.product_type == S2ProductType.L2A:
                         tci_regex = "TCI_60m"
                     else:
-                        tci_regex = "TCI"
+                        tci_regex = "PVI"
                     if self.is_archived:
                         quicklook_path = files.get_archived_rio_path(
                             self.path, file_regex=rf".*{tci_regex}\.jp2"
                         )
                     else:
                         quicklook_path = str(
-                            next(self.path.glob(f"**/{tci_regex}.jp2"))
+                            next(self.path.glob(f"**/*{tci_regex}.jp2"))
                         )
                 except (StopIteration, FileNotFoundError):
                     LOGGER.warning(f"No quicklook found in {self.condensed_name}")
