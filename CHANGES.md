@@ -8,6 +8,7 @@
 ### Other
 
 - STAC: Updates in STAC management
+- INTERNAL: Use `geopandas.estimate_utm_crs()` when possible
 
 
 ## 0.19.3 (2023-03-24)

@@ -273,11 +273,7 @@ class CapellaProduct(SarProduct):
                     geometry=[Point(target_position)],
                     crs={"proj": "geocent", "ellps": "WGS84", "datum": "WGS84"},
                 ).to_crs(WGS84)
-
-                crs = vectors.corresponding_utm_projection(
-                    center_pix.x.iat[0], center_pix.x.iat[1]
-                )
-                center_pix.to_crs(crs)
+                center_pix.to_crs(center_pix.extent_wgs84.estimate_utm_crs())
 
                 # Get pixel spacing in meters
                 pixel_spacing_h = float(root.findtext(".//pixel_spacing_row"))
