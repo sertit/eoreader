@@ -1607,10 +1607,10 @@ class S2Product(OpticalProduct):
                 try:
                     if self.is_archived:
                         quicklook_path = files.get_archived_rio_path(
-                            self.path, file_regex=rf".*PVI\.jp2"
+                            self.path, file_regex=r".*PVI\.jp2"
                         )
                     else:
-                        quicklook_path = str(next(self.path.glob(f"**/*PVI.jp2")))
+                        quicklook_path = str(next(self.path.glob("**/*PVI.jp2")))
                 except (StopIteration, FileNotFoundError):
                     LOGGER.warning(f"No quicklook found in {self.condensed_name}")
 
