@@ -35,7 +35,7 @@ def fill_common_mtd(asset: Any, prod, **kwargs) -> None:
 
     Args:
         asset (pystac.Asset, pystac.Item): Asset or item
-        prod (product): EOReader product
+        prod (Product): EOReader product
         **kwargs: Additional arguments
     """
     # Basics
@@ -44,7 +44,7 @@ def fill_common_mtd(asset: Any, prod, **kwargs) -> None:
 
     # Date and Time
     asset.common_metadata.created = datetime.utcnow()
-    asset.common_metadata.updated = None  # TODO
+    asset.common_metadata.updated = datetime.utcnow()
 
     # Licensing
     # asset.common_metadata.license = None  # Collection level if possible
@@ -53,12 +53,14 @@ def fill_common_mtd(asset: Any, prod, **kwargs) -> None:
     # asset.common_metadata.providers = None  # Collection level if possible
 
     # Date and Time Range
-    asset.common_metadata.start_datetime = None  # TODO
-    asset.common_metadata.end_datetime = None  # TODO
+    asset.common_metadata.start_datetime = prod.datetime
+    asset.common_metadata.end_datetime = prod.datetime  # TODO
 
     # Instrument
     asset.common_metadata.platform = None  # TODO
-    asset.common_metadata.instruments = None  # TODO
+    asset.common_metadata.instruments = [
+        prod.instrument if isinstance(prod.instrument, str) else prod.instrument.value
+    ]
     asset.common_metadata.constellation = prod.constellation.value.lower()
     asset.common_metadata.mission = None
     asset.common_metadata.gsd = kwargs.get(GSD)
