@@ -352,9 +352,7 @@ class SarProduct(Product):
         extent_wgs84 = self.wgs84_extent()
 
         # Convert to UTM
-        extent = extent_wgs84.to_crs(extent_wgs84.estimate_utm_crs())
-
-        return extent
+        return extent_wgs84.to_crs(self.crs())
 
     @cache
     def crs(self) -> crs.CRS:
