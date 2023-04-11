@@ -1,16 +1,8 @@
 # Release History
 
-## 0.20.0 (2023-MM-DD)
+## 0.19.4 (2023-MM-DD)
 
-### Breaking Changes
-
-- **BREAKING CHANGES: Switching from `resolution` to `pixel_size` to avoid confusion about the definitions (especially for SAR data)** ([#82](https://github.com/sertit/eoreader/issues/82))
-
-### Other
-
-- INTERNAL: Better management of logs for deprecation warnings
-- INTERNAL: Refactoring `simplify_footprint` in `sertit` library
-- DEPS: Pin sertit to 1.25.0
+- FIX: Removing calibration step from SNAP pre-processing graph for multi-swath `Cosmo-SkyMed 1st GEN` products (to avoid ending up with empty images after pre-process)
 
 ## 0.19.3 (2023-03-24)
 

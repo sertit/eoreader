@@ -185,6 +185,9 @@ class SarProduct(Product):
         self.snap_filename = None
         """Path used by SNAP to process this product"""
 
+        self.nof_swaths = None
+        """Number of swaths of the current SAR product"""
+
         # Private attributes
         self._band_folder = None
         self._raw_band_regex = None
@@ -704,11 +707,10 @@ class SarProduct(Product):
                             "cplx_no_calib_preprocess_default.xml"
                         )
                     elif (
-                        self.constellation == Constellation.CSK
-                        and self.sensor_mode.name == "HR"
+                        self.constellation == Constellation.CSK and self.nof_swaths > 1
                     ):
                         LOGGER.debug(
-                            "SNAP Error: Calibration currently fails for CSK HR data. Removing this step."
+                            "SNAP Error: Calibration currently fails for CSK data with multiple swaths. Removing this step."
                         )
                         pp_graph = utils.get_data_dir().joinpath(
                             "grd_sar_preprocess_fallback.xml"
