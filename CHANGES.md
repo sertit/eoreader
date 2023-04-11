@@ -1,5 +1,9 @@
 # Release History
 
+## 0.19.4 (2023-MM-DD)
+
+- FIX: Removing calibration step from SNAP pre-processing graph for multi-swath `Cosmo-SkyMed 1st GEN` products (to avoid ending up with empty images after pre-process)
+
 ## 0.19.3 (2023-03-24)
 
 ### Bug Fixes

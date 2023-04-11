@@ -116,17 +116,12 @@ class CosmoProduct(SarProduct):
         # SNAP cannot process its archive
         self.needs_extraction = True
 
+        # Get the number of swaths of this product
+        with h5netcdf.File(self._img_path, phony_dims="access") as raw_h5:
+            self.nof_swaths = len(list(raw_h5.groups))
+
         # Post init done by the super class
         super()._pre_init(**kwargs)
-
-    def _post_init(self, **kwargs) -> None:
-        """
-        Function used to post_init the products
-        (setting product-type, band names and so on)
-        """
-
-        # Post init done by the super class
-        super()._post_init(**kwargs)
 
     @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
@@ -496,8 +491,7 @@ class CosmoProduct(SarProduct):
             str: Band path
         """
         with h5netcdf.File(self._img_path, phony_dims="access") as raw_h5:
-            swaths = list(raw_h5.groups)
-            if self.sar_prod_type == SarProductType.GDRG or len(swaths) == 1:
+            if self.sar_prod_type == SarProductType.GDRG or self.nof_swaths == 1:
                 return super()._pre_process_sar(band, resolution, **kwargs)
             else:
                 LOGGER.warning(
