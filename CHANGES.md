@@ -5,6 +5,11 @@
 - FIX: Removing calibration step from SNAP pre-processing graph for multi-swath `Cosmo-SkyMed 1st GEN` products (to avoid ending up with empty images after pre-process)
 - FIX: Fixing the paths to Sentinel-2 quicklooks: using PVI instead of TCI file if no .jpg preview file is found ([#84](https://github.com/sertit/eoreader/issues/84), [#85](https://github.com/sertit/eoreader/issues/85), thanks a lot @floriandeboissieu)
 
+### Other
+
+- STAC: Updates in STAC management
+
+
 ## 0.19.3 (2023-03-24)
 
 ### Bug Fixes
