@@ -32,7 +32,7 @@ import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import files, misc, rasters, snap, strings, vectors
+from sertit import files, misc, rasters, snap, strings
 from sertit.misc import ListEnum
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -351,11 +351,8 @@ class SarProduct(Product):
         # Get WGS84 extent
         extent_wgs84 = self.wgs84_extent()
 
-        # Get upper-left corner and deduce UTM proj from it
-        utm = vectors.corresponding_utm_projection(
-            extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy
-        )
-        extent = extent_wgs84.to_crs(utm)
+        # Convert to UTM
+        extent = extent_wgs84.to_crs(extent_wgs84.estimate_utm_crs())
 
         return extent
 
@@ -378,12 +375,8 @@ class SarProduct(Product):
         # Get WGS84 extent
         extent_wgs84 = self.wgs84_extent()
 
-        # Get upper-left corner and deduce UTM proj from it
-        crs_str = vectors.corresponding_utm_projection(
-            extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy
-        )
-
-        return crs.CRS.from_string(crs_str)
+        # Estimate UTM from extent
+        return extent_wgs84.estimate_utm_crs()
 
     @abstractmethod
     def _set_sensor_mode(self) -> None:

@@ -30,7 +30,7 @@ from lxml import etree
 from lxml.builder import E
 from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import files, misc, rasters, vectors
+from sertit import files, misc, rasters
 from sertit.misc import ListEnum
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
@@ -307,12 +307,9 @@ class CustomProduct(Product):
             extent_wgs84 = rasters.get_extent(self.get_default_band_path())
 
             # Get upper-left corner and deduce UTM proj from it
-            crs_str = vectors.corresponding_utm_projection(
-                extent_wgs84.bounds.minx, extent_wgs84.bounds.maxy
-            )
             raise InvalidProductError(
                 "Only stacks with projected CRS can be processed! "
-                f"Please reproject it to the corresponding UTM projection ({crs_str})!"
+                f"Please reproject it to the corresponding UTM projection ({extent_wgs84.estimate_utm_crs()})!"
             )
 
         return def_crs
