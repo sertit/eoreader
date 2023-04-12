@@ -34,7 +34,7 @@ rtree
 geopandas>=0.11.0
 
 # Spectral indices
-git+https://github.com/awesome-spectral-indices/spyndex.git
+spyndex>=0.3.0
 
 # STAC
 pystac[validation]
