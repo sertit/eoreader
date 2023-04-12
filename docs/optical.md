@@ -4,9 +4,10 @@
 
 The product resolution is the one given in [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589). 
 The Data Access Portfolio Document presents the offer of the datasets and data access services that are made available to the Copernicus Users in response to their Earth Observation data requirements.
+However, especially for SAR data, the default pixel size of GRD bands is not the same as the product resolution!
 
 ``` {container} full-width
-| Constellations               | Class                                                   | Product Types             | Default Resolution                   | Use archive                  |
+| Constellations               | Class                                                   | Product Types             | Default Pixel Size                   | Use archive                  |
 |------------------------------|---------------------------------------------------------|---------------------------|--------------------------------------|------------------------------|
 | Sentinel-2                   | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A & L2Ap          | 10m                                  | ✅                            |
 | Sentinel-2 Theia             | {meth}`~eoreader.products.S2TheiaProduct`               | L2A                       | 10m                                  | ✅                            |

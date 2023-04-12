@@ -46,7 +46,7 @@ def test_custom_optical():
         sensor_type=SensorType.OPTICAL,
         constellation="WV02",
         instrument="WW110",
-        resolution=2.0,
+        pixel_size=2.0,
         product_type="Ortho",
         band_map={BLUE: 1, GREEN: 2, RED: 3, NIR: 4, SWIR_1: 5},
     )
@@ -118,7 +118,7 @@ def test_custom_optical():
     extent_some = prod_some.extent()
     footprint_some = prod_some.footprint()
     crs_some = prod_some.crs()
-    bands = prod_some.load([HILLSHADE], resolution=200.0)
+    bands = prod_some.load([HILLSHADE], pixel_size=200.0)
 
     # Check attributes
     assert bands[HILLSHADE].attrs["long_name"] == "HILLSHADE"
@@ -160,7 +160,7 @@ def test_custom_sar():
         datetime="20210827T162210",
         constellation="ICEYE",
         instrument="SAR X-band",
-        resolution=6.0,
+        pixel_size=6.0,
         product_type="GRD",
         band_map={VV: 1, VV_DSPK: 2},
     )
@@ -168,7 +168,7 @@ def test_custom_sar():
     extent_sar = prod_sar.extent()
     footprint_sar = prod_sar.footprint()
     crs_sar = prod_sar.crs()
-    stack_sar = prod_sar.stack([VV, VV_DSPK], prod_sar.resolution * 10)
+    stack_sar = prod_sar.stack([VV, VV_DSPK], prod_sar.pixel_size * 10)
 
     # Errors
     with pytest.raises(AssertionError):
@@ -195,13 +195,13 @@ def test_custom_sar():
         product_type=None,
         instrument=None,
         datetime=None,
-        resolution=6.0,
+        pixel_size=6.0,
     )
     LOGGER.info(prod_wtf)
     extent_wtf = prod_wtf.extent()
     footprint_wtf = prod_wtf.footprint()
     crs_wtf = prod_wtf.crs()
-    stack_wtf = prod_wtf.stack([HH, RH], prod_wtf.resolution * 10)
+    stack_wtf = prod_wtf.stack([HH, RH], prod_wtf.pixel_size * 10)
 
     ci.assert_geom_equal(extent_sar, extent_wtf)
     ci.assert_geom_equal(footprint_sar, footprint_wtf)
@@ -223,7 +223,7 @@ def test_custom_wgs84():
         name="SPOT6_WGS84",
         datetime="20181218T090308",
         constellation="SPOT6",
-        resolution=1.5 * 15,
+        pixel_size=1.5 * 15,
         instrument="NAOMI",
         product_type="ORT",
         band_map={RED: 1, GREEN: 2, BLUE: 3, NIR: 4},
@@ -247,7 +247,7 @@ def test_custom_wgs84():
     assert root.findtext("datetime") == "2018-12-18T09:03:08"
     assert root.findtext("sensor_type") == "Optical"
     assert root.findtext("constellation") == "Spot-6"
-    assert root.findtext("resolution") == str(1.5 * 15)
+    assert root.findtext("pixel_size") == str(1.5 * 15)
     assert root.findtext("product_type") == "ORT"
     assert root.findtext("band_map") == "{'BLUE': 3, 'GREEN': 2, 'RED': 1, 'NIR': 4}"
     assert root.findtext("sun_azimuth") == "None"

@@ -121,11 +121,10 @@ The default resolution of SAR products is the one given in
 For resolutions not available in this document, we are using the pixel spacing given by the constellation's provider.
 Complex data are **always** converted back to ground range to be used, so the complex resolution is **never** used by EOReader.
 
-SAR default resolution is the **pixel spacing** given by the constellation provider, to follow common habits.
-Sometimes, especially when converting complex data to ground range, this resolution needs to be adaptated.
+The default pixel size of GRD bands is not the same as the product resolution! (i.e. pixel size of 10m with a resolution of 20m for Sentinel-1 IW data)
 
 > ⚠ Pay attention that for a pixel spacing of 10 meters and a rg x az resolution of 23m, objects under 23m won't be resolved !
-> As this may be counter-intuitive, it is recommanded to **always** specify the resolution when loading SAR data.
+> As this may be counter-intuitive, it is recommanded to **always** specify the pixel size when loading SAR data.
 
 ### Sentinel-1
 
@@ -401,10 +400,10 @@ The default `Terrain Correction` step is:
 
 ### Default SNAP resolution
 
-You can override default SNAP resolution (in meters) when geocoding SAR bands by setting the following environment
+You can override default SNAP pixel spacing (in meters) when geocoding SAR bands by setting the following environment
 variable:
 
-- `EOREADER_SAR_DEFAULT_RES`: 0.0 by default, which means using the product's default resolution
+- `EOREADER_SAR_DEFAULT_RES`: 0.0 by default, which means using the product's default pixel spacing
 
 ## Documentary Sources
 

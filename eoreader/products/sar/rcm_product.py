@@ -119,31 +119,31 @@ class RcmProduct(SarProduct):
     You can use directly the .zip file
     """
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         See here
         <here](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
         for more information (Beam Modes)
         """
         if self.sensor_mode == RcmSensorMode.THREE_M:
-            def_res = 3.0
+            def_pixel_size = 3.0
         elif self.sensor_mode == RcmSensorMode.FIVE_M:
-            def_res = 5.0
+            def_pixel_size = 5.0
         elif self.sensor_mode == RcmSensorMode.QP:
-            def_res = 9.0
+            def_pixel_size = 9.0
         elif self.sensor_mode == RcmSensorMode.SIXTEEN_M:
-            def_res = 16.0
+            def_pixel_size = 16.0
         elif self.sensor_mode == RcmSensorMode.THIRTY_M:
-            def_res = 30.0
+            def_pixel_size = 30.0
         elif self.sensor_mode == RcmSensorMode.FIFTY_M:
-            def_res = 50.0
+            def_pixel_size = 50.0
         elif self.sensor_mode in [RcmSensorMode.HUNDRED_M, RcmSensorMode.SCLN]:
-            def_res = 100.0
+            def_pixel_size = 100.0
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
-        return def_res
+        self.pixel_size = def_pixel_size
 
     def _pre_init(self, **kwargs) -> None:
         """

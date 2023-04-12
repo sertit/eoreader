@@ -424,6 +424,7 @@ class Reader:
                 constellation: Sentinel-2
                 sensor type: Optical
                 product type: MSIL1C
+                default pixel size: 10.0
                 default resolution: 10.0
                 acquisition datetime: 2021-05-17T10:36:19
                 band mapping:

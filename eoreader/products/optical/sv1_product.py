@@ -153,17 +153,17 @@ class Sv1Product(VhrProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
         # Not Pansharpened images
         if self.band_combi == Sv1BandCombination.PMS:
             # TODO: manage default resolution for PAN band ?
-            return self._ms_res
+            self.pixel_size = self._ms_res
         # Pansharpened images
         else:
-            return self._pan_res
+            self.pixel_size = self._pan_res
 
     def _set_instrument(self) -> None:
         """
@@ -527,7 +527,7 @@ class Sv1Product(VhrProduct):
     def _open_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -536,8 +536,8 @@ class Sv1Product(VhrProduct):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -560,7 +560,7 @@ class Sv1Product(VhrProduct):
         return raw_band_paths
 
     def get_band_paths(
-        self, band_list: list, resolution: float = None, **kwargs
+        self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
         """
         Return the paths of required bands.
@@ -581,7 +581,7 @@ class Sv1Product(VhrProduct):
 
         Args:
             band_list (list): List of the wanted bands
-            resolution (float): Band resolution
+            pixel_size (float): Band pixel size
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -592,14 +592,14 @@ class Sv1Product(VhrProduct):
         for band in band_list:
             # Get clean band path
             clean_band = self._get_clean_band_path(
-                band, resolution=resolution, **kwargs
+                band, pixel_size=pixel_size, **kwargs
             )
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
                 # First look for reprojected bands
                 reproj_path = self._get_utm_band_path(
-                    band=band.name, resolution=resolution
+                    band=band.name, pixel_size=pixel_size
                 )
                 if not reproj_path.is_file():
                     # Then for original data
