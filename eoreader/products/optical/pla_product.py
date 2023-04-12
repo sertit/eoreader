@@ -207,16 +207,16 @@ class PlaProduct(PlanetProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
         # Ortho Tiles
         if self.product_type == PlaProductType.L3A:
-            return 3.125
+            self.pixel_size = 3.125
         # Ortho Scene
         else:
-            return 3.0
+            self.pixel_size = 3.0
 
     def _set_instrument(self) -> None:
         """
@@ -468,7 +468,7 @@ class PlaProduct(PlanetProduct):
         return stack_path
 
     def get_band_paths(
-        self, band_list: list, resolution: float = None, **kwargs
+        self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
         """
         Return the paths of required bands.
@@ -489,7 +489,7 @@ class PlaProduct(PlanetProduct):
 
         Args:
             band_list (list): List of the wanted bands
-            resolution (float): Band resolution
+            pixel_size (float): Band pixel size
             kwargs: Other arguments used to load bands
 
         Returns:

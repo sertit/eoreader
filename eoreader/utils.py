@@ -23,7 +23,6 @@ from functools import wraps
 from pathlib import Path
 from typing import Callable, Union
 
-import geopandas as gpd
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -33,7 +32,7 @@ from rasterio import errors
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
-from sertit import rasters
+from sertit import rasters, vectors
 
 from eoreader import EOREADER_NAME
 from eoreader.bands import is_index, is_sat_band, to_str
@@ -126,7 +125,7 @@ def use_dask():
 
 def read(
     path: Union[str, CloudPath, Path],
-    resolution: Union[tuple, list, float] = None,
+    pixel_size: Union[tuple, list, float] = None,
     size: Union[tuple, list] = None,
     resampling: Resampling = Resampling.nearest,
     masked: bool = True,
@@ -148,8 +147,8 @@ def read(
 
     Args:
         path (Union[str, CloudPath, Path]): Path to the raster
-        resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-        size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+        pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+        size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
         resampling (Resampling): Resampling method
         masked (bool): Get a masked array
         indexes (Union[int, list]): Indexes to load. Load the whole array if None.
@@ -176,7 +175,7 @@ def read(
             warnings.simplefilter("ignore", category=NotGeoreferencedWarning)
             return rasters.read(
                 path,
-                resolution=resolution,
+                resolution=pixel_size,
                 resampling=resampling,
                 masked=masked,
                 indexes=indexes,
@@ -329,44 +328,6 @@ def open_rpc_file(path: Union[CloudPath, Path]) -> RPC:
         raise KeyError(f"Invalid RPC file, missing key: {msg}")
 
 
-def simplify_footprint(
-    footprint: gpd.GeoDataFrame, resolution: float, max_nof_vertices: int = 50
-) -> gpd.GeoDataFrame:
-    """
-    Simplify footprint
-
-    Args:
-        footprint (gpd.GeoDataFrame): Footprint to be simplified
-        resolution (float): Corresponding resolution
-        max_nof_vertices (int): Maximum number of vertices of the wanted footprint
-
-    Returns:
-        gpd.GeoDataFrame: Simplified footprint
-    """
-    # Number of pixels of tolerance
-    tolerance = [1, 2, 4, 8, 16, 32, 64]
-
-    # Process only if given footprint is too complex (too many vertices)
-    def simplify_geom(value):
-        nof_vertices = len(value.exterior.coords)
-        if nof_vertices > max_nof_vertices:
-            for tol in tolerance:
-                # Simplify footprint
-                value = value.simplify(
-                    tolerance=tol * resolution, preserve_topology=True
-                )
-
-                # Check if OK
-                nof_vertices = len(value.exterior.coords)
-                if nof_vertices <= max_nof_vertices:
-                    break
-        return value
-
-    footprint.geometry = footprint.geometry.apply(simplify_geom)
-
-    return footprint
-
-
 def simplify(footprint_fct: Callable):
     """
     Simplify footprint decorator
@@ -382,7 +343,7 @@ def simplify(footprint_fct: Callable):
     def simplify_wrapper(self):
         """Simplify footprint wrapper"""
         footprint = footprint_fct(self)
-        return simplify_footprint(footprint, self.resolution)
+        return vectors.simplify_footprint(footprint, self.pixel_size)
 
     return simplify_wrapper
 

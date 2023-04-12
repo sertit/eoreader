@@ -38,7 +38,13 @@ from sertit.misc import ListEnum
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import BandNames, SarBand, SarBandMap
 from eoreader.bands import SarBandNames as sab
-from eoreader.env_vars import DEM_PATH, DSPK_GRAPH, PP_GRAPH, SAR_DEF_RES, SNAP_DEM_NAME
+from eoreader.env_vars import (
+    DEM_PATH,
+    DSPK_GRAPH,
+    PP_GRAPH,
+    SAR_DEF_PIXEL_SIZE,
+    SNAP_DEM_NAME,
+)
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.keywords import SAR_INTERP_NA
 from eoreader.products.product import Product, SensorType
@@ -191,6 +197,9 @@ class SarProduct(Product):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
+        # ???
+        self.pixel_spacing = self.pixel_size / 2.0
+
     def _map_bands(self) -> None:
         """
         Map bands
@@ -200,7 +209,7 @@ class SarProduct(Product):
                 band_name: SarBand(
                     eoreader_name=band_name,
                     name=band_name.name,
-                    gsd=self.resolution,
+                    gsd=self.pixel_size,
                     id=band_name.value,
                     asset_role=INTENSITY,
                 )
@@ -384,7 +393,7 @@ class SarProduct(Product):
         raise NotImplementedError
 
     def get_band_paths(
-        self, band_list: list, resolution: float = None, **kwargs
+        self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
         """
         Return the paths of required bands.
@@ -405,7 +414,7 @@ class SarProduct(Product):
 
         Args:
             band_list (list): List of the wanted bands
-            resolution (float): Band resolution
+            pixel_size (float): Band pixel size
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -437,13 +446,13 @@ class SarProduct(Product):
                                 exact_name=True,
                             )
                         except FileNotFoundError:
-                            self._pre_process_sar(speckle_band, resolution, **kwargs)
+                            self._pre_process_sar(speckle_band, pixel_size, **kwargs)
 
                         # Despeckle the noisy band
                         band_paths[band] = self._despeckle_sar(speckle_band, **kwargs)
                     else:
                         band_paths[band] = self._pre_process_sar(
-                            band, resolution, **kwargs
+                            band, pixel_size, **kwargs
                         )
 
         return band_paths
@@ -561,7 +570,7 @@ class SarProduct(Product):
         self,
         path: Union[CloudPath, Path],
         band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
+        pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> xr.DataArray:
@@ -574,8 +583,8 @@ class SarProduct(Product):
         Args:
             path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -583,7 +592,7 @@ class SarProduct(Product):
         """
         return utils.read(
             path,
-            resolution=resolution,
+            pixel_size=pixel_size,
             size=size,
             resampling=Resampling.bilinear,
             **kwargs,
@@ -592,17 +601,17 @@ class SarProduct(Product):
     def _load_bands(
         self,
         bands: Union[list, BandNames],
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
         """
-        Load bands as numpy arrays with the same resolution (and same metadata).
+        Load bands as numpy arrays with the same pixel size (and same metadata).
 
         Args:
             bands (list, BandNames): List of the wanted bands
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -615,27 +624,27 @@ class SarProduct(Product):
         if not isinstance(bands, list):
             bands = [bands]
 
-        if resolution is None and size is not None:
-            resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution, **kwargs)
+        if pixel_size is None and size is not None:
+            pixel_size = self._pixel_size_from_img_size(size)
+        band_paths = self.get_band_paths(bands, pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = {}
         for band_name, band_path in band_paths.items():
             # Read SAR band
             band_arrays[band_name] = self._read_band(
-                band_path, resolution=resolution, size=size, **kwargs
+                band_path, pixel_size=pixel_size, size=size, **kwargs
             )
 
         return band_arrays
 
-    def _pre_process_sar(self, band: sab, resolution: float = None, **kwargs) -> str:
+    def _pre_process_sar(self, band: sab, pixel_size: float = None, **kwargs) -> str:
         """
         Pre-process SAR data (geocoding...)
 
         Args:
             band (sbn): Band to preprocess
-            resolution (float): Resolution
+            pixel_size (float): Pixel size
             kwargs: Additional arguments
 
         Returns:
@@ -719,9 +728,13 @@ class SarProduct(Product):
 
                 # Command line
                 if not os.path.isfile(pp_dim):
-                    # Resolution
-                    def_res = float(os.environ.get(SAR_DEF_RES, self.resolution))
-                    res_m = resolution if resolution else def_res
+                    # pixel_size (use SNAP default pixel size for terrain correction)
+                    def_pixel_size = float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
+                    res_m = (
+                        pixel_size
+                        if (pixel_size and pixel_size != self.pixel_size)
+                        else def_pixel_size
+                    )
                     res_deg = (
                         res_m / 10.0 * 8.983152841195215e-5
                     )  # Approx, shouldn't be used
@@ -913,7 +926,7 @@ class SarProduct(Product):
     def _compute_hillshade(
         self,
         dem_path: str = "",
-        resolution: Union[float, tuple] = None,
+        pixel_size: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
     ) -> Union[Path, CloudPath]:
@@ -922,9 +935,9 @@ class SarProduct(Product):
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
+            pixel_size (Union[float, tuple]): Pixel size in meters. If not specified, use the product pixel size.
             resampling (Resampling): Resampling method
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
         Returns:
             Union[Path, CloudPath]: Hillshade mask path
         """

@@ -150,7 +150,7 @@ class DimapV1Product(VhrProduct):
             footprint_dezoom = 10
             arr = rasters.read(
                 self.get_default_band_path(),
-                resolution=self.resolution * footprint_dezoom,
+                resolution=self.pixel_size * footprint_dezoom,
                 indexes=[1],
             )
 
@@ -323,7 +323,7 @@ class DimapV1Product(VhrProduct):
     def _open_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -332,8 +332,8 @@ class DimapV1Product(VhrProduct):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}

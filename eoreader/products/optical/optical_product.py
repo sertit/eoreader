@@ -116,6 +116,8 @@ class OpticalProduct(Product):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
+        self.pixel_spacing = self.pixel_size
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
@@ -287,7 +289,7 @@ class OpticalProduct(Product):
     def _open_bands(
         self,
         band_paths: dict,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -296,8 +298,8 @@ class OpticalProduct(Product):
 
         Args:
             band_paths (dict): Band dict: {band_enum: band_path}
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -310,13 +312,13 @@ class OpticalProduct(Product):
             # Read band
             LOGGER.debug(f"Read {band.name}")
             band_arr = self._read_band(
-                band_path, band=band, resolution=resolution, size=size, **kwargs
+                band_path, band=band, pixel_size=pixel_size, size=size, **kwargs
             )
 
-            if not resolution:
-                resolution = band_arr.rio.resolution()[0]
+            if not pixel_size:
+                pixel_size = band_arr.rio.resolution()[0]
             clean_band_path = self._get_clean_band_path(
-                band, resolution=resolution, writable=True, **kwargs
+                band, pixel_size=pixel_size, writable=True, **kwargs
             )
             # If raw data, clean it !
             if AnyPath(band_path).name != clean_band_path.name:
@@ -370,7 +372,7 @@ class OpticalProduct(Product):
         self,
         path: Union[CloudPath, Path],
         band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
+        pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> xr.DataArray:
@@ -383,8 +385,8 @@ class OpticalProduct(Product):
         Args:
             path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -490,7 +492,7 @@ class OpticalProduct(Product):
     def _compute_hillshade(
         self,
         dem_path: str = "",
-        resolution: Union[float, tuple] = None,
+        pixel_size: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
     ) -> Union[Path, CloudPath]:
@@ -499,8 +501,8 @@ class OpticalProduct(Product):
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[float, tuple]): Pixel size in meters. If not specified, use the product pixel size.
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             resampling (Resampling): Resampling method
 
         Returns:
@@ -508,7 +510,7 @@ class OpticalProduct(Product):
 
         """
         # Warp DEM
-        warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
+        warped_dem_path = self._warp_dem(dem_path, pixel_size, size, resampling)
 
         # Get Hillshade path
         hillshade_name = (
@@ -538,7 +540,7 @@ class OpticalProduct(Product):
     def _open_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -547,8 +549,8 @@ class OpticalProduct(Product):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -558,7 +560,7 @@ class OpticalProduct(Product):
     def _load_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -567,8 +569,8 @@ class OpticalProduct(Product):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -579,7 +581,7 @@ class OpticalProduct(Product):
             bands_to_load = []
             for band in bands:
                 cloud_path = self._construct_band_path(
-                    band, resolution, size, writable=False, **kwargs
+                    band, pixel_size, size, writable=False, **kwargs
                 )
                 if cloud_path.is_file():
                     band_dict[band] = utils.read(cloud_path)
@@ -587,12 +589,12 @@ class OpticalProduct(Product):
                     bands_to_load.append(band)
 
             # Then load other bands that haven't been loaded before
-            loaded_bands = self._open_clouds(bands_to_load, resolution, size, **kwargs)
+            loaded_bands = self._open_clouds(bands_to_load, pixel_size, size, **kwargs)
 
             # Write them on disk
             for band_id, band_arr in loaded_bands.items():
                 cloud_path = self._construct_band_path(
-                    band_id, resolution, size, writable=True, **kwargs
+                    band_id, pixel_size, size, writable=True, **kwargs
                 )
                 utils.write(band_arr, cloud_path)
 
@@ -623,7 +625,7 @@ class OpticalProduct(Product):
     def _get_clean_band_path(
         self,
         band: BandNames,
-        resolution: float = None,
+        pixel_size: float = None,
         writable: bool = False,
         **kwargs,
     ) -> Union[CloudPath, Path]:
@@ -634,7 +636,7 @@ class OpticalProduct(Product):
 
         Args:
             band (BandNames): Wanted band
-            resolution (float): Band resolution in meters
+            pixel_size (float): Band pixel size in meters
             writable (bool): True if we want the band folder to be writeable
             kwargs: Additional arguments
 
@@ -645,7 +647,7 @@ class OpticalProduct(Product):
             kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
         )
 
-        res_str = self._resolution_to_str(resolution)
+        res_str = self._pixel_size_to_str(pixel_size)
 
         # Radiometric processing
         rad_proc = "" if kwargs.get(TO_REFLECTANCE, True) else "_as_is"

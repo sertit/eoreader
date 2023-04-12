@@ -98,22 +98,22 @@ class IceyeProduct(SarProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         See here
         <here](https://www.iceye.com/hubfs/Downloadables/ICEYE_SAR_Product_Guide_2021_V4.0.pdf>`_
         for more information (table B.3).
         """
         if self.sensor_mode == IceyeSensorMode.SM:
-            def_res = 3.0
+            def_pixel_size = 3.0
         elif self.sensor_mode == IceyeSensorMode.SL:
-            def_res = 1.0
+            def_pixel_size = 1.0
         elif self.sensor_mode == IceyeSensorMode.SC:
-            def_res = 15.0
+            def_pixel_size = 15.0
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
-        return def_res
+        self.pixel_size = def_pixel_size
 
     def _set_instrument(self) -> None:
         """

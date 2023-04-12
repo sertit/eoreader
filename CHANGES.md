@@ -1,5 +1,17 @@
 # Release History
 
+## 0.20.0 (2023-MM-DD)
+
+### Breaking Changes
+
+- **BREAKING CHANGES: Switching from `resolution` to `pixel_size` to avoid confusion about the definitions (especially for SAR data)** ([#82](https://github.com/sertit/eoreader/issues/82))
+
+### Other
+
+- INTERNAL: Better management of logs for deprecation warnings
+- INTERNAL: Refactoring `simplify_footprint` in `sertit` library
+- DEPS: Pin sertit to 1.25.0
+
 ## 0.19.4 (2023-04-12)
 
 ### Bug Fixes
@@ -17,6 +29,7 @@
 
 ### Bug Fixes
 
+- OPTIM: Don't recompute stacks if already existing on disk
 - FIX: Fixing `Custom Stacks` when specifying `datetime=None` on creation
 - FIX: Fix regression for multi-swath DGM CSK data (huge region) ([#78](https://github.com/sertit/eoreader/issues/78))
 - FIX: Fix calibration issues with CSK HR data (using fallback GPT graph by default)

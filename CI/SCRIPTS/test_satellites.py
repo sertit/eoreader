@@ -35,7 +35,7 @@ from eoreader.env_vars import (
     CI_EOREADER_BAND_FOLDER,
     DEM_PATH,
     S3_DB_URL_ROOT,
-    SAR_DEF_RES,
+    SAR_DEF_PIXEL_SIZE,
     TEST_USING_S3_DB,
 )
 from eoreader.keywords import SLSTR_RAD_ADJUST
@@ -200,14 +200,14 @@ def _test_core(
                     get_ci_data_dir().joinpath(prod.condensed_name)
                 )
 
-                # Manage S3 resolution to speed up processes
+                # Manage S3 pixel_size to speed up processes
                 if prod.sensor_type == SensorType.SAR:
-                    res = 1000.0
-                    os.environ[SAR_DEF_RES] = str(res)
+                    pixel_size = 1000.0
+                    os.environ[SAR_DEF_PIXEL_SIZE] = str(pixel_size)
                 elif prod.constellation_id in ["S2", "S2_THEIA"]:
-                    res = 20.0 * 50  # Legacy
+                    pixel_size = 20.0 * 50  # Legacy
                 else:
-                    res = prod.resolution * 50
+                    pixel_size = prod.pixel_size * 50
 
                 # Extent
                 LOGGER.info("Checking extent")
@@ -281,12 +281,12 @@ def _test_core(
                 # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
                 assert prod.load([]) == {}
                 band_arr_raw = prod.load(
-                    first_band.value, resolution=res, clean_optical="raw"
+                    first_band.value, pixel_size=pixel_size, clean_optical="raw"
                 )[first_band]
                 band_arr1 = prod.load(
-                    first_band, resolution=res, clean_optical="nodata"
+                    first_band, pixel_size=pixel_size, clean_optical="nodata"
                 )[first_band]
-                band_arr2 = prod.load(first_band, resolution=res)[first_band]
+                band_arr2 = prod.load(first_band, pixel_size=pixel_size)[first_band]
                 np.testing.assert_array_almost_equal(band_arr1, band_arr2)
                 ci.assert_val(band_arr_raw.dtype, np.float32, "band_arr_raw dtype")
                 ci.assert_val(band_arr1.dtype, np.float32, "band_arr1 dtype")
@@ -302,7 +302,7 @@ def _test_core(
                 curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
                 stack = prod.stack(
                     stack_bands,
-                    resolution=res,
+                    pixel_size=pixel_size,
                     stack_path=curr_path,
                     clean_optical="clean",
                     **kwargs,

@@ -246,9 +246,9 @@ class LandsatProduct(OpticalProduct):
 
         return path
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
         if self.constellation in [
             Constellation.L8,
@@ -258,11 +258,11 @@ class LandsatProduct(OpticalProduct):
             self.constellation in [Constellation.L4, Constellation.L5]
             and self.instrument == LandsatInstrument.TM
         ):
-            res = 30.0
+            pixel_size = 30.0
         else:
-            res = 60.0
+            pixel_size = 60.0
 
-        return res
+        self.pixel_size = pixel_size
 
     @cache
     @simplify
@@ -302,7 +302,7 @@ class LandsatProduct(OpticalProduct):
         # Read the file with a very low resolution
         nodata_band = utils.read(
             self._get_path(self._pixel_quality_id),
-            resolution=self.resolution * footprint_dezoom,
+            pixel_size=self.pixel_size * footprint_dezoom,
             masked=False,
         )
 
@@ -916,7 +916,7 @@ class LandsatProduct(OpticalProduct):
         return name
 
     def get_band_paths(
-        self, band_list: list, resolution: float = None, **kwargs
+        self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
         """
         Return the paths of required bands.
@@ -937,7 +937,7 @@ class LandsatProduct(OpticalProduct):
 
         Args:
             band_list (list): List of the wanted bands
-            resolution (float): Useless here
+            pixel_size (float): Useless here
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -954,7 +954,7 @@ class LandsatProduct(OpticalProduct):
 
             # Get clean band path
             clean_band = self._get_clean_band_path(
-                band, resolution=resolution, **kwargs
+                band, pixel_size=pixel_size, **kwargs
             )
             if clean_band.is_file():
                 band_paths[band] = clean_band
@@ -1055,7 +1055,7 @@ class LandsatProduct(OpticalProduct):
         self,
         path: Union[CloudPath, Path],
         band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
+        pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> xr.DataArray:
@@ -1068,8 +1068,8 @@ class LandsatProduct(OpticalProduct):
         Args:
             path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -1082,7 +1082,7 @@ class LandsatProduct(OpticalProduct):
         if self._pixel_quality_id in filename or self._radsat_id in filename:
             band_arr = utils.read(
                 path,
-                resolution=resolution,
+                pixel_size=pixel_size,
                 size=size,
                 resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
                 masked=False,
@@ -1092,7 +1092,7 @@ class LandsatProduct(OpticalProduct):
             # Read band (call superclass generic method)
             band_arr = utils.read(
                 path,
-                resolution=resolution,
+                pixel_size=pixel_size,
                 size=size,
                 resampling=Resampling.bilinear,
                 **kwargs,
@@ -1360,17 +1360,17 @@ class LandsatProduct(OpticalProduct):
     def _load_bands(
         self,
         bands: Union[list, BandNames],
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
         """
-        Load bands as numpy arrays with the same resolution (and same metadata).
+        Load bands as numpy arrays with the same pixel size (and same metadata).
 
         Args:
             bands (list, BandNames): List of the wanted bands
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1383,13 +1383,13 @@ class LandsatProduct(OpticalProduct):
         if not isinstance(bands, list):
             bands = [bands]
 
-        if resolution is None and size is not None:
-            resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution=resolution, **kwargs)
+        if pixel_size is None and size is not None:
+            pixel_size = self._pixel_size_from_img_size(size)
+        band_paths = self.get_band_paths(bands, pixel_size=pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(
-            band_paths, resolution=resolution, size=size, **kwargs
+            band_paths, pixel_size=pixel_size, size=size, **kwargs
         )
 
         return band_arrays
@@ -1478,7 +1478,7 @@ class LandsatProduct(OpticalProduct):
     def _open_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -1494,8 +1494,8 @@ class LandsatProduct(OpticalProduct):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1505,7 +1505,7 @@ class LandsatProduct(OpticalProduct):
         if bands:
             # Open QA band
             landsat_qa_path = self._get_path(self._pixel_quality_id)
-            qa_arr = self._read_band(landsat_qa_path, resolution=resolution, size=size)
+            qa_arr = self._read_band(landsat_qa_path, pixel_size=pixel_size, size=size)
 
             if self.instrument in [
                 LandsatInstrument.OLI,

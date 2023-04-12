@@ -168,9 +168,9 @@ class TsxProduct(SarProduct):
         if self.product_type != TsxProductType.SSC:
             self._geometric_res = getattr(TsxGeometricResolution, self.split_name[3])
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         See here
         <here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
         for more information (Beam Modes)
@@ -192,25 +192,25 @@ class TsxProduct(SarProduct):
                 "acquisitionInfo or polarisationMode not found in metadata!"
             )
 
-        def_res = None
+        def_pixel_size = None
         if self.sensor_mode == TsxSensorMode.HS:
             if polarization == TsxPolarization.S:
-                def_res = 1.1
+                def_pixel_size = 1.1
             elif polarization == TsxPolarization.D:
-                def_res = 2.2
+                def_pixel_size = 2.2
         elif self.sensor_mode == TsxSensorMode.SL:
             if polarization == TsxPolarization.S:
-                def_res = 1.7
+                def_pixel_size = 1.7
             elif polarization == TsxPolarization.D:
-                def_res = 3.4
+                def_pixel_size = 3.4
         elif self.sensor_mode == TsxSensorMode.ST:
             if polarization == TsxPolarization.S:
-                def_res = 0.24
+                def_pixel_size = 0.24
         elif self.sensor_mode == TsxSensorMode.SM:
             if polarization == TsxPolarization.S:
-                def_res = 3.3
+                def_pixel_size = 3.3
             elif polarization == TsxPolarization.D:
-                def_res = 6.6
+                def_pixel_size = 6.6
         elif self.sensor_mode == TsxSensorMode.SC:
             # Read metadata
             try:
@@ -223,15 +223,15 @@ class TsxProduct(SarProduct):
                 )
             # Four beams
             if nof_beams == 4:
-                def_res = 18.5
+                def_pixel_size = 18.5
 
             elif nof_beams == 6:
                 # Six beams
-                def_res = 40.0
+                def_pixel_size = 40.0
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
-        return def_res
+        self.pixel_size = def_pixel_size
 
     def _set_instrument(self) -> None:
         """
