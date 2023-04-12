@@ -64,6 +64,14 @@ class EoExt:
     """
 
     def __init__(self, prod, **kwargs):
+        try:
+            from pystac.extensions.eo import EOExtension
+
+            self.extension = EOExtension.get_schema_uri()
+        except ImportError:
+
+            self.extension = None
+
         self.cloud_cover = None
         self._prod = prod
 
@@ -123,8 +131,13 @@ class EoExt:
             )
         # Add the EO extension
         eo_ext = EOExtension.ext(item, add_if_missing=True)
+
         if self.cloud_cover is not None:
             eo_ext.cloud_cover = self.cloud_cover
+
+        # TODO
+        # if self.snow_cover is not None:
+        #     eo_ext.snow_cover = self.snow_cover
 
         # Add band asset
         band_paths = self._prod.get_raw_band_paths()
@@ -181,6 +194,13 @@ class ProjExt:
     """
 
     def __init__(self, prod, **kwargs):
+        try:
+            from pystac.extensions.projection import ProjectionExtension
+
+            self.extension = ProjectionExtension.get_schema_uri()
+        except ImportError:
+            self.extension = None
+
         self._prod = prod
         self.epsg = self.crs().to_epsg()
         self.wkt2 = self.crs().to_wkt()
@@ -291,6 +311,12 @@ class ViewExt:
     """
 
     def __init__(self, prod, **kwargs):
+        try:
+            from pystac.extensions.view import ViewExtension
+
+            self.extension = ViewExtension.get_schema_uri()
+        except ImportError:
+            self.extension = None
 
         self.extension_fields = {
             "sun_az": VIEW_SUN_AZIMUTH,

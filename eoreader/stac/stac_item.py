@@ -54,16 +54,6 @@ from eoreader.stac.stac_utils import (
     repr_multiline_str,
 )
 
-SAR_STAC_EXTENSIONS = [
-    "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
-    "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
-]
-OPTICAL_STAC_EXTENSIONS = [
-    "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
-    "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
-    "https://stac-extensions.github.io/view/v1.0.0/schema.json",
-]
-
 
 class StacItem:
     """
@@ -92,11 +82,13 @@ class StacItem:
         self.datetime = self._prod.datetime
         self.geometry = gdf_to_geometry(self.geometry_fct())
         self.bbox = gdf_to_bbox(self.bbox_fct())
-        self.extensions = (
-            SAR_STAC_EXTENSIONS
-            if self._prod.sensor_type.value == "SAR"
-            else OPTICAL_STAC_EXTENSIONS
-        )
+
+        # Will be added if missing with xxxExtension.ext(item, add_if_missing=True)
+        self.extensions = [
+            ext.extension
+            for ext in [self.eo, self.proj, self.view]
+            if ext.extension is not None
+        ]
 
         # Common mtd
         self.gsd = self._prod.resolution
@@ -138,7 +130,6 @@ class StacItem:
             geometry=self.geometry,
             bbox=self.bbox,
             properties=self.properties.copy(),
-            stac_extensions=self.extensions,
         )
 
         # Add assets
