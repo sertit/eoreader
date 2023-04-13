@@ -27,7 +27,7 @@ scipy
 pyresample
 rasterio>=1.3.0
 xarray>=0.18.0
-rioxarray>=0.4.0
+rioxarray>=0.10.0
 
 # Vector libs
 rtree
