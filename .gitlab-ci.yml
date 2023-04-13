@@ -26,7 +26,7 @@ lint:
 
 # Test with data on local disk
 pytest:
-  image: $EEO_DEPS:39
+  image: $EEO_DEPS:latest
   stage: test
   variables:
     CI_EOREADER_USE_S3: "0"
@@ -59,7 +59,7 @@ pytest:
 # Test with data on S3
 # TODO: create S3-specific CI ?
 pytest_s3:
-  image: $EEO_DEPS:39
+  image: $EEO_DEPS:latest
   stage: test
   variables:
     EOREADER_USE_DASK: "0"
@@ -91,7 +91,7 @@ pytest_s3:
 
 # Test SNAP with SNAP
 pytest_end_to_end:
-  image: $EEO_DEPS:39
+  image: $EEO_DEPS:latest
   stage: test
   variables:
     EOREADER_USE_DASK: "0"
