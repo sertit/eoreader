@@ -8,6 +8,7 @@
 
 ### Other
 
+- DEPS: Dropping support of Python 3.8 ([#81](https://github.com/sertit/eoreader/issues/81))
 - INTERNAL: Better management of logs for deprecation warnings
 - INTERNAL: Refactoring `simplify_footprint` in `sertit` library
 - DEPS: Pin sertit to 1.25.0
