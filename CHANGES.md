@@ -6,6 +6,9 @@
 
 - **BREAKING CHANGES: Switching from `resolution` to `pixel_size` to avoid confusion about the definitions (especially for SAR data)** ([#82](https://github.com/sertit/eoreader/issues/82))
 
+### Bug Fixes
+
+- FIX: Collocate bands before trying to create spectral indices: resolve the case where their size mismatches (i.e. in case of window or change of native pixel size)
 ### Other
 
 - DEPS: Dropping support of Python 3.8 ([#81](https://github.com/sertit/eoreader/issues/81))
