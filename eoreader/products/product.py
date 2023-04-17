@@ -875,9 +875,6 @@ class Product:
         unique_bands = list(set(to_band(bands)))
         band_dict = self._load(unique_bands, pixel_size, size, **kwargs)
 
-        # Manage the case of arrays of different size -> collocate arrays if needed
-        band_dict = self._collocate_bands(band_dict)
-
         # Convert to xarray dataset when all the bands have the same size
         # TODO: cannot convert as we have non-string index
         # xds = xr.Dataset(band_dict)
@@ -981,11 +978,11 @@ class Product:
                 unique_bands, pixel_size=pixel_size, size=size, **kwargs
             )
 
-            # Add bands
-            bands_dict.update({band: loaded_bands[band] for band in band_list})
-
             # Compute index (they conserve the nodata)
             if index_list:
+                # Collocate bands before indices to ensure the same size to perform operations between bands
+                bands_dict = self._collocate_bands(loaded_bands)
+
                 LOGGER.debug(f"Loading indices {to_str(index_list)}")
                 bands_dict.update(
                     self._load_spectral_indices(
@@ -996,6 +993,9 @@ class Product:
                         **kwargs,
                     )
                 )
+
+            # Add bands
+            bands_dict.update({band: loaded_bands[band] for band in band_list})
 
         # Add DEM
         if dem_list:
@@ -1012,6 +1012,9 @@ class Product:
                     clouds_list, pixel_size=pixel_size, size=size, **kwargs
                 )
             )
+
+        # Manage the case of arrays of different size -> collocate arrays if needed
+        bands_dict = self._collocate_bands(bands_dict)
 
         return bands_dict
 
