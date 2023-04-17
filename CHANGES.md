@@ -9,6 +9,8 @@
 ### Bug Fixes
 
 - FIX: Collocate bands before trying to create spectral indices: resolve the case where their size mismatches (i.e. in case of window or change of native pixel size)
+- FIX: Landsat band masking when specifying a custom resolution and a custom window
+
 ### Other
 
 - DEPS: Dropping support of Python 3.8 ([#81](https://github.com/sertit/eoreader/issues/81))

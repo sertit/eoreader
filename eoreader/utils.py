@@ -179,7 +179,7 @@ def read(
                 resampling=resampling,
                 masked=masked,
                 indexes=indexes,
-                size=size if window is None else None,
+                size=size,
                 window=window,
                 chunks=chunks,
                 **_prune_keywords(additional_keywords=["window", "chunks"], **kwargs),
