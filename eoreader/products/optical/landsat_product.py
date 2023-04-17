@@ -1333,14 +1333,17 @@ class LandsatProduct(OpticalProduct):
         Returns:
             xr.DataArray: Cleaned band array
         """
-        # Open QA band
-        landsat_qa_path = self._get_path(self._radsat_id)
-        qa_arr = self._read_band(
-            landsat_qa_path, size=(band_arr.rio.width, band_arr.rio.height), **kwargs
-        ).data
 
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
+            # Open QA band
+            landsat_qa_path = self._get_path(self._radsat_id)
+            qa_arr = self._read_band(
+                landsat_qa_path,
+                size=(band_arr.rio.width, band_arr.rio.height),
+                **kwargs,
+            )
+
             # Bit ids
             nodata_id = 0  # Fill value
             nodata = rasters.read_bit_array(qa_arr, nodata_id)
@@ -1352,7 +1355,7 @@ class LandsatProduct(OpticalProduct):
                 landsat_stat_path,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
-            ).data
+            )
             nodata = np.where(pixel_arr == 1, 1, 0).astype(np.uint8)
 
         return self._set_nodata_mask(band_arr, nodata)
