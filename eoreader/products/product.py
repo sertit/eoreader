@@ -981,7 +981,7 @@ class Product:
             # Compute index (they conserve the nodata)
             if index_list:
                 # Collocate bands before indices to ensure the same size to perform operations between bands
-                bands_dict = self._collocate_bands(loaded_bands)
+                loaded_bands = self._collocate_bands(loaded_bands)
 
                 LOGGER.debug(f"Loading indices {to_str(index_list)}")
                 bands_dict.update(
