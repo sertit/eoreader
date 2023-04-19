@@ -13,10 +13,11 @@
 
 ### Other
 
+- DOCS: Add documentation about default CRS ([#87](https://github.com/sertit/eoreader/issues/87))
 - DEPS: Dropping support of Python 3.8 ([#81](https://github.com/sertit/eoreader/issues/81))
+- DEPS: Pin sertit to 1.25.0
 - INTERNAL: Better management of logs for deprecation warnings
 - INTERNAL: Refactoring `simplify_footprint` in `sertit` library
-- DEPS: Pin sertit to 1.25.0
 
 ## 0.19.4 (2023-04-12)
 

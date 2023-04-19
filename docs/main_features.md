@@ -79,6 +79,18 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 ![load_workflow](https://zupimages.net/up/22/12/9mz0.png)
 ``` 
 
+```{note}
+For now, EOReader **always** loads bands with projected CRS (in UTM). 
+
+We know that this policy may be an issue for:
+
+- Sentinel-3 data that are very wide and may have inaccurate georeferencing.
+- DIMAP data provided in WGS84 that need reprojection (and therefore time-consuming processes)
+
+If needed, we could change in the future this to allow custom CRS. 
+If so, do not hesitate to add comments in [this issue](https://github.com/sertit/eoreader/issues/5) on GitHub !
+```
+
 ```python
 import os
 from eoreader.reader import Reader
