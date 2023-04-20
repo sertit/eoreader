@@ -349,14 +349,14 @@ def simplify(footprint_fct: Callable):
 
 
 def stack_dict(
-    bands: list, band_dict: dict, save_as_int: bool, nodata: float, **kwargs
+    bands: list, band_xds: xr.Dataset, save_as_int: bool, nodata: float, **kwargs
 ) -> (xr.DataArray, type):
     """
     Stack a dictionnary containing bands in a DataArray
 
     Args:
         bands (list): List of bands (to keep the right order of the stack)
-        band_dict (dict): Dict containing the bands as xr.DataArray {band_name, band}
+        band_xds (xr.Dataset): Dataset containing the bands
         save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
         nodata (float): Nodata value
 
@@ -365,61 +365,47 @@ def stack_dict(
     """
     # Convert into dataset with str as names
     LOGGER.debug("Stacking")
-    data_vars = {}
-    coords = band_dict[bands[0]].coords
-    for key in bands:
-        data_vars[to_str(key)[0]] = (
-            band_dict[key].coords.dims,
-            band_dict[key].data,
-        )
-
-        # Set memory free (for big stacks)
-        band_dict[key].close()
-        band_dict[key] = None
-
-    # Create dataset, with dims well-ordered
-    stack = (
-        xr.Dataset(
-            data_vars=data_vars,
-            coords=coords,
-        )
-        .to_stacked_array(new_dim="z", sample_dims=("x", "y"))
-        .transpose("z", "y", "x")
-    )
 
     # Save as integer
     dtype = np.float32
     if save_as_int:
         scale = 10000
-        stack_min = np.nanmin(stack.data)
-        if np.round(stack_min * 1000) / 1000 < -0.1:
+        round_nb = 1000
+        round_min = -0.1
+        stack_min = band_xds.quantile(0.005)
+        if np.round(stack_min * round_nb) / round_nb < round_min:
             LOGGER.warning(
-                f"Cannot convert the stack to uint16 as it has negative values ({stack_min} < -0.1). Keeping it in float32."
+                f"Cannot convert the stack to uint16 as it has negative values ({stack_min} < {round_min}). Keeping it in float32."
             )
         else:
             if stack_min < 0:
                 LOGGER.warning(
                     "Small negative values ]-0.1, 0] have been found. Clipping to 0."
                 )
-                stack = stack.copy(data=np.clip(stack.data, a_min=0, a_max=None))
+                band_xds = band_xds.clip(min=0, max=None, keep_attrs=True)
 
             # Scale to uint16, fill nan and convert to uint16
             dtype = np.uint16
-            for b_id, band in enumerate(bands):
+            for band, band_xda in band_xds:
                 # SCALING
                 # NOT ALL bands need to be scaled, only:
                 # - Satellite bands
                 # - index
                 if is_sat_band(band) or is_index(band):
-                    if np.nanmax(stack[b_id, ...]) > UINT16_NODATA / scale:
+                    if np.nanmax(band_xda) > UINT16_NODATA / scale:
                         LOGGER.debug(
                             "Band not in reflectance, keeping them as is (the values will be rounded)"
                         )
                     else:
-                        stack[b_id, ...] = stack[b_id, ...] * scale
+                        band_xda = band_xda * scale
 
-                # Fill no data (done here to avoid RAM saturation)
-                stack[b_id, ...] = stack[b_id, ...].fillna(nodata)
+            # Fill no data
+            band_xds = band_xds.fillna(nodata)
+
+    # Create dataset, with dims well-ordered
+    stack = band_xds.to_stacked_array(
+        new_dim="bands", sample_dims=("x", "y")
+    ).transpose("bands", "y", "x")
 
     if dtype == np.float32:
         # Set nodata if needed (NaN values are already set)
@@ -427,3 +413,7 @@ def stack_dict(
             stack = stack.rio.write_nodata(nodata, encoded=True, inplace=True)
 
     return stack, dtype
+
+
+def unique(sequence):
+    return list(dict.fromkeys(sequence))

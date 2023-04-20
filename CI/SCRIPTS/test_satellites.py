@@ -279,7 +279,7 @@ def _test_core(
                 first_band = stack_bands[0]
 
                 # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
-                assert prod.load([]) == {}
+                assert len(prod.load([])) == 0
                 band_arr_raw = prod.load(
                     first_band.value, pixel_size=pixel_size, clean_optical="raw"
                 )[first_band]
@@ -374,12 +374,14 @@ def _test_core(
                     else:
                         raise FileNotFoundError(f"{ci_band} not found !")
 
-                band_arr = prod.load(
+                band_xds = prod.load(
                     first_band,
                     size=(stack.rio.width, stack.rio.height),
                     clean_optical="clean",
                     **kwargs,
-                )[first_band]
+                )
+                assert isinstance(band_xds, xr.Dataset)
+                band_arr = band_xds[first_band]
                 rasters.write(band_arr, curr_path_band)
                 ci.assert_raster_almost_equal_magnitude(
                     curr_path_band, ci_band, decimal=1

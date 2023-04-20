@@ -827,7 +827,7 @@ class Product:
         pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> dict:
+    ) -> xr.Dataset:
         """
         Open the bands and compute the wanted index.
 
@@ -857,7 +857,7 @@ class Product:
             kwargs: Other arguments used to load bands
 
         Returns:
-            dict: {band_name, band xarray}
+            xr.Dataset: Dataset with a variable per band
         """
         if not pixel_size and "resolution" in kwargs:
             logs.deprecation_warning(
@@ -872,21 +872,18 @@ class Product:
             assert self.has_band(band), f"{self.name} has not a {to_str(band)[0]} band."
 
         # Load bands (only once ! and convert the bands to be loaded to correct format)
-        unique_bands = list(set(to_band(bands)))
-        band_dict = self._load(unique_bands, pixel_size, size, **kwargs)
-
-        # Convert to xarray dataset when all the bands have the same size
-        # TODO: cannot convert as we have non-string index
-        # xds = xr.Dataset(band_dict)
-
-        # Sort bands to the asked order
-        # xds.reindex({"band": bands})
+        unique_bands = utils.unique(to_band(bands))
+        band_xds = self._load(unique_bands, pixel_size, size, **kwargs)
 
         # Rename all bands and add attributes
-        for key, val in band_dict.items():
-            band_dict[key] = self._update_attrs(val, key, **kwargs)
+        for key, val in band_xds.items():
+            band_xds[key] = self._update_attrs(val, key, **kwargs)
 
-        return band_dict
+        # Update stack's attributes
+        if len(band_xds) > 0:
+            band_xds = self._update_attrs(band_xds, bands, **kwargs)
+
+        return band_xds
 
     def _load(
         self,
@@ -894,7 +891,7 @@ class Product:
         pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
-    ) -> dict:
+    ) -> xr.Dataset:
         """
         Core function loading optical data bands
 
@@ -905,7 +902,7 @@ class Product:
             kwargs: Other arguments used to load bands
 
         Returns:
-            Dictionary {band_name, band_xarray}
+            xr.Dataset: Dataset with a variable per band
         """
         band_list = []
         index_list = []
@@ -970,7 +967,7 @@ class Product:
             bands_to_load += NEEDED_BANDS[idx]
 
         # Load band arrays (only keep unique bands: open them only one time !)
-        unique_bands = list(set(bands_to_load))
+        unique_bands = utils.unique(bands_to_load)
         bands_dict = {}
         if unique_bands:
             LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
@@ -1016,7 +1013,13 @@ class Product:
         # Manage the case of arrays of different size -> collocate arrays if needed
         bands_dict = self._collocate_bands(bands_dict)
 
-        return bands_dict
+        # Create a dataset (only after collocation)
+        coords = None
+        if bands_dict:
+            coords = bands_dict[bands[0]].coords
+
+        # Make sure the dataset has the bands in the right order -> re-order the input dict
+        return xr.Dataset({key: bands_dict[key] for key in bands}, coords=coords)
 
     def _load_clouds(
         self,
@@ -1143,9 +1146,12 @@ class Product:
                 else:
                     raise InvalidTypeError(f"Unknown DEM band: {band}")
 
-                dem_bands[band] = utils.read(
-                    path, pixel_size=pixel_size, size=size
-                ).astype(np.float32)
+                dem_name = to_str(band)[0]
+                dem_arr = utils.read(
+                    path, pixel_size=pixel_size, size=size, as_type=np.float32
+                ).rename(dem_name)
+                dem_arr.attrs["long_name"] = dem_name
+                dem_bands[band] = dem_arr
 
         return dem_bands
 
@@ -1598,10 +1604,7 @@ class Product:
                 )
 
             bands[band_id] = bands[band_id].assign_coords(
-                {
-                    "x": master_xds.x,
-                    "y": master_xds.y,
-                }
+                {"x": master_xds.x, "y": master_xds.y, "band": [1]}  # Only one band
             )  # Bug for now, tiny difference in coords
 
         return bands
@@ -1650,14 +1653,14 @@ class Product:
         bands = to_band(bands)
 
         # Create the analysis stack
-        band_dict = self.load(bands, pixel_size=pixel_size, size=size, **kwargs)
+        band_xds = self.load(bands, pixel_size=pixel_size, size=size, **kwargs)
 
         # Stack bands
         if save_as_int:
             nodata = kwargs.pop("nodata", UINT16_NODATA)
         else:
             nodata = kwargs.pop("nodata", self.nodata)
-        stack, dtype = utils.stack_dict(bands, band_dict, save_as_int, nodata, **kwargs)
+        stack, dtype = utils.stack_dict(bands, band_xds, save_as_int, nodata, **kwargs)
 
         # Update stack's attributes
         stack = self._update_attrs(stack, bands, **kwargs)
@@ -1685,11 +1688,13 @@ class Product:
         """
         raise NotImplementedError
 
-    def _update_attrs(self, xarr: xr.DataArray, bands: list, **kwargs) -> xr.DataArray:
+    def _update_attrs(
+        self, xarr: Union[xr.DataArray, xr.Dataset], bands: list, **kwargs
+    ) -> xr.DataArray:
         """
         Update attributes of the given array
         Args:
-            xarr (xr.DataArray): Array whose attributes need an update
+            xarr (Union[xr.DataArray, xr.Dataset]): Array whose attributes need an update
             bands (list): Bands
         Returns:
             xr.DataArray: Updated array
@@ -1704,7 +1709,8 @@ class Product:
         xr_name = "_".join(long_name)
         attr_name = " ".join(long_name)
 
-        xarr = xarr.rename(xr_name)
+        if isinstance(xarr, xr.DataArray):
+            xarr = xarr.rename(xr_name)
         xarr.attrs["long_name"] = attr_name
         xarr.attrs["constellation"] = (
             self.constellation

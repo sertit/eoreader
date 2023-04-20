@@ -5,6 +5,7 @@
 ### Breaking Changes
 
 - **BREAKING CHANGES: Switching from `resolution` to `pixel_size` to avoid confusion about the definitions (especially for SAR data)** ([#82](https://github.com/sertit/eoreader/issues/82))
+- **BREAKING CHANGES: `load` function now returns a `xarray.Dataset`** ([#88](https://github.com/sertit/eoreader/issues/88))
 
 ### Bug Fixes
 
