@@ -46,7 +46,7 @@ from rasterio import transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
-from sertit import files, logs, rasters, strings, xml
+from sertit import files, logs, misc, rasters, strings, xml
 from sertit.misc import ListEnum
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -872,7 +872,7 @@ class Product:
             assert self.has_band(band), f"{self.name} has not a {to_str(band)[0]} band."
 
         # Load bands (only once ! and convert the bands to be loaded to correct format)
-        unique_bands = utils.unique(to_band(bands))
+        unique_bands = misc.unique(bands)
         band_xds = self._load(unique_bands, pixel_size, size, **kwargs)
 
         # Rename all bands and add attributes
@@ -967,7 +967,7 @@ class Product:
             bands_to_load += NEEDED_BANDS[idx]
 
         # Load band arrays (only keep unique bands: open them only one time !)
-        unique_bands = utils.unique(bands_to_load)
+        unique_bands = misc.unique(bands_to_load)
         bands_dict = {}
         if unique_bands:
             LOGGER.debug(f"Loading bands {to_str(unique_bands)}")
@@ -1583,29 +1583,23 @@ class Product:
         return slope_path
 
     @staticmethod
-    def _collocate_bands(bands: dict, master_xds: xr.DataArray = None) -> dict:
+    def _collocate_bands(bands: dict, reference: xr.DataArray = None) -> dict:
         """
         Collocate all bands from a dict if needed (if a raster shape is different)
 
         Args:
             bands (dict): Dict of bands to collocate if needed
-            master_xds (xr.DataArray): Master array
+            reference (xr.DataArray): Reference array
 
         Returns:
             dict: Collocated bands
         """
-        for band_id, band in bands.items():
-            if master_xds is None:
-                master_xds = band  # Master array is the first one in this case
+        for band_id, band_arr in bands.items():
+            if reference is None:
+                reference = band_arr  # Master array is the first one in this case
 
-            if band.shape != master_xds.shape:
-                bands[band_id] = rasters.collocate(
-                    master_xds=master_xds, slave_xds=band
-                )
-
-            bands[band_id] = bands[band_id].assign_coords(
-                {"x": master_xds.x, "y": master_xds.y, "band": [1]}  # Only one band
-            )  # Bug for now, tiny difference in coords
+            if band_arr.shape != reference.shape:
+                bands[band_id] = rasters.collocate(reference, band_arr)
 
         return bands
 
