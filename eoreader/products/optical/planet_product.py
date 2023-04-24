@@ -785,8 +785,9 @@ class PlanetProduct(OpticalProduct):
                 band=self.get_default_band(),
                 pixel_size=pixel_size,
                 size=size,
+                as_type=np.uint8,
                 **kwargs,
-            ).astype(np.uint8)
+            )
             mask = def_xarr.copy(data=np.zeros_like(def_xarr.data))
 
         return mask.rename(self._mask_type.value)
@@ -893,8 +894,9 @@ class PlanetProduct(OpticalProduct):
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
+            as_type=np.uint8,
             **kwargs,
-        ).astype(np.uint8)
+        )
 
     def _load_nodata(
         self, pixel_size: float = None, size: Union[list, tuple] = None, **kwargs

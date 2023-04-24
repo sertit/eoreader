@@ -722,8 +722,9 @@ class S3OlciProduct(S3Product):
             size=(band_arr.rio.width, band_arr.rio.height),
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
+            as_type=np.uint32,
             **kwargs,
-        ).astype(np.uint32)
+        )
         invalid, sat = rasters.read_bit_array(qual_arr, [invalid_id, sat_band_id])
 
         # Get nodata mask

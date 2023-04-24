@@ -391,8 +391,9 @@ class CustomProduct(Product):
             size=size,
             resampling=Resampling.bilinear,
             indexes=[self.bands[band].id],
+            as_type=np.float32,
             **kwargs,
-        ).astype(np.float32)
+        )
 
     def _load_bands(
         self,

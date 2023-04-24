@@ -948,8 +948,9 @@ class S3SlstrProduct(S3Product):
             size=(band_arr.rio.width, band_arr.rio.height),
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
+            as_type=np.uint8,
             **kwargs,
-        ).astype(np.uint8)
+        )
 
         # Set no data for everything that caused an exception (3 and more)
         exception = np.where(qual_arr >= 3, self._mask_true, self._mask_false)
@@ -1046,8 +1047,9 @@ class S3SlstrProduct(S3Product):
                 size=size,
                 resampling=Resampling.nearest,
                 masked=False,
+                as_type=np.uint16,
                 **kwargs,
-            ).astype(np.uint16)
+            )
 
             # Get nodata mask
             nodata = np.where(np.isnan(clouds_array), 1, 0)

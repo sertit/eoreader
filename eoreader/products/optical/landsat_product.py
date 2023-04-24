@@ -1086,17 +1086,19 @@ class LandsatProduct(OpticalProduct):
                 size=size,
                 resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
                 masked=False,
+                as_type=np.uint16,
                 **kwargs,
-            ).astype(np.uint16)
+            )
         else:
             # Read band (call superclass generic method)
             band_arr = utils.read(
                 path,
                 pixel_size=pixel_size,
                 size=size,
+                as_type=np.float32,
                 resampling=Resampling.bilinear,
                 **kwargs,
-            ).astype(np.float32)
+            )
 
         return band_arr
 

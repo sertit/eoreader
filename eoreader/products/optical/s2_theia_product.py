@@ -600,8 +600,9 @@ class S2TheiaProduct(OpticalProduct):
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
+            as_type=np.uint8,
             **kwargs,
-        ).astype(np.uint8)
+        )
 
         if mask_id in ["SAT", "DFP"]:
             bit_mask = rasters.read_bit_array(mask, bit_id)
@@ -761,7 +762,9 @@ class S2TheiaProduct(OpticalProduct):
                 pixel_size=pixel_size,
                 size=size,
                 resampling=Resampling.nearest,
-            ).astype(np.float32)
+                as_type=np.float32,
+                **kwargs,
+            )
 
             # Get nodata mask
             nodata = self.open_mask("EDG", res_id, pixel_size=pixel_size, size=size)
