@@ -169,7 +169,7 @@ def test_products():
     with tempfile.TemporaryDirectory() as tmp_dir:
         stack_path = os.path.join(tmp_dir, "stack.tif")
         stack = prod1.stack(
-            BLUE,
+            [BLUE, RED],
             pixel_size=prod1.pixel_size * 100,
             save_as_int=True,
             stack_path=stack_path,
