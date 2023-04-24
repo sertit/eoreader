@@ -11,6 +11,7 @@ from cloudpathlib import AnyPath
 from geopandas import gpd
 from lxml import etree
 from matplotlib import pyplot as plt
+from rasterio.windows import Window
 from sertit import ci, files, rasters
 
 from eoreader import EOREADER_NAME
@@ -281,12 +282,22 @@ def _test_core(
                 # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
                 assert len(prod.load([])) == 0
                 band_arr_raw = prod.load(
-                    first_band.value, pixel_size=pixel_size, clean_optical="raw"
+                    first_band.value,
+                    pixel_size=pixel_size,
+                    window=Window(col_off=0, row_off=0, width=100, height=100),
+                    clean_optical="raw",
                 )[first_band]
                 band_arr1 = prod.load(
-                    first_band, pixel_size=pixel_size, clean_optical="nodata"
+                    first_band,
+                    pixel_size=pixel_size,
+                    window=Window(col_off=0, row_off=0, width=100, height=100),
+                    clean_optical="nodata",
                 )[first_band]
-                band_arr2 = prod.load(first_band, pixel_size=pixel_size)[first_band]
+                band_arr2 = prod.load(
+                    first_band,
+                    window=Window(col_off=0, row_off=0, width=100, height=100),
+                    pixel_size=pixel_size,
+                )[first_band]
                 np.testing.assert_array_almost_equal(band_arr1, band_arr2)
                 ci.assert_val(band_arr_raw.dtype, np.float32, "band_arr_raw dtype")
                 ci.assert_val(band_arr1.dtype, np.float32, "band_arr1 dtype")
