@@ -916,6 +916,7 @@ class S2Product(OpticalProduct):
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.nearest,
+            as_type=np.uint8,
             **kwargs,
         )
 
@@ -1071,18 +1072,15 @@ class S2Product(OpticalProduct):
         # Defective pixels (band 5)
         # Nodata pixels (band 6)
         # Saturated pixels (band 8)
-        quality = (
-            self._open_mask_gt_4_0(
-                S2Jp2Masks.QUALITY,
-                band,
-                size=(band_arr.rio.width, band_arr.rio.height),
-                indexes=[3, 4, 5, 6, 8],
-                masked=False,
-                **kwargs,
-            )
-            .astype(np.uint8)
-            .data
-        )
+        quality = self._open_mask_gt_4_0(
+            S2Jp2Masks.QUALITY,
+            band,
+            size=(band_arr.rio.width, band_arr.rio.height),
+            indexes=[3, 4, 5, 6, 8],
+            masked=False,
+            as_type=np.uint8,
+            **kwargs,
+        ).data
 
         # Compute mask
         mask = (nodata + np.sum(quality, axis=0)) > 0
@@ -1388,8 +1386,13 @@ class S2Product(OpticalProduct):
 
         if bands:
             cloud_vec = self._open_mask_gt_4_0(
-                S2Jp2Masks.CLOUDS, "00", pixel_size=pixel_size, size=size, **kwargs
-            ).astype(np.uint8)
+                S2Jp2Masks.CLOUDS,
+                "00",
+                pixel_size=pixel_size,
+                size=size,
+                as_type=np.uint8,
+                **kwargs,
+            )
 
             for band in bands:
                 if band == ALL_CLOUDS:
