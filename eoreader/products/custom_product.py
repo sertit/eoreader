@@ -226,7 +226,7 @@ class CustomProduct(Product):
 
         if pixel_size is None:
             with rasterio.open(str(self.get_default_band_path())) as ds:
-                self.pixel_size = ds.res[0]
+                self.pixel_size = np.round(ds.res[0], 2)
         else:
             self.pixel_size = pixel_size
 
