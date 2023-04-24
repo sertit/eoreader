@@ -173,7 +173,7 @@ def read(
         # Disable georef warnings here as the SAR/Sentinel-3 products are not georeferenced
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=NotGeoreferencedWarning)
-            return rasters.read(
+            arr = rasters.read(
                 path,
                 resolution=pixel_size,
                 resampling=resampling,
@@ -184,6 +184,17 @@ def read(
                 chunks=chunks,
                 **_prune_keywords(additional_keywords=["window", "chunks"], **kwargs),
             )
+
+            # In EOReader, we don't care about the band coordinate of a band loaded from a stack.
+            # Overwrite it (don't keep the number "2" if we loaded the second band of the stack)
+            nof_bands = len(arr.coords["band"])
+            arr = arr.assign_coords(
+                {
+                    "band": np.arange(start=1, stop=nof_bands + 1, dtype=int),
+                }
+            )
+            return arr
+
     except errors.RasterioIOError as ex:
         if (str(path).endswith("jp2") or str(path).endswith("tif")) and path.exists():
             raise InvalidProductError(f"Corrupted file: {path}") from ex
@@ -413,7 +424,3 @@ def stack_dict(
             stack = stack.rio.write_nodata(nodata, encoded=True, inplace=True)
 
     return stack, dtype
-
-
-def unique(sequence):
-    return list(dict.fromkeys(sequence))
