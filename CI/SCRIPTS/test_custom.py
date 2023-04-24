@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 import pytest
+from rasterio.windows import Window
 from sertit import ci
 
 from eoreader import EOREADER_NAME
@@ -78,7 +79,10 @@ def test_custom_optical():
     extent_min = prod_min.extent()
     footprint_min = prod_min.footprint()
     crs_min = prod_min.crs()
-    bands = prod_min.load([BLUE, NIR, NDVI])
+    bands = prod_min.load(
+        [BLUE, NIR, NDVI],
+        window=Window(col_off=0, row_off=0, width=100, height=100),
+    )
 
     # Check attributes
     assert NDVI in bands
@@ -118,7 +122,10 @@ def test_custom_optical():
     extent_some = prod_some.extent()
     footprint_some = prod_some.footprint()
     crs_some = prod_some.crs()
-    bands = prod_some.load([HILLSHADE], pixel_size=200.0)
+    bands = prod_some.load(
+        [HILLSHADE],
+        window=Window(col_off=0, row_off=0, width=100, height=100),
+    )
 
     # Check attributes
     assert bands[HILLSHADE].attrs["long_name"] == "HILLSHADE"
