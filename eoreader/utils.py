@@ -383,7 +383,7 @@ def stack_dict(
         scale = 10000
         round_nb = 1000
         round_min = -0.1
-        stack_min = band_xds.quantile(0.005)
+        stack_min = float(band_xds.to_array().quantile(0.001))
         if np.round(stack_min * round_nb) / round_nb < round_min:
             LOGGER.warning(
                 f"Cannot convert the stack to uint16 as it has negative values ({stack_min} < {round_min}). Keeping it in float32."
@@ -397,7 +397,7 @@ def stack_dict(
 
             # Scale to uint16, fill nan and convert to uint16
             dtype = np.uint16
-            for band, band_xda in band_xds:
+            for band, band_xda in band_xds.items():
                 # SCALING
                 # NOT ALL bands need to be scaled, only:
                 # - Satellite bands

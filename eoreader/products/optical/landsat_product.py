@@ -548,7 +548,7 @@ class LandsatProduct(OpticalProduct):
                     GSD: 30,
                     WV_MIN: 2080,
                     WV_MAX: 2350,
-                    DESCRIPTION: "Hydrothermally altered rocks associated with mineral depositsn",
+                    DESCRIPTION: "Hydrothermally altered rocks associated with mineral deposits",
                 },
             ),
             TIR_1: SpectralBand(
