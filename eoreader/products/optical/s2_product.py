@@ -917,6 +917,7 @@ class S2Product(OpticalProduct):
             size=size,
             resampling=Resampling.nearest,
             as_type=np.uint8,
+            masked=False,
             **kwargs,
         )
 
@@ -1077,8 +1078,6 @@ class S2Product(OpticalProduct):
             band,
             size=(band_arr.rio.width, band_arr.rio.height),
             indexes=[3, 4, 5, 6, 8],
-            masked=False,
-            as_type=np.uint8,
             **kwargs,
         ).data
 
@@ -1390,7 +1389,6 @@ class S2Product(OpticalProduct):
                 "00",
                 pixel_size=pixel_size,
                 size=size,
-                as_type=np.uint8,
                 **kwargs,
             )
 

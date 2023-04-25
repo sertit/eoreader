@@ -559,7 +559,9 @@ class VhrProduct(OpticalProduct):
         if not pixel_size:
             pixel_size = self.pixel_size
 
-        LOGGER.info(f"Warping stack to UTM with a {pixel_size} m pixel size.")
+        LOGGER.info(
+            f"Warping {files.get_filename(path)} to UTM with a {pixel_size} m pixel size."
+        )
 
         # Read band
         with rasterio.open(str(path)) as src:
