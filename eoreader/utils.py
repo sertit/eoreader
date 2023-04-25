@@ -35,7 +35,7 @@ from rasterio.rpc import RPC
 from sertit import rasters, vectors
 
 from eoreader import EOREADER_NAME
-from eoreader.bands import is_index, is_sat_band, to_str
+from eoreader.bands import is_index, is_sat_band
 from eoreader.env_vars import TILE_SIZE, USE_DASK
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import _prune_keywords

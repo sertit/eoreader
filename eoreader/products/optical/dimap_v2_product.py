@@ -1118,7 +1118,7 @@ class DimapV2Product(VhrProduct):
         for more information. (Appendix D)
 
         Args:
-            rad_arr (xr.DataArray): DN array
+            dn_arr (xr.DataArray): DN array
             band (BandNames): Band
 
         Returns:

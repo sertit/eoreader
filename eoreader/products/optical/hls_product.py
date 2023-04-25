@@ -613,6 +613,16 @@ class HlsProduct(OpticalProduct):
         name = os.path.basename(mask_path).replace(".Fmask.tif", "")
         return name
 
+    def _get_name_constellation_specific(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        # No need here (_get_name reimplemented)
+        pass
+
     def _get_split_name(self) -> list:
         """
         Get split name (with points !)

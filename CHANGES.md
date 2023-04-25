@@ -840,7 +840,7 @@
 
 ### Other
 
-- CI: Fixing `test_dems_https` and resetting DEM afterwards
+- CI: Fixing `test_dems_https` and resetting DEM afterward
 - CI: Fixing DEM and ds2 database management
 - DOC: Adding a FAQ page and enhancing the Main Features page (#3)
 - DOC: Read Metadata has its own paragraph in Main Features

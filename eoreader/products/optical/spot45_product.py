@@ -622,7 +622,7 @@ class Spot45Product(DimapV1Product):
         Compute DN to TOA radiance
 
         Args:
-            rad_arr (xr.DataArray): DN array
+            dn_arr (xr.DataArray): DN array
             band (BandNames): Band
 
         Returns:
