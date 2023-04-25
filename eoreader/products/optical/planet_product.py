@@ -786,6 +786,7 @@ class PlanetProduct(OpticalProduct):
                 pixel_size=pixel_size,
                 size=size,
                 as_type=np.uint8,
+                masked=False,
                 **kwargs,
             )
             mask = def_xarr.copy(data=np.zeros_like(def_xarr.data))

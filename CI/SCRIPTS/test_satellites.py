@@ -283,20 +283,17 @@ def _test_core(
                 assert len(prod.load([])) == 0
                 band_arr_raw = prod.load(
                     first_band.value,
-                    pixel_size=pixel_size,
                     window=Window(col_off=0, row_off=0, width=100, height=100),
                     clean_optical="raw",
                 )[first_band]
                 band_arr1 = prod.load(
                     first_band,
-                    pixel_size=pixel_size,
                     window=Window(col_off=0, row_off=0, width=100, height=100),
                     clean_optical="nodata",
                 )[first_band]
                 band_arr2 = prod.load(
                     first_band,
                     window=Window(col_off=0, row_off=0, width=100, height=100),
-                    pixel_size=pixel_size,
                 )[first_band]
                 np.testing.assert_array_almost_equal(band_arr1, band_arr2)
                 ci.assert_val(band_arr_raw.dtype, np.float32, "band_arr_raw dtype")

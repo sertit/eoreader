@@ -595,7 +595,8 @@ class SarProduct(Product):
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.bilinear,
-            as_type=np.float32**kwargs,
+            as_type=np.float32,
+            **kwargs,
         )
 
     def _load_bands(
