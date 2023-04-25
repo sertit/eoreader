@@ -239,7 +239,7 @@ class CapellaProduct(SarProduct):
             height = int(root.findtext(".//rows"))
             width = int(root.findtext(".//columns"))
 
-            # Investigate imaghe geometry
+            # Investigate image geometry
             img_geom = root.find(".//image_geometry")
             geom_type = img_geom.findtext("type")
 

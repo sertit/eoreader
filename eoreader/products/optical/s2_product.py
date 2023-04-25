@@ -1506,7 +1506,7 @@ class S2Product(OpticalProduct):
             # Read metadata
             root, ns = self.read_mtd()
 
-            # Determie wanted resolution
+            # Determine wanted resolution
             if "10m" in path.name:
                 res = 10
             elif "20m" in path.name:

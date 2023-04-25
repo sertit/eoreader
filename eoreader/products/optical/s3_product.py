@@ -686,7 +686,7 @@ class S3Product(OpticalProduct):
             logging.captureWarnings(False)
             default_logger.setLevel(old_lvl)
 
-        # COnvert to wanted dtype and shape
+        # Convert to wanted dtype and shape
         band_arr_resampled = band_arr_resampled.astype(np.float32).expand_dims(
             dim={"band": 1}, axis=0
         )

@@ -814,6 +814,7 @@ class MaxarProduct(VhrProduct):
         if self.product_type == MaxarProductType.Standard:
             self.is_ortho = False
 
+    @property
     def _get_raw_crs(self) -> riocrs.CRS:
         """
         Get raw CRS of the tile
@@ -864,7 +865,7 @@ class MaxarProduct(VhrProduct):
             rasterio.crs.CRS: CRS object
         """
         # Get Raw CRS
-        raw_crs = self._get_raw_crs()
+        raw_crs = self._get_raw_crs
 
         # Get CRS
         if raw_crs.is_geographic:
@@ -952,7 +953,7 @@ class MaxarProduct(VhrProduct):
 
         raw_extent = gpd.GeoDataFrame(
             geometry=[Polygon(corners)],
-            crs=self._get_raw_crs(),
+            crs=self._get_raw_crs,
         )
 
         return raw_extent.to_crs(self.crs())
