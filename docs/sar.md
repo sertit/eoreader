@@ -4,17 +4,17 @@ You will find a SAR tutorial [here](https://eoreader.readthedocs.io/en/latest/no
 
 ## Implemented SAR constellations
 
-| Constellations                      | Class                                      | Use archive                                 |
-|-------------------------------------|--------------------------------------------|---------------------------------------------|
-| `Capella`                           | {meth}`~eoreader.products.CapellaProduct`  | ❌                                           |
-| `COSMO-Skymed 1st Generation`       | {meth}`~eoreader.products.CskProduct`      | ❌                                           |
-| `COSMO-Skymed 2nd Generation`       | {meth}`~eoreader.products.CsgProduct`      | ❌                                           |
-| `ICEYE`                             | {meth}`~eoreader.products.IceyeProduct`    | ❌                                           |
-| `RADARSAT Constellation Mission`    | {meth}`~eoreader.products.RcmProduct`      | ❌                                           |
-| `RADARSAT-2`                        | {meth}`~eoreader.products.Rs2Product`      | ✅ for ground range data, ❌ for complex data |
-| `Sentinel-1`                        | {meth}`~eoreader.products.S1Product`       | ✅                                           |
-| `SAOCOM-1`                          | {meth}`~eoreader.products.SaocomProduct`   | ❌                                           |
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.TsxProduct`      | ❌                                           |
+| Constellations                      | Class                                                         | Use archive                                 |
+|-------------------------------------|---------------------------------------------------------------|---------------------------------------------|
+| `Capella`                           | {meth}`~eoreader.products.sar.capella_product.CapellaProduct` | ❌                                           |
+| `COSMO-Skymed 1st Generation`       | {meth}`~eoreader.products.sar.csk_product.CskProduct`         | ❌                                           |
+| `COSMO-Skymed 2nd Generation`       | {meth}`~eoreader.products.sar.csg_product.CsgProduct`         | ❌                                           |
+| `ICEYE`                             | {meth}`~eoreader.products.sar.iceye_product.IceyeProduct`     | ❌                                           |
+| `RADARSAT Constellation Mission`    | {meth}`~eoreader.products.sar.rcm_product.RcmProduct`         | ❌                                           |
+| `RADARSAT-2`                        | {meth}`~eoreader.products.sar.rs2_product.Rs2Product`         | ✅ for ground range data, ❌ for complex data |
+| `Sentinel-1`                        | {meth}`~eoreader.products.sar.s1_product.S1Product`           | ✅                                           |
+| `SAOCOM-1`                          | {meth}`~eoreader.products.sar.saocom_product.SaocomProduct`   | ❌                                           |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.sar.tsx_product.TsxProduct`         | ❌                                           |
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use, 
@@ -32,9 +32,9 @@ mostly because SNAP doesn't handle them.
 | `COSMO-Skymed`                      | SCS                                  | ✅       |
 | `COSMO-SkyMed` 1st Generation       | DGM                                  | ✅       |
 | `COSMO-SkyMed` 2nd Generation       | DGM                                  | ⚠       |
-| `COSMO-SkyMed`                      | GEC, GTC                             | ⚠       | 
+| `COSMO-SkyMed`                      | GEC, GTC                             | ⚠       |
 | `ICEYE`                             | SLC                                  | ✅       |
-| `ICEYE`                             | GRD                                  | ✅       | 
+| `ICEYE`                             | GRD                                  | ✅       |
 | `ICEYE`                             | ORTHO                                | 💤      |
 | `RADARSAT Constellation Mission`    | SLC                                  | ⚠       | 
 | `RADARSAT Constellation Mission`    | GRC, GCC, GCD                        | ⚠       |
@@ -75,21 +75,21 @@ The constellations that can be used during CEMS activations are (as of 09/2021):
 
 According to what contains the products, allowed SAR bands are:
 
-- {meth}`~eoreader.bands.SarBandNames.VV`
-- {meth}`~eoreader.bands.SarBandNames.VH`
-- {meth}`~eoreader.bands.SarBandNames.HH`
-- {meth}`~eoreader.bands.SarBandNames.HV`
-- {meth}`~eoreader.bands.SarBandNames.RH` (only for RADARSAT-Constellation)
-- {meth}`~eoreader.bands.SarBandNames.RV` (only for RADARSAT-Constellation)
+- {meth}`~eoreader.bands.band_names.SarBandNames.VV`
+- {meth}`~eoreader.bands.band_names.SarBandNames.VH`
+- {meth}`~eoreader.bands.band_names.SarBandNames.HH`
+- {meth}`~eoreader.bands.band_names.SarBandNames.HV`
+- {meth}`~eoreader.bands.band_names.SarBandNames.RH` (only for RADARSAT-Constellation)
+- {meth}`~eoreader.bands.band_names.SarBandNames.RV` (only for RADARSAT-Constellation)
 
 You also can load despeckled bands:
 
-- {meth}`~eoreader.bands.SarBandNames.VV_DSPK`
-- {meth}`~eoreader.bands.SarBandNames.VH_DSPK`
-- {meth}`~eoreader.bands.SarBandNames.HH_DSPK`
-- {meth}`~eoreader.bands.SarBandNames.HV_DSPK`
-- {meth}`~eoreader.bands.SarBandNames.RH_DSPK` (only for RADARSAT-Constellation)
-- {meth}`~eoreader.bands.SarBandNames.RV_DSPK` (only for RADARSAT-Constellation)
+- {meth}`~eoreader.bands.band_names.SarBandNames.VV_DSPK`
+- {meth}`~eoreader.bands.band_names.SarBandNames.VH_DSPK`
+- {meth}`~eoreader.bands.band_names.SarBandNames.HH_DSPK`
+- {meth}`~eoreader.bands.band_names.SarBandNames.HV_DSPK`
+- {meth}`~eoreader.bands.band_names.SarBandNames.RH_DSPK` (only for RADARSAT-Constellation)
+- {meth}`~eoreader.bands.band_names.SarBandNames.RV_DSPK` (only for RADARSAT-Constellation)
 
 ### Available indices
 
@@ -105,7 +105,7 @@ These bands need a valid worldwide DEM path positioned thanks to the environment
 - `DEM`
 - `SLOPE`
 
-SAR constellations can only load {meth}`~eoreader.bands.DemBandNames.DEM` and {meth}`~eoreader.bands.DemBandNames.SLOPE`
+SAR constellations can only load {meth}`~eoreader.bands.band_names.DemBandNames.DEM` and {meth}`~eoreader.bands.band_names.DemBandNames.SLOPE`
 bands as the sun position does not impact SAR data. The `SLOPE` band is given in degrees. Please post an issue if you
 need this band in `percent`.
 

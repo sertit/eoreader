@@ -42,7 +42,6 @@ Hereunder are the paths meant to be given to the reader.
 
 #### Optical
 
-``` {container} full-width
 | Sensor group                                   | Folder to link                                                                                                          |
 |------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
 | `Sentinel-2 and 3`                             | Main directory, `.SAFE`, `.SEN3` or `.zip`,<br>i.e. `S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE` |
@@ -53,12 +52,10 @@ Hereunder are the paths meant to be given to the reader.
 | `DIMAP`<br>(Pleiades, SPOTs,<br>Vision-1, ...) | Directory containing the `.JP2` files,<br>i.e. `IMG_PHR1B_PMS_001`                                                      |
 | `Maxar`<br>(WorldViews,<br>GeoEye...)          | Directory containing the `.TIL` file,<br>i.e. `013187549010_01_P001_PSH`                                                |
 | `SuperView-1`                                  | Directory containing the `.shp` file,<br>i.e. `0032100150001_01`                                                        |  
-| `GEOSAT-2`                                     | Directory containing the `.dim` file,<br>i.e. `DE2_PM4_L1C_000000_20161107T013821_20161107T013826_DE2_12927_DE02`       |  
-```
+| `GEOSAT-2`                                     | Directory containing the `.dim` file,<br>i.e. `DE2_PM4_L1C_000000_20161107T013821_20161107T013826_DE2_12927_DE02`       |
 
 #### SAR
 
-``` {container} full-width
 | Sensor group                             | Folder to link                                                                                                                         |
 |------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
 | `Sentinel-1`<br>`RADARSAT-Constellation` | SAFE directory containing the `manifest.safe` file,<br>i.e. `S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.SAFE` |
@@ -68,16 +65,16 @@ Hereunder are the paths meant to be given to the reader.
 | `ICEYE`                                  | Directory containing the `.tif` file,<br>i.e. `SC_124020`                                                                              |
 | `SAOCOM`                                 | Directory containing the `.xemt` **AND** the `.zip` files,<br>i.e. `11245-EOL1CSARSAO1A198523`                                         |
 | `CAPELLA`                                | Directory containing the `.tif` file,<br>i.e. `CAPELLA_C05_SP_SLC_HH_20220320114010_20220320114013`                                    |
-```
 
 ## Load
 
 {meth}`~eoreader.products.product.Product.load` is the function for accessing product-related bands.
 It can load satellite bands, index, DEM bands and cloud bands according to this workflow:
 
-``` {container} full-width
-![load_workflow](https://zupimages.net/up/22/12/9mz0.png)
-``` 
+```{image} https://zupimages.net/up/22/12/9mz0.png
+:class: full-width
+:alt: load_workflow
+```
 
 ```{note}
 For now, EOReader **always** loads bands with projected CRS (in UTM). 
@@ -251,11 +248,9 @@ prod.footprint()
 
 Please note the difference between `footprint` and `extent`:
 
-``` {container} full-width
 |Without nodata | With nodata|
 |--- | ---|
 | ![without_nodata](https://zupimages.net/up/21/14/69i6.gif) | ![with_nodata](https://zupimages.net/up/21/14/vg6w.gif) |
-```
 
 ### Solar angles
 
