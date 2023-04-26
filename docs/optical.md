@@ -6,47 +6,63 @@ The product resolution is the one given in [Data Access Portfolio (2014-2022, se
 The Data Access Portfolio Document presents the offer of the datasets and data access services that are made available to the Copernicus Users in response to their Earth Observation data requirements.
 However, especially for SAR data, the default pixel size of GRD bands is not the same as the product resolution!
 
-``` {container} full-width
-| Constellations               | Class                                                   | Product Types             | Default Pixel Size                   | Use archive                  |
-|------------------------------|---------------------------------------------------------|---------------------------|--------------------------------------|------------------------------|
-| Sentinel-2                   | {meth}`~eoreader.products.optical.s2_product.S2Product` | L1C & L2A & L2Ap          | 10m                                  | ✅                            |
-| Sentinel-2 Theia             | {meth}`~eoreader.products.S2TheiaProduct`               | L2A                       | 10m                                  | ✅                            |
-| Sentinel-3 SLSTR             | {meth}`~eoreader.products.S3Product`                    | RBT                       | 300m                                 | ✅                            |
-| Sentinel-3 OLCI              | {meth}`~eoreader.products.S3Product`                    | EFR                       | 500m                                 | ✅                            |
-| Landsat 9 OLI-TIRS           | {meth}`~eoreader.products.L9Product`                    | Level 1 & 2               | 30m                                  | ✅                            |
-| Landsat 8 OLI-TIRS           | {meth}`~eoreader.products.L8Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅            |
-| Landsat 7 ETM                | {meth}`~eoreader.products.L7Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅            |
-| Landsat 5 TM                 | {meth}`~eoreader.products.L5Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅            |
-| Landsat 4 TM                 | {meth}`~eoreader.products.L4Product`                    | Level 1 & 2               | 30m                                  | COL1*: ❌, COL2: ✅            |
-| Landsat 5 MSS                | {meth}`~eoreader.products.L5Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅            |
-| Landsat 4 MSS                | {meth}`~eoreader.products.L4Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅            |
-| Landsat 3 MSS                | {meth}`~eoreader.products.L3Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅            |
-| Landsat 2 MSS                | {meth}`~eoreader.products.L2Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅            |
-| Landsat 1 MSS                | {meth}`~eoreader.products.L1Product`                    | Level 1                   | 60m                                  | COL1*: ❌, COL2: ✅            |
-| Harmonized Landsat-Sentinel | {meth}`~eoreader.products.HlsProduct`                   | L30 & S30                 | 30m                                  | ✅                            |
-| PlanetScope                  | {meth}`~eoreader.products.PlaProduct`                   | L3A & L3B                 | 3m                                   | ✅(❌ if multiple subdatasets) |
-| SkySat                       | {meth}`~eoreader.products.SkyProduct`                   | (Collect Product) ortho_* | 0.5m                                 | ✅(❌ if multiple subdatasets) |
-| RapidEye                     | {meth}`~eoreader.products.ReProduct`                    | L3A                       | 5m                                   | ✅(❌ if multiple subdatasets) |
-| Pleiades-Neo                 | {meth}`~eoreader.products.PneoProduct`                  | SEN**, PRJ, ORT & MOS     | 0.3 (PAN), 1.2m (MS)                 | ✅                            |
-| Pleiades                     | {meth}`~eoreader.products.PldProduct`                   | SEN**, PRJ, ORT & MOS     | 0.5 (PAN), 2m (MS)                   | ✅                            |
-| Vision-1                     | {meth}`~eoreader.products.Vis1Product`                  | PRJ & ORTP                | 0.9 (PAN), 3.5m (MS)                 | ✅                            |
-| SPOT 4                       | {meth}`~eoreader.products.Spot45Product`                | L1A, L1B, L2A             | 10 (PAN), 20m (MS)                   | ✅                            |
-| SPOT 5                       | {meth}`~eoreader.products.Spot45Product`                | L1A, L1B, L2A             | 2.5 (SuperMode), 5.0 (PAN), 10m (MS) | ✅                            |
-| SPOT 7                       | {meth}`~eoreader.products.Spot7Product`                 | SEN**, PRJ, ORT & MOS     | 1.5 (PAN), 6m (MS)                   | ✅                            |
-| SPOT 6                       | {meth}`~eoreader.products.Spot6Product`                 | SEN**, PRJ, ORT & MOS     | 1.5 (PAN), 6m (MS)                   | ✅                            |
-| Maxar***                     | {meth}`~eoreader.products.MaxarProduct`                 | Standard & Ortho          | 0.5 (PAN), 2m (MS)                   | ✅                            |
-| SuperView-1                  | {meth}`~eoreader.products.Sv1Product`                   | L1B & L2A                 | 0.5 (PAN), 2m (MS)                   | ✅                            |
-| GEOSAT-2                     | {meth}`~eoreader.products.Gs2Product`                   | L1B & L1C & L1D & L1S     | 0.4 (PAN), 2m (MS) for L1D data      | ✅                            |
-```
+| Constellations              | Class                                                              | Use archive                  |
+|-----------------------------|--------------------------------------------------------------------|------------------------------|
+| Sentinel-2                  | {meth}`~eoreader.products.optical.s2_product.S2Product`            | ✅                            |
+| Sentinel-2 Theia            | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | ✅                            |
+| Sentinel-3 SLSTR            | {meth}`~eoreader.products.optical.s3_slstr_product.S3SlstrProduct` | ✅                            |
+| Sentinel-3 OLCI             | {meth}`~eoreader.products.optical.s3_olci_product.S3OlciProduct`   | ✅                            |
+| Landsat 8/9 OLI-TIRS        | {meth}`~eoreader.products.optical.landsat_product.LandsatProduct`  | ✅                            |
+| Landsat 7 ETM               | {meth}`~eoreader.products.optical.landsat_product.LandsatProduct`  | COL1*: ❌, COL2: ✅            |
+| Landsat 4/5 TM              | {meth}`~eoreader.products.optical.landsat_product.LandsatProduct`  | COL1*: ❌, COL2: ✅            |
+| Landsat 1-5 MSS             | {meth}`~eoreader.products.optical.landsat_product.LandsatProduct`  | COL1*: ❌, COL2: ✅            |
+| Harmonized Landsat-Sentinel | {meth}`~eoreader.products.optical.hls_product.HlsProduct`          | ✅                            |
+| PlanetScope                 | {meth}`~eoreader.products.optical.pla_product.PlaProduct`          | ✅(❌ if multiple subdatasets) |
+| SkySat                      | {meth}`~eoreader.products.optical.sky_product.SkyProduct`          | ✅(❌ if multiple subdatasets) |
+| RapidEye                    | {meth}`~eoreader.products.optical.re_product.ReProduct`            | ✅(❌ if multiple subdatasets) |
+| Pleiades-Neo                | {meth}`~eoreader.products.optical.pneo_product.PneoProduct`        | ✅                            |
+| Pleiades                    | {meth}`~eoreader.products.optical.pld_product.PldProduct`          | ✅                            |
+| Vision-1                    | {meth}`~eoreader.products.optical.vis1_product.Vis1Product`        | ✅                            |
+| SPOT 4/5                    | {meth}`~eoreader.products.optical.spot45_product.Spot45Product`    | ✅                            |
+| SPOT 6/7                    | {meth}`~eoreader.products.optical.spot67_product.Spot67Product`    | ✅                            |
+| Maxar**                     | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct`      | ✅                            |
+| SuperView-1                 | {meth}`~eoreader.products.optical.sv1_product.Sv1Product`          | ✅                            |
+| GEOSAT-2                    | {meth}`~eoreader.products.optical.gs2_product.Gs2Product`          | ✅                            |
+
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
 
-\*\* ⚠ *DIMAP SEN products are orthorectified using RPCs and not the rigorous sensor model. Shift can occur. Please refer to [this issue](https://github.com/sertit/eoreader/issues/53).*
-
-\*\*\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, however they don't have been tested). The resolution can vary around the one given here.*
+\*\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, however they don't have been tested). The resolution can vary around the one given here.*
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
 ```
+
+| Constellations              | Product Types             | Default Pixel Size                 |
+|-----------------------------|---------------------------|------------------------------------|
+| Sentinel-2                  | L1C & L2A & L2Ap          | 10 m                               |
+| Sentinel-2 Theia            | L2A                       | 10 m                               |
+| Sentinel-3 SLSTR            | RBT                       | 300 m                              |
+| Sentinel-3 OLCI             | EFR                       | 500 m                              |
+| Landsat 8/9 OLI-TIRS        | Level 1 & 2               | 30 m                               |
+| Landsat 7 ETM               | Level 1 & 2               | 30 m                               |
+| Landsat 4/5 TM              | Level 1 & 2               | 30 m                               |
+| Landsat 1-5 MSS             | Level 1                   | 60 m                               |
+| Harmonized Landsat-Sentinel | L30 & S30                 | 30 m                               |
+| PlanetScope                 | L3A & L3B                 | 3 m                                |
+| SkySat                      | (Collect Product) ortho_* | 0.5 m                              |
+| RapidEye                    | L3A                       | 5 m                                |
+| Pleiades-Neo                | SEN**, PRJ, ORT & MOS     | 0.3 m (PAN), 1.2 m (MS)            |
+| Pleiades                    | SEN**, PRJ, ORT & MOS     | 0.5 m (PAN), 2 m (MS)              |
+| Vision-1                    | PRJ & ORTP                | 0.9 m (PAN), 3.5 m (MS)            |
+| SPOT 4/5                    | L1A, L1B, L2A             | 10 m (PAN), 20 m (MS)              |
+| SPOT 6/7                    | SEN, PRJ, ORT & MOS       | 1.5 m (PAN), 6 m (MS)              |
+| Maxar*                      | Standard & Ortho          | 0.5 m (PAN), 2 m (MS)              |
+| SuperView-1                 | L1B & L2A                 | 0.5 m (PAN), 2 m (MS)              |
+| GEOSAT-2                    | L1B & L1C & L1D & L1S     | 0.4 m (PAN), 2 m (MS) for L1D data |
+
+\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, however they don't have been tested). The resolution can vary around the one given here.*
+
+\*\* ⚠ *DIMAP SEN products are orthorectified using RPCs and not the rigorous sensor model. Shift can occur. Please refer to [this issue](https://github.com/sertit/eoreader/issues/53).*
 
 ```{note}
 Note that for the rest of this documentation: 
@@ -89,24 +105,24 @@ The names are the ones from Sentinel-2, even if sometimes it can be confusing (e
 
 Some additions to the Sentinel-2 bands have been made (`YELLOW`, `PAN`...):
 
-- {meth}`~eoreader.bands.SpectralBandNames.CA`: Coastal Aerosol
-- {meth}`~eoreader.bands.SpectralBandNames.BLUE`
-- {meth}`~eoreader.bands.SpectralBandNames.GREENI`: First Green band of PlanetScope 8 bands, mapped to the 5th band of Sentinel-3 OLCI
-- {meth}`~eoreader.bands.SpectralBandNames.GREEN`
-- {meth}`~eoreader.bands.SpectralBandNames.YELLOW`
-- {meth}`~eoreader.bands.SpectralBandNames.RED`
-- {meth}`~eoreader.bands.SpectralBandNames.VRE_1`: Vegetation Red Edge 1
-- {meth}`~eoreader.bands.SpectralBandNames.VRE_2`: Vegetation Red Edge 2
-- {meth}`~eoreader.bands.SpectralBandNames.VRE_3`: Vegetation Red Edge 3
-- {meth}`~eoreader.bands.SpectralBandNames.NIR`: Near Infrared
-- {meth}`~eoreader.bands.SpectralBandNames.NARROW_NIR`: Spectrally resolved Narrow Near Infrared (band `8A` for `Sentinel-2`, same as `NIR` for other sensors)
-- {meth}`~eoreader.bands.SpectralBandNames.WV`: Water vapour
-- {meth}`~eoreader.bands.SpectralBandNames.SWIR_CIRRUS`: Cirrus band
-- {meth}`~eoreader.bands.SpectralBandNames.SWIR_1`: Short Wave Infrared 1
-- {meth}`~eoreader.bands.SpectralBandNames.SWIR_2` Short Wave Infrared 2
-- {meth}`~eoreader.bands.SpectralBandNames.PAN`: Panchromatic
-- {meth}`~eoreader.bands.SpectralBandNames.TIR_1`: Thermal Infrared 1
-- {meth}`~eoreader.bands.SpectralBandNames.TIR_2`: Thermal Infrared 2
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.CA`: Coastal Aerosol
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.BLUE`
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.GREEN1`: First Green band of PlanetScope 8 bands, mapped to the 5th band of Sentinel-3 OLCI
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.GREEN`
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.YELLOW`
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.RED`
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.VRE_1`: Vegetation Red Edge 1
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.VRE_2`: Vegetation Red Edge 2
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.VRE_3`: Vegetation Red Edge 3
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.NIR`: Near Infrared
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.NARROW_NIR`: Spectrally resolved Narrow Near Infrared (band `8A` for `Sentinel-2`, same as `NIR` for other sensors)
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.WV`: Water vapour
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.SWIR_CIRRUS`: Cirrus band
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.SWIR_1`: Short Wave Infrared 1
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.SWIR_2` Short Wave Infrared 2
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.PAN`: Panchromatic
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.TIR_1`: Thermal Infrared 1
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.TIR_2`: Thermal Infrared 2
 
 ```{note}
 Note that bands that are not mapped can still be used (i.e. for Sentinel-3 OLCI and SLSTR). 
@@ -117,7 +133,6 @@ But the bands that are not present in the `alias` file won't be recognized.
 
 #### Optical band mapping between constellations
 
-``` {container} full-width
 | Bands (names)                    | Coastal aerosol  | Blue             | Green I      | Green             | Yellow          | Red               | Vegetation red edge | Vegetation red edge | Vegetation red edge | NIR               | Narrow NIR        | Water vapor     | SWIR – Cirrus | SWIR              | SWIR         | Panchromatic   | Thermal IR                    | Thermal IR                    |
 |----------------------------------|------------------|------------------|--------------|-------------------|-----------------|-------------------|---------------------|---------------------|---------------------|-------------------|-------------------|-----------------|---------------|-------------------|--------------|----------------|-------------------------------|-------------------------------|
 | **Bands (alias)**                | `CA`             | `BLUE`           | `GREENI`     | `GREEN`           | `YELLOW`        | `RED`             | `VRE_1`             | `VRE_2`             | `VRE_3`             | `NIR`             | `NARROW_NIR`      | `WV`            | `SWIR_CIRRUS` | `SWIR_1`          | `SWIR_2`     | `PAN`          | `TIR_1`                       | `TIR_2`                       |
@@ -131,7 +146,7 @@ But the bands that are not present in the `alias` file won't be recognized.
 | Landsat MSS (5-4)                |                  |                  |              | **1** (60m)       |                 | **2** (60m)       | **3** (60m)         | **3** (60m)         | **3** (60m)         | **4** (60m)       | **4** (60m)       |                 |               |                   |              |                |                               |                               |
 | Landsat MSS (1-3)                |                  |                  |              | **4** (60m)       |                 | **5** (60m)       | **6** (60m)         | **6** (60m)         | **6** (60m)         | **7** (60m)       | **7** (60m)       |                 |               |                   |              |                | **8** (240m)<br>*only for L3* | **8** (240m)<br>*only for L3* |
 | PlanetScope (4 bands)            |                  | **1** (3m)       |              | **2** (3m)        |                 | **3** (3m)        |                     |                     |                     | **4** (3m)        | **4** (3m)        |                 |               |                   |              |                |                               |                               |
-| PlanetScope (5 bands)            |                  | **1** (3m)       |              | **2** (3m)        |                 | **3** (3m)        | **4** (3m)          |                     || **5** (3m)          | **5** (3m)        |                   |                 |               |                   |              |                |                               |
+| PlanetScope (5 bands)            |                  | **1** (3m)       |              | **2** (3m)        |                 | **3** (3m)        | **4** (3m)          |                     |                     | **5** (3m)        | **5** (3m)        |                 |               |                   |              |                |                               |                               |
 | PlanetScope (8 bands)            | **1** (3m)       | **2** (3m)       | **3** (3m)   | **4** (3m)        | **5** (3m)      | **6** (3m)        | **7** (3m)          |                     |                     | **8** (3m)        | **8** (3m)        |                 |               |                   |              |                |                               |                               |
 | SkySat                           |                  | **1** (0.5m)     |              | **2** (0.5m)      |                 | **3** (0.5m)      |                     |                     |                     | **4** (0.5m)      | **4** (0.5m)      |                 |               |                   |              |                |                               |                               |
 | RapidEye                         |                  | **1** (5m)       |              | **2** (5m)        |                 | **3** (5m)        | **4** (5m)          |                     |                     | **5** (5m)        | **5** (5m)        |                 |               |                   |              |                |                               |                               |
@@ -146,15 +161,12 @@ But the bands that are not present in the `alias` file won't be recognized.
 | WorldView-2/3                    | **1** (0.5m/2m)  | **2** (0.5m/2m)  |              | **3** (0.5m/2m)   | **4** (0.5m/2m) | **5** (0.5m/2m)   | **6** (0.5m/2m)     | **6** (0.5m/2m)     | **6** (0.5m/2m)     | **7** (0.5m/2m)   | **7** (0.5m/2m)   | **8** (0.5m/2m) |               |                   |              | **1** (0.5m)   |                               |                               |
 | Superview-1                      |                  | **1** (0.5m/2m)  |              | **2** (0.5m/2m)   |                 | **3** (0.5m/2m)   |                     |                     |                     | **4** (0.5m/2m)   | **4** (0.5m/2m)   |                 |               |                   |              | **1** (0.5m)   |                               |
 | GEOSAT-2                         |                  | **4** (0.4m/2m)  |              | **3** (0.4m/2m)   |                 | **2** (0.4m/2m)   |                     |                     |                     | **1** (0.4m/2m)   | **1** (0.4m/2m)   |                 |               |                   |              | **1** (0.4m)   |                               |
-```
+
 \* *Not all bands of these constellations are mapped in EOReader. However, they can still be used by using directly their name (i.e. `F1` or `Oa05`)*  
 
-
-```` {container} full-width
 ```{raw} html
 :file: _static/optical_band_mapping_inline.html
 ```
-````
 
 ### Cloud bands
 
@@ -163,15 +175,15 @@ orthorectified if needed (for Sentinel-2 or 3 data for example), ready to be sta
 
 The only difference with the other bands is that the cloud bands are provided in `uint8` and have a nodata equal to 255.
 
-- {meth}`~eoreader.bands.CloudsBandNames.RAW_CLOUDS`: Raw Cloud file as provided (the only changes are the
+- {meth}`~eoreader.bands.band_names.CloudsBandNames.RAW_CLOUDS`: Raw Cloud file as provided (the only changes are the
   orthorectification and rasterization). Can provide other flags, or cloud probability.
-- {meth}`~eoreader.bands.CloudsBandNames.CLOUDS`: Cloud presence (1) or absence (0). If clouds are provided in
+- {meth}`~eoreader.bands.band_names.CloudsBandNames.CLOUDS`: Cloud presence (1) or absence (0). If clouds are provided in
   probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- {meth}`~eoreader.bands.CloudsBandNames.CIRRUS`: Cirrus presence (1) or absence (0). If clouds are provided in
+- {meth}`~eoreader.bands.band_names.CloudsBandNames.CIRRUS`: Cirrus presence (1) or absence (0). If clouds are provided in
   probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- {meth}`~eoreader.bands.CloudsBandNames.SHADOWS`: Shadows presence (1) or absence (0). If clouds are provided in
+- {meth}`~eoreader.bands.band_names.CloudsBandNames.SHADOWS`: Shadows presence (1) or absence (0). If clouds are provided in
   probabilities, their presence is determined according to Landsat definition (proba> 67%)
-- {meth}`~eoreader.bands.CloudsBandNames.ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (0).  
+- {meth}`~eoreader.bands.band_names.CloudsBandNames.ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (0).  
   Do not take into account missing bands (i.e. for Landsat MSS constellation, `ALL_CLOUDS` == `CLOUDS`)
 
 | Sensors                      | Cloud files | Clouds Bands                                              |
@@ -180,16 +192,10 @@ The only difference with the other bands is that the cloud bands are provided in
 | Sentinel-2 Theia             | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
 | Sentinel-3 OLCI              | ❌           |                                                           |
 | Sentinel-3 SLSTR             | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
-| Landsat 9                    | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
-| Landsat 8                    | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
+| Landsat 8/9                  | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
 | Landsat 7                    | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`           |
-| Landsat 5 TM                 | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`           |
-| Landsat 4 TM                 | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`           |
-| Landsat 5 MSS                | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
-| Landsat 4 MSS                | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
-| Landsat 3                    | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
-| Landsat 2                    | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
-| Landsat 1                    | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
+| Landsat 4/5 TM               | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`           |
+| Landsat 1-5 MSS              | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
 | Harmonized Landsat-Sentinel  | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
 | PlanetScope                  | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
 | SkySat                       | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
@@ -205,8 +211,8 @@ The only difference with the other bands is that the cloud bands are provided in
 
 ### DEM bands
 
-Optical constellations can all load {meth}`~eoreader.bands.DemBandNames.DEM`, {meth}`~eoreader.bands.DemBandNames.SLOPE`
-and {meth}`~eoreader.bands.DemBandNames.HILLSHADE` bands. 
+Optical constellations can all load {meth}`~eoreader.bands.band_names.DemBandNames.DEM`, {meth}`~eoreader.bands.band_names.DemBandNames.SLOPE`
+and {meth}`~eoreader.bands.band_names.DemBandNames.HILLSHADE` bands. 
 The `SLOPE` band is given in degrees. 
 Please post an issue if you need this band in `percent`.
 
@@ -225,36 +231,34 @@ EOReader uses (from version 0.18.0) the indices described in the
 
 In addition to all these indices, EOReader kept the following indices for legacy purposes:
 
-``` {container} full-width
-| Spectral Indices                      | ASI equivalent | Formulas (with ASI syntax)                                                     | Name                                                |
-|---------------------------------------|----------------|--------------------------------------------------------------------------------|-----------------------------------------------------|
-| `AFRI_1_6`                            | `AFRI1600`     | `(N - 0.66 * S1) / (N + 0.66 * S1)`                                            | Aerosol Free Vegetation Index (1600 nm)             |
-| `AFRI_2_1`                            | `AFRI2100`     | `(N - 0.5 * S2) / (N + 0.5 * S2)`                                              | Aerosol Free Vegetation Index (2100 nm)             |
-| `BSI`                                 | `BI`           | `((S1 + R) - (N + B))/((S1 + R) + (N + B))`                                    | Barren Soil Index                                   |
-| `DSWI`                                | `DSWI5`        | `(N + G)/(S1 + R)`                                                             | Disease water stress index                          |
-| `GRI`                                 | `DSWI4`        | `G/R`                                                                          | Green-to-Red ratio Index                            |
-| `NDGRI`                               | `NGRDI`        | `(G - R) / (G + R)`                                                            | Normalized Green Red Difference Index               |
-| `NDMI21` (or `NDMI2100`)              | ❌              | `(N - S2) / (N + S2)`                                                          | Normalized Difference Moisture Index (with 2100 nm) |
-| `NDRE1`                               | `NDREI`        | `(N - RE1) / (N + RE1)`                                                        | Normalized Difference Red Edge Index                |
-| `NDRE2`                               | ❌              | `(N - RE2) / (N + RE2)`                                                        | Normalized Difference Red-Edge Index with RE2       |
-| `NDRE3`                               | ❌              | `(N - RE3) / (N + RE3)`                                                        | Normalized Difference Red-Edge Index with RE1       |
-| `CI32`                                | ❌              | `(RE3 / RE2) - 1`                                                              | Chlorophyll Index RedEdge RE3/RE2                   |
-| `CI21`                                | ❌              | `(RE2 / RE1) - 1`                                                              | Chlorophyll Index RedEdge RE2/RE1                   |
-| {meth}`~eoreader.bands.indices.PANI`  | ❌              | `(R**2 + B**2 + G**2)**0.5`                                                    | Panchromatic mocking index                          |
-| `RDI`                                 | `DSI`          | `S1/N`                                                                         | Ratio Drought Index / Drought Stress Index          |
-| `RGI`                                 | `RGRI`         | `R/G`                                                                          | Relative Greenness Index / Red-Green Ratio Index    |
-| {meth}`~eoreader.bands.indices.SBI`   | ❌              | `(R**2 + N**2)**0.5`                                                           | Soil Brightness Index                               |
-| {meth}`~eoreader.bands.indices.SCI`   | ❌              | `3*G - R - 100`                                                                | Soil Cuirass Index                                  |
-| `SRSWIR`                              | ❌              | `S1/S2`                                                                        | Simple Ratio SWIR16/SWIR21 Clay Minerals            |
-| {meth}`~eoreader.bands.indices.TCBRI` | ❌              | `0.3037 *B + 0.2793 * G + 0.4743 * R + 0.5585 * N + 0.5082 * S1 + 0.1863 * S2` | Tasseled Cap Brightness                             |
-| {meth}`~eoreader.bands.indices.TCGRE` | ❌              | `0.2848 *B + 0.2435 * G + 0.5436 * R + 0.7243 * N + 0.0840 * S1 + 0.1800 * S2` | Tasseled Cap Greenness                              |
-| {meth}`~eoreader.bands.indices.TCWET` | ❌              | `0.1509 *B + 0.1973 * G + 0.3279 * R + 0.3406 * N + 0.7112 * S1 + 0.4572 * S2` | Tasseled Cap Wetness                                |
-| `WI`                                  | `WI2015`       | `1.7204 + 171 * G + 3 * R - 70 * N - 45 * S1 - 71 * S2`                        | Water Index (2015)                                  |
-| `WV_BI`                               | `NHFD`         | `(RE1 - A) / (RE1 + A)`                                                        | WorldView Built-up Index                            |
-| `WV_SI`                               | ❌              | `(Y - G) / (Y + G)`                                                            | WorldView Soil Index                                |
-| `WV_VI`                               | ❌              | `(WV - R) / (WV + R)`                                                          | WorldView Vegetation Index                          |
-| `WV_WI`                               | ❌              | `(WV - A) / (WV + A)`                                                          | WorldView Water Index                               |
-```
+| Spectral Indices         | ASI equivalent   | Formulas (with ASI syntax)                                                     | Name                                                |
+|--------------------------|------------------|--------------------------------------------------------------------------------|-----------------------------------------------------|
+| `AFRI_1_6`               | `AFRI1600`       | `(N - 0.66 * S1) / (N + 0.66 * S1)`                                            | Aerosol Free Vegetation Index (1600 nm)             |
+| `AFRI_2_1`               | `AFRI2100`       | `(N - 0.5 * S2) / (N + 0.5 * S2)`                                              | Aerosol Free Vegetation Index (2100 nm)             |
+| `BSI`                    | `BI`             | `((S1 + R) - (N + B))/((S1 + R) + (N + B))`                                    | Barren Soil Index                                   |
+| `DSWI`                   | `DSWI5`          | `(N + G)/(S1 + R)`                                                             | Disease water stress index                          |
+| `GRI`                    | `DSWI4`          | `G/R`                                                                          | Green-to-Red ratio Index                            |
+| `NDGRI`                  | `NGRDI`          | `(G - R) / (G + R)`                                                            | Normalized Green Red Difference Index               |
+| `NDMI21` (or `NDMI2100`) | ❌                | `(N - S2) / (N + S2)`                                                          | Normalized Difference Moisture Index (with 2100 nm) |
+| `NDRE1`                  | `NDREI`          | `(N - RE1) / (N + RE1)`                                                        | Normalized Difference Red Edge Index                |
+| `NDRE2`                  | ❌                | `(N - RE2) / (N + RE2)`                                                        | Normalized Difference Red-Edge Index with RE2       |
+| `NDRE3`                  | ❌                | `(N - RE3) / (N + RE3)`                                                        | Normalized Difference Red-Edge Index with RE1       |
+| `CI32`                   | ❌                | `(RE3 / RE2) - 1`                                                              | Chlorophyll Index RedEdge RE3/RE2                   |
+| `CI21`                   | ❌                | `(RE2 / RE1) - 1`                                                              | Chlorophyll Index RedEdge RE2/RE1                   |
+| `PANI`                   | `BITM`           | `(R**2 + B**2 + G**2)**0.5`                                                    | Panchromatic mocking index                          |
+| `RDI`                    | `DSI`            | `S1/N`                                                                         | Ratio Drought Index / Drought Stress Index          |
+| `RGI`                    | `RGRI`           | `R/G`                                                                          | Relative Greenness Index / Red-Green Ratio Index    |
+| `SBI`                    | ❌                | `(R**2 + N**2)**0.5`                                                           | Soil Brightness Index                               |
+| `SCI`                    | ❌                | `3*G - R - 100`                                                                | Soil Cuirass Index                                  |
+| `SRSWIR`                 | ❌                | `S1/S2`                                                                        | Simple Ratio SWIR16/SWIR21 Clay Minerals            |
+| `TCBRI`                  | ❌                | `0.3037 *B + 0.2793 * G + 0.4743 * R + 0.5585 * N + 0.5082 * S1 + 0.1863 * S2` | Tasseled Cap Brightness                             |
+| `TCGRE`                  | ❌                | `0.2848 *B + 0.2435 * G + 0.5436 * R + 0.7243 * N + 0.0840 * S1 + 0.1800 * S2` | Tasseled Cap Greenness                              |
+| `TCWET`                  | ❌                | `0.1509 *B + 0.1973 * G + 0.3279 * R + 0.3406 * N + 0.7112 * S1 + 0.4572 * S2` | Tasseled Cap Wetness                                |
+| `WI`                     | `WI2015`         | `1.7204 + 171 * G + 3 * R - 70 * N - 45 * S1 - 71 * S2`                        | Water Index (2015)                                  |
+| `WV_BI`                  | `NHFD`           | `(RE1 - A) / (RE1 + A)`                                                        | WorldView Built-up Index                            |
+| `WV_SI`                  | `NDSIWV`         | `(Y - G) / (Y + G)`                                                            | WorldView Soil Index                                |
+| `WV_VI`                  | ❌                | `(WV - R) / (WV + R)`                                                          | WorldView Vegetation Index                          |
+| `WV_WI`                  | ❌                | `(WV - A) / (WV + A)`                                                          | WorldView Water Index                               |
 
 ```{note}
 WorldView-1 is not concerned by spectral indices as it only has a panchromatic band
