@@ -12,6 +12,7 @@
 - FIX: Collocate bands before trying to create spectral indices: resolve the case where their size mismatches (i.e. in case of window or change of native pixel size)
 - FIX: Landsat band masking when specifying a custom resolution and a custom window
 - FIX: Round the default pixel_size of custom stacks
+- FIX: Convert some fields of STAC items from non JSON serializable dtypes to correct ones
 
 ### Other
 
@@ -20,6 +21,7 @@
 - DEPS: Pin sertit to 1.27.0
 - INTERNAL: Better management of logs for deprecation warnings
 - INTERNAL: Refactoring `simplify_footprint` in `sertit` library
+- CI: Test that STAC items are serializable when added to a catalog
 
 ## 0.19.4 (2023-04-12)
 
