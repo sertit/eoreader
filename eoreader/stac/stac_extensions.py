@@ -153,9 +153,14 @@ class EoExt:
 
                 # Spectral bands
                 # Convert from numpy dtype (which are not JSON serializable) to standard dtype
-                center_wavelength = stac_utils.to_float(band.center_wavelength)
-                solar_illumination = stac_utils.to_float(band.solar_illumination)
-                full_width_half_max = stac_utils.to_float(band.full_width_half_max)
+                try:
+                    center_wavelength = stac_utils.to_float(band.center_wavelength)
+                    solar_illumination = stac_utils.to_float(band.solar_illumination)
+                    full_width_half_max = stac_utils.to_float(band.full_width_half_max)
+                except AttributeError:
+                    center_wavelength = None
+                    solar_illumination = None
+                    full_width_half_max = None
 
                 # Create asset
                 asset_eo_ext = EOExtension.ext(band_asset)
