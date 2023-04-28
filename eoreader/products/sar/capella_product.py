@@ -165,10 +165,10 @@ class CapellaProduct(SarProduct):
         `here <https://support.capellaspace.com/hc/en-us/articles/360059224291-What-SAR-imagery-products-are-available-with-Capella->`_
         """
         # Using az resolution
-        if self.sensor_mode == CapellaSensorMode.SM:
+        if self.sensor_mode == CapellaSensorMode.SP:
             def_pixel_size = 0.35
             def_res = 0.5
-        elif self.sensor_mode == CapellaSensorMode.SP:
+        elif self.sensor_mode == CapellaSensorMode.SM:
             def_pixel_size = 0.6
             def_res = 1.0
         elif self.sensor_mode == CapellaSensorMode.SS:
