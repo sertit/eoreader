@@ -338,8 +338,8 @@ class LandsatProduct(OpticalProduct):
         """
         Set landsat product type.
 
-        More on spectral bands <here `https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites`_>.
-        See also the <description `https://www.usgs.gov/faqs/what-are-best-landsat-spectral-bands-use-my-research`_>.
+        More on spectral bands `here <https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites>`_.
+        See also the `description <https://www.usgs.gov/faqs/what-are-best-landsat-spectral-bands-use-my-research>`_.
 
         The naming convention of L1 data can be found
         `here <https://www.usgs.gov/faqs/what-naming-convention-landsat-collections-level-1-scenes>`_.

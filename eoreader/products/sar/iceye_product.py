@@ -102,18 +102,23 @@ class IceyeProduct(SarProduct):
         """
         Set product default pixel size (in meters)
         See here
-        <here](https://www.iceye.com/hubfs/Downloadables/ICEYE_SAR_Product_Guide_2021_V4.0.pdf>`_
-        for more information (table B.3).
+        `here <https://sar.iceye.com/5.0/productguide/collectioncharacteristics/>`_ for more information (Amplitude Image Parameters)
         """
         if self.sensor_mode == IceyeSensorMode.SM:
-            def_pixel_size = 3.0
+            def_pixel_size = 2.5
+            def_res = 3.0
         elif self.sensor_mode == IceyeSensorMode.SL:
-            def_pixel_size = 1.0
+            def_pixel_size = 0.5
+            def_res = 1.0
         elif self.sensor_mode == IceyeSensorMode.SC:
-            def_pixel_size = 15.0
+            def_pixel_size = 6.0
+            def_res = 15.0
+
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
+
         self.pixel_size = def_pixel_size
+        self.resolution = def_res
 
     def _set_instrument(self) -> None:
         """

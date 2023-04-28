@@ -172,11 +172,12 @@ class TsxProduct(SarProduct):
         """
         Set product default pixel size (in meters)
         See here
-        <here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
-        for more information (Beam Modes)
+        `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
+        for more information (page 49, 4. Basic Product Tables)
 
         .. WARNING::
             - We force Spatially Enhanced Resolution (SE) as we keep SSC resolutions (as per the ESA Data Access Portfolio)
+            - We use the pixel_size from SE products, with incidence angle corresponding to the SSC resolution (or the highest pixel_spacing)
         """
         # TODO: Manage RE case ? Not handled by Copernicus EMS, so be careful...
 
@@ -192,25 +193,33 @@ class TsxProduct(SarProduct):
                 "acquisitionInfo or polarisationMode not found in metadata!"
             )
 
+        def_res = None
         def_pixel_size = None
         if self.sensor_mode == TsxSensorMode.HS:
             if polarization == TsxPolarization.S:
-                def_pixel_size = 1.1
+                def_pixel_size = 0.5
+                def_res = 1.1
             elif polarization == TsxPolarization.D:
-                def_pixel_size = 2.2
+                def_pixel_size = 1.0
+                def_res = 2.2
         elif self.sensor_mode == TsxSensorMode.SL:
             if polarization == TsxPolarization.S:
-                def_pixel_size = 1.7
+                def_pixel_size = 0.75
+                def_res = 1.7
             elif polarization == TsxPolarization.D:
-                def_pixel_size = 3.4
+                def_pixel_size = 1.0
+                def_res = 3.4
         elif self.sensor_mode == TsxSensorMode.ST:
             if polarization == TsxPolarization.S:
-                def_pixel_size = 0.24
+                def_pixel_size = 0.2
+                def_res = 0.24
         elif self.sensor_mode == TsxSensorMode.SM:
             if polarization == TsxPolarization.S:
-                def_pixel_size = 3.3
+                def_pixel_size = 1.25
+                def_res = 3.3
             elif polarization == TsxPolarization.D:
-                def_pixel_size = 6.6
+                def_pixel_size = 3.0
+                def_res = 6.6
         elif self.sensor_mode == TsxSensorMode.SC:
             # Read metadata
             try:
@@ -223,15 +232,21 @@ class TsxProduct(SarProduct):
                 )
             # Four beams
             if nof_beams == 4:
-                def_pixel_size = 18.5
+                def_pixel_size = 8.25
+                def_res = 18.5
 
             elif nof_beams == 6:
                 # Six beams
-                def_pixel_size = 40.0
-        else:
-            raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
+                def_res = 40.0
+                def_pixel_size = 15.0
+
+        if def_pixel_size is None or def_res is None:
+            raise InvalidProductError(
+                f"Unknown sensor mode: {self.sensor_mode} or unknown polarization: {polarization}"
+            )
 
         self.pixel_size = def_pixel_size
+        self.resolution = def_res
 
     def _set_instrument(self) -> None:
         """

@@ -188,7 +188,7 @@ class S3OlciProduct(S3Product):
         """
         Set products type
 
-        More on spectral bands <here `https://sentinel.esa.int/web/sentinel/user-guides/sentinel-3-olci/resolutions/radiometric`_>.
+        More on spectral bands `here <https://sentinel.esa.int/web/sentinel/user-guides/sentinel-3-olci/resolutions/radiometric>`_.
         """
         # Product type
         if self.name[7] != "1":

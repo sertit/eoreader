@@ -237,7 +237,7 @@ class PlaProduct(PlanetProduct):
 
     def _get_spectral_bands(self) -> dict:
         """
-        See <here `https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf`_> for more information.
+        See `here <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_ for more information.
 
         Returns:
             dict: PlanetScope spectral bands

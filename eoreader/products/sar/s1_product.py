@@ -113,7 +113,7 @@ class S1Product(SarProduct):
         """
         Set product default pixel size (in meters)
         See here
-        <here](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected>`_
+        `here <https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected>`_
         for more information
         """
 
@@ -122,7 +122,32 @@ class S1Product(SarProduct):
         else:
             res_class = S1ResolutionClass.NONE
 
+        # Using the az resolution between rg and az
         default_res = {
+            S1SensorMode.SM: {
+                S1ResolutionClass.NONE: 9.0,
+                S1ResolutionClass.FR: 9.0,
+                S1ResolutionClass.HR: 23.0,
+                S1ResolutionClass.MR: 84.0,
+            },
+            S1SensorMode.IW: {
+                S1ResolutionClass.NONE: 20.0,
+                S1ResolutionClass.HR: 20.0,
+                S1ResolutionClass.MR: 87.0,
+            },
+            S1SensorMode.EW: {
+                S1ResolutionClass.NONE: 50.0,
+                S1ResolutionClass.HR: 50.0,
+                S1ResolutionClass.MR: 87.0,
+            },
+            S1SensorMode.WV: {
+                S1ResolutionClass.NONE: 51.0,
+                S1ResolutionClass.MR: 51.0,
+            },
+        }
+
+        # Pixel sizes are squared -> no issue between rg and az
+        default_pix_size = {
             S1SensorMode.SM: {
                 S1ResolutionClass.NONE: 3.5,
                 S1ResolutionClass.FR: 3.5,
@@ -131,7 +156,7 @@ class S1Product(SarProduct):
             },
             S1SensorMode.IW: {
                 S1ResolutionClass.NONE: 20.0,
-                S1ResolutionClass.HR: 20.0,  # Force it from Data Access Portfolio
+                S1ResolutionClass.HR: 20.0,
                 S1ResolutionClass.MR: 40.0,
             },
             S1SensorMode.EW: {
@@ -146,11 +171,13 @@ class S1Product(SarProduct):
         }
 
         try:
-            def_pixel_size = default_res[self.sensor_mode][res_class]
+            def_pixel_size = default_pix_size[self.sensor_mode][res_class]
+            def_res = default_res[self.sensor_mode][res_class]
         except KeyError:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
         self.pixel_size = def_pixel_size
+        self.resolution = def_res
 
     def _set_instrument(self) -> None:
         """
