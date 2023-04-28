@@ -62,7 +62,6 @@ class Rs2ProductType(ListEnum):
     """SAR precision geocorrected"""
 
     # ScanSar
-
     SCF = "SCF"
     """ScanSAR fine"""
 
@@ -79,7 +78,6 @@ class Rs2ProductType(ListEnum):
 @unique
 class Rs2SensorMode(ListEnum):
     """
-    Set product default pixel size (in meters)
     See here
     `here <https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
     for more information (Beam Modes)
@@ -276,7 +274,7 @@ class Rs2Product(SarProduct):
             def_res = 0.8
             if self.product_type == Rs2ProductType.SGX:
                 # Range pixel spacing is 1.0 m for incidence angles less than or equal to 48 degrees and 0.8 m for incidence angles greater than 48 degrees.
-                def_pixel_size = 1.0
+                def_pixel_size = 0.8
             elif self.product_type in [
                 Rs2ProductType.SGF,
                 Rs2ProductType.SSG,
@@ -289,7 +287,7 @@ class Rs2Product(SarProduct):
             def_res = 2.8
             if self.product_type == Rs2ProductType.SGX:
                 # For UF: 1.0 m x 1.0 m for incidence angles less than or equal to 48 degrees. 0.8 m x 0.8 m for incidence angles greater than 48 degrees.
-                def_pixel_size = 1.0
+                def_pixel_size = 0.8
             elif self.product_type in [
                 Rs2ProductType.SGF,
                 Rs2ProductType.SSG,

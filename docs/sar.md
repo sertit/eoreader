@@ -114,7 +114,7 @@ You can use both a local path e.g. `/mnt/dataserver/dems/srtm_30_v4/index.vrt` o
 a URL pointing to a web resources hosted on a S3 compatible storage e.g. 
 `https://s3.storage.com/dem-bucket/srtm_cog.tif` (not available on Windows for now).
 
-## Default resolution
+## Default pixel size and resolution
 
 The default resolution of SAR products is the one given in 
 [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Document+-+current+(10).pdf). 
@@ -123,17 +123,26 @@ Complex data are **always** converted back to ground range to be used, so the co
 
 The default pixel size of GRD bands is not the same as the product resolution! (i.e. pixel size of 10m with a resolution of 20m for Sentinel-1 IW data)
 
-> ⚠ Pay attention that for a pixel spacing of 10 meters and a rg x az resolution of 23m, objects under 23m won't be resolved !
-> As this may be counter-intuitive, it is recommanded to **always** specify the pixel size when loading SAR data.
+```{warning}
+⚠ Pay attention that for a pixel spacing of 10 meters and a rg x az resolution of 23m, objects under 23m won't be resolved !
+As this may be counter-intuitive, it is recommanded to **always** specify the pixel size when loading SAR data.
+```
+
+```{note}
+Resolution is not used in EOReader, only the pixel_size. Resolution is juste specified as an information.
+For now, resolutions are stored with only one number in EOReader (not rg x az, only one of the two, which will be in bold here after). 
+If this needs change, don't hesitate to write an issue :) 
+```
+
 
 ### Sentinel-1
 
-| **Sentinel-1**                  | Ground Range Detected (GRD)<br>Full Resolution (FR)   | Ground Range Detected (GRD)<br>High Resolution (HR)   | Ground Range Detected (GRD)<br>Medium Resolution (MR)      |
-|---------------------------------|-------------------------------------------------------|-------------------------------------------------------|------------------------------------------------------------|
-| StripMap (SM) \*                | **pixel spacing: 3.5m**<br>rg x az resolution: 9.0m   | **pixel spacing: 10.0m**<br>rg x az resolution: 23.0m | **pixel spacing: 40.0m**<br>rg x az resolution: 84.0m      |
-| Interferometric Wide swath (IW) |                                                       | 20.0m                                                 | **pixel spacing: 40.0m**<br>rg x az resolution: 88.0x87.0m |
-| Extra-Wide swath (EW)           |                                                       | **pixel spacing: 25.0m**<br>rg x az resolution: 25.0m | **pixel spacing: 40.0m**<br>rg x az resolution: 93.0x87.0m |
-| Wave (WV) \*                    |                                                       |                                                       | **pixel spacing: 25.0m**<br>rg x az resolution: 52.0x51.0m |
+| **Sentinel-1**                  | Ground Range Detected (GRD)<br>Full Resolution (FR) | Ground Range Detected (GRD)<br>High Resolution (HR)  | Ground Range Detected (GRD)<br>Medium Resolution (MR)           |
+|---------------------------------|-----------------------------------------------------|------------------------------------------------------|-----------------------------------------------------------------|
+| StripMap (SM)                   | **pixel size: 3.5 m**<br>rg x az resolution: 9.0 m  | **pixel size: 10.0 m**<br>rg x az resolution: 23.0 m | **pixel size: 40.0 m**<br>rg x az resolution: 84.0 m            |
+| Interferometric Wide swath (IW) |                                                     | **pixel size: 10.0 m**<br>rg x az resolution: 20.0 m | **pixel size: 40.0 m**<br>rg x az resolution: 88.0 x **87.0** m |
+| Extra-Wide swath (EW)           |                                                     | **pixel size: 25.0 m**<br>rg x az resolution: 25.0 m | **pixel size: 40.0 m**<br>rg x az resolution: 93.0 x **87.0** m |
+| Wave (WV)                       |                                                     |                                                      | **pixel size: 25.0 m**<br>rg x az resolution: 52.0 x **51.0** m |
 
 \* Resolutions not provided in the Data Access Portfolio. Available [here](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected).
 
@@ -141,123 +150,125 @@ The default pixel size of GRD bands is not the same as the product resolution! (
 
 | **COSMO-Skymed<br>1st Generation**   | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC) |
 |--------------------------------------|------------------------------------------------------------------------------------------------------------|
-| **Spotlight**<br>Mode-2 (S2)         | 1.0m                                                                                                       | 
-| **StripMap**<br>Himage from SCS (HI) | 3.0m                                                                                                       |
-| **StripMap**<br>Himage GRD (HI)      | 5.0m                                                                                                       |
-| **StripMap**<br>PingPong (PP)        | 20.0m                                                                                                      |
-| **ScanSAR**<br>Wide Region (WR)      | 30.0m                                                                                                      |
-| **ScanSAR**<br>Huge Region (HR)      | 100.0m                                                                                                     |
+| **Spotlight**<br>Mode-2 (S2)         | **pixel size: 0.5 m**<br>rg x az resolution: 1.0 m                                                         | 
+| **StripMap**<br>Himage from SCS (HI) | **pixel size: 2.5 m**<br>rg x az resolution: 3.0 m                                                         |
+| **StripMap**<br>Himage GRD (HI)      | **pixel size: 2.5 m**<br>rg x az resolution: 5.0 m                                                         |
+| **StripMap**<br>PingPong (PP)        | **pixel size: 10.0 m**<br>rg x az resolution: 20.0 m                                                       |
+| **ScanSAR**<br>Wide Region (WR)      | **pixel size: 15.0 m**<br>rg x az resolution: 30.0 m                                                       |
+| **ScanSAR**<br>Huge Region (HR)      | **pixel size: 50.0 m**<br>rg x az resolution: 100.0 m                                                      |
 
 ### COSMO-Skymed 2nd Generation
 
-Resolutions not provided in the Data Access Portfolio. 
-Available [here](https://www.e-geos.it/assets/images/test-img/cosmo-document/gd-com-20-001-e-geos-official-pricelist-june-22nd-2020.pdf).
-
-| **COSMO-Skymed<br>2nd Generation** | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC) |
-|------------------------------------|------------------------------------------------------------------------------------------------------------|
-| SPOTLIGHT_2_A                      | ~0.4m                                                                                                      |
-| SPOTLIGHT_2_B                      | ~0.63m                                                                                                     |
-| SPOTLIGHT-2_C                      | ~0.8m                                                                                                      |
-| STRIPMAP & QUADPOL                 | ~3.0m                                                                                                      |
-| SCANSAR1                           | ~20.0m                                                                                                     |
-| SCANSAR2                           | ~40.0m                                                                                                     |
-| PINGPONG                           | ~12.0m                                                                                                     |
+| **COSMO-Skymed<br>2nd Generation** | Detected Ground Multi-look (DGM)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC)                                                                                                            |
+|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| SPOTLIGHT 2A                       | Multilook ID: #1: **pixel size: 0.15 m**, rg x az resolution: 0.4 m<br>Multilook ID: #2: **pixel size: 0.3 m**, rg x az resolution: 0.7 m<br>Multilook ID: #3: **pixel size: 0.45 m**, rg x az resolution: 1.0 m      |
+| SPOTLIGHT 2B                       | Multilook ID: #1: **pixel size: 0.25 m**, rg x az resolution: 0.7 m<br>Multilook ID: #2: **pixel size: 0.5 m**, rg x az resolution: 1.2 m<br>Multilook ID: #3: **pixel size: 1.0 m**, rg x az resolution: 2.3 m       |
+| SPOTLIGHT 2C                       | Multilook ID: #1: **pixel size: 0.3 m**, rg x az resolution: 0.8 m<br>Multilook ID: #2: **pixel size: 0.6 m**, rg x az resolution: 1.4 m<br>Multilook ID: #3: **pixel size: 0.9 m**, rg x az resolution: 2.1 m        |
+| STRIPMAP & QUADPOL                 | Multilook ID: #1: **pixel size: 1.25 m**, rg x az resolution: 3.0 m<br>Multilook ID: #2: **pixel size: 2.5 m**, rg x az resolution: 5.6 m<br>Multilook ID: #3: **pixel size: 5.0 m**, rg x az resolution: 11.2 m      |
+| SCANSAR1                           | Multilook ID: #1: **pixel size: 5.0 m**, rg x az resolution: 20.0 m<br>Multilook ID: #2: **pixel size: 10.0 m**, rg x az resolution: 23.0 m<br>Multilook ID: #3: **pixel size: 15.0 m**, rg x az resolution: 35.0 m   |
+| SCANSAR2                           | Multilook ID: #1: **pixel size: 10.0 m**, rg x az resolution: 40.0 m<br>Multilook ID: #2: **pixel size: 20.0 m**, rg x az resolution: 47.0 m<br>Multilook ID: #3: **pixel size: 50.0 m**, rg x az resolution: 115.0 m |
+| PINGPONG                           | Multilook ID: #1: **pixel size: 2.0 m**, rg x az resolution: 12.0 m<br>Multilook ID: #2: **pixel size: 4.0 m**, rg x az resolution: 12.0 m<br>Multilook ID: #3: **pixel size: 10.0 m**, rg x az resolution: 22.5 m    |
 
 ### TerraSAR-X & TanDEM-X & PAZ SAR
 
-| **TerraSAR-X<br>TanDEM-X<br>PAZ SAR**            | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced<br>(high resolution, SE) | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Radiometrically enhanced<br>(high radiometry, RE) |
-|--------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **StripMap (SM)**<br>Single-Pol                  | 3.3m                                                                                                                                                     | 7.0m   \*                                                                                                                                                      |
-| **StripMap (SM)**<br>Dual-Pol                    | 6.6m                                                                                                                                                     | 9.9m   \*                                                                                                                                                      |
-| **High Resolution Spotlight (HS)**<br>Single-Pol | 1.1m                                                                                                                                                     | 3.0m   \*                                                                                                                                                      |
-| **High Resolution Spotlight (HS)**<br>Dual-Pol   | 2.2m                                                                                                                                                     | 4.4m   \*                                                                                                                                                      |
-| **Spotlight (SL)**<br>Single-Pol                 | 1.7m                                                                                                                                                     | 3.8m   \*                                                                                                                                                      |
-| **Spotlight (SL)**<br>Dual-Pol                   | 3.4m                                                                                                                                                     | 5.5m   \*                                                                                                                                                      |
-| **Staring Spotlight (ST)**<br>Single-Pol         | 0.24m                                                                                                                                                    | 0.9m   \*                                                                                                                                                      |
-| **ScanSAR (SC)**<br>Four Beams                   |                                                                                                                                                          | 18.5m                                                                                                                                                          |
-| **ScanSAR (SC)**<br>Six Beams                    |                                                                                                                                                          | 40.0m                                                                                                                                                          |
+| **TerraSAR-X<br>TanDEM-X<br>PAZ SAR**            | Multi Look Ground Range (MGD)<br>Geocoded Ellipsoid Corrected (GEC)<br>Enhanced Ellipsoid Corrected (EEC)<br>Spatially enhanced<br> |
+|--------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| **StripMap (SM)**<br>Single-Pol                  | **pixel size: 1.25 m**<br>rg x az resolution: 3.3 m                                                                                 |
+| **StripMap (SM)**<br>Dual-Pol                    | **pixel size: 3.0 m**<br>rg x az resolution: 6.6 m                                                                                  |
+| **High Resolution Spotlight (HS)**<br>Single-Pol | **pixel size: 0.5 m**<br>rg x az resolution: 1.1 m                                                                                  |
+| **High Resolution Spotlight (HS)**<br>Dual-Pol   | **pixel size: 1.0 m**<br>rg x az resolution: 2.2 m                                                                                  |
+| **Spotlight (SL)**<br>Single-Pol                 | **pixel size: 0.75 m**<br>rg x az resolution: 1.7 m                                                                                 |
+| **Spotlight (SL)**<br>Dual-Pol                   | **pixel size: 1.0 m**<br>rg x az resolution: 3.4 m                                                                                  |
+| **Staring Spotlight (ST)**<br>Single-Pol         | **pixel size: 0.2 m**<br>rg x az resolution: 0.24 m                                                                                 |
+| **ScanSAR (SC)**<br>Four Beams                   | **pixel size: 8.25 m**<br>rg x az resolution: 18.5 m                                                                                |
+| **ScanSAR (SC)**<br>Six Beams                    | **pixel size: 15.0 m**<br>rg x az resolution: 40.0 m                                                                                |
 
-\* Resolutions not provided in the Data Access Portfolio. Available [here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf).
+```{note}
+All product types are used in high resolution (SE), as the high radiometry products are not used in Copernicus Emergency Management Service. 
+This is not the case for ScanSAR products, always delivered in RE.
+If you want all the RE products implemented, don't hesitate to write an issue :)
+```
 
 ### RADARSAT-2
 
-| **RADARSAT-2**              | Maximal spatial resolution |
-|-----------------------------|----------------------------|
-| Spotlight                   | 1.0m                       |
-| Ultra-Fine                  | 3.0m                       |
-| Wide Ultra-Fine             | 3.0m                       |
-| Multi-Look Fine             | 5.0m                       |
-| Wide Multi-Look Fine        | 5.0m                       |
-| Extra-Fine                  | 5.0m                       |
-| Fine                        | 8.0m                       |
-| Wide-Fine                   | 8.0m                       |
-| Standard                    | 25.0m                      |
-| Wide                        | 25.0m                      |
-| Extended High               | 25.0m                      |
-| Extended Low                | 25.0m                      |
-| Fine Quad-Pol               | 12.0m                      |
-| Wide Quad-Pol               | 12.0m                      |
-| Standard Quad-Pol           | 25.0m                      |
-| Wide Standard Quad-Pol      | 25.0m                      |
-| ScanSAR Narrow              | 60.0m                      |
-| ScanSAR Wide                | 100.0m                     |
-| Ship (Detection of vessels) | 35.0m                      |
-| Ocean Surveillance          | 50.0m                      |
+#### Classic modes
+| **RADARSAT-2**                              | SAR georeferenced extra (SGX)                                                       | SAR georeferenced fine (SGF)                          | SAR systematic geocorrected(SSG)<br>SAR precision geocorrected (SPG) |
+|---------------------------------------------|-------------------------------------------------------------------------------------|-------------------------------------------------------|----------------------------------------------------------------------|
+| Spotlight                                   | **pixel size: 0.8 m _(1.0 if incidence angle < 48°)_**<br>rg x az resolution: 0.8 m | **pixel size: 0.5 m**<br>rg x az resolution: 0.8 m    | **pixel size: 0.5 m**<br>rg x az resolution: 0.8 m                   |
+| Ultra-Fine<br>Wide Ultra-Fine               | **pixel size: 0.8 m _(1.0 if incidence angle < 48°)_**<br>rg x az resolution: 2.8 m | **pixel size: 1.5625 m**<br>rg x az resolution: 2.8 m | **pixel size: 1.5625 m**<br>rg x az resolution: 2.8 m                |
+| Multi-Look Fine<br>Wide Multi-Look Fine     | **pixel size: 3.125 m**<br>rg x az resolution: 7.6 m                                | **pixel size: 6.25 m**<br>rg x az resolution: 7.6 m   | **pixel size: 6.25 m**<br>rg x az resolution: 7.6 m                  |
+| Extra-Fine /*                               | **pixel size: 2.0 m**<br>rg x az resolution: 4.6 m                                  | **pixel size: 3.125 m**<br>rg x az resolution: 4.6 m  | **pixel size: 3.125 m**<br>rg x az resolution: 4.6 m                 |
+| Fine<br>Wide-Fine                           | **pixel size: 3.125 m**<br>rg x az resolution: 7.7 m                                | **pixel size: 6.25 m**<br>rg x az resolution: 7.7 m   | **pixel size: 6.25 m**<br>rg x az resolution: 7.7 m                  |
+| Standard<br>Wide                            | **pixel size: 8.0 m**<br>rg x az resolution: 24.7 m                                 | **pixel size: 12.5 m**<br>rg x az resolution: 24.7 m  | **pixel size: 12.5 m**<br>rg x az resolution: 24.7 m                 |
+| Extended High                               | **pixel size: 8.0 m**<br>rg x az resolution: 24.7 m                                 | **pixel size: 12.5 m**<br>rg x az resolution: 24.7 m  | **pixel size: 12.5 m**<br>rg x az resolution: 24.7 m                 |
+| Extended Low                                | **pixel size: 10.0 m**<br>rg x az resolution: 24.7 m                                | **pixel size: 12.5 m**<br>rg x az resolution: 24.7 m  | **pixel size: 12.5 m**<br>rg x az resolution: 24.7 m                 |
+| Fine Quad-Pol<br>Wide Quad-Pol              | **pixel size: 3.125 m**<br>rg x az resolution: 7.6 m                                |                                                       | **pixel size: 3.125 m**<br>rg x az resolution: 7.6 m                 |
+| Standard Quad-Pol<br>Wide Standard Quad-Pol | **pixel size: 8.0 m**<br>rg x az resolution: 7.6 m                                  |                                                       | **pixel size: 8.0 m**<br>rg x az resolution: 7.6 m                   |
+
+/* Only the Extra-Fine mode with 1 look is taken into account. Pixel sizes can change with 4 or 28 looks.
+
+#### ScanSAR mode
+| **RADARSAT-2**              | ScanSAR narrow beam (SCN)                            | ScanSAR wide beam (SCW)                               | ScanSAR fine (SCF)<br>ScanSAR sampled (SCS            |
+|-----------------------------|------------------------------------------------------|-------------------------------------------------------|-------------------------------------------------------|
+| ScanSAR Narrow              | **pixel size: 25.0 m**<br>rg x az resolution: 50.0 m |                                                       | **pixel size: 25.0 m**<br>rg x az resolution: 50.0 m  |
+| ScanSAR Wide                |                                                      | **pixel size: 50.0 m**<br>rg x az resolution: 100.0 m | **pixel size: 50.0 m**<br>rg x az resolution: 100.0 m |
+
+#### Other modes
+
+| **RADARSAT-2**              | From SLC                                             | Other product types                                  |
+|-----------------------------|------------------------------------------------------|------------------------------------------------------|
+| Ship (Detection of vessels) | **pixel size: 20.0 m**<br>rg x az resolution: 35.0 m | **pixel size: 40.0 m**<br>rg x az resolution: 35.0 m |
+| Ocean Surveillance          | **pixel size: 35.0 m**<br>rg x az resolution: 50.0 m | **pixel size: 50.0 m**<br>rg x az resolution: 50.0 m |
 
 
 ### RADARSAT-Constellation
 
-Resolutions not provided in the Data Access Portfolio. 
-Available [here](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp).
-
-| **RADARSAT-Constellation**          | Resolution |
-|-------------------------------------|------------|
-| Spotlight [FSL]                     | 1.0m       |
-| Very-High Resolution, 3 meters [3M] | 3.0m       |
-| High Resolution, 5 meters [5M]      | 5.0m       |
-| Quad-Polarization [QP]              | 9.0m       |
-| Medium Resolution, 16 meters [16M]  | 16.0m      |
-| Medium Resolution, 30 meters [SC30] | 30.0m      |
-| Medium Resolution, 50 meters [SC50] | 50.0m      |
-| Low Noise [SCLN]                    | 100.0m     |
-| Low Resolution, 100 meters [SC100]  | 100.0m     |
-| Ship Detection                      | Variable   |
+| **RADARSAT-Constellation**          | Pixel size and Resolution                             |
+|-------------------------------------|-------------------------------------------------------|
+| Spotlight [FSL]                     | **pixel size: 0.33 m**<br>rg x az resolution: 1.0 m   |
+| Very-High Resolution, 3 meters [3M] | **pixel size: 1.25 m**<br>rg x az resolution: 3.0 m   |
+| High Resolution, 5 meters [5M]      | **pixel size: 2.0 m**<br>rg x az resolution: 5.0 m    |
+| Quad-Polarization [QP]              | **pixel size: 2.5 m**<br>rg x az resolution: 9.0 m    |
+| Medium Resolution, 16 meters [16M]  | **pixel size: 6.25 m**<br>rg x az resolution: 16.0 m  |
+| Medium Resolution, 30 meters [SC30] | **pixel size: 12.5 m**<br>rg x az resolution: 30.0 m  |
+| Medium Resolution, 50 meters [SC50] | **pixel size: 20.0 m**<br>rg x az resolution: 50.0 m  |
+| Low Noise [SCLN]                    | **pixel size: 40.0 m**<br>rg x az resolution: 100.0 m |
+| Low Resolution, 100 meters [SC100]  | **pixel size: 40.0 m**<br>rg x az resolution: 100.0 m |
+| Ship Detection                      | Variable                                              |
 
 ### ICEYE
 
-Resolutions not provided in the Data Access Portfolio. 
-Available [here](https://iceye-ltd.github.io/product-documentation/latest/productguide/collectioncharacteristics/).
-
-| **ICEYE**         | Resolution |
-|-------------------|------------|
-| Spotlight [SL(H)] | 1.0m       |
-| StripMap [SM(H)]  | 3.0m       |
-| Scan [SC]         | < 15.0m    |
+| **ICEYE**         | Pixel size and Resolution                           |
+|-------------------|-----------------------------------------------------|
+| Spotlight [SL(H)] | **pixel size: 0.5 m**<br>rg x az resolution: 1.0 m  |
+| StripMap [SM(H)]  | **pixel size: 2.5 m**<br>rg x az resolution: 3.0 m  |
+| Scan [SC]         | **pixel size: 6.0 m**<br>rg x az resolution: 15.0 m |
 
 ### SAOCOM-1
 
-Resolutions not provided in the Data Access Portfolio. 
-Available [here](https://saocom.veng.com.ar/en/).
-
 | **SAOCOM-1**                                  | Detected Image (DI)<br>Geocoded Ellipsoid Corrected (GEC)<br>Geocoded Terrain Corrected (GTC) |
 |-----------------------------------------------|-----------------------------------------------------------------------------------------------|
-| **StripMap (SM)**<br>Single and Dual Pol      | 10.0m                                                                                         |
-| **StripMap (SM)**<br>Quad Pol                 | 10.0m                                                                                         |
-| **TOPSAR Narrow (TN)**<br>Single and Dual Pol | 30.0m                                                                                         |
-| **TOPSAR Narrow (TN)**<br>Quad Pol            | 50.0m                                                                                         |
-| **TOPSAR Wide (TW)**<br>Single and Dual Pol   | 50.0m                                                                                         |
-| **TOPSAR Wide (TW)**<br>Quad Pol              | 100.0m                                                                                        |
+| **StripMap (SM)**<br>Single and Dual Pol      | **pixel size: 5.0 m**<br>rg x az resolution: 10.0 m                                           |
+| **StripMap (SM)**<br>Quad Pol                 | **pixel size: 5.0 m**<br>rg x az resolution: 10.0 m                                           |
+| **TOPSAR Narrow (TN)**<br>Single and Dual Pol | **pixel size: 15.0 m**<br>rg x az resolution: 30.0 m                                          |
+| **TOPSAR Narrow (TN)**<br>Quad Pol            | **pixel size: 25.0 m**<br>rg x az resolution: 50.0 m                                          |
+| **TOPSAR Wide (TW)**<br>Single and Dual Pol   | **pixel size: 25.0 m**<br>rg x az resolution: 50.0 m                                          |
+| **TOPSAR Wide (TW)**<br>Quad Pol              | **pixel size: 50.0 m**<br>rg x az resolution: 100.0 m                                         |
+
+```{warning}
+It has been impossible to find the recommmanded pixel size from SAOCOM products.
+They have been set to half the resolution (as it is usually the case)
+
+If you have more information about this, please write an issue!
+```
 
 ### Capella
 
-Resolutions not provided in the Data Access Portfolio. 
-Available [here](https://support.capellaspace.com/hc/en-us/articles/360059224291-What-SAR-imagery-products-are-available-with-Capella-).
-
-| **ICEYE**              | Resolution |
-|------------------------|------------|
-| Spotlight [SP]         | 0.35m      |
-| StripMap [SM]          | 0.8m       |
-| Sliding Spotlight [SS] | 0.6m       |                                                                                    |
+| **ICEYE**              | Pixel size and Resolution                           |
+|------------------------|-----------------------------------------------------|
+| Spotlight [SP]         | **pixel size: 0.35 m**<br>rg x az resolution: 0.5 m |
+| StripMap [SM]          | **pixel size: 0.6 m**<br>rg x az resolution: 1.0 m  |
+| Sliding Spotlight [SS] | **pixel size: 0.8 m**<br>rg x az resolution: 1.2 m  |                                                                                    |
 
 ## GPT graphs
 
