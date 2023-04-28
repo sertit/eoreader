@@ -104,8 +104,7 @@ def _idx_fct(function: Callable) -> Callable:
         Returns:
             xr.DataArray: Computed index
         """
-        # WARNING: for performance issues, use numpy arrays here to speed up computation !
-        out_np = function({key: val.data for key, val in bands.items()})
+        out_np = function({key: val for key, val in bands.items()})
 
         # Take the first band as a template for xarray
         first_xda = list(bands.values())[0]
