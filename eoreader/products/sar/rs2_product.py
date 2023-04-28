@@ -43,7 +43,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class Rs2ProductType(ListEnum):
     """
     RADARSAT-2 projection identifier.
-    Take a look `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html>`_.
+    Take a look `here <https://earth.esa.int/eogateway/documents/20142/0/Radarsat-2-Product-description.pdf/f2783c7b-6a22-cbe4-f4c1-6992f9926dca>`_.
     """
 
     SLC = "SLC"
@@ -79,7 +79,7 @@ class Rs2ProductType(ListEnum):
 class Rs2SensorMode(ListEnum):
     """
     See here
-    `here <https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
+    `this comparison <https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
     for more information (Beam Modes)
 
     .. WARNING:: The name in the metadata may vary !
