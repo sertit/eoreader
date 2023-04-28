@@ -144,7 +144,6 @@ If this needs change, don't hesitate to write an issue :)
 | Extra-Wide swath (EW)           |                                                     | **pixel size: 25.0 m**<br>rg x az resolution: 25.0 m | **pixel size: 40.0 m**<br>rg x az resolution: 93.0 x **87.0** m |
 | Wave (WV)                       |                                                     |                                                      | **pixel size: 25.0 m**<br>rg x az resolution: 52.0 x **51.0** m |
 
-\* Resolutions not provided in the Data Access Portfolio. Available [here](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected).
 
 ### COSMO-Skymed 1st Generation
 
@@ -205,7 +204,7 @@ If you want all the RE products implemented, don't hesitate to write an issue :)
 | Fine Quad-Pol<br>Wide Quad-Pol              | **pixel size: 3.125 m**<br>rg x az resolution: 7.6 m                                |                                                       | **pixel size: 3.125 m**<br>rg x az resolution: 7.6 m                 |
 | Standard Quad-Pol<br>Wide Standard Quad-Pol | **pixel size: 8.0 m**<br>rg x az resolution: 7.6 m                                  |                                                       | **pixel size: 8.0 m**<br>rg x az resolution: 7.6 m                   |
 
-/* Only the Extra-Fine mode with 1 look is taken into account. Pixel sizes can change with 4 or 28 looks.
+* Only the Extra-Fine mode with 1 look is taken into account. Pixel sizes can change with 4 or 28 looks.
 
 #### ScanSAR mode
 | **RADARSAT-2**              | ScanSAR narrow beam (SCN)                            | ScanSAR wide beam (SCW)                               | ScanSAR fine (SCF)<br>ScanSAR sampled (SCS            |
@@ -463,6 +462,6 @@ variable:
 ### Capella
 - [Capella SAR Imagery Products](https://support.capellaspace.com/hc/en-us/categories/360002612692-SAR-Imagery-Products)
 - [Capella Product Guide](https://support.capellaspace.com/hc/en-us/articles/4626115099796-SAR-Imagery-Products-Guide)
-- [Capella Products Format Specification](https://support.capellaspace.com/hc/en-us/articles/5607458273940-SAR-Imagery-Products-Format-Specification)*
+- [Capella Products Format Specification](https://support.capellaspace.com/hc/en-us/articles/5607458273940-SAR-Imagery-Products-Format-Specification)
 
 *Documentation last accessed on the 02/12/2022*
