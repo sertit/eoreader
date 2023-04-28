@@ -420,8 +420,10 @@ variable:
 ### RADARSAT
 
 - [RADARSAT-2 Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html)
-- [RADARSAT-Constellation Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT_Constellation.html)
+- [RADARSAT-Constellation Product Description](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/characteristics.asp)
 - [Comparison between RS2 and RCM](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp)
+- [RS2 Product Description](https://earth.esa.int/eogateway/documents/20142/0/Radarsat-2-Product-description.pdf/f2783c7b-6a22-cbe4-f4c1-6992f9926dca)
+- [RCM Product Specification](https://ftp.maps.canada.ca/pub/csa_asc/Space-technology_Technologie-spatiale/radarsat_constellation_mission_plan/RCM-SP-52-9092_Product_Spec_1-15_Public.pdf)
 
 ### COSMO-Skymed
 

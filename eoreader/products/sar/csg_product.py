@@ -20,16 +20,10 @@ More info `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000J
 """
 import logging
 from enum import unique
-from pathlib import Path
-from typing import Union
 
-import rasterio
-import xarray as xr
-from cloudpathlib import CloudPath
 from sertit.misc import ListEnum
 
 from eoreader import EOREADER_NAME
-from eoreader.bands import BandNames
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import CosmoProduct
 
@@ -63,7 +57,7 @@ class CsgSensorMode(ListEnum):
     """SPOTLIGHT-1-MSOR"""
 
     S2_MSOS = "SPOTLIGHT-2-MSOS"
-    """SPOTLIGHT-2-MSOS"""
+    """SPOTLIGHT-2-MSOS, DI2S"""
 
     S2_MSJN = "SPOTLIGHT-2-MSJN"
     """SPOTLIGHT-2-MSJN"""
@@ -81,16 +75,16 @@ class CsgSensorMode(ListEnum):
     """SPOTLIGHT-2-EQS"""
 
     SM = "STRIPMAP"
-    """SPOTLIGHT-2C (standard and apodized). Resolution: Natural"""
+    """SPOTLIGHT-2C (standard and apodized)"""
 
     PP = "PINGPONG"
-    """PingPong. Resolution: 8.0m"""
+    """PingPong"""
 
     QP = "QUADPOL"
-    """QuadPol. Resolution: Natural"""
+    """QuadPol"""
 
     SC1 = "SCANSAR-1"
-    """ScanSar-1. Resolution: 14.0m"""
+    """ScanSar-1"""
 
     SC2 = "SCANSAR-2"
     """ScanSar-2. Resolution: 27.0m"""
@@ -110,29 +104,100 @@ class CsgProduct(CosmoProduct):
         """
         Set product default pixel size (in meters)
         See here
-        <here](https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Second-Generation-Mission-Products-Description.pdf>`_
-        for more information (tables 20).
+        `here <https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Second-Generation-Mission-Products-Description.pdf>`_
+        for more information (tables 23-24: L1B/C/D Product features, table 20: L1A Product features for missing values).
         Taking the :code:`CSK legacy` values
         """
+        # Complex data has an empty field and its pixel size is not known
+        def_res = -1.0
+        def_pixel_size = -1.0
+
+        # See page 63
+        nof_range_looks = int(self.split_name[4][:2])
+        nof_az_looks = int(self.split_name[4][:-2])
+
         if self.sensor_mode == CsgSensorMode.S2A:
-            def_pixel_size = 0.4
-        elif self.sensor_mode == CsgSensorMode.S2B:
-            def_pixel_size = 0.63
+            if nof_range_looks == 1 and nof_az_looks == 1:
+                def_res = 0.4
+                def_pixel_size = 0.15
+                # Apodized: 0.12
+            elif nof_range_looks == 2 and nof_az_looks == 2:
+                def_res = 0.7
+                def_pixel_size = 0.3
+            elif nof_range_looks == 3 and nof_az_looks == 3:
+                def_res = 1.0
+                def_pixel_size = 0.45
+
+        elif self.sensor_mode in [CsgSensorMode.S2B, CsgSensorMode.S2_MSOS]:
+            if nof_range_looks == 1 and nof_az_looks == 1:
+                def_res = 0.7
+                def_pixel_size = 0.25
+                # Apodized: 0.2
+            elif nof_range_looks == 2 and nof_az_looks == 2:
+                def_res = 1.2
+                def_pixel_size = 0.5
+            elif nof_range_looks == 4 and nof_az_looks == 4:
+                def_res = 2.3
+                def_pixel_size = 1.0
+
         elif self.sensor_mode == CsgSensorMode.S2C:
-            def_pixel_size = 0.8
+            if nof_range_looks == 1 and nof_az_looks == 1:
+                def_res = 0.8
+                def_pixel_size = 0.3
+                # Apodized: 0.24
+            elif nof_range_looks == 2 and nof_az_looks == 2:
+                def_res = 1.4
+                def_pixel_size = 0.6
+            elif nof_range_looks == 3 and nof_az_looks == 3:
+                def_res = 2.1
+                def_pixel_size = 0.9
+
         elif self.sensor_mode == CsgSensorMode.PP:
-            def_pixel_size = 12.0
+            if nof_range_looks == 1 and nof_az_looks == 1:
+                def_res = 12.0
+                def_pixel_size = 2.0
+            elif nof_range_looks == 2 and nof_az_looks == 1:
+                def_res = 12.0
+                def_pixel_size = 4.0
+            elif nof_range_looks == 5 and nof_az_looks == 2:
+                def_res = 22.5
+                def_pixel_size = 10.0
+
         elif self.sensor_mode == CsgSensorMode.SC1:
-            def_pixel_size = 20.0
+            if nof_range_looks == 3 and nof_az_looks == 1:
+                def_res = 20.0
+                def_pixel_size = 5.0
+            elif nof_range_looks == 5 and nof_az_looks == 1:
+                def_res = 23.0
+                def_pixel_size = 10.0
+            elif nof_range_looks == 8 and nof_az_looks == 2:
+                def_res = 35.0
+                def_pixel_size = 15.0
+
         elif self.sensor_mode == CsgSensorMode.SC2:
-            def_pixel_size = 40.0
+            if nof_range_looks == 4 and nof_az_looks == 1:
+                def_res = 40.0
+                def_pixel_size = 10.0
+            elif nof_range_looks == 7 and nof_az_looks == 1:
+                def_res = 47.0
+                def_pixel_size = 20.0
+            elif nof_range_looks == 16 and nof_az_looks == 3:
+                def_res = 115.0
+                def_pixel_size = 50.0
+
         elif self.sensor_mode in [CsgSensorMode.SM, CsgSensorMode.QP]:
-            def_pixel_size = 3.0
-        else:
-            # Complex data has an empty field and its pixel size is not known
-            def_pixel_size = -1.0
+            if nof_range_looks == 1 and nof_az_looks == 1:
+                def_res = 3.0
+                def_pixel_size = 1.25
+            elif nof_range_looks == 2 and nof_az_looks == 2:
+                def_res = 5.6
+                def_pixel_size = 2.5
+            elif nof_range_looks == 4 and nof_az_looks == 4:
+                def_res = 11.2
+                def_pixel_size = 5.0
 
         self.pixel_size = def_pixel_size
+        self.resolution = def_res
 
     def _set_instrument(self) -> None:
         """
@@ -159,42 +224,3 @@ class CsgProduct(CosmoProduct):
             raise InvalidProductError(
                 f"Invalid {self.constellation.value} name: {self.name}"
             )
-
-    def _read_band(
-        self,
-        path: Union[CloudPath, Path],
-        band: BandNames = None,
-        pixel_size: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
-        **kwargs,
-    ) -> xr.DataArray:
-        """
-        Read band from disk.
-
-        .. WARNING::
-            CSG SCS Products do not have a default pixel size
-
-        Args:
-            path (Union[CloudPath, Path]): Band path
-            band (BandNames): Band to read
-            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
-            kwargs: Other arguments used to load bands
-        Returns:
-            xr.DataArray: Band xarray
-
-        """
-        # In case of SCS data that doesn't have any pixel_size in the mtd
-        if self.pixel_size < 0.0:
-            with rasterio.open(path) as ds:
-                self.pixel_size = ds.res[0]
-
-        try:
-            if pixel_size < 0.0:
-                pixel_size = self.pixel_size
-        except TypeError:
-            pass
-
-        return super()._read_band(
-            path=path, band=band, pixel_size=pixel_size, size=size, **kwargs
-        )

@@ -590,13 +590,20 @@ class SarProduct(Product):
             xr.DataArray: Band xarray
 
         """
-        return utils.read(
-            path,
-            pixel_size=pixel_size,
-            size=size,
-            resampling=Resampling.bilinear,
-            as_type=np.float32,
-            **kwargs,
+        # TODO: check if that works
+        # In case of data that doesn't have any known pixel_size
+        if self.pixel_size < 0.0:
+            with rasterio.open(path) as ds:
+                self.pixel_size = ds.res[0]
+
+        try:
+            if pixel_size < 0.0:
+                pixel_size = self.pixel_size
+        except TypeError:
+            pass
+
+        return super()._read_band(
+            path=path, band=band, pixel_size=pixel_size, size=size, **kwargs
         )
 
     def _load_bands(

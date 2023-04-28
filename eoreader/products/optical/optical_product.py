@@ -116,7 +116,8 @@ class OpticalProduct(Product):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-        self.pixel_spacing = self.pixel_size
+        # For optical products, we assume the resolution is the same as the pixel size
+        self.resolution = self.pixel_size
 
     def _pre_init(self, **kwargs) -> None:
         """
