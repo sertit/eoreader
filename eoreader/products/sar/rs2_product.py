@@ -199,21 +199,23 @@ class Rs2Product(SarProduct):
             ]:
                 def_pixel_size = 12.5
         # SCN = "ScanSAR Narrow"
-        elif self.sensor_mode in [
-            Rs2SensorMode.SCN,
-            Rs2SensorMode.SCF,
-            Rs2SensorMode.SCS,
-        ]:
-            def_pixel_size = 25.0
-            def_res = 50.0
+        elif self.sensor_mode == Rs2SensorMode.SCN:
+            if self.product_type in [
+                Rs2ProductType.SCN,
+                Rs2ProductType.SCF,
+                Rs2ProductType.SCS,
+            ]:
+                def_pixel_size = 25.0
+                def_res = 50.0
         # SCW = "ScanSAR Wide"
-        elif self.sensor_mode in [
-            Rs2SensorMode.SCW,
-            Rs2SensorMode.SCF,
-            Rs2SensorMode.SCS,
-        ]:
-            def_pixel_size = 50.0
-            def_res = 100.0
+        elif self.sensor_mode == Rs2SensorMode.SCW:
+            if self.product_type in [
+                Rs2ProductType.SCW,
+                Rs2ProductType.SCF,
+                Rs2ProductType.SCS,
+            ]:
+                def_pixel_size = 50.0
+                def_res = 100.0
 
         # -------------------------------------------------------------
         # Polarimetric

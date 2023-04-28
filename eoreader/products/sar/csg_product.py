@@ -164,7 +164,13 @@ class CsgProduct(CosmoProduct):
                 def_pixel_size = 10.0
 
         elif self.sensor_mode == CsgSensorMode.SC1:
-            if nof_range_looks == 3 and nof_az_looks == 1:
+            # Case SCS
+            # TODO: is this OK ?
+            if nof_range_looks == 1 and nof_az_looks == 1:
+                def_res = 20.0
+                def_pixel_size = 14.0
+            # GRD
+            elif nof_range_looks == 3 and nof_az_looks == 1:
                 def_res = 20.0
                 def_pixel_size = 5.0
             elif nof_range_looks == 5 and nof_az_looks == 1:
@@ -175,7 +181,13 @@ class CsgProduct(CosmoProduct):
                 def_pixel_size = 15.0
 
         elif self.sensor_mode == CsgSensorMode.SC2:
-            if nof_range_looks == 4 and nof_az_looks == 1:
+            # Case SCS
+            # TODO: is this OK ?
+            if nof_range_looks == 1 and nof_az_looks == 1:
+                def_res = 40.0
+                def_pixel_size = 27.0
+            # GRD
+            elif nof_range_looks == 4 and nof_az_looks == 1:
                 def_res = 40.0
                 def_pixel_size = 10.0
             elif nof_range_looks == 7 and nof_az_looks == 1:
