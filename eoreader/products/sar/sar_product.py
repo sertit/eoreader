@@ -602,8 +602,13 @@ class SarProduct(Product):
         except TypeError:
             pass
 
-        return super()._read_band(
-            path=path, band=band, pixel_size=pixel_size, size=size, **kwargs
+        return utils.read(
+            path,
+            pixel_size=pixel_size,
+            size=size,
+            resampling=Resampling.bilinear,
+            as_type=np.float32,
+            **kwargs,
         )
 
     def _load_bands(
