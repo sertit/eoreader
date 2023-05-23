@@ -170,6 +170,7 @@ class Rs2Product(SarProduct):
         - p. 57/58, 2-22/23 SPG Product Description
         """
         def_pixel_size = -1
+        def_res = -1
 
         # -------------------------------------------------------------
         # Selective Single or Dual Polarization
@@ -177,7 +178,7 @@ class Rs2Product(SarProduct):
         # F = "Fine", WF = "Wide Fine"
         if self.sensor_mode in [Rs2SensorMode.F, Rs2SensorMode.WF]:
             def_res = 7.7
-            if self.product_type == Rs2ProductType.SGX:
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
                 def_pixel_size = 3.125
             elif self.product_type in [
                 Rs2ProductType.SGF,
@@ -189,7 +190,7 @@ class Rs2Product(SarProduct):
         # S = "Standard", W = "Wide"
         elif self.sensor_mode in [Rs2SensorMode.S, Rs2SensorMode.W]:
             def_res = 24.7
-            if self.product_type == Rs2ProductType.SGX:
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
                 def_pixel_size = 8.0
                 # 10 for wide...
             elif self.product_type in [
@@ -228,6 +229,7 @@ class Rs2Product(SarProduct):
                 Rs2ProductType.SGX,
                 Rs2ProductType.SSG,
                 Rs2ProductType.SPG,
+                Rs2ProductType.SLC,
             ]:
                 def_pixel_size = 3.125
 
@@ -238,6 +240,7 @@ class Rs2Product(SarProduct):
                 Rs2ProductType.SGX,
                 Rs2ProductType.SSG,
                 Rs2ProductType.SPG,
+                Rs2ProductType.SLC,
             ]:
                 def_pixel_size = 8.0  # x3.125
 
@@ -247,7 +250,7 @@ class Rs2Product(SarProduct):
         # EH = "Extended High"
         elif self.sensor_mode == Rs2SensorMode.EH:
             def_res = 24.7
-            if self.product_type == Rs2ProductType.SGX:
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
                 def_pixel_size = 8.0
             elif self.product_type in [
                 Rs2ProductType.SGF,
@@ -259,7 +262,7 @@ class Rs2Product(SarProduct):
         # EL = "Extended Low"
         elif self.sensor_mode == Rs2SensorMode.EL:
             def_res = 24.7
-            if self.product_type == Rs2ProductType.SGX:
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
                 def_pixel_size = 10.0
             elif self.product_type in [
                 Rs2ProductType.SGF,
@@ -274,7 +277,7 @@ class Rs2Product(SarProduct):
         # SLA = "Spotlight"
         elif self.sensor_mode == Rs2SensorMode.SLA:
             def_res = 0.8
-            if self.product_type == Rs2ProductType.SGX:
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
                 # Range pixel spacing is 1.0 m for incidence angles less than or equal to 48 degrees and 0.8 m for incidence angles greater than 48 degrees.
                 def_pixel_size = 0.8
             elif self.product_type in [
@@ -287,7 +290,7 @@ class Rs2Product(SarProduct):
         # U = "Ultra-Fine", WU = "Wide Ultra-Fine"
         elif self.sensor_mode in [Rs2SensorMode.U, Rs2SensorMode.WU]:
             def_res = 2.8
-            if self.product_type == Rs2ProductType.SGX:
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
                 # For UF: 1.0 m x 1.0 m for incidence angles less than or equal to 48 degrees. 0.8 m x 0.8 m for incidence angles greater than 48 degrees.
                 def_pixel_size = 0.8
             elif self.product_type in [
@@ -300,7 +303,7 @@ class Rs2Product(SarProduct):
         # XF = "Extra-Fine"
         elif self.sensor_mode == Rs2SensorMode.XF:
             def_res = 4.6
-            if self.product_type == Rs2ProductType.SGX:
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
                 # Take 1 look ?
                 def_pixel_size = 2.0
                 # 4 looks: pix_size = 3.12, res = 7.6
@@ -318,7 +321,7 @@ class Rs2Product(SarProduct):
         # MF = "Multi-Look Fine", WMF = "Wide Multi-Look Fine"
         elif self.sensor_mode in [Rs2SensorMode.MF, Rs2SensorMode.WMF]:
             def_res = 7.6
-            if self.product_type == Rs2ProductType.SGX:
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
                 def_pixel_size = 3.125
             elif self.product_type in [
                 Rs2ProductType.SGF,
@@ -347,6 +350,11 @@ class Rs2Product(SarProduct):
 
         self.pixel_size = def_pixel_size
         self.resolution = def_res
+
+        if self.pixel_size < 0 or self.resolution < 0:
+            raise InvalidProductError(
+                "There has been an error when setting pixel size or the resolution to your data! Please write an issue on Github."
+            )
 
     def _set_instrument(self) -> None:
         """
