@@ -13,6 +13,7 @@
 - FIX: Landsat band masking when specifying a custom resolution and a custom window
 - FIX: Round the default pixel_size of custom stacks
 - FIX: Convert some fields of STAC items from non JSON serializable dtypes to correct ones
+- FIX: Fix erroneous property set to `_get_raw_crs` for Maxar products
 
 ### Other
 
