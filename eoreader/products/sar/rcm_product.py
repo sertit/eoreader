@@ -16,7 +16,7 @@
 # limitations under the License.
 """
 RADARSAT-Constellation Mission products.
-More info `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT_Constellation.html>`_.
+More info `here <https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/characteristics.asp>`_.
 """
 import difflib
 import logging
@@ -75,7 +75,7 @@ class RcmProductType(ListEnum):
 class RcmSensorMode(ListEnum):
     """
     RADARSAT-Constellation sensor mode.
-    Take a look `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT_Constellation.html>`_.
+    Take a look `here <https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/characteristics.asp>`_.
 
     .. WARNING:: The name in the metadata may vary !
     """
@@ -107,7 +107,6 @@ class RcmSensorMode(ListEnum):
     SD = "Ship Detection"
     """ Ship Detection Mode """
 
-    # Spotlight Mode
     FSL = "Spotlight Mode"
     """ Spotlight Mode [FSL] """
 
@@ -119,31 +118,42 @@ class RcmProduct(SarProduct):
     You can use directly the .zip file
     """
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         See here
-        <here](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
-        for more information (Beam Modes)
+        `here <https://ftp.maps.canada.ca/pub/csa_asc/Space-technology_Technologie-spatiale/radarsat_constellation_mission_plan/RCM-SP-52-9092_Product_Spec_1-15_Public.pdf>`_
+        for more information (Table 4-1 Raw and Image Product Description Table - Contents and Volumes, page 18)
         """
         if self.sensor_mode == RcmSensorMode.THREE_M:
+            def_pixel_size = 1.25
             def_res = 3.0
         elif self.sensor_mode == RcmSensorMode.FIVE_M:
+            def_pixel_size = 2.0
             def_res = 5.0
         elif self.sensor_mode == RcmSensorMode.QP:
+            def_pixel_size = 2.5
             def_res = 9.0
         elif self.sensor_mode == RcmSensorMode.SIXTEEN_M:
+            def_pixel_size = 6.25
             def_res = 16.0
         elif self.sensor_mode == RcmSensorMode.THIRTY_M:
+            def_pixel_size = 12.5
             def_res = 30.0
         elif self.sensor_mode == RcmSensorMode.FIFTY_M:
+            def_pixel_size = 20.0
             def_res = 50.0
         elif self.sensor_mode in [RcmSensorMode.HUNDRED_M, RcmSensorMode.SCLN]:
+            def_pixel_size = 40.0
             def_res = 100.0
+        elif self.sensor_mode == RcmSensorMode.FSL:
+            def_pixel_size = 0.33
+            def_res = 1.0  # 3.0*1.0
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
-        return def_res
+        self.pixel_size = def_pixel_size
+        self.resolution = def_res
 
     def _pre_init(self, **kwargs) -> None:
         """

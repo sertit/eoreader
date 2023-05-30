@@ -154,7 +154,6 @@ html_theme_options = {
     "repository_branch": "master",
     "path_to_docs": "docs",
     "use_download_button": False,
-    "extra_navbar": "",
 }
 
 html_logo = "_static/eoreader.png"

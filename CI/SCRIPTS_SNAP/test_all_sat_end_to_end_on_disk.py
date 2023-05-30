@@ -42,7 +42,12 @@ from eoreader.bands import (
     VV_DSPK,
     Oa01,
 )
-from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT, SAR_DEF_RES, TEST_USING_S3_DB
+from eoreader.env_vars import (
+    DEM_PATH,
+    S3_DB_URL_ROOT,
+    SAR_DEF_PIXEL_SIZE,
+    TEST_USING_S3_DB,
+)
 from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import S2Product, SlstrRadAdjust
 from eoreader.products.product import Product, SensorType
@@ -200,12 +205,12 @@ def _test_core(
                 is_zip = "_ZIP" if prod.is_archived else ""
                 prod.output = os.path.join(output, f"{prod.condensed_name}{is_zip}")
 
-                # Manage S3 resolution to speed up processes
+                # Manage S3 pixel_size to speed up processes
                 if prod.sensor_type == SensorType.SAR:
-                    res = 1000.0
-                    os.environ[SAR_DEF_RES] = str(res)
+                    pixel_size = 1000.0
+                    os.environ[SAR_DEF_PIXEL_SIZE] = str(pixel_size)
                 else:
-                    res = prod.resolution * 50
+                    pixel_size = prod.pixel_size * 50
 
                 # BAND TESTS
                 LOGGER.info("Checking load and stack")
@@ -221,7 +226,7 @@ def _test_core(
                 curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
                 stack = prod.stack(
                     stack_bands,
-                    resolution=res,
+                    pixel_size=pixel_size,
                     stack_path=curr_path,
                     clean_optical="clean",
                     **kwargs,

@@ -29,7 +29,7 @@ import geopandas as gpd
 from rasterio.crs import CRS
 
 from eoreader import cache
-from eoreader.stac import StacCommonNames
+from eoreader.stac import StacCommonNames, stac_utils
 from eoreader.stac._stac_keywords import (
     DESCRIPTION,
     EO_BANDS,
@@ -152,15 +152,17 @@ class EoExt:
                 )
 
                 # Spectral bands
+                # Convert from numpy dtype (which are not JSON serializable) to standard dtype
                 try:
-                    center_wavelength = band.center_wavelength
-                    solar_illumination = band.solar_illumination
-                    full_width_half_max = band.full_width_half_max
+                    center_wavelength = stac_utils.to_float(band.center_wavelength)
+                    solar_illumination = stac_utils.to_float(band.solar_illumination)
+                    full_width_half_max = stac_utils.to_float(band.full_width_half_max)
                 except AttributeError:
                     center_wavelength = None
                     solar_illumination = None
                     full_width_half_max = None
 
+                # Create asset
                 asset_eo_ext = EOExtension.ext(band_asset)
                 common_name = (
                     band.common_name.value
@@ -302,7 +304,8 @@ class ProjExt:
 
         if self._prod.is_ortho:
             proj_ext.shape = self.shape
-            proj_ext.transform = self.transform
+            # Transform need to be stored as a list: [number]
+            proj_ext.transform = list(self.transform)
 
 
 class ViewExt:
@@ -325,20 +328,23 @@ class ViewExt:
             "off_nadir": VIEW_OFF_NADIR,
             "incidence_angle": VIEW_INCIDENCE_ANGLE,
         }
-
         try:
             sun_az, sun_el = prod.get_mean_sun_angles()
-            self.sun_az = sun_az
-            self.sun_el = sun_el
+
+            # Convert from numpy dtype (which are not JSON serializable) to standard dtype
+            self.sun_az = stac_utils.to_float(sun_az)
+            self.sun_el = stac_utils.to_float(sun_el)
         except AttributeError:
             self.sun_az = None
             self.sun_el = None
 
         try:
             view_az, off_nadir, incidence_angle = prod.get_mean_viewing_angles()
-            self.view_az = view_az
-            self.off_nadir = off_nadir
-            self.incidence_angle = incidence_angle
+
+            # Convert from numpy dtype (which are not JSON serializable) to standard dtype
+            self.view_az = stac_utils.to_float(view_az)
+            self.off_nadir = stac_utils.to_float(off_nadir)
+            self.incidence_angle = stac_utils.to_float(incidence_angle)
         except AttributeError:
             self.view_az = None
             self.off_nadir = None

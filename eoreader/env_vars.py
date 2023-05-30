@@ -22,8 +22,8 @@ PP_GRAPH = "EOREADER_PP_GRAPH"
 DSPK_GRAPH = "EOREADER_DSPK_GRAPH"
 """Environment variable for overriding default despeckling graph path"""
 
-SAR_DEF_RES = "EOREADER_SAR_DEFAULT_RES"
-"""Environment variable for SAR default resolution, used for SNAP orthorectification to override default resolution."""
+SAR_DEF_PIXEL_SIZE = "EOREADER_SAR_DEFAULT_PIXEL_SIZE"
+"""Environment variable for SAR default pixel ize, used for SNAP orthorectification to override default pixel size."""
 
 DEM_PATH = "EOREADER_DEM_PATH"
 """Environment variable for overriding default DEM path"""

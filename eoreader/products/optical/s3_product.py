@@ -392,7 +392,7 @@ class S3Product(OpticalProduct):
         return name
 
     def get_band_paths(
-        self, band_list: list, resolution: float = None, **kwargs
+        self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
         """
         Return the paths of required bands.
@@ -415,7 +415,7 @@ class S3Product(OpticalProduct):
 
         Args:
             band_list (list): List of the wanted bands
-            resolution (float): Useless here
+            pixel_size (float): Useless here
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -425,7 +425,7 @@ class S3Product(OpticalProduct):
         for band in band_list:
             # Get clean band path
             clean_band = self._get_clean_band_path(
-                band, resolution=resolution, **kwargs
+                band, pixel_size=pixel_size, **kwargs
             )
             if clean_band.is_file():
                 band_paths[band] = clean_band
@@ -433,7 +433,7 @@ class S3Product(OpticalProduct):
                 # Pre-process the wanted band (does nothing if existing)
                 band_paths[band] = self._preprocess(
                     band,
-                    resolution=resolution,
+                    pixel_size=pixel_size,
                     **kwargs,
                 )
 
@@ -444,7 +444,7 @@ class S3Product(OpticalProduct):
         self,
         path: Union[CloudPath, Path],
         band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
+        pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> xr.DataArray:
@@ -457,8 +457,8 @@ class S3Product(OpticalProduct):
         Args:
             path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -466,7 +466,7 @@ class S3Product(OpticalProduct):
         """
         band = utils.read(
             path,
-            resolution=resolution,
+            pixel_size=pixel_size,
             size=size,
             resampling=Resampling.bilinear,
             **kwargs,
@@ -536,17 +536,17 @@ class S3Product(OpticalProduct):
     def _load_bands(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
         """
-        Load bands as numpy arrays with the same resolution (and same metadata).
+        Load bands as numpy arrays with the same pixel size (and same metadata).
 
         Args:
             bands (list): List of the wanted bands
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -559,13 +559,13 @@ class S3Product(OpticalProduct):
         if not isinstance(bands, list):
             bands = [bands]
 
-        if resolution is None and size is not None:
-            resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution=resolution, **kwargs)
+        if pixel_size is None and size is not None:
+            pixel_size = self._pixel_size_from_img_size(size)
+        band_paths = self.get_band_paths(bands, pixel_size=pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(
-            band_paths, resolution=resolution, size=size, **kwargs
+            band_paths, pixel_size=pixel_size, size=size, **kwargs
         )
 
         return band_arrays
@@ -574,7 +574,7 @@ class S3Product(OpticalProduct):
     def _preprocess(
         self,
         band: Union[BandNames, str],
-        resolution: float = None,
+        pixel_size: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
         **kwargs,
@@ -586,7 +586,7 @@ class S3Product(OpticalProduct):
 
         Args:
             band (Union[BandNames, str]): Band to preprocess (quality flags or others are accepted)
-            resolution (float): Resolution
+            pixel_size (float): Pixel size
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
             kwargs: Other arguments used to load bands
@@ -600,7 +600,7 @@ class S3Product(OpticalProduct):
         self,
         band_arr: xr.DataArray,
         suffix: str = None,
-        resolution: float = None,
+        pixel_size: float = None,
         resampling: Resampling = Resampling.nearest,
         **kwargs,
     ) -> xr.DataArray:
@@ -610,7 +610,7 @@ class S3Product(OpticalProduct):
         Args:
             band_arr (xr.DataArray): Band array
             suffix (str): Suffix (for the grid)
-            resolution (float): Resolution
+            pixel_size (float): Pixel size
             kwargs: Other arguments
 
         Returns:
@@ -651,13 +651,13 @@ class S3Product(OpticalProduct):
             area_def = create_area_def(
                 area_id=f"{self.condensed_name}_grid{suffix_str}",
                 projection=self.crs(),
-                resolution=self.resolution,
+                resolution=self.pixel_size,
                 area_extent=self.extent().bounds.values[0],
             )
 
             # Resampling Nearest
             if resampling == Resampling.nearest:
-                resampler = XArrayResamplerNN(swath_def, area_def, self.resolution * 3)
+                resampler = XArrayResamplerNN(swath_def, area_def, self.pixel_size * 3)
                 resampler.get_neighbour_info()
                 band_arr_resampled = resampler.get_sample_from_neighbour_info(
                     band_arr.squeeze(), fill_value=nodata
@@ -686,7 +686,7 @@ class S3Product(OpticalProduct):
             logging.captureWarnings(False)
             default_logger.setLevel(old_lvl)
 
-        # COnvert to wanted dtype and shape
+        # Convert to wanted dtype and shape
         band_arr_resampled = band_arr_resampled.astype(np.float32).expand_dims(
             dim={"band": 1}, axis=0
         )
@@ -904,7 +904,7 @@ class S3Product(OpticalProduct):
     def _open_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -913,18 +913,11 @@ class S3Product(OpticalProduct):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def _get_resolution(self) -> float:
-        """
-        Get product default resolution (in meters)
         """
         raise NotImplementedError
 

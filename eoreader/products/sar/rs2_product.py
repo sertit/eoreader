@@ -16,7 +16,7 @@
 # limitations under the License.
 """
 RADARSAT-2 products.
-More info `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html#RADARSAT2__rs2_sfs>`_.
+More info `here <https://earth.esa.int/eogateway/documents/20142/0/Radarsat-2-Product-description.pdf/f2783c7b-6a22-cbe4-f4c1-6992f9926dca>`_.
 """
 import difflib
 import logging
@@ -43,7 +43,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class Rs2ProductType(ListEnum):
     """
     RADARSAT-2 projection identifier.
-    Take a look `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html>`_.
+    Take a look `here <https://earth.esa.int/eogateway/documents/20142/0/Radarsat-2-Product-description.pdf/f2783c7b-6a22-cbe4-f4c1-6992f9926dca>`_.
     """
 
     SLC = "SLC"
@@ -55,31 +55,31 @@ class Rs2ProductType(ListEnum):
     SGF = "SGF"
     """SAR georeferenced fine"""
 
-    SCN = "SCN"
-    """ScanSAR narrow beam"""
-
-    SCW = "SCW"
-    """ScanSAR wide beam"""
-
-    SCF = "SCF"
-    """ScanSAR fine"""
-
-    SCS = "SCS"
-    """ScanSAR sampled"""
-
     SSG = "SSG"
     """SAR systematic geocorrected"""
 
     SPG = "SPG"
     """SAR precision geocorrected"""
 
+    # ScanSar
+    SCF = "SCF"
+    """ScanSAR fine"""
+
+    SCS = "SCS"
+    """ScanSAR sampled"""
+
+    SCN = "SCN"
+    """ScanSAR narrow beam. Also a Sensor Mode."""
+
+    SCW = "SCW"
+    """ScanSAR wide beam. Also a Sensor Mode."""
+
 
 @unique
 class Rs2SensorMode(ListEnum):
     """
-    Get product default resolution (in meters)
     See here
-    <here](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
+    `this comparison <https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
     for more information (Beam Modes)
 
     .. WARNING:: The name in the metadata may vary !
@@ -129,14 +129,14 @@ class Rs2SensorMode(ListEnum):
     """Fine Quad-Pol Mode"""
 
     WFQ = "Wide Fine Quad-Pol"
-    """Spotlight Mode"""
+    """Wide Fine Quad-Pol"""
 
     # ScanSAR Modes
     SCN = "ScanSAR Narrow"
-    """Spotlight Mode"""
+    """ScanSAR Narrow"""
 
     SCW = "ScanSAR Wide"
-    """Spotlight Mode"""
+    """ScanSAR Wide"""
 
     OSVN = "Ocean Surveillance"
     """Ocean Surveillance Mode"""
@@ -156,25 +156,67 @@ class Rs2Product(SarProduct):
     You can use directly the .zip file
     """
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
+
+        See https://earth.esa.int/eogateway/documents/20142/0/Radarsat-2-Product-description.pdf/f2783c7b-6a22-cbe4-f4c1-6992f9926dca
+        - p. 40-41, Table 2-4/5 SGX Product Description
+        - p. 43/44, Table 2-6 Single Beam and Spotlight SGF Product Description
+        - p. 46, 2-8 Product Description for ScanSAR Narrow and ScanSAR Wide Beam Modes
+        - p. 48, 2-11 Product Description for Ship Detection (Detection of Vessels) Beam Mod
+        - p. 50, 2-15 Product Description for Ocean Surveillance Beam Mode
+        - p. 54/55, 2-19/20 SSG Product Description
+        - p. 57/58, 2-22/23 SPG Product Description
         """
+        def_pixel_size = -1
+        def_res = -1
+
         # -------------------------------------------------------------
         # Selective Single or Dual Polarization
         # Transmit H and/or V, receive H and/or V
         # F = "Fine", WF = "Wide Fine"
         if self.sensor_mode in [Rs2SensorMode.F, Rs2SensorMode.WF]:
-            def_res = 8.0
+            def_res = 7.7
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
+                def_pixel_size = 3.125
+            elif self.product_type in [
+                Rs2ProductType.SGF,
+                Rs2ProductType.SSG,
+                Rs2ProductType.SPG,
+            ]:
+                def_pixel_size = 6.25
+
         # S = "Standard", W = "Wide"
         elif self.sensor_mode in [Rs2SensorMode.S, Rs2SensorMode.W]:
-            def_res = 25.0
+            def_res = 24.7
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
+                def_pixel_size = 8.0
+                # 10 for wide...
+            elif self.product_type in [
+                Rs2ProductType.SGF,
+                Rs2ProductType.SSG,
+                Rs2ProductType.SPG,
+            ]:
+                def_pixel_size = 12.5
         # SCN = "ScanSAR Narrow"
         elif self.sensor_mode == Rs2SensorMode.SCN:
-            def_res = 50.0
+            if self.product_type in [
+                Rs2ProductType.SCN,
+                Rs2ProductType.SCF,
+                Rs2ProductType.SCS,
+            ]:
+                def_pixel_size = 25.0
+                def_res = 50.0
         # SCW = "ScanSAR Wide"
         elif self.sensor_mode == Rs2SensorMode.SCW:
-            def_res = 100.0
+            if self.product_type in [
+                Rs2ProductType.SCW,
+                Rs2ProductType.SCF,
+                Rs2ProductType.SCS,
+            ]:
+                def_pixel_size = 50.0
+                def_res = 100.0
 
         # -------------------------------------------------------------
         # Polarimetric
@@ -182,49 +224,137 @@ class Rs2Product(SarProduct):
         # receive H and V on any pulse
         # FQ = "Fine Quad-Pol", WFQ = "Wide Fine Quad-Pol"
         elif self.sensor_mode in [Rs2SensorMode.FQ, Rs2SensorMode.WFQ]:
-            def_res = 12.0
+            def_res = 7.6
+            if self.product_type in [
+                Rs2ProductType.SGX,
+                Rs2ProductType.SSG,
+                Rs2ProductType.SPG,
+                Rs2ProductType.SLC,
+            ]:
+                def_pixel_size = 3.125
+
         # SQ = "Standard Quad-Pol", "Wide Standard Quad-Pol"
         elif self.sensor_mode in [Rs2SensorMode.SQ, Rs2SensorMode.WSQ]:
-            def_res = 25.0
+            def_res = 7.6
+            if self.product_type in [
+                Rs2ProductType.SGX,
+                Rs2ProductType.SSG,
+                Rs2ProductType.SPG,
+                Rs2ProductType.SLC,
+            ]:
+                def_pixel_size = 8.0  # x3.125
 
         # -------------------------------------------------------------
         # Single Polarization HH
         # Transmit H, receive H
         # EH = "Extended High"
         elif self.sensor_mode == Rs2SensorMode.EH:
-            def_res = 25.0
+            def_res = 24.7
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
+                def_pixel_size = 8.0
+            elif self.product_type in [
+                Rs2ProductType.SGF,
+                Rs2ProductType.SSG,
+                Rs2ProductType.SPG,
+            ]:
+                def_pixel_size = 12.5
+
         # EL = "Extended Low"
         elif self.sensor_mode == Rs2SensorMode.EL:
-            def_res = 60.0
+            def_res = 24.7
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
+                def_pixel_size = 10.0
+            elif self.product_type in [
+                Rs2ProductType.SGF,
+                Rs2ProductType.SSG,
+                Rs2ProductType.SPG,
+            ]:
+                def_pixel_size = 12.5
 
         # -------------------------------------------------------------
         # Selective Single Polarization
         # Transmit H or V, receive H or V
-        # EH = "Extended High"
         # SLA = "Spotlight"
         elif self.sensor_mode == Rs2SensorMode.SLA:
-            def_res = 1.0
+            def_res = 0.8
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
+                # Range pixel spacing is 1.0 m for incidence angles less than or equal to 48 degrees and 0.8 m for incidence angles greater than 48 degrees.
+                def_pixel_size = 0.8
+            elif self.product_type in [
+                Rs2ProductType.SGF,
+                Rs2ProductType.SSG,
+                Rs2ProductType.SPG,
+            ]:
+                def_pixel_size = 0.5
+
         # U = "Ultra-Fine", WU = "Wide Ultra-Fine"
         elif self.sensor_mode in [Rs2SensorMode.U, Rs2SensorMode.WU]:
-            def_res = 3.0
+            def_res = 2.8
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
+                # For UF: 1.0 m x 1.0 m for incidence angles less than or equal to 48 degrees. 0.8 m x 0.8 m for incidence angles greater than 48 degrees.
+                def_pixel_size = 0.8
+            elif self.product_type in [
+                Rs2ProductType.SGF,
+                Rs2ProductType.SSG,
+                Rs2ProductType.SPG,
+            ]:
+                def_pixel_size = 1.5625
+
         # XF = "Extra-Fine"
         elif self.sensor_mode == Rs2SensorMode.XF:
-            def_res = 5.0
+            def_res = 4.6
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
+                # Take 1 look ?
+                def_pixel_size = 2.0
+                # 4 looks: pix_size = 3.12, res = 7.6
+                # 28 looks: pix_size = 5.0, res = 23.5
+            if self.product_type in [
+                Rs2ProductType.SGF,
+                Rs2ProductType.SSG,
+                Rs2ProductType.SPG,
+            ]:
+                # Take 1 look ?
+                def_pixel_size = 3.125
+                # 4 looks: pix_size = 6.25, res = 7.6
+                # 28 looks: pix_size = 8.0, res = 23.5
+
         # MF = "Multi-Look Fine", WMF = "Wide Multi-Look Fine"
         elif self.sensor_mode in [Rs2SensorMode.MF, Rs2SensorMode.WMF]:
-            def_res = 8.0
+            def_res = 7.6
+            if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
+                def_pixel_size = 3.125
+            elif self.product_type in [
+                Rs2ProductType.SGF,
+                Rs2ProductType.SSG,
+                Rs2ProductType.SPG,
+            ]:
+                def_pixel_size = 6.25
 
         # -------------------------------------------------------------
         # Ocean surveillance and detection of vessels
         elif self.sensor_mode == Rs2SensorMode.OSVN:
             def_res = 50.0
+            if self.sar_prod_type == SarProductType.CPLX:
+                def_pixel_size = 35.0
+            else:
+                def_pixel_size = 50.0
 
         elif self.sensor_mode == Rs2SensorMode.DVWF:
             def_res = 35.0
+            if self.sar_prod_type == SarProductType.CPLX:
+                def_pixel_size = 20.0
+            else:
+                def_pixel_size = 40.0
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
-        return def_res
+        self.pixel_size = def_pixel_size
+        self.resolution = def_res
+
+        if self.pixel_size < 0 or self.resolution < 0:
+            raise InvalidProductError(
+                "There has been an error when setting pixel size or the resolution to your data! Please write an issue on Github."
+            )
 
     def _set_instrument(self) -> None:
         """

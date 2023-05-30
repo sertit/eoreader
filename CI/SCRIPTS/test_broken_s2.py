@@ -17,7 +17,7 @@ ci.reduce_verbosity()
 @dask_env
 def test_broken_s2():
     """Function testing the support of broken Sentinel-2 constellation"""
-    res = 10.0 * 100
+    pixel_size = 10.0 * 100
 
     # ----------- Broken MTD -----------
     broken_mtd = broken_s2_path().joinpath(
@@ -30,8 +30,8 @@ def test_broken_s2():
     LOGGER.info(broken_mtd_prod)
     LOGGER.info(broken_mtd_prod.bands)
 
-    broken_mtd_prod.load(RED, resolution=res, clean_optical="clean")
-    broken_mtd_prod.load(NIR, resolution=res, clean_optical="nodata")
+    broken_mtd_prod.load(RED, pixel_size=pixel_size, clean_optical="clean")
+    broken_mtd_prod.load(NIR, pixel_size=pixel_size, clean_optical="nodata")
 
     # Invalid tests
     with pytest.raises(InvalidProductError):
@@ -52,14 +52,14 @@ def test_broken_s2():
     broken_detfoo_prod.footprint()
 
     broken_detfoo_prod.load(
-        RED, resolution=res, clean_optical="clean"
+        RED, pixel_size=pixel_size, clean_optical="clean"
     )  # Not corrupted band
 
     # Invalid tests
     # WARNING: This doesn't fail anymore!
     # with pytest.raises(InvalidProductError):
     #     broken_detfoo_prod.load(
-    #         NIR, resolution=res, clean_optical="nodata"
+    #         NIR, pixel_size=pixel_size, clean_optical="nodata"
     #     )  # Corrupted band
 
     # ----------- Broken MSK -----------
@@ -67,5 +67,5 @@ def test_broken_s2():
         "S2B_MSIL2A_20220201T104149_N0400_R008_T31UFP_20220201T122857.SAFE"
     )
     broken_msk_prod = READER.open(broken_msk)
-    broken_msk_prod.load(RED, resolution=res, clean_optical="clean")
-    broken_mtd_prod.load(NIR, resolution=res, clean_optical="nodata")
+    broken_msk_prod.load(RED, pixel_size=pixel_size, clean_optical="clean")
+    broken_mtd_prod.load(NIR, pixel_size=pixel_size, clean_optical="nodata")

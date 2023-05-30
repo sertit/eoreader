@@ -89,7 +89,8 @@ def gdf_to_bbox(gdf: gpd.GeoDataFrame) -> list:
     Returns:
         dict: STAC bbox
     """
-    return list(gdf.bounds.values[0])
+    # Convert from numpy dtype (which are not JSON serializable) to standard dtype
+    return [float(val) for val in gdf.bounds.values[0]]
 
 
 def gdf_to_centroid(gdf: gpd.GeoDataFrame) -> dict:
@@ -103,7 +104,9 @@ def gdf_to_centroid(gdf: gpd.GeoDataFrame) -> dict:
         dict: STAC centroid
     """
     centroid = gdf.centroid.to_crs(WGS84).iat[0]
-    return {"lat": centroid.y, "lon": centroid.x}
+
+    # Convert from numpy dtype (which are not JSON serializable) to standard dtype
+    return {"lat": float(centroid.y), "lon": float(centroid.x)}
 
 
 def repr_multiline_str(to_str: Any, nof_tabs: int) -> str:
@@ -158,3 +161,21 @@ def get_media_type(band_path: str) -> Any:
         media_type = None  # Not recognized
 
     return media_type
+
+
+def to_float(val: Any) -> float:
+    """
+    Convert from numpy dtype (which are not JSON serializable) to standard dtype
+
+    Args:
+        val (Any): Value in numpy dtype to be converted to float
+
+    Returns:
+        float: Value converted
+
+    """
+    try:
+        # Convert from numpy dtype (which are not JSON serializable) to standard dtype
+        return float(val)
+    except TypeError:
+        return val

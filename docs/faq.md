@@ -16,14 +16,18 @@ EOReader always loads orthorectified bands, you cannot get raw bands !
       the side, you can see an example in the [VHR Notebook](https://eoreader.readthedocs.io/en/latest/notebooks/VHR.html)
 - For other constellations, non-orthorectified bands are not supported yet.
 
-### I want to load projected bands, what do I need to do ?
+### I want to load bands with a custom CRS, what do I need to do ?
 
-EOReader always loads projected bands (in UTM). This may be an issue for:
+For now, EOReader always loads bands with projected CRS (in UTM). 
+So in order to do that, you sadly need a reprojection afterward.
+
+We know that this policy may be an issue for:
 
 - Sentinel-3 data that are very wide and may have inaccurate georeferencing.
 - DIMAP data provided in WGS84 that need reprojection (and therefore time-consuming processes)
 
-If needed, we could change this to allow WGS84 representation. If so, do not hesitate to open an issue on GitHub !
+If needed, we could change in the future this to allow custom CRS. 
+If so, do not hesitate to add comments in [this issue](https://github.com/sertit/eoreader/issues/5) on GitHub !
 
 ### I want to use Dask with EOReader, what should I do ?
 
@@ -42,6 +46,10 @@ Dask is a functionality not really tested on EOReader, use it at your own risk
 Sentinel-1 or other SAR constellations may fail to load KML extent files.
 The cause is unknown, but a workaround based on `ogr2ogr` has been written.
 Please be sure to have `ogr2ogr` (and other `GDAL` scripts available in your PATH)
+
+For example, if you downloaded QGIS on Windows, you could simply put in your PATH:  
+![qgis](https://zupimages.net/up/23/13/njvv.png)  
+All GDAL scripts, exe, DLL, etc. are stored in the `bin` folder.
 
 ## SNAP
 
