@@ -14,6 +14,6 @@ build:
 
 # Explicitly set the version of Python and its requirements
 python:
-  version: "3.8"
+  version: "3.9"
   install:
     - requirements: requirements-doc.txt

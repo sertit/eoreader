@@ -175,9 +175,9 @@ class Gs2Product(DimapV1Product):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
         if self.band_combi in [
             Gs2BandCombination.PAN,
@@ -201,10 +201,10 @@ class Gs2Product(DimapV1Product):
 
         # Bundle: return MS resolution
         if self.product_type == Gs2BandCombination.PM4:
-            return self._ms_res
+            self.pixel_size = self._ms_res
         # One res product
         else:
-            return resol[self.product_type][is_psh]
+            self.pixel_size = resol[self.product_type][is_psh]
 
     def _set_instrument(self) -> None:
         """

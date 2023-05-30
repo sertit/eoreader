@@ -91,7 +91,7 @@ class StacItem:
         ]
 
         # Common mtd
-        self.gsd = self._prod.resolution
+        self.gsd = self._prod.pixel_size
         self.title = self._prod.condensed_name
         self.constellation = self._prod.constellation.value.lower()
         self.created = datetime.utcnow()

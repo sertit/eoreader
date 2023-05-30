@@ -1,5 +1,30 @@
 # Release History
 
+## 0.20.0 (2023-MM-DD)
+
+### Breaking Changes
+
+- **BREAKING CHANGES: Switching from `resolution` to `pixel_size` to avoid confusion about the definitions (especially for SAR data)** ([#82](https://github.com/sertit/eoreader/issues/82))
+- **BREAKING CHANGES: `load` function now returns a `xarray.Dataset`** ([#88](https://github.com/sertit/eoreader/issues/88))
+
+### Bug Fixes
+
+- FIX: Collocate bands before trying to create spectral indices: resolve the case where their size mismatches (i.e. in case of window or change of native pixel size)
+- FIX: Landsat band masking when specifying a custom resolution and a custom window
+- FIX: Round the default pixel_size of custom stacks
+- FIX: Convert some fields of STAC items from non JSON serializable dtypes to correct ones
+- FIX: Fix erroneous property set to `_get_raw_crs` for Maxar products
+
+### Other
+
+- ENH: Don't load data into memory when computing indices, ensuring tasks are delayed a bit longer ([#58](https://github.com/sertit/eoreader/issues/58))
+- DOCS: Add documentation about default CRS ([#87](https://github.com/sertit/eoreader/issues/87))
+- DEPS: Dropping support of Python 3.8 ([#81](https://github.com/sertit/eoreader/issues/81))
+- DEPS: Pin sertit to 1.27.0
+- INTERNAL: Better management of logs for deprecation warnings
+- INTERNAL: Refactoring `simplify_footprint` in `sertit` library
+- CI: Test that STAC items are serializable when added to a catalog
+
 ## 0.19.4 (2023-04-12)
 
 ### Bug Fixes
@@ -17,6 +42,7 @@
 
 ### Bug Fixes
 
+- OPTIM: Don't recompute stacks if already existing on disk
 - FIX: Fixing `Custom Stacks` when specifying `datetime=None` on creation
 - FIX: Fix regression for multi-swath DGM CSK data (huge region) ([#78](https://github.com/sertit/eoreader/issues/78))
 - FIX: Fix calibration issues with CSK HR data (using fallback GPT graph by default)
@@ -818,7 +844,7 @@
 
 ### Other
 
-- CI: Fixing `test_dems_https` and resetting DEM afterwards
+- CI: Fixing `test_dems_https` and resetting DEM afterward
 - CI: Fixing DEM and ds2 database management
 - DOC: Adding a FAQ page and enhancing the Main Features page (#3)
 - DOC: Read Metadata has its own paragraph in Main Features

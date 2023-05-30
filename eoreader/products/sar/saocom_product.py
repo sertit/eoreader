@@ -124,11 +124,11 @@ class SaocomPolarization(ListEnum):
 class SaocomProduct(SarProduct):
     """Class for SAOCOM-1 Products"""
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         See here
-        <here](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_
+        `here <https://saocom.veng.com.ar/L1-product-format-EN.pdf>`_
         for more information (Beam Modes)
 
         .. WARNING::
@@ -144,8 +144,7 @@ class SaocomProduct(SarProduct):
         if not polarization:
             raise InvalidProductError("polMode not found in metadata!")
 
-        def_res = None
-        # For complex data, set regular ground range resolution provided by the constructor
+        # For complex data, set regular ground range pixel_size and resolution provided by the constructor
         if self.sensor_mode == SaocomSensorMode.SM:
             def_res = 10.0
         elif self.sensor_mode == SaocomSensorMode.TN:
@@ -159,7 +158,15 @@ class SaocomProduct(SarProduct):
             else:
                 def_res = 50.0
 
-        return def_res
+        else:
+            raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
+
+        # Impossible to find anywhere the recommaneded pixel spacing for SAOCOM data
+        # SLC: For STRIPMAP data this product is sampled at the natural pixel spacing
+        # Decision : For other SAR images, usually: pixel_size = resolution / 2.
+        # TODO: Is it the case here ?
+        self.pixel_size = def_res / 2.0
+        self.resolution = def_res
 
     def _set_instrument(self) -> None:
         """

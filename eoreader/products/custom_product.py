@@ -30,7 +30,7 @@ from lxml import etree
 from lxml.builder import E
 from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import files, misc, rasters
+from sertit import files, logs, misc, rasters
 from sertit.misc import ListEnum
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
@@ -64,6 +64,7 @@ class CustomFields(ListEnum):
     CONSTELLATION = "constellation"
     INSTRUMENT = "instrument"
     RES = "resolution"
+    PIX_SIZE = "pixel_size"
     PROD_TYPE = "product_type"
     SUN_AZ = "sun_azimuth"
     SUN_ZEN = "sun_zenith"
@@ -212,16 +213,22 @@ class CustomProduct(Product):
             const = CUSTOM
         return Constellation.convert_from(const)[0]
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
-        resolution = self.kwargs.get(CustomFields.RES.value)
-        if resolution is None:
+        pixel_size = self.kwargs.get(CustomFields.PIX_SIZE.value)
+        if pixel_size is None and CustomFields.RES.value in self.kwargs:
+            logs.deprecation_warning(
+                "`resolution` is deprecated in favor of `pixel_size` to avoid confusion."
+            )
+            pixel_size = self.kwargs.pop(CustomFields.RES.value)
+
+        if pixel_size is None:
             with rasterio.open(str(self.get_default_band_path())) as ds:
-                return ds.res[0]
+                self.pixel_size = np.round(ds.res[0], 2)
         else:
-            return resolution
+            self.pixel_size = pixel_size
 
     def _set_instrument(self) -> None:
         """
@@ -315,14 +322,14 @@ class CustomProduct(Product):
         return def_crs
 
     def get_band_paths(
-        self, band_list: list, resolution: float = None, **kwargs
+        self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
         """
         Get the stack path for each asked band
 
         Args:
             band_list (list): List of the wanted bands
-            resolution (float): Band resolution
+            pixel_size (float): Band pixel size
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -358,7 +365,7 @@ class CustomProduct(Product):
         self,
         path: Union[CloudPath, Path],
         band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
+        pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> xr.DataArray:
@@ -371,8 +378,8 @@ class CustomProduct(Product):
         Args:
             path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -380,27 +387,28 @@ class CustomProduct(Product):
         """
         return utils.read(
             path,
-            resolution=resolution,
+            pixel_size=pixel_size,
             size=size,
             resampling=Resampling.bilinear,
             indexes=[self.bands[band].id],
+            as_type=np.float32,
             **kwargs,
-        ).astype(np.float32)
+        )
 
     def _load_bands(
         self,
         bands: Union[list, BandNames],
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
         """
-        Load bands as numpy arrays with the same resolution (and same metadata).
+        Load bands as numpy arrays with the same pixel size (and same metadata).
 
         Args:
             bands (list, BandNames): List of the wanted bands
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -413,16 +421,16 @@ class CustomProduct(Product):
         if not isinstance(bands, list):
             bands = [bands]
 
-        if resolution is None and size is not None:
-            resolution = self._resolution_from_size(size)
+        if pixel_size is None and size is not None:
+            pixel_size = self._pixel_size_from_img_size(size)
 
-        band_paths = self.get_band_paths(bands, resolution, **kwargs)
+        band_paths = self.get_band_paths(bands, pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = {}
         for band_name, band_path in band_paths.items():
             band_arrays[band_name] = self._read_band(
-                band_path, band=band_name, resolution=resolution, size=size, **kwargs
+                band_path, band=band_name, pixel_size=pixel_size, size=size, **kwargs
             )
 
         return band_arrays
@@ -452,7 +460,7 @@ class CustomProduct(Product):
     def _compute_hillshade(
         self,
         dem_path: str = "",
-        resolution: Union[float, tuple] = None,
+        pixel_size: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
     ) -> Union[Path, CloudPath]:
@@ -461,16 +469,16 @@ class CustomProduct(Product):
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            resolution (Union[float, tuple]): Resolution in meters. If not specified, use the product resolution.
+            pixel_size (Union[float, tuple]): Pixel size in meters. If not specified, use the product pixel size.
             resampling (Resampling): Resampling method
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
         Returns:
             Union[Path, CloudPath]: Hillshade mask path
         """
         sun_az, sun_zen = self.get_mean_sun_angles()
         if sun_az is not None and sun_zen is not None:
             # Warp DEM
-            warped_dem_path = self._warp_dem(dem_path, resolution, size, resampling)
+            warped_dem_path = self._warp_dem(dem_path, pixel_size, size, resampling)
 
             # Get Hillshade path
             hillshade_name = (

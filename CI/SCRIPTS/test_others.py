@@ -8,6 +8,7 @@ import rasterio
 import tempenv
 import xarray as xr
 from cloudpathlib import AnyPath
+from rasterio.windows import Window
 from sertit import ci, files
 
 from eoreader import utils
@@ -169,8 +170,8 @@ def test_products():
     with tempfile.TemporaryDirectory() as tmp_dir:
         stack_path = os.path.join(tmp_dir, "stack.tif")
         stack = prod1.stack(
-            BLUE,
-            resolution=prod1.resolution * 100,
+            [BLUE, RED],
+            window=Window(col_off=0, row_off=0, width=100, height=100),
             save_as_int=True,
             stack_path=stack_path,
         )
@@ -225,7 +226,8 @@ def test_dems():
             prod.output = os.path.join(tmp_dir, prod.condensed_name)
             prod.load(
                 [DEM, SLOPE, HILLSHADE],
-                size=(700, 700),
+                size=(100, 100),
+                window=Window(col_off=0, row_off=0, width=100, height=100),
                 **{"slope_dem": slope_dem, "hillshade_dem": hillshade_dem},
             )
 
@@ -278,10 +280,16 @@ def test_dems_https():
     # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
     with tempenv.TemporaryEnvironment({DEM_PATH: local_path}):  # Local DEM
         dem_local = prod.load(
-            [DEM], resolution=30
+            [DEM],
+            pixel_size=30,
+            window=Window(col_off=0, row_off=0, width=100, height=100),
         )  # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
     with tempenv.TemporaryEnvironment({DEM_PATH: remote_path}):  # Remote DEM
-        dem_remote = prod.load([DEM], resolution=30)
+        dem_remote = prod.load(
+            [DEM],
+            pixel_size=30,
+            window=Window(col_off=0, row_off=0, width=100, height=100),
+        )
 
     xr.testing.assert_equal(dem_local[DEM], dem_remote[DEM])
 
@@ -309,10 +317,16 @@ def test_dems_S3():
     # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
     with tempenv.TemporaryEnvironment({DEM_PATH: local_path}):  # Local DEM
         dem_local = prod.load(
-            [DEM], resolution=30
+            [DEM],
+            pixel_size=30,
+            window=Window(col_off=0, row_off=0, width=100, height=100),
         )  # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
     with tempenv.TemporaryEnvironment({DEM_PATH: s3_path}):  # S3 DEM
-        dem_s3 = prod.load([DEM], resolution=30)
+        dem_s3 = prod.load(
+            [DEM],
+            pixel_size=30,
+            window=Window(col_off=0, row_off=0, width=100, height=100),
+        )
 
     xr.testing.assert_equal(dem_local[DEM], dem_s3[DEM])
 

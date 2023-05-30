@@ -270,7 +270,7 @@ class S3SlstrProduct(S3Product):
         self,
         filename: str,
         suffix: str,
-        resolution: Union[float, tuple, list] = None,
+        pixel_size: Union[float, tuple, list] = None,
         writable: bool = True,
     ) -> Union[CloudPath, Path]:
         """
@@ -278,13 +278,13 @@ class S3SlstrProduct(S3Product):
 
         Args:
             filename (str): Filename
-            resolution (Union[float, tuple, list]): Resolution of the wanted UTM band
+            pixel_size (Union[float, tuple, list]): Pixel size of the wanted UTM band
             writable (bool): Do we need to write the pre-processed band ?
 
         Returns:
             Union[CloudPath, Path]: Pre-processed band path
         """
-        res_str = self._resolution_to_str(resolution)
+        res_str = self._pixel_size_to_str(pixel_size)
         if filename.endswith(suffix):
             pp_name = f"{self.condensed_name}_{filename}_{res_str}.tif"
         else:
@@ -325,11 +325,11 @@ class S3SlstrProduct(S3Product):
         # Other
         self._exception_name = "{band}_exception_{suffix}"
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
-        return 500.0
+        self.pixel_size = 500.0
 
     def _set_product_type(self) -> None:
         """Set products type"""
@@ -352,7 +352,7 @@ class S3SlstrProduct(S3Product):
                 **{
                     NAME: SLSTR_A_BANDS[0],
                     ID: SLSTR_A_BANDS[0],
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 554.27,
                     FWHM: 19.26,
                     DESCRIPTION: "Cloud screening, vegetation monitoring, aerosol",
@@ -363,7 +363,7 @@ class S3SlstrProduct(S3Product):
                 **{
                     NAME: SLSTR_A_BANDS[1],
                     ID: SLSTR_A_BANDS[1],
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 659.47,
                     FWHM: 19.25,
                     DESCRIPTION: "NDVI, vegetation monitoring, aerosol",
@@ -374,7 +374,7 @@ class S3SlstrProduct(S3Product):
                 **{
                     NAME: SLSTR_A_BANDS[2],
                     ID: SLSTR_A_BANDS[2],
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 868.00,
                     FWHM: 20.60,
                     DESCRIPTION: "NDVI, cloud flagging, pixel co-registration",
@@ -385,7 +385,7 @@ class S3SlstrProduct(S3Product):
                 **{
                     NAME: SLSTR_A_BANDS[2],
                     ID: SLSTR_A_BANDS[2],
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 868.00,
                     FWHM: 20.60,
                     DESCRIPTION: "NDVI, cloud flagging, pixel co-registration",
@@ -396,7 +396,7 @@ class S3SlstrProduct(S3Product):
                 **{
                     NAME: SLSTR_ABC_BANDS[0],
                     ID: SLSTR_ABC_BANDS[0],
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 1374.80,
                     FWHM: 20.80,
                     DESCRIPTION: "Cirrus detection over land",
@@ -407,7 +407,7 @@ class S3SlstrProduct(S3Product):
                 **{
                     NAME: SLSTR_ABC_BANDS[1],
                     ID: SLSTR_ABC_BANDS[1],
-                    GSD: self.resolution,
+                    GSD: self.pixel_size,
                     CENTER_WV: 1613.40,
                     FWHM: 60.68,
                     DESCRIPTION: "Cloud clearing, ice, snow, vegetation monitoring",
@@ -539,7 +539,7 @@ class S3SlstrProduct(S3Product):
     def _preprocess(
         self,
         band: Union[BandNames, str],
-        resolution: float = None,
+        pixel_size: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
         **kwargs,
@@ -552,7 +552,7 @@ class S3SlstrProduct(S3Product):
 
         Args:
             band (Union[BandNames, str]): Band to preprocess (quality flags or others are accepted)
-            resolution (float): Resolution
+            pixel_size (float): Pixl size
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
             kwargs: Other arguments used to load bands
@@ -587,12 +587,12 @@ class S3SlstrProduct(S3Product):
 
         # Get the pre-processed path
         path = self._get_preprocessed_band_path(
-            pp_name, suffix=suffix, resolution=resolution, writable=False
+            pp_name, suffix=suffix, pixel_size=pixel_size, writable=False
         )
 
         if not path.is_file():
             path = self._get_preprocessed_band_path(
-                pp_name, suffix=suffix, resolution=resolution, writable=True
+                pp_name, suffix=suffix, pixel_size=pixel_size, writable=True
             )
 
             # Get raw band
@@ -634,7 +634,7 @@ class S3SlstrProduct(S3Product):
             LOGGER.debug(f"Geocoding {pp_name}")
             kwargs.pop("suffix", None)
             pp_arr = self._geocode(
-                band_arr, resolution=resolution, suffix=suffix, **kwargs
+                band_arr, pixel_size=pixel_size, suffix=suffix, **kwargs
             )
 
             # Write on disk
@@ -936,7 +936,7 @@ class S3SlstrProduct(S3Product):
             band,
             suffix=suffix,
             subdataset=self._replace(self._exception_name, band=band, suffix=suffix),
-            resolution=band_arr.rio.resolution(),
+            pixel_size=band_arr.rio.resolution(),
             to_reflectance=False,
             flags=True,
             dtype=np.uint8,
@@ -948,8 +948,9 @@ class S3SlstrProduct(S3Product):
             size=(band_arr.rio.width, band_arr.rio.height),
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
+            as_type=np.uint8,
             **kwargs,
-        ).astype(np.uint8)
+        )
 
         # Set no data for everything that caused an exception (3 and more)
         exception = np.where(qual_arr >= 3, self._mask_true, self._mask_false)
@@ -983,7 +984,7 @@ class S3SlstrProduct(S3Product):
     def _open_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -1014,8 +1015,8 @@ class S3SlstrProduct(S3Product):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1035,19 +1036,20 @@ class S3SlstrProduct(S3Product):
                 flags_file,
                 suffix=suffix,
                 subdataset=cloud_name,
-                resolution=resolution,
+                pixel_size=pixel_size,
                 to_reflectance=False,
             )
 
             # Open cloud file
             clouds_array = utils.read(
                 cloud_path,
-                resolution=resolution,
+                pixel_size=pixel_size,
                 size=size,
                 resampling=Resampling.nearest,
                 masked=False,
+                as_type=np.uint16,
                 **kwargs,
-            ).astype(np.uint16)
+            )
 
             # Get nodata mask
             nodata = np.where(np.isnan(clouds_array), 1, 0)
@@ -1141,7 +1143,7 @@ class S3SlstrProduct(S3Product):
     def _get_clean_band_path(
         self,
         band: BandNames,
-        resolution: float = None,
+        pixel_size: float = None,
         writable: bool = False,
         **kwargs,
     ) -> Union[CloudPath, Path]:
@@ -1152,7 +1154,7 @@ class S3SlstrProduct(S3Product):
 
         Args:
             band (BandNames): Wanted band
-            resolution (float): Band resolution in meters
+            pixel_size (float): Band pixel size in meters
             kwargs: Additional arguments
 
         Returns:
@@ -1163,7 +1165,7 @@ class S3SlstrProduct(S3Product):
         )
 
         suffix = self._get_suffix(band, **kwargs)
-        res_str = self._resolution_to_str(resolution)
+        res_str = self._pixel_size_to_str(pixel_size)
 
         return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{band.name}_{suffix}_{res_str.replace('.', '-')}_{cleaning_method.value}.tif",

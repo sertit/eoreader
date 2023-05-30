@@ -203,7 +203,7 @@ def _test_core(
                     f"{CONSTELLATION} (item.properties)",
                 )
                 compare(
-                    item.properties[GSD], prod.resolution, f"{GSD} (item.properties)"
+                    item.properties[GSD], prod.pixel_size, f"{GSD} (item.properties)"
                 )
                 compare(
                     item.properties[DATETIME],
@@ -240,7 +240,7 @@ def _test_core(
                     )
                     compare(
                         item.properties[PROJ_TRANSFORM],
-                        transform,
+                        list(transform),
                         f"{PROJ_TRANSFORM} (item.properties)",
                     )
 
@@ -381,6 +381,19 @@ def _test_core(
                         compare(band.title, prod_band.name, "band title")
 
                         # TODO: Add media_type and other common mtd when needed
+
+                # Add to catalog and save it to see if we can add the item (and if it's serializable)
+                catalog_path = os.path.join(tmp_dir, "catalog.json")
+                catalog = pystac.Catalog(
+                    id="SERTIT_101",
+                    description="SERTIT's Catalog",
+                    title="SERTIT Catalog",
+                    href=catalog_path,
+                )
+                catalog.add_item(item)
+                catalog.normalize_and_save(
+                    tmp_dir, catalog_type=pystac.CatalogType.SELF_CONTAINED
+                )
 
 
 @s3_env

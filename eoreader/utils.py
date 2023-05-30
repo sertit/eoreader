@@ -23,7 +23,6 @@ from functools import wraps
 from pathlib import Path
 from typing import Callable, Union
 
-import geopandas as gpd
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -33,10 +32,10 @@ from rasterio import errors
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
-from sertit import rasters
+from sertit import rasters, vectors
 
 from eoreader import EOREADER_NAME
-from eoreader.bands import is_index, is_sat_band, to_str
+from eoreader.bands import is_index, is_sat_band
 from eoreader.env_vars import TILE_SIZE, USE_DASK
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import _prune_keywords
@@ -126,7 +125,7 @@ def use_dask():
 
 def read(
     path: Union[str, CloudPath, Path],
-    resolution: Union[tuple, list, float] = None,
+    pixel_size: Union[tuple, list, float] = None,
     size: Union[tuple, list] = None,
     resampling: Resampling = Resampling.nearest,
     masked: bool = True,
@@ -148,8 +147,8 @@ def read(
 
     Args:
         path (Union[str, CloudPath, Path]): Path to the raster
-        resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-        size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+        pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+        size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
         resampling (Resampling): Resampling method
         masked (bool): Get a masked array
         indexes (Union[int, list]): Indexes to load. Load the whole array if None.
@@ -174,17 +173,28 @@ def read(
         # Disable georef warnings here as the SAR/Sentinel-3 products are not georeferenced
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=NotGeoreferencedWarning)
-            return rasters.read(
+            arr = rasters.read(
                 path,
-                resolution=resolution,
+                resolution=pixel_size,
                 resampling=resampling,
                 masked=masked,
                 indexes=indexes,
-                size=size if window is None else None,
+                size=size,
                 window=window,
                 chunks=chunks,
                 **_prune_keywords(additional_keywords=["window", "chunks"], **kwargs),
             )
+
+            # In EOReader, we don't care about the band coordinate of a band loaded from a stack.
+            # Overwrite it (don't keep the number "2" if we loaded the second band of the stack)
+            nof_bands = len(arr.coords["band"])
+            arr = arr.assign_coords(
+                {
+                    "band": np.arange(start=1, stop=nof_bands + 1, dtype=int),
+                }
+            )
+            return arr
+
     except errors.RasterioIOError as ex:
         if (str(path).endswith("jp2") or str(path).endswith("tif")) and path.exists():
             raise InvalidProductError(f"Corrupted file: {path}") from ex
@@ -329,44 +339,6 @@ def open_rpc_file(path: Union[CloudPath, Path]) -> RPC:
         raise KeyError(f"Invalid RPC file, missing key: {msg}")
 
 
-def simplify_footprint(
-    footprint: gpd.GeoDataFrame, resolution: float, max_nof_vertices: int = 50
-) -> gpd.GeoDataFrame:
-    """
-    Simplify footprint
-
-    Args:
-        footprint (gpd.GeoDataFrame): Footprint to be simplified
-        resolution (float): Corresponding resolution
-        max_nof_vertices (int): Maximum number of vertices of the wanted footprint
-
-    Returns:
-        gpd.GeoDataFrame: Simplified footprint
-    """
-    # Number of pixels of tolerance
-    tolerance = [1, 2, 4, 8, 16, 32, 64]
-
-    # Process only if given footprint is too complex (too many vertices)
-    def simplify_geom(value):
-        nof_vertices = len(value.exterior.coords)
-        if nof_vertices > max_nof_vertices:
-            for tol in tolerance:
-                # Simplify footprint
-                value = value.simplify(
-                    tolerance=tol * resolution, preserve_topology=True
-                )
-
-                # Check if OK
-                nof_vertices = len(value.exterior.coords)
-                if nof_vertices <= max_nof_vertices:
-                    break
-        return value
-
-    footprint.geometry = footprint.geometry.apply(simplify_geom)
-
-    return footprint
-
-
 def simplify(footprint_fct: Callable):
     """
     Simplify footprint decorator
@@ -382,20 +354,20 @@ def simplify(footprint_fct: Callable):
     def simplify_wrapper(self):
         """Simplify footprint wrapper"""
         footprint = footprint_fct(self)
-        return simplify_footprint(footprint, self.resolution)
+        return vectors.simplify_footprint(footprint, self.pixel_size)
 
     return simplify_wrapper
 
 
 def stack_dict(
-    bands: list, band_dict: dict, save_as_int: bool, nodata: float, **kwargs
+    bands: list, band_xds: xr.Dataset, save_as_int: bool, nodata: float, **kwargs
 ) -> (xr.DataArray, type):
     """
     Stack a dictionnary containing bands in a DataArray
 
     Args:
         bands (list): List of bands (to keep the right order of the stack)
-        band_dict (dict): Dict containing the bands as xr.DataArray {band_name, band}
+        band_xds (xr.Dataset): Dataset containing the bands
         save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
         nodata (float): Nodata value
 
@@ -404,61 +376,47 @@ def stack_dict(
     """
     # Convert into dataset with str as names
     LOGGER.debug("Stacking")
-    data_vars = {}
-    coords = band_dict[bands[0]].coords
-    for key in bands:
-        data_vars[to_str(key)[0]] = (
-            band_dict[key].coords.dims,
-            band_dict[key].data,
-        )
-
-        # Set memory free (for big stacks)
-        band_dict[key].close()
-        band_dict[key] = None
-
-    # Create dataset, with dims well-ordered
-    stack = (
-        xr.Dataset(
-            data_vars=data_vars,
-            coords=coords,
-        )
-        .to_stacked_array(new_dim="z", sample_dims=("x", "y"))
-        .transpose("z", "y", "x")
-    )
 
     # Save as integer
     dtype = np.float32
     if save_as_int:
         scale = 10000
-        stack_min = np.nanmin(stack.data)
-        if np.round(stack_min * 1000) / 1000 < -0.1:
+        round_nb = 1000
+        round_min = -0.1
+        stack_min = float(band_xds.to_array().quantile(0.001))
+        if np.round(stack_min * round_nb) / round_nb < round_min:
             LOGGER.warning(
-                f"Cannot convert the stack to uint16 as it has negative values ({stack_min} < -0.1). Keeping it in float32."
+                f"Cannot convert the stack to uint16 as it has negative values ({stack_min} < {round_min}). Keeping it in float32."
             )
         else:
             if stack_min < 0:
                 LOGGER.warning(
                     "Small negative values ]-0.1, 0] have been found. Clipping to 0."
                 )
-                stack = stack.copy(data=np.clip(stack.data, a_min=0, a_max=None))
+                band_xds = band_xds.clip(min=0, max=None, keep_attrs=True)
 
             # Scale to uint16, fill nan and convert to uint16
             dtype = np.uint16
-            for b_id, band in enumerate(bands):
+            for band, band_xda in band_xds.items():
                 # SCALING
                 # NOT ALL bands need to be scaled, only:
                 # - Satellite bands
                 # - index
                 if is_sat_band(band) or is_index(band):
-                    if np.nanmax(stack[b_id, ...]) > UINT16_NODATA / scale:
+                    if np.nanmax(band_xda) > UINT16_NODATA / scale:
                         LOGGER.debug(
                             "Band not in reflectance, keeping them as is (the values will be rounded)"
                         )
                     else:
-                        stack[b_id, ...] = stack[b_id, ...] * scale
+                        band_xda = band_xda * scale
 
-                # Fill no data (done here to avoid RAM saturation)
-                stack[b_id, ...] = stack[b_id, ...].fillna(nodata)
+            # Fill no data
+            band_xds = band_xds.fillna(nodata)
+
+    # Create dataset, with dims well-ordered
+    stack = band_xds.to_stacked_array(
+        new_dim="bands", sample_dims=("x", "y")
+    ).transpose("bands", "y", "x")
 
     if dtype == np.float32:
         # Set nodata if needed (NaN values are already set)

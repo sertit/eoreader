@@ -156,21 +156,21 @@ class HlsProduct(OpticalProduct):
 
         return self._get_path("Fmask")
 
-    def _get_resolution(self) -> float:
+    def _set_pixel_size(self) -> None:
         """
-        Get product default resolution (in meters)
+        Set product default pixel size (in meters)
         """
-        return 30.0
+        self.pixel_size = 30.0
 
     def open_mask(
-        self, resolution: float = None, size: Union[list, tuple] = None, **kwargs
+        self, pixel_size: float = None, size: Union[list, tuple] = None, **kwargs
     ) -> Union[xr.DataArray, None]:
         """
         Open a HLS Fmask
 
         Args:
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
 
         Returns:
             Union[xarray.DataArray, None]: Mask array
@@ -181,15 +181,16 @@ class HlsProduct(OpticalProduct):
         # Open mask band
         return utils.read(
             mask_path,
-            resolution=resolution,
+            pixel_size=pixel_size,
             size=size,
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
+            as_type=np.uint8,
             **kwargs,
-        ).astype(np.uint8)
+        )
 
     def _load_nodata(
-        self, resolution: float = None, size: Union[list, tuple] = None, **kwargs
+        self, pixel_size: float = None, size: Union[list, tuple] = None, **kwargs
     ) -> Union[xr.DataArray, None]:
         """
         Load nodata (unimaged pixels) as a numpy array.
@@ -199,8 +200,8 @@ class HlsProduct(OpticalProduct):
         (unusable data mask) for more information.
 
         Args:
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
 
         Returns:
             Union[xarray.DataArray, None]: Nodata array
@@ -612,6 +613,16 @@ class HlsProduct(OpticalProduct):
         name = os.path.basename(mask_path).replace(".Fmask.tif", "")
         return name
 
+    def _get_name_constellation_specific(self) -> str:
+        """
+        Set product real name from metadata
+
+        Returns:
+            str: True name of the product (from metadata)
+        """
+        # No need here (_get_name reimplemented)
+        pass
+
     def _get_split_name(self) -> list:
         """
         Get split name (with points !)
@@ -622,7 +633,7 @@ class HlsProduct(OpticalProduct):
         return [x for x in self.name.split(".") if x]
 
     def get_band_paths(
-        self, band_list: list, resolution: float = None, **kwargs
+        self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
         """
         Return the paths of required bands.
@@ -643,7 +654,7 @@ class HlsProduct(OpticalProduct):
 
         Args:
             band_list (list): List of the wanted bands
-            resolution (float): Useless here
+            pixel_size (float): Useless here
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -659,7 +670,7 @@ class HlsProduct(OpticalProduct):
 
             # Get clean band path
             clean_band = self._get_clean_band_path(
-                band, resolution=resolution, **kwargs
+                band, pixel_size=pixel_size, **kwargs
             )
             if clean_band.is_file():
                 band_paths[band] = clean_band
@@ -744,7 +755,7 @@ class HlsProduct(OpticalProduct):
         self,
         path: Union[CloudPath, Path],
         band: BandNames = None,
-        resolution: Union[tuple, list, float] = None,
+        pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> xr.DataArray:
@@ -757,15 +768,15 @@ class HlsProduct(OpticalProduct):
         Args:
             path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
-            resolution (Union[tuple, list, float]): Resolution of the wanted band, in dataset resolution unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
         """
         band_arr = utils.read(
             path,
-            resolution=resolution,
+            pixel_size=pixel_size,
             size=size,
             resampling=Resampling.bilinear,
             **kwargs,
@@ -841,17 +852,17 @@ class HlsProduct(OpticalProduct):
     def _load_bands(
         self,
         bands: Union[list, BandNames],
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
         """
-        Load bands as numpy arrays with the same resolution (and same metadata).
+        Load bands as numpy arrays with the same pixel size (and same metadata).
 
         Args:
             bands (list, BandNames): List of the wanted bands
-            resolution (float): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -864,13 +875,13 @@ class HlsProduct(OpticalProduct):
         if not isinstance(bands, list):
             bands = [bands]
 
-        if resolution is None and size is not None:
-            resolution = self._resolution_from_size(size)
-        band_paths = self.get_band_paths(bands, resolution=resolution, **kwargs)
+        if pixel_size is None and size is not None:
+            pixel_size = self._pixel_size_from_img_size(size)
+        band_paths = self.get_band_paths(bands, pixel_size=pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(
-            band_paths, resolution=resolution, size=size, **kwargs
+            band_paths, pixel_size=pixel_size, size=size, **kwargs
         )
 
         return band_arrays
@@ -921,7 +932,7 @@ class HlsProduct(OpticalProduct):
     def _open_clouds(
         self,
         bands: list,
-        resolution: float = None,
+        pixel_size: float = None,
         size: Union[list, tuple] = None,
         **kwargs,
     ) -> dict:
@@ -932,8 +943,8 @@ class HlsProduct(OpticalProduct):
 
         Args:
             bands (list): List of the wanted bands
-            resolution (int): Band resolution in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if resolution is provided.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -942,7 +953,7 @@ class HlsProduct(OpticalProduct):
 
         if bands:
             # Open Fmask
-            fmask = self.open_mask(resolution, size, **kwargs)
+            fmask = self.open_mask(pixel_size, size, **kwargs)
 
             # Don't use load_nodata in order not to load a 2nd time fmask
             nodata = np.where(fmask == self._mask_nodata, 1, 0)

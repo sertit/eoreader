@@ -27,8 +27,9 @@ It also implements additional **sensor-agnostic** features:
     - [DEM bands](https://eoreader.readthedocs.io/en/latest/optical.html#dem-bands)
 - [`stack`](https://eoreader.readthedocs.io/en/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.stack): Stack all these type of bands
 
-EOReader works with [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray)
-and [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_structures.html#geodataframe)
+EOReader works mainly with:
+- [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray) and [`xarrays.Dataset`](http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset) for raster data
+- [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_structures.html#geodataframe) for vector data (extents, footprints...)
 
 ## Python Quickstart
 
@@ -164,6 +165,8 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 - Mentionned in **[Live+]SIG 2022 by ESRI France** (in French):
   `Enrichir ArcgisPro grâce à des processus personnalisés d'observation de la Terre`
   [ [PDF](https://seafile.unistra.fr/f/9502a14f142041468837/) ]
+- Mentioned in GeoPython 2023 - `FLORIA, a custom python pipeline for urban flood extraction from SAR multi-sensors, supported by U-Net convolutional network.`
+- Mentioned in EGU 2023 - [`Cutting-edge developments in rapid mapping`](https://doi.org/10.5194/egusphere-egu23-14143) 
 
 ## Press Release
 
