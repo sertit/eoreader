@@ -6,6 +6,7 @@ sphinx:
   # Equivalent to -W and --keep-going => turn warnings into errors, keep going anyway but return an exit code 1
   fail_on_warning: false
 build:
+  os: ubuntu-22.04
   apt_packages:
     - libproj-dev
     - proj-data
