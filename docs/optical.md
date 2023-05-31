@@ -2,6 +2,8 @@
 
 ## Implemented optical constellation
 
+![optical_sensors](_static/optical_sensors.png)
+
 The product resolution is the one given in [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589). 
 The Data Access Portfolio Document presents the offer of the datasets and data access services that are made available to the Copernicus Users in response to their Earth Observation data requirements.
 However, especially for SAR data, the default pixel size of GRD bands is not the same as the product resolution!
