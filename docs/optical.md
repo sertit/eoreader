@@ -1,5 +1,7 @@
 # Optical data
 
+You will find an optical tutorial [here](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html).
+
 ## Implemented optical constellation
 
 ![optical_sensors](_static/optical_sensors.png)

@@ -1,10 +1,10 @@
 # SAR data
 
-![sar_sensors](_static/sar_sensors.png)
-
 You will find a SAR tutorial [here](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html).
 
 ## Implemented SAR constellations
+
+![sar_sensors](_static/sar_sensors.png)
 
 | Constellations                      | Class                                                         | Use archive                                 |
 |-------------------------------------|---------------------------------------------------------------|---------------------------------------------|
