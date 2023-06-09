@@ -52,6 +52,7 @@ from sertit.misc import ListEnum
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
     DEM,
+    GREEN1,
     HILLSHADE,
     NEEDED_BANDS,
     SLOPE,
@@ -861,9 +862,14 @@ class Product:
         """
         if not pixel_size and "resolution" in kwargs:
             logs.deprecation_warning(
-                "`resolution` is deprecated in favor of `pixel_size` to avoid confusion."
+                "`resolution` is deprecated in favor of `pixel_size` to avoid confusion. `resolution` will be removed in a future release."
             )
             pixel_size = kwargs.pop("resolution")
+
+        if "GREEN1" in bands or GREEN1 in bands:
+            logs.deprecation_warning(
+                "`GREEN1` is deprecated in favor of `GREEN_1`. `GREEN1` will be removed in a future release."
+            )
 
         # Check if all bands are valid
         bands = to_band(bands)
