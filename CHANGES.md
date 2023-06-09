@@ -2,6 +2,10 @@
 
 ## 0.YY.Z (2023-MM-DD)
 
+### Bug Fixes
+
+- FIX: Allow band aliases (such as `"CA"` instead of `"COASTAL_AEROSOL"`) in string in band mapping when creating Custom Stacks
+
 ### Other
 
 - COMPAT: Add the alias `GREEN_1` for GREEN I band of PlanetScope data, in order to stay in the same pattern than `VRE_x`, `SWIR_x`... `GREEN1` will be deprecated in another release.

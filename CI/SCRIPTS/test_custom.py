@@ -9,6 +9,7 @@ from sertit import ci
 from eoreader import EOREADER_NAME
 from eoreader.bands import (
     BLUE,
+    CA,
     CLOUDS,
     GREEN,
     HH,
@@ -116,7 +117,7 @@ def test_custom_optical():
         product_type="wonderful_type",
         sun_azimuth=10.0,
         sun_zenith=20.0,
-        band_map={BLUE: 1, "GREEN": 2, RED: 3, "NIR": 4, SWIR_1: 5},
+        band_map={CA: 1, "COASTAL_AEROSOL": 2, RED: 3, "CA": 4, SWIR_1: 5},
     )
     LOGGER.info(prod_some)
     extent_some = prod_some.extent()
