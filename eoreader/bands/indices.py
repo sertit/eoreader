@@ -53,20 +53,20 @@ from eoreader.bands.mappings import EOREADER_TO_SPYNDEX_DICT, SPYNDEX_TO_EOREADE
 LOGGER = logging.getLogger(EOREADER_NAME)
 np.seterr(divide="ignore", invalid="ignore")
 
-EOREADER_ALIASES = {
+DEPRECATED_SPECTRAL_INDICES = {
     "AFRI_1_6": "AFRI1600",
     "AFRI_2_1": "AFRI2100",
     "BSI": "BI",
     "NDGRI": "NGRDI",
     "NDRE1": "NDREI",
     "RGI": "RGRI",
-    "WV_BI": "NHFD",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/20
-    "WI": "WI2015",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/19
-    "RDI": "DSI",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/18
-    "DSWI": "DSWI5",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/16
-    "GRI": "DSWI4",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/16
-    "WV_SI": "NDSIWV",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/26
-    "PANI": "BITM",  # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/22
+    "WV_BI": "NHFD",
+    "WI": "WI2015",
+    "RDI": "DSI",
+    "DSWI": "DSWI5",
+    "GRI": "DSWI4",
+    "WV_SI": "NDSIWV",
+    "PANI": "BITM",
 }
 
 # Using NIR instead of NARROW_NIR to follow ASI approach
@@ -152,9 +152,9 @@ def compute_index(index: str, bands: dict, **kwargs) -> xr.DataArray:
 
         index_arr = spyndex.computeIndex(index, parameters)
 
-    elif index in EOREADER_ALIASES:
+    elif index in DEPRECATED_SPECTRAL_INDICES:
         index_arr = spyndex.computeIndex(
-            EOREADER_ALIASES[index], _compute_params(bands, **kwargs)
+            DEPRECATED_SPECTRAL_INDICES[index], _compute_params(bands, **kwargs)
         )
     elif index in EOREADER_DERIVATIVES:
         idx_name = EOREADER_DERIVATIVES[index][0]
@@ -319,7 +319,7 @@ def get_eoreader_indices() -> list:
             eoreader_indices.append(fct.__name__)
 
     # Add aliases
-    for eoreader_idx, spyndex_idx in EOREADER_ALIASES.items():
+    for eoreader_idx, spyndex_idx in DEPRECATED_SPECTRAL_INDICES.items():
         if hasattr(spyndex.indices, spyndex_idx):
             eoreader_indices.append(eoreader_idx)
 
@@ -368,7 +368,7 @@ def is_spyndex_idx(index: str) -> bool:
 
 
 # Check that no EOReader index name shadows Spyndex indices
-assert not any(is_spyndex_idx(alias) for alias in EOREADER_ALIASES.keys())
+assert not any(is_spyndex_idx(alias) for alias in DEPRECATED_SPECTRAL_INDICES.keys())
 assert not any(is_spyndex_idx(alias) for alias in EOREADER_DERIVATIVES.keys())
 
 
@@ -387,11 +387,13 @@ def get_needed_bands(index: str) -> list:
     if is_eoreader_idx(index):
         if index in EOREADER_DERIVATIVES:
             return list(EOREADER_DERIVATIVES[index][1].values())
-        elif index in EOREADER_ALIASES:
+        elif index in DEPRECATED_SPECTRAL_INDICES:
             # Don't need gamma etc.
             return [
                 SPYNDEX_TO_EOREADER_DICT.get(band)
-                for band in getattr(spyndex.indices, EOREADER_ALIASES[index]).bands
+                for band in getattr(
+                    spyndex.indices, DEPRECATED_SPECTRAL_INDICES[index]
+                ).bands
             ]
         else:
             # Get source code from this fct

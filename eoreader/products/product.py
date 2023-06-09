@@ -919,10 +919,10 @@ class Product:
         for band in bands:
             if is_index(band):
                 if self._has_index(band):
-                    if band in indices.EOREADER_ALIASES:
+                    if band in indices.DEPRECATED_SPECTRAL_INDICES:
                         logs.deprecation_warning(
                             "Aliases of Awesome Spectral Indices won't be available in future versions of EOReader. "
-                            f"Please use {indices.EOREADER_ALIASES[band]} instead of {band}"
+                            f"Please use {indices.DEPRECATED_SPECTRAL_INDICES[band]} instead of {band}"
                         )
                     index_list.append(band)
                 else:
