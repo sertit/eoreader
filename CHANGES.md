@@ -1,5 +1,11 @@
 # Release History
 
+## 0.YY.Z (2023-MM-DD)
+
+### Other
+
+- COMPAT: Add the alias `GREEN_1` for GREEN I band of PlanetScope data, in order to stay in the same pattern than `VRE_x`, `SWIR_x`... `GREEN1` will be deprecated in another release.
+
 ## 0.20.0 (2023-05-31)
 
 ### Breaking Changes

@@ -42,7 +42,7 @@ from eoreader.bands import (
     BLUE,
     CA,
     GREEN,
-    GREEN1,
+    GREEN_1,
     NARROW_NIR,
     NIR,
     RED,
@@ -273,7 +273,7 @@ class PlaProduct(PlanetProduct):
                 ),
                 "blue": blue,
                 "green1": SpectralBand(
-                    eoreader_name=GREEN,
+                    eoreader_name=GREEN_1,
                     **{NAME: "Green I", ID: 3, GSD: gsd, WV_MIN: 513, WV_MAX: 549},
                 ),
                 "green": green.update(name="Green II"),
@@ -352,7 +352,7 @@ class PlaProduct(PlanetProduct):
             band_map = {
                 CA: ca,
                 BLUE: blue,
-                GREEN1: green1,
+                GREEN_1: green1,
                 GREEN: green,
                 RED: red,
                 YELLOW: yellow,

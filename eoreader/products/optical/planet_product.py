@@ -43,7 +43,7 @@ from eoreader.bands import (
     CIRRUS,
     CLOUDS,
     GREEN,
-    GREEN1,
+    GREEN_1,
     NARROW_NIR,
     NIR,
     RAW_CLOUDS,
@@ -461,7 +461,7 @@ class PlanetProduct(OpticalProduct):
             NIR: 6,
             NARROW_NIR: 6,
             CA: 7,
-            GREEN1: 7,
+            GREEN_1: 7,
             YELLOW: 7,
         }
 

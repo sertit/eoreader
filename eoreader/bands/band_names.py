@@ -215,6 +215,12 @@ class SpectralBandNames(BandNames):
     """
 
     # -- PlanetScope PSB.SD instrument additional band --
+    GREEN_1 = "GREEN_I"
+    """
+    GREEN I
+    """
+
+    # old alias, to be deprecated
     GREEN1 = "GREEN_I"
     """
     GREEN I
@@ -298,7 +304,8 @@ Oa19 = SpectralBandNames.Oa19
 Oa21 = SpectralBandNames.Oa21
 
 # -- PlanetScope PSB.SD instrument additional band --
-GREEN1 = SpectralBandNames.GREEN1
+GREEN_1 = SpectralBandNames.GREEN_1
+GREEN1 = SpectralBandNames.GREEN_1  # To be deprecated
 
 EOREADER_STAC_MAP = {
     CA: StacCommonNames.COASTAL,
