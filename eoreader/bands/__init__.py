@@ -118,13 +118,14 @@ __all__ += [
     "RV_DSPK",
 ]
 
+from eoreader.bands.band_names import GREEN1  # To be deprecated
 from eoreader.bands.band_names import (
     BLUE,
     CA,
     F1,
     F2,
     GREEN,
-    GREEN1,
+    GREEN_1,
     NARROW_NIR,
     NIR,
     PAN,
@@ -161,7 +162,8 @@ __all__ += [
     "CA",
     "BLUE",
     "GREEN",
-    "GREEN1",
+    "GREEN_1",
+    "GREEN1",  # To be deprecated
     "YELLOW",
     "RED",
     "VRE_1",

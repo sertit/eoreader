@@ -37,7 +37,7 @@ from eoreader.bands import (
     BLUE,
     CA,
     GREEN,
-    GREEN1,
+    GREEN_1,
     NARROW_NIR,
     NIR,
     RED,
@@ -73,7 +73,7 @@ OLCI_SOLAR_FLUXES_DEFAULT = {
     Oa02: 1872.3961,
     CA: 1926.6102,
     BLUE: 1930.2483,
-    GREEN1: 1804.2762,
+    GREEN_1: 1804.2762,
     GREEN: 1651.5836,
     YELLOW: 1531.4067,
     RED: 1475.615,
@@ -247,8 +247,8 @@ class S3OlciProduct(S3Product):
                     DESCRIPTION: "High Chlorophyll",
                 },
             ),
-            GREEN1: SpectralBand(
-                eoreader_name=GREEN1,
+            GREEN_1: SpectralBand(
+                eoreader_name=GREEN_1,
                 **{
                     NAME: "Oa05",
                     ID: "Oa05",
@@ -683,7 +683,7 @@ class S3OlciProduct(S3Product):
             Oa02: 19,  # Band 2
             CA: 18,  # Band 3
             BLUE: 17,  # Band 4
-            GREEN1: 16,  # Band 5
+            GREEN_1: 16,  # Band 5
             GREEN: 15,  # Band 6
             YELLOW: 14,  # Band 7
             RED: 13,  # Band 8
