@@ -143,8 +143,10 @@ class CustomProduct(Product):
 
         band_map = {}
         for key, val in band_names.items():
-            assert is_sat_band(key), "Custom bands should be satellite band"
             band_name = to_band(key)[0]
+            assert is_sat_band(
+                band_name
+            ), f"{band_name}: Custom bands should be satellite band"
             band_map[band_name] = band(
                 eoreader_name=band_name, name=band_name.value, id=val
             )
