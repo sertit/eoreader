@@ -866,7 +866,9 @@ class Product:
             )
             pixel_size = kwargs.pop("resolution")
 
-        if "GREEN1" in bands or GREEN1 in bands:
+        if (isinstance(bands, list) and ("GREEN1" in bands or GREEN1 in bands)) or (
+            "GREEN1" == bands or GREEN1 == bands
+        ):
             logs.deprecation_warning(
                 "`GREEN1` is deprecated in favor of `GREEN_1`. `GREEN1` will be removed in a future release."
             )
