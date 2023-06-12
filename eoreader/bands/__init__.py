@@ -449,7 +449,15 @@ def to_band(to_convert: Union[list, BandNames, str]) -> list:
         if band_or_idx:
             band_list.append(band_or_idx)
         else:
-            raise _ite(f"Unknown band or index: {tc}")
+            if tc == "GREEN1":
+                from sertit import logs
+
+                logs.deprecation_warning(
+                    "`GREEN1` is deprecated in favor of `GREEN_1`. `GREEN1` will be removed in a future release."
+                )
+                band_list.append(GREEN_1)
+            else:
+                raise _ite(f"Unknown band or index: {tc}")
 
     return band_list
 
