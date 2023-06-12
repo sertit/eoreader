@@ -182,7 +182,9 @@ def read(
                 size=size,
                 window=window,
                 chunks=chunks,
-                **_prune_keywords(additional_keywords=["window", "chunks"], **kwargs),
+                **_prune_keywords(
+                    additional_keywords=["window", "chunks", "resolution"], **kwargs
+                ),
             )
 
             # In EOReader, we don't care about the band coordinate of a band loaded from a stack.

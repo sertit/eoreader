@@ -13,11 +13,13 @@ from sertit import ci, files
 
 from eoreader import utils
 from eoreader.bands import (
+    AFRI_1_6,
     BLUE,
     CA,
     CLOUDS,
     DEM,
     GREEN,
+    GREEN1,
     HH,
     HILLSHADE,
     HV,
@@ -419,3 +421,33 @@ def test_windowed_reading():
     # The arrays shouldn't be equal (some cleaning is done)
     with pytest.raises(AssertionError):
         np.testing.assert_array_equal(red_raw.data, red_clean.data)
+
+
+def test_deprecation():
+    """Test deprecation warning"""
+
+    opt_stack = others_path() / "20200310T030415_WV02_Ortho_BGRN_STK.tif"
+    prod_green1 = READER.open(
+        opt_stack,
+        custom=True,
+        sensor_type=SensorType.OPTICAL,
+        pixel_size=2.0,
+        band_map={GREEN1: 1, RED: 2, BLUE: 3, NIR: 4, SWIR_1: 5},
+    )
+    window = Window(200, 500, 200, 500)
+
+    # Check deprecation for GREEN1
+    with pytest.deprecated_call():
+        to_band("GREEN1")
+    with pytest.deprecated_call():
+        prod_green1.load("GREEN1", window=window)
+    with pytest.deprecated_call():
+        prod_green1.load(GREEN1, window=window)
+
+    # Check deprecation for deprecated spectral indices
+    with pytest.deprecated_call():
+        prod_green1.load(AFRI_1_6, window=window)
+
+    # Check deprecation for resolution keyword
+    with pytest.deprecated_call():
+        prod_green1.load(SWIR_1, resolution=2.0, window=window)
