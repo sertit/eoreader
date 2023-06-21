@@ -467,41 +467,6 @@ class PlaProduct(PlanetProduct):
 
         return stack_path
 
-    def get_band_paths(
-        self, band_list: list, pixel_size: float = None, **kwargs
-    ) -> dict:
-        """
-        Return the paths of required bands.
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> from eoreader.bands import *
-            >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
-            >>> prod = Reader().open(path)
-            >>> prod.get_band_paths([GREEN, RED])
-            {
-                <SpectralBandNames.GREEN: 'GREEN'>:
-                'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2/SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B3.tif',
-                <SpectralBandNames.RED: 'RED'>:
-                'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2/SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B4.tif'
-            }
-
-        Args:
-            band_list (list): List of the wanted bands
-            pixel_size (float): Band pixel size
-            kwargs: Other arguments used to load bands
-
-        Returns:
-            dict: Dictionary containing the path of each queried band
-        """
-        band_paths = {}
-        path = self._get_stack_path(as_list=False)
-        for band in band_list:
-            band_paths[band] = path
-
-        return band_paths
-
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
