@@ -1,5 +1,11 @@
 # Release History
 
+## 0.20.2 (2023-06-20)
+
+### Bug Fixes
+
+- FIX: Use already computed bands stored in `tmp` for Planet products 
+
 ## 0.20.1 (2023-06-20)
 
 ### Bug Fixes

@@ -28,6 +28,7 @@ from typing import Tuple, Union
 
 import geopandas as gpd
 import numpy as np
+import rasterio
 import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
@@ -200,7 +201,9 @@ class PlanetProduct(OpticalProduct):
         (setting sensor type, band names and so on)
         """
         # Manage Raw unit
-        band_name = files.get_filename(self.get_default_band_path()).upper().split("_")
+        band_name = (
+            files.get_filename(self._get_stack_path(as_list=False)).upper().split("_")
+        )
         if "SR" in band_name:
             self._raw_units = RawUnits.REFL
         elif "DN" in band_name:
@@ -389,6 +392,48 @@ class PlanetProduct(OpticalProduct):
 
         return gpd.GeoDataFrame(geometry=footprint.geometry, crs=footprint.crs)
 
+    def get_band_paths(
+        self, band_list: list, pixel_size: float = None, **kwargs
+    ) -> dict:
+        """
+        Return the paths of required bands.
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands import *
+            >>> path = r"SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2"
+            >>> prod = Reader().open(path)
+            >>> prod.get_band_paths([GREEN, RED])
+            {
+                <SpectralBandNames.GREEN: 'GREEN'>:
+                'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2/SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B3.tif',
+                <SpectralBandNames.RED: 'RED'>:
+                'SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2/SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2_FRE_B4.tif'
+            }
+
+        Args:
+            band_list (list): List of the wanted bands
+            pixel_size (float): Band pixel size
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            dict: Dictionary containing the path of each queried band
+        """
+        band_paths = {}
+        path = self._get_stack_path(as_list=False)
+        for band in band_list:
+            # Get clean band path
+            clean_band = self._get_clean_band_path(
+                band, pixel_size=pixel_size, **kwargs
+            )
+            if clean_band.is_file():
+                band_paths[band] = clean_band
+            else:
+                band_paths[band] = path
+
+        return band_paths
+
     def _read_band(
         self,
         path: Union[CloudPath, Path],
@@ -413,15 +458,32 @@ class PlanetProduct(OpticalProduct):
             xr.DataArray: Band xarray
 
         """
-        # Read band
-        band_arr = utils.read(
-            path,
-            pixel_size=pixel_size,
-            size=size,
-            resampling=Resampling.bilinear,
-            indexes=[self.bands[band].id],
-            **kwargs,
-        )
+        with rasterio.open(str(path)) as dst:
+            # Manage the case if we open a simple band (EOReader processed bands)
+            if dst.count == 1:
+                # Read band
+                band_arr = utils.read(
+                    path,
+                    pixel_size=pixel_size,
+                    size=size,
+                    resampling=Resampling.bilinear,
+                    **kwargs,
+                )
+
+            # Manage the case if we open a stack (native DIMAP bands)
+            else:
+                band_arr = utils.read(
+                    path,
+                    pixel_size=pixel_size,
+                    size=size,
+                    resampling=Resampling.bilinear,
+                    indexes=[self.bands[band].id],
+                    **kwargs,
+                )
+
+        # Pop useless long name
+        if "long_name" in band_arr.attrs:
+            band_arr.attrs.pop("long_name")
 
         # To float32
         if band_arr.dtype != np.float32:
@@ -526,7 +588,7 @@ class PlanetProduct(OpticalProduct):
             return {}
 
         # Get band paths
-        band_paths = self.get_band_paths(bands, **kwargs)
+        band_paths = self.get_band_paths(bands, pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
         band_arrays = self._open_bands(
