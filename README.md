@@ -167,12 +167,13 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 
 ## Talks
 
-- GeoPython 2022 [ [PDF](https://seafile.unistra.fr/f/be2b461af970465b903e/) ] [ [YouTube](https://www.youtube.com/watch?v=mKxOiRULOJA&t=14303s) ]
+- [GeoPython 2022](https://submit.geopython.net/geopython-2022/talk/FQPN3Q/) [ [PDF](https://seafile.unistra.fr/f/be2b461af970465b903e/) ] [ [YouTube](https://www.youtube.com/watch?v=mKxOiRULOJA&t=14303s) ]
 - Mentionned in **[Live+]SIG 2022 by ESRI France** (in French):
   `Enrichir ArcgisPro grâce à des processus personnalisés d'observation de la Terre`
   [ [PDF](https://seafile.unistra.fr/f/9502a14f142041468837/) ]
 - Mentioned in GeoPython 2023 - `FLORIA, a custom python pipeline for urban flood extraction from SAR multi-sensors, supported by U-Net convolutional network.`
 - Mentioned in EGU 2023 - [`Cutting-edge developments in rapid mapping`](https://doi.org/10.5194/egusphere-egu23-14143) 
+- [FOSS4G 2023](https://talks.osgeo.org/foss4g-2023/talk/XJH7JE/) [ [PDF](https://seafile.unistra.fr/f/f727dc62cdfe471f9b33/) ] [ YouTube (incoming) ]
 
 ## Press Release
 
@@ -182,6 +183,12 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 ## Articles
 
 - [Maxant, J. Braun, R. Caspard, M. Clandillon, S. ExtractEO, a Pipeline for Disaster Extent Mapping in the Context of Emergency Management. Remote Sens. 2022, 14, 5253. (Technical Note)](https://doi.org/10.3390/rs14205253)
+
+## Blog
+
+- [Introduction to EOReader](https://sertit.unistra.fr/en/news/introduction-to-eoreader/)
+- [EOReader: Remote sensing open-source python library](https://sertit.unistra.fr/en/news/eoreader/)
+- [The collapse of the Kakhovka dam seen from satellite imagery](https://sertit.unistra.fr/en/news/the-collapse-of-the-kakhovka-dam-seen-from-satellite-imagery/)
 
 ## License
 
