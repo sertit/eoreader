@@ -355,8 +355,8 @@ class LandsatProduct(OpticalProduct):
             self.product_type = LandsatProductType.from_value(proc_lvl[:-2])
 
             if self.product_type not in [LandsatProductType.L1, LandsatProductType.L2]:
-                LOGGER.warning(
-                    "Only Landsat level 1 and 2 have been tested on EOReader, ise it at your own risk."
+                raise NotImplementedError(
+                    "Only Landsat level 1 and 2 are implemented EOReader."
                 )
             else:
                 # Warning if GS (L1 only)
@@ -1178,31 +1178,54 @@ class LandsatProduct(OpticalProduct):
         Returns:
             xr.DataArray: Band in brightness temperature
         """
-        # Get coeffs to convert DN to radiance
-        c_mul_str = "RADIANCE_MULT_BAND_" + band_name
-        c_add_str = "RADIANCE_ADD_BAND_" + band_name
-        c_mul = mtd.findtext(f".//{c_mul_str}")
-        c_add = mtd.findtext(f".//{c_add_str}")
+        if self.product_type == LandsatProductType.L1:
+            # Get coeffs to convert DN to radiance
+            c_mul_str = "RADIANCE_MULT_BAND_" + band_name
+            c_add_str = "RADIANCE_ADD_BAND_" + band_name
+            c_mul = mtd.findtext(f".//{c_mul_str}")
+            c_add = mtd.findtext(f".//{c_add_str}")
 
-        # Manage NULL values
-        try:
-            c_mul = float(c_mul)
-        except ValueError:
-            c_mul = 1.0
-        try:
-            c_add = float(c_add)
-        except ValueError:
-            c_add = 0.0
+            # Manage NULL values
+            try:
+                c_mul = float(c_mul)
+            except ValueError:
+                c_mul = 1.0
+            try:
+                c_add = float(c_add)
+            except ValueError:
+                c_add = 0.0
 
-        band_arr = c_mul * band_arr + c_add
+            band_arr = c_mul * band_arr + c_add
 
-        # Get coeffs to convert radiance to TB
-        k1_str = "K1_CONSTANT_BAND_" + band_name
-        k2_str = "K2_CONSTANT_BAND_" + band_name
-        k1 = float(mtd.findtext(f".//{k1_str}"))
-        k2 = float(mtd.findtext(f".//{k2_str}"))
+            # Get coeffs to convert radiance to TB
+            k1_str = "K1_CONSTANT_BAND_" + band_name
+            k2_str = "K2_CONSTANT_BAND_" + band_name
+            k1 = float(mtd.findtext(f".//{k1_str}"))
+            k2 = float(mtd.findtext(f".//{k2_str}"))
 
-        band_arr = k2 / np.log(k1 / band_arr + 1)
+            band_arr = k2 / np.log(k1 / band_arr + 1)
+        elif self.product_type == LandsatProductType.L2:
+            c_mul_str = "TEMPERATURE_MULT_BAND_ST_" + band_name
+            c_add_str = "TEMPERATURE_ADD_BAND_ST_" + band_name
+
+            # Get coeffs to convert DN to reflectance
+            c_mul = mtd.findtext(f".//{c_mul_str}")
+            c_add = mtd.findtext(f".//{c_add_str}")
+
+            # Manage NULL values
+            try:
+                c_mul = float(c_mul)
+            except ValueError:
+                c_mul = 149.0
+            try:
+                c_add = float(c_add)
+            except ValueError:
+                c_add = 0.00341802
+
+            # Compute the correct reflectance of the band and set no data to 0
+            band_arr = c_mul * band_arr + c_add  # Already in float
+        else:
+            raise NotImplementedError
 
         return band_arr
 
@@ -1223,22 +1246,37 @@ class LandsatProduct(OpticalProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
+        if self.product_type == LandsatProductType.L1:
+            # Only one coeff field here
+            coeff_mtd = mtd
+        elif self.product_type == LandsatProductType.L2:
+            coeff_mtd = mtd.find(".//LEVEL2_SURFACE_REFLECTANCE_PARAMETERS")
+        else:
+            raise NotImplementedError
+
         c_mul_str = "REFLECTANCE_MULT_BAND_" + band_name
         c_add_str = "REFLECTANCE_ADD_BAND_" + band_name
 
         # Get coeffs to convert DN to reflectance
-        c_mul = mtd.findtext(f".//{c_mul_str}")
-        c_add = mtd.findtext(f".//{c_add_str}")
+        c_mul = coeff_mtd.findtext(f".//{c_mul_str}")
+        c_add = coeff_mtd.findtext(f".//{c_add_str}")
 
         # Manage NULL values
         try:
             c_mul = float(c_mul)
         except ValueError:
-            c_mul = 1.0
+            if self.product_type == LandsatProductType.L1:
+                c_mul = 1.0
+            else:
+                c_mul = 2.75e-05
+
         try:
             c_add = float(c_add)
         except ValueError:
-            c_add = 0.0
+            if self.product_type == LandsatProductType.L1:
+                c_add = 0.0
+            else:
+                c_add = -0.2
 
         # Compute the correct reflectance of the band and set no data to 0
         band_arr = c_mul * band_arr + c_add  # Already in float
