@@ -28,6 +28,7 @@ from eoreader.bands import (
     SHADOWS,
     SLOPE,
     SWIR_2,
+    TIR_1,
     VV,
     VV_DSPK,
     to_str,
@@ -67,7 +68,7 @@ MERIT_DEM_SUB_DIR_PATH = [
     "MERIT_DEM.vrt",
 ]
 
-WRITE_ON_DISK = False
+WRITE_ON_DISK = True
 
 
 def set_dem(dem_path):
@@ -108,7 +109,7 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
         pattern (str): Pattern of the satellite
         debug (bool): Debug option
     """
-    possible_bands = [RED, SWIR_2, HILLSHADE, CLOUDS]
+    possible_bands = [RED, SWIR_2, TIR_1, HILLSHADE, CLOUDS]
     _test_core(pattern, opt_path(), possible_bands, dem_path, debug, **kwargs)
 
 
@@ -318,9 +319,20 @@ def _test_core(
                 ci.assert_val(stack.dtype, np.float32, "dtype")
 
                 # Check attributes
-                ci.assert_val(
-                    stack.attrs["long_name"], " ".join(to_str(stack_bands)), "long_name"
-                )
+                try:
+                    ci.assert_val(
+                        stack.attrs["long_name"],
+                        " ".join(to_str(stack_bands)),
+                        "long_name",
+                    )
+                except AssertionError:
+                    # Just try the other way, it depends on the saved stack
+                    ci.assert_val(
+                        " ".join(stack.attrs["long_name"]),
+                        " ".join(to_str(stack_bands)),
+                        "long_name",
+                    )
+
                 ci.assert_val(
                     stack.attrs["constellation"],
                     prod._get_constellation().value,
