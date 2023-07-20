@@ -1,5 +1,11 @@
 # Release History
 
+## 0.20.3 (2023-MM-DD)
+
+### Bug Fixes
+
+- FIX: Minor fix in RasterioError handling when reading bands 
+
 ## 0.20.2 (2023-06-22)
 
 ### Bug Fixes

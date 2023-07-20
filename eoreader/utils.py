@@ -198,7 +198,9 @@ def read(
             return arr
 
     except errors.RasterioIOError as ex:
-        if (str(path).endswith("jp2") or str(path).endswith("tif")) and path.exists():
+        if not isinstance(path, str) and (
+            str(path).endswith("jp2") or str(path).endswith("tif") and path.exists()
+        ):
             raise InvalidProductError(f"Corrupted file: {path}") from ex
         else:
             raise
