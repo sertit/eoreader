@@ -2,8 +2,6 @@ stages:
   - lint
   - test
   - weekly_tests
-  - publish
-  - docs
 
 variables:
   EEO_DEPS: $REGISTRY_GITLAB/extracteo/extracteo_deps
