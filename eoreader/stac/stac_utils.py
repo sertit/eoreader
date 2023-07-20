@@ -39,8 +39,10 @@ def fill_common_mtd(asset: Any, prod, **kwargs) -> None:
         **kwargs: Additional arguments
     """
     # Basics
-    asset.common_metadata.title = kwargs.get(TITLE)
-    asset.common_metadata.description = kwargs.get(DESCRIPTION)
+    asset.common_metadata.title = kwargs.get(TITLE, "No title available")
+    asset.common_metadata.description = kwargs.get(DESCRIPTION, "")
+    if len(asset.common_metadata.description) < 1:
+        asset.common_metadata.description = "No description available"
 
     # Date and Time
     asset.common_metadata.created = datetime.utcnow()

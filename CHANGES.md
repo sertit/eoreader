@@ -7,6 +7,7 @@
 - FIX: Minor fix in RasterioError handling when reading bands 
 - FIX: Fix Landsat L2 surface reflectance and temperature computation ([#99](https://github.com/sertit/eoreader/issues/99))
 - FIX: Test thermal bands in CI
+- FIX: Upgraded to EO STAC extension v1.1.0 ([#83](https://github.com/sertit/eoreader/issues/83))
 
 ## 0.20.2 (2023-06-22)
 

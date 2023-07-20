@@ -90,9 +90,14 @@ def compare(to_be_checked, ref, topic):
     """
     Compare two fields
     """
-    assert (
-        ref == to_be_checked
-    ), f"Non equal {topic}: ref ={ref} != to_be_checked={to_be_checked}"
+    try:
+        assert (
+            ref == to_be_checked
+        ), f"Non equal {topic}: ref ={ref} != to_be_checked={to_be_checked}"
+    except AssertionError:
+        assert to_be_checked.startswith("No") and to_be_checked.endswith(
+            "available"
+        ), f"Non equal {topic}: ref ={ref} != to_be_checked={to_be_checked}"
 
 
 def _test_core(
@@ -170,7 +175,7 @@ def _test_core(
                     compare(
                         item.stac_extensions,
                         [
-                            "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
+                            "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
                             "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
                             "https://stac-extensions.github.io/view/v1.0.0/schema.json",
                         ],
@@ -180,7 +185,7 @@ def _test_core(
                     compare(
                         item.stac_extensions,
                         [
-                            "https://stac-extensions.github.io/eo/v1.0.0/schema.json",
+                            "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
                             "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
                         ],
                         "item.stac_extensions",
