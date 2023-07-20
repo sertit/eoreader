@@ -1205,8 +1205,8 @@ class LandsatProduct(OpticalProduct):
 
             band_arr = k2 / np.log(k1 / band_arr + 1)
         elif self.product_type == LandsatProductType.L2:
-            c_mul_str = "TEMPERATURE_MULT_BAND_ST_" + band_name
-            c_add_str = "TEMPERATURE_ADD_BAND_ST_" + band_name
+            c_mul_str = "TEMPERATURE_MULT_BAND_ST_B" + band_name
+            c_add_str = "TEMPERATURE_ADD_BAND_ST_B" + band_name
 
             # Get coeffs to convert DN to reflectance
             c_mul = mtd.findtext(f".//{c_mul_str}")
@@ -1216,11 +1216,11 @@ class LandsatProduct(OpticalProduct):
             try:
                 c_mul = float(c_mul)
             except ValueError:
-                c_mul = 149.0
+                c_mul = 0.00341802
             try:
                 c_add = float(c_add)
             except ValueError:
-                c_add = 0.00341802
+                c_add = 149.0
 
             # Compute the correct reflectance of the band and set no data to 0
             band_arr = c_mul * band_arr + c_add  # Already in float
