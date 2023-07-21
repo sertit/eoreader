@@ -28,6 +28,7 @@ pytest:
   stage: test
   variables:
     CI_EOREADER_USE_S3: "0"
+    EOREADER_USE_DASK: "1"
   before_script:
     - python -m pip install --upgrade pip
     - pip install --ignore-installed PyYAML
@@ -61,6 +62,7 @@ pytest_s3:
   image: $EEO_DEPS:latest
   stage: test
   variables:
+    CI_EOREADER_USE_S3: "1"
     EOREADER_USE_DASK: "1"
   before_script:
     - python -m pip install --upgrade pip
