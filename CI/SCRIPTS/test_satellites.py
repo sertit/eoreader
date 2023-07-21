@@ -68,7 +68,7 @@ MERIT_DEM_SUB_DIR_PATH = [
     "MERIT_DEM.vrt",
 ]
 
-WRITE_ON_DISK = True
+WRITE_ON_DISK = False
 
 
 def set_dem(dem_path):
