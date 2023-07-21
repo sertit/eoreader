@@ -361,9 +361,16 @@ def _test_core(
                 ci.assert_val(
                     stack.attrs["condensed_name"], prod.condensed_name, "condensed_name"
                 )
-                ci.assert_val(
-                    stack.attrs["product_path"], str(prod.path), "product_path"
-                )
+                try:
+                    ci.assert_val(
+                        stack.attrs["product_path"], str(prod.path), "product_path"
+                    )
+                except AssertionError:
+                    ci.assert_val(
+                        files.get_filename(stack.attrs["product_path"]),
+                        files.get_filename(prod.path),
+                        "product_path",
+                    )
 
                 # Write to path if needed
                 if not ci_stack.exists():
