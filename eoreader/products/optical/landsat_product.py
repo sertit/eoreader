@@ -672,6 +672,10 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "15 meter resolution, sharper image definition",
                 },
             ),
+            # TODO: better manage L-7 TIR bands ?
+            # The band 61 (low gain mode) is used when surface brightness is high (e.g., desert, or less vegetated areas),
+            # and band 62 (high gain mode) when surface brightness is lower (e.g., vegetated areas)
+            # (According to the gain setting rule of Landsat Project Science Ofﬁce (2001)).
             TIR_1: SpectralBand(
                 eoreader_name=TIR_1,
                 **{
@@ -1139,10 +1143,11 @@ class LandsatProduct(OpticalProduct):
                 try:
                     # Thermal (10/11)
                     if band in [TIR_1, TIR_2]:
-                        # For Landsat L2 products, the band name in metadata don't change compared to L1 (only one band left)
+                        # For Landsat-7 L1 products, there are two B6 bands (6_VCID_1 and 6_VCID_2). Use the first one.
+                        # For Landsat-7 L2 products, the B6 band name in metadata stays as is.
                         if (
                             self.constellation == Constellation.L7
-                            and self.product_type == LandsatProductType.L2
+                            and self.product_type == LandsatProductType.L1
                         ):
                             band_name = "6_VCID_1"
                         band_arr = self._to_tb(band_arr, mtd, band_name)
