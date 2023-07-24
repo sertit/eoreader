@@ -1,6 +1,6 @@
 # Release History
 
-## 0.20.3 (2023-MM-DD)
+## 0.20.3 (2023-07-24)
 
 ### Bug Fixes
 
