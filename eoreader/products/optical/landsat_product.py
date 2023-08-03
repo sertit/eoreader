@@ -807,7 +807,7 @@ class LandsatProduct(OpticalProduct):
                 **{
                     NAME: "Panchromatic",
                     ID: "8",
-                    GSD: 30,
+                    GSD: 15,
                     WV_MIN: 500,
                     WV_MAX: 680,
                     DESCRIPTION: "15 meter resolution, sharper image definition",
