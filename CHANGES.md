@@ -1,5 +1,8 @@
 # Release History
 
+## 0.20.4 (2023-MM-DD)
+- FIX: Fixing the PAN GSD for Landsat-OLI products
+
 ## 0.20.3 (2023-07-31)
 
 ### Bug Fixes
