@@ -648,6 +648,10 @@ class OpticalProduct(Product):
             kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
         )
 
+        # Manage multi resolution bands opened with native resolution (such as PAN in Landsat)
+        if pixel_size is None:
+            pixel_size = self.bands[band].gsd
+
         res_str = self._pixel_size_to_str(pixel_size)
 
         # Radiometric processing

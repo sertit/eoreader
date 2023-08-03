@@ -1,6 +1,8 @@
 # Release History
 
 ## 0.20.4 (2023-MM-DD)
+
+- FIX: Better management of default pixel size for multi-resolution products (such as PAN band in Landsat)
 - FIX: Fixing the PAN GSD for Landsat-OLI products
 
 ## 0.20.3 (2023-07-31)
