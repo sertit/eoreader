@@ -173,7 +173,7 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
   [ [PDF](https://seafile.unistra.fr/f/9502a14f142041468837/) ]
 - Mentioned in GeoPython 2023 - `FLORIA, a custom python pipeline for urban flood extraction from SAR multi-sensors, supported by U-Net convolutional network.`
 - Mentioned in EGU 2023 - [`Cutting-edge developments in rapid mapping`](https://doi.org/10.5194/egusphere-egu23-14143) 
-- [FOSS4G 2023](https://talks.osgeo.org/foss4g-2023/talk/XJH7JE/) [ [PDF](https://seafile.unistra.fr/f/f727dc62cdfe471f9b33/) ] [ YouTube (incoming) ]
+- [FOSS4G 2023](https://talks.osgeo.org/foss4g-2023/talk/XJH7JE/) [ [PDF](https://seafile.unistra.fr/f/f727dc62cdfe471f9b33/) ] [ [YouTube](https://www.youtube.com/watch?v=3ZfPQrTypmQ) ]
 
 ## Press Release
 
