@@ -2,6 +2,7 @@
 
 ## 0.20.4 (2023-MM-DD)
 
+- FIX: Don't collocate a raster on itself
 - FIX: Better management of default pixel size for multi-resolution products (such as PAN band in Landsat)
 - FIX: Fixing the PAN GSD for Landsat-OLI products
 
