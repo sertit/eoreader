@@ -1604,12 +1604,14 @@ class Product:
         """
         for band_id, band_arr in bands.items():
             if reference is None:
-                reference = band_arr  # Master array is the first one in this case
-
-            # To be sure, always collocate arrays, even if the size is the same
-            # Indeed, a small difference in the coordinates will lead to empy arrays
-            # So the bands MUST BE exactly aligned
-            bands[band_id] = rasters.collocate(reference, band_arr)
+                # If reference is not passed, use the first array
+                # Don't collocate if same array
+                reference = band_arr
+            else:
+                # To be sure, always collocate arrays, even if the size is the same
+                # Indeed, a small difference in the coordinates will lead to empy arrays
+                # So the bands MUST BE exactly aligned
+                bands[band_id] = rasters.collocate(reference, band_arr)
 
         return bands
 
