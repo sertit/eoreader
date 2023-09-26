@@ -876,8 +876,7 @@ class MaxarProduct(VhrProduct):
             lat = float(root.findtext(".//ORIGINY"))
 
             # Compute UTM crs from center long/lat
-            utm = vectors.corresponding_utm_projection(lon, lat)
-            utm = riocrs.CRS.from_string(utm)
+            utm = vectors.to_utm_crs(lon, lat)
         else:
             utm = raw_crs
 
