@@ -5,6 +5,7 @@
 - FIX: Don't collocate a raster on itself
 - FIX: Better management of default pixel size for multi-resolution products (such as PAN band in Landsat)
 - FIX: Fixing the PAN GSD for Landsat-OLI products
+- FIX: Update some code to match `sertit==1.29.0`
 
 ## 0.20.3 (2023-07-31)
 

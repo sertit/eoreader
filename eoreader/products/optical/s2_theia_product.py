@@ -31,7 +31,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import files, rasters, vectors
+from sertit import files, geometry, rasters
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -233,7 +233,7 @@ class S2TheiaProduct(OpticalProduct):
 
         # Vectorize the nodata band
         footprint = rasters.vectorize(mask, values=0, default_nodata=-1)
-        footprint = vectors.get_wider_exterior(footprint)
+        footprint = geometry.get_wider_exterior(footprint)
         footprint.geometry = footprint.geometry.convex_hull
 
         return footprint

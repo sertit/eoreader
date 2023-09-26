@@ -33,7 +33,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import files, rasters, vectors
+from sertit import files, geometry, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
@@ -916,7 +916,7 @@ class MaxarProduct(VhrProduct):
             footprint = rasters.vectorize(
                 arr, values=0, keep_values=False, dissolve=True
             )
-            footprint = vectors.get_wider_exterior(footprint.convex_hull)
+            footprint = geometry.get_wider_exterior(footprint.convex_hull)
         else:
             # If not ortho -> default band has been orthorectified and nodata will be set
             footprint = rasters.get_footprint(self.get_default_band_path())

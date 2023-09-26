@@ -32,7 +32,7 @@ from rasterio import errors
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
-from sertit import rasters, vectors
+from sertit import geometry, rasters
 
 from eoreader import EOREADER_NAME
 from eoreader.bands import is_index, is_sat_band
@@ -358,7 +358,7 @@ def simplify(footprint_fct: Callable):
     def simplify_wrapper(self):
         """Simplify footprint wrapper"""
         footprint = footprint_fct(self)
-        return vectors.simplify_footprint(footprint, self.pixel_size)
+        return geometry.simplify_footprint(footprint, self.pixel_size)
 
     return simplify_wrapper
 

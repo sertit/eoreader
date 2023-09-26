@@ -37,7 +37,7 @@ from lxml import etree
 from rasterio import errors, features, transform
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
-from sertit import files, rasters, vectors
+from sertit import files, geometry, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import box
 
@@ -396,7 +396,9 @@ class S2Product(OpticalProduct):
                         det_footprint, values=0, keep_values=False, dissolve=True
                     )
 
-                    footprint = vectors.get_wider_exterior(footprint).to_crs(self.crs())
+                    footprint = geometry.get_wider_exterior(footprint).to_crs(
+                        self.crs()
+                    )
                 except Exception:
                     LOGGER.error(
                         "Impossible to return the footprint. Returning the extent instead."
