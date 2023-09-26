@@ -79,8 +79,7 @@ class DimapV1Product(VhrProduct):
             lat = float(np.mean([float(v.findtext("FRAME_LAT")) for v in vertices]))
 
             # Compute UTM crs from center long/lat
-            utm = vectors.corresponding_utm_projection(lon, lat)
-            utm = riocrs.CRS.from_string(utm)
+            utm = vectors.to_utm_crs(lon, lat)
 
         return utm
 

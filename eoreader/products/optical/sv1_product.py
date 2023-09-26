@@ -276,8 +276,7 @@ class Sv1Product(VhrProduct):
             lat = float(root.findtext(".//CenterLatitude"))
 
             # Compute UTM crs from center long/lat
-            utm = vectors.corresponding_utm_projection(lon, lat)
-            utm = riocrs.CRS.from_string(utm)
+            utm = vectors.to_utm_crs(lon, lat)
 
         return utm
 
