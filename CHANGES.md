@@ -1,6 +1,6 @@
 # Release History
 
-## 0.20.4 (2023-MM-DD)
+## 0.20.4 (2023-09-26)
 
 - FIX: Don't collocate a raster on itself
 - FIX: Better management of default pixel size for multi-resolution products (such as PAN band in Landsat)
