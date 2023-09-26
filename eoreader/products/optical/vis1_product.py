@@ -31,7 +31,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import files, rasters, vectors
+from sertit import files, geometry, rasters
 from sertit.misc import ListEnum
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -300,7 +300,7 @@ class Vis1Product(DimapV1Product):
             footprint = rasters.vectorize(
                 arr, values=0, keep_values=False, dissolve=True
             )
-            footprint = vectors.get_wider_exterior(footprint)
+            footprint = geometry.get_wider_exterior(footprint)
         else:
             # If ortho -> nodata is not set !
             if self.is_ortho:
@@ -316,7 +316,7 @@ class Vis1Product(DimapV1Product):
                 footprint = rasters.vectorize(
                     arr, values=0, keep_values=False, dissolve=True
                 )
-                footprint = vectors.get_wider_exterior(footprint)
+                footprint = geometry.get_wider_exterior(footprint)
             else:
                 # If not ortho -> default band has been orthorectified and nodata will be set
                 footprint = rasters.get_footprint(self.get_default_band_path())

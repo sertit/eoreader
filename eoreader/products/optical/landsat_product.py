@@ -310,7 +310,7 @@ class LandsatProduct(OpticalProduct):
         footprint = rasters_rio.vectorize(
             nodata_band, values=1, keep_values=False, dissolve=True
         )
-        # footprint = vectors.get_wider_exterior(footprint)  # No need here
+        # footprint = geometry.get_wider_exterior(footprint)  # No need here
 
         # Keep only the convex hull
         footprint.geometry = footprint.geometry.convex_hull

@@ -30,7 +30,7 @@ import geopandas as gpd
 import numpy as np
 import xarray as xr
 from rasterio import crs as riocrs
-from sertit import rasters, vectors
+from sertit import geometry, rasters, vectors
 from shapely.geometry import Polygon, box
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
@@ -161,7 +161,7 @@ class DimapV1Product(VhrProduct):
             footprint = rasters.vectorize(
                 arr, values=0, keep_values=False, dissolve=True
             )
-            footprint = vectors.get_wider_exterior(footprint)
+            footprint = geometry.get_wider_exterior(footprint)
         else:
             # If not ortho -> default band has been orthorectified and nodata will be set
             footprint = rasters.get_footprint(self.get_default_band_path())

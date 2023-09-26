@@ -37,7 +37,7 @@ from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
 from rasterio import features, transform
-from sertit import files, rasters_rio, vectors
+from sertit import files, geometry, rasters_rio, vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 from shapely.geometry import Polygon, box
@@ -1043,7 +1043,7 @@ class DimapV2Product(VhrProduct):
                         )
 
                         # Do not keep pixelized mask
-                        mask = vectors.simplify_footprint(mask, self.pixel_size)
+                        mask = geometry.simplify_footprint(mask, self.pixel_size)
 
             # Sometimes the GML mask lacks crs (why ?)
             elif (
