@@ -40,6 +40,7 @@ EOReader works mainly with:
 ## Python Quickstart
 
 ### Optical
+EOReader allows you ta load and stack spectral bands, spetrcal indices, DEM and cloud bands agnostically from every handled optical constellation:
 
 ```python
 from eoreader.reader import Reader
@@ -61,7 +62,11 @@ bands = s2_prod.load([NDVI, GREEN, CLOUDS])
 stack = s2_prod.stack([RED, GREEN, BLUE], stack_path="s2_rgb_stack.tif")
 ```
 
+EOReader aligns spectral bands from every handled sensor in order to make any call to a band generic:  
+[![Optical Band Mapping](https://zupimages.net/up/23/40/0zgb.png)](https://eoreader.readthedocs.io/en/latest/optical_band_mapping.html)
+
 ### SAR
+In the same way, you can import and stack radar band from any handled SAR constellation, with the same pattern.
 
 ```python
 from eoreader.reader import Reader
