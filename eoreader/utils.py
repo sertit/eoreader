@@ -124,7 +124,7 @@ def use_dask():
 
 
 def read(
-    path: Union[str, CloudPath, Path],
+    raster_path: Union[str, CloudPath, Path],
     pixel_size: Union[tuple, list, float] = None,
     size: Union[tuple, list] = None,
     resampling: Resampling = Resampling.nearest,
@@ -146,7 +146,7 @@ def read(
         True
 
     Args:
-        path (Union[str, CloudPath, Path]): Path to the raster
+        raster_path (Union[str, CloudPath, Path]): Path to the raster
         pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
         size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
         resampling (Resampling): Resampling method
@@ -174,7 +174,7 @@ def read(
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=NotGeoreferencedWarning)
             arr = rasters.read(
-                path,
+                raster_path,
                 resolution=pixel_size,
                 resampling=resampling,
                 masked=masked,
@@ -198,15 +198,17 @@ def read(
             return arr
 
     except errors.RasterioIOError as ex:
-        if not isinstance(path, str) and (
-            str(path).endswith("jp2") or str(path).endswith("tif") and path.exists()
+        if not isinstance(raster_path, str) and (
+            str(raster_path).endswith("jp2")
+            or str(raster_path).endswith("tif")
+            and raster_path.exists()
         ):
-            raise InvalidProductError(f"Corrupted file: {path}") from ex
+            raise InvalidProductError(f"Corrupted file: {raster_path}") from ex
         else:
             raise
 
 
-def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> None:
+def write(xds: xr.DataArray, filepath: Union[str, CloudPath, Path], **kwargs) -> None:
     """
     Overload of :code:`sertit.rasters.write()` managing DASK in EOReader's way.
 
@@ -224,7 +226,7 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
 
     Args:
         xds (xr.DataArray): Path to the raster or a rasterio dataset or a xarray
-        path (Union[str, CloudPath, Path]): Path where to save it (directories should be existing)
+        filepath (Union[str, CloudPath, Path]): Path where to save it (directories should be existing)
         **kwargs: Overloading metadata, ie :code:`nodata=255` or :code:`dtype=np.uint8`
     """
     lock = None
@@ -247,7 +249,9 @@ def write(xds: xr.DataArray, path: Union[str, CloudPath, Path], **kwargs) -> Non
             pass
 
     # Write
-    rasters.write(xds, path=path, lock=lock, **_prune_keywords(["window"], **kwargs))
+    rasters.write(
+        xds, path=filepath, lock=lock, **_prune_keywords(["window"], **kwargs)
+    )
 
     # Set back the previous long name
     if previous_long_name and xds.rio.count > 1:
@@ -278,13 +282,13 @@ def quick_xml_to_dict(element: etree._Element) -> tuple:
     return element.tag, dict(map(quick_xml_to_dict, element)) or element.text
 
 
-def open_rpc_file(path: Union[CloudPath, Path]) -> RPC:
+def open_rpc_file(rpc_path: Union[CloudPath, Path]) -> RPC:
     """
     Create a rasterio RPC object from a :code:`.rpc` file.
     Used for Vision-1 product
 
     Args:
-        path: Path of the RPC file
+        rpc_path: Path of the RPC file
 
     Returns:
         RPC: RPC object
@@ -304,7 +308,7 @@ def open_rpc_file(path: Union[CloudPath, Path]) -> RPC:
 
     try:
         rpcs_file = pd.read_csv(
-            path, delimiter=":", names=["name", "value"], index_col=0
+            rpc_path, delimiter=":", names=["name", "value"], index_col=0
         )
 
         height_off = to_float(rpcs_file, "HEIGHT_OFF")

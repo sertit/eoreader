@@ -26,7 +26,7 @@ from typing import Union
 
 import geopandas as gpd
 from lxml import etree
-from sertit import files, vectors
+from sertit import path, vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 
@@ -568,7 +568,7 @@ class Rs2Product(SarProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = files.get_archived_rio_path(
+                quicklook_path = path.get_archived_rio_path(
                     self.path, file_regex=r".*BrowseImage\.tif"
                 )
             else:

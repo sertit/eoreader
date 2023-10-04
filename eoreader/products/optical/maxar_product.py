@@ -33,7 +33,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import files, geometry, rasters, vectors
+from sertit import geometry, path, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
@@ -1007,7 +1007,7 @@ class MaxarProduct(VhrProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        return files.get_filename(self._get_tile_path())
+        return path.get_filename(self._get_tile_path())
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
@@ -1086,7 +1086,7 @@ class MaxarProduct(VhrProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        path: Union[Path, CloudPath],
+        band_path: Union[Path, CloudPath],
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -1095,7 +1095,7 @@ class MaxarProduct(VhrProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -1265,7 +1265,7 @@ class MaxarProduct(VhrProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = files.get_archived_rio_path(
+                quicklook_path = path.get_archived_rio_path(
                     self.path, file_regex=r".*BROWSE\.JPG"
                 )
             else:

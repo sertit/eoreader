@@ -33,7 +33,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import files, rasters, rasters_rio, xml
+from sertit import path, rasters, rasters_rio, xml
 from sertit.misc import ListEnum
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
@@ -139,11 +139,13 @@ class HlsProduct(OpticalProduct):
 
         """
         if self.is_archived:
-            path = files.get_archived_rio_path(self.path, rf".*{band_id}\.tif")
+            prod_path = path.get_archived_rio_path(self.path, rf".*{band_id}\.tif")
         else:
-            path = files.get_file_in_dir(self.path, f"*{band_id}.tif", exact_name=True)
+            prod_path = path.get_file_in_dir(
+                self.path, f"*{band_id}.tif", exact_name=True
+            )
 
-        return path
+        return prod_path
 
     def _get_fmask_path(self) -> Union[CloudPath, Path]:
         """
@@ -245,7 +247,7 @@ class HlsProduct(OpticalProduct):
         footprint = rasters_rio.vectorize(
             nodata, values=1, keep_values=False, dissolve=True
         )
-        # footprint = vectors.get_wider_exterior(footprint)  # No need here
+        # footprint = geometry.get_wider_exterior(footprint)  # No need here
 
         # Keep only the convex hull
         footprint.geometry = footprint.geometry.convex_hull
@@ -753,7 +755,7 @@ class HlsProduct(OpticalProduct):
 
     def _read_band(
         self,
-        path: Union[CloudPath, Path],
+        band_path: Union[CloudPath, Path],
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -766,7 +768,7 @@ class HlsProduct(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -775,7 +777,7 @@ class HlsProduct(OpticalProduct):
             xr.DataArray: Band xarray
         """
         band_arr = utils.read(
-            path,
+            band_path,
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.bilinear,
@@ -791,7 +793,7 @@ class HlsProduct(OpticalProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        path: Union[Path, CloudPath],
+        band_path: Union[Path, CloudPath],
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -800,7 +802,7 @@ class HlsProduct(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -808,7 +810,7 @@ class HlsProduct(OpticalProduct):
             xr.DataArray: Band in reflectance
         """
         # Works either with reflectance  (scale = 0.0001) and tb (scale = 0.01)
-        with rasterio.open(str(path)) as ds:
+        with rasterio.open(str(band_path)) as ds:
             tags = ds.tags()
             offset = float(tags["add_offset"])
             scale_factor = float(tags["scale_factor"])
@@ -1029,7 +1031,7 @@ class HlsProduct(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = files.get_archived_rio_path(
+                quicklook_path = path.get_archived_rio_path(
                     self.path, file_regex=r".*.jpg"
                 )
             else:

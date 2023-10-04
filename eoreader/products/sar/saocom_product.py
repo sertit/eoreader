@@ -25,7 +25,7 @@ from typing import Union
 
 import geopandas as gpd
 from lxml import etree
-from sertit import files, rasters, vectors
+from sertit import path, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
@@ -292,14 +292,12 @@ class SaocomProduct(SarProduct):
 
             try:
                 # Get as a list but keep only the first item (SLC with multiple swaths)
-                raw_paths = files.get_archived_rio_path(
+                raw_paths = path.get_archived_rio_path(
                     cuss_file, band_regex.replace("*", ".*"), as_list=True
                 )
 
                 # Remove .xml files and keep only the first item
-                band_paths[band] = [
-                    path for path in raw_paths if not path.endswith(".xml")
-                ][0]
+                band_paths[band] = [p for p in raw_paths if not p.endswith(".xml")][0]
             except FileNotFoundError:
                 continue
 
@@ -407,7 +405,7 @@ class SaocomProduct(SarProduct):
 
         # Open identifier
         try:
-            name = files.get_filename(root.findtext(".//dataFile/componentPath"))
+            name = path.get_filename(root.findtext(".//dataFile/componentPath"))
         except TypeError:
             raise InvalidProductError("dataFile/componentPath not found in metadata!")
 
@@ -443,7 +441,7 @@ class SaocomProduct(SarProduct):
         quicklook_path = None
         try:
             try:
-                quicklook_path = files.get_archived_rio_path(
+                quicklook_path = path.get_archived_rio_path(
                     next(self.path.glob(f"{self.name}.zip")), file_regex="Images/.*png"
                 )
             except FileNotFoundError:

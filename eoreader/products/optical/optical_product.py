@@ -29,7 +29,7 @@ import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
-from sertit import files, rasters
+from sertit import files, path, rasters
 from sertit.misc import ListEnum
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -269,7 +269,7 @@ class OpticalProduct(Product):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        path: Union[Path, CloudPath],
+        band_path: Union[Path, CloudPath],
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -278,7 +278,7 @@ class OpticalProduct(Product):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -371,7 +371,7 @@ class OpticalProduct(Product):
     @abstractmethod
     def _read_band(
         self,
-        path: Union[CloudPath, Path],
+        band_path: Union[CloudPath, Path],
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -384,7 +384,7 @@ class OpticalProduct(Product):
             Invalid pixels are not managed here
 
         Args:
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -515,7 +515,7 @@ class OpticalProduct(Product):
 
         # Get Hillshade path
         hillshade_name = (
-            f"{self.condensed_name}_HILLSHADE_{files.get_filename(dem_path)}.tif"
+            f"{self.condensed_name}_HILLSHADE_{path.get_filename(dem_path)}.tif"
         )
 
         hillshade_path, hillshade_exists = self._get_out_path(hillshade_name)

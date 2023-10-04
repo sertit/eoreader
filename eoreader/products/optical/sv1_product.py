@@ -33,7 +33,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import files, rasters_rio, vectors
+from sertit import path, rasters_rio, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import box
 
@@ -143,7 +143,7 @@ class Sv1Product(VhrProduct):
         """
         try:
             if self.is_archived:
-                files.get_archived_path(self.path, r".*PSH\.xml")
+                path.get_archived_path(self.path, r".*PSH\.xml")
             else:
                 next(self.path.glob("*PSH.xml"))
             self.band_combi = Sv1BandCombination.PSH
@@ -390,7 +390,7 @@ class Sv1Product(VhrProduct):
 
         try:
             if self.is_archived:
-                footprint_path = files.get_archived_path(self.path, r".*\.shp")
+                footprint_path = path.get_archived_path(self.path, r".*\.shp")
             else:
                 footprint_path = next(self.path.glob("*.shp"))
         except (FileNotFoundError, StopIteration):
@@ -399,7 +399,7 @@ class Sv1Product(VhrProduct):
             )
 
         # Open identifier
-        name = files.get_filename(footprint_path)
+        name = path.get_filename(footprint_path)
 
         return name
 
@@ -461,7 +461,7 @@ class Sv1Product(VhrProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        path: Union[Path, CloudPath],
+        band_path: Union[Path, CloudPath],
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -470,7 +470,7 @@ class Sv1Product(VhrProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -602,11 +602,11 @@ class Sv1Product(VhrProduct):
                 )
                 if not reproj_path.is_file():
                     # Then for original data
-                    path = self._get_ortho_path(band=band, **kwargs)
+                    band_path = self._get_ortho_path(band=band, **kwargs)
                 else:
-                    path = reproj_path
+                    band_path = reproj_path
 
-                band_paths[band] = path
+                band_paths[band] = band_path
 
         return band_paths
 
@@ -740,7 +740,7 @@ class Sv1Product(VhrProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = files.get_archived_rio_path(
+                quicklook_path = path.get_archived_rio_path(
                     self.path, file_regex=r".*MUX\.jpg"
                 )
             else:

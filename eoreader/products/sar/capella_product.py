@@ -31,7 +31,7 @@ from cloudpathlib import CloudPath
 from dicttoxml import dicttoxml
 from lxml import etree
 from rasterio import CRS, transform
-from sertit import files, vectors
+from sertit import files, path, vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 from shapely.geometry import Point, box
@@ -379,7 +379,7 @@ class CapellaProduct(SarProduct):
         name = None
         for file in self.path.glob("*.tif"):
             if "preview" not in file.name:
-                name = files.get_filename(file)
+                name = path.get_filename(file)
 
         return name
 
@@ -432,7 +432,7 @@ class CapellaProduct(SarProduct):
         band_paths = {}
         try:
             pol = sab.from_value(self.split_name[4])
-            band_paths[pol] = files.get_file_in_dir(
+            band_paths[pol] = path.get_file_in_dir(
                 self._band_folder, self._raw_band_regex, exact_name=True, get_list=False
             )
         except FileNotFoundError:

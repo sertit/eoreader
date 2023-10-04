@@ -33,7 +33,7 @@ import numpy as np
 import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
-from sertit import files, rasters, vectors, xml
+from sertit import path, rasters, vectors, xml
 from sertit.misc import ListEnum
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
@@ -313,7 +313,7 @@ class SkyProduct(PlanetProduct):
 
         if self.product_type is None:
             raise InvalidProductError(
-                f"Unknown product type for stack named {files.get_filename(stack_path)}"
+                f"Unknown product type for stack named {path.get_filename(stack_path)}"
             )
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
@@ -378,7 +378,7 @@ class SkyProduct(PlanetProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        path: Union[Path, CloudPath],
+        band_path: Union[Path, CloudPath],
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -387,7 +387,7 @@ class SkyProduct(PlanetProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -405,7 +405,7 @@ class SkyProduct(PlanetProduct):
                 import rasterio
 
                 try:
-                    with rasterio.open(path) as ds:
+                    with rasterio.open(band_path) as ds:
                         tags = ds.tags()["TIFFTAG_IMAGEDESCRIPTION"]
                         prop = json.loads(tags)["properties"]
 

@@ -30,7 +30,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import files
+from sertit import path
 from sertit.misc import ListEnum
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
@@ -544,7 +544,7 @@ class Spot45Product(DimapV1Product):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        path: Union[Path, CloudPath],
+        band_path: Union[Path, CloudPath],
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -553,7 +553,7 @@ class Spot45Product(DimapV1Product):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -663,7 +663,7 @@ class Spot45Product(DimapV1Product):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = files.get_archived_rio_path(
+                quicklook_path = path.get_archived_rio_path(
                     self.path, file_regex=r".*PREVIEW\.JPG"
                 )
             else:

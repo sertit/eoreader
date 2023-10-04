@@ -31,7 +31,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import files, geometry, rasters
+from sertit import geometry, path, rasters
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -288,7 +288,7 @@ class S2TheiaProduct(OpticalProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        name = files.get_filename(root.findtext(".//IDENTIFIER"))
+        name = path.get_filename(root.findtext(".//IDENTIFIER"))
         if not name:
             raise InvalidProductError("IDENTIFIER not found in metadata!")
 
@@ -334,11 +334,11 @@ class S2TheiaProduct(OpticalProduct):
                 band_id = self.bands[band].id
                 try:
                     if self.is_archived:
-                        band_paths[band] = files.get_archived_rio_path(
+                        band_paths[band] = path.get_archived_rio_path(
                             self.path, rf".*FRE_B{band_id}\.tif"
                         )
                     else:
-                        band_paths[band] = files.get_file_in_dir(
+                        band_paths[band] = path.get_file_in_dir(
                             self.path, f"FRE_B{band_id}.tif"
                         )
                 except (FileNotFoundError, IndexError) as ex:
@@ -350,7 +350,7 @@ class S2TheiaProduct(OpticalProduct):
 
     def _read_band(
         self,
-        path: Union[CloudPath, Path],
+        band_path: Union[CloudPath, Path],
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -363,7 +363,7 @@ class S2TheiaProduct(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -372,7 +372,7 @@ class S2TheiaProduct(OpticalProduct):
             xr.DataArray: Band xarray
         """
         band_arr = utils.read(
-            path,
+            band_path,
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.bilinear,
@@ -388,7 +388,7 @@ class S2TheiaProduct(OpticalProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        path: Union[Path, CloudPath],
+        band_path: Union[Path, CloudPath],
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -397,7 +397,7 @@ class S2TheiaProduct(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -405,7 +405,7 @@ class S2TheiaProduct(OpticalProduct):
             xr.DataArray: Band in reflectance
         """
         # Compute the correct radiometry of the band for raw band
-        if files.get_filename(path).startswith("SENTINEL"):
+        if path.get_filename(band_path).startswith("SENTINEL"):
             band_arr /= 10000.0
 
         # Convert type if needed
@@ -509,11 +509,11 @@ class S2TheiaProduct(OpticalProduct):
         mask_regex = f"*{mask_id}_{res_id}.tif"
         try:
             if self.is_archived:
-                mask_path = files.get_archived_rio_path(
+                mask_path = path.get_archived_rio_path(
                     self.path, mask_regex.replace("*", ".*")
                 )
             else:
-                mask_path = files.get_file_in_dir(
+                mask_path = path.get_file_in_dir(
                     self.path.joinpath("MASKS"), mask_regex, exact_name=True
                 )
         except (FileNotFoundError, IndexError) as ex:
@@ -838,7 +838,7 @@ class S2TheiaProduct(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = files.get_archived_rio_path(
+                quicklook_path = path.get_archived_rio_path(
                     self.path, file_regex=r".*QKL_ALL\.jpg"
                 )
             else:

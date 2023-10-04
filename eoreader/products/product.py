@@ -46,7 +46,7 @@ from rasterio import transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
-from sertit import files, logs, misc, rasters, strings, xml
+from sertit import files, logs, misc, path, rasters, strings, xml
 from sertit.misc import ListEnum
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -126,7 +126,7 @@ class Product:
         self.path = AnyPath(product_path)
         """Usable path to the product, either extracted or archived path, according to the satellite."""
 
-        self.filename = files.get_filename(self.path)
+        self.filename = path.get_filename(self.path)
         """Product filename"""
 
         self._use_filename = False
@@ -798,7 +798,7 @@ class Product:
     @abstractmethod
     def _read_band(
         self,
-        path: Union[CloudPath, Path],
+        band_path: Union[CloudPath, Path],
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -811,7 +811,7 @@ class Product:
             For optical data, invalid pixels are not managed here
 
         Args:
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -1133,20 +1133,20 @@ class Product:
             for band in band_list:
                 assert is_dem(band)
                 if band == DEM:
-                    path = self._warp_dem(
+                    dem_path = self._warp_dem(
                         kwargs.get(DEM_KW, dem_path),
                         pixel_size=pixel_size,
                         size=size,
                         **kwargs,
                     )
                 elif band == SLOPE:
-                    path = self._compute_slope(
+                    dem_path = self._compute_slope(
                         kwargs.get(SLOPE_KW, dem_path),
                         pixel_size=pixel_size,
                         size=size,
                     )
                 elif band == HILLSHADE:
-                    path = self._compute_hillshade(
+                    dem_path = self._compute_hillshade(
                         kwargs.get(HILLSHADE_KW, dem_path),
                         pixel_size=pixel_size,
                         size=size,
@@ -1156,7 +1156,7 @@ class Product:
 
                 dem_name = to_str(band)[0]
                 dem_arr = utils.read(
-                    path, pixel_size=pixel_size, size=size, as_type=np.float32
+                    dem_path, pixel_size=pixel_size, size=size, as_type=np.float32
                 ).rename(dem_name)
                 dem_arr.attrs["long_name"] = dem_name
                 dem_bands[band] = dem_arr
@@ -1399,7 +1399,7 @@ class Product:
         os.makedirs(self._tmp_process, exist_ok=True)
 
         # Move all files from old process folder into the new one
-        for file in files.listdir_abspath(old_tmp_process):
+        for file in path.listdir_abspath(old_tmp_process):
             try:
                 shutil.move(str(file), self._tmp_process)
             except shutil.Error:
@@ -1448,7 +1448,7 @@ class Product:
         Returns:
             Union[Path, CloudPath]: DEM path (as a VRT)
         """
-        dem_name = f"{self.condensed_name}_DEM_{files.get_filename(dem_path)}.vrt"
+        dem_name = f"{self.condensed_name}_DEM_{path.get_filename(dem_path)}.vrt"
 
         warped_dem_path, warped_dem_exists = self._get_out_path(dem_name)
         if warped_dem_exists:
@@ -1573,7 +1573,7 @@ class Product:
         warped_dem_path = self._warp_dem(dem_path, pixel_size, size, resampling)
 
         # Get slope path
-        slope_name = f"{self.condensed_name}_SLOPE_{files.get_filename(dem_path)}.tif"
+        slope_name = f"{self.condensed_name}_SLOPE_{path.get_filename(dem_path)}.tif"
 
         slope_path, slope_exists = self._get_out_path(slope_name)
         if slope_exists:

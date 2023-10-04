@@ -43,7 +43,7 @@ from pyresample.bilinear import XArrayBilinearResampler
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
-from sertit import files, vectors, xml
+from sertit import path, vectors, xml
 from sertit.misc import ListEnum
 from sertit.rasters import MAX_CORES
 from shapely.geometry import Polygon, box
@@ -218,7 +218,7 @@ class S3Product(OpticalProduct):
         # # Create wgs84 extent (left, bottom, right, top)
         # extent_wgs84 = gpd.GeoDataFrame(
         #     geometry=[
-        #         vectors.from_bounds_to_polygon(lon_min, lat_min, lon_max, lat_max)
+        #         geometry.from_bounds_to_polygon(lon_min, lat_min, lon_max, lat_max)
         #     ],
         #     crs=vectors.WGS84,
         # )
@@ -385,7 +385,7 @@ class S3Product(OpticalProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        name = files.get_filename(root.findtext(".//product_name"))
+        name = path.get_filename(root.findtext(".//product_name"))
         if not name:
             raise InvalidProductError("product_name not found in metadata!")
 
@@ -442,7 +442,7 @@ class S3Product(OpticalProduct):
     # pylint: disable=W0613
     def _read_band(
         self,
-        path: Union[CloudPath, Path],
+        band_path: Union[CloudPath, Path],
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -455,7 +455,7 @@ class S3Product(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -465,7 +465,7 @@ class S3Product(OpticalProduct):
 
         """
         band = utils.read(
-            path,
+            band_path,
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.bilinear,
@@ -478,7 +478,7 @@ class S3Product(OpticalProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        path: Union[Path, CloudPath],
+        band_path: Union[Path, CloudPath],
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -487,7 +487,7 @@ class S3Product(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -937,7 +937,7 @@ class S3Product(OpticalProduct):
         """
         try:
             if self.is_archived:
-                quicklook_path = files.get_archived_rio_path(
+                quicklook_path = path.get_archived_rio_path(
                     self.path, file_regex=r".*.jpg"
                 )
             else:

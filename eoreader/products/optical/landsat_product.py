@@ -30,7 +30,7 @@ from cloudpathlib import CloudPath
 from lxml import etree
 from lxml.builder import E
 from rasterio.enums import Resampling
-from sertit import files, rasters, rasters_rio
+from sertit import path, rasters, rasters_rio
 from sertit.misc import ListEnum
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
@@ -240,11 +240,13 @@ class LandsatProduct(OpticalProduct):
                 regex = rf".*(RT|T1|T2)(_SR|_ST|){band_id}\."
             else:
                 regex = rf".*{band_id}\."
-            path = files.get_archived_rio_path(self.path, regex)
+            prod_path = path.get_archived_rio_path(self.path, regex)
         else:
-            path = files.get_file_in_dir(self.path, f"*{band_id}.TIF", exact_name=True)
+            prod_path = path.get_file_in_dir(
+                self.path, f"*{band_id}.TIF", exact_name=True
+            )
 
-        return path
+        return prod_path
 
     def _set_pixel_size(self) -> None:
         """
@@ -1057,7 +1059,7 @@ class LandsatProduct(OpticalProduct):
 
     def _read_band(
         self,
-        path: Union[CloudPath, Path],
+        band_path: Union[CloudPath, Path],
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -1070,7 +1072,7 @@ class LandsatProduct(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -1079,13 +1081,13 @@ class LandsatProduct(OpticalProduct):
             xr.DataArray: Band xarray
         """
         if self.is_archived:
-            filename = files.get_filename(str(path).split("!")[-1])
+            filename = path.get_filename(str(band_path).split("!")[-1])
         else:
-            filename = files.get_filename(path)
+            filename = path.get_filename(band_path)
 
         if self._pixel_quality_id in filename or self._radsat_id in filename:
             band_arr = utils.read(
-                path,
+                band_path,
                 pixel_size=pixel_size,
                 size=size,
                 resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
@@ -1096,7 +1098,7 @@ class LandsatProduct(OpticalProduct):
         else:
             # Read band (call superclass generic method)
             band_arr = utils.read(
-                path,
+                band_path,
                 pixel_size=pixel_size,
                 size=size,
                 as_type=np.float32,
@@ -1109,7 +1111,7 @@ class LandsatProduct(OpticalProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        path: Union[Path, CloudPath],
+        band_path: Union[Path, CloudPath],
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -1118,7 +1120,7 @@ class LandsatProduct(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -1128,9 +1130,9 @@ class LandsatProduct(OpticalProduct):
         # Get band name: the last number of the filename:
         # ie: 'LC08_L1TP_200030_20191218_20191226_01_T1_B1'
         if self.is_archived:
-            filename = files.get_filename(str(path).split("!")[-1])
+            filename = path.get_filename(str(band_path).split("!")[-1])
         else:
-            filename = files.get_filename(path)
+            filename = path.get_filename(band_path)
 
         if not (self._pixel_quality_id in filename or self._radsat_id in filename):
             # Convert raw bands from DN to correct reflectance
@@ -1821,7 +1823,7 @@ class LandsatProduct(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = files.get_archived_rio_path(
+                quicklook_path = path.get_archived_rio_path(
                     self.path, file_regex=r".*thumb_large\.jpeg"
                 )
             else:

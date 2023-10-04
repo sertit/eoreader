@@ -26,7 +26,7 @@ from typing import Union
 
 import geopandas as gpd
 from lxml import etree
-from sertit import files, vectors
+from sertit import path, vectors
 from sertit.misc import ListEnum
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
@@ -364,7 +364,7 @@ class S1Product(SarProduct):
         """
         try:
             if self.is_archived:
-                pdf_file = files.get_archived_path(self.path, r".*\.pdf", as_list=False)
+                pdf_file = path.get_archived_path(self.path, r".*\.pdf", as_list=False)
             else:
                 pdf_file = next(self.path.glob("*.pdf"))
         except (FileNotFoundError, StopIteration):
@@ -389,7 +389,7 @@ class S1Product(SarProduct):
                     "product-preview.html not found in the product, the name will be the filename (which is not a valid Sentinel-1 name)"
                 )
         else:
-            name = files.get_filename(pdf_file)
+            name = path.get_filename(pdf_file)
 
         return name
 
@@ -426,7 +426,7 @@ class S1Product(SarProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = files.get_archived_rio_path(
+                quicklook_path = path.get_archived_rio_path(
                     self.path, file_regex=r".*preview.quick-look\.png"
                 )
             else:

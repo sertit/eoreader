@@ -29,7 +29,7 @@ import rasterio
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs
-from sertit import files, rasters, vectors
+from sertit import path, rasters, vectors
 from sertit.misc import ListEnum
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
@@ -473,7 +473,7 @@ class TsxProduct(SarProduct):
 
         # Open identifier
         try:
-            name = files.get_filename(
+            name = path.get_filename(
                 root.find(".//generalHeader").attrib.get("fileName")
             )
         except TypeError:
