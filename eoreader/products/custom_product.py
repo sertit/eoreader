@@ -30,7 +30,7 @@ from lxml import etree
 from lxml.builder import E
 from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import files, logs, misc, rasters
+from sertit import logs, misc, path, rasters
 from sertit.misc import ListEnum
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
@@ -179,7 +179,7 @@ class CustomProduct(Product):
         """
         name = self.kwargs.get(CustomFields.NAME.value)
         if name is None:
-            name = files.get_filename(self.path)
+            name = path.get_filename(self.path)
         return name
 
     def get_datetime(self, as_datetime: bool = False) -> str:
@@ -365,7 +365,7 @@ class CustomProduct(Product):
     # pylint: disable=W0613
     def _read_band(
         self,
-        path: Union[CloudPath, Path],
+        band_path: Union[CloudPath, Path],
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -378,7 +378,7 @@ class CustomProduct(Product):
             Invalid pixels are not managed here
 
         Args:
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -388,7 +388,7 @@ class CustomProduct(Product):
 
         """
         return utils.read(
-            path,
+            band_path,
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.bilinear,
@@ -484,7 +484,7 @@ class CustomProduct(Product):
 
             # Get Hillshade path
             hillshade_name = (
-                f"{self.condensed_name}_HILLSHADE_{files.get_filename(dem_path)}.tif"
+                f"{self.condensed_name}_HILLSHADE_{path.get_filename(dem_path)}.tif"
             )
 
             hillshade_path, hillshade_exists = self._get_out_path(hillshade_name)

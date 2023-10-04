@@ -267,9 +267,9 @@ def test_custom_wgs84():
     # Band paths
     assert prod_wgs84.get_existing_bands() == [BLUE, GREEN, RED, NIR]
     assert prod_wgs84.get_default_band() == BLUE
-    for key, path in prod_wgs84.get_existing_band_paths().items():
+    for key, ppath in prod_wgs84.get_existing_band_paths().items():
         assert key in [BLUE, GREEN, RED, NIR]
-        assert str(path) == str(wgs84_stack)
+        assert str(ppath) == str(wgs84_stack)
 
     # Load without a list and nothing
     with pytest.raises(InvalidProductError):

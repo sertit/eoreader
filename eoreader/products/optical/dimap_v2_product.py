@@ -37,7 +37,7 @@ from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
 from rasterio import features, transform
-from sertit import files, geometry, rasters_rio, vectors
+from sertit import geometry, path, rasters_rio, vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 from shapely.geometry import Polygon, box
@@ -612,7 +612,7 @@ class DimapV2Product(VhrProduct):
         Returns:
             str: True name of the product (from metadata)
         """
-        return files.get_filename(self._get_tile_path()).replace("DIM_", "")
+        return path.get_filename(self._get_tile_path()).replace("DIM_", "")
 
     def _manage_invalid_pixels(
         self, band_arr: xr.DataArray, band: BandNames, **kwargs
@@ -670,7 +670,7 @@ class DimapV2Product(VhrProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        path: Union[Path, CloudPath],
+        band_path: Union[Path, CloudPath],
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -683,7 +683,7 @@ class DimapV2Product(VhrProduct):
 
         Args:
             band_arr (xr.DataArray):
-            path (Union[Path, CloudPath]):
+            band_path (Union[Path, CloudPath]):
             band (BandNames):
             **kwargs: Other keywords
 
@@ -982,7 +982,7 @@ class DimapV2Product(VhrProduct):
                         crs=crs,
                     )
                 else:
-                    mask_gml_path = files.get_file_in_dir(
+                    mask_gml_path = path.get_file_in_dir(
                         self.path.joinpath("MASKS"),
                         f"*{mask_str}*.GML",
                         exact_name=True,
@@ -1242,7 +1242,7 @@ class DimapV2Product(VhrProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = files.get_archived_rio_path(
+                quicklook_path = path.get_archived_rio_path(
                     self.path, file_regex=".*PREVIEW.*JPG"
                 )
             else:

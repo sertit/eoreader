@@ -27,7 +27,7 @@ from typing import Union
 from zipfile import BadZipFile
 
 from cloudpathlib import AnyPath, CloudPath
-from sertit import files, strings
+from sertit import path, strings
 from sertit.misc import ListEnum
 
 from eoreader import EOREADER_NAME
@@ -668,7 +668,7 @@ class Reader:
         # Archive
         else:
             try:
-                prod_files = files.get_archived_file_list(product_path)
+                prod_files = path.get_archived_file_list(product_path)
             except BadZipFile:
                 raise BadZipFile(f"{product_path} is not a zip file")
 
@@ -705,7 +705,7 @@ def is_filename_valid(
     if product_path.is_dir() and product_path.suffix in [".0"]:
         product_file_name = product_path.name
     else:
-        product_file_name = files.get_filename(product_path)
+        product_file_name = path.get_filename(product_path)
 
     # Case folder is not enough to identify the products (i.e. COSMO Skymed)
     # WARNING: Two level max for the moment
@@ -720,7 +720,7 @@ def is_filename_valid(
                     break
         else:
             try:
-                file_list = files.get_archived_file_list(product_path)
+                file_list = path.get_archived_file_list(product_path)
                 for file in file_list:
                     if regex[1].match(file):
                         is_valid = True

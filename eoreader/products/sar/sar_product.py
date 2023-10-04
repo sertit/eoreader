@@ -32,7 +32,7 @@ import xarray as xr
 from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import files, misc, rasters, snap, strings
+from sertit import misc, path, rasters, snap, strings
 from sertit.misc import ListEnum
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -429,7 +429,7 @@ class SarProduct(Product):
             try:
                 # Try to load orthorectified bands
                 band_id = self.bands[band].id
-                band_paths[band] = files.get_file_in_dir(
+                band_paths[band] = path.get_file_in_dir(
                     self._get_band_folder(),
                     f"*{self.condensed_name}_{band_id}.tif",
                     exact_name=True,
@@ -440,7 +440,7 @@ class SarProduct(Product):
                     if sab.is_despeckle(band):
                         # Check if existing speckle ortho band
                         try:
-                            files.get_file_in_dir(
+                            path.get_file_in_dir(
                                 self._get_band_folder(),
                                 f"*{self.condensed_name}_{self.bands[speckle_band].id}.tif",
                                 exact_name=True,
@@ -475,7 +475,7 @@ class SarProduct(Product):
             if self.is_archived:
                 if self.path.suffix == ".zip":
                     try:
-                        band_paths[band] = files.get_archived_rio_path(
+                        band_paths[band] = path.get_archived_rio_path(
                             self.path, band_regex.replace("*", ".*"), as_list=True
                         )[0]
                         # Get as a list but keep only the first item (S1-SLC with 3 swaths)
@@ -487,7 +487,7 @@ class SarProduct(Product):
                     )
             else:
                 try:
-                    band_paths[band] = files.get_file_in_dir(
+                    band_paths[band] = path.get_file_in_dir(
                         self._band_folder, band_regex, exact_name=True, get_list=True
                     )[0]
                     # Get as a list but keep only the first item (S1-SLC with 3 swaths)
@@ -568,7 +568,7 @@ class SarProduct(Product):
     # pylint: disable=W0613
     def _read_band(
         self,
-        path: Union[CloudPath, Path],
+        band_path: Union[CloudPath, Path],
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -581,7 +581,7 @@ class SarProduct(Product):
             Invalid pixels are not managed here
 
         Args:
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -593,7 +593,7 @@ class SarProduct(Product):
         # TODO: check if that works
         # In case of data that doesn't have any known pixel_size
         if self.pixel_size < 0.0:
-            with rasterio.open(path) as ds:
+            with rasterio.open(band_path) as ds:
                 self.pixel_size = ds.res[0]
 
         try:
@@ -603,7 +603,7 @@ class SarProduct(Product):
             pass
 
         return utils.read(
-            path,
+            band_path,
             pixel_size=pixel_size,
             size=size,
             resampling=Resampling.bilinear,
@@ -849,10 +849,10 @@ class SarProduct(Product):
 
             # Create command line and run it
             if not os.path.isfile(dspk_dim):
-                path = self.get_band_paths([band], **kwargs)[band]
+                dspk_path = self.get_band_paths([band], **kwargs)[band]
                 cmd_list = snap.get_gpt_cli(
                     dspk_graph,
-                    [f"-Pfile={path}", f"-Pout={dspk_dim}"],
+                    [f"-Pfile={dspk_path}", f"-Pout={dspk_dim}"],
                     display_snap_opt=False,
                 )
 
@@ -919,7 +919,7 @@ class SarProduct(Product):
             # Save the file as the terrain-corrected image
             file_path = os.path.join(
                 self._get_band_folder(writable=True),
-                f"{files.get_filename(dim_path)}_{pol}{'_DSPK' if dspk else ''}{f'_{suffix}' if suffix else ''}.tif",
+                f"{path.get_filename(dim_path)}_{pol}{'_DSPK' if dspk else ''}{f'_{suffix}' if suffix else ''}.tif",
             )
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
 

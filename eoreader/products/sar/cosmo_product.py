@@ -36,7 +36,7 @@ from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from lxml.builder import E
 from rasterio import merge
-from sertit import files, rasters, rasters_rio, strings, vectors
+from sertit import path, rasters, rasters_rio, strings, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon, box
 
@@ -299,7 +299,7 @@ class CosmoProduct(SarProduct):
         root, _ = self.read_mtd()
 
         # Open identifier
-        name = files.get_filename(root.findtext(".//ProductName"))
+        name = path.get_filename(root.findtext(".//ProductName"))
         if not name:
             raise InvalidProductError("ProductName not found in metadata!")
 
@@ -384,7 +384,7 @@ class CosmoProduct(SarProduct):
                             # CSG products don't have their ProductName in the h5 file...
                             if xml_attr == "ProductName":
                                 global_attr.append(
-                                    E(xml_attr, files.get_filename(self._img_path))
+                                    E(xml_attr, path.get_filename(self._img_path))
                                 )
 
                     try:
@@ -505,7 +505,7 @@ class CosmoProduct(SarProduct):
 
                         # Create a mock-up of a COSMO product with only one swath and handled by SNAP
                         prod_path = os.path.join(
-                            tmp_dir, f"{files.get_filename(self._img_path)}.h5"
+                            tmp_dir, f"{path.get_filename(self._img_path)}.h5"
                         )
                         with h5netcdf.File(
                             prod_path, "w", phony_dims="access"
@@ -563,7 +563,7 @@ class CosmoProduct(SarProduct):
                 # Force GTiff to be used in SNAP
                 # Don't use rasters.merge_gtiff because off the predictor and the nodata...
                 try:
-                    pp_ds = [rasterio.open(path) for path in pp_swath_path]
+                    pp_ds = [rasterio.open(p) for p in pp_swath_path]
                     merged_array, merged_transform = merge.merge(pp_ds, **kwargs)
                     merged_meta = pp_ds[0].meta.copy()
                     merged_meta.update(

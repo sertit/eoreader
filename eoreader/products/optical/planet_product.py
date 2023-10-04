@@ -33,7 +33,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import files, rasters, strings
+from sertit import path, rasters, strings
 from sertit.misc import ListEnum
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -175,14 +175,14 @@ class PlanetProduct(OpticalProduct):
         # Manage mask type
         try:
             if self.is_archived:
-                files.get_archived_path(self.path, r".*udm2.*\.tif")
+                path.get_archived_path(self.path, r".*udm2.*\.tif")
             else:
                 next(self.path.glob("**/*udm2*.tif"))
             self._mask_type = PlanetMaskType.UDM2
         except (FileNotFoundError, StopIteration):
             try:
                 if self.is_archived:
-                    files.get_archived_path(self.path, r".*udm.*\.tif")
+                    path.get_archived_path(self.path, r".*udm.*\.tif")
                 else:
                     next(self.path.glob("**/*udm*.tif"))
                 self._mask_type = PlanetMaskType.UDM
@@ -202,7 +202,7 @@ class PlanetProduct(OpticalProduct):
         """
         # Manage Raw unit
         band_name = (
-            files.get_filename(self._get_stack_path(as_list=False)).upper().split("_")
+            path.get_filename(self._get_stack_path(as_list=False)).upper().split("_")
         )
         if "SR" in band_name:
             self._raw_units = RawUnits.REFL
@@ -421,7 +421,7 @@ class PlanetProduct(OpticalProduct):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
-        path = self._get_stack_path(as_list=False)
+        band_path = self._get_stack_path(as_list=False)
         for band in band_list:
             # Get clean band path
             clean_band = self._get_clean_band_path(
@@ -430,13 +430,13 @@ class PlanetProduct(OpticalProduct):
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
-                band_paths[band] = path
+                band_paths[band] = band_path
 
         return band_paths
 
     def _read_band(
         self,
-        path: Union[CloudPath, Path],
+        band_path: Union[CloudPath, Path],
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -449,7 +449,7 @@ class PlanetProduct(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -458,12 +458,12 @@ class PlanetProduct(OpticalProduct):
             xr.DataArray: Band xarray
 
         """
-        with rasterio.open(str(path)) as dst:
+        with rasterio.open(str(band_path)) as dst:
             # Manage the case if we open a simple band (EOReader processed bands)
             if dst.count == 1:
                 # Read band
                 band_arr = utils.read(
-                    path,
+                    band_path,
                     pixel_size=pixel_size,
                     size=size,
                     resampling=Resampling.bilinear,
@@ -473,7 +473,7 @@ class PlanetProduct(OpticalProduct):
             # Manage the case if we open a stack (native DIMAP bands)
             else:
                 band_arr = utils.read(
-                    path,
+                    band_path,
                     pixel_size=pixel_size,
                     size=size,
                     resampling=Resampling.bilinear,
@@ -1010,16 +1010,18 @@ class PlanetProduct(OpticalProduct):
             if self.is_archived:
                 regex = rf".*{filename}\w*[_]*\.{extension}"
 
-                ok_paths = files.get_archived_rio_path(self.path, regex, as_list=True)
+                ok_paths = path.get_archived_rio_path(self.path, regex, as_list=True)
             else:
                 ok_paths = [
-                    str(path) for path in self.path.glob(f"**/*{filename}*.{extension}")
+                    str(p) for p in self.path.glob(f"**/*{filename}*.{extension}")
                 ]
 
             if invalid_lookahead:
-                for path in ok_paths.copy():
-                    if any(il in files.get_filename(path) for il in invalid_lookahead):
-                        ok_paths.remove(path)
+                for ok_path in ok_paths.copy():
+                    if any(
+                        il in path.get_filename(ok_path) for il in invalid_lookahead
+                    ):
+                        ok_paths.remove(ok_path)
 
                 if not ok_paths:
                     raise FileNotFoundError

@@ -28,7 +28,7 @@ from typing import Union
 import geopandas as gpd
 from cloudpathlib import CloudPath
 from lxml import etree
-from sertit import files, vectors
+from sertit import path, vectors
 from sertit.misc import ListEnum
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
@@ -362,7 +362,7 @@ class IceyeProduct(SarProduct):
         """
         band_paths = {}
         try:
-            band_paths[sab.VV] = files.get_file_in_dir(
+            band_paths[sab.VV] = path.get_file_in_dir(
                 self._band_folder, self._raw_band_regex, exact_name=True, get_list=False
             )
         except FileNotFoundError:

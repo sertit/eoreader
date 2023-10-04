@@ -33,7 +33,7 @@ import xarray as xr
 from cloudpathlib import CloudPath
 from rasterio import features
 from rasterio.enums import Resampling
-from sertit import files, rasters
+from sertit import path, rasters
 from sertit.misc import ListEnum
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -530,7 +530,7 @@ class S3SlstrProduct(S3Product):
             filename = band
 
         if self.is_archived:
-            raw_path = files.get_archived_path(self.path, f".*{filename}*")
+            raw_path = path.get_archived_path(self.path, f".*{filename}*")
         else:
             raw_path = next(self.path.glob(f"*{filename}*"))
 
@@ -586,12 +586,12 @@ class S3SlstrProduct(S3Product):
             filename = band
 
         # Get the pre-processed path
-        path = self._get_preprocessed_band_path(
+        pp_path = self._get_preprocessed_band_path(
             pp_name, suffix=suffix, pixel_size=pixel_size, writable=False
         )
 
-        if not path.is_file():
-            path = self._get_preprocessed_band_path(
+        if not pp_path.is_file():
+            pp_path = self._get_preprocessed_band_path(
                 pp_name, suffix=suffix, pixel_size=pixel_size, writable=True
             )
 
@@ -638,9 +638,9 @@ class S3SlstrProduct(S3Product):
             )
 
             # Write on disk
-            utils.write(pp_arr, path)
+            utils.write(pp_arr, pp_path)
 
-        return path
+        return pp_path
 
     def _get_suffix(self, band: Union[str, BandNames] = None, **kwargs) -> str:
         """

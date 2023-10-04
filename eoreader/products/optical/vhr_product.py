@@ -36,7 +36,7 @@ from rasterio import warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
-from sertit import files, rasters, rasters_rio
+from sertit import path, rasters, rasters_rio
 from sertit.snap import MAX_CORES
 
 from eoreader import EOREADER_NAME, utils
@@ -227,11 +227,11 @@ class VhrProduct(OpticalProduct):
                 )
                 if not reproj_path.is_file():
                     # Then for original data
-                    path = self.ortho_path
+                    band_path = self.ortho_path
                 else:
-                    path = reproj_path
+                    band_path = reproj_path
 
-                band_paths[band] = path
+                band_paths[band] = band_path
 
         return band_paths
 
@@ -317,7 +317,7 @@ class VhrProduct(OpticalProduct):
 
     def _read_band(
         self,
-        path: Union[CloudPath, Path],
+        band_path: Union[CloudPath, Path],
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -330,7 +330,7 @@ class VhrProduct(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -338,7 +338,7 @@ class VhrProduct(OpticalProduct):
         Returns:
             xr.DataArray: Band xarray
         """
-        with rasterio.open(str(path)) as dst:
+        with rasterio.open(str(band_path)) as dst:
             dst_crs = dst.crs
 
             # Compute pixel_size from size (if needed)
@@ -356,7 +356,7 @@ class VhrProduct(OpticalProduct):
                     )
                     # Warp band if needed
                     self._warp_band(
-                        path,
+                        band_path,
                         reproj_path=reproj_path,
                         pixel_size=pixel_size,
                     )
@@ -376,7 +376,7 @@ class VhrProduct(OpticalProduct):
             elif dst.count == 1:
                 # Read band
                 band_arr = utils.read(
-                    path,
+                    band_path,
                     pixel_size=pixel_size,
                     size=size,
                     resampling=Resampling.bilinear,
@@ -387,7 +387,7 @@ class VhrProduct(OpticalProduct):
             else:
                 # Read band
                 band_arr = utils.read(
-                    path,
+                    band_path,
                     pixel_size=pixel_size,
                     size=size,
                     resampling=Resampling.bilinear,
@@ -494,25 +494,25 @@ class VhrProduct(OpticalProduct):
             Union[list, CloudPath, Path]: Path or list of paths (needs this because of potential mosaic)
 
         """
-        path = []
+        prod_path = []
         try:
             if filename and not filename.startswith("*"):
                 filename = f"*{filename}"
 
             if self.is_archived:
-                path = files.get_archived_rio_path(
+                prod_path = path.get_archived_rio_path(
                     self.path,
                     rf".{filename}.*\.{extension}",
                 )
             else:
-                path = next(self.path.glob(f"{filename}*.{extension}"))
+                prod_path = next(self.path.glob(f"{filename}*.{extension}"))
 
         except (FileNotFoundError, IndexError):
             LOGGER.warning(
                 f"No file corresponding to *{filename}*.{extension} found in {self.path}"
             )
 
-        return path
+        return prod_path
 
     def _get_utm_band_path(
         self,
@@ -539,7 +539,7 @@ class VhrProduct(OpticalProduct):
 
     def _warp_band(
         self,
-        path: Union[str, CloudPath, Path],
+        band_path: Union[str, CloudPath, Path],
         reproj_path: Union[str, CloudPath, Path],
         pixel_size: float = None,
     ) -> None:
@@ -547,7 +547,7 @@ class VhrProduct(OpticalProduct):
         Warp band to UTM
 
         Args:
-            path (Union[str, CloudPath, Path]): Band path to warp
+            band_path (Union[str, CloudPath, Path]): Band path to warp
             reproj_path (Union[str, CloudPath, Path]): Path where to write the reprojected band
             pixel_size (int): Band pixel size in meters
 
@@ -560,11 +560,11 @@ class VhrProduct(OpticalProduct):
             pixel_size = self.pixel_size
 
         LOGGER.info(
-            f"Warping {files.get_filename(path)} to UTM with a {pixel_size} m pixel size."
+            f"Warping {path.get_filename(band_path)} to UTM with a {pixel_size} m pixel size."
         )
 
         # Read band
-        with rasterio.open(str(path)) as src:
+        with rasterio.open(str(band_path)) as src:
 
             # Calculate transform
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
@@ -638,28 +638,28 @@ class VhrProduct(OpticalProduct):
 
                 if not dst_crs.is_projected:
                     def_band = self.get_default_band()
-                    path = self._get_utm_band_path(
+                    utm_path = self._get_utm_band_path(
                         band=def_band.name, pixel_size=pixel_size
                     )
 
                     # Warp band if needed
-                    if not path.is_file():
-                        path = self._get_utm_band_path(
+                    if not utm_path.is_file():
+                        utm_path = self._get_utm_band_path(
                             band=def_band.name, pixel_size=pixel_size, writable=True
                         )
                         self._warp_band(
                             def_path,
-                            reproj_path=path,
+                            reproj_path=utm_path,
                             pixel_size=pixel_size,
                         )
                 else:
-                    path = def_path
+                    utm_path = def_path
             else:
-                path = AnyPath(reproj_bands[0])
+                utm_path = AnyPath(reproj_bands[0])
         else:
-            path = AnyPath(reproj_bands[0])
+            utm_path = AnyPath(reproj_bands[0])
 
-        return path
+        return utm_path
 
     def default_transform(self, **kwargs) -> (affine.Affine, int, int, CRS):
         """

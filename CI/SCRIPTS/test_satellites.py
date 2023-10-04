@@ -12,7 +12,7 @@ from geopandas import gpd
 from lxml import etree
 from matplotlib import pyplot as plt
 from rasterio.windows import Window
-from sertit import ci, files, rasters
+from sertit import ci, path, rasters
 
 from eoreader import EOREADER_NAME
 from eoreader.bands import (
@@ -147,15 +147,15 @@ def _test_core(
 
     with xr.set_options(warn_for_unclosed_files=debug):
         # DATA paths
-        pattern_paths = files.get_file_in_dir(
+        pattern_paths = path.get_file_in_dir(
             prod_dir, pattern, exact_name=True, get_list=True
         )
 
-        for path in pattern_paths:
+        for pattern_path in pattern_paths:
             LOGGER.info(
                 "%s on drive %s (CI_EOREADER_S3: %s)",
-                path.name,
-                path.drive,
+                pattern_path.name,
+                pattern_path.drive,
                 os.getenv(CI_EOREADER_S3),
             )
 
@@ -163,11 +163,11 @@ def _test_core(
             LOGGER.info("Checking opening solutions")
 
             LOGGER.info("NAME")
-            prod_name = READER.open(path, method=CheckMethod.NAME)
+            prod_name = READER.open(pattern_path, method=CheckMethod.NAME)
 
             LOGGER.info("MTD")
             prod: Product = READER.open(
-                path,
+                pattern_path,
                 method=CheckMethod.MTD,
                 constellation=prod_name.constellation,
                 remove_tmp=False,
@@ -176,7 +176,7 @@ def _test_core(
 
             LOGGER.info("BOTH")
             prod_both = READER.open(
-                path, method=CheckMethod.BOTH, constellation=prod.constellation
+                pattern_path, method=CheckMethod.BOTH, constellation=prod.constellation
             )
             assert prod_name is not None
             assert prod_both is not None
@@ -367,8 +367,8 @@ def _test_core(
                     )
                 except AssertionError:
                     ci.assert_val(
-                        files.get_filename(stack.attrs["product_path"]),
-                        files.get_filename(prod.path),
+                        pattern_path.get_filename(stack.attrs["product_path"]),
+                        pattern_path.get_filename(prod.path),
                         "product_path",
                     )
 

@@ -33,7 +33,7 @@ import rasterio
 import xarray as xr
 from cloudpathlib import CloudPath
 from lxml import etree
-from sertit import files, rasters, xml
+from sertit import path, rasters, xml
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 
@@ -470,7 +470,7 @@ class PlaProduct(PlanetProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        path: Union[Path, CloudPath],
+        band_path: Union[Path, CloudPath],
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -479,7 +479,7 @@ class PlaProduct(PlanetProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -556,7 +556,7 @@ class PlaProduct(PlanetProduct):
         if not mtd_exists or not analytic_vrt_exists:
             # Get all scales, cloud cloudCoverPercentage, unusableDataPercentage
             for mtd_f in self._get_path("metadata", "xml", as_list=True):
-                mtd_filename = files.get_filename(mtd_f)
+                mtd_filename = path.get_filename(mtd_f)
                 subprod_name = mtd_filename.split("_Analytic")[0]
                 mtd, nsmap = self._read_mtd_xml(
                     f"{subprod_name}*metadata*xml", f"{subprod_name}.*metadata.*xml"
@@ -604,7 +604,7 @@ class PlaProduct(PlanetProduct):
 
             # Scale the VRT
             for el in vrt.iterfind(".//ComplexSource"):
-                band_name = files.get_filename(el.findtext("SourceFilename")).split(
+                band_name = path.get_filename(el.findtext("SourceFilename")).split(
                     "_Analytic"
                 )[0]
                 band_number = el.findtext("SourceBand")

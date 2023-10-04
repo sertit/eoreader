@@ -37,7 +37,7 @@ from lxml import etree
 from rasterio import errors, features, transform
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
-from sertit import files, geometry, rasters, vectors
+from sertit import files, geometry, path, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import box
 
@@ -473,7 +473,7 @@ class S2Product(OpticalProduct):
                 if not name:
                     raise InvalidProductError("PRODUCT_URI not found in metadata!")
 
-            name = files.get_filename(name)
+            name = path.get_filename(name)
         except InvalidProductError:
             try:
                 tile_info = files.read_json(
@@ -595,12 +595,12 @@ class S2Product(OpticalProduct):
                 band_id = self.bands[band].id
                 try:
                     if self.is_archived:
-                        band_paths[band] = files.get_archived_rio_path(
+                        band_paths[band] = path.get_archived_rio_path(
                             self.path,
                             f".*{band_folders[band]}.*_B{band_id}.*.jp2",
                         )
                     else:
-                        band_paths[band] = files.get_file_in_dir(
+                        band_paths[band] = path.get_file_in_dir(
                             band_folders[band],
                             f"_B{band_id}",
                             extension="jp2",
@@ -614,7 +614,7 @@ class S2Product(OpticalProduct):
 
     def _read_band(
         self,
-        path: Union[str, CloudPath, Path],
+        band_path: Union[str, CloudPath, Path],
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -627,7 +627,7 @@ class S2Product(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -636,24 +636,26 @@ class S2Product(OpticalProduct):
             xr.DataArray: Band xarray
 
         """
-        geocoded_path = path
+        geocoded_path = band_path
 
         # For L2Ap
         try:
-            if self._processing_baseline < 2.07 and str(path).endswith(".jp2"):
+            if self._processing_baseline < 2.07 and str(band_path).endswith(".jp2"):
                 # Get and write geocode data if not already existing
-                with rasterio.open(str(path), "r") as ds:
+                with rasterio.open(str(band_path), "r") as ds:
                     if not ds.crs:
                         # Download path just in case
-                        on_disk_path = self._get_band_folder(writable=True) / path.name
+                        on_disk_path = (
+                            self._get_band_folder(writable=True) / band_path.name
+                        )
                         if not on_disk_path.is_file():
-                            if isinstance(path, CloudPath):
-                                geocoded_path = path.download_to(
+                            if isinstance(band_path, CloudPath):
+                                geocoded_path = band_path.download_to(
                                     self._get_band_folder(writable=True)
                                 )
                             else:
                                 geocoded_path = files.copy(
-                                    path, self._get_band_folder(writable=True)
+                                    band_path, self._get_band_folder(writable=True)
                                 )
                         else:
                             geocoded_path = on_disk_path
@@ -661,7 +663,7 @@ class S2Product(OpticalProduct):
                         # Get and write geocode data if not already existing
                         try:
                             with rasterio.open(str(geocoded_path), "r+") as out_ds:
-                                tf, _, _, crs = self._l2ap_geocode_data(path)
+                                tf, _, _, crs = self._l2ap_geocode_data(band_path)
                                 out_ds.crs = crs
                                 out_ds.transform = tf
                         except SystemError:
@@ -676,15 +678,15 @@ class S2Product(OpticalProduct):
                                     str(geocoded_path), "w", **tif_meta
                                 ) as out_ds:
                                     out_ds.write(jp2_ds.read())
-                                    tf, _, _, crs = self._l2ap_geocode_data(path)
+                                    tf, _, _, crs = self._l2ap_geocode_data(band_path)
                                     out_ds.crs = crs
                                     out_ds.transform = tf
 
         except errors.RasterioIOError as ex:
             if (
-                str(path).endswith("jp2") or str(path).endswith("tif")
-            ) and path.exists():
-                raise InvalidProductError(f"Corrupted file: {path}") from ex
+                str(band_path).endswith("jp2") or str(band_path).endswith("tif")
+            ) and band_path.exists():
+                raise InvalidProductError(f"Corrupted file: {band_path}") from ex
             else:
                 raise ex
 
@@ -700,7 +702,7 @@ class S2Product(OpticalProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        path: Union[Path, CloudPath],
+        band_path: Union[Path, CloudPath],
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -709,7 +711,7 @@ class S2Product(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            path (Union[CloudPath, Path]): Band path
+            band_path (Union[CloudPath, Path]): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -717,9 +719,9 @@ class S2Product(OpticalProduct):
             xr.DataArray: Band in reflectance
         """
         # Only on raw files
-        if str(path).endswith(".jp2") or (
+        if str(band_path).endswith(".jp2") or (
             self._processing_baseline < 2.07
-            and files.get_filename(path).startswith("T")
+            and path.get_filename(band_path).startswith("T")
         ):
             try:
                 # Get MTD XML file
@@ -835,7 +837,7 @@ class S2Product(OpticalProduct):
         try:
             if self.is_archived:
                 # Open the zip file
-                # WE DON'T KNOW WHY BUT DO NOT USE files.read_archived_vector HERE !!!
+                # WE DON'T KNOW WHY BUT DO NOT USE path.read_archived_vector HERE !!!
                 with zipfile.ZipFile(self.path, "r") as zip_ds:
                     filenames = [f.filename for f in zip_ds.filelist]
                     regex = re.compile(
@@ -846,7 +848,7 @@ class S2Product(OpticalProduct):
                     )
             else:
                 # Get mask path
-                mask_path = files.get_file_in_dir(
+                mask_path = path.get_file_in_dir(
                     self.path,
                     f"**/*GRANULE/*/QI_DATA/*{mask_id.value}_B{band_name}.gml",
                     exact_name=True,
@@ -901,12 +903,12 @@ class S2Product(OpticalProduct):
             band_id = band
 
         if self.is_archived:
-            mask_path = files.get_archived_rio_path(
+            mask_path = path.get_archived_rio_path(
                 self.path, f".*GRANULE.*QI_DATA.*{mask_id.value}_B{band_id}.jp2"
             )
         else:
             # Get mask path
-            mask_path = files.get_file_in_dir(
+            mask_path = path.get_file_in_dir(
                 self.path,
                 f"**/*GRANULE/*/QI_DATA/*{mask_id.value}_B{band_id}.jp2",
                 exact_name=True,
@@ -1490,28 +1492,28 @@ class S2Product(OpticalProduct):
         return self._create_mask(xds, cond, nodata)
 
     def _l2ap_geocode_data(
-        self, path: Union[CloudPath, Path]
+        self, l2ap_path: Union[CloudPath, Path]
     ) -> (Affine, int, int, CRS):
         """
         Geocode L2Ap data.
 
         Args:
-            path (Union[CloudPath, Path]): Band path to be geocoded
+            l2ap_path (Union[CloudPath, Path]): Band path to be geocoded
 
         Returns:
             (Affine, int, int, CRS): Transform, width, height and CRS of the band
         """
         try:
-            if isinstance(path, str):
-                path = AnyPath(path)
+            if isinstance(l2ap_path, str):
+                l2ap_path = AnyPath(l2ap_path)
 
             # Read metadata
             root, ns = self.read_mtd()
 
             # Determine wanted resolution
-            if "10m" in path.name:
+            if "10m" in l2ap_path.name:
                 res = 10
-            elif "20m" in path.name:
+            elif "20m" in l2ap_path.name:
                 res = 20
             else:
                 res = 60
@@ -1592,7 +1594,7 @@ class S2Product(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = files.get_archived_rio_path(
+                quicklook_path = path.get_archived_rio_path(
                     self.path, file_regex=r".*ql\.jpg"
                 )
             else:
@@ -1600,7 +1602,7 @@ class S2Product(OpticalProduct):
         except (StopIteration, FileNotFoundError):
             try:
                 if self.is_archived:
-                    quicklook_path = files.get_archived_rio_path(
+                    quicklook_path = path.get_archived_rio_path(
                         self.path, file_regex=r".*preview\.jpg"
                     )
                 else:
@@ -1609,7 +1611,7 @@ class S2Product(OpticalProduct):
                 # Use the PVI
                 try:
                     if self.is_archived:
-                        quicklook_path = files.get_archived_rio_path(
+                        quicklook_path = path.get_archived_rio_path(
                             self.path, file_regex=r".*PVI\.jp2"
                         )
                     else:

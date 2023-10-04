@@ -30,7 +30,7 @@ import rasterio
 import xarray as xr
 from cloudpathlib import CloudPath
 from rasterio.enums import Resampling
-from sertit import files, rasters, rasters_rio
+from sertit import path, rasters, rasters_rio
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -466,7 +466,7 @@ class S3OlciProduct(S3Product):
             filename = self._replace(self._radiance_file, band=band_id)
 
             if self.is_archived:
-                raw_path = files.get_archived_path(self.path, f".*{filename}")
+                raw_path = path.get_archived_path(self.path, f".*{filename}")
             else:
                 raw_path = next(self.path.glob(f"*{filename}"))
 
@@ -499,12 +499,12 @@ class S3OlciProduct(S3Product):
         """
         band_str = band if isinstance(band, str) else band.name
 
-        path = self._get_preprocessed_band_path(
+        pp_path = self._get_preprocessed_band_path(
             band, pixel_size=pixel_size, writable=False
         )
 
-        if not path.is_file():
-            path = self._get_preprocessed_band_path(
+        if not pp_path.is_file():
+            pp_path = self._get_preprocessed_band_path(
                 band, pixel_size=pixel_size, writable=True
             )
 
@@ -533,9 +533,9 @@ class S3OlciProduct(S3Product):
             pp_arr = self._geocode(band_arr, pixel_size=pixel_size, **kwargs)
 
             # Write on disk
-            utils.write(pp_arr, path)
+            utils.write(pp_arr, pp_path)
 
-        return path
+        return pp_path
 
     def _rad_2_refl(
         self, band_arr: xr.DataArray, band: BandNames = None

@@ -7,7 +7,7 @@ from typing import Union
 import xarray as xr
 from cloudpathlib import AnyPath
 from lxml import etree
-from sertit import ci, files
+from sertit import ci, path
 
 from CI.SCRIPTS.scripts_utils import (
     CI_EOREADER_S3,
@@ -173,24 +173,26 @@ def _test_core(
         pattern_paths = []
         for prod_dir in prod_dirs:
             try:
-                pattern_paths += files.get_file_in_dir(
+                pattern_paths += path.get_file_in_dir(
                     prod_dir, pattern, exact_name=True, get_list=True
                 )
             except FileNotFoundError:
                 continue
 
-        for path in pattern_paths:
+        for pattern_path in pattern_paths:
             LOGGER.info(
                 "%s on drive %s (CI_EOREADER_S3: %s)",
-                path.name,
-                path.drive,
+                pattern_path.name,
+                pattern_path.drive,
                 os.getenv(CI_EOREADER_S3),
             )
 
             # Open product and set output
             LOGGER.info("Checking opening solutions")
             LOGGER.info("MTD")
-            prod: Product = READER.open(path, method=CheckMethod.MTD, remove_tmp=False)
+            prod: Product = READER.open(
+                pattern_path, method=CheckMethod.MTD, remove_tmp=False
+            )
 
             # Log name
             assert prod is not None

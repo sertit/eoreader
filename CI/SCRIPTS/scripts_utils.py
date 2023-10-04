@@ -5,8 +5,16 @@ from functools import wraps
 from pathlib import Path
 from typing import Callable, Union
 
+import tempenv
 from cloudpathlib import AnyPath, CloudPath
-from sertit import ci
+from sertit import ci, s3
+from sertit.s3 import USE_S3_STORAGE
+from sertit.unistra import (
+    UNISTRA_S3_ENPOINT,
+    get_db2_path,
+    get_db3_path,
+    get_geodatastore,
+)
 
 from eoreader import EOREADER_NAME
 from eoreader.env_vars import TILE_SIZE
@@ -36,20 +44,20 @@ def get_ci_db_dir() -> Union[CloudPath, Path]:
     """
     if int(os.getenv(CI_EOREADER_S3, 0)):
         # ON S3
-        ci.define_s3_client()
+        s3.define_s3_client(default_endpoint=UNISTRA_S3_ENPOINT)
         return AnyPath("s3://sertit-eoreader-ci")
     else:
         # ON DISK
         try:
             # CI
-            return AnyPath(ci.get_db3_path(), "CI", "eoreader")
+            return AnyPath(get_db3_path(), "CI", "eoreader")
         except NotADirectoryError:
             # Windows
-            path = AnyPath(r"//ds2/database03/CI/eoreader")
-            if not path.is_dir():
+            db_path = AnyPath(r"//ds2/database03/CI/eoreader")
+            if not db_path.is_dir():
                 raise NotADirectoryError("Impossible to find get_ci_db_dir")
 
-            return path
+            return db_path
 
 
 def get_ci_data_dir() -> Union[CloudPath, Path]:
@@ -76,7 +84,7 @@ def get_db_dir_on_disk() -> Union[CloudPath, Path]:
 
     if not db_dir.is_dir():
         try:
-            db_dir = AnyPath(ci.get_db2_path(), "BASES_DE_DONNEES")
+            db_dir = AnyPath(get_db2_path(), "BASES_DE_DONNEES")
         except NotADirectoryError:
             db_dir = AnyPath("/home", "ds2_db2", "BASES_DE_DONNEES")
 
@@ -93,16 +101,8 @@ def get_db_dir() -> Union[CloudPath, Path]:
     Returns:
         str: Database directory
     """
-
-    if int(os.getenv(CI_EOREADER_S3, 0)):
-        # ON S3
-        ci.define_s3_client()
-        return AnyPath("s3://sertit-geodatastore")
-    else:
-        # ON DISK
-        db_dir = get_db_dir_on_disk()
-
-    return db_dir
+    with tempenv.TemporaryEnvironment({USE_S3_STORAGE: os.getenv(CI_EOREADER_S3, 0)}):
+        return get_geodatastore()
 
 
 def dask_env(function: Callable):
@@ -158,4 +158,6 @@ def broken_s2_path():
 
 
 def s3_env(function):
-    return ci.s3_env(function, use_s3_env_var=CI_EOREADER_S3)
+    return s3.s3_env(
+        default_endpoint=UNISTRA_S3_ENPOINT, use_s3_env_var=CI_EOREADER_S3
+    )(function)

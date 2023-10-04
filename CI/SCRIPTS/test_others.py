@@ -9,7 +9,7 @@ import tempenv
 import xarray as xr
 from cloudpathlib import AnyPath
 from rasterio.windows import Window
-from sertit import ci, files
+from sertit import ci, path, unistra
 
 from eoreader import utils
 from eoreader.bands import (
@@ -233,28 +233,26 @@ def test_dems():
                 **{"slope_dem": slope_dem, "hillshade_dem": hillshade_dem},
             )
 
+        assert next(prod.output.glob(f"**/*DEM_{path.get_filename(dem)}.vrt")).is_file()
         assert next(
-            prod.output.glob(f"**/*DEM_{files.get_filename(dem)}.vrt")
+            prod.output.glob(f"**/*DEM_{path.get_filename(slope_dem)}.vrt")
         ).is_file()
         assert next(
-            prod.output.glob(f"**/*DEM_{files.get_filename(slope_dem)}.vrt")
+            prod.output.glob(f"**/*DEM_{path.get_filename(hillshade_dem)}.vrt")
         ).is_file()
         assert next(
-            prod.output.glob(f"**/*DEM_{files.get_filename(hillshade_dem)}.vrt")
+            prod.output.glob(f"**/*SLOPE_{path.get_filename(slope_dem)}.tif")
         ).is_file()
         assert next(
-            prod.output.glob(f"**/*SLOPE_{files.get_filename(slope_dem)}.tif")
-        ).is_file()
-        assert next(
-            prod.output.glob(f"**/*HILLSHADE_{files.get_filename(hillshade_dem)}.tif")
+            prod.output.glob(f"**/*HILLSHADE_{path.get_filename(hillshade_dem)}.tif")
         ).is_file()
 
         with pytest.raises(StopIteration):
-            next(prod.output.glob(f"**/*SLOPE_{files.get_filename(hillshade_dem)}.tif"))
+            next(prod.output.glob(f"**/*SLOPE_{path.get_filename(hillshade_dem)}.tif"))
         with pytest.raises(StopIteration):
-            next(prod.output.glob(f"**/*HILLSHADE_{files.get_filename(slope_dem)}.tif"))
+            next(prod.output.glob(f"**/*HILLSHADE_{path.get_filename(slope_dem)}.tif"))
         with pytest.raises(StopIteration):
-            next(prod.output.glob(f"**/*HILLSHADE_{files.get_filename(dem)}.tif"))
+            next(prod.output.glob(f"**/*HILLSHADE_{path.get_filename(dem)}.tif"))
 
 
 @pytest.mark.skipif(
@@ -313,7 +311,7 @@ def test_dems_S3():
     local_path = str(get_db_dir_on_disk().joinpath(*dem_sub_dir_path))
 
     # ON S3
-    ci.define_s3_client()
+    unistra.define_s3_client()
     s3_path = str(AnyPath("s3://sertit-geodatastore").joinpath(*dem_sub_dir_path))
 
     # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)

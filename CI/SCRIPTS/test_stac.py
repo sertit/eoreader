@@ -8,7 +8,7 @@ from typing import Union
 import pystac
 import pytest
 import xarray as xr
-from sertit import ci, files
+from sertit import ci, path
 from sertit.vectors import WGS84
 from shapely.geometry import mapping
 
@@ -117,20 +117,22 @@ def _test_core(
 
     with xr.set_options(warn_for_unclosed_files=debug):
         # DATA paths
-        pattern_paths = files.get_file_in_dir(
+        pattern_paths = path.get_file_in_dir(
             prod_dir, pattern, exact_name=True, get_list=True
         )
 
-        for path in pattern_paths:
+        for pattern_path in pattern_paths:
             LOGGER.info(
                 "%s on drive %s (CI_EOREADER_S3: %s)",
-                path.name,
-                path.drive,
+                pattern_path.name,
+                pattern_path.drive,
                 os.getenv(CI_EOREADER_S3),
             )
 
             # Open product and set output
-            prod: Product = READER.open(path, method=CheckMethod.MTD, remove_tmp=True)
+            prod: Product = READER.open(
+                pattern_path, method=CheckMethod.MTD, remove_tmp=True
+            )
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 prod.output = tmp_dir
