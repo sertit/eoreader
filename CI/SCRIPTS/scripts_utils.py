@@ -101,7 +101,7 @@ def get_db_dir() -> Union[CloudPath, Path]:
     Returns:
         str: Database directory
     """
-    with tempenv.TemporaryEnvironment({USE_S3_STORAGE: os.getenv(CI_EOREADER_S3, 0)}):
+    with tempenv.TemporaryEnvironment({USE_S3_STORAGE: os.getenv(CI_EOREADER_S3, "0")}):
         return get_geodatastore()
 
 
