@@ -1,5 +1,9 @@
 # Release History
 
+## 0.20.5 (2023-MM-DD)
+
+- CI: Update pre-commit hooks
+
 ## 0.20.4 (2023-09-26)
 
 - FIX: Don't collocate a raster on itself
