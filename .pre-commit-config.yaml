@@ -5,7 +5,7 @@ fail_fast: false
 repos:
 
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -13,21 +13,22 @@ repos:
       - id: check-yaml
         args: [ --allow-multiple-documents, --unsafe ]
       - id: check-xml
+      - id: check-added-large-files
+        args: [ '--maxkb=1600' ]
       - id: debug-statements
       - id: check-merge-conflict
 
-  - repo: 'https://github.com/pycqa/flake8'
-    rev: 6.0.0
+  - repo: 'https://github.com/PyCQA/flake8'
+    rev: 6.1.0
     hooks:
       - id: flake8
 
   - repo: 'https://github.com/psf/black'
-    rev: 22.10.0
+    rev: 23.10.0
     hooks:
       - id: black
 
-  - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.10.0
+  - repo: https://github.com/pycqa/isort
+    rev: 5.11.5
     hooks:
       - id: isort
-        args: [ --filter-files ]
