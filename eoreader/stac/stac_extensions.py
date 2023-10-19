@@ -69,7 +69,6 @@ class EoExt:
 
             self.extension = EOExtension.get_schema_uri()
         except ImportError:
-
             self.extension = None
 
         self.cloud_cover = None

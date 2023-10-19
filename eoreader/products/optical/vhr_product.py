@@ -565,7 +565,6 @@ class VhrProduct(OpticalProduct):
 
         # Read band
         with rasterio.open(str(band_path)) as src:
-
             # Calculate transform
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
                 src.crs,
@@ -627,7 +626,6 @@ class VhrProduct(OpticalProduct):
         reproj_bands = list(self._get_band_folder().glob(warped_regex))
 
         if len(reproj_bands) == 0:
-
             # Check in the writeable band folder
             reproj_bands = list(self._get_band_folder(writable=True).glob(warped_regex))
 

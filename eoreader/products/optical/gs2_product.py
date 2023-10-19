@@ -391,7 +391,6 @@ class Gs2Product(DimapV1Product):
 
         # If "N/A" is specified, it is impossible to convert to radiance/reflectance
         if phys_unit != "N/A":
-
             # Search in mtd as the band_array only contains last band metadata!
             if root is None:
                 root = get_curr_stack_mtd()

@@ -1477,7 +1477,6 @@ class Product:
                 # Get adjusted transform and shape (with new pixel_size)
                 if size is not None and pixel_size is None:
                     try:
-
                         # Get destination transform
                         out_h = size[1]
                         out_w = size[0]
@@ -1762,7 +1761,6 @@ class Product:
                 or (SLOPE in bands and SLOPE_KW not in kwargs)
                 or (HILLSHADE in bands and HILLSHADE_KW not in kwargs)
             ):
-
                 raise ValueError(
                     f"DEM path not set, unable to compute DEM bands! "
                     f"Please set the environment variable {DEM_PATH} or a DEM keyword."

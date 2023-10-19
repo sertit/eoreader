@@ -150,7 +150,6 @@ class S2Product(OpticalProduct):
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
-
         # Processing baseline < 02.07: images not georeferenced (L2Ap and after)
 
         # Is this product comes from a processing baseline less than 4.0

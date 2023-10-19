@@ -147,7 +147,6 @@ class SpectralBandMap(BandMap):
         """
         for band_name, band in band_map.items():
             if not isinstance(band, SpectralBand):
-
                 band = SpectralBand(
                     eoreader_name=band_name,
                     name=band,
