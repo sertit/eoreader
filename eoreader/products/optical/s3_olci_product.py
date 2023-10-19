@@ -107,7 +107,6 @@ class S3OlciProduct(S3Product):
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
-
         """
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/observation-mode-desc
 

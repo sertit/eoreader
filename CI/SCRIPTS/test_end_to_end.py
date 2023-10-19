@@ -147,7 +147,6 @@ def _test_core(
     set_dem(dem_path)
 
     with xr.set_options(warn_for_unclosed_files=debug):
-
         # DATA paths
         pattern_paths = path.get_file_in_dir(
             prod_dir, pattern, exact_name=True, get_list=True

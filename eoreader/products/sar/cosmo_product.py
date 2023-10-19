@@ -372,7 +372,6 @@ class CosmoProduct(SarProduct):
                     return str_val
 
                 with h5netcdf.File(self._img_path) as netcdf_ds:
-
                     # Create XML attributes
                     global_attr = []
                     for xml_attr, h5_attr in field_map.items():

@@ -165,7 +165,6 @@ def _test_core(
     set_dem(dem_path)
 
     with xr.set_options(warn_for_unclosed_files=debug):
-
         # DATA paths
         if not isinstance(prod_dirs, list):
             prod_dirs = [prod_dirs]

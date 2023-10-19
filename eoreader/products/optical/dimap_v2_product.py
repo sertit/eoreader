@@ -1087,7 +1087,6 @@ class DimapV2Product(VhrProduct):
         if all(nodata_det.is_empty):
             return np.zeros((1, height, width), dtype=np.uint8)
         else:
-
             # Rasterize nodata
             return features.rasterize(
                 nodata_det.geometry,

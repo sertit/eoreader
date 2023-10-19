@@ -313,7 +313,7 @@ def get_eoreader_indices() -> list:
 
     functions = inspect.getmembers(sys.modules[__name__], predicate=inspect.isfunction)
 
-    for (name, fct) in functions:
+    for name, fct in functions:
         # Do not gather this fct nor da.true_divide
         if name[0].isupper():
             eoreader_indices.append(fct.__name__)

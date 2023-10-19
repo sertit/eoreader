@@ -647,7 +647,6 @@ class Sv1Product(VhrProduct):
                 # Reproject and write on disk data
                 dem_path = self._get_dem_path(**kwargs)
                 with rasterio.open(str(self._get_tile_path(**kwargs))) as src:
-
                     out_arr, meta = self._reproject(
                         src.read(), src.meta, src.rpcs, dem_path, **kwargs
                     )
