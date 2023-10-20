@@ -24,7 +24,6 @@ import tempfile
 from datetime import datetime
 from enum import unique
 from io import BytesIO
-from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
@@ -32,12 +31,12 @@ import h5netcdf
 import numpy as np
 import rasterio
 import xarray as xr
-from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from lxml.builder import E
 from rasterio import merge
-from sertit import path, rasters, rasters_rio, strings, vectors
+from sertit import AnyPath, path, rasters, rasters_rio, strings, vectors
 from sertit.misc import ListEnum
+from sertit.types import AnyPathStrType
 from shapely.geometry import Polygon, box
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
@@ -85,9 +84,9 @@ class CosmoProduct(SarProduct):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -459,7 +458,7 @@ class CosmoProduct(SarProduct):
             OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
         """
         # Get MTD XML file
-        if isinstance(self.path, CloudPath):
+        if path.is_cloud_path(self.path):
             h5_xarr_path = BytesIO(self._img_path.read_bytes())
         else:
             h5_xarr_path = str(self._img_path)

@@ -23,18 +23,17 @@ import logging
 import os
 from datetime import datetime
 from enum import unique
-from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import rasterio
 import xarray as xr
-from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
 from sertit import path, rasters, rasters_rio, xml
 from sertit.misc import ListEnum
+from sertit.types import AnyPathType
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -127,7 +126,7 @@ class HlsProduct(OpticalProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def _get_path(self, band_id: str) -> Union[CloudPath, Path]:
+    def _get_path(self, band_id: str) -> AnyPathType:
         """
         Get either the archived path of the normal path of a tif file
 
@@ -135,7 +134,7 @@ class HlsProduct(OpticalProduct):
             band_id (str): Band ID
 
         Returns:
-            Union[CloudPath, Path]: band path
+            AnyPathType: band path
 
         """
         if self.is_archived:
@@ -147,12 +146,12 @@ class HlsProduct(OpticalProduct):
 
         return prod_path
 
-    def _get_fmask_path(self) -> Union[CloudPath, Path]:
+    def _get_fmask_path(self) -> AnyPathType:
         """
         Get either the archived path of the normal path of the Fmask path
 
         Returns:
-            Union[CloudPath, Path]: band path
+            AnyPathType: band path
 
         """
 
@@ -755,7 +754,7 @@ class HlsProduct(OpticalProduct):
 
     def _read_band(
         self,
-        band_path: Union[CloudPath, Path],
+        band_path: AnyPathType,
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -768,7 +767,7 @@ class HlsProduct(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -793,7 +792,7 @@ class HlsProduct(OpticalProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        band_path: Union[Path, CloudPath],
+        band_path: AnyPathType,
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -802,7 +801,7 @@ class HlsProduct(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 

@@ -5,9 +5,8 @@ import tempfile
 from typing import Union
 
 import xarray as xr
-from cloudpathlib import AnyPath
 from lxml import etree
-from sertit import ci, path
+from sertit import AnyPath, ci, path
 
 from CI.SCRIPTS.scripts_utils import (
     CI_EOREADER_S3,

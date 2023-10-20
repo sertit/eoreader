@@ -22,14 +22,13 @@ Take a look
 import logging
 from datetime import datetime
 from enum import unique
-from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
-from cloudpathlib import CloudPath
 from lxml import etree
 from sertit import path, vectors
 from sertit.misc import ListEnum
+from sertit.types import AnyPathStrType
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import SarBandNames as sab
@@ -87,9 +86,9 @@ class IceyeProduct(SarProduct):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:

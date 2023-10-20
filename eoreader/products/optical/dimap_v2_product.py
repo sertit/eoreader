@@ -24,7 +24,6 @@ import time
 from abc import abstractmethod
 from datetime import date, datetime
 from enum import unique
-from pathlib import Path
 from typing import Union
 
 import affine
@@ -33,12 +32,12 @@ import numpy as np
 import pandas as pd
 import rasterio
 import xarray as xr
-from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
 from rasterio import features, transform
 from sertit import geometry, path, rasters_rio, vectors
 from sertit.misc import ListEnum
+from sertit.types import AnyPathStrType, AnyPathType
 from sertit.vectors import WGS84
 from shapely.geometry import Polygon, box
 
@@ -248,9 +247,9 @@ class DimapV2Product(VhrProduct):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -670,7 +669,7 @@ class DimapV2Product(VhrProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        band_path: Union[Path, CloudPath],
+        band_path: AnyPathType,
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -683,7 +682,7 @@ class DimapV2Product(VhrProduct):
 
         Args:
             band_arr (xr.DataArray):
-            band_path (Union[Path, CloudPath]):
+            band_path (AnyPathType):
             band (BandNames):
             **kwargs: Other keywords
 
@@ -1097,12 +1096,12 @@ class DimapV2Product(VhrProduct):
                 dtype=np.uint8,
             )
 
-    def _get_tile_path(self) -> Union[CloudPath, Path]:
+    def _get_tile_path(self) -> AnyPathType:
         """
         Get the DIMAP filepath
 
         Returns:
-            Union[CloudPath, Path]: DIMAP filepath
+            AnyPathType: DIMAP filepath
 
         """
         return self._get_path("DIM_", "XML")

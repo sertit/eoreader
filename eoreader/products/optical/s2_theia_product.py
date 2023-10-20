@@ -22,16 +22,15 @@ See `here <https://labo.obs-mip.fr/multitemp/sentinel-2/theias-sentinel-2-l2a-pr
 import logging
 from datetime import datetime
 from functools import reduce
-from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import xarray as xr
-from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
 from sertit import geometry, path, rasters
+from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -72,9 +71,9 @@ class S2TheiaProduct(OpticalProduct):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -350,7 +349,7 @@ class S2TheiaProduct(OpticalProduct):
 
     def _read_band(
         self,
-        band_path: Union[CloudPath, Path],
+        band_path: AnyPathType,
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -363,7 +362,7 @@ class S2TheiaProduct(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -388,7 +387,7 @@ class S2TheiaProduct(OpticalProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        band_path: Union[Path, CloudPath],
+        band_path: AnyPathType,
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -397,7 +396,7 @@ class S2TheiaProduct(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -484,7 +483,7 @@ class S2TheiaProduct(OpticalProduct):
         # -- Merge masks
         return self._set_nodata_mask(band_arr, no_data_mask)
 
-    def get_mask_path(self, mask_id: str, res_id: str) -> Union[CloudPath, Path]:
+    def get_mask_path(self, mask_id: str, res_id: str) -> AnyPathType:
         """
         Get mask path from its id and file_id (:code:`R1` for 10m resolution, :code:`R2` for 20m resolution)
 
@@ -502,7 +501,7 @@ class S2TheiaProduct(OpticalProduct):
             res_id (str): Resolution ID (:code:`R1` or :code:`R2`)
 
         Returns:
-            Union[CloudPath, Path]: Mask path
+            AnyPathType: Mask path
         """
         assert res_id in ["R1", "R2"]
 

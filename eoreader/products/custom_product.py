@@ -18,20 +18,19 @@
 import logging
 from datetime import datetime
 from enum import unique
-from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import rasterio
 import xarray as xr
-from cloudpathlib import CloudPath
 from lxml import etree
 from lxml.builder import E
 from rasterio import crs
 from rasterio.enums import Resampling
 from sertit import logs, misc, path, rasters
 from sertit.misc import ListEnum
+from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -81,9 +80,9 @@ class CustomProduct(Product):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -256,14 +255,14 @@ class CustomProduct(Product):
         """
         return list(self.get_existing_bands())[0]
 
-    def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
+    def get_default_band_path(self, **kwargs) -> AnyPathType:
         """
         Get default band path: the stack path.
 
         Args:
             kwargs: Additional arguments
         Returns:
-            Union[CloudPath, Path]: Default band path
+            AnyPathType: Default band path
         """
         return self.path
 
@@ -365,7 +364,7 @@ class CustomProduct(Product):
     # pylint: disable=W0613
     def _read_band(
         self,
-        band_path: Union[CloudPath, Path],
+        band_path: AnyPathType,
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -378,7 +377,7 @@ class CustomProduct(Product):
             Invalid pixels are not managed here
 
         Args:
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -465,7 +464,7 @@ class CustomProduct(Product):
         pixel_size: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> Union[Path, CloudPath]:
+    ) -> AnyPathType:
         """
         Compute Hillshade mask
 
@@ -475,7 +474,7 @@ class CustomProduct(Product):
             resampling (Resampling): Resampling method
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
         Returns:
-            Union[Path, CloudPath]: Hillshade mask path
+            AnyPathType: Hillshade mask path
         """
         sun_az, sun_zen = self.get_mean_sun_angles()
         if sun_az is not None and sun_zen is not None:

@@ -29,7 +29,6 @@ import tempfile
 from abc import abstractmethod
 from enum import unique
 from io import BytesIO
-from pathlib import Path
 from typing import Tuple, Union
 from zipfile import ZipFile
 
@@ -39,15 +38,15 @@ import rasterio
 import validators
 import xarray as xr
 from affine import Affine
-from cloudpathlib import AnyPath, CloudPath
 from lxml import etree, html
 from rasterio import shutil as rio_shutil
 from rasterio import transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
-from sertit import files, logs, misc, path, rasters, strings, xml
+from sertit import AnyPath, files, logs, misc, path, rasters, strings, xml
 from sertit.misc import ListEnum
+from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -114,9 +113,9 @@ class Product:
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -368,12 +367,12 @@ class Product:
         """
         raise NotImplementedError
 
-    def _get_band_folder(self, writable: bool = False) -> Union[CloudPath, Path]:
+    def _get_band_folder(self, writable: bool = False) -> AnyPathType:
         """
         Manage the case of CI SNAP Bands
 
         Returns:
-            Union[CloudPath, Path]: Band folder
+            AnyPathType: Band folder
         """
         band_folder = self._tmp_process
 
@@ -519,7 +518,7 @@ class Product:
         size: Union[list, tuple] = None,
         writable: bool = False,
         **kwargs,
-    ) -> Union[CloudPath, Path]:
+    ) -> AnyPathType:
         """
         Get cloud band path.
 
@@ -530,7 +529,7 @@ class Product:
             kwargs: Additional arguments
 
         Returns:
-            Union[CloudPath, Path]: Clean band path
+            AnyPathType: Clean band path
         """
         # Manage pixel size
         if pixel_size is None:
@@ -547,7 +546,7 @@ class Product:
         )
 
     @abstractmethod
-    def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
+    def get_default_band_path(self, **kwargs) -> AnyPathType:
         """
         Get default band path (among the existing ones).
 
@@ -565,7 +564,7 @@ class Product:
             kwargs: Additional arguments
 
         Returns:
-            Union[CloudPath, Path]: Default band path
+            AnyPathType: Default band path
         """
         raise NotImplementedError
 
@@ -755,7 +754,7 @@ class Product:
         else:
             try:
                 mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
-                if isinstance(mtd_file, CloudPath):
+                if path.is_cloud_path(mtd_file):
                     try:
                         # Try using read_text (faster)
                         root = html.fromstring(mtd_file.read_text())
@@ -798,7 +797,7 @@ class Product:
     @abstractmethod
     def _read_band(
         self,
-        band_path: Union[CloudPath, Path],
+        band_path: AnyPathType,
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -811,7 +810,7 @@ class Product:
             For optical data, invalid pixels are not managed here
 
         Args:
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -1362,7 +1361,7 @@ class Product:
     def __hash__(self):
         return hash(self.condensed_name)
 
-    def _get_out_path(self, filename: str) -> Tuple[Union[Path, CloudPath], bool]:
+    def _get_out_path(self, filename: str) -> Tuple[AnyPathType, bool]:
         """
         Returns the output path of a file to be written, depending on if it already exists or not (manages CI folders)
 
@@ -1370,7 +1369,7 @@ class Product:
             filename (str): Filename
 
         Returns:
-            Tuple[Union[Path, CloudPath], bool]: Output path and if the file already exists or not
+            Tuple[AnyPathType, bool]: Output path and if the file already exists or not
         """
         out = self._get_band_folder() / filename
         exists = True
@@ -1381,7 +1380,7 @@ class Product:
         return out, exists
 
     @property
-    def output(self) -> Union[CloudPath, Path]:
+    def output(self) -> AnyPathType:
         """Output directory of the product, to write orthorectified data for example."""
         return self._output
 
@@ -1390,7 +1389,7 @@ class Product:
         """Output directory of the product, to write orthorectified data for example."""
         # Set the new output
         self._output = AnyPath(value)
-        if not isinstance(self._output, CloudPath):
+        if not path.is_cloud_path(self._output):
             self._output = self._output.resolve()
 
         # Create temporary process folder
@@ -1425,7 +1424,7 @@ class Product:
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
         **kwargs,
-    ) -> Union[Path, CloudPath]:
+    ) -> AnyPathType:
         """
         Get this product DEM, warped to this product footprint and CRS.
 
@@ -1446,7 +1445,7 @@ class Product:
             kwargs: Other arguments used to load bands
 
         Returns:
-            Union[Path, CloudPath]: DEM path (as a VRT)
+            AnyPathType: DEM path (as a VRT)
         """
         dem_name = f"{self.condensed_name}_DEM_{path.get_filename(dem_path)}.vrt"
 
@@ -1532,7 +1531,7 @@ class Product:
         pixel_size: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> Union[Path, CloudPath]:
+    ) -> AnyPathType:
         """
         Compute Hillshade mask
 
@@ -1543,7 +1542,7 @@ class Product:
             resampling (Resampling): Resampling method
 
         Returns:
-            Union[Path, CloudPath]: Hillshade mask path
+            AnyPathType: Hillshade mask path
 
         """
         raise NotImplementedError
@@ -1554,7 +1553,7 @@ class Product:
         pixel_size: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> Union[Path, CloudPath]:
+    ) -> AnyPathType:
         """
         Compute slope mask
 
@@ -1565,7 +1564,7 @@ class Product:
             resampling (Resampling): Resampling method
 
         Returns:
-            Union[Path, CloudPath]: Slope mask path
+            AnyPathType: Slope mask path
 
         """
         # Warp DEM
@@ -1621,7 +1620,7 @@ class Product:
         bands: list,
         pixel_size: float = None,
         size: Union[list, tuple] = None,
-        stack_path: Union[str, CloudPath, Path] = None,
+        stack_path: AnyPathStrType = None,
         save_as_int: bool = False,
         **kwargs,
     ) -> xr.DataArray:
@@ -1640,7 +1639,7 @@ class Product:
             bands (list): Bands and index combination
             pixel_size (float): Stack pixel size. . If not specified, use the product pixel size.
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
-            stack_path (Union[str, CloudPath, Path]): Stack path
+            stack_path (AnyPathStrType): Stack path
             save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
             **kwargs: Other arguments passed to :code:`load` or :code:`rioxarray.to_raster()` (such as :code:`compress`)
 

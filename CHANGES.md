@@ -3,6 +3,7 @@
 ## 0.20.5 (2023-MM-DD)
 
 - CI: Update pre-commit hooks
+- DEPS: Remove as many mention as possible to `cloudpathlib`
 
 ## 0.20.4 (2023-09-26)
 

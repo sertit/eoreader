@@ -7,9 +7,8 @@ import pytest
 import rasterio
 import tempenv
 import xarray as xr
-from cloudpathlib import AnyPath
 from rasterio.windows import Window
-from sertit import ci, path, unistra
+from sertit import AnyPath, ci, path, unistra
 
 from eoreader import utils
 from eoreader.bands import (

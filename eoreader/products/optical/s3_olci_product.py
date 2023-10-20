@@ -22,15 +22,14 @@ Sentinel-3 OLCI products
     -> use xr.open_dataset that manages that correctly
 """
 import logging
-from pathlib import Path
 from typing import Union
 
 import numpy as np
 import rasterio
 import xarray as xr
-from cloudpathlib import CloudPath
 from rasterio.enums import Resampling
 from sertit import path, rasters, rasters_rio
+from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -101,9 +100,9 @@ class S3OlciProduct(S3Product):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -121,7 +120,7 @@ class S3OlciProduct(S3Product):
         band: Union[BandNames, str],
         pixel_size: Union[float, tuple, list] = None,
         writable=True,
-    ) -> Union[CloudPath, Path]:
+    ) -> AnyPathType:
         """
         Create the pre-processed band path
 
@@ -131,7 +130,7 @@ class S3OlciProduct(S3Product):
             writable (bool): Do we need to write the pre-processed band ?
 
         Returns:
-            Union[CloudPath, Path]: Pre-processed band path
+            AnyPathType: Pre-processed band path
         """
         res_str = self._pixel_size_to_str(pixel_size)
         band_str = band.name if isinstance(band, BandNames) else band
@@ -480,7 +479,7 @@ class S3OlciProduct(S3Product):
         to_reflectance: bool = True,
         subdataset: str = None,
         **kwargs,
-    ) -> Union[CloudPath, Path]:
+    ) -> AnyPathType:
         """
         Pre-process S3 OLCI bands:
         - Convert radiance to reflectance

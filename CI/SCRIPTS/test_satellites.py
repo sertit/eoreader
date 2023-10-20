@@ -7,12 +7,11 @@ import tempfile
 import numpy as np
 import pytest
 import xarray as xr
-from cloudpathlib import AnyPath
 from geopandas import gpd
 from lxml import etree
 from matplotlib import pyplot as plt
 from rasterio.windows import Window
-from sertit import ci, path, rasters
+from sertit import AnyPath, ci, path, rasters
 
 from eoreader import EOREADER_NAME
 from eoreader.bands import (

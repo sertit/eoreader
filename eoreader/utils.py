@@ -20,19 +20,18 @@ import os
 import platform
 import warnings
 from functools import wraps
-from pathlib import Path
 from typing import Callable, Union
 
 import numpy as np
 import pandas as pd
 import xarray as xr
-from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from rasterio import errors
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
-from sertit import geometry, rasters
+from sertit import AnyPath, geometry, rasters
+from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME
 from eoreader.bands import is_index, is_sat_band
@@ -45,7 +44,7 @@ DEFAULT_TILE_SIZE = 2048
 UINT16_NODATA = rasters.UINT16_NODATA
 
 
-def get_src_dir() -> Union[CloudPath, Path]:
+def get_src_dir() -> AnyPathType:
     """
     Get src directory.
 
@@ -55,7 +54,7 @@ def get_src_dir() -> Union[CloudPath, Path]:
     return AnyPath(__file__).parent
 
 
-def get_root_dir() -> Union[CloudPath, Path]:
+def get_root_dir() -> AnyPathType:
     """
     Get root directory.
 
@@ -65,7 +64,7 @@ def get_root_dir() -> Union[CloudPath, Path]:
     return get_src_dir().parent
 
 
-def get_data_dir() -> Union[CloudPath, Path]:
+def get_data_dir() -> AnyPathType:
     """
     Get data directory.
 
@@ -124,7 +123,7 @@ def use_dask():
 
 
 def read(
-    raster_path: Union[str, CloudPath, Path],
+    raster_path: AnyPathStrType,
     pixel_size: Union[tuple, list, float] = None,
     size: Union[tuple, list] = None,
     resampling: Resampling = Resampling.nearest,
@@ -146,7 +145,7 @@ def read(
         True
 
     Args:
-        raster_path (Union[str, CloudPath, Path]): Path to the raster
+        raster_path (AnyPathStrType): Path to the raster
         pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
         size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
         resampling (Resampling): Resampling method
@@ -208,7 +207,7 @@ def read(
             raise
 
 
-def write(xds: xr.DataArray, filepath: Union[str, CloudPath, Path], **kwargs) -> None:
+def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
     """
     Overload of :code:`sertit.rasters.write()` managing DASK in EOReader's way.
 
@@ -226,7 +225,7 @@ def write(xds: xr.DataArray, filepath: Union[str, CloudPath, Path], **kwargs) ->
 
     Args:
         xds (xr.DataArray): Path to the raster or a rasterio dataset or a xarray
-        filepath (Union[str, CloudPath, Path]): Path where to save it (directories should be existing)
+        filepath (AnyPathStrType): Path where to save it (directories should be existing)
         **kwargs: Overloading metadata, ie :code:`nodata=255` or :code:`dtype=np.uint8`
     """
     lock = None
@@ -282,7 +281,7 @@ def quick_xml_to_dict(element: etree._Element) -> tuple:
     return element.tag, dict(map(quick_xml_to_dict, element)) or element.text
 
 
-def open_rpc_file(rpc_path: Union[CloudPath, Path]) -> RPC:
+def open_rpc_file(rpc_path: AnyPathType) -> RPC:
     """
     Create a rasterio RPC object from a :code:`.rpc` file.
     Used for Vision-1 product

@@ -22,13 +22,12 @@ import importlib
 import logging
 import re
 from enum import unique
-from pathlib import Path
 from typing import Union
 from zipfile import BadZipFile
 
-from cloudpathlib import AnyPath, CloudPath
-from sertit import path, strings
+from sertit import AnyPath, path, strings
 from sertit.misc import ListEnum
+from sertit.types import AnyPathStrType
 
 from eoreader import EOREADER_NAME
 
@@ -400,9 +399,9 @@ class Reader:
 
     def open(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         method: CheckMethod = CheckMethod.MTD,
         remove_tmp: bool = False,
         custom: bool = False,
@@ -446,9 +445,9 @@ class Reader:
                 tile name: T30QVE
 
         Args:
-            product_path (Union[str, CloudPath, Path]): Product path
-            archive_path (Union[str, CloudPath, Path]): Archive path
-            output_path (Union[str, CloudPath, Path]): Output Path
+            product_path (AnyPathStrType): Product path
+            archive_path (AnyPathStrType): Archive path
+            output_path (AnyPathStrType): Output Path
             method (CheckMethod): Checking method used to recognize the products
             remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
             custom (bool): True if we want to use a custom stack
@@ -559,7 +558,7 @@ class Reader:
 
     def valid_name(
         self,
-        product_path: Union[str, CloudPath, Path],
+        product_path: AnyPathStrType,
         constellation: Union[str, Constellation],
     ) -> bool:
         """
@@ -589,7 +588,7 @@ class Reader:
             True
 
         Args:
-            product_path (Union[str, CloudPath, Path]): Product path
+            product_path (AnyPathStrType): Product path
             constellation (str): Constellation's name or ID
 
         Returns:
@@ -602,7 +601,7 @@ class Reader:
 
     def valid_mtd(
         self,
-        product_path: Union[str, CloudPath, Path],
+        product_path: AnyPathStrType,
         constellation: Union[str, Constellation],
     ) -> bool:
         """
@@ -631,7 +630,7 @@ class Reader:
             True
 
         Args:
-            product_path (Union[str, CloudPath, Path]): Product path
+            product_path (AnyPathStrType): Product path
             constellation (Union[str, Constellation]): Constellation's name or ID
 
         Returns:
@@ -683,7 +682,7 @@ class Reader:
 
 
 def is_filename_valid(
-    product_path: Union[str, CloudPath, Path], regex: Union[list, re.Pattern]
+    product_path: AnyPathStrType, regex: Union[list, re.Pattern]
 ) -> bool:
     """
     Check if the filename corresponds to the given satellite regex.
@@ -694,7 +693,7 @@ def is_filename_valid(
         Two levels maximum for the moment
 
     Args:
-        product_path (Union[str, CloudPath, Path]): Product path
+        product_path (AnyPathStrType): Product path
         regex (Union[list, re.Pattern]): Regex or list of regex
 
     Returns:

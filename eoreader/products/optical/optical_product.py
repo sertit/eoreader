@@ -19,18 +19,17 @@ import logging
 from abc import abstractmethod
 from datetime import datetime
 from enum import unique
-from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import rasterio
 import xarray as xr
-from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
-from sertit import files, path, rasters
+from sertit import AnyPath, files, path, rasters
 from sertit.misc import ListEnum
+from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -104,9 +103,9 @@ class OpticalProduct(Product):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -153,7 +152,7 @@ class OpticalProduct(Product):
         """
         return GREEN
 
-    def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
+    def get_default_band_path(self, **kwargs) -> AnyPathType:
         """
         Get default band (:code:`GREEN` for optical data) path.
 
@@ -168,7 +167,7 @@ class OpticalProduct(Product):
         Args:
             kwargs: Additional arguments
         Returns:
-            Union[CloudPath, Path]: Default band path
+            AnyPathType: Default band path
         """
         default_band = self.get_default_band()
         return self.get_band_paths([default_band], **kwargs)[default_band]
@@ -269,7 +268,7 @@ class OpticalProduct(Product):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        band_path: Union[Path, CloudPath],
+        band_path: AnyPathType,
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -278,7 +277,7 @@ class OpticalProduct(Product):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -371,7 +370,7 @@ class OpticalProduct(Product):
     @abstractmethod
     def _read_band(
         self,
-        band_path: Union[CloudPath, Path],
+        band_path: AnyPathType,
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -384,7 +383,7 @@ class OpticalProduct(Product):
             Invalid pixels are not managed here
 
         Args:
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -496,7 +495,7 @@ class OpticalProduct(Product):
         pixel_size: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> Union[Path, CloudPath]:
+    ) -> AnyPathType:
         """
         Compute Hillshade mask
 
@@ -507,7 +506,7 @@ class OpticalProduct(Product):
             resampling (Resampling): Resampling method
 
         Returns:
-            Union[Path, CloudPath]: Hillshade mask path
+            AnyPathType: Hillshade mask path
 
         """
         # Warp DEM
@@ -629,7 +628,7 @@ class OpticalProduct(Product):
         pixel_size: float = None,
         writable: bool = False,
         **kwargs,
-    ) -> Union[CloudPath, Path]:
+    ) -> AnyPathType:
         """
         Get clean band path.
 
@@ -642,7 +641,7 @@ class OpticalProduct(Product):
             kwargs: Additional arguments
 
         Returns:
-            Union[CloudPath, Path]: Clean band path
+            AnyPathType: Clean band path
         """
         cleaning_method = CleanMethod.from_value(
             kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
