@@ -23,18 +23,17 @@ for more information.
 import logging
 from abc import abstractmethod
 from enum import unique
-from pathlib import Path
 from typing import Tuple, Union
 
 import geopandas as gpd
 import numpy as np
 import rasterio
 import xarray as xr
-from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio.enums import Resampling
 from sertit import path, rasters, strings
 from sertit.misc import ListEnum
+from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -134,9 +133,9 @@ class PlanetProduct(OpticalProduct):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -272,13 +271,13 @@ class PlanetProduct(OpticalProduct):
 
         return udm2_path
 
-    def _merge_subdatasets(self) -> Tuple[Union[Path, CloudPath], bool]:
+    def _merge_subdatasets(self) -> Tuple[AnyPathType, bool]:
         """
         Merge subdataset, when several Planet products avec been ordered together
         Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT.
 
         Returns:
-            Tuple[Union[Path, CloudPath], bool]: Analytic VRT and if already existing
+            Tuple[AnyPathType, bool]: Analytic VRT and if already existing
         """
         if self.is_archived:
             # VRT cannot be created from inside a ZIP
@@ -288,7 +287,7 @@ class PlanetProduct(OpticalProduct):
             # TODO: merge_geotiff BUT handle reflectances for every subdataset!
             # Relevant ? Maybe not as it takes would a lot of time to merge
 
-        if isinstance(self.path, CloudPath):
+        if path.is_cloud_path(self.path):
             # VRT cannot be created from data stored in the cloud
             raise InvalidProductError(
                 "EOReader doens't handle cloud-stored Planet data with multiple subdataset. Please download this product on disk."
@@ -436,7 +435,7 @@ class PlanetProduct(OpticalProduct):
 
     def _read_band(
         self,
-        band_path: Union[CloudPath, Path],
+        band_path: AnyPathType,
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -449,7 +448,7 @@ class PlanetProduct(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.

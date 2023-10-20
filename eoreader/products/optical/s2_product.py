@@ -23,7 +23,6 @@ import tempfile
 import zipfile
 from datetime import datetime
 from enum import unique
-from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
@@ -32,13 +31,13 @@ import pandas as pd
 import rasterio
 import xarray as xr
 from affine import Affine
-from cloudpathlib import AnyPath, CloudPath
 from lxml import etree
 from rasterio import errors, features, transform
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
-from sertit import files, geometry, path, rasters, vectors
+from sertit import AnyPath, files, geometry, path, rasters, vectors
 from sertit.misc import ListEnum
+from sertit.types import AnyPathStrType, AnyPathType
 from shapely.geometry import box
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
@@ -144,9 +143,9 @@ class S2Product(OpticalProduct):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -613,7 +612,7 @@ class S2Product(OpticalProduct):
 
     def _read_band(
         self,
-        band_path: Union[str, CloudPath, Path],
+        band_path: AnyPathStrType,
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -626,7 +625,7 @@ class S2Product(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -648,7 +647,7 @@ class S2Product(OpticalProduct):
                             self._get_band_folder(writable=True) / band_path.name
                         )
                         if not on_disk_path.is_file():
-                            if isinstance(band_path, CloudPath):
+                            if path.is_cloud_path(band_path):
                                 geocoded_path = band_path.download_to(
                                     self._get_band_folder(writable=True)
                                 )
@@ -701,7 +700,7 @@ class S2Product(OpticalProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        band_path: Union[Path, CloudPath],
+        band_path: AnyPathType,
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -710,7 +709,7 @@ class S2Product(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -1490,14 +1489,12 @@ class S2Product(OpticalProduct):
             )
         return self._create_mask(xds, cond, nodata)
 
-    def _l2ap_geocode_data(
-        self, l2ap_path: Union[CloudPath, Path]
-    ) -> (Affine, int, int, CRS):
+    def _l2ap_geocode_data(self, l2ap_path: AnyPathType) -> (Affine, int, int, CRS):
         """
         Geocode L2Ap data.
 
         Args:
-            l2ap_path (Union[CloudPath, Path]): Band path to be geocoded
+            l2ap_path (AnyPathType): Band path to be geocoded
 
         Returns:
             (Affine, int, int, CRS): Transform, width, height and CRS of the band

@@ -29,13 +29,11 @@ import zipfile
 from abc import abstractmethod
 from datetime import datetime
 from enum import unique
-from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import xarray as xr
-from cloudpathlib import CloudPath
 from lxml import etree
 from pyresample import XArrayResamplerNN, create_area_def
 from pyresample import geometry as geom
@@ -46,6 +44,7 @@ from rasterio.errors import NotGeoreferencedWarning
 from sertit import path, vectors, xml
 from sertit.misc import ListEnum
 from sertit.rasters import MAX_CORES
+from sertit.types import AnyPathStrType, AnyPathType
 from shapely.geometry import Polygon, box
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
@@ -99,9 +98,9 @@ class S3Product(OpticalProduct):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -442,7 +441,7 @@ class S3Product(OpticalProduct):
     # pylint: disable=W0613
     def _read_band(
         self,
-        band_path: Union[CloudPath, Path],
+        band_path: AnyPathType,
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -455,7 +454,7 @@ class S3Product(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -478,7 +477,7 @@ class S3Product(OpticalProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        band_path: Union[Path, CloudPath],
+        band_path: AnyPathType,
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -487,7 +486,7 @@ class S3Product(OpticalProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -578,7 +577,7 @@ class S3Product(OpticalProduct):
         to_reflectance: bool = True,
         subdataset: str = None,
         **kwargs,
-    ) -> Union[CloudPath, Path]:
+    ) -> AnyPathType:
         """
         Pre-process S3 bands:
         - Geocode
@@ -727,7 +726,7 @@ class S3Product(OpticalProduct):
         # Here in read_mtd we don't know which type of product we have (before we have the correct constellation)
         # Manage archives
         if self.is_archived:
-            if isinstance(self.path, CloudPath):
+            if path.is_cloud_path(self.path):
                 # Download the whole product (sadly)
                 on_disk = io.BytesIO(self.path.read_bytes())
             else:
@@ -750,7 +749,7 @@ class S3Product(OpticalProduct):
                 )
 
             # Open DS
-            if isinstance(geom_file, CloudPath):
+            if path.is_cloud_path(geom_file):
                 with io.BytesIO(geom_file.read_bytes()) as bf:
                     netcdf_ds = xr.open_dataset(bf)
             else:
@@ -823,7 +822,7 @@ class S3Product(OpticalProduct):
 
         # Get raw band path
         if self.is_archived:
-            if isinstance(self.path, CloudPath):
+            if path.is_cloud_path(self.path):
                 # Download the whole product (sadly)
                 on_disk = io.BytesIO(self.path.read_bytes())
             else:
@@ -840,7 +839,7 @@ class S3Product(OpticalProduct):
             except StopIteration:
                 raise FileNotFoundError(f"Non existing file {filename} in {self.path}")
 
-            if isinstance(nc_path, CloudPath):
+            if path.is_cloud_path(nc_path):
                 # Cloud paths: instead of downloading them, read them as bytes and directly open the xr.Dataset
                 bytes_file = nc_path.read_bytes()
             else:

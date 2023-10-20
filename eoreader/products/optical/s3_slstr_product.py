@@ -25,16 +25,15 @@ import logging
 from collections import namedtuple
 from enum import unique
 from functools import reduce
-from pathlib import Path
 from typing import Union
 
 import numpy as np
 import xarray as xr
-from cloudpathlib import CloudPath
 from rasterio import features
 from rasterio.enums import Resampling
 from sertit import path, rasters
 from sertit.misc import ListEnum
+from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -225,9 +224,9 @@ class S3SlstrProduct(S3Product):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -272,7 +271,7 @@ class S3SlstrProduct(S3Product):
         suffix: str,
         pixel_size: Union[float, tuple, list] = None,
         writable: bool = True,
-    ) -> Union[CloudPath, Path]:
+    ) -> AnyPathType:
         """
         Create the pre-processed band path
 
@@ -282,7 +281,7 @@ class S3SlstrProduct(S3Product):
             writable (bool): Do we need to write the pre-processed band ?
 
         Returns:
-            Union[CloudPath, Path]: Pre-processed band path
+            AnyPathType: Pre-processed band path
         """
         res_str = self._pixel_size_to_str(pixel_size)
         if filename.endswith(suffix):
@@ -505,7 +504,7 @@ class S3SlstrProduct(S3Product):
 
         return raw_band_paths
 
-    def _get_raw_band_path(self, band: BandNames, **kwargs) -> Union[Path, CloudPath]:
+    def _get_raw_band_path(self, band: BandNames, **kwargs) -> AnyPathType:
         """
         Return the raw band path.
 
@@ -514,7 +513,7 @@ class S3SlstrProduct(S3Product):
             kwargs: Additional arguments
 
         Returns:
-            Union[Path, CloudPath]: Raw path of queried band
+            AnyPathType: Raw path of queried band
         """
         band_id = self.bands[band].id
 
@@ -543,7 +542,7 @@ class S3SlstrProduct(S3Product):
         to_reflectance: bool = True,
         subdataset: str = None,
         **kwargs,
-    ) -> Union[CloudPath, Path]:
+    ) -> AnyPathType:
         """
         Pre-process S3 SLSTR bands:
         - Geocode
@@ -795,7 +794,7 @@ class S3SlstrProduct(S3Product):
 
         else:
             # Open rad_2_refl_coeff (resampled to band_arr size)
-            if isinstance(rad_2_refl_path, CloudPath):
+            if path.is_cloud_path(rad_2_refl_path):
                 rad_2_refl_path = rad_2_refl_path.fspath
 
             rad_2_refl_coeff = np.load(str(rad_2_refl_path))
@@ -884,7 +883,7 @@ class S3SlstrProduct(S3Product):
 
         else:
             # Open sza_img (resampled to band_arr size)
-            if isinstance(sza_img_path, CloudPath):
+            if path.is_cloud_path(sza_img_path):
                 sza_img_path = sza_img_path.fspath
 
             sza_img = np.load(str(sza_img_path))
@@ -1146,7 +1145,7 @@ class S3SlstrProduct(S3Product):
         pixel_size: float = None,
         writable: bool = False,
         **kwargs,
-    ) -> Union[CloudPath, Path]:
+    ) -> AnyPathType:
         """
         Get clean band path.
 
@@ -1158,7 +1157,7 @@ class S3SlstrProduct(S3Product):
             kwargs: Additional arguments
 
         Returns:
-            Union[CloudPath, Path]: Clean band path
+            AnyPathType: Clean band path
         """
         cleaning_method = CleanMethod.from_value(
             kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)

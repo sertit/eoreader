@@ -2,13 +2,12 @@
 import logging
 import os
 from functools import wraps
-from pathlib import Path
-from typing import Callable, Union
+from typing import Callable
 
 import tempenv
-from cloudpathlib import AnyPath, CloudPath
-from sertit import ci, s3
+from sertit import AnyPath, ci, s3
 from sertit.s3 import USE_S3_STORAGE
+from sertit.types import AnyPathType
 from sertit.unistra import (
     UNISTRA_S3_ENPOINT,
     get_db2_path,
@@ -27,7 +26,7 @@ READER = Reader()
 CI_EOREADER_S3 = "CI_EOREADER_USE_S3"
 
 
-def get_ci_dir() -> Union[CloudPath, Path]:
+def get_ci_dir() -> AnyPathType:
     """
     Get CI DATA directory
     Returns:
@@ -36,7 +35,7 @@ def get_ci_dir() -> Union[CloudPath, Path]:
     return AnyPath(__file__).parent.parent
 
 
-def get_ci_db_dir() -> Union[CloudPath, Path]:
+def get_ci_db_dir() -> AnyPathType:
     """
     Get CI database directory (S3 bucket)
     Returns:
@@ -60,7 +59,7 @@ def get_ci_db_dir() -> Union[CloudPath, Path]:
             return db_path
 
 
-def get_ci_data_dir() -> Union[CloudPath, Path]:
+def get_ci_data_dir() -> AnyPathType:
     """
     Get CI DATA directory (S3 bucket)
     Returns:
@@ -72,7 +71,7 @@ def get_ci_data_dir() -> Union[CloudPath, Path]:
         return get_ci_dir().joinpath("DATA")
 
 
-def get_db_dir_on_disk() -> Union[CloudPath, Path]:
+def get_db_dir_on_disk() -> AnyPathType:
     """
     Get database directory in the DS2
 
@@ -94,7 +93,7 @@ def get_db_dir_on_disk() -> Union[CloudPath, Path]:
     return db_dir
 
 
-def get_db_dir() -> Union[CloudPath, Path]:
+def get_db_dir() -> AnyPathType:
     """
     Get database directory in the DS2
 

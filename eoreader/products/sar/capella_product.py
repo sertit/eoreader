@@ -22,17 +22,16 @@ Take a look
 import logging
 from datetime import datetime
 from enum import unique
-from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 from affine import Affine
-from cloudpathlib import CloudPath
 from dicttoxml import dicttoxml
 from lxml import etree
 from rasterio import CRS, transform
 from sertit import files, path, vectors
 from sertit.misc import ListEnum
+from sertit.types import AnyPathStrType
 from sertit.vectors import WGS84
 from shapely.geometry import Point, box
 
@@ -147,9 +146,9 @@ class CapellaProduct(SarProduct):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:

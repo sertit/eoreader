@@ -20,7 +20,6 @@ import os
 import tempfile
 from abc import abstractmethod
 from enum import unique
-from pathlib import Path
 from string import Formatter
 from typing import Union
 
@@ -29,11 +28,11 @@ import numpy as np
 import rasterio
 import rioxarray
 import xarray as xr
-from cloudpathlib import AnyPath, CloudPath
 from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import misc, path, rasters, snap, strings
+from sertit import AnyPath, misc, path, rasters, snap, strings
 from sertit.misc import ListEnum
+from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import BandNames, SarBand, SarBandMap
@@ -167,9 +166,9 @@ class SarProduct(Product):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -290,7 +289,7 @@ class SarProduct(Product):
 
         return default_band
 
-    def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
+    def get_default_band_path(self, **kwargs) -> AnyPathType:
         """
         Get default band path (the first existing one between :code:`VV` and :code:`HH` for SAR data), ready to use (orthorectified)
 
@@ -309,7 +308,7 @@ class SarProduct(Product):
         Args:
             kwargs: Additional arguments
         Returns:
-            Union[CloudPath, Path]: Default band path
+            AnyPathType: Default band path
         """
         default_band = self.get_default_band()
         band_path = self.get_band_paths([default_band], **kwargs)
@@ -568,7 +567,7 @@ class SarProduct(Product):
     # pylint: disable=W0613
     def _read_band(
         self,
-        band_path: Union[CloudPath, Path],
+        band_path: AnyPathType,
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -581,7 +580,7 @@ class SarProduct(Product):
             Invalid pixels are not managed here
 
         Args:
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -777,7 +776,7 @@ class SarProduct(Product):
                     # Download cloud path to cache
                     prod_path = kwargs.get("prod_path")
                     if prod_path is None:
-                        if isinstance(self.path, CloudPath):
+                        if path.is_cloud_path(self.path):
                             LOGGER.debug(
                                 f"Caching {self.path} to {os.path.join(tmp_dir, self.path.name)}"
                             )
@@ -942,7 +941,7 @@ class SarProduct(Product):
         pixel_size: Union[float, tuple] = None,
         size: Union[list, tuple] = None,
         resampling: Resampling = Resampling.bilinear,
-    ) -> Union[Path, CloudPath]:
+    ) -> AnyPathType:
         """
         Compute Hillshade mask
 
@@ -952,7 +951,7 @@ class SarProduct(Product):
             resampling (Resampling): Resampling method
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
         Returns:
-            Union[Path, CloudPath]: Hillshade mask path
+            AnyPathType: Hillshade mask path
         """
         raise InvalidProductError("Impossible to compute hillshade mask for SAR data.")
 

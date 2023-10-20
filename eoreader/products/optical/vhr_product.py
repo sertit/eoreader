@@ -22,22 +22,21 @@ for more information.
 import logging
 import os
 from abc import abstractmethod
-from pathlib import Path
 from typing import Union
 
 import affine
 import numpy as np
 import rasterio
 import xarray as xr
-from cloudpathlib import AnyPath, CloudPath
 from rasterio import rpc
 from rasterio import shutil as rio_shutil
 from rasterio import warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
-from sertit import path, rasters, rasters_rio
+from sertit import AnyPath, path, rasters, rasters_rio
 from sertit.snap import MAX_CORES
+from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, utils
 from eoreader.bands import BandNames
@@ -59,9 +58,9 @@ class VhrProduct(OpticalProduct):
 
     def __init__(
         self,
-        product_path: Union[str, CloudPath, Path],
-        archive_path: Union[str, CloudPath, Path] = None,
-        output_path: Union[str, CloudPath, Path] = None,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
@@ -102,7 +101,7 @@ class VhrProduct(OpticalProduct):
         # Post init done by the super class
         super()._post_init(**kwargs)
 
-    def get_default_band_path(self, **kwargs) -> Union[CloudPath, Path]:
+    def get_default_band_path(self, **kwargs) -> AnyPathType:
         """
         Get default band (:code:`GREEN` for optical data) path.
 
@@ -124,7 +123,7 @@ class VhrProduct(OpticalProduct):
         Args:
             kwargs: Additional arguments
         Returns:
-            Union[CloudPath, Path]: Default band path
+            AnyPathType: Default band path
         """
         return self._get_default_utm_band(self.pixel_size, **kwargs)
 
@@ -138,12 +137,12 @@ class VhrProduct(OpticalProduct):
         """
         raise NotImplementedError
 
-    def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
+    def _get_ortho_path(self, **kwargs) -> AnyPathType:
         """
         Get the orthorectified path of the bands.
 
         Returns:
-            Union[CloudPath, Path]: Orthorectified path
+            AnyPathType: Orthorectified path
         """
         if self.product_type in self._proj_prod_type:
             ortho_name = f"{self.condensed_name}_ortho.tif"
@@ -251,7 +250,7 @@ class VhrProduct(OpticalProduct):
                 f"you must provide a valid DEM through the {DEM_PATH} environment variable"
             )
         else:
-            if isinstance(AnyPath(dem_path), CloudPath):
+            if path.is_cloud_path(dem_path):
                 raise ValueError(
                     "gdalwarp cannot process DEM stored on cloud with 'RPC_DEM' argument, "
                     "hence cloud-stored DEM cannot be used with non orthorectified DIMAP data."
@@ -317,7 +316,7 @@ class VhrProduct(OpticalProduct):
 
     def _read_band(
         self,
-        band_path: Union[CloudPath, Path],
+        band_path: AnyPathType,
         band: BandNames = None,
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
@@ -330,7 +329,7 @@ class VhrProduct(OpticalProduct):
             Invalid pixels are not managed here
 
         Args:
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
@@ -480,9 +479,7 @@ class VhrProduct(OpticalProduct):
         """
         return f"{self.get_datetime()}_{self.constellation.name}_{self.product_type.name}_{self.band_combi.name}_{self._job_id}"
 
-    def _get_path(
-        self, filename: str = "", extension: str = ""
-    ) -> Union[CloudPath, Path]:
+    def _get_path(self, filename: str = "", extension: str = "") -> AnyPathType:
         """
         Get either the archived path of the normal path of an asset
 
@@ -491,7 +488,7 @@ class VhrProduct(OpticalProduct):
             extension (str): Extension
 
         Returns:
-            Union[list, CloudPath, Path]: Path or list of paths (needs this because of potential mosaic)
+            Union[list, AnyPathType]: Path or list of paths (needs this because of potential mosaic)
 
         """
         prod_path = []
@@ -519,7 +516,7 @@ class VhrProduct(OpticalProduct):
         band: str,
         pixel_size: Union[float, tuple, list] = None,
         writable: bool = False,
-    ) -> Union[CloudPath, Path]:
+    ) -> AnyPathType:
         """
         Create the UTM band path
 
@@ -529,7 +526,7 @@ class VhrProduct(OpticalProduct):
             writable (bool): Do we need to write the UTM band ?
 
         Returns:
-            Union[CloudPath, Path]: UTM band path
+            AnyPathType: UTM band path
         """
         res_str = self._pixel_size_to_str(pixel_size)
 
@@ -539,16 +536,16 @@ class VhrProduct(OpticalProduct):
 
     def _warp_band(
         self,
-        band_path: Union[str, CloudPath, Path],
-        reproj_path: Union[str, CloudPath, Path],
+        band_path: AnyPathStrType,
+        reproj_path: AnyPathStrType,
         pixel_size: float = None,
     ) -> None:
         """
         Warp band to UTM
 
         Args:
-            band_path (Union[str, CloudPath, Path]): Band path to warp
-            reproj_path (Union[str, CloudPath, Path]): Path where to write the reprojected band
+            band_path (AnyPathStrType): Band path to warp
+            reproj_path (AnyPathStrType): Path where to write the reprojected band
             pixel_size (int): Band pixel size in meters
 
         """
@@ -598,7 +595,7 @@ class VhrProduct(OpticalProduct):
 
     def _get_default_utm_band(
         self, pixel_size: float = None, size: Union[list, tuple] = None
-    ) -> Union[CloudPath, Path]:
+    ) -> AnyPathType:
         """
         Get the default UTM band:
         - If one already exists, get it
@@ -685,22 +682,22 @@ class VhrProduct(OpticalProduct):
             return dst.transform, dst.width, dst.height, dst.crs
 
     @abstractmethod
-    def _get_tile_path(self) -> Union[CloudPath, Path]:
+    def _get_tile_path(self) -> AnyPathType:
         """
         Get the VHR tile path
 
         Returns:
-            Union[CloudPath, Path]: VHR filepath
+            AnyPathType: VHR filepath
         """
         raise NotImplementedError
 
     @abstractmethod
-    def _get_job_id(self) -> Union[CloudPath, Path]:
+    def _get_job_id(self) -> AnyPathType:
         """
         Get VHR job ID
 
         Returns:
-            Union[CloudPath, Path]: VHR product ID
+            AnyPathType: VHR product ID
         """
         raise NotImplementedError
 

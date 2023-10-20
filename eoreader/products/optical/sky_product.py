@@ -25,16 +25,15 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 from enum import unique
-from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import xarray as xr
-from cloudpathlib import CloudPath
 from lxml import etree
 from sertit import path, rasters, vectors, xml
 from sertit.misc import ListEnum
+from sertit.types import AnyPathType
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import (
@@ -378,7 +377,7 @@ class SkyProduct(PlanetProduct):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        band_path: Union[Path, CloudPath],
+        band_path: AnyPathType,
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -387,7 +386,7 @@ class SkyProduct(PlanetProduct):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 

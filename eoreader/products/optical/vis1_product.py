@@ -22,17 +22,15 @@ for more information.
 import io
 import logging
 from enum import unique
-from pathlib import Path
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
 import xarray as xr
-from cloudpathlib import CloudPath
 from lxml import etree
 from rasterio import crs as riocrs
 from sertit import files, geometry, path, rasters
 from sertit.misc import ListEnum
+from sertit.types import AnyPathType
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -326,7 +324,7 @@ class Vis1Product(DimapV1Product):
     def _to_reflectance(
         self,
         band_arr: xr.DataArray,
-        band_path: Union[Path, CloudPath],
+        band_path: AnyPathType,
         band: BandNames,
         **kwargs,
     ) -> xr.DataArray:
@@ -335,7 +333,7 @@ class Vis1Product(DimapV1Product):
 
         Args:
             band_arr (xr.DataArray): Band array to convert
-            band_path (Union[CloudPath, Path]): Band path
+            band_path (AnyPathType): Band path
             band (BandNames): Band to read
             **kwargs: Other keywords
 
@@ -367,21 +365,21 @@ class Vis1Product(DimapV1Product):
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
-    def _get_tile_path(self) -> Union[CloudPath, Path]:
+    def _get_tile_path(self) -> AnyPathType:
         """
         Get the DIMAP filepath
 
         Returns:
-            Union[CloudPath, Path]: DIMAP filepath
+            AnyPathType: DIMAP filepath
         """
         return self._get_path("DIM_", "xml")
 
-    def _get_ortho_path(self, **kwargs) -> Union[CloudPath, Path]:
+    def _get_ortho_path(self, **kwargs) -> AnyPathType:
         """
         Get the orthorectified path of the bands.
 
         Returns:
-            Union[CloudPath, Path]: Orthorectified path
+            AnyPathType: Orthorectified path
         """
         if self.product_type in self._proj_prod_type:
             # Compute RPCSs
