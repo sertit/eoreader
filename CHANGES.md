@@ -2,6 +2,7 @@
 
 ## 0.20.5 (2023-MM-DD)
 
+- Rename `utils.stack_dict` to `utils.stack` since we are stacking datasets and not dict anymore.
 - CI: Update pre-commit hooks
 - DEPS: Remove as many mention as possible to `cloudpathlib`
 

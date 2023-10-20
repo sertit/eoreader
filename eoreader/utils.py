@@ -30,7 +30,7 @@ from rasterio import errors
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
-from sertit import AnyPath, geometry, rasters
+from sertit import AnyPath, geometry, logs, rasters
 from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME
@@ -367,6 +367,25 @@ def simplify(footprint_fct: Callable):
 
 
 def stack_dict(
+    bands: list, band_xds: xr.Dataset, save_as_int: bool, nodata: float, **kwargs
+) -> (xr.DataArray, type):
+    """
+    Stack a dictionnary containing bands in a DataArray
+
+    Args:
+        bands (list): List of bands (to keep the right order of the stack)
+        band_xds (xr.Dataset): Dataset containing the bands
+        save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
+        nodata (float): Nodata value
+
+    Returns:
+        (xr.DataArray, type): Stack as a DataArray and its dtype
+    """
+    logs.deprecation_warning("Deprecated function. Please use `utils.stack` instead.")
+    return stack(bands, band_xds, save_as_int, nodata, **kwargs)
+
+
+def stack(
     bands: list, band_xds: xr.Dataset, save_as_int: bool, nodata: float, **kwargs
 ) -> (xr.DataArray, type):
     """
