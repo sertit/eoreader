@@ -5,6 +5,7 @@
 - Rename `utils.stack_dict` to `utils.stack` since we are stacking datasets and not dict anymore.
 - CI: Update pre-commit hooks
 - DEPS: Remove as many mention as possible to `cloudpathlib`
+- GITHUB: Update bug template
 
 ## 0.20.4 (2023-09-26)
 
