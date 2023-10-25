@@ -21,7 +21,7 @@ Compete output obtained with maximal verbosity.
 
 **Environment:**
  - Python version: `python --version`
- - sertit-utils version: `import eoreader; eoreader.__version__`
+ - eoreader version: `import eoreader; eoreader.__version__`
 
 **Additional context**
 Add any other context about the bug here.
