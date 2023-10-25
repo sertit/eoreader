@@ -1664,7 +1664,7 @@ class Product:
             nodata = kwargs.pop("nodata", UINT16_NODATA)
         else:
             nodata = kwargs.pop("nodata", self.nodata)
-        stack, dtype = utils.stack(bands, band_xds, save_as_int, nodata, **kwargs)
+        stack, dtype = utils.stack(band_xds, save_as_int, nodata, **kwargs)
 
         # Update stack's attributes
         stack = self._update_attrs(stack, bands, **kwargs)
