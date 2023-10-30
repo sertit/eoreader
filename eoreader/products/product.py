@@ -873,7 +873,7 @@ class Product:
             )
 
         # Check if all bands are valid
-        bands = to_band(bands)
+        bands = self.to_band(bands)
 
         for band in bands:
             assert self.has_band(band), f"{self.name} has not a {to_str(band)[0]} band."
@@ -1196,7 +1196,7 @@ class Product:
         Returns:
             bool: True if the products has the specified band
         """
-        band = to_band(band)[0]
+        band = self.to_band(band)[0]
 
         if is_dem(band):
             if self.sensor_type == SensorType.SAR and band == HILLSHADE:
@@ -1654,7 +1654,7 @@ class Product:
             else:
                 os.makedirs(str(stack_path.parent), exist_ok=True)
 
-        bands = to_band(bands)
+        bands = self.to_band(bands)
 
         # Create the analysis stack
         band_xds = self.load(bands, pixel_size=pixel_size, size=size, **kwargs)
@@ -1998,3 +1998,28 @@ class Product:
             OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
         """
         raise NotImplementedError
+
+    def to_band(self, raw_bands: Union[list, BandNames, str, int]) -> list:
+        bands = []
+        for raw_band in raw_bands:
+            try:
+                bands += to_band(raw_band)
+            except InvalidTypeError:
+                found = False
+                for band_name, band in self.bands.items():
+                    if band is not None and str(raw_band) in [
+                        str(band.id),
+                        band.name,
+                        band.common_name,
+                        band.eoreader_name,
+                    ]:
+                        bands.append(band_name)
+                        found = True
+                        break
+
+                if not found:
+                    raise InvalidTypeError(
+                        f"Couldn't find any band in {self.condensed_name} that corresponds to {raw_band}."
+                    )
+
+        return bands
