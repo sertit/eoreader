@@ -76,6 +76,9 @@ It can load satellite bands, index, DEM bands and cloud bands according to this 
 :alt: load_workflow
 ```
 
+Bands can be called with their name, ID or mapped name. 
+For example, for Sentinel-3 OLCI you can use `7`, `Oa07` or `YELLOW`. For Landsat-8, you can use `BLUE` or `2`.
+
 ```{note}
 For now, EOReader **always** loads bands with projected CRS (in UTM). 
 
@@ -157,6 +160,9 @@ stack = prod.stack(
   stack_path=os.path.join(prod.output, "stack.tif")
 )
 ```
+
+Bands can be called with their name, ID or mapped name. 
+For example, for Sentinel-3 OLCI you can use `7`, `Oa07` or `YELLOW`. For Landsat-8, you can use `BLUE` or `2`.
 
 Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
 - Methods to clean optical bands are best
