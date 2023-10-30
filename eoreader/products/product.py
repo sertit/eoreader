@@ -2000,6 +2000,21 @@ class Product:
         raise NotImplementedError
 
     def to_band(self, raw_bands: Union[list, BandNames, str, int]) -> list:
+        """
+        Convert any raw band identifier to a usable band.
+
+        Bands can be called with their name, ID or mapped name.
+        For example, for Sentinel-3 OLCI you can use `7`, `Oa07` or `YELLOW`. For Landsat-8, you can use `BLUE` or `2`.
+
+        Args:
+            raw_bands (Union[list, BandNames, str, int]): Raw bands
+
+        Returns:
+            list: Mapped bands
+        """
+        if not isinstance(raw_bands, list):
+            raw_bands = [raw_bands]
+
         bands = []
         for raw_band in raw_bands:
             try:
