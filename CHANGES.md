@@ -1,8 +1,9 @@
 # Release History
 
-## 0.20.5 (2023-MM-DD)
+## 0.21.0 (2023-MM-DD)
 
-- Rename `utils.stack_dict` to `utils.stack` since we are stacking datasets and not dict anymore.
+- **BREAKING CHANGES: Rename `utils.stack_dict` to `utils.stack` since we are stacking datasets and not dict anymore.**
+- **BREAKING CHANGES: Band ID for Sentinel-3 OLCI are now int instead of band names (i.e. `7` instead of `Oa07`. The names don't change).**
 - CI: Update pre-commit hooks
 - DEPS: Remove as many mention as possible to `cloudpathlib`
 - GITHUB: Update bug template

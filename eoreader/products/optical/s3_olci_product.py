@@ -205,7 +205,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=Oa01,
                 **{
                     NAME: "Oa01",
-                    ID: "Oa01",
+                    ID: 1,
                     GSD: self.pixel_size,
                     CENTER_WV: 400,
                     FWHM: 15,
@@ -216,7 +216,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=Oa02,
                 **{
                     NAME: "Oa02",
-                    ID: "Oa02",
+                    ID: 2,
                     GSD: self.pixel_size,
                     CENTER_WV: 412.5,
                     FWHM: 10,
@@ -227,7 +227,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=CA,
                 **{
                     NAME: "Oa03",
-                    ID: "Oa03",
+                    ID: 3,
                     GSD: self.pixel_size,
                     CENTER_WV: 442.5,
                     FWHM: 10,
@@ -238,7 +238,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=BLUE,
                 **{
                     NAME: "Oa04",
-                    ID: "Oa04",
+                    ID: 4,
                     GSD: self.pixel_size,
                     CENTER_WV: 490,
                     FWHM: 10,
@@ -249,7 +249,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=GREEN_1,
                 **{
                     NAME: "Oa05",
-                    ID: "Oa05",
+                    ID: 5,
                     GSD: self.pixel_size,
                     CENTER_WV: 510,
                     FWHM: 10,
@@ -260,7 +260,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=GREEN,
                 **{
                     NAME: "Oa06",
-                    ID: "Oa06",
+                    ID: 6,
                     GSD: self.pixel_size,
                     CENTER_WV: 560,
                     FWHM: 10,
@@ -271,7 +271,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=YELLOW,
                 **{
                     NAME: "Oa07",
-                    ID: "Oa07",
+                    ID: 7,
                     GSD: self.pixel_size,
                     CENTER_WV: 620,
                     FWHM: 10,
@@ -282,7 +282,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=RED,
                 **{
                     NAME: "Oa08",
-                    ID: "Oa08",
+                    ID: 8,
                     GSD: self.pixel_size,
                     CENTER_WV: 665,
                     FWHM: 10,
@@ -293,7 +293,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=Oa09,
                 **{
                     NAME: "Oa09",
-                    ID: "Oa09",
+                    ID: 9,
                     GSD: self.pixel_size,
                     CENTER_WV: 673.75,
                     FWHM: 7.5,
@@ -304,7 +304,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=Oa10,
                 **{
                     NAME: "Oa10",
-                    ID: "Oa10",
+                    ID: 10,
                     GSD: self.pixel_size,
                     CENTER_WV: 681.25,
                     FWHM: 7.5,
@@ -315,7 +315,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=VRE_1,
                 **{
                     NAME: "Oa11",
-                    ID: "Oa11",
+                    ID: 11,
                     GSD: self.pixel_size,
                     CENTER_WV: 708.75,
                     FWHM: 10,
@@ -326,7 +326,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=VRE_2,
                 **{
                     NAME: "Oa12",
-                    ID: "Oa12",
+                    ID: 12,
                     GSD: self.pixel_size,
                     CENTER_WV: 753.75,
                     FWHM: 7.5,
@@ -337,7 +337,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=Oa13,
                 **{
                     NAME: "Oa13",
-                    ID: "Oa13",
+                    ID: 13,
                     GSD: self.pixel_size,
                     CENTER_WV: 761.25,
                     FWHM: 2.5,
@@ -348,7 +348,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=Oa14,
                 **{
                     NAME: "Oa14",
-                    ID: "Oa14",
+                    ID: 14,
                     GSD: self.pixel_size,
                     CENTER_WV: 764.375,
                     FWHM: 3.75,
@@ -359,7 +359,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=Oa15,
                 **{
                     NAME: "Oa15",
-                    ID: "Oa15",
+                    ID: 15,
                     GSD: self.pixel_size,
                     CENTER_WV: 767.5,
                     FWHM: 2.5,
@@ -370,7 +370,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=VRE_3,
                 **{
                     NAME: "Oa16",
-                    ID: "Oa16",
+                    ID: 16,
                     GSD: self.pixel_size,
                     CENTER_WV: 778.75,
                     FWHM: 15,
@@ -381,7 +381,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=NIR,
                 **{
                     NAME: "Oa17",
-                    ID: "Oa17",
+                    ID: 17,
                     GSD: self.pixel_size,
                     CENTER_WV: 865,
                     FWHM: 20,
@@ -392,7 +392,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=NARROW_NIR,
                 **{
                     NAME: "Oa17",
-                    ID: "Oa17",
+                    ID: 17,
                     GSD: self.pixel_size,
                     CENTER_WV: 865,
                     FWHM: 20,
@@ -403,7 +403,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=Oa18,
                 **{
                     NAME: "Oa18",
-                    ID: "Oa18",
+                    ID: 18,
                     GSD: self.pixel_size,
                     CENTER_WV: 885,
                     FWHM: 10,
@@ -414,7 +414,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=Oa19,
                 **{
                     NAME: "Oa19",
-                    ID: "Oa19",
+                    ID: 19,
                     GSD: self.pixel_size,
                     CENTER_WV: 900,
                     FWHM: 10,
@@ -425,7 +425,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=WV,
                 **{
                     NAME: "Oa20",
-                    ID: "Oa20",
+                    ID: 20,
                     GSD: self.pixel_size,
                     CENTER_WV: 940,
                     FWHM: 20,
@@ -436,7 +436,7 @@ class S3OlciProduct(S3Product):
                 eoreader_name=Oa21,
                 **{
                     NAME: "Oa21",
-                    ID: "Oa21",
+                    ID: 21,
                     GSD: self.pixel_size,
                     CENTER_WV: 1020,
                     FWHM: 40,
