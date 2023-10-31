@@ -64,6 +64,13 @@ class Constellation(ListEnum):
     S2 = "Sentinel-2"
     """Sentinel-2"""
 
+    S2_CLOUD = "Sentinel-2 stored on cloud"
+    """
+    Sentinel-2 stored on cloud
+
+    For now, obly the one created by Element84 are supported: https://stacindex.org/catalogs/earth-search#/43bjKKcJQfxYaT1ir3Ep6uENfjEoQrjkzhd2?t=3
+    """
+
     S2_THEIA = "Sentinel-2 Theia"
     """Sentinel-2 Theia"""
 
@@ -197,6 +204,8 @@ class Constellation(ListEnum):
 CONSTELLATION_REGEX = {
     Constellation.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
     Constellation.S2: r"S2[AB]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
+    # Element84 : S2A_31UDQ_20230714_0_L2A
+    Constellation.S2_CLOUD: r"S2[AB]_\d{2}\w{3}_\d{8}_\d_L(1C|2A)",
     Constellation.S2_THEIA: r"SENTINEL2[AB]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
     Constellation.S3_OLCI: r"S3[AB]_OL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
     Constellation.S3_SLSTR: r"S3[AB]_SL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
@@ -260,6 +269,7 @@ MTD_REGEX = {
         "regex": r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}\.xml",
     },
     Constellation.S2: {"nested": 3, "regex": r"MTD_TL.xml"},
+    Constellation.S2_CLOUD: rf"{CONSTELLATION_REGEX[Constellation.S2_CLOUD]}\.json",
     Constellation.S2_THEIA: rf"{CONSTELLATION_REGEX[Constellation.S2_THEIA]}_MTD_ALL\.xml",
     Constellation.S3_OLCI: r"Oa\d{2}_radiance.nc",
     Constellation.S3_SLSTR: r"S\d_radiance_an.nc",
