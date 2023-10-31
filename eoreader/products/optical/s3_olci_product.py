@@ -458,10 +458,8 @@ class S3OlciProduct(S3Product):
         """
         raw_band_paths = {}
         for band in self.get_existing_bands():
-            band_id = self.bands[band].id
-
             # Get band filename and subdataset
-            filename = self._replace(self._radiance_file, band=band_id)
+            filename = self._replace(self._radiance_file, band=self.bands[band].name)
 
             if self.is_archived:
                 raw_path = path.get_archived_path(self.path, f".*{filename}")
@@ -508,10 +506,10 @@ class S3OlciProduct(S3Product):
 
             # Get band regex
             if isinstance(band, BandNames):
-                band_id = self.bands[band].id
+                band_name = self.bands[band].name
                 if not subdataset:
-                    subdataset = self._replace(self._radiance_subds, band=band_id)
-                filename = self._replace(self._radiance_file, band=band_id)
+                    subdataset = self._replace(self._radiance_subds, band=band_name)
+                filename = self._replace(self._radiance_file, band=band_name)
             else:
                 filename = band
 
