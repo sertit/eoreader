@@ -40,7 +40,7 @@ spyndex>=0.3.0
 pystac[validation]
 
 # SERTIT libs
-sertit[full]>=1.30.0
+sertit[full]>=1.31.0
 
 # Optimizations
 dask[complete]>=2021.10.0

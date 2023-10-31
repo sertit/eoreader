@@ -26,6 +26,7 @@
 - FIX: Fixing TIR temperature conversion for Landsat-7
 - FIX: Test thermal bands in CI
 - FIX: Upgraded to EO STAC extension v1.1.0 ([#83](https://github.com/sertit/eoreader/issues/83))
+- DEPS: Update minimum versions of some libraries
 
 ## 0.20.2 (2023-06-22)
 
