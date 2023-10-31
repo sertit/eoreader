@@ -532,6 +532,13 @@ def test_s2_theia():
 
 @s3_env
 @dask_env
+def test_s2_cloud():
+    """Function testing the support of Sentinel-2 Theia constellation"""
+    _test_core_optical("*S2A_39KZU*")
+
+
+@s3_env
+@dask_env
 def test_s3_olci():
     """Function testing the support of Sentinel-3 OLCI constellation"""
     # Init logger

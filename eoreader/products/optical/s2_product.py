@@ -158,7 +158,7 @@ class S2Product(OpticalProduct):
         # See here for more information
         # https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming
         self._processing_baseline = None
-        self.base_no_data_val = 0
+        self.raw_no_data = 0
         self.no_data_val = {}
 
         # L2Ap
@@ -770,7 +770,7 @@ class S2Product(OpticalProduct):
             # Compute the correct radiometry of the band
             band_arr = (band_arr + offset) / quantif_value
 
-            self.no_data_val[band] = (self.base_no_data_val + offset) / quantif_value
+            self.no_data_val[band] = (self.raw_no_data + offset) / quantif_value
 
         return band_arr.astype(np.float32)
 
