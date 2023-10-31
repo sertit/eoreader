@@ -611,7 +611,7 @@ class S3OlciProduct(S3Product):
         e0_det = self._read_nc(self._misc_file, self._solar_flux_name).data
 
         # Get band slice and open corresponding e0 for the detectors
-        band_slice = int(self.bands[band].id[-2:]) - 1
+        band_slice = int(self.bands[band].name[-2:]) - 1
         e0_det = np.squeeze(e0_det[0, band_slice, :])
 
         # Create e0
