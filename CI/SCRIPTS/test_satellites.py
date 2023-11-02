@@ -124,6 +124,427 @@ def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
     _test_core(pattern, sar_path(), possible_bands, dem_path, debug, **kwargs)
 
 
+def check_prod(pattern_path: str) -> Product:
+    """
+    Open and check the products
+
+    Args:
+        pattern_path (str): Pattern path used to open the right product
+
+    Returns:
+        Product: Opened product
+    """
+    # Check if all opening solutions are working
+    LOGGER.info("Checking opening solutions")
+
+    LOGGER.info("NAME")
+    prod_name = READER.open(pattern_path, method=CheckMethod.NAME)
+
+    LOGGER.info("MTD")
+    prod: Product = READER.open(
+        pattern_path,
+        method=CheckMethod.MTD,
+        constellation=prod_name.constellation,
+        remove_tmp=False,
+    )
+    assert prod is not None
+
+    LOGGER.info("BOTH")
+    prod_both = READER.open(
+        pattern_path, method=CheckMethod.BOTH, constellation=prod.constellation
+    )
+    assert prod_name is not None
+    assert prod_both is not None
+    assert prod == prod_name
+    assert prod == prod_both
+
+    # Log product and bands
+    assert prod.name is not None
+    LOGGER.info(prod)
+    LOGGER.info(prod.bands)
+
+    # Instrument
+    assert prod.instrument is not None
+
+    return prod
+
+
+def check_product_consistency(prod: Product):
+    """
+    Check if the products are consistent
+
+    Args:
+        prod (Product): Tested product
+    """
+    # Check if no error when asking band paths
+    LOGGER.info("get_default_band_path")
+    prod.get_default_band_path()  # noqa
+
+    LOGGER.info("get_existing_band_paths")
+    prod.get_existing_band_paths()  # noqa
+
+    # Check if possible to load narrow nir, without checking result, for Sentinel-2 with new baseline
+    if isinstance(prod, S2Product) and not prod._processing_baseline < 4.0:
+        prod.load(NARROW_NIR)
+
+    # Loading CRS and assert in UTM
+    LOGGER.info("Checking CRS")
+    assert prod.crs().is_projected
+
+    # Load MTD
+    LOGGER.info("Checking Mtd")
+    mtd_xml, nmsp = prod.read_mtd()
+    assert isinstance(mtd_xml, etree._Element)
+    assert isinstance(nmsp, dict)
+
+    # Mean sun angle type, cloud cover...
+    if prod.sensor_type == SensorType.OPTICAL:
+        az, zen = prod.get_mean_sun_angles()
+        assert isinstance(az, float)
+        assert isinstance(zen, float)
+
+        cc = prod.get_cloud_cover()
+        assert isinstance(cc, float)
+
+    # Orbit direction
+    orbit_dir = prod.get_orbit_direction()
+    assert isinstance(orbit_dir, OrbitDirection)
+
+
+def get_pixel_size(prod: Product) -> int:
+    """
+    Get the pixel size that will be used for loading stacks and bands
+
+    Args:
+        prod (Product): Tested product
+
+    Returns:
+        int: Pixel size
+
+    """
+    # Manage pixel_sizes to speed up processes
+    if prod.sensor_type == SensorType.SAR:
+        pixel_size = 1000
+        os.environ[SAR_DEF_PIXEL_SIZE] = str(pixel_size)
+    elif prod.constellation_id in ["S2", "S2_THEIA"]:
+        pixel_size = 20 * 50  # Legacy
+    else:
+        pixel_size = prod.pixel_size * 50
+
+    return pixel_size
+
+
+def check_geometry(prod: Product, geometry_str: str, tmp_dir: str) -> None:
+    """
+    Check the geometry computation of a product (footprint or extent)
+
+    Args:
+        prod (Product): Tested product
+        geometry_str (str): Geometry, either 'footprint' or 'extent'
+        tmp_dir (str): Temporary directory
+    """
+    LOGGER.info(f"Checking {geometry_str}")
+    geometry = getattr(prod, geometry_str)()
+    assert isinstance(geometry, gpd.GeoDataFrame)
+    assert geometry.crs.is_projected and geometry.crs == prod.crs()
+    geometry_path = get_ci_data_dir().joinpath(
+        prod.condensed_name, f"{prod.condensed_name}_{geometry_str}.geojson"
+    )
+    # Write to path if needed
+    if not geometry_path.exists():
+        if WRITE_ON_DISK:
+            geometry_path = os.path.join(
+                tmp_dir, f"{prod.condensed_name}_{geometry_str}.geojson"
+            )
+            geometry.to_file(geometry_path, driver="GeoJSON")
+        else:
+            raise FileNotFoundError(
+                f"{geometry_str} not found for {prod.condensed_name}!"
+            )
+
+    try:
+        ci.assert_geom_equal(geometry, geometry_path)
+    except AssertionError:
+        # Has not happened for now
+        geometry_path = os.path.join(
+            tmp_dir, f"{prod.condensed_name}_{geometry_str}.geojson"
+        )
+        geometry.to_file(geometry_path, driver="GeoJSON")
+
+        LOGGER.warning("{geometry} not equal, trying almost equal.")
+        ci.assert_geom_almost_equal(geometry, geometry_path)
+
+
+def check_load(prod: Product, first_band) -> None:
+    """
+    Check if the loading process
+    Args:
+        prod (Product): Tested product
+        first_band: First band name
+    """
+    # Check loading 0 bands
+    assert len(prod.load([])) == 0
+
+    # Load with the raw process
+    band_arr_raw = prod.load(
+        first_band.value,
+        window=Window(col_off=0, row_off=0, width=100, height=100),
+        clean_optical="raw",
+    )[first_band]
+
+    # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
+    band_arr1 = prod.load(
+        first_band,
+        window=Window(col_off=0, row_off=0, width=100, height=100),
+        clean_optical="nodata",
+    )[first_band]
+    band_arr2 = prod.load(
+        first_band,
+        window=Window(col_off=0, row_off=0, width=100, height=100),
+    )[first_band]
+
+    np.testing.assert_array_almost_equal(band_arr1, band_arr2)
+
+    # Check dtypes
+    ci.assert_val(band_arr_raw.dtype, np.float32, "band_arr_raw dtype")
+    ci.assert_val(band_arr1.dtype, np.float32, "band_arr1 dtype")
+    ci.assert_val(band_arr2.dtype, np.float32, "band_arr2 dtype")
+
+    # Check shapes between raw and no data cleaning
+    ci.assert_val(band_arr_raw.shape, band_arr1.shape, "band_arr1 shape")
+
+
+def check_attrs(prod: Product, array: xr.DataArray, long_name) -> None:
+    """
+    Check attributes of a loaded band or stack.
+
+    Args:
+        prod (Product): Tested product
+        array (xr.DataArray): Band or stack array
+        long_name: Long name
+    """
+    # Check attributes
+    try:
+        ci.assert_val(
+            array.attrs["long_name"],
+            long_name,
+            "long_name",
+        )
+    except AssertionError:
+        # Just try the other way, it depends on the saved stack
+        ci.assert_val(
+            " ".join(array.attrs["long_name"]),
+            long_name,
+            "long_name",
+        )
+
+    ci.assert_val(
+        array.attrs["constellation"],
+        prod._get_constellation().value,
+        "constellation",
+    )
+    ci.assert_val(
+        array.attrs["constellation_id"],
+        prod.constellation_id,
+        "constellation_id",
+    )
+    ci.assert_val(array.attrs["product_type"], prod.product_type.value, "product_type")
+    ci.assert_val(
+        array.attrs["instrument"],
+        prod.instrument if isinstance(prod.instrument, str) else prod.instrument.value,
+        "instrument",
+    )
+    ci.assert_val(
+        array.attrs["acquisition_date"],
+        prod.get_datetime(as_datetime=False),
+        "acquisition_date",
+    )
+    ci.assert_val(array.attrs["condensed_name"], prod.condensed_name, "condensed_name")
+    try:
+        ci.assert_val(array.attrs["product_path"], str(prod.path), "product_path")
+    except AssertionError:
+        ci.assert_val(
+            path.get_filename(array.attrs["product_path"]),
+            path.get_filename(prod.path),
+            "product_path",
+        )
+
+
+def check_stack(
+    prod: Product,
+    tmp_dir: str,
+    stack_bands: list,
+    first_band,
+    pixel_size: int,
+    **kwargs,
+) -> xr.DataArray:
+    """
+    Check the stack process + the stack consistency
+
+    Args:
+        prod (Product): Tested product
+        tmp_dir (str): Temporary output directory
+        stack_bands (list): List of bands to stack
+        first_band: First band name
+        pixel_size (int): Pixel size
+        **kwargs: Other arguments
+
+    Returns:
+        xr.DataArray: Band array
+    """
+
+    # Stack data
+    ci_stack = get_ci_data_dir().joinpath(
+        prod.condensed_name, f"{prod.condensed_name}_stack.tif"
+    )
+
+    curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
+    stack = prod.stack(
+        stack_bands,
+        pixel_size=pixel_size,
+        stack_path=curr_path,
+        clean_optical="clean",
+        **kwargs,
+    )
+    ci.assert_val(stack.dtype, np.float32, "dtype")
+
+    # Check attributes
+    check_attrs(prod, stack, long_name=" ".join(to_str(stack_bands)))
+
+    # Write to path if needed
+    if not ci_stack.exists():
+        if WRITE_ON_DISK:
+            ci_stack = curr_path
+        else:
+            raise FileNotFoundError(f"{ci_stack} not found !")
+
+    else:
+        # Test
+        ci.assert_raster_almost_equal_magnitude(curr_path, ci_stack, decimal=1)
+
+    return stack
+
+
+def check_load_size(
+    prod: Product, tmp_dir: str, first_band, size: tuple, **kwargs
+) -> xr.DataArray:
+    """
+    Check the load process with the 'size' keyword.
+
+    Args:
+        prod (Product): Tested product
+        tmp_dir (str): Temporary output directory
+        first_band: First band name
+        size (tuple): Size as a tuple
+        **kwargs: Other arguments
+
+    Returns:
+        xr.DataArray: Band array
+    """
+    # Load a band with the size option
+    LOGGER.info("Checking load with size keyword")
+    ci_band = get_ci_data_dir().joinpath(
+        prod.condensed_name,
+        f"{prod.condensed_name}_{first_band.name}_test.tif",
+    )
+    curr_path_band = os.path.join(
+        tmp_dir, f"{prod.condensed_name}_{first_band.name}_test.tif"
+    )
+
+    if not ci_band.exists():
+        if WRITE_ON_DISK:
+            ci_band = curr_path_band
+        else:
+            raise FileNotFoundError(f"{ci_band} not found !")
+
+    band_xds = prod.load(
+        first_band,
+        size=size,
+        clean_optical="clean",
+        **kwargs,
+    )
+    assert isinstance(band_xds, xr.Dataset)
+    band_arr = band_xds[first_band]
+    rasters.write(band_arr, curr_path_band)
+    ci.assert_raster_almost_equal_magnitude(curr_path_band, ci_band, decimal=1)
+
+    return band_arr
+
+
+def check_band_consistency(prod: Product, band_arr: xr.DataArray, first_band) -> None:
+    """
+    Check if the loaded bands are consistent
+    - reflectance validity
+    - attributes
+
+    Args:
+        prod (Product): Tested product
+        band_arr (xr.DataArray): Band array
+        first_band: First band name
+    """
+    # Check reflectance validity
+    if (
+        prod.sensor_type == SensorType.OPTICAL
+        and band_arr.attrs["radiometry"] == "reflectance"
+    ):
+        assert np.nanmax(band_arr) < 10.0
+        assert np.nanpercentile(band_arr, 95) <= 1.0
+        assert np.nanmin(band_arr) > -1.0
+        assert np.nanpercentile(band_arr, 5) >= 0.0
+
+    # Check attributes
+    check_attrs(prod, band_arr, long_name=first_band.name)
+
+
+def check_clouds(prod: Product, size: tuple) -> None:
+    """
+    Check if a proiduct can load its clouds without any error.
+    We won't test their thematic content, just if this doesn't fails.
+
+    TODO: Test properly the clouds
+
+    Args:
+        prod (Product): Tested product
+        size (tuple): Size of the clouds
+    """
+    # CLOUDS: just try to load them without testing it
+    LOGGER.info("Loading clouds")
+    cloud_bands = [CLOUDS, ALL_CLOUDS, RAW_CLOUDS, CIRRUS, SHADOWS]
+    ok_clouds = [cloud for cloud in cloud_bands if prod.has_band(cloud)]
+    prod.load(ok_clouds, size=size)  # noqa
+
+
+def check_plot(prod: Product):
+    """
+    Check if the products can display their quiclook properly
+    Args:
+        prod (Product): Tested product
+    """
+    LOGGER.info("Plotting the quicklook")
+    qck_path = prod.get_quicklook_path()
+    if qck_path is not None:
+        assert isinstance(qck_path, str)
+
+    # Plot and close figure
+    prod.plot()
+    plt.close()
+
+
+def check_clean(prod: Product) -> None:
+    """
+    Check the cleaning process of a Product
+    Args:
+        prod (Product): Tested product
+    """
+    LOGGER.info("Cleaning tmp")
+    prod.clean_tmp()
+    ci.assert_val(
+        len(list(prod._tmp_process.glob("*"))),
+        0,
+        "Number of file in temp directory",
+    )
+
+
 def _test_core(
     pattern: str,
     prod_dir: str,
@@ -158,37 +579,8 @@ def _test_core(
                 os.getenv(CI_EOREADER_S3),
             )
 
-            # Open product and set output
-            LOGGER.info("Checking opening solutions")
-
-            LOGGER.info("NAME")
-            prod_name = READER.open(pattern_path, method=CheckMethod.NAME)
-
-            LOGGER.info("MTD")
-            prod: Product = READER.open(
-                pattern_path,
-                method=CheckMethod.MTD,
-                constellation=prod_name.constellation,
-                remove_tmp=False,
-            )
-            assert prod is not None
-
-            LOGGER.info("BOTH")
-            prod_both = READER.open(
-                pattern_path, method=CheckMethod.BOTH, constellation=prod.constellation
-            )
-            assert prod_name is not None
-            assert prod_both is not None
-            assert prod == prod_name
-            assert prod == prod_both
-
-            # Log product and bands
-            assert prod.name is not None
-            LOGGER.info(prod)
-            LOGGER.info(prod.bands)
-
-            # Instrument
-            assert prod.instrument is not None
+            # Check products
+            prod = check_prod(pattern_path)
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 if WRITE_ON_DISK:
@@ -197,321 +589,52 @@ def _test_core(
                     )
                 prod.output = tmp_dir
 
+                # DO NOT REPROJECT BANDS (WITH GDAL / SNAP) --> WAY TOO SLOW
                 os.environ[CI_EOREADER_BAND_FOLDER] = str(
                     get_ci_data_dir().joinpath(prod.condensed_name)
                 )
 
-                # Manage S3 pixel_size to speed up processes
-                if prod.sensor_type == SensorType.SAR:
-                    pixel_size = 1000.0
-                    os.environ[SAR_DEF_PIXEL_SIZE] = str(pixel_size)
-                elif prod.constellation_id in ["S2", "S2_THEIA"]:
-                    pixel_size = 20.0 * 50  # Legacy
-                else:
-                    pixel_size = prod.pixel_size * 50
+                # Open product and set output
+                check_product_consistency(prod)
 
-                # Extent
-                LOGGER.info("Checking extent")
-                extent = prod.extent()
-                assert isinstance(extent, gpd.GeoDataFrame)
-                assert extent.crs.is_projected and extent.crs == prod.crs()
-                extent_path = get_ci_data_dir().joinpath(
-                    prod.condensed_name, f"{prod.condensed_name}_extent.geojson"
-                )
-                # Write to path if needed
-                if not extent_path.exists():
-                    if WRITE_ON_DISK:
-                        extent_path = os.path.join(
-                            tmp_dir, f"{prod.condensed_name}_extent.geojson"
-                        )
-                        extent.to_file(extent_path, driver="GeoJSON")
-                    else:
-                        raise FileNotFoundError(
-                            f"Extent not found for {prod.condensed_name}!"
-                        )
+                # Get the pixel size
+                pixel_size = get_pixel_size(prod)
 
-                try:
-                    ci.assert_geom_equal(extent, extent_path)
-                except AssertionError:
-                    extent_path = os.path.join(
-                        tmp_dir, f"{prod.condensed_name}_extent.geojson"
-                    )
-                    extent.to_file(extent_path, driver="GeoJSON")
+                # Check extent and footprint
+                check_geometry(prod, "extent", tmp_dir)
+                check_geometry(prod, "footprint", tmp_dir)
 
-                    LOGGER.warning("Extent not equal, trying almost equal.")
-                    ci.assert_geom_almost_equal(extent, extent_path)
-
-                # Footprint
-                LOGGER.info("Checking footprint")
-                footprint = prod.footprint()
-                assert isinstance(footprint, gpd.GeoDataFrame)
-                assert footprint.crs.is_projected and footprint.crs == prod.crs()
-                footprint_path = get_ci_data_dir().joinpath(
-                    prod.condensed_name, f"{prod.condensed_name}_footprint.geojson"
-                )
-                # Write to path if needed
-                if not footprint_path.exists():
-                    if WRITE_ON_DISK:
-                        footprint_path = os.path.join(
-                            tmp_dir, f"{prod.condensed_name}_footprint.geojson"
-                        )
-                        footprint.to_file(footprint_path, driver="GeoJSON")
-                    else:
-                        raise FileNotFoundError(
-                            f"Footprint not found for {prod.condensed_name}!"
-                        )
-
-                try:
-                    ci.assert_geom_equal(footprint, footprint_path)
-                except AssertionError:
-                    # Has not happened for now
-                    footprint_path = os.path.join(
-                        tmp_dir, f"{prod.condensed_name}_footprint.geojson"
-                    )
-                    footprint.to_file(footprint_path, driver="GeoJSON")
-
-                    LOGGER.warning("Footprint not equal, trying almost equal.")
-                    ci.assert_geom_almost_equal(footprint, footprint_path)
-
-                # BAND TESTS
-                LOGGER.info("Checking load and stack")
-                # DO NOT RECOMPUTE BANDS WITH SNAP --> WAY TOO SLOW
+                # Get the bands we want to stack / load
                 stack_bands = [band for band in possible_bands if prod.has_band(band)]
                 first_band = stack_bands[0]
 
                 # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
-                assert len(prod.load([])) == 0
-                band_arr_raw = prod.load(
-                    first_band.value,
-                    window=Window(col_off=0, row_off=0, width=100, height=100),
-                    clean_optical="raw",
-                )[first_band]
-                band_arr1 = prod.load(
-                    first_band,
-                    window=Window(col_off=0, row_off=0, width=100, height=100),
-                    clean_optical="nodata",
-                )[first_band]
-                band_arr2 = prod.load(
-                    first_band,
-                    window=Window(col_off=0, row_off=0, width=100, height=100),
-                )[first_band]
-                np.testing.assert_array_almost_equal(band_arr1, band_arr2)
-                ci.assert_val(band_arr_raw.dtype, np.float32, "band_arr_raw dtype")
-                ci.assert_val(band_arr1.dtype, np.float32, "band_arr1 dtype")
-                ci.assert_val(band_arr2.dtype, np.float32, "band_arr2 dtype")
-                ci.assert_val(band_arr_raw.shape, band_arr1.shape, "band_arr1 shape")
+                check_load(prod, first_band)
 
-                # Get stack bands
-                # Stack data
-                ci_stack = get_ci_data_dir().joinpath(
-                    prod.condensed_name, f"{prod.condensed_name}_stack.tif"
+                # Check stack
+                stack = check_stack(
+                    prod, tmp_dir, stack_bands, first_band, pixel_size, **kwargs
                 )
 
-                curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
-                stack = prod.stack(
-                    stack_bands,
-                    pixel_size=pixel_size,
-                    stack_path=curr_path,
-                    clean_optical="clean",
-                    **kwargs,
-                )
-                ci.assert_val(stack.dtype, np.float32, "dtype")
-
-                # Check attributes
-                try:
-                    ci.assert_val(
-                        stack.attrs["long_name"],
-                        " ".join(to_str(stack_bands)),
-                        "long_name",
-                    )
-                except AssertionError:
-                    # Just try the other way, it depends on the saved stack
-                    ci.assert_val(
-                        " ".join(stack.attrs["long_name"]),
-                        " ".join(to_str(stack_bands)),
-                        "long_name",
-                    )
-
-                ci.assert_val(
-                    stack.attrs["constellation"],
-                    prod._get_constellation().value,
-                    "constellation",
-                )
-                ci.assert_val(
-                    stack.attrs["constellation_id"],
-                    prod.constellation_id,
-                    "constellation_id",
-                )
-                ci.assert_val(
-                    stack.attrs["product_type"], prod.product_type.value, "product_type"
-                )
-                ci.assert_val(
-                    stack.attrs["instrument"],
-                    prod.instrument
-                    if isinstance(prod.instrument, str)
-                    else prod.instrument.value,
-                    "instrument",
-                )
-                ci.assert_val(
-                    stack.attrs["acquisition_date"],
-                    prod.get_datetime(as_datetime=False),
-                    "acquisition_date",
-                )
-                ci.assert_val(
-                    stack.attrs["condensed_name"], prod.condensed_name, "condensed_name"
-                )
-                try:
-                    ci.assert_val(
-                        stack.attrs["product_path"], str(prod.path), "product_path"
-                    )
-                except AssertionError:
-                    ci.assert_val(
-                        pattern_path.get_filename(stack.attrs["product_path"]),
-                        pattern_path.get_filename(prod.path),
-                        "product_path",
-                    )
-
-                # Write to path if needed
-                if not ci_stack.exists():
-                    if WRITE_ON_DISK:
-                        ci_stack = curr_path
-                    else:
-                        raise FileNotFoundError(f"{ci_stack} not found !")
-
-                else:
-                    # Test
-                    ci.assert_raster_almost_equal_magnitude(
-                        curr_path, ci_stack, decimal=1
-                    )
-
-                # Load a band with the size option
-                LOGGER.info("Checking load with size keyword")
-                ci_band = get_ci_data_dir().joinpath(
-                    prod.condensed_name,
-                    f"{prod.condensed_name}_{first_band.name}_test.tif",
-                )
-                curr_path_band = os.path.join(
-                    tmp_dir, f"{prod.condensed_name}_{first_band.name}_test.tif"
-                )
-
-                if not ci_band.exists():
-                    if WRITE_ON_DISK:
-                        ci_band = curr_path_band
-                    else:
-                        raise FileNotFoundError(f"{ci_band} not found !")
-
-                band_xds = prod.load(
+                # Check load with size keyword
+                band_arr = check_load_size(
+                    prod,
+                    tmp_dir,
                     first_band,
                     size=(stack.rio.width, stack.rio.height),
-                    clean_optical="clean",
                     **kwargs,
                 )
-                assert isinstance(band_xds, xr.Dataset)
-                band_arr = band_xds[first_band]
-                rasters.write(band_arr, curr_path_band)
-                ci.assert_raster_almost_equal_magnitude(
-                    curr_path_band, ci_band, decimal=1
-                )
+                check_band_consistency(prod, band_arr, first_band)
 
-                # Check reflectance validity
-                if (
-                    prod.sensor_type == SensorType.OPTICAL
-                    and band_arr.attrs["radiometry"] == "reflectance"
-                ):
-                    assert np.nanmax(band_arr) < 10.0
-                    assert np.nanpercentile(band_arr, 95) <= 1.0
-                    assert np.nanmin(band_arr) > -1.0
-                    assert np.nanpercentile(band_arr, 5) >= 0.0
+                # Check clouds
+                check_clouds(prod, size=(stack.rio.width, stack.rio.height))
 
-                # Check attributes
-                ci.assert_val(band_arr.attrs["long_name"], first_band.name, "long_name")
-                ci.assert_val(
-                    band_arr.attrs["constellation"],
-                    prod._get_constellation().value,
-                    "constellation",
-                )
-                ci.assert_val(
-                    band_arr.attrs["constellation_id"],
-                    prod.constellation_id,
-                    "constellation_id",
-                )
-                ci.assert_val(
-                    band_arr.attrs["product_type"],
-                    prod.product_type.value,
-                    "product_type",
-                )
-                ci.assert_val(
-                    band_arr.attrs["acquisition_date"],
-                    prod.get_datetime(as_datetime=False),
-                    "acquisition_date",
-                )
-                ci.assert_val(
-                    band_arr.attrs["condensed_name"],
-                    prod.condensed_name,
-                    "condensed_name",
-                )
-                ci.assert_val(
-                    band_arr.attrs["product_path"], str(prod.path), "product_path"
-                )
-
-                # CLOUDS: just try to load them without testing it
-                LOGGER.info("Loading clouds")
-                cloud_bands = [CLOUDS, ALL_CLOUDS, RAW_CLOUDS, CIRRUS, SHADOWS]
-                ok_clouds = [cloud for cloud in cloud_bands if prod.has_band(cloud)]
-                prod.load(ok_clouds, size=(stack.rio.width, stack.rio.height))  # noqa
-
-                # Check if no error
-                LOGGER.info("get_default_band_path")
-                prod.get_default_band_path()  # noqa
-
-                LOGGER.info("get_existing_band_paths")
-                prod.get_existing_band_paths()  # noqa
-
-                # Check if possible to load narrow nir, without checking result
-                if isinstance(prod, S2Product) and not prod._processing_baseline < 4.0:
-                    prod.load(NARROW_NIR)
-
-                # CRS
-                LOGGER.info("Checking CRS")
-                assert prod.crs().is_projected
-
-                # MTD
-                LOGGER.info("Checking Mtd")
-                mtd_xml, nmsp = prod.read_mtd()
-                assert isinstance(mtd_xml, etree._Element)
-                assert isinstance(nmsp, dict)
-
-                # Mean sun angle type, cloud cover...
-                if prod.sensor_type == SensorType.OPTICAL:
-                    az, zen = prod.get_mean_sun_angles()
-                    assert isinstance(az, float)
-                    assert isinstance(zen, float)
-
-                    cc = prod.get_cloud_cover()
-                    assert isinstance(cc, float)
-
-                # Quicklook and plot
-                qck_path = prod.get_quicklook_path()
-                if qck_path is not None:
-                    assert isinstance(qck_path, str)
-
-                # Plot and close figure
-                prod.plot()
-                plt.close()
-
-                # Orbit direction
-                orbit_dir = prod.get_orbit_direction()
-                assert isinstance(orbit_dir, OrbitDirection)
+                # Check quicklook and plot
+                check_plot(prod)
 
                 # Clean temp
                 if not WRITE_ON_DISK:
-                    LOGGER.info("Cleaning tmp")
-                    prod.clean_tmp()
-                    ci.assert_val(
-                        len(list(prod._tmp_process.glob("*"))),
-                        0,
-                        "Number of file in temp directory",
-                    )
+                    check_clean(prod)
 
             prod.clear()
 
