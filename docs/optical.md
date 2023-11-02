@@ -13,6 +13,7 @@ However, especially for SAR data, the default pixel size of GRD bands is not the
 | Constellations              | Class                                                              | Use archive                  |
 |-----------------------------|--------------------------------------------------------------------|------------------------------|
 | Sentinel-2                  | {meth}`~eoreader.products.optical.s2_product.S2Product`            | ✅                            |
+| Sentinel-2 on AWS cloud     | {meth}`~eoreader.products.optical.s2_product.S2CloudProduct`       | -                            |
 | Sentinel-2 Theia            | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | ✅                            |
 | Sentinel-3 SLSTR            | {meth}`~eoreader.products.optical.s3_slstr_product.S3SlstrProduct` | ✅                            |
 | Sentinel-3 OLCI             | {meth}`~eoreader.products.optical.s3_olci_product.S3OlciProduct`   | ✅                            |
@@ -44,6 +45,7 @@ Satellites products that cannot be used as archived have to be extracted before 
 | Constellations              | Product Types             | Default Pixel Size                 |
 |-----------------------------|---------------------------|------------------------------------|
 | Sentinel-2                  | L1C & L2A & L2Ap          | 10 m                               |
+| Sentinel-2 on AWS Cloud     | L2A (for now)             | 10 m                               |
 | Sentinel-2 Theia            | L2A                       | 10 m                               |
 | Sentinel-3 SLSTR            | RBT                       | 300 m                              |
 | Sentinel-3 OLCI             | EFR                       | 500 m                              |
