@@ -5,6 +5,7 @@
    :caption: Experimental
 
    s3_compatible_storage
+   aws 
    dask
    stac
 ```
