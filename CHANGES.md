@@ -6,8 +6,10 @@
 - **BREAKING CHANGES: Band ID for Sentinel-3 OLCI are now int instead of band names (i.e. `7` instead of `Oa07`. The names don't change).**
 - **ENH: Allow to use bands IDs, names and common name added to mapped names when trying to load a spectral band. ([#111](https://github.com/sertit/eoreader/issues/111)**
 - **ENH: Manage Sentinel-2 (currently L2A) as formatted on the cloud (Element84's way). ([#104](https://github.com/sertit/eoreader/issues/111)**
+- FIX: Fix jpg, png... quicklooks management when plotting
 - CI: Update pre-commit hooks
 - DEPS: Remove as many mention as possible to `cloudpathlib`
+- DEPS: Update minimum versions of some libraries
 - GITHUB: Update bug template
 
 ## 0.20.4 (2023-09-26)
@@ -26,7 +28,6 @@
 - FIX: Fixing TIR temperature conversion for Landsat-7
 - FIX: Test thermal bands in CI
 - FIX: Upgraded to EO STAC extension v1.1.0 ([#83](https://github.com/sertit/eoreader/issues/83))
-- DEPS: Update minimum versions of some libraries
 
 ## 0.20.2 (2023-06-22)
 
