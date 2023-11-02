@@ -1822,11 +1822,12 @@ class LandsatProduct(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = path.get_archived_rio_path(
+                quicklook_path = self.path / path.get_archived_path(
                     self.path, file_regex=r".*thumb_large\.jpeg"
                 )
             else:
-                quicklook_path = str(next(self.path.glob("*thumb_large.jpeg")))
+                quicklook_path = next(self.path.glob("*thumb_large.jpeg"))
+            quicklook_path = str(quicklook_path)
         except (StopIteration, FileNotFoundError):
             # Thumbnail only exists for collection 2, not for one: do not throw a warning in this case
             if self._collection == LandsatCollection.COL_2:

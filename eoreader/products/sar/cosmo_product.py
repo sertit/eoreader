@@ -418,10 +418,8 @@ class CosmoProduct(SarProduct):
         Returns:
             str: Quicklook path
         """
-        qlk_path = (
-            self._get_band_folder(writable=True) / f"{self.condensed_name}_QLK.tif"
-        )
-        if not qlk_path.is_file():
+        qlk_path, qlk_exists = self._get_out_path(f"{self.condensed_name}_QLK.tif")
+        if not qlk_exists:
             with rasterio.open(str(self._img_path)) as ds:
                 quicklook_paths = [subds for subds in ds.subdatasets if "QLK" in subds]
 

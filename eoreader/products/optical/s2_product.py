@@ -1590,19 +1590,19 @@ class S2Product(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = path.get_archived_rio_path(
+                quicklook_path = self.path / path.get_archived_path(
                     self.path, file_regex=r".*ql\.jpg"
                 )
             else:
-                quicklook_path = str(next(self.path.glob("**/*ql.jpg")))
+                quicklook_path = next(self.path.glob("**/*ql.jpg"))
         except (StopIteration, FileNotFoundError):
             try:
                 if self.is_archived:
-                    quicklook_path = path.get_archived_rio_path(
+                    quicklook_path = self.path / path.get_archived_path(
                         self.path, file_regex=r".*preview\.jpg"
                     )
                 else:
-                    quicklook_path = str(next(self.path.glob("**/preview.jpg")))
+                    quicklook_path = next(self.path.glob("**/preview.jpg"))
             except (StopIteration, FileNotFoundError):
                 # Use the PVI
                 try:
@@ -1611,9 +1611,12 @@ class S2Product(OpticalProduct):
                             self.path, file_regex=r".*PVI\.jp2"
                         )
                     else:
-                        quicklook_path = str(next(self.path.glob("**/*PVI.jp2")))
+                        quicklook_path = next(self.path.glob("**/*PVI.jp2"))
                 except (StopIteration, FileNotFoundError):
                     LOGGER.warning(f"No quicklook found in {self.condensed_name}")
+
+        if quicklook_path is not None:
+            quicklook_path = str(quicklook_path)
 
         return quicklook_path
 
