@@ -15,8 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-TerraSAR-X & TanDEM-X & PAZ products.
-More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
+SAOCOM products.
 """
 import logging
 import re
