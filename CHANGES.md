@@ -8,6 +8,7 @@
 - **ENH: Manage Sentinel-2 (currently L2A) as formatted on the cloud (Element84's way). ([#104](https://github.com/sertit/eoreader/issues/111)**
 - FIX: Fix jpg, png... quicklooks management when plotting
 - CI: Update pre-commit hooks
+- CI: Revamping `test_satellites`
 - DEPS: Remove as many mention as possible to `cloudpathlib`
 - DEPS: Update minimum versions of some libraries
 - GITHUB: Update bug template
