@@ -40,7 +40,7 @@ from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import _prune_keywords
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-DEFAULT_TILE_SIZE = 2048
+DEFAULT_TILE_SIZE = "auto"
 UINT16_NODATA = rasters.UINT16_NODATA
 
 
