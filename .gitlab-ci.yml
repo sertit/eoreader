@@ -174,6 +174,34 @@ pytest_end_to_end311:
       when: always
   needs: [ "pytest_end_to_end310" ]
 
+pytest_end_to_end312:
+  image: $EEO_DEPS:312
+  stage: test
+  variables:
+    # Use Dask for python 3.11
+    EOREADER_USE_DASK: "1"
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install --ignore-installed PyYAML
+    - pip install pytest coverage pytest-cov pylint
+    - pip install -e .
+  script:
+    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_SNAP/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=tee-sys
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/cov_e2e.html
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  tags:
+    - sertit
+    - linux
+    - high_memory
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "END_TO_END"'
+      when: always
+    - if: $CI_COMMIT_TAG
+      when: always
+  needs: [ "pytest_end_to_end311" ]
+
 tox-linux-3.9:on-schedule:
   image: $EO_CONTAINER:3.9
   stage: weekly_tests
