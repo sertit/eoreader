@@ -25,6 +25,7 @@
 
 ### Bug Fixes
 
+- FIX: Use `auto` as default dask chunk (instead of `2048`)
 - FIX: Minor fix in RasterioError handling when reading bands 
 - FIX: Fix Landsat L2 surface reflectance and temperature computation ([#99](https://github.com/sertit/eoreader/issues/99))
 - FIX: Fixing TIR temperature conversion for Landsat-7
