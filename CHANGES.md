@@ -8,6 +8,7 @@
 - **ENH: Manage Sentinel-2 (currently L2A) as formatted on the cloud (Element84's way). ([#104](https://github.com/sertit/eoreader/issues/104)**
 - **ENH: Handle Python 3.12. ([#113](https://github.com/sertit/eoreader/issues/113)**
 - FIX: Fix jpg, png... quicklooks management when plotting
+- FIX: Fix an `xarray` issue when trying to compute percentiles when stacking bands
 - CI: Update pre-commit hooks
 - CI: Revamping `test_satellites`
 - DEPS: Remove as many mention as possible to `cloudpathlib`
