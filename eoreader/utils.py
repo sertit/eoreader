@@ -410,7 +410,11 @@ def stack(
         scale = 10000
         round_nb = 1000
         round_min = -0.1
-        stack_min = float(band_xds.to_array().quantile(0.001))
+        try:
+            stack_min = float(band_xds.to_array().quantile(0.001))
+        except ValueError:
+            stack_min = np.nanpercentile(band_xds.to_array(), 1)
+
         if np.round(stack_min * round_nb) / round_nb < round_min:
             LOGGER.warning(
                 f"Cannot convert the stack to uint16 as it has negative values ({stack_min} < {round_min}). Keeping it in float32."
