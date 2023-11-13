@@ -116,7 +116,7 @@ class S2Jp2Masks(ListEnum):
 
 
 BAND_DIR_NAMES = {
-    S2ProductType.L1C: "IMG_DATA",
+    S2ProductType.L1C: ".",
     S2ProductType.L2A: {
         "01": ["R60m"],
         "02": ["R10m", "R20m", "R60m"],
@@ -164,6 +164,9 @@ class S2Product(OpticalProduct):
         # L2Ap
         self._is_l2ap = False
 
+        # S2 Sinergise
+        self._is_sinergise = kwargs.pop("is_sinergise", False)
+
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
@@ -183,7 +186,9 @@ class S2Product(OpticalProduct):
         """
         self._has_cloud_cover = True
         self.needs_extraction = False
-        self._use_filename = True
+        # Use filename for SAFE names, not for others
+        # S2A_MSIL1C_20191215T110441_N0208_R094_T30TXP_20191215T114155.SAFE has 65 characters
+        self._use_filename = len(self.filename) > 50
         self._raw_units = RawUnits.REFL
 
         # Post init done by the super class
@@ -486,6 +491,28 @@ class S2Product(OpticalProduct):
 
         return name
 
+    def _get_qi_folder(self):
+        """"""
+        if self._is_sinergise:
+            mask_folder = "qi"
+        elif self.is_archived:
+            mask_folder = ".*GRANULE.*QI_DATA"
+        else:
+            mask_folder = "**/*GRANULE/*/QI_DATA"
+
+        return mask_folder
+
+    def _get_image_folder(self):
+        """"""
+        if self._is_sinergise:
+            img_folder = "."
+        elif self.is_archived:
+            img_folder = ".*GRANULE.*IMG_DATA"
+        else:
+            img_folder = "**/*GRANULE/*/IMG_DATA"
+
+        return img_folder
+
     def _get_res_band_folder(self, band_list: list, pixel_size: float = None) -> dict:
         """
         Return the folder containing the bands of a proper S2 products.
@@ -544,7 +571,12 @@ class S2Product(OpticalProduct):
                     s2_bands_folder[band] = band_path
             else:
                 # Search for the name of the folder into the S2 products
-                s2_bands_folder[band] = next(self.path.glob(f"**/*/{dir_name}"))
+                try:
+                    s2_bands_folder[band] = next(
+                        self.path.glob(f"{self._get_image_folder()}/{dir_name}")
+                    )
+                except IndexError:
+                    s2_bands_folder[band] = self.path
 
         for band in band_list:
             if band not in s2_bands_folder:
@@ -595,12 +627,12 @@ class S2Product(OpticalProduct):
                     if self.is_archived:
                         band_paths[band] = path.get_archived_rio_path(
                             self.path,
-                            f".*{band_folders[band]}.*_B{band_id}.*.jp2",
+                            f".*{band_folders[band]}.*B{band_id}.*.jp2",
                         )
                     else:
                         band_paths[band] = path.get_file_in_dir(
                             band_folders[band],
-                            f"_B{band_id}",
+                            f"B{band_id}",
                             extension="jp2",
                         )
                 except (FileNotFoundError, IndexError) as ex:
@@ -778,7 +810,7 @@ class S2Product(OpticalProduct):
         self, mask_id: Union[str, S2GmlMasks], band: Union[BandNames, str] = None
     ) -> gpd.GeoDataFrame:
         """
-        Open S2 mask (GML files stored in QI_DATA) as :code:`gpd.GeoDataFrame`.
+        Open S2 mask (GML files stored in QI_DATA/qi) as :code:`gpd.GeoDataFrame`.
 
         Masks than can be called that way are:
 
@@ -839,7 +871,7 @@ class S2Product(OpticalProduct):
                 with zipfile.ZipFile(self.path, "r") as zip_ds:
                     filenames = [f.filename for f in zip_ds.filelist]
                     regex = re.compile(
-                        f".*GRANULE.*QI_DATA.*{mask_id.value}_B{band_name}.gml"
+                        f"{self._get_qi_folder()}.*{mask_id.value}_B{band_name}.gml"
                     )
                     mask_path = zip_ds.extract(
                         list(filter(regex.match, filenames))[0], tmp_dir.name
@@ -848,7 +880,7 @@ class S2Product(OpticalProduct):
                 # Get mask path
                 mask_path = path.get_file_in_dir(
                     self.path,
-                    f"**/*GRANULE/*/QI_DATA/*{mask_id.value}_B{band_name}.gml",
+                    f"{self._get_qi_folder()}/*{mask_id.value}_B{band_name}.gml",
                     exact_name=True,
                 )
 
@@ -902,13 +934,13 @@ class S2Product(OpticalProduct):
 
         if self.is_archived:
             mask_path = path.get_archived_rio_path(
-                self.path, f".*GRANULE.*QI_DATA.*{mask_id.value}_B{band_id}.jp2"
+                self.path, f"{self._get_qi_folder()}.*{mask_id.value}_B{band_id}.jp2"
             )
         else:
             # Get mask path
             mask_path = path.get_file_in_dir(
                 self.path,
-                f"**/*GRANULE/*/QI_DATA/*{mask_id.value}_B{band_id}.jp2",
+                f"{self._get_qi_folder()}/*{mask_id.value}_B{band_id}.jp2",
                 exact_name=True,
             )
 
@@ -1200,7 +1232,9 @@ class S2Product(OpticalProduct):
         # Used to make the difference between 2 products acquired on the same tile at the same date but cut differently
         # Sentinel-2 generation time: "%Y%m%dT%H%M%S" -> save only %H%M%S
         gen_time = self.split_name[-1].split("T")[-1]
-        return f"{self.get_datetime()}_{self.constellation.name}_{self.tile_name}_{self.product_type.name}_{gen_time}"
+
+        # Force S2 as constellation name for S2_SIN to work
+        return f"{self.get_datetime()}_S2_{self.tile_name}_{self.product_type.name}_{gen_time}"
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
@@ -1254,8 +1288,12 @@ class S2Product(OpticalProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces
         """
-        mtd_from_path = "GRANULE/*/MTD*.xml"
-        mtd_archived = r"GRANULE.*MTD.*\.xml"
+        if self._is_sinergise:
+            mtd_from_path = "metadata.xml"
+            mtd_archived = r"metadata\.xml"
+        else:
+            mtd_from_path = "GRANULE/*/MTD*.xml"
+            mtd_archived = r"GRANULE.*MTD.*\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 

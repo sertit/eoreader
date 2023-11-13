@@ -5,7 +5,7 @@
 - **BREAKING CHANGES: Rename `utils.stack_dict` to `utils.stack` since we are stacking datasets and not dict anymore.**
 - **BREAKING CHANGES: Band ID for Sentinel-3 OLCI are now int instead of band names (i.e. `7` instead of `Oa07`. The names don't change).**
 - **ENH: Allow to use bands IDs, names and common name added to mapped names when trying to load a spectral band. ([#111](https://github.com/sertit/eoreader/issues/111)**
-- **ENH: Manage Sentinel-2 (currently L2A) as formatted on the cloud (Element84's way). ([#104](https://github.com/sertit/eoreader/issues/104)**
+- **ENH: Manage Sentinel-2 as formatted on the cloud (Element84 or Sinergise's way). ([#104](https://github.com/sertit/eoreader/issues/104)**
 - **ENH: Handle Python 3.12. ([#113](https://github.com/sertit/eoreader/issues/113)**
 - FIX: Fix jpg, png... quicklooks management when plotting
 - FIX: Fix an `xarray` issue when trying to compute percentiles when stacking bands

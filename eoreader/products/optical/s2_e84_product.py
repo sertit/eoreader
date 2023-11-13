@@ -61,9 +61,9 @@ from eoreader.utils import simplify
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 
-class S2CloudProduct(OpticalProduct):
+class S2E84Product(OpticalProduct):
     """
-    Class for Sentinel-2 cloud products
+    Class for Sentinel-2 stored on AWS and processed by Element 84 (COGs) products
 
     https://element84.com/geospatial/introducing-earth-search-v1-new-datasets-now-available/
 
@@ -608,7 +608,9 @@ class S2CloudProduct(OpticalProduct):
         # Used to make the difference between 2 products acquired on the same tile at the same date but cut differently
         # Sentinel-2 generation time: "%Y%m%dT%H%M%S" -> save only %H%M%S
         gen_time = self.split_name[-1].split("T")[-1]
-        return f"{self.get_datetime()}_{self.constellation.name}_{self.tile_name}_{self.product_type.name}_{gen_time}"
+
+        # Force S2 as constellation name for S2_E84 to work
+        return f"{self.get_datetime()}_S2_{self.tile_name}_{self.product_type.name}_{gen_time}"
 
     @cache
     def get_mean_sun_angles(self) -> (float, float):
