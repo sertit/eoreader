@@ -258,7 +258,7 @@ CONSTELLATION_REGEX = {
     Constellation.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
     Constellation.ICEYE: r"((SM|SL|SC|SLEA)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC|SLEA)H*_\d{5,}_\d{8}T\d{6})",
     Constellation.SAOCOM: r".+EOL1[ABCD]SARSAO1[AB]\d+(-product|)",
-    Constellation.CAPELLA: r"CAPELLA_C\d{2}_S[PMS]_(GEO|GEC|SLC)_(HH|VV)_\d{14}_\d{14}",
+    Constellation.CAPELLA: r"CAPELLA_C\d{2}_S[PMS]_(GEO|GEC|SLC|SICD|SIDD)_(HH|VV)_\d{14}_\d{14}",
     Constellation.SV1: [
         r"\d{13}_\d{2}",
         r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",

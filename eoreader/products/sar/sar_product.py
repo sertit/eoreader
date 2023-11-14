@@ -692,14 +692,7 @@ class SarProduct(Product):
 
                 # Pre-process graph
                 if PP_GRAPH not in os.environ:
-                    if self.constellation == Constellation.CAPELLA:
-                        LOGGER.debug(
-                            "SNAP Error: [NodeId: Calibration] Mission Capella is currently not supported for calibration. Removing this step."
-                        )
-                        pp_graph = utils.get_data_dir().joinpath(
-                            "grd_sar_preprocess_fallback.xml"
-                        )
-                    elif (
+                    if (
                         self.constellation == Constellation.CSG
                         and self.sar_prod_type == SarProductType.CPLX
                     ):
