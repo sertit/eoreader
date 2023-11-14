@@ -207,7 +207,7 @@ class Constellation(ListEnum):
 
 
 CONSTELLATION_REGEX = {
-    Constellation.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}",
+    Constellation.S1: r"S1[AB]_(IW|EW|SM|WV)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}(_COG|)",
     Constellation.S2: r"S2[AB]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
     # Element84 : S2A_31UDQ_20230714_0_L2A, Sinergise: 0 or 1...
     Constellation.S2_E84: r"S2[AB]_\d{2}\w{3}_\d{8}_\d_L(1C|2A)",
@@ -272,7 +272,7 @@ MTD_REGEX = {
     Constellation.S1: {
         "nested": 1,
         # File that can be found at any level (product/**/file)
-        "regex": r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}\.xml",
+        "regex": r".*s1[ab]-(iw|ew|sm|wv)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}(-cog|)\.xml",
     },
     Constellation.S2: {"nested": 3, "regex": r"MTD_TL.xml"},
     Constellation.S2_E84: rf"{CONSTELLATION_REGEX[Constellation.S2_E84]}\.json",

@@ -200,6 +200,15 @@ class S1Product(SarProduct):
         # Its original filename is its name
         self._use_filename = True
 
+        # Check if COG in name
+        if "_COG" in self.filename:
+            raise NotImplementedError(
+                "These S1 COG products are not yet handled by SNAP. "
+                "EOReader will handle them when this issue is fixed. "
+                "See https://forum.step.esa.int/t/handle-sentinel-1-cog-collection/40840. "
+                "Please use the classical format instead."
+            )
+
         # Zipped and SNAP can process its archive
         self.needs_extraction = False
 
