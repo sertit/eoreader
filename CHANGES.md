@@ -8,6 +8,7 @@
 - **ENH: Manage Sentinel-2 as formatted on the cloud (Element84 or Sinergise's way). ([#104](https://github.com/sertit/eoreader/issues/104)**
 - **ENH: Handle Python 3.12. ([#113](https://github.com/sertit/eoreader/issues/113)**
 - **ENH: Guard against S1 COG format, not yet handled by SNAP.**
+- **ENH: Calibration step for `Capella` products now exists in ESA SNAP. Add it in pre-processing.**
 - FIX: Fix jpg, png... quicklooks management when plotting
 - FIX: Fix an `xarray` issue when trying to compute percentiles when stacking bands
 - CI: Update pre-commit hooks
