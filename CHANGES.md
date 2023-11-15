@@ -15,6 +15,7 @@
 - CI: Revamping `test_satellites`
 - DEPS: Remove as many mention as possible to `cloudpathlib`
 - DEPS: Update minimum versions of some libraries
+- DOC: Add example about the output management (in `base` notebook, [#117](https://github.com/sertit/eoreader/issues/117))
 - GITHUB: Update bug template
 
 ## 0.20.4 (2023-09-26)
