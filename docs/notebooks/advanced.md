@@ -10,4 +10,6 @@
    water_detection
    optical_cleaning_methods
    windowed_reading
+   aws 
+   s3_compatible_storage
    ```
