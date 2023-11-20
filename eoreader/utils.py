@@ -92,17 +92,18 @@ def get_data_dir() -> AnyPathType:
     return data_dir
 
 
-def get_split_name(name: str) -> list:
+def get_split_name(name: str, sep: str = "_") -> list:
     """
     Get split name (with _). Removes empty indexes.
 
     Args:
         name (str): Name to split
+        sep (str): Separator
 
     Returns:
         list: Split name
     """
-    return [x for x in name.split("_") if x]
+    return [x for x in name.split(sep) if x]
 
 
 # flake8: noqa
