@@ -4,9 +4,9 @@
 
 - **BREAKING CHANGES: Rename `utils.stack_dict` to `utils.stack` since we are stacking datasets and not dict anymore.**
 - **BREAKING CHANGES: Band ID for Sentinel-3 OLCI are now int instead of band names (i.e. `7` instead of `Oa07`. The names don't change).**
-- **ENH: Allow to use bands IDs, names and common name added to mapped names when trying to load a spectral band. ([#111](https://github.com/sertit/eoreader/issues/111)**
-- **ENH: Manage Sentinel-2 as formatted on the cloud (Element84 or Sinergise's way). ([#104](https://github.com/sertit/eoreader/issues/104)**
-- **ENH: Handle Python 3.12. ([#113](https://github.com/sertit/eoreader/issues/113)**
+- **ENH: Allow to use bands IDs, names and common name added to mapped names when trying to load a spectral band. ([#111](https://github.com/sertit/eoreader/issues/111))**
+- **ENH: Manage Sentinel-2 as formatted on the cloud (Element84 or Sinergise's way). ([#104](https://github.com/sertit/eoreader/issues/104))**
+- **ENH: Handle Python 3.12. ([#113](https://github.com/sertit/eoreader/issues/113))**
 - **ENH: Guard against S1 COG format, not yet handled by SNAP.**
 - **ENH: Calibration step for `Capella` products now exists in ESA SNAP. Add it in pre-processing.**
 - FIX: Fix jpg, png... quicklooks management when plotting
@@ -17,6 +17,7 @@
 - DEPS: Update minimum versions of some libraries
 - DOC: Add example about the output management (in `base` notebook, [#117](https://github.com/sertit/eoreader/issues/117))
 - GITHUB: Update bug template
+- CI: Enabling pre-commit.ci and dependabot bots
 
 ## 0.20.4 (2023-09-26)
 
