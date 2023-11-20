@@ -118,7 +118,7 @@ class CosmoProduct(SarProduct):
         with h5netcdf.File(self._img_path, phony_dims="access") as raw_h5:
             self.nof_swaths = len(list(raw_h5.groups))
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     @cache

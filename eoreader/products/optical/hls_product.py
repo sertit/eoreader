@@ -113,7 +113,7 @@ class HlsProduct(OpticalProduct):
         self._use_filename = True
         self.needs_extraction = False
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:

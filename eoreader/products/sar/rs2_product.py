@@ -389,7 +389,7 @@ class Rs2Product(SarProduct):
         self.product_type = Rs2ProductType.from_value(prod_type)
         self.needs_extraction = self.product_type == Rs2ProductType.SLC
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:

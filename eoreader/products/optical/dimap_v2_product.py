@@ -284,7 +284,7 @@ class DimapV2Product(VhrProduct):
         else:
             self._raw_units = RawUnits.NONE
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:

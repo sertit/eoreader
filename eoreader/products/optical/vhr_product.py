@@ -98,7 +98,7 @@ class VhrProduct(OpticalProduct):
         # Job ID
         self._job_id = self._get_job_id()
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._post_init(**kwargs)
 
     def get_default_band_path(self, **kwargs) -> AnyPathType:

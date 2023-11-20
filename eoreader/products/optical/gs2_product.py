@@ -155,7 +155,7 @@ class Gs2Product(DimapV1Product):
         self._proj_prod_type = [Gs2ProductType.L1B, Gs2ProductType.L1S]
         self._raw_units = RawUnits.DN
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:

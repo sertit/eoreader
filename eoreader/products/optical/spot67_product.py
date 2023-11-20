@@ -46,7 +46,7 @@ class Spot67Product(DimapV2Product):
         self._ms_res = 6.0
         self._altitude = 697000
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _get_constellation(self) -> Constellation:

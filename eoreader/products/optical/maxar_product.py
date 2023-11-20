@@ -409,7 +409,7 @@ class MaxarProduct(VhrProduct):
         self._pan_res = 0.5
         self._ms_res = 2.0
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _set_instrument(self) -> None:
