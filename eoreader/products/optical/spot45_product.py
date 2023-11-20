@@ -224,7 +224,7 @@ class Spot45Product(DimapV1Product):
         else:
             self._raw_units = RawUnits.NONE
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _set_band_combi(self) -> None:

@@ -173,7 +173,7 @@ class S3OlciProduct(S3Product):
         """
         self.needs_extraction = False
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _set_pixel_size(self) -> None:

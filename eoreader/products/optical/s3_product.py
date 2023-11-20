@@ -144,7 +144,7 @@ class S3Product(OpticalProduct):
         self.is_ortho = False
         self._raw_units = RawUnits.RAD
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _set_instrument(self) -> None:

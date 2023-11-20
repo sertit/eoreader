@@ -191,7 +191,7 @@ class S2Product(OpticalProduct):
         self._use_filename = len(self.filename) > 50
         self._raw_units = RawUnits.REFL
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:

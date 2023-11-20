@@ -189,7 +189,7 @@ class SaocomProduct(SarProduct):
         # SNAP cannot process its archive
         self.needs_extraction = True
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:

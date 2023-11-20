@@ -132,7 +132,7 @@ class Sv1Product(VhrProduct):
         self._proj_prod_type = [Sv1ProductType.L1B]
         self._raw_units = RawUnits.DN
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:

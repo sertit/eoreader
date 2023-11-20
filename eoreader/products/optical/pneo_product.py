@@ -45,7 +45,7 @@ class PneoProduct(DimapV2Product):
         self._ms_res = 1.2
         self._altitude = 620000
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _map_bands(self) -> None:
