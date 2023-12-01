@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Landsat products """
+import asyncio
+import difflib
 import logging
 import tarfile
 from datetime import datetime
@@ -24,13 +26,16 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import planetary_computer
 import xarray as xr
 from lxml import etree
 from lxml.builder import E
+from pystac import Item
 from rasterio.enums import Resampling
-from sertit import path, rasters, rasters_rio
+from sertit import AnyPath, path, rasters, rasters_rio
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
+from stac_asset import S3Client
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -39,6 +44,7 @@ from eoreader.bands import (
     CA,
     CIRRUS,
     CLOUDS,
+    EOREADER_STAC_MAP,
     GREEN,
     NARROW_NIR,
     NIR,
@@ -61,6 +67,7 @@ from eoreader.bands import (
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import OpticalProduct
 from eoreader.products.optical.optical_product import RawUnits
+from eoreader.products.stac_product import StacProduct
 from eoreader.reader import Constellation
 from eoreader.stac import ASSET_ROLE, BT, DESCRIPTION, GSD, ID, NAME, WV_MAX, WV_MIN
 from eoreader.utils import simplify
@@ -203,7 +210,7 @@ class LandsatProduct(OpticalProduct):
             self._collection = LandsatCollection.COL_1
             self.needs_extraction = True  # Too slow to read directly tar.gz files
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:
@@ -1838,3 +1845,108 @@ class LandsatProduct(OpticalProduct):
                 )
 
         return quicklook_path
+
+
+class LandsatStacProduct(StacProduct, LandsatProduct):
+    def __init__(
+        self,
+        product_path: AnyPathStrType = None,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
+        remove_tmp: bool = False,
+        **kwargs,
+    ) -> None:
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        self.kwargs = kwargs
+        """Custom kwargs"""
+
+        # Copy the kwargs
+        super_kwargs = kwargs.copy()
+
+        # Get STAC Item
+        self.item = None
+        """ STAC Item of the product """
+        self.item = super_kwargs.pop("item", None)
+        if self.item is None:
+            try:
+                self.item = Item.from_file(product_path)
+            except TypeError:
+                raise InvalidProductError(
+                    "You should either fill 'product_path' or 'item'."
+                )
+
+        self.default_clients = [
+            planetary_computer,
+            S3Client(region_name="us-west-2"),  # Element84, EarthData
+            S3Client(requester_pays=True, region_name="us-west-2"),  # USGS Landsat
+            # Not yet handled
+            # HttpClient(ClientSession(base_url="https://landsatlook.usgs.gov", auth=BasicAuth(login="", password="")))
+        ]
+        self.clients = super_kwargs.pop("client", self.default_clients)
+
+        if product_path is None:
+            # Canonical link is always the second one
+            # TODO: check if ok
+            product_path = AnyPath(self.item.links[1].target).parent
+
+        # Initialization from the super class
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+
+    def _get_path(self, band_id: str) -> str:
+        """
+        Get either the archived path of the normal path of a tif file
+
+        Args:
+            band_id (str): Band ID
+
+        Returns:
+            AnyPathType: band path
+
+        """
+        if band_id.startswith("_"):
+            band_id = band_id[1:]
+
+        if band_id.lower() in self.item.assets:
+            asset_name = band_id.lower()
+        elif band_id.startswith("B"):
+            band_name = [
+                band_name
+                for band_name, band in self.bands.items()
+                if band is not None and f"B{band.id}" == band_id
+            ][0]
+            asset_name = EOREADER_STAC_MAP[band_name].value
+        else:
+            try:
+                asset_name = difflib.get_close_matches(
+                    band_id, self.item.assets.keys(), cutoff=0.5, n=1
+                )[0]
+            except Exception:
+                raise FileNotFoundError(
+                    f"Impossible to find an asset in {list(self.item.assets.keys())} close enough to '{band_id}'"
+                )
+
+        return self.sign_url(self.item.assets[asset_name].href)
+
+    def _read_mtd(self, force_pd=False) -> (etree._Element, dict):
+        """
+        Read Landsat metadata as:
+
+         - :code:`pandas.DataFrame` whatever its collection is (by default for collection 1)
+         - XML root + its namespace if the product is retrieved from the 2nd collection (by default for collection 2)
+
+        Args:
+            force_pd (bool): If collection 2, return a pandas.DataFrame instead of an XML root + namespace
+        Returns:
+            Tuple[Union[pd.DataFrame, etree._Element], dict]:
+                Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
+        """
+        return self._read_mtd_xml_stac(self._get_path("mtl.xml"))
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        return self._get_path("rendered_preview")

@@ -25,11 +25,12 @@ from enum import unique
 from typing import Union
 from zipfile import BadZipFile
 
+from pystac import Item
 from sertit import AnyPath, path, strings
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
 
-from eoreader import EOREADER_NAME
+from eoreader import EOREADER_NAME, utils
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -480,7 +481,40 @@ class Reader:
             Product: Correct products
 
         """
-        product_path = AnyPath(product_path)
+        if isinstance(product_path, Item):
+            # TODO
+
+            # Get first asset URL
+            first_asset_url = list(product_path.assets.values())[0].href
+
+            # Convert to URI handled by cloudpathlib (https://s3.endpoint/bucket/file.extension)
+            # https://rapidmapping.s3.eu-west-1.amazonaws.com/EMSR706/AOI07/DEL_PRODUCT/EMSR706_AOI07_DEL_PRODUCT_v1.zip
+            # https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/26/S/KG/2023/11/S2A_26SKG_20231114_0_L2A/AOT.tif
+            # https://s3.unistra.fr/sertit-eoreader-ci/all_sar/SLH_49732/
+
+            # https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html
+            # https://bucket-name.s3.region-code.amazonaws.com/key-name - Virtual-hosted–style access
+            # https://s3.region-code.amazonaws.com/bucket-name/key-name - Path-style access
+
+            # to
+            # s3://sentinel-cogs/sentinel-s2-l2a-cogs/39/K/ZU/2023/10/S2A_39KZU_20231031_0_L2A
+            # s3://sertit-eoreader-ci/all_sar/SLH_49732/
+            asset_url_split = utils.get_split_name(first_asset_url, "/")
+            endpoint = asset_url_split[1]
+            if endpoint.startswith("s3"):
+                bucket = asset_url_split[2]
+                end_uri = "/".join(asset_url_split[3:])
+            else:
+                endpoint_split = endpoint.split(".")
+                bucket = endpoint_split[0]
+                endpoint = "/".join(asset_url_split[1:])
+                end_uri = "/".join(asset_url_split[2:])
+
+            first_asset_uri = AnyPath(f"s3://{bucket}/{end_uri}")
+            product_path = first_asset_uri.parent
+        else:
+            product_path = AnyPath(product_path)
+
         if not product_path.exists():
             FileNotFoundError(f"Non existing product: {product_path}")
 
@@ -513,58 +547,7 @@ class Reader:
                     )
 
                 if is_valid:
-                    sat_class = const.name.lower() + "_product"
-
-                    # Channel correctly the constellations to their generic files (just in case)
-                    # TerraSAR-like constellations
-                    if const in [Constellation.TDX, Constellation.PAZ]:
-                        sat_class = "tsx_product"
-                        const = None  # All product names are the same, so assess it with MTD
-                    # Maxar-like constellations
-                    elif const in [
-                        Constellation.QB,
-                        Constellation.GE01,
-                        Constellation.WV01,
-                        Constellation.WV02,
-                        Constellation.WV03,
-                        Constellation.WV04,
-                    ]:
-                        sat_class = "maxar_product"
-                        const = None  # All product names are the same, so assess it with MTD
-                    # Lansat constellations
-                    elif const in [
-                        Constellation.L1,
-                        Constellation.L2,
-                        Constellation.L3,
-                        Constellation.L4,
-                        Constellation.L5,
-                        Constellation.L7,
-                        Constellation.L8,
-                        Constellation.L9,
-                    ]:
-                        sat_class = "landsat_product"
-                    # SPOT-6/7 constellations
-                    elif const in [Constellation.SPOT6, Constellation.SPOT7]:
-                        sat_class = "spot67_product"
-                    # SPOT-4/5 constellations
-                    elif const in [Constellation.SPOT4, Constellation.SPOT5]:
-                        sat_class = "spot45_product"
-                    elif const in [Constellation.S2_SIN]:
-                        sat_class = "s2_product"
-                        kwargs["is_sinergise"] = True
-
-                    # Manage both optical and SAR
-                    try:
-                        mod = importlib.import_module(
-                            f"eoreader.products.sar.{sat_class}"
-                        )
-                    except ModuleNotFoundError:
-                        mod = importlib.import_module(
-                            f"eoreader.products.optical.{sat_class}"
-                        )
-
-                    class_ = getattr(mod, strings.snake_to_camel_case(sat_class))
-                    prod = class_(
+                    prod = create_product(
                         product_path=product_path,
                         archive_path=archive_path,
                         output_path=output_path,
@@ -758,3 +741,69 @@ def is_filename_valid(
                 raise BadZipFile(f"{product_path} is not a zip file")
 
     return is_valid
+
+
+def create_product(
+    product_path,
+    archive_path,
+    output_path,
+    remove_tmp,
+    constellation: Constellation,
+    **kwargs,
+):
+    sat_class = constellation.name.lower() + "_product"
+
+    # Channel correctly the constellations to their generic files (just in case)
+    # TerraSAR-like constellations
+    if constellation in [Constellation.TDX, Constellation.PAZ]:
+        sat_class = "tsx_product"
+        constellation = None  # All product names are the same, so assess it with MTD
+    # Maxar-like constellations
+    elif constellation in [
+        Constellation.QB,
+        Constellation.GE01,
+        Constellation.WV01,
+        Constellation.WV02,
+        Constellation.WV03,
+        Constellation.WV04,
+    ]:
+        sat_class = "maxar_product"
+        constellation = None  # All product names are the same, so assess it with MTD
+    # Lansat constellations
+    elif constellation in [
+        Constellation.L1,
+        Constellation.L2,
+        Constellation.L3,
+        Constellation.L4,
+        Constellation.L5,
+        Constellation.L7,
+        Constellation.L8,
+        Constellation.L9,
+    ]:
+        sat_class = "landsat_product"
+    # SPOT-6/7 constellations
+    elif constellation in [Constellation.SPOT6, Constellation.SPOT7]:
+        sat_class = "spot67_product"
+    # SPOT-4/5 constellations
+    elif constellation in [Constellation.SPOT4, Constellation.SPOT5]:
+        sat_class = "spot45_product"
+    elif constellation in [Constellation.S2_SIN]:
+        sat_class = "s2_product"
+        kwargs["is_sinergise"] = True
+
+    # Manage both optical and SAR
+    try:
+        mod = importlib.import_module(f"eoreader.products.sar.{sat_class}")
+    except ModuleNotFoundError:
+        mod = importlib.import_module(f"eoreader.products.optical.{sat_class}")
+
+    class_ = getattr(mod, strings.snake_to_camel_case(sat_class))
+    prod = class_(
+        product_path=product_path,
+        archive_path=archive_path,
+        output_path=output_path,
+        remove_tmp=remove_tmp,
+        constellation=constellation,
+        **kwargs,
+    )
+    return prod

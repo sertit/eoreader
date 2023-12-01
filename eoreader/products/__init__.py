@@ -28,6 +28,12 @@ __all__ += [
 ]
 from .custom_product import CustomProduct, CustomFields
 
+# STAC products
+__all__ += [
+    "StacProduct",
+]
+from .stac_product import StacProduct
+
 # -- Optical --
 __all__ += [
     "OpticalProduct",

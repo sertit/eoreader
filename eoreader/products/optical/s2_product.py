@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Sentinel-2 products """
+import asyncio
+import difflib
 import json
 import logging
 import os
@@ -28,10 +30,12 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import planetary_computer
 import rasterio
 import xarray as xr
 from affine import Affine
 from lxml import etree
+from pystac import Item
 from rasterio import errors, features, transform
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
@@ -39,6 +43,7 @@ from sertit import AnyPath, files, geometry, path, rasters, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from shapely.geometry import box
+from stac_asset import S3Client
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -47,6 +52,7 @@ from eoreader.bands import (
     CA,
     CIRRUS,
     CLOUDS,
+    EOREADER_STAC_MAP,
     GREEN,
     NARROW_NIR,
     NIR,
@@ -65,7 +71,7 @@ from eoreader.bands import (
     to_str,
 )
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.products import OpticalProduct
+from eoreader.products import OpticalProduct, StacProduct
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.products.product import OrbitDirection
 from eoreader.stac import CENTER_WV, FWHM, GSD, ID, NAME
@@ -1692,3 +1698,182 @@ class S2Product(OpticalProduct):
             od = OrbitDirection.DESCENDING
 
         return od
+
+
+class S2StacProduct(StacProduct, S2Product):
+    def __init__(
+        self,
+        product_path: AnyPathStrType = None,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
+        remove_tmp: bool = False,
+        **kwargs,
+    ) -> None:
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        self.kwargs = kwargs
+        """Custom kwargs"""
+
+        # Copy the kwargs
+        super_kwargs = kwargs.copy()
+
+        # Get STAC Item
+        self.item = None
+        """ STAC Item of the product """
+        self.item = super_kwargs.pop("item", None)
+        if self.item is None:
+            try:
+                self.item = Item.from_file(product_path)
+            except TypeError:
+                raise InvalidProductError(
+                    "You should either fill 'product_path' or 'item'."
+                )
+
+        self.default_clients = [
+            planetary_computer,
+            S3Client(region_name="us-west-2"),  # Element84, EarthData
+            S3Client(requester_pays=True, region_name="eu-central-1"),  # Sinergise
+            # Not yet handled
+            # HttpClient(ClientSession(base_url="https://landsatlook.usgs.gov", auth=BasicAuth(login="", password="")))
+        ]
+        self.clients = super_kwargs.pop("client", self.default_clients)
+
+        if product_path is None:
+            # Canonical link is always the second one
+            # TODO: check if ok
+            product_path = AnyPath(self.item.links[1].target).parent
+
+        # Initialization from the super class
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+
+    def _pre_init(self, **kwargs) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        self._raw_units = RawUnits.REFL
+        self._has_cloud_cover = True
+        self._use_filename = False
+        self.needs_extraction = False
+
+        # Pre init done by the super class
+        super(S2Product, self)._pre_init(**kwargs)
+
+    def _get_path(self, file_id: str, ext="tif") -> str:
+        """
+        Get either the archived path of the normal path of a tif file
+
+        Args:
+            band_id (str): Band ID
+
+        Returns:
+            AnyPathType: band path
+        """
+        if file_id.lower() in self.item.assets:
+            asset_name = file_id.lower()
+        elif file_id in [band.id for band in self.bands.values() if band is not None]:
+            band_name = [
+                band_name
+                for band_name, band in self.bands.items()
+                if band is not None and f"{band.id}" == file_id
+            ][0]
+            asset_name = EOREADER_STAC_MAP[band_name].value
+        else:
+            try:
+                asset_name = difflib.get_close_matches(
+                    file_id, self.item.assets.keys(), cutoff=0.5, n=1
+                )[0]
+            except Exception:
+                raise FileNotFoundError(
+                    f"Impossible to find an asset in {list(self.item.assets.keys())} close enough to '{file_id}'"
+                )
+
+        return self.sign_url(self.item.assets[asset_name].href)
+
+    def get_band_paths(
+        self, band_list: list, pixel_size: float = None, **kwargs
+    ) -> dict:
+        """
+        Return the paths of required bands.
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.get_band_paths([GREEN, RED])
+            {
+                <SpectralBandNames.GREEN: 'GREEN'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B03.jp2',
+                <SpectralBandNames.RED: 'RED'>: 'zip+file://S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip!/S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE/GRANULE/L1C_T30TTK_A027018_20200824T111345/IMG_DATA/T30TTK_20200824T110631_B04.jp2'
+            }
+
+        Args:
+            band_list (list): List of the wanted bands
+            pixel_size (float): Band pixel size
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            dict: Dictionary containing the path of each queried band
+        """
+        band_paths = {}
+        for band in band_list:
+            # Get clean band path
+            clean_band = self._get_clean_band_path(
+                band, pixel_size=pixel_size, **kwargs
+            )
+            if clean_band.is_file():
+                band_paths[band] = clean_band
+            else:
+                band_id = self.bands[band].id
+                try:
+                    band_paths[band] = self._get_path(band_id)
+                except (FileNotFoundError, IndexError) as ex:
+                    raise InvalidProductError(
+                        f"Non existing {band} ({band_id}) band for {self.path}"
+                    ) from ex
+
+        return band_paths
+
+    @cache
+    def read_datatake_mtd(self) -> (etree._Element, dict):
+        """
+        Read datatake metadata and outputs the metadata XML root and its namespaces as a dict
+        (datatake metadata is the file in the root directory named :code:`MTD_MSI(L1C/L2A).xml`)
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.read_mtd()
+            (<Element {https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}Level-2A_Tile_ID at ...>,
+            {'nl': '{https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd}'})
+
+        Returns:
+            (etree._Element, dict): Metadata XML root and its namespaces
+        """
+        return self._read_mtd_xml_stac(self._get_path("product-metadata"))
+
+    def _read_mtd(self) -> (etree._Element, dict):
+        """
+        Read Landsat metadata as:
+
+         - :code:`pandas.DataFrame` whatever its collection is (by default for collection 1)
+         - XML root + its namespace if the product is retrieved from the 2nd collection (by default for collection 2)
+
+        Args:
+            force_pd (bool): If collection 2, return a pandas.DataFrame instead of an XML root + namespace
+        Returns:
+            Tuple[Union[pd.DataFrame, etree._Element], dict]:
+                Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
+        """
+        return self._read_mtd_xml_stac(self._get_path("granule-metadata"))
+
+    def get_quicklook_path(self) -> str:
+        """
+        Get quicklook path if existing.
+
+        Returns:
+            str: Quicklook path
+        """
+        return self._get_path("preview")
