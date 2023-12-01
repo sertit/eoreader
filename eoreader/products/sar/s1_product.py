@@ -312,14 +312,13 @@ class S1Product(SarProduct):
         if not mode:
             raise InvalidProductError("mode not found in metadata!")
 
+        # Mono swath SM
+        if mode in ["S1", "S2", "S3", "S4", "S5", "S6"]:
+            mode = "SM"
+
         # Get sensor mode
         self.sensor_mode = S1SensorMode.from_value(mode)
 
-        # Discard invalid sensor mode
-        if self.sensor_mode != S1SensorMode.IW:
-            raise NotImplementedError(
-                f"For now, only IW sensor mode is used in EOReader processes: {self.name}"
-            )
         if not self.sensor_mode:
             raise InvalidProductError(
                 f"Invalid {self.constellation.value} name: {self.name}"

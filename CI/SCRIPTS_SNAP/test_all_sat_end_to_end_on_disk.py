@@ -308,6 +308,12 @@ def test_s1_slc_zip(capfd):
 
 
 @dask_env
+def test_s1_slc_sm():
+    """Function testing the support of Sentinel-1 constellation"""
+    _test_core_sar("*S1*_S4_SLC*.SAFE")
+
+
+@dask_env
 def test_s1_grdh():
     """Function testing the support of Sentinel-1 constellation"""
     _test_core_sar("*S1*_IW_GRDH*.SAFE")
