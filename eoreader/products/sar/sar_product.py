@@ -713,11 +713,12 @@ class SarProduct(Product):
                         )
 
                     else:
-                        sat = (
-                            "s1"
-                            if self.constellation_id == Constellation.S1.name
-                            else "sar"
-                        )
+                        if self.constellation_id == Constellation.S1.name:
+                            sat = "s1"
+                            if self.sensor_mode.value == "SM":
+                                sat += "_sm"
+                        else:
+                            sat = "sar"
                         spt = (
                             "grd"
                             if self.sar_prod_type == SarProductType.GDRG

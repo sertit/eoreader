@@ -9,6 +9,7 @@
 - **ENH: Handle Python 3.12. ([#113](https://github.com/sertit/eoreader/issues/113))**
 - **ENH: Guard against S1 COG format, not yet handled by SNAP.**
 - **ENH: Calibration step for `Capella` products now exists in ESA SNAP. Add it in pre-processing.**
+- **ENH: Handling of Sentinel-1 SM products.**
 - FIX: Fix jpg, png... quicklooks management when plotting
 - FIX: Fix an `xarray` issue when trying to compute percentiles when stacking bands
 - CI: Update pre-commit hooks
