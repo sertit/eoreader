@@ -20,7 +20,7 @@ dicttoxml
 
 # Paths
 validators
-cloudpathlib>=0.10.0
+cloudpathlib[s3]>=0.10.0
 
 # Raster libs
 scipy
