@@ -58,7 +58,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 @unique
 class SkyInstrument(ListEnum):
     """Skysat instrument
-    See `OSCAR instrument <https://space-test.oscar.wmo.int/oscar-test/instruments/view/skysat>`__
+    See `OSCAR instrument <https://space.oscar.wmo.int/instruments/view/skysat>`__
     for more information.
     """
 
@@ -230,7 +230,7 @@ class SkyProduct(PlanetProduct):
         """
         Set instrument
 
-        SkySat: https://space-test.oscar.wmo.int/oscar-test/instruments/view/skysat
+        SkySat: https://space.oscar.wmo.int/instruments/view/skysat
         """
         # Set correct constellation
         self.instrument = SkyInstrument.SKY

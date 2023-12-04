@@ -168,7 +168,7 @@ class Sv1Product(VhrProduct):
         """
         Set instrument
 
-        SuperView-1: https://space-test.oscar.wmo.int/oscar-test/instruments/view/pms_3
+        SuperView-1: https://space.oscar.wmo.int/instruments/instruments/view/pms_3
         """
         self.instrument = "PMS-3"
 
@@ -188,7 +188,7 @@ class Sv1Product(VhrProduct):
 
     def _map_bands(self) -> None:
         """
-        Map bands, see https://space-test.oscar.wmo.int/oscar-test/instruments/view/pms_3
+        Map bands, see https://space.oscar.wmo.int/instruments/instruments/view/pms_3
         """
         # Create spectral bands
         pan = SpectralBand(
