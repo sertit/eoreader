@@ -126,7 +126,7 @@ class ReProduct(PlanetProduct):
         """
         Set instrument
 
-        See: https://space-test.oscar.wmo.int/oscar-test/instruments/view/reis
+        See: https://space.oscar.wmo.int/instruments/view/reis
         """
         self.instrument = "REIS"
 

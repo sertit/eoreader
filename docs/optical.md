@@ -296,7 +296,7 @@ WorldView-1 is not concerned by spectral indices as it only has a panchromatic b
 - [Product Specification (Processing Baseline > 4.0)](https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2-Products-Specification-Document-14_8.pdf)
 
 ### Harmonize Landsat-Sentinel
-- [Product Guide v2.0](https://lpdaac.usgs.gov/documents/1326/HLS_User_Guide_V2.pdf)
+- [Product Guide v2.0](https://lpdaac.usgs.gov/documents/1698/HLS_User_Guide_V2.pdf)
 
 ### Sentinel-2 Theia
 
@@ -320,9 +320,9 @@ WorldView-1 is not concerned by spectral indices as it only has a panchromatic b
 
 ### Vision-1
 
-- [Vision-1 on Airbus Website](https://www.intelligence-airbusds.com/imagery/constellation/vision1)
-- [Presentation of the satellite](https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC02MDIyNg==/ZG9jdXRoZXF1ZS1maWxlLTYwMjI1/Vision-1_web_201906.pdf)
-- [User guide](https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC02ODMwNQ==/ZG9jdXRoZXF1ZS1maWxlLTY4MzAy/vision-1-imagery-user-guide-20210217)
+- [Vision-1 on Airbus Website](https://intelligence.airbus.com/imagery/our-optical-and-radar-satellite-imagery/vision-1/)
+- [Presentation of the satellite](https://storage.googleapis.com/p-oaf-ibe-back-00e-strapi-uploads/Vision_1_web_201906_03a78fe799/Vision_1_web_201906_03a78fe799.pdf)
+- [User guide](https://storage.googleapis.com/p-oaf-ibe-back-00e-strapi-uploads/vision_1_imagery_user_guide_20210217_5b09442f70/vision_1_imagery_user_guide_20210217_5b09442f70.pdf)
 
 ### DIMAP V1: SPOT-4/5
 - [Product Format (a bit too old)](http://www.engesat.com.br/wp-content/uploads/S5-ST-73-1-CN_2_9-Spec-Format-Produits-SPOT.pdf)
@@ -356,7 +356,7 @@ WorldView-1 is not concerned by spectral indices as it only has a panchromatic b
 
 ### Instruments
 
-Most instruments can be found on [OSCAR](https://space-test.oscar.wmo.int/oscar-test/instruments) or on [ESA Earth Online](https://earth.esa.int/eogateway/en/missions).
+Most instruments can be found on [OSCAR](https://space.oscar.wmo.int/instruments) or on [ESA Earth Online](https://earth.esa.int/eogateway/missions).
 
 ### Band mapping
 
@@ -364,9 +364,6 @@ Most instruments can be found on [OSCAR](https://space-test.oscar.wmo.int/oscar-
   blog.
 - [L8-S2](https://reader.elsevier.com/reader/sd/pii/S0034425718301883)
 - [All Landsats](https://landsat.gsfc.nasa.gov/wp-content/uploads/2016/10/all_Landsat_bands.png)
-- [S2](https://discovery.creodias.eu/dataset/72181b08-a577-4d55-8ece-d8485167beb7/resource/d8f5dd92-b35c-46ee-98a2-0879dad03fce/download/res_band_s2_1.png)
-- [S3 OLCI](https://discovery.creodias.eu/dataset/a0960a9b-c9c4-46db-bca5-ec79d0dda32b/resource/de8300a4-08cd-41aa-96ec-d9813115cc08/download/s3_res_band_ol.png)
-- [S3 SLSTR](https://discovery.creodias.eu/dataset/ea8f247e-d193-4368-8cf6-8687a03a5306/resource/8e5c485a-d832-42be-ad9c-af500b468f29/download/s3_slcs.png)
 - [S2 and PlanetScope](https://developers.planet.com/docs/apis/data/sensors/#the-psbsd-instrument)
 
 ### Index
@@ -376,4 +373,4 @@ Most instruments can be found on [OSCAR](https://space-test.oscar.wmo.int/oscar-
 - [WorldView Index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide)
 - Specific sources inside the index function documentation in {meth}`~eoreader.bands.indices`
 
-*Documentation last accessed on the 02/12/2022*
+*Documentation last accessed on the 04/12/2023*

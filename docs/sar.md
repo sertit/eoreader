@@ -428,6 +428,7 @@ variable:
 
 - [Data Products](https://sentinel.esa.int/web/sentinel/missions/sentinel-1/data-products)
 - [Acquisition Mode](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/acquisition-modes)
+- [S1 RTC](https://hyp3-docs.asf.alaska.edu/guides/rtc_product_guide/#readme-file)
 
 ### RADARSAT
 
@@ -466,4 +467,4 @@ variable:
 - [Capella Product Guide](https://support.capellaspace.com/hc/en-us/articles/4626115099796-SAR-Imagery-Products-Guide)
 - [Capella Products Format Specification](https://support.capellaspace.com/hc/en-us/articles/5607458273940-SAR-Imagery-Products-Format-Specification)
 
-*Documentation last accessed on the 02/12/2022*
+*Documentation last accessed on the 04/12/2023*

@@ -278,8 +278,8 @@ class Spot45Product(DimapV1Product):
         """
         Set instrument
 
-        SPOT-4: https://space-test.oscar.wmo.int/oscar-test/instruments/view/hrvir
-        SPOT-5: https://space-test.oscar.wmo.int/oscar-test/instruments/view/hrg
+        SPOT-4: https://space.oscar.wmo.int/instruments/view/hrvir
+        SPOT-5: https://space.oscar.wmo.int/instruments/view/hrg
         """
         if self.constellation == Constellation.SPOT4:
             self.instrument = "HRVIR"
