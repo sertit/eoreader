@@ -560,10 +560,14 @@ class S2E84Product(OpticalProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        band_mtd = self.stac_mtd["assets"][EOREADER_STAC_MAP[band].value][
-            "raster:bands"
-        ][0]
-        return band_arr * band_mtd["scale"] + band_mtd["offset"]
+        # The offset is always applied for E84 products: https://github.com/sertit/eoreader/discussions/120#discussioncomment-7751885
+        # offset = 0
+        quantif_value = 10000.0
+
+        # Compute the correct radiometry of the band
+        band_arr = band_arr / quantif_value
+
+        return band_arr.astype(np.float32)
 
     def _manage_invalid_pixels(
         self, band_arr: xr.DataArray, band: BandNames, **kwargs
@@ -903,6 +907,8 @@ class S2MPCStacProduct(StacProduct, S2E84Product):
         self.kwargs = kwargs
         """Custom kwargs"""
 
+        self._processing_baseline = None
+
         # Copy the kwargs
         super_kwargs = kwargs.copy()
 
@@ -944,6 +950,18 @@ class S2MPCStacProduct(StacProduct, S2E84Product):
         # Pre init done by the super class
         super(S2E84Product, self)._pre_init(**kwargs)
 
+    def _post_init(self, **kwargs) -> None:
+        """
+        Function used to post_init the products
+        (setting sensor type, band names and so on)
+        """
+        # Get processing baseline: N0213 -> 02.13
+        pr_baseline = float(self.split_name[3][1:]) / 100
+        self._processing_baseline = pr_baseline
+
+        # Pre init done by the super class
+        super(S2E84Product, self)._post_init(**kwargs)
+
     def _get_name(self) -> str:
         """
         Set product real name.
@@ -972,8 +990,11 @@ class S2MPCStacProduct(StacProduct, S2E84Product):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        # TODO
-        offset = -1000.0
+        # TODO: use mtd for offset and quantif value
+        if self._processing_baseline < 4.0:
+            offset = 0.0
+        else:
+            offset = -1000.0
         quantif_value = 10000.0
 
         # Compute the correct radiometry of the band
