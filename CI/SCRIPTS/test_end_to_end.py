@@ -1,4 +1,4 @@
-""" Script testing EOReader satellites in a push routine """
+""" Script testing EOReader satellites in an end-to-end manner. """
 import logging
 import os
 import shutil
@@ -217,14 +217,15 @@ def _test_core(
             prod.clear()
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32",
-    reason="Not enough memory to reproject on Windows runner",
-)
-@dask_env
-def test_spot6():
-    """Function testing the support of SPOT-6 constellation"""
-    _test_core_optical("*IMG_SPOT6*")
+# Test this only weekly now.
+# @pytest.mark.skipif(
+#     sys.platform == "win32",
+#     reason="Not enough memory to reproject on Windows runner",
+# )
+# @dask_env
+# def test_spot6():
+#     """Function testing the support of SPOT-6 constellation"""
+#     _test_core_optical("*IMG_SPOT6*")
 
 
 @pytest.mark.skipif(

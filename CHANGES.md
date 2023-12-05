@@ -13,13 +13,14 @@
 - **ENH: Handling of Sentinel-1 SM products.**
 - FIX: Fix jpg, png... quicklooks management when plotting
 - FIX: Fix an `xarray` issue when trying to compute percentiles when stacking bands
-- CI: Update pre-commit hooks
-- CI: Revamping `test_satellites`
 - DEPS: Remove as many mention as possible to `cloudpathlib`
 - DEPS: Update minimum versions of some libraries
 - DOC: Add example about the output management (in `base` notebook, [#117](https://github.com/sertit/eoreader/issues/117))
 - GITHUB: Update bug template
 - CI: Enabling pre-commit.ci and dependabot bots
+- CI: Update pre-commit hooks
+- CI: Revamping `test_satellites`
+- CI: Some refactoring
 
 ## 0.20.4 (2023-09-26)
 

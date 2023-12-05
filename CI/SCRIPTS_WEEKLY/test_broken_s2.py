@@ -1,3 +1,4 @@
+""" Testing broken S2 products. """
 import logging
 
 import pytest
