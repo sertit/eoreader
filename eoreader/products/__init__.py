@@ -170,7 +170,7 @@ from .optical.s2_product import (
     S2Jp2Masks,
     S2StacProduct,
 )
-from .optical.s2_e84_product import S2E84Product, S2E84StacProduct, S2MPCStacProduct
+from .optical.s2_e84_product import S2E84Product, S2E84StacProduct, S2MpcStacProduct
 from .optical.s2_theia_product import S2TheiaProduct
 from .optical.s3_product import S3Product, S3ProductType, S3DataType, S3Instrument
 from .optical.s3_olci_product import S3OlciProduct
@@ -205,9 +205,9 @@ __all__ += [
     "S1Product",
     "S1SensorMode",
     "S1ProductType",
-    "S1RTCProduct",
-    "S1RTCProductType",
-    "SaocomProduct",
+    "S1RtcProduct",
+    "S1RtcProductType",
+    "S1RtcMpcStacProduct" "SaocomProduct",
     "SaocomProductType",
     "SaocomPolarization",
     "SaocomSensorMode" "TsxProduct",
@@ -227,7 +227,7 @@ from .sar.iceye_product import IceyeProduct, IceyeProductType, IceyeSensorMode
 from .sar.rcm_product import RcmProduct, RcmProductType, RcmSensorMode
 from .sar.rs2_product import Rs2Product, Rs2ProductType, Rs2SensorMode
 from .sar.s1_product import S1Product, S1SensorMode, S1ProductType
-from .sar.s1_rtc_product import S1RtcProduct, S1RtcProductType
+from .sar.s1_rtc_product import S1RtcAsfProduct, S1RtcProductType, S1RtcMpcStacProduct
 from .sar.saocom_product import (
     SaocomProduct,
     SaocomProductType,

@@ -894,7 +894,7 @@ class S2E84StacProduct(StacProduct, S2E84Product):
         return self._get_path("thumbnail")
 
 
-class S2MPCStacProduct(StacProduct, S2E84Product):
+class S2MpcStacProduct(StacProduct, S2E84Product):
     def __init__(
         self,
         product_path: AnyPathStrType = None,
