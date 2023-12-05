@@ -5,7 +5,7 @@ from functools import wraps
 from typing import Callable
 
 import tempenv
-from sertit import AnyPath, ci, s3
+from sertit import AnyPath, s3
 from sertit.s3 import USE_S3_STORAGE
 from sertit.types import AnyPathType
 from sertit.unistra import (
@@ -65,10 +65,7 @@ def get_ci_data_dir() -> AnyPathType:
     Returns:
         str: CI DATA directory
     """
-    if len(os.getenv(ci.AWS_ACCESS_KEY_ID, "")) > 0:
-        return get_ci_db_dir().joinpath("DATA")
-    else:
-        return get_ci_dir().joinpath("DATA")
+    return get_ci_db_dir().joinpath("DATA")
 
 
 def get_db_dir_on_disk() -> AnyPathType:

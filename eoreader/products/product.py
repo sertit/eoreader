@@ -106,6 +106,9 @@ class OrbitDirection(ListEnum):
     DESCENDING = "DESCENDING"
     """Descending sensing orbit direction"""
 
+    UNKNOWN = "UNKNOWN"
+    """Unknown orbit direction"""
+
 
 class Product:
     """Super class of EOReader Products"""

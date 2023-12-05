@@ -42,7 +42,7 @@ from eoreader.env_vars import (
 from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import Product, S2Product, SensorType, SlstrRadAdjust
 from eoreader.products.product import OrbitDirection
-from eoreader.reader import CheckMethod
+from eoreader.reader import CheckMethod, Constellation
 
 from .scripts_utils import (
     CI_EOREADER_S3,
@@ -194,7 +194,11 @@ def check_product_consistency(prod: Product):
     # Load MTD
     LOGGER.info("Checking Mtd")
     mtd_xml, nmsp = prod.read_mtd()
-    assert isinstance(mtd_xml, etree._Element)
+    if prod.constellation != Constellation.S1_RTC:
+        assert isinstance(mtd_xml, etree._Element)
+    else:
+        assert mtd_xml is None
+
     assert isinstance(nmsp, dict)
 
     # Mean sun angle type, cloud cover...
@@ -594,11 +598,11 @@ def _test_core(
                     get_ci_data_dir().joinpath(prod.condensed_name)
                 )
 
-                # Open product and set output
-                check_product_consistency(prod)
-
                 # Get the pixel size
                 pixel_size = get_pixel_size(prod)
+
+                # Open product and set output
+                check_product_consistency(prod)
 
                 # Check extent and footprint
                 check_geometry(prod, "extent", tmp_dir)
@@ -867,7 +871,14 @@ def test_gs2():
 @dask_env
 def test_s1():
     """Function testing the support of Sentinel-1 constellation"""
-    _test_core_sar("*S1*_IW*")
+    _test_core_sar("*S1*_IW_GRDH*")
+
+
+@s3_env
+@dask_env
+def test_s1_rtc():
+    """Function testing the support of Sentinel-1 RTC constellation"""
+    _test_core_sar("*S1*_RTC*")
 
 
 @s3_env

@@ -475,7 +475,7 @@ class SarProduct(Product):
                 if self.path.suffix == ".zip":
                     try:
                         band_paths[band] = path.get_archived_rio_path(
-                            self.path, band_regex.replace("*", ".*"), as_list=True
+                            self.path, band_regex.replace("*", ".*") + "$", as_list=True
                         )[0]
                         # Get as a list but keep only the first item (S1-SLC with 3 swaths)
                     except FileNotFoundError:
@@ -662,26 +662,37 @@ class SarProduct(Product):
         Returns:
             str: Band path
         """
+        def_pixel_size = float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
+        pixel_size = (
+            pixel_size
+            if (pixel_size and pixel_size != self.pixel_size)
+            else def_pixel_size
+        )
+
         raw_band_path = str(self.get_raw_band_paths(**kwargs)[band])
         with rasterio.open(raw_band_path) as ds:
             raw_crs = ds.crs
 
         if raw_crs and raw_crs.is_projected:
             # Set the nodata and write the image where they belong
-            with rioxarray.open_rasterio(raw_band_path) as arr:
-                arr = arr.where(arr != self._raw_no_data, np.nan)
+            arr = utils.read(
+                raw_band_path,
+                pixel_size=pixel_size if pixel_size != 0 else None,
+                masked=False,
+            )
+            arr = arr.where(arr != self._raw_no_data, np.nan)
 
-                file_path = os.path.join(
-                    self._get_band_folder(writable=True),
-                    f"{self.condensed_name}_{band.name}.tif",
-                )
-                utils.write(
-                    arr,
-                    file_path,
-                    dtype=np.float32,
-                    nodata=self._snap_no_data,
-                    predictor=SAR_PREDICTOR,
-                )
+            file_path = os.path.join(
+                self._get_band_folder(writable=True),
+                f"{self.condensed_name}_{band.name}.tif",
+            )
+            utils.write(
+                arr,
+                file_path,
+                dtype=np.float32,
+                nodata=self._snap_no_data,
+                predictor=SAR_PREDICTOR,
+            )
             return file_path
         else:
             # Create target dir (tmp dir)
@@ -735,14 +746,13 @@ class SarProduct(Product):
                 # Command line
                 if not os.path.isfile(pp_dim):
                     # pixel_size (use SNAP default pixel size for terrain correction)
-                    def_pixel_size = float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
-                    res_m = (
+                    pixel_size = (
                         pixel_size
                         if (pixel_size and pixel_size != self.pixel_size)
                         else def_pixel_size
                     )
                     res_deg = (
-                        res_m / 10.0 * 8.983152841195215e-5
+                        pixel_size / 10.0 * 8.983152841195215e-5
                     )  # Approx, shouldn't be used
 
                     # Manage DEM name
@@ -797,7 +807,7 @@ class SarProduct(Product):
                             f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
                             f"-Pdem_path={strings.to_cmd_string(dem_path)}",
                             f"-Pcrs={self.crs()}",
-                            f"-Pres_m={res_m}",
+                            f"-Pres_m={pixel_size}",
                             f"-Pres_deg={res_deg}",
                             f"-Pout={strings.to_cmd_string(pp_dim)}",
                         ],
