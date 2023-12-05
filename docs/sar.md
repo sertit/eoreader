@@ -6,18 +6,18 @@ You will find a SAR tutorial [here](https://eoreader.readthedocs.io/en/latest/no
 
 ![sar_sensors](_static/sar_sensors.png)
 
-| Constellations                      | Class                                                         | Use archive                                 |
-|-------------------------------------|---------------------------------------------------------------|---------------------------------------------|
-| `Capella`                           | {meth}`~eoreader.products.sar.capella_product.CapellaProduct` | ❌                                           |
-| `COSMO-Skymed 1st Generation`       | {meth}`~eoreader.products.sar.csk_product.CskProduct`         | ❌                                           |
-| `COSMO-Skymed 2nd Generation`       | {meth}`~eoreader.products.sar.csg_product.CsgProduct`         | ❌                                           |
-| `ICEYE`                             | {meth}`~eoreader.products.sar.iceye_product.IceyeProduct`     | ❌                                           |
-| `RADARSAT Constellation Mission`    | {meth}`~eoreader.products.sar.rcm_product.RcmProduct`         | ❌                                           |
+| Constellations                      | Class                                                         | Use archive                               |
+|-------------------------------------|---------------------------------------------------------------|-------------------------------------------|
+| `Capella`                           | {meth}`~eoreader.products.sar.capella_product.CapellaProduct` | ❌                                         |
+| `COSMO-Skymed 1st Generation`       | {meth}`~eoreader.products.sar.csk_product.CskProduct`         | ❌                                         |
+| `COSMO-Skymed 2nd Generation`       | {meth}`~eoreader.products.sar.csg_product.CsgProduct`         | ❌                                         |
+| `ICEYE`                             | {meth}`~eoreader.products.sar.iceye_product.IceyeProduct`     | ❌                                         |
+| `RADARSAT Constellation Mission`    | {meth}`~eoreader.products.sar.rcm_product.RcmProduct`         | ❌                                         |
 | `RADARSAT-2`                        | {meth}`~eoreader.products.sar.rs2_product.Rs2Product`         | ✅ for ground range data, ❌ for complex data |
-| `Sentinel-1`                        | {meth}`~eoreader.products.sar.s1_product.S1Product`           | ✅                                           |
-| `Sentinel-1 RTC`                    | {meth}`~eoreader.products.sar.s1_product.S1RtcProduct`        | ✅                                           |
-| `SAOCOM-1`                          | {meth}`~eoreader.products.sar.saocom_product.SaocomProduct`   | ❌                                           |
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.sar.tsx_product.TsxProduct`         | ❌                                           |
+| `Sentinel-1`                        | {meth}`~eoreader.products.sar.s1_product.S1Product`           | ✅                                         |
+| `Sentinel-1 RTC`                    | {meth}`~eoreader.products.sar.s1_product.S1RtcProduct`        | ✅ for ASF                                 |
+| `SAOCOM-1`                          | {meth}`~eoreader.products.sar.saocom_product.SaocomProduct`   | ❌                                         |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.sar.tsx_product.TsxProduct`         | ❌                                         |
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use, 
@@ -26,36 +26,36 @@ mostly because SNAP doesn't handle them.
 
 ## Product type handling
 
-| Constellations                      | Product Type                         | Handled |
-|-------------------------------------|--------------------------------------|---------|
-| `Capella`                           | SLC                                  | ✅       |
-| `Capella`                           | GEC                                  | ✅       |
-| `Capella`                           | GEO                                  | ✅       |
-| `Capella`                           | SICD, SIDD, CPHD                     | ❌       |
-| `COSMO-Skymed`                      | SCS                                  | ✅       |
-| `COSMO-SkyMed` 1st Generation       | DGM                                  | ✅       |
-| `COSMO-SkyMed` 2nd Generation       | DGM                                  | ⚠       |
-| `COSMO-SkyMed`                      | GEC, GTC                             | ⚠       |
-| `ICEYE`                             | SLC                                  | ✅       |
-| `ICEYE`                             | GRD                                  | ✅       |
-| `ICEYE`                             | ORTHO                                | 💤      |
-| `RADARSAT Constellation Mission`    | SLC                                  | ⚠       | 
-| `RADARSAT Constellation Mission`    | GRC, GCC, GCD                        | ⚠       |
-| `RADARSAT Constellation Mission`    | GRD                                  | ✅       | 
-| `RADARSAT-2`                        | SLC                                  | ✅       | 
-| `RADARSAT-2`                        | SGX, SCN, SCW,<br>SCF, SCS, SSG, SPG | ⚠       |
-| `RADARSAT-2`                        | SGF                                  | ✅       |
-| `Sentinel-1`                        | SLC                                  | ✅       | 
-| `Sentinel-1`                        | GRD                                  | ✅       |
-| `Sentinel-1`                        | RTC (ASF)                            | ✅       |
-| `SAOCOM-1`                          | SLC                                  | ✅       | 
-| `SAOCOM-1`                          | ID                                   | ⚠       |
-| `SAOCOM-1`                          | GEC                                  | ✅       |
-| `SAOCOM-1`                          | GTC                                  | ✅       |
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | SSC                                  | ✅       | 
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | MGD                                  | ✅       |
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | GEC                                  | ⚠       |
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | EEC                                  | ✅       |
+| Constellations                      | Product Type                                                                                                                                                  | Handled |
+|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|
+| `Capella`                           | SLC                                                                                                                                                           | ✅       |
+| `Capella`                           | GEC                                                                                                                                                           | ✅       |
+| `Capella`                           | GEO                                                                                                                                                           | ✅       |
+| `Capella`                           | SICD, SIDD, CPHD                                                                                                                                              | ❌       |
+| `COSMO-Skymed`                      | SCS                                                                                                                                                           | ✅       |
+| `COSMO-SkyMed` 1st Generation       | DGM                                                                                                                                                           | ✅       |
+| `COSMO-SkyMed` 2nd Generation       | DGM                                                                                                                                                           | ⚠       |
+| `COSMO-SkyMed`                      | GEC, GTC                                                                                                                                                      | ⚠       |
+| `ICEYE`                             | SLC                                                                                                                                                           | ✅       |
+| `ICEYE`                             | GRD                                                                                                                                                           | ✅       |
+| `ICEYE`                             | ORTHO                                                                                                                                                         | 💤      |
+| `RADARSAT Constellation Mission`    | SLC                                                                                                                                                           | ⚠       | 
+| `RADARSAT Constellation Mission`    | GRC, GCC, GCD                                                                                                                                                 | ⚠       |
+| `RADARSAT Constellation Mission`    | GRD                                                                                                                                                           | ✅       | 
+| `RADARSAT-2`                        | SLC                                                                                                                                                           | ✅       | 
+| `RADARSAT-2`                        | SGX, SCN, SCW,<br>SCF, SCS, SSG, SPG                                                                                                                          | ⚠       |
+| `RADARSAT-2`                        | SGF                                                                                                                                                           | ✅       |
+| `Sentinel-1`                        | SLC                                                                                                                                                           | ✅       | 
+| `Sentinel-1`                        | GRD                                                                                                                                                           | ✅       |
+| `Sentinel-1`                        | RTC ([ASF](https://hyp3-docs.asf.alaska.edu/guides/rtc_product_guide/#readme-file) and [MPC](https://planetarycomputer.microsoft.com/dataset/sentinel-1-rtc)) | ✅       |
+| `SAOCOM-1`                          | SLC                                                                                                                                                           | ✅       | 
+| `SAOCOM-1`                          | ID                                                                                                                                                            | ⚠       |
+| `SAOCOM-1`                          | GEC                                                                                                                                                           | ✅       |
+| `SAOCOM-1`                          | GTC                                                                                                                                                           | ✅       |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | SSC                                                                                                                                                           | ✅       | 
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | MGD                                                                                                                                                           | ✅       |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | GEC                                                                                                                                                           | ⚠       |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | EEC                                                                                                                                                           | ✅       |
 
 ✅: Tested   
 ⚠: Never tested, **use it at your own risk!**  
