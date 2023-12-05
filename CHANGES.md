@@ -8,6 +8,7 @@
 - CI: Update pre-commit hooks
 - DEPS: Remove as many mention as possible to `cloudpathlib`
 - GITHUB: Update bug template
+- CI: Enabling pre-commit.ci and dependabot bots
 
 ## 0.20.4 (2023-09-26)
 
