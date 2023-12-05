@@ -62,6 +62,11 @@ class Constellation(ListEnum):
     S1 = "Sentinel-1"
     """Sentinel-1"""
 
+    S1_RTC = "Sentinel-1 RTC"
+    """
+    Sentinel-1 RTC processed by ASF: https://hyp3-docs.asf.alaska.edu/guides/rtc_product_guide/
+    """
+
     S2 = "Sentinel-2"
     """Sentinel-2"""
 
@@ -267,6 +272,7 @@ CONSTELLATION_REGEX = {
     Constellation.HLS: r"HLS\.[LS]30\.T\d{2}\w{3}\.\d{7}T\d{6}\.v2\.0",
     Constellation.GS2: r"DE2_(PM4|PSH|PS3|PS4|MS4|PAN)_L1[A-D]_\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_DE2_\d{5}_.{4}",
     Constellation.S2_SIN: [r"\d", r"B12\.jp2"],
+    Constellation.S1_RTC: "S1[AB]_(IW|EW|SM|WV|S\d)_\d{8}T\d{6}_[DS][VH][PRO]_RTC\d{2}_.*",
 }
 
 MTD_REGEX = {
@@ -362,6 +368,7 @@ MTD_REGEX = {
             r"B12\.jp2",
         ],
     },
+    Constellation.S1_RTC: rf"{CONSTELLATION_REGEX[Constellation.S1_RTC]}\.kmz",
 }
 
 
