@@ -25,12 +25,15 @@ from enum import unique
 from typing import Union
 from zipfile import BadZipFile
 
+import pystac
+import validators
 from pystac import Item
 from sertit import AnyPath, path, strings
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
 
-from eoreader import EOREADER_NAME, utils
+from eoreader import EOREADER_NAME
+from eoreader.exceptions import InvalidProductError
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -62,9 +65,14 @@ class Constellation(ListEnum):
     S1 = "Sentinel-1"
     """Sentinel-1"""
 
-    S1_RTC = "Sentinel-1 RTC"
+    S1_RTC_ASF = "Sentinel-1 RTC ASF"
     """
     Sentinel-1 RTC processed by ASF: https://hyp3-docs.asf.alaska.edu/guides/rtc_product_guide/
+    """
+
+    S1_RTC_MPC = "Sentinel-1 RTC MPC"
+    """
+    Sentinel-1 RTC processed by MPC: https://planetarycomputer.microsoft.com/dataset/sentinel-1-rtc
     """
 
     S2 = "Sentinel-2"
@@ -74,12 +82,24 @@ class Constellation(ListEnum):
     """
     Sentinel-2 stored on AWS and processed by Element84:
     - Element84: arn:aws:s3:::sentinel-cogs - https://registry.opendata.aws/sentinel-2-l2a-cogs
+
+    Not a real constellation, only used for regex.
+    """
+
+    S2_MPC = "Sentinel-2 stored on Azure and processed by Microsoft Planetary Computer"
+    """
+    Sentinel-2 stored on Azure and processed by Microsoft Planetary Computer:
+    https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a
+
+    Not a real constellation, only used for regex.
     """
 
     S2_SIN = "Sentinel-2 stored on AWS and processed by Sinergise"
     """
     Sentinel-2 stored on AWS and processed by Sinergise:
     arn:aws:s3:::sentinel-s2-l1c and arn:aws:s3:::sentinel-s2-l2a - https://registry.opendata.aws/sentinel-2/
+
+    Not a real constellation, only used for regex.
     """
 
     S2_THEIA = "Sentinel-2 Theia"
@@ -272,7 +292,7 @@ CONSTELLATION_REGEX = {
     Constellation.HLS: r"HLS\.[LS]30\.T\d{2}\w{3}\.\d{7}T\d{6}\.v2\.0",
     Constellation.GS2: r"DE2_(PM4|PSH|PS3|PS4|MS4|PAN)_L1[A-D]_\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_DE2_\d{5}_.{4}",
     Constellation.S2_SIN: [r"\d", r"B12\.jp2"],
-    Constellation.S1_RTC: "S1[AB]_(IW|EW|SM|WV|S\d)_\d{8}T\d{6}_[DS][VH][PRO]_RTC\d{2}_.*",
+    Constellation.S1_RTC_ASF: r"S1[AB]_(IW|EW|SM|WV|S\d)_\d{8}T\d{6}_[DS][VH][PRO]_RTC\d{2}_.*",
 }
 
 MTD_REGEX = {
@@ -368,7 +388,7 @@ MTD_REGEX = {
             r"B12\.jp2",
         ],
     },
-    Constellation.S1_RTC: rf"{CONSTELLATION_REGEX[Constellation.S1_RTC]}\.kmz",
+    Constellation.S1_RTC_ASF: rf"{CONSTELLATION_REGEX[Constellation.S1_RTC_ASF]}\.kmz",
 }
 
 
@@ -440,7 +460,21 @@ class Reader:
         **kwargs,
     ) -> "Product":  # noqa: F821
         """
-        Open the product.
+        Open a product from:
+        - On disk path
+        - Cloud URI (such as s3://)
+        - STAC Item URL
+
+        Handled STAC Items are:
+
+        - MPC:
+            - S2 L2A COGS
+            - Landsat L2 and L1
+            - S1 RTC
+        - E84:
+            - S2 L2A COGS
+            - S2 L1C
+            - Landsat L2
 
         .. code-block:: python
 
@@ -476,51 +510,144 @@ class Reader:
                 tile name: T30QVE
 
         Args:
-            product_path (AnyPathStrType): Product path
+            product_path (AnyPathStrType): Product path. URL to a STAC Item is accepted. Cloud URIs (such as s3://...) or classic paths also.
             archive_path (AnyPathStrType): Archive path
             output_path (AnyPathStrType): Output Path
             method (CheckMethod): Checking method used to recognize the products
             remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
             custom (bool): True if we want to use a custom stack
             constellation (Union[Constellation, str, list]): One or several constellations to help the Reader to choose more rapidly the correct Product
+            **kwargs: Other arguments
+        Returns:
+            Product: EOReader's product
+        """
+        # If an URL is given, it must point to an URL translatable to a STAC Item
+        if validators.url(product_path):
+            try:
+                product_path = pystac.Item.from_file(product_path)
+            except Exception:
+                raise InvalidProductError(
+                    f"Cannot convert your URL ({product_path}) to a STAC Item."
+                )
+
+        if isinstance(product_path, Item):
+            prod = self._open_stac_item(product_path, output_path, remove_tmp, **kwargs)
+        else:
+            # If not an Item, it should be a path to somewhere
+            prod = self._open_path(
+                product_path,
+                archive_path,
+                output_path,
+                method,
+                remove_tmp,
+                custom,
+                constellation,
+                **kwargs,
+            )
+
+        if not prod:
+            LOGGER.warning(
+                "There is no existing products in EOReader corresponding to %s",
+                product_path,
+            )
+
+        return prod
+
+    def _open_stac_item(
+        self, item: Item, output_path: AnyPathStrType, remove_tmp: bool, **kwargs
+    ):
+        """
+        Open a STAC Item in EOReader.
+
+        Current STAC handled products: https://github.com/sertit/eoreader/issues/118
+
+        - MPC:
+            - S2 L2A COGS
+            - Landsat L2 and L1
+            - S1 RTC
+        - E84:
+            - S2 L2A COGS
+            - S2 L1C
+            - Landsat L2
+
+        Args:
+            item (Item): Stac Item
+            output_path (AnyPathStrType): Output Path
+            remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
+            **kwargs: Other arguments
 
         Returns:
-            Product: Correct products
-
+            Product: Product from the STAC Item
         """
-        if isinstance(product_path, Item):
-            # TODO
+        is_mpc = "planetarycomputer" in item.self_href
+        is_e84 = "earth-search.aws.element84.com" in item.self_href
 
-            # Get first asset URL
-            first_asset_url = list(product_path.assets.values())[0].href
-
-            # Convert to URI handled by cloudpathlib (https://s3.endpoint/bucket/file.extension)
-            # https://rapidmapping.s3.eu-west-1.amazonaws.com/EMSR706/AOI07/DEL_PRODUCT/EMSR706_AOI07_DEL_PRODUCT_v1.zip
-            # https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/26/S/KG/2023/11/S2A_26SKG_20231114_0_L2A/AOT.tif
-            # https://s3.unistra.fr/sertit-eoreader-ci/all_sar/SLH_49732/
-
-            # https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html
-            # https://bucket-name.s3.region-code.amazonaws.com/key-name - Virtual-hosted–style access
-            # https://s3.region-code.amazonaws.com/bucket-name/key-name - Path-style access
-
-            # to
-            # s3://sentinel-cogs/sentinel-s2-l2a-cogs/39/K/ZU/2023/10/S2A_39KZU_20231031_0_L2A
-            # s3://sertit-eoreader-ci/all_sar/SLH_49732/
-            asset_url_split = utils.get_split_name(first_asset_url, "/")
-            endpoint = asset_url_split[1]
-            if endpoint.startswith("s3"):
-                bucket = asset_url_split[2]
-                end_uri = "/".join(asset_url_split[3:])
-            else:
-                endpoint_split = endpoint.split(".")
-                bucket = endpoint_split[0]
-                endpoint = "/".join(asset_url_split[1:])
-                end_uri = "/".join(asset_url_split[2:])
-
-            first_asset_uri = AnyPath(f"s3://{bucket}/{end_uri}")
-            product_path = first_asset_uri.parent
+        if "rtc" in item.collection_id:
+            const = Constellation.S1_RTC_MPC
         else:
-            product_path = AnyPath(product_path)
+            try:
+                const = Constellation.from_value(
+                    item.properties["constellation"].capitalize().replace(" ", "-")
+                )
+            except Exception:
+                try:
+                    const = Constellation.from_value(
+                        item.common_metadata.platform.capitalize().replace(" ", "-")
+                    )
+                except Exception:
+                    const = None
+                    for const in CONSTELLATION_REGEX.keys():
+                        is_valid = self.valid_name(item.id, const)
+                        if is_valid:
+                            break
+
+        if is_e84 and const == Constellation.S2:
+            const = Constellation.S2_E84
+        elif is_mpc and const == Constellation.S2:
+            const = Constellation.S2_MPC
+
+        if const is not None:
+            prod = create_stac_product(
+                item=item,
+                output_path=output_path,
+                remove_tmp=remove_tmp,
+                constellation=const,
+                is_e84=is_e84,
+                is_mpc=is_mpc,
+            )
+        else:
+            prod = None
+
+        return prod
+
+    def _open_path(
+        self,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
+        method: CheckMethod = CheckMethod.MTD,
+        remove_tmp: bool = False,
+        custom: bool = False,
+        constellation: Union[Constellation, str, list] = None,
+        **kwargs,
+    ):
+        """
+        Open a path or a cloud URI as an EOReader's product
+
+        Args:
+            product_path (AnyPathStrType): Product path. URL to a STAC Item is accepted. Cloud URIs (such as s3://...) or classic paths also.
+            archive_path (AnyPathStrType): Archive path
+            output_path (AnyPathStrType): Output Path
+            method (CheckMethod): Checking method used to recognize the products
+            remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
+            custom (bool): True if we want to use a custom stack
+            constellation (Union[Constellation, str, list]): One or several constellations to help the Reader to choose more rapidly the correct Product
+            **kwargs: Other arguments
+        Returns:
+            Product: EOReader's product
+        """
+
+        product_path = AnyPath(product_path)
 
         if not product_path.exists():
             FileNotFoundError(f"Non existing product: {product_path}")
@@ -541,6 +668,21 @@ class Reader:
             if constellation is None:
                 const_list = CONSTELLATION_REGEX.keys()
             else:
+                # Manage other products which have the same constellation in them
+                if constellation == Constellation.S2:
+                    constellation = [
+                        Constellation.S2,
+                        Constellation.S2_SIN,
+                        Constellation.S2_E84,
+                        Constellation.S2_MPC,
+                    ]
+                elif constellation == Constellation.S1:
+                    constellation = [
+                        Constellation.S1,
+                        Constellation.S1_RTC_ASF,
+                        Constellation.S1_RTC_MPC,
+                    ]
+
                 const_list = Constellation.convert_from(constellation)
 
             for const in const_list:
@@ -563,12 +705,6 @@ class Reader:
                         **kwargs,
                     )
                     break
-
-        if not prod:
-            LOGGER.warning(
-                "There is no existing products in EOReader corresponding to %s",
-                product_path,
-            )
 
         return prod
 
@@ -674,7 +810,9 @@ class Reader:
                 prod_files = list(product_path.glob("**/*.*"))
             elif nested == 0:
                 prod_files = list(
-                    path for path in product_path.iterdir() if path.is_file()
+                    prod_path
+                    for prod_path in product_path.iterdir()
+                    if prod_path.is_file()
                 )
             else:
                 nested_wildcard = "/".join(["*" for _ in range(nested)])
@@ -747,17 +885,34 @@ def is_filename_valid(
             except BadZipFile:
                 raise BadZipFile(f"{product_path} is not a zip file")
 
+            except FileNotFoundError:
+                pass
+
     return is_valid
 
 
 def create_product(
-    product_path,
-    archive_path,
-    output_path,
-    remove_tmp,
+    product_path: AnyPathStrType,
+    archive_path: AnyPathStrType,
+    output_path: AnyPathStrType,
+    remove_tmp: bool,
     constellation: Constellation,
     **kwargs,
 ):
+    """
+    Create Product
+
+    Args:
+        product_path (AnyPathStrType): Product path
+        archive_path (AnyPathStrType): Archive path
+        output_path (AnyPathStrType): Output path
+        remove_tmp (bool): Remove tmp files
+        constellation (Constellation): COnstellation
+        **kwargs: Other arguments
+
+    Returns:
+        Product: EOReader product
+    """
     sat_class = constellation.name.lower() + "_product"
 
     # Channel correctly the constellations to their generic files (just in case)
@@ -804,13 +959,73 @@ def create_product(
     except ModuleNotFoundError:
         mod = importlib.import_module(f"eoreader.products.optical.{sat_class}")
 
+    # Get class
     class_ = getattr(mod, strings.snake_to_camel_case(sat_class))
+
+    # Create product
     prod = class_(
         product_path=product_path,
         archive_path=archive_path,
         output_path=output_path,
         remove_tmp=remove_tmp,
-        constellation=constellation,
+        **kwargs,
+    )
+    return prod
+
+
+def create_stac_product(
+    item: Item,
+    output_path: AnyPathStrType,
+    remove_tmp: bool,
+    constellation: Constellation,
+    **kwargs,
+):
+    """
+    Create STAC Product
+
+    Args:
+        item (Item): Product path
+        output_path (AnyPathStrType): Output path
+        remove_tmp (bool): Remove tmp files
+        constellation (Constellation): COnstellation
+        **kwargs: Other arguments
+
+    Returns:
+        Product: EOReader product
+    """
+    if constellation in [
+        Constellation.L1,
+        Constellation.L2,
+        Constellation.L3,
+        Constellation.L4,
+        Constellation.L5,
+        Constellation.L7,
+        Constellation.L8,
+        Constellation.L9,
+    ]:
+        sat_class = "landsat_product"
+    else:
+        sat_class = constellation.name.lower() + "_product"
+
+    # Manage both optical and SAR
+    try:
+        mod = importlib.import_module(f"eoreader.products.sar.{sat_class}")
+    except ModuleNotFoundError:
+        mod = importlib.import_module(f"eoreader.products.optical.{sat_class}")
+
+    # Get class
+    if kwargs.get("is_mpc", False) and "mpc" not in sat_class:
+        replacement = "MpcStacProduct"
+    else:
+        replacement = "StacProduct"
+
+    class_name = strings.snake_to_camel_case(sat_class).replace("Product", replacement)
+    class_ = getattr(mod, class_name)
+
+    # Create product
+    prod = class_(
+        item=item,
+        remove_tmp=remove_tmp,
         **kwargs,
     )
     return prod

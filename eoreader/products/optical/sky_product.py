@@ -185,6 +185,14 @@ class SkyProduct(PlanetProduct):
     Only SkySat Collect items are managed for now.
     """
 
+    def _pre_init(self, **kwargs) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        self.constellation = self._get_constellation()
+        super()._pre_init(**kwargs)
+
     def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products

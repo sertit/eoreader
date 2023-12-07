@@ -45,7 +45,7 @@ def _test_core(
             # Check constellation if OK
             compare(prod.constellation.value, const.value, "constellation")
 
-            # TODO: more checks?
+            # TODO: more checks
 
 
 def test_s2_l1c_e84():

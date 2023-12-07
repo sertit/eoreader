@@ -8,7 +8,7 @@ import xarray as xr
 from lxml import etree
 from sertit import AnyPath, ci, path
 
-from CI.SCRIPTS.scripts_utils import (
+from CI.scripts_utils import (
     CI_EOREADER_S3,
     READER,
     dask_env,
@@ -179,7 +179,7 @@ def _test_core(
 
         for pattern_path in pattern_paths:
             LOGGER.info(
-                "%s on drive %s (CI_EOREADER_S3: %s)",
+                f"%s on drive %s ({CI_EOREADER_S3}: %s)",
                 pattern_path.name,
                 pattern_path.drive,
                 os.getenv(CI_EOREADER_S3),
