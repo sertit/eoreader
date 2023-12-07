@@ -20,7 +20,7 @@
 - CI: Enabling pre-commit.ci and dependabot bots
 - CI: Update pre-commit hooks
 - CI: Revamping `test_satellites`
-- CI: Some refactoring
+- CI: Some refactoring and speed-ups
 
 ## 0.20.4 (2023-09-26)
 

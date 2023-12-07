@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Class for STAC products """
+import asyncio
 import logging
 from io import BytesIO
 
@@ -36,6 +37,11 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 class StacProduct(Product):
     """Stac products"""
+
+    try:
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    except AttributeError:
+        pass
 
     item = None
     clients = None

@@ -15,7 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Landsat products """
-import asyncio
 import difflib
 import logging
 import tarfile
@@ -1856,7 +1855,6 @@ class LandsatStacProduct(StacProduct, LandsatProduct):
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         self.kwargs = kwargs
         """Custom kwargs"""
 
@@ -1950,3 +1948,7 @@ class LandsatStacProduct(StacProduct, LandsatProduct):
             str: Quicklook path
         """
         return self._get_path("rendered_preview")
+
+
+class LandsatMpcStacProduct(LandsatStacProduct):
+    pass

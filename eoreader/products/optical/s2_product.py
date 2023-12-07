@@ -15,7 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Sentinel-2 products """
-import asyncio
 import difflib
 import json
 import logging
@@ -1709,7 +1708,6 @@ class S2StacProduct(StacProduct, S2Product):
         remove_tmp: bool = False,
         **kwargs,
     ) -> None:
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         self.kwargs = kwargs
         """Custom kwargs"""
 

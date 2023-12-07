@@ -12,6 +12,15 @@ from sertit import ci, path
 from sertit.vectors import WGS84
 from shapely.geometry import mapping
 
+from CI.scripts_utils import (
+    CI_EOREADER_S3,
+    READER,
+    compare,
+    dask_env,
+    opt_path,
+    s3_env,
+    sar_path,
+)
 from eoreader import EOREADER_NAME
 from eoreader.bands import (
     NARROW_NIR,
@@ -54,16 +63,6 @@ from eoreader.stac._stac_keywords import (
     VIEW_OFF_NADIR,
     VIEW_SUN_AZIMUTH,
     VIEW_SUN_ELEVATION,
-)
-
-from .scripts_utils import (
-    CI_EOREADER_S3,
-    READER,
-    compare,
-    dask_env,
-    opt_path,
-    s3_env,
-    sar_path,
 )
 
 ci.reduce_verbosity(["dicttoxml"])
@@ -117,7 +116,7 @@ def _test_core(
 
         for pattern_path in pattern_paths:
             LOGGER.info(
-                "%s on drive %s (CI_EOREADER_S3: %s)",
+                f"%s on drive %s ({CI_EOREADER_S3}: %s)",
                 pattern_path.name,
                 pattern_path.drive,
                 os.getenv(CI_EOREADER_S3),

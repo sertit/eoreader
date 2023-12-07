@@ -154,9 +154,9 @@ def broken_s2_path():
 
 
 def s3_env(function):
-    return s3.s3_env(
-        default_endpoint=UNISTRA_S3_ENPOINT, use_s3_env_var=CI_EOREADER_S3
-    )(function)
+    return s3.s3_env(endpoint=UNISTRA_S3_ENPOINT, use_s3_env_var=CI_EOREADER_S3)(
+        function
+    )
 
 
 def compare(to_be_checked, ref, topic):
@@ -170,4 +170,4 @@ def compare(to_be_checked, ref, topic):
     except AssertionError:
         assert to_be_checked.startswith("No") and to_be_checked.endswith(
             "available"
-        ), f"Non equal {topic}: ref ={ref} != to_be_checked={to_be_checked}"
+        ), f"Non equal {topic}: ref={ref} != to_be_checked={to_be_checked}"
