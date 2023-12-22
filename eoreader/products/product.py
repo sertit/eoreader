@@ -30,7 +30,6 @@ from abc import abstractmethod
 from enum import unique
 from io import BytesIO
 from typing import Tuple, Union
-from zipfile import ZipFile
 
 import geopandas as gpd
 import numpy as np
@@ -106,6 +105,9 @@ class OrbitDirection(ListEnum):
 
     DESCENDING = "DESCENDING"
     """Descending sensing orbit direction"""
+
+    UNKNOWN = "UNKNOWN"
+    """Unknown orbit direction"""
 
 
 class Product:
@@ -1953,28 +1955,40 @@ class Product:
         """
         try:
             import matplotlib.pyplot as plt
-            from PIL import Image
         except ModuleNotFoundError:
-            LOGGER.warning("You need to install matplotlib to plot the product.")
+            raise ModuleNotFoundError(
+                "You need to install 'matplotlib' to plot the product."
+            )
         else:
             quicklook_path = self.get_quicklook_path()
 
             if quicklook_path is not None:
-                if quicklook_path[:4].lower() in [".png", ".jpg"]:
-                    plt.figure(figsize=(6, 6))
-                    if quicklook_path.startswith("zip::"):
-                        str_path = quicklook_path.replace("zip::", "")
-                        zip_path, zip_name = str_path.split("!")
-                        with ZipFile(zip_path, "r") as zip_ds:
-                            with BytesIO(zip_ds.read(zip_name)) as bf:
-                                plt.imshow(Image.open(bf))
+                plt.figure(figsize=(6, 6))
+                if path.get_ext(quicklook_path).lower() in ["png", "jpg", "jpeg"]:
+                    try:
+                        from PIL import Image
+                    except ModuleNotFoundError:
+                        raise ModuleNotFoundError(
+                            "You need to install 'pillow' to plot the product."
+                        )
+
+                    if self.is_archived:
+                        qlk = BytesIO(
+                            files.read_archived_file(
+                                self.path, f".*{os.path.basename(quicklook_path)}"
+                            )
+                        )
+                    else:
+                        if path.is_cloud_path(quicklook_path):
+                            quicklook_path = AnyPath(quicklook_path).fspath
+
+                        qlk = quicklook_path
+                    plt.imshow(Image.open(qlk))
                 else:
                     qck = rasters.read(quicklook_path)
                     if qck.rio.count == 3:
-                        plt.figure(figsize=(6, 6))
                         qck.plot.imshow(robust=True)
                     elif qck.rio.count == 1:
-                        plt.figure(figsize=(7, 6))
                         qck.plot(cmap="GnBu_r", robust=True)
                     else:
                         pass

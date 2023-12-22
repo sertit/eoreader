@@ -132,7 +132,7 @@ class Sv1Product(VhrProduct):
         self._proj_prod_type = [Sv1ProductType.L1B]
         self._raw_units = RawUnits.DN
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:
@@ -168,7 +168,7 @@ class Sv1Product(VhrProduct):
         """
         Set instrument
 
-        SuperView-1: https://space-test.oscar.wmo.int/oscar-test/instruments/view/pms_3
+        SuperView-1: https://space.oscar.wmo.int/instruments/instruments/view/pms_3
         """
         self.instrument = "PMS-3"
 
@@ -188,7 +188,7 @@ class Sv1Product(VhrProduct):
 
     def _map_bands(self) -> None:
         """
-        Map bands, see https://space-test.oscar.wmo.int/oscar-test/instruments/view/pms_3
+        Map bands, see https://space.oscar.wmo.int/instruments/instruments/view/pms_3
         """
         # Create spectral bands
         pan = SpectralBand(
@@ -738,7 +738,7 @@ class Sv1Product(VhrProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = path.get_archived_rio_path(
+                quicklook_path = self.path / path.get_archived_path(
                     self.path, file_regex=r".*MUX\.jpg"
                 )
             else:

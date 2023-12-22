@@ -113,7 +113,7 @@ class HlsProduct(OpticalProduct):
         self._use_filename = True
         self.needs_extraction = False
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:
@@ -1030,7 +1030,7 @@ class HlsProduct(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = path.get_archived_rio_path(
+                quicklook_path = self.path / path.get_archived_path(
                     self.path, file_regex=r".*.jpg"
                 )
             else:

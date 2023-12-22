@@ -200,10 +200,19 @@ class S1Product(SarProduct):
         # Its original filename is its name
         self._use_filename = True
 
+        # Check if COG in name
+        if "_COG" in self.filename:
+            raise NotImplementedError(
+                "These S1 COG products are not yet handled by SNAP. "
+                "EOReader will handle them when this issue is fixed. "
+                "See https://forum.step.esa.int/t/handle-sentinel-1-cog-collection/40840. "
+                "Please use the classical format instead."
+            )
+
         # Zipped and SNAP can process its archive
         self.needs_extraction = False
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:
@@ -303,14 +312,13 @@ class S1Product(SarProduct):
         if not mode:
             raise InvalidProductError("mode not found in metadata!")
 
+        # Mono swath SM
+        if mode in ["S1", "S2", "S3", "S4", "S5", "S6"]:
+            mode = "SM"
+
         # Get sensor mode
         self.sensor_mode = S1SensorMode.from_value(mode)
 
-        # Discard invalid sensor mode
-        if self.sensor_mode != S1SensorMode.IW:
-            raise NotImplementedError(
-                f"For now, only IW sensor mode is used in EOReader processes: {self.name}"
-            )
         if not self.sensor_mode:
             raise InvalidProductError(
                 f"Invalid {self.constellation.value} name: {self.name}"
@@ -426,11 +434,12 @@ class S1Product(SarProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = path.get_archived_rio_path(
+                quicklook_path = self.path / path.get_archived_path(
                     self.path, file_regex=r".*preview.quick-look\.png"
                 )
             else:
                 quicklook_path = next(self.path.glob("preview/quick-look.png"))
+            quicklook_path = str(quicklook_path)
         except (StopIteration, FileNotFoundError):
             LOGGER.warning(f"No quicklook found in {self.condensed_name}")
 

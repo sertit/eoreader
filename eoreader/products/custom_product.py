@@ -90,7 +90,7 @@ class CustomProduct(Product):
         """Custom kwargs"""
 
         # Initialization from the super class
-        # (Custom products arte managing constellation on their own)
+        # (Custom products are managing constellation on their own)
         super_kwargs = kwargs.copy()
         super_kwargs.pop("constellation", None)
         super().__init__(

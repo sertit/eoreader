@@ -1,3 +1,4 @@
+""" Other tests. """
 import os
 import sys
 import tempfile
@@ -10,6 +11,16 @@ import xarray as xr
 from rasterio.windows import Window
 from sertit import AnyPath, ci, path, unistra
 
+from CI.scripts_utils import (
+    READER,
+    dask_env,
+    get_db_dir,
+    get_db_dir_on_disk,
+    opt_path,
+    others_path,
+    s3_env,
+    sar_path,
+)
 from eoreader import utils
 from eoreader.bands import (
     AFRI_1_6,
@@ -51,17 +62,6 @@ from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
 from eoreader.exceptions import InvalidTypeError
 from eoreader.products import SensorType
 from eoreader.reader import Constellation
-
-from .scripts_utils import (
-    READER,
-    dask_env,
-    get_db_dir,
-    get_db_dir_on_disk,
-    opt_path,
-    others_path,
-    s3_env,
-    sar_path,
-)
 
 ci.reduce_verbosity()
 
@@ -293,7 +293,6 @@ def test_dems_https():
     xr.testing.assert_equal(dem_local[DEM], dem_remote[DEM])
 
 
-@s3_env
 def test_dems_S3():
     # Get paths
     prod_path = opt_path().joinpath("LC08_L1GT_023030_20200518_20200527_01_T2")
@@ -310,24 +309,24 @@ def test_dems_S3():
     local_path = str(get_db_dir_on_disk().joinpath(*dem_sub_dir_path))
 
     # ON S3
-    unistra.define_s3_client()
-    s3_path = str(AnyPath("s3://sertit-geodatastore").joinpath(*dem_sub_dir_path))
+    with unistra.unistra_s3():
+        s3_path = str(AnyPath("s3://sertit-geodatastore").joinpath(*dem_sub_dir_path))
 
-    # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
-    with tempenv.TemporaryEnvironment({DEM_PATH: local_path}):  # Local DEM
-        dem_local = prod.load(
-            [DEM],
-            pixel_size=30,
-            window=Window(col_off=0, row_off=0, width=100, height=100),
-        )  # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
-    with tempenv.TemporaryEnvironment({DEM_PATH: s3_path}):  # S3 DEM
-        dem_s3 = prod.load(
-            [DEM],
-            pixel_size=30,
-            window=Window(col_off=0, row_off=0, width=100, height=100),
-        )
+        # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
+        with tempenv.TemporaryEnvironment({DEM_PATH: local_path}):  # Local DEM
+            dem_local = prod.load(
+                [DEM],
+                pixel_size=30,
+                window=Window(col_off=0, row_off=0, width=100, height=100),
+            )  # Loading same DEM from two different sources (one hosted locally and the other hosted on S3 compatible storage)
+        with tempenv.TemporaryEnvironment({DEM_PATH: s3_path}):  # S3 DEM
+            dem_s3 = prod.load(
+                [DEM],
+                pixel_size=30,
+                window=Window(col_off=0, row_off=0, width=100, height=100),
+            )
 
-    xr.testing.assert_equal(dem_local[DEM], dem_s3[DEM])
+        xr.testing.assert_equal(dem_local[DEM], dem_s3[DEM])
 
 
 def test_bands():

@@ -115,6 +115,7 @@ Available notebooks provided as examples:
 - [DEM](https://eoreader.readthedocs.io/en/latest/notebooks/dem.html)
 - [Custom stacks](https://eoreader.readthedocs.io/en/latest/notebooks/custom.html)
 - [Methods to clean optical bands](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html)
+- [AWS storage](https://eoreader.readthedocs.io/en/latest/notebooks/aws.html)
 - [S3 Compatible Storage](https://eoreader.readthedocs.io/en/latest/notebooks/s3_compatible_storage.html)
 - [Dask](https://eoreader.readthedocs.io/en/latest/notebooks/dask.html)
 - [STAC](https://eoreader.readthedocs.io/en/latest/notebooks/stac.html)

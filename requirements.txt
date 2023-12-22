@@ -36,11 +36,8 @@ geopandas>=0.11.0
 # Spectral indices
 spyndex>=0.3.0
 
-# STAC
-pystac[validation]
-
 # SERTIT libs
-sertit[full]>=1.30.0
+sertit[full]>=1.32.4
 
 # Optimizations
 dask[complete]>=2021.10.0
@@ -48,3 +45,8 @@ methodtools
 
 # Plot
 matplotlib
+
+# MPC, AWS and STAC
+pystac[validation]
+stac-asset
+planetary_computer

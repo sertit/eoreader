@@ -144,7 +144,7 @@ class S3Product(OpticalProduct):
         self.is_ortho = False
         self._raw_units = RawUnits.RAD
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _set_instrument(self) -> None:
@@ -936,7 +936,7 @@ class S3Product(OpticalProduct):
         """
         try:
             if self.is_archived:
-                quicklook_path = path.get_archived_rio_path(
+                quicklook_path = self.path / path.get_archived_path(
                     self.path, file_regex=r".*.jpg"
                 )
             else:

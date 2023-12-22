@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Maxar super class.
+VHR (very high resoplution) super class.
 See `here <https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-Standard-Imagery.pdf>`_
 for more information.
 """
@@ -98,7 +98,7 @@ class VhrProduct(OpticalProduct):
         # Job ID
         self._job_id = self._get_job_id()
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._post_init(**kwargs)
 
     def get_default_band_path(self, **kwargs) -> AnyPathType:

@@ -102,7 +102,7 @@ pytest_end_to_end:
     - pip install pytest coverage pytest-cov pylint
     - pip install -e .
   script:
-    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_SNAP/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=tee-sys
+    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_WEEKLY --log-cli-level DEBUG --capture=tee-sys
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/cov_e2e.html
@@ -129,7 +129,7 @@ pytest_end_to_end310:
     - pip install pytest coverage pytest-cov pylint
     - pip install -e .
   script:
-    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_SNAP/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=tee-sys
+    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_WEEKLY/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=tee-sys
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/cov_e2e.html
@@ -157,7 +157,7 @@ pytest_end_to_end311:
     - pip install pytest coverage pytest-cov pylint
     - pip install -e .
   script:
-    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_SNAP/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=tee-sys
+    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_WEEKLY/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=tee-sys
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/cov_e2e.html
@@ -185,7 +185,7 @@ pytest_end_to_end312:
     - pip install pytest coverage pytest-cov pylint
     - pip install -e .
   script:
-    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_SNAP/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=tee-sys
+    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_WEEKLY/test_all_sat_end_to_end_on_disk.py --log-cli-level DEBUG --capture=tee-sys
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/cov_e2e.html

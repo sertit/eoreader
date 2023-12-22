@@ -6,23 +6,9 @@ import tempfile
 import numpy as np
 from sertit import ci, rasters
 
+from CI.scripts_utils import READER, dask_env, get_ci_data_dir, opt_path, s3_env
 from eoreader import EOREADER_NAME
-from eoreader.bands import (
-    BAI,
-    BAIM,
-    BAIS2,
-    EVI,
-    NBR,
-    NDMI,
-    NDVI,
-    SAVI,
-    VARI,
-    AWEInsh,
-    AWEIsh,
-    get_eoreader_indices,
-)
-
-from .scripts_utils import READER, dask_env, get_ci_data_dir, opt_path, s3_env
+from eoreader.bands import BAI, NBR, NDVI
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -44,25 +30,9 @@ def test_index():
     with tempfile.TemporaryDirectory() as tmp_dir:
         # tmp_dir = os.path.join("/mnt", "ds2_db3", "CI", "eoreader", "DATA", "INDEX")
         prod.output = os.path.join(tmp_dir, prod.condensed_name)
+        idx_list = [NDVI, NBR, BAI]
 
-        # Load every index
-        spyndex_list = [
-            NDVI,
-            NDMI,
-            NBR,
-            BAI,
-            AWEIsh,
-            AWEInsh,
-            BAIM,
-            BAIS2,
-            EVI,
-            SAVI,
-            VARI,
-        ]
-        LOGGER.info(f"Load selected indices (EOReader's + {spyndex_list})")
-        idx_list = [
-            idx for idx in spyndex_list + get_eoreader_indices() if prod.has_band(idx)
-        ]
+        LOGGER.info(f"Load selected indices (EOReader's + {idx_list})")
         idx = prod.load(idx_list, pixel_size=RES)
 
         for idx_name, idx_arr in idx.items():

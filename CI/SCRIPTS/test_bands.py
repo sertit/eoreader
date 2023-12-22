@@ -1,8 +1,9 @@
 """ Script testing EOReader bands """
-from CI.SCRIPTS.scripts_utils import READER, opt_path
+from CI.scripts_utils import READER, opt_path, s3_env
 from eoreader.bands import BLUE, YELLOW
 
 
+@s3_env
 def test_bands_s3_olci():
     """Test EOReader bands for Sentinel-3 OLCI"""
     prod_path = opt_path().joinpath(
@@ -14,6 +15,7 @@ def test_bands_s3_olci():
     assert list(set(prod.to_band(["Oa07", YELLOW, "YELLOW"]))) == [YELLOW]
 
 
+@s3_env
 def test_bands_l8():
     """Test EOReader bands for Landsat-8"""
     prod_path = opt_path().joinpath("LC08_L1GT_023030_20200518_20200527_01_T2")
