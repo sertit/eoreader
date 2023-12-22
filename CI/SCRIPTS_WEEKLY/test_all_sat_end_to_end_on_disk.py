@@ -8,7 +8,7 @@ import xarray as xr
 from lxml import etree
 from sertit import AnyPath, ci, path
 
-from CI.SCRIPTS.scripts_utils import (
+from CI.scripts_utils import (
     CI_EOREADER_S3,
     READER,
     dask_env,
@@ -179,7 +179,7 @@ def _test_core(
 
         for pattern_path in pattern_paths:
             LOGGER.info(
-                "%s on drive %s (CI_EOREADER_S3: %s)",
+                f"%s on drive %s ({CI_EOREADER_S3}: %s)",
                 pattern_path.name,
                 pattern_path.drive,
                 os.getenv(CI_EOREADER_S3),
@@ -305,6 +305,12 @@ def test_s1_slc_zip(capfd):
             LOGGER.warning("SNAP killed the process!")
 
     test_s1_slc_zip_core()
+
+
+@dask_env
+def test_s1_slc_sm():
+    """Function testing the support of Sentinel-1 constellation"""
+    _test_core_sar("*S1*_S4_SLC*.SAFE")
 
 
 @dask_env

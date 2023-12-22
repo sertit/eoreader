@@ -181,8 +181,6 @@ class CapellaProduct(SarProduct):
     def _set_instrument(self) -> None:
         """
         Set instrument
-
-        ICEYE: https://earth.esa.int/eogateway/missions/iceye
         """
         self.instrument = "SAR X-band"
 
@@ -199,7 +197,7 @@ class CapellaProduct(SarProduct):
         # Its original filename is its name
         self._use_filename = True
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:
@@ -209,7 +207,11 @@ class CapellaProduct(SarProduct):
         """
         # Private attributes
         self.snap_filename = str(next(self.path.glob("*CAPELLA*.json")).name)
-        self._raw_band_regex = f"{self.name}.tif"
+        try:
+            self._raw_band_regex = str(next(self.path.glob(f"{self.name}.tif")).name)
+        except StopIteration:
+            # For SICD and SIDD
+            self._raw_band_regex = str(next(self.path.glob(f"{self.name}.ntf")).name)
 
         # Post init done by the super class
         super()._post_init(**kwargs)
@@ -420,7 +422,7 @@ class CapellaProduct(SarProduct):
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing path of the VV band (as they come with the archived products).
-        ICEYE product only contains a VV band !
+        Capella product only contains a VV band !
 
         Args:
             **kwargs: Additional arguments
@@ -436,7 +438,7 @@ class CapellaProduct(SarProduct):
             )
         except FileNotFoundError:
             raise InvalidProductError(
-                "An ICEYE product should at least contain one band !"
+                f"An {self.constellation.name} product should at least contain one band !"
             )
 
         return band_paths

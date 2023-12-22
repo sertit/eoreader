@@ -15,10 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-TerraSAR-X & TanDEM-X & PAZ products.
-More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
+SAOCOM products.
 """
 import logging
+import re
+import zipfile
 from datetime import datetime
 from enum import unique
 from typing import Union
@@ -188,7 +189,7 @@ class SaocomProduct(SarProduct):
         # SNAP cannot process its archive
         self.needs_extraction = True
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _post_init(self, **kwargs) -> None:
@@ -440,13 +441,22 @@ class SaocomProduct(SarProduct):
         """
         quicklook_path = None
         try:
-            try:
-                quicklook_path = path.get_archived_rio_path(
-                    next(self.path.glob(f"{self.name}.zip")), file_regex="Images/.*png"
-                )
-            except FileNotFoundError:
-                quicklook_path = str(next(self.path.glob("Images/*.png")))
-        except StopIteration:
+            qlk_path, qlk_exists = self._get_out_path(f"{self.condensed_name}_QLK.tif")
+
+            if not qlk_exists:
+                try:
+                    zip_path = next(self.path.glob(f"{self.name}.zip"))
+
+                    with zipfile.ZipFile(zip_path) as zip_ds:
+                        filenames = [f.filename for f in zip_ds.filelist]
+                        regex = re.compile("Images/.*png")
+                        quicklook_path = zip_ds.extract(
+                            list(filter(regex.match, filenames))[0], qlk_path
+                        )
+                except FileNotFoundError:
+                    quicklook_path = next(self.path.glob("Images/*.png"))
+                quicklook_path = str(quicklook_path)
+        except (StopIteration, FileNotFoundError):
             LOGGER.warning(f"No quicklook found in {self.condensed_name}")
 
         return quicklook_path

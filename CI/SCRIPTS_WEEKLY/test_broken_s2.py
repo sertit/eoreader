@@ -1,9 +1,10 @@
+""" Testing broken S2 products weekly. """
 import logging
 
 import pytest
 from sertit import ci
 
-from CI.SCRIPTS.scripts_utils import READER, broken_s2_path, dask_env, s3_env
+from CI.scripts_utils import READER, broken_s2_path, dask_env, s3_env
 from eoreader import EOREADER_NAME
 from eoreader.bands import NIR, RED
 from eoreader.exceptions import InvalidProductError

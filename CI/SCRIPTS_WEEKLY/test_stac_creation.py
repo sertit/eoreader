@@ -1,4 +1,4 @@
-""" Script testing EOReader satellites in a push routine """
+""" Script testing the creaction of STAC Items from EOReader Products. """
 import logging
 import os
 import sys
@@ -12,6 +12,15 @@ from sertit import ci, path
 from sertit.vectors import WGS84
 from shapely.geometry import mapping
 
+from CI.scripts_utils import (
+    CI_EOREADER_S3,
+    READER,
+    compare,
+    dask_env,
+    opt_path,
+    s3_env,
+    sar_path,
+)
 from eoreader import EOREADER_NAME
 from eoreader.bands import (
     NARROW_NIR,
@@ -56,8 +65,6 @@ from eoreader.stac._stac_keywords import (
     VIEW_SUN_ELEVATION,
 )
 
-from .scripts_utils import CI_EOREADER_S3, READER, dask_env, opt_path, s3_env, sar_path
-
 ci.reduce_verbosity(["dicttoxml"])
 logging.getLogger("rasterio._env").setLevel(logging.ERROR)
 
@@ -86,20 +93,6 @@ def _test_core_sar(pattern: str, debug=False, **kwargs):
     _test_core(pattern, sar_path(), debug, **kwargs)
 
 
-def compare(to_be_checked, ref, topic):
-    """
-    Compare two fields
-    """
-    try:
-        assert (
-            ref == to_be_checked
-        ), f"Non equal {topic}: ref ={ref} != to_be_checked={to_be_checked}"
-    except AssertionError:
-        assert to_be_checked.startswith("No") and to_be_checked.endswith(
-            "available"
-        ), f"Non equal {topic}: ref ={ref} != to_be_checked={to_be_checked}"
-
-
 def _test_core(
     pattern: str,
     prod_dir: str,
@@ -123,7 +116,7 @@ def _test_core(
 
         for pattern_path in pattern_paths:
             LOGGER.info(
-                "%s on drive %s (CI_EOREADER_S3: %s)",
+                f"%s on drive %s ({CI_EOREADER_S3}: %s)",
                 pattern_path.name,
                 pattern_path.drive,
                 os.getenv(CI_EOREADER_S3),

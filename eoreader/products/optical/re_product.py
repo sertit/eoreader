@@ -93,6 +93,14 @@ class ReProduct(PlanetProduct):
     The scaling factor to retrieve the calibrated radiance is 0.01.
     """
 
+    def _pre_init(self, **kwargs) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        self.constellation = self._get_constellation()
+        super()._pre_init(**kwargs)
+
     def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
@@ -113,7 +121,7 @@ class ReProduct(PlanetProduct):
 
         self._has_cloud_cover = True
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._post_init(**kwargs)
 
     def _set_pixel_size(self) -> None:
@@ -126,7 +134,7 @@ class ReProduct(PlanetProduct):
         """
         Set instrument
 
-        See: https://space-test.oscar.wmo.int/oscar-test/instruments/view/reis
+        See: https://space.oscar.wmo.int/instruments/view/reis
         """
         self.instrument = "REIS"
 

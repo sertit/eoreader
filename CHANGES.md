@@ -4,11 +4,23 @@
 
 - **BREAKING CHANGES: Rename `utils.stack_dict` to `utils.stack` since we are stacking datasets and not dict anymore.**
 - **BREAKING CHANGES: Band ID for Sentinel-3 OLCI are now int instead of band names (i.e. `7` instead of `Oa07`. The names don't change).**
-- **ENH: Allow to use bands IDs, names and common name added to mapped names when trying to load a spectral band. ([#111](https://github.com/sertit/eoreader/issues/111)**
-- CI: Update pre-commit hooks
+- **ENH: Allow to use bands IDs, names and common name added to mapped names when trying to load a spectral band. ([#111](https://github.com/sertit/eoreader/issues/111))**
+- **ENH: Manage Sentinel-2 as formatted on the cloud (Element84 or Sinergise's way). ([#104](https://github.com/sertit/eoreader/issues/104))**
+- **ENH: Handle Python 3.12. ([#113](https://github.com/sertit/eoreader/issues/113))**
+- **ENH: Guard against S1 COG format, not yet handled by SNAP.**
+- **ENH: Calibration step for `Capella` products now exists in ESA SNAP. Add it in pre-processing.**
+- **ENH: Handling of Sentinel-1 [ASF](https://hyp3-docs.asf.alaska.edu/guides/rtc_product_guide/#readme-file) and [MPC](https://planetarycomputer.microsoft.com/dataset/sentinel-1-rtc) RTC products. ([#112](https://github.com/sertit/eoreader/issues/112), [#118](https://github.com/sertit/eoreader/issues/118))**
+- **ENH: Handling of Sentinel-1 SM products.**
+- FIX: Fix jpg, png... quicklooks management when plotting
+- FIX: Fix an `xarray` issue when trying to compute percentiles when stacking bands
 - DEPS: Remove as many mention as possible to `cloudpathlib`
+- DEPS: Update minimum versions of some libraries
+- DOC: Add example about the output management (in `base` notebook, [#117](https://github.com/sertit/eoreader/issues/117))
 - GITHUB: Update bug template
 - CI: Enabling pre-commit.ci and dependabot bots
+- CI: Update pre-commit hooks
+- CI: Revamping `test_satellites`
+- CI: Some refactoring and speed-ups
 
 ## 0.20.4 (2023-09-26)
 
@@ -21,6 +33,7 @@
 
 ### Bug Fixes
 
+- FIX: Use `auto` as default dask chunk (instead of `2048`)
 - FIX: Minor fix in RasterioError handling when reading bands 
 - FIX: Fix Landsat L2 surface reflectance and temperature computation ([#99](https://github.com/sertit/eoreader/issues/99))
 - FIX: Fixing TIR temperature conversion for Landsat-7

@@ -1,4 +1,4 @@
-""" Script testing EOReader satellites in a push routine """
+""" Script testing EOReader satellites in an end-to-end manner. """
 import logging
 import os
 import shutil
@@ -9,7 +9,7 @@ import pytest
 import xarray as xr
 from sertit import AnyPath, ci, path
 
-from CI.SCRIPTS.scripts_utils import (
+from CI.scripts_utils import (
     CI_EOREADER_S3,
     READER,
     dask_env,
@@ -153,7 +153,7 @@ def _test_core(
 
         for pattern_path in pattern_paths:
             LOGGER.info(
-                "%s on drive %s (CI_EOREADER_S3: %s)",
+                f"%s on drive %s ({CI_EOREADER_S3}: %s)",
                 pattern_path.name,
                 pattern_path.drive,
                 os.getenv(CI_EOREADER_S3),
@@ -217,14 +217,15 @@ def _test_core(
             prod.clear()
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32",
-    reason="Not enough memory to reproject on Windows runner",
-)
-@dask_env
-def test_spot6():
-    """Function testing the support of SPOT-6 constellation"""
-    _test_core_optical("*IMG_SPOT6*")
+# Test this only weekly now.
+# @pytest.mark.skipif(
+#     sys.platform == "win32",
+#     reason="Not enough memory to reproject on Windows runner",
+# )
+# @dask_env
+# def test_spot6():
+#     """Function testing the support of SPOT-6 constellation"""
+#     _test_core_optical("*IMG_SPOT6*")
 
 
 @pytest.mark.skipif(

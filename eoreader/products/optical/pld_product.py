@@ -45,7 +45,7 @@ class PldProduct(DimapV2Product):
         self._ms_res = 2.0
         self._altitude = 698000
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _map_bands(self) -> None:

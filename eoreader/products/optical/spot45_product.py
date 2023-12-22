@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Vision-1 products.
+SPOT-4/5 products.
 See `here <http://www.engesat.com.br/wp-content/uploads/S5-ST-73-1-CN_2_9-Spec-Format-Produits-SPOT.pdf>`_
 for more information.
 """
@@ -224,7 +224,7 @@ class Spot45Product(DimapV1Product):
         else:
             self._raw_units = RawUnits.NONE
 
-        # Post init done by the super class
+        # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _set_band_combi(self) -> None:
@@ -278,8 +278,8 @@ class Spot45Product(DimapV1Product):
         """
         Set instrument
 
-        SPOT-4: https://space-test.oscar.wmo.int/oscar-test/instruments/view/hrvir
-        SPOT-5: https://space-test.oscar.wmo.int/oscar-test/instruments/view/hrg
+        SPOT-4: https://space.oscar.wmo.int/instruments/view/hrvir
+        SPOT-5: https://space.oscar.wmo.int/instruments/view/hrg
         """
         if self.constellation == Constellation.SPOT4:
             self.instrument = "HRVIR"
@@ -661,7 +661,7 @@ class Spot45Product(DimapV1Product):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = path.get_archived_rio_path(
+                quicklook_path = self.path / path.get_archived_path(
                     self.path, file_regex=r".*PREVIEW\.JPG"
                 )
             else:
