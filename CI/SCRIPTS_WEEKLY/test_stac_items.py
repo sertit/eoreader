@@ -4,6 +4,7 @@ import os
 import tempfile
 
 import xarray as xr
+from rasterio.windows import Window
 from sertit import ci, s3
 from tempenv import tempenv
 
@@ -44,6 +45,13 @@ def _test_core(
 
             # Check constellation if OK
             compare(prod.constellation.value, const.value, "constellation")
+
+            # Load default band
+            def_band = prod.get_default_band()
+            band = prod.load(
+                def_band, window=Window(col_off=0, row_off=0, width=100, height=100)
+            )[def_band]
+            assert band.shape == (1, 100, 100)
 
             # TODO: more checks
 
