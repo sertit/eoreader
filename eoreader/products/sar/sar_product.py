@@ -193,6 +193,9 @@ class SarProduct(Product):
         self._snap_no_data = 0
         self._raw_no_data = 0
 
+        # Calibrate or not
+        self._calibrate = True
+
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
@@ -703,41 +706,18 @@ class SarProduct(Product):
 
                 # Pre-process graph
                 if PP_GRAPH not in os.environ:
-                    if (
-                        self.constellation == Constellation.CSG
-                        and self.sar_prod_type == SarProductType.CPLX
-                    ):
-                        LOGGER.debug(
-                            "SNAP Error: Calibration currently fails for CSG complex data. Removing this step."
-                        )
-                        pp_graph = utils.get_data_dir().joinpath(
-                            "cplx_no_calib_preprocess_default.xml"
-                        )
-                    elif (
-                        self.constellation == Constellation.CSK and self.nof_swaths > 1
-                    ):
-                        LOGGER.debug(
-                            "SNAP Error: Calibration currently fails for CSK data with multiple swaths. Removing this step."
-                        )
-                        pp_graph = utils.get_data_dir().joinpath(
-                            "grd_sar_preprocess_fallback.xml"
-                        )
-
+                    if self.constellation_id == Constellation.S1.name:
+                        sat = "s1"
+                        if self.sensor_mode.value == "SM":
+                            sat += "_sm"
+                    elif not self._calibrate:
+                        sat = "no_calib"
                     else:
-                        if self.constellation_id == Constellation.S1.name:
-                            sat = "s1"
-                            if self.sensor_mode.value == "SM":
-                                sat += "_sm"
-                        else:
-                            sat = "sar"
-                        spt = (
-                            "grd"
-                            if self.sar_prod_type == SarProductType.GDRG
-                            else "cplx"
-                        )
-                        pp_graph = utils.get_data_dir().joinpath(
-                            f"{spt}_{sat}_preprocess_default.xml"
-                        )
+                        sat = "sar"
+                    spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
+                    pp_graph = utils.get_data_dir().joinpath(
+                        f"{spt}_{sat}_preprocess_default.xml"
+                    )
                 else:
                     pp_graph = AnyPath(os.environ[PP_GRAPH])
                     if not pp_graph.is_file() or not pp_graph.suffix == ".xml":
@@ -900,14 +880,27 @@ class SarProduct(Product):
 
             return array
 
-        # Get .img file path (readable by rasterio)
+        # Get the .img path(s)
         try:
-            img = rasters.get_dim_img_path(dim_path, f"*{pol}*")
+            imgs = utils.get_dim_img_path(dim_path, f"*{pol}*")
         except FileNotFoundError:
-            img = rasters.get_dim_img_path(dim_path)  # Maybe not the good name
+            imgs = utils.get_dim_img_path(dim_path)  # Maybe not the good name
 
-        # Open SAR image
-        with rioxarray.open_rasterio(str(img)) as arr:
+        # Manage cases where multiple swaths are ortho independently
+        if len(imgs) > 1:
+            mos_path, exists = self._get_out_path(
+                path.get_filename(dim_path) + "_mos.vrt"
+            )
+            if not exists:
+                # Get .img file path (readable by rasterio)
+
+                # Useful for PAZ SC data (multiswath)
+                rasters.merge_vrt(imgs, mos_path)
+        else:
+            mos_path = imgs[0]
+
+        # Open SAR image and convert it to a clean geotiff
+        with rioxarray.open_rasterio(mos_path) as arr:
             arr = arr.where(arr != self._snap_no_data, np.nan)
 
             # Interpolate if needed (interpolate na works only 1D-like, sadly)

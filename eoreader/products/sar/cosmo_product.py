@@ -486,7 +486,7 @@ class CosmoProduct(SarProduct):
             str: Band path
         """
         with h5netcdf.File(self._img_path, phony_dims="access") as raw_h5:
-            if self.sar_prod_type == SarProductType.GDRG or self.nof_swaths == 1:
+            if self.nof_swaths == 1:
                 return super()._pre_process_sar(band, pixel_size, **kwargs)
             else:
                 LOGGER.warning(
