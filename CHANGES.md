@@ -17,6 +17,7 @@
 - DEPS: Remove as many mention as possible to `cloudpathlib`
 - DEPS: Update minimum versions of some libraries
 - DOC: Add example about the output management (in `base` notebook, [#117](https://github.com/sertit/eoreader/issues/117))
+- DOC: Update copyright to 2024
 - GITHUB: Update bug template
 - CI: Enabling pre-commit.ci and dependabot bots
 - CI: Update pre-commit hooks
