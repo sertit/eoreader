@@ -100,3 +100,9 @@ import os
 os.env["EOREADER_PP_GRAPH"] = "/home/eoreader/data/cplx_no_calib_preprocess_default.xml"
 prod.load(VV)
 ```
+
+#### Other bugs reported to SNAP forum
+
+- [Error in Terrain Correction with PAZ ScanSAR SSC with multiple strips](https://forum.step.esa.int/t/error-in-terrain-correction-with-paz-scansar-ssc-with-multiple-strips/41259)
+- [Error in Terrain Correction with CSG ScanSAR DGM](https://forum.step.esa.int/t/error-in-terrain-correction-with-csg-scansar-dgm/41261)
+- [Missing swaths for multiswaths Cosmo-SkyMed SCS data](https://forum.step.esa.int/t/missing-swaths-for-multiswaths-cosmo-skymed-scs-data/38672) (a workaround is ready in EOReader, see [this issue](https://github.com/sertit/eoreader/issues/78))

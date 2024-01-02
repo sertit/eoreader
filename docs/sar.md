@@ -301,6 +301,9 @@ Available DEMs are:
 
 If `External DEM` is set, you must specify the DEM you want by positioning the `EOREADER_DEM_PATH` to a DEM that can be read by SNAP.
 
+## Known SNAP bugs
+
+See the [FAQ](https://eoreader.readthedocs.io/en/latest/faq.html#snap-known-bugs) for known SNAP bugs.
 
 ### What to know if you are changing a graph
 
