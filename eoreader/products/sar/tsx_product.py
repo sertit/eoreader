@@ -167,6 +167,24 @@ class TsxProduct(SarProduct):
         if self.product_type != TsxProductType.SSC:
             self._geometric_res = getattr(TsxGeometricResolution, self.split_name[3])
 
+        # Calibration (after init)
+        if (
+            self.product_type == TsxProductType.SSC
+            and self.sensor_mode == TsxSensorMode.SC
+        ):
+            root, _ = self.read_mtd()
+            noise_corr_flag = root.findtext(".//noiseCorrectedFlag")
+
+            if noise_corr_flag == "false":
+                # Don't calibrate SSC ScanSAR:
+                # PazCalibrator: org.esa.snap.core.gpf.OperatorException: Noise correction for ScanSAR is currently not supported.
+                # https://github.com/senbox-org/s1tbx/blob/1daae60d572e3ad0ee98c0ce3538c61ad71d7fa1/s1tbx-op-calibration/src/main/java/org/esa/s1tbx/calibration/gpf/calibrators/TerraSARXCalibrator.java#L215
+                # https://github.com/senbox-org/s1tbx/blob/1daae60d572e3ad0ee98c0ce3538c61ad71d7fa1/s1tbx-op-calibration/src/main/java/org/esa/s1tbx/calibration/gpf/calibrators/PazCalibrator.java#L214
+                LOGGER.warning(
+                    "Noise correction for ScanSAR is currently not supported for PAZ data. Deactivating calibration."
+                )
+                self._calibrate = False
+
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)

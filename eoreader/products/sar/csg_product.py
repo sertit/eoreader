@@ -211,6 +211,20 @@ class CsgProduct(CosmoProduct):
         self.pixel_size = def_pixel_size
         self.resolution = def_res
 
+    def _post_init(self, **kwargs) -> None:
+        """
+        Function used to post_init the products
+        (setting product-type, band names and so on)
+        """
+        # Calibration fails with CSG data
+        LOGGER.debug(
+            "SNAP Error: Calibration currently fails for CSG data. Removing this step."
+        )
+        self._calibrate = False
+
+        # Post init done by the super class
+        super()._post_init(**kwargs)
+
     def _set_instrument(self) -> None:
         """
         Set instrument

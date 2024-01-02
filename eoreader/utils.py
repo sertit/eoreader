@@ -30,7 +30,7 @@ from rasterio import errors
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
-from sertit import AnyPath, geometry, logs, rasters
+from sertit import AnyPath, geometry, logs, path, rasters
 from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME
@@ -456,3 +456,35 @@ def stack(
             stack = stack.rio.write_nodata(nodata, encoded=True, inplace=True)
 
     return stack, dtype
+
+
+def get_dim_img_path(dim_path: AnyPathStrType, img_name: str = "*") -> list:
+    """
+    Get the image path from a :code:`BEAM-DIMAP` data.
+
+    A :code:`BEAM-DIMAP` file cannot be opened by rasterio, although its :code:`.img` file can.
+
+    .. code-block:: python
+
+        >>> dim_path = "path/to/dimap.dim"  # BEAM-DIMAP image
+        >>> img_path = get_dim_img_path(dim_path)
+
+        >>> # Read raster
+        >>> raster, meta = read(img_path)
+
+    Args:
+        dim_path (AnyPathStrType): DIM path (.dim or .data)
+        img_name (str): .img file name (or regex), in case there are multiple .img files (ie. for S3 data)
+
+    Returns:
+        list: .img files as a list
+    """
+    dim_path = AnyPath(dim_path)
+    if dim_path.suffix == ".dim":
+        dim_path = dim_path.with_suffix(".data")
+
+    assert dim_path.suffix == ".data" and dim_path.is_dir()
+
+    return path.get_file_in_dir(
+        dim_path, img_name, extension="img", exact_name=True, get_list=True
+    )
