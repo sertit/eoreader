@@ -163,7 +163,7 @@ def read(
     tile_size = int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE))
 
     if use_dask():
-        chunks = kwargs.get("chunks", [1, tile_size, tile_size])
+        chunks = kwargs.get("chunks", {"band": 1, "x": tile_size, "y": tile_size})
         # LOGGER.debug(f"Current chunking: {chunks}")
     else:
         # LOGGER.debug("Dask use is not enabled. No chunk will be used, but you may encounter memory overflow errors.")
