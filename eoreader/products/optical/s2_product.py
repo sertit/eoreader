@@ -196,6 +196,9 @@ class S2Product(OpticalProduct):
         self._use_filename = len(self.filename) > 50
         self._raw_units = RawUnits.REFL
 
+        # We need to set the constellation asap for this product (to manage correctly the name of broken products)
+        self.constellation = self._get_constellation()
+
         # Pre init done by the super class
         super()._pre_init(**kwargs)
 
