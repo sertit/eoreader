@@ -56,7 +56,7 @@ def _test_core(
                 )[def_band]
                 assert band.shape == (1, 100, 100)
             except ClientError as ex:
-                if ex.response["Error"]["Code"] in ["NoSuchKey", "404"]:
+                if ex.response["Error"]["Code"] in ["NoSuchBucket", "404"]:
                     LOGGER.warning(
                         f"Impossible to access the bands for {prod.condensed_name}."
                     )
