@@ -20,12 +20,10 @@ import logging
 from io import BytesIO
 
 import geopandas as gpd
-import planetary_computer
 import shapely
 from lxml import etree
 from rasterio import crs
 from sertit import geometry, path, rasters, vectors
-from stac_asset import blocking
 
 from eoreader import EOREADER_NAME, cache
 from eoreader.products.product import Product
@@ -132,7 +130,7 @@ class StacProduct(Product):
                             "You need to install 'pillow' to plot the product."
                         )
 
-                    qlk = blocking.read_href(quicklook_path, clients=self.clients)
+                    qlk = self.read_href(quicklook_path, clients=self.clients)
                     plt.imshow(Image.open(BytesIO(qlk)))
                 else:
                     # Check it
@@ -146,9 +144,94 @@ class StacProduct(Product):
 
                 plt.title(f"{self.condensed_name}")
 
-    def sign_url(self, url: str):
-        # TODO complete if needed
-        return planetary_computer.sign_url(url)
+    def _is_mpc(self):
+        """Is this product from Microsoft Planetary Computer?"""
+        try:
+            prod_path = str(self.path)
+        except AttributeError:
+            prod_path = self.item.self_href
+
+        return "planetarycomputer" in prod_path
+
+    def sign_url(self, url: str) -> str:
+        """
+        Sign URL with planetary computer if installed.
+        Args:
+            url (str): URL to sign
+
+        Returns:
+            str: Signed URL
+        """
+        if self._is_mpc():
+            try:
+                import planetary_computer
+
+                return planetary_computer.sign_url(url)
+            except ModuleNotFoundError:
+                raise ModuleNotFoundError(
+                    "You need to install 'planetary-computer' to use MPC STAC products in EOReader."
+                )
+        else:
+            return url
+
+    def read_href(self, href: str, config=None, clients=None) -> bytes:
+        """
+        Read HREF (with stac-asset.blocking)
+
+        Args:
+            href: The href to read
+            config: The download configuration to use
+            clients: Any pre-configured clients to use
+
+        Returns:
+            bytes: The bytes from the href
+        """
+        try:
+            from stac_asset import blocking
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError(
+                "You need to install 'stac-asset' (see https://stac-asset.readthedocs.io/en/latest/) to use STAC products in EOReader."
+            )
+        return blocking.read_href(href, config, clients)
+
+    def get_s3_client(self, region_name: str, requester_pays: bool = False, **kwargs):
+        """
+        Get a Client (for stac-asset)
+        Args:
+            region_name (str): Region name
+            requester_pays (bool): Requester pays
+            **kwargs: Other args
+
+        Returns:
+
+        """
+        try:
+            from stac_asset import S3Client
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError(
+                "You need to install 'stac-asset' (see https://stac-asset.readthedocs.io/en/latest/) to use STAC products in EOReader."
+            )
+        return S3Client(
+            region_name=region_name, requester_pays=requester_pays, **kwargs
+        )
+
+    def get_sinergise_client(self):
+        """
+        Get Sinergise S3 client (for stac-asset)
+        """
+        return self.get_s3_client(requester_pays=True, region_name="eu-central-1")
+
+    def get_e84_client(self):
+        """
+        Get Element-84 client (for stac-asset)
+        """
+        return self.get_s3_client(region_name="us-west-2")
+
+    def get_usgs_client(self):
+        """
+        Get USGS Landsat client (for stac-asset)
+        """
+        return self.get_s3_client(requester_pays=True, region_name="us-west-2")
 
     def _read_mtd_xml_stac(self, mtd_url, **kwargs) -> (etree._Element, dict):
         """
@@ -162,7 +245,7 @@ class StacProduct(Product):
             (etree._Element, dict): Metadata XML root and its namespaces
 
         """
-        mtd_str = blocking.read_href(mtd_url, clients=self.clients)
+        mtd_str = self.read_href(mtd_url, clients=self.clients)
         root = etree.fromstring(mtd_str)
 
         # Get namespaces map (only useful ones)

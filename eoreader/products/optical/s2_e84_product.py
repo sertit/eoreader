@@ -30,7 +30,6 @@ from rasterio.enums import Resampling
 from sertit import AnyPath, files, path, rasters_rio
 from sertit.files import CustomDecoder
 from sertit.types import AnyPathStrType, AnyPathType
-from stac_asset import S3Client, blocking
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -807,10 +806,8 @@ class S2E84StacProduct(StacProduct, S2E84Product):
                     "You should either fill 'product_path' or 'item'."
                 )
 
-        self.default_clients = [
-            S3Client(region_name="us-west-2"),  # Element84, EarthData
-            S3Client(region_name="eu-central-1", requester_pays=True),  # Sinergise
-        ]
+        if not self._is_mpc():
+            self.default_clients = [self.get_e84_client(), self.get_sinergise_client()]
         self.clients = super_kwargs.pop("client", self.default_clients)
 
         if product_path is None:
@@ -833,9 +830,7 @@ class S2E84StacProduct(StacProduct, S2E84Product):
 
         # Read the JSON tileinfo mtd
         self.tile_mtd = json.loads(
-            blocking.read_href(
-                self._get_path("tileinfo_metadata"), clients=self.clients
-            ),
+            self.read_href(self._get_path("tileinfo_metadata"), clients=self.clients),
             cls=CustomDecoder,
         )
         self.stac_mtd = self.item.to_dict()
