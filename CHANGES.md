@@ -1,6 +1,10 @@
 # Release History
 
-## 0.21.0 (2023-01-08)
+## 0.21.0.post0 (2024-01-08)
+
+- FIX: Don't force install `planetary-computer` or `stac-asset` to use EOReader
+
+## 0.21.0 (2024-01-08)
 
 - **BREAKING CHANGES: Rename `utils.stack_dict` to `utils.stack` since we are stacking datasets and not dict anymore.**
 - **BREAKING CHANGES: Band ID for Sentinel-3 OLCI are now int instead of band names (i.e. `7` instead of `Oa07`. The names don't change).**

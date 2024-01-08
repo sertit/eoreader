@@ -19,7 +19,6 @@ import difflib
 import logging
 
 import numpy as np
-import planetary_computer
 import xarray as xr
 from lxml import etree
 from pystac import Item
@@ -66,7 +65,7 @@ class S2MpcStacProduct(StacProduct, S2E84Product):
                     "You should either fill 'product_path' or 'item'."
                 )
 
-        self.default_clients = [planetary_computer]
+        self.default_clients = []
         self.clients = super_kwargs.pop("client", self.default_clients)
 
         if product_path is None:

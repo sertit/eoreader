@@ -29,7 +29,6 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-import planetary_computer
 import rasterio
 import xarray as xr
 from affine import Affine
@@ -42,7 +41,6 @@ from sertit import AnyPath, files, geometry, path, rasters, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from shapely.geometry import box
-from stac_asset import S3Client
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -1729,13 +1727,13 @@ class S2StacProduct(StacProduct, S2Product):
                     "You should either fill 'product_path' or 'item'."
                 )
 
-        self.default_clients = [
-            planetary_computer,
-            S3Client(region_name="us-west-2"),  # Element84, EarthData
-            S3Client(requester_pays=True, region_name="eu-central-1"),  # Sinergise
-            # Not yet handled
-            # HttpClient(ClientSession(base_url="https://landsatlook.usgs.gov", auth=BasicAuth(login="", password="")))
-        ]
+        if not self._is_mpc():
+            self.default_clients = [
+                self.get_e84_client(),
+                self.get_sinergise_client()
+                # Not yet handled
+                # HttpClient(ClientSession(base_url="https://landsatlook.usgs.gov", auth=BasicAuth(login="", password="")))
+            ]
         self.clients = super_kwargs.pop("client", self.default_clients)
 
         if product_path is None:

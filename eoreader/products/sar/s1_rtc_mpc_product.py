@@ -23,7 +23,6 @@ import logging
 from datetime import datetime
 from typing import Union
 
-import planetary_computer
 from lxml import etree
 from pystac import Item
 from sertit import AnyPath, path, xml
@@ -73,7 +72,8 @@ class S1RtcMpcStacProduct(StacProduct, SarProduct):
                     "You should either fill 'product_path' or 'item'."
                 )
 
-        self.default_clients = [planetary_computer]
+        # Nothing here works for MPC
+        self.default_clients = []
         self.clients = super_kwargs.pop("client", self.default_clients)
 
         if product_path is None:

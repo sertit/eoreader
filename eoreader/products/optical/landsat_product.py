@@ -25,7 +25,6 @@ from typing import Union
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-import planetary_computer
 import xarray as xr
 from lxml import etree
 from lxml.builder import E
@@ -34,7 +33,6 @@ from rasterio.enums import Resampling
 from sertit import AnyPath, path, rasters, rasters_rio
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
-from stac_asset import S3Client
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -1873,13 +1871,13 @@ class LandsatStacProduct(StacProduct, LandsatProduct):
                     "You should either fill 'product_path' or 'item'."
                 )
 
-        self.default_clients = [
-            planetary_computer,
-            S3Client(region_name="us-west-2"),  # Element84, EarthData
-            S3Client(requester_pays=True, region_name="us-west-2"),  # USGS Landsat
-            # Not yet handled
-            # HttpClient(ClientSession(base_url="https://landsatlook.usgs.gov", auth=BasicAuth(login="", password="")))
-        ]
+        if not self._is_mpc():
+            self.default_clients = [
+                self.get_e84_client(),
+                self.get_usgs_client()
+                # Not yet handled
+                # HttpClient(ClientSession(base_url="https://landsatlook.usgs.gov", auth=BasicAuth(login="", password="")))
+            ]
         self.clients = super_kwargs.pop("client", self.default_clients)
 
         if product_path is None:
