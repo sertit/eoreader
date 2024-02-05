@@ -1,4 +1,5 @@
 """ Script testing the creaction of STAC Items from EOReader Products. """
+
 import logging
 import os
 import sys
