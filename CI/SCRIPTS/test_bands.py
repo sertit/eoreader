@@ -1,4 +1,5 @@
 """ Script testing EOReader bands """
+
 from CI.scripts_utils import READER, opt_path, s3_env
 from eoreader.bands import BLUE, YELLOW
 

@@ -1,4 +1,5 @@
 """ Script testing EOReader satellites weekly """
+
 import logging
 import os
 import sys

@@ -1730,7 +1730,7 @@ class S2StacProduct(StacProduct, S2Product):
         if not self._is_mpc():
             self.default_clients = [
                 self.get_e84_client(),
-                self.get_sinergise_client()
+                self.get_sinergise_client(),
                 # Not yet handled
                 # HttpClient(ClientSession(base_url="https://landsatlook.usgs.gov", auth=BasicAuth(login="", password="")))
             ]

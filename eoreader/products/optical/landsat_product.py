@@ -1874,7 +1874,7 @@ class LandsatStacProduct(StacProduct, LandsatProduct):
         if not self._is_mpc():
             self.default_clients = [
                 self.get_e84_client(),
-                self.get_usgs_client()
+                self.get_usgs_client(),
                 # Not yet handled
                 # HttpClient(ClientSession(base_url="https://landsatlook.usgs.gov", auth=BasicAuth(login="", password="")))
             ]

@@ -1,4 +1,5 @@
 """ Testing custom stacks. """
+
 import logging
 import os
 

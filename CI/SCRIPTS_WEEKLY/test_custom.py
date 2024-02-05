@@ -1,4 +1,5 @@
 """ Testing custom stacks weekly """
+
 import logging
 
 import numpy as np
