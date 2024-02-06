@@ -3,6 +3,7 @@
 ## 0.21.0.post0 (2024-01-08)
 
 - FIX: Don't force install `planetary-computer` or `stac-asset` to use EOReader
+- DOC: Remove Twitter from README
 
 ## 0.21.0 (2024-01-08)
 
