@@ -1,4 +1,5 @@
 """ Script testing EOReader satellites in an end-to-end manner. """
+
 import logging
 import os
 import shutil
