@@ -1,4 +1,5 @@
 """ Script testing EOReader ingestion of STAC Items """
+
 import logging
 import os
 import tempfile

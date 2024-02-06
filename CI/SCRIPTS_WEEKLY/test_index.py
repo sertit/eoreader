@@ -1,4 +1,5 @@
 """ Script testing EOReader index weekly."""
+
 import logging
 import os
 import tempfile

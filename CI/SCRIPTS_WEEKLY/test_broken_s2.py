@@ -1,4 +1,5 @@
 """ Testing broken S2 products weekly. """
+
 import logging
 
 import pytest
