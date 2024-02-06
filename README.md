@@ -6,7 +6,6 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5082050.svg)](https://doi.org/10.5281/zenodo.5082050)
 [![stars](https://img.shields.io/github/stars/sertit/eoreader?style=social)](https://github.com/sertit/eoreader)
 [![Conda](https://img.shields.io/conda/dn/conda-forge/eoreader.svg)](https://anaconda.org/conda-forge/eoreader)
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/eoreader.svg?style=social&label=EOReader)](https://twitter.com/eoreader)
 
 # ![eoreader_logo](https://eoreader.readthedocs.io/en/latest/_static/favicon.png) EOReader
 
