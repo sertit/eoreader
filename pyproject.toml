@@ -2,8 +2,13 @@
 requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+include = ["eoreader*"]
+namespaces = false
+
 [project]
 name = "eoreader"
+version = "0.20.4"
 authors = [
     {name = "ICube-SERTIT", email = "dev-sertit@unistra.fr"},
 ]
@@ -33,7 +38,7 @@ dependencies = [
     "xarray>=0.18.0",
     "rioxarray>=0.10.0",
     "geopandas>=0.11.0",
-    "sertit[full]>=1.27.0",
+    "sertit[full]>=1.30.0",
     "spyndex>=0.3.0",
     "pyresample",
     "zarr",
@@ -42,3 +47,13 @@ dependencies = [
     "methodtools",
     "dicttoxml",
 ]
+
+[project.urls]
+Bug_Tracker = "https://github.com/sertit/eoreader/issues"
+Documentation =  "https://eoreader.readthedocs.io"
+Source_Code = "https://github.com/sertit/eoreader"
+
+# compatibility black and isort
+[tool.isort]
+profile = "black"
+known_first_party = ["CI", "eoreader"]
