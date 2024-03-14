@@ -60,17 +60,17 @@ class Spot67Product(DimapV2Product):
         # https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTMyMw==/ZG9jdXRoZXF1ZS1maWxlLTU1MzIy/spot-brochure-2019.pdf
         pan = SpectralBand(
             eoreader_name=PAN,
-            **{NAME: "PAN", ID: 1, GSD: 1.5, WV_MIN: 450, WV_MAX: 745}
+            **{NAME: "PAN", ID: 1, GSD: 1.5, WV_MIN: 450, WV_MAX: 745},
         )
 
         blue = SpectralBand(
             eoreader_name=BLUE,
-            **{NAME: "BLUE", ID: 1, GSD: 6, WV_MIN: 450, WV_MAX: 520}
+            **{NAME: "BLUE", ID: 1, GSD: 6, WV_MIN: 450, WV_MAX: 520},
         )
 
         green = SpectralBand(
             eoreader_name=GREEN,
-            **{NAME: "GREEN", ID: 2, GSD: 6, WV_MIN: 530, WV_MAX: 590}
+            **{NAME: "GREEN", ID: 2, GSD: 6, WV_MIN: 530, WV_MAX: 590},
         )
 
         red = SpectralBand(

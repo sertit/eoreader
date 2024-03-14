@@ -20,13 +20,13 @@ SAR and Optical products
 # flake8: noqa
 __all__ = ["Product", "SensorType", "OrbitDirection"]
 
-from .product import Product, SensorType, OrbitDirection
+from .product import OrbitDirection, Product, SensorType
 
 __all__ += [
     "CustomProduct",
     "CustomFields",
 ]
-from .custom_product import CustomProduct, CustomFields
+from .custom_product import CustomFields, CustomProduct
 
 # STAC products
 __all__ += [
@@ -39,7 +39,7 @@ __all__ += [
     "OpticalProduct",
     "CleanMethod",
 ]
-from .optical.optical_product import OpticalProduct, CleanMethod
+from .optical.optical_product import CleanMethod, OpticalProduct
 
 # VHR
 __all__ += [
@@ -64,24 +64,24 @@ __all__ += [
     "Gs2ProductType",
     "Gs2BandCombination",
 ]
-from .optical.vhr_product import VhrProduct
 from .optical.dimap_v1_product import DimapV1Product
 from .optical.dimap_v2_product import (
     DimapV2BandCombination,
     DimapV2Product,
     DimapV2ProductType,
 )
-from .optical.pld_product import PldProduct
-from .optical.spot67_product import Spot67Product
+from .optical.gs2_product import Gs2BandCombination, Gs2Product, Gs2ProductType
 from .optical.maxar_product import (
+    MaxarBandId,
     MaxarProduct,
     MaxarProductType,
     MaxarSatId,
-    MaxarBandId,
 )
-from .optical.vis1_product import Vis1Product, Vis1ProductType, Vis1BandCombination
-from .optical.sv1_product import Sv1Product, Sv1ProductType, Sv1BandCombination
-from .optical.gs2_product import Gs2Product, Gs2ProductType, Gs2BandCombination
+from .optical.pld_product import PldProduct
+from .optical.spot67_product import Spot67Product
+from .optical.sv1_product import Sv1BandCombination, Sv1Product, Sv1ProductType
+from .optical.vhr_product import VhrProduct
+from .optical.vis1_product import Vis1BandCombination, Vis1Product, Vis1ProductType
 
 # SPOT4/5
 __all__ += [
@@ -91,10 +91,10 @@ __all__ += [
     "Spot45Product",
 ]
 from .optical.spot45_product import (
-    Spot45ProductType,
     Spot4BandCombination,
     Spot5BandCombination,
     Spot45Product,
+    Spot45ProductType,
 )
 
 # Planet
@@ -110,7 +110,7 @@ __all__ += [
     "PlaProductType",
     "PlaInstrument",
 ]
-from .optical.pla_product import PlaProduct, PlaProductType, PlaInstrument
+from .optical.pla_product import PlaInstrument, PlaProduct, PlaProductType
 
 # SkySat
 __all__ += [
@@ -118,7 +118,7 @@ __all__ += [
     "SkyProduct",
     "SkyInstrument",
 ]
-from .optical.sky_product import SkyProductType, SkyProduct, SkyInstrument
+from .optical.sky_product import SkyInstrument, SkyProduct, SkyProductType
 
 # RapidEye
 __all__ += [
@@ -126,7 +126,7 @@ __all__ += [
     "ReProduct",
     "ReInstrument",
 ]
-from .optical.re_product import ReProductType, ReProduct
+from .optical.re_product import ReProduct, ReProductType
 
 # Landsat
 __all__ += [
@@ -136,10 +136,10 @@ __all__ += [
     "LandsatInstrument",
 ]
 from .optical.landsat_product import (
-    LandsatProduct,
-    LandsatProductType,
     LandsatCollection,
     LandsatInstrument,
+    LandsatProduct,
+    LandsatProductType,
 )
 
 # Sentinel
@@ -163,24 +163,24 @@ __all__ += [
     "SlstrView",
     "SlstrStripe",
 ]
-from .optical.s2_product import (
-    S2Product,
-    S2ProductType,
-    S2GmlMasks,
-    S2Jp2Masks,
-    S2StacProduct,
-)
 from .optical.s2_e84_product import S2E84Product, S2E84StacProduct
 from .optical.s2_mpc_product import S2MpcStacProduct
+from .optical.s2_product import (
+    S2GmlMasks,
+    S2Jp2Masks,
+    S2Product,
+    S2ProductType,
+    S2StacProduct,
+)
 from .optical.s2_theia_product import S2TheiaProduct
-from .optical.s3_product import S3Product, S3ProductType, S3DataType, S3Instrument
 from .optical.s3_olci_product import S3OlciProduct
+from .optical.s3_product import S3DataType, S3Instrument, S3Product, S3ProductType
 from .optical.s3_slstr_product import (
     S3SlstrProduct,
-    SlstrRadAdjustTuple,
     SlstrRadAdjust,
-    SlstrView,
+    SlstrRadAdjustTuple,
     SlstrStripe,
+    SlstrView,
 )
 
 # -- SAR --
@@ -221,31 +221,27 @@ __all__ += [
     "CapellaProductType",
     "CapellaSensorMode" "",
 ]
-from .sar.sar_product import SarProduct, SarProductType, SnapDems
+from .sar.capella_product import CapellaProduct, CapellaProductType, CapellaSensorMode
 from .sar.cosmo_product import CosmoProduct, CosmoProductType
 from .sar.csg_product import CsgProduct, CsgSensorMode
 from .sar.csk_product import CskProduct, CskSensorMode
 from .sar.iceye_product import IceyeProduct, IceyeProductType, IceyeSensorMode
 from .sar.rcm_product import RcmProduct, RcmProductType, RcmSensorMode
 from .sar.rs2_product import Rs2Product, Rs2ProductType, Rs2SensorMode
-from .sar.s1_product import S1Product, S1SensorMode, S1ProductType
+from .sar.s1_product import S1Product, S1ProductType, S1SensorMode
 from .sar.s1_rtc_asf_product import S1RtcAsfProduct, S1RtcProductType
 from .sar.s1_rtc_mpc_product import S1RtcMpcStacProduct
 from .sar.saocom_product import (
+    SaocomPolarization,
     SaocomProduct,
     SaocomProductType,
-    SaocomPolarization,
     SaocomSensorMode,
 )
+from .sar.sar_product import SarProduct, SarProductType, SnapDems
 from .sar.tsx_product import (
-    TsxProduct,
     TsxPolarization,
-    TsxSatId,
+    TsxProduct,
     TsxProductType,
+    TsxSatId,
     TsxSensorMode,
-)
-from .sar.capella_product import (
-    CapellaProduct,
-    CapellaProductType,
-    CapellaSensorMode,
 )
