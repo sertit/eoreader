@@ -129,8 +129,8 @@ class SpectralBandNames(BandNames):
     WV = "WATER_VAPOUR"
     """Water vapour"""
 
-    SWIR_CIRRUS = "CIRRUS"
-    """Cirrus"""
+    SWIR_CIRRUS = "SWIR_CIRRUS"
+    """SWIR Cirrus"""
 
     SWIR_1 = "SWIR_1"
     """SWIR, Band 1"""

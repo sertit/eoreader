@@ -1,5 +1,9 @@
 # Release History
 
+## 0.21.1 (2024-mm-dd)
+
+- FIX: Correct `SWIR_CIRRUS` spectral band's enum value (to `SWIR_CIRRUS` instead of `CIRRUS`), avoiding shadowing cloud band `CIRRUS` ([#131](https://github.com/sertit/eoreader/issues/131))
+
 ## 0.21.0.post0 (2024-01-08)
 
 - FIX: Don't force install `planetary-computer` or `stac-asset` to use EOReader
