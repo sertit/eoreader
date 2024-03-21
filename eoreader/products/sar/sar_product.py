@@ -199,9 +199,6 @@ class SarProduct(Product):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
-        # ???
-        self.pixel_spacing = self.pixel_size / 2.0
-
     def _map_bands(self) -> None:
         """
         Map bands

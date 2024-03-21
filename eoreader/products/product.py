@@ -71,6 +71,7 @@ from eoreader.exceptions import (
     InvalidIndexError,
     InvalidProductError,
     InvalidTypeError,
+    UnhandledArchiveError,
 )
 from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Constellation, Reader
@@ -238,7 +239,9 @@ class Product:
 
         # Only compute data if OK (for now OK is extracted if needed)
         if self.is_archived and self.needs_extraction:
-            LOGGER.warning(f"{self.filename} needs to be extracted to be used !")
+            raise UnhandledArchiveError(
+                f"{self.filename} needs to be extracted to be used!"
+            )
         else:
             # Get the product real name
             self.name = self._get_name()

@@ -45,3 +45,9 @@ class InvalidTypeError(EoReaderError, TypeError):
     """Invalid Type Name error, thrown when an unknown type is given (should never happen)."""
 
     pass
+
+
+class UnhandledArchiveError(EoReaderError):
+    """Unhandled Archive error, thrown when an archived product needs to be extracted to be processed."""
+
+    pass
