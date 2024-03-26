@@ -11,6 +11,7 @@ __pycache__/
 cov.xml
 *.lock
 .run
+venv
 
 # Discard CI/OUTPUTS
 CI/OUTPUT/*

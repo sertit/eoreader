@@ -16,12 +16,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import eoreader
 
+import tomllib
+
+eoreader_metadata = {}
+with open("../pyproject.toml", "rb") as f:
+    eoreader_metadata = tomllib.load(f)
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "4"
+needs_sphinx = "7"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -100,16 +104,16 @@ templates_path = ["_templates"]
 master_doc = "index"
 
 # General information about the project.
-project = eoreader.__title__
-copyright = eoreader.__copyright__[10:]
-author = eoreader.__author__
+project = eoreader_metadata["project"]["name"]
+copyright = "SERTIT-ICube - France, https://sertit.unistra.fr/"
+author = eoreader_metadata["project"]["authors"][0]["name"]
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = eoreader.__version__
+version = eoreader_metadata["project"]["version"]
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -147,7 +151,7 @@ html_theme = "sphinx_book_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "repository_url": eoreader.__url__,
+    "repository_url": eoreader_metadata["project"]["urls"]["Source_Code"],
     "use_repository_button": True,
     "use_issues_button": True,
     "use_edit_page_button": False,
@@ -179,36 +183,6 @@ html_last_updated_fmt = today_fmt
 # Output file base name for HTML help builder.
 htmlhelp_basename = "eoreaderdoc"
 
-# -- Options for LaTeX output ---------------------------------------------
-
-latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    #
-    # 'papersize': 'letterpaper',
-    # The font size ('10pt', '11pt' or '12pt').
-    #
-    # 'pointsize': '10pt',
-    # Additional stuff for the LaTeX preamble.
-    #
-    # 'preamble': '',
-    # Latex figure (float) alignment
-    #
-    # 'figure_align': 'htbp',
-}
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title,
-#  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-    (
-        master_doc,
-        "eoreader.tex",
-        "EOReader Documentation",
-        "ICube-SERTIT",
-        "manual",
-    )
-]
-
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
@@ -234,8 +208,8 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    "https://docs.python.org/3/": None,
-    "https://docs.python-requests.org/en/master/": None,
+    "python": ("https://docs.python.org/3/", None),
+    "python-request": ("https://docs.python-requests.org/en/master/", None),
 }
 
 add_function_parentheses = False
