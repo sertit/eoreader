@@ -163,7 +163,7 @@ def check_prod(pattern_path: str) -> Product:
     if len(prod.get_raw_band_paths()) > 1:
         raw_bands = prod.get_raw_band_paths()
         # PAN is not considered here
-        raw_bands.pop(PAN)
+        raw_bands.pop(PAN, None)
         ci.assert_val(
             prod.is_stacked,
             len(misc.unique(raw_bands.values())) == 1,
