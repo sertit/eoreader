@@ -90,6 +90,17 @@ class VhrProduct(OpticalProduct):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
+    def _pre_init(self, **kwargs) -> None:
+        """
+        Function used to pre_init the products
+        (setting needs_extraction and so on)
+        """
+        # VHR products are stacked
+        self.is_stacked = True
+
+        # Pre init done by the super class
+        super()._pre_init(**kwargs)
+
     def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
@@ -98,7 +109,7 @@ class VhrProduct(OpticalProduct):
         # Job ID
         self._job_id = self._get_job_id()
 
-        # Pre init done by the super class
+        # Post init done by the super class
         super()._post_init(**kwargs)
 
     def get_default_band_path(self, **kwargs) -> AnyPathType:

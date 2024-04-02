@@ -121,7 +121,7 @@ class ReProduct(PlanetProduct):
 
         self._has_cloud_cover = True
 
-        # Pre init done by the super class
+        # Post init done by the super class
         super()._post_init(**kwargs)
 
     def _set_pixel_size(self) -> None:

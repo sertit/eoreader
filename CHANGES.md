@@ -2,6 +2,7 @@
 
 ## 0.21.1 (2024-mm-dd)
 
+- ENH: Add a `is_stacked` parameters for EOReader's `Product` to document either its bands are delivered stacked or file by file.
 - FIX: Correct `SWIR_CIRRUS` spectral band's enum value (to `SWIR_CIRRUS` instead of `CIRRUS`), avoiding shadowing cloud band `CIRRUS` ([#131](https://github.com/sertit/eoreader/issues/131))
 - FIX: Raise proper exception (`UnhandledArchiveError`) for archived data that needs to be extracted before use. A warning wasn't enough.
 - FIX: Remove unused `pixel_spacing` for SAR Products

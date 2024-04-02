@@ -155,6 +155,9 @@ class PlanetProduct(OpticalProduct):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+        # Planet products are stacked
+        self.is_stacked = True
+
         # Update namespace map key (if needed)
         if self.constellation == Constellation.RE:
             self._nsmap_key = "re"

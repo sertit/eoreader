@@ -102,6 +102,10 @@ class CustomProduct(Product):
         Function used to pre_init the products
         (setting needs_extraction and so on)
         """
+
+        # Custom products are stacked
+        self.is_stacked = True
+
         self.needs_extraction = False
 
         # -- Parse the kwargs
