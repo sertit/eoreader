@@ -118,7 +118,7 @@ class S2E84Product(OpticalProduct):
         """
         self.tile_name = self._get_tile_name()
 
-        # Pre init done by the super class
+        # Post init done by the super class
         super()._post_init(**kwargs)
 
     def _get_constellation(self) -> Constellation:

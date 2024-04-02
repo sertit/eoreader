@@ -10,7 +10,7 @@ import pytest
 import xarray as xr
 from geopandas import gpd
 from matplotlib import pyplot as plt
-from sertit import AnyPath, ci, path
+from sertit import AnyPath, ci, misc, path
 
 from CI.scripts_utils import (
     CI_EOREADER_S3,
@@ -29,6 +29,7 @@ from eoreader.bands import (
     HH,
     HH_DSPK,
     HILLSHADE,
+    PAN,
     RED,
     SLOPE,
     SWIR_2,
@@ -157,6 +158,17 @@ def check_prod(pattern_path: str) -> Product:
 
     # Instrument
     assert prod.instrument is not None
+
+    # Stacked product
+    if len(prod.get_raw_band_paths()) > 1:
+        raw_bands = prod.get_raw_band_paths()
+        # PAN is not considered here
+        raw_bands.pop(PAN)
+        ci.assert_val(
+            prod.is_stacked,
+            len(misc.unique(raw_bands.values())) == 1,
+            "Stacked product",
+        )
 
     return prod
 

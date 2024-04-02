@@ -224,6 +224,9 @@ class Product:
         self.is_ortho = True
         """True if the images are orthorectified and the footprint is retrieved easily."""
 
+        self.is_stacked = False
+        """True if the bands are stacked (like for VHR data)."""
+
         self._stac = None
 
         # Manage output
