@@ -6,6 +6,7 @@
 - FIX: Correct `SWIR_CIRRUS` spectral band's enum value (to `SWIR_CIRRUS` instead of `CIRRUS`), avoiding shadowing cloud band `CIRRUS` ([#131](https://github.com/sertit/eoreader/issues/131))
 - FIX: Raise proper exception (`UnhandledArchiveError`) for archived data that needs to be extracted before use. A warning wasn't enough.
 - FIX: Remove unused `pixel_spacing` for SAR Products
+- FIX: Fix workaround for corrupted `Sentinel-2` mask.
 
 ## 0.21.0.post0 (2024-01-08)
 
