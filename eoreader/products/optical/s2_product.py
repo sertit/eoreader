@@ -32,6 +32,7 @@ import pandas as pd
 import rasterio
 import xarray as xr
 from affine import Affine
+from fiona.errors import DriverError
 from lxml import etree
 from pystac import Item
 from rasterio import errors, features, transform
@@ -891,7 +892,11 @@ class S2Product(OpticalProduct):
                 )
 
             # Read vector
-            mask = vectors.read(mask_path, crs=self.crs())
+            try:
+                mask = vectors.read(mask_path, crs=self.crs())
+            except DriverError:
+                LOGGER.warning(f"Corrupted mask: {mask_path}. Returning an empty one.")
+                mask = gpd.GeoDataFrame(geometry=[], crs=self.crs())
 
         except Exception as ex:
             raise InvalidProductError(ex) from ex
