@@ -1,6 +1,6 @@
 # Release History
 
-## 0.21.1 (2024-mm-dd)
+## 0.21.1 (2024-04-03)
 
 - ENH: Add a `is_stacked` parameters for EOReader's `Product` to document either its bands are delivered stacked or file by file.
 - FIX: Correct `SWIR_CIRRUS` spectral band's enum value (to `SWIR_CIRRUS` instead of `CIRRUS`), avoiding shadowing cloud band `CIRRUS` ([#131](https://github.com/sertit/eoreader/issues/131))
