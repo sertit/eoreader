@@ -233,7 +233,7 @@ def check_geometry(prod: Product, geometry_str: str, tmp_dir: str) -> None:
         )
         geometry.to_file(geometry_path, driver="GeoJSON")
 
-        LOGGER.warning("{geometry} not equal, trying almost equal.")
+        LOGGER.warning(f"{geometry} not equal, trying almost equal.")
         ci.assert_geom_almost_equal(geometry, geometry_path)
 
 
