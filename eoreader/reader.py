@@ -21,6 +21,7 @@ from __future__ import annotations
 import importlib
 import logging
 import re
+from contextlib import contextmanager
 from enum import unique
 from typing import Union
 from zipfile import BadZipFile
@@ -448,6 +449,7 @@ class Reader:
 
         return comp
 
+    @contextmanager
     def open(
         self,
         product_path: AnyPathStrType,
@@ -550,8 +552,10 @@ class Reader:
                 "There is no existing products in EOReader corresponding to %s",
                 product_path,
             )
-
-        return prod
+        try:
+            yield prod
+        finally:
+            del prod
 
     def _open_stac_item(
         self, item: Item, output_path: AnyPathStrType, remove_tmp: bool, **kwargs
