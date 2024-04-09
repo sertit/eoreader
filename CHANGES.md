@@ -1,5 +1,7 @@
 # Release History
 
+- FIX: Fix iceye product when extent file (*.kml) not found ([#135](https://github.com/sertit/eoreader/pull/135))
+
 ## 0.21.1 (2024-04-03)
 
 - ENH: Add a `is_stacked` parameters for EOReader's `Product` to document either its bands are delivered stacked or file by file.

@@ -181,7 +181,7 @@ class IceyeProduct(SarProduct):
         # Open extent KML file
         try:
             extent_file = next(self.path.glob("*ICEYE*QUICKLOOK*.kml"))
-        except IndexError as ex:
+        except StopIteration as ex:
             raise InvalidProductError(
                 f"Extent file (*.kml) not found in {self.path}"
             ) from ex
