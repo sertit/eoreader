@@ -803,7 +803,7 @@ class S3Product(OpticalProduct):
         Caches the file if needed (rasterio does not seem to be able to open a netcdf stored in the cloud).
 
         Args:
-            filename (Union[str, BandNames]): Filename or band
+            filename (Union[str, BandNames]): Filename or band (set a wildcard ('*') in the beginning if needed, this function doesn't do that!)
             subdataset (str): NetCDF subdataset if needed
             dtype: Dtype
             squeeze(bool): Squeeze array or not
@@ -831,11 +831,11 @@ class S3Product(OpticalProduct):
             # Cannot read zipped+netcdf files -> we are forced to dezip them
             with zipfile.ZipFile(on_disk, "r") as zip_ds:
                 filenames = [f.filename for f in zip_ds.filelist]
-                regex = re.compile(f".*{filename}")
+                regex = re.compile(f".*/{filename}")
                 bytes_file = zip_ds.read(list(filter(regex.match, filenames))[0])
         else:
             try:
-                nc_path = next(self.path.glob(f"*{filename}*"))
+                nc_path = next(self.path.glob(f"{filename}*"))
             except StopIteration:
                 raise FileNotFoundError(f"Non existing file {filename} in {self.path}")
 

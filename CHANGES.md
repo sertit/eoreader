@@ -1,5 +1,8 @@
 # Release History
 
+## 0.21.2 (2024-mm-dd)
+
+- FIX: Fix issue with geocoding with unzipped `Sentinel-3 OLCI` product ([#137](https://github.com/sertit/eoreader/issues/137))
 - FIX: Fix iceye product when extent file (*.kml) not found ([#135](https://github.com/sertit/eoreader/pull/135))
 
 ## 0.21.1 (2024-04-03)
