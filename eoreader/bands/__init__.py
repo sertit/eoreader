@@ -414,11 +414,7 @@ def to_band(to_convert: Union[list, BandNames, str]) -> list:
         list: converted values
 
     """
-    if not isinstance(to_convert, list):
-        to_convert = [to_convert]
-
-    band_list = []
-    for tc in to_convert:
+    def convert_to_band(tc) -> BandNames:
         band_or_idx = None
         # Try legit types
         if isinstance(tc, str):
@@ -447,7 +443,7 @@ def to_band(to_convert: Union[list, BandNames, str]) -> list:
 
         # Store it
         if band_or_idx:
-            band_list.append(band_or_idx)
+            return band_or_idx
         else:
             if tc == "GREEN1":
                 from sertit import logs
@@ -455,11 +451,19 @@ def to_band(to_convert: Union[list, BandNames, str]) -> list:
                 logs.deprecation_warning(
                     "`GREEN1` is deprecated in favor of `GREEN_1`. `GREEN1` will be removed in a future release."
                 )
-                band_list.append(GREEN_1)
+                return GREEN1
             else:
                 raise _ite(f"Unknown band or index: {tc}")
 
-    return band_list
+    if isinstance(to_convert, list):
+        band_list = []
+        for tc in to_convert:
+            tc_band = convert_to_band(tc=tc)
+            band_list.append(tc_band)
+        return band_list
+    else:
+        to_convert = [to_convert]
+        return convert_to_band(to_convert[0])
 
 
 def to_str(to_convert: Union[list, BandNames, str]) -> list:
