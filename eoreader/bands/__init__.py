@@ -414,6 +414,7 @@ def to_band(to_convert: Union[list, BandNames, str]) -> list:
         list: converted values
 
     """
+
     def convert_to_band(tc) -> BandNames:
         band_or_idx = None
         # Try legit types
