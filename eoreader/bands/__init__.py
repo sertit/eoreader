@@ -462,8 +462,7 @@ def to_band(to_convert: Union[list, BandNames, str]) -> list:
             band_list.append(tc_band)
         return band_list
     else:
-        to_convert = [to_convert]
-        return convert_to_band(to_convert[0])
+        return convert_to_band(to_convert)
 
 
 def to_str(to_convert: Union[list, BandNames, str]) -> list:
