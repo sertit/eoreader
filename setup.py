@@ -41,6 +41,7 @@ setuptools.setup(
         "validators",
         "methodtools",
         "dicttoxml",
+        "pystac[validation]",
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
