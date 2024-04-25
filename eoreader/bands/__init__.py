@@ -490,7 +490,7 @@ def to_str(to_convert: Union[list, BandNames, str], as_list: bool = True) -> Uni
         if not isinstance(to_convert, list):
             to_convert = [to_convert]
 
-        bands_strs = []
+        bands_str = []
         for tc in to_convert:
             if isinstance(tc, str):
                 band_str = tc
@@ -500,8 +500,8 @@ def to_str(to_convert: Union[list, BandNames, str], as_list: bool = True) -> Uni
                 except AttributeError:
                     band_str = tc.__name__
 
-            bands_strs.append(band_str)
-        return bands_strs
+            bands_str.append(band_str)
+        return bands_str
     else:
         if isinstance(to_convert, list):
             raise _ite(f'Set as_list=True(default) for list arguments') 
