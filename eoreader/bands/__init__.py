@@ -389,7 +389,9 @@ def is_dem(dem: Any) -> bool:
     return is_valid
 
 
-def to_band(to_convert: Union[list, BandNames, str], as_list: bool = True) -> Union[list, BandNames]:
+def to_band(
+    to_convert: Union[list, BandNames, str], as_list: bool = True
+) -> Union[list, BandNames]:
     """
     Convert a string (or real value) to any alias, band or index.
 
@@ -455,6 +457,7 @@ def to_band(to_convert: Union[list, BandNames, str], as_list: bool = True) -> Un
                 return GREEN1
             else:
                 raise _ite(f"Unknown band or index: {tc}")
+
     if as_list:
         band_list = []
         if not isinstance(to_convert, list):
@@ -465,11 +468,13 @@ def to_band(to_convert: Union[list, BandNames, str], as_list: bool = True) -> Un
         return band_list
     else:
         if isinstance(to_convert, list):
-            raise _ite(f'Set as_list=True(default) for list arguments') 
+            raise _ite(f"Set as_list=True(default) for list arguments")
         return convert_to_band(to_convert)
 
 
-def to_str(to_convert: Union[list, BandNames, str], as_list: bool = True) -> Union[list, str]:
+def to_str(
+    to_convert: Union[list, BandNames, str], as_list: bool = True
+) -> Union[list, str]:
     """
     Convert a string (or real value) to any alias, band or index.
 
@@ -504,7 +509,7 @@ def to_str(to_convert: Union[list, BandNames, str], as_list: bool = True) -> Uni
         return bands_strs
     else:
         if isinstance(to_convert, list):
-            raise _ite(f'Set as_list=True(default) for list arguments') 
+            raise _ite(f"Set as_list=True(default) for list arguments")
         try:
             band_str = tc.name
         except AttributeError:
