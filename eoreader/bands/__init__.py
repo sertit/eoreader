@@ -389,7 +389,7 @@ def is_dem(dem: Any) -> bool:
     return is_valid
 
 
-def to_band(to_convert: Union[list, BandNames, str]) -> list:
+def to_band(to_convert: Union[list, BandNames, str], as_list: bool = True) -> Union[list, BandNames]:
     """
     Convert a string (or real value) to any alias, band or index.
 
@@ -455,18 +455,21 @@ def to_band(to_convert: Union[list, BandNames, str]) -> list:
                 return GREEN1
             else:
                 raise _ite(f"Unknown band or index: {tc}")
-
-    if isinstance(to_convert, list):
+    if as_list:
         band_list = []
+        if not isinstance(to_convert, list):
+            to_convert = [to_convert]
         for tc in to_convert:
             tc_band = convert_to_band(tc=tc)
             band_list.append(tc_band)
         return band_list
     else:
+        if isinstance(to_convert, list):
+            raise _ite(f'Set as_list=True(default) for list arguments') 
         return convert_to_band(to_convert)
 
 
-def to_str(to_convert: Union[list, BandNames, str]) -> list:
+def to_str(to_convert: Union[list, BandNames, str], as_list: bool = True) -> Union[list, str]:
     """
     Convert a string (or real value) to any alias, band or index.
 
@@ -483,19 +486,27 @@ def to_str(to_convert: Union[list, BandNames, str]) -> list:
     Returns:
         list: str bands
     """
-    if not isinstance(to_convert, list):
-        to_convert = [to_convert]
+    if as_list:
+        if not isinstance(to_convert, list):
+            to_convert = [to_convert]
 
-    bands_str = []
-    for tc in to_convert:
-        if isinstance(tc, str):
-            band_str = tc
-        else:
-            try:
-                band_str = tc.name
-            except AttributeError:
-                band_str = tc.__name__
+        bands_strs = []
+        for tc in to_convert:
+            if isinstance(tc, str):
+                band_str = tc
+            else:
+                try:
+                    band_str = tc.name
+                except AttributeError:
+                    band_str = tc.__name__
 
-        bands_str.append(band_str)
-
-    return bands_str
+            bands_strs.append(band_str)
+        return bands_strs
+    else:
+        if isinstance(to_convert, list):
+            raise _ite(f'Set as_list=True(default) for list arguments') 
+        try:
+            band_str = tc.name
+        except AttributeError:
+            band_str = tc.__name__
+        return band_str
