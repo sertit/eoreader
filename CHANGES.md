@@ -6,6 +6,7 @@
 - FIX: Fix issue with geocoding with unzipped `Sentinel-3 OLCI` product ([#137](https://github.com/sertit/eoreader/issues/137))
 - FIX: Fix iceye product when extent file (*.kml) not found ([#135](https://github.com/sertit/eoreader/pull/135))
 - FIX: Add missing `pystac[validation]` in setup.py
+- CI: Fix S3 endpoint management with `sertit==1.37.0`
 
 ## 0.21.1 (2024-04-03)
 
