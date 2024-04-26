@@ -6,10 +6,14 @@ from functools import wraps
 from typing import Callable
 
 import tempenv
-from sertit import AnyPath, unistra
-from sertit.s3 import USE_S3_STORAGE
+from sertit import AnyPath, s3, unistra
 from sertit.types import AnyPathType
-from sertit.unistra import get_db2_path, get_db3_path, get_geodatastore
+from sertit.unistra import (
+    UNISTRA_S3_ENPOINT,
+    get_db2_path,
+    get_db3_path,
+    get_geodatastore,
+)
 
 from eoreader import EOREADER_NAME
 from eoreader.env_vars import TILE_SIZE
@@ -93,7 +97,9 @@ def get_db_dir() -> AnyPathType:
     Returns:
         str: Database directory
     """
-    with tempenv.TemporaryEnvironment({USE_S3_STORAGE: os.getenv(CI_EOREADER_S3, "0")}):
+    with tempenv.TemporaryEnvironment(
+        {s3.USE_S3_STORAGE: os.getenv(CI_EOREADER_S3, "0")}
+    ):
         return get_geodatastore()
 
 
@@ -150,7 +156,9 @@ def broken_s2_path():
 
 
 def s3_env(function):
-    return unistra.s3_env(use_s3_env_var=CI_EOREADER_S3)(function)
+    return s3.s3_env(endpoint=UNISTRA_S3_ENPOINT, use_s3_env_var=CI_EOREADER_S3)(
+        function
+    )
 
 
 def compare(to_be_checked, ref, topic):
