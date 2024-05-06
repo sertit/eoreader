@@ -123,7 +123,7 @@ _MAXAR_GAIN_OFFSET = {
         NIR: GainOffset(gain=1.0, offset=0.0),
         NARROW_NIR: GainOffset(gain=1.0, offset=0.0),
     },  # 2017v0
-    Constellation.QB: {
+    Constellation.QB02: {
         PAN: GainOffset(gain=0.870, offset=-1.491),
         BLUE: GainOffset(gain=1.105, offset=-2.820),
         GREEN: GainOffset(gain=1.071, offset=-3.338),
@@ -191,7 +191,7 @@ _MAXAR_E0 = {
         NIR: 937.8,
         NARROW_NIR: 937.8,
     },
-    Constellation.QB: {
+    Constellation.QB02: {
         PAN: 1370.92,
         BLUE: 1949.59,
         GREEN: 1823.64,
@@ -432,7 +432,7 @@ class MaxarProduct(VhrProduct):
         elif self.constellation == Constellation.WV04:
             # SpaceView-110 camera
             self.instrument = "SpaceView-110 camera"
-        elif self.constellation == Constellation.QB:
+        elif self.constellation == Constellation.QB02:
             # Ball Global Imaging System 2000
             self.instrument = "BGIS-2000"
         elif self.constellation == Constellation.GE01:
@@ -575,7 +575,7 @@ class MaxarProduct(VhrProduct):
                     },
                 ),
             }
-        elif self.constellation == Constellation.QB:
+        elif self.constellation == Constellation.QB02:
             spectral_bands = {
                 "pan": SpectralBand(
                     eoreader_name=PAN,
