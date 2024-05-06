@@ -490,7 +490,7 @@ class S2Product(OpticalProduct):
                     next(self.path.glob("**/tileInfo.json")), print_file=False
                 )
                 name = tile_info["productName"]
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, StopIteration):
                 raise InvalidProductError(
                     f"Corrupted metadata and bad filename for {self.path}! "
                     f"Impossible to process this product."
