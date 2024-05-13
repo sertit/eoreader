@@ -149,12 +149,17 @@ class IceyeProduct(SarProduct):
         (setting product-type, band names and so on)
         """
         # Private attributes
-        if self._use_slc:
-            self.snap_filename = str(next(self.path.glob("*ICEYE*SLC*.xml")).name)
-            self._raw_band_regex = "*ICEYE*SLC*.h5"
-        else:
-            self.snap_filename = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
-            self._raw_band_regex = "*ICEYE*GRD*.tif"
+        try:
+            if self._use_slc:
+                self.snap_filename = str(next(self.path.glob("*ICEYE*SLC*.xml")).name)
+                self._raw_band_regex = "*ICEYE*SLC*.h5"
+            else:
+                self.snap_filename = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
+                self._raw_band_regex = "*ICEYE*GRD*.tif"
+        except StopIteration:
+            raise FileNotFoundError(
+                f"Non existing file *ICEYE*SLC*.xml or *ICEYE*GRD*.xml in {self.path}"
+            )
 
         # Post init done by the super class
         super()._post_init(**kwargs)

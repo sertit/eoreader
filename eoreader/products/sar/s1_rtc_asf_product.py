@@ -165,7 +165,10 @@ class S1RtcAsfProduct(SarProduct):
         if self.is_archived:
             footprint = vectors.read(self.path, archive_regex=r".*\.shp")
         else:
-            footprint = vectors.read(next(self.path.glob("*.shp")))
+            try:
+                footprint = vectors.read(next(self.path.glob("*.shp")))
+            except StopIteration:
+                raise FileNotFoundError(f"Non existing file *.shp in {self.path}")
 
         return footprint
 

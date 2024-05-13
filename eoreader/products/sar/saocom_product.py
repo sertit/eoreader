@@ -242,7 +242,7 @@ class SaocomProduct(SarProduct):
         # else:
         #     try:
         #         extent_file = next(self.path.glob("**/Images/*.kml"))
-        #     except IndexError as ex:
+        #     except (IndexError, StopIteration) as ex:
         #         raise InvalidProductError(
         #             f"Extent file (products.kml) not found in {self.path}"
         #         ) from ex
@@ -286,7 +286,10 @@ class SaocomProduct(SarProduct):
             dict: Dictionary containing the path of every band existing in the raw products
         """
         extended_fmt = _ExtendedFormatter()
-        cuss_file = next(self.path.glob("*.zip"))
+        try:
+            cuss_file = next(self.path.glob("*.zip"))
+        except StopIteration:
+            raise FileNotFoundError(f"Non existing file *.zip in {self.path}")
         band_paths = {}
         for band in SarBandNames.speckle_list():
             band_regex = extended_fmt.format(self._raw_band_regex, band.value)
