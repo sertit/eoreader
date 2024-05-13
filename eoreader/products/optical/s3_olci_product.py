@@ -464,7 +464,12 @@ class S3OlciProduct(S3Product):
             if self.is_archived:
                 raw_path = path.get_archived_path(self.path, f".*{filename}")
             else:
-                raw_path = next(self.path.glob(f"*{filename}"))
+                try:
+                    raw_path = next(self.path.glob(f"*{filename}"))
+                except StopIteration:
+                    raise FileNotFoundError(
+                        f"Non existing file {filename} in {self.path}"
+                    )
 
             raw_band_paths[band] = raw_path
 

@@ -379,7 +379,7 @@ class TsxProduct(SarProduct):
         # Open extent KML file
         try:
             extent_file = next(self.path.glob("**/*SUPPORT/GEARTH_POLY.kml"))
-        except IndexError as ex:
+        except (IndexError, StopIteration) as ex:
             raise InvalidProductError(
                 f"Extent file (products.kml) not found in {self.path}"
             ) from ex

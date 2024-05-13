@@ -206,12 +206,22 @@ class CapellaProduct(SarProduct):
         (setting product-type, band names and so on)
         """
         # Private attributes
-        self.snap_filename = str(next(self.path.glob("*CAPELLA*.json")).name)
+        try:
+            self.snap_filename = str(next(self.path.glob("*CAPELLA*.json")).name)
+        except StopIteration:
+            raise FileNotFoundError(f"Non existing file *CAPELLA*.json in {self.path}")
         try:
             self._raw_band_regex = str(next(self.path.glob(f"{self.name}.tif")).name)
         except StopIteration:
             # For SICD and SIDD
-            self._raw_band_regex = str(next(self.path.glob(f"{self.name}.ntf")).name)
+            try:
+                self._raw_band_regex = str(
+                    next(self.path.glob(f"{self.name}.ntf")).name
+                )
+            except StopIteration:
+                raise FileNotFoundError(
+                    f"Non existing file {self.name}.tif or {self.name}.ntf in {self.path}"
+                )
 
         # Post init done by the super class
         super()._post_init(**kwargs)
@@ -235,7 +245,12 @@ class CapellaProduct(SarProduct):
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
         """
         if self._has_stac_mtd:
-            mtd_file = next(self.path.glob(f"{self.name}.json"))
+            try:
+                mtd_file = next(self.path.glob(f"{self.name}.json"))
+            except StopIteration:
+                raise FileNotFoundError(
+                    f"Non existing file {self.name}.json in {self.path}"
+                )
             extent = vectors.read(mtd_file)
         else:
             extent = None
