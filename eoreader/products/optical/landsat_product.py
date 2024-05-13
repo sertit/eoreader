@@ -1007,11 +1007,16 @@ class LandsatProduct(OpticalProduct):
                 # FOR COLLECTION 1 AND 2
                 tar_ds = None
                 try:
-                    mtd_path = next(self.path.glob(f"**/*{mtd_name}"))
-                except ValueError:
-                    mtd_path = next(self.path.glob(f"*{mtd_name}"))
+                    try:
+                        mtd_path = next(self.path.glob(f"**/*{mtd_name}"))
+                    except ValueError:
+                        mtd_path = next(self.path.glob(f"*{mtd_name}"))
 
-                if not mtd_path.is_file():
+                    if not mtd_path.is_file():
+                        raise InvalidProductError(
+                            f"No metadata file found in {self.name} !"
+                        )
+                except StopIteration:
                     raise InvalidProductError(
                         f"No metadata file found in {self.name} !"
                     )

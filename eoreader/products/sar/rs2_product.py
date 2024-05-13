@@ -427,7 +427,7 @@ class Rs2Product(SarProduct):
             else:
                 extent_file = next(self.path.glob("*product.kml"))
                 product_kml = vectors.read(extent_file)
-        except IndexError as ex:
+        except (IndexError, StopIteration) as ex:
             raise InvalidProductError(
                 f"Extent file (product.kml) not found in {self.path}"
             ) from ex
