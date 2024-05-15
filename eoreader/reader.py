@@ -360,27 +360,18 @@ MTD_REGEX = {
     Constellation.SV1: r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
     Constellation.HLS: rf"{CONSTELLATION_REGEX[Constellation.HLS]}\.Fmask\.tif",
     Constellation.GS2: rf"{CONSTELLATION_REGEX[Constellation.GS2]}\.dim",
-    Constellation.SPOT45: {
-        "nested": -1,  # File that can be found at any level (product/**/file)
-        "regex": [
+    Constellation.SPOT45: [
             r"METADATA\.DIM",  # Too generic name, check also a band
             r"IMAGERY\.TIF",
-        ],
-    },
-    Constellation.SPOT4: {
-        "nested": -1,  # File that can be found at any level (product/**/file)
-        "regex": [
+    ],
+    Constellation.SPOT4: [
             r"METADATA\.DIM",  # Too generic name, check also a band
             r"IMAGERY\.TIF",
-        ],
-    },
-    Constellation.SPOT5: {
-        "nested": -1,  # File that can be found at any level (product/**/file)
-        "regex": [
+    ],
+    Constellation.SPOT5: [
             r"METADATA\.DIM",  # Too generic name, check also a band
             r"IMAGERY\.TIF",
-        ],
-    },
+    ],
     Constellation.S2_SIN: {
         "nested": 1,  # File that can be found at any level (product/**/file)
         "regex": [
