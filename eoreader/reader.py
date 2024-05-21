@@ -361,16 +361,16 @@ MTD_REGEX = {
     Constellation.HLS: rf"{CONSTELLATION_REGEX[Constellation.HLS]}\.Fmask\.tif",
     Constellation.GS2: rf"{CONSTELLATION_REGEX[Constellation.GS2]}\.dim",
     Constellation.SPOT45: [
-            r"METADATA\.DIM",  # Too generic name, check also a band
-            r"IMAGERY\.TIF",
+        r"METADATA\.DIM",  # Too generic name, check also a band
+        r"IMAGERY\.TIF",
     ],
     Constellation.SPOT4: [
-            r"METADATA\.DIM",  # Too generic name, check also a band
-            r"IMAGERY\.TIF",
+        r"METADATA\.DIM",  # Too generic name, check also a band
+        r"IMAGERY\.TIF",
     ],
     Constellation.SPOT5: [
-            r"METADATA\.DIM",  # Too generic name, check also a band
-            r"IMAGERY\.TIF",
+        r"METADATA\.DIM",  # Too generic name, check also a band
+        r"IMAGERY\.TIF",
     ],
     Constellation.S2_SIN: {
         "nested": 1,  # File that can be found at any level (product/**/file)
