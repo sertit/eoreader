@@ -93,7 +93,7 @@ class CosmoProduct(SarProduct):
         try:
             product_path = AnyPath(product_path)
             self._img_path = next(product_path.glob("*.h5"))
-        except IndexError as ex:
+        except (IndexError, StopIteration) as ex:
             raise InvalidProductError(
                 f"Image file (*.h5) not found in {product_path}"
             ) from ex
