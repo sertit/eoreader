@@ -205,7 +205,7 @@ class RcmProduct(SarProduct):
         try:
             extent_file = next(self.path.joinpath("preview").glob("*mapOverlay.kml"))
             product_kml = vectors.read(extent_file)
-        except IndexError as ex:
+        except (IndexError, StopIteration) as ex:
             raise InvalidProductError(
                 f"Extent file (product.kml) not found in {self.path}"
             ) from ex
