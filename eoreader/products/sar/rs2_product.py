@@ -379,7 +379,7 @@ class Rs2Product(SarProduct):
 
         # SNAP can process non-complex archive
         root, nsmap = self.read_mtd()
-        namespace = nsmap[None]
+        namespace = nsmap.get(None, "")
 
         # Open identifier
         prod_type = root.findtext(f".//{namespace}productType")
@@ -458,7 +458,7 @@ class Rs2Product(SarProduct):
         """
         # Get metadata
         root, nsmap = self.read_mtd()
-        namespace = nsmap[None]
+        namespace = nsmap.get(None, "")
 
         # Get sensor mode
         # WARNING: this word may differ from the Enum !!! (no docs available)
@@ -499,7 +499,7 @@ class Rs2Product(SarProduct):
         if self.datetime is None:
             # Get MTD XML file
             root, nsmap = self.read_mtd()
-            namespace = nsmap[None]
+            namespace = nsmap.get(None, "")
 
             # Open identifier
             acq_date = root.findtext(f".//{namespace}rawDataStartTime")
@@ -596,7 +596,7 @@ class Rs2Product(SarProduct):
         """
         # Get MTD XML file
         root, nsmap = self.read_mtd()
-        namespace = nsmap[None]
+        namespace = nsmap.get(None, "")
 
         # Get the orbit direction
         try:
