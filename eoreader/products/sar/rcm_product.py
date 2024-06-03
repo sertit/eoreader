@@ -228,7 +228,7 @@ class RcmProduct(SarProduct):
         """Set products type"""
         # Get MTD XML file
         root, nsmap = self.read_mtd()
-        namespace = nsmap[None]
+        namespace = nsmap.get(None, "")
 
         # Open identifier
         prod_type = root.findtext(f".//{namespace}productType")
@@ -263,7 +263,7 @@ class RcmProduct(SarProduct):
         """
         # Get metadata
         root, nsmap = self.read_mtd()
-        namespace = nsmap[None]
+        namespace = nsmap.get(None, "")
 
         # Get sensor mode
         # WARNING: this word may differ from the Enum !!! (no docs available)
@@ -303,7 +303,7 @@ class RcmProduct(SarProduct):
         """
         # Get MTD XML file
         root, nsmap = self.read_mtd()
-        namespace = nsmap[None]
+        namespace = nsmap.get(None, "")
 
         # Open identifier
         acq_date = root.findtext(f".//{namespace}rawDataStartTime")
@@ -426,7 +426,7 @@ class RcmProduct(SarProduct):
         """
         # Get MTD XML file
         root, nsmap = self.read_mtd()
-        namespace = nsmap[None]
+        namespace = nsmap.get(None, "")
 
         # Get the orbit direction
         try:
