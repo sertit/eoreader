@@ -582,7 +582,7 @@ class S2Product(OpticalProduct):
                     s2_bands_folder[band] = next(
                         self.path.glob(f"{self._get_image_folder()}/{dir_name}")
                     )
-                except IndexError:
+                except (IndexError, StopIteration):
                     s2_bands_folder[band] = self.path
 
         for band in band_list:
