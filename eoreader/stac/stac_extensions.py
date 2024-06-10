@@ -56,6 +56,7 @@ from eoreader.stac.stac_utils import (
     get_media_type,
     repr_multiline_str,
 )
+from eoreader.exceptions import InvalidProductError
 
 
 class EoExt:
@@ -77,7 +78,7 @@ class EoExt:
         try:
             if prod._has_cloud_cover:
                 self.cloud_cover = prod.get_cloud_cover()
-        except AttributeError:
+        except (AttributeError, InvalidProductError):
             pass
 
         self.bands = prod.bands
