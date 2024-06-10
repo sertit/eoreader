@@ -29,6 +29,7 @@ import geopandas as gpd
 from rasterio.crs import CRS
 
 from eoreader import cache
+from eoreader.exceptions import InvalidProductError
 from eoreader.stac import StacCommonNames, stac_utils
 from eoreader.stac._stac_keywords import (
     DESCRIPTION,
@@ -56,7 +57,6 @@ from eoreader.stac.stac_utils import (
     get_media_type,
     repr_multiline_str,
 )
-from eoreader.exceptions import InvalidProductError
 
 
 class EoExt:
