@@ -157,7 +157,7 @@ class EoExt:
                     center_wavelength = stac_utils.to_float(band.center_wavelength)
                     solar_illumination = stac_utils.to_float(band.solar_illumination)
                     full_width_half_max = stac_utils.to_float(band.full_width_half_max)
-                except AttributeError:
+                except (AttributeError, InvalidProductError):
                     center_wavelength = None
                     solar_illumination = None
                     full_width_half_max = None
@@ -338,7 +338,7 @@ class ViewExt:
             # Convert from numpy dtype (which are not JSON serializable) to standard dtype
             self.sun_az = stac_utils.to_float(sun_az)
             self.sun_el = stac_utils.to_float(sun_el)
-        except AttributeError:
+        except (AttributeError, InvalidProductError):
             self.sun_az = None
             self.sun_el = None
 
@@ -349,7 +349,7 @@ class ViewExt:
             self.view_az = stac_utils.to_float(view_az)
             self.off_nadir = stac_utils.to_float(off_nadir)
             self.incidence_angle = stac_utils.to_float(incidence_angle)
-        except AttributeError:
+        except (AttributeError, InvalidProductError):
             self.view_az = None
             self.off_nadir = None
             self.incidence_angle = None
