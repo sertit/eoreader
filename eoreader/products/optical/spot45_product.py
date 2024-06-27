@@ -233,6 +233,8 @@ class Spot45Product(DimapV1Product):
         """
         root, _ = self.read_mtd()
         band_combi = root.findtext(".//SPECTRAL_PROCESSING")
+        if not band_combi:
+            raise InvalidProductError("SPECTRAL_PROCESSING not found in metadata!")
         if self.constellation == Constellation.SPOT4:
             self.band_combi = Spot4BandCombination.from_value(band_combi)
         else:
