@@ -301,7 +301,7 @@ MTD_REGEX = {
         # File that can be found at any level (product/**/file)
         "regex": r".*s1[ab]-(iw|ew|sm|wv|s\d)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}(-cog|)\.xml",
     },
-    Constellation.S2: {"nested": 3, "regex": r"MTD_TL.xml"},
+    Constellation.S2: {"nested": 2, "regex": r"MTD_TL.xml"},
     Constellation.S2_E84: rf"{CONSTELLATION_REGEX[Constellation.S2_E84]}\.json",
     Constellation.S2_THEIA: rf"{CONSTELLATION_REGEX[Constellation.S2_THEIA]}_MTD_ALL\.xml",
     Constellation.S3_OLCI: r"Oa\d{2}_radiance.nc",
@@ -807,7 +807,7 @@ class Reader:
                 )
             else:
                 nested_wildcard = "/".join(["*" for _ in range(nested)])
-                prod_files = list(product_path.glob(f"*{nested_wildcard}/*.*"))
+                prod_files = list(product_path.glob(f"{nested_wildcard}/*.*"))
 
         # Archive
         else:
