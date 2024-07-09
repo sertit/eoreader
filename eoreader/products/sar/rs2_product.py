@@ -214,6 +214,7 @@ class Rs2Product(SarProduct):
                 Rs2ProductType.SCW,
                 Rs2ProductType.SCF,
                 Rs2ProductType.SCS,
+                Rs2ProductType.SGF,
             ]:
                 def_pixel_size = 50.0
                 def_res = 100.0
