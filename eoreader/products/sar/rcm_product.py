@@ -25,10 +25,12 @@ from enum import unique
 from typing import Union
 
 import geopandas as gpd
+import rasterio
 from lxml import etree
-from sertit import vectors
+from sertit import geometry, vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
+from shapely import Polygon
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -205,14 +207,40 @@ class RcmProduct(SarProduct):
         try:
             extent_file = next(self.path.joinpath("preview").glob("*mapOverlay.kml"))
             product_kml = vectors.read(extent_file)
-        except (IndexError, StopIteration) as ex:
-            raise InvalidProductError(
-                f"Extent file (product.kml) not found in {self.path}"
-            ) from ex
 
-        extent_wgs84 = product_kml[
-            product_kml.Name == "Polygon Outline"
-        ].envelope.to_crs(WGS84)
+            extent_wgs84 = product_kml[product_kml.Name == "Polygon Outline"].envelope
+
+        except (IndexError, StopIteration) as ex:
+            # Some RCM products don't have any mapOverlay.kml file as it is not a mandatory file!
+            with rasterio.open(
+                self.get_raw_band_paths()[self.get_default_band()]
+            ) as ds:
+                if ds.crs is not None:
+                    extent_wgs84 = gpd.GeoDataFrame(
+                        geometry=[geometry.from_bounds_to_polygon(*ds.bounds)],
+                        crs=ds.crs,
+                    )
+                elif ds.gcps is not None:
+                    gcps, crs = ds.gcps
+                    corners = geometry.from_bounds_to_polygon(
+                        *ds.bounds
+                    ).exterior.coords
+                    extent_poly = Polygon(
+                        [
+                            rasterio.transform.from_gcps(gcps) * corner
+                            for corner in corners
+                        ]
+                    )
+                    extent_wgs84 = gpd.GeoDataFrame(geometry=[extent_poly], crs=crs)
+                else:
+                    raise InvalidProductError(
+                        f"Extent file (preview/mapOverlay.kml) not found in {self.path}. "
+                        "Default band isn't georeferenced and have no GCPs. "
+                        "It is therefore impossible to determine quickly the extent of this product. "
+                        "Please write an issue on GitHub!"
+                    ) from ex
+
+        extent_wgs84 = extent_wgs84.to_crs(WGS84)
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
@@ -252,7 +280,7 @@ class RcmProduct(SarProduct):
 
         if self.product_type != RcmProductType.GRD:
             LOGGER.warning(
-                "Other products type than SGF has not been tested for %s data. "
+                "Other products type than GRD has not been tested for %s data. "
                 "Use it at your own risks !",
                 self.constellation.value,
             )
