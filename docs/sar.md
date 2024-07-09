@@ -43,8 +43,8 @@ mostly because SNAP doesn't handle them.
 | `RADARSAT Constellation Mission`    | GRC, GCC, GCD                                                                                                                                                 | ⚠       |
 | `RADARSAT Constellation Mission`    | GRD                                                                                                                                                           | ✅       | 
 | `RADARSAT-2`                        | SLC                                                                                                                                                           | ✅       | 
-| `RADARSAT-2`                        | SGX, SCN, SCW,<br>SCF, SCS, SSG, SPG                                                                                                                          | ⚠       |
-| `RADARSAT-2`                        | SGF                                                                                                                                                           | ✅       |
+| `RADARSAT-2`                        | SGF, SGX, SSG                                                                                                                                                 | ✅       |
+| `RADARSAT-2`                        | SCN, SCF, SCW, SCS, SPG                                                                                                                                       | ⚠       |
 | `Sentinel-1`                        | SLC                                                                                                                                                           | ✅       | 
 | `Sentinel-1`                        | GRD                                                                                                                                                           | ✅       |
 | `Sentinel-1`                        | RTC ([ASF](https://hyp3-docs.asf.alaska.edu/guides/rtc_product_guide/#readme-file) and [MPC](https://planetarycomputer.microsoft.com/dataset/sentinel-1-rtc)) | ✅       |

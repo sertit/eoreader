@@ -25,10 +25,12 @@ from enum import unique
 from typing import Union
 
 import geopandas as gpd
+import rasterio
 from lxml import etree
-from sertit import path, vectors
+from sertit import geometry, path, vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
+from shapely import Polygon
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -427,14 +429,40 @@ class Rs2Product(SarProduct):
             else:
                 extent_file = next(self.path.glob("*product.kml"))
                 product_kml = vectors.read(extent_file)
-        except (IndexError, StopIteration) as ex:
-            raise InvalidProductError(
-                f"Extent file (product.kml) not found in {self.path}"
-            ) from ex
 
-        extent_wgs84 = product_kml[
-            product_kml.Name == "Polygon Outline"
-        ].envelope.to_crs(WGS84)
+            extent_wgs84 = product_kml[product_kml.Name == "Polygon Outline"].envelope
+        except (IndexError, StopIteration) as ex:
+            # Some RS2 products don't have any product.kml file as it is not a mandatory file!
+            with rasterio.open(
+                self.get_raw_band_paths()[self.get_default_band()]
+            ) as ds:
+                if ds.crs is not None:
+                    extent_wgs84 = gpd.GeoDataFrame(
+                        geometry=[geometry.from_bounds_to_polygon(*ds.bounds)],
+                        crs=ds.crs,
+                    )
+                elif ds.gcps is not None:
+                    gcps, crs = ds.gcps
+                    corners = geometry.from_bounds_to_polygon(
+                        *ds.bounds
+                    ).exterior.coords
+                    extent_poly = Polygon(
+                        [
+                            rasterio.transform.from_gcps(gcps) * corner
+                            for corner in corners
+                        ]
+                    )
+                    extent_wgs84 = gpd.GeoDataFrame(geometry=[extent_poly], crs=crs)
+                else:
+                    raise InvalidProductError(
+                        f"Extent file (product.kml) not found in {self.path}. "
+                        "Default band isn't georeferenced and have no GCPs. "
+                        "It is therefore impossible to determine quickly the extent of this product. "
+                        "Please write an issue on GitHub!"
+                    ) from ex
+
+        # Just to be sure
+        extent_wgs84 = extent_wgs84.to_crs(WGS84)
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 
@@ -445,9 +473,14 @@ class Rs2Product(SarProduct):
         else:
             self.sar_prod_type = SarProductType.GDRG
 
-        if self.product_type not in [Rs2ProductType.SGF, Rs2ProductType.SLC]:
+        if self.product_type not in [
+            Rs2ProductType.SGF,
+            Rs2ProductType.SGX,
+            Rs2ProductType.SSG,
+            Rs2ProductType.SLC,
+        ]:
             LOGGER.warning(
-                "Other product types than SGF or SLC haven't been tested for %s data. "
+                "Other product types than SGF, SGX, SSG or SLC haven't been tested for %s data. "
                 "Use it at your own risks !",
                 self.constellation.value,
             )
