@@ -10,6 +10,7 @@
 - FIX: Fix iceye product when extent file (*.kml) not found ([#135](https://github.com/sertit/eoreader/pull/135))
 - FIX: Add missing `pystac[validation]` in setup.py
 - FIX: Handle RCM and RS2 products that doesn't bundle their extent in a KML file ([#155](https://github.com/sertit/eoreader/issues/155))
+- FIX: Fix error in looking for bands in Sentinel-2 L1C archived products ([#168](https://github.com/sertit/eoreader/issues/168))
 - OPTIM: Search correctly nested metadata in the Reader (without accidentally using a recursive glob)
 - CI: Fix S3 endpoint management with `sertit>=1.37`
 

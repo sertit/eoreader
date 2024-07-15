@@ -563,19 +563,24 @@ class S2Product(OpticalProduct):
                 dir_name = band_dir
 
             if self.is_archived:
-                # Open the zip file
-                with zipfile.ZipFile(self.path, "r") as zip_ds:
-                    # Get the band folder (use dirname is the first of the list is a band)
-                    band_path = [
-                        os.path.dirname(f.filename)
-                        for f in zip_ds.filelist
-                        if dir_name in f.filename
-                    ][0]
+                # Get the band folder (use dirname is the first of the list is a band)
+                band_path = os.path.dirname(
+                    path.get_archived_rio_path(
+                        self.path, f"{self._get_image_folder()}.*{dir_name}"
+                    )
+                )
 
-                    # Workaround for a bug involving some bad archives
-                    if band_path.startswith("/"):
-                        band_path = band_path[1:]
-                    s2_bands_folder[band] = band_path
+                # Workaround for a bug involving some bad archives
+                if band_path.startswith("/"):
+                    band_path = band_path[1:]
+
+                # Workaround for PEPS Sentinel-2 archives with incomplete manifest (without any directory)
+                if band_path.endswith(".jp2"):
+                    band_path = os.path.dirname(band_path)
+                else:
+                    band_path = os.path.basename(band_path)
+
+                s2_bands_folder[band] = band_path
             else:
                 # Search for the name of the folder into the S2 products
                 try:
