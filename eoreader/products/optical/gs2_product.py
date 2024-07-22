@@ -405,14 +405,13 @@ class Gs2Product(DimapV1Product):
 
             # Compute band in radiance
             band_arr = bias + band_arr * gain
+            band_arr = self._toa_rad_to_toa_refl(band_arr, band, e_sun, sun_earth_dist)
 
-            # To float32
-            if band_arr.dtype != np.float32:
-                band_arr = band_arr.astype(np.float32)
+        # To float32
+        if band_arr.dtype != np.float32:
+            band_arr = band_arr.astype(np.float32)
 
-            return self._toa_rad_to_toa_refl(band_arr, band, e_sun, sun_earth_dist)
-        else:
-            return band_arr
+        return band_arr
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
