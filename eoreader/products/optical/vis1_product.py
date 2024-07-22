@@ -346,11 +346,13 @@ class Vis1Product(DimapV1Product):
         if original_dtype == "uint16":
             band_arr /= 100.0
 
+        band_arr = self._toa_rad_to_toa_refl(band_arr, band, _VIS1_E0[band])
+
         # To float32
         if band_arr.dtype != np.float32:
             band_arr = band_arr.astype(np.float32)
 
-        return self._toa_rad_to_toa_refl(band_arr, band, _VIS1_E0[band])
+        return band_arr
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
