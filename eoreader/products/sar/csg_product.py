@@ -218,7 +218,7 @@ class CsgProduct(CosmoProduct):
         """
         # Calibration fails with CSG data
         LOGGER.debug(
-            "SNAP Error: Calibration currently fails for CSG data. Removing this step."
+            "SNAP Error: Calibration is useless for CSG data. Removing this step."
         )
         self._calibrate = False
 
