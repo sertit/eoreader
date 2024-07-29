@@ -26,7 +26,7 @@ import numpy as np
 import xarray as xr
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import AnyPath, files, path, rasters_rio
+from sertit import AnyPath, files, path, rasters_rio, types
 from sertit.files import CustomDecoder
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -310,7 +310,7 @@ class S2E84Product(OpticalProduct):
             return {}
 
         # Get band paths
-        if not isinstance(bands, list):
+        if not types.is_iterable(bands):
             bands = [bands]
 
         if pixel_size is None and size is not None:

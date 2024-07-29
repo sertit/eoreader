@@ -31,7 +31,7 @@ import rasterio
 import xarray as xr
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import path, rasters, strings
+from sertit import path, rasters, strings, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -1004,7 +1004,7 @@ class PlanetProduct(OpticalProduct):
             Union[list, str]: Paths(s)
 
         """
-        if invalid_lookahead is not None and not isinstance(invalid_lookahead, list):
+        if invalid_lookahead is not None and not types.is_iterable(invalid_lookahead):
             invalid_lookahead = [invalid_lookahead]
 
         ok_paths = []

@@ -29,7 +29,7 @@ import numpy as np
 import xarray as xr
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import geometry, path, rasters
+from sertit import geometry, path, rasters, types
 from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
@@ -820,7 +820,7 @@ class S2TheiaProduct(OpticalProduct):
             xr.DataArray: Mask masked array
 
         """
-        if not isinstance(bit_ids, list):
+        if not types.is_iterable(bit_ids):
             bit_ids = [bit_ids]
         conds = rasters.read_bit_array(bit_array.astype(np.uint8), bit_ids)
         cond = reduce(lambda x, y: x | y, conds)  # Use every condition (bitwise or)

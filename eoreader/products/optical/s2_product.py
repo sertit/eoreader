@@ -36,7 +36,7 @@ from lxml import etree
 from rasterio import errors, features, transform
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
-from sertit import AnyPath, files, geometry, path, rasters, vectors
+from sertit import AnyPath, files, geometry, path, rasters, types, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from shapely.geometry import box
@@ -532,7 +532,7 @@ class S2Product(OpticalProduct):
             dict: Dictionary containing the folder path for each queried band
         """
         if pixel_size is not None:
-            if isinstance(pixel_size, (list, tuple)):
+            if types.is_iterable(pixel_size):
                 pixel_size = pixel_size[0]
 
         # Open the band directory names
