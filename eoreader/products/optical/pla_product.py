@@ -472,7 +472,7 @@ class PlaProduct(PlanetProduct):
                 "Analytic", "tif", invalid_lookahead="udm", as_list=as_list
             )
 
-        if len(stack_path) < 1:
+        if as_list and len(stack_path) < 1:
             raise InvalidProductError("This is not a Planet Product.")
 
         return stack_path
