@@ -15,6 +15,7 @@
 - FIX: Force the loading of `DimapV1` bands in `float32`
 - FIX: Handle the case where fiona isn't installed anymore (with `geopandas 1.0`)
 - FIX: Don't make `pystac` a mandatory requirement
+- FIX: Fix an unknown Planet bug that just appeared (`'...Path' has no len()`)
 - OPTIM: Search correctly nested metadata in the Reader (without accidentally using a recursive glob)
 - CI: Fix S3 endpoint management with `sertit>=1.37`
 
