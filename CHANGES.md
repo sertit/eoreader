@@ -18,6 +18,7 @@
 - FIX: Fix an unknown Planet bug that just appeared (`'...Path' has no len()`)
 - OPTIM: Search correctly nested metadata in the Reader (without accidentally using a recursive glob)
 - CI: Fix S3 endpoint management with `sertit>=1.37`
+- CI: Remove for now end-to-end tests with Python 3.11 and 3.10. 
 
 ## 0.21.1 (2024-04-03)
 
