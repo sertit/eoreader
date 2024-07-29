@@ -7,7 +7,7 @@ from typing import Union
 
 import xarray as xr
 from lxml import etree
-from sertit import AnyPath, ci, path
+from sertit import AnyPath, ci, path, types
 
 from CI.scripts_utils import (
     CI_EOREADER_S3,
@@ -166,8 +166,7 @@ def _test_core(
 
     with xr.set_options(warn_for_unclosed_files=debug):
         # DATA paths
-        if not isinstance(prod_dirs, list):
-            prod_dirs = [prod_dirs]
+        prod_dirs = types.make_interable(prod_dirs)
 
         pattern_paths = []
         for prod_dir in prod_dirs:

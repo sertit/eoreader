@@ -1004,8 +1004,8 @@ class PlanetProduct(OpticalProduct):
             Union[list, str]: Paths(s)
 
         """
-        if invalid_lookahead is not None and not types.is_iterable(invalid_lookahead):
-            invalid_lookahead = [invalid_lookahead]
+        if invalid_lookahead is not None:
+            invalid_lookahead = types.make_interable(invalid_lookahead)
 
         ok_paths = []
         try:
