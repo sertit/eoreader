@@ -1005,7 +1005,7 @@ class PlanetProduct(OpticalProduct):
 
         """
         if invalid_lookahead is not None:
-            invalid_lookahead = types.make_interable(invalid_lookahead)
+            invalid_lookahead = types.make_iterable(invalid_lookahead)
 
         ok_paths = []
         try:

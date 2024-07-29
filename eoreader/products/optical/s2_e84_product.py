@@ -310,7 +310,7 @@ class S2E84Product(OpticalProduct):
             return {}
 
         # Get band paths
-        bands = types.make_interable(bands)
+        bands = types.make_iterable(bands)
 
         if pixel_size is None and size is not None:
             pixel_size = self._pixel_size_from_img_size(size)

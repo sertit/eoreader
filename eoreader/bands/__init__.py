@@ -416,6 +416,7 @@ def to_band(
         list: converted values
 
     """
+    from sertit import types
 
     def convert_to_band(tc) -> BandNames:
         band_or_idx = None
@@ -460,7 +461,7 @@ def to_band(
 
     if as_list:
         band_list = []
-        to_convert = types.make_interable(to_convert)
+        to_convert = types.make_iterable(to_convert)
 
         for tc in to_convert:
             tc_band = convert_to_band(tc=tc)
@@ -491,8 +492,10 @@ def to_str(
     Returns:
         list: str bands
     """
+    from sertit import types
+
     if as_list:
-        to_convert = types.make_interable(to_convert)
+        to_convert = types.make_iterable(to_convert)
 
         bands_str = []
         for tc in to_convert:

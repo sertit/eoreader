@@ -1239,7 +1239,7 @@ class Product:
         Returns:
             bool: True if the products has the specified band
         """
-        bands = types.make_interable(bands)
+        bands = types.make_iterable(bands)
         return all([self.has_band(band) for band in set(bands)])
 
     @abstractmethod
@@ -1713,7 +1713,7 @@ class Product:
         # Are we sure of that ?
         xarr.attrs = {}
 
-        bands = types.make_interable(bands)
+        bands = types.make_iterable(bands)
         long_name = to_str(bands)
         xr_name = "_".join(long_name)
         attr_name = " ".join(long_name)
@@ -2029,7 +2029,7 @@ class Product:
         Returns:
             list: Mapped bands
         """
-        raw_bands = types.make_interable(raw_bands)
+        raw_bands = types.make_iterable(raw_bands)
 
         bands = []
         for raw_band in raw_bands:

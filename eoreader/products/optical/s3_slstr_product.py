@@ -1098,7 +1098,7 @@ class S3SlstrProduct(S3Product):
             xr.DataArray: Mask masked array
 
         """
-        bit_ids = types.make_interable(bit_ids)
+        bit_ids = types.make_iterable(bit_ids)
         conds = rasters.read_bit_array(bit_array, bit_ids)
         cond = reduce(lambda x, y: x | y, conds)  # Use every condition (bitwise or)
 
