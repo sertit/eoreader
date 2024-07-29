@@ -47,6 +47,7 @@ methodtools
 matplotlib
 
 # MPC, AWS and STAC
+# /!\ Should not be mandatory requirements!
 pystac[validation]
 stac-asset
 planetary_computer

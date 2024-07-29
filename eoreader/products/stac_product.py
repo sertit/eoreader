@@ -24,11 +24,18 @@ import shapely
 from lxml import etree
 from rasterio import crs
 from sertit import geometry, path, rasters, vectors
+from sertit.types import AnyPathStrType
 
 from eoreader import EOREADER_NAME, cache
+from eoreader.exceptions import InvalidProductError
 from eoreader.products.product import Product
 from eoreader.stac import PROJ_EPSG
 from eoreader.utils import simplify
+
+try:
+    from pystac import Item
+except ModuleNotFoundError:
+    from typing import Any as Item
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -44,6 +51,32 @@ class StacProduct(Product):
     item = None
     clients = None
     default_clients = None
+
+    def _set_item(self, product_path: AnyPathStrType, **kwargs) -> Item:
+        """
+        Set the STAC Item as member
+
+        Args:
+            product_path (AnyPathStrType): Product path
+            **kwargs: Other argumlents
+        """
+        item = kwargs.pop("item", None)
+        if item is None:
+            try:
+                import pystac
+
+                item = pystac.Item.from_file(product_path)
+            except ModuleNotFoundError:
+                raise InvalidProductError(
+                    "You should install 'pystac' to use STAC Products."
+                )
+
+            except TypeError:
+                raise InvalidProductError(
+                    "You should either fill 'product_path' or 'item'."
+                )
+
+        return item
 
     @cache
     def extent(self) -> gpd.GeoDataFrame:

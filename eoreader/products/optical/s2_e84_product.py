@@ -25,7 +25,6 @@ import geopandas as gpd
 import numpy as np
 import xarray as xr
 from lxml import etree
-from pystac import Item
 from rasterio.enums import Resampling
 from sertit import AnyPath, files, path, rasters_rio
 from sertit.files import CustomDecoder
@@ -795,16 +794,7 @@ class S2E84StacProduct(StacProduct, S2E84Product):
         super_kwargs = kwargs.copy()
 
         # Get STAC Item
-        self.item = None
-        """ STAC Item of the product """
-        self.item = super_kwargs.pop("item", None)
-        if self.item is None:
-            try:
-                self.item = Item.from_file(product_path)
-            except TypeError:
-                raise InvalidProductError(
-                    "You should either fill 'product_path' or 'item'."
-                )
+        self.item = self._set_item(product_path, **super_kwargs)
 
         if not self._is_mpc():
             self.default_clients = [self.get_e84_client(), self.get_sinergise_client()]

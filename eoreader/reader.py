@@ -25,15 +25,23 @@ from enum import unique
 from typing import Union
 from zipfile import BadZipFile
 
-import pystac
 import validators
-from pystac import Item
 from sertit import AnyPath, path, strings
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
 
 from eoreader import EOREADER_NAME
 from eoreader.exceptions import InvalidProductError
+
+try:
+    import pystac
+    from pystac import Item
+
+    PYSTAC_INSTALLED = True
+except ModuleNotFoundError:
+    from typing import Any as Item
+
+    PYSTAC_INSTALLED = False
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -512,16 +520,32 @@ class Reader:
         Returns:
             Product: EOReader's product
         """
-        # If an URL is given, it must point to an URL translatable to a STAC Item
+        prod = None
+        # If a URL is given, it must point to a URL translatable to a STAC Item
         if validators.url(product_path):
-            try:
-                product_path = pystac.Item.from_file(product_path)
-            except Exception:
-                raise InvalidProductError(
-                    f"Cannot convert your URL ({product_path}) to a STAC Item."
+            if PYSTAC_INSTALLED:
+                try:
+                    product_path = Item.from_file(product_path)
+                    is_stac = True
+                except Exception:
+                    raise InvalidProductError(
+                        f"Cannot convert your URL ({product_path}) to a STAC Item."
+                    )
+            else:
+                raise ModuleNotFoundError(
+                    "You should install 'pystac' to use STAC Products."
                 )
+        # Check path (first check URL as they are also strings)
+        elif path.is_path(product_path):
+            is_stac = False
+        else:
+            # Check STAC Item
+            if PYSTAC_INSTALLED:
+                is_stac = isinstance(product_path, pystac.Item)
+            else:
+                is_stac = False
 
-        if isinstance(product_path, Item):
+        if is_stac:
             prod = self._open_stac_item(product_path, output_path, remove_tmp, **kwargs)
         else:
             # If not an Item, it should be a path to somewhere
