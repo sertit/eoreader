@@ -25,8 +25,8 @@ class BandNames(misc.ListEnum):
         Returns:
             list: List of enums
         """
-        if not types.is_iterable(name_list):
-            name_list = [name_list]
+        name_list = types.make_interable(name_list)
+
         try:
             band_names = [cls(name) for name in name_list]
         except ValueError as ex:

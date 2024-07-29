@@ -460,8 +460,8 @@ def to_band(
 
     if as_list:
         band_list = []
-        if not types.is_iterable(to_convert):
-            to_convert = [to_convert]
+        to_convert = types.make_interable(to_convert)
+
         for tc in to_convert:
             tc_band = convert_to_band(tc=tc)
             band_list.append(tc_band)
@@ -492,8 +492,7 @@ def to_str(
         list: str bands
     """
     if as_list:
-        if not types.is_iterable(to_convert):
-            to_convert = [to_convert]
+        to_convert = types.make_interable(to_convert)
 
         bands_str = []
         for tc in to_convert:

@@ -820,8 +820,7 @@ class S2TheiaProduct(OpticalProduct):
             xr.DataArray: Mask masked array
 
         """
-        if not types.is_iterable(bit_ids):
-            bit_ids = [bit_ids]
+        bit_ids = types.make_interable(bit_ids)
         conds = rasters.read_bit_array(bit_array.astype(np.uint8), bit_ids)
         cond = reduce(lambda x, y: x | y, conds)  # Use every condition (bitwise or)
 
