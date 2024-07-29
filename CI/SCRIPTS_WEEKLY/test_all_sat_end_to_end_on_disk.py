@@ -166,7 +166,7 @@ def _test_core(
 
     with xr.set_options(warn_for_unclosed_files=debug):
         # DATA paths
-        prod_dirs = types.make_interable(prod_dirs)
+        prod_dirs = types.make_iterable(prod_dirs)
 
         pattern_paths = []
         for prod_dir in prod_dirs:
