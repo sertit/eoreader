@@ -31,7 +31,7 @@ import numpy as np
 import xarray as xr
 from rasterio import features
 from rasterio.enums import Resampling
-from sertit import path, rasters
+from sertit import path, rasters, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -1098,7 +1098,7 @@ class S3SlstrProduct(S3Product):
             xr.DataArray: Mask masked array
 
         """
-        if not isinstance(bit_ids, list):
+        if not types.is_iterable(bit_ids):
             bit_ids = [bit_ids]
         conds = rasters.read_bit_array(bit_array, bit_ids)
         cond = reduce(lambda x, y: x | y, conds)  # Use every condition (bitwise or)

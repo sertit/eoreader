@@ -30,7 +30,7 @@ import rioxarray
 import xarray as xr
 from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import AnyPath, misc, path, rasters, snap, strings
+from sertit import AnyPath, misc, path, rasters, snap, strings, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -633,7 +633,7 @@ class SarProduct(Product):
             return {}
 
         # Get band paths
-        if not isinstance(bands, list):
+        if not types.is_iterable(bands):
             bands = [bands]
 
         if pixel_size is None and size is not None:

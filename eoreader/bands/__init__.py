@@ -460,14 +460,14 @@ def to_band(
 
     if as_list:
         band_list = []
-        if not isinstance(to_convert, list):
+        if not types.is_iterable(to_convert):
             to_convert = [to_convert]
         for tc in to_convert:
             tc_band = convert_to_band(tc=tc)
             band_list.append(tc_band)
         return band_list
     else:
-        if isinstance(to_convert, list):
+        if types.is_iterable(to_convert):
             raise _ite(f"Set as_list=True(default) for list arguments")
         return convert_to_band(to_convert)
 
@@ -492,7 +492,7 @@ def to_str(
         list: str bands
     """
     if as_list:
-        if not isinstance(to_convert, list):
+        if not types.is_iterable(to_convert):
             to_convert = [to_convert]
 
         bands_str = []
@@ -508,7 +508,7 @@ def to_str(
             bands_str.append(band_str)
         return bands_str
     else:
-        if isinstance(to_convert, list):
+        if types.is_iterable(to_convert):
             raise _ite(f"Set as_list=True(default) for list arguments")
         try:
             band_str = tc.name

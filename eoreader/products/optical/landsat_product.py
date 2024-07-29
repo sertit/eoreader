@@ -29,7 +29,7 @@ import xarray as xr
 from lxml import etree
 from lxml.builder import E
 from rasterio.enums import Resampling
-from sertit import AnyPath, path, rasters, rasters_rio
+from sertit import AnyPath, path, rasters, rasters_rio, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -1430,7 +1430,7 @@ class LandsatProduct(OpticalProduct):
             return {}
 
         # Get band paths
-        if not isinstance(bands, list):
+        if not types.is_iterable(bands):
             bands = [bands]
 
         if pixel_size is None and size is not None:

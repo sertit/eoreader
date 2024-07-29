@@ -26,7 +26,7 @@ from typing import Union
 from zipfile import BadZipFile
 
 import validators
-from sertit import AnyPath, path, strings
+from sertit import AnyPath, path, strings, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
 
@@ -440,7 +440,7 @@ class Reader:
             return re.compile(f"{prefix}{regex_str}{suffix}")
 
         # Case folder is not enough to identify the products (i.e. COSMO Skymed)
-        if isinstance(regex, list):
+        if types.is_iterable(regex):
             comp = [_compile_(regex) for regex in regex]
         else:
             comp = [_compile_(regex)]

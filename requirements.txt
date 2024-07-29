@@ -37,7 +37,7 @@ geopandas>=0.11.0
 spyndex>=0.3.0
 
 # SERTIT libs
-sertit[full]>=1.38.0
+sertit[full]>=1.39.0
 
 # Optimizations
 dask[complete]>=2021.10.0

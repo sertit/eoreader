@@ -41,7 +41,7 @@ from pyresample.bilinear import XArrayBilinearResampler
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
-from sertit import path, vectors, xml
+from sertit import path, types, vectors, xml
 from sertit.misc import ListEnum
 from sertit.rasters import MAX_CORES
 from sertit.types import AnyPathStrType, AnyPathType
@@ -555,7 +555,7 @@ class S3Product(OpticalProduct):
             return {}
 
         # Get band paths
-        if not isinstance(bands, list):
+        if not types.is_iterable(bands):
             bands = [bands]
 
         if pixel_size is None and size is not None:
