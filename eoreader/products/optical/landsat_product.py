@@ -28,7 +28,6 @@ import pandas as pd
 import xarray as xr
 from lxml import etree
 from lxml.builder import E
-from pystac import Item
 from rasterio.enums import Resampling
 from sertit import AnyPath, path, rasters, rasters_rio
 from sertit.misc import ListEnum
@@ -1865,16 +1864,8 @@ class LandsatStacProduct(StacProduct, LandsatProduct):
         super_kwargs = kwargs.copy()
 
         # Get STAC Item
-        self.item = None
+        self.item = self._set_item(product_path, **super_kwargs)
         """ STAC Item of the product """
-        self.item = super_kwargs.pop("item", None)
-        if self.item is None:
-            try:
-                self.item = Item.from_file(product_path)
-            except TypeError:
-                raise InvalidProductError(
-                    "You should either fill 'product_path' or 'item'."
-                )
 
         if not self._is_mpc():
             self.default_clients = [

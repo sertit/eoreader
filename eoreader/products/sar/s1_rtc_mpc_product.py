@@ -24,7 +24,6 @@ from datetime import datetime
 from typing import Union
 
 from lxml import etree
-from pystac import Item
 from sertit import AnyPath, path, xml
 from sertit.types import AnyPathStrType
 
@@ -61,16 +60,8 @@ class S1RtcMpcStacProduct(StacProduct, SarProduct):
         super_kwargs = kwargs.copy()
 
         # Get STAC Item
-        self.item = None
+        self.item = self._set_item(product_path, **super_kwargs)
         """ STAC Item of the product """
-        self.item = super_kwargs.pop("item", None)
-        if self.item is None:
-            try:
-                self.item = Item.from_file(product_path)
-            except TypeError:
-                raise InvalidProductError(
-                    "You should either fill 'product_path' or 'item'."
-                )
 
         # Nothing here works for MPC
         self.default_clients = []

@@ -21,13 +21,11 @@ import logging
 import numpy as np
 import xarray as xr
 from lxml import etree
-from pystac import Item
 from sertit import AnyPath
 from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME
 from eoreader.bands import BandNames
-from eoreader.exceptions import InvalidProductError
 from eoreader.products import S2E84Product
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.products.stac_product import StacProduct
@@ -54,16 +52,8 @@ class S2MpcStacProduct(StacProduct, S2E84Product):
         super_kwargs = kwargs.copy()
 
         # Get STAC Item
-        self.item = None
+        self.item = self._set_item(product_path, **super_kwargs)
         """ STAC Item of the product """
-        self.item = super_kwargs.pop("item", None)
-        if self.item is None:
-            try:
-                self.item = Item.from_file(product_path)
-            except TypeError:
-                raise InvalidProductError(
-                    "You should either fill 'product_path' or 'item'."
-                )
 
         self.default_clients = []
         self.clients = super_kwargs.pop("client", self.default_clients)
