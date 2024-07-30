@@ -1,9 +1,5 @@
 # Release History
 
-## 0.21.3 (2024-mm-dd)
-
-- INSTALL: Remove `pystac[validation]` (as it is an optional dependency) from setup.py, and create a `stac` extra feature.
-
 ## 0.21.2 (2024-07-30)
 
 - ENH: `to_str` and `to_band`: add a `as_list` argument defaulting to `True`. When set as False, return a str from `to_str` and a band from `to_band` ([#138](https://github.com/sertit/eoreader/issues/138)). Thanks @jsetty!
@@ -22,6 +18,7 @@
 - OPTIM: Search correctly nested metadata in the Reader (without accidentally using a recursive glob)
 - CI: Fix S3 endpoint management with `sertit>=1.37`
 - CI: Remove for now end-to-end tests with Python 3.11 and 3.10. 
+- INSTALL: Remove `pystac[validation]` (as it is an optional dependency) from setup.py, and create a `stac` extra feature.
 
 ## 0.21.1 (2024-04-03)
 
