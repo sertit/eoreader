@@ -41,8 +41,14 @@ setuptools.setup(
         "validators",
         "methodtools",
         "dicttoxml",
-        "pystac[validation]",
     ],
+    extras_require={
+        "stac": [
+            "pystac[validation]",
+            "stac-asset",
+            "planetary_computer",
+        ]
+    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
