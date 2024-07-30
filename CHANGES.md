@@ -1,11 +1,11 @@
 # Release History
 
-## 0.21.2 (2024-mm-dd)
+## 0.21.2 (2024-07-30)
 
+- ENH: `to_str` and `to_band`: add a `as_list` argument defaulting to `True`. When set as False, return a str from `to_str` and a band from `to_band` ([#138](https://github.com/sertit/eoreader/issues/138)). Thanks @jsetty!
 - FIX: In `SPOT` products, METADATA.DIM and IMAGERY.TIF must be at the root of the product ([#145](https://github.com/sertit/eoreader/issues/145))
 - FIX: `Sentinel-2` product with StopIteration error ([#142](https://github.com/sertit/eoreader/issues/142))
 - FIX: Fix `Maxar` product with `QB02` satellite ID ([#140](https://github.com/sertit/eoreader/issues/140))
-- ENH: `to_str` and `to_band`: add a `as_list` argument defaulting to `True`. When set as False, return a str from `to_str` and a band from `to_band` ([#138](https://github.com/sertit/eoreader/issues/138)). Thanks @jsetty!
 - FIX: Fix issue with geocoding with unzipped `Sentinel-3 OLCI` product ([#137](https://github.com/sertit/eoreader/issues/137))
 - FIX: Fix iceye product when extent file (*.kml) not found ([#135](https://github.com/sertit/eoreader/pull/135))
 - FIX: Add missing `pystac[validation]` in setup.py
