@@ -1,5 +1,9 @@
 # Release History
 
+## 0.21.3 (2024-mm-dd)
+
+- INSTALL: Remove `pystac[validation]` (as it is an optional dependency) from setup.py, and create a `stac` extra feature.
+
 ## 0.21.2 (2024-07-30)
 
 - ENH: `to_str` and `to_band`: add a `as_list` argument defaulting to `True`. When set as False, return a str from `to_str` and a band from `to_band` ([#138](https://github.com/sertit/eoreader/issues/138)). Thanks @jsetty!
@@ -8,7 +12,6 @@
 - FIX: Fix `Maxar` product with `QB02` satellite ID ([#140](https://github.com/sertit/eoreader/issues/140))
 - FIX: Fix issue with geocoding with unzipped `Sentinel-3 OLCI` product ([#137](https://github.com/sertit/eoreader/issues/137))
 - FIX: Fix iceye product when extent file (*.kml) not found ([#135](https://github.com/sertit/eoreader/pull/135))
-- FIX: Add missing `pystac[validation]` in setup.py
 - FIX: Handle RCM and RS2 products that doesn't bundle their extent in a KML file ([#155](https://github.com/sertit/eoreader/issues/155))
 - FIX: Fix error in looking for bands in Sentinel-2 L1C archived products ([#168](https://github.com/sertit/eoreader/issues/168))
 - FIX: Handle wrongly recognized Planet products because of the recursive nested mtd in the Reader ([#169](https://github.com/sertit/eoreader/issues/169))
