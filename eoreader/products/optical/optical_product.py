@@ -656,11 +656,18 @@ class OpticalProduct(Product):
         # Radiometric processing
         rad_proc = "" if kwargs.get(TO_REFLECTANCE, True) else "_as_is"
 
-        # Window
+        # Window name
         window = kwargs.get("window")
-        win_suffix = (
-            f"win{files.hash_file_content(str(window))}_" if window is not None else ""
-        )
+
+        win_suffix = ""
+        if window is not None:
+            if path.is_path(window):
+                win_suffix = path.get_filename(window)
+            elif isinstance(window, gpd.GeoDataFrame):
+                win_suffix = window.attrs.get("name")
+
+            if not win_suffix:
+                win_suffix = f"win{files.hash_file_content(str(window))}_"
 
         return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{win_suffix}{cleaning_method.value}{rad_proc}.tif",
