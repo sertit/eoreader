@@ -17,9 +17,6 @@
 """ Sentinel-1 products """
 import logging
 import os
-import re
-import tempfile
-import zipfile
 from datetime import datetime
 from enum import unique
 from typing import Union
@@ -200,27 +197,28 @@ class S1Product(SarProduct):
         # Its original filename is its name
         self._use_filename = True
 
-        # Check if COG in name
-        if "_COG" in self.filename:
-            raise NotImplementedError(
-                "These S1 COG products are not yet handled by SNAP. "
-                "EOReader will handle them when this issue is fixed. "
-                "See https://forum.step.esa.int/t/handle-sentinel-1-cog-collection/40840. "
-                "Please use the classical format instead."
-            )
-
         # Zipped and SNAP can process its archive
         self.needs_extraction = False
 
         # Pre init done by the super class
         super()._pre_init(**kwargs)
 
+        # Check if COG in name
+        if (
+            "_COG" in self.filename
+            and self._need_snap
+            and not self._has_snap_10_or_higher()
+        ):
+            raise NotImplementedError(
+                "S1 COG products are only handled by SNAP 10.0 or higher. "
+                "Please upgrade your software to process this product."
+            )
+
     def _post_init(self, **kwargs) -> None:
         """
         Function used to post_init the products
         (setting product-type, band names and so on)
         """
-
         # Post init done by the super class
         super()._post_init(**kwargs)
 
@@ -244,38 +242,30 @@ class S1Product(SarProduct):
             gpd.GeoDataFrame: WGS84 extent as a gpd.GeoDataFrame
 
         """
-        tmp_dir = tempfile.TemporaryDirectory()
-
         try:
             # Open the map-overlay file
             if self.is_archived:
-                # We need to extract the file here as we need a proper file
-                with zipfile.ZipFile(self.path, "r") as zip_ds:
-                    filenames = [f.filename for f in zip_ds.filelist]
-                    regex = re.compile(".*preview.*map-overlay.kml")
-                    preview_overlay = zip_ds.extract(
-                        list(filter(regex.match, filenames))[0], tmp_dir.name
-                    )
+                extent_wgs84 = vectors.read(
+                    self.path, archive_regex=".*preview.*map-overlay.kml"
+                )
             else:
                 preview_overlay = self.path.joinpath("preview", "map-overlay.kml")
 
-            if os.path.isfile(preview_overlay):
-                # Open the KML file
-                extent_wgs84 = vectors.read(preview_overlay)
-                if extent_wgs84.empty:
+                if os.path.isfile(preview_overlay):
+                    # Open the KML file
+                    extent_wgs84 = vectors.read(preview_overlay)
+                else:
                     raise InvalidProductError(
-                        f"Cannot determine the WGS84 extent of {self.name}"
+                        f"Impossible to find the map-overlay.kml in {self.path}"
                     )
-            else:
+
+            if extent_wgs84.empty:
                 raise InvalidProductError(
-                    f"Impossible to find the map-overlay.kml in {self.path}"
+                    f"Cannot determine the WGS84 extent of {self.name}"
                 )
 
         except Exception as ex:
             raise InvalidProductError(ex) from ex
-
-        finally:
-            tmp_dir.cleanup()
 
         return extent_wgs84
 

@@ -63,6 +63,7 @@ MERIT_DEM_SUB_DIR_PATH = [
     "MERIT_Hydrologically_Adjusted_Elevations",
     "MERIT_DEM.vrt",
 ]
+WRITE_ON_DISK = False
 
 
 def set_dem(dem_path):
@@ -198,9 +199,10 @@ def _test_core(
             LOGGER.info(f"Product name: {prod.name}")
 
             with tempfile.TemporaryDirectory() as tmp_dir:
-                # output = os.path.join(
-                #     "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT_ON_DISK_CLEAN"
-                # )
+                if WRITE_ON_DISK:
+                    tmp_dir = os.path.join(
+                        "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
+                    )
                 output = tmp_dir
                 is_zip = "_ZIP" if prod.is_archived else ""
                 prod.output = os.path.join(output, f"{prod.condensed_name}{is_zip}")

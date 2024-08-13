@@ -268,7 +268,7 @@ class SarProduct(Product):
             # TODO: To be removed with sertit >= 1.42
             from packaging.version import Version
 
-            misc.compare(self.get_snap_version(), Version("10.0.0"), ">=")
+            return misc.compare(self.get_snap_version(), Version("10.0.0"), ">=")
 
     def _get_predictor(self) -> int:
         """

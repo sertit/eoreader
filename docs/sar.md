@@ -67,6 +67,8 @@ the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/).
 The constellations that can be used during CEMS activations are (as of 09/2021):  
 ![cems_constellations](https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2021/09/copernicus_contributing_missions_overview/23461131-1-eng-GB/Copernicus_Contributing_Missions_overview_pillars.jpg)
 
+[Sentinel-1 COGS](https://dataspace.copernicus.eu/news/2023-6-6-sentinel-1-grd-cloud-optimized-geotiff-now-available) provided by the Copernicus Dataspace are handled if you are using SNAP 10 or higher.
+
 ## SAR Bands
 
 ```{warning}
