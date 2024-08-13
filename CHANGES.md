@@ -2,8 +2,9 @@
 
 ## 0.21.3 (2024-mm-dd)
 
-- ENH: Add a `BandType` alias for any types tyhat could be a band: a string, a `BandNames` or any of its children: Spectral, SAR, DEM or Cloud band names 
+- ENH: Add a `BandType` alias for any types that could be a band: a string, a `BandNames` or any of its children: Spectral, SAR, DEM or Cloud band names 
 - FIX: Get better window name (if available) when writing bands on disk (in tmp folder) 
+- COMPAT: EOReader handles with SNAP10 ([#165](https://github.com/sertit/eoreader/issues/165))
 
 ## 0.21.2 (2024-07-30)
 
