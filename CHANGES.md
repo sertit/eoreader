@@ -4,7 +4,8 @@
 
 - ENH: Add a `BandType` alias for any types that could be a band: a string, a `BandNames` or any of its children: Spectral, SAR, DEM or Cloud band names 
 - FIX: Get better window name (if available) when writing bands on disk (in tmp folder) 
-- COMPAT: EOReader handles with SNAP10 ([#165](https://github.com/sertit/eoreader/issues/165))
+- OPTIM: Use default (and optimized) predictor in `rasters.write` if SNAP is version 10 or higher ([#173](https://github.com/sertit/eoreader/issues/173))
+- COMPAT: EOReader works correctly with SNAP 10 ([#165](https://github.com/sertit/eoreader/issues/165))
 
 ## 0.21.2 (2024-07-30)
 

@@ -319,7 +319,7 @@ def is_sar_band(band: BandType) -> bool:
     return is_valid
 
 
-def is_sat_band(BandType) -> bool:
+def is_sat_band(band: BandType) -> bool:
     """
     Returns True if is a satellite band (from both :code:`SarBandNames` or :code:`SpectralBandNames`)
 

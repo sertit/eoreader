@@ -53,15 +53,6 @@ from eoreader.utils import simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-SAR_PREDICTOR = 1
-"""
-Set LZW predictor to 1 in order SNAP to be able to read this GEoTiff.
-
-Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
-https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7
-
-"""
-
 
 @unique
 class SnapDems(ListEnum):
@@ -193,6 +184,8 @@ class SarProduct(Product):
         self._snap_no_data = 0
         self._raw_no_data = 0
 
+        self._need_snap = None
+
         # Calibrate or not
         self._calibrate = True
 
@@ -225,6 +218,7 @@ class SarProduct(Product):
         self.sensor_type = SensorType.SAR
         self.bands = SarBandMap()
         self.is_ortho = False
+        self._need_snap = self._need_snap_to_pre_process()
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -233,6 +227,70 @@ class SarProduct(Product):
         """
         self._set_sensor_mode()
         self.pol_channels = self._get_raw_bands()
+
+    @cache
+    def get_snap_version(self):
+        try:
+            return snap.get_snap_version()
+        except AttributeError:
+            # TODO: To be removed with sertit >= 1.42
+            import subprocess
+
+            from packaging.version import Version
+
+            snap_version = None
+            try:
+                output = subprocess.run(["gpt", "--diag"], capture_output=True)
+            except FileNotFoundError:
+                raise FileNotFoundError("'gpt' not found in your PATH")
+
+            stdout = output.stdout.decode("utf-8")
+
+            if stdout is not None:
+                version_str = stdout.split("\n")
+                try:
+                    version_str = [v for v in version_str if "version" in v][0]
+                except IndexError as ex:
+                    LOGGER.debug(ex)
+                else:
+                    snap_version = version_str.split(" ")[-1]
+
+                    snap_version = Version(snap_version)
+
+            return snap_version
+
+    @cache
+    def _has_snap_10_or_higher(self) -> bool:
+        """True if SNAP version is 10 or higher"""
+        try:
+            return misc.compare_version(self.get_snap_version(), "10.0.0", ">=")
+        except TypeError:
+            # TODO: To be removed with sertit >= 1.42
+            from packaging.version import Version
+
+            misc.compare(self.get_snap_version(), Version("10.0.0"), ">=")
+
+    def _get_predictor(self) -> int:
+        """
+        Get LZW predictor to 1 in order SNAP < 10.0.0 to be able to read this GeoTiff (in dspk operations mostly).
+
+        Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
+
+        Leave it to None if SNAP is 10 or higher
+        """
+        return None if self._has_snap_10_or_higher() else 1
+
+    def _need_snap_to_pre_process(self):
+        """This product needs SNAP for pre-process."""
+        raw_band_path = self.get_raw_band_paths()
+
+        # Cannot use get_default_band here, because of recursion
+        def_key = list(raw_band_path.keys())[0]
+        with rasterio.open(raw_band_path[def_key]) as ds:
+            raw_crs = ds.crs
+
+        need_snap = not (raw_crs is not None and raw_crs.is_projected)
+        return need_snap
 
     @cache
     @simplify
@@ -668,14 +726,10 @@ class SarProduct(Product):
             else def_pixel_size
         )
 
-        raw_band_path = str(self.get_raw_band_paths(**kwargs)[band])
-        with rasterio.open(raw_band_path) as ds:
-            raw_crs = ds.crs
-
-        if raw_crs and raw_crs.is_projected:
+        if not self._need_snap:
             # Set the nodata and write the image where they belong
             arr = utils.read(
-                raw_band_path,
+                self.get_raw_band_paths(**kwargs)[band],
                 pixel_size=pixel_size if pixel_size != 0 else None,
                 masked=False,
             )
@@ -690,7 +744,7 @@ class SarProduct(Product):
                 file_path,
                 dtype=np.float32,
                 nodata=self._snap_no_data,
-                predictor=SAR_PREDICTOR,
+                predictor=self._get_predictor(),
             )
             return file_path
         else:
@@ -915,15 +969,14 @@ class SarProduct(Product):
             )
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
 
-            # SNAP fails with classic predictor !!! Set the predictor to the default value (1) !!!
+            # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
             # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
-            # https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7
             utils.write(
                 arr,
                 file_path,
                 dtype=np.float32,
                 nodata=self._snap_no_data,
-                predictor=SAR_PREDICTOR,
+                predictor=self._get_predictor(),
             )
 
         return file_path
