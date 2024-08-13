@@ -43,7 +43,6 @@ from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
-from eoreader.products.sar.sar_product import SAR_PREDICTOR
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -577,15 +576,14 @@ class CosmoProduct(SarProduct):
                 # Write
                 # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
 
-                # SNAP fails with classic predictor !!! Set the predictor to the default value (1) !!!
+                # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
                 # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
-                # https://forum.step.esa.int/t/exception-found-when-reading-compressed-tif/654/7
                 rasters_rio.write(
                     merged_array,
                     merged_meta,
                     pp_path,
                     nodata=self._snap_no_data,
-                    predictor=SAR_PREDICTOR,
+                    predictor=self._get_predictor(),
                 )
 
                 return pp_path
