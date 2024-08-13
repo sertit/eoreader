@@ -33,8 +33,6 @@ To use it, simply type:
     >>> NDVI
     <function NDVI at 0x00000261F6FFA950>
 """
-from typing import Any, Union
-
 # flake8: noqa
 from eoreader.bands.bands import Band, BandMap
 
@@ -212,16 +210,30 @@ __all__ += [
     "to_str",
 ]
 
+from typing import Any, Union
+
 from eoreader.exceptions import InvalidTypeError as _ite
 
+BandType = Union[
+    str, SpectralBandNames, SarBandNames, CloudsBandNames, DemBandNames, BandNames
+]
+""" EOReader band type, either a string, a BandName or its children: Spectral, SAR, DEM or Cloud band names """
 
-def is_spectral_band(band: Any) -> bool:
+
+def is_spectral_band(band: BandType) -> bool:
     """
     Returns True if is a spectral band (from :code:`SpectralBandNames`)
 
-    .. code-block:: python
+    Args:
+        band (BandType): Anything that could be an optical band
 
-        >>> from eoreader.bands import *
+    Returns:
+        bool: True if the band asked is an optical band
+
+    Examples:
+
+        >>> from eoreader.bands import NDVI, HH, GREEN, SLOPE, CLOUDS
+        >>>
         >>> is_spectral_band(NDVI)
         False
         >>> is_spectral_band(HH)
@@ -232,12 +244,6 @@ def is_spectral_band(band: Any) -> bool:
         False
         >>> is_spectral_band(CLOUDS)
         False
-
-    Args:
-        band (Any): Anything that could be an optical band
-
-    Returns:
-        bool: True if the band asked is an optical band
 
     """
     is_valid = True
@@ -248,41 +254,51 @@ def is_spectral_band(band: Any) -> bool:
     return is_valid
 
 
-def is_thermal_band(band: Any) -> bool:
+def is_thermal_band(band: BandType) -> bool:
     """
     Returns True if is a spectral and a thermal band (from :code:`SpectralBandNames`)
 
-    .. code-block:: python
-
-        >>> from eoreader.bands import *
-        >>> is_spectral_band(NDVI)
-        False
-        >>> is_spectral_band(HH)
-        False
-        >>> is_spectral_band(GREEN)
-        True
-        >>> is_spectral_band(SLOPE)
-        False
-        >>> is_spectral_band(CLOUDS)
-        False
-
     Args:
-        band (Any): Anything that could be an optical band
+        band (BandType): Anything that could be an optical band
 
     Returns:
         bool: True if the band asked is an optical band
+
+    Examples:
+
+        >>> from eoreader.bands import SWIR_1, NDVI, HH, GREEN, SLOPE, CLOUDS
+        >>>
+        >>> is_thermal_band(SWIR_1)
+        True
+        >>> is_thermal_band(NDVI)
+        False
+        >>> is_thermal_band(HH)
+        False
+        >>> is_thermal_band(GREEN)
+        False
+        >>> is_thermal_band(SLOPE)
+        False
+        >>> is_thermal_band(CLOUDS)
+        False
 
     """
     return is_spectral_band(band) and band in [TIR_1, TIR_2, F1, F2, S7]
 
 
-def is_sar_band(band: Any) -> bool:
+def is_sar_band(band: BandType) -> bool:
     """
     Returns True if is a SAR band (from :code:`SarBandNames`)
 
-    .. code-block:: python
+    Args:
+        band (BandType): Anything that could be a SAR band
 
-        >>> from eoreader.bands import *
+    Returns:
+        bool: True if the band asked is a SAR band
+
+    Examples:
+
+        >>> from eoreader.bands import NDVI, HH, GREEN, SLOPE, CLOUDS
+        >>>
         >>> is_sar_band(NDVI)
         False
         >>> is_sar_band(HH)
@@ -294,12 +310,6 @@ def is_sar_band(band: Any) -> bool:
         >>> is_sar_band(CLOUDS)
         False
 
-    Args:
-        band (Any): Anything that could be a SAR band
-
-    Returns:
-        bool: True if the band asked is a SAR band
-
     """
     is_valid = True
     try:
@@ -309,13 +319,20 @@ def is_sar_band(band: Any) -> bool:
     return is_valid
 
 
-def is_sat_band(band) -> bool:
+def is_sat_band(BandType) -> bool:
     """
-    Returns True if is a band (from both :code:`SarBandNames` or :code:`SpectralBandNames`)
+    Returns True if is a satellite band (from both :code:`SarBandNames` or :code:`SpectralBandNames`)
 
-    .. code-block:: python
+    Args:
+        band (BandType): Anything that could be a band
 
-        >>> from eoreader.bands import *
+    Returns:
+        bool: True if the band asked is a satellite band (Spectral or SAR)
+
+    Examples:
+
+        >>> from eoreader.bands import NDVI, HH, GREEN, SLOPE, CLOUDS
+        >>>
         >>> is_sat_band(NDVI)
         False
         >>> is_sat_band(HH)
@@ -327,23 +344,24 @@ def is_sat_band(band) -> bool:
         >>> is_sat_band(CLOUDS)
         False
 
-    Args:
-        band (Any): Anything that could be a band
-
-    Returns:
-        bool: True if the band asked is a band
-
     """
     return is_sar_band(band) or is_spectral_band(band)
 
 
-def is_clouds(clouds: Any) -> bool:
+def is_clouds(clouds: BandType) -> bool:
     """
-    Returns True if we have a Clouds-related keyword
+    Returns True if is a cloud band (from :code:`CloudBandNames`)
 
-    .. code-block:: python
+    Args:
+        clouds (BandType): Anything that could be a cloud band
 
-        >>> from eoreader.bands import *
+    Returns:
+        bool: True if the band asked is a cloud band
+
+    Examples:
+
+        >>> from eoreader.bands import NDVI, HH, GREEN, SLOPE, CLOUDS
+        >>>
         >>> is_clouds(NDVI)
         False
         >>> is_clouds(HH)
@@ -354,6 +372,7 @@ def is_clouds(clouds: Any) -> bool:
         False
         >>> is_clouds(CLOUDS)
         True
+
     """
     is_valid = True
     try:
@@ -363,13 +382,20 @@ def is_clouds(clouds: Any) -> bool:
     return is_valid
 
 
-def is_dem(dem: Any) -> bool:
+def is_dem(dem: BandType) -> bool:
     """
-    Returns True if we have a DEM-related keyword
+    Returns True if is a DEM band (from :code:`DemBandNames`)
 
-    .. code-block:: python
+    Args:
+        clouds (BandType): Anything that could be a DEM band
 
-        >>> from eoreader.bands import *
+    Returns:
+        bool: True if the band asked is a DEM band
+
+    Examples:
+
+        >>> from eoreader.bands import NDVI, HH, GREEN, SLOPE, CLOUDS
+        >>>
         >>> is_dem(NDVI)
         False
         >>> is_dem(HH)
@@ -390,15 +416,24 @@ def is_dem(dem: Any) -> bool:
 
 
 def to_band(
-    to_convert: Union[list, BandNames, str], as_list: bool = True
+    to_convert: Union[list[BandType], BandType], as_list: bool = True
 ) -> Union[list, BandNames]:
     """
     Convert a string (or real value) to any alias, band or index.
 
     You can pass the name or the value of the bands.
 
-    .. code-block:: python
+    Args:
+        to_convert (Union[list, BandNames, str]): Values to convert into band objects
+        as_list (bool): Return the result as a list
 
+    Returns:
+        list: Bands as BandNames
+
+    Examples:
+
+        >>> from eoreader.bands import RED, DEM, CLOUDS
+        >>>
         >>> to_band(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
         [<function NDVI at 0x00000154DDB12488>,
         <SpectralBandNames.GREEN: 'GREEN'>,
@@ -408,12 +443,6 @@ def to_band(
         <DemBandNames.DEM: 'DEM'>,
         <ClassifBandNames.CLOUDS: 'CLOUDS'>,
         <ClassifBandNames.CLOUDS: 'CLOUDS'>]
-
-    Args:
-        to_convert (Union[list, BandNames, str]): Values to convert into band objects
-
-    Returns:
-        list: converted values
 
     """
     from sertit import types
@@ -474,23 +503,26 @@ def to_band(
 
 
 def to_str(
-    to_convert: Union[list, BandNames, str], as_list: bool = True
+    to_convert: Union[list[BandType], BandType], as_list: bool = True
 ) -> Union[list, str]:
     """
     Convert a string (or real value) to any alias, band or index.
 
     You can pass the name or the value of the bands.
 
-    .. code-block:: python
-
-        >>> to_str(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
-        ['NDVI', 'GREEN', 'RED', 'VH_DSPK', 'SLOPE', 'DEM', 'CLOUDS', 'CLOUDS']
-
     Args:
         to_convert (Union[list, BandNames, str]): Values to convert into str
+        as_list (bool): Return the result as a list
 
     Returns:
-        list: str bands
+        list: Bands as strings
+
+    Examples:
+
+        >>> from eoreader.bands import RED, DEM, CLOUDS
+        >>>
+        >>> to_str(["NDVI", "GREEN", RED, "VH_DSPK", "SLOPE", DEM, "CLOUDS", CLOUDS])
+        ['NDVI', 'GREEN', 'RED', 'VH_DSPK', 'SLOPE', 'DEM', 'CLOUDS', 'CLOUDS']
     """
     from sertit import types
 
