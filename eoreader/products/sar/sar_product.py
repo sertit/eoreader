@@ -230,45 +230,12 @@ class SarProduct(Product):
 
     @cache
     def get_snap_version(self):
-        try:
-            return snap.get_snap_version()
-        except AttributeError:
-            # TODO: To be removed with sertit >= 1.42
-            import subprocess
-
-            from packaging.version import Version
-
-            snap_version = None
-            try:
-                output = subprocess.run(["gpt", "--diag"], capture_output=True)
-            except FileNotFoundError:
-                raise FileNotFoundError("'gpt' not found in your PATH")
-
-            stdout = output.stdout.decode("utf-8")
-
-            if stdout is not None:
-                version_str = stdout.split("\n")
-                try:
-                    version_str = [v for v in version_str if "version" in v][0]
-                except IndexError as ex:
-                    LOGGER.debug(ex)
-                else:
-                    snap_version = version_str.split(" ")[-1]
-
-                    snap_version = Version(snap_version)
-
-            return snap_version
+        return snap.get_snap_version()
 
     @cache
     def _has_snap_10_or_higher(self) -> bool:
         """True if SNAP version is 10 or higher"""
-        try:
-            return misc.compare_version(self.get_snap_version(), "10.0.0", ">=")
-        except TypeError:
-            # TODO: To be removed with sertit >= 1.42
-            from packaging.version import Version
-
-            return misc.compare(self.get_snap_version(), Version("10.0.0"), ">=")
+        return misc.compare_version(self.get_snap_version(), "10.0.0", ">=")
 
     def _get_predictor(self) -> int:
         """
