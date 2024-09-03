@@ -35,7 +35,7 @@ from sertit.types import AnyPathStrType
 from sertit.vectors import WGS84
 from shapely.geometry import Point, box
 
-from eoreader import DATETIME_FMT, EOREADER_NAME, cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import SarBandNames as sab
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import SarProduct, SarProductType
@@ -197,34 +197,27 @@ class CapellaProduct(SarProduct):
         # Its original filename is its name
         self._use_filename = True
 
-        # Pre init done by the super class
-        super()._pre_init(**kwargs)
-
-    def _post_init(self, **kwargs) -> None:
-        """
-        Function used to post_init the products
-        (setting product-type, band names and so on)
-        """
         # Private attributes
         try:
             self.snap_filename = str(next(self.path.glob("*CAPELLA*.json")).name)
         except StopIteration:
             raise FileNotFoundError(f"Non existing file *CAPELLA*.json in {self.path}")
+
+        # To be done in pre-init, but we don't have the product name here
+        name = self._get_name()
         try:
-            self._raw_band_regex = str(next(self.path.glob(f"{self.name}.tif")).name)
+            self._raw_band_regex = str(next(self.path.glob(f"{name}.tif")).name)
         except StopIteration:
             # For SICD and SIDD
             try:
-                self._raw_band_regex = str(
-                    next(self.path.glob(f"{self.name}.ntf")).name
-                )
+                self._raw_band_regex = str(next(self.path.glob(f"{name}.ntf")).name)
             except StopIteration:
                 raise FileNotFoundError(
-                    f"Non existing file {self.name}.tif or {self.name}.ntf in {self.path}"
+                    f"Non existing file {name}.tif or {name}.ntf in {self.path}"
                 )
 
-        # Post init done by the super class
-        super()._post_init(**kwargs)
+        # Pre init done by the super class
+        super()._pre_init(**kwargs)
 
     @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
@@ -447,7 +440,13 @@ class CapellaProduct(SarProduct):
         """
         band_paths = {}
         try:
-            pol = sab.from_value(self.split_name[4])
+            # To be used before post-init (name doesn't exist here)
+            if self.split_name is None:
+                split_name = utils.get_split_name(self._get_name())
+            else:
+                split_name = self.split_name
+
+            pol = sab.from_value(split_name[4])
             band_paths[pol] = path.get_file_in_dir(
                 self._band_folder, self._raw_band_regex, exact_name=True, get_list=False
             )

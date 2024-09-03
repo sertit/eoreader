@@ -106,23 +106,15 @@ class S1RtcMpcStacProduct(StacProduct, SarProduct):
         # Its original filename is its name
         self._use_filename = True
 
+        # Private attributes
+        self._raw_band_regex = "*_{!l}.rtc.tiff"
+
         # Pre init done by the super class
         super()._pre_init(**kwargs)
 
     def _get_constellation(self) -> Constellation:
         """Getter of the constellation: force S1."""
         return Constellation.S1
-
-    def _post_init(self, **kwargs) -> None:
-        """
-        Function used to post_init the products
-        (setting product-type, band names and so on)
-        """
-        # Private attributes
-        self._raw_band_regex = "*_{!l}.rtc.tiff"
-
-        # Post init done by the super class
-        super()._post_init(**kwargs)
 
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
