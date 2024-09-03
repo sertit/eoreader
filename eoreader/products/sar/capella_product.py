@@ -167,10 +167,10 @@ class CapellaProduct(SarProduct):
         if self.sensor_mode == CapellaSensorMode.SP:
             def_pixel_size = 0.35
             def_res = 0.5
-        elif self.sensor_mode == CapellaSensorMode.SM:
+        elif self.sensor_mode == CapellaSensorMode.SS:
             def_pixel_size = 0.6
             def_res = 1.0
-        elif self.sensor_mode == CapellaSensorMode.SS:
+        elif self.sensor_mode == CapellaSensorMode.SM:
             def_pixel_size = 0.8
             def_res = 1.2
         else:
