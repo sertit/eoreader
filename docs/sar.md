@@ -269,7 +269,7 @@ If you have more information about this, please write an issue!
 
 ### Capella
 
-| **ICEYE**              | Pixel size and Resolution                           |
+| **Capella**              | Pixel size and Resolution                           |
 |------------------------|-----------------------------------------------------|
 | Spotlight [SP]         | **pixel size: 0.35 m**<br>rg x az resolution: 0.5 m |
 | StripMap [SM]          | **pixel size: 0.6 m**<br>rg x az resolution: 1.0 m  |
