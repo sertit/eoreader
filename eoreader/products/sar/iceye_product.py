@@ -140,14 +140,6 @@ class IceyeProduct(SarProduct):
         # Its original filename is its name
         self._use_filename = True
 
-        # Pre init done by the super class
-        super()._pre_init(**kwargs)
-
-    def _post_init(self, **kwargs) -> None:
-        """
-        Function used to post_init the products
-        (setting product-type, band names and so on)
-        """
         # Private attributes
         try:
             if self._use_slc:
@@ -161,8 +153,8 @@ class IceyeProduct(SarProduct):
                 f"Non existing file *ICEYE*SLC*.xml or *ICEYE*GRD*.xml in {self.path}"
             )
 
-        # Post init done by the super class
-        super()._post_init(**kwargs)
+        # Pre init done by the super class
+        super()._pre_init(**kwargs)
 
     @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:

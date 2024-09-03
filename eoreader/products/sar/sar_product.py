@@ -272,13 +272,15 @@ class SarProduct(Product):
 
     def _get_predictor(self) -> int:
         """
-        Get LZW predictor to 1 in order SNAP < 10.0.0 to be able to read this GeoTiff (in dspk operations mostly).
+        Set LZW predictor to 1 in order SNAP < 10.0.0 to be able to read this GeoTiff (in despeckle operations mostly).
+        Else set to 3.
 
         Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
 
         Leave it to None if SNAP is 10 or higher
         """
-        return None if self._has_snap_10_or_higher() else 1
+        # 3 for float if handled
+        return 3 if self._has_snap_10_or_higher() else 1
 
     def _need_snap_to_pre_process(self):
         """This product needs SNAP for pre-process."""
