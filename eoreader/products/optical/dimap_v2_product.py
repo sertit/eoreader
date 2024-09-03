@@ -737,8 +737,10 @@ class DimapV2Product(VhrProduct):
         )
 
         # Get detector footprint to deduce the outside nodata
+        LOGGER.debug("Load nodata")
         nodata = self._load_nodata(width, height, vec_tr, **kwargs)
 
+        LOGGER.debug("Set nodata mask")
         return self._set_nodata_mask(band_arr, nodata)
 
     @cache
@@ -1086,15 +1088,25 @@ class DimapV2Product(VhrProduct):
         if all(nodata_det.is_empty):
             return np.zeros((1, height, width), dtype=np.uint8)
         else:
-            # Rasterize nodata
-            return features.rasterize(
-                nodata_det.geometry,
-                out_shape=(height, width),
-                fill=self._mask_true,  # Outside ROI = nodata (inverted compared to the usual)
-                default_value=self._mask_false,  # Inside ROI = not nodata
-                transform=trf,
-                dtype=np.uint8,
+            nodata_path, nodata_exists = self._get_out_path(
+                f"{self.condensed_name}_nodata_{int(width)}x{int(height)}.npy"
             )
+            if not nodata_exists:
+                LOGGER.debug("Rasterizing ROI mask to the extent of ")
+                # Rasterize nodata
+                nodata = features.rasterize(
+                    nodata_det.geometry,
+                    out_shape=(height, width),
+                    fill=self._mask_true,  # Outside ROI = nodata (inverted compared to the usual)
+                    default_value=self._mask_false,  # Inside ROI = not nodata
+                    transform=trf,
+                    dtype=np.uint8,
+                )
+                np.save(str(nodata_path), nodata)
+            else:
+                nodata = np.load(str(nodata_path))
+
+            return nodata
 
     def _get_tile_path(self) -> AnyPathType:
         """
