@@ -4,6 +4,7 @@
 
 - **ENH: Allow the process of Sentinel-1 COGs (provided by the Copernicus DataSpace) for SNAP >= 10**  ([#172](https://github.com/sertit/eoreader/issues/172))
 - ENH: Add a `BandType` alias for any types that could be a band: a string, a `BandNames` or any of its children: Spectral, SAR, DEM or Cloud band names 
+- FIX: Resolve the inversion of resolution and pixel size between `stripmap` and `sliding_spotlight` types for `Capella` products
 - FIX: Get better window name (if available) when writing bands on disk (in tmp folder) 
 - OPTIM: Use default (and optimized) predictor in `rasters.write` if SNAP is version 10 or higher ([#173](https://github.com/sertit/eoreader/issues/173))
 - COMPAT: EOReader works correctly with SNAP 10 ([#165](https://github.com/sertit/eoreader/issues/165))
