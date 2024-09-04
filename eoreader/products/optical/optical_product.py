@@ -604,20 +604,23 @@ class OpticalProduct(Product):
         return band_dict
 
     def _create_mask(
-        self, xds: xr.DataArray, cond: np.ndarray, nodata: np.ndarray
+        self, xda: xr.DataArray, cond: np.ndarray, nodata: np.ndarray
     ) -> xr.DataArray:
         """
         Create a mask from a conditional array and a nodata mask.
 
         Args:
-            xds (xr.DataArray): xarray to retrieve attributes
+            xda (xr.DataArray): xarray to retrieve attributes
             cond (np.ndarray): Conditional array
             nodata (np.ndarray): Nodata mask
 
         Returns:
             xr.DataArray: Mask as xarray
         """
-        mask = xds.copy(data=np.where(cond, self._mask_true, self._mask_false))
+        # Create mask
+        mask = xda.copy(data=np.where(cond, self._mask_true, self._mask_false))
+
+        # Set nodata to mask
         mask = mask.where(nodata == 0)
 
         return mask
