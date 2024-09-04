@@ -639,28 +639,39 @@ class DimapV2Product(VhrProduct):
 
         #  Load masks and merge them into the nodata
         try:
-            # Out of order detectors
-            nodata_vec = self.open_mask("DET", **kwargs)
+            mask_path, mask_exists = self._get_out_path(
+                f"{self.condensed_name}_other_masks_{int(width)}x{int(height)}.npy"
+            )
+            if not mask_exists:
+                LOGGER.debug("Rasterizing DET and VIS masks")
+                # Rasterize nodata
 
-            # Hidden area vector mask
-            nodata_vec = pd.concat([nodata_vec, self.open_mask("VIS", **kwargs)])
+                # Out of order detectors
+                nodata_vec = self.open_mask("DET", **kwargs)
 
-            # # Straylight vector mask
-            # nodata_vec = pd.concat(
-            #     [nodata_vec, self.open_mask("SLT", **kwargs)]
-            # )
+                # Hidden area vector mask
+                nodata_vec = pd.concat([nodata_vec, self.open_mask("VIS", **kwargs)])
 
-            if len(nodata_vec) > 0:
-                # Rasterize mask
-                mask = features.rasterize(
-                    nodata_vec.geometry,
-                    out_shape=(height, width),
-                    fill=self._mask_false,  # Outside vector
-                    default_value=self._mask_true,  # Inside vector
-                    transform=vec_tr,
-                    dtype=np.uint8,
-                )
-                nodata = nodata | mask
+                # # Straylight vector mask
+                # nodata_vec = pd.concat(
+                #     [nodata_vec, self.open_mask("SLT", **kwargs)]
+                # )
+
+                if len(nodata_vec) > 0:
+                    # Rasterize mask
+                    mask = features.rasterize(
+                        nodata_vec.geometry,
+                        out_shape=(height, width),
+                        fill=self._mask_false,  # Outside vector
+                        default_value=self._mask_true,  # Inside vector
+                        transform=vec_tr,
+                        dtype=np.uint8,
+                    )
+                    nodata = nodata | mask
+
+                np.save(str(mask_path), nodata)
+            else:
+                nodata = np.load(str(mask_path))
         except InvalidProductError:
             pass
 
@@ -896,14 +907,23 @@ class DimapV2Product(VhrProduct):
 
                 # Rasterize features if existing vector
                 if has_vec:
-                    cld_arr = features.rasterize(
-                        cld_vec.geometry,
-                        out_shape=(height, width),
-                        fill=self._mask_false,  # Outside vector
-                        default_value=self._mask_true,  # Inside vector
-                        transform=vec_tr,
-                        dtype=np.uint8,
+                    cld_path, cld_exists = self._get_out_path(
+                        f"{self.condensed_name}_cld_{int(width)}x{int(height)}.npy"
                     )
+                    if not cld_exists:
+                        LOGGER.debug("Rasterizing CLD mask")
+                        # Rasterize nodata
+                        cld_arr = features.rasterize(
+                            cld_vec.geometry,
+                            out_shape=(height, width),
+                            fill=self._mask_false,  # Outside vector
+                            default_value=self._mask_true,  # Inside vector
+                            transform=vec_tr,
+                            dtype=np.uint8,
+                        )
+                        np.save(str(cld_path), cld_arr)
+                    else:
+                        cld_arr = np.load(str(cld_path))
 
                     # Rasterize gives a 2D array, we want a 3D array
                     cld_arr = np.expand_dims(cld_arr, axis=0)
@@ -1092,7 +1112,7 @@ class DimapV2Product(VhrProduct):
                 f"{self.condensed_name}_nodata_{int(width)}x{int(height)}.npy"
             )
             if not nodata_exists:
-                LOGGER.debug("Rasterizing ROI mask to the extent of ")
+                LOGGER.debug("Rasterizing ROI mask")
                 # Rasterize nodata
                 nodata = features.rasterize(
                     nodata_det.geometry,

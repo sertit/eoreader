@@ -7,7 +7,7 @@
 - FIX: Resolve the inversion of resolution and pixel size between `stripmap` and `sliding_spotlight` types for `Capella` products
 - FIX: Get better window name (if available) when writing bands on disk (in tmp folder) 
 - OPTIM: Use default (and optimized) predictor in `rasters.write` if SNAP is version 10 or higher ([#173](https://github.com/sertit/eoreader/issues/173))
-- OPTIM: Save nodata of DIMAP V2 products on disk to avoid recomputing it (`features.rasetrize` could be a heavy computation that shouldn't be done twice)
+- OPTIM: Save rasterized masks of DIMAP V2 products on disk to avoid recomputing them (`features.rasterize` could be a heavy computation that shouldn't be done twice)
 - COMPAT: EOReader works correctly with SNAP 10 ([#165](https://github.com/sertit/eoreader/issues/165))
 
 ## 0.21.2 (2024-07-30)
