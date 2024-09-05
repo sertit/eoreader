@@ -4,6 +4,7 @@
 
 - **ENH: Allow the process of Sentinel-1 COGs (provided by the Copernicus DataSpace) for SNAP >= 10**  ([#172](https://github.com/sertit/eoreader/issues/172))
 - ENH: Add a `BandType` alias for any types that could be a band: a string, a `BandNames` or any of its children: Spectral, SAR, DEM or Cloud band names 
+- ENH: Anticipate Sentinel C and D platforms in Reader's regexes
 - FIX: Resolve the inversion of resolution and pixel size between `stripmap` and `sliding_spotlight` types for `Capella` products
 - FIX: Get better window name (if available) when writing bands on disk (in tmp folder) 
 - OPTIM: Save rasterized masks of DIMAP V2 products on disk to avoid recomputing them (`features.rasterize` could be a heavy computation that shouldn't be done twice)
