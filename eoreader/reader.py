@@ -241,13 +241,13 @@ class Constellation(ListEnum):
 
 
 CONSTELLATION_REGEX = {
-    Constellation.S1: r"S1[AB]_(IW|EW|SM|WV|S\d)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}(_COG|)",
-    Constellation.S2: r"S2[AB]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
+    Constellation.S1: r"S1[ABCD]_(IW|EW|SM|WV|S\d)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}(_COG|)",
+    Constellation.S2: r"S2[ABCD]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
     # Element84 : S2A_31UDQ_20230714_0_L2A, Sinergise: 0 or 1...
-    Constellation.S2_E84: r"S2[AB]_\d{2}\w{3}_\d{8}_\d_L(1C|2A)",
-    Constellation.S2_THEIA: r"SENTINEL2[AB]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
-    Constellation.S3_OLCI: r"S3[AB]_OL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
-    Constellation.S3_SLSTR: r"S3[AB]_SL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
+    Constellation.S2_E84: r"S2[ABCD]_\d{2}\w{3}_\d{8}_\d_L(1C|2A)",
+    Constellation.S2_THEIA: r"SENTINEL2[ABCD]_\d{8}-\d{6}-\d{3}_L(2A|1C)_T\d{2}\w{3}_[CDH](_V\d-\d|)",
+    Constellation.S3_OLCI: r"S3[ABCD]_OL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
+    Constellation.S3_SLSTR: r"S3[ABCD]_SL_[012]_\w{6}_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_[OFDR]_(NR|ST|NT)_\d{3}",
     Constellation.L9: r"L[OTC]09_(L1(GT|TP)|L2(SP|SR))_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Constellation.L8: r"L[OTC]08_(L1(GT|TP)|L2(SP|SR))_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
     Constellation.L7: r"LE07_(L1(GT|TP|GS)|L2(SP|SR))_\d{6}_\d{8}_\d{8}_\d{2}_(RT|T1|T2)",
@@ -300,14 +300,14 @@ CONSTELLATION_REGEX = {
     Constellation.HLS: r"HLS\.[LS]30\.T\d{2}\w{3}\.\d{7}T\d{6}\.v2\.0",
     Constellation.GS2: r"DE2_(PM4|PSH|PS3|PS4|MS4|PAN)_L1[A-D]_\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_DE2_\d{5}_.{4}",
     Constellation.S2_SIN: [r"\d", r"B12\.jp2"],
-    Constellation.S1_RTC_ASF: r"S1[AB]_(IW|EW|SM|WV|S\d)_\d{8}T\d{6}_[DS][VH][PRO]_RTC\d{2}_.*",
+    Constellation.S1_RTC_ASF: r"S1[ABCD]_(IW|EW|SM|WV|S\d)_\d{8}T\d{6}_[DS][VH][PRO]_RTC\d{2}_.*",
 }
 
 MTD_REGEX = {
     Constellation.S1: {
         "nested": 1,
         # File that can be found at any level (product/**/file)
-        "regex": r".*s1[ab]-(iw|ew|sm|wv|s\d)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}(-cog|)\.xml",
+        "regex": r".*s1[abcd]-(iw|ew|sm|wv|s\d)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}(-cog|)\.xml",
     },
     Constellation.S2: {"nested": 2, "regex": r"MTD_TL.xml"},
     Constellation.S2_E84: rf"{CONSTELLATION_REGEX[Constellation.S2_E84]}\.json",
