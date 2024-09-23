@@ -161,7 +161,7 @@
 
 - FIX: Fixing stack when saved as integer for some special cases
 - FIX: Clipping negative reflectances to 0 ([#79](https://github.com/sertit/eoreader/issues/79))
-- FIX: Fixing nodata mangement for Theia product
+- FIX: Fixing nodata management for Theia product
 - FIX: Fixing handling of SCS multi-swath `Cosmo-SkyMed` products ([#78](https://github.com/sertit/eoreader/issues/78))
 - FIX: Writing spectral indices on disk to align with other bands ([#80](https://github.com/sertit/eoreader/issues/80))
 - FIX: By default, calibration is not applied to slant range `CSG` data, avoiding producing an empty raster ([#48](https://github.com/sertit/eoreader/issues/48))
@@ -183,7 +183,7 @@
 
 ### Bug Fixes
 
-- FIX: Fixing a bug for DIMAP V2 products whith GML masks opening without CRS: assigning first the raw CRS before converting to the product's CRS
+- FIX: Fixing a bug for DIMAP V2 products with GML masks opening without CRS: assigning first the raw CRS before converting to the product's CRS
 - FIX: Fixing index creation when exotic bands not handled by ASI have been loaded in the same time (i.e. stacking `NDWI` with `Oa21` band)
 
 ### Other
