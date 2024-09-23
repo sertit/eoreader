@@ -285,7 +285,7 @@ class PlanetProduct(OpticalProduct):
         if self.is_archived:
             # VRT cannot be created from inside a ZIP
             raise InvalidProductError(
-                "EOReader doens't handle archived Planet data with multiple subdataset. Please extract this product."
+                "EOReader doesn't handle archived Planet data with multiple subdataset. Please extract this product."
             )
             # TODO: merge_geotiff BUT handle reflectances for every subdataset!
             # Relevant ? Maybe not as it takes would a lot of time to merge
@@ -293,7 +293,7 @@ class PlanetProduct(OpticalProduct):
         if path.is_cloud_path(self.path):
             # VRT cannot be created from data stored in the cloud
             raise InvalidProductError(
-                "EOReader doens't handle cloud-stored Planet data with multiple subdataset. Please download this product on disk."
+                "EOReader doesn't handle cloud-stored Planet data with multiple subdataset. Please download this product on disk."
             )
             # Relevant ? Maybe not as it takes would a lot of time to download, or a lot of time to merge as geotiffs
 

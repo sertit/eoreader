@@ -8,12 +8,7 @@ from typing import Callable
 import tempenv
 from sertit import AnyPath, s3, unistra
 from sertit.types import AnyPathType
-from sertit.unistra import (
-    UNISTRA_S3_ENPOINT,
-    get_db2_path,
-    get_db3_path,
-    get_geodatastore,
-)
+from sertit.unistra import get_db2_path, get_db3_path, get_geodatastore
 
 from eoreader import EOREADER_NAME
 from eoreader.env_vars import TILE_SIZE
@@ -156,9 +151,7 @@ def broken_s2_path():
 
 
 def s3_env(function):
-    return s3.s3_env(endpoint=UNISTRA_S3_ENPOINT, use_s3_env_var=CI_EOREADER_S3)(
-        function
-    )
+    return unistra.s3_env(use_s3_env_var=CI_EOREADER_S3)(function)
 
 
 def compare(to_be_checked, ref, topic):

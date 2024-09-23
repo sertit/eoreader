@@ -1613,7 +1613,7 @@ class Product:
                 reference = band_arr
             else:
                 # To be sure, always collocate arrays, even if the size is the same
-                # Indeed, a small difference in the coordinates will lead to empy arrays
+                # Indeed, a small difference in the coordinates will lead to empty arrays
                 # So the bands MUST BE exactly aligned
                 bands[band_id] = rasters.collocate(reference, band_arr)
 

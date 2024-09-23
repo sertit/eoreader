@@ -375,7 +375,7 @@ def stack_dict(
     bands: list, band_xds: xr.Dataset, save_as_int: bool, nodata: float, **kwargs
 ) -> (xr.DataArray, type):
     """
-    Stack a dictionnary containing bands in a DataArray
+    Stack a dictionary containing bands in a DataArray
 
     Args:
         bands (list): List of bands (to keep the right order of the stack)
@@ -396,7 +396,7 @@ def stack(
     band_xds: xr.Dataset, save_as_int: bool, nodata: float, **kwargs
 ) -> (xr.DataArray, type):
     """
-    Stack a dictionnary containing bands in a DataArray
+    Stack a dictionary containing bands in a DataArray
 
     Args:
         band_xds (xr.Dataset): Dataset containing the bands

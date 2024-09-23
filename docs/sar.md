@@ -131,7 +131,7 @@ The default pixel size of GRD bands is not the same as the product resolution! (
 
 ```{warning}
 ⚠ Pay attention that for a pixel spacing of 10 meters and a rg x az resolution of 23m, objects under 23m won't be resolved !
-As this may be counter-intuitive, it is recommanded to **always** specify the pixel size when loading SAR data.
+As this may be counter-intuitive, it is recommended to **always** specify the pixel size when loading SAR data.
 ```
 
 ```{note}
@@ -339,7 +339,7 @@ Those graphs should have a reader and a writer on this model:
 Pay attention to set `$file` and `$out` and leave the `BEAM-DIMAP` file format. The first graph must orthorectify your
 SAR data, but should not despeckle it. The second graph is precisely charged to do it.
 
-SNAP graphs are run on every band separatly.
+SNAP graphs are run on every band separately.
 
  The pre-processing graph should also have a `Calibration` and a `Terrain Correction` step with the following wildcards that are set automatically in the module:
 

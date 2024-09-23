@@ -24,7 +24,7 @@ jobs:
         run: |
           if [ "$(./get_pypi_latest_version.sh)" != "$(python setup.py --version)" ]
           then
-            echo "Current version is not on PyPI, proceed with bulding"
+            echo "Current version is not on PyPI, proceed with building"
           else
             echo "Current version is the latest version uploaded to PyPI"
             exit 1
