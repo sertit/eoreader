@@ -355,13 +355,13 @@ MTD_REGEX = {
             r"\d+_[RHV]{2}\.tif",
         ],
     },
-    Constellation.QB02: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Constellation.GE01: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Constellation.WV01: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Constellation.WV02: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Constellation.WV03: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Constellation.WV04: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
-    Constellation.MAXAR: r"\d{2}\w{3}\d{8}-.{4}(_R\dC\d|)-\d{12}_\d{2}_P\d{3}.TIL",
+    Constellation.QB02: r"\d{2}\w{3}\d{8}-.*.TIL",
+    Constellation.GE01: r"\d{2}\w{3}\d{8}-.*.TIL",
+    Constellation.WV01: r"\d{2}\w{3}\d{8}-.*.TIL",
+    Constellation.WV02: r"\d{2}\w{3}\d{8}-.*.TIL",
+    Constellation.WV03: r"\d{2}\w{3}\d{8}-.*.TIL",
+    Constellation.WV04: r"\d{2}\w{3}\d{8}-.*.TIL",
+    Constellation.MAXAR: r"\d{2}\w{3}\d{8}-.*.TIL",
     Constellation.ICEYE: r"ICEYE_(X\d{1,}_|)(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
     Constellation.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
     Constellation.CAPELLA: rf"{CONSTELLATION_REGEX[Constellation.CAPELLA]}.*\.json",
@@ -562,8 +562,15 @@ class Reader:
 
         if not prod:
             LOGGER.warning(
-                "There is no existing products in EOReader corresponding to %s",
-                product_path,
+                f"There is no existing products in EOReader corresponding to {product_path}."
+            )
+            LOGGER.info(
+                "Your given path may not be a satellite image. If it is, maybe the product isn't handled by EOReader. "
+                "If you are sure this product is handled, it is either corrupted or you may need to go deeper in the filetree to find the correct path to give."
+            )
+            LOGGER.debug(
+                "Please look at what folder you should give to EOReader by accessing the documentation: "
+                "https://eoreader.readthedocs.io/en/latest/main_features.html#recognized-paths"
             )
 
         return prod
