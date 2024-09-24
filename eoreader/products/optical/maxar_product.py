@@ -30,10 +30,12 @@ import geopandas as gpd
 import numpy as np
 import xarray as xr
 from lxml import etree
+from packaging.version import Version
 from rasterio import crs as riocrs
-from sertit import geometry, path, rasters, vectors
+from sertit import geometry, misc, path, rasters, vectors
 from sertit.misc import ListEnum
-from sertit.types import AnyPathType
+from sertit.types import AnyPathStrType, AnyPathType
+from sertit.vectors import EPSG_4326
 from shapely.geometry import Polygon
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
@@ -395,6 +397,19 @@ class MaxarProduct(VhrProduct):
     for more information.
     """
 
+    def __init__(
+        self,
+        product_path: AnyPathStrType,
+        archive_path: AnyPathStrType = None,
+        output_path: AnyPathStrType = None,
+        remove_tmp: bool = False,
+        **kwargs,
+    ) -> None:
+        self._version = None
+
+        # Initialization from the super class
+        super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+
     def _pre_init(self, **kwargs) -> None:
         """
         Function used to pre_init the products
@@ -458,8 +473,23 @@ class MaxarProduct(VhrProduct):
         root, _ = self.read_mtd()
         band_combi = root.findtext(".//IMD/BANDID")
         if not band_combi:
-            raise InvalidProductError("Cannot find from BANDID in the metadata file")
+            raise InvalidProductError("Cannot find BANDID in the metadata file")
         self.band_combi = getattr(MaxarBandId, band_combi)
+
+        # Version
+        version = root.findtext(".//IMD/VERSION")
+        if not version:
+            raise InvalidProductError("Cannot find VERSION in the metadata file")
+        self._version = Version(version)
+
+        if misc.compare_version(self._version, "28.4", "=="):
+            raise InvalidProductError(
+                f"This product (version {self._version}) is bugged."
+                "\nIt's .TIL file is maybe broken and the product may bundle several sub-products. "
+                "The best thing to do is to manually create a mosaic from all embedded .TIF files and pass it as a CustomStack to EOReader. "
+                "\nIf you want to have a stack in reflectance, don't forget to apply the corrections on each subproducts separatly before creating the mosaic."
+                "\nIf you want a workaround to be implemented, please reopen the issue https://github.com/sertit/eoreader/issues/106 and pledad you usecase :)"
+            )
 
         # Post init done by the super class
         super()._post_init(**kwargs)
@@ -828,7 +858,7 @@ class MaxarProduct(VhrProduct):
         if not map_proj_name:
             raise InvalidProductError("Cannot find MAPPROJNAME in the metadata file")
         if map_proj_name == "Geographic (Lat/Long)":
-            crs = riocrs.CRS.from_string("EPSG:4326")
+            crs = EPSG_4326
         elif map_proj_name == "UTM":
             map_hemi = root.findtext(".//MAPHEMI")
             map_zone = root.findtext(".//MAPZONE")

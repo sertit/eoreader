@@ -7,6 +7,7 @@
 - ENH: Anticipate Sentinel C and D platforms in Reader's regexes
 - FIX: Resolve the inversion of resolution and pixel size between `stripmap` and `sliding_spotlight` types for `Capella` products
 - FIX: Get better window name (if available) when writing bands on disk (in tmp folder) 
+- FIX: Reject buggy Maxar products (with version 28.4) as the workaround would be too heavy to implement. ([#106](https://github.com/sertit/eoreader/issues/106))
 - OPTIM: Save rasterized masks of DIMAP V2 products on disk to avoid recomputing them (`features.rasterize` could be a heavy computation that shouldn't be done twice)
 - COMPAT: EOReader works correctly with SNAP 10 ([#165](https://github.com/sertit/eoreader/issues/165))
 
