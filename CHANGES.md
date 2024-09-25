@@ -10,6 +10,7 @@
 - FIX: Reject buggy Maxar products (with version 28.4) as the workaround would be too heavy to implement. ([#106](https://github.com/sertit/eoreader/issues/106))
 - OPTIM: Save rasterized masks of DIMAP V2 products on disk to avoid recomputing them (`features.rasterize` could be a heavy computation that shouldn't be done twice)
 - COMPAT: EOReader works correctly with SNAP 10 ([#165](https://github.com/sertit/eoreader/issues/165))
+- PUBLISH: Use PyPI's Trusted Publisher Management mechanism
 
 ## 0.21.2 (2024-07-30)
 
