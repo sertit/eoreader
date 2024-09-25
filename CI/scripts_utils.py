@@ -150,8 +150,8 @@ def broken_s2_path():
     return get_ci_db_dir().joinpath("broken_s2")
 
 
-def s3_env(function):
-    return unistra.s3_env(use_s3_env_var=CI_EOREADER_S3)(function)
+def s3_env(*args, **kwargs):
+    return unistra.s3_env(use_s3_env_var=CI_EOREADER_S3, *args, **kwargs)
 
 
 def compare(to_be_checked, ref, topic):
