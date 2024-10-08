@@ -492,3 +492,19 @@ def get_dim_img_path(dim_path: AnyPathStrType, img_name: str = "*") -> list:
     return path.get_file_in_dir(
         dim_path, img_name, extension="img", exact_name=True, get_list=True
     )
+
+
+def load_np(path_to_load: AnyPathStrType, output: AnyPathStrType) -> np.ndarray:
+    """
+    Load numpy pickles, with a handling of cloud-stored files.
+
+    Args:
+        path_to_load (AnyPathStrType): Pickle path
+        output (AnyPathStrType): Where to download the pickle if it's stored on the cloud
+
+    Returns:
+        np.ndarray: Numpy array
+    """
+    if path.is_cloud_path(path_to_load):
+        path_to_load = path_to_load.download_to(output)
+    return np.load(str(path_to_load))

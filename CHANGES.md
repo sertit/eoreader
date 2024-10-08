@@ -1,5 +1,9 @@
 # Release History
 
+## 0.21.5 (2024-mm-dd)
+
+- FIX: Allow to load numpy pickles stored in S3 buckets
+
 ## 0.21.4 (2024-10-08)
 
 - DEPS: Don't force using geopandas 1.0.0, 0.14.4 should be enough.

@@ -596,7 +596,7 @@ class S3OlciProduct(S3Product):
 
         else:
             # Open rad_2_refl_coeff (resampled to band_arr size)
-            rad_2_refl_coeff = np.load(str(rad_2_refl_path))
+            rad_2_refl_coeff = utils.load_np(rad_2_refl_path, self._tmp_output)
 
         return band_arr * rad_2_refl_coeff
 
