@@ -32,7 +32,7 @@ odc-geo>=0.4.6
 
 # Vector libs
 rtree
-geopandas>=1.0.0
+geopandas>=0.14.4
 shapely>=2.0.0
 
 # Spectral indices

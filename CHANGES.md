@@ -1,5 +1,9 @@
 # Release History
 
+## 0.21.4 (2024-10-08)
+
+- DEPS: Don't force using geopandas 1.0.0, 0.14.4 should be enough.
+
 ## 0.21.3 (2024-10-08)
 
 - ENH: Allow the process of Sentinel-1 COGs (provided by the Copernicus DataSpace) for SNAP >= 10  ([#172](https://github.com/sertit/eoreader/issues/172))
