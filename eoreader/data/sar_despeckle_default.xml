@@ -5,6 +5,7 @@
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${file}</file>
+      <formatName>GeoTIFF-BigTIFF</formatName>
     </parameters>
   </node>
   <node id="Speckle-Filter">
