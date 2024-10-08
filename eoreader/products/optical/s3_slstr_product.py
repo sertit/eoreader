@@ -797,10 +797,7 @@ class S3SlstrProduct(S3Product):
 
         else:
             # Open rad_2_refl_coeff (resampled to band_arr size)
-            if path.is_cloud_path(rad_2_refl_path):
-                rad_2_refl_path = rad_2_refl_path.fspath
-
-            rad_2_refl_coeff = np.load(str(rad_2_refl_path))
+            rad_2_refl_coeff = utils.load_np(rad_2_refl_path, self._tmp_output)
 
         return band_arr * rad_2_refl_coeff
 
@@ -886,10 +883,7 @@ class S3SlstrProduct(S3Product):
 
         else:
             # Open sza_img (resampled to band_arr size)
-            if path.is_cloud_path(sza_img_path):
-                sza_img_path = sza_img_path.fspath
-
-            sza_img = np.load(str(sza_img_path))
+            sza_img = utils.load_np(sza_img_path, self._tmp_output)
 
         return sza_img
 

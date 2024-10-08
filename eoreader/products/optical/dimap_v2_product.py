@@ -671,7 +671,7 @@ class DimapV2Product(VhrProduct):
 
                 np.save(str(mask_path), nodata)
             else:
-                nodata = np.load(str(mask_path))
+                nodata = utils.load_np(mask_path, self._tmp_output)
         except InvalidProductError:
             pass
 
@@ -923,7 +923,7 @@ class DimapV2Product(VhrProduct):
                         )
                         np.save(str(cld_path), cld_arr)
                     else:
-                        cld_arr = np.load(str(cld_path))
+                        cld_arr = utils.load_np(cld_path, self._tmp_output)
 
                     # Rasterize gives a 2D array, we want a 3D array
                     cld_arr = np.expand_dims(cld_arr, axis=0)
@@ -1124,7 +1124,7 @@ class DimapV2Product(VhrProduct):
                 )
                 np.save(str(nodata_path), nodata)
             else:
-                nodata = np.load(str(nodata_path))
+                nodata = utils.load_np(nodata_path, self._tmp_output)
 
             return nodata
 
