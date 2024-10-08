@@ -33,7 +33,7 @@ setuptools.setup(
         "xarray>=2024.06.0",  # numpy >= 2
         "rioxarray>=0.10.0",
         "odc-geo>=0.4.6",
-        "geopandas>=1.0.0",
+        "geopandas>=0.14.4",
         "sertit[full]>=1.42.1",
         "spyndex>=0.3.0",
         "pyresample",
