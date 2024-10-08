@@ -1,6 +1,6 @@
 # Release History
 
-## 0.21.3 (2024-mm-dd)
+## 0.21.3 (2024-10-08)
 
 - ENH: Allow the process of Sentinel-1 COGs (provided by the Copernicus DataSpace) for SNAP >= 10  ([#172](https://github.com/sertit/eoreader/issues/172))
 - ENH: Add a `BandType` alias for any types that could be a band: a string, a `BandNames` or any of its children: Spectral, SAR, DEM or Cloud band names 
