@@ -173,9 +173,16 @@ class LandsatProduct(OpticalProduct):
         # Private
         self._collection = None
         self._pixel_quality_id = None
+        self._pan_res = None
+        self._ms_res = None
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
+
+        # Resolutions (useful only for Landsat with PAN band, i.e. OLI and ETM+)
+        if self.has_band(PAN):
+            self._pan_res = 15.0
+            self._ms_res = self.pixel_size
 
     def _pre_init(self, **kwargs) -> None:
         """
