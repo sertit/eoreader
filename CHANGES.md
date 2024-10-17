@@ -4,6 +4,7 @@
 
 - FIX: Fix (really) window's name coming from a vector with an underscore after it
 - FIX: Fix clean band path for Sentinel-3 SLSTR products
+- FIX: Remove an ignored exception when deleting a Product (`ValueError: Unknown '__class__' name in 'covariance.compute' hyperparameters`)
 
 ## 0.21.5 (2024-10-17)
 
