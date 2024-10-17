@@ -1,6 +1,6 @@
 # Release History
 
-## 0.21.5 (2024-mm-dd)
+## 0.21.5 (2024-10-17)
 
 - FIX: Fix window's name coming from a vector with an underscore after it
 - FIX: Allow to load numpy pickles stored in S3 buckets
