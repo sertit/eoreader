@@ -3,6 +3,7 @@
 ## 0.21.5.post0 (2024-10-17)
 
 - FIX: Fix (really) window's name coming from a vector with an underscore after it
+- FIX: Fix clean band path for Sentinel-3 SLSTR products
 
 ## 0.21.5 (2024-10-17)
 
