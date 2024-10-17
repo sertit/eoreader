@@ -1862,7 +1862,7 @@ class Product:
             try:
                 if isinstance(obj, functools._lru_cache_wrapper):
                     objects.append(obj)
-            except ReferenceError:
+            except (ReferenceError, ValueError):
                 pass
 
         # All objects cleared
