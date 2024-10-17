@@ -2,6 +2,7 @@
 
 ## 0.21.5 (2024-mm-dd)
 
+- FIX: Fix window's name coming from a vector with an underscore after it
 - FIX: Allow to load numpy pickles stored in S3 buckets
 
 ## 0.21.4 (2024-10-08)
