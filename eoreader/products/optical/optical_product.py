@@ -665,12 +665,14 @@ class OpticalProduct(Product):
         win_suffix = ""
         if window is not None:
             if path.is_path(window):
-                win_suffix = path.get_filename(window)
+                win_suffix = f"{path.get_filename(window)}"
             elif isinstance(window, gpd.GeoDataFrame):
-                win_suffix = f"{window.attrs.get('name')}_"
+                win_suffix = f"{window.attrs.get('name')}"
 
             if not win_suffix:
-                win_suffix = f"win{files.hash_file_content(str(window))}_"
+                win_suffix = f"win{files.hash_file_content(str(window))}"
+
+            win_suffix += "_"
 
         return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{win_suffix}{cleaning_method.value}{rad_proc}.tif",
