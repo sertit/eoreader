@@ -448,3 +448,13 @@ def test_deprecation():
     # Check deprecation for resolution keyword
     with pytest.deprecated_call():
         prod_green1.load(SWIR_1, resolution=2.0, window=window)
+
+
+def test_constellations():
+    real_const = Constellation.get_real_constellations()
+    assert Constellation.SPOT45 not in real_const
+    assert Constellation.MAXAR not in real_const
+    assert Constellation.CUSTOM not in real_const
+
+    assert Constellation.is_real_constellation(Constellation.S2)
+    assert not Constellation.is_real_constellation(Constellation.MAXAR)

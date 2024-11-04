@@ -239,6 +239,27 @@ class Constellation(ListEnum):
     CUSTOM = "CUSTOM"
     """Custom stack"""
 
+    @classmethod
+    def get_real_constellations(cls):
+        """
+        Get only constellations of existing satellite (discard CUSTOM, templates etc)
+        """
+        not_real = [cls.MAXAR, cls.SPOT45, cls.CUSTOM]
+        return {const for const in cls.__members__.values() if const not in not_real}
+
+    @classmethod
+    def is_real_constellation(cls, const: Constellation):
+        """
+        Is the given constellation a real one?
+
+        Args:
+            const (Constellation): Constellation to check
+
+        Returns:
+
+        """
+        return cls.convert_from(const)[0] in cls.get_real_constellations()
+
 
 CONSTELLATION_REGEX = {
     Constellation.S1: r"S1[ABCD]_(IW|EW|SM|WV|S\d)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}(_COG|)",
