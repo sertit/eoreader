@@ -194,7 +194,9 @@ class Product:
         self._mask_false = 0
         self._mask_nodata = 255
 
-        self.constellation = kwargs.get("constellation")
+        self.constellation = kwargs.get(
+            "constellation", self._get_constellation_dummy()
+        )
         """Product constellation, such as Sentinel-2"""
 
         # Set the resolution, needs to be done when knowing the product type
@@ -257,6 +259,11 @@ class Product:
             # Constellation and satellite ID
             if not self.constellation:
                 self.constellation = self._get_constellation()
+                if self.constellation is None:
+                    raise InvalidProductError(
+                        f"Impossible to set a constellation to the given product! {self.name}"
+                    )
+
             self.constellation_id = (
                 self.constellation
                 if isinstance(self.constellation, str)
@@ -418,9 +425,25 @@ class Product:
 
     @classmethod
     def _get_constellation(cls) -> Constellation:
-        class_module = cls.__module__.split(".")[-1]
-        constellation_id = class_module.replace("_product", "").upper()
-        return getattr(Constellation, constellation_id)
+        return cls._get_constellation_dummy(raise_ex=True)
+
+    @classmethod
+    def _get_constellation_dummy(cls, raise_ex: bool = False) -> Constellation:
+        try:
+            class_module = cls.__module__.split(".")[-1]
+            constellation_id = class_module.replace("_product", "").upper()
+            const = getattr(Constellation, constellation_id)
+        except AttributeError as ex:
+            if raise_ex:
+                raise ex
+            else:
+                const = None
+
+        # In Dummy, don't set generic constellations!
+        if const not in Constellation.get_real_constellations():
+            const = None
+
+        return const
 
     def _get_name(self) -> str:
         """

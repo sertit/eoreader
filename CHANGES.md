@@ -4,6 +4,8 @@
 
 - FIX: Handle ICEYE products with missing quicklook
 - FIX: Fix Sentinel-1 name with weird PDFs names (i.e. ending with `.SAFE-report...`)
+- FIX: By default, try to assign a constellation (in a pure dummy way) to any `Product` created
+- FIX: Add ways of knowing if a constellation is a real one or not (i.e. CUSTOM or template such as Maxar)
 
 ## 0.21.6 (2024-10-17)
 
