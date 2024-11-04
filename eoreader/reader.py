@@ -73,45 +73,15 @@ class Constellation(ListEnum):
     S1 = "Sentinel-1"
     """Sentinel-1"""
 
-    S1_RTC_ASF = "Sentinel-1 RTC ASF"
-    """
-    Sentinel-1 RTC processed by ASF: https://hyp3-docs.asf.alaska.edu/guides/rtc_product_guide/
-    """
-
-    S1_RTC_MPC = "Sentinel-1 RTC MPC"
-    """
-    Sentinel-1 RTC processed by MPC: https://planetarycomputer.microsoft.com/dataset/sentinel-1-rtc
-    """
-
     S2 = "Sentinel-2"
     """Sentinel-2"""
 
-    S2_E84 = "Sentinel-2 stored on AWS and processed by Element84"
-    """
-    Sentinel-2 stored on AWS and processed by Element84:
-    - Element84: arn:aws:s3:::sentinel-cogs - https://registry.opendata.aws/sentinel-2-l2a-cogs
-
-    Not a real constellation, only used for regex.
-    """
-
-    S2_MPC = "Sentinel-2 stored on Azure and processed by Microsoft Planetary Computer"
-    """
-    Sentinel-2 stored on Azure and processed by Microsoft Planetary Computer:
-    https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a
-
-    Not a real constellation, only used for regex.
-    """
-
-    S2_SIN = "Sentinel-2 stored on AWS and processed by Sinergise"
-    """
-    Sentinel-2 stored on AWS and processed by Sinergise:
-    arn:aws:s3:::sentinel-s2-l1c and arn:aws:s3:::sentinel-s2-l2a - https://registry.opendata.aws/sentinel-2/
-
-    Not a real constellation, only used for regex.
-    """
-
     S2_THEIA = "Sentinel-2 Theia"
-    """Sentinel-2 Theia"""
+    """
+    Sentinel-2, reprocessed by Theia.
+
+    Considered as a new constellation as the product is completely different different from Sentinel-2.
+    """
 
     S3_OLCI = "Sentinel-3 OLCI"
     """Sentinel-3 OLCI"""
@@ -189,7 +159,11 @@ class Constellation(ListEnum):
     """GEOSAT-2 (ex. DEIMOS-2)"""
 
     HLS = "HLS"
-    """Harmonized Landsat-Sentinel"""
+    """
+    Harmonized Landsat-Sentinel
+
+    Considered as a new constellation as the products are completely different from Sentinel-2 and Landsat.
+    """
 
     QB02 = "QuickBird"
     """QuickBird"""
@@ -230,21 +204,69 @@ class Constellation(ListEnum):
     CAPELLA = "Capella"
     """Capella"""
 
+    # Under here, not real constellations: either CUSTOM, templates or different flavors from the same constellation
+    CUSTOM = "CUSTOM"
+    """Custom stack"""
+
+    S1_RTC_ASF = "Sentinel-1 RTC ASF"
+    """
+    Sentinel-1 RTC processed by ASF: https://hyp3-docs.asf.alaska.edu/guides/rtc_product_guide/
+
+    Not a real constellation, only used for regex.
+    """
+
+    S1_RTC_MPC = "Sentinel-1 RTC MPC"
+    """
+    Sentinel-1 RTC processed by MPC: https://planetarycomputer.microsoft.com/dataset/sentinel-1-rtc
+
+    Not a real constellation, only used for regex.
+    """
+
+    S2_E84 = "Sentinel-2 stored on AWS and processed by Element84"
+    """
+    Sentinel-2 stored on AWS and processed by Element84:
+    - Element84: arn:aws:s3:::sentinel-cogs - https://registry.opendata.aws/sentinel-2-l2a-cogs
+
+    Not a real constellation, only used for regex.
+    """
+
+    S2_MPC = "Sentinel-2 stored on Azure and processed by Microsoft Planetary Computer"
+    """
+    Sentinel-2 stored on Azure and processed by Microsoft Planetary Computer:
+    https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a
+
+    Not a real constellation, only used for regex.
+    """
+
+    S2_SIN = "Sentinel-2 stored on AWS and processed by Sinergise"
+    """
+    Sentinel-2 stored on AWS and processed by Sinergise:
+    arn:aws:s3:::sentinel-s2-l1c and arn:aws:s3:::sentinel-s2-l2a - https://registry.opendata.aws/sentinel-2/
+
+    Not a real constellation, only used for regex.
+    """
+
     SPOT45 = "Spot-4/5"
     """SPOT-4/5 (not a real constellation, but used as a template for SPOT4/5 products)"""
 
     MAXAR = "Maxar"
     """Maxar (not a real constellation, but used as a template for every Maxar products)"""
 
-    CUSTOM = "CUSTOM"
-    """Custom stack"""
-
     @classmethod
     def get_real_constellations(cls):
         """
-        Get only constellations of existing satellite (discard CUSTOM, templates etc)
+        Get only constellations of existing satellite (discard CUSTOM, templates, flavors etc.)
         """
-        not_real = [cls.MAXAR, cls.SPOT45, cls.CUSTOM]
+        not_real = [
+            cls.S2_E84,
+            cls.S2_MPC,
+            cls.S2_SIN,
+            cls.S1_RTC_ASF,
+            cls.S1_RTC_MPC,
+            cls.MAXAR,
+            cls.SPOT45,
+            cls.CUSTOM,
+        ]
         return {const for const in cls.__members__.values() if const not in not_real}
 
     @classmethod
