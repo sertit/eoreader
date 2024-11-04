@@ -2,7 +2,8 @@
 
 ## 0.21.7 (2024-mm-dd)
 
-- FIX: Handle ICEYE products with missing quicklook.
+- FIX: Handle ICEYE products with missing quicklook
+- FIX: Fix Sentinel-1 name with weird PDFs names (i.e. ending with `.SAFE-report...`)
 
 ## 0.21.6 (2024-10-17)
 
