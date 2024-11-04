@@ -178,12 +178,10 @@ class IceyeProduct(SarProduct):
         # Open extent KML file
         try:
             extent_file = next(self.path.glob("*ICEYE*QUICKLOOK*.kml"))
-        except StopIteration as ex:
-            raise InvalidProductError(
-                f"Extent file (*.kml) not found in {self.path}"
-            ) from ex
-
-        extent_wgs84 = vectors.read(extent_file).envelope
+            extent_wgs84 = vectors.read(extent_file).envelope
+        except StopIteration:
+            # Some ICEYE products don't have any QUICKLOOK.kml file as it is not a mandatory file!
+            extent_wgs84 = self._fallback_wgs84_extent("QUICKLOOK.kml")
 
         return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
 

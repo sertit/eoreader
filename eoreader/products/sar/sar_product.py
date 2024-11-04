@@ -30,9 +30,10 @@ import rioxarray
 import xarray as xr
 from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import AnyPath, misc, path, rasters, snap, strings, types
+from sertit import AnyPath, geometry, misc, path, rasters, snap, strings, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
+from shapely.geometry.polygon import Polygon
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import BandNames, SarBand, SarBandMap
@@ -694,6 +695,7 @@ class SarProduct(Product):
         Returns:
             str: Band path
         """
+        # pixel_size (use SNAP default pixel size for terrain correction)
         def_pixel_size = float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
         pixel_size = (
             pixel_size
@@ -750,12 +752,6 @@ class SarProduct(Product):
 
                 # Command line
                 if not os.path.isfile(pp_dim):
-                    # pixel_size (use SNAP default pixel size for terrain correction)
-                    pixel_size = (
-                        pixel_size
-                        if (pixel_size and pixel_size != self.pixel_size)
-                        else def_pixel_size
-                    )
                     res_deg = (
                         pixel_size / 10.0 * 8.983152841195215e-5
                     )  # Approx, shouldn't be used
@@ -1027,3 +1023,26 @@ class SarProduct(Product):
         return [
             f"\torbit direction: {self.get_orbit_direction().value}",
         ]
+
+    def _fallback_wgs84_extent(self, extent_file_name: str):
+        with rasterio.open(self.get_raw_band_paths()[self.get_default_band()]) as ds:
+            if ds.crs is not None:
+                extent_wgs84 = gpd.GeoDataFrame(
+                    geometry=[geometry.from_bounds_to_polygon(*ds.bounds)],
+                    crs=ds.crs,
+                )
+            elif ds.gcps is not None:
+                gcps, crs = ds.gcps
+                corners = geometry.from_bounds_to_polygon(*ds.bounds).exterior.coords
+                extent_poly = Polygon(
+                    [rasterio.transform.from_gcps(gcps) * corner for corner in corners]
+                )
+                extent_wgs84 = gpd.GeoDataFrame(geometry=[extent_poly], crs=crs)
+            else:
+                raise InvalidProductError(
+                    f"Extent file ({extent_file_name}) not found in {self.path}. "
+                    "Default band isn't georeferenced and have no GCPs. "
+                    "It is therefore impossible to determine quickly the extent of this product. "
+                    "Please write an issue on GitHub!"
+                )
+        return extent_wgs84
