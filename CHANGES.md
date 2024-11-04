@@ -1,5 +1,9 @@
 # Release History
 
+## 0.21.7 (2024-mm-dd)
+
+- FIX: Handle ICEYE products with missing quicklook.
+
 ## 0.21.6 (2024-10-17)
 
 - FIX: Fix (really) window's name coming from a vector with an underscore after it
