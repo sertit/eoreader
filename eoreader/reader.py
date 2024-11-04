@@ -981,12 +981,8 @@ def create_product(
     sat_class = constellation.name.lower() + "_product"
 
     # Channel correctly the constellations to their generic files (just in case)
-    # TerraSAR-like constellations
-    if constellation in [Constellation.TDX, Constellation.PAZ]:
-        sat_class = "tsx_product"
-        constellation = None  # All product names are the same, so assess it with MTD
     # Maxar-like constellations
-    elif constellation in [
+    if constellation in [
         Constellation.QB02,
         Constellation.GE01,
         Constellation.WV01,
