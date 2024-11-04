@@ -388,6 +388,8 @@ class S1Product(SarProduct):
                 )
         else:
             name = path.get_filename(pdf_file)
+            if ".SAFE" in name:
+                name = name.split(".SAFE")[0]
 
         return name
 
