@@ -665,10 +665,9 @@ class OpticalProduct(Product):
         win_suffix = ""
         if window is not None:
             if path.is_path(window):
-                win_suffix = f"{path.get_filename(window)}"
+                win_suffix = path.get_filename(window)
             elif isinstance(window, gpd.GeoDataFrame):
-                win_suffix = f"{window.attrs.get('name')}"
-
+                win_suffix = window.attrs.get("name")
             if not win_suffix:
                 win_suffix = f"win{files.hash_file_content(str(window))}"
 
