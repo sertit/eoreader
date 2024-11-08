@@ -1,13 +1,13 @@
 # Release History
 
-## 0.21.7 (2024-mm-dd)
+## 0.21.7 (2024-11-08)
 
-- FIX: Handle ICEYE products with missing quicklook
-- FIX: Fix Sentinel-1 name with weird PDFs names (i.e. ending with `.SAFE-report...`)
-- FIX: Remove multi-swath workaround for Cosmo products if SNAP > 11.0
+- FIX: Handle `ICEYE` products with missing quicklook
+- FIX: Fix `Sentinel-1` name with weird PDFs names (i.e. ending with `.SAFE-report...`)
+- FIX: Remove multi-swath workaround for `Cosmo` products if SNAP > 11.0
 - FIX: By default, try to assign a constellation (in a pure dummy way) to any `Product` created
-- FIX: Add ways of knowing if a constellation is a real one or not (i.e. CUSTOM or template such as Maxar)
-- FIX: Create TDX and PAZ (completely inherited) classes to disambiguate their constellations
+- FIX: Add ways of knowing if a constellation is a real one or not (i.e. `CUSTOM` or template such as `Maxar`)
+- FIX: Create `TDX` and `PAZ` (completely inherited) classes to disambiguate their constellations
 
 ## 0.21.6 (2024-10-17)
 
