@@ -34,7 +34,7 @@ import xarray as xr
 from lxml import etree
 from lxml.builder import E
 from rasterio import merge
-from sertit import AnyPath, path, rasters, rasters_rio, strings, vectors
+from sertit import AnyPath, misc, path, rasters, rasters_rio, strings, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
 from shapely.geometry import Polygon, box
@@ -484,12 +484,15 @@ class CosmoProduct(SarProduct):
         Returns:
             str: Band path
         """
+        if misc.compare_version(self.get_snap_version(), "11.0.0", ">="):
+            return super()._pre_process_sar(band, pixel_size=pixel_size, **kwargs)
+
         with h5netcdf.File(self._img_path, phony_dims="access") as raw_h5:
             if self.nof_swaths == 1:
                 return super()._pre_process_sar(band, pixel_size, **kwargs)
             else:
                 LOGGER.warning(
-                    "Currently, SNAP doesn't handle multiswath Cosmo-SkyMed products. This is a workaround. See https://github.com/sertit/eoreader/issues/78"
+                    "SNAP (before version 11.0.0) doesn't handle multiswath Cosmo-SkyMed products. This is a workaround. See https://github.com/sertit/eoreader/issues/78"
                 )
 
                 # For every swath, pre-process the swath array alone
