@@ -3,6 +3,7 @@
 ## 0.21.8 (2024-mm-dd)
 
 - ENH: Add a new type (`BandsType`) for list of BandType
+- FIX: Remove useless `_norm_diff` function `indices.py`
 - DOC: Update `conf.py` (remove useless hunks and set Sphinx 7 as base)
 
 ## 0.21.7 (2024-11-08)

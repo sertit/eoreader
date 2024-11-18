@@ -175,22 +175,6 @@ def compute_index(index: str, bands: dict, **kwargs) -> xr.DataArray:
     return rasters.set_metadata(out_xda, first_xda, new_name=index)
 
 
-def _norm_diff(band_1: xr.DataArray, band_2: xr.DataArray) -> xr.DataArray:
-    """
-    Get normalized difference index between band 1 and band 2:
-    (band_1 - band_2)/(band_1 + band_2)
-
-    Args:
-        band_1 (xr.DataArray): Band 1
-        band_2 (xr.DataArray): Band 2
-
-    Returns:
-        xr.DataArray: Normalized Difference between band 1 and band 2
-    """
-    norm = (band_1 - band_2) / (band_1 + band_2)
-    return norm
-
-
 @_idx_fct
 def TCBRI(bands: dict) -> xr.DataArray:
     """
