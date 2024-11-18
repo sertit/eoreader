@@ -210,7 +210,7 @@ __all__ += [
     "to_str",
 ]
 
-from typing import Any, Union
+from typing import Union
 
 from eoreader.exceptions import InvalidTypeError as _ite
 
@@ -218,6 +218,9 @@ BandType = Union[
     str, SpectralBandNames, SarBandNames, CloudsBandNames, DemBandNames, BandNames
 ]
 """ EOReader band type, either a string, a BandName or its children: Spectral, SAR, DEM or Cloud band names """
+
+BandsType = Union[list, BandType]
+""" EOReader bands type, either a list or a BandType. """
 
 
 def is_spectral_band(band: BandType) -> bool:

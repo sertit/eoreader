@@ -1,5 +1,9 @@
 # Release History
 
+## 0.21.8 (2024-mm-dd)
+
+- ENH: Add a new type (`BandsType`) for list of BandType
+
 ## 0.21.7 (2024-11-08)
 
 - FIX: Handle `ICEYE` products with missing quicklook
