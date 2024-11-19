@@ -16,7 +16,7 @@
 # limitations under the License.
 """
 PAZ products
-More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
+More info at https://earth.esa.int/eogateway/documents/20142/37627/PAZ-Image-Products-Guide.pdf.
 """
 from eoreader.products import TsxProduct
 
