@@ -1,11 +1,11 @@
 # Release History
 
 ## 0.21.8 (2024-mm-dd)
-- DOC: Added the [PAZ product guide](https://earth.esa.int/eogateway/documents/20142/37627/PAZ-Image-Products-Guide.pdf) to the PAZ Product documentation instead of the TerraSAR-X one 
-- FIX: Fixed PAZ Product Regex to properly indentify PAZ ST products as `PAZProduct` 
 - ENH: Add a new type (`BandsType`) for list of BandType
+- FIX: Fixed PAZ Product Regex to properly indentify PAZ ST products as `PAZProduct` @guillemc23
 - FIX: Remove useless `_norm_diff` function `indices.py`
 - DOC: Update `conf.py` (remove useless hunks and set Sphinx 7 as base)
+- DOC: Added the [PAZ product guide](https://earth.esa.int/eogateway/documents/20142/37627/PAZ-Image-Products-Guide.pdf) to the PAZ Product documentation instead of the TerraSAR-X one @guillemc23
 
 ## 0.21.7 (2024-11-08)
 
