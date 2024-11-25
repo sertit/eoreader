@@ -51,6 +51,13 @@ For example, if you downloaded QGIS on Windows, you could simply put in your PAT
 ![qgis](https://zupimages.net/up/23/13/njvv.png)  
 All GDAL scripts, exe, DLL, etc. are stored in the `bin` folder.
 
+### I want to create a mosaic with EOReader, is it possible?
+
+It is not possible with EOReader only. 
+The goal of this library is to manage only one satellite product at a time. 
+To handle more complicated sets of products (such as mosaics, pairs or time series), please consider using [`EOSets`](https://github.com/sertit/eosets).
+
+
 ## SNAP
 
 > ⚠ Be sure to use SNAP 8.0 or more, and please verify that your software is up-to-date.
