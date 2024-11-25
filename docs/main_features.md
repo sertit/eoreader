@@ -35,6 +35,9 @@ prod = reader.open(path, output_path=output, remove_tmp=True)
 prod.output = os.path.join(output, prod.condensed_name)
 ```
 
+The goal of this library is to manage only one satellite product at a time. 
+To handle more complicated sets of products (such as mosaics, pairs or time series), please consider using [`EOSets`](https://github.com/sertit/eosets).
+
 ### Recognized paths
 
 **EOReader** always uses the directory containing the product files.
