@@ -444,7 +444,7 @@ def stack(
                             "Band not in reflectance, keeping them as is (the values will be rounded)"
                         )
                     else:
-                        band_xda = band_xda * scale
+                        band_xds[band] = band_xda * scale
 
             # Fill no data
             band_xds = band_xds.fillna(nodata)
