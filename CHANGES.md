@@ -1,6 +1,7 @@
 # Release History
 
 ## 0.21.8 (2024-mm-dd)
+- FIX: Fix stack save_as_int to use updated int values
 - ENH: Add a new type (`BandsType`) for list of BandType
 - FIX: Fixed PAZ Product Regex to properly indentify PAZ ST products as `PAZProduct` @guillemc23
 - FIX: Remove useless `_norm_diff` function `indices.py`
