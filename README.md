@@ -13,18 +13,18 @@
 and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) constellations, loading and stacking bands,
 clouds, DEM and spectral indices in a sensor-agnostic way.
 
-The goal of this library is to manage one satellite product at a time. 
-To handle more complicated sets of products (such as mosaics, pairs or time series), please consider using [`EOSets`](https://github.com/sertit/eosets).
+> 💡 The goal of this library is to manage one satellite product at a time.  
+> To handle more complicated sets of products (such as mosaics, pairs or time series), please consider using [`EOSets`](https://github.com/sertit/eosets).
 
-## Managed optical constellations
+## 🛰️ Managed optical constellations
 
 [![Sentinel-2 SAFE and Theia Sentinel-3 OLCI and SLSTR Landsat 1 to 9 Harmonized Landsat-Sentinel PlanetScope, SkySat and RapidEye Pleiades and Pleiades-Neo SPOT-6/7 and 4/5 Vision-1 Maxar (WorldViews, GeoEye) SuperView-1 GEOSAT-2](https://zupimages.net/up/23/22/j3mz.png)](https://eoreader.readthedocs.io/en/latest/optical.html)
 
-## Managed SAR constellations
+## 🛰️ Managed SAR constellations
 
 [![Sentinel-1 COSMO-Skymed 1st and 2nd Generation TerraSAR-X, TanDEM-X and PAZ SAR RADARSAT-2 and RADARSAT-Constellation ICEYE SAOCOM Capella](https://zupimages.net/up/23/22/7b6k.png)](https://eoreader.readthedocs.io/en/latest/sar.html)
 
-##  Features
+## 🔮 Features
 
 EOReader implements **sensor-agnostic** features:
 
@@ -39,14 +39,14 @@ EOReader works mainly with:
 - [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray) and [`xarrays.Dataset`](http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset) for raster data
 - [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_structures.html#geodataframe) for vector data (extents, footprints...)
 
-## Python Quickstart
+## ⚡️ Quickstart
 
 ### Optical
 EOReader allows you ta load and stack spectral bands, spetrcal indices, DEM and cloud bands agnostically from every handled optical constellation:
 
 ```python
 from eoreader.reader import Reader
-from eoreader.bands import *
+from eoreader.bands import RED, GREEN, BLUE, NDVI, CLOUDS
 
 # Sentinel-2 path
 s2_path = "S2B_MSIL1C_20181126T022319_N0207_R103_T51PWM_20181126T050025.SAFE"
@@ -72,7 +72,7 @@ In the same way, you can import and stack radar band from any handled SAR conste
 
 ```python
 from eoreader.reader import Reader
-from eoreader.bands import *
+from eoreader.bands import VV, VH, VV_DSPK, VH_DSPK
 
 # Sentinel-1 GRD path
 s1_path = "S1B_EW_GRDM_1SDH_20200422T080459_20200422T080559_021254_028559_784D.zip"
@@ -97,11 +97,11 @@ stack = s1_prod.stack([VV_DSPK, VH_DSPK], stack_path="s1_stack.tif")
 > Ensure that you have the folder containing your `gpt` executable in your `PATH`.
 > If you are using SNAP 8.0, be sure to have your software up-to-date (SNAP version >= 8.0).
 
-## Documentation
+## 📖 Documentation
 
 The API documentation can be found [here](https://eoreader.readthedocs.io/en/latest/).
 
-## Examples
+## 🔗 Examples
 
 Available notebooks provided as examples:
 
@@ -122,7 +122,7 @@ Available notebooks provided as examples:
 - [Dask](https://eoreader.readthedocs.io/en/latest/notebooks/dask.html)
 - [STAC](https://eoreader.readthedocs.io/en/latest/notebooks/stac.html)
 
-## Installation
+## 🛠 Installation
 
 ### Pip
 
@@ -147,7 +147,7 @@ conda config --env --set channel_priority strict
 conda install -c conda-forge eoreader
 ```
 
-## Context
+## 📚 Context
 
 As one of the [Copernicus Emergency Management Service](https://emergency.copernicus.eu/) Rapid Mapping and Risk and Recovery Mapping operators, 
 [SERTIT](https://sertit.unistra.fr/) needs to deliver geoinformation (such as flood or fire delineation, landslides mapping, etc.) based on multiple EO constellations.
@@ -173,7 +173,8 @@ However, keep in mind that the support of all the constellations used in CEMS is
 Indeed, we may not have faced every product type, sensor mode or order configuration, so some details may be missing.
 If this happens to you, do not hesitate to make a PR or write an issue about that !
 
-## Talks
+## 🎤 Communication
+### Talks
 
 - [GeoPython 2022](https://submit.geopython.net/geopython-2022/talk/FQPN3Q/) [ [PDF](https://seafile.unistra.fr/f/be2b461af970465b903e/) ] [ [YouTube](https://www.youtube.com/watch?v=mKxOiRULOJA&t=14303s) ]
 - Mentioned in **[Live+]SIG 2022 by ESRI France** (in French):
@@ -183,30 +184,30 @@ If this happens to you, do not hesitate to make a PR or write an issue about tha
 - Mentioned in EGU 2023 - [`Cutting-edge developments in rapid mapping`](https://doi.org/10.5194/egusphere-egu23-14143) 
 - [FOSS4G 2023](https://talks.osgeo.org/foss4g-2023/talk/XJH7JE/) [ [PDF](https://seafile.unistra.fr/f/f727dc62cdfe471f9b33/) ] [ [YouTube](https://www.youtube.com/watch?v=3ZfPQrTypmQ) ]
 
-## Press Release
+### Press Release
 
 - [ESA Success Story](https://earth.esa.int/eogateway/news/new-open-source-python-library-improves-rapid-mapping-services)
 - Used to extract water for assessing agriculture impacts after the Kakhovka Dam Collapse (cross-post from [NASA Harvest](https://nasaharvest.org/index.php/news/navigating-kakhovka-dam-collapse-nasa-harvest-consortium-assesses-agriculture-impacts) and [Planet](https://www.planet.com/pulse/navigating-the-kakhovka-dam-collapse-nasa-harvest-consortium-assesses-agriculture-impacts-with-satellite-imagery/))
 
-## Articles
+### Articles
 
 - [Maxant, J. Braun, R. Caspard, M. Clandillon, S. ExtractEO, a Pipeline for Disaster Extent Mapping in the Context of Emergency Management. Remote Sens. 2022, 14, 5253. (Technical Note)](https://doi.org/10.3390/rs14205253)
 
-## Blog
+### Blog
 
 - [Introduction to EOReader](https://sertit.unistra.fr/en/news/introduction-to-eoreader/)
 - [EOReader: Remote sensing open-source python library](https://sertit.unistra.fr/en/news/eoreader/)
 - [The collapse of the Kakhovka dam seen from satellite imagery](https://sertit.unistra.fr/en/news/the-collapse-of-the-kakhovka-dam-seen-from-satellite-imagery/)
 
-## License
+## 📝 License
 
 **EOReader** is licensed under Apache License v2.0. See LICENSE file for details.
 
-## Authors
+## 🖋️ Authors
 
 **EOReader** has been created by [ICube-SERTIT](https://sertit.unistra.fr/).
 
-## Credits
+## 🤝 Credits
 
 **EOReader** is built on top of amazing libs, without which it couldn't have been coded:
 
