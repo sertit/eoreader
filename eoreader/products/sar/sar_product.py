@@ -746,7 +746,7 @@ class SarProduct(Product):
                         f"{spt}_{sat}_preprocess_default.xml"
                     )
                 else:
-                    pp_graph = AnyPath(os.environ[PP_GRAPH])
+                    pp_graph = AnyPath(os.environ[PP_GRAPH]).resolve()
                     if not pp_graph.is_file() or not pp_graph.suffix == ".xml":
                         FileNotFoundError(f"{pp_graph} cannot be found.")
 
@@ -847,7 +847,7 @@ class SarProduct(Product):
             if DSPK_GRAPH not in os.environ:
                 dspk_graph = utils.get_data_dir().joinpath("sar_despeckle_default.xml")
             else:
-                dspk_graph = AnyPath(os.environ[DSPK_GRAPH])
+                dspk_graph = AnyPath(os.environ[DSPK_GRAPH]).resolve()
                 if not dspk_graph.is_file() or not dspk_graph.suffix == ".xml":
                     FileNotFoundError(f"{dspk_graph} cannot be found.")
 
