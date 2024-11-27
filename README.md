@@ -16,12 +16,12 @@ clouds, DEM and spectral indices in a sensor-agnostic way.
 > 💡 The goal of this library is to manage one satellite product at a time.  
 > To handle more complicated sets of products (such as mosaics, pairs or time series), please consider using [`EOSets`](https://github.com/sertit/eosets).
 
-## 🛰️ Managed optical constellations
+## 🛰️ Managed constellations
 
+### Optical
 [![Sentinel-2 SAFE and Theia Sentinel-3 OLCI and SLSTR Landsat 1 to 9 Harmonized Landsat-Sentinel PlanetScope, SkySat and RapidEye Pleiades and Pleiades-Neo SPOT-6/7 and 4/5 Vision-1 Maxar (WorldViews, GeoEye) SuperView-1 GEOSAT-2](https://zupimages.net/up/23/22/j3mz.png)](https://eoreader.readthedocs.io/en/latest/optical.html)
 
-## 🛰️ Managed SAR constellations
-
+### SAR
 [![Sentinel-1 COSMO-Skymed 1st and 2nd Generation TerraSAR-X, TanDEM-X and PAZ SAR RADARSAT-2 and RADARSAT-Constellation ICEYE SAOCOM Capella](https://zupimages.net/up/23/22/7b6k.png)](https://eoreader.readthedocs.io/en/latest/sar.html)
 
 ## 🔮 Features
@@ -106,11 +106,16 @@ The API documentation can be found [here](https://eoreader.readthedocs.io/en/lat
 Available notebooks provided as examples:
 
 - [Why EOReader?](https://eoreader.readthedocs.io/en/latest/notebooks/why_eoreader.html)
+
+### Basics 
 - [Basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html)
 - [Optical data](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html)
 - [SAR data](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html)
 - [VHR data](https://eoreader.readthedocs.io/en/latest/notebooks/VHR.html)
 - [Remove clouds](https://eoreader.readthedocs.io/en/latest/notebooks/remove_clouds.html)
+
+
+### Advanced 
 - [Sentinel-3 data](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html)
 - [Water detection on multiple products](https://eoreader.readthedocs.io/en/latest/notebooks/water_detection.html)
 - [Windowed Reading](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html)
@@ -119,6 +124,8 @@ Available notebooks provided as examples:
 - [Methods to clean optical bands](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html)
 - [AWS storage](https://eoreader.readthedocs.io/en/latest/notebooks/aws.html)
 - [S3 Compatible Storage](https://eoreader.readthedocs.io/en/latest/notebooks/s3_compatible_storage.html)
+
+### Experimental
 - [Dask](https://eoreader.readthedocs.io/en/latest/notebooks/dask.html)
 - [STAC](https://eoreader.readthedocs.io/en/latest/notebooks/stac.html)
 
@@ -130,13 +137,9 @@ You can install EOReader via pip:
 
 `pip install eoreader`
 
-EOReader mainly relies on `geopandas` and `rasterio` (through `rioxarray`).
+EOReader mainly relies on `geopandas`, `xarray` and `rasterio` (through `rioxarray`).
 
-On Windows and with pip, you may face installation issues due to GDAL.
-The well known workaround of installing from [Gohlke's wheels](https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio)
-also applies here.
-Please look at the [rasterio page](https://rasterio.readthedocs.io/en/latest/installation.html)
-to learn more about that.
+Please look at the [rasterio page](https://rasterio.readthedocs.io/en/latest/installation.html) to learn more about that.
 
 ### Conda
 
