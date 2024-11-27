@@ -35,7 +35,6 @@ from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
 from sertit import AnyPath, path, rasters, rasters_rio
-from sertit.snap import MAX_CORES
 from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, utils
@@ -305,7 +304,7 @@ class VhrProduct(OpticalProduct):
             dst_crs=self.crs(),
             dst_resolution=self.pixel_size,
             dst_nodata=self._raw_nodata,  # input data should be in integer
-            num_threads=MAX_CORES,
+            num_threads=utils.get_max_cores(),
             resampling=Resampling.bilinear,
             **kwargs,
         )
@@ -596,7 +595,7 @@ class VhrProduct(OpticalProduct):
                 * int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE)) ** 2
                 / 1e6,
                 "dtype": src.meta["dtype"],
-                "num_threads": MAX_CORES,
+                "num_threads": utils.get_max_cores(),
             }
             with rasterio.Env(
                 **{"GDAL_NUM_THREADS": "ALL_CPUS", "NUM_THREADS": "ALL_CPUS"}
