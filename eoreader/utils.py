@@ -31,6 +31,7 @@ from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
 from sertit import AnyPath, geometry, logs, path, rasters
+from sertit.snap import SU_MAX_CORE
 from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME
@@ -508,3 +509,7 @@ def load_np(path_to_load: AnyPathStrType, output: AnyPathStrType) -> np.ndarray:
     if path.is_cloud_path(path_to_load):
         path_to_load = path_to_load.download_to(output)
     return np.load(str(path_to_load))
+
+
+def get_max_cores():
+    return int(os.getenv(SU_MAX_CORE, os.cpu_count() - 2))

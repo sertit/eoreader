@@ -43,7 +43,6 @@ from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from sertit import path, types, vectors, xml
 from sertit.misc import ListEnum
-from sertit.rasters import MAX_CORES
 from sertit.types import AnyPathStrType, AnyPathType
 from shapely.geometry import Polygon, box
 
@@ -674,7 +673,7 @@ class S3Product(OpticalProduct):
                     resampler.load_resampling_info(cache_file)
 
                 band_arr_resampled = resampler.resample(
-                    band_arr.squeeze(), nprocs=MAX_CORES, fill_value=nodata
+                    band_arr.squeeze(), nprocs=utils.get_max_cores(), fill_value=nodata
                 )
 
                 # Save resampling info if needed
@@ -858,8 +857,17 @@ class S3Product(OpticalProduct):
 
                     nc.load()
             else:
-                # No need to load here
-                nc = xr.open_dataset(nc_path, mask_and_scale=True, engine="h5netcdf")
+                with warnings.catch_warnings():
+                    # Ignore UserWarning: Duplicate dimension names present: dimensions {'bands'} appear more than once in dims=('bands', 'bands').
+                    # We do not yet support duplicate dimension names, but we do allow initial construction of the object.
+                    # We recommend you rename the dims immediately to become distinct, as most xarray functionality is likely to fail silently if you do not.
+                    # To rename the dimensions you will need to set the ``.dims`` attribute of each variable, ``e.g. var.dims=('x0', 'x1')``.
+                    warnings.simplefilter("ignore", category=UserWarning)
+
+                    # No need to load here
+                    nc = xr.open_dataset(
+                        nc_path, mask_and_scale=True, engine="h5netcdf"
+                    )
 
                 if subdataset:
                     nc = nc[subdataset]
