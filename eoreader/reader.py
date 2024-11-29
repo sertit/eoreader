@@ -21,6 +21,7 @@ from __future__ import annotations
 import importlib
 import logging
 import re
+from contextlib import contextmanager
 from enum import unique
 from typing import Union
 from zipfile import BadZipFile
@@ -490,6 +491,7 @@ class Reader:
 
         return comp
 
+    @contextmanager
     def open(
         self,
         product_path: AnyPathStrType,
@@ -615,8 +617,10 @@ class Reader:
                 "Please look at what folder you should give to EOReader by accessing the documentation: "
                 "https://eoreader.readthedocs.io/en/latest/main_features.html#recognized-paths"
             )
-
-        return prod
+        try:
+            yield prod
+        finally:
+            del prod
 
     def _open_stac_item(
         self, item: Item, output_path: AnyPathStrType, remove_tmp: bool, **kwargs
