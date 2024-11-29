@@ -230,16 +230,12 @@ def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
         filepath (AnyPathStrType): Path where to save it (directories should be existing)
         **kwargs: Overloading metadata, ie :code:`nodata=255` or :code:`dtype=np.uint8`
     """
-    # TODO: remove this with sertit > 1.41.0
-    # Prune empty kwargs to avoid throwing GDAL warnings/errors
-    kwargs = {k: v for k, v in kwargs.items() if v is not None}
-
     lock = None
     if use_dask():
-        from distributed import Lock, get_client
+        from distributed import Lock
 
         try:
-            lock = Lock("rio", client=get_client())
+            lock = Lock("rio")
         except ValueError:
             pass
 
