@@ -435,6 +435,12 @@ def _test_core(
                 check_geometry(prod, "extent", tmp_dir)
                 check_geometry(prod, "footprint", tmp_dir)
 
+                if hasattr(prod, "wgs84_extent"):
+                    prod.wgs84_extent()
+
+                if hasattr(prod, "_fallback_wgs84_extent"):
+                    prod._fallback_wgs84_extent()
+
                 # Get the bands we want to stack / load
                 stack_bands = [band for band in possible_bands if prod.has_band(band)]
                 first_band = stack_bands[0]

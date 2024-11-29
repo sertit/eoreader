@@ -255,17 +255,12 @@ class S1Product(SarProduct):
                     # Open the KML file
                     extent_wgs84 = vectors.read(preview_overlay)
                 else:
-                    raise InvalidProductError(
-                        f"Impossible to find the map-overlay.kml in {self.path}"
-                    )
+                    # raise to be caught by fallback
+                    raise InvalidProductError
 
-            if extent_wgs84.empty:
-                raise InvalidProductError(
-                    f"Cannot determine the WGS84 extent of {self.name}"
-                )
-
-        except Exception as ex:
-            raise InvalidProductError(ex) from ex
+        except Exception:
+            # Sometimes, map-overlay.kml of S1 products cannot be read properly
+            extent_wgs84 = self._fallback_wgs84_extent("preview/map-overlay.kml")
 
         return extent_wgs84
 

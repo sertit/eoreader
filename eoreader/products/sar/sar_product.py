@@ -1024,7 +1024,16 @@ class SarProduct(Product):
             f"\torbit direction: {self.get_orbit_direction().value}",
         ]
 
-    def _fallback_wgs84_extent(self, extent_file_name: str):
+    def _fallback_wgs84_extent(self, extent_file_name: str = None) -> gpd.GeoDataFrame:
+        """
+        Fallback for wgs84 extent (slower than to read a file, but should work in almsot any case)
+
+        Args:
+            extent_file_name (str): Extent file name, if existing
+
+        Returns:
+            gpd.GeoDataFrame: WGS84 extent
+        """
         with rasterio.open(self.get_raw_band_paths()[self.get_default_band()]) as ds:
             if ds.crs is not None:
                 extent_wgs84 = gpd.GeoDataFrame(
@@ -1039,8 +1048,13 @@ class SarProduct(Product):
                 )
                 extent_wgs84 = gpd.GeoDataFrame(geometry=[extent_poly], crs=crs)
             else:
+                if extent_file_name:
+                    name = f"({extent_file_name}) "
+                else:
+                    name = ""
+
                 raise InvalidProductError(
-                    f"Extent file ({extent_file_name}) not found in {self.path}. "
+                    f"Extent file {name}not found in {self.path}. "
                     "Default band isn't georeferenced and have no GCPs. "
                     "It is therefore impossible to determine quickly the extent of this product. "
                     "Please write an issue on GitHub!"
