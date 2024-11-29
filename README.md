@@ -13,6 +13,7 @@
 and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) constellations, loading and stacking bands,
 clouds, DEM and spectral indices in a sensor-agnostic way.
 
+> [!IMPORTANT] 
 > 💡 The goal of this library is to manage one satellite product at a time.  
 > To handle more complicated sets of products (such as mosaics, pairs or time series), please consider using [`EOSets`](https://github.com/sertit/eosets).
 
@@ -90,6 +91,7 @@ bands = s1_prod.load([VV, VH])
 stack = s1_prod.stack([VV_DSPK, VH_DSPK], stack_path="s1_stack.tif")
 ```
 
+> [!WARNING] 
 > ⚠️**SNAP and SAR**
 >
 > SAR products need [`ESA SNAP`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph)
