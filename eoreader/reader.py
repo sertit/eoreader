@@ -318,7 +318,7 @@ CONSTELLATION_REGEX = {
     Constellation.RS2: r"RS2_(OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}|\d{8}_\d{6}_\d{4}_.{1,5})"
     r"(_(HH|VV|VH|HV)){1,4}_S(LC|GX|GF|CN|CW|CF|CS|SG|PG)(_\d{6}_\d{4}_\d{8}|)",
     Constellation.PLD: r"IMG_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}",
-    Constellation.PNEO: r"IMG_\d+_PNEO\d_(P|MS|PMS|MS-FS|PMS-FS)",
+    Constellation.PNEO: r"IMG_\d+_PNEO\d_(PMS-FS|MS-FS|PMS|MS|P)",
     Constellation.SPOT7: r"IMG_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Constellation.SPOT6: r"IMG_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{3}_\w",
     Constellation.SPOT45: r"SPVIEW_.+",
@@ -387,7 +387,7 @@ MTD_REGEX = {
         r"imagery_[HV]{2}\.tif",
     ],
     Constellation.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
-    Constellation.PNEO: r"DIM_PNEO\d_\d{15}_(P|MS|PMS|MS-FS|PMS-FS)_(SEN|PRJ|ORT|MOS)_.{9,}_._._._.\.XML",
+    Constellation.PNEO: r"DIM_PNEO\d_\d{15}_(PMS-FS|MS-FS|PMS|MS|P)_(SEN|PRJ|ORT|MOS)_.{8,}-.{4,}-.{4,}-.{4,}-.{12,}\.XML",
     Constellation.SPOT7: r"DIM_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Constellation.SPOT6: r"DIM_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Constellation.VIS1: r"DIM_VIS1_(PSH|MS4|PAN)_\d{14}_(PRJ|ORTP)_S\d{5,}_\d{4}_Meta\.xml",
