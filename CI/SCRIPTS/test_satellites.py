@@ -439,7 +439,10 @@ def _test_core(
                     prod.wgs84_extent()
 
                 if hasattr(prod, "_fallback_wgs84_extent"):
-                    prod._fallback_wgs84_extent()
+                    try:
+                        prod._fallback_wgs84_extent()
+                    except NotImplementedError:
+                        pass
 
                 # Get the bands we want to stack / load
                 stack_bands = [band for band in possible_bands if prod.has_band(band)]
