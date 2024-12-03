@@ -258,7 +258,8 @@ def _test_core(
                     except KeyError:
                         pass
 
-                    sun_az, sun_el = prod.get_mean_sun_angles()
+                    sun_az, sun_zen = prod.get_mean_sun_angles()
+                    sun_el = 90 - sun_zen
                     compare(
                         item.properties[VIEW_SUN_AZIMUTH],
                         sun_az,
@@ -269,6 +270,7 @@ def _test_core(
                         sun_el,
                         f"{VIEW_SUN_ELEVATION} (item.properties)",
                     )
+                    assert -90 < sun_el < 90
 
                     azimuth, off_nadir, incidence_angle = prod.get_mean_viewing_angles()
                     if azimuth is not None:
