@@ -6,8 +6,8 @@ import warnings
 from functools import wraps
 from typing import Callable
 
-import rasterio
 import tempenv
+from rasterio.errors import NotGeoreferencedWarning
 from sertit import AnyPath, ci, s3, unistra
 from sertit.types import AnyPathType
 from sertit.unistra import get_db2_path, get_db3_path, get_geodatastore
@@ -172,7 +172,9 @@ def compare(to_be_checked, ref, topic):
 
 def reduce_verbosity():
     # Ignore warning
-    warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
+    warnings.filterwarnings(
+        "ignore", category=NotGeoreferencedWarning, module="rasterio"
+    )
 
     # Reduce verbosity to warning
     ci.reduce_verbosity(["dicttoxml", "pyogrio"])
