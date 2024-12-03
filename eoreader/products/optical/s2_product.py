@@ -1626,7 +1626,7 @@ class S2Product(OpticalProduct):
             cc = float(root.findtext(".//CLOUDY_PIXEL_PERCENTAGE"))
         except (InvalidProductError, TypeError):
             LOGGER.warning(
-                "CLOUDY_PIXEL_PERCENTAGE not found in metadata! Cloud coverage set to 0."
+                "'CLOUDY_PIXEL_PERCENTAGE' not found in metadata! Cloud coverage set to 0."
             )
             cc = 0
 

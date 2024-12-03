@@ -1205,20 +1205,25 @@ class PlanetProduct(OpticalProduct):
         root, nsmap = self.read_mtd()
 
         # Get the cloud cover
-        if self.constellation == Constellation.SKY:
-            try:
-                cc = float(root.findtext(".//cloud_percent"))
+        try:
+            if self.constellation == Constellation.SKY:
+                try:
+                    cc = float(root.findtext(".//cloud_percent"))
 
-            except TypeError:
-                raise InvalidProductError("cloud_percent not found in metadata!")
-        else:
-            try:
-                cc = float(root.findtext(f".//{nsmap['opt']}cloudCoverPercentage"))
+                except TypeError:
+                    raise InvalidProductError("'cloud_percent' not found in metadata!")
+            else:
+                try:
+                    cc = float(root.findtext(f".//{nsmap['opt']}cloudCoverPercentage"))
 
-            except TypeError:
-                raise InvalidProductError(
-                    "opt:cloudCoverPercentage not found in metadata!"
-                )
+                except TypeError:
+                    raise InvalidProductError(
+                        "'opt:cloudCoverPercentage' not found in metadata!"
+                    )
+
+        except (InvalidProductError, TypeError) as ex:
+            LOGGER.warning(ex)
+            cc = 0
 
         return cc
 
