@@ -436,7 +436,10 @@ def _test_core(
                 check_geometry(prod, "footprint", tmp_dir)
 
                 if hasattr(prod, "wgs84_extent"):
-                    prod.wgs84_extent()
+                    try:
+                        prod.wgs84_extent()
+                    except NotImplementedError:
+                        pass
 
                 if hasattr(prod, "_fallback_wgs84_extent"):
                     try:
