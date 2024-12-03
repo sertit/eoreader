@@ -1820,9 +1820,9 @@ class LandsatProduct(OpticalProduct):
         # Get the cloud cover
         try:
             cc = float(root.findtext(".//CLOUD_COVER"))
-
-        except TypeError:
-            raise InvalidProductError("CLOUD_COVER not found in metadata!")
+        except (InvalidProductError, TypeError):
+            LOGGER.warning("'CLOUD_COVER' not found in metadata!")
+            cc = 0
 
         return cc
 

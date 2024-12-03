@@ -1256,9 +1256,9 @@ class DimapV2Product(VhrProduct):
         # Get the cloud cover
         try:
             cc = float(root.findtext(".//CLOUD_COVERAGE"))
-
-        except TypeError:
-            raise InvalidProductError("CLOUD_COVERAGE not found in metadata!")
+        except (InvalidProductError, TypeError):
+            LOGGER.warning("'CLOUD_COVERAGE' not found in metadata!")
+            cc = 0
 
         return cc
 

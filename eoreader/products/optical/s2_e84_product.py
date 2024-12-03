@@ -751,8 +751,9 @@ class S2E84Product(OpticalProduct):
         """
         try:
             cc = self.stac_mtd["properties"]["eo:cloud_cover"]
-        except IndexError:
-            raise InvalidProductError("cloud_cover not found in metadata!")
+        except (InvalidProductError, TypeError):
+            LOGGER.warning("'cloud_cover' not found in metadata!")
+            cc = 0
 
         return cc
 

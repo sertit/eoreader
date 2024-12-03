@@ -869,10 +869,10 @@ class S2TheiaProduct(OpticalProduct):
         # Get the cloud cover
         try:
             cc = float(root.findtext(".//QUALITY_INDEX[@name='CloudPercent']"))
-
-        except TypeError:
-            raise InvalidProductError(
-                "QUALITY_INDEXQUALITY_INDEX name='CloudPercent' not found in metadata!"
+        except (InvalidProductError, TypeError):
+            LOGGER.warning(
+                "'QUALITY_INDEXQUALITY_INDEX name='CloudPercent'' not found in metadata!"
             )
+            cc = 0
 
         return cc

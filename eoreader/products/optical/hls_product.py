@@ -1013,9 +1013,9 @@ class HlsProduct(OpticalProduct):
         # Get the cloud cover
         try:
             cc = float(root.findtext(".//cloud_coverage"))
-
-        except TypeError:
-            raise InvalidProductError("'cloud_coverage' not found in metadata!")
+        except (InvalidProductError, TypeError):
+            LOGGER.warning("'cloud_coverage' not found in metadata!")
+            cc = 0
 
         return cc
 
