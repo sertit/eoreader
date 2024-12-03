@@ -3,16 +3,15 @@
 import logging
 
 import pytest
-from sertit import ci
 
-from CI.scripts_utils import READER, broken_s2_path, dask_env, s3_env
+from CI.scripts_utils import READER, broken_s2_path, dask_env, reduce_verbosity, s3_env
 from eoreader import EOREADER_NAME
 from eoreader.bands import NIR, RED
 from eoreader.exceptions import InvalidProductError
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-ci.reduce_verbosity()
+reduce_verbosity()
 
 
 @s3_env

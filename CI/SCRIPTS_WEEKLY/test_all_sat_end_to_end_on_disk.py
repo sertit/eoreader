@@ -7,7 +7,7 @@ from typing import Union
 
 import xarray as xr
 from lxml import etree
-from sertit import AnyPath, ci, path, types
+from sertit import AnyPath, path, types
 
 from CI.scripts_utils import (
     CI_EOREADER_S3,
@@ -17,6 +17,7 @@ from CI.scripts_utils import (
     get_db_dir,
     get_db_dir_on_disk,
     opt_path,
+    reduce_verbosity,
 )
 from eoreader import EOREADER_NAME
 from eoreader.bands import (
@@ -53,8 +54,7 @@ from eoreader.products import S2Product, SlstrRadAdjust
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
 
-ci.reduce_verbosity(["dicttoxml"])
-logging.getLogger("rasterio._env").setLevel(logging.ERROR)
+reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

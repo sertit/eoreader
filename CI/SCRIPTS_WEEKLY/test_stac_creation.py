@@ -9,7 +9,7 @@ from typing import Union
 import pystac
 import pytest
 import xarray as xr
-from sertit import ci, path
+from sertit import path
 from sertit.vectors import WGS84
 from shapely.geometry import mapping
 
@@ -19,6 +19,7 @@ from CI.scripts_utils import (
     compare,
     dask_env,
     opt_path,
+    reduce_verbosity,
     s3_env,
     sar_path,
 )
@@ -66,8 +67,7 @@ from eoreader.stac._stac_keywords import (
     VIEW_SUN_ELEVATION,
 )
 
-ci.reduce_verbosity(["dicttoxml"])
-logging.getLogger("rasterio._env").setLevel(logging.ERROR)
+reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

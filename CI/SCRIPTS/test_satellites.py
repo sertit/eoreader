@@ -20,6 +20,7 @@ from CI.scripts_utils import (
     get_db_dir,
     get_db_dir_on_disk,
     opt_path,
+    reduce_verbosity,
     s3_env,
     sar_path,
 )
@@ -49,8 +50,7 @@ from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import Product, SensorType, SlstrRadAdjust
 from eoreader.reader import CheckMethod
 
-ci.reduce_verbosity(["dicttoxml"])
-logging.getLogger("rasterio._env").setLevel(logging.ERROR)
+reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 

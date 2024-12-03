@@ -7,7 +7,7 @@ import pytest
 from sertit import ci
 
 from CI.SCRIPTS.test_custom import test_custom_invalid, test_custom_optical
-from CI.scripts_utils import READER, dask_env, others_path, s3_env
+from CI.scripts_utils import READER, dask_env, others_path, reduce_verbosity, s3_env
 from eoreader import EOREADER_NAME
 from eoreader.bands import (
     BLUE,
@@ -27,7 +27,7 @@ from eoreader.products import SensorType
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-ci.reduce_verbosity()
+reduce_verbosity()
 
 
 @s3_env

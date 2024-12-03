@@ -5,16 +5,15 @@ import os
 import tempfile
 
 import xarray as xr
-from sertit import ci, s3
+from sertit import s3
 from tempenv import tempenv
 
-from CI.scripts_utils import READER, compare
+from CI.scripts_utils import READER, compare, reduce_verbosity
 from eoreader import EOREADER_NAME
 from eoreader.products import Product
 from eoreader.reader import Constellation
 
-ci.reduce_verbosity(["dicttoxml"])
-logging.getLogger("rasterio._env").setLevel(logging.ERROR)
+reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
