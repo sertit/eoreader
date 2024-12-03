@@ -333,7 +333,12 @@ class ViewExt:
             "incidence_angle": VIEW_INCIDENCE_ANGLE,
         }
         try:
-            sun_az, sun_el = prod.get_mean_sun_angles()
+            # This fct gives the sun zenith angle
+            sun_az, sun_zen = prod.get_mean_sun_angles()
+
+            # STAC wants the sun elevation angle
+            # https://en.wikipedia.org/wiki/Solar_zenith_angle#Formula
+            sun_el = 90 - sun_zen
 
             # Convert from numpy dtype (which are not JSON serializable) to standard dtype
             self.sun_az = stac_utils.to_float(sun_az)
