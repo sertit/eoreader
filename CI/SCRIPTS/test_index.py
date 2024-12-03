@@ -7,7 +7,14 @@ import tempfile
 import numpy as np
 from sertit import ci, rasters
 
-from CI.scripts_utils import READER, dask_env, get_ci_data_dir, opt_path, s3_env
+from CI.scripts_utils import (
+    READER,
+    dask_env,
+    get_ci_data_dir,
+    opt_path,
+    reduce_verbosity,
+    s3_env,
+)
 from eoreader import EOREADER_NAME
 from eoreader.bands import BAI, NBR, NDVI
 
@@ -15,7 +22,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 
 RES = 2000.0  # 2000 meters
 
-ci.reduce_verbosity()
+reduce_verbosity()
 
 
 @s3_env

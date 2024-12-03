@@ -10,7 +10,7 @@ import rasterio
 import tempenv
 import xarray as xr
 from rasterio.windows import Window
-from sertit import AnyPath, ci, path, unistra
+from sertit import AnyPath, path, unistra
 
 from CI.scripts_utils import (
     READER,
@@ -19,6 +19,7 @@ from CI.scripts_utils import (
     get_db_dir_on_disk,
     opt_path,
     others_path,
+    reduce_verbosity,
     s3_env,
     sar_path,
 )
@@ -64,7 +65,7 @@ from eoreader.exceptions import InvalidTypeError
 from eoreader.products import SensorType
 from eoreader.reader import Constellation
 
-ci.reduce_verbosity()
+reduce_verbosity()
 
 
 @pytest.mark.xfail

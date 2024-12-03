@@ -2,11 +2,13 @@
 
 import logging
 import os
+import warnings
 from functools import wraps
 from typing import Callable
 
+import rasterio
 import tempenv
-from sertit import AnyPath, s3, unistra
+from sertit import AnyPath, ci, s3, unistra
 from sertit.types import AnyPathType
 from sertit.unistra import get_db2_path, get_db3_path, get_geodatastore
 
@@ -166,3 +168,18 @@ def compare(to_be_checked, ref, topic):
         assert str(to_be_checked).startswith("No") and str(to_be_checked).endswith(
             "available"
         ), f"Non equal {topic}: ref={ref} != to_be_checked={to_be_checked}"
+
+
+def reduce_verbosity():
+    # Ignore warning
+    warnings.filterwarnings("ignore", category=rasterio.errors.NotGeoreferencedWarning)
+
+    # Reduce verbosity to warning
+    ci.reduce_verbosity(["dicttoxml", "pyogrio"])
+
+    # Errors
+    logging.getLogger("rasterio._env").setLevel(logging.ERROR)
+    logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
+
+    # Critical
+    logging.getLogger("distributed.worker").setLevel(logging.CRITICAL)

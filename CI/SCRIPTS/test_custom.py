@@ -7,7 +7,14 @@ import pytest
 from rasterio.windows import Window
 from sertit import ci
 
-from CI.scripts_utils import READER, dask_env, get_db_dir, others_path, s3_env
+from CI.scripts_utils import (
+    READER,
+    dask_env,
+    get_db_dir,
+    others_path,
+    reduce_verbosity,
+    s3_env,
+)
 from eoreader import EOREADER_NAME
 from eoreader.bands import BLUE, CA, GREEN, HILLSHADE, NDVI, NIR, RED, SWIR_1
 from eoreader.env_vars import DEM_PATH
@@ -16,7 +23,8 @@ from eoreader.products import SensorType
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
-ci.reduce_verbosity()
+
+reduce_verbosity()
 
 
 @s3_env

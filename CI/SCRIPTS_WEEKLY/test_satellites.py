@@ -20,6 +20,7 @@ from CI.scripts_utils import (
     get_ci_data_dir,
     get_db_dir_on_disk,
     opt_path,
+    reduce_verbosity,
     s3_env,
     sar_path,
 )
@@ -47,8 +48,7 @@ from eoreader.products import Product, S2Product, SensorType, SlstrRadAdjust
 from eoreader.products.product import OrbitDirection
 from eoreader.reader import Constellation
 
-ci.reduce_verbosity(["dicttoxml"])
-logging.getLogger("rasterio._env").setLevel(logging.ERROR)
+reduce_verbosity()
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
