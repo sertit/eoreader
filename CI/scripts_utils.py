@@ -163,6 +163,6 @@ def compare(to_be_checked, ref, topic):
             ref == to_be_checked
         ), f"Non equal {topic}: ref ={ref} != to_be_checked={to_be_checked}"
     except AssertionError:
-        assert to_be_checked.startswith("No") and to_be_checked.endswith(
+        assert str(to_be_checked).startswith("No") and str(to_be_checked).endswith(
             "available"
         ), f"Non equal {topic}: ref={ref} != to_be_checked={to_be_checked}"
