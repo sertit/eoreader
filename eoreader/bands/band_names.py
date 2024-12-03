@@ -71,6 +71,70 @@ class BandNames(misc.ListEnum):
 
         return out_list
 
+    def __gt__(self, other) -> bool:
+        """
+        Overload greater than for BandNames -> compare the names in string.
+
+        Args:
+            other (BandNames): Other products to be compared with this one
+
+        Returns:
+            bool: True if this product has been acquired after the other
+
+        """
+        try:
+            return self.name > other.name
+        except AttributeError:
+            return str(self) > str(other)
+
+    def __ge__(self, other) -> bool:
+        """
+        Overload greater than for BandNames -> compare the names in string.
+
+        Args:
+            other (Product): Other products to be compared with this one
+
+        Returns:
+            bool: True if this product has been acquired after or in the same time as the other
+
+        """
+        try:
+            return self.name >= other.name
+        except AttributeError:
+            return str(self) >= str(other)
+
+    def __le__(self, other) -> bool:
+        """
+        Overload greater than for BandNames -> compare the names in string.
+
+        Args:
+            other (BandNames): Other products to be compared with this one
+
+        Returns:
+            bool: True if this product has been acquired before or in the same time as the other
+
+        """
+        try:
+            return self.name <= other.name
+        except AttributeError:
+            return str(self) <= str(other)
+
+    def __lt__(self, other) -> bool:
+        """
+        Overload greater than for BandNames -> compare the names in string.
+
+        Args:
+            other (BandNames): Other products to be compared with this one
+
+        Returns:
+            bool: True if this product has been acquired before the other
+
+        """
+        try:
+            return self.name < other.name
+        except AttributeError:
+            return str(self) < str(other)
+
 
 class SpectralBandNames(BandNames):
     """
