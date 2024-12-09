@@ -58,5 +58,14 @@ If set (to 1) and :code:`dask` is installed, EOReader will read products as dask
 
 TILE_SIZE = "EOREADER_TILE_SIZE"
 """
-If set, overrides the default tile size used in chunking (2048 by default, i.e. default chunk is [1, 2048, 2048]). Only used if :code:`EOREADER_USE_DASK` is set to 1.
+If set, overrides the default tile size used in chunking (1024 by default, i.e. default chunk is {"band": 1, "x": 1024, "y": 1024}).
+Only used if :code:`EOREADER_USE_DASK` is set to 1.
+If 'auto' is set, the value passed as chunks will be 'auto'.
+"""
+
+NOF_BANDS_IN_CHUNKS = "EOREADER_NOF_BANDS_IN_CHUNKS"
+"""
+If set, overrides the default number of bands to be considered used in chunking (1 by default, i.e. default chunk is {"band": 1, "x": 1024, "y": 1024}).
+Only used if :code:`EOREADER_USE_DASK` is set to 1.
+Not used in case of :code:`EOREADER_USE_DASK` set as 'auto'.
 """
