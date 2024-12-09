@@ -39,7 +39,7 @@ shapely>=2.0.0
 spyndex>=0.3.0
 
 # SERTIT libs
-sertit[full]>1.43.4
+sertit[full]==1.44.0rc1
 
 # Optimizations
 dask[complete]>=2024.5.1  # numpy >= 2
