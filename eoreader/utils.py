@@ -230,15 +230,6 @@ def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
         filepath (AnyPathStrType): Path where to save it (directories should be existing)
         **kwargs: Overloading metadata, ie :code:`nodata=255` or :code:`dtype=np.uint8`
     """
-    lock = None
-    if use_dask():
-        from distributed import Lock
-
-        try:
-            lock = Lock("rio")
-        except ValueError:
-            pass
-
     # Reset the long name as a list to write it down
     previous_long_name = xds.attrs.get("long_name")
     if previous_long_name and xds.rio.count > 1:
@@ -250,9 +241,7 @@ def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
             pass
 
     # Write
-    rasters.write(
-        xds, path=filepath, lock=lock, **_prune_keywords(["window"], **kwargs)
-    )
+    rasters.write(xds, path=filepath, **_prune_keywords(["window"], **kwargs))
 
     # Set back the previous long name
     if previous_long_name and xds.rio.count > 1:
