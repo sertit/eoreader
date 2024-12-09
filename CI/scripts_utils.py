@@ -8,7 +8,7 @@ from typing import Callable
 
 import tempenv
 from rasterio.errors import NotGeoreferencedWarning
-from sertit import AnyPath, ci, s3, unistra
+from sertit import AnyPath, ci, dask, s3, unistra
 from sertit.types import AnyPathType
 from sertit.unistra import get_db2_path, get_db3_path, get_geodatastore
 
@@ -125,13 +125,16 @@ def dask_env(function: Callable):
         #         LOGGER.info("Using DASK Local Cluster")
         #         function()
         # else:
-        os.environ[TILE_SIZE] = "2048"
+        os.environ[TILE_SIZE] = "auto"
         if use_dask():
             LOGGER.info("Using DASK threading by chunking the data")
+            with tempenv.TemporaryEnvironment(
+                {"CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD": "1"}
+            ), dask.get_or_create_dask_client():
+                function()
         else:
             LOGGER.info("No chunking will be done. Beware of memory overflow errors!")
-
-        function()
+            function()
 
     return dask_env_wrapper
 

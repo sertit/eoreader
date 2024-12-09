@@ -112,6 +112,7 @@ def get_split_name(name: str, sep: str = "_") -> list:
 def use_dask():
     """Use Dask or not"""
     # Check environment variable
+    # TODO: this is not optional if dask exists in env since sertit 1.43.1
     _use_dask = os.getenv(USE_DASK, "1").lower() in ("1", "true")
 
     # Check installed libs
@@ -166,7 +167,13 @@ def read(
     nof_bands_in_chunks = os.getenv(NOF_BANDS_IN_CHUNKS, DEFAULT_NOF_BANDS_IN_CHUNKS)
 
     if use_dask():
-        chunks = kwargs.get("chunks", {"band": 1, "x": tile_size, "y": tile_size})
+        if tile_size in [True, "auto", "True", "true"]:
+            chunks = kwargs.get("chunks", "auto")
+        else:
+            chunks = kwargs.get(
+                "chunks",
+                {"band": nof_bands_in_chunks, "x": int(tile_size), "y": int(tile_size)},
+            )
         # LOGGER.debug(f"Current chunking: {chunks}")
     else:
         # LOGGER.debug("Dask use is not enabled. No chunk will be used, but you may encounter memory overflow errors.")
