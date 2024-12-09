@@ -582,6 +582,11 @@ class VhrProduct(OpticalProduct):
                 resolution=pixel_size,
             )
 
+            try:
+                tile_size = int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE))
+            except ValueError:
+                tile_size = int(DEFAULT_TILE_SIZE)
+
             vrt_options = {
                 "crs": self.crs(),
                 "transform": utm_tr,
@@ -591,9 +596,7 @@ class VhrProduct(OpticalProduct):
                 "resampling": Resampling.bilinear,
                 "nodata": self._raw_nodata,
                 # Float32 is the max possible
-                "warp_mem_limit": 32
-                * int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE)) ** 2
-                / 1e6,
+                "warp_mem_limit": 32 * tile_size**2 / 1e6,
                 "dtype": src.meta["dtype"],
                 "num_threads": utils.get_max_cores(),
             }

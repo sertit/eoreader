@@ -36,12 +36,13 @@ from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME
 from eoreader.bands import is_index, is_sat_band
-from eoreader.env_vars import TILE_SIZE, USE_DASK
+from eoreader.env_vars import NOF_BANDS_IN_CHUNKS, TILE_SIZE, USE_DASK
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import _prune_keywords
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 DEFAULT_TILE_SIZE = 1024
+DEFAULT_NOF_BANDS_IN_CHUNKS = 1
 UINT16_NODATA = rasters.UINT16_NODATA
 
 
@@ -161,7 +162,8 @@ def read(
     window = kwargs.get("window")
 
     # Always use chunks
-    tile_size = int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE))
+    tile_size = os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE)
+    nof_bands_in_chunks = os.getenv(NOF_BANDS_IN_CHUNKS, DEFAULT_NOF_BANDS_IN_CHUNKS)
 
     if use_dask():
         chunks = kwargs.get("chunks", {"band": 1, "x": tile_size, "y": tile_size})
