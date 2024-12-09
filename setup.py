@@ -34,7 +34,7 @@ setuptools.setup(
         "rioxarray>=0.10.0",
         "odc-geo>=0.4.6",
         "geopandas>=0.14.4",
-        "sertit[full]>1.43.4",
+        "sertit[full]==1.44.0rc1",
         "spyndex>=0.3.0",
         "pyresample",
         "zarr",
