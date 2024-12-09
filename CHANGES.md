@@ -16,6 +16,7 @@
 - CI: Remove useless verbosity in CI
 - DOC: Update `conf.py` (remove useless hunks and set Sphinx 7 as base)
 - DOC: Added the [PAZ product guide](https://earth.esa.int/eogateway/documents/20142/37627/PAZ-Image-Products-Guide.pdf) to the PAZ Product documentation instead of the TerraSAR-X one - by @guillemc23
+- DEPS: Pin `sertit>=1.44`
 
 ## 0.21.7 (2024-11-08)
 
