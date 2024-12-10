@@ -24,7 +24,7 @@ from datetime import datetime
 from typing import Union
 
 from lxml import etree
-from sertit import AnyPath, path, xml
+from sertit import AnyPath, xml
 from sertit.types import AnyPathStrType
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
@@ -237,8 +237,8 @@ class S1RtcMpcStacProduct(StacProduct, SarProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / path.get_archived_path(
-                    self.path, file_regex=r".*preview\.png"
+                quicklook_path = self.path / self._get_archived_path(
+                    file_regex=r".*preview\.png"
                 )
             else:
                 quicklook_path = next(self.path.glob("*preview.png"))

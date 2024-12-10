@@ -249,7 +249,7 @@ class LandsatProduct(OpticalProduct):
                 regex = rf".*(RT|T1|T2)(_SR|_ST|){band_id}\."
             else:
                 regex = rf".*{band_id}\."
-            prod_path = path.get_archived_rio_path(self.path, regex)
+            prod_path = self._get_archived_rio_path(regex)
         else:
             prod_path = path.get_file_in_dir(
                 self.path, f"*{band_id}.TIF", exact_name=True
@@ -1836,8 +1836,8 @@ class LandsatProduct(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / path.get_archived_path(
-                    self.path, file_regex=r".*thumb_large\.jpeg"
+                quicklook_path = self.path / self._get_archived_path(
+                    file_regex=r".*thumb_large\.jpeg"
                 )
             else:
                 quicklook_path = next(self.path.glob("*thumb_large.jpeg"))

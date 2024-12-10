@@ -333,8 +333,8 @@ class S2TheiaProduct(OpticalProduct):
                 band_id = self.bands[band].id
                 try:
                     if self.is_archived:
-                        band_paths[band] = path.get_archived_rio_path(
-                            self.path, rf".*FRE_B{band_id}\.tif"
+                        band_paths[band] = self._get_archived_rio_path(
+                            rf".*FRE_B{band_id}\.tif"
                         )
                     else:
                         band_paths[band] = path.get_file_in_dir(
@@ -508,9 +508,7 @@ class S2TheiaProduct(OpticalProduct):
         mask_regex = f"*{mask_id}_{res_id}.tif"
         try:
             if self.is_archived:
-                mask_path = path.get_archived_rio_path(
-                    self.path, mask_regex.replace("*", ".*")
-                )
+                mask_path = self._get_archived_rio_path(mask_regex.replace("*", ".*"))
             else:
                 mask_path = path.get_file_in_dir(
                     self.path.joinpath("MASKS"), mask_regex, exact_name=True
@@ -836,8 +834,8 @@ class S2TheiaProduct(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / path.get_archived_path(
-                    self.path, file_regex=r".*QKL_ALL\.jpg"
+                quicklook_path = self.path / self._get_archived_path(
+                    file_regex=r".*QKL_ALL\.jpg"
                 )
             else:
                 quicklook_path = next(self.path.glob("**/*QKL_ALL.jpg"))

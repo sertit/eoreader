@@ -27,7 +27,6 @@ import numpy as np
 import xarray as xr
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import path
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
 
@@ -663,8 +662,8 @@ class Spot45Product(DimapV1Product):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / path.get_archived_path(
-                    self.path, file_regex=r".*PREVIEW\.JPG"
+                quicklook_path = self.path / self._get_archived_path(
+                    file_regex=r".*PREVIEW\.JPG"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("*PREVIEW.JPG")))

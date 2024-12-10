@@ -563,8 +563,8 @@ class S2Product(OpticalProduct):
             if self.is_archived:
                 # Get the band folder (use dirname is the first of the list is a band)
                 band_path = os.path.dirname(
-                    path.get_archived_rio_path(
-                        self.path, f"{self._get_image_folder()}.*{dir_name}"
+                    self._get_archived_rio_path(
+                        f"{self._get_image_folder()}.*{dir_name}"
                     )
                 )
 
@@ -635,8 +635,7 @@ class S2Product(OpticalProduct):
                 band_id = self.bands[band].id
                 try:
                     if self.is_archived:
-                        band_paths[band] = path.get_archived_rio_path(
-                            self.path,
+                        band_paths[band] = self._get_archived_rio_path(
                             f".*{band_folders[band]}.*B{band_id}.*.jp2",
                         )
                     else:
@@ -947,8 +946,8 @@ class S2Product(OpticalProduct):
             band_id = band
 
         if self.is_archived:
-            mask_path = path.get_archived_rio_path(
-                self.path, f"{self._get_qi_folder()}.*{mask_id.value}_B{band_id}.jp2"
+            mask_path = self._get_archived_rio_path(
+                f"{self._get_qi_folder()}.*{mask_id.value}_B{band_id}.jp2"
             )
         else:
             # Get mask path
@@ -1642,16 +1641,16 @@ class S2Product(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / path.get_archived_path(
-                    self.path, file_regex=r".*ql\.jpg"
+                quicklook_path = self.path / self._get_archived_path(
+                    file_regex=r".*ql\.jpg"
                 )
             else:
                 quicklook_path = next(self.path.glob("**/*ql.jpg"))
         except (StopIteration, FileNotFoundError):
             try:
                 if self.is_archived:
-                    quicklook_path = self.path / path.get_archived_path(
-                        self.path, file_regex=r".*preview\.jpg"
+                    quicklook_path = self.path / self._get_archived_path(
+                        file_regex=r".*preview\.jpg"
                     )
                 else:
                     quicklook_path = next(self.path.glob("**/preview.jpg"))
@@ -1659,8 +1658,8 @@ class S2Product(OpticalProduct):
                 # Use the PVI
                 try:
                     if self.is_archived:
-                        quicklook_path = path.get_archived_rio_path(
-                            self.path, file_regex=r".*PVI\.jp2"
+                        quicklook_path = self._get_archived_rio_path(
+                            file_regex=r".*PVI\.jp2"
                         )
                     else:
                         quicklook_path = next(self.path.glob("**/*PVI.jp2"))

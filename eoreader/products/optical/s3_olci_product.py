@@ -28,7 +28,7 @@ import numpy as np
 import rasterio
 import xarray as xr
 from rasterio.enums import Resampling
-from sertit import path, rasters, rasters_rio
+from sertit import rasters, rasters_rio
 from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -462,7 +462,7 @@ class S3OlciProduct(S3Product):
             filename = self._replace(self._radiance_file, band=self.bands[band].name)
 
             if self.is_archived:
-                raw_path = path.get_archived_path(self.path, f".*{filename}")
+                raw_path = self._get_archived_path(f".*{filename}")
             else:
                 try:
                     raw_path = next(self.path.glob(f"*{filename}"))

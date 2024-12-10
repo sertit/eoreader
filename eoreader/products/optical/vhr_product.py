@@ -507,8 +507,7 @@ class VhrProduct(OpticalProduct):
                 filename = f"*{filename}"
 
             if self.is_archived:
-                prod_path = path.get_archived_rio_path(
-                    self.path,
+                prod_path = self._get_archived_rio_path(
                     rf".{filename}.*\.{extension}",
                 )
             else:

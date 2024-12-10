@@ -34,7 +34,7 @@ from sertit import AnyPath, geometry, logs, path, rasters
 from sertit.snap import SU_MAX_CORE
 from sertit.types import AnyPathStrType, AnyPathType
 
-from eoreader import EOREADER_NAME
+from eoreader import EOREADER_NAME, cache
 from eoreader.bands import is_index, is_sat_band
 from eoreader.env_vars import NOF_BANDS_IN_CHUNKS, TILE_SIZE, USE_DASK
 from eoreader.exceptions import InvalidProductError
@@ -507,3 +507,12 @@ def load_np(path_to_load: AnyPathStrType, output: AnyPathStrType) -> np.ndarray:
 
 def get_max_cores():
     return int(os.getenv(SU_MAX_CORE, os.cpu_count() - 2))
+
+
+@cache
+def get_archived_file_list(archive_path):
+    """
+    Overload of sertit.path.get_archived_file_list to cache its retrieval:
+    this operation is expensive when done with large archives stored on the cloud (and thus better done only once)
+    """
+    return path.get_archived_file_list(archive_path)

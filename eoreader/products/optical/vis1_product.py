@@ -28,7 +28,7 @@ import numpy as np
 import xarray as xr
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import files, geometry, path, rasters
+from sertit import geometry, rasters
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
 
@@ -386,7 +386,7 @@ class Vis1Product(DimapV1Product):
         if self.product_type in self._proj_prod_type:
             # Compute RPCSs
             if self.is_archived:
-                rpcs_file = io.BytesIO(files.read_archived_file(self.path, r".*\.rpc"))
+                rpcs_file = io.BytesIO(self._read_archived_file(r".*\.rpc"))
             else:
                 rpcs_file = self.path.joinpath(self.name + ".rpc")
 
@@ -405,8 +405,8 @@ class Vis1Product(DimapV1Product):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = path.get_archived_rio_path(
-                    self.path, file_regex=r".*Preview\.tif"
+                quicklook_path = self._get_archived_rio_path(
+                    file_regex=r".*Preview\.tif"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("*Preview.tif")))

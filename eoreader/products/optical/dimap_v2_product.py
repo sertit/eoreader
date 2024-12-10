@@ -997,8 +997,7 @@ class DimapV2Product(VhrProduct):
             try:
                 if self.is_archived:
                     # Open the zip file
-                    mask = vectors.read(
-                        self.path,
+                    mask = self._read_archived_vector(
                         archive_regex=rf".*MASKS.*{mask_str}.*\.GML",
                         crs=crs,
                     )
@@ -1272,8 +1271,8 @@ class DimapV2Product(VhrProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / path.get_archived_path(
-                    self.path, file_regex=".*PREVIEW.*JPG"
+                quicklook_path = self.path / self._get_archived_path(
+                    file_regex=".*PREVIEW.*JPG"
                 )
             else:
                 quicklook_path = next(self.path.glob("*PREVIEW*.JPG"))

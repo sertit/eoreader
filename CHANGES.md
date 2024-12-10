@@ -16,10 +16,11 @@
 - FIX: Use the sun elevation angle rather than the sun zenith angle for STAC [#158](https://github.com/sertit/eoreader/issues/158)
 - FIX: Create comparison operators for `BandNames`, removing the `xarray RuntimeWarning` about `sort order is undefined for incomparable objects`.
 - FIX: Add some missing `@cache` around time-consuming functions
+- OPTIM: Cache the access to any archived file list, as this operation is expensive when done with large archives stored on the cloud (and thus better done only once).
 - CI: Remove useless verbosity in CI
 - DOC: Update `conf.py` (remove useless hunks and set Sphinx 7 as base)
 - DOC: Added the [PAZ product guide](https://earth.esa.int/eogateway/documents/20142/37627/PAZ-Image-Products-Guide.pdf) to the PAZ Product documentation instead of the TerraSAR-X one - by @guillemc23
-- DEPS: Pin `sertit>=1.44`
+- DEPS: Pin `sertit>=1.44.1`
 
 ## 0.21.7 (2024-11-08)
 

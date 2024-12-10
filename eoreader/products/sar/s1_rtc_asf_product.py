@@ -155,7 +155,7 @@ class S1RtcAsfProduct(SarProduct):
         # https://hyp3-docs.asf.alaska.edu/guides/rtc_product_guide/#image-files
         # Products are distributed as GeoTIFFs (one for each available polarization) projected to the appropriate UTM Zone for the location of the scene.
         if self.is_archived:
-            footprint = vectors.read(self.path, archive_regex=r".*\.shp")
+            footprint = self._read_archived_vector(archive_regex=r".*\.shp")
         else:
             try:
                 footprint = vectors.read(next(self.path.glob("*.shp")))
@@ -282,16 +282,16 @@ class S1RtcAsfProduct(SarProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / path.get_archived_path(
-                    self.path, file_regex=r".*_rgb\.png"
+                quicklook_path = self.path / self._get_archived_path(
+                    file_regex=r".*_rgb\.png"
                 )
             else:
                 quicklook_path = next(self.path.glob("*_rgb.png"))
         except (StopIteration, FileNotFoundError):
             try:
                 if self.is_archived:
-                    quicklook_path = self.path / path.get_archived_path(
-                        self.path, file_regex=r".*\.png"
+                    quicklook_path = self.path / self._get_archived_path(
+                        file_regex=r".*\.png"
                     )
                 else:
                     quicklook_path = next(self.path.glob("*.png"))

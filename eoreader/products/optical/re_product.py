@@ -28,7 +28,7 @@ from typing import Union
 
 import numpy as np
 import xarray as xr
-from sertit import files, path
+from sertit import files
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
 
@@ -108,7 +108,7 @@ class ReProduct(PlanetProduct):
         """
         try:
             if self.is_archived:
-                path.get_archived_path(self.path, r".*udm\.tif")
+                self._get_archived_path(r".*udm\.tif")
             else:
                 next(self.path.glob("**/*udm.tif"))
             self._has_udm = True
@@ -380,8 +380,8 @@ class ReProduct(PlanetProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = path.get_archived_rio_path(
-                    self.path, file_regex=r".*_browse\.tif"
+                quicklook_path = self._get_archived_rio_path(
+                    file_regex=r".*_browse\.tif"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("**/*_browse.tif")))

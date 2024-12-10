@@ -138,7 +138,7 @@ class HlsProduct(OpticalProduct):
 
         """
         if self.is_archived:
-            prod_path = path.get_archived_rio_path(self.path, rf".*{band_id}\.tif")
+            prod_path = self._get_archived_rio_path(rf".*{band_id}\.tif")
         else:
             prod_path = path.get_file_in_dir(
                 self.path, f"*{band_id}.tif", exact_name=True
@@ -1030,8 +1030,8 @@ class HlsProduct(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / path.get_archived_path(
-                    self.path, file_regex=r".*.jpg"
+                quicklook_path = self.path / self._get_archived_path(
+                    file_regex=r".*.jpg"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("*.jpg")))
