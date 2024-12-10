@@ -42,16 +42,7 @@ except ImportError:
         "Caches may be shared between similar products!\n"
         "Please install methodtools through pip (pip install methodtools)"
     )
-    from functools import lru_cache
-
-    def cache(func: Callable) -> Callable:
-        @lru_cache(maxsize=None)
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
-
-        return wrapper
-
+    from functools import cache
 
 from .__meta__ import (
     __author__,
