@@ -445,8 +445,12 @@ class Rs2Product(SarProduct):
         """Set products type"""
         if self.product_type == Rs2ProductType.SLC:
             self.sar_prod_type = SarProductType.CPLX
+        elif self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SGF]:
+            self.sar_prod_type = SarProductType.GEOCODED
+        elif self.product_type in [Rs2ProductType.SSG, Rs2ProductType.SPG]:
+            self.sar_prod_type = SarProductType.ORTHO
         else:
-            self.sar_prod_type = SarProductType.GDRG
+            self.sar_prod_type = SarProductType.GRD
 
         if self.product_type not in [
             Rs2ProductType.SGF,

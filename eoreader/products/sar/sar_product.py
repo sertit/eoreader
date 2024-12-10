@@ -115,14 +115,19 @@ class SarProductType(ListEnum):
     """
 
     CPLX = "COMPLEX"
-    """Single Look Complex"""
+    """Complex image (most likely Single Look Complex)"""
 
-    GDRG = "GROUND"
-    """Ground Range"""
+    GRD = "GROUND RANGE"
+    """Ground Range image"""
+
+    GEOCODED = "GEOCODED"
+    """Already geocoded image: don't need SNAP. To orthorectify it, you may need to take GCP by hand..."""
+
+    ORTHO = "ORTHO"
+    """Already orthorecified image: don't need SNAP"""
 
     OTHER = "OTHER"
-    """Other products types, no used in EOReader"""
-    # Add ortho products ?
+    """Other products types, not used in EOReader"""
 
 
 class _ExtendedFormatter(Formatter):
@@ -193,6 +198,9 @@ class SarProduct(Product):
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
 
+        self._need_snap = self._need_snap_to_pre_process()
+        self.is_ortho = self.sar_prod_type == SarProductType.ORTHO
+
     def _map_bands(self) -> None:
         """
         Map bands
@@ -218,8 +226,6 @@ class SarProduct(Product):
         self.tile_name = None
         self.sensor_type = SensorType.SAR
         self.bands = SarBandMap()
-        self.is_ortho = False
-        self._need_snap = self._need_snap_to_pre_process()
 
     def _post_init(self, **kwargs) -> None:
         """
@@ -258,14 +264,7 @@ class SarProduct(Product):
 
     def _need_snap_to_pre_process(self):
         """This product needs SNAP for pre-process."""
-        raw_band_path = self.get_raw_band_paths()
-
-        # Cannot use get_default_band here, because of recursion
-        def_key = list(raw_band_path.keys())[0]
-        with rasterio.open(raw_band_path[def_key]) as ds:
-            raw_crs = ds.crs
-
-        need_snap = not (raw_crs is not None and raw_crs.is_projected)
+        need_snap = self.sar_prod_type in [SarProductType.CPLX, SarProductType.GRD]
         return need_snap
 
     @cache
@@ -323,6 +322,7 @@ class SarProduct(Product):
 
         return default_band
 
+    @cache
     def get_default_band_path(self, **kwargs) -> AnyPathType:
         """
         Get default band path (the first existing one between :code:`VV` and :code:`HH` for SAR data), ready to use (orthorectified)
@@ -504,6 +504,7 @@ class SarProduct(Product):
         extended_fmt = _ExtendedFormatter()
         band_paths = {}
         for band in sab.speckle_list():
+            LOGGER.debug(f"get RAW band path for {band.name}")
             band_regex = extended_fmt.format(self._raw_band_regex, band.value)
 
             if self.is_archived:
@@ -530,6 +531,7 @@ class SarProduct(Product):
 
         return band_paths
 
+    @cache
     def _get_raw_bands(self) -> list:
         """
         Return the existing band paths (as they come with th archived products).
@@ -742,7 +744,7 @@ class SarProduct(Product):
                         sat = "no_calib"
                     else:
                         sat = "sar"
-                    spt = "grd" if self.sar_prod_type == SarProductType.GDRG else "cplx"
+                    spt = "grd" if self.sar_prod_type == SarProductType.GRD else "cplx"
                     pp_graph = utils.get_data_dir().joinpath(
                         f"{spt}_{sat}_preprocess_default.xml"
                     )

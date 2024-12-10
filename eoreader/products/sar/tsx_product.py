@@ -400,12 +400,12 @@ class TsxProduct(SarProduct):
 
         self.product_type = TsxProductType.from_value(prod_type)
 
-        if self.product_type in [
-            TsxProductType.MGD,
-            TsxProductType.GEC,
-            TsxProductType.EEC,
-        ]:
-            self.sar_prod_type = SarProductType.GDRG
+        if self.product_type == TsxProductType.MGD:
+            self.sar_prod_type = SarProductType.GRD
+        elif self.product_type == TsxProductType.GEC:
+            self.sar_prod_type = SarProductType.GEOCODED
+        elif self.product_type == TsxProductType.EEC:
+            self.sar_prod_type = SarProductType.ORTHO
         elif self.product_type == TsxProductType.SSC:
             self.sar_prod_type = SarProductType.CPLX
         else:

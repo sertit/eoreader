@@ -54,10 +54,6 @@ class IceyeProductType(ListEnum):
     SLC = "SLC"
     """ Level-1 Single Look Complex (SLC) """
 
-    # Not released yet
-    # ORTHO = "ORTHO"
-    # """ ORTHO """
-
 
 @unique
 class IceyeSensorMode(ListEnum):
@@ -201,7 +197,7 @@ class IceyeProduct(SarProduct):
         self.product_type = IceyeProductType.from_value(prod_type)
 
         if self.product_type == IceyeProductType.GRD:
-            self.sar_prod_type = SarProductType.GDRG
+            self.sar_prod_type = SarProductType.GRD
         elif self.product_type == IceyeProductType.SLC:
             self.sar_prod_type = SarProductType.CPLX
         else:
