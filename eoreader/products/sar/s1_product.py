@@ -245,8 +245,8 @@ class S1Product(SarProduct):
         try:
             # Open the map-overlay file
             if self.is_archived:
-                extent_wgs84 = vectors.read(
-                    self.path, archive_regex=".*preview.*map-overlay.kml"
+                extent_wgs84 = self._read_archived_vector(
+                    archive_regex=".*preview.*map-overlay.kml"
                 )
             else:
                 preview_overlay = self.path.joinpath("preview", "map-overlay.kml")
@@ -357,7 +357,7 @@ class S1Product(SarProduct):
         """
         try:
             if self.is_archived:
-                pdf_file = path.get_archived_path(self.path, r".*\.pdf", as_list=False)
+                pdf_file = self._get_archived_path(r".*\.pdf", as_list=False)
             else:
                 pdf_file = next(self.path.glob("*.pdf"))
         except (FileNotFoundError, StopIteration):
@@ -421,8 +421,8 @@ class S1Product(SarProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / path.get_archived_path(
-                    self.path, file_regex=r".*preview.quick-look\.png"
+                quicklook_path = self.path / self._get_archived_path(
+                    file_regex=r".*preview.quick-look\.png"
                 )
             else:
                 quicklook_path = next(self.path.glob("preview/quick-look.png"))

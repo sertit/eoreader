@@ -30,7 +30,7 @@ from sertit import AnyPath, path, strings, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
 
-from eoreader import EOREADER_NAME
+from eoreader import EOREADER_NAME, utils
 from eoreader.exceptions import InvalidProductError
 
 try:
@@ -886,7 +886,7 @@ class Reader:
         # Archive
         else:
             try:
-                prod_files = path.get_archived_file_list(product_path)
+                prod_files = utils.get_archived_file_list(product_path)
             except BadZipFile:
                 raise BadZipFile(f"{product_path} is not a zip file")
 
@@ -938,7 +938,7 @@ def is_filename_valid(
                     break
         else:
             try:
-                file_list = path.get_archived_file_list(product_path)
+                file_list = utils.get_archived_file_list(product_path)
                 for file in file_list:
                     if regex[1].match(file):
                         is_valid = True

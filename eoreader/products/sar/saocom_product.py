@@ -296,8 +296,10 @@ class SaocomProduct(SarProduct):
 
             try:
                 # Get as a list but keep only the first item (SLC with multiple swaths)
-                raw_paths = path.get_archived_rio_path(
-                    cuss_file, band_regex.replace("*", ".*"), as_list=True
+                raw_paths = self._get_archived_rio_path(
+                    archive_path=cuss_file,
+                    file_regex=band_regex.replace("*", ".*"),
+                    as_list=True,
                 )
 
                 # Remove .xml files and keep only the first item

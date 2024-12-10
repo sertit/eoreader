@@ -43,7 +43,18 @@ from rasterio import transform, warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
-from sertit import AnyPath, files, logs, misc, path, rasters, strings, types, xml
+from sertit import (
+    AnyPath,
+    files,
+    logs,
+    misc,
+    path,
+    rasters,
+    strings,
+    types,
+    vectors,
+    xml,
+)
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -781,7 +792,7 @@ class Product:
 
         """
         if self.is_archived:
-            root = files.read_archived_html(self.path, f".*{mtd_archived}")
+            root = self._read_archived_html(f".*{mtd_archived}")
         else:
             try:
                 mtd_file = next(self.path.glob(f"**/*{mtd_from_path}"))
@@ -2001,8 +2012,8 @@ class Product:
 
                     if self.is_archived:
                         qlk = BytesIO(
-                            files.read_archived_file(
-                                self.path, f".*{os.path.basename(quicklook_path)}"
+                            self._read_archived_file(
+                                f".*{os.path.basename(quicklook_path)}"
                             )
                         )
                     else:
@@ -2078,3 +2089,89 @@ class Product:
                     )
 
         return bands
+
+    def _read_archived_file(self, regex, archive_path=None):
+        """Overload of sertit.files.read_archived_file to handle the cached 'get_archived_file_list'"""
+
+        if archive_path is None:
+            archive_path = self.path
+
+        return files.read_archived_file(
+            archive_path,
+            regex=regex,
+            file_list=utils.get_archived_file_list(archive_path),
+        )
+
+    def _read_archived_xml(self, xml_regex, archive_path=None):
+        """Overload of sertit.files.read_archived_xml to handle the cached 'get_archived_file_list'"""
+
+        if archive_path is None:
+            archive_path = self.path
+
+        return files.read_archived_xml(
+            archive_path,
+            xml_regex=xml_regex,
+            file_list=utils.get_archived_file_list(archive_path),
+        )
+
+    def _read_archived_html(self, regex, archive_path=None):
+        """Overload of sertit.files.read_archived_html to handle the cached 'get_archived_file_list'"""
+
+        if archive_path is None:
+            archive_path = self.path
+
+        return files.read_archived_html(
+            archive_path,
+            regex=regex,
+            file_list=utils.get_archived_file_list(archive_path),
+        )
+
+    def _get_archived_path(
+        self, file_regex, as_list=False, case_sensitive=False, archive_path=None
+    ):
+        """Overload of sertit.path.get_archived_path to handle the cached 'get_archived_file_list'"""
+
+        if archive_path is None:
+            archive_path = self.path
+
+        return path.get_archived_path(
+            archive_path=archive_path,
+            file_regex=file_regex,
+            as_list=as_list,
+            case_sensitive=case_sensitive,
+            file_list=utils.get_archived_file_list(archive_path),
+        )
+
+    def _get_archived_rio_path(self, file_regex, as_list=False, archive_path=None):
+        """Overload of sertit.path.get_archived_rio_path to handle the cached 'get_archived_file_list'"""
+
+        if archive_path is None:
+            archive_path = self.path
+
+        return path.get_archived_rio_path(
+            archive_path=archive_path,
+            file_regex=file_regex,
+            as_list=as_list,
+            file_list=utils.get_archived_file_list(archive_path),
+        )
+
+    def _read_archived_vector(
+        self,
+        archive_path: AnyPathStrType = None,
+        crs=None,
+        archive_regex: str = None,
+        window=None,
+        **kwargs,
+    ):
+        """Overload of sertit.vectors.read to handle the cached 'get_archived_file_list'"""
+        if archive_path is None:
+            archive_path = self.path
+
+        return vectors.read(
+            vector_path=archive_path,
+            crs=crs,
+            archive_regex=archive_regex,
+            window=window,
+            file_list=utils.get_archived_file_list(archive_path),
+            **kwargs,
+        )

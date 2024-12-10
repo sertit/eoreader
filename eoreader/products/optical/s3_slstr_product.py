@@ -536,7 +536,7 @@ class S3SlstrProduct(S3Product):
             filename = band
 
         if self.is_archived:
-            raw_path = path.get_archived_path(self.path, f".*{filename}*")
+            raw_path = self._get_archived_path(f".*{filename}*")
         else:
             try:
                 raw_path = next(self.path.glob(f"*{filename}*"))

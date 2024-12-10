@@ -142,7 +142,7 @@ class Sv1Product(VhrProduct):
         """
         try:
             if self.is_archived:
-                path.get_archived_path(self.path, r".*PSH\.xml")
+                self._get_archived_path(r".*PSH\.xml")
             else:
                 next(self.path.glob("*PSH.xml"))
             self.band_combi = Sv1BandCombination.PSH
@@ -307,7 +307,7 @@ class Sv1Product(VhrProduct):
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
         if self.is_archived:
-            footprint = vectors.read(self.path, archive_regex=r".*\.shp")
+            footprint = self._read_archived_vector(archive_regex=r".*\.shp")
         else:
             try:
                 footprint = vectors.read(next(self.path.glob("*.shp")))
@@ -392,7 +392,7 @@ class Sv1Product(VhrProduct):
 
         try:
             if self.is_archived:
-                footprint_path = path.get_archived_path(self.path, r".*\.shp")
+                footprint_path = self._get_archived_path(r".*\.shp")
             else:
                 footprint_path = next(self.path.glob("*.shp"))
         except (FileNotFoundError, StopIteration):
@@ -741,8 +741,8 @@ class Sv1Product(VhrProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / path.get_archived_path(
-                    self.path, file_regex=r".*MUX\.jpg"
+                quicklook_path = self.path / self._get_archived_path(
+                    file_regex=r".*MUX\.jpg"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("*MUX.jpg")))

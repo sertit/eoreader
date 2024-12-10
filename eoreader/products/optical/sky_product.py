@@ -485,12 +485,12 @@ class SkyProduct(PlanetProduct):
         # MTD are geojson -> open as gpd.GeoDataFrame
         try:
             if self.is_archived:
-                data = vectors.read(self.path, archive_regex=mtd_archived)
+                data = self._read_archived_vector(archive_regex=mtd_archived)
 
             else:
                 try:
                     mtd_file = next(self.path.glob(mtd_from_path))
-                    data = vectors.read(mtd_file, archive_regex=f".*{mtd_archived}")
+                    data = vectors.read(mtd_file)
                 except StopIteration as ex:
                     raise InvalidProductError(
                         f"Metadata file ({mtd_from_path}) not found in {self.path}"

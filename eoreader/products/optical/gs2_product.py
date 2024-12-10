@@ -27,7 +27,6 @@ import numpy as np
 import xarray as xr
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import files, path
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
 
@@ -458,9 +457,7 @@ class Gs2Product(DimapV1Product):
         if self.product_type in self._proj_prod_type:
             # Compute RPCSs
             if self.is_archived:
-                rpcs_file = io.BytesIO(
-                    files.read_archived_file(self.path, r".*_RPC\.txt")
-                )
+                rpcs_file = io.BytesIO(self._read_archived_file(r".*_RPC\.txt"))
             else:
                 rpcs_file = self.path.joinpath(self.name + "_RPC.txt")
 
@@ -479,8 +476,8 @@ class Gs2Product(DimapV1Product):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / path.get_archived_path(
-                    self.path, file_regex=r".*QL\.png"
+                quicklook_path = self.path / self._get_archived_path(
+                    file_regex=r".*QL\.png"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("*QL.png")))

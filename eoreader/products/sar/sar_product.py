@@ -509,8 +509,8 @@ class SarProduct(Product):
             if self.is_archived:
                 if self.path.suffix == ".zip":
                     try:
-                        band_paths[band] = path.get_archived_rio_path(
-                            self.path, band_regex.replace("*", ".*") + "$", as_list=True
+                        band_paths[band] = self._get_archived_rio_path(
+                            band_regex.replace("*", ".*") + "$", as_list=True
                         )[0]
                         # Get as a list but keep only the first item (S1-SLC with 3 swaths)
                     except FileNotFoundError:

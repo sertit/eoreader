@@ -177,14 +177,14 @@ class PlanetProduct(OpticalProduct):
         # Manage mask type
         try:
             if self.is_archived:
-                path.get_archived_path(self.path, r".*udm2.*\.tif")
+                self._get_archived_path(r".*udm2.*\.tif")
             else:
                 next(self.path.glob("**/*udm2*.tif"))
             self._mask_type = PlanetMaskType.UDM2
         except (FileNotFoundError, StopIteration):
             try:
                 if self.is_archived:
-                    path.get_archived_path(self.path, r".*udm.*\.tif")
+                    self._get_archived_path(r".*udm.*\.tif")
                 else:
                     next(self.path.glob("**/*udm*.tif"))
                 self._mask_type = PlanetMaskType.UDM
@@ -1012,7 +1012,7 @@ class PlanetProduct(OpticalProduct):
             if self.is_archived:
                 regex = rf".*{filename}\w*[_]*\.{extension}"
 
-                ok_paths = path.get_archived_rio_path(self.path, regex, as_list=True)
+                ok_paths = self._get_archived_rio_path(regex, as_list=True)
             else:
                 ok_paths = [
                     str(p) for p in self.path.glob(f"**/*{filename}*.{extension}")

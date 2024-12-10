@@ -26,7 +26,7 @@ from typing import Union
 
 import geopandas as gpd
 from lxml import etree
-from sertit import path, vectors
+from sertit import vectors
 from sertit.misc import ListEnum
 from sertit.vectors import WGS84
 
@@ -424,7 +424,9 @@ class Rs2Product(SarProduct):
         # Open extent KML file
         try:
             if self.is_archived:
-                product_kml = vectors.read(self.path, archive_regex=r".*product\.kml")
+                product_kml = self._read_archived_vector(
+                    archive_regex=r".*product\.kml"
+                )
             else:
                 extent_file = next(self.path.glob("*product.kml"))
                 product_kml = vectors.read(extent_file)
@@ -574,8 +576,8 @@ class Rs2Product(SarProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = path.get_archived_rio_path(
-                    self.path, file_regex=r".*BrowseImage\.tif"
+                quicklook_path = self._get_archived_rio_path(
+                    file_regex=r".*BrowseImage\.tif"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("BrowseImage.tif")))
