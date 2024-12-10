@@ -749,7 +749,7 @@ class Product:
         """
         try:
             if self.is_archived:
-                root = xml.read_archive(self.path, f".*{mtd_archived}")
+                root = self._read_archived_xml(xml_regex=f".*{mtd_archived}")
             else:
                 try:
                     try:
@@ -2090,6 +2090,14 @@ class Product:
 
         return bands
 
+    @cache
+    def _get_archived_file_list(self, archive_path=None):
+
+        if archive_path is None:
+            archive_path = self.path
+
+        return utils.get_archived_file_list(archive_path)
+
     def _read_archived_file(self, regex, archive_path=None):
         """Overload of sertit.files.read_archived_file to handle the cached 'get_archived_file_list'"""
 
@@ -2099,7 +2107,7 @@ class Product:
         return files.read_archived_file(
             archive_path,
             regex=regex,
-            file_list=utils.get_archived_file_list(archive_path),
+            file_list=self._get_archived_file_list(archive_path),
         )
 
     def _read_archived_xml(self, xml_regex, archive_path=None):
@@ -2111,7 +2119,7 @@ class Product:
         return files.read_archived_xml(
             archive_path,
             xml_regex=xml_regex,
-            file_list=utils.get_archived_file_list(archive_path),
+            file_list=self._get_archived_file_list(archive_path),
         )
 
     def _read_archived_html(self, regex, archive_path=None):
@@ -2123,7 +2131,7 @@ class Product:
         return files.read_archived_html(
             archive_path,
             regex=regex,
-            file_list=utils.get_archived_file_list(archive_path),
+            file_list=self._get_archived_file_list(archive_path),
         )
 
     def _get_archived_path(
@@ -2139,7 +2147,7 @@ class Product:
             file_regex=file_regex,
             as_list=as_list,
             case_sensitive=case_sensitive,
-            file_list=utils.get_archived_file_list(archive_path),
+            file_list=self._get_archived_file_list(archive_path),
         )
 
     def _get_archived_rio_path(self, file_regex, as_list=False, archive_path=None):
@@ -2152,7 +2160,7 @@ class Product:
             archive_path=archive_path,
             file_regex=file_regex,
             as_list=as_list,
-            file_list=utils.get_archived_file_list(archive_path),
+            file_list=self._get_archived_file_list(archive_path),
         )
 
     def _read_archived_vector(
@@ -2172,6 +2180,6 @@ class Product:
             crs=crs,
             archive_regex=archive_regex,
             window=window,
-            file_list=utils.get_archived_file_list(archive_path),
+            file_list=self._get_archived_file_list(archive_path),
             **kwargs,
         )
