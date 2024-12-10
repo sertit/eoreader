@@ -444,11 +444,22 @@ class Rs2Product(SarProduct):
     def _set_product_type(self) -> None:
         """Set products type"""
         if self.product_type == Rs2ProductType.SLC:
+            # See https://earth.esa.int/eogateway/documents/20142/0/Radarsat-2-Product-description.pdf/f2783c7b-6a22-cbe4-f4c1-6992f9926dca at 2.2
             self.sar_prod_type = SarProductType.CPLX
-        elif self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SGF]:
-            self.sar_prod_type = SarProductType.GEOCODED
+        elif self.product_type in [
+            Rs2ProductType.SGX,
+            Rs2ProductType.SGF,
+            Rs2ProductType.SCN,
+            Rs2ProductType.SCW,
+            Rs2ProductType.SCN,
+            Rs2ProductType.SCS,
+        ]:
+            # See https://earth.esa.int/eogateway/documents/20142/0/Radarsat-2-Product-description.pdf/f2783c7b-6a22-cbe4-f4c1-6992f9926dca at 2.3
+            self.sar_prod_type = SarProductType.GRD
         elif self.product_type in [Rs2ProductType.SSG, Rs2ProductType.SPG]:
+            # See https://earth.esa.int/eogateway/documents/20142/0/Radarsat-2-Product-description.pdf/f2783c7b-6a22-cbe4-f4c1-6992f9926dca at 2.4
             self.sar_prod_type = SarProductType.ORTHO
+            # Note: SSG can be only GEOCODED, but it's at the user's request so we cannot really know..., see 2.4.1
         else:
             self.sar_prod_type = SarProductType.GRD
 
