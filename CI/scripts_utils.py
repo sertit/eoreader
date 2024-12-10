@@ -127,13 +127,13 @@ def dask_env(function: Callable):
         # else:
         os.environ[TILE_SIZE] = "auto"
         if use_dask():
-            LOGGER.info("Using DASK threading by chunking the data")
+            LOGGER.info("Using Dask and creating Dask client.")
             with tempenv.TemporaryEnvironment(
                 {"CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD": "1"}
             ), dask.get_or_create_dask_client():
                 function()
         else:
-            LOGGER.info("No chunking will be done. Beware of memory overflow errors!")
+            LOGGER.info("**NOT** using Dask!")
             function()
 
     return dask_env_wrapper
