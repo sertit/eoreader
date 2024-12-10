@@ -236,8 +236,12 @@ class CosmoProduct(SarProduct):
 
         self.product_type = CosmoProductType.from_value(prod_type)
 
-        if self.product_type == CosmoProductType.DGM:
-            self.sar_prod_type = SarProductType.GDRG
+        if self.product_type == CosmoProductType.GTC:
+            self.sar_prod_type = SarProductType.ORTHO
+        elif self.product_type == CosmoProductType.GEC:
+            self.sar_prod_type = SarProductType.GEOCODED
+        elif self.product_type == CosmoProductType.DGM:
+            self.sar_prod_type = SarProductType.GRD
         elif self.product_type == CosmoProductType.SCS:
             self.sar_prod_type = SarProductType.CPLX
         else:

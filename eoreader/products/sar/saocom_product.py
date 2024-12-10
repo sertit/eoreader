@@ -321,12 +321,12 @@ class SaocomProduct(SarProduct):
 
         self.product_type = SaocomProductType.from_value(prod_type)
 
-        if self.product_type in [
-            SaocomProductType.DI,
-            SaocomProductType.GEC,
-            SaocomProductType.GTC,
-        ]:
-            self.sar_prod_type = SarProductType.GDRG
+        if self.product_type == SaocomProductType.DI:
+            self.sar_prod_type = SarProductType.GRD
+        elif self.product_type == SaocomProductType.GEC:
+            self.sar_prod_type = SarProductType.GEOCODED
+        elif self.product_type == SaocomProductType.GTC:
+            self.sar_prod_type = SarProductType.ORTHO
         elif self.product_type == SaocomProductType.SLC:
             self.sar_prod_type = SarProductType.CPLX
         else:

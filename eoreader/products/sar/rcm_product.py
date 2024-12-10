@@ -42,32 +42,43 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class RcmProductType(ListEnum):
     """
     RADARSAT-Constellation projection identifier.
-    Take a look `here <https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html>`_.
+    Take a look `here <https://catalyst.earth/catalyst-system-files/enterprise-aerial-help/references/gdb_r/RADARSAT_Constellation.html>`_.
     """
 
     SLC = "SLC"
-    """ Georeferenced. Single look complex data in slant range. """
+    """
+    SLC represents a SLant range, georeferenced Complex product.
+    It is equivalent to a single-look complex product for RADARSAT-1 or RADARSAT-2).
+    """
 
     GRC = "GRC"
-    """ Georeferenced. Multilook complex data in ground range. """
+    """
+    GRC represents GRound range, georeferenced, Complex products.
+    """
 
     GRD = "GRD"
-    """ Georeferenced. Multilook detected data in ground range. """
+    """
+    GRD represents GRound range, georeferenced, Detected.
+    GRD is equivalent to an SGX, SCN, or SCW product for RADARSAT-1 or RADARSAT-2.
+    """
 
     GCC = "GCC"
     """
-    Geocoded to a map projection.
-    Complex data.
-    Data commonly projected to Universal Transverse Mercator Projection (UTM)
-    or Universal Polar Stereographic (UPS) north of 84N or south of 80S.
+    GCC represents GeoCoded Complex products.
     """
 
     GCD = "GCD"
     """
-    Geocoded to a map projection.
-    Detected data.
-    Data commonly projected to Universal Transverse Mercator (UTM)
-    or Universal Polar Stereographic (UPS) north of 84N or south of 80S.
+    GCD represents GeoCoded Detected products.
+    GCD is equivalent to an SSG or SPG product for RADARSAT-1 or RADARSAT-2.
+    """
+
+    MLC = "MLC"
+    """
+    MLC represent Multi-Look slant range Complex products.
+    It is for dual Co-/Cross-Polarization1 or Compact Polarization which is a spatially averaged version of the SLC product condensed to a single multi-burst image of the covariance matrix elements.
+    The covariance matrix elements consist of two real diagonal elements |xH|2 and |xV|2, and a complex off-diagonal element xH*conj(xV) where x is either Circular,
+    H or V depending on the SLC product polarization setting and conj denotes the complex conjugate.
     """
 
 
@@ -230,13 +241,11 @@ class RcmProduct(SarProduct):
 
         self.product_type = RcmProductType.from_value(prod_type)
 
-        if self.product_type in [RcmProductType.GRD, RcmProductType.GCD]:
-            self.sar_prod_type = SarProductType.GDRG
-        elif self.product_type in [
-            RcmProductType.SLC,
-            RcmProductType.GRC,
-            RcmProductType.GCC,
-        ]:
+        if self.product_type in [RcmProductType.GRD, RcmProductType.GRC]:
+            self.sar_prod_type = SarProductType.GRD
+        elif self.product_type in [RcmProductType.GCD, RcmProductType.GCC]:
+            self.sar_prod_type = SarProductType.GEOCODED
+        elif self.product_type in [RcmProductType.SLC, RcmProductType.MLC]:
             self.sar_prod_type = SarProductType.CPLX
         else:
             raise NotImplementedError(

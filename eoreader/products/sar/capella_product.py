@@ -320,8 +320,12 @@ class CapellaProduct(SarProduct):
         prod_type = self.split_name[3]
         self.product_type = getattr(CapellaProductType, prod_type)
 
-        if self.product_type in [CapellaProductType.GEO, CapellaProductType.GEC]:
-            self.sar_prod_type = SarProductType.GDRG
+        # WARNING: Capella don't seem to have Ground Range products...
+
+        if self.product_type == CapellaProductType.GEO:
+            self.sar_prod_type = SarProductType.ORTHO
+        elif self.product_type == CapellaProductType.GEC:
+            self.sar_prod_type = SarProductType.GEOCODED
         elif self.product_type == CapellaProductType.SLC:
             self.sar_prod_type = SarProductType.CPLX
         else:
