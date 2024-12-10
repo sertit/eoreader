@@ -807,6 +807,7 @@ class Product:
 
         return root
 
+    @cache
     def read_mtd(self) -> (etree._Element, dict):
         """
         Read metadata and outputs the metadata XML root and its namespaces as a dict.

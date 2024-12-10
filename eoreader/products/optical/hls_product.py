@@ -685,6 +685,7 @@ class HlsProduct(OpticalProduct):
 
         return band_paths
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read HLS metadata.
