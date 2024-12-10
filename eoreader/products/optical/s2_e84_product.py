@@ -533,6 +533,7 @@ class S2E84Product(OpticalProduct):
 
         return band_paths
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read Granule metadata.
@@ -863,6 +864,7 @@ class S2E84StacProduct(StacProduct, S2E84Product):
 
         return self.item.assets[asset_name].href
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read Landsat metadata as:

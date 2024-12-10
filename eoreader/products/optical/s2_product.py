@@ -1853,6 +1853,7 @@ class S2StacProduct(StacProduct, S2Product):
         """
         return self._read_mtd_xml_stac(self._get_path("product-metadata"))
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read Landsat metadata as:

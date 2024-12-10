@@ -24,7 +24,7 @@ from lxml import etree
 from sertit import AnyPath
 from sertit.types import AnyPathStrType, AnyPathType
 
-from eoreader import EOREADER_NAME
+from eoreader import EOREADER_NAME, cache
 from eoreader.bands import BandNames
 from eoreader.products import S2E84Product
 from eoreader.products.optical.optical_product import RawUnits
@@ -167,6 +167,7 @@ class S2MpcStacProduct(StacProduct, S2E84Product):
 
         return self.sign_url(self.item.assets[asset_name].href)
 
+    @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
         Read mtd.

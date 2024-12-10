@@ -490,6 +490,7 @@ class SarProduct(Product):
 
         return band_paths
 
+    @cache
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing band paths (as they come with the archived products).
