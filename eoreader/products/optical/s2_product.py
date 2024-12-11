@@ -1155,23 +1155,14 @@ class S2Product(OpticalProduct):
 
         if len(nodata_det) > 0:
             # Rasterize nodata
-            mask = features.rasterize(
-                nodata_det.geometry,
-                out_shape=(band_arr.rio.height, band_arr.rio.width),
-                fill=self._mask_true,  # Outside detector = nodata (inverted compared to the usual)
-                default_value=self._mask_false,  # Inside detector = not nodata
-                transform=transform.from_bounds(
-                    *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
-                ),
-                dtype=np.uint8,
-            )
+            mask = self._rasterize(band_arr, nodata_det)
         else:
             # Manage empty geometry: nodata is 0
             LOGGER.warning(
                 "Empty detector footprint (DETFOO) vector. Nodata will be set where the pixels are null."
             )
             s2_nodata = 0
-            mask = np.where(band_arr == s2_nodata, 1, 0).astype(np.uint8)
+            mask = xr.where(band_arr == s2_nodata, 1, 0).astype(np.uint8)
 
         return self._set_nodata_mask(band_arr, mask)
 
@@ -1500,7 +1491,7 @@ class S2Product(OpticalProduct):
             return self._open_clouds_gt_4_0(bands, pixel_size, size, **kwargs)
 
     def _rasterize(
-        self, xds: xr.DataArray, geometry: gpd.GeoDataFrame, nodata: np.ndarray
+        self, xds: xr.DataArray, geometry: gpd.GeoDataFrame, nodata: np.ndarray = None
     ) -> xr.DataArray:
         """
         Rasterize a vector on a memory dataset

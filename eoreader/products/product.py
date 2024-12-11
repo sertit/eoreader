@@ -2187,3 +2187,16 @@ class Product:
             file_list=self._get_archived_file_list(archive_path),
             **kwargs,
         )
+
+    def get_bands_names(self) -> list:
+        """
+        Get the name of the bands composing the product, ordered by ID.
+        For example, for SPOT7: ['RED', 'GREEN', 'BLUE', 'NIR']
+
+        Returns:
+            list: Ordered bands names
+        """
+        stack_bands = {
+            band.id: band.name for band in self.bands.values() if band is not None
+        }
+        return [id_name[1] for id_name in sorted(stack_bands.items())]

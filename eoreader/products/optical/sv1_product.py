@@ -31,12 +31,12 @@ import rasterio
 import xarray as xr
 from lxml import etree
 from rasterio import crs as riocrs
-from sertit import path, rasters_rio, vectors
+from sertit import path, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
 from shapely.geometry import box
 
-from eoreader import DATETIME_FMT, EOREADER_NAME, cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
     BLUE,
     GREEN,
@@ -648,11 +648,15 @@ class Sv1Product(VhrProduct):
 
                 # Reproject and write on disk data
                 dem_path = self._get_dem_path(**kwargs)
-                with rasterio.open(str(self._get_tile_path(**kwargs))) as src:
-                    out_arr, meta = self._reproject(
-                        src.read(), src.meta, src.rpcs, dem_path, **kwargs
-                    )
-                    rasters_rio.write(out_arr, meta, ortho_path)
+                tile = utils.read(self._get_tile_path(**kwargs))
+
+                # TODO: change this when available in rioxarray
+                # See https://github.com/corteva/rioxarray/issues/837
+                with rasterio.open(self._get_tile_path(**kwargs)) as ds:
+                    rpcs = ds.rpcs
+
+                out = self._reproject(tile, rpcs, dem_path, **kwargs)
+                utils.write(out, ortho_path)
 
         else:
             ortho_path = self._get_tile_path(**kwargs)

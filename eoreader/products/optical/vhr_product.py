@@ -34,7 +34,7 @@ from rasterio import warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
-from sertit import AnyPath, path, rasters, rasters_rio
+from sertit import AnyPath, path, rasters
 from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, utils
@@ -162,27 +162,37 @@ class VhrProduct(OpticalProduct):
                 LOGGER.info(
                     "Manually orthorectified stack not given by the user. "
                     "Reprojecting whole stack, this may take a while. "
-                    "(May be inaccurate on steep terrain, depending on the DEM pixel size)"
+                    "(Might be inaccurate on steep terrain, depending on the DEM pixel size)."
                 )
 
                 # Reproject and write on disk data
                 dem_path = self._get_dem_path(**kwargs)
-                with rasterio.open(str(self._get_tile_path())) as src:
-                    if "rpcs" in kwargs:
-                        rpcs = kwargs.pop("rpcs")
-                    else:
-                        rpcs = src.rpcs
 
-                    if not rpcs:
-                        raise InvalidProductError(
-                            "Your projected VHR data doesn't have any RPC. "
-                            "EOReader cannot orthorectify it!"
-                        )
+                tile = utils.read(self._get_tile_path())
 
-                    out_arr, meta = self._reproject(
-                        src.read(), src.meta, rpcs, dem_path, **kwargs
+                if "rpcs" in kwargs:
+                    rpcs = kwargs.pop("rpcs")
+                else:
+                    # TODO: change this when available in rioxarray
+                    # See https://github.com/corteva/rioxarray/issues/837
+                    with rasterio.open(self._get_tile_path()) as ds:
+                        rpcs = ds.rpcs
+                        tags = ds.tags()
+
+                if not rpcs:
+                    raise InvalidProductError(
+                        "Your projected VHR data doesn't have any RPC. "
+                        "EOReader cannot orthorectify it!"
                     )
-                    rasters_rio.write(out_arr, meta, ortho_path, tags=src.tags())
+
+                out = self._reproject(tile, rpcs, dem_path, **kwargs)
+                utils.write(
+                    out,
+                    ortho_path,
+                    dtype=np.float32,
+                    nodata=self._raw_nodata,
+                    tags=tags,
+                )
 
         else:
             ortho_path = self._get_tile_path()
@@ -270,7 +280,7 @@ class VhrProduct(OpticalProduct):
         return dem_path
 
     def _reproject(
-        self, src_arr: np.ndarray, src_meta: dict, rpcs: rpc.RPC, dem_path, **kwargs
+        self, src_xda: xr.DataArray, rpcs: rpc.RPC, dem_path, **kwargs
     ) -> (np.ndarray, dict):
         """
         Reproject using RPCs (cannot use another pixel size than src to ensure RPCs are valid)
@@ -284,45 +294,75 @@ class VhrProduct(OpticalProduct):
         Returns:
             (np.ndarray, dict): Reprojected array and its metadata
         """
-
         # Set RPC keywords
         LOGGER.debug(f"Orthorectifying data with {dem_path}")
-        kwargs = {
-            "RPC_DEM": dem_path,
-            "RPC_DEM_MISSING_VALUE": 0,
-            "OSR_USE_ETMERC": "YES",
-            "BIGTIFF": "IF_NEEDED",
-        }
+        kwargs.update(
+            {
+                "RPC_DEM": dem_path,
+                "RPC_DEM_MISSING_VALUE": 0,
+                "OSR_USE_ETMERC": "YES",
+                "BIGTIFF": "IF_NEEDED",
+            }
+        )
 
-        # Reproject
-        # WARNING: may not give correct output pixel size
-        out_arr, dst_transform = warp.reproject(
-            src_arr,
-            rpcs=rpcs,
-            src_crs=self._get_raw_crs(),
-            src_nodata=self._raw_nodata,
+        # Reproject with rioxarray
+        # Seems to handle the resolution well on the contrary to rasterio's reproject...
+        out_xda = src_xda.rio.reproject(
             dst_crs=self.crs(),
-            dst_resolution=self.pixel_size,
-            dst_nodata=self._raw_nodata,  # input data should be in integer
-            num_threads=utils.get_max_cores(),
+            resolution=self.pixel_size,
             resampling=Resampling.bilinear,
+            nodata=self._raw_nodata,
+            num_threads=utils.get_max_cores(),
+            rpcs=rpcs,
+            dtype=src_xda.dtype,
             **kwargs,
         )
-        # Get dims
-        count, height, width = out_arr.shape
+        out_xda.rename(f"Reprojected stack of {self.name}")
+        out_xda.attrs["long_name"] = self.get_bands_names()
 
-        # Update metadata
-        meta = src_meta.copy()
-        meta["transform"] = dst_transform
-        meta["driver"] = "GTiff"
-        meta["compress"] = "lzw"
-        meta["nodata"] = self._raw_nodata
-        meta["crs"] = self.crs()
-        meta["width"] = width
-        meta["height"] = height
-        meta["count"] = count
+        # Daskified reproject doesn't seem to work with RPC
+        # See https://github.com/opendatacube/odc-geo/issues/193
+        # from odc.geo import xr # noqa
+        # out_xda = src_xda.odc.reproject(
+        #     how=self.crs(),
+        #     resolution=self.pixel_size,
+        #     resampling=Resampling.bilinear,
+        #     dst_nodata=self._raw_nodata,
+        #     num_threads=utils.get_max_cores(),
+        #     rpcs=rpcs,
+        #     dtype=src_xda.dtype,
+        #     **kwargs
+        # )
 
-        return out_arr, meta
+        # Legacy with rasterio directly
+        # WARNING: may not give correct output pixel size
+        # out_arr, dst_transform = warp.reproject(
+        #     src_arr,
+        #     rpcs=rpcs,
+        #     src_crs=self._get_raw_crs(),
+        #     src_nodata=self._raw_nodata,
+        #     dst_crs=self.crs(),
+        #     dst_resolution=self.pixel_size,
+        #     dst_nodata=self._raw_nodata,  # input data should be in integer
+        #     num_threads=utils.get_max_cores(),
+        #     resampling=Resampling.bilinear,
+        #     **kwargs,
+        # )
+        # # Get dims
+        # count, height, width = out_arr.shape
+        #
+        # # Update metadata
+        # meta = src_meta.copy()
+        # meta["transform"] = dst_transform
+        # meta["driver"] = "GTiff"
+        # meta["compress"] = "lzw"
+        # meta["nodata"] = self._raw_nodata
+        # meta["crs"] = self.crs()
+        # meta["width"] = width
+        # meta["height"] = height
+        # meta["count"] = count
+
+        return out_xda
 
     def _read_band(
         self,
