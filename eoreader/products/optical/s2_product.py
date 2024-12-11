@@ -1641,16 +1641,14 @@ class S2Product(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / self._get_archived_path(
-                    file_regex=r".*ql\.jpg"
-                )
+                quicklook_path = self.path / self._get_archived_path(regex=r".*ql\.jpg")
             else:
                 quicklook_path = next(self.path.glob("**/*ql.jpg"))
         except (StopIteration, FileNotFoundError):
             try:
                 if self.is_archived:
                     quicklook_path = self.path / self._get_archived_path(
-                        file_regex=r".*preview\.jpg"
+                        regex=r".*preview\.jpg"
                     )
                 else:
                     quicklook_path = next(self.path.glob("**/preview.jpg"))
@@ -1659,7 +1657,7 @@ class S2Product(OpticalProduct):
                 try:
                     if self.is_archived:
                         quicklook_path = self._get_archived_rio_path(
-                            file_regex=r".*PVI\.jp2"
+                            regex=r".*PVI\.jp2"
                         )
                     else:
                         quicklook_path = next(self.path.glob("**/*PVI.jp2"))

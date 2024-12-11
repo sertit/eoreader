@@ -30,7 +30,7 @@ from rasterio import errors
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
-from sertit import AnyPath, geometry, logs, path, rasters
+from sertit import AnyPath, files, geometry, logs, path, rasters
 from sertit.snap import SU_MAX_CORE
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -510,9 +510,96 @@ def get_max_cores():
 
 
 @cache
-def get_archived_file_list(archive_path):
+def get_archived_file_list(archive_path: AnyPathStrType):
     """
     Overload of sertit.path.get_archived_file_list to cache its retrieval:
     this operation is expensive when done with large archives stored on the cloud (and thus better done only once)
     """
-    return path.get_archived_file_list(archive_path)
+    file_list = path.get_archived_file_list(archive_path=archive_path)
+    return file_list
+
+
+@cache
+def read_archived_file(
+    archive_path: AnyPathStrType, regex: str, file_list: list = None
+):
+    """
+    Overload of sertit.files.read_archived_file to cache its reading:
+    this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
+    """
+    file_list = files.read_archived_file(
+        archive_path=archive_path, regex=regex, file_list=file_list
+    )
+    return file_list
+
+
+@cache
+def read_archived_xml(archive_path: AnyPathStrType, regex: str, file_list: list = None):
+    """
+    Overload of sertit.files.read_archived_xml to cache its reading:
+    this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
+    """
+    file_list = files.read_archived_xml(
+        archive_path=archive_path,
+        regex=regex,
+        file_list=file_list,
+    )
+    return file_list
+
+
+@cache
+def read_archived_html(
+    archive_path: AnyPathStrType, regex: str, file_list: list = None
+):
+    """
+    Overload of sertit.files.read_archived_html to cache its reading:
+    this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
+    """
+    file_list = files.read_archived_html(
+        archive_path=archive_path,
+        regex=regex,
+        file_list=file_list,
+    )
+    return file_list
+
+
+@cache
+def get_archived_path(
+    archive_path: AnyPathStrType,
+    regex: str,
+    as_list: bool = False,
+    case_sensitive: bool = False,
+    file_list: list = None,
+) -> Union[list, AnyPathType]:
+    """
+    Overload of sertit.path.get_archived_path to cache its reading:
+    this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
+    """
+    file_list = path.get_archived_path(
+        archive_path=archive_path,
+        regex=regex,
+        as_list=as_list,
+        case_sensitive=case_sensitive,
+        file_list=file_list,
+    )
+    return file_list
+
+
+@cache
+def get_archived_rio_path(
+    archive_path: AnyPathStrType,
+    regex: str,
+    as_list: bool = False,
+    file_list: list = None,
+) -> Union[list, AnyPathType]:
+    """
+    Overload of sertit.path.get_archived_path to cache its reading:
+    this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
+    """
+    file_list = path.get_archived_rio_path(
+        archive_path=archive_path,
+        regex=regex,
+        as_list=as_list,
+        file_list=file_list,
+    )
+    return file_list

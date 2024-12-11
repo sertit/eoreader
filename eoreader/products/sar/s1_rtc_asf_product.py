@@ -283,7 +283,7 @@ class S1RtcAsfProduct(SarProduct):
         try:
             if self.is_archived:
                 quicklook_path = self.path / self._get_archived_path(
-                    file_regex=r".*_rgb\.png"
+                    regex=r".*_rgb\.png"
                 )
             else:
                 quicklook_path = next(self.path.glob("*_rgb.png"))
@@ -291,7 +291,7 @@ class S1RtcAsfProduct(SarProduct):
             try:
                 if self.is_archived:
                     quicklook_path = self.path / self._get_archived_path(
-                        file_regex=r".*\.png"
+                        regex=r".*\.png"
                     )
                 else:
                     quicklook_path = next(self.path.glob("*.png"))

@@ -742,7 +742,7 @@ class Sv1Product(VhrProduct):
         try:
             if self.is_archived:
                 quicklook_path = self.path / self._get_archived_path(
-                    file_regex=r".*MUX\.jpg"
+                    regex=r".*MUX\.jpg"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("*MUX.jpg")))

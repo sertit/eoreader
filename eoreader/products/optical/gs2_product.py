@@ -476,9 +476,7 @@ class Gs2Product(DimapV1Product):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / self._get_archived_path(
-                    file_regex=r".*QL\.png"
-                )
+                quicklook_path = self.path / self._get_archived_path(regex=r".*QL\.png")
             else:
                 quicklook_path = str(next(self.path.glob("*QL.png")))
         except (StopIteration, FileNotFoundError):
