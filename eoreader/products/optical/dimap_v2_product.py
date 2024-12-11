@@ -35,7 +35,7 @@ import xarray as xr
 from lxml import etree
 from rasterio import crs as riocrs
 from rasterio import features, transform
-from sertit import geometry, path, rasters_rio, vectors
+from sertit import geometry, path, rasters, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from sertit.vectors import WGS84
@@ -1055,7 +1055,7 @@ class DimapV2Product(VhrProduct):
 
                         # Vectorize mask raster
                         LOGGER.debug(f"\tRevectorizing {mask_str}")
-                        mask = rasters_rio.vectorize(
+                        mask = rasters.vectorize(
                             reproj_data,
                             values=self._mask_true,
                             default_nodata=self._mask_false,

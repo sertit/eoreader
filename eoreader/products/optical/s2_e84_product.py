@@ -26,7 +26,7 @@ import numpy as np
 import xarray as xr
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import AnyPath, files, path, rasters_rio, types
+from sertit import AnyPath, files, path, rasters, types
 from sertit.files import CustomDecoder
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -412,8 +412,8 @@ class S2E84Product(OpticalProduct):
         """
         nodata = self._load_nodata()
 
-        # Vectorize the nodata band (rasters_rio is faster)
-        footprint = rasters_rio.vectorize(
+        # Vectorize the nodata band
+        footprint = rasters.vectorize(
             nodata, values=1, keep_values=False, dissolve=True
         )
         # footprint = geometry.get_wider_exterior(footprint)  # No need here
