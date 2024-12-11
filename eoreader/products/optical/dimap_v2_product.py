@@ -1028,41 +1028,47 @@ class DimapV2Product(VhrProduct):
 
                 mask.crs = WGS84
                 LOGGER.info(f"Orthorectifying {mask_str}")
-                with rasterio.open(str(self._get_tile_path())) as dim_dst:
-                    # Rasterize mask (no transform as we have the vector in image geometry)
-                    LOGGER.debug(f"\tRasterizing {mask_str}")
-                    mask_raster = features.rasterize(
-                        mask.geometry,
-                        out_shape=(dim_dst.height, dim_dst.width),
-                        fill=self._mask_false,  # Outside vector
-                        default_value=self._mask_true,  # Inside vector
-                        dtype=np.uint8,
+
+                # Rasterize mask (no transform as we have the vector in image geometry)
+                LOGGER.debug(f"\tRasterizing {mask_str}")
+                tile = utils.read(self._get_tile_path())[0:1, ...]
+
+                mask_raster = rasters.rasterize(
+                    tile,
+                    mask,
+                    default_nodata=self._mask_false,  # Outside vector
+                    default_value=self._mask_true,  # Inside vector
+                    dtype=np.uint8,
+                )
+                # Check mask validity (to avoid reprojecting)
+                # All null
+                if mask_raster.max() == 0:
+                    mask = gpd.GeoDataFrame(geometry=[], crs=crs)
+                # All valid
+                elif mask_raster.min() == 1:
+                    pass
+                else:
+                    # Reproject mask raster
+                    LOGGER.debug(f"\tReprojecting {mask_str}")
+                    dem_path = self._get_dem_path(**kwargs)
+
+                    # TODO: change this when available in rioxarray
+                    # See https://github.com/corteva/rioxarray/issues/837
+                    with rasterio.open(self._get_tile_path()) as ds:
+                        rpcs = ds.rpcs
+
+                    reproj_data = self._reproject(mask_raster, rpcs, dem_path, **kwargs)
+
+                    # Vectorize mask raster
+                    LOGGER.debug(f"\tRevectorizing {mask_str}")
+                    mask = rasters.vectorize(
+                        reproj_data,
+                        values=self._mask_true,
+                        default_nodata=self._mask_false,
                     )
-                    # Check mask validity (to avoid reprojecting)
-                    # All null
-                    if mask_raster.max() == 0:
-                        mask = gpd.GeoDataFrame(geometry=[], crs=crs)
-                    # All valid
-                    elif mask_raster.min() == 1:
-                        pass
-                    else:
-                        # Reproject mask raster
-                        LOGGER.debug(f"\tReprojecting {mask_str}")
-                        dem_path = self._get_dem_path(**kwargs)
-                        reproj_data = self._reproject(
-                            mask_raster, dim_dst.meta, dim_dst.rpcs, dem_path, **kwargs
-                        )
 
-                        # Vectorize mask raster
-                        LOGGER.debug(f"\tRevectorizing {mask_str}")
-                        mask = rasters.vectorize(
-                            reproj_data,
-                            values=self._mask_true,
-                            default_nodata=self._mask_false,
-                        )
-
-                        # Do not keep pixelized mask
-                        mask = geometry.simplify_footprint(mask, self.pixel_size)
+                    # Do not keep pixelized mask
+                    mask = geometry.simplify_footprint(mask, self.pixel_size)
 
             # Sometimes the GML mask lacks crs (why ?)
             elif (
