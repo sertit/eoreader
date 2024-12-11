@@ -29,7 +29,7 @@ import xarray as xr
 from lxml import etree
 from lxml.builder import E
 from rasterio.enums import Resampling
-from sertit import AnyPath, path, rasters, rasters_rio, types
+from sertit import AnyPath, path, rasters, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -317,8 +317,8 @@ class LandsatProduct(OpticalProduct):
             masked=False,
         )
 
-        # Vectorize the nodata band (rasters_rio is faster)
-        footprint = rasters_rio.vectorize(
+        # Vectorize the nodata band
+        footprint = rasters.vectorize(
             nodata_band, values=1, keep_values=False, dissolve=True
         )
         # footprint = geometry.get_wider_exterior(footprint)  # No need here

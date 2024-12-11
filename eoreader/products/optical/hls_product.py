@@ -31,7 +31,7 @@ import rasterio
 import xarray as xr
 from lxml import etree
 from rasterio.enums import Resampling
-from sertit import path, rasters, rasters_rio, types, xml
+from sertit import path, rasters, types, xml
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
 
@@ -242,8 +242,8 @@ class HlsProduct(OpticalProduct):
         """
         nodata = self._load_nodata()
 
-        # Vectorize the nodata band (rasters_rio is faster)
-        footprint = rasters_rio.vectorize(
+        # Vectorize the nodata band
+        footprint = rasters.vectorize(
             nodata, values=1, keep_values=False, dissolve=True
         )
         # footprint = geometry.get_wider_exterior(footprint)  # No need here
