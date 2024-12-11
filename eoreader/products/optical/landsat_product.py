@@ -983,6 +983,7 @@ class LandsatProduct(OpticalProduct):
 
         return band_paths
 
+    @cache
     def _read_mtd(self, force_pd=False) -> (etree._Element, dict):
         """
         Read Landsat metadata as:
@@ -1837,7 +1838,7 @@ class LandsatProduct(OpticalProduct):
         try:
             if self.is_archived:
                 quicklook_path = self.path / self._get_archived_path(
-                    file_regex=r".*thumb_large\.jpeg"
+                    regex=r".*thumb_large\.jpeg"
                 )
             else:
                 quicklook_path = next(self.path.glob("*thumb_large.jpeg"))

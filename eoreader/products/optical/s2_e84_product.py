@@ -768,7 +768,7 @@ class S2E84Product(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self._get_archived_path(file_regex=r".*.jpg")
+                quicklook_path = self._get_archived_path(regex=r".*.jpg")
             else:
                 quicklook_path = str(next(self.path.glob("*.jpg")))
         except (StopIteration, FileNotFoundError):

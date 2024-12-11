@@ -238,7 +238,7 @@ class S1RtcMpcStacProduct(StacProduct, SarProduct):
         try:
             if self.is_archived:
                 quicklook_path = self.path / self._get_archived_path(
-                    file_regex=r".*preview\.png"
+                    regex=r".*preview\.png"
                 )
             else:
                 quicklook_path = next(self.path.glob("*preview.png"))

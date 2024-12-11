@@ -1296,7 +1296,7 @@ class MaxarProduct(VhrProduct):
         try:
             if self.is_archived:
                 quicklook_path = self.path / self._get_archived_path(
-                    file_regex=r".*BROWSE\.JPG"
+                    regex=r".*BROWSE\.JPG"
                 )
             else:
                 quicklook_path = next(self.path.glob("*BROWSE.JPG"))

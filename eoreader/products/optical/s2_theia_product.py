@@ -835,7 +835,7 @@ class S2TheiaProduct(OpticalProduct):
         try:
             if self.is_archived:
                 quicklook_path = self.path / self._get_archived_path(
-                    file_regex=r".*QKL_ALL\.jpg"
+                    regex=r".*QKL_ALL\.jpg"
                 )
             else:
                 quicklook_path = next(self.path.glob("**/*QKL_ALL.jpg"))

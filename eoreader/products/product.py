@@ -749,7 +749,7 @@ class Product:
         """
         try:
             if self.is_archived:
-                root = self._read_archived_xml(xml_regex=f".*{mtd_archived}")
+                root = self._read_archived_xml(regex=f".*{mtd_archived}")
             else:
                 try:
                     try:
@@ -2090,75 +2090,79 @@ class Product:
 
         return bands
 
-    @cache
     def _get_archived_file_list(self, archive_path=None):
+        """
+        Overload of utils.read_archived_file to use the product's path as archive.
+        Return a tuple to make it hashable and therfore digestable by lru_cache.
+        See https://stackoverflow.com/questions/49210801/python3-pass-lists-to-function-with-functools-lru-cache
+        '"""
 
         if archive_path is None:
             archive_path = self.path
 
-        return utils.get_archived_file_list(archive_path)
+        return tuple(utils.get_archived_file_list(archive_path))
 
     def _read_archived_file(self, regex, archive_path=None):
-        """Overload of sertit.files.read_archived_file to handle the cached 'get_archived_file_list'"""
+        """Overload of utils.read_archived_file to handle the cached 'get_archived_file_list'"""
 
         if archive_path is None:
             archive_path = self.path
 
-        return files.read_archived_file(
+        return utils.read_archived_file(
             archive_path,
             regex=regex,
             file_list=self._get_archived_file_list(archive_path),
         )
 
-    def _read_archived_xml(self, xml_regex, archive_path=None):
-        """Overload of sertit.files.read_archived_xml to handle the cached 'get_archived_file_list'"""
+    def _read_archived_xml(self, regex, archive_path=None):
+        """Overload of utils.read_archived_xml to handle the cached 'get_archived_file_list'"""
 
         if archive_path is None:
             archive_path = self.path
 
-        return files.read_archived_xml(
+        return utils.read_archived_xml(
             archive_path,
-            xml_regex=xml_regex,
+            regex=regex,
             file_list=self._get_archived_file_list(archive_path),
         )
 
     def _read_archived_html(self, regex, archive_path=None):
-        """Overload of sertit.files.read_archived_html to handle the cached 'get_archived_file_list'"""
+        """Overload of utils.read_archived_html to handle the cached 'get_archived_file_list'"""
 
         if archive_path is None:
             archive_path = self.path
 
-        return files.read_archived_html(
+        return utils.read_archived_html(
             archive_path,
             regex=regex,
             file_list=self._get_archived_file_list(archive_path),
         )
 
     def _get_archived_path(
-        self, file_regex, as_list=False, case_sensitive=False, archive_path=None
+        self, regex, as_list=False, case_sensitive=False, archive_path=None
     ):
-        """Overload of sertit.path.get_archived_path to handle the cached 'get_archived_file_list'"""
+        """Overload of utils.get_archived_path to handle the cached 'get_archived_file_list'"""
 
         if archive_path is None:
             archive_path = self.path
 
-        return path.get_archived_path(
+        return utils.get_archived_path(
             archive_path=archive_path,
-            file_regex=file_regex,
+            regex=regex,
             as_list=as_list,
             case_sensitive=case_sensitive,
             file_list=self._get_archived_file_list(archive_path),
         )
 
-    def _get_archived_rio_path(self, file_regex, as_list=False, archive_path=None):
-        """Overload of sertit.path.get_archived_rio_path to handle the cached 'get_archived_file_list'"""
+    def _get_archived_rio_path(self, regex, as_list=False, archive_path=None):
+        """Overload of utils.get_archived_rio_path to handle the cached 'get_archived_file_list'"""
 
         if archive_path is None:
             archive_path = self.path
 
-        return path.get_archived_rio_path(
+        return utils.get_archived_rio_path(
             archive_path=archive_path,
-            file_regex=file_regex,
+            regex=regex,
             as_list=as_list,
             file_list=self._get_archived_file_list(archive_path),
         )

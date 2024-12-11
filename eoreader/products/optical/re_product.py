@@ -380,9 +380,7 @@ class ReProduct(PlanetProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self._get_archived_rio_path(
-                    file_regex=r".*_browse\.tif"
-                )
+                quicklook_path = self._get_archived_rio_path(regex=r".*_browse\.tif")
             else:
                 quicklook_path = str(next(self.path.glob("**/*_browse.tif")))
         except (StopIteration, FileNotFoundError):

@@ -298,7 +298,7 @@ class SaocomProduct(SarProduct):
                 # Get as a list but keep only the first item (SLC with multiple swaths)
                 raw_paths = self._get_archived_rio_path(
                     archive_path=cuss_file,
-                    file_regex=band_regex.replace("*", ".*"),
+                    regex=band_regex.replace("*", ".*"),
                     as_list=True,
                 )
 

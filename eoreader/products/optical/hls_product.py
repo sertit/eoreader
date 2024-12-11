@@ -904,7 +904,7 @@ class HlsProduct(OpticalProduct):
             (float, float): Mean Azimuth and Zenith angle
         """
         # Retrieve angles
-        mtd_data, _ = self._read_mtd()
+        mtd_data, _ = self.read_mtd()
         try:
             azimuth_angle = float(mtd_data.findtext(".//MEAN_SUN_AZIMUTH_ANGLE"))
             zenith_angle = float(mtd_data.findtext(".//MEAN_SUN_ZENITH_ANGLE"))
@@ -1030,9 +1030,7 @@ class HlsProduct(OpticalProduct):
         quicklook_path = None
         try:
             if self.is_archived:
-                quicklook_path = self.path / self._get_archived_path(
-                    file_regex=r".*.jpg"
-                )
+                quicklook_path = self.path / self._get_archived_path(regex=r".*.jpg")
             else:
                 quicklook_path = str(next(self.path.glob("*.jpg")))
         except (StopIteration, FileNotFoundError):

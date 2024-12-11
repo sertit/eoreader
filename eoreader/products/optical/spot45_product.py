@@ -663,7 +663,7 @@ class Spot45Product(DimapV1Product):
         try:
             if self.is_archived:
                 quicklook_path = self.path / self._get_archived_path(
-                    file_regex=r".*PREVIEW\.JPG"
+                    regex=r".*PREVIEW\.JPG"
                 )
             else:
                 quicklook_path = str(next(self.path.glob("*PREVIEW.JPG")))
