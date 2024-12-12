@@ -126,12 +126,12 @@ def dask_env(function: Callable):
         #         function()
         # else:
         os.environ[TILE_SIZE] = "auto"
-        if os.getenv(CI_EOREADER_S3, "0") == 0 and use_dask():
+        if use_dask():
             LOGGER.info("Using Dask and creating Dask client.")
             with tempenv.TemporaryEnvironment(
                 {"CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD": "1"}
-            ), dask.get_or_create_dask_client():
-                function()
+            ), dask.get_or_create_dask_client(processes=False):
+                # TODO: test with process=true also
                 function(*_args, **_kwargs)
         else:
             LOGGER.info("**NOT** using Dask!")
