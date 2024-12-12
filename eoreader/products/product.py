@@ -1139,7 +1139,9 @@ class Product:
             if idx_path.is_file():
                 band_dict[idx] = utils.read(idx_path)
             else:
-                idx_arr = compute_index(index=idx, bands=loaded_bands).rename(idx)
+                idx_arr = compute_index(index=idx, bands=loaded_bands, **kwargs).rename(
+                    idx
+                )
                 idx_arr.attrs["long_name"] = idx
 
                 # Write on disk
