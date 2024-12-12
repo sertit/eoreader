@@ -38,7 +38,7 @@ from sertit import AnyPath, path, rasters
 from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, utils
-from eoreader.bands import BandNames
+from eoreader.bands import PAN, BandNames
 from eoreader.env_vars import DEM_PATH, TILE_SIZE
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import DEM_KW
@@ -168,16 +168,15 @@ class VhrProduct(OpticalProduct):
                 # Reproject and write on disk data
                 dem_path = self._get_dem_path(**kwargs)
 
-                tile = utils.read(self._get_tile_path())
+                with rasterio.open(self._get_tile_path()) as ds:
+                    tags = ds.tags()
 
-                if "rpcs" in kwargs:
-                    rpcs = kwargs.pop("rpcs")
-                else:
                     # TODO: change this when available in rioxarray
                     # See https://github.com/corteva/rioxarray/issues/837
-                    with rasterio.open(self._get_tile_path()) as ds:
+                    if "rpcs" in kwargs:
+                        rpcs = kwargs.pop("rpcs")
+                    else:
                         rpcs = ds.rpcs
-                        tags = ds.tags()
 
                 if not rpcs:
                     raise InvalidProductError(
@@ -185,6 +184,7 @@ class VhrProduct(OpticalProduct):
                         "EOReader cannot orthorectify it!"
                     )
 
+                tile = utils.read(self._get_tile_path())
                 out = self._reproject(tile, rpcs, dem_path, **kwargs)
                 utils.write(
                     out,
@@ -307,6 +307,9 @@ class VhrProduct(OpticalProduct):
 
         # Reproject with rioxarray
         # Seems to handle the resolution well on the contrary to rasterio's reproject...
+        if src_xda.rio.crs is None:
+            src_xda.rio.write_crs(self._get_raw_crs(), inplace=True)
+
         out_xda = src_xda.rio.reproject(
             dst_crs=self.crs(),
             resolution=self.pixel_size,
@@ -318,7 +321,11 @@ class VhrProduct(OpticalProduct):
             **kwargs,
         )
         out_xda.rename(f"Reprojected stack of {self.name}")
-        out_xda.attrs["long_name"] = self.get_bands_names()
+
+        if kwargs.get("band") == PAN:
+            out_xda.attrs["long_name"] = "PAN"
+        else:
+            out_xda.attrs["long_name"] = self.get_bands_names()
 
         # Daskified reproject doesn't seem to work with RPC
         # See https://github.com/opendatacube/odc-geo/issues/193
