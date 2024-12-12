@@ -113,25 +113,16 @@ def dask_env(function: Callable):
     @wraps(function)
     def dask_env_wrapper(*_args, **_kwargs):
         """S3 environment wrapper"""
-        # os.environ[
-        #     USE_DASK
-        # ] = "0"  # For now, our CI cannot create a cluster (memory insufficient)
-        # if use_dask():
-        #     from dask.distributed import Client, LocalCluster
-        #
-        #     with LocalCluster(
-        #         n_workers=4, threads_per_worker=4, processes=True
-        #     ) as cluster, Client(cluster):
-        #         LOGGER.info("Using DASK Local Cluster")
-        #         function()
-        # else:
         os.environ[TILE_SIZE] = "auto"
         if use_dask():
+
+            def set_env():
+                os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD"] = "1"
+
             LOGGER.info("Using Dask and creating Dask client.")
-            with tempenv.TemporaryEnvironment(
-                {"CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD": "1"}
-            ), dask.get_or_create_dask_client(processes=False):
+            with dask.get_or_create_dask_client(processes=False) as client:
                 # TODO: test with process=true also
+                client.run(set_env)
                 function(*_args, **_kwargs)
         else:
             LOGGER.info("**NOT** using Dask!")
