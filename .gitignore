@@ -13,13 +13,7 @@ cov.xml
 .run
 
 # Discard CI/OUTPUTS
-CI/OUTPUT/*
-CI/DATA/*/*_DEM.tif
-CI/DATA/*/*_clean.tif
-!CI/DATA/*/*_S3_*_DEM.tif
-CI/DATA/*/*_HILLSHADE.tif
-CI/DATA/*/*_SLOPE.tif
-CI/DATA/OUTPUT/*
+CI/**/*.tif
 
 # Build options
 build/
