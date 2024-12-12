@@ -111,7 +111,7 @@ def dask_env(function: Callable):
     """
 
     @wraps(function)
-    def dask_env_wrapper():
+    def dask_env_wrapper(*_args, **_kwargs):
         """S3 environment wrapper"""
         # os.environ[
         #     USE_DASK
@@ -132,9 +132,10 @@ def dask_env(function: Callable):
                 {"CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD": "1"}
             ), dask.get_or_create_dask_client():
                 function()
+                function(*_args, **_kwargs)
         else:
             LOGGER.info("**NOT** using Dask!")
-            function()
+            function(*_args, **_kwargs)
 
     return dask_env_wrapper
 
