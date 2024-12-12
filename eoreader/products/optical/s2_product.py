@@ -1155,7 +1155,12 @@ class S2Product(OpticalProduct):
 
         if len(nodata_det) > 0:
             # Rasterize nodata
-            mask = self._rasterize(band_arr, nodata_det)
+            mask = self._rasterize(
+                band_arr,
+                nodata_det,
+                value_inside=self._mask_false,
+                value_outside=self._mask_true,
+            )
         else:
             # Manage empty geometry: nodata is 0
             LOGGER.warning(
@@ -1491,7 +1496,12 @@ class S2Product(OpticalProduct):
             return self._open_clouds_gt_4_0(bands, pixel_size, size, **kwargs)
 
     def _rasterize(
-        self, xds: xr.DataArray, geometry: gpd.GeoDataFrame, nodata: np.ndarray = None
+        self,
+        xds: xr.DataArray,
+        geometry: gpd.GeoDataFrame,
+        nodata: np.ndarray = None,
+        value_outside: float = None,
+        value_inside: float = None,
     ) -> xr.DataArray:
         """
         Rasterize a vector on a memory dataset
@@ -1504,6 +1514,11 @@ class S2Product(OpticalProduct):
         Returns:
             xr.DataArray: Rasterized vector
         """
+        if value_outside is None:
+            value_outside = self._mask_false
+        if value_inside is None:
+            value_inside = self._mask_true
+
         if not geometry.empty:
             # Just in case
             if geometry.crs != xds.rio.crs:
@@ -1513,8 +1528,8 @@ class S2Product(OpticalProduct):
             cond = features.rasterize(
                 geometry.geometry,
                 out_shape=(xds.rio.height, xds.rio.width),
-                fill=self._mask_false,  # Pixels outside mask
-                default_value=self._mask_true,  # Pixels inside mask
+                fill=value_outside,  # Pixels outside mask
+                default_value=value_inside,  # Pixels inside mask
                 transform=transform.from_bounds(
                     *xds.rio.bounds(), xds.rio.width, xds.rio.height
                 ),

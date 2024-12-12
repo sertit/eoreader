@@ -307,9 +307,7 @@ def _test_core(
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 if WRITE_ON_DISK:
-                    tmp_dir = os.path.join(
-                        "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                    )
+                    tmp_dir = os.path.join("/home/data/CI/satellites")
                 prod.output = tmp_dir
 
                 # DO NOT REPROJECT BANDS (WITH GDAL / SNAP) --> WAY TOO SLOW
