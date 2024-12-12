@@ -15,7 +15,7 @@ from CI.scripts_utils import (
     s3_env,
 )
 from eoreader import EOREADER_NAME
-from eoreader.bands import BAI, NBR, NDVI
+from eoreader.bands import BAI, NBR, NDVI, WDRVI
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -36,7 +36,7 @@ def test_index(tmp_path):
     failed_idx = []
     # tmp_path = "/home/data/CI/indices"
     prod.output = os.path.join(tmp_path, prod.condensed_name)
-    idx_list = [NDVI, NBR, BAI]
+    idx_list = [BAI, NBR, NDVI]
 
     LOGGER.info(f"Load selected indices (EOReader's + {idx_list})")
     idx = prod.load(idx_list, pixel_size=RES)
@@ -65,3 +65,7 @@ def test_index(tmp_path):
     # Do like that to check all existing indices
     if failed_idx:
         raise AssertionError(f"Failed index: {failed_idx}")
+
+    # Test parametric index: just test if this doesn't fail
+    LOGGER.info("Load parametric index: WDRVI")
+    prod.load(WDRVI, pixel_size=RES, alpha=1)

@@ -17,6 +17,7 @@
 - FIX: Create comparison operators for `BandNames`, removing the `xarray RuntimeWarning` about `sort order is undefined for incomparable objects`.
 - FIX: Add some missing `@cache` around time-consuming functions
 - FIX: Set correctly the SAR product type, with adding two types (`ORTHO` and `GEOCODED`)
+- FIX: Fix the computation of parametric spectral indices [#193](https://github.com/sertit/eoreader/issues/193)
 - OPTIM: Cache the access to any archived file list, as this operation is expensive when done with large archives stored on the cloud (and thus better done only once).
 - CI: Remove useless verbosity in CI
 - DOC: Update `conf.py` (remove useless hunks and set Sphinx 7 as base)

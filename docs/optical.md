@@ -270,6 +270,12 @@ In addition to all these indices, EOReader kept the following indices for legacy
 WorldView-1 is not concerned by spectral indices as it only has a panchromatic band
 ```
 
+Some indices are parametric (see the list [here](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/index.html#expressions)). 
+To add any parameter you can pass it to your load or stack functions:
+
+```python
+prod.load("WDRVI", alpha=1)
+```
 
 ## Documentary Sources
 
