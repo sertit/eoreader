@@ -200,9 +200,7 @@ def _test_core(
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 if WRITE_ON_DISK:
-                    tmp_dir = os.path.join(
-                        "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                    )
+                    tmp_dir = os.path.join("/home/data/CI/e2e_satellites")
                 output = tmp_dir
                 is_zip = "_ZIP" if prod.is_archived else ""
                 prod.output = os.path.join(output, f"{prod.condensed_name}{is_zip}")
@@ -276,7 +274,7 @@ def _test_core(
                     prod.clean_tmp()
                     assert len(list(prod._tmp_process.glob("*"))) == 0
 
-            prod.clear()
+            del prod
 
 
 def test_s1_slc(capfd):

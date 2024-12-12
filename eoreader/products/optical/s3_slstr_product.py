@@ -215,6 +215,9 @@ class SlstrRadAdjust(ListEnum):
     [Sentinel-3 Product Notice 08](https://www-cdn.eumetsat.int/files/2021-05/S3.PN-SLSTR-L1.08%20-%20i1r0%20-%20SLSTR%20L1%20PB%202.75-A%20and%201.53-B.pdf),
     edited the 18/05/2021.
 
+    Still true in [Sentinel-3 Product Notice 10](https://www-cdn.eumetsat.int/files/2023-01/S3_PN-SLSTR-L1_10%20-%20i1r0%20-%20SLSTR%20L1%20PB%20SL__L1__004_05_00.pdf) and in
+    [Sentinel-3 Product Notice 11](https://sentiwiki.copernicus.eu/__attachments/1672112/S3.PN.SLSTR-L1.11%20-%20Sentinel%203%20SLSTR%20Product%20Notice%20L1%20PB%20SL__L1_.004.07.00%202024%20-%201.0.pdf)
+
     The default one.
     """
 

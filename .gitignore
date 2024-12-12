@@ -14,6 +14,8 @@ cov.xml
 
 # Discard CI/OUTPUTS
 CI/**/*.tif
+CI/**/*.npy
+CI/**/*.vrt
 
 # Build options
 build/
