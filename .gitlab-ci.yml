@@ -12,14 +12,11 @@ lint:
   stage: lint
   script:
     - python -m pip install --upgrade pip
-    - pip install flake8
-    - flake8 eoreader
-  rules:
-    - if: $CI_COMMIT_TAG
-      when: never
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-      when: never
-    - when: always
+    - pip install ruff
+    - ruff format
+    - ruff check
+  except:
+    - tags
 
 # Test with data on local disk
 pytest:

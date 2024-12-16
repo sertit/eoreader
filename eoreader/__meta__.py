@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -17,15 +16,5 @@
 """
 **EOReader** library
 """
+
 __version__ = "0.21.7"
-__title__ = "eoreader"
-__description__ = (
-    "Remote-sensing opensource python library reading optical and SAR constellations, "
-    "loading and stacking bands, clouds, DEM and spectral indices in a sensor-agnostic way."
-)
-__author__ = "ICube-SERTIT"
-__author_email__ = "dev-sertit@unistra.fr"
-__url__ = "https://github.com/sertit/eoreader"
-__license__ = "Apache 2.0"
-__copyright__ = "Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/"
-__documentation__ = "https://eoreader.readthedocs.io"
