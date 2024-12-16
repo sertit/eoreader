@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ SPOT-4/5 products.
 See `here <http://www.engesat.com.br/wp-content/uploads/S5-ST-73-1-CN_2_9-Spec-Format-Produits-SPOT.pdf>`_
 for more information.
 """
+
 import logging
 from datetime import timedelta
 from enum import unique
@@ -520,15 +520,17 @@ class Spot45Product(DimapV1Product):
         az = None
         try:
             incidence_angle = abs(float(root.findtext(".//INCIDENCE_ANGLE")))
-        except TypeError:
+        except TypeError as exc:
             raise InvalidProductError(
                 "INCIDENCE_ANGLE or VIEWING_ANGLE not found in metadata!"
-            )
+            ) from exc
         if self.constellation == Constellation.SPOT5:
             try:
                 off_nadir = abs(float(root.findtext(".//VIEWING_ANGLE")))
-            except TypeError:
-                raise InvalidProductError("VIEWING_ANGLE not found in metadata!")
+            except TypeError as exc:
+                raise InvalidProductError(
+                    "VIEWING_ANGLE not found in metadata!"
+                ) from exc
         else:
             # See: https://earth.esa.int/eogateway/missions/spot-4
             orbit_height = 832000
@@ -646,10 +648,10 @@ class Spot45Product(DimapV1Product):
             if rad_gain is None or rad_bias is None:
                 raise TypeError
 
-        except TypeError:
+        except TypeError as exc:
             raise InvalidProductError(
                 "PHYSICAL_GAIN and PHYSICAL_BIAS from Spectral_Band_Info not found in metadata!"
-            )
+            ) from exc
         return dn_arr / rad_gain + rad_bias
 
     def get_quicklook_path(self) -> str:

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Sentinel-2 products """
+"""Sentinel-2 products"""
+
 import difflib
 import json
 import logging
@@ -488,11 +488,11 @@ class S2Product(OpticalProduct):
                     next(self.path.glob("**/tileInfo.json")), print_file=False
                 )
                 name = tile_info["productName"]
-            except (json.JSONDecodeError, StopIteration):
+            except (json.JSONDecodeError, StopIteration) as exc:
                 raise InvalidProductError(
                     f"Corrupted metadata and bad filename for {self.path}! "
                     f"Impossible to process this product."
-                )
+                ) from exc
 
         return name
 
@@ -531,9 +531,8 @@ class S2Product(OpticalProduct):
         Returns:
             dict: Dictionary containing the folder path for each queried band
         """
-        if pixel_size is not None:
-            if types.is_iterable(pixel_size):
-                pixel_size = pixel_size[0]
+        if pixel_size is not None and types.is_iterable(pixel_size):
+            pixel_size = pixel_size[0]
 
         # Open the band directory names
         s2_bands_folder = {}
@@ -774,10 +773,10 @@ class S2Product(OpticalProduct):
                     quantif_value = float(
                         root.findtext(f".//{quantif_prefix}QUANTIFICATION_VALUE")
                     )
-                except TypeError:
+                except TypeError as exc:
                     raise InvalidProductError(
                         f"{quantif_prefix}QUANTIFICATION_VALUE not found in datatake metadata!"
-                    )
+                    ) from exc
 
                 # Get offset
                 offset_prefix = (
@@ -787,25 +786,19 @@ class S2Product(OpticalProduct):
                     offset = 0.0
                 else:
                     try:
-                        if band == NARROW_NIR:
-                            band_id = 8
-                        else:
-                            band_id = int(self.bands[band].id)
+                        band_id = 8 if band == NARROW_NIR else int(self.bands[band].id)
                         offset = float(
                             root.findtext(
                                 f".//{offset_prefix}ADD_OFFSET[@band_id = '{band_id}']"
                             )
                         )
-                    except TypeError:
+                    except TypeError as exc:
                         raise InvalidProductError(
                             f"{offset_prefix}ADD_OFFSET not found in datatake metadata!"
-                        )
+                        ) from exc
             except InvalidProductError:
                 # If not datatake file
-                if self._processing_baseline < 4.0:
-                    offset = 0.0
-                else:
-                    offset = -1000.0
+                offset = 0.0 if self._processing_baseline < 4.0 else -1000.0
                 quantif_value = 10000.0
 
             # Compute the correct radiometry of the band
@@ -867,10 +860,7 @@ class S2Product(OpticalProduct):
             band = "00"
 
         # Get QI_DATA path
-        if isinstance(band, BandNames):
-            band_name = self.bands[band].id
-        else:
-            band_name = band
+        band_name = self.bands[band].id if isinstance(band, BandNames) else band
 
         tmp_dir = tempfile.TemporaryDirectory()
         try:
@@ -940,10 +930,7 @@ class S2Product(OpticalProduct):
             band = "00"
 
         # Get QI_DATA path
-        if isinstance(band, BandNames):
-            band_id = self.bands[band].id
-        else:
-            band_id = band
+        band_id = self.bands[band].id if isinstance(band, BandNames) else band
 
         if self.is_archived:
             mask_path = self._get_archived_rio_path(
@@ -1269,12 +1256,12 @@ class S2Product(OpticalProduct):
                 mean_sun_angles = root.find(".//Mean_Sun_Angle")
                 zenith_angle = float(mean_sun_angles.findtext("ZENITH_ANGLE"))
                 azimuth_angle = float(mean_sun_angles.findtext("AZIMUTH_ANGLE"))
-            except TypeError:
+            except TypeError as exc:
                 raise InvalidProductError(
                     "Azimuth or Zenith angles not found in metadata!"
-                )
-        except InvalidProductError as ex:
-            LOGGER.warning(f"{ex}: setting sun angles to (0, 0).")
+                ) from exc
+        except InvalidProductError as exc:
+            LOGGER.warning(f"{exc}: setting sun angles to (0, 0).")
             azimuth_angle = 0.0
             zenith_angle = 0.0
 
@@ -1334,11 +1321,7 @@ class S2Product(OpticalProduct):
         Does this product has the specified cloud band ?
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
         """
-        if band == SHADOWS:
-            has_band = False
-        else:
-            has_band = True
-        return has_band
+        return band != SHADOWS
 
     def _open_clouds_lt_4_0(
         self,
@@ -1581,8 +1564,8 @@ class S2Product(OpticalProduct):
 
             # Create transform
             tf = transform.from_origin(ulx, uly, res, res)
-        except InvalidProductError as ex:
-            raise InvalidProductError(f"{ex}: cannot geocode the bands!")
+        except InvalidProductError as exc:
+            raise InvalidProductError("Cannot geocode any band!") from exc
 
         return tf, width, height, self.crs()
 
@@ -1701,10 +1684,10 @@ class S2Product(OpticalProduct):
                     root.findtext(".//SENSING_ORBIT_DIRECTION")
                 )
 
-            except TypeError:
+            except TypeError as exc:
                 raise InvalidProductError(
                     "SENSING_ORBIT_DIRECTION not found in metadata!"
-                )
+                ) from exc
         except InvalidProductError:
             od = OrbitDirection.DESCENDING
 
@@ -1784,10 +1767,10 @@ class S2StacProduct(StacProduct, S2Product):
                 asset_name = difflib.get_close_matches(
                     file_id, self.item.assets.keys(), cutoff=0.5, n=1
                 )[0]
-            except Exception:
+            except Exception as exc:
                 raise FileNotFoundError(
                     f"Impossible to find an asset in {list(self.item.assets.keys())} close enough to '{file_id}'"
-                )
+                ) from exc
 
         return self.sign_url(self.item.assets[asset_name].href)
 

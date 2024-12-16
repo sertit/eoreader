@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ Pleiades products.
 See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
 for more information.
 """
+
 import logging
 
 from eoreader import EOREADER_NAME
@@ -56,27 +56,27 @@ class PldProduct(DimapV2Product):
         # https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTMxNw==/ZG9jdXRoZXF1ZS1maWxlLTU1MzE2/pleiades-brochure-2019.pdf
         pan = SpectralBand(
             eoreader_name=PAN,
-            **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 470, WV_MAX: 830}
+            **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 470, WV_MAX: 830},
         )
 
         blue = SpectralBand(
             eoreader_name=BLUE,
-            **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 460, WV_MAX: 530}
+            **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 460, WV_MAX: 530},
         )
 
         green = SpectralBand(
             eoreader_name=GREEN,
-            **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 500, WV_MAX: 620}
+            **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 500, WV_MAX: 620},
         )
 
         red = SpectralBand(
             eoreader_name=RED,
-            **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 590, WV_MAX: 710}
+            **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 590, WV_MAX: 710},
         )
 
         nir = SpectralBand(
             eoreader_name=NIR,
-            **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 740, WV_MAX: 940}
+            **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 740, WV_MAX: 940},
         )
         self._map_bands_core(blue=blue, green=green, red=red, nir=nir, pan=pan)
 

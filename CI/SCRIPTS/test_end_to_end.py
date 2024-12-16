@@ -1,4 +1,4 @@
-""" Script testing EOReader satellites in an end-to-end manner. """
+"""Script testing EOReader satellites in an end-to-end manner."""
 
 import logging
 import os

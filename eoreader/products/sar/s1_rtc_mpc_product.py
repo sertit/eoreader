@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ S1 MPC RTC products.
 Take a look
 `here <https://planetarycomputer.microsoft.com/dataset/sentinel-1-rtc>`_.
 """
+
 import logging
 from datetime import datetime
 from typing import Union

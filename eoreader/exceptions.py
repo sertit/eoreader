@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" EOReader exceptions """
+"""EOReader exceptions"""
 
 
 class EoReaderError(Exception):

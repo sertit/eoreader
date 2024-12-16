@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Product Factory, class creating products according to their names """
+"""Product Factory, class creating products according to their names"""
 
 from __future__ import annotations
 
@@ -500,7 +499,7 @@ class Reader:
         custom: bool = False,
         constellation: Union[Constellation, str, list] = None,
         **kwargs,
-    ) -> "Product":  # noqa: F821
+    ) -> Product:  # noqa: F821
         """
         Open a product from:
         - On disk path
@@ -570,10 +569,10 @@ class Reader:
                 try:
                     product_path = Item.from_file(product_path)
                     is_stac = True
-                except Exception:
+                except Exception as exc:
                     raise InvalidProductError(
                         f"Cannot convert your URL ({product_path}) to a STAC Item."
-                    )
+                    ) from exc
             else:
                 raise ModuleNotFoundError(
                     "You should install 'pystac' to use STAC Products."
@@ -661,7 +660,7 @@ class Reader:
                     )
                 except Exception:
                     const = None
-                    for const in CONSTELLATION_REGEX.keys():
+                    for const in CONSTELLATION_REGEX:
                         is_valid = self.valid_name(item.id, const)
                         if is_valid:
                             break
@@ -887,8 +886,8 @@ class Reader:
         else:
             try:
                 prod_files = utils.get_archived_file_list(product_path)
-            except BadZipFile:
-                raise BadZipFile(f"{product_path} is not a zip file")
+            except BadZipFile as exc:
+                raise BadZipFile(f"{product_path} is not a zip file") from exc
 
         # Check
         for idx, regex in enumerate(regex_list):
@@ -947,8 +946,8 @@ def is_filename_valid(
                 LOGGER.debug(
                     f"The product {product_file_name} should be a folder or an archive (.tar or .zip)"
                 )
-            except BadZipFile:
-                raise BadZipFile(f"{product_path} is not a zip file")
+            except BadZipFile as exc:
+                raise BadZipFile(f"{product_path} is not a zip file") from exc
 
             except FileNotFoundError:
                 pass

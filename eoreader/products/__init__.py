@@ -17,6 +17,7 @@
 """
 SAR and Optical products
 """
+
 # flake8: noqa
 __all__ = ["Product", "SensorType", "OrbitDirection"]
 

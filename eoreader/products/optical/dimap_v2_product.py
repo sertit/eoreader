@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ DIMAP V2 super class.
 See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
 for more information.
 """
+
 import logging
 import time
 from abc import abstractmethod
@@ -782,8 +782,10 @@ class DimapV2Product(VhrProduct):
             ][0]
             elev_angle = float(center_vals.findtext(".//SUN_ELEVATION"))
             azimuth_angle = float(center_vals.findtext(".//SUN_AZIMUTH"))
-        except TypeError:
-            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
+        except TypeError as exc:
+            raise InvalidProductError(
+                "Azimuth or Zenith angles not found in metadata!"
+            ) from exc
 
         # From elevation to zenith
         zenith_angle = 90.0 - elev_angle
@@ -825,8 +827,10 @@ class DimapV2Product(VhrProduct):
             ][0]
             incidence_angle = float(center_vals.findtext(".//INCIDENCE_ANGLE"))
             az = float(center_vals.findtext(".//AZIMUTH_ANGLE"))
-        except TypeError:
-            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
+        except TypeError as exc:
+            raise InvalidProductError(
+                "Azimuth or Zenith angles not found in metadata!"
+            ) from exc
 
         # Compute off nadir angles
         off_nadir = incidence_to_off_nadir(
@@ -852,11 +856,7 @@ class DimapV2Product(VhrProduct):
         """
         Does this product has the specified cloud band ?
         """
-        if band in [CIRRUS, SHADOWS]:
-            has_band = False
-        else:
-            has_band = True
-        return has_band
+        return band not in [CIRRUS, SHADOWS]
 
     def _open_clouds(
         self,
@@ -1009,13 +1009,13 @@ class DimapV2Product(VhrProduct):
                     )
 
                     mask = vectors.read(mask_gml_path, crs=crs)
-            except FileNotFoundError:
+            except FileNotFoundError as exc:
                 if mask_str in optional_masks:
                     mask = gpd.GeoDataFrame(geometry=[], crs=crs)
                 else:
                     raise InvalidProductError(
                         f"Mask {mask_str} not found for {self.path.joinpath('MASKS')}"
-                    )
+                    ) from exc
 
             # Convert mask to correct CRS
             if not mask.empty and self.product_type in [
@@ -1180,10 +1180,10 @@ class DimapV2Product(VhrProduct):
             if rad_gain is None or rad_bias is None:
                 raise TypeError
 
-        except TypeError:
+        except TypeError as exc:
             raise InvalidProductError(
                 "GAIN and BIAS from Band_Radiance not found in metadata!"
-            )
+            ) from exc
         return dn_arr / rad_gain + rad_bias
 
     def _toa_rad_to_toa_refl(
@@ -1222,10 +1222,10 @@ class DimapV2Product(VhrProduct):
             if e0 is None:
                 raise TypeError
 
-        except TypeError:
+        except TypeError as exc:
             raise InvalidProductError(
                 "VALUE from Band_Solar_Irradiance not found in metadata!"
-            )
+            ) from exc
 
         # Compute the coefficient converting TOA radiance in TOA reflectance
         dt = self._sun_earth_distance_variation()

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ Harmonized Landsat-Sentinel (HLS) products
 - https://lpdaac.usgs.gov/documents/1326/HLS_User_Guide_V2.pdf
 - https://lpdaac.usgs.gov/data/get-started-data/collection-overview/missions/harmonized-landsat-sentinel-2-hls-overview/
 """
+
 import logging
 import os
 from datetime import datetime
@@ -908,10 +908,10 @@ class HlsProduct(OpticalProduct):
         try:
             azimuth_angle = float(mtd_data.findtext(".//MEAN_SUN_AZIMUTH_ANGLE"))
             zenith_angle = float(mtd_data.findtext(".//MEAN_SUN_ZENITH_ANGLE"))
-        except TypeError:
+        except TypeError as exc:
             raise InvalidProductError(
                 "MEAN_SUN_AZIMUTH_ANGLE or MEAN_SUN_ZENITH_ANGLE not found in metadata!"
-            )
+            ) from exc
 
         return azimuth_angle, zenith_angle
 

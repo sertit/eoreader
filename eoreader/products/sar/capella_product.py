@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ Capella products.
 Take a look
 `here <https://support.capellaspace.com/hc/en-us/categories/360002612692-SAR-Imagery-Products>`_.
 """
+
 import logging
 from datetime import datetime
 from enum import unique
@@ -200,8 +200,10 @@ class CapellaProduct(SarProduct):
         # Private attributes
         try:
             self.snap_filename = str(next(self.path.glob("*CAPELLA*.json")).name)
-        except StopIteration:
-            raise FileNotFoundError(f"Non existing file *CAPELLA*.json in {self.path}")
+        except StopIteration as exc:
+            raise FileNotFoundError(
+                f"Non existing file *CAPELLA*.json in {self.path}"
+            ) from exc
 
         # To be done in pre-init, but we don't have the product name here
         name = self._get_name()
@@ -211,10 +213,10 @@ class CapellaProduct(SarProduct):
             # For SICD and SIDD
             try:
                 self._raw_band_regex = str(next(self.path.glob(f"{name}.ntf")).name)
-            except StopIteration:
+            except StopIteration as exc:
                 raise FileNotFoundError(
                     f"Non existing file {name}.tif or {name}.ntf in {self.path}"
-                )
+                ) from exc
 
         # Pre init done by the super class
         super()._pre_init(**kwargs)
@@ -240,10 +242,10 @@ class CapellaProduct(SarProduct):
         if self._has_stac_mtd:
             try:
                 mtd_file = next(self.path.glob(f"{self.name}.json"))
-            except StopIteration:
+            except StopIteration as exc:
                 raise FileNotFoundError(
                     f"Non existing file {self.name}.json in {self.path}"
-                )
+                ) from exc
             extent = vectors.read(mtd_file)
         else:
             extent = None
@@ -424,10 +426,10 @@ class CapellaProduct(SarProduct):
 
             data = files.read_json(mtd_file, print_file=False)
             root = etree.fromstring(dicttoxml(data))
-        except etree.XMLSyntaxError:
+        except etree.XMLSyntaxError as exc:
             raise InvalidProductError(
                 f"Cannot convert metadata to XML for {self.path}!"
-            )
+            ) from exc
 
         return root, {}
 
@@ -454,10 +456,10 @@ class CapellaProduct(SarProduct):
             band_paths[pol] = path.get_file_in_dir(
                 self._band_folder, self._raw_band_regex, exact_name=True, get_list=False
             )
-        except FileNotFoundError:
+        except FileNotFoundError as exc:
             raise InvalidProductError(
                 f"An {self.constellation.name} product should at least contain one band !"
-            )
+            ) from exc
 
         return band_paths
 

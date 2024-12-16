@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -21,6 +20,7 @@ See
 and `Planet documentation <https://developers.planet.com/docs/data/rapideye/>`_
 for more information.
 """
+
 import logging
 from datetime import datetime
 from enum import unique

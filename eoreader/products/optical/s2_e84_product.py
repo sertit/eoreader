@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Sentinel-2 cloud-stored products """
+"""Sentinel-2 cloud-stored products"""
+
 import difflib
 import json
 import logging
@@ -648,10 +648,10 @@ class S2E84Product(OpticalProduct):
         try:
             azimuth_angle = self.stac_mtd["properties"]["view:sun_azimuth"]
             zenith_angle = self.stac_mtd["properties"]["view:sun_elevation"]
-        except IndexError:
+        except IndexError as exc:
             raise InvalidProductError(
                 "sun_azimuth or sun_elevation not found in metadata!"
-            )
+            ) from exc
 
         return azimuth_angle, zenith_angle
 
@@ -659,11 +659,7 @@ class S2E84Product(OpticalProduct):
         """
         L1C doesn't have any mask. SCL mask has everything.
         """
-        if self.product_type == S2ProductType.L1C:
-            has_band = False
-        else:
-            has_band = True
-        return has_band
+        return self.product_type != S2ProductType.L1C
 
     def _open_clouds(
         self,
@@ -855,10 +851,10 @@ class S2E84StacProduct(StacProduct, S2E84Product):
                 asset_name = difflib.get_close_matches(
                     file_id, self.item.assets.keys(), cutoff=0.5, n=1
                 )[0]
-            except Exception:
+            except Exception as exc:
                 raise FileNotFoundError(
                     f"Impossible to find an asset in {list(self.item.assets.keys())} close enough to '{file_id}'"
-                )
+                ) from exc
 
         return self.item.assets[asset_name].href
 

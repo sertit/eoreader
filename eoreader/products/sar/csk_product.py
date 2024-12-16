@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -18,6 +17,7 @@
 COSMO-SkyMed products.
 More info `here <https://earth.esa.int/documents/10174/465595/COSMO-SkyMed-Mission-Products-Description>`_.
 """
+
 import logging
 from enum import unique
 
@@ -75,10 +75,7 @@ class CskProduct(CosmoProduct):
         """
         if self.sensor_mode == CskSensorMode.HI:
             def_pixel_size = 2.5
-            if self.product_type == CosmoProductType.SCS:
-                def_res = 3.0
-            else:
-                def_res = 5.0
+            def_res = 3.0 if self.product_type == CosmoProductType.SCS else 5.0
         elif self.sensor_mode == CskSensorMode.PP:
             def_pixel_size = 10.0
             def_res = 20.0

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Landsat products """
+"""Landsat products"""
+
 import difflib
 import logging
 import tarfile
@@ -379,10 +379,10 @@ class LandsatProduct(OpticalProduct):
                         self.name,
                     )
 
-        except ValueError:
+        except ValueError as exc:
             raise InvalidProductError(
                 "Landsat level 3 and ARD are not handled by EOReader!"
-            )
+            ) from exc
 
     def _set_instrument(self) -> None:
         """
@@ -1007,9 +1007,11 @@ class LandsatProduct(OpticalProduct):
             mtd_name = "_MTL.txt"
             if self.is_archived:
                 # We need to extract the file in memory to be used with pandas
-                tar_ds = tarfile.open(self.path, "r")
-                info = [f.name for f in tar_ds.getmembers() if mtd_name in f.name][0]
-                mtd_path = tar_ds.extractfile(info)
+                with tarfile.open(self.path, "r") as tar_ds:
+                    info = [f.name for f in tar_ds.getmembers() if mtd_name in f.name][
+                        0
+                    ]
+                    mtd_path = tar_ds.extractfile(info)
             else:
                 # FOR COLLECTION 1 AND 2
                 tar_ds = None
@@ -1023,10 +1025,10 @@ class LandsatProduct(OpticalProduct):
                         raise InvalidProductError(
                             f"No metadata file found in {self.name} !"
                         )
-                except StopIteration:
+                except StopIteration as exc:
                     raise InvalidProductError(
                         f"No metadata file found in {self.name} !"
-                    )
+                    ) from exc
 
             # Parse
             mtd_data = pd.read_table(
@@ -1149,28 +1151,29 @@ class LandsatProduct(OpticalProduct):
         else:
             filename = path.get_filename(band_path)
 
-        if not (self._pixel_quality_id in filename or self._radsat_id in filename):
             # Convert raw bands from DN to correct reflectance
-            if not filename.startswith(self.condensed_name):
-                # Open mtd
-                mtd, _ = self._read_mtd()
+        if not (
+            self._pixel_quality_id in filename or self._radsat_id in filename
+        ) and not filename.startswith(self.condensed_name):
+            # Open mtd
+            mtd, _ = self._read_mtd()
 
-                # Get band nb and corresponding coeff
-                band_name = self.bands[band].id
-                try:
-                    # Thermal (10/11)
-                    if band in [TIR_1, TIR_2]:
-                        band_arr = self._to_tb(band_arr, mtd, band_name)
+            # Get band nb and corresponding coeff
+            band_name = self.bands[band].id
+            try:
+                # Thermal (10/11)
+                if band in [TIR_1, TIR_2]:
+                    band_arr = self._to_tb(band_arr, mtd, band_name)
 
-                    else:
-                        # Original band name
-                        band_arr = self._to_refl(band_arr, mtd, band_name)
-                except TypeError:
-                    raise InvalidProductError(
-                        f"Cannot find additive or multiplicative "
-                        f"rescaling factor for bands ({band.name}, "
-                        f"number {band_name}) in metadata"
-                    )
+                else:
+                    # Original band name
+                    band_arr = self._to_refl(band_arr, mtd, band_name)
+            except TypeError as exc:
+                raise InvalidProductError(
+                    f"Cannot find additive or multiplicative "
+                    f"rescaling factor for bands ({band.name}, "
+                    f"number {band_name}) in metadata"
+                ) from exc
 
         return band_arr
 
@@ -1280,18 +1283,12 @@ class LandsatProduct(OpticalProduct):
         try:
             c_mul = float(c_mul)
         except ValueError:
-            if self.product_type == LandsatProductType.L1:
-                c_mul = 1.0
-            else:
-                c_mul = 2.75e-05
+            c_mul = 1.0 if self.product_type == LandsatProductType.L1 else 2.75e-05
 
         try:
             c_add = float(c_add)
         except ValueError:
-            if self.product_type == LandsatProductType.L1:
-                c_add = 0.0
-            else:
-                c_add = -0.2
+            c_add = 0.0 if self.product_type == LandsatProductType.L1 else -0.2
 
         # Compute the correct reflectance of the band and set no data to 0
         band_arr = c_mul * band_arr + c_add  # Already in float
@@ -1337,7 +1334,7 @@ class LandsatProduct(OpticalProduct):
             # SATURATED & OTHER PIXELS
             try:
                 band_id = int(self.bands[band].id)
-            except ValueError:
+            except ValueError as exc:
                 if (
                     band in [TIR_1, TIR_2]
                     and self.constellation_id == Constellation.L7.name
@@ -1346,7 +1343,7 @@ class LandsatProduct(OpticalProduct):
                 else:
                     raise InvalidProductError(
                         f"Cannot convert {self.bands[band].id} to integer."
-                    )
+                    ) from exc
 
             # Bit ids
             sat_id = band_id - 1  # Saturated pixel
@@ -1472,10 +1469,10 @@ class LandsatProduct(OpticalProduct):
         try:
             azimuth_angle = float(mtd_data.findtext(".//SUN_AZIMUTH"))
             zenith_angle = 90.0 - float(mtd_data.findtext(".//SUN_ELEVATION"))
-        except TypeError:
+        except TypeError as exc:
             raise InvalidProductError(
                 "SUN_AZIMUTH or SUN_ELEVATION not found in metadata!"
-            )
+            ) from exc
 
         return azimuth_angle, zenith_angle
 
@@ -1515,22 +1512,14 @@ class LandsatProduct(OpticalProduct):
         """
         Does this product has the specified cloud band ?
         """
-        if band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS]:
-            has_band = True
-        else:
-            has_band = False
-        return has_band
+        return band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS]
 
     @staticmethod
     def _e_tm_has_cloud_band(band: BandNames) -> bool:
         """
         Does this product has the specified cloud band ?
         """
-        if band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS, SHADOWS]:
-            has_band = True
-        else:
-            has_band = False
-        return has_band
+        return band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS, SHADOWS]
 
     def _open_clouds(
         self,
@@ -1613,9 +1602,7 @@ class LandsatProduct(OpticalProduct):
             clouds = self._create_mask(qa_arr, cld, nodata)
 
         for band in band_list:
-            if band == ALL_CLOUDS:
-                cloud = clouds
-            elif band == CLOUDS:
+            if band in [ALL_CLOUDS, CLOUDS]:
                 cloud = clouds
             elif band == RAW_CLOUDS:
                 cloud = qa_arr
@@ -1919,10 +1906,10 @@ class LandsatStacProduct(StacProduct, LandsatProduct):
                 asset_name = difflib.get_close_matches(
                     band_id, self.item.assets.keys(), cutoff=0.5, n=1
                 )[0]
-            except Exception:
+            except Exception as exc:
                 raise FileNotFoundError(
                     f"Impossible to find an asset in {list(self.item.assets.keys())} close enough to '{band_id}'"
-                )
+                ) from exc
 
         return self.sign_url(self.item.assets[asset_name].href)
 

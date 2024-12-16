@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -25,6 +24,7 @@ STAC extensions:
     - Sun angles
     - Viewing position (in progress)
 """
+
 import geopandas as gpd
 from rasterio.crs import CRS
 
@@ -125,10 +125,10 @@ class EoExt:
         try:
             import pystac
             from pystac.extensions.eo import Band, EOExtension
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
                 "You need to install 'pystac[validation]' to export your product to a STAC Item!"
-            )
+            ) from exc
         # Add the EO extension
         eo_ext = EOExtension.ext(item, add_if_missing=True)
 
@@ -292,10 +292,10 @@ class ProjExt:
         """
         try:
             from pystac.extensions.projection import ProjectionExtension
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
                 "You need to install 'pystac[validation]' to export your product to a STAC Item!"
-            )
+            ) from exc
         # Add the proj extension
         proj_ext = ProjectionExtension.ext(item, add_if_missing=True)
         proj_ext.epsg = self.epsg
@@ -368,9 +368,7 @@ class ViewExt:
         Returns:
             bool: True if at least one attribute is not None
         """
-        return any(
-            [getattr(self, attr) is not None for attr in self.extension_fields.keys()]
-        )
+        return any([getattr(self, attr) is not None for attr in self.extension_fields])
 
     def _to_repr(self) -> list:
         """
@@ -406,10 +404,10 @@ class ViewExt:
         """
         try:
             from pystac.extensions.view import ViewExtension
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
                 "You need to install 'pystac[validation]' to export your product to a STAC Item!"
-            )
+            ) from exc
         # Add the view extension
         # The View Geometry extension specifies information related to angles of sensors and other radiance angles that affect the view of resulting data
         if self.create_ext():

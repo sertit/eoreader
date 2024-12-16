@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ SuperView-1 products.
 See `here <http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf>`_
 for more information.
 """
+
 import logging
 from datetime import datetime
 from enum import unique
@@ -311,8 +311,10 @@ class Sv1Product(VhrProduct):
         else:
             try:
                 footprint = vectors.read(next(self.path.glob("*.shp")))
-            except StopIteration:
-                raise FileNotFoundError(f"Non existing file *.shp in {self.path}")
+            except StopIteration as exc:
+                raise FileNotFoundError(
+                    f"Non existing file *.shp in {self.path}"
+                ) from exc
 
         return footprint.to_crs(self.crs())
 
@@ -395,10 +397,10 @@ class Sv1Product(VhrProduct):
                 footprint_path = self._get_archived_path(r".*\.shp")
             else:
                 footprint_path = next(self.path.glob("*.shp"))
-        except (FileNotFoundError, StopIteration):
+        except (FileNotFoundError, StopIteration) as exc:
             raise InvalidProductError(
                 "Footprint shapefile cannot be found in the product!"
-            )
+            ) from exc
 
         # Open identifier
         name = path.get_filename(footprint_path)
@@ -453,10 +455,10 @@ class Sv1Product(VhrProduct):
             az = float(root.findtext(".//SatelliteAzimuth"))
             off_nadir = float(root.findtext(".//ViewAngle"))
             incidence_angle = float(root.findtext(".//incidenceAngle"))
-        except TypeError:
+        except TypeError as exc:
             raise InvalidProductError(
                 "SatelliteAzimuth, ViewAngle or incidenceAngle not found in metadata!"
-            )
+            ) from exc
 
         return az, off_nadir, incidence_angle
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Spectral Bands """
+"""Spectral Bands"""
+
 import numpy as np
 
 from eoreader.bands.band_names import SpectralBandNames
@@ -85,8 +85,8 @@ class SpectralBand(Band):
         try:
             self.eoreader_name = SpectralBandNames.convert_from(eoreader_name)[0]
             self.common_name = SpectralBandNames.eoreader_to_stac(self.eoreader_name)
-        except TypeError:
-            raise InvalidTypeError
+        except TypeError as exc:
+            raise InvalidTypeError from exc
 
     def _to_repr_constellation_specific(self) -> list:
         """

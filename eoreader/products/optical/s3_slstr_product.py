@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -21,6 +20,7 @@ Sentinel-3 SLSTR products
     Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio !
     -> use xr.open_dataset that manages that correctly
 """
+
 import logging
 from collections import namedtuple
 from enum import unique
@@ -543,8 +543,10 @@ class S3SlstrProduct(S3Product):
         else:
             try:
                 raw_path = next(self.path.glob(f"*{filename}*"))
-            except StopIteration:
-                raise FileNotFoundError(f"Non existing file {filename} in {self.path}")
+            except StopIteration as exc:
+                raise FileNotFoundError(
+                    f"Non existing file {filename} in {self.path}"
+                ) from exc
 
         return raw_path
 
@@ -679,10 +681,7 @@ class S3SlstrProduct(S3Product):
                 band = self.bands[band].id
 
             if band == F1.value:
-                if self._F1_is_f:
-                    stripe = SlstrStripe.F
-                else:
-                    stripe = SlstrStripe.I
+                stripe = SlstrStripe.F if self._F1_is_f else SlstrStripe.I
             else:
                 if band in SLSTR_I_BANDS:
                     stripe = SlstrStripe.I
@@ -975,17 +974,7 @@ class S3SlstrProduct(S3Product):
         Does this product has the specified cloud band ?
         -> SLSTR does
         """
-        if band in [
-            RAW_CLOUDS,
-            ALL_CLOUDS,
-            CLOUDS,
-            CIRRUS,
-        ]:
-            has_band = True
-        else:
-            has_band = False
-
-        return has_band
+        return band in [RAW_CLOUDS, ALL_CLOUDS, CLOUDS, CIRRUS]
 
     def _open_clouds(
         self,

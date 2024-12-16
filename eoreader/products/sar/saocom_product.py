@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -17,6 +16,7 @@
 """
 SAOCOM products.
 """
+
 import logging
 import re
 import zipfile
@@ -149,15 +149,9 @@ class SaocomProduct(SarProduct):
         if self.sensor_mode == SaocomSensorMode.SM:
             def_res = 10.0
         elif self.sensor_mode == SaocomSensorMode.TN:
-            if polarization == SaocomPolarization.QP:
-                def_res = 50.0
-            else:
-                def_res = 30.0
+            def_res = 50.0 if polarization == SaocomPolarization.QP else 30.0
         elif self.sensor_mode == SaocomSensorMode.TW:
-            if polarization == SaocomPolarization.QP:
-                def_res = 100.0
-            else:
-                def_res = 50.0
+            def_res = 100.0 if polarization == SaocomPolarization.QP else 50.0
 
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
@@ -288,8 +282,8 @@ class SaocomProduct(SarProduct):
         extended_fmt = _ExtendedFormatter()
         try:
             cuss_file = next(self.path.glob("*.zip"))
-        except StopIteration:
-            raise FileNotFoundError(f"Non existing file *.zip in {self.path}")
+        except StopIteration as exc:
+            raise FileNotFoundError(f"Non existing file *.zip in {self.path}") from exc
         band_paths = {}
         for band in SarBandNames.speckle_list():
             band_regex = extended_fmt.format(self._raw_band_regex, band.value)
@@ -412,8 +406,10 @@ class SaocomProduct(SarProduct):
         # Open identifier
         try:
             name = path.get_filename(root.findtext(".//dataFile/componentPath"))
-        except TypeError:
-            raise InvalidProductError("dataFile/componentPath not found in metadata!")
+        except TypeError as exc:
+            raise InvalidProductError(
+                "dataFile/componentPath not found in metadata!"
+            ) from exc
 
         return name
 
@@ -489,7 +485,7 @@ class SaocomProduct(SarProduct):
         try:
             od = OrbitDirection.from_value(root.findtext(".//OrbitDirection"))
 
-        except TypeError:
-            raise InvalidProductError("orbitDirection not found in metadata!")
+        except TypeError as exc:
+            raise InvalidProductError("orbitDirection not found in metadata!") from exc
 
         return od

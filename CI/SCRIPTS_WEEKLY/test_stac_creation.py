@@ -1,5 +1,6 @@
-""" Script testing the creaction of STAC Items from EOReader Products. """
+"""Script testing the creaction of STAC Items from EOReader Products."""
 
+import contextlib
 import logging
 import os
 import sys
@@ -149,10 +150,7 @@ def _test_core(
                     list(prod.extent().to_crs(WGS84).bounds.values[0]),
                     "item.bbox",
                 )
-                if prod.is_ortho:
-                    geometry_fct = prod.footprint
-                else:
-                    geometry_fct = prod.extent
+                geometry_fct = prod.footprint if prod.is_ortho else prod.extent
 
                 compare(
                     item.geometry,
@@ -249,14 +247,12 @@ def _test_core(
 
                 if prod.sensor_type == SensorType.OPTICAL:
                     prod: OpticalProduct
-                    try:
+                    with contextlib.suppress(KeyError):
                         compare(
                             item.properties[EO_CC],
                             prod.get_cloud_cover(),
                             f"{EO_CC} (item.properties)",
                         )
-                    except KeyError:
-                        pass
 
                     sun_az, sun_zen = prod.get_mean_sun_angles()
                     sun_el = 90 - sun_zen
@@ -302,17 +298,22 @@ def _test_core(
                     existing_bands = prod.get_existing_bands()
                     nof_assets = len(existing_bands)
 
-                    if is_not_s2:
-                        if NARROW_NIR in existing_bands:
-                            nof_assets -= 1  # remove NARROW NIR, except for S2
-                    if is_not_s2 and prod.constellation != Constellation.S3_OLCI:
-                        if VRE_1 in existing_bands and VRE_2 in existing_bands:
-                            nof_assets -= 1  # remove one VRE, except for S2 and S3 OLCI
-                        if VRE_1 in existing_bands and VRE_3 in existing_bands:
-                            nof_assets -= 1  # remove one VRE, except for S2 and S3 OLCI
-                    if prod.instrument == LandsatInstrument.TM:
-                        if TIR_1 in existing_bands and TIR_2 in existing_bands:
-                            nof_assets -= 1  # remove one TIR for TM data
+                    if is_not_s2 and NARROW_NIR in existing_bands:
+                        nof_assets -= 1  # remove NARROW NIR, except for S2
+                    elif (
+                        is_not_s2
+                        and prod.constellation != Constellation.S3_OLCI
+                        and VRE_1 in existing_bands
+                        and VRE_2 in existing_bands
+                        or VRE_3 in existing_bands
+                    ):
+                        nof_assets -= 1  # remove one VRE, except for S2 and S3 OLCI
+                    if (
+                        prod.instrument == LandsatInstrument.TM
+                        and TIR_1 in existing_bands
+                        and TIR_2 in existing_bands
+                    ):
+                        nof_assets -= 1  # remove one TIR for TM data
                 else:
                     prod: SarProduct
                     existing_bands = prod._get_raw_bands()
@@ -343,14 +344,13 @@ def _test_core(
 
                         eo_band = band.extra_fields[EO_BANDS][0]
                         compare(eo_band["name"], prod_band.name, f"{EO_BANDS} name")
-                        try:
+                        with contextlib.suppress(KeyError):
                             compare(
                                 eo_band["common_name"],
                                 prod_band.common_name.value,
                                 f"{EO_BANDS} common_name",
                             )
-                        except KeyError:
-                            pass
+
                         compare(
                             eo_band["description"],
                             prod_band.description,

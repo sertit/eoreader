@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ ICEYE products.
 Take a look
 `here <https://www.iceye.com/hubfs/Downloadables/ICEYE-Level-1-Product-Specs-2019.pdf>`_.
 """
+
 import logging
 from datetime import datetime
 from enum import unique
@@ -144,10 +144,10 @@ class IceyeProduct(SarProduct):
             else:
                 self.snap_filename = str(next(self.path.glob("*ICEYE*GRD*.xml")).name)
                 self._raw_band_regex = "*ICEYE*GRD*.tif"
-        except StopIteration:
+        except StopIteration as exc:
             raise FileNotFoundError(
                 f"Non existing file *ICEYE*SLC*.xml or *ICEYE*GRD*.xml in {self.path}"
-            )
+            ) from exc
 
         # Pre init done by the super class
         super()._pre_init(**kwargs)
@@ -355,10 +355,10 @@ class IceyeProduct(SarProduct):
             band_paths[sab.VV] = path.get_file_in_dir(
                 self._band_folder, self._raw_band_regex, exact_name=True, get_list=False
             )
-        except FileNotFoundError:
+        except FileNotFoundError as exc:
             raise InvalidProductError(
                 "An ICEYE product should at least contain a VV band !"
-            )
+            ) from exc
 
         return band_paths
 
@@ -400,7 +400,7 @@ class IceyeProduct(SarProduct):
         try:
             od = OrbitDirection.from_value(root.findtext(".//orbit_direction"))
 
-        except TypeError:
-            raise InvalidProductError("orbit_direction not found in metadata!")
+        except TypeError as exc:
+            raise InvalidProductError("orbit_direction not found in metadata!") from exc
 
         return od

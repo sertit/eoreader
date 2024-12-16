@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,8 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Class for STAC products """
+"""Class for STAC products"""
+
 import asyncio
+import contextlib
 import logging
 from io import BytesIO
 
@@ -43,10 +44,8 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class StacProduct(Product):
     """Stac products"""
 
-    try:
+    with contextlib.suppress(AttributeError):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    except AttributeError:
-        pass
 
     item = None
     clients = None
@@ -66,15 +65,15 @@ class StacProduct(Product):
                 import pystac
 
                 item = pystac.Item.from_file(product_path)
-            except ModuleNotFoundError:
+            except ModuleNotFoundError as exc:
                 raise InvalidProductError(
                     "You should install 'pystac' to use STAC Products."
-                )
+                ) from exc
 
-            except TypeError:
+            except TypeError as exc:
                 raise InvalidProductError(
                     "You should either fill 'product_path' or 'item'."
-                )
+                ) from exc
 
         return item
 
@@ -142,10 +141,10 @@ class StacProduct(Product):
         """
         try:
             import matplotlib.pyplot as plt
-        except ModuleNotFoundError:
+        except ModuleNotFoundError as exc:
             raise ModuleNotFoundError(
                 "You need to install 'matplotlib' to plot the product."
-            )
+            ) from exc
         else:
             quicklook_path = self.get_quicklook_path()
 
@@ -158,10 +157,10 @@ class StacProduct(Product):
                 ]:
                     try:
                         from PIL import Image
-                    except ModuleNotFoundError:
+                    except ModuleNotFoundError as exc:
                         raise ModuleNotFoundError(
                             "You need to install 'pillow' to plot the product."
-                        )
+                        ) from exc
 
                     qlk = self.read_href(quicklook_path, clients=self.clients)
                     plt.imshow(Image.open(BytesIO(qlk)))
@@ -200,10 +199,10 @@ class StacProduct(Product):
                 import planetary_computer
 
                 return planetary_computer.sign_url(url)
-            except ModuleNotFoundError:
+            except ModuleNotFoundError as exc:
                 raise ModuleNotFoundError(
                     "You need to install 'planetary-computer' to use MPC STAC products in EOReader."
-                )
+                ) from exc
         else:
             return url
 
@@ -221,10 +220,10 @@ class StacProduct(Product):
         """
         try:
             from stac_asset import blocking
-        except ModuleNotFoundError:
+        except ModuleNotFoundError as exc:
             raise ModuleNotFoundError(
                 "You need to install 'stac-asset' (see https://stac-asset.readthedocs.io/en/latest/) to use STAC products in EOReader."
-            )
+            ) from exc
         return blocking.read_href(href, config, clients)
 
     def get_s3_client(self, region_name: str, requester_pays: bool = False, **kwargs):
@@ -240,10 +239,10 @@ class StacProduct(Product):
         """
         try:
             from stac_asset import S3Client
-        except ModuleNotFoundError:
+        except ModuleNotFoundError as exc:
             raise ModuleNotFoundError(
                 "You need to install 'stac-asset' (see https://stac-asset.readthedocs.io/en/latest/) to use STAC products in EOReader."
-            )
+            ) from exc
         return S3Client(
             region_name=region_name, requester_pays=requester_pays, **kwargs
         )
@@ -285,7 +284,7 @@ class StacProduct(Product):
         nsmap = {key: f"{{{ns}}}" for key, ns in root.nsmap.items()}
         pop_list = ["xsi", "xs", "xlink"]
         for ns in pop_list:
-            if ns in nsmap.keys():
+            if ns in nsmap:
                 nsmap.pop(ns)
 
         return root, nsmap

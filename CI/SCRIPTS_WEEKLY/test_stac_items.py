@@ -1,4 +1,4 @@
-""" Script testing EOReader ingestion of STAC Items """
+"""Script testing EOReader ingestion of STAC Items"""
 
 import logging
 import os
@@ -68,13 +68,16 @@ def _test_core(
 
 def test_s2_l1c_e84():
     """Function testing the support of Sentinel-2 L1C constellation processed by E84 and linked via a STAC URL"""
-    with tempenv.TemporaryEnvironment(
-        {
-            "AWS_S3_ENDPOINT": "s3.us-west-2.amazonaws.com",
-            "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_S3_AWS_SECRET_ACCESS_KEY"),
-            "AWS_ACCESS_KEY_ID": os.getenv("AWS_S3_AWS_ACCESS_KEY_ID"),
-        }
-    ), s3.temp_s3(requester_pays=True):
+    with (
+        tempenv.TemporaryEnvironment(
+            {
+                "AWS_S3_ENDPOINT": "s3.us-west-2.amazonaws.com",
+                "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_S3_AWS_SECRET_ACCESS_KEY"),
+                "AWS_ACCESS_KEY_ID": os.getenv("AWS_S3_AWS_ACCESS_KEY_ID"),
+            }
+        ),
+        s3.temp_s3(requester_pays=True),
+    ):
         _test_core(
             "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l1c/items/S2B_29SLD_20231121_0_L1C",
             Constellation.S2,
@@ -91,13 +94,16 @@ def test_s2_l2a_e84():
 
 def test_l9_e84():
     """Function testing the support of Landsat-9 constellation processed by E84 and linked via a STAC URL"""
-    with tempenv.TemporaryEnvironment(
-        {
-            "AWS_S3_ENDPOINT": "s3.us-west-2.amazonaws.com",
-            "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_S3_AWS_SECRET_ACCESS_KEY"),
-            "AWS_ACCESS_KEY_ID": os.getenv("AWS_S3_AWS_ACCESS_KEY_ID"),
-        }
-    ), s3.temp_s3(requester_pays=True):
+    with (
+        tempenv.TemporaryEnvironment(
+            {
+                "AWS_S3_ENDPOINT": "s3.us-west-2.amazonaws.com",
+                "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_S3_AWS_SECRET_ACCESS_KEY"),
+                "AWS_ACCESS_KEY_ID": os.getenv("AWS_S3_AWS_ACCESS_KEY_ID"),
+            }
+        ),
+        s3.temp_s3(requester_pays=True),
+    ):
         _test_core(
             "https://earth-search.aws.element84.com/v1/collections/landsat-c2-l2/items/LC09_L2SP_095022_20231119_02_T2",
             Constellation.L9,
