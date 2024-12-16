@@ -3,8 +3,11 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["eoreader*"]
+include = ["eoreader*", "data"]
 namespaces = false
+
+[tool.setuptools.package-data]
+eoreader = ["*.xml"]
 
 [project]
 name = "eoreader"
@@ -57,8 +60,6 @@ dynamic = ["version"]
     "stac-asset",
     "planetary_computer",
 ]
-[tool.setuptools.package-data]
-eoreader.data = ["*.xml"]
 
 [tool.setuptools.dynamic]
 version = {attr = "eoreader.__version__"}
