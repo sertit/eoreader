@@ -28,7 +28,6 @@ pytest:
   before_script:
     - python -m pip install --upgrade pip
     - pip install --ignore-installed PyYAML
-    - pip install pytest coverage pytest-cov pylint
     - pip install -e .
   script:
     - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_on_disk.html --cov=eoreader --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG
@@ -63,7 +62,6 @@ pytest_s3:
   before_script:
     - python -m pip install --upgrade pip
     - pip install --ignore-installed PyYAML
-    - pip install pytest coverage pytest-cov pylint
     - pip install -e .
   script:
     - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_s3.html --cov=eoreader --cov-config=.coveragerc CI/SCRIPTS --log-cli-level DEBUG --capture=tee-sys
@@ -96,7 +94,6 @@ pytest_end_to_end:
   before_script:
     - python -m pip install --upgrade pip
     - pip install --ignore-installed PyYAML
-    - pip install pytest coverage pytest-cov pylint
     - pip install -e .
   script:
     - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc CI/SCRIPTS_WEEKLY --log-cli-level DEBUG --capture=tee-sys
