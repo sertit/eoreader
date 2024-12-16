@@ -17,6 +17,7 @@
 """
 **EOReader** library
 """
+
 # flake8: noqa
 from functools import wraps
 from typing import Callable
@@ -44,14 +45,7 @@ except ImportError:
     )
     from functools import cache
 
+
 from .__meta__ import (
-    __author__,
-    __author_email__,
-    __copyright__,
-    __description__,
-    __documentation__,
-    __license__,
-    __title__,
-    __url__,
     __version__,
 )
