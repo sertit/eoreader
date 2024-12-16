@@ -504,7 +504,6 @@ class SarProduct(Product):
         extended_fmt = _ExtendedFormatter()
         band_paths = {}
         for band in sab.speckle_list():
-            LOGGER.debug(f"get RAW band path for {band.name}")
             band_regex = extended_fmt.format(self._raw_band_regex, band.value)
 
             if self.is_archived:
