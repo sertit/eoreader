@@ -49,6 +49,8 @@ dependencies = [
     "dicttoxml",
 ]
 
+dynamic = ["version"]
+
 [project.optional-dependencies]
 "stac" = [
     "pystac[validation]",
@@ -57,8 +59,6 @@ dependencies = [
 ]
 [tool.setuptools.package-data]
 eoreader.data = ["*.xml"]
-
-dynamic = ["version"]
 
 [tool.setuptools.dynamic]
 version = {attr = "eoreader.__version__"}
