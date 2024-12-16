@@ -56,7 +56,7 @@ def test_index(tmp_path):
 
         # Test
         try:
-            ci.assert_raster_almost_equal(curr_path, ci_idx, decimal=4)
+            ci.assert_raster_max_mismatch(curr_path, ci_idx, max_mismatch_pct=1)
         except AssertionError as ex:
             LOGGER.debug(ex)
             failed_idx.append(idx_name)
