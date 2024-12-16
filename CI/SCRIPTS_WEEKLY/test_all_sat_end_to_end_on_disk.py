@@ -1,4 +1,4 @@
-""" Script testing EOReader satellites in a push routine """
+"""Script testing EOReader satellites in a push routine"""
 
 import logging
 import os

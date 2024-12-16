@@ -449,12 +449,7 @@ class SarBandNames(BandNames):
         Returns:
             SarBandNames: Despeckled band
         """
-        if cls.is_despeckle(band):
-            dspk = band
-        else:
-            dspk = cls.from_value(f"{band.name}_DSPK")
-
-        return dspk
+        return band if cls.is_despeckle(band) else cls.from_value(f"{band.name}_DSPK")
 
     @classmethod
     def corresponding_speckle(cls, band: "SarBandNames"):

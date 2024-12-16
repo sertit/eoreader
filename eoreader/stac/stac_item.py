@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -30,6 +29,7 @@ extensions:
     - Sun angles
     - Viewing position (in progress)
 """
+
 from datetime import datetime
 
 import geopandas as gpd
@@ -118,10 +118,10 @@ class StacItem:
     def create_item(self):
         try:
             import pystac
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
                 "You need to install 'pystac[validation]' to export your product to a STAC Item!"
-            )
+            ) from exc
 
         # Item creation
         item = pystac.Item(

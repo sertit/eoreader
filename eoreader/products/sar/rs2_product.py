@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -18,6 +17,7 @@
 RADARSAT-2 products.
 More info `here <https://earth.esa.int/eogateway/documents/20142/0/Radarsat-2-Product-description.pdf/f2783c7b-6a22-cbe4-f4c1-6992f9926dca>`_.
 """
+
 import difflib
 import logging
 from datetime import datetime
@@ -335,17 +335,11 @@ class Rs2Product(SarProduct):
         # Ocean surveillance and detection of vessels
         elif self.sensor_mode == Rs2SensorMode.OSVN:
             def_res = 50.0
-            if self.sar_prod_type == SarProductType.CPLX:
-                def_pixel_size = 35.0
-            else:
-                def_pixel_size = 50.0
+            def_pixel_size = 35.0 if self.sar_prod_type == SarProductType.CPLX else 50.0
 
         elif self.sensor_mode == Rs2SensorMode.DVWF:
             def_res = 35.0
-            if self.sar_prod_type == SarProductType.CPLX:
-                def_pixel_size = 20.0
-            else:
-                def_pixel_size = 40.0
+            def_pixel_size = 20.0 if self.sar_prod_type == SarProductType.CPLX else 40.0
         else:
             raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
 
@@ -627,7 +621,7 @@ class Rs2Product(SarProduct):
                 root.findtext(f".//{namespace}passDirection").upper()
             )
 
-        except TypeError:
-            raise InvalidProductError("passDirection not found in metadata!")
+        except TypeError as exc:
+            raise InvalidProductError("passDirection not found in metadata!") from exc
 
         return od

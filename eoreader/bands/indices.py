@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,8 +18,8 @@ Set of usual spectral indices.
 
 **Note**: This is easier to manage indices as raw functions in a file rather than stored in a class
 """
-# Index not snake case
-# pylint: disable=C0103
+
+import contextlib
 import inspect
 import logging
 import re
@@ -131,10 +130,8 @@ def compute_index(index: str, bands: dict, **kwargs) -> xr.DataArray:
     def _compute_params(_bands, **_kwargs):
         prms = {}
         for key, value in _bands.items():
-            try:
+            with contextlib.suppress(KeyError):
                 prms[EOREADER_TO_SPYNDEX_DICT[key]] = value.data
-            except KeyError:
-                pass
         prms.update(_kwargs)
 
         return prms
@@ -352,8 +349,8 @@ def is_spyndex_idx(index: str) -> bool:
 
 
 # Check that no EOReader index name shadows Spyndex indices
-assert not any(is_spyndex_idx(alias) for alias in DEPRECATED_SPECTRAL_INDICES.keys())
-assert not any(is_spyndex_idx(alias) for alias in EOREADER_DERIVATIVES.keys())
+assert not any(is_spyndex_idx(alias) for alias in DEPRECATED_SPECTRAL_INDICES)
+assert not any(is_spyndex_idx(alias) for alias in EOREADER_DERIVATIVES)
 
 
 def get_needed_bands(index: str) -> list:

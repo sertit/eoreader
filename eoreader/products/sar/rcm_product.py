@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -18,6 +17,7 @@
 RADARSAT-Constellation Mission products.
 More info `here <https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/characteristics.asp>`_.
 """
+
 import difflib
 import logging
 from datetime import datetime
@@ -436,7 +436,7 @@ class RcmProduct(SarProduct):
                 root.findtext(f".//{namespace}passDirection").upper()
             )
 
-        except TypeError:
-            raise InvalidProductError("passDirection not found in metadata!")
+        except TypeError as exc:
+            raise InvalidProductError("passDirection not found in metadata!") from exc
 
         return od

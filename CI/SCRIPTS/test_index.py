@@ -1,4 +1,4 @@
-""" Script testing EOReader index """
+"""Script testing EOReader index"""
 
 import logging
 import os

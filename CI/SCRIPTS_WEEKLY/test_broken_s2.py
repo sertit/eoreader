@@ -1,4 +1,4 @@
-""" Testing broken S2 products weekly. """
+"""Testing broken S2 products weekly."""
 
 import logging
 

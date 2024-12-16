@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ Maxar satellites (GeoEye, WorldViews...) class.
 See `here <https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-Standard-Imagery.pdf>`_
 for more information.
 """
+
 import logging
 from abc import abstractmethod
 from collections import namedtuple
@@ -964,17 +964,21 @@ class MaxarProduct(VhrProduct):
 
         # Compute extent corners
         default_extent = root.find(".//MAP_PROJECTED_PRODUCT")
-        ul_corner = float(default_extent.findtext("ULX")), float(
-            default_extent.findtext("ULY")
+        ul_corner = (
+            float(default_extent.findtext("ULX")),
+            float(default_extent.findtext("ULY")),
         )
-        ur_corner = float(default_extent.findtext("URX")), float(
-            default_extent.findtext("URY")
+        ur_corner = (
+            float(default_extent.findtext("URX")),
+            float(default_extent.findtext("URY")),
         )
-        lr_corner = float(default_extent.findtext("LRX")), float(
-            default_extent.findtext("LRY")
+        lr_corner = (
+            float(default_extent.findtext("LRX")),
+            float(default_extent.findtext("LRY")),
         )
-        ll_corner = float(default_extent.findtext("LLX")), float(
-            default_extent.findtext("LLY")
+        ll_corner = (
+            float(default_extent.findtext("LLX")),
+            float(default_extent.findtext("LLY")),
         )
         corners = [ul_corner, ur_corner, lr_corner, ll_corner]
 
@@ -1061,8 +1065,10 @@ class MaxarProduct(VhrProduct):
         try:
             elev_angle = float(root.findtext(".//MEANSUNEL"))
             azimuth_angle = float(root.findtext(".//MEANSUNAZ"))
-        except TypeError:
-            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
+        except TypeError as exc:
+            raise InvalidProductError(
+                "Azimuth or Zenith angles not found in metadata!"
+            ) from exc
 
         # From elevation to zenith
         zenith_angle = 90.0 - elev_angle
@@ -1092,10 +1098,10 @@ class MaxarProduct(VhrProduct):
             az = float(root.findtext(".//MEANSATAZ"))
             incidence_angle = 90 - float(root.findtext(".//MEANSATEL"))
             off_nadir = float(root.findtext(".//MEANOFFNADIRVIEWANGLE"))
-        except TypeError:
+        except TypeError as exc:
             raise InvalidProductError(
                 "MEANSATAZ, MEANSATEL or MEANOFFNADIRVIEWANGLE angles not found in metadata!"
-            )
+            ) from exc
 
         return az, off_nadir, incidence_angle
 
@@ -1206,10 +1212,10 @@ class MaxarProduct(VhrProduct):
             band_mtd = root.find(f".//{band_mtd_str}")
             abs_factor = float(band_mtd.findtext(".//ABSCALFACTOR"))
             effective_bandwidth = float(band_mtd.findtext(".//EFFECTIVEBANDWIDTH"))
-        except TypeError:
+        except TypeError as exc:
             raise InvalidProductError(
                 "ABSCALFACTOR or EFFECTIVEBANDWIDTH not found in metadata!"
-            )
+            ) from exc
 
         # Get constellation-specific gain and offset (latest)
         gain, offset = _MAXAR_GAIN_OFFSET[self.constellation][band]

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" SAR Bands """
+"""SAR Bands"""
+
 from eoreader.bands.band_names import SarBandNames
 from eoreader.bands.bands import Band, BandMap
 from eoreader.bands.mappings import EOREADER_TO_SPYNDEX_DICT
@@ -35,8 +35,8 @@ class SarBand(Band):
         # Set names
         try:
             self.eoreader_name = SarBandNames.convert_from(eoreader_name)[0]
-        except TypeError:
-            raise InvalidTypeError
+        except TypeError as exc:
+            raise InvalidTypeError from exc
 
     def _to_repr_constellation_specific(self) -> list:
         """

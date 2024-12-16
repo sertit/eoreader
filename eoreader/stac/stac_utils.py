@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -17,6 +16,7 @@
 """
 STAC utils
 """
+
 import os
 from datetime import datetime
 from pprint import pformat
@@ -155,9 +155,7 @@ def get_media_type(band_path: str) -> Any:
         media_type = pystac.MediaType.PNG
     elif suffix.lower() in [".jpeg", ".jpg"]:
         media_type = pystac.MediaType.JPEG
-    elif suffix.lower() == ".til":
-        media_type = None  # Not existing
-    elif suffix.lower() == ".nc":
+    elif suffix.lower() == ".til" or suffix.lower() == ".nc":
         media_type = None  # Not existing
     else:
         media_type = None  # Not recognized

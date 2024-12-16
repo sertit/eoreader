@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Super class for SAR products """
+"""Super class for SAR products"""
+
 import logging
 import os
 import tempfile
@@ -749,7 +749,7 @@ class SarProduct(Product):
                     )
                 else:
                     pp_graph = AnyPath(os.environ[PP_GRAPH]).resolve()
-                    if not pp_graph.is_file() or not pp_graph.suffix == ".xml":
+                    if not pp_graph.is_file() or pp_graph.suffix != ".xml":
                         FileNotFoundError(f"{pp_graph} cannot be found.")
 
                 # Command line
@@ -850,7 +850,7 @@ class SarProduct(Product):
                 dspk_graph = utils.get_data_dir().joinpath("sar_despeckle_default.xml")
             else:
                 dspk_graph = AnyPath(os.environ[DSPK_GRAPH]).resolve()
-                if not dspk_graph.is_file() or not dspk_graph.suffix == ".xml":
+                if not dspk_graph.is_file() or dspk_graph.suffix != ".xml":
                     FileNotFoundError(f"{dspk_graph} cannot be found.")
 
             # Create command line and run it
@@ -1050,10 +1050,7 @@ class SarProduct(Product):
                 )
                 extent_wgs84 = gpd.GeoDataFrame(geometry=[extent_poly], crs=crs)
             else:
-                if extent_file_name:
-                    name = f"({extent_file_name}) "
-                else:
-                    name = ""
+                name = f"({extent_file_name}) " if extent_file_name else ""
 
                 raise InvalidProductError(
                     f"Extent file {name}not found in {self.path}. "

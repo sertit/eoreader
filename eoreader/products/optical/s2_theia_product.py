@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -676,8 +675,10 @@ class S2TheiaProduct(OpticalProduct):
             mean_sun_angles = root.find(".//Sun_Angles")
             zenith_angle = float(mean_sun_angles.findtext("ZENITH_ANGLE"))
             azimuth_angle = float(mean_sun_angles.findtext("AZIMUTH_ANGLE"))
-        except TypeError:
-            raise InvalidProductError("Azimuth or Zenith angles not found in metadata!")
+        except TypeError as exc:
+            raise InvalidProductError(
+                "Azimuth or Zenith angles not found in metadata!"
+            ) from exc
 
         return azimuth_angle, zenith_angle
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -21,6 +20,8 @@ See
 and `Planet documentation <https://developers.planet.com/docs/data/planetscope/>`_
 for more information.
 """
+
+import contextlib
 import logging
 from collections import defaultdict
 from datetime import datetime
@@ -534,14 +535,11 @@ class PlaProduct(PlanetProduct):
         """
 
         def update_corner_dict(key, lon, lat):
-            try:
+            with contextlib.suppress(Exception):
                 lon = lon.iat[0]
-            except Exception:
-                pass
-            try:
+            with contextlib.suppress(Exception):
                 lat = lat.iat[0]
-            except Exception:
-                pass
+
             xml.update_txt(
                 mtd,
                 f"{nsmap[self._nsmap_key]}{key}/{nsmap[self._nsmap_key]}longitude",

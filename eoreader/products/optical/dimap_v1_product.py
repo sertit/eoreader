@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -20,6 +19,7 @@ DIMAP V1.1 products.
 - VISION-1
 - GEOSAT-2 (ex DEIMOS-2)
 """
+
 import logging
 import time
 from abc import abstractmethod
@@ -306,10 +306,10 @@ class DimapV1Product(VhrProduct):
 
             incidence_angle = 90 - float(root.findtext(".//INCIDENCE_ANGLE"))
             off_nadir = float(root.findtext(".//VIEWING_ANGLE"))
-        except TypeError:
+        except TypeError as exc:
             raise InvalidProductError(
                 "SPACEMETRIC:SENSOR_AZIMUTH, INCIDENCE_ANGLE or VIEWING_ANGLE not found in metadata!"
-            )
+            ) from exc
 
         return az, off_nadir, incidence_angle
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,10 +13,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Product, superclass of all EOReader satellites products """
+"""Product, superclass of all EOReader satellites products"""
+
 # pylint: disable=W0107
 from __future__ import annotations
 
+import contextlib
 import datetime as dt
 import functools
 import gc
@@ -29,7 +30,7 @@ import tempfile
 from abc import abstractmethod
 from enum import unique
 from io import BytesIO
-from typing import Tuple, Union
+from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -765,14 +766,14 @@ class Product:
                     raise InvalidProductError(
                         f"Metadata file ({mtd_from_path}) not found in {self.path}"
                     ) from ex
-        except etree.XMLSyntaxError:
-            raise InvalidProductError(f"Invalid metadata XML for {self.path}!")
+        except etree.XMLSyntaxError as exc:
+            raise InvalidProductError(f"Invalid metadata XML for {self.path}!") from exc
 
         # Get namespaces map (only useful ones)
         nsmap = {key: f"{{{ns}}}" for key, ns in root.nsmap.items()}
         pop_list = ["xsi", "xs", "xlink"]
         for ns in pop_list:
-            if ns in nsmap.keys():
+            if ns in nsmap:
                 nsmap.pop(ns)
 
         return root, nsmap
@@ -909,7 +910,7 @@ class Product:
             pixel_size = kwargs.pop("resolution")
 
         if (types.is_iterable(bands) and ("GREEN1" in bands or GREEN1 in bands)) or (
-            "GREEN1" == bands or GREEN1 == bands
+            bands == "GREEN1" or bands == GREEN1
         ):
             logs.deprecation_warning(
                 "`GREEN1` is deprecated in favor of `GREEN_1`. `GREEN1` will be removed in a future release."
@@ -1404,7 +1405,7 @@ class Product:
     def __hash__(self):
         return hash(self.condensed_name)
 
-    def _get_out_path(self, filename: str) -> Tuple[AnyPathType, bool]:
+    def _get_out_path(self, filename: str) -> tuple[AnyPathType, bool]:
         """
         Returns the output path of a file to be written, depending on if it already exists or not (manages CI folders)
 
@@ -1412,7 +1413,7 @@ class Product:
             filename (str): Filename
 
         Returns:
-            Tuple[AnyPathType, bool]: Output path and if the file already exists or not
+            tuple[AnyPathType, bool]: Output path and if the file already exists or not
         """
         out = self._get_band_folder() / filename
         exists = True
@@ -1442,11 +1443,8 @@ class Product:
 
         # Move all files from old process folder into the new one
         for file in path.listdir_abspath(old_tmp_process):
-            try:
+            with contextlib.suppress(shutil.Error):
                 shutil.move(str(file), self._tmp_process)
-            except shutil.Error:
-                # Don't overwrite file
-                pass
 
         # Remove old output if existing into the new output
         if self._tmp_output:
@@ -1529,11 +1527,11 @@ class Product:
                         dst_tr = def_tr
                         dst_tr *= dst_tr.scale(coeff_x, coeff_y)
 
-                    except (TypeError, KeyError):
+                    except (TypeError, KeyError) as exc:
                         raise ValueError(
                             f"Size should exist (as pixel_size is None)"
                             f" and castable to a list: {size}"
-                        )
+                        ) from exc
 
                 else:
                     # Refine pixel_size
@@ -1867,14 +1865,8 @@ class Product:
             res_y = abs(def_tr.e * def_h / size[1])
 
         # Round pixel_size to the closest meter (under 1 meter, allow centimetric pixel_size)
-        if res_x < 1.0:
-            res_x = np.round(res_x, 1)
-        else:
-            res_x = np.round(res_x, 0)
-        if res_y < 1.0:
-            res_y = np.round(res_y, 1)
-        else:
-            res_y = np.round(res_y, 0)
+        res_x = np.round(res_x, 1) if res_x < 1.0 else np.round(res_x, 0)
+        res_y = np.round(res_y, 1) if res_y < 1.0 else np.round(res_y, 0)
 
         return res_x, res_y
 
@@ -1924,10 +1916,7 @@ class Product:
             if types.is_iterable(pixel_size):
                 res_x = _res_to_str(pixel_size[0])
                 res_y = _res_to_str(pixel_size[1])
-                if res_x == res_y:
-                    res_str = res_x
-                else:
-                    res_str = f"{res_x}_{res_y}"
+                res_str = res_x if res_x == res_y else f"{res_x}_{res_y}"
             else:
                 res_str = _res_to_str(pixel_size)
         else:
@@ -1995,10 +1984,10 @@ class Product:
         """
         try:
             import matplotlib.pyplot as plt
-        except ModuleNotFoundError:
+        except ModuleNotFoundError as exc:
             raise ModuleNotFoundError(
                 "You need to install 'matplotlib' to plot the product."
-            )
+            ) from exc
         else:
             quicklook_path = self.get_quicklook_path()
 
@@ -2007,10 +1996,10 @@ class Product:
                 if path.get_ext(quicklook_path).lower() in ["png", "jpg", "jpeg"]:
                     try:
                         from PIL import Image
-                    except ModuleNotFoundError:
+                    except ModuleNotFoundError as exc:
                         raise ModuleNotFoundError(
                             "You need to install 'pillow' to plot the product."
-                        )
+                        ) from exc
 
                     if self.is_archived:
                         qlk = BytesIO(
@@ -2072,7 +2061,7 @@ class Product:
         for raw_band in raw_bands:
             try:
                 bands += to_band(raw_band)
-            except InvalidTypeError:
+            except InvalidTypeError as exc:
                 found = False
                 for band_name, band in self.bands.items():
                     if band is not None and str(raw_band) in [
@@ -2088,7 +2077,7 @@ class Product:
                 if not found:
                     raise InvalidTypeError(
                         f"Couldn't find any band in {self.condensed_name} that corresponds to {raw_band}."
-                    )
+                    ) from exc
 
         return bands
 

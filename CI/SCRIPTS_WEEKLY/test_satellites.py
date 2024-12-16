@@ -1,4 +1,4 @@
-""" Script testing EOReader satellites weekly """
+"""Script testing EOReader satellites weekly"""
 
 import logging
 import os

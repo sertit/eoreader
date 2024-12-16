@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Sentinel-1 products """
+"""Sentinel-1 products"""
+
 import logging
 import os
 from datetime import datetime
@@ -170,8 +170,10 @@ class S1Product(SarProduct):
         try:
             def_pixel_size = default_pix_size[self.sensor_mode][res_class]
             def_res = default_res[self.sensor_mode][res_class]
-        except KeyError:
-            raise InvalidProductError(f"Unknown sensor mode: {self.sensor_mode}")
+        except KeyError as exc:
+            raise InvalidProductError(
+                f"Unknown sensor mode: {self.sensor_mode}"
+            ) from exc
 
         self.pixel_size = def_pixel_size
         self.resolution = def_res
@@ -373,10 +375,10 @@ class S1Product(SarProduct):
                     "Product filename is not a valid Sentinel-1 name, and the retrieved name is missing the unique ID."
                 )
 
-            except InvalidProductError:
+            except InvalidProductError as exc:
                 raise InvalidProductError(
                     "product-preview.html not found in the product, the name will be the filename (which is not a valid Sentinel-1 name)"
-                )
+                ) from exc
         else:
             name = path.get_filename(pdf_file)
             if ".SAFE" in name:
@@ -451,7 +453,7 @@ class S1Product(SarProduct):
         try:
             od = OrbitDirection.from_value(root.findtext(".//pass").upper())
 
-        except TypeError:
-            raise InvalidProductError("pass not found in metadata!")
+        except TypeError as exc:
+            raise InvalidProductError("pass not found in metadata!") from exc
 
         return od

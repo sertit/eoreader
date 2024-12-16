@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https:#sertit.unistra.fr/
 # This file is part of eoreader project
 #     https:#github.com/sertit/eoreader
@@ -21,6 +20,7 @@ Sentinel-3 OLCI products
     Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio !
     -> use xr.open_dataset that manages that correctly
 """
+
 import logging
 from typing import Union
 
@@ -466,10 +466,10 @@ class S3OlciProduct(S3Product):
             else:
                 try:
                     raw_path = next(self.path.glob(f"*{filename}"))
-                except StopIteration:
+                except StopIteration as exc:
                     raise FileNotFoundError(
                         f"Non existing file {filename} in {self.path}"
-                    )
+                    ) from exc
 
             raw_band_paths[band] = raw_path
 

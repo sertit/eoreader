@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Class for custom products """
+"""Class for custom products"""
+
 import logging
 from datetime import datetime
 from enum import unique
@@ -114,7 +114,7 @@ class CustomProduct(Product):
         )
 
         # Process kwargs
-        for key in self.kwargs.keys():
+        for key in self.kwargs:
             try:
                 CustomFields.from_value(key)  # noqa
             except ValueError:
@@ -204,12 +204,7 @@ class CustomProduct(Product):
                 dt = datetime.strptime(dt, "%Y%m%dT%H%M%S")
         assert isinstance(dt, datetime)
 
-        if as_datetime:
-            date = dt
-        else:
-            date = dt.strftime(DATETIME_FMT)
-
-        return date
+        return dt if as_datetime else dt.strftime(DATETIME_FMT)
 
     def _get_constellation(self) -> Constellation:
         """Getter of the constellation"""

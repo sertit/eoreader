@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ VHR (very high resoplution) super class.
 See `here <https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-Standard-Imagery.pdf>`_
 for more information.
 """
+
 import logging
 import os
 from abc import abstractmethod
@@ -28,9 +28,8 @@ import affine
 import numpy as np
 import rasterio
 import xarray as xr
-from rasterio import rpc
+from rasterio import rpc, warp
 from rasterio import shutil as rio_shutil
-from rasterio import warp
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.vrt import WarpedVRT
@@ -173,10 +172,7 @@ class VhrProduct(OpticalProduct):
 
                     # TODO: change this when available in rioxarray
                     # See https://github.com/corteva/rioxarray/issues/837
-                    if "rpcs" in kwargs:
-                        rpcs = kwargs.pop("rpcs")
-                    else:
-                        rpcs = ds.rpcs
+                    rpcs = kwargs.pop("rpcs") if "rpcs" in kwargs else ds.rpcs
 
                 if not rpcs:
                     raise InvalidProductError(
@@ -560,10 +556,10 @@ class VhrProduct(OpticalProduct):
             else:
                 prod_path = next(self.path.glob(f"{filename}*.{extension}"))
 
-        except (FileNotFoundError, IndexError, StopIteration):
+        except (FileNotFoundError, IndexError, StopIteration) as exc:
             raise InvalidProductError(
                 f"No file corresponding to *{filename}*.{extension} found in {self.path}"
-            )
+            ) from exc
 
         return prod_path
 
@@ -646,11 +642,13 @@ class VhrProduct(OpticalProduct):
                 "dtype": src.meta["dtype"],
                 "num_threads": utils.get_max_cores(),
             }
-            with rasterio.Env(
-                **{"GDAL_NUM_THREADS": "ALL_CPUS", "NUM_THREADS": "ALL_CPUS"}
+            with (
+                rasterio.Env(
+                    **{"GDAL_NUM_THREADS": "ALL_CPUS", "NUM_THREADS": "ALL_CPUS"}
+                ),
+                WarpedVRT(src, **vrt_options) as vrt,
             ):
-                with WarpedVRT(src, **vrt_options) as vrt:
-                    rio_shutil.copy(vrt, reproj_path, driver="vrt")
+                rio_shutil.copy(vrt, reproj_path, driver="vrt")
 
     def _get_default_utm_band(
         self, pixel_size: float = None, size: Union[list, tuple] = None

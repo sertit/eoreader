@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -18,6 +17,7 @@
 PAZ products
 More info at https://earth.esa.int/eogateway/documents/20142/37627/PAZ-Image-Products-Guide.pdf.
 """
+
 from eoreader.products import TsxProduct
 
 

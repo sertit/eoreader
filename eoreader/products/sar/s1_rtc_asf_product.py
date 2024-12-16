@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ S1 ASF RTC products.
 Take a look
 `here <https://hyp3-docs.asf.alaska.edu/guides/rtc_product_guide/#readme-file>`_.
 """
+
 import logging
 from datetime import datetime
 from enum import unique
@@ -67,8 +67,8 @@ class S1RtcAsfProduct(SarProduct):
         """
         try:
             pixel_size = float(self.split_name[4][-2:])
-        except ValueError:
-            raise InvalidProductError("Incorrect name format!")
+        except ValueError as exc:
+            raise InvalidProductError("Incorrect name format!") from exc
 
         default_res = {
             S1SensorMode.SM: 9.0,
@@ -159,8 +159,10 @@ class S1RtcAsfProduct(SarProduct):
         else:
             try:
                 footprint = vectors.read(next(self.path.glob("*.shp")))
-            except StopIteration:
-                raise FileNotFoundError(f"Non existing file *.shp in {self.path}")
+            except StopIteration as exc:
+                raise FileNotFoundError(
+                    f"Non existing file *.shp in {self.path}"
+                ) from exc
 
         return footprint
 

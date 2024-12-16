@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Sentinel-2 MPC products """
+"""Sentinel-2 MPC products"""
+
 import difflib
 import logging
 
@@ -126,10 +126,7 @@ class S2MpcStacProduct(StacProduct, S2E84Product):
             xr.DataArray: Band in reflectance
         """
         # TODO: use mtd for offset and quantif value
-        if self._processing_baseline < 4.0:
-            offset = 0.0
-        else:
-            offset = -1000.0
+        offset = 0.0 if self._processing_baseline < 4.0 else -1000.0
         quantif_value = 10000.0
 
         # Compute the correct radiometry of the band
@@ -160,10 +157,10 @@ class S2MpcStacProduct(StacProduct, S2E84Product):
                 asset_name = difflib.get_close_matches(
                     file_id, self.item.assets.keys(), cutoff=0.5, n=1
                 )[0]
-            except Exception:
+            except Exception as exc:
                 raise FileNotFoundError(
                     f"Impossible to find an asset in {list(self.item.assets.keys())} close enough to '{file_id}'"
-                )
+                ) from exc
 
         return self.sign_url(self.item.assets[asset_name].href)
 

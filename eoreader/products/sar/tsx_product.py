@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -18,6 +17,7 @@
 TerraSAR-X & TanDEM-X & PAZ products.
 More info `here <https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf>`_.
 """
+
 import logging
 from datetime import datetime
 from enum import unique
@@ -205,10 +205,10 @@ class TsxProduct(SarProduct):
             polarization = TsxPolarization.from_value(
                 acq_info.findtext(".//polarisationMode")
             )
-        except (InvalidProductError, TypeError):
+        except (InvalidProductError, TypeError) as exc:
             raise InvalidProductError(
                 "acquisitionInfo or polarisationMode not found in metadata!"
-            )
+            ) from exc
 
         def_res = None
         def_pixel_size = None
@@ -243,10 +243,10 @@ class TsxProduct(SarProduct):
                 root, _ = self.read_mtd()
                 acq_info = root.find(".//acquisitionInfo")
                 nof_beams = int(acq_info.findtext(".//numberOfBeams"))
-            except (InvalidProductError, TypeError):
+            except (InvalidProductError, TypeError) as exc:
                 raise InvalidProductError(
                     "imageDataInfo or rowSpacing not found in metadata!"
-                )
+                ) from exc
             # Four beams
             if nof_beams == 4:
                 def_pixel_size = 8.25
@@ -493,8 +493,8 @@ class TsxProduct(SarProduct):
             name = path.get_filename(
                 root.find(".//generalHeader").attrib.get("fileName")
             )
-        except TypeError:
-            raise InvalidProductError("ProductName not found in metadata!")
+        except TypeError as exc:
+            raise InvalidProductError("ProductName not found in metadata!") from exc
 
         return name
 
@@ -563,7 +563,7 @@ class TsxProduct(SarProduct):
         try:
             od = OrbitDirection.from_value(root.findtext(".//orbitDirection"))
 
-        except TypeError:
-            raise InvalidProductError("orbitDirection not found in metadata!")
+        except TypeError as exc:
+            raise InvalidProductError("orbitDirection not found in metadata!") from exc
 
         return od

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ GEOSAT-2 products.
 See `here <https://geosat.space/wp-content/uploads/2022/04/GEOSAT-2-Imagery-User-Guide-v3.2.pdf>`_
 for more information.
 """
+
 import io
 import logging
 from enum import unique
@@ -440,11 +440,8 @@ class Gs2Product(DimapV1Product):
         Returns:
             AnyPathType: DIMAP filepath
         """
-        if self.band_combi == Gs2BandCombination.PM4:
-            prefix = "DE2_MS4_"
-            # TODO: support PAN bands
-        else:
-            prefix = "DE2_"
+        # TODO: support PAN bands
+        prefix = "DE2_MS4_" if self.band_combi == Gs2BandCombination.PM4 else "DE2_"
         return self._get_path(prefix, "dim")
 
     def _get_ortho_path(self, **kwargs) -> AnyPathType:

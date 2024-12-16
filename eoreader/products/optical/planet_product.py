@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -20,10 +19,11 @@ See
 `Product specs <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
 for more information.
 """
+
 import logging
 from abc import abstractmethod
 from enum import unique
-from typing import Tuple, Union
+from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -274,13 +274,13 @@ class PlanetProduct(OpticalProduct):
 
         return udm2_path
 
-    def _merge_subdatasets(self) -> Tuple[AnyPathType, bool]:
+    def _merge_subdatasets(self) -> tuple[AnyPathType, bool]:
         """
         Merge subdataset, when several Planet products avec been ordered together
         Will create a reflectance (if possible) VRT, a UDM/UDM2 VRT.
 
         Returns:
-            Tuple[AnyPathType, bool]: Analytic VRT and if already existing
+            tuple[AnyPathType, bool]: Analytic VRT and if already existing
         """
         if self.is_archived:
             # VRT cannot be created from inside a ZIP
@@ -613,10 +613,7 @@ class PlanetProduct(OpticalProduct):
         if self._mask_type == PlanetMaskType.UDM2:
             has_band = True
         elif self._mask_type == PlanetMaskType.UDM:
-            if band in [SHADOWS, CIRRUS]:
-                has_band = False
-            else:
-                has_band = True
+            has_band = band not in [SHADOWS, CIRRUS]
         else:
             has_band = False
 
@@ -1061,10 +1058,10 @@ class PlanetProduct(OpticalProduct):
             try:
                 elev_angle = float(root.findtext(".//sun_elevation"))
                 azimuth_angle = float(root.findtext(".//sun_azimuth"))
-            except TypeError:
+            except TypeError as exc:
                 raise InvalidProductError(
                     "Azimuth or Zenith angles not found in metadata!"
-                )
+                ) from exc
         else:
             try:
                 elev_angle = float(
@@ -1073,10 +1070,10 @@ class PlanetProduct(OpticalProduct):
                 azimuth_angle = float(
                     root.findtext(f".//{nsmap['opt']}illuminationAzimuthAngle")
                 )
-            except TypeError:
+            except TypeError as exc:
                 raise InvalidProductError(
                     "Azimuth or Zenith angles not found in metadata!"
-                )
+                ) from exc
 
         # From elevation to zenith
         zenith_angle = 90.0 - elev_angle
@@ -1131,10 +1128,10 @@ class PlanetProduct(OpticalProduct):
                 az = float(root.findtext(".//satellite_azimuth"))
                 off_nadir = float(root.findtext(".//view_angle"))
                 incidence_angle = None
-            except TypeError:
+            except TypeError as exc:
                 raise InvalidProductError(
                     "satellite_azimuth or view_angle angles not found in metadata!"
-                )
+                ) from exc
         else:
             try:
                 az = float(root.findtext(f".//{nsmap[self._nsmap_key]}azimuthAngle"))
@@ -1146,10 +1143,10 @@ class PlanetProduct(OpticalProduct):
                 incidence_angle = float(
                     root.findtext(f".//{nsmap['eop']}incidenceAngle")
                 )
-            except TypeError:
+            except TypeError as exc:
                 raise InvalidProductError(
                     "azimuthAngle, spaceCraftViewAngle or incidenceAngle not found in metadata!"
-                )
+                ) from exc
 
         return az, off_nadir, incidence_angle
 
@@ -1210,16 +1207,18 @@ class PlanetProduct(OpticalProduct):
                 try:
                     cc = float(root.findtext(".//cloud_percent"))
 
-                except TypeError:
-                    raise InvalidProductError("'cloud_percent' not found in metadata!")
+                except TypeError as exc:
+                    raise InvalidProductError(
+                        "'cloud_percent' not found in metadata!"
+                    ) from exc
             else:
                 try:
                     cc = float(root.findtext(f".//{nsmap['opt']}cloudCoverPercentage"))
 
-                except TypeError:
+                except TypeError as exc:
                     raise InvalidProductError(
                         "'opt:cloudCoverPercentage' not found in metadata!"
-                    )
+                    ) from exc
 
         except (InvalidProductError, TypeError) as ex:
             LOGGER.warning(ex)
@@ -1255,8 +1254,10 @@ class PlanetProduct(OpticalProduct):
                     root.findtext(f".//{nsmap['eop']}orbitDirection")
                 )
 
-            except TypeError:
-                raise InvalidProductError("eop:orbitDirection not found in metadata!")
+            except TypeError as exc:
+                raise InvalidProductError(
+                    "eop:orbitDirection not found in metadata!"
+                ) from exc
 
         return od
 

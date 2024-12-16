@@ -1,4 +1,4 @@
-""" Utils module for scripts """
+"""Utils module for scripts"""
 
 import logging
 import os
@@ -47,11 +47,11 @@ def get_ci_db_dir() -> AnyPathType:
         try:
             # CI
             return AnyPath(get_db3_path(), "CI", "eoreader")
-        except NotADirectoryError:
+        except NotADirectoryError as exc:
             # Windows
             db_path = AnyPath(r"//ds2/database03/CI/eoreader")
             if not db_path.is_dir():
-                raise NotADirectoryError("Impossible to find get_ci_db_dir")
+                raise NotADirectoryError("Impossible to find get_ci_db_dir") from exc
 
             return db_path
 
@@ -148,7 +148,7 @@ def broken_s2_path():
 
 
 def s3_env(*args, **kwargs):
-    return unistra.s3_env(use_s3_env_var=CI_EOREADER_S3, *args, **kwargs)
+    return unistra.s3_env(*args, use_s3_env_var=CI_EOREADER_S3, **kwargs)
 
 
 def compare(to_be_checked, ref, topic):

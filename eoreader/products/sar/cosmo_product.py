@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -18,6 +17,7 @@
 COSMO-SkyMed products.
 More info `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000JXxZ/WEEbowzi5cmY8vLqyfAAMKZ064iN1eWw_qZAgUkTtXI>`_.
 """
+
 import logging
 import os
 import tempfile
@@ -159,7 +159,7 @@ class CosmoProduct(SarProduct):
                 geometry=[Polygon([tl_corner, tr_corner, br_corner, bl_corner])],
                 crs=vectors.WGS84,
             )
-        except ValueError:
+        except ValueError as exc:
 
             def from_str_to_arr(geo_coord: str):
                 str_list = [
@@ -195,7 +195,7 @@ class CosmoProduct(SarProduct):
             tr_corners = from_str_to_arr(root.findtext(".//GeoCoordTopRight"))
 
             if not bl_corners:
-                raise InvalidProductError("Invalid XML: missing extent.")
+                raise InvalidProductError("Invalid XML: missing extent.") from exc
 
             assert (
                 len(bl_corners) == len(br_corners) == len(tl_corners) == len(tr_corners)
@@ -409,10 +409,10 @@ class CosmoProduct(SarProduct):
                     )
 
                 return mtd_el, {}
-            except KeyError:
+            except KeyError as exc:
                 raise InvalidProductError(
                     "Missing the XML metadata file. Cannot read the product."
-                )
+                ) from exc
 
     def get_quicklook_path(self) -> str:
         """
@@ -471,8 +471,10 @@ class CosmoProduct(SarProduct):
             try:
                 od = OrbitDirection.from_value(getattr(h5_xarr, "Orbit Direction"))
 
-            except TypeError:
-                raise InvalidProductError("Orbit Direction not found in metadata!")
+            except TypeError as exc:
+                raise InvalidProductError(
+                    "Orbit Direction not found in metadata!"
+                ) from exc
 
         return od
 

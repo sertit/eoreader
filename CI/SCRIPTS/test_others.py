@@ -1,4 +1,4 @@
-""" Other tests. """
+"""Other tests."""
 
 import os
 import sys
@@ -347,7 +347,7 @@ def test_bands():
     sb = SarBandMap()
     sb.map_bands(map_dic)
 
-    for key, val in map_dic.items():
+    for key, _ in map_dic.items():
         assert key in sb._band_map
         assert sb._band_map[key].id == map_dic[key]
 
@@ -369,7 +369,7 @@ def test_bands():
     ob = SpectralBandMap()
     ob.map_bands(map_dic)
 
-    for key, val in map_dic.items():
+    for key, _ in map_dic.items():
         assert key in ob._band_map
         assert ob._band_map[key].id == map_dic[key]
 

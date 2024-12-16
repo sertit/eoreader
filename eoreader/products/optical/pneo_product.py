@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ Pleiades-Neo products.
 See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
 for more information.
 """
+
 import logging
 
 from eoreader import EOREADER_NAME
@@ -53,37 +53,37 @@ class PneoProduct(DimapV2Product):
         # Create spectral bands
         ca = SpectralBand(
             eoreader_name=CA,
-            **{NAME: "DEEP BLUE", ID: 5, GSD: self._ms_res, WV_MIN: 400, WV_MAX: 450}
+            **{NAME: "DEEP BLUE", ID: 5, GSD: self._ms_res, WV_MIN: 400, WV_MAX: 450},
         )
 
         pan = SpectralBand(
             eoreader_name=PAN,
-            **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 450, WV_MAX: 800}
+            **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 450, WV_MAX: 800},
         )
 
         blue = SpectralBand(
             eoreader_name=BLUE,
-            **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 450, WV_MAX: 520}
+            **{NAME: "BLUE", ID: 1, GSD: self._ms_res, WV_MIN: 450, WV_MAX: 520},
         )
 
         green = SpectralBand(
             eoreader_name=GREEN,
-            **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 490, WV_MAX: 610}
+            **{NAME: "GREEN", ID: 2, GSD: self._ms_res, WV_MIN: 490, WV_MAX: 610},
         )
 
         red = SpectralBand(
             eoreader_name=RED,
-            **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 600, WV_MAX: 720}
+            **{NAME: "RED", ID: 3, GSD: self._ms_res, WV_MIN: 600, WV_MAX: 720},
         )
 
         nir = SpectralBand(
             eoreader_name=NIR,
-            **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 750, WV_MAX: 830}
+            **{NAME: "NIR", ID: 4, GSD: self._ms_res, WV_MIN: 750, WV_MAX: 830},
         )
 
         vre = SpectralBand(
             eoreader_name=VRE_1,
-            **{NAME: "RED EDGE", ID: 6, GSD: self._ms_res, WV_MIN: 700, WV_MAX: 750}
+            **{NAME: "RED EDGE", ID: 6, GSD: self._ms_res, WV_MIN: 700, WV_MAX: 750},
         )
         self._map_bands_core(
             blue=blue, green=green, red=red, nir=nir, pan=pan, vre=vre, ca=ca

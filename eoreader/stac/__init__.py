@@ -17,6 +17,7 @@
 """
 SAR and Optical products
 """
+
 # flake8: noqa
 from ._stac_keywords import (
     AMPLITUDE,

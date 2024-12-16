@@ -1,5 +1,6 @@
-""" Script testing EOReader satellites in a push routine """
+"""Script testing EOReader satellites in a push routine"""
 
+import contextlib
 import logging
 import os
 import sys
@@ -442,16 +443,12 @@ def _test_core(
                 check_geometry(prod, "footprint", tmp_dir)
 
                 if hasattr(prod, "wgs84_extent"):
-                    try:
+                    with contextlib.suppress(NotImplementedError):
                         prod.wgs84_extent()
-                    except NotImplementedError:
-                        pass
 
                 if hasattr(prod, "_fallback_wgs84_extent"):
-                    try:
+                    with contextlib.suppress(NotImplementedError):
                         prod._fallback_wgs84_extent()
-                    except NotImplementedError:
-                        pass
 
                 # Get the bands we want to stack / load
                 stack_bands = [band for band in possible_bands if prod.has_band(band)]

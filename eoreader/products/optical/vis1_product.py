@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -19,6 +18,7 @@ Vision-1 products.
 See `here <https://www.intelligence-airbusds.com/imagery/constellation/vision1/>`_
 for more information.
 """
+
 import io
 import logging
 from enum import unique

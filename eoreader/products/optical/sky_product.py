@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -21,6 +20,7 @@ See
 and `Planet documentation <https://developers.planet.com/docs/data/skysat/>`_
 for more information.
 """
+
 import logging
 from collections import defaultdict
 from datetime import datetime
@@ -495,8 +495,8 @@ class SkyProduct(PlanetProduct):
                     raise InvalidProductError(
                         f"Metadata file ({mtd_from_path}) not found in {self.path}"
                     ) from ex
-        except etree.XMLSyntaxError:
-            raise InvalidProductError(f"Invalid metadata XML for {self.path}!")
+        except etree.XMLSyntaxError as exc:
+            raise InvalidProductError(f"Invalid metadata XML for {self.path}!") from exc
 
         # Format datetime
         data["acquired"] = data["acquired"].dt.strftime(DATETIME_FMT)

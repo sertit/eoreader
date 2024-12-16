@@ -1,4 +1,4 @@
-""" Testing custom stacks weekly """
+"""Testing custom stacks weekly"""
 
 import logging
 

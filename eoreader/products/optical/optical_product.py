@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -14,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Super class for optical products """
+"""Super class for optical products"""
+
 import logging
 from abc import abstractmethod
 from datetime import datetime
@@ -752,9 +752,8 @@ class OpticalProduct(Product):
                 xarr.attrs["radiometry"] = "as is"
 
         # Add this if at least one spectral bands exists
-        if any(has_spectral_bands):
-            if self._has_cloud_cover:
-                xarr.attrs["cloud_cover"] = self.get_cloud_cover()
+        if any(has_spectral_bands) and self._has_cloud_cover:
+            xarr.attrs["cloud_cover"] = self.get_cloud_cover()
 
         return xarr
 

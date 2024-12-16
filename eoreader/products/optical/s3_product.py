@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
@@ -21,6 +20,8 @@ Sentinel-3 products
     Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio !
     -> use xr.open_dataset that manages that correctly
 """
+
+import contextlib
 import io
 import logging
 import re
@@ -813,10 +814,8 @@ class S3Product(OpticalProduct):
         nc_path = None
 
         # Try to convert to spb if existing
-        try:
+        with contextlib.suppress(TypeError):
             filename = SpectralBandNames.convert_from(filename)[0]
-        except TypeError:
-            pass
 
         # Get raw band path
         if self.is_archived:
@@ -834,8 +833,10 @@ class S3Product(OpticalProduct):
         else:
             try:
                 nc_path = next(self.path.glob(f"{filename}*"))
-            except StopIteration:
-                raise FileNotFoundError(f"Non existing file {filename} in {self.path}")
+            except StopIteration as exc:
+                raise FileNotFoundError(
+                    f"Non existing file {filename} in {self.path}"
+                ) from exc
 
             if path.is_cloud_path(nc_path):
                 # Cloud paths: instead of downloading them, read them as bytes and directly open the xr.Dataset
