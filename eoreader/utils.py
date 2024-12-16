@@ -250,7 +250,7 @@ def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
             pass
 
     # Write
-    rasters.write(xds, path=filepath, **_prune_keywords(["window"], **kwargs))
+    rasters.write(xds, output_path=filepath, **_prune_keywords(["window"], **kwargs))
 
     # Set back the previous long name
     if previous_long_name and xds.rio.count > 1:
