@@ -13,7 +13,7 @@ from geopandas import gpd
 from matplotlib import pyplot as plt
 from sertit import AnyPath, ci, misc, path
 
-from CI.scripts_utils import (
+from ci.scripts_utils import (
     CI_EOREADER_S3,
     READER,
     dask_env,

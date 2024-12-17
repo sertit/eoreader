@@ -7,7 +7,7 @@ import pytest
 from rasterio.windows import Window
 from sertit import ci
 
-from CI.scripts_utils import (
+from ci.scripts_utils import (
     READER,
     dask_env,
     get_db_dir,

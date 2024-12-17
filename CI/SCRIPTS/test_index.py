@@ -6,7 +6,7 @@ import os
 import numpy as np
 from sertit import ci, rasters
 
-from CI.scripts_utils import (
+from ci.scripts_utils import (
     READER,
     dask_env,
     get_ci_data_dir,
@@ -34,7 +34,7 @@ def test_index(tmp_path):
     )
     prod = READER.open(s2_path, remove_tmp=True)
     failed_idx = []
-    # tmp_path = "/home/data/CI/indices"
+    # tmp_path = "/home/data/ci/indices"
     prod.output = os.path.join(tmp_path, prod.condensed_name)
     idx_list = [BAI, NBR, NDVI]
 

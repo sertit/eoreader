@@ -10,7 +10,7 @@ from rasterio.windows import Window
 from sertit import s3
 from tempenv import tempenv
 
-from CI.scripts_utils import READER, compare, reduce_verbosity
+from ci.scripts_utils import READER, compare, reduce_verbosity
 from eoreader import EOREADER_NAME
 from eoreader.products import Product
 from eoreader.reader import Constellation

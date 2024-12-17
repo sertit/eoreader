@@ -12,7 +12,7 @@ import xarray as xr
 from rasterio.windows import Window
 from sertit import AnyPath, path, unistra
 
-from CI.scripts_utils import (
+from ci.scripts_utils import (
     READER,
     dask_env,
     get_db_dir,

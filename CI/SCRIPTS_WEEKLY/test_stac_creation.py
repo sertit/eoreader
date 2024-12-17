@@ -14,7 +14,7 @@ from sertit import path
 from sertit.vectors import WGS84
 from shapely.geometry import mapping
 
-from CI.scripts_utils import (
+from ci.scripts_utils import (
     CI_EOREADER_S3,
     READER,
     compare,
