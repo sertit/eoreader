@@ -115,39 +115,51 @@ def dask_env(function: Callable):
         """S3 environment wrapper"""
         use_dask_overload = _kwargs.pop("use_dask", use_dask())
 
+        processes = False
+
         os.environ[TILE_SIZE] = "auto"
         if use_dask_overload:
 
             def set_env():
                 os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD"] = "1"
 
-                # Set that to dask workers to make process=True work on cloud
-                # Sertit-utils
-                os.environ["AWS_S3_ENDPOINT"] = os.getenv("AWS_S3_ENDPOINT")
-                os.environ["AWS_S3_AWS_ACCESS_KEY_ID"] = os.getenv(
-                    "AWS_S3_AWS_ACCESS_KEY_ID"
-                )
-                os.environ["AWS_S3_AWS_SECRET_ACCESS_KEY"] = os.getenv(
-                    "AWS_S3_AWS_SECRET_ACCESS_KEY"
-                )
+                if processes:
+                    # Set that to dask workers to make process=True work on cloud
+                    # Sertit-utils
+                    os.environ["AWS_S3_ENDPOINT"] = os.getenv("AWS_S3_ENDPOINT")
+                    os.environ["AWS_S3_AWS_ACCESS_KEY_ID"] = os.getenv(
+                        "AWS_S3_AWS_ACCESS_KEY_ID"
+                    )
+                    os.environ["AWS_S3_AWS_SECRET_ACCESS_KEY"] = os.getenv(
+                        "AWS_S3_AWS_SECRET_ACCESS_KEY"
+                    )
 
-                # Other AWS
-                os.environ["AWS_ENDPOINT_URL"] = (
-                    f"https://{os.getenv('AWS_S3_ENDPOINT')}"
-                )
-                os.environ["AWS_ACCESS_KEY_ID"] = os.getenv("AWS_ACCESS_KEY_ID")
-                os.environ["AWS_SECRET_ACCESS_KEY"] = os.getenv("AWS_SECRET_ACCESS_KEY")
+                    # Other AWS
+                    os.environ["AWS_ENDPOINT_URL"] = (
+                        f"https://{os.getenv('AWS_S3_ENDPOINT')}"
+                    )
+                    os.environ["AWS_ACCESS_KEY_ID"] = os.getenv("AWS_ACCESS_KEY_ID")
+                    os.environ["AWS_SECRET_ACCESS_KEY"] = os.getenv(
+                        "AWS_SECRET_ACCESS_KEY"
+                    )
 
             LOGGER.info("Using Dask and creating Dask client.")
             with (
                 tempenv.TemporaryEnvironment(
                     {"CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD": "1"}
                 ),
-                dask.get_or_create_dask_client(processes=False) as client,
+                dask.get_or_create_dask_client(processes=processes) as client,
             ):
                 # TODO: test with process=true also
+                # Update workers' env
                 client.run(set_env)
+
+                # Run fct
                 function(*_args, **_kwargs)
+
+                # Set back AWS_ENDPOINT_URL
+                if processes:
+                    client.run(lambda: os.environ.pop("AWS_ENDPOINT_URL"))
         else:
             LOGGER.info("**NOT** using Dask!")
             function(*_args, **_kwargs)
