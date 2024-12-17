@@ -20,6 +20,7 @@
 - FIX: Fix the computation of parametric spectral indices [#193](https://github.com/sertit/eoreader/issues/193)
 - OPTIM: Cache the access to any archived file list, as this operation is expensive when done with large archives stored on the cloud (and thus better done only once).
 - CI: Remove useless verbosity in CI
+- CI: GDAL performance tuning by tweaking `rasterio`'s env
 - INTERNAL: Switch from `setup.py` to `pyproject.toml` [#109](https://github.com/sertit/eoreader/issues/109)
 - INTERNAL: Use `ruff` instead of `black` + `flake8` + `isort`
 - DOC: Update `conf.py` (remove useless hunks and set Sphinx 7 as base)

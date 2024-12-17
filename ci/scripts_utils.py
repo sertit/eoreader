@@ -120,7 +120,12 @@ def dask_env(function: Callable):
                 os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD"] = "1"
 
             LOGGER.info("Using Dask and creating Dask client.")
-            with dask.get_or_create_dask_client(processes=False) as client:
+            with (
+                tempenv.TemporaryEnvironment(
+                    {"CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD": "1"}
+                ),
+                dask.get_or_create_dask_client(processes=False) as client,
+            ):
                 # TODO: test with process=true also
                 client.run(set_env)
                 function(*_args, **_kwargs)
@@ -148,7 +153,35 @@ def broken_s2_path():
 
 
 def s3_env(*args, **kwargs):
-    return unistra.s3_env(*args, use_s3_env_var=CI_EOREADER_S3, **kwargs)
+    # See https://developmentseed.org/titiler/advanced/performance_tuning/#recommended-configuration-for-dynamic-tiling
+    # And https://gdalcubes.github.io/source/concepts/config.html#recommended-settings-for-cloud-access
+
+    def ko_to_bytes(value):
+        return int(value * 1e3)
+
+    def mo_to_bytes(value):
+        return int(value * 1e6)
+
+    import psutil
+    import rasterio
+
+    ram_info = psutil.virtual_memory()
+    gdal_cachemax_30 = int(0.3 * ram_info.available / 1024 / 1024)
+    LOGGER.debug(f"gdal_cachemax_30={gdal_cachemax_30}")
+
+    with rasterio.Env(
+        GDAL_DISABLE_READDIR_ON_OPEN=True,
+        GDAL_CACHEMAX=gdal_cachemax_30,
+        CPL_VSIL_CURL_CACHE_SIZE=mo_to_bytes(10),
+        VSI_CACHE=True,
+        VSI_CACHE_SIZE=mo_to_bytes(5),
+        GDAL_HTTP_MULTIPLEX=True,
+        GDAL_INGESTED_BYTES_AT_OPEN=ko_to_bytes(32),
+        GDAL_HTTP_VERSION=2,
+        GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES",
+        GDAL_NUM_THREADS="ALL_CPUS",
+    ):
+        return unistra.s3_env(*args, use_s3_env_var=CI_EOREADER_S3, **kwargs)
 
 
 def compare(to_be_checked, ref, topic):
