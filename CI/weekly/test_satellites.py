@@ -12,7 +12,7 @@ from lxml import etree
 from rasterio.windows import Window
 from sertit import ci, path, rasters
 
-from ci.SCRIPTS import test_satellites
+from ci.on_push import test_satellites
 from ci.scripts_utils import (
     CI_EOREADER_S3,
     READER,

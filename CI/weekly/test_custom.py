@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from sertit import ci
 
-from ci.SCRIPTS.test_custom import test_custom_invalid, test_custom_optical
+from ci.on_push.test_custom import test_custom_invalid, test_custom_optical
 from ci.scripts_utils import READER, dask_env, others_path, reduce_verbosity, s3_env
 from eoreader import EOREADER_NAME
 from eoreader.bands import (

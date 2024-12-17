@@ -1,4 +1,4 @@
-"""Utils module for scripts"""
+"""Utils module for on_push"""
 
 import logging
 import os

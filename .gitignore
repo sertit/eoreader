@@ -33,5 +33,5 @@ docs/api
 dask-worker-space/*
 
 # Other files
-/ci/SCRIPTS/test.py
+/ci/on_push/test.py
 /notebooks_tests/
