@@ -68,9 +68,9 @@ from eoreader.stac._stac_keywords import (
     VIEW_SUN_ELEVATION,
 )
 
-reduce_verbosity()
-
 LOGGER = logging.getLogger(EOREADER_NAME)
+
+reduce_verbosity()
 
 
 def _test_core_optical(pattern: str, debug=False, **kwargs):

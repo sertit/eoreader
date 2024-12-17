@@ -1,6 +1,5 @@
 """Script testing EOReader ingestion of STAC Items"""
 
-import logging
 import os
 import tempfile
 
@@ -9,13 +8,10 @@ from sertit import s3
 from tempenv import tempenv
 
 from ci.scripts_utils import READER, compare, reduce_verbosity
-from eoreader import EOREADER_NAME
 from eoreader.products import Product
 from eoreader.reader import Constellation
 
 reduce_verbosity()
-
-LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 def _test_core(

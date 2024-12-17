@@ -47,8 +47,6 @@ from eoreader.env_vars import (
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import CheckMethod
 
-reduce_verbosity()
-
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 MERIT_DEM_SUB_DIR_PATH = [
@@ -56,6 +54,8 @@ MERIT_DEM_SUB_DIR_PATH = [
     "MERIT_Hydrologically_Adjusted_Elevations",
     "MERIT_DEM.vrt",
 ]
+
+reduce_verbosity()
 
 
 def set_dem(dem_path):
