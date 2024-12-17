@@ -48,7 +48,7 @@ def test_index(tmp_path):
     )
     prod = READER.open(s2_path, remove_tmp=True)
     failed_idx = []
-    # tmp_path = "/home/data/CI/indices_weekly"
+    # tmp_path = "/home/data/ci/indices_weekly"
     prod.output = os.path.join(tmp_path, prod.condensed_name)
 
     # Load every index
