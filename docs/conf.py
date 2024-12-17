@@ -146,7 +146,7 @@ html_theme = "sphinx_book_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "repository_url": "https://eoreader.readthedocs.io",
+    "repository_url": "https://github.com/sertit/eoreader",
     "use_repository_button": True,
     "use_issues_button": True,
     "use_edit_page_button": False,
