@@ -165,13 +165,17 @@ def s3_env(*args, **kwargs):
     import psutil
     import rasterio
 
-    ram_info = psutil.virtual_memory()
-    gdal_cachemax_30 = int(0.3 * ram_info.available / 1024 / 1024)
-    LOGGER.debug(f"gdal_cachemax_30={gdal_cachemax_30}")
+    gdal_cachemax_pct = 10
+    gdal_cachemax_bytes = int(
+        gdal_cachemax_pct / 100 * psutil.virtual_memory().available
+    )
+    LOGGER.debug(
+        f"GDAL CACHEMAX[{gdal_cachemax_pct}%] = {gdal_cachemax_bytes / 1024 / 1024:.2f} Mo"
+    )
 
     with rasterio.Env(
         GDAL_DISABLE_READDIR_ON_OPEN=True,
-        GDAL_CACHEMAX=gdal_cachemax_30,
+        GDAL_CACHEMAX=gdal_cachemax_bytes,
         CPL_VSIL_CURL_CACHE_SIZE=mo_to_bytes(10),
         VSI_CACHE=True,
         VSI_CACHE_SIZE=mo_to_bytes(5),
