@@ -118,7 +118,7 @@ def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
     _test_core(pattern, sar_path(), possible_bands, dem_path, debug, **kwargs)
 
 
-def check_prod(pattern_path: str) -> Product:
+def check_prod(pattern_path: str, debug: bool = False) -> Product:
     """
     Open and check the products
 
@@ -132,20 +132,23 @@ def check_prod(pattern_path: str) -> Product:
     LOGGER.info("Checking opening solutions")
 
     LOGGER.info("NAME")
-    prod_name = READER.open(pattern_path, method=CheckMethod.NAME)
+    prod_name = READER.open(pattern_path, method=CheckMethod.NAME, remove_tmp=True)
 
     LOGGER.info("MTD")
     prod: Product = READER.open(
         pattern_path,
         method=CheckMethod.MTD,
         constellation=prod_name.constellation,
-        remove_tmp=False,
+        remove_tmp=debug,
     )
     assert prod is not None
 
     LOGGER.info("BOTH")
     prod_both = READER.open(
-        pattern_path, method=CheckMethod.BOTH, constellation=prod.constellation
+        pattern_path,
+        method=CheckMethod.BOTH,
+        constellation=prod.constellation,
+        remove_tmp=True,
     )
     assert prod_name is not None
     assert prod_both is not None
@@ -785,7 +788,7 @@ def test_capella():
 
 def test_invalid():
     wrong_path = "dzfdzef"
-    assert READER.open(wrong_path) is None
+    assert READER.open(wrong_path, remove_tmp=True) is None
     assert not READER.valid_name(wrong_path, "S2")
 
 

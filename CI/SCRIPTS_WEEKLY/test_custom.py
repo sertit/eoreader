@@ -52,6 +52,7 @@ def test_custom_sar():
         pixel_size=6.0,
         product_type="GRD",
         band_map={VV: 1, VV_DSPK: 2},
+        remove_tmp=True,
     )
     LOGGER.info(prod_sar)
     extent_sar = prod_sar.extent()
@@ -85,6 +86,7 @@ def test_custom_sar():
         instrument=None,
         datetime=None,
         pixel_size=6.0,
+        remove_tmp=True,
     )
     LOGGER.info(prod_wtf)
     extent_wtf = prod_wtf.extent()
@@ -116,6 +118,7 @@ def test_custom_wgs84():
         instrument="NAOMI",
         product_type="ORT",
         band_map={RED: 1, GREEN: 2, BLUE: 3, NIR: 4},
+        remove_tmp=True,
     )
     LOGGER.info(prod_wgs84)
 

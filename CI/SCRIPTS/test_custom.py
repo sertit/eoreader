@@ -44,6 +44,7 @@ def test_custom_optical():
         pixel_size=2.0,
         product_type="Ortho",
         band_map={BLUE: 1, GREEN: 2, RED: 3, NIR: 4, SWIR_1: 5},
+        remove_tmp=True,
     )
     LOGGER.info(prod_all)
     extent_all = prod_all.extent()
@@ -68,6 +69,7 @@ def test_custom_optical():
         custom=True,
         sensor_type="OPTICAL",
         band_map={"BLUE": 1, "GREEN": 2, "RED": 3, "NIR": 4, SWIR_1: 5},
+        remove_tmp=True,
     )
     LOGGER.info(prod_min)
     extent_min = prod_min.extent()
@@ -111,6 +113,7 @@ def test_custom_optical():
         sun_azimuth=10.0,
         sun_zenith=20.0,
         band_map={CA: 1, "COASTAL_AEROSOL": 2, RED: 3, "CA": 4, SWIR_1: 5},
+        remove_tmp=True,
     )
     LOGGER.info(prod_some)
     extent_some = prod_some.extent()
@@ -140,11 +143,14 @@ def test_custom_optical():
 
     # Errors
     with pytest.raises(ValueError):
-        READER.open(opt_stack, custom=True, sensor_type="Optical")
+        READER.open(opt_stack, custom=True, sensor_type="Optical", remove_tmp=True)
 
     with pytest.raises(ValueError):
         READER.open(
-            opt_stack, custom=True, band_map={BLUE: 1, "GREEN": 2, RED: 3, "NIR": 4}
+            opt_stack,
+            custom=True,
+            band_map={BLUE: 1, "GREEN": 2, RED: 3, "NIR": 4},
+            remove_tmp=True,
         )
 
 
@@ -157,4 +163,5 @@ def test_custom_invalid():
             custom=True,
             sensor_type=SensorType.SAR,
             band_map={BLUE: 1, "GREEN": 2, RED: 3, "NIR": 4},
+            remove_tmp=True,
         )

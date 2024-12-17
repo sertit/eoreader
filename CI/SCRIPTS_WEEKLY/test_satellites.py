@@ -303,7 +303,7 @@ def _test_core(
             )
 
             # Check products
-            prod = test_satellites.check_prod(pattern_path)
+            prod = test_satellites.check_prod(pattern_path, debug)
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 if WRITE_ON_DISK:
@@ -676,7 +676,7 @@ def test_capella():
 
 def test_invalid():
     wrong_path = "dzfdzef"
-    assert READER.open(wrong_path) is None
+    assert READER.open(wrong_path, remove_tmp=True) is None
     assert not READER.valid_name(wrong_path, "S2")
 
 

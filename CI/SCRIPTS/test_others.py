@@ -127,8 +127,8 @@ def test_products():
     )  # Older
 
     # Open prods
-    prod1 = READER.open(prod1_path)
-    prod2 = READER.open(prod2_path)
+    prod1 = READER.open(prod1_path, remove_tmp=True)
+    prod2 = READER.open(prod2_path, remove_tmp=True)
 
     assert prod1 == prod1
     assert prod1 >= prod1
@@ -185,7 +185,7 @@ def test_products():
     # SAR
     sar = sar_path().joinpath("SC_124020")
     with pytest.raises(AssertionError):
-        sar_prod = READER.open(sar)
+        sar_prod = READER.open(sar, remove_tmp=True)
         if sar_prod.sensor_type == SensorType.SAR:
             sar_prod.load(HILLSHADE)
 
@@ -267,7 +267,7 @@ def test_dems_https():
     prod_path = opt_path().joinpath("LC08_L1GT_023030_20200518_20200527_01_T2")
 
     # Open prods
-    prod = READER.open(prod_path)
+    prod = READER.open(prod_path, remove_tmp=True)
 
     # Test two different DEM source
     dem_sub_dir_path = [
@@ -300,7 +300,7 @@ def test_dems_S3():
     prod_path = opt_path().joinpath("LC08_L1GT_023030_20200518_20200527_01_T2")
 
     # Open prods
-    prod = READER.open(prod_path)
+    prod = READER.open(prod_path, remove_tmp=True)
 
     # Test two different DEM source
     dem_sub_dir_path = [
@@ -406,7 +406,7 @@ def test_windowed_reading():
     )
 
     # Open with a window
-    prod = READER.open(prod_path)
+    prod = READER.open(prod_path, remove_tmp=True)
     red_raw = prod.load(RED, window=window_path, clean_optical="raw")[RED]
     red_nodata = prod.load(RED, window=window_path, clean_optical="nodata")[RED]
     red_clean = prod.load(RED, window=window_path, clean_optical="clean")[RED]
@@ -431,6 +431,7 @@ def test_deprecation():
         sensor_type=SensorType.OPTICAL,
         pixel_size=2.0,
         band_map={GREEN1: 1, RED: 2, BLUE: 3, NIR: 4, SWIR_1: 5},
+        remove_tmp=True,
     )
     window = Window(200, 500, 200, 500)
 

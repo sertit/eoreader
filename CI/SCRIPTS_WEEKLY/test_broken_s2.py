@@ -25,7 +25,7 @@ def test_broken_s2():
         "S2A_MSIL2A_20170331T103021_N0001_R108_T32UMV_20190508T053047.SAFE"
     )
 
-    broken_mtd_prod = READER.open(broken_mtd)
+    broken_mtd_prod = READER.open(broken_mtd, remove_tmp=True)
 
     assert broken_mtd_prod is not None
     LOGGER.info(broken_mtd_prod)
@@ -43,7 +43,7 @@ def test_broken_s2():
         "S2A_MSIL2A_20170331T103021_N0001_R108_T32ULU_20190508T053054.SAFE"
     )
 
-    broken_detfoo_prod = READER.open(broken_detfoo)
+    broken_detfoo_prod = READER.open(broken_detfoo, remove_tmp=True)
 
     assert broken_detfoo_prod is not None
     LOGGER.info(broken_detfoo_prod)
@@ -67,6 +67,6 @@ def test_broken_s2():
     broken_msk = broken_s2_path().joinpath(
         "S2B_MSIL2A_20220201T104149_N0400_R008_T31UFP_20220201T122857.SAFE"
     )
-    broken_msk_prod = READER.open(broken_msk)
+    broken_msk_prod = READER.open(broken_msk, remove_tmp=True)
     broken_msk_prod.load(RED, pixel_size=pixel_size, clean_optical="clean")
     broken_mtd_prod.load(NIR, pixel_size=pixel_size, clean_optical="nodata")

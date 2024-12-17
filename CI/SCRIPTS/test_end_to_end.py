@@ -165,7 +165,7 @@ def _test_core(
             LOGGER.info("Checking opening solutions")
             LOGGER.info("MTD")
             prod: Product = READER.open(
-                pattern_path, method=CheckMethod.MTD, remove_tmp=False
+                pattern_path, method=CheckMethod.MTD, remove_tmp=debug
             )
 
             # Log name
