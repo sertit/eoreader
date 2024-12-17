@@ -10,7 +10,7 @@ import pytest
 import xarray as xr
 from lxml import etree
 from rasterio.windows import Window
-from sertit import ci, path, rasters
+from sertit import ci, dask, path, rasters
 
 from ci.on_push import test_satellites
 from ci.scripts_utils import (
@@ -295,101 +295,115 @@ def _test_core(
         )
 
         for pattern_path in pattern_paths:
-            LOGGER.info(
-                f"%s on drive %s ({CI_EOREADER_S3}: %s)",
-                pattern_path.name,
-                pattern_path.drive,
-                os.getenv(CI_EOREADER_S3),
-            )
+            core(pattern_path, possible_bands, debug, **kwargs)
 
-            # Check products
-            prod = test_satellites.check_prod(pattern_path, debug)
 
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                if WRITE_ON_DISK:
-                    tmp_dir = os.path.join("/home/data/ci/satellites")
-                prod.output = tmp_dir
+@dask_env
+def core(prod_path, possible_bands, debug, **kwargs):
+    LOGGER.info(
+        f"%s on drive %s ({CI_EOREADER_S3}: %s)",
+        prod_path.name,
+        prod_path.drive,
+        os.getenv(CI_EOREADER_S3),
+    )
 
-                # DO NOT REPROJECT BANDS (WITH GDAL / SNAP) --> WAY TOO SLOW
-                os.environ[CI_EOREADER_BAND_FOLDER] = str(
-                    get_ci_data_dir().joinpath(prod.condensed_name)
-                )
+    client = dask.get_client()
+    if (
+        prod_path.is_file()
+        and os.getenv(CI_EOREADER_S3) == "1"
+        and dask.get_client() is not None
+    ):
+        LOGGER.warning(
+            f"Archived products ({prod_path.name}) cannot be used with Dask on S3, because of slowliness. Shutting down Dask client."
+        )
+        client.scheduler.shutdown()
+        client.retire_workers()
+        client.close()
+        client.shutdown()
 
-                # Get the pixel size
-                pixel_size = test_satellites.get_pixel_size(prod)
+    # Check products
+    prod = test_satellites.check_prod(prod_path, debug)
 
-                # Open product and set output
-                check_product_consistency(prod)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        if WRITE_ON_DISK:
+            tmp_dir = os.path.join("/home/data/ci/satellites")
+        prod.output = tmp_dir
 
-                # Check extent and footprint
-                test_satellites.check_geometry(prod, "extent", tmp_dir)
-                test_satellites.check_geometry(prod, "footprint", tmp_dir)
+        # DO NOT REPROJECT BANDS (WITH GDAL / SNAP) --> WAY TOO SLOW
+        os.environ[CI_EOREADER_BAND_FOLDER] = str(
+            get_ci_data_dir().joinpath(prod.condensed_name)
+        )
 
-                # Get the bands we want to stack / load
-                stack_bands = [band for band in possible_bands if prod.has_band(band)]
-                first_band = stack_bands[0]
+        # Get the pixel size
+        pixel_size = test_satellites.get_pixel_size(prod)
 
-                # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
-                check_load(prod, first_band)
+        # Open product and set output
+        check_product_consistency(prod)
 
-                # Check stack
-                stack = test_satellites.check_stack(
-                    prod, tmp_dir, stack_bands, first_band, pixel_size, **kwargs
-                )
+        # Check extent and footprint
+        test_satellites.check_geometry(prod, "extent", tmp_dir)
+        test_satellites.check_geometry(prod, "footprint", tmp_dir)
 
-                # Check load with size keyword
-                band_arr = check_load_size(
-                    prod,
-                    tmp_dir,
-                    first_band,
-                    size=(stack.rio.width, stack.rio.height),
-                    **kwargs,
-                )
-                check_band_consistency(prod, band_arr, first_band)
+        # Get the bands we want to stack / load
+        stack_bands = [band for band in possible_bands if prod.has_band(band)]
+        first_band = stack_bands[0]
 
-                # Check clouds
-                check_clouds(prod, size=(stack.rio.width, stack.rio.height))
+        # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
+        check_load(prod, first_band)
 
-                # Check quicklook and plot
-                test_satellites.check_plot(prod)
+        # Check stack
+        stack = test_satellites.check_stack(
+            prod, tmp_dir, stack_bands, first_band, pixel_size, **kwargs
+        )
 
-                # Clean temp
-                if not WRITE_ON_DISK:
-                    test_satellites.check_clean(prod)
+        # Check load with size keyword
+        band_arr = check_load_size(
+            prod,
+            tmp_dir,
+            first_band,
+            size=(stack.rio.width, stack.rio.height),
+            **kwargs,
+        )
+        check_band_consistency(prod, band_arr, first_band)
 
-            prod.clear()
+        # Check clouds
+        check_clouds(prod, size=(stack.rio.width, stack.rio.height))
+
+        # Check quicklook and plot
+        test_satellites.check_plot(prod)
+
+        # Clean temp
+        if not WRITE_ON_DISK:
+            test_satellites.check_clean(prod)
+
+    prod.clear()
 
 
 @s3_env
-@dask_env
 def test_s2_after_04_00():
     """Function testing the support of Sentinel-2 constellation"""
     _test_core_optical("*S2*_MSI*_N7*")
 
 
 @s3_env
-@dask_env
 def test_s2_before_04_00():
     """Function testing the support of Sentinel-2 constellation"""
     _test_core_optical("*S2*_MSI*_N02*")
 
 
 @s3_env
-@dask_env
 def test_s2_theia():
     """Function testing the support of Sentinel-2 Theia constellation"""
     _test_core_optical("*SENTINEL2*")
 
 
 @s3_env
-@dask_env
 def test_s2_cloud():
     """Function testing the support of Sentinel-2 cloud-stored constellation"""
     _test_core_optical("*S2A_39KZU*")
 
 
 @s3_env
-@dask_env
 def test_s3_olci():
     """Function testing the support of Sentinel-3 OLCI constellation"""
     # Init logger
@@ -397,7 +411,6 @@ def test_s3_olci():
 
 
 @s3_env
-@dask_env
 def test_s3_slstr():
     """Function testing the support of Sentinel-3 SLSTR constellation"""
     # Init logger
@@ -405,7 +418,6 @@ def test_s3_slstr():
 
 
 @s3_env
-@dask_env
 def test_l9():
     """Function testing the support of Landsat-9 constellation"""
     # Init logger
@@ -413,7 +425,6 @@ def test_l9():
 
 
 @s3_env
-@dask_env
 def test_l8():
     """Function testing the support of Landsat-8 constellation"""
     # Init logger
@@ -421,21 +432,18 @@ def test_l8():
 
 
 @s3_env
-@dask_env
 def test_l7():
     """Function testing the support of Landsat-7 constellation"""
     _test_core_optical("*LE07*")
 
 
 @s3_env
-@dask_env
 def test_l5_tm():
     """Function testing the support of Landsat-5 TM constellation"""
     _test_core_optical("*LT05*")
 
 
 @s3_env
-@dask_env
 def test_l4_tm():
     """Function testing the support of Landsat-4 TM constellation"""
     _test_core_optical("*LT04*")
@@ -446,105 +454,90 @@ def test_l4_tm():
     reason="Weirdly, Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk",
 )
 @s3_env
-@dask_env
 def test_l5_mss():
     """Function testing the support of Landsat-5 MSS constellation"""
     _test_core_optical("*LM05*")
 
 
 @s3_env
-@dask_env
 def test_l4_mss():
     """Function testing the support of Landsat-4 MSS constellation"""
     _test_core_optical("*LM04*")
 
 
 @s3_env
-@dask_env
 def test_l3_mss():
     """Function testing the support of Landsat-3 constellation"""
     _test_core_optical("*LM03*")
 
 
 @s3_env
-@dask_env
 def test_l2_mss():
     """Function testing the support of Landsat-2 constellation"""
     _test_core_optical("*LM02*")
 
 
 @s3_env
-@dask_env
 def test_l1_mss():
     """Function testing the support of Landsat-1 constellation"""
     _test_core_optical("*LM01*")
 
 
 @s3_env
-@dask_env
 def test_hls():
     """Function testing the support of HLS constellation"""
     _test_core_optical("*HLS*")
 
 
 @s3_env
-@dask_env
 def test_pla():
     """Function testing the support of PlanetScope constellation"""
     _test_core_optical("*202*1014*")
 
 
 @s3_env
-@dask_env
 def test_sky():
     """Function testing the support of SkySat constellation"""
     _test_core_optical("*ssc*")
 
 
 @s3_env
-@dask_env
 def test_re():
     """Function testing the support of RapidEye constellation"""
     _test_core_optical("*_RE4_*")
 
 
 @s3_env
-@dask_env
 def test_pld():
     """Function testing the support of Pleiades constellation"""
     _test_core_optical("*IMG_PHR*")
 
 
 @s3_env
-@dask_env
 def test_pneo():
     """Function testing the support of Pleiades-Neo constellation"""
     _test_core_optical("*IMG_*_PNEO*")
 
 
 @s3_env
-@dask_env
 def test_spot4():
     """Function testing the support of SPOT-4 constellation"""
     _test_core_optical("*SP04*")
 
 
 @s3_env
-@dask_env
 def test_spot5():
     """Function testing the support of SPOT-5 constellation"""
     _test_core_optical("*SP05*")
 
 
 @s3_env
-@dask_env
 def test_spot6():
     """Function testing the support of SPOT-6 constellation"""
     _test_core_optical("*IMG_SPOT6*")
 
 
 @s3_env
-@dask_env
 def test_spot7():
     """Function testing the support of SPOT-7 constellation"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
@@ -553,7 +546,6 @@ def test_spot7():
 
 
 @s3_env
-@dask_env
 def test_wv02_wv03():
     """Function testing the support of WorldView-2/3 constellations"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
@@ -562,14 +554,12 @@ def test_wv02_wv03():
 
 
 @s3_env
-@dask_env
 def test_ge01_wv04():
     """Function testing the support of GeoEye-1/WorldView-4 constellations"""
     _test_core_optical("*P001_PSH*")
 
 
 @s3_env
-@dask_env
 def test_vs1():
     """Function testing the support of Vision-1 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
@@ -577,7 +567,6 @@ def test_vs1():
 
 
 @s3_env
-@dask_env
 def test_sv1():
     """Function testing the support of SuperView-1 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
@@ -585,42 +574,36 @@ def test_sv1():
 
 
 @s3_env
-@dask_env
 def test_gs2():
     """Function testing the support of GEOSAT-2 constellation"""
     _test_core_optical("*DE2_*")
 
 
 @s3_env
-@dask_env
 def test_s1():
     """Function testing the support of Sentinel-1 constellation"""
     _test_core_sar("*S1*_IW_GRDH*")
 
 
 @s3_env
-@dask_env
 def test_s1_rtc():
     """Function testing the support of Sentinel-1 RTC constellation"""
     _test_core_sar("*S1*_RTC*")
 
 
 @s3_env
-@dask_env
 def test_csk():
     """Function testing the support of COSMO-Skymed constellation"""
     _test_core_sar("*csk_*")
 
 
 @s3_env
-@dask_env
 def test_csg():
     """Function testing the support of COSMO-Skymed 2nd Generation constellation"""
     _test_core_sar("*CSG_*")
 
 
 @s3_env
-@dask_env
 def test_tsx():
     """Function testing the support of TerraSAR-X constellations"""
     _test_core_sar("*TSX*")
@@ -628,42 +611,36 @@ def test_tsx():
 
 # Assume that tests PAZ and TDX
 @s3_env
-@dask_env
 def test_tdx():
     """Function testing the support of PAZ SAR and TanDEM-X constellations"""
     _test_core_sar("*TDX*")
 
 
 @s3_env
-@dask_env
 def test_rs2():
     """Function testing the support of RADARSAT-2 constellation"""
     _test_core_sar("*RS2_*")
 
 
 @s3_env
-@dask_env
 def test_rcm():
     """Function testing the support of RADARSAT-Constellation constellation"""
     _test_core_sar("*RCM*")
 
 
 @s3_env
-@dask_env
 def test_iceye():
     """Function testing the support of ICEYE constellation"""
     _test_core_sar("*SC_*")
 
 
 @s3_env
-@dask_env
 def test_saocom():
     """Function testing the support of SAOCOM constellation"""
     _test_core_sar("*SAO*")
 
 
 @s3_env
-@dask_env
 def test_capella():
     """Function testing the support of CAPELLA constellation"""
     _test_core_sar("*CAPELLA*")
@@ -681,7 +658,6 @@ def test_invalid():
 
 
 @s3_env
-@dask_env
 def test_sar():
     """Function testing some other SAR methods"""
     # TODO

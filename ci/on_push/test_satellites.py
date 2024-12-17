@@ -415,93 +415,92 @@ def _test_core(
             prod_dir, pattern, exact_name=True, get_list=True
         )
 
-        for pattern_path in pattern_paths:
-            LOGGER.info(
-                f"%s on drive %s ({CI_EOREADER_S3}: %s)",
-                pattern_path.name,
-                pattern_path.drive,
-                os.getenv(CI_EOREADER_S3),
+        for pattern_path in pattern_paths[::-1]:
+            use_dask = not (pattern_path.is_file() and os.getenv(CI_EOREADER_S3) == "1")
+            core(pattern_path, possible_bands, use_dask=use_dask, **kwargs)
+
+
+@dask_env
+def core(prod_path, possible_bands, **kwargs):
+    LOGGER.info(
+        f"%s on drive %s ({CI_EOREADER_S3}: %s)",
+        prod_path.name,
+        prod_path.drive,
+        os.getenv(CI_EOREADER_S3),
+    )
+
+    # Check products
+    prod = check_prod(prod_path)
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        if WRITE_ON_DISK:
+            tmp_dir = os.path.join(
+                "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
             )
+        prod.output = tmp_dir
 
-            # Check products
-            prod = check_prod(pattern_path)
+        # DO NOT REPROJECT BANDS (WITH GDAL / SNAP) --> WAY TOO SLOW
+        os.environ[CI_EOREADER_BAND_FOLDER] = str(
+            get_ci_data_dir().joinpath(prod.condensed_name)
+        )
 
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                if WRITE_ON_DISK:
-                    tmp_dir = os.path.join(
-                        "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
-                    )
-                prod.output = tmp_dir
+        # Get the pixel size
+        pixel_size = get_pixel_size(prod)
 
-                # DO NOT REPROJECT BANDS (WITH GDAL / SNAP) --> WAY TOO SLOW
-                os.environ[CI_EOREADER_BAND_FOLDER] = str(
-                    get_ci_data_dir().joinpath(prod.condensed_name)
-                )
+        # Check extent and footprint
+        check_geometry(prod, "extent", tmp_dir)
+        check_geometry(prod, "footprint", tmp_dir)
 
-                # Get the pixel size
-                pixel_size = get_pixel_size(prod)
+        if hasattr(prod, "wgs84_extent"):
+            with contextlib.suppress(NotImplementedError):
+                prod.wgs84_extent()
 
-                # Check extent and footprint
-                check_geometry(prod, "extent", tmp_dir)
-                check_geometry(prod, "footprint", tmp_dir)
+        if hasattr(prod, "_fallback_wgs84_extent"):
+            with contextlib.suppress(NotImplementedError):
+                prod._fallback_wgs84_extent()
 
-                if hasattr(prod, "wgs84_extent"):
-                    with contextlib.suppress(NotImplementedError):
-                        prod.wgs84_extent()
+        # Get the bands we want to stack / load
+        stack_bands = [band for band in possible_bands if prod.has_band(band)]
+        first_band = stack_bands[0]
 
-                if hasattr(prod, "_fallback_wgs84_extent"):
-                    with contextlib.suppress(NotImplementedError):
-                        prod._fallback_wgs84_extent()
+        # Check stack
+        check_stack(prod, tmp_dir, stack_bands, first_band, pixel_size, **kwargs)
 
-                # Get the bands we want to stack / load
-                stack_bands = [band for band in possible_bands if prod.has_band(band)]
-                first_band = stack_bands[0]
+        # Check quicklook and plot
+        check_plot(prod)
 
-                # Check stack
-                check_stack(
-                    prod, tmp_dir, stack_bands, first_band, pixel_size, **kwargs
-                )
+        # Clean temp
+        if not WRITE_ON_DISK:
+            check_clean(prod)
 
-                # Check quicklook and plot
-                check_plot(prod)
-
-                # Clean temp
-                if not WRITE_ON_DISK:
-                    check_clean(prod)
-
-            prod.clear()
+        prod.clear()
 
 
 @s3_env
-@dask_env
 def test_s2_after_04_00():
     """Function testing the support of Sentinel-2 constellation"""
     _test_core_optical("*S2*_MSI*_N7*")
 
 
 @s3_env
-@dask_env
 def test_s2_before_04_00():
     """Function testing the support of Sentinel-2 constellation"""
     _test_core_optical("*S2*_MSI*_N0209*")
 
 
 @s3_env
-@dask_env
 def test_s2_theia():
     """Function testing the support of Sentinel-2 Theia constellation"""
     _test_core_optical("*SENTINEL2*")
 
 
 @s3_env
-@dask_env
 def test_s2_cloud():
     """Function testing the support of Sentinel-2 cloud-stored constellation"""
     _test_core_optical("*S2A_39KZU*")
 
 
 @s3_env
-@dask_env
 def test_s3_olci():
     """Function testing the support of Sentinel-3 OLCI constellation"""
     # Init logger
@@ -509,7 +508,6 @@ def test_s3_olci():
 
 
 @s3_env
-@dask_env
 def test_s3_slstr():
     """Function testing the support of Sentinel-3 SLSTR constellation"""
     # Init logger
@@ -517,7 +515,6 @@ def test_s3_slstr():
 
 
 @s3_env
-@dask_env
 def test_l9():
     """Function testing the support of Landsat-9 constellation"""
     # Init logger
@@ -525,7 +522,6 @@ def test_l9():
 
 
 @s3_env
-@dask_env
 def test_l8():
     """Function testing the support of Landsat-8 constellation"""
     # Init logger
@@ -533,21 +529,18 @@ def test_l8():
 
 
 @s3_env
-@dask_env
 def test_l7():
     """Function testing the support of Landsat-7 constellation"""
     _test_core_optical("*LE07*")
 
 
 @s3_env
-@dask_env
 def test_l5_tm():
     """Function testing the support of Landsat-5 TM constellation"""
     _test_core_optical("*LT05*")
 
 
 @s3_env
-@dask_env
 def test_l4_tm():
     """Function testing the support of Landsat-4 TM constellation"""
     _test_core_optical("*LT04*")
@@ -558,105 +551,90 @@ def test_l4_tm():
     reason="Weirdly, Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk",
 )
 @s3_env
-@dask_env
 def test_l5_mss():
     """Function testing the support of Landsat-5 MSS constellation"""
     _test_core_optical("*LM05*")
 
 
 @s3_env
-@dask_env
 def test_l4_mss():
     """Function testing the support of Landsat-4 MSS constellation"""
     _test_core_optical("*LM04*")
 
 
 @s3_env
-@dask_env
 def test_l3_mss():
     """Function testing the support of Landsat-3 constellation"""
     _test_core_optical("*LM03*")
 
 
 @s3_env
-@dask_env
 def test_l2_mss():
     """Function testing the support of Landsat-2 constellation"""
     _test_core_optical("*LM02*")
 
 
 @s3_env
-@dask_env
 def test_l1_mss():
     """Function testing the support of Landsat-1 constellation"""
     _test_core_optical("*LM01*")
 
 
 @s3_env
-@dask_env
 def test_hls():
     """Function testing the support of HLS constellation"""
     _test_core_optical("*HLS*")
 
 
 @s3_env
-@dask_env
 def test_pla():
     """Function testing the support of PlanetScope constellation"""
     _test_core_optical("*202*1014*")
 
 
 @s3_env
-@dask_env
 def test_sky():
     """Function testing the support of SkySat constellation"""
     _test_core_optical("*ssc*")
 
 
 @s3_env
-@dask_env
 def test_re():
     """Function testing the support of RapidEye constellation"""
     _test_core_optical("*_RE4_*")
 
 
 @s3_env
-@dask_env
 def test_pld():
     """Function testing the support of Pleiades constellation"""
     _test_core_optical("*IMG_PHR*")
 
 
 @s3_env
-@dask_env
 def test_pneo():
     """Function testing the support of Pleiades-Neo constellation"""
     _test_core_optical("*IMG_*_PNEO*")
 
 
 @s3_env
-@dask_env
 def test_spot4():
     """Function testing the support of SPOT-4 constellation"""
     _test_core_optical("*SP04*")
 
 
 @s3_env
-@dask_env
 def test_spot5():
     """Function testing the support of SPOT-5 constellation"""
     _test_core_optical("*SP05*")
 
 
 @s3_env
-@dask_env
 def test_spot6():
     """Function testing the support of SPOT-6 constellation"""
     _test_core_optical("*IMG_SPOT6*")
 
 
 @s3_env
-@dask_env
 def test_spot7():
     """Function testing the support of SPOT-7 constellation"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
@@ -665,7 +643,6 @@ def test_spot7():
 
 
 @s3_env
-@dask_env
 def test_wv02_wv03():
     """Function testing the support of WorldView-2/3 constellations"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
@@ -674,14 +651,12 @@ def test_wv02_wv03():
 
 
 @s3_env
-@dask_env
 def test_ge01_wv04():
     """Function testing the support of GeoEye-1/WorldView-4 constellations"""
     _test_core_optical("*P001_PSH*")
 
 
 @s3_env
-@dask_env
 def test_vs1():
     """Function testing the support of Vision-1 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
@@ -689,7 +664,6 @@ def test_vs1():
 
 
 @s3_env
-@dask_env
 def test_sv1():
     """Function testing the support of SuperView-1 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
@@ -697,42 +671,36 @@ def test_sv1():
 
 
 @s3_env
-@dask_env
 def test_gs2():
     """Function testing the support of GEOSAT-2 constellation"""
     _test_core_optical("*DE2_*")
 
 
 @s3_env
-@dask_env
 def test_s1():
     """Function testing the support of Sentinel-1 constellation"""
     _test_core_sar("*S1*_IW_GRDH*")
 
 
 @s3_env
-@dask_env
 def test_s1_rtc():
     """Function testing the support of Sentinel-1 RTC constellation"""
     _test_core_sar("*S1*_RTC*")
 
 
 @s3_env
-@dask_env
 def test_csk():
     """Function testing the support of COSMO-Skymed constellation"""
     _test_core_sar("*csk_*")
 
 
 @s3_env
-@dask_env
 def test_csg():
     """Function testing the support of COSMO-Skymed 2nd Generation constellation"""
     _test_core_sar("*CSG_*")
 
 
 @s3_env
-@dask_env
 def test_tsx():
     """Function testing the support of TerraSAR-X constellations"""
     _test_core_sar("*TSX*")
@@ -740,42 +708,36 @@ def test_tsx():
 
 # Assume that tests PAZ and TDX
 @s3_env
-@dask_env
 def test_tdx():
     """Function testing the support of PAZ SAR and TanDEM-X constellations"""
     _test_core_sar("*TDX*")
 
 
 @s3_env
-@dask_env
 def test_rs2():
     """Function testing the support of RADARSAT-2 constellation"""
     _test_core_sar("*RS2_*")
 
 
 @s3_env
-@dask_env
 def test_rcm():
     """Function testing the support of RADARSAT-Constellation constellation"""
     _test_core_sar("*RCM*")
 
 
 @s3_env
-@dask_env
 def test_iceye():
     """Function testing the support of ICEYE constellation"""
     _test_core_sar("*SC_*")
 
 
 @s3_env
-@dask_env
 def test_saocom():
     """Function testing the support of SAOCOM constellation"""
     _test_core_sar("*SAO*")
 
 
 @s3_env
-@dask_env
 def test_capella():
     """Function testing the support of CAPELLA constellation"""
     _test_core_sar("*CAPELLA*")
@@ -793,7 +755,6 @@ def test_invalid():
 
 
 @s3_env
-@dask_env
 def test_sar():
     """Function testing some other SAR methods"""
     # TODO
