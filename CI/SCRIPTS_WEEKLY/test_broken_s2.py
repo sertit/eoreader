@@ -4,7 +4,7 @@ import logging
 
 import pytest
 
-from CI.scripts_utils import READER, broken_s2_path, dask_env, reduce_verbosity, s3_env
+from ci.scripts_utils import READER, broken_s2_path, dask_env, reduce_verbosity, s3_env
 from eoreader import EOREADER_NAME
 from eoreader.bands import NIR, RED
 from eoreader.exceptions import InvalidProductError

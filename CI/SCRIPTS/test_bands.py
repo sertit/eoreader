@@ -1,6 +1,6 @@
 """Script testing EOReader bands"""
 
-from CI.scripts_utils import READER, opt_path, reduce_verbosity, s3_env
+from ci.scripts_utils import READER, opt_path, reduce_verbosity, s3_env
 from eoreader.bands import BLUE, YELLOW
 
 reduce_verbosity()

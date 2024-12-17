@@ -9,7 +9,7 @@ import xarray as xr
 from lxml import etree
 from sertit import AnyPath, path, types
 
-from CI.scripts_utils import (
+from ci.scripts_utils import (
     CI_EOREADER_S3,
     READER,
     dask_env,
@@ -200,7 +200,7 @@ def _test_core(
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 if WRITE_ON_DISK:
-                    tmp_dir = os.path.join("/home/data/CI/e2e_satellites")
+                    tmp_dir = os.path.join("/home/data/ci/e2e_satellites")
                 output = tmp_dir
                 is_zip = "_ZIP" if prod.is_archived else ""
                 prod.output = os.path.join(output, f"{prod.condensed_name}{is_zip}")

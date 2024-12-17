@@ -6,7 +6,7 @@ import os
 import numpy as np
 from sertit import ci, rasters
 
-from CI.scripts_utils import (
+from ci.scripts_utils import (
     READER,
     dask_env,
     get_ci_data_dir,

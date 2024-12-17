@@ -12,8 +12,8 @@ from lxml import etree
 from rasterio.windows import Window
 from sertit import ci, path, rasters
 
-from CI.SCRIPTS import test_satellites
-from CI.scripts_utils import (
+from ci.SCRIPTS import test_satellites
+from ci.scripts_utils import (
     CI_EOREADER_S3,
     READER,
     dask_env,
@@ -307,7 +307,7 @@ def _test_core(
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 if WRITE_ON_DISK:
-                    tmp_dir = os.path.join("/home/data/CI/satellites")
+                    tmp_dir = os.path.join("/home/data/ci/satellites")
                 prod.output = tmp_dir
 
                 # DO NOT REPROJECT BANDS (WITH GDAL / SNAP) --> WAY TOO SLOW
