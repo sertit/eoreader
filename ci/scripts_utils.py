@@ -143,7 +143,7 @@ def dask_env(function: Callable):
                 tempenv.TemporaryEnvironment(
                     {"CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD": "1"}
                 ),
-                dask.get_or_create_dask_client(processes=True) as client,
+                dask.get_or_create_dask_client(processes=False) as client,
             ):
                 # TODO: test with process=true also
                 client.run(set_env)
