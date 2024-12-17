@@ -15,9 +15,9 @@ from eoreader import EOREADER_NAME
 from eoreader.products import Product
 from eoreader.reader import Constellation
 
-reduce_verbosity()
-
 LOGGER = logging.getLogger(EOREADER_NAME)
+
+reduce_verbosity()
 
 
 def _test_core(

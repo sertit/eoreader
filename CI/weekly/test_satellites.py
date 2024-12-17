@@ -48,12 +48,12 @@ from eoreader.products import Product, S2Product, SensorType, SlstrRadAdjust
 from eoreader.products.product import OrbitDirection
 from eoreader.reader import Constellation
 
-reduce_verbosity()
-
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 MERIT_DEM_SUB_DIR_PATH = test_satellites.MERIT_DEM_SUB_DIR_PATH
 WRITE_ON_DISK = test_satellites.WRITE_ON_DISK
+
+reduce_verbosity()
 
 
 def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):

@@ -51,8 +51,6 @@ from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import Product, SensorType, SlstrRadAdjust
 from eoreader.reader import CheckMethod
 
-reduce_verbosity()
-
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 MERIT_DEM_SUB_DIR_PATH = [
@@ -62,6 +60,8 @@ MERIT_DEM_SUB_DIR_PATH = [
 ]
 
 WRITE_ON_DISK = False
+
+reduce_verbosity()
 
 
 def set_dem(dem_path):
