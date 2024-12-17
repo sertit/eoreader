@@ -46,7 +46,7 @@ def test_index(tmp_path):
     s2_path = opt_path().joinpath(
         r"S2B_MSIL2A_20200114T065229_N0213_R020_T40REQ_20200114T094749.SAFE"
     )
-    prod = READER.open(s2_path)
+    prod = READER.open(s2_path, remove_tmp=True)
     failed_idx = []
     # tmp_path = "/home/data/CI/indices_weekly"
     prod.output = os.path.join(tmp_path, prod.condensed_name)
