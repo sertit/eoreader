@@ -29,7 +29,7 @@ import xarray as xr
 from lxml import etree
 from lxml.builder import E
 from rasterio.enums import Resampling
-from sertit import AnyPath, path, rasters, types
+from sertit import AnyPath, dask, path, rasters, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -311,8 +311,17 @@ class LandsatProduct(OpticalProduct):
             footprint_dezoom = 1
 
         # Read the file with a very low resolution
+        qa_path = self._get_path(self._pixel_quality_id)
+        if (
+            not self.is_archived
+            and path.is_cloud_path(qa_path)
+            and dask.get_client() is not None
+        ):
+            # Workaround...
+            qa_path = qa_path.download_to(self.output)
+
         nodata_band = utils.read(
-            self._get_path(self._pixel_quality_id),
+            qa_path,
             pixel_size=self.pixel_size * footprint_dezoom,
             masked=False,
         )
@@ -1220,7 +1229,6 @@ class LandsatProduct(OpticalProduct):
             k2_str = "K2_CONSTANT_BAND_" + band_name
             k1 = float(mtd.findtext(f".//{k1_str}"))
             k2 = float(mtd.findtext(f".//{k2_str}"))
-
             band_arr = k2 / np.log(k1 / band_arr + 1)
         elif self.product_type == LandsatProductType.L2:
             c_mul_str = "TEMPERATURE_MULT_BAND_ST_B" + band_name
@@ -1313,7 +1321,7 @@ class LandsatProduct(OpticalProduct):
         landsat_qa_path = self._get_path(self._radsat_id)
         qa_arr = self._read_band(
             landsat_qa_path, size=(band_arr.rio.width, band_arr.rio.height), **kwargs
-        ).data
+        )
 
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -1364,8 +1372,8 @@ class LandsatProduct(OpticalProduct):
                 landsat_stat_path,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
-            ).data
-            nodata = np.where(pixel_arr == 1, 1, 0)
+            )
+            nodata = xr.where(pixel_arr == 1, 1, 0)
 
             mask = sat | other | nodata
 
@@ -1408,7 +1416,7 @@ class LandsatProduct(OpticalProduct):
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
-            nodata = np.where(pixel_arr == 1, 1, 0).astype(np.uint8)
+            nodata = xr.where(pixel_arr == 1, 1, 0).astype(np.uint8)
 
         return self._set_nodata_mask(band_arr, nodata)
 
