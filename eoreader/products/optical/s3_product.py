@@ -1,4 +1,4 @@
-# Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2025, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -657,8 +657,15 @@ class S3Product(OpticalProduct):
             if resampling == Resampling.nearest:
                 resampler = XArrayResamplerNN(swath_def, area_def, self.pixel_size * 3)
                 resampler.get_neighbour_info()
+
+                # From 08/2019, still true in 01/2025
+                # https://github.com/pytroll/pyresample/issues/206#issuecomment-520971930
+                # XArrayResamplerNN is using "pykdtree which is faster than scipy and uses OpenMP, but is not dask or multi-process friendly otherwise"
+                # Workaround is to avoid using dask here:
+                arr = band_arr.squeeze().compute()
+
                 band_arr_resampled = resampler.get_sample_from_neighbour_info(
-                    band_arr.squeeze(), fill_value=nodata
+                    arr, fill_value=nodata
                 )
 
             # Resampling Bilinear
@@ -673,7 +680,8 @@ class S3Product(OpticalProduct):
                 if exists:
                     resampler.load_resampling_info(cache_file)
 
-                band_arr_resampled = resampler.resample(
+                # XArrayBilinearResampler is dask-compatible
+                resampler.resample(
                     band_arr.squeeze(), nprocs=utils.get_max_cores(), fill_value=nodata
                 )
 
