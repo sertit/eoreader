@@ -1,4 +1,4 @@
-# Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2025, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -112,7 +112,6 @@ def get_split_name(name: str, sep: str = "_") -> list:
 def use_dask():
     """Use Dask or not"""
     # Check environment variable
-    # TODO: this is not optional if dask exists in env since sertit 1.43.1
     _use_dask = os.getenv(USE_DASK, "1").lower() in ("1", "true")
 
     # Check installed libs

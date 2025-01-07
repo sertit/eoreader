@@ -1,4 +1,4 @@
-# Copyright 2024, SERTIT-ICube - France, https://sertit.unistra.fr/
+# Copyright 2025, SERTIT-ICube - France, https://sertit.unistra.fr/
 # This file is part of eoreader project
 #     https://github.com/sertit/eoreader
 #
@@ -17,4 +17,4 @@
 **EOReader** library
 """
 
-__version__ = "0.21.7"
+__version__ = "0.21.8"
