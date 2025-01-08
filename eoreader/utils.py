@@ -15,6 +15,7 @@
 # limitations under the License.
 """Utils: mostly getting directories relative to the project"""
 
+import contextlib
 import logging
 import os
 import platform
@@ -248,7 +249,15 @@ def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
         except AttributeError:
             pass
 
-    # Write
+    # Write windowed in case of very big rasters (> 50Go)
+    # Workaround to avoid core dumps
+    with contextlib.suppress(Exception):
+        if (
+            "windowed" not in kwargs
+            and xds.data.itemsize * xds.size / 1024 / 1024 / 1024 > 50
+        ):
+            kwargs["windowed"] = True
+
     rasters.write(xds, output_path=filepath, **_prune_keywords(["window"], **kwargs))
 
     # Set back the previous long name
