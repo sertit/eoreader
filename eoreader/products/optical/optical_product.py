@@ -428,13 +428,13 @@ class OpticalProduct(Product):
         raise NotImplementedError
 
     @staticmethod
-    def _set_nodata_mask(band_arr: xr.DataArray, mask: np.ndarray) -> xr.DataArray:
+    def _set_nodata_mask(band_arr: xr.DataArray, mask: xr.DataArray) -> xr.DataArray:
         """
         Create the correct xarray with well positioned nodata
 
         Args:
             band_arr (xr.DataArray): Band array
-            mask (np.ndarray): Mask array
+            mask (xr.DataArray): Mask array
 
         Returns:
             (xr.DataArray): Corrected band array
@@ -446,7 +446,20 @@ class OpticalProduct(Product):
         if len(mask.shape) < len(band_arr.shape):
             mask = np.expand_dims(mask, axis=0)
 
+        from dask import array as da
+
         # Set masked values to nodata
+        if isinstance(mask, xr.DataArray):
+            # Xarray
+            mask = mask.data
+        elif isinstance(mask, (np.ndarray, da.Array)):
+            # np.ndarray
+            LOGGER.debug(
+                "The nodata mask is given as a 'np.ndarray' or a 'dask.array'. Please look into this (or write an issue to GitHub)."
+            )
+        else:
+            raise NotImplementedError
+
         band_arr_nodata = band_arr.where(mask == 0)
 
         # Where sadly drops the encoding dict...
