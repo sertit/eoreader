@@ -661,12 +661,10 @@ class S3Product(OpticalProduct):
                 # From 08/2019, still true in 01/2025
                 # https://github.com/pytroll/pyresample/issues/206#issuecomment-520971930
                 # XArrayResamplerNN is using "pykdtree which is faster than scipy and uses OpenMP, but is not dask or multi-process friendly otherwise"
-                # Workaround is to avoid using dask here:
-                arr = band_arr.squeeze().compute()
-
+                # Workaround is to force dask computation with multithreads scheduler
                 band_arr_resampled = resampler.get_sample_from_neighbour_info(
-                    arr, fill_value=nodata
-                )
+                    band_arr.squeeze(), fill_value=nodata
+                ).load(scheduler="threads")
 
             # Resampling Bilinear
             else:
