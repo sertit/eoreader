@@ -298,22 +298,28 @@ def _test_core(
                     existing_bands = prod.get_existing_bands()
                     nof_assets = len(existing_bands)
 
+                    # Remove NARROW NIR, except for S2
                     if is_not_s2 and NARROW_NIR in existing_bands:
-                        nof_assets -= 1  # remove NARROW NIR, except for S2
-                    elif (
+                        nof_assets -= 1
+
+                    # Keep only one VRE, except for S2 and S3 OLCI (VRE1 is always existing if VRE bands are present)
+                    if (
                         is_not_s2
                         and prod.constellation != Constellation.S3_OLCI
                         and VRE_1 in existing_bands
-                        and VRE_2 in existing_bands
-                        or VRE_3 in existing_bands
                     ):
-                        nof_assets -= 1  # remove one VRE, except for S2 and S3 OLCI
+                        if VRE_2 in existing_bands:
+                            nof_assets -= 1
+                        if VRE_3 in existing_bands:
+                            nof_assets -= 1
+
+                    # Remove one TIR for TM data
                     if (
                         prod.instrument == LandsatInstrument.TM
                         and TIR_1 in existing_bands
                         and TIR_2 in existing_bands
                     ):
-                        nof_assets -= 1  # remove one TIR for TM data
+                        nof_assets -= 1
                 else:
                     prod: SarProduct
                     existing_bands = prod._get_raw_bands()
