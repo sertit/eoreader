@@ -18,6 +18,7 @@
 - FIX: Add some missing `@cache` around time-consuming functions
 - FIX: Set correctly the SAR product type, with adding two types (`ORTHO` and `GEOCODED`)
 - FIX: Fix the computation of parametric spectral indices [#193](https://github.com/sertit/eoreader/issues/193)
+- FIX: Fix retrieval of quicklook path for SAOCOM when already computed
 - OPTIM: Cache the access to any archived file list, as this operation is expensive when done with large archives stored on the cloud (and thus better done only once).
 - CI: Remove useless verbosity in CI
 - CI: GDAL performance tuning by tweaking `rasterio`'s env

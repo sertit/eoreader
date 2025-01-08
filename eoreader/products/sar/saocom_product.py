@@ -442,7 +442,9 @@ class SaocomProduct(SarProduct):
         """
         quicklook_path = None
         try:
-            qlk_path, qlk_exists = self._get_out_path(f"{self.condensed_name}_QLK.tif")
+            quicklook_path, qlk_exists = self._get_out_path(
+                f"{self.condensed_name}_QLK.png"
+            )
 
             if not qlk_exists:
                 try:
@@ -452,7 +454,7 @@ class SaocomProduct(SarProduct):
                         filenames = [f.filename for f in zip_ds.filelist]
                         regex = re.compile("Images/.*png")
                         quicklook_path = zip_ds.extract(
-                            list(filter(regex.match, filenames))[0], qlk_path
+                            list(filter(regex.match, filenames))[0], quicklook_path
                         )
                 except FileNotFoundError:
                     quicklook_path = next(self.path.glob("Images/*.png"))
