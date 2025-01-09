@@ -94,7 +94,7 @@ def set_dem(dem_path):
             )
 
 
-def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
+def _test_core_optical(pattern: str, dem_path=None, debug=WRITE_ON_DISK, **kwargs):
     """
     Core function testing optical data
 
@@ -106,7 +106,7 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
     _test_core(pattern, opt_path(), possible_bands, dem_path, debug, **kwargs)
 
 
-def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
+def _test_core_sar(pattern: str, dem_path=None, debug=WRITE_ON_DISK, **kwargs):
     """
     Core function testing SAR data
 
@@ -118,7 +118,7 @@ def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
     _test_core(pattern, sar_path(), possible_bands, dem_path, debug, **kwargs)
 
 
-def check_prod(pattern_path: str, debug: bool = False) -> Product:
+def check_prod(pattern_path: str, debug: bool = WRITE_ON_DISK) -> Product:
     """
     Open and check the products
 
@@ -394,7 +394,7 @@ def _test_core(
     prod_dir: str,
     possible_bands: list,
     dem_path=None,
-    debug=False,
+    debug=WRITE_ON_DISK,
     **kwargs,
 ):
     """
