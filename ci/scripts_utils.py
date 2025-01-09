@@ -248,3 +248,68 @@ def reduce_verbosity():
 
     # Critical
     logging.getLogger("distributed.worker").setLevel(logging.CRITICAL)
+
+
+def assert_raster_max_mismatch(
+    path_1,
+    path_2,
+    max_mismatch_pct=0.5,
+    decimal=-1,
+) -> None:
+    """
+    Assert that two rasters are almost equal.
+    (everything is equal except the transform and the arrays that are almost equal)
+
+    Accepts an offset of :code:`1E{decimal}` on the array and a precision of 10^-9 on the transform
+
+    Useful for pytests.
+
+    Args:
+        path_1 (AnyPathStrType): Raster 1
+        path_2 (AnyPathStrType): Raster 2
+        max_mismatch_pct (float): Maximum of element mismatch in %
+
+    Example:
+        >>> path = r"CI/DATA/rasters/raster.tif"
+        >>> path2 = r"CI/DATA/rasters/raster_almost.tif"
+        >>> assert_raster_max_mismatch(path, path2)
+        >>> # Raises AssertionError if sth goes wrong
+    """
+    try:
+        # Sertit > 1.44.4
+        ci.assert_raster_max_mismatch(
+            path_1, path_2, max_mismatch_pct=max_mismatch_pct, decimal=decimal
+        )
+    except TypeError:
+        import numpy as np
+        from sertit.ci import assert_meta
+
+        try:
+            import rasterio
+        except ModuleNotFoundError as ex:
+            raise ModuleNotFoundError(
+                "Please install 'rasterio' to use assert_raster_max_mismatch."
+            ) from ex
+
+        with rasterio.open(str(path_1)) as ds_1, rasterio.open(str(path_2)) as ds_2:
+            # Metadata
+            assert_meta(ds_1.meta, ds_2.meta)
+
+            # Compute the number of mismatch
+            arr_1 = ds_1.read()
+            arr_2 = ds_2.read()
+
+            if decimal >= 0:
+                arr_1 = np.round(arr_1, decimal)
+                arr_2 = np.round(arr_2, decimal)
+
+            diffs = np.abs(arr_1 - arr_2)
+            nof_mismatch = np.count_nonzero(diffs)
+            nof_elements = ds_1.count * ds_1.width * ds_1.height
+            pct_mismatch = nof_mismatch / nof_elements * 100.0
+            assert pct_mismatch < max_mismatch_pct, (
+                f"Too many mismatches !\n"
+                f"Number of mismatches: {nof_mismatch} / {nof_elements},\n"
+                f"Percentage of mismatches: {pct_mismatch:0.2f}% > {max_mismatch_pct}%\n"
+                f"Mean of mismatches: {np.mean(np.where(diffs != 0)):0.2f}"
+            )
