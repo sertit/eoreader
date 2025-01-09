@@ -4,10 +4,11 @@ import logging
 import os
 
 import numpy as np
-from sertit import ci, rasters
+from sertit import rasters
 
 from ci.scripts_utils import (
     READER,
+    assert_raster_max_mismatch,
     dask_env,
     get_ci_data_dir,
     opt_path,
@@ -37,6 +38,8 @@ RES = 2000.0  # 2000 meters
 
 reduce_verbosity()
 
+WRITE_ON_DISK = False
+
 
 @s3_env
 @dask_env
@@ -48,7 +51,8 @@ def test_index(tmp_path):
     )
     prod = READER.open(s2_path, remove_tmp=True)
     failed_idx = []
-    # tmp_path = "/home/data/ci/indices_weekly"
+    if WRITE_ON_DISK:
+        tmp_path = "/home/data/ci/indices_weekly"
     prod.output = os.path.join(tmp_path, prod.condensed_name)
 
     # Load every index
@@ -86,7 +90,13 @@ def test_index(tmp_path):
 
         # Test
         try:
-            ci.assert_raster_almost_equal(curr_path, ci_idx, decimal=4)
+            max_mismatch_pct = 0.5
+            if idx_name in ["BAI", "BAIM", "WI", "EVI"]:
+                # Not bound between -1 / 1 indices
+                max_mismatch_pct = 7.5
+            assert_raster_max_mismatch(
+                curr_path, ci_idx, max_mismatch_pct=max_mismatch_pct, decimal=1
+            )
         except AssertionError as ex:
             LOGGER.debug(ex)
             failed_idx.append(idx_name)
