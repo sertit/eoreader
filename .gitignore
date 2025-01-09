@@ -11,11 +11,14 @@ __pycache__/
 cov.xml
 *.lock
 .run
+_*.py
 
 # Discard CI/OUTPUTS
 ci/**/*.tif
 ci/**/*.npy
 ci/**/*.vrt
+ci/**/*.geojson
+ci/**/*.xml
 
 # Build options
 build/
