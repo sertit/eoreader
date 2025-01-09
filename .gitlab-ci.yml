@@ -95,7 +95,7 @@ pytest_end_to_end:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc ci/weekly --log-cli-level DEBUG --capture=tee-sys
+    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc ci/weekly --log-cli-level DEBUG --capture=tee-sys ${REVERSE}
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/cov_e2e.html
