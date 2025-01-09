@@ -249,12 +249,12 @@ def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
         except AttributeError:
             pass
 
-    # Write windowed in case of very big rasters (> 50Go)
+    # Write windowed in case of big rasters (> 5 Go)
     # Workaround to avoid core dumps
     with contextlib.suppress(Exception):
         if (
             "windowed" not in kwargs
-            and xds.data.itemsize * xds.size / 1024 / 1024 / 1024 > 50
+            and xds.data.itemsize * xds.size / 1024 / 1024 / 1024 > 5
         ):
             kwargs["windowed"] = True
 
