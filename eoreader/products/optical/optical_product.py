@@ -454,9 +454,10 @@ class OpticalProduct(Product):
             mask = mask.data
         elif isinstance(mask, (np.ndarray, da.Array)):
             # np.ndarray
-            LOGGER.debug(
-                "The nodata mask is given as a 'np.ndarray' or a 'dask.array'. Please look into this (or write an issue to GitHub)."
-            )
+            # LOGGER.debug(
+            #     "The nodata mask is given as a 'np.ndarray' or a 'dask.array'. Please look into this (or write an issue to GitHub)."
+            # )
+            pass
         else:
             raise NotImplementedError
 

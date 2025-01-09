@@ -96,7 +96,7 @@ def set_dem(dem_path):
             )
 
 
-def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
+def _test_core_optical(pattern: str, dem_path=None, debug=WRITE_ON_DISK, **kwargs):
     """
     Core function testing optical data
     Args:
@@ -128,7 +128,7 @@ def _test_core_optical(pattern: str, dem_path=None, debug=False, **kwargs):
     )
 
 
-def _test_core_sar(pattern: str, dem_path=None, debug=False, **kwargs):
+def _test_core_sar(pattern: str, dem_path=None, debug=WRITE_ON_DISK, **kwargs):
     """
     Core function testing SAR data
     Args:
@@ -151,7 +151,7 @@ def _test_core(
     prod_dirs: Union[str, list],
     possible_bands: list,
     dem_path=None,
-    debug=False,
+    debug=WRITE_ON_DISK,
     **kwargs,
 ):
     """
@@ -190,7 +190,7 @@ def _test_core(
             LOGGER.info("Checking opening solutions")
             LOGGER.info("MTD")
             prod: Product = READER.open(
-                pattern_path, method=CheckMethod.MTD, remove_tmp=debug
+                pattern_path, method=CheckMethod.MTD, remove_tmp=not debug
             )
 
             # Log name
@@ -273,8 +273,6 @@ def _test_core(
                     LOGGER.info("Cleaning tmp")
                     prod.clean_tmp()
                     assert len(list(prod._tmp_process.glob("*"))) == 0
-
-            del prod
 
 
 def test_s1_slc(capfd):
