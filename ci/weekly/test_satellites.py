@@ -1,5 +1,6 @@
 """Script testing EOReader satellites weekly"""
 
+import contextlib
 import logging
 import os
 import sys
@@ -51,7 +52,7 @@ from eoreader.reader import Constellation
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 MERIT_DEM_SUB_DIR_PATH = test_satellites.MERIT_DEM_SUB_DIR_PATH
-WRITE_ON_DISK = False
+WRITE_ON_DISK = True
 
 reduce_verbosity()
 
@@ -319,7 +320,9 @@ def core(prod_path, possible_bands, debug, **kwargs):
         client.scheduler.shutdown()
         client.retire_workers()
         client.close()
-        client.shutdown()
+
+        with contextlib.suppress(RuntimeError):
+            client.shutdown()
 
     # Check products
     prod = test_satellites.check_prod(prod_path, debug)
@@ -376,7 +379,8 @@ def core(prod_path, possible_bands, debug, **kwargs):
         if not WRITE_ON_DISK:
             test_satellites.check_clean(prod)
 
-    prod.clear()
+    if not WRITE_ON_DISK:
+        prod.clear()
 
 
 @s3_env

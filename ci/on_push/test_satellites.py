@@ -139,7 +139,7 @@ def check_prod(pattern_path: str, debug: bool = WRITE_ON_DISK) -> Product:
         pattern_path,
         method=CheckMethod.MTD,
         constellation=prod_name.constellation,
-        remove_tmp=debug,
+        remove_tmp=not debug,
     )
     assert prod is not None
 
