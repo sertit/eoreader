@@ -611,3 +611,8 @@ def get_archived_rio_path(
         file_list=file_list,
     )
     return file_list
+
+
+def is_uint16(band_arr: xr.DataArray):
+    """Is this array saved as uint16 on disk?"""
+    return band_arr.encoding.get("dtype") in ["uint16", np.uint16]

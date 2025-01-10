@@ -30,7 +30,7 @@ from rasterio import crs as riocrs
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
 
-from eoreader import DATETIME_FMT, EOREADER_NAME, cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
     GREEN,
     NARROW_NIR,
@@ -563,8 +563,7 @@ class Spot45Product(DimapV1Product):
         """
         if self._raw_units == RawUnits.REFL:
             # Compute the correct radiometry of the band
-            original_dtype = band_arr.encoding["dtype"]
-            if original_dtype == "uint16":
+            if utils.is_uint16(band_arr):
                 band_arr /= 10000.0
         elif self._raw_units == RawUnits.DN:
             # Convert DN into radiance
