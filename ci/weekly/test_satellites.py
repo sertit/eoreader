@@ -52,7 +52,7 @@ from eoreader.reader import Constellation
 LOGGER = logging.getLogger(EOREADER_NAME)
 
 MERIT_DEM_SUB_DIR_PATH = test_satellites.MERIT_DEM_SUB_DIR_PATH
-WRITE_ON_DISK = True
+WRITE_ON_DISK = False
 
 reduce_verbosity()
 
