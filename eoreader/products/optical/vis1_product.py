@@ -342,8 +342,7 @@ class Vis1Product(DimapV1Product):
         """
 
         # Compute the correct radiometry of the band
-        original_dtype = band_arr.encoding["dtype"]
-        if original_dtype == "uint16":
+        if utils.is_uint16(band_arr):
             band_arr /= 100.0
 
         band_arr = self._toa_rad_to_toa_refl(band_arr, band, _VIS1_E0[band])

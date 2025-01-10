@@ -702,8 +702,7 @@ class DimapV2Product(VhrProduct):
         """
         if self._raw_units == RawUnits.REFL:
             # Compute the correct radiometry of the band
-            original_dtype = band_arr.encoding["dtype"]
-            if original_dtype == "uint16":
+            if utils.is_uint16(band_arr):
                 band_arr /= 10000.0
         elif self._raw_units == RawUnits.DN:
             # Convert DN into radiance
