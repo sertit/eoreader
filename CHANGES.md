@@ -20,6 +20,7 @@
 - FIX: Fix the computation of parametric spectral indices [#193](https://github.com/sertit/eoreader/issues/193)
 - FIX: Fix retrieval of quicklook path for SAOCOM when already computed
 - FIX: Write data using `windowed=True` for very big rasters (> 50 Go) to avoid core dumps
+- FIX: Fix management of numpy temporary files saved on disk
 - OPTIM: Cache the access to any archived file list, as this operation is expensive when done with large archives stored on the cloud (and thus better done only once).
 - CI: Remove useless verbosity in CI
 - CI: GDAL performance tuning by tweaking `rasterio`'s env

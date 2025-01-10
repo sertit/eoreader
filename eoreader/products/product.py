@@ -251,6 +251,10 @@ class Product:
             self._tmp_output = tempfile.TemporaryDirectory()
             self._output = AnyPath(self._tmp_output.name)
 
+        # Temporary file path (private)
+        self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
+        os.makedirs(self._tmp_process, exist_ok=True)
+
         # Pre initialization
         self._pre_init(**kwargs)
 
@@ -296,10 +300,6 @@ class Product:
 
             # Condensed name
             self.condensed_name = self._get_condensed_name()
-
-            # Temporary file path (private)
-            self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
-            os.makedirs(self._tmp_process, exist_ok=True)
 
     def __del__(self):
         """Cleaning up _tmp directory"""
