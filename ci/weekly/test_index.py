@@ -4,11 +4,10 @@ import logging
 import os
 
 import numpy as np
-from sertit import rasters
+from sertit import ci, rasters
 
 from ci.scripts_utils import (
     READER,
-    assert_raster_max_mismatch,
     dask_env,
     get_ci_data_dir,
     opt_path,
@@ -90,12 +89,14 @@ def test_index(tmp_path):
 
         # Test
         try:
-            max_mismatch_pct = 0.5
-            if idx_name in ["BAI", "BAIM", "WI", "EVI"]:
+            decimal = 2
+            max_mismatch_pct = 1
+            if idx_name in ["BAI", "BAIM", "WI", "EVI", "AWEInsh", "GRI"]:
                 # Not bound between -1 / 1 indices
-                max_mismatch_pct = 7.5
-            assert_raster_max_mismatch(
-                curr_path, ci_idx, max_mismatch_pct=max_mismatch_pct, decimal=1
+                decimal = 0
+                max_mismatch_pct = 2
+            ci.assert_raster_max_mismatch(
+                curr_path, ci_idx, max_mismatch_pct=max_mismatch_pct, decimal=decimal
             )
         except AssertionError as ex:
             LOGGER.debug(ex)
