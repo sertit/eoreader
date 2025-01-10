@@ -19,6 +19,7 @@ ci/**/*.npy
 ci/**/*.vrt
 ci/**/*.geojson
 ci/**/*.xml
+ci/**/*.jp2
 
 # Build options
 build/
