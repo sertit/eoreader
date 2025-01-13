@@ -1,6 +1,6 @@
 # Release History
 
-## 0.21.8 (2024-mm-dd)
+## 0.21.8 (2024-01-13)
 
 - ENH: Add a new type (`BandsType`) for list of BandType
 - ENH: Add a new environment variable `EOREADER_NOF_BANDS_IN_CHUNKS` to control the number of the bands in chunks when using `dask`. ([#178](https://github.com/sertit/eoreader/discussions/178))
