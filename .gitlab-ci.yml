@@ -89,6 +89,7 @@ pytest_end_to_end:
   image: $EO_CONTAINER:geo_latest
   stage: test
   variables:
+    CI_EOREADER_USE_S3: "0"
     EOREADER_USE_DASK: "1"
   before_script:
     - python -m pip install --upgrade pip
