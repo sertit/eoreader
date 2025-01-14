@@ -188,7 +188,7 @@ intersphinx_mapping = {
     "xarray": ("https://docs.xarray.dev/en/latest", None),
     "cloudpathlib": ("https://cloudpathlib.drivendata.org/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
-    "sertit": ("sertit-utils.readthedocs.io/en/stable", None),
+    "sertit": ("https://sertit-utils.readthedocs.io/en/stable", None),
 }
 
 add_function_parentheses = False
