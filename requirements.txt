@@ -41,8 +41,13 @@ spyndex>=0.3.0
 # SERTIT libs
 sertit[full]>=1.44.1
 
-# Optimizations
-dask[complete]>=2024.5.1  # numpy >= 2
+# Dask
+dask>=2024.5.1
+distributed
+s3fs
+cytoolz
+
+# Caching
 methodtools
 
 # Plot
