@@ -180,8 +180,15 @@ htmlhelp_basename = "eoreaderdoc"
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    "https://docs.python.org/3/": None,
-    "https://docs.python-requests.org/en/master/": None,
+    "python": ("https://docs.python.org/3/", None),
+    "python-request": ("https://docs.python-requests.org/en/master/", None),
+    "rasterio": ("https://rasterio.readthedocs.io/en/latest", None),
+    "rioxarray": ("https://corteva.github.io/rioxarray/latest/", None),
+    "geopandas": ("https://geopandas.org/en/latest", None),
+    "xarray": ("https://docs.xarray.dev/en/latest", None),
+    "cloudpathlib": ("https://cloudpathlib.drivendata.org/stable/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "sertit": ("sertit-utils.readthedocs.io/en/stable", None),
 }
 
 add_function_parentheses = False
