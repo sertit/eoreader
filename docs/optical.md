@@ -1,6 +1,6 @@
 # Optical data
 
-You will find an optical tutorial [here](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html).
+You will find an optical tutorial [here](https://eoreader.readthedocs.io/latest/notebooks/optical.html).
 
 ## Implemented optical constellation
 
@@ -96,12 +96,12 @@ Optical bands are always loaded in reflectance, except for brilliance temperatur
 
 However, the user can ask for bands "as is" by using the {meth}`~eoreader.keyword.TO_REFLECTANCE` keyword with the load and stack functions.
 It will give the bands in the provider format (either DN, radiance or reflactance in uint16...).
-See [the optical notebook](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html#radiometric-processing) to see how to implement it.
+See [the optical notebook](https://eoreader.readthedocs.io/latest/notebooks/optical.html#radiometric-processing) to see how to implement it.
 
 These bands will be cleaned according to the user's needs. 
 By default, only the pixels outside the detectors footprints are set to nodata.
 Methods to clean optical bands are best described in the
-[notebook](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html) about the optical cleaning methods.
+[notebook](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html) about the optical cleaning methods.
 ```
 
 #### Band names

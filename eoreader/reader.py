@@ -612,7 +612,7 @@ class Reader:
             )
             LOGGER.debug(
                 "Please look at what folder you should give to EOReader by accessing the documentation: "
-                "https://eoreader.readthedocs.io/en/latest/main_features.html#recognized-paths"
+                "https://eoreader.readthedocs.io/latest/main_features.html#recognized-paths"
             )
 
         return prod

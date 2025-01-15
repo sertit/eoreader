@@ -66,7 +66,7 @@ version = {attr = "eoreader.__version__"}
 
 [project.urls]
 Bug_Tracker = "https://github.com/sertit/eoreader/issues"
-Documentation =  "https://eoreader.readthedocs.io/en/latest/"
+Documentation =  "https://eoreader.readthedocs.io/latest/"
 Source_Code = "https://github.com/sertit/eoreader"
 
 [tool.ruff]
