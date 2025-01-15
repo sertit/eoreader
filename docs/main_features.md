@@ -1,6 +1,6 @@
 # Main features
 
-These features can be seen in the [basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html).
+These features can be seen in the [basic tutorial](https://eoreader.readthedocs.io/latest/notebooks/base.html).
 
 ## Open
 
@@ -8,7 +8,7 @@ The reader singleton is your unique entry.
 It will create for you the product object corresponding to your satellite data.
 
 You can load products from the cloud, see 
-[this tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/s3_compatible_storage.html).
+[this tutorial](https://eoreader.readthedocs.io/latest/notebooks/s3_compatible_storage.html).
 S3 and S3 Compatible Storage are working and maybe Google and Azure if `rasterio` supports it, 
 but they have not been tested.
 
@@ -137,12 +137,12 @@ but this can be changed according to the user's needs (see below).
 ```
 
 Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
-- Methods to clean optical bands are best described [here](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html),
-- Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html).
-- Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html)).
+- Methods to clean optical bands are best described [here](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html),
+- Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/latest/notebooks/sentinel-3.html).
+- Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/latest/notebooks/windowed_reading.html)).
 
 💡 The bands will be opened with a chunk of `[1, TILE_SIZE, TILE_SIZE]` with `TILE_SIZE` coming from the 
-[`EOREADER_TILE_SIZE` environment variable](https://eoreader.readthedocs.io/en/latest/api/eoreader.env_vars.TILE_SIZE.html#eoreader.env_vars.TILE_SIZE). 
+[`EOREADER_TILE_SIZE` environment variable](https://eoreader.readthedocs.io/latest/api/eoreader.env_vars.TILE_SIZE.html#eoreader.env_vars.TILE_SIZE). 
 The `TILE_SIZE` default value is 2048.
 
 
@@ -169,9 +169,9 @@ For example, for Sentinel-3 OLCI you can use `7`, `Oa07` or `YELLOW`. For Landsa
 
 Some additional arguments can be passed to this function, please see {meth}`~eoreader.keywords` for the list.
 - Methods to clean optical bands are best
-  described [here](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html),
-- Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html).
-- Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html)).
+  described [here](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html),
+- Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/latest/notebooks/sentinel-3.html).
+- Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/latest/notebooks/windowed_reading.html)).
 
 ## Read Metadata
 EOReader gives you the access to the metadata of your product as a `lxml.etree._Element` followed by the namespace you may need to read them 
@@ -221,7 +221,7 @@ This is what you will have when calling this function:
 ## Plot
 If a quicklook exists, the user can plot the product.
 Always existing for VHR and SAR data, more rarely for other optical constellations.
-See [Optical](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html) and [SAR](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html) tutorials for examples.
+See [Optical](https://eoreader.readthedocs.io/latest/notebooks/optical.html) and [SAR](https://eoreader.readthedocs.io/latest/notebooks/SAR.html) tutorials for examples.
 
 ```python
 # Plot product
@@ -297,7 +297,7 @@ prod.get_orbit_direction()
 
 **EOReader** can help you create [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) items from every supported products, included custom ones.
 Those items are ready to be added in any STAC catalogue or collection. 
-See [STAC Notebook](https://eoreader.readthedocs.io/en/latest/notebooks/stac.html) to learn more about this feature.
+See [STAC Notebook](https://eoreader.readthedocs.io/latest/notebooks/stac.html) to learn more about this feature.
 
 ```python
 # Get STAC object

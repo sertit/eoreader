@@ -1,6 +1,6 @@
 # SAR data
 
-You will find a SAR tutorial [here](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html).
+You will find a SAR tutorial [here](https://eoreader.readthedocs.io/latest/notebooks/SAR.html).
 
 ## Implemented SAR constellations
 
@@ -305,7 +305,7 @@ If `External DEM` is set, you must specify the DEM you want by positioning the `
 
 ## Known SNAP bugs
 
-See the [FAQ](https://eoreader.readthedocs.io/en/latest/faq.html#snap-known-bugs) for known SNAP bugs.
+See the [FAQ](https://eoreader.readthedocs.io/latest/faq.html#snap-known-bugs) for known SNAP bugs.
 
 ### What to know if you are changing a graph
 

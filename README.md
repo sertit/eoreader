@@ -7,10 +7,10 @@
 [![stars](https://img.shields.io/github/stars/sertit/eoreader?style=social)](https://github.com/sertit/eoreader)
 [![Conda](https://img.shields.io/conda/dn/conda-forge/eoreader.svg)](https://anaconda.org/conda-forge/eoreader)
 
-# ![eoreader_logo](https://eoreader.readthedocs.io/en/latest/_static/favicon.png) EOReader
+# ![eoreader_logo](https://eoreader.readthedocs.io/latest/_static/favicon.png) EOReader
 
-**EOReader** is a remote-sensing opensource python library reading [optical](https://eoreader.readthedocs.io/en/latest/optical.html)
-and [SAR](https://eoreader.readthedocs.io/en/latest/sar.html) constellations, loading and stacking bands,
+**EOReader** is a remote-sensing opensource python library reading [optical](https://eoreader.readthedocs.io/latest/optical.html)
+and [SAR](https://eoreader.readthedocs.io/latest/sar.html) constellations, loading and stacking bands,
 clouds, DEM and spectral indices in a sensor-agnostic way.
 
 > [!IMPORTANT] 
@@ -20,21 +20,21 @@ clouds, DEM and spectral indices in a sensor-agnostic way.
 ## 🛰️ Managed constellations
 
 ### Optical
-[![Sentinel-2 SAFE and Theia Sentinel-3 OLCI and SLSTR Landsat 1 to 9 Harmonized Landsat-Sentinel PlanetScope, SkySat and RapidEye Pleiades and Pleiades-Neo SPOT-6/7 and 4/5 Vision-1 Maxar (WorldViews, GeoEye) SuperView-1 GEOSAT-2](https://zupimages.net/up/23/22/j3mz.png)](https://eoreader.readthedocs.io/en/latest/optical.html)
+[![Sentinel-2 SAFE and Theia Sentinel-3 OLCI and SLSTR Landsat 1 to 9 Harmonized Landsat-Sentinel PlanetScope, SkySat and RapidEye Pleiades and Pleiades-Neo SPOT-6/7 and 4/5 Vision-1 Maxar (WorldViews, GeoEye) SuperView-1 GEOSAT-2](https://zupimages.net/up/23/22/j3mz.png)](https://eoreader.readthedocs.io/latest/optical.html)
 
 ### SAR
-[![Sentinel-1 COSMO-Skymed 1st and 2nd Generation TerraSAR-X, TanDEM-X and PAZ SAR RADARSAT-2 and RADARSAT-Constellation ICEYE SAOCOM Capella](https://zupimages.net/up/23/22/7b6k.png)](https://eoreader.readthedocs.io/en/latest/sar.html)
+[![Sentinel-1 COSMO-Skymed 1st and 2nd Generation TerraSAR-X, TanDEM-X and PAZ SAR RADARSAT-2 and RADARSAT-Constellation ICEYE SAOCOM Capella](https://zupimages.net/up/23/22/7b6k.png)](https://eoreader.readthedocs.io/latest/sar.html)
 
 ## 🔮 Features
 
 EOReader implements **sensor-agnostic** features:
 
-- [`load`](https://eoreader.readthedocs.io/en/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.load): Load many band types:
-    - satellite bands ([optical](https://eoreader.readthedocs.io/en/latest/optical.html#satellite-bands) or [SAR](https://eoreader.readthedocs.io/en/latest/sar.html#sar-bands))
-    - [index](https://eoreader.readthedocs.io/en/latest/optical.html#available-index)
-    - [cloud bands](https://eoreader.readthedocs.io/en/latest/optical.html#cloud-bands)
-    - [DEM bands](https://eoreader.readthedocs.io/en/latest/optical.html#dem-bands)
-- [`stack`](https://eoreader.readthedocs.io/en/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.stack): Stack all these type of bands
+- [`load`](https://eoreader.readthedocs.io/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.load): Load many band types:
+    - satellite bands ([optical](https://eoreader.readthedocs.io/latest/optical.html#satellite-bands) or [SAR](https://eoreader.readthedocs.io/latest/sar.html#sar-bands))
+    - [index](https://eoreader.readthedocs.io/latest/optical.html#available-index)
+    - [cloud bands](https://eoreader.readthedocs.io/latest/optical.html#cloud-bands)
+    - [DEM bands](https://eoreader.readthedocs.io/latest/optical.html#dem-bands)
+- [`stack`](https://eoreader.readthedocs.io/latest/api/eoreader.products.product.Product.html#eoreader.products.product.Product.stack): Stack all these type of bands
 
 EOReader works mainly with:
 - [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray) and [`xarrays.Dataset`](http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset) for raster data
@@ -66,7 +66,7 @@ stack = s2_prod.stack([RED, GREEN, BLUE], stack_path="s2_rgb_stack.tif")
 ```
 
 EOReader aligns spectral bands from every handled sensor in order to make any call to a band generic:  
-[![Optical Band Mapping](https://zupimages.net/up/23/40/0zgb.png)](https://eoreader.readthedocs.io/en/latest/optical_band_mapping.html)
+[![Optical Band Mapping](https://zupimages.net/up/23/40/0zgb.png)](https://eoreader.readthedocs.io/latest/optical_band_mapping.html)
 
 ### SAR
 In the same way, you can import and stack radar band from any handled SAR constellation, with the same pattern.
@@ -101,35 +101,35 @@ stack = s1_prod.stack([VV_DSPK, VH_DSPK], stack_path="s1_stack.tif")
 
 ## 📖 Documentation
 
-The API documentation can be found [here](https://eoreader.readthedocs.io/en/latest/).
+The API documentation can be found [here](https://eoreader.readthedocs.io/latest/).
 
 ## 🔗 Examples
 
 Available notebooks provided as examples:
 
-- [Why EOReader?](https://eoreader.readthedocs.io/en/latest/notebooks/why_eoreader.html)
+- [Why EOReader?](https://eoreader.readthedocs.io/latest/notebooks/why_eoreader.html)
 
 ### Basics 
-- [Basic tutorial](https://eoreader.readthedocs.io/en/latest/notebooks/base.html)
-- [Optical data](https://eoreader.readthedocs.io/en/latest/notebooks/optical.html)
-- [SAR data](https://eoreader.readthedocs.io/en/latest/notebooks/SAR.html)
-- [VHR data](https://eoreader.readthedocs.io/en/latest/notebooks/VHR.html)
-- [Remove clouds](https://eoreader.readthedocs.io/en/latest/notebooks/remove_clouds.html)
+- [Basic tutorial](https://eoreader.readthedocs.io/latest/notebooks/base.html)
+- [Optical data](https://eoreader.readthedocs.io/latest/notebooks/optical.html)
+- [SAR data](https://eoreader.readthedocs.io/latest/notebooks/SAR.html)
+- [VHR data](https://eoreader.readthedocs.io/latest/notebooks/VHR.html)
+- [Remove clouds](https://eoreader.readthedocs.io/latest/notebooks/remove_clouds.html)
 
 
 ### Advanced 
-- [Sentinel-3 data](https://eoreader.readthedocs.io/en/latest/notebooks/sentinel-3.html)
-- [Water detection on multiple products](https://eoreader.readthedocs.io/en/latest/notebooks/water_detection.html)
-- [Windowed Reading](https://eoreader.readthedocs.io/en/latest/notebooks/windowed_reading.html)
-- [DEM](https://eoreader.readthedocs.io/en/latest/notebooks/dem.html)
-- [Custom stacks](https://eoreader.readthedocs.io/en/latest/notebooks/custom.html)
-- [Methods to clean optical bands](https://eoreader.readthedocs.io/en/latest/notebooks/optical_cleaning_methods.html)
-- [AWS storage](https://eoreader.readthedocs.io/en/latest/notebooks/aws.html)
-- [S3 Compatible Storage](https://eoreader.readthedocs.io/en/latest/notebooks/s3_compatible_storage.html)
+- [Sentinel-3 data](https://eoreader.readthedocs.io/latest/notebooks/sentinel-3.html)
+- [Water detection on multiple products](https://eoreader.readthedocs.io/latest/notebooks/water_detection.html)
+- [Windowed Reading](https://eoreader.readthedocs.io/latest/notebooks/windowed_reading.html)
+- [DEM](https://eoreader.readthedocs.io/latest/notebooks/dem.html)
+- [Custom stacks](https://eoreader.readthedocs.io/latest/notebooks/custom.html)
+- [Methods to clean optical bands](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html)
+- [AWS storage](https://eoreader.readthedocs.io/latest/notebooks/aws.html)
+- [S3 Compatible Storage](https://eoreader.readthedocs.io/latest/notebooks/s3_compatible_storage.html)
 
 ### Experimental
-- [Dask](https://eoreader.readthedocs.io/en/latest/notebooks/dask.html)
-- [STAC](https://eoreader.readthedocs.io/en/latest/notebooks/stac.html)
+- [Dask](https://eoreader.readthedocs.io/latest/notebooks/dask.html)
+- [STAC](https://eoreader.readthedocs.io/latest/notebooks/stac.html)
 
 ## 🛠 Installation
 

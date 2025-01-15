@@ -3,7 +3,7 @@
 Custom products can be created from any stack (and some data) provided by the user. These custom products will work
 exactly as usual products, but with the user's metadata.
 
-See [this notebook](https://eoreader.readthedocs.io/en/latest/notebooks/custom.html) for examples on how custom stacks
+See [this notebook](https://eoreader.readthedocs.io/latest/notebooks/custom.html) for examples on how custom stacks
 are working.
 
 ## Custom stack with minimum data
