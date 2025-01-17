@@ -252,7 +252,7 @@ class Product:
             self._output = AnyPath(self._tmp_output.name)
 
         # Temporary file path (private)
-        self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
+        self._tmp_process = self._output.joinpath("tmp")
         os.makedirs(self._tmp_process, exist_ok=True)
 
         # Pre initialization
@@ -301,6 +301,10 @@ class Product:
             # Condensed name
             self.condensed_name = self._get_condensed_name()
 
+            # Once we get the condensed name, move the temporary folder in order to have its correct name
+            # This is to avoid a meaningless tmp folder (tmp_None) if the output is given directly in the init of the product
+            self._move_tmp_process(f"tmp_{self.condensed_name}")
+
     def __del__(self):
         """Cleaning up _tmp directory"""
         self.clear()
@@ -309,7 +313,11 @@ class Product:
         if self._tmp_output:
             self._tmp_output.cleanup()
 
-        elif self._remove_tmp_process:
+        elif (
+            self._remove_tmp_process
+            and self._tmp_process is not None
+            and self._tmp_process.exists()
+        ):
             files.remove(self._tmp_process)
 
     @abstractmethod
@@ -1436,9 +1444,19 @@ class Product:
         if not path.is_cloud_path(self._output):
             self._output = self._output.resolve()
 
+        # Move temporary process folder
+        self._move_tmp_process(f"tmp_{self.condensed_name}")
+
+        # Remove old output if existing into the new output
+        if self._tmp_output:
+            self._tmp_output.cleanup()
+            self._tmp_output = None
+
+    def _move_tmp_process(self, new_tmp_name: str):
+        """Move temporary process folder"""
         # Create temporary process folder
         old_tmp_process = self._tmp_process
-        self._tmp_process = self._output.joinpath(f"tmp_{self.condensed_name}")
+        self._tmp_process = self._output.joinpath(new_tmp_name)
         os.makedirs(self._tmp_process, exist_ok=True)
 
         # Move all files from old process folder into the new one
@@ -1446,10 +1464,9 @@ class Product:
             with contextlib.suppress(shutil.Error):
                 shutil.move(str(file), self._tmp_process)
 
-        # Remove old output if existing into the new output
-        if self._tmp_output:
-            self._tmp_output.cleanup()
-            self._tmp_output = None
+        # Remove opld temp process
+        if old_tmp_process is not None:
+            files.remove(old_tmp_process)
 
     @property
     def stac(self) -> StacItem:
