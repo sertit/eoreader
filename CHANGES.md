@@ -1,5 +1,9 @@
 # Release History
 
+## 0.21.9 (2024-mm-dd)
+
+- FIX: Better management of temporary directories (name, cleaning, etc)
+
 ## 0.21.8 (2024-01-13)
 
 - ENH: Add a new type (`BandsType`) for list of BandType
