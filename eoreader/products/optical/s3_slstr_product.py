@@ -27,12 +27,11 @@ from enum import unique
 from functools import reduce
 from typing import Union
 
-import geopandas as gpd
 import numpy as np
 import xarray as xr
 from rasterio import features
 from rasterio.enums import Resampling
-from sertit import files, path, rasters, types
+from sertit import AnyPath, rasters, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -60,14 +59,11 @@ from eoreader.bands import (
 )
 from eoreader.exceptions import InvalidTypeError
 from eoreader.keywords import (
-    CLEAN_OPTICAL,
     SLSTR_RAD_ADJUST,
     SLSTR_STRIPE,
     SLSTR_VIEW,
-    TO_REFLECTANCE,
 )
 from eoreader.products import S3DataType, S3Product, S3ProductType
-from eoreader.products.optical.optical_product import DEF_CLEAN_METHOD, CleanMethod
 from eoreader.stac import ASSET_ROLE, BT, CENTER_WV, DESCRIPTION, FWHM, GSD, ID, NAME
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -1154,31 +1150,14 @@ class S3SlstrProduct(S3Product):
         Returns:
             AnyPathType: Clean band path
         """
-        cleaning_method = CleanMethod.from_value(
-            kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
+
+        clean_band_path = super()._get_clean_band_path(
+            band=band,
+            pixel_size=pixel_size,
+            writable=writable,
+            **kwargs,
         )
 
         suffix = self._get_suffix(band, **kwargs)
-        res_str = self._pixel_size_to_str(pixel_size)
 
-        # Window name
-        window = kwargs.get("window")
-
-        win_suffix = ""
-        if window is not None:
-            if path.is_path(window):
-                win_suffix = f"{path.get_filename(window)}"
-            elif isinstance(window, gpd.GeoDataFrame):
-                win_suffix = f"{window.attrs.get('name')}"
-
-            if not win_suffix:
-                win_suffix = f"win{files.hash_file_content(str(window))}"
-
-            win_suffix += "_"
-
-        # Radiometric processing
-        rad_proc = "" if kwargs.get(TO_REFLECTANCE, True) else "_as_is"
-
-        return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{band.name}_{suffix}_{res_str.replace('.', '-')}_{win_suffix}{cleaning_method.value}{rad_proc}.tif",
-        )
+        return AnyPath(str(clean_band_path).replace(band.name, f"{band.name}_{suffix}"))
