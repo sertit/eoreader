@@ -1,6 +1,6 @@
 # Release History
 
-## 0.21.9 (2024-mm-dd)
+## 0.21.9 (2024-01-22)
 
 - FIX: Better management of temporary directories (name, cleaning, etc)
 - FIX: Align `Sentinel-3 SLSTR` clean band path creation on optical's method
