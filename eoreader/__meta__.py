@@ -17,4 +17,4 @@
 **EOReader** library
 """
 
-__version__ = "0.21.9.dev0"
+__version__ = "0.21.9"
