@@ -1,5 +1,9 @@
 # Release History
 
+## 0.21.10 (2024-mm-dd)
+
+- FIX: Fix Sentinel-2 Theia footprints when the nodata area is wider than the data area ([#201](https://github.com/sertit/eoreader/issues/201))
+
 ## 0.21.9 (2024-01-22)
 
 - FIX: Better management of temporary directories (name, cleaning, etc)
