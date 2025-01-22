@@ -230,7 +230,7 @@ class S2TheiaProduct(OpticalProduct):
         mask = utils.read(edg_path, masked=False)
 
         # Vectorize the nodata band
-        footprint = rasters.vectorize(mask, values=0, default_nodata=-1)
+        footprint = rasters.vectorize(mask, values=0, default_nodata=1)
         footprint = geometry.get_wider_exterior(footprint)
         footprint.geometry = footprint.geometry.convex_hull
 
