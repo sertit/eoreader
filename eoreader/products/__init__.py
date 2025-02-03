@@ -212,14 +212,14 @@ __all__ += [
     "SaocomProduct",
     "SaocomProductType",
     "SaocomPolarization",
-    "SaocomSensorMode" "TsxProduct",
+    "SaocomSensorModeTsxProduct",
     "TsxPolarization",
     "TsxSatId",
     "TsxProductType",
     "TsxSensorMode",
     "CapellaProduct",
     "CapellaProductType",
-    "CapellaSensorMode" "",
+    "CapellaSensorMode",
 ]
 from .sar.sar_product import SarProduct, SarProductType, SnapDems
 from .sar.cosmo_product import CosmoProduct, CosmoProductType
