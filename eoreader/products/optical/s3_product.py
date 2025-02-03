@@ -615,9 +615,9 @@ class S3Product(OpticalProduct):
             xr.DataArray: Geocoded DataArray
         """
         rs_methods = [Resampling.nearest, Resampling.bilinear]
-        assert (
-            resampling in rs_methods
-        ), f"resampling method ({resampling}) should be chosen among {rs_methods}"
+        assert resampling in rs_methods, (
+            f"resampling method ({resampling}) should be chosen among {rs_methods}"
+        )
 
         # Open lat/lon arrays
         geo_file = self._replace(self._geo_file, suffix=suffix)

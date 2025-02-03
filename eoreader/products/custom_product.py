@@ -147,9 +147,9 @@ class CustomProduct(Product):
         band_map = {}
         for key, val in band_names.items():
             band_name = to_band(key)[0]
-            assert is_sat_band(
-                band_name
-            ), f"{band_name}: Custom bands should be satellite band"
+            assert is_sat_band(band_name), (
+                f"{band_name}: Custom bands should be satellite band"
+            )
             band_map[band_name] = band(
                 eoreader_name=band_name, name=band_name.value, id=val
             )
@@ -158,9 +158,9 @@ class CustomProduct(Product):
 
         # Test on the product
         with rasterio.open(str(self.get_default_band_path())) as ds:
-            assert (
-                len(band_names) == ds.count
-            ), f"You should specify {ds.count} bands in band_map, not {len(band_names)} !"
+            assert len(band_names) == ds.count, (
+                f"You should specify {ds.count} bands in band_map, not {len(band_names)} !"
+            )
 
     def _post_init(self, **kwargs) -> None:
         """
