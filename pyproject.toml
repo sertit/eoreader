@@ -50,6 +50,7 @@ dependencies = [
     "validators",
     "methodtools",
     "dicttoxml",
+    "tifffile"
 ]
 
 dynamic = ["version"]

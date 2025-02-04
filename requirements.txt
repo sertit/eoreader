@@ -29,6 +29,7 @@ rasterio>=1.3.10  # numpy >= 2
 xarray>=2024.06.0  # numpy >= 2
 rioxarray>=0.10.0
 odc-geo>=0.4.6
+tifffile
 
 # Vector libs
 rtree
