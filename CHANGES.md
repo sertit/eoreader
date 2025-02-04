@@ -3,6 +3,7 @@
 ## 0.21.10 (2024-mm-dd)
 
 - FIX: Fix Sentinel-2 Theia footprints when the nodata area is wider than the data area ([#201](https://github.com/sertit/eoreader/issues/201))
+- FIX: Pop `driver` keyword in stack function to only use it for writing, allowing people to drive stack as COGs ([#181](https://github.com/sertit/eoreader/issues/181), [#202](https://github.com/sertit/eoreader/discussions/202))
 - DEPS: Add `tifffile` as a dependency to allow to write COGs with `dask` ([#181](https://github.com/sertit/eoreader/issues/181), [#202](https://github.com/sertit/eoreader/discussions/202))
 
 ## 0.21.9 (2024-01-22)

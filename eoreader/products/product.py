@@ -1714,6 +1714,9 @@ class Product:
 
         bands = self.to_band(bands)
 
+        # Pop driver kwarg (only used for writing)
+        driver = kwargs.pop("driver", None)
+
         # Create the analysis stack
         band_xds = self.load(bands, pixel_size=pixel_size, size=size, **kwargs)
 
@@ -1730,7 +1733,9 @@ class Product:
         # Write on disk
         if stack_path:
             LOGGER.debug("Saving stack")
-            utils.write(stack, stack_path, dtype=dtype, nodata=nodata, **kwargs)
+            utils.write(
+                stack, stack_path, dtype=dtype, nodata=nodata, driver=driver, **kwargs
+            )
 
         return stack
 
