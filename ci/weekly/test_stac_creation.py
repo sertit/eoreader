@@ -55,7 +55,7 @@ from eoreader.stac._stac_keywords import (
     EO_CC,
     GSD,
     PROJ_BBOX,
-    PROJ_EPSG,
+    PROJ_CODE,
     PROJ_GEOMETRY,
     PROJ_SHAPE,
     PROJ_TRANSFORM,
@@ -170,7 +170,7 @@ def _test_core(
                         item.stac_extensions,
                         [
                             "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
-                            "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
+                            "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
                             "https://stac-extensions.github.io/view/v1.0.0/schema.json",
                         ],
                         "item.stac_extensions",
@@ -180,7 +180,7 @@ def _test_core(
                         item.stac_extensions,
                         [
                             "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
-                            "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
+                            "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
                         ],
                         "item.stac_extensions",
                     )
@@ -210,9 +210,9 @@ def _test_core(
                     f"{DATETIME} (item.properties)",
                 )
                 compare(
-                    item.properties[PROJ_EPSG],
-                    prod.crs().to_epsg(),
-                    f"{PROJ_EPSG} (item.properties)",
+                    item.properties[PROJ_CODE],
+                    f"EPSG:{prod.crs().to_epsg()}",
+                    f"{PROJ_CODE} (item.properties)",
                 )
                 compare(
                     item.properties[PROJ_WKT],

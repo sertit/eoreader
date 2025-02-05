@@ -38,7 +38,7 @@ from eoreader.stac._stac_keywords import (
     GSD,
     PROJ_BBOX,
     PROJ_CENTROID,
-    PROJ_EPSG,
+    PROJ_CODE,
     PROJ_GEOMETRY,
     PROJ_SHAPE,
     PROJ_TRANSFORM,
@@ -263,7 +263,7 @@ class ProjExt:
         """
         repr_list = [
             "Projection STAC Extension attributes:",
-            f"\t{PROJ_EPSG}: {self.epsg}",
+            f"\t{PROJ_CODE}: EPSG:{self.epsg}",
             # f"\t{PROJ_WKT}: {self.wkt2}",  # Too long to display
             f"\t{PROJ_GEOMETRY}: {repr_multiline_str(self.geometry, nof_tabs=3)}",
             f"\t{PROJ_BBOX}: {repr_multiline_str(self.bbox, nof_tabs=3)}",

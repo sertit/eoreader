@@ -50,7 +50,7 @@ __all__ = [
     "INTENSITY",
     "COHERENCE",
     "PROJ_BBOX",
-    "PROJ_EPSG",
+    "PROJ_CODE",
     "PROJ_WKT",
     "PROJ_SHAPE",
     "PROJ_GEOMETRY",
@@ -132,7 +132,7 @@ COHERENCE = "coherence"
 # ---------------- Projection Extension Specification ----------------
 
 # https://github.com/stac-extensions/projection/
-PROJ_EPSG = "proj:epsg"
+PROJ_CODE = "proj:code"
 PROJ_WKT = "proj:wkt2"
 PROJ_GEOMETRY = "proj:geometry"
 PROJ_BBOX = "proj:bbox"

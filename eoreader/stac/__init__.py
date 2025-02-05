@@ -44,7 +44,7 @@ from ._stac_keywords import (
     PLATFORM,
     PROJ_BBOX,
     PROJ_CENTROID,
-    PROJ_EPSG,
+    PROJ_CODE,
     PROJ_GEOMETRY,
     PROJ_SHAPE,
     PROJ_TRANSFORM,

@@ -30,7 +30,7 @@ from sertit.types import AnyPathStrType
 from eoreader import EOREADER_NAME, cache
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.product import Product
-from eoreader.stac import PROJ_EPSG
+from eoreader.stac import PROJ_CODE
 from eoreader.utils import simplify
 
 try:
@@ -123,7 +123,7 @@ class StacProduct(Product):
         Returns:
             crs.CRS: CRS object
         """
-        epsg = self.item.properties.get(PROJ_EPSG)
+        epsg = self.item.properties.get(PROJ_CODE)
 
         if epsg is None:
             def_crs = gpd.GeoDataFrame(
