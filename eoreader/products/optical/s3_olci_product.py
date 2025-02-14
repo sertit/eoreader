@@ -575,8 +575,7 @@ class S3OlciProduct(S3Product):
                 utils.write(sza_nc, sza_path)
 
             with rasterio.open(sza_path) as ds_sza:
-                # Values can be easily interpolated at pixels from Tie Points by linear interpolation using the
-                # image column coordinate.
+                # Values can be easily interpolated at pixels from Tie Points by linear interpolation using the image column coordinate.
                 sza, _ = rasters_rio.read(
                     ds_sza,
                     size=(band_arr.rio.width, band_arr.rio.height),

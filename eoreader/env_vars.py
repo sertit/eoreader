@@ -68,3 +68,37 @@ If set, overrides the default number of bands to be considered used in chunking 
 Only used if :code:`EOREADER_USE_DASK` is set to 1.
 Not used in case of :code:`EOREADER_USE_DASK` set as 'auto'.
 """
+
+BAND_RESAMPLING = "EOREADER_BAND_RESAMPLING"
+"""
+Overrides the default resampling (bilinear) used when loading bands. 
+Note that for discrete files such as masks, the nearest resampling is set in stone.
+
+Available values (use the number and see rasterio's Resampling for more details and limitations):
+- nearest = 0
+- bilinear = 1
+- cubic = 2
+- cubic_spline = 3
+- lanczos = 4
+- average = 5
+- mode = 6
+- gauss = 7
+- max = 8
+- min = 9
+- med = 10
+- q1 = 11
+- q3 = 12
+- sum = 13
+- rms = 14
+
+Examples:
+
+    >>> import os
+    >>>
+    >>> # Nearest
+    >>> os.environ["EOREADER_BAND_RESAMPLING"] = "0"
+    >>> 
+    >>> # Cubic
+    >>> from rasterio.enums import Resampling
+    >>> os.environ["EOREADER_BAND_RESAMPLING"] = str(Resampling.cubic)
+"""

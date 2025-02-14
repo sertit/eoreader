@@ -241,6 +241,9 @@ class Product:
         self.is_stacked = False
         """True if the bands are stacked (like for VHR data)."""
 
+        self.band_resampling = utils.get_band_resampling()
+        """Band resampling (default: bilinear). Overriden by the env variable "EOREADER_BAND_RESAMPLING", if existing and valid."""
+
         self._stac = None
 
         # Manage output

@@ -322,11 +322,13 @@ class VhrProduct(OpticalProduct):
         if src_xda.rio.crs is None:
             src_xda.rio.write_crs(self._get_raw_crs(), inplace=True)
 
+        resampling = kwargs.pop("resampling", self.band_resampling)
+
         try:
             out_xda = src_xda.rio.reproject(
                 dst_crs=self.crs(),
                 resolution=self.pixel_size,
-                resampling=Resampling.bilinear,
+                resampling=resampling,
                 nodata=self._raw_nodata,
                 num_threads=utils.get_max_cores(),
                 rpcs=rpcs,
@@ -354,7 +356,7 @@ class VhrProduct(OpticalProduct):
         # out_xda = src_xda.odc.reproject(
         #     how=self.crs(),
         #     resolution=self.pixel_size,
-        #     resampling=Resampling.bilinear,
+        #     resampling=kwargs.pop("resampling", self.band_resampling),
         #     dst_nodata=self._raw_nodata,
         #     num_threads=utils.get_max_cores(),
         #     rpcs=rpcs,
@@ -382,7 +384,7 @@ class VhrProduct(OpticalProduct):
                 dst_resolution=self.pixel_size,
                 dst_nodata=self._raw_nodata,  # input data should be in integer
                 num_threads=utils.get_max_cores(),
-                resampling=Resampling.bilinear,
+                resampling=resampling,
                 **kwargs,
             )
             # Get dims
@@ -434,6 +436,8 @@ class VhrProduct(OpticalProduct):
         Returns:
             xr.DataArray: Band xarray
         """
+        resampling = kwargs.pop("resampling", self.band_resampling)
+
         with rasterio.open(str(band_path)) as dst:
             dst_crs = dst.crs
 
@@ -463,7 +467,7 @@ class VhrProduct(OpticalProduct):
                     reproj_path,
                     pixel_size=pixel_size,
                     size=size,
-                    resampling=Resampling.bilinear,
+                    resampling=resampling,
                     indexes=[self.bands[band].id],
                     **kwargs,
                 )
@@ -475,7 +479,7 @@ class VhrProduct(OpticalProduct):
                     band_path,
                     pixel_size=pixel_size,
                     size=size,
-                    resampling=Resampling.bilinear,
+                    resampling=resampling,
                     **kwargs,
                 )
 
@@ -486,7 +490,7 @@ class VhrProduct(OpticalProduct):
                     band_path,
                     pixel_size=pixel_size,
                     size=size,
-                    resampling=Resampling.bilinear,
+                    resampling=resampling,
                     indexes=[self.bands[band].id],
                     **kwargs,
                 )

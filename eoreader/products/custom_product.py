@@ -389,7 +389,7 @@ class CustomProduct(Product):
             band_path,
             pixel_size=pixel_size,
             size=size,
-            resampling=Resampling.bilinear,
+            resampling=kwargs.pop("resampling", self.band_resampling),
             indexes=[self.bands[band].id],
             as_type=np.float32,
             **kwargs,

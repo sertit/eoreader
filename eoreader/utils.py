@@ -37,7 +37,7 @@ from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, cache
 from eoreader.bands import is_index, is_sat_band
-from eoreader.env_vars import NOF_BANDS_IN_CHUNKS, TILE_SIZE, USE_DASK
+from eoreader.env_vars import NOF_BANDS_IN_CHUNKS, TILE_SIZE, USE_DASK, BAND_RESAMPLING
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import _prune_keywords
 
@@ -616,3 +616,13 @@ def get_archived_rio_path(
 def is_uint16(band_arr: xr.DataArray):
     """Is this array saved as uint16 on disk?"""
     return band_arr.encoding.get("dtype") in ["uint16", np.uint16]
+
+
+def get_band_resampling():
+    """Overrides the default band resampling (bilinear) with the env variable "EOREADER_BAND_RESAMPLING", if existing and valid"""
+    resampling = Resampling.bilinear
+    with contextlib.suppress(ValueError, TypeError):
+        resampling = Resampling(int(os.getenv(BAND_RESAMPLING)))
+        LOGGER.debug(f"Band resampling overriden to '{resampling.name}'.")
+
+    return resampling

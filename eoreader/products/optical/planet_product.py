@@ -460,6 +460,7 @@ class PlanetProduct(OpticalProduct):
             xr.DataArray: Band xarray
 
         """
+        resampling = kwargs.pop("resampling", self.band_resampling)
         with rasterio.open(str(band_path)) as dst:
             # Manage the case if we open a simple band (EOReader processed bands)
             if dst.count == 1:
@@ -468,7 +469,7 @@ class PlanetProduct(OpticalProduct):
                     band_path,
                     pixel_size=pixel_size,
                     size=size,
-                    resampling=Resampling.bilinear,
+                    resampling=resampling,
                     **kwargs,
                 )
 
@@ -478,7 +479,7 @@ class PlanetProduct(OpticalProduct):
                     band_path,
                     pixel_size=pixel_size,
                     size=size,
-                    resampling=Resampling.bilinear,
+                    resampling=resampling,
                     indexes=[self.bands[band].id],
                     **kwargs,
                 )

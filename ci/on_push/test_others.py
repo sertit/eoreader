@@ -9,6 +9,7 @@ import pytest
 import rasterio
 import tempenv
 import xarray as xr
+from rasterio.enums import Resampling
 from rasterio.windows import Window
 from sertit import AnyPath, path, unistra
 
@@ -399,8 +400,9 @@ def test_reader_methods():
 
 @s3_env
 def test_windowed_reading():
+    """Tets windowed reading"""
     # Get paths
-    prod_path = opt_path().joinpath("LC08_L1TP_200030_20201220_20210310_02_T1.tar")
+    prod_path = opt_path().joinpath("LT05_L1TP_200030_20111110_20200820_02_T1")
     window_path = others_path().joinpath(
         "20201220T104856_L8_200030_OLI_TIRS_window.geojson"
     )
@@ -419,6 +421,39 @@ def test_windowed_reading():
     # The arrays shouldn't be equal (some cleaning is done)
     with pytest.raises(AssertionError):
         np.testing.assert_array_equal(red_raw.data, red_clean.data)
+
+
+@s3_env
+def test_custom_resamplings():
+    """Test custom resamplings"""
+    # Get paths
+    prod_path = opt_path().joinpath("LT05_L1TP_200030_20111110_20200820_02_T1")
+    window_path = others_path().joinpath(
+        "20201220T104856_L8_200030_OLI_TIRS_window.geojson"
+    )
+
+    os.environ["EOREADER_BAND_RESAMPLING"] = str(Resampling.nearest)
+    prod = READER.open(prod_path, remove_tmp=True)
+    red_default = prod.load(RED, window=window_path, pixel_size=600)[RED]
+
+    prod.clean_tmp()
+    red_nearest = prod.load(
+        RED, window=window_path, pixel_size=600, resampling=Resampling.nearest
+    )[RED]
+
+    prod.clean_tmp()
+    red_bilinear = prod.load(
+        RED, window=window_path, pixel_size=600, resampling=Resampling.bilinear
+    )[RED]
+
+    assert red_default.shape == red_bilinear.shape == red_nearest.shape
+
+    # The arrays should be equal
+    np.testing.assert_array_equal(red_default.data, red_nearest.data)
+
+    # The arrays shouldn't be equal (resampling has changed)
+    with pytest.raises(AssertionError):
+        np.testing.assert_array_equal(red_default.data, red_bilinear.data)
 
 
 def test_deprecation():

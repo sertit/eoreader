@@ -145,6 +145,26 @@ Some additional arguments can be passed to this function, please see {meth}`~eor
 [`EOREADER_TILE_SIZE` environment variable](https://eoreader.readthedocs.io/latest/api/eoreader.env_vars.TILE_SIZE.html#eoreader.env_vars.TILE_SIZE). 
 The `TILE_SIZE` default value is 2048.
 
+💡 By default the band will be resampled following a bilinear resampling. 
+To override this behaviour, modify the `EOREADER_BAND_RESAMPLING` environment variable.
+Note that for discrete files such as masks, the nearest resampling is set in stone.
+
+Available values (use the number and see rasterio's Resampling for more details and limitations):
+- `nearest` = `0`
+- `bilinear` = `1`
+- `cubic` = `2`
+- `cubic_spline` = `3`
+- `lanczos` = `4`
+- `average` = `5`
+- `mode` = `6`
+- `gauss` = `7`
+- `max` = `8`
+- `min` = `9`
+- `med` = `10`
+- `q1` = `11`
+- `q3` = `12`
+- `sum` = `13`
+- `rms` = `14`
 
 ## Stack
 

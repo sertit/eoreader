@@ -8,6 +8,7 @@ import tempfile
 
 import pytest
 import xarray as xr
+from rasterio.enums import Resampling
 from sertit import AnyPath, path
 
 from ci.scripts_utils import (
@@ -205,6 +206,7 @@ def _test_core(
                     pixel_size=pixel_size,
                     stack_path=curr_path,
                     clean_optical="clean",
+                    resamplig=Resampling.bilinear,
                     **kwargs,
                 )
 

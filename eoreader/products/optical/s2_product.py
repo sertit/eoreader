@@ -733,7 +733,7 @@ class S2Product(OpticalProduct):
             geocoded_path,
             pixel_size=pixel_size,
             size=size,
-            resampling=Resampling.bilinear,
+            resampling=kwargs.pop("resampling", self.band_resampling),
             **kwargs,
         )
 

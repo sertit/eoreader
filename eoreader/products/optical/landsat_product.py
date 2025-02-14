@@ -1115,6 +1115,8 @@ class LandsatProduct(OpticalProduct):
         Returns:
             xr.DataArray: Band xarray
         """
+        resampling = kwargs.pop("resampling", self.band_resampling)
+
         if self.is_archived:
             filename = path.get_filename(str(band_path).split("!")[-1])
         else:
@@ -1131,13 +1133,13 @@ class LandsatProduct(OpticalProduct):
                 **kwargs,
             )
         else:
-            # Read band (call superclass generic method)
+            # Read band
             band_arr = utils.read(
                 band_path,
                 pixel_size=pixel_size,
                 size=size,
                 as_type=np.float32,
-                resampling=Resampling.bilinear,
+                resampling=resampling,
                 **kwargs,
             )
 
