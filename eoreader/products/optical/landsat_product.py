@@ -303,7 +303,7 @@ class LandsatProduct(OpticalProduct):
         """
         if self.instrument == LandsatInstrument.ETM:
             LOGGER.warning(
-                "Due to the Landsat-7 gaps, this function returns a rounded footprint on the corners. "
+                "Due to the Landsat-7 gaps, this function returns an approximate footprint on the corners. "
                 "Sorry for the inconvenience."
             )
             footprint_dezoom = 50
@@ -334,6 +334,15 @@ class LandsatProduct(OpticalProduct):
 
         # Keep only the convex hull
         footprint.geometry = footprint.geometry.convex_hull
+
+        # In case of Landsat-7, take its minimum rotated rectangle to fall to a footprint with 4 corners
+        if self.instrument == LandsatInstrument.ETM:
+            LOGGER.debug("Simplify footprint.")
+            from sertit import geometry
+
+            footprint = geometry.simplify_footprint(
+                footprint, self.pixel_size * footprint_dezoom, max_nof_vertices=4
+            )
 
         return footprint
 
