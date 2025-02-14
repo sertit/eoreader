@@ -1043,9 +1043,6 @@ class DimapV2Product(VhrProduct):
                 # All null
                 if mask_raster.max() == 0:
                     mask = gpd.GeoDataFrame(geometry=[], crs=crs)
-                # All valid
-                elif mask_raster.min() == 1:
-                    pass
                 else:
                     ortho_name = f"{path.get_filename(mask_name)}_ortho.tif"
                     ortho_path, ortho_exists = self._get_out_path(ortho_name)

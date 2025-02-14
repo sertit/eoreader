@@ -6,6 +6,7 @@
 - FIX: Pop `driver` keyword in stack function to only use it for writing, allowing people to drive stack as COGs ([#181](https://github.com/sertit/eoreader/issues/181), [#202](https://github.com/sertit/eoreader/discussions/202))
 - FIX: Simplify L7 footprint ([#198](https://github.com/sertit/eoreader/issues/198))
 - FIX: Make RPC reprojection work with DEM stored on cloud ([#200](https://github.com/sertit/eoreader/issues/200))
+- FIX: Fix DIMAP V2 mask reprojection when all mask values are equal to 1 (resulting in a failure of computing the bands in case of nodata)
 - FIX: Fix import of `SaocomSensorMode` and `TsxProduct` from `eoreader.product`
 - FIX: Upgrade to v2.0.0 of projection STAC extension
 - DEPS: Add `tifffile` as a dependency to allow to write COGs with `dask` ([#181](https://github.com/sertit/eoreader/issues/181), [#202](https://github.com/sertit/eoreader/discussions/202))
