@@ -1421,7 +1421,20 @@ class S2Product(OpticalProduct):
         size: Union[list, tuple] = None,
         **kwargs,
     ):
-        """"""
+        """
+        Load cloud files as xarrays.
+
+        Read S2 MSK_CLDPRB_20m .JP2 file, only for L2A products.
+        CLOUDS and ALL_CLOUDS corresponds to a threshold at 66% of this mask, when CIRRUS is loaded with the above functions.
+
+        Args:
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
         band_dict = {}
 
         if bands:
@@ -1505,7 +1518,15 @@ class S2Product(OpticalProduct):
         """
         Load cloud files as xarrays.
 
+        L2A data (except for CIRRUS):
+        Read S2 MSK_CLDPRB_20m .JP2 file
+
+        L1C data with baseline > 4.0
+        Read S2 cloud mask .JP2 files (both valid for L2A and L1C products).
+
+        L1C data with baseline < 4.0
         Read S2 cloud mask .GML files (both valid for L2A and L1C products).
+
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
 
         Args:
