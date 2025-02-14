@@ -1047,16 +1047,23 @@ class DimapV2Product(VhrProduct):
                 elif mask_raster.min() == 1:
                     pass
                 else:
-                    # Reproject mask raster
-                    LOGGER.debug(f"\tReprojecting {mask_str}")
-                    dem_path = self._get_dem_path(**kwargs)
+                    ortho_name = f"{path.get_filename(mask_name)}_ortho.tif"
+                    ortho_path, ortho_exists = self._get_out_path(ortho_name)
+                    if not ortho_exists:
+                        # Reproject mask raster
+                        LOGGER.debug(f"\tReprojecting {mask_str}")
+                        dem_path = self._get_dem_path(**kwargs)
 
-                    # TODO: change this when available in rioxarray
-                    # See https://github.com/corteva/rioxarray/issues/837
-                    with rasterio.open(self._get_tile_path()) as ds:
-                        rpcs = ds.rpcs
+                        # TODO: change this when available in rioxarray
+                        # See https://github.com/corteva/rioxarray/issues/837
+                        with rasterio.open(self._get_tile_path()) as ds:
+                            rpcs = ds.rpcs
 
-                    reproj_data = self._reproject(mask_raster, rpcs, dem_path, **kwargs)
+                        reproj_data = self._reproject(
+                            mask_raster, rpcs, dem_path, ortho_path=ortho_path, **kwargs
+                        )
+                    else:
+                        reproj_data = utils.read(ortho_path)
 
                     # Vectorize mask raster
                     LOGGER.debug(f"\tRevectorizing {mask_str}")
