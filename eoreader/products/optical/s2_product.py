@@ -680,45 +680,7 @@ class S2Product(OpticalProduct):
         try:
             if self._processing_baseline < 2.07 and str(band_path).endswith(".jp2"):
                 # Get and write geocode data if not already existing
-                with rasterio.open(str(band_path), "r") as ds:
-                    if not ds.crs:
-                        # Download path just in case
-                        on_disk_path = (
-                            self._get_band_folder(writable=True) / band_path.name
-                        )
-                        if not on_disk_path.is_file():
-                            if path.is_cloud_path(band_path):
-                                geocoded_path = band_path.download_to(
-                                    self._get_band_folder(writable=True)
-                                )
-                            else:
-                                geocoded_path = files.copy(
-                                    band_path, self._get_band_folder(writable=True)
-                                )
-                        else:
-                            geocoded_path = on_disk_path
-
-                        # Get and write geocode data if not already existing
-                        try:
-                            with rasterio.open(str(geocoded_path), "r+") as out_ds:
-                                tf, _, _, crs = self._l2ap_geocode_data(band_path)
-                                out_ds.crs = crs
-                                out_ds.transform = tf
-                        except SystemError:
-                            # Workaround for jp2 file that for a reason or another fails to be updated
-                            # Maybe linked to https://github.com/rasterio/rasterio/issues/2528?
-                            jp2_geocoded_path = geocoded_path
-                            geocoded_path = jp2_geocoded_path.with_suffix(".tif")
-                            with rasterio.open(str(jp2_geocoded_path), "r") as jp2_ds:
-                                tif_meta = jp2_ds.meta
-                                tif_meta["driver"] = "GTiff"
-                                with rasterio.open(
-                                    str(geocoded_path), "w", **tif_meta
-                                ) as out_ds:
-                                    out_ds.write(jp2_ds.read())
-                                    tf, _, _, crs = self._l2ap_geocode_data(band_path)
-                                    out_ds.crs = crs
-                                    out_ds.transform = tf
+                geocoded_path = self._geocode_band(band_path)
 
         except errors.RasterioIOError as ex:
             if (
@@ -1416,7 +1378,7 @@ class S2Product(OpticalProduct):
         band_dict = {}
 
         if bands:
-            cloud_vec = self._open_mask_gt_4_0(
+            cloud_arr = self._open_mask_gt_4_0(
                 S2Jp2Masks.CLOUDS,
                 "00",
                 pixel_size=pixel_size,
@@ -1426,13 +1388,94 @@ class S2Product(OpticalProduct):
 
             for band in bands:
                 if band == ALL_CLOUDS:
-                    cloud = cloud_vec[0, :, :] | cloud_vec[1, :, :]
+                    cloud = cloud_arr[0, :, :] | cloud_arr[1, :, :]
                 elif band == CIRRUS:
-                    cloud = cloud_vec[1, :, :]  # CIRRUS = band 2
+                    cloud = cloud_arr[1, :, :]  # CIRRUS = band 2
                 elif band == CLOUDS:
-                    cloud = cloud_vec[0, :, :]  # OPAQUE = band 1
+                    cloud = cloud_arr[0, :, :]  # OPAQUE = band 1
                 elif band == RAW_CLOUDS:
-                    cloud = cloud_vec
+                    cloud = cloud_arr
+                else:
+                    raise InvalidTypeError(
+                        f"Non existing cloud band for Sentinel-2: {band}"
+                    )
+
+                if len(cloud.shape) == 2:
+                    cloud = cloud.expand_dims(dim="band", axis=0)
+
+                # Rename
+                band_name = to_str(band)[0]
+
+                # Multi bands -> do not change long name
+                if band != RAW_CLOUDS:
+                    cloud.attrs["long_name"] = band_name
+
+                band_dict[band] = cloud.rename(band_name).astype(np.float32)
+
+        return band_dict
+
+    def _open_clouds_l2a(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ):
+        """"""
+        band_dict = {}
+
+        if bands:
+            mask_path = path.get_file_in_dir(
+                self.path,
+                f"{self._get_qi_folder()}/MSK_CLDPRB_20m.jp2",
+                exact_name=True,
+            )
+
+            # Old mask proba files are not geocoded
+            if self._processing_baseline < 2.07:
+                mask_path = self._geocode_band(mask_path)
+
+            # Read mask
+            cloud_arr = utils.read(
+                mask_path,
+                pixel_size=pixel_size,
+                size=size,
+                resampling=Resampling.nearest,
+                as_type=np.uint8,
+                masked=False,
+                **kwargs,
+            )
+
+            # Threshold the probability array -> Cloud > 66%
+            # Do the same classification as Landsat
+            # https://www.usgs.gov/landsat-missions/landsat-collection-1-level-1-quality-assessment-band
+            # 01 = “Low” = Algorithm has low to no confidence that this condition exists (0-33 percent confidence)
+            # 10 = “Medium” = Algorithm has medium confidence that this condition exists (34-66 percent confidence)
+            # 11 = “High” = Algorithm has high confidence that this condition exists (67-100 percent confidence
+            cloud_arr_thresh = xr.where(
+                cloud_arr > 66, self._mask_true, self._mask_false
+            )
+
+            # Set nodata
+            cloud_arr_thresh = self._manage_nodata(
+                cloud_arr_thresh, self.get_default_band()
+            )
+
+            for band in bands:
+                if band in [ALL_CLOUDS, CLOUDS]:
+                    cloud = cloud_arr_thresh
+                elif band == CIRRUS:
+                    # Cannot extract CIRRUS from this mask (keep the old way)
+                    if self._processing_baseline < 4.0:
+                        return self._open_clouds_lt_4_0(
+                            [CIRRUS], pixel_size, size, **kwargs
+                        )[CIRRUS]
+                    else:
+                        return self._open_clouds_gt_4_0(
+                            [CIRRUS], pixel_size, size, **kwargs
+                        )[CIRRUS]
+                elif band == RAW_CLOUDS:
+                    cloud = cloud_arr
                 else:
                     raise InvalidTypeError(
                         f"Non existing cloud band for Sentinel-2: {band}"
@@ -1473,10 +1516,15 @@ class S2Product(OpticalProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        if self._processing_baseline < 4.0:
-            return self._open_clouds_lt_4_0(bands, pixel_size, size, **kwargs)
+        if self.product_type == S2ProductType.L2A:
+            clouds = self._open_clouds_l2a(bands, pixel_size, size, **kwargs)
         else:
-            return self._open_clouds_gt_4_0(bands, pixel_size, size, **kwargs)
+            if self._processing_baseline < 4.0:
+                clouds = self._open_clouds_lt_4_0(bands, pixel_size, size, **kwargs)
+            else:
+                clouds = self._open_clouds_gt_4_0(bands, pixel_size, size, **kwargs)
+
+        return clouds
 
     def _rasterize(
         self,
@@ -1529,27 +1577,77 @@ class S2Product(OpticalProduct):
             )
         return self._create_mask(xds, cond, nodata)
 
-    def _l2ap_geocode_data(self, l2ap_path: AnyPathType) -> (Affine, int, int, CRS):
+    def _geocode_band(self, band_path: AnyPathType) -> AnyPathType:
         """
-        Geocode L2Ap data.
+        Geocode a band, used for old L2Ap products (bands or old cloud probability masks).
 
         Args:
-            l2ap_path (AnyPathType): Band path to be geocoded
+            band_path (AnyPathType): Band path to be geocoded
+
+        Returns:
+            AnyPathType: Geocoded band
+        """
+        with rasterio.open(str(band_path), "r") as ds:
+            if not ds.crs:
+                # Download path just in case
+                on_disk_path = self._get_band_folder(writable=True) / band_path.name
+                if not on_disk_path.is_file():
+                    if path.is_cloud_path(band_path):
+                        geocoded_path = band_path.download_to(
+                            self._get_band_folder(writable=True)
+                        )
+                    else:
+                        geocoded_path = files.copy(
+                            band_path, self._get_band_folder(writable=True)
+                        )
+                else:
+                    geocoded_path = on_disk_path
+
+                # Get and write geocode data if not already existing
+                try:
+                    with rasterio.open(str(geocoded_path), "r+") as out_ds:
+                        tf, _, _, crs = self._get_geocoding_info(band_path)
+                        out_ds.crs = crs
+                        out_ds.transform = tf
+                except SystemError:
+                    # Workaround for jp2 file that for a reason or another fails to be updated
+                    # Maybe linked to https://github.com/rasterio/rasterio/issues/2528?
+                    jp2_geocoded_path = geocoded_path
+                    geocoded_path = jp2_geocoded_path.with_suffix(".tif")
+                    with rasterio.open(str(jp2_geocoded_path), "r") as jp2_ds:
+                        tif_meta = jp2_ds.meta
+                        tif_meta["driver"] = "GTiff"
+                        with rasterio.open(
+                            str(geocoded_path), "w", **tif_meta
+                        ) as out_ds:
+                            out_ds.write(jp2_ds.read())
+                            tf, _, _, crs = self._get_geocoding_info(band_path)
+                            out_ds.crs = crs
+                            out_ds.transform = tf
+
+        return geocoded_path
+
+    def _get_geocoding_info(self, band_path: AnyPathType) -> (Affine, int, int, CRS):
+        """
+        Get geocoding information, used for old L2Ap products (bands or old cloud probability masks).
+
+        Args:
+            band_path (AnyPathType): Band path to be geocoded
 
         Returns:
             (Affine, int, int, CRS): Transform, width, height and CRS of the band
         """
         try:
-            if isinstance(l2ap_path, str):
-                l2ap_path = AnyPath(l2ap_path)
+            if isinstance(band_path, str):
+                band_path = AnyPath(band_path)
 
             # Read metadata
             root, ns = self.read_mtd()
 
             # Determine wanted resolution
-            if "10m" in l2ap_path.name:
+            if "10m" in band_path.name:
                 res = 10
-            elif "20m" in l2ap_path.name:
+            elif "20m" in band_path.name:
                 res = 20
             else:
                 res = 60
@@ -1587,7 +1685,7 @@ class S2Product(OpticalProduct):
         """
         if self._processing_baseline < 2.07:
             default_path = self.get_default_band_path(**kwargs)
-            return self._l2ap_geocode_data(default_path)
+            return self._get_geocoding_info(default_path)
         else:
             return super().default_transform()
 
