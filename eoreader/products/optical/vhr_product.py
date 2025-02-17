@@ -337,7 +337,9 @@ class VhrProduct(OpticalProduct):
             )
             out_xda.rename(f"Reprojected stack of {self.name}")
 
-            if kwargs.get("band") == PAN:
+            if "long_name" in kwargs:
+                out_xda.attrs["long_name"] = kwargs["long_name"]
+            elif kwargs.get("band") == PAN:
                 out_xda.attrs["long_name"] = "PAN"
             else:
                 out_xda.attrs["long_name"] = self.get_bands_names()

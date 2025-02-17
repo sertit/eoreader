@@ -1057,7 +1057,12 @@ class DimapV2Product(VhrProduct):
                             rpcs = ds.rpcs
 
                         reproj_data = self._reproject(
-                            mask_raster, rpcs, dem_path, ortho_path=ortho_path, **kwargs
+                            mask_raster,
+                            rpcs,
+                            dem_path,
+                            ortho_path=ortho_path,
+                            long_name=mask_str,
+                            **kwargs,
                         )
                     else:
                         reproj_data = utils.read(ortho_path)
