@@ -1608,6 +1608,7 @@ class S2Product(OpticalProduct):
         Returns:
             AnyPathType: Geocoded band
         """
+        geocoded_path = band_path
         with rasterio.open(str(band_path), "r") as ds:
             if not ds.crs:
                 # Download path just in case
