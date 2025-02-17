@@ -1480,11 +1480,11 @@ class S2Product(OpticalProduct):
                 elif band == CIRRUS:
                     # Cannot extract CIRRUS from this mask (keep the old way)
                     if self._processing_baseline < 4.0:
-                        return self._open_clouds_lt_4_0(
+                        cloud = self._open_clouds_lt_4_0(
                             [CIRRUS], pixel_size, size, **kwargs
                         )[CIRRUS]
                     else:
-                        return self._open_clouds_gt_4_0(
+                        cloud = self._open_clouds_gt_4_0(
                             [CIRRUS], pixel_size, size, **kwargs
                         )[CIRRUS]
                 elif band == RAW_CLOUDS:
