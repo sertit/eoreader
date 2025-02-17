@@ -1438,11 +1438,30 @@ class S2Product(OpticalProduct):
         band_dict = {}
 
         if bands:
-            mask_path = path.get_file_in_dir(
-                self.path,
-                f"{self._get_qi_folder()}/MSK_CLDPRB_20m.jp2",
-                exact_name=True,
-            )
+            try:
+                if self.is_archived:
+                    mask_path = self._get_archived_rio_path(
+                        f"{self._get_qi_folder()}.*MSK_CLDPRB_20m.jp2"
+                    )
+                else:
+                    mask_path = path.get_file_in_dir(
+                        self.path,
+                        f"{self._get_qi_folder()}/MSK_CLDPRB_20m.jp2",
+                        exact_name=True,
+                    )
+            except FileNotFoundError:
+                # For some old processing baselines
+                # (2.04 ? But not for all products... i.e. S2A_MSIL2A_20170406T105021_N0204_R051_T30SWD_20170406T105317.SAFE)
+                if self.is_archived:
+                    mask_path = self._get_archived_rio_path(
+                        f"{self._get_qi_folder()}.*_CLD_20m.jp2"
+                    )
+                else:
+                    mask_path = path.get_file_in_dir(
+                        self.path,
+                        f"{self._get_qi_folder()}/*_CLD_20m.jp2",
+                        exact_name=True,
+                    )
 
             # Old mask proba files are not geocoded
             if self._processing_baseline < 2.07:
