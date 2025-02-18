@@ -1,6 +1,6 @@
 # Release History
 
-## 0.21.10 (2024-mm-dd)
+## 0.21.10 (2024-02-18)
 
 - ENH: Allow the user to change the default resampling per product and free the `resolution` keyword in `load` and `stack` ([#103](https://github.com/sertit/eoreader/discussions/103))
 - ENH: For Sentinel-2 L2A products, use the `MSK_CLDPRB_20m` for computing clouds, as they are more precise than legacy L1C `MSK_CLOUDS_B00` masks. ([#174](https://github.com/sertit/eoreader/issues/174))
