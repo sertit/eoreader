@@ -352,8 +352,10 @@ def check_stack(
         except AssertionError as ex:
             # Allow DEM-related bands to fails with the current changes in sertit-utils
             # TODO: recompute the stacks when these DEM-related function will be stabilized in sertit-utils (with 'xdem')
-            if "SLOPE" in str(ex) or "HILLSHADE" in str(ex):
-                pass
+            if "failed" in str(ex).replace("SLOPE failed", "").replace(
+                "HILLSHADE failed", ""
+            ):
+                raise ex
 
     return stack
 
@@ -435,7 +437,7 @@ def core(prod_path, possible_bands, **kwargs):
     with tempfile.TemporaryDirectory() as tmp_dir:
         if WRITE_ON_DISK:
             tmp_dir = os.path.join(
-                "/mnt", "ds2_db3", "CI", "eoreader", "DATA", "OUTPUT"
+                "/mnt", "ds2_db3", "CI", "eoreader", "OUTPUT", prod.condensed_name
             )
         prod.output = tmp_dir
 

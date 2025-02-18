@@ -483,12 +483,6 @@ def test_deprecation():
     with pytest.raises(TypeError):
         prod_green1.load(SWIR_1, resolution=20.0, window=window)
 
-    with pytest.raises(ImportError):
-        pass
-
-    with pytest.raises(ImportError):
-        pass
-
 
 def test_constellations():
     real_const = Constellation.get_real_constellations()
