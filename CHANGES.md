@@ -21,6 +21,7 @@
     - `WV_SI`: `NDSIWV`
     - `PANI`: `BITM`
 - **ENH: Adding the support of WorldView Legion constellation** ([#183](https://github.com/sertit/eoreader/issues/183))
+- DEPS: Add `ephem` for computing earth-sun distance (according to Maxar's method from docs)
 
 
 ## 0.21.10 (2025-02-18)
