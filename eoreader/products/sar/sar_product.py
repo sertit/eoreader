@@ -1028,7 +1028,7 @@ class SarProduct(Product):
 
     def _fallback_wgs84_extent(self, extent_file_name: str = None) -> gpd.GeoDataFrame:
         """
-        Fallback for wgs84 extent (slower than to read a file, but should work in almsot any case)
+        Fallback for wgs84 extent (slower than to read a file, but should work in almost any case)
 
         Args:
             extent_file_name (str): Extent file name, if existing

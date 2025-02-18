@@ -602,6 +602,6 @@ def get_band_resampling():
     resampling = Resampling.bilinear
     with contextlib.suppress(ValueError, TypeError):
         resampling = Resampling(int(os.getenv(BAND_RESAMPLING)))
-        LOGGER.debug(f"Band resampling overriden to '{resampling.name}'.")
+        LOGGER.debug(f"Band resampling overridden to '{resampling.name}'.")
 
     return resampling

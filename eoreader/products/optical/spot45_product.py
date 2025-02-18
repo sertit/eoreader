@@ -140,7 +140,7 @@ class Spot5BandCombination(ListEnum):
 
     J = "J"
     """
-    "J" for Spot 5 multipectral product (4 bands, with SWIR) (10 m)
+    "J" for Spot 5 multispectral product (4 bands, with SWIR) (10 m)
     """
 
     HMX = "HM+X"
@@ -150,7 +150,7 @@ class Spot5BandCombination(ListEnum):
 
     TX = "T+X"
     """
-    "T+X" for Spot 5 supermode and multipectral merge product (3 bands, without SWIR) (2.5 m)
+    "T+X" for Spot 5 supermode and multispectral merge product (3 bands, without SWIR) (2.5 m)
     """
 
 

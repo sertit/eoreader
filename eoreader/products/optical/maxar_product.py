@@ -85,7 +85,7 @@ class LegionPlatform(ListEnum):
     """
     Worldview Legion platform.
 
-    Ressources:
+    Resources:
 
     - https://resources.maxar.com/data-sheets/worldview-legion-2
     - https://resources.maxar.com/white-papers/radiometric-use-of-worldview-legion-1-and-worldview-legion-2-imagery
@@ -584,7 +584,7 @@ class MaxarProduct(VhrProduct):
                 f"This product (version {self._version}) is bugged."
                 "\nIt's .TIL file is maybe broken and the product may bundle several sub-products. "
                 "The best thing to do is to manually create a mosaic from all embedded .TIF files and pass it as a CustomStack to EOReader. "
-                "\nIf you want to have a stack in reflectance, don't forget to apply the corrections on each subproducts separatly before creating the mosaic."
+                "\nIf you want to have a stack in reflectance, don't forget to apply the corrections on each subproducts separately before creating the mosaic."
                 "\nIf you want a workaround to be implemented, please reopen the issue https://github.com/sertit/eoreader/issues/106 and pledad you usecase :)"
             )
 

@@ -240,7 +240,7 @@ class Product:
         """True if the bands are stacked (like for VHR data)."""
 
         self.band_resampling = utils.get_band_resampling()
-        """Band resampling (default: bilinear). Overriden by the env variable "EOREADER_BAND_RESAMPLING", if existing and valid."""
+        """Band resampling (default: bilinear). Overridden by the env variable "EOREADER_BAND_RESAMPLING", if existing and valid."""
 
         self._stac = None
 
@@ -2094,7 +2094,7 @@ class Product:
     def _get_archived_file_list(self, archive_path=None):
         """
         Overload of utils.read_archived_file to use the product's path as archive.
-        Return a tuple to make it hashable and therfore digestable by lru_cache.
+        Return a tuple to make it hashable and therefore digestable by lru_cache.
         See https://stackoverflow.com/questions/49210801/python3-pass-lists-to-function-with-functools-lru-cache
         '"""
 

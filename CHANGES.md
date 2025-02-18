@@ -51,8 +51,8 @@
 - ENH: Add a new environment variable `EOREADER_NOF_BANDS_IN_CHUNKS` to control the number of the bands in chunks when using `dask`. ([#178](https://github.com/sertit/eoreader/discussions/178))
 - ENH: Allow `'auto'` in `EOREADER_TILE_SIZE`, to set `chunks="auto"` when reading data. ([#178](https://github.com/sertit/eoreader/discussions/178))
 - FIX: Fix stack `save_as_int` to use updated int values - by @TabeaW
-- FIX: Fixed PAZ Product Regex to properly indentify PAZ ST products as `PAZProduct` - by @guillemc23
-- FIX: Fixed PNEO Product Regex to properly indentify PNEO products as `PneoProduct` - by @guillemc23
+- FIX: Fixed PAZ Product Regex to properly identify PAZ ST products as `PAZProduct` - by @guillemc23
+- FIX: Fixed PNEO Product Regex to properly identify PNEO products as `PneoProduct` - by @guillemc23
 - FIX: Fixed preprocessing graph paths in order to support relative paths in more complex environments or contexts - by @guillemc23
 - FIX: Remove useless `_norm_diff` function `indices.py`
 - FIX: Add a fallback in case `map-overlay.kml` is not readable for `Sentinel-1` data ([#180](https://github.com/sertit/eoreader/discussions/180),[#182](https://github.com/sertit/eoreader/issues/182))
