@@ -41,7 +41,7 @@
 
 ## 0.21.9 (2025-01-22)
 
-- FIX: Better management of temporary directories (name, cleaning, etc)
+- FIX: Better management of temporary directories (name, cleaning, etc.)
 - FIX: Align `Sentinel-3 SLSTR` clean band path creation on optical's method
 - DOC: Update documentation (intersphinx mapping, ...)
 
@@ -115,7 +115,7 @@
 
 ## 0.21.2 (2024-07-30)
 
-- ENH: `to_str` and `to_band`: add a `as_list` argument defaulting to `True`. When set as False, return a str from `to_str` and a band from `to_band` ([#138](https://github.com/sertit/eoreader/issues/138)). Thanks @jsetty!
+- ENH: `to_str` and `to_band`: add a `as_list` argument defaulting to `True`. When set as False, return a str from `to_str` and a band from `to_band` ([#138](https://github.com/sertit/eoreader/issues/138)). Thanks, @jsetty!
 - FIX: `Sentinel-2` product with `StopIteration` error ([#142](https://github.com/sertit/eoreader/issues/142))
 - FIX: Fix error in looking for bands in `Sentinel-2 L1C` archived products ([#168](https://github.com/sertit/eoreader/issues/168))
 - FIX: Fix issue with geocoding with unzipped `Sentinel-3 OLCI` product ([#137](https://github.com/sertit/eoreader/issues/137))
@@ -397,7 +397,7 @@
 - **ENH: Adding the support of RapidEye constellation**
 - **ENH: Handling Planet data with multiple subdatasets** ([#45](https://github.com/sertit/eoreader/issues/45))
 - **ENH: Adding the support of Landsat Level-2 products** ([#49](https://github.com/sertit/eoreader/issues/49))
-- **ENH: Adding the support of Pleides Neo SEN and PRJ products** *(needs GDAL 3.5+ or rasterio 1.3.0+)*
+- **ENH: Adding the support of Pleiades-Neo SEN and PRJ products** *(needs GDAL 3.5+ or rasterio 1.3.0+)*
 - **ENH: Adding the function `bands.is_thermal_band`**
 - **ENH: Adding the ability for optical custom stacks to load indices**
 - **ENH: Adding [BAIM (MODIS Burned Area Index)](https://www.researchgate.net/publication/248428333_Burnt_Area_Index_BAIM_for_burned_area_discrimination_at_regional_scale_using_MODIS_datafire)

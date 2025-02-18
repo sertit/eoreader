@@ -401,7 +401,7 @@ class CapellaProduct(SarProduct):
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
-        Read GeoJSON metadata and outputs its as a metadata XML root and its namespaces as an empty dict
+        Read GeoJSON metadata and outputs it as a metadata XML root and its namespaces as an empty dict
 
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict

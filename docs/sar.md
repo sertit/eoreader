@@ -6,18 +6,18 @@ You will find a SAR tutorial [here](https://eoreader.readthedocs.io/latest/noteb
 
 ![sar_sensors](_static/sar_sensors.png)
 
-| Constellations                      | Class                                                         | Use archive                               |
-|-------------------------------------|---------------------------------------------------------------|-------------------------------------------|
-| `Capella`                           | {meth}`~eoreader.products.sar.capella_product.CapellaProduct` | ❌                                         |
-| `COSMO-Skymed 1st Generation`       | {meth}`~eoreader.products.sar.csk_product.CskProduct`         | ❌                                         |
-| `COSMO-Skymed 2nd Generation`       | {meth}`~eoreader.products.sar.csg_product.CsgProduct`         | ❌                                         |
-| `ICEYE`                             | {meth}`~eoreader.products.sar.iceye_product.IceyeProduct`     | ❌                                         |
-| `RADARSAT Constellation Mission`    | {meth}`~eoreader.products.sar.rcm_product.RcmProduct`         | ❌                                         |
+| Constellations                      | Class                                                         | Use archive                                 |
+|-------------------------------------|---------------------------------------------------------------|---------------------------------------------|
+| `Capella`                           | {meth}`~eoreader.products.sar.capella_product.CapellaProduct` | ❌                                           |
+| `COSMO-Skymed 1st Generation`       | {meth}`~eoreader.products.sar.csk_product.CskProduct`         | ❌                                           |
+| `COSMO-Skymed 2nd Generation`       | {meth}`~eoreader.products.sar.csg_product.CsgProduct`         | ❌                                           |
+| `ICEYE`                             | {meth}`~eoreader.products.sar.iceye_product.IceyeProduct`     | ❌                                           |
+| `RADARSAT Constellation Mission`    | {meth}`~eoreader.products.sar.rcm_product.RcmProduct`         | ❌                                           |
 | `RADARSAT-2`                        | {meth}`~eoreader.products.sar.rs2_product.Rs2Product`         | ✅ for ground range data, ❌ for complex data |
-| `Sentinel-1`                        | {meth}`~eoreader.products.sar.s1_product.S1Product`           | ✅                                         |
-| `Sentinel-1 RTC`                    | {meth}`~eoreader.products.sar.s1_product.S1RtcProduct`        | ✅ for ASF                                 |
-| `SAOCOM-1`                          | {meth}`~eoreader.products.sar.saocom_product.SaocomProduct`   | ❌                                         |
-| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.sar.tsx_product.TsxProduct`         | ❌                                         |
+| `Sentinel-1`                        | {meth}`~eoreader.products.sar.s1_product.S1Product`           | ✅                                           |
+| `Sentinel-1 RTC`                    | {meth}`~eoreader.products.sar.s1_product.S1RtcProduct`        | ✅ for ASF                                   |
+| `SAOCOM-1`                          | {meth}`~eoreader.products.sar.saocom_product.SaocomProduct`   | ❌                                           |
+| `TerraSAR-X`, `TanDEM-X`, `PAZ SAR` | {meth}`~eoreader.products.sar.tsx_product.TsxProduct`         | ❌                                           |
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use, 

@@ -277,8 +277,8 @@ prod.footprint()
 
 Please note the difference between `footprint` and `extent`:
 
-|Without nodata | With nodata|
-|--- | ---|
+| Without nodata                                             | With nodata                                             |
+|------------------------------------------------------------|---------------------------------------------------------|
 | ![without_nodata](https://zupimages.net/up/21/14/69i6.gif) | ![with_nodata](https://zupimages.net/up/21/14/vg6w.gif) |
 
 ### Solar angles

@@ -333,7 +333,7 @@ prod.load("WDRVI", alpha=1)
 ### DIMAP V1: SPOT-4/5
 - [Product Format (a bit too old)](http://www.engesat.com.br/wp-content/uploads/S5-ST-73-1-CN_2_9-Spec-Format-Produits-SPOT.pdf)
 - [Preprocessing levels](https://earth.esa.int/eogateway/documents/20142/37627/SPOTScene-SPOTView-preprocessing-levels.pdf)
-- [Reolution and spectral modes](https://www.intelligence-airbusds.com/en/8799-resolution-and-spectral-bands)
+- [Resolution and spectral modes](https://www.intelligence-airbusds.com/en/8799-resolution-and-spectral-bands)
 - [Convert to reflectance](https://spot.cnes.fr/sites/default/files/migration/smsc/spot/calibration_synthesis_SPOT1245_ed1.pdf)
 
 ### DIMAP V2: Pleiades, SPOT-6/7

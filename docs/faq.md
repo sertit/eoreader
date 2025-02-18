@@ -15,7 +15,7 @@ Sentinel-2 products have greatly evolved since 2016:
   - since some baseline you are not interested in, you need to remove an offset to compute in the reflectance, which wasn't the case before
   - ...
 
-EOreader manages these changes for you!
+EOReader manages these changes for you!
 
 #### Workarounds for bugs in third-party software
 
