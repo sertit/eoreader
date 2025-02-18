@@ -116,7 +116,6 @@ __all__ += [
     "RV_DSPK",
 ]
 
-from eoreader.bands.band_names import GREEN1  # To be deprecated
 from eoreader.bands.band_names import (
     BLUE,
     CA,
@@ -161,7 +160,6 @@ __all__ += [
     "BLUE",
     "GREEN",
     "GREEN_1",
-    "GREEN1",  # To be deprecated
     "YELLOW",
     "RED",
     "VRE_1",
@@ -481,15 +479,7 @@ def to_band(
         if band_or_idx:
             return band_or_idx
         else:
-            if tc == "GREEN1":
-                from sertit import logs
-
-                logs.deprecation_warning(
-                    "`GREEN1` is deprecated in favor of `GREEN_1`. `GREEN1` will be removed in a future release."
-                )
-                return GREEN1
-            else:
-                raise _ite(f"Unknown band or index: {tc}")
+            raise _ite(f"Unknown band or index: {tc}")
 
     if as_list:
         band_list = []

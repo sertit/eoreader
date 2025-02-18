@@ -28,7 +28,7 @@ from lxml import etree
 from lxml.builder import E
 from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import logs, misc, path, rasters, types
+from sertit import misc, path, rasters, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -62,7 +62,6 @@ class CustomFields(ListEnum):
     BAND_MAP = "band_map"
     CONSTELLATION = "constellation"
     INSTRUMENT = "instrument"
-    RES = "resolution"
     PIX_SIZE = "pixel_size"
     PROD_TYPE = "product_type"
     SUN_AZ = "sun_azimuth"
@@ -218,11 +217,10 @@ class CustomProduct(Product):
         Set product default pixel size (in meters)
         """
         pixel_size = self.kwargs.get(CustomFields.PIX_SIZE.value)
-        if pixel_size is None and CustomFields.RES.value in self.kwargs:
-            logs.deprecation_warning(
-                "`resolution` is deprecated in favor of `pixel_size` to avoid confusion."
+        if pixel_size is None and "resolution" in self.kwargs:
+            raise TypeError(
+                "'resolution' has been deprecated in favor of 'pixel_size' to avoid confusion. Removed since 0.22.0."
             )
-            pixel_size = self.kwargs.pop(CustomFields.RES.value)
 
         if pixel_size is None:
             with rasterio.open(str(self.get_default_band_path())) as ds:

@@ -26,13 +26,12 @@ from ci.scripts_utils import (
 )
 from eoreader import utils
 from eoreader.bands import (
-    AFRI_1_6,
     BLUE,
     CA,
     CLOUDS,
     DEM,
     GREEN,
-    GREEN1,
+    GREEN_1,
     HH,
     HILLSHADE,
     HV,
@@ -465,26 +464,30 @@ def test_deprecation():
         custom=True,
         sensor_type=SensorType.OPTICAL,
         pixel_size=2.0,
-        band_map={GREEN1: 1, RED: 2, BLUE: 3, NIR: 4, SWIR_1: 5},
+        band_map={GREEN_1: 1, RED: 2, BLUE: 3, NIR: 4, SWIR_1: 5},
         remove_tmp=True,
     )
     window = Window(200, 500, 200, 500)
 
-    # Check deprecation for GREEN1
-    with pytest.deprecated_call():
+    # Check end of deprecation for GREEN1
+    with pytest.raises(InvalidTypeError):
         to_band("GREEN1")
-    with pytest.deprecated_call():
+    with pytest.raises(InvalidTypeError):
         prod_green1.load("GREEN1", window=window)
-    with pytest.deprecated_call():
-        prod_green1.load(GREEN1, window=window)
 
-    # Check deprecation for deprecated spectral indices
-    with pytest.deprecated_call():
-        prod_green1.load(AFRI_1_6, window=window)
+    # Check end of deprecation for deprecated spectral indices
+    with pytest.raises(InvalidTypeError):
+        prod_green1.load("AFRI_1_6", window=window)
 
-    # Check deprecation for resolution keyword
-    with pytest.deprecated_call():
-        prod_green1.load(SWIR_1, resolution=2.0, window=window)
+    # Check end of deprecation for resolution keyword
+    with pytest.raises(TypeError):
+        prod_green1.load(SWIR_1, resolution=20.0, window=window)
+
+    with pytest.raises(ImportError):
+        pass
+
+    with pytest.raises(ImportError):
+        pass
 
 
 def test_constellations():

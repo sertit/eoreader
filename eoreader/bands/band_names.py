@@ -284,12 +284,6 @@ class SpectralBandNames(BandNames):
     GREEN I
     """
 
-    # old alias, to be deprecated
-    GREEN1 = "GREEN_I"
-    """
-    GREEN I
-    """
-
     @classmethod
     def stac_to_eoreader(cls, common_name: str, name: str) -> "SpectralBandNames":
         """
@@ -369,7 +363,6 @@ Oa21 = SpectralBandNames.Oa21
 
 # -- PlanetScope PSB.SD instrument additional band --
 GREEN_1 = SpectralBandNames.GREEN_1
-GREEN1 = SpectralBandNames.GREEN_1  # To be deprecated
 
 EOREADER_STAC_MAP = {
     CA: StacCommonNames.COASTAL,

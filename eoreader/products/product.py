@@ -47,7 +47,6 @@ from rasterio.vrt import WarpedVRT
 from sertit import (
     AnyPath,
     files,
-    logs,
     misc,
     path,
     rasters,
@@ -62,7 +61,6 @@ from sertit.types import AnyPathStrType, AnyPathType
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
     DEM,
-    GREEN1,
     HILLSHADE,
     NEEDED_BANDS,
     SLOPE,
@@ -915,16 +913,8 @@ class Product:
             xr.Dataset: Dataset with a variable per band
         """
         if not pixel_size and "resolution" in kwargs:
-            logs.deprecation_warning(
-                "`resolution` is deprecated in favor of `pixel_size` to avoid confusion. `resolution` will be removed in a future release."
-            )
-            pixel_size = kwargs.pop("resolution")
-
-        if (types.is_iterable(bands) and ("GREEN1" in bands or GREEN1 in bands)) or (
-            bands == "GREEN1" or bands == GREEN1
-        ):
-            logs.deprecation_warning(
-                "`GREEN1` is deprecated in favor of `GREEN_1`. `GREEN1` will be removed in a future release."
+            raise TypeError(
+                "'resolution' has been deprecated in favor of 'pixel_size' to avoid confusion. Removed since 0.22.0."
             )
 
         # Check if all bands are valid
@@ -975,11 +965,6 @@ class Product:
         for band in bands:
             if is_index(band):
                 if self._has_index(band):
-                    if band in indices.DEPRECATED_SPECTRAL_INDICES:
-                        logs.deprecation_warning(
-                            "Aliases of Awesome Spectral Indices won't be available in future versions of EOReader. "
-                            f"Please use {indices.DEPRECATED_SPECTRAL_INDICES[band]} instead of {band}"
-                        )
                     index_list.append(band)
                 else:
                     raise InvalidIndexError(

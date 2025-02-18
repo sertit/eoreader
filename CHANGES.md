@@ -1,11 +1,32 @@
 # Release History
 
-## 0.21.10 (2024-02-18)
+## 0.22.0 (2025-mm-dd)
+
+- **BREAKING CHANGES: Remove deprecated features** ([#94](https://github.com/sertit/eoreader/issues/94), [#95](https://github.com/sertit/eoreader/issues/95), [#96](https://github.com/sertit/eoreader/issues/96))
+  - `resolution` keyword if favor of `pixel_size`
+  - `GREEN1` band in favor of `GREEN_1`
+  - `utils.stack_dict` function in favor of `utils.stack` (remove `band` argument)
+  - deprecated spectral indices in favor of [awesome spectral index](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/) ones).
+    - `AFRI_1_6`: `AFRI1600`
+    - `AFRI_2_1`: `AFRI2100`
+    - `BSI`: `BI`
+    - `NDGRI`: `NGRDI`
+    - `NDRE1`: `NDREI`
+    - `RGI`: `RGRI`
+    - `WV_BI`: `NHFD`
+    - `WI`: `WI2015`
+    - `RDI`: `DSI`
+    - `DSWI`: `DSWI5`
+    - `GRI`: `DSWI4`
+    - `WV_SI`: `NDSIWV`
+    - `PANI`: `BITM`
+
+## 0.21.10 (2025-02-18)
 
 - ENH: Allow the user to change the default resampling per product and free the `resolution` keyword in `load` and `stack` ([#103](https://github.com/sertit/eoreader/discussions/103))
 - ENH: For Sentinel-2 L2A products, use the `MSK_CLDPRB_20m` for computing clouds, as they are more precise than legacy L1C `MSK_CLOUDS_B00` masks. ([#174](https://github.com/sertit/eoreader/issues/174))
 - FIX: Fix Sentinel-2 Theia footprints when the nodata area is wider than the data area ([#201](https://github.com/sertit/eoreader/issues/201))
-- FIX: Pop `driver` keyword in stack function to only use it for writing, allowing people to drive stack as COGs ([#181](https://github.com/sertit/eoreader/issues/181), [#202](https://github.com/sertit/eoreader/discussions/202))
+- FIX: Pop `driver` keyword in stack function to only use it for writing, allowing people to save stack as COGs ([#181](https://github.com/sertit/eoreader/issues/181), [#202](https://github.com/sertit/eoreader/discussions/202))
 - FIX: Simplify L7 footprint ([#198](https://github.com/sertit/eoreader/issues/198))
 - FIX: Make RPC reprojection work with DEM stored on cloud ([#200](https://github.com/sertit/eoreader/issues/200))
 - FIX: Fix DIMAP V2 mask reprojection when all mask values are equal to 1 (resulting in a failure of computing the bands in case of nodata)
@@ -13,13 +34,13 @@
 - FIX: Upgrade to v2.0.0 of projection STAC extension
 - DEPS: Add `tifffile` as a dependency to allow to write COGs with `dask` ([#181](https://github.com/sertit/eoreader/issues/181), [#202](https://github.com/sertit/eoreader/discussions/202))
 
-## 0.21.9 (2024-01-22)
+## 0.21.9 (2025-01-22)
 
 - FIX: Better management of temporary directories (name, cleaning, etc)
 - FIX: Align `Sentinel-3 SLSTR` clean band path creation on optical's method
 - DOC: Update documentation (intersphinx mapping, ...)
 
-## 0.21.8 (2024-01-13)
+## 0.21.8 (2025-01-13)
 
 - ENH: Add a new type (`BandsType`) for list of BandType
 - ENH: Add a new environment variable `EOREADER_NOF_BANDS_IN_CHUNKS` to control the number of the bands in chunks when using `dask`. ([#178](https://github.com/sertit/eoreader/discussions/178))
