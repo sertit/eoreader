@@ -79,8 +79,80 @@ _MAXAR_BAND_MTD = {
     PAN: "P",
 }
 
+
+@unique
+class LegionPlatform(ListEnum):
+    """
+    Worldview Legion platform.
+
+    Ressources:
+
+    - https://resources.maxar.com/data-sheets/worldview-legion-2
+    - https://resources.maxar.com/white-papers/radiometric-use-of-worldview-legion-1-and-worldview-legion-2-imagery
+    """
+
+    LG01 = "LG01"
+    """
+    Worldview Legion platform number 1
+    """
+
+    LG02 = "LG02"
+    """
+    Worldview Legion platform number 2
+    """
+
+    LG03 = "LG03"
+    """
+    Worldview Legion platform number 3
+    """
+
+    LG04 = "LG04"
+    """
+    Worldview Legion platform number 4
+    """
+
+    LG05 = "LG05"
+    """
+    Worldview Legion platform number 5
+    """
+
+    LG06 = "LG06"
+    """
+    Worldview Legion platform number 6
+    """
+
+    LG07 = "LG07"
+    """
+    Worldview Legion platform number 7
+    """
+
+    LG08 = "LG08"
+    """
+    Worldview Legion platform number 8
+    """
+
+
 GainOffset = namedtuple("GainOffset", ["gain", "offset"], defaults=[1.0, 0.0])
+LegionPlatformTuple = namedtuple(
+    "LegionPlatform",
+    ["LG01", "LG02", "LG03", "LG04", "LG05", "LG06", "LG07", "LG08"],
+    defaults=[np.nan, np.nan, np.nan, np.nan, np.nan, np.nan],
+)
 _MAXAR_GAIN_OFFSET = {
+    Constellation.WVLG: {
+        PAN: GainOffset(gain=1.0, offset=0.0),
+        CA: GainOffset(gain=1.0, offset=0.0),
+        BLUE: GainOffset(gain=1.0, offset=0.0),
+        GREEN: GainOffset(gain=1.0, offset=0.0),
+        YELLOW: GainOffset(gain=1.0, offset=0.0),
+        RED: GainOffset(gain=1.0, offset=0.0),
+        VRE_1: GainOffset(gain=1.0, offset=0.0),
+        VRE_2: GainOffset(gain=1.0, offset=0.0),
+        VRE_3: GainOffset(gain=1.0, offset=0.0),
+        NIR: GainOffset(gain=1.0, offset=0.0),
+        NARROW_NIR: GainOffset(gain=1.0, offset=0.0),
+        WV: GainOffset(gain=1.0, offset=0.0),
+    },  # https://resources.maxar.com/white-papers/radiometric-use-of-worldview-legion-1-and-worldview-legion-2-imagery
     Constellation.GE01: {
         PAN: GainOffset(gain=1.001, offset=0.0),
         BLUE: GainOffset(gain=1.041, offset=0.0),
@@ -145,10 +217,23 @@ stagnant values and they are revisited annually.
 
 Only using last calibration as the Maxar sensors have been found to be very stable throughout their lifetime.
 
-See `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_ for the values.
+See `here <https://resources.maxar.com/white-papers/absolute-radiometric-calibration-white-paper>`_ for the values.
 """
 
 _MAXAR_E0 = {
+    Constellation.WVLG: {
+        PAN: LegionPlatformTuple(LG01=1627.669, LG02=1630.911),
+        CA: LegionPlatformTuple(LG01=1756.808, LG02=1748.182),
+        BLUE: LegionPlatformTuple(LG01=2020.761, LG02=2021.502),
+        GREEN: LegionPlatformTuple(LG01=1877.814, LG02=1878.494),
+        YELLOW: LegionPlatformTuple(LG01=1750.532, LG02=1745.874),
+        RED: LegionPlatformTuple(LG01=1551.612, LG02=1552.111),
+        VRE_1: LegionPlatformTuple(LG01=1413.868, LG02=1411.140),
+        VRE_2: LegionPlatformTuple(LG01=1298.429, LG02=1292.678),
+        VRE_3: LegionPlatformTuple(LG01=1298.429, LG02=1292.678),
+        NIR: LegionPlatformTuple(LG01=1047.560, LG02=1049.999),
+        NARROW_NIR: LegionPlatformTuple(LG01=1047.560, LG02=1049.999),
+    },  # https://resources.maxar.com/white-papers/radiometric-use-of-worldview-legion-1-and-worldview-legion-2-imagery
     Constellation.GE01: {
         PAN: 1610.73,
         BLUE: 1993.18,
@@ -207,7 +292,7 @@ _MAXAR_E0 = {
 }
 """
 Esun is the band-averaged Solar exoatmospheric irradiance @1AU (see Slide 7&8). DG calibration team uses the Thuillier 2003 solar curve for their calculations.
-See `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_ for the values.
+See `here <https://resources.maxar.com/white-papers/absolute-radiometric-calibration-white-paper>`_ for the values.
 """
 
 
@@ -224,7 +309,7 @@ class MaxarProductType(ListEnum):
     Basic Imagery, also known as System-Ready data.
     Corresponds to a Level 1B.
 
-    Not available in EOReader.
+    Not handled by EOReader.
     """
 
     Standard = "View Ready"
@@ -252,14 +337,14 @@ class MaxarProductType(ListEnum):
     """
     DEM product type.
 
-    Not available in EOReader.
+    Not handled by EOReader.
     """
 
     Stereo = "Stereo"
     """
     Stereo product type.
 
-    Not available in EOReader.
+    Not handled by EOReader.
     """
 
 
@@ -389,6 +474,11 @@ class MaxarSatId(ListEnum):
     WorldView-4
     """
 
+    WVLG = "WorldView Legion"
+    """
+    WorldView Legion
+    """
+
 
 class MaxarProduct(VhrProduct):
     """
@@ -406,6 +496,7 @@ class MaxarProduct(VhrProduct):
         **kwargs,
     ) -> None:
         self._version = None
+        self._platform = None
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
@@ -437,6 +528,7 @@ class MaxarProduct(VhrProduct):
         WV04: https://space.oscar.wmo.int/satellites/view/worldview_4
         Quickbird: https://earth.esa.int/eogateway/missions/quickbird-2
         GeoEye: https://earth.esa.int/eogateway/missions/worldview-3
+        WV Legion: https://database.eohandbook.com/database/missionsummary.aspx?missionID=1011
         """
         if self.constellation == Constellation.WV01:
             # WorldView-60 camera (WV60)
@@ -445,7 +537,6 @@ class MaxarProduct(VhrProduct):
             # WorldView-110 camera (WV110)
             self.instrument = "WV110"
         elif self.constellation == Constellation.WV04:
-            # SpaceView-110 camera
             self.instrument = "SpaceView-110 camera"
         elif self.constellation == Constellation.QB02:
             # Ball Global Imaging System 2000
@@ -453,6 +544,8 @@ class MaxarProduct(VhrProduct):
         elif self.constellation == Constellation.GE01:
             # GeoEye Imaging System (GIS)
             self.instrument = "GIS"
+        elif self.constellation == Constellation.WVLG:
+            self.instrument = "WorldView Legion Camera"
 
     def _get_constellation(self) -> Constellation:
         """Getter of the constellation"""
@@ -461,7 +554,11 @@ class MaxarProduct(VhrProduct):
         constellation_id = root.findtext(".//IMAGE/SATID")
         if not constellation_id:
             raise InvalidProductError("Cannot find SATID in the metadata file")
-        constellation_id = getattr(MaxarSatId, constellation_id).name
+        if "LG" in constellation_id:
+            self._platform = LegionPlatform(constellation_id)
+            constellation_id = MaxarSatId.WVLG.name
+        else:
+            constellation_id = getattr(MaxarSatId, constellation_id).name
         return getattr(Constellation, constellation_id)
 
     def _post_init(self, **kwargs) -> None:
@@ -491,6 +588,17 @@ class MaxarProduct(VhrProduct):
                 "\nIf you want a workaround to be implemented, please reopen the issue https://github.com/sertit/eoreader/issues/106 and pledad you usecase :)"
             )
 
+        # Platform
+
+        if self.constellation == Constellation.WVLG:
+            if "LG01" in self.name:
+                self._platform = LegionPlatform.LG01
+            elif "LG02" in self.name:
+                self._platform = LegionPlatform.LG02
+            # TODO
+        else:
+            self._platform = self.constellation
+
         # Post init done by the super class
         super()._post_init(**kwargs)
 
@@ -518,7 +626,94 @@ class MaxarProduct(VhrProduct):
             dict: Maxar spectral bands
         """
         # Create spectral bands
-        if self.constellation in [Constellation.WV02, Constellation.WV03]:
+        if self.constellation == Constellation.WVLG:
+            spectral_bands = {
+                "pan": SpectralBand(
+                    eoreader_name=PAN,
+                    **{
+                        NAME: "PAN",
+                        ID: 1,
+                        GSD: self._pan_res,
+                        WV_MIN: 450,
+                        WV_MAX: 800,
+                    },
+                ),
+                "ca": SpectralBand(
+                    eoreader_name=CA,
+                    **{
+                        NAME: "COASTAL BLUE",
+                        ID: 1,
+                        GSD: self._ms_res,
+                        WV_MIN: 400,
+                        WV_MAX: 450,
+                    },
+                ),
+                "blue": SpectralBand(
+                    eoreader_name=BLUE,
+                    **{
+                        NAME: "BLUE",
+                        ID: 2,
+                        GSD: self._ms_res,
+                        WV_MIN: 450,
+                        WV_MAX: 510,
+                    },
+                ),
+                "green": SpectralBand(
+                    eoreader_name=GREEN,
+                    **{
+                        NAME: "GREEN",
+                        ID: 3,
+                        GSD: self._ms_res,
+                        WV_MIN: 510,
+                        WV_MAX: 580,
+                    },
+                ),
+                "yellow": SpectralBand(
+                    eoreader_name=YELLOW,
+                    **{
+                        NAME: "YELLOW",
+                        ID: 7,
+                        GSD: self._ms_res,
+                        WV_MIN: 585,
+                        WV_MAX: 625,
+                    },
+                ),
+                "red": SpectralBand(
+                    eoreader_name=RED,
+                    **{NAME: "RED", ID: 5, GSD: self._ms_res, WV_MIN: 630, WV_MAX: 690},
+                ),
+                "vre1": SpectralBand(
+                    eoreader_name=VRE_1,
+                    **{
+                        NAME: "RED EDGE 1",
+                        ID: 6,
+                        GSD: self._ms_res,
+                        WV_MIN: 695,
+                        WV_MAX: 715,
+                    },
+                ),
+                "vre2": SpectralBand(
+                    eoreader_name=VRE_2,
+                    **{
+                        NAME: "RED EDGE 2",
+                        ID: 7,
+                        GSD: self._ms_res,
+                        WV_MIN: 730,
+                        WV_MAX: 750,
+                    },
+                ),
+                "nir": SpectralBand(
+                    eoreader_name=NIR,
+                    **{
+                        NAME: "NIR1",
+                        ID: 8,
+                        GSD: self._ms_res,
+                        WV_MIN: 770,
+                        WV_MAX: 895,
+                    },
+                ),
+            }
+        elif self.constellation in [Constellation.WV02, Constellation.WV03]:
             spectral_bands = {
                 "pan": SpectralBand(
                     eoreader_name=PAN,
@@ -733,22 +928,42 @@ class MaxarProduct(VhrProduct):
         nir = kwargs.get("nir")
         ca = kwargs.get("ca")
         vre = kwargs.get("vre")
+        vre1 = kwargs.get("vre1")
+        vre2 = kwargs.get("vre2")
         yellow = kwargs.get("yellow")
         wv = kwargs.get("wv")
 
         # Manage bands of the product
-        if self.band_combi in [
-            MaxarBandId.P,
-            MaxarBandId.N,
-            MaxarBandId.R,
-            MaxarBandId.G,
-            MaxarBandId.B,
-            MaxarBandId.N2,
-            MaxarBandId.RE,
-            MaxarBandId.Y,
-            MaxarBandId.C,
-        ]:
+        if self.band_combi == MaxarBandId.P:
             band_map = {PAN: pan.update(id=1, gsd=self.pixel_size)}
+        elif self.band_combi == MaxarBandId.N:
+            band_map = {
+                NIR: nir.update(id=1, gsd=self.pixel_size),
+                NARROW_NIR: nir.update(id=1, gsd=self.pixel_size),
+            }
+        elif self.band_combi == MaxarBandId.R:
+            band_map = {RED: red.update(id=1, gsd=self.pixel_size)}
+        elif self.band_combi == MaxarBandId.G:
+            band_map = {GREEN: green.update(id=1, gsd=self.pixel_size)}
+        elif self.band_combi == MaxarBandId.B:
+            band_map = {BLUE: blue.update(id=1, gsd=self.pixel_size)}
+        elif self.band_combi in [MaxarBandId.N2, MaxarBandId.RE]:
+            if self.constellation_id == MaxarSatId.WVLG.name:
+                band_map = {
+                    VRE_1: vre1.update(id=1, gsd=self.pixel_size),
+                    VRE_2: vre2.update(id=2, gsd=self.pixel_size),
+                    VRE_3: vre2.update(id=2, gsd=self.pixel_size),
+                }
+            else:
+                band_map = {
+                    VRE_1: vre.update(id=1, gsd=self.pixel_size),
+                    VRE_2: vre.update(id=1, gsd=self.pixel_size),
+                    VRE_3: vre.update(id=1, gsd=self.pixel_size),
+                }
+        elif self.band_combi == MaxarBandId.Y:
+            band_map = {YELLOW: yellow.update(id=1, gsd=self.pixel_size)}
+        elif self.band_combi == MaxarBandId.C:
+            band_map = {CA: ca.update(id=1, gsd=self.pixel_size)}
         elif self.band_combi == MaxarBandId.RGB:
             band_map = {
                 RED: red.update(id=1, gsd=self.pixel_size),
@@ -801,6 +1016,19 @@ class MaxarProduct(VhrProduct):
                     NIR: nir.update(id=7, gsd=self.pixel_size),
                     NARROW_NIR: nir.update(id=7, gsd=self.pixel_size),
                     WV: wv.update(id=8, gsd=self.pixel_size),
+                }
+            elif self.constellation_id == MaxarSatId.WVLG.name:
+                band_map = {
+                    CA: ca.update(id=1, gsd=self.pixel_size),
+                    BLUE: blue.update(id=2, gsd=self.pixel_size),
+                    GREEN: green.update(id=3, gsd=self.pixel_size),
+                    YELLOW: yellow.update(id=4, gsd=self.pixel_size),
+                    RED: red.update(id=5, gsd=self.pixel_size),
+                    VRE_1: vre1.update(id=6, gsd=self.pixel_size),
+                    VRE_2: vre2.update(id=7, gsd=self.pixel_size),
+                    VRE_3: vre2.update(id=7, gsd=self.pixel_size),
+                    NIR: nir.update(id=8, gsd=self.pixel_size),
+                    NARROW_NIR: nir.update(id=8, gsd=self.pixel_size),
                 }
             else:
                 band_map = {
@@ -1251,6 +1479,22 @@ class MaxarProduct(VhrProduct):
         _, sun_zen = self.get_mean_sun_angles()
         rad_sun_zen = np.deg2rad(sun_zen)
         e0 = _MAXAR_E0[self.constellation][band]
+
+        if self.constellation == Constellation.WVLG:
+            e0_lg = getattr(e0, self._platform.name)
+
+            # If for a reason or another e0 is not filled, use the mean of the other existing values
+            if np.isnan(e0_lg):
+                LOGGER.warning(
+                    f"Solar irradiance not filled for {self._platform.name}. "
+                    f"Please report this on GitHub! (https://github.com/sertit/eoreader/issues)"
+                    f"In the meantime, values will be averaged from other Legion platforms."
+                )
+                e0 = np.nanmean(e0)
+                LOGGER.warning(f"Solar irradiance used for {band.name} is: {e0}")
+            else:
+                e0 = e0_lg
+
         toa_refl_coeff = np.pi / (e0 * dt * np.cos(rad_sun_zen))
 
         # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
@@ -1320,3 +1564,17 @@ class MaxarProduct(VhrProduct):
             str: VHR product ID
         """
         return self.split_name[0].split("-")[-1]
+
+    # TODO: Uncomment this if the legion platform becomes important one day
+    # def _get_condensed_name(self) -> str:
+    #     """
+    #     Get products condensed name ({acq_datetime}_{constellation}_{polarization}_{sensor_mode}_{product_type}).
+    #
+    #     Returns:
+    #         str: Condensed Maxar name
+    #     """
+    #     # Get back the correct sensor mode name
+    #     if self.constellation == Constellation.WVLG:
+    #         return f"{self.get_datetime()}_{self.constellation.name}_{self._platform.name}_{self.product_type.name}_{self.band_combi.name}_{self._job_id}"
+    #     else:
+    #         return super()._get_condensed_name()

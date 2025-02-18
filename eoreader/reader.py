@@ -182,6 +182,9 @@ class Constellation(ListEnum):
     WV04 = "WorldView-4"
     """WorldView-4"""
 
+    WVLG = "WorldView Legion"
+    """WorldView Legion"""
+
     RCM = "RADARSAT-Constellation Mission"
     """RADARSAT-Constellation Mission"""
 
@@ -282,6 +285,8 @@ class Constellation(ListEnum):
         return cls.convert_from(const)[0] in cls.get_real_constellations()
 
 
+_MAXAR_REGEX = r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)"
+
 CONSTELLATION_REGEX = {
     Constellation.S1: r"S1[ABCD]_(IW|EW|SM|WV|S\d)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}(_COG|)",
     Constellation.S2: r"S2[ABCD]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
@@ -325,13 +330,14 @@ CONSTELLATION_REGEX = {
     Constellation.SPOT5: r"SP05_HRG_(HM_|J__|T__|X__|TX__|HMX)__\d_\d{8}T\d{6}_\d{8}T\d{6}_.*",
     Constellation.VIS1: r"VIS1_(PAN|BUN|PSH|MS4)_.+_\d{2}-\d",
     Constellation.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
-    Constellation.QB02: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Constellation.GE01: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Constellation.WV01: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Constellation.WV02: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Constellation.WV03: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Constellation.WV04: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
-    Constellation.MAXAR: r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)",
+    Constellation.QB02: _MAXAR_REGEX,
+    Constellation.GE01: _MAXAR_REGEX,
+    Constellation.WV01: _MAXAR_REGEX,
+    Constellation.WV02: _MAXAR_REGEX,
+    Constellation.WV03: _MAXAR_REGEX,
+    Constellation.WV04: _MAXAR_REGEX,
+    Constellation.WVLG: _MAXAR_REGEX,
+    Constellation.MAXAR: _MAXAR_REGEX,
     Constellation.ICEYE: r"((SM|SL|SC|SLEA)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC|SLEA)H*_\d{5,}_\d{8}T\d{6})",
     Constellation.SAOCOM: r".+EOL1[ABCD]SARSAO1[AB]\d+(-product|)",
     Constellation.CAPELLA: r"CAPELLA_C\d{2}_S[PMS]_(GEO|GEC|SLC|SICD|SIDD)_(HH|VV)_\d{14}_\d{14}",
@@ -344,6 +350,8 @@ CONSTELLATION_REGEX = {
     Constellation.S2_SIN: [r"\d", r"B12\.jp2"],
     Constellation.S1_RTC_ASF: r"S1[ABCD]_(IW|EW|SM|WV|S\d)_\d{8}T\d{6}_[DS][VH][PRO]_RTC\d{2}_.*",
 }
+
+_MAXAR_MTD_REGEX = r"\d{2}\w{3}\d{8}-.*.TIL"
 
 MTD_REGEX = {
     Constellation.S1: {
@@ -397,13 +405,14 @@ MTD_REGEX = {
             r"\d+_[RHV]{2}\.tif",
         ],
     },
-    Constellation.QB02: r"\d{2}\w{3}\d{8}-.*.TIL",
-    Constellation.GE01: r"\d{2}\w{3}\d{8}-.*.TIL",
-    Constellation.WV01: r"\d{2}\w{3}\d{8}-.*.TIL",
-    Constellation.WV02: r"\d{2}\w{3}\d{8}-.*.TIL",
-    Constellation.WV03: r"\d{2}\w{3}\d{8}-.*.TIL",
-    Constellation.WV04: r"\d{2}\w{3}\d{8}-.*.TIL",
-    Constellation.MAXAR: r"\d{2}\w{3}\d{8}-.*.TIL",
+    Constellation.QB02: _MAXAR_MTD_REGEX,
+    Constellation.GE01: _MAXAR_MTD_REGEX,
+    Constellation.WV01: _MAXAR_MTD_REGEX,
+    Constellation.WV02: _MAXAR_MTD_REGEX,
+    Constellation.WV03: _MAXAR_MTD_REGEX,
+    Constellation.WV04: _MAXAR_MTD_REGEX,
+    Constellation.WVLG: _MAXAR_MTD_REGEX,
+    Constellation.MAXAR: _MAXAR_MTD_REGEX,
     Constellation.ICEYE: r"ICEYE_(X\d{1,}_|)(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
     Constellation.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
     Constellation.CAPELLA: rf"{CONSTELLATION_REGEX[Constellation.CAPELLA]}.*\.json",
@@ -988,6 +997,7 @@ def create_product(
         Constellation.WV02,
         Constellation.WV03,
         Constellation.WV04,
+        Constellation.WVLG,
     ]:
         sat_class = "maxar_product"
         constellation = None  # All product names are the same, so assess it with MTD
