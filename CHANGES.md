@@ -22,6 +22,7 @@
     - `PANI`: `BITM`
 - **ENH: Adding the support of WorldView Legion constellation** ([#183](https://github.com/sertit/eoreader/issues/183))
 - FIX: Fix toa radiance to toa reflectance computation for VHR data
+- DOC: Add documentation on how EOReader can improve your data handling ([#108](https://github.com/sertit/eoreader/issues/108))
 - DEPS: Add `ephem` for computing earth-sun distance (according to Maxar's method from docs)
 
 

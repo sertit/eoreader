@@ -2,6 +2,41 @@
 
 ## EOReader
 
+### Concretely, could you give me examples where EOReader really helps me?
+
+Sure thing! Here is a handful of examples:
+
+#### Handling Sentinel-2 from any epoch
+
+Sentinel-2 products have greatly evolved since 2016:
+- L2Ap products were not georeferenced back in the days!
+- processing baselines have changed a lot since the beginning, i.e.:
+  - masks have been translated from vectors to rasters
+  - since some baseline you are not interested in, you need to remove an offset to compute in the reflectance, which wasn't the case before
+  - ...
+
+EOreader manages these changes for you!
+
+#### Workarounds for bugs in third-party software
+
+Third-party software are not bug free, especially when it comes to exotic products.
+For example SNAP struggled to handle multiswath COSMO data
+EOReader has a workaround for this.
+
+In case of well known errors, EOReader will also give meaningful errors, helping you understand if this is a third-party software bug or not.
+
+#### Geocoding and orthorectification
+
+One example : EOReader geocodes and exports Sentinel-3 data in GeoTiff, allowing you to open them very easily in any GIS.
+
+As EOReader only works with orthorectified data, this is also the case for any L1B product, as long as you provide a correct DEM.
+
+#### Other really handy automations
+
+A lot of other really handy automation are available. It's up to you to explore them!
+
+one last example, EOReader treats multi-tile Planet data as one product, creating VRT and metadata on the fly!
+
 ### I want to load orthorectified bands, what do I need to do ?
 
 EOReader always loads orthorectified bands, you cannot get raw bands !
