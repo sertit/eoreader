@@ -21,6 +21,7 @@
     - `WV_SI`: `NDSIWV`
     - `PANI`: `BITM`
 - **ENH: Adding the support of WorldView Legion constellation** ([#183](https://github.com/sertit/eoreader/issues/183))
+- FIX: Fix toa radiance to toa reflectance computation for VHR data
 - DEPS: Add `ephem` for computing earth-sun distance (according to Maxar's method from docs)
 
 

@@ -320,8 +320,6 @@ class ReProduct(PlanetProduct):
         `Product specs <https://assets.planet.com/docs/Planet_Combined_Imagery_Product_Specs_letter_screen.pdf>`_
         for more information.
 
-        WARNING: in this formula, d**2 = 1 / sqrt(dt) !
-
         Args:
             rad_arr (xr.DataArray): TOA Radiance array
             band (BandNames): Band
@@ -329,15 +327,7 @@ class ReProduct(PlanetProduct):
         Returns:
             xr.DataArray: TOA Reflectance array
         """
-
-        # Compute the coefficient converting TOA radiance in TOA reflectance
-        dt = self._sun_earth_distance_variation() ** 2
-        _, sun_zen = self.get_mean_sun_angles()
-        rad_sun_zen = np.deg2rad(sun_zen)
-        eai = _RE_EAI[band]
-        toa_refl_coeff = np.pi / (eai * dt * np.cos(rad_sun_zen))
-
-        return rad_arr.copy(data=toa_refl_coeff * rad_arr)
+        return self._toa_rad_to_toa_refl_formula(rad_arr, _RE_EAI[band])
 
     def _to_reflectance(
         self,

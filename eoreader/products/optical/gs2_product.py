@@ -404,7 +404,7 @@ class Gs2Product(DimapV1Product):
 
             # Compute band in radiance
             band_arr = bias + band_arr * gain
-            band_arr = self._toa_rad_to_toa_refl(band_arr, band, e_sun, sun_earth_dist)
+            band_arr = self._toa_rad_to_toa_refl(band_arr, e_sun, sun_earth_dist)
 
         # To float32
         if band_arr.dtype != np.float32:

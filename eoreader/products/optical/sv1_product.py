@@ -702,12 +702,6 @@ class Sv1Product(VhrProduct):
         """
         Compute TOA reflectance from TOA radiance
 
-        See
-        `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_
-        for more information.
-
-        WARNING: in this formula, d**2 = 1 / sqrt(dt) !
-
         Args:
             rad_arr (xr.DataArray): TOA Radiance array
             band (BandNames): Band
@@ -727,14 +721,7 @@ class Sv1Product(VhrProduct):
             root, _ = self.read_mtd()
             e0 = float(root.findtext(".//ESUN").split(",")[band_idx])
 
-        # Compute the coefficient converting TOA radiance in TOA reflectance
-        dt = self._sun_earth_distance_variation() ** 2
-        _, sun_zen = self.get_mean_sun_angles()
-        rad_sun_zen = np.deg2rad(sun_zen)
-        toa_refl_coeff = np.pi / (e0 * dt * np.cos(rad_sun_zen))
-
-        # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
-        return rad_arr.copy(data=toa_refl_coeff * rad_arr)
+        return self._toa_rad_to_toa_refl_formula(rad_arr, e0)
 
     def get_quicklook_path(self) -> str:
         """

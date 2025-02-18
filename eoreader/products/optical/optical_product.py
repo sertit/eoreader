@@ -693,9 +693,17 @@ class OpticalProduct(Product):
         )
 
     @cache
-    def _sun_earth_distance_variation(self) -> float:
+    def _sun_earth_distance(self) -> float:
         """
         Correction for the Sun-Earth distance variation
+
+        Uses ephem's function according to Maxar documentation:
+        https://resources.maxar.com/white-papers/radiometric-use-of-worldview-legion-1-and-worldview-legion-2-imagery
+
+        ___________
+
+        If not installed, uses S2 L1C algorithm described in:
+        https://sentiwiki.copernicus.eu/web/s2-processing#S2Processing-TOAReflectanceComputation
 
         It utilises the inverse square law of irradiance, under which,
         the intensity (or irradiance) of light radiating from a point source is inversely proportional to the square of the distance from the source.
@@ -704,17 +712,55 @@ class OpticalProduct(Product):
          - 0.01673 is the Earth orbit eccentricity.
          - 0.0172 is the Earth angular velocity (radians/day).
 
-        See `here <https://sentinel.esa.int/web/sentinel/technical-guides/sentinel-2-msi/level-1c/algorithm>`_ for more information.
+        This method seems to be an approximation of the one described in Maxar doc which seems to have more precision
 
         Returns:
             float: Sun-Earth distance variation
         """
-        # julian_date is the Julian Day corresponding to the acquisition date (reference day: 01/01/1950).
-        ref_julian_date = datetime(year=1950, month=1, day=1)
-        julian_date = (self.date - ref_julian_date).days + 1
+        try:
+            import ephem
+
+            sun = ephem.Sun()
+            sun.compute(self.datetime)
+            se_dist = sun.earth_distance
+        except ModuleNotFoundError:
+            # https://sentiwiki.copernicus.eu/web/s2-processing#S2Processing-TOAReflectanceComputation
+            # julian_date is the Julian Day corresponding to the acquisition date (reference day: 01/01/1950).
+            ref_julian_date = datetime(year=1950, month=1, day=1)
+            julian_date = (self.date - ref_julian_date).days + 1
+
+            # Compute Sun-Earth distance
+            se_dist = 1 - 0.01673 * np.cos(0.0172 * (julian_date - 2))
 
         # Compute Sun-Earth distance variation
-        return 1 / (1 - 0.01673 * np.cos(0.0172 * (julian_date - 2))) ** 2
+        return se_dist
+
+    def _toa_rad_to_toa_refl_formula(
+        self, rad_arr: xr.DataArray, e0: float, dt: float = None
+    ) -> xr.DataArray:
+        """
+        Compute TOA reflectance from TOA radiance
+
+        See
+        `here <https://resources.maxar.com/white-papers/radiometric-use-of-worldview-legion-1-and-worldview-legion-2-imagery>`_
+        for more information.
+
+        Args:
+            rad_arr (xr.DataArray): TOA Radiance array
+            band (BandNames): Band
+            e0 (float): Solar spectral irradiance for the current band
+
+        Returns:
+            xr.DataArray: TOA Reflectance array
+        """
+        # Compute the coefficient converting TOA radiance in TOA reflectance
+        if not dt:
+            dt = self._sun_earth_distance()
+        _, sun_zen = self.get_mean_sun_angles()
+        rad_sun_zen = np.deg2rad(sun_zen)
+        toa_refl_coeff = np.pi * dt**2 / (e0 * np.cos(rad_sun_zen))
+
+        return rad_arr.copy(data=toa_refl_coeff * rad_arr)
 
     @cache
     def get_cloud_cover(self) -> float:

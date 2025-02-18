@@ -579,7 +579,7 @@ class Spot45Product(DimapV1Product):
                 e0 = _SPOT5_E0[band][instrument_idx]
 
             # Convert radiance into reflectance
-            band_arr = self._toa_rad_to_toa_refl(band_arr, band, e0=e0)
+            band_arr = self._toa_rad_to_toa_refl(band_arr, e0=e0)
 
         else:
             LOGGER.warning(

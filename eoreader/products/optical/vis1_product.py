@@ -345,7 +345,7 @@ class Vis1Product(DimapV1Product):
         if utils.is_uint16(band_arr):
             band_arr /= 100.0
 
-        band_arr = self._toa_rad_to_toa_refl(band_arr, band, _VIS1_E0[band])
+        band_arr = self._toa_rad_to_toa_refl(band_arr, _VIS1_E0[band])
 
         # To float32
         if band_arr.dtype != np.float32:

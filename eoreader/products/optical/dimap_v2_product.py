@@ -174,7 +174,7 @@ class DimapV2BandCombination(ListEnum):
     """
     DIMAP V2 products band combination
 
-    See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+    See `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
     (A.1.1.2 Variable Key Information) for more information.
     """
 
@@ -241,7 +241,7 @@ class DimapV2BandCombination(ListEnum):
 class DimapV2Product(VhrProduct):
     """
     Super Class of DIMAP V2 products.
-    See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+    See `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
     for more information.
     """
 
@@ -688,8 +688,8 @@ class DimapV2Product(VhrProduct):
         Converts band to reflectance
 
         See
-        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTY0Mw==/ZG9jdXRoZXF1ZS1maWxlLTU1NjQy/airbus-pleiades-imagery-user-guide-15042021.pdf>`_
-        (Appendix D)
+        `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+        (Appendix D page 103)
 
         Args:
             band_arr (xr.DataArray):
@@ -1156,8 +1156,8 @@ class DimapV2Product(VhrProduct):
         Compute DN to TOA radiance
 
         See
-        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTY0Mw==/ZG9jdXRoZXF1ZS1maWxlLTU1NjQy/airbus-pleiades-imagery-user-guide-15042021.pdf>`_
-        for more information. (Appendix D)
+        `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+        for more information. (Appendix D page 103)
 
         Args:
             dn_arr (xr.DataArray): DN array
@@ -1201,8 +1201,8 @@ class DimapV2Product(VhrProduct):
         Compute TOA reflectance from TOA radiance
 
         See
-        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC01NTY0Mw==/ZG9jdXRoZXF1ZS1maWxlLTU1NjQy/airbus-pleiades-imagery-user-guide-15042021.pdf>`_
-        for more information. (Appendix D)
+        `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+        for more information. (Appendix D page 103)
 
         Args:
             rad_arr (xr.DataArray): TOA Radiance array
@@ -1235,16 +1235,7 @@ class DimapV2Product(VhrProduct):
                 "VALUE from Band_Solar_Irradiance not found in metadata!"
             ) from exc
 
-        # Compute the coefficient converting TOA radiance in TOA reflectance
-        dt = self._sun_earth_distance_variation()
-        _, sun_zen = self.get_mean_sun_angles()
-        rad_sun_zen = np.deg2rad(sun_zen)
-
-        # WARNING: d = 1 / sqrt(d(t))
-        toa_refl_coeff = np.pi / (e0 * dt * np.cos(rad_sun_zen))
-
-        # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
-        return rad_arr.copy(data=toa_refl_coeff * rad_arr)
+        return self._toa_rad_to_toa_refl_formula(rad_arr, e0)
 
     @cache
     def get_cloud_cover(self) -> float:

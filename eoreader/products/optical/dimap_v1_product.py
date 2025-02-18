@@ -340,34 +340,24 @@ class DimapV1Product(VhrProduct):
         return {}
 
     def _toa_rad_to_toa_refl(
-        self, rad_arr: xr.DataArray, band: BandNames, e0: float, dt: float = None
+        self, rad_arr: xr.DataArray, e0: float, dt: float = None
     ) -> xr.DataArray:
         """
         Compute TOA reflectance from TOA radiance
 
         See
-        `here <https://www.intelligence-airbusds.com/automne/api/docs/v1.0/document/download/ZG9jdXRoZXF1ZS1kb2N1bWVudC02ODMwNQ==/ZG9jdXRoZXF1ZS1maWxlLTY4MzAy/vision-1-imagery-user-guide-20210217>`_
-        (3.2.2) for more information.
-
-        WARNING: in this formula, d**2 = 1 / sqrt(dt) !
+        `here <https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>`_
+        for more information. (Appendix D page 103)
 
         Args:
             rad_arr (xr.DataArray): TOA Radiance array
-            band (BandNames): Band
             e0 (float): Solar spectral irradiance for the current band
+            dt (float): Earth-Sun distance
 
         Returns:
             xr.DataArray: TOA Reflectance array
         """
-        # Compute the coefficient converting TOA radiance in TOA reflectance
-        if not dt:
-            dt = self._sun_earth_distance_variation()
-        _, sun_zen = self.get_mean_sun_angles()
-        rad_sun_zen = np.deg2rad(sun_zen)
-        toa_refl_coeff = np.pi / (e0 * dt * np.cos(rad_sun_zen))
-
-        # LOGGER.debug(f"rad to refl coeff = {toa_refl_coeff}")
-        return rad_arr.copy(data=toa_refl_coeff * rad_arr)
+        return self._toa_rad_to_toa_refl_formula(rad_arr, e0, dt)
 
     def _get_job_id(self) -> str:
         """
