@@ -48,12 +48,7 @@ def get_ci_db_dir() -> AnyPathType:
             # CI
             return AnyPath(get_db3_path(), "CI", "eoreader")
         except NotADirectoryError as exc:
-            # Windows
-            db_path = AnyPath(r"//ds2/database03/CI/eoreader")
-            if not db_path.is_dir():
-                raise NotADirectoryError("Impossible to find get_ci_db_dir") from exc
-
-            return db_path
+            raise NotADirectoryError("Impossible to find get_ci_db_dir") from exc
 
 
 def get_ci_data_dir() -> AnyPathType:
@@ -67,19 +62,15 @@ def get_ci_data_dir() -> AnyPathType:
 
 def get_db_dir_on_disk() -> AnyPathType:
     """
-    Get database directory in the DS2
+    Get database director (on disk)
 
     Returns:
         str: Database directory
     """
-    # ON DISK
-    db_dir = AnyPath(r"//ds2/database02/BASES_DE_DONNEES")
-
-    if not db_dir.is_dir():
-        try:
-            db_dir = AnyPath(get_db2_path(), "BASES_DE_DONNEES")
-        except NotADirectoryError:
-            db_dir = AnyPath("/home", "ds2_db2", "BASES_DE_DONNEES")
+    try:
+        db_dir = AnyPath(get_db2_path(), "BASES_DE_DONNEES")
+    except NotADirectoryError:
+        db_dir = AnyPath("/home", "ds2_db2", "BASES_DE_DONNEES")
 
     if not db_dir.is_dir():
         raise NotADirectoryError("Impossible to open database directory !")
@@ -89,7 +80,7 @@ def get_db_dir_on_disk() -> AnyPathType:
 
 def get_db_dir() -> AnyPathType:
     """
-    Get database directory in the DS2
+    Get geodatabase
 
     Returns:
         str: Database directory

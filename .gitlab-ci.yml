@@ -29,10 +29,7 @@ pytest:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_on_disk.html --cov=eoreader --cov-config=.coveragerc ci/on_push --log-cli-level DEBUG
-  artifacts:
-    paths:
-      - ${CI_PROJECT_DIR}/cov_on_disk.html
+    - python -m pytest -v --durations=0 --cov-report term --cov=eoreader ci/on_push --log-cli-level DEBUG
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - sertit
@@ -63,10 +60,7 @@ pytest_s3:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_s3.html --cov=eoreader --cov-config=.coveragerc ci/on_push --log-cli-level DEBUG --capture=tee-sys
-  artifacts:
-    paths:
-      - ${CI_PROJECT_DIR}/cov_s3.html
+    - python -m pytest -v --durations=0 --cov-report term --cov=eoreader ci/on_push --log-cli-level DEBUG --capture=tee-sys
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - sertit
@@ -96,10 +90,7 @@ pytest_end_to_end:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_e2e.html --cov=eoreader  --cov-config=.coveragerc ci/weekly --log-cli-level DEBUG --capture=tee-sys ${REVERSE}
-  artifacts:
-    paths:
-      - ${CI_PROJECT_DIR}/cov_e2e.html
+    - python -m pytest -v --durations=0 --cov-report term --cov=eoreader ci/weekly --log-cli-level DEBUG --capture=tee-sys ${REVERSE}
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - sertit
