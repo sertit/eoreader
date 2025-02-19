@@ -329,7 +329,9 @@ def core(prod_path, possible_bands, debug, **kwargs):
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         if WRITE_ON_DISK:
-            tmp_dir = os.path.join("/home/data/ci/satellites")
+            tmp_dir = os.path.join(
+                "/mnt", "ds2_db3", "CI", "eoreader", "OUTPUT", prod.condensed_name
+            )
         prod.output = tmp_dir
 
         # DO NOT REPROJECT BANDS (WITH GDAL / SNAP) --> WAY TOO SLOW
