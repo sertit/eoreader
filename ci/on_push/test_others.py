@@ -431,9 +431,12 @@ def test_custom_resamplings():
         "20201220T104856_L8_200030_OLI_TIRS_window.geojson"
     )
 
-    os.environ["EOREADER_BAND_RESAMPLING"] = str(Resampling.nearest)
-    prod = READER.open(prod_path, remove_tmp=True)
-    red_default = prod.load(RED, window=window_path, pixel_size=600)[RED]
+    # Don't set it with os.environ otherwise it'll break all the test suite!
+    with tempenv.TemporaryEnvironment(
+        {"EOREADER_BAND_RESAMPLING": str(Resampling.nearest)}
+    ):
+        prod = READER.open(prod_path, remove_tmp=True)
+        red_default = prod.load(RED, window=window_path, pixel_size=600)[RED]
 
     prod.clean_tmp()
     red_nearest = prod.load(
