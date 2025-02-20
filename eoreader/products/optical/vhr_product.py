@@ -20,28 +20,20 @@ for more information.
 """
 
 import logging
-import os
 from abc import abstractmethod
 from typing import Union
 
 import affine
 import rasterio
 import xarray as xr
-from rasterio import shutil as rio_shutil
-from rasterio import warp
 from rasterio.crs import CRS
-from rasterio.enums import Resampling
-from rasterio.vrt import WarpedVRT
-from sertit import AnyPath, path, rasters
+from sertit import AnyPath, rasters
 from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, utils
 from eoreader.bands import BandNames
-from eoreader.env_vars import DEM_PATH, TILE_SIZE
 from eoreader.exceptions import InvalidProductError
-from eoreader.keywords import DEM_KW
 from eoreader.products import OpticalProduct
-from eoreader.utils import DEFAULT_TILE_SIZE
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -233,24 +225,6 @@ class VhrProduct(OpticalProduct):
                 band_paths[band] = band_path
 
         return band_paths
-
-    def _get_dem_path(self, **kwargs) -> str:
-        """
-        Get DEM path
-
-        Returns:
-            str: DEM path
-
-        """
-        # Get DEM path
-        dem_path = os.environ.get(DEM_PATH, kwargs.get(DEM_KW))
-        if not dem_path:
-            raise ValueError(
-                f"As you are using a non orthorectified VHR product ({self.path}), "
-                f"you must provide a valid DEM through the {DEM_PATH} environment variable"
-            )
-
-        return dem_path
 
     def _read_band(
         self,
@@ -472,70 +446,6 @@ class VhrProduct(OpticalProduct):
         return self._get_band_folder(writable).joinpath(
             f"{self.condensed_name}_{band}_{res_str}.vrt"
         )
-
-    def _warp_band(
-        self,
-        band_path: AnyPathStrType,
-        reproj_path: AnyPathStrType,
-        pixel_size: float = None,
-    ) -> None:
-        """
-        Warp band to UTM
-
-        Args:
-            band_path (AnyPathStrType): Band path to warp
-            reproj_path (AnyPathStrType): Path where to write the reprojected band
-            pixel_size (int): Band pixel size in meters
-
-        """
-        # Do not warp if existing file
-        if reproj_path.is_file():
-            return
-
-        if not pixel_size:
-            pixel_size = self.pixel_size
-
-        LOGGER.info(
-            f"Warping {path.get_filename(band_path)} to UTM with a {pixel_size} m pixel size."
-        )
-
-        # Read band
-        with rasterio.open(str(band_path)) as src:
-            # Calculate transform
-            utm_tr, utm_w, utm_h = warp.calculate_default_transform(
-                src.crs,
-                self.crs(),
-                src.width,
-                src.height,
-                *src.bounds,
-                resolution=pixel_size,
-            )
-
-            try:
-                tile_size = int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE))
-            except ValueError:
-                tile_size = int(DEFAULT_TILE_SIZE)
-
-            vrt_options = {
-                "crs": self.crs(),
-                "transform": utm_tr,
-                "height": utm_h,
-                "width": utm_w,
-                # TODO: go nearest to speed up results ?
-                "resampling": Resampling.bilinear,
-                "nodata": self._raw_nodata,
-                # Float32 is the max possible
-                "warp_mem_limit": 32 * tile_size**2 / 1e6,
-                "dtype": src.meta["dtype"],
-                "num_threads": utils.get_max_cores(),
-            }
-            with (
-                rasterio.Env(
-                    **{"GDAL_NUM_THREADS": "ALL_CPUS", "NUM_THREADS": "ALL_CPUS"}
-                ),
-                WarpedVRT(src, **vrt_options) as vrt,
-            ):
-                rio_shutil.copy(vrt, reproj_path, driver="vrt")
 
     def _get_default_utm_band(
         self, pixel_size: float = None, size: Union[list, tuple] = None

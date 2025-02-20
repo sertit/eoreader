@@ -21,6 +21,7 @@
     - `WV_SI`: `NDSIWV`
     - `PANI`: `BITM`
 - **ENH: Adding the support of WorldView Legion constellation** ([#183](https://github.com/sertit/eoreader/issues/183))
+- **ENH: Adding the support of Umbra constellation (only GEC file)** ([#114](https://github.com/sertit/eoreader/issues/114))
 - **ENH: Add a function computing the centroid of the footprint of the product**
 - FIX: Fix toa radiance to toa reflectance computation for VHR data
 - DOC: Add documentation on how EOReader can improve your data handling ([#108](https://github.com/sertit/eoreader/issues/108))

@@ -206,6 +206,9 @@ class Constellation(ListEnum):
     CAPELLA = "Capella"
     """Capella"""
 
+    UMBRA = "Umbra"
+    """Umbra"""
+
     # Under here, not real constellations: either CUSTOM, templates or different flavors from the same constellation
     CUSTOM = "CUSTOM"
     """Custom stack"""
@@ -341,6 +344,7 @@ CONSTELLATION_REGEX = {
     Constellation.ICEYE: r"((SM|SL|SC|SLEA)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC|SLEA)H*_\d{5,}_\d{8}T\d{6})",
     Constellation.SAOCOM: r".+EOL1[ABCD]SARSAO1[AB]\d+(-product|)",
     Constellation.CAPELLA: r"CAPELLA_C\d{2}_S[PMS]_(GEO|GEC|SLC|SICD|SIDD)_(HH|VV)_\d{14}_\d{14}",
+    Constellation.UMBRA: r"\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}_UMBRA-\d{2}",
     Constellation.SV1: [
         r"\d{13}_\d{2}",
         r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
@@ -416,6 +420,7 @@ MTD_REGEX = {
     Constellation.ICEYE: r"ICEYE_(X\d{1,}_|)(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
     Constellation.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
     Constellation.CAPELLA: rf"{CONSTELLATION_REGEX[Constellation.CAPELLA]}.*\.json",
+    Constellation.UMBRA: rf"{CONSTELLATION_REGEX[Constellation.UMBRA]}.*\.tif",
     Constellation.SV1: r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
     Constellation.HLS: rf"{CONSTELLATION_REGEX[Constellation.HLS]}\.Fmask\.tif",
     Constellation.GS2: rf"{CONSTELLATION_REGEX[Constellation.GS2]}\.dim",

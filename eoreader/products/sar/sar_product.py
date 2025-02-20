@@ -425,6 +425,16 @@ class SarProduct(Product):
         """
         raise NotImplementedError
 
+    def get_band_file_name(self, band):
+        return f"{self.condensed_name}_{self.bands[band].id}.tif"
+
+    def get_band_path(self, band):
+        path.get_file_in_dir(
+            self._get_band_folder(),
+            f"*{self.get_band_file_name(band)}",
+            exact_name=True,
+        )
+
     def get_band_paths(
         self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
@@ -461,23 +471,14 @@ class SarProduct(Product):
                 )
             try:
                 # Try to load orthorectified bands
-                band_id = self.bands[band].id
-                band_paths[band] = path.get_file_in_dir(
-                    self._get_band_folder(),
-                    f"*{self.condensed_name}_{band_id}.tif",
-                    exact_name=True,
-                )
+                band_paths[band] = self.get_band_path(band)
             except FileNotFoundError:
                 speckle_band = sab.corresponding_speckle(band)
                 if speckle_band in self.pol_channels:
                     if sab.is_despeckle(band):
                         # Check if existing speckle ortho band
                         try:
-                            path.get_file_in_dir(
-                                self._get_band_folder(),
-                                f"*{self.condensed_name}_{self.bands[speckle_band].id}.tif",
-                                exact_name=True,
-                            )
+                            self.get_band_path(speckle_band)
                         except FileNotFoundError:
                             self._pre_process_sar(speckle_band, pixel_size, **kwargs)
 
@@ -599,8 +600,6 @@ class SarProduct(Product):
 
         return existing_bands
 
-    # unused band_name (compatibility reasons)
-    # pylint: disable=W0613
     def _read_band(
         self,
         band_path: AnyPathType,
@@ -754,9 +753,9 @@ class SarProduct(Product):
 
                 # Command line
                 if not os.path.isfile(pp_dim):
-                    res_deg = (
-                        pixel_size / 10.0 * 8.983152841195215e-5
-                    )  # Approx, shouldn't be used
+                    res_deg = rasters.from_meters_to_deg(
+                        pixel_size
+                    )  # Value at Equator, approx, shouldn't be used
 
                     # Manage DEM name
                     try:

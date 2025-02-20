@@ -77,7 +77,7 @@ from eoreader.bands import (
     to_band,
     to_str,
 )
-from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH
+from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH, TILE_SIZE
 from eoreader.exceptions import (
     InvalidBandError,
     InvalidIndexError,
@@ -88,7 +88,7 @@ from eoreader.exceptions import (
 from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Constellation, Reader
 from eoreader.stac import StacItem
-from eoreader.utils import UINT16_NODATA, simplify
+from eoreader.utils import DEFAULT_TILE_SIZE, UINT16_NODATA, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
@@ -2238,12 +2238,30 @@ class Product:
     @abstractmethod
     def _get_raw_crs(self) -> CRS:
         """
-        Get raw CRS of the tile
+        Get raw CRS of the tile (subclass this if you want to use _reproject!)
 
         Returns:
             rasterio.crs.CRS: CRS object
         """
         raise NotImplementedError
+
+    def _get_dem_path(self, **kwargs) -> str:
+        """
+        Get DEM path
+
+        Returns:
+            str: DEM path
+
+        """
+        # Get DEM path
+        dem_path = os.environ.get(DEM_PATH, kwargs.get(DEM_KW))
+        if not dem_path:
+            raise ValueError(
+                f"As you are using a non orthorectified product ({self.path}), "
+                f"you must provide a valid DEM through the {DEM_PATH} environment variable"
+            )
+
+        return dem_path
 
     def _reproject(
         self, src_xda: xr.DataArray, rpcs: rpc.RPC, dem_path, ortho_path, **kwargs
@@ -2287,6 +2305,10 @@ class Product:
                 LOGGER.debug("DEM cached.")
             dem_path = str(cached_dem_path)
 
+        # Set SRC crs if needed
+        if src_xda.rio.crs is None:
+            src_xda.rio.write_crs(self._get_raw_crs(), inplace=True)
+
         kwargs.update(
             {
                 "RPC_DEM": dem_path,
@@ -2301,8 +2323,6 @@ class Product:
 
         # Reproject with rioxarray
         # Seems to handle the resolution well on the contrary to rasterio's reproject...
-        if src_xda.rio.crs is None:
-            src_xda.rio.write_crs(self._get_raw_crs(), inplace=True)
 
         resampling = kwargs.pop("resampling", self.band_resampling)
 
@@ -2332,6 +2352,7 @@ class Product:
                 dtype=np.float32,
                 nodata=self._raw_nodata,
                 tags=kwargs.get("tags"),
+                predictor=kwargs.get("predictor"),
             )
 
         # Daskified reproject doesn't seem to work with RPC
@@ -2393,6 +2414,71 @@ class Product:
                 dtype=np.float32,
                 nodata=self._raw_nodata,
                 tags=kwargs.get("tags"),
+                predictor=kwargs.get("predictor"),
             )
             out_xda = utils.read(ortho_path)
         return out_xda
+
+    def _warp_band(
+        self,
+        band_path: AnyPathStrType,
+        reproj_path: AnyPathStrType,
+        pixel_size: float = None,
+    ) -> None:
+        """
+        Warp band to UTM
+
+        Args:
+            band_path (AnyPathStrType): Band path to warp
+            reproj_path (AnyPathStrType): Path where to write the reprojected band
+            pixel_size (int): Band pixel size in meters
+
+        """
+        # Do not warp if existing file
+        if reproj_path.is_file():
+            return
+
+        if not pixel_size:
+            pixel_size = self.pixel_size
+
+        LOGGER.info(
+            f"Warping {path.get_filename(band_path)} to UTM with a {pixel_size} m pixel size."
+        )
+
+        # Read band
+        with rasterio.open(str(band_path)) as src:
+            # Calculate transform
+            utm_tr, utm_w, utm_h = warp.calculate_default_transform(
+                src.crs,
+                self.crs(),
+                src.width,
+                src.height,
+                *src.bounds,
+                resolution=pixel_size,
+            )
+
+            try:
+                tile_size = int(os.getenv(TILE_SIZE, DEFAULT_TILE_SIZE))
+            except ValueError:
+                tile_size = int(DEFAULT_TILE_SIZE)
+
+            vrt_options = {
+                "crs": self.crs(),
+                "transform": utm_tr,
+                "height": utm_h,
+                "width": utm_w,
+                # TODO: go nearest to speed up results ?
+                "resampling": Resampling.bilinear,
+                "nodata": self._raw_nodata,
+                # Float32 is the max possible
+                "warp_mem_limit": 32 * tile_size**2 / 1e6,
+                "dtype": src.meta["dtype"],
+                "num_threads": utils.get_max_cores(),
+            }
+            with (
+                rasterio.Env(
+                    **{"GDAL_NUM_THREADS": "ALL_CPUS", "NUM_THREADS": "ALL_CPUS"}
+                ),
+                WarpedVRT(src, **vrt_options) as vrt,
+            ):
+                rio_shutil.copy(vrt, reproj_path, driver="vrt")
