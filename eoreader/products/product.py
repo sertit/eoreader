@@ -57,6 +57,7 @@ from sertit import (
 )
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
+from sertit.vectors import WGS84
 
 from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
@@ -384,6 +385,30 @@ class Product:
             gpd.GeoDataFrame: Extent in UTM
         """
         raise NotImplementedError
+
+    @cache
+    def centroid(self, in_wgs84=False) -> gpd.GeoDataFrame:
+        """
+        Get centroid of the product
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.utm_extent()
+                                                        geometry
+            0  POLYGON ((309780.000 4390200.000, 309780.000 4...
+
+        Returns:
+            gpd.GeoDataFrame: Extent in UTM
+        """
+        centroid = self.footprint().centroid
+
+        if in_wgs84:
+            centroid = centroid.to_crs(WGS84)
+
+        return centroid
 
     @cache
     @abstractmethod
