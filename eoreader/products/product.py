@@ -315,11 +315,17 @@ class Product:
             # This is to avoid a meaningless tmp folder (tmp_None) if the output is given directly in the init of the product
             self._move_tmp_process(f"tmp_{self.condensed_name}")
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        self.close()
+
     def __del__(self):
         """Cleaning up _tmp directory"""
-        self.delete()
+        self.close()
 
-    def delete(self):
+    def close(self):
         self.clear()
 
         # -- Remove temp folders

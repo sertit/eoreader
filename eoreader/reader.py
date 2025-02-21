@@ -20,7 +20,6 @@ from __future__ import annotations
 import importlib
 import logging
 import re
-from contextlib import contextmanager
 from enum import unique
 from typing import Union
 from zipfile import BadZipFile
@@ -504,7 +503,6 @@ class Reader:
 
         return comp
 
-    @contextmanager
     def open(
         self,
         product_path: AnyPathStrType,
@@ -579,65 +577,59 @@ class Reader:
             Product: EOReader's product
         """
         prod = None
-        try:
-            # If a URL is given, it must point to a URL translatable to a STAC Item
-            if validators.url(product_path):
-                if PYSTAC_INSTALLED:
-                    try:
-                        product_path = Item.from_file(product_path)
-                        is_stac = True
-                    except Exception as exc:
-                        raise InvalidProductError(
-                            f"Cannot convert your URL ({product_path}) to a STAC Item."
-                        ) from exc
-                else:
-                    raise ModuleNotFoundError(
-                        "You should install 'pystac' to use STAC Products."
-                    )
-            # Check path (first check URL as they are also strings)
-            elif path.is_path(product_path):
+
+        # If a URL is given, it must point to a URL translatable to a STAC Item
+        if validators.url(product_path):
+            if PYSTAC_INSTALLED:
+                try:
+                    product_path = Item.from_file(product_path)
+                    is_stac = True
+                except Exception as exc:
+                    raise InvalidProductError(
+                        f"Cannot convert your URL ({product_path}) to a STAC Item."
+                    ) from exc
+            else:
+                raise ModuleNotFoundError(
+                    "You should install 'pystac' to use STAC Products."
+                )
+        # Check path (first check URL as they are also strings)
+        elif path.is_path(product_path):
+            is_stac = False
+        else:
+            # Check STAC Item
+            if PYSTAC_INSTALLED:
+                is_stac = isinstance(product_path, pystac.Item)
+            else:
                 is_stac = False
-            else:
-                # Check STAC Item
-                if PYSTAC_INSTALLED:
-                    is_stac = isinstance(product_path, pystac.Item)
-                else:
-                    is_stac = False
 
-            if is_stac:
-                prod = self._open_stac_item(
-                    product_path, output_path, remove_tmp, **kwargs
-                )
-            else:
-                # If not an Item, it should be a path to somewhere
-                prod = self._open_path(
-                    product_path,
-                    archive_path,
-                    output_path,
-                    method,
-                    remove_tmp,
-                    custom,
-                    constellation,
-                    **kwargs,
-                )
+        if is_stac:
+            prod = self._open_stac_item(product_path, output_path, remove_tmp, **kwargs)
+        else:
+            # If not an Item, it should be a path to somewhere
+            prod = self._open_path(
+                product_path,
+                archive_path,
+                output_path,
+                method,
+                remove_tmp,
+                custom,
+                constellation,
+                **kwargs,
+            )
 
-            if not prod:
-                LOGGER.warning(
-                    f"There is no existing products in EOReader corresponding to {product_path}."
-                )
-                LOGGER.info(
-                    "Your given path may not be a satellite image. If it is, maybe the product isn't handled by EOReader. "
-                    "If you are sure this product is handled, it is either corrupted or you may need to go deeper in the filetree to find the correct path to give."
-                )
-                LOGGER.debug(
-                    "Please look at what folder you should give to EOReader by accessing the documentation: "
-                    "https://eoreader.readthedocs.io/latest/main_features.html#recognized-paths"
-                )
-            yield prod
-        finally:
-            if prod is not None:
-                LOGGER.debug(f"Closing {prod.condensed_name}")
-                prod.delete()
+        if not prod:
+            LOGGER.warning(
+                f"There is no existing products in EOReader corresponding to {product_path}."
+            )
+            LOGGER.info(
+                "Your given path may not be a satellite image. If it is, maybe the product isn't handled by EOReader. "
+                "If you are sure this product is handled, it is either corrupted or you may need to go deeper in the filetree to find the correct path to give."
+            )
+            LOGGER.debug(
+                "Please look at what folder you should give to EOReader by accessing the documentation: "
+                "https://eoreader.readthedocs.io/latest/main_features.html#recognized-paths"
+            )
+        return prod
 
     def _open_stac_item(
         self, item: Item, output_path: AnyPathStrType, remove_tmp: bool, **kwargs
