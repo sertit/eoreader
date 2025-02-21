@@ -22,7 +22,7 @@
       <subSamplingX>1</subSamplingX>
       <subSamplingY>1</subSamplingY>
       <fullSwath>false</fullSwath>
-      <copyMetadata>false</copyMetadata>
+      <copyMetadata>true</copyMetadata>
     </parameters>
   </node>
 
