@@ -317,6 +317,9 @@ class Product:
 
     def __del__(self):
         """Cleaning up _tmp directory"""
+        self.delete()
+
+    def delete(self):
         self.clear()
 
         # -- Remove temp folders

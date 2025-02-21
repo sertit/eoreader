@@ -22,6 +22,7 @@
     - `PANI`: `BITM`
 - **ENH: Adding the support of WorldView Legion constellation** ([#183](https://github.com/sertit/eoreader/issues/183))
 - **ENH: Adding the support of Umbra constellation (only GEC file)** ([#114](https://github.com/sertit/eoreader/issues/114))
+- **ENH: Add the ability to open a product with a context manager** ([#133](https://github.com/sertit/eoreader/issues/133))
 - **ENH: Add a function computing the centroid of the footprint of the product**
 - **ENH: Add a `path` attribute to the bands, corresponding to their path on disk**
 - FIX: Fix toa radiance to toa reflectance computation for VHR data
