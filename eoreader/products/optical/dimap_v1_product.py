@@ -33,7 +33,7 @@ from rasterio import crs as riocrs
 from sertit import geometry, rasters, vectors
 from shapely.geometry import Polygon, box
 
-from eoreader import DATETIME_FMT, EOREADER_NAME, cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import BandNames
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
@@ -147,7 +147,7 @@ class DimapV1Product(VhrProduct):
         if self.is_ortho:
             # Get footprint of the first band of the stack
             footprint_dezoom = 10
-            arr = rasters.read(
+            arr = utils.read(
                 self.get_default_band_path(),
                 resolution=self.pixel_size * footprint_dezoom,
                 indexes=[1],

@@ -24,10 +24,10 @@ import geopandas as gpd
 import shapely
 from lxml import etree
 from rasterio import crs
-from sertit import geometry, path, rasters, vectors
+from sertit import geometry, path, vectors
 from sertit.types import AnyPathStrType
 
-from eoreader import EOREADER_NAME, cache
+from eoreader import EOREADER_NAME, cache, utils
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.product import Product
 from eoreader.stac import PROJ_CODE
@@ -166,7 +166,7 @@ class StacProduct(Product):
                     plt.imshow(Image.open(BytesIO(qlk)))
                 else:
                     # Check it
-                    qck = rasters.read(quicklook_path)
+                    qck = utils.read(quicklook_path)
                     if qck.rio.count == 3:
                         qck.plot.imshow(robust=True)
                     elif qck.rio.count == 1:

@@ -2057,7 +2057,7 @@ class Product:
                         qlk = quicklook_path
                     plt.imshow(Image.open(qlk))
                 else:
-                    qck = rasters.read(quicklook_path)
+                    qck = utils.read(quicklook_path)
                     if qck.rio.count == 3:
                         qck.plot.imshow(robust=True)
                     elif qck.rio.count == 1:

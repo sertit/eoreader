@@ -292,7 +292,7 @@ class Vis1Product(DimapV1Product):
         # Get footprint of the preview
         ql_path = self.get_quicklook_path()
         if ql_path is not None:
-            arr = rasters.read(ql_path, indexes=[1])
+            arr = utils.read(ql_path, indexes=[1])
 
             # Vectorize the nodata band
             footprint = rasters.vectorize(
@@ -304,7 +304,7 @@ class Vis1Product(DimapV1Product):
             if self.is_ortho:
                 # Get footprint of the first band of the stack
                 footprint_dezoom = 10
-                arr = rasters.read(
+                arr = utils.read(
                     self.get_default_band_path(),
                     resolution=self.pixel_size * footprint_dezoom,
                     indexes=[1],

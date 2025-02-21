@@ -34,12 +34,12 @@ import xarray as xr
 from lxml import etree
 from lxml.builder import E
 from rasterio import merge
-from sertit import AnyPath, misc, path, rasters, rasters_rio, strings, vectors
+from sertit import AnyPath, misc, path, rasters_rio, strings, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
 from shapely.geometry import Polygon, box
 
-from eoreader import DATETIME_FMT, EOREADER_NAME, cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
@@ -429,8 +429,8 @@ class CosmoProduct(SarProduct):
             if len(quicklook_paths) == 0:
                 LOGGER.warning(f"No quicklook found in {self.condensed_name}")
             else:
-                rasters.write(
-                    rasters.read(quicklook_paths[0]),
+                utils.write(
+                    utils.read(quicklook_paths[0]),
                     qlk_path,
                     dtype=np.uint8,
                     nodata=255,

@@ -38,7 +38,7 @@ from sertit.types import AnyPathStrType, AnyPathType
 from sertit.vectors import EPSG_4326
 from shapely.geometry import Polygon
 
-from eoreader import DATETIME_FMT, EOREADER_NAME, cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
     BLUE,
     CA,
@@ -1162,7 +1162,7 @@ class MaxarProduct(VhrProduct):
         if self.is_ortho:
             # Get footprint of the first band of the stack
             footprint_dezoom = 10
-            arr = rasters.read(
+            arr = utils.read(
                 self.get_default_band_path(),
                 resolution=self.pixel_size * footprint_dezoom,
                 indexes=[1],

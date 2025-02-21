@@ -292,7 +292,7 @@ class CustomProduct(Product):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        arr = rasters.read(self.get_default_band_path(), indexes=[1])
+        arr = utils.read(self.get_default_band_path(), indexes=[1])
         return rasters.get_footprint(arr).to_crs(self.crs())
 
     @cache
