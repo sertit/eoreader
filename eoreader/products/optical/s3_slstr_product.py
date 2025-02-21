@@ -648,6 +648,7 @@ class S3SlstrProduct(S3Product):
             )
 
             # Write on disk
+            pp_arr = utils.write_path_in_attrs(pp_arr, pp_path)
             utils.write(pp_arr, pp_path)
 
         return pp_path

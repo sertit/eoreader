@@ -534,6 +534,7 @@ class S3OlciProduct(S3Product):
             band_arr = self._geocode(band_arr, pixel_size=pixel_size, **kwargs)
 
             # Write on disk
+            band_arr = utils.write_path_in_attrs(band_arr, pp_path)
             utils.write(band_arr, pp_path)
 
         return pp_path

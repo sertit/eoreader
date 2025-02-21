@@ -355,6 +355,7 @@ class OpticalProduct(Product):
 
                 # Write on disk
                 try:
+                    band_arr = utils.write_path_in_attrs(band_arr, clean_band_path)
                     utils.write(
                         band_arr.rename(f"{to_str(band)[0]} CLEAN"), clean_band_path
                     )
@@ -546,6 +547,7 @@ class OpticalProduct(Product):
             hillshade = rasters.hillshade(
                 warped_dem_path, mean_azimuth_angle, mean_zenith_angle
             )
+            hillshade = utils.write_path_in_attrs(hillshade, hillshade_path)
             utils.write(hillshade, hillshade_path)
 
         return hillshade_path
@@ -610,6 +612,7 @@ class OpticalProduct(Product):
                 cloud_path = self._construct_band_path(
                     band_id, pixel_size, size, writable=True, **kwargs
                 )
+                band_arr = utils.write_path_in_attrs(band_arr, cloud_path)
                 utils.write(band_arr, cloud_path)
 
             # Merge the dict

@@ -717,6 +717,7 @@ class SarProduct(Product):
                 self._get_band_folder(writable=True),
                 f"{self.condensed_name}_{band.name}.tif",
             )
+            arr = utils.write_path_in_attrs(arr, file_path)
             utils.write(
                 arr,
                 file_path,
@@ -943,6 +944,7 @@ class SarProduct(Product):
 
             # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
             # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
+            arr = utils.write_path_in_attrs(arr, file_path)
             utils.write(
                 arr,
                 file_path,

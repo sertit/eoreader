@@ -493,6 +493,7 @@ class CustomProduct(Product):
 
                 # Compute hillshade
                 hillshade = rasters.hillshade(warped_dem_path, sun_az, sun_zen)
+                hillshade = utils.write_path_in_attrs(hillshade, hillshade_path)
                 utils.write(hillshade, hillshade_path)
 
         else:

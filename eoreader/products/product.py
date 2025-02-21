@@ -1178,6 +1178,7 @@ class Product:
                 idx_path = self._construct_band_path(
                     idx, pixel_size, size, writable=True, **kwargs
                 )
+                idx_arr = utils.write_path_in_attrs(idx_arr, idx_path)
                 utils.write(idx_arr, idx_path)
                 band_dict[idx] = idx_arr
 
@@ -1663,6 +1664,7 @@ class Product:
 
             # Compute slope
             slope = rasters.slope(warped_dem_path)
+            slope = utils.write_path_in_attrs(slope, warped_dem_path)
             utils.write(slope, slope_path)
 
         return slope_path
@@ -1754,6 +1756,7 @@ class Product:
         # Write on disk
         if stack_path:
             LOGGER.debug("Saving stack")
+            stack = utils.write_path_in_attrs(stack, stack_path)
             utils.write(
                 stack, stack_path, dtype=dtype, nodata=nodata, driver=driver, **kwargs
             )
@@ -1789,7 +1792,10 @@ class Product:
         """
         # Clean attributes, we don't want to pollute our attributes by default ones (not deterministic)
         # Are we sure of that ?
+        path = xarr.attrs.pop("path", None)
         xarr.attrs = {}
+        if path is not None:
+            xarr.attrs["path"] = path
 
         bands = types.make_iterable(bands)
         long_name = to_str(bands)

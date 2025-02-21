@@ -33,7 +33,7 @@ from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
 from sertit import AnyPath, files, geometry, logs, path, rasters
 from sertit.snap import SU_MAX_CORE
-from sertit.types import AnyPathStrType, AnyPathType
+from sertit.types import AnyPathStrType, AnyPathType, AnyXrDataStructure
 
 from eoreader import EOREADER_NAME, cache
 from eoreader.bands import is_index, is_sat_band
@@ -205,6 +205,9 @@ def read(
                     "band": np.arange(start=1, stop=nof_bands + 1, dtype=int),
                 }
             )
+
+            arr = write_path_in_attrs(arr, raster_path)
+
             return arr
 
     except errors.RasterioIOError as ex:
@@ -372,6 +375,23 @@ def simplify(footprint_fct: Callable):
         return geometry.simplify_footprint(footprint, self.pixel_size)
 
     return simplify_wrapper
+
+
+def write_path_in_attrs(
+    xda: AnyXrDataStructure, path: AnyPathStrType
+) -> AnyXrDataStructure:
+    """
+    Write path in attrs
+
+    Args:
+        xda (AnyXrDataStructure): Xarray to complete
+        path (AnyPathStrType): Path to write
+
+    Returns:
+        AnyXrDataStructure: Output xarray
+    """
+    xda.attrs["path"] = str(path)
+    return xda
 
 
 def stack(

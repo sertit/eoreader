@@ -23,6 +23,7 @@
 - **ENH: Adding the support of WorldView Legion constellation** ([#183](https://github.com/sertit/eoreader/issues/183))
 - **ENH: Adding the support of Umbra constellation (only GEC file)** ([#114](https://github.com/sertit/eoreader/issues/114))
 - **ENH: Add a function computing the centroid of the footprint of the product**
+- **ENH: Add a `path` attribute to the bands, corresponding to their path on disk**
 - FIX: Fix toa radiance to toa reflectance computation for VHR data
 - DOC: Add documentation on how EOReader can improve your data handling ([#108](https://github.com/sertit/eoreader/issues/108))
 - DEPS: Add `ephem` for computing earth-sun distance (according to Maxar's method from docs)
