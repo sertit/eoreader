@@ -429,7 +429,7 @@ class SarProduct(Product):
         return f"{self.condensed_name}_{self.bands[band].id}.tif"
 
     def get_band_path(self, band):
-        path.get_file_in_dir(
+        return path.get_file_in_dir(
             self._get_band_folder(),
             f"*{self.get_band_file_name(band)}",
             exact_name=True,
