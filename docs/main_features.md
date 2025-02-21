@@ -38,6 +38,22 @@ prod.output = os.path.join(output, prod.condensed_name)
 The goal of this library is to manage only one satellite product at a time. 
 To handle more complicated sets of products (such as mosaics, pairs or time series), please consider using [`EOSets`](https://github.com/sertit/eosets).
 
+This feature can also be used as a context manager:
+
+```python
+import os
+from reader import Reader
+
+# Path to your satellite data, i.e. Sentinel-2
+path = r'S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.zip'
+
+with Reader().open(path, remove_tmp=True) as prod:
+    prod.output = os.path.join(output, prod.condensed_name)
+    # Here you have access to all the temporary files
+
+# Here not
+```
+
 ### Recognized paths
 
 **EOReader** always uses the directory containing the product files.

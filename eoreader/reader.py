@@ -577,6 +577,7 @@ class Reader:
             Product: EOReader's product
         """
         prod = None
+
         # If a URL is given, it must point to a URL translatable to a STAC Item
         if validators.url(product_path):
             if PYSTAC_INSTALLED:
@@ -628,7 +629,6 @@ class Reader:
                 "Please look at what folder you should give to EOReader by accessing the documentation: "
                 "https://eoreader.readthedocs.io/latest/main_features.html#recognized-paths"
             )
-
         return prod
 
     def _open_stac_item(

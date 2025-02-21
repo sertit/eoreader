@@ -62,7 +62,7 @@ from eoreader.bands import (
 )
 from eoreader.env_vars import DEM_PATH, S3_DB_URL_ROOT
 from eoreader.exceptions import InvalidTypeError
-from eoreader.products import SensorType
+from eoreader.products import OpticalProduct, SensorType
 from eoreader.reader import Constellation
 
 reduce_verbosity()
@@ -395,6 +395,29 @@ def test_reader_methods():
     READER.valid_mtd(prod_path, "Landsat-8")
     READER.valid_mtd(prod_path, Constellation.L8.name)
     READER.valid_mtd(prod_path, Constellation.L8.value)
+
+
+@s3_env
+def test_context_manager(tmp_path):
+    """Tets windowed reading"""
+    # Get paths
+    prod_path = opt_path().joinpath("LT05_L1TP_200030_20111110_20200820_02_T1")
+    window_path = others_path().joinpath(
+        "20201220T104856_L8_200030_OLI_TIRS_window.geojson"
+    )
+
+    # Open with a window
+    with READER.open(prod_path, remove_tmp=True) as prod:
+        prod: OpticalProduct
+        prod.output = tmp_path / prod.condensed_name
+        red = prod.load(RED, pixel_size=600, window=window_path)[RED]
+        path = red.attrs["path"]
+
+        # Before cleaning
+        assert os.path.isfile(path)
+
+    # After cleaning
+    assert not os.path.isfile(path)
 
 
 @s3_env
