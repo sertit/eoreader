@@ -27,7 +27,7 @@ import rasterio
 import xarray as xr
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
-from sertit import AnyPath, files, path, rasters
+from sertit import AnyPath, path, rasters
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -678,17 +678,8 @@ class OpticalProduct(Product):
         rad_proc = "" if kwargs.get(TO_REFLECTANCE, True) else "_as_is"
 
         # Window name
-        window = kwargs.get("window")
-
-        win_suffix = ""
-        if window is not None:
-            if path.is_path(window):
-                win_suffix = path.get_filename(window)
-            elif isinstance(window, gpd.GeoDataFrame):
-                win_suffix = window.attrs.get("name")
-            if not win_suffix:
-                win_suffix = f"win{files.hash_file_content(str(window))}"
-
+        win_suffix = utils.get_window_suffix(kwargs.get("window"))
+        if win_suffix:
             win_suffix += "_"
 
         return self._get_band_folder(writable).joinpath(

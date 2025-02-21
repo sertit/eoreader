@@ -30,9 +30,10 @@ import rioxarray
 import xarray as xr
 from rasterio import crs
 from rasterio.enums import Resampling
-from sertit import AnyPath, geometry, misc, path, rasters, snap, strings, types
+from sertit import AnyPath, geometry, misc, path, rasters, snap, strings, types, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
+from sertit.vectors import WGS84
 from shapely.geometry.polygon import Polygon
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -425,15 +426,12 @@ class SarProduct(Product):
         """
         raise NotImplementedError
 
-    def get_band_file_name(self, band):
-        return f"{self.condensed_name}_{self.bands[band].id}.tif"
+    def get_band_file_name(self, band, **kwargs):
+        win_suffix = utils.get_window_suffix(kwargs.get("window"))
+        return f"{self.condensed_name}_{self.bands[band].id}{win_suffix}.tif"
 
-    def get_band_path(self, band):
-        return path.get_file_in_dir(
-            self._get_band_folder(),
-            f"*{self.get_band_file_name(band)}",
-            exact_name=True,
-        )
+    def get_band_path(self, band, writable=False, **kwargs):
+        return self._get_band_folder(writable) / self.get_band_file_name(band, **kwargs)
 
     def get_band_paths(
         self, band_list: list, pixel_size: float = None, **kwargs
@@ -469,17 +467,17 @@ class SarProduct(Product):
                 raise InvalidProductError(
                     f"Non existing band ({band.name}) for {self.name}"
                 )
-            try:
-                # Try to load orthorectified bands
-                band_paths[band] = self.get_band_path(band)
-            except FileNotFoundError:
+
+            ortho_band = self.get_band_path(band, **kwargs)
+            if ortho_band.is_file():
+                band_paths[band] = ortho_band
+            else:
                 speckle_band = sab.corresponding_speckle(band)
                 if speckle_band in self.pol_channels:
                     if sab.is_despeckle(band):
                         # Check if existing speckle ortho band
-                        try:
-                            self.get_band_path(speckle_band)
-                        except FileNotFoundError:
+                        speckle_ortho_path = self.get_band_path(speckle_band, **kwargs)
+                        if not speckle_ortho_path.is_file():
                             self._pre_process_sar(speckle_band, pixel_size, **kwargs)
 
                         # Despeckle the noisy band
@@ -684,7 +682,9 @@ class SarProduct(Product):
 
         return band_arrays
 
-    def _pre_process_sar(self, band: sab, pixel_size: float = None, **kwargs) -> str:
+    def _pre_process_sar(
+        self, band: sab, pixel_size: float = None, **kwargs
+    ) -> AnyPathType:
         """
         Pre-process SAR data (geocoding...)
 
@@ -694,7 +694,7 @@ class SarProduct(Product):
             kwargs: Additional arguments
 
         Returns:
-            str: Band path
+            AnyPathType: Band path
         """
         # pixel_size (use SNAP default pixel size for terrain correction)
         def_pixel_size = float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
@@ -713,10 +713,7 @@ class SarProduct(Product):
             )
             arr = arr.where(arr != self._raw_no_data, np.nan)
 
-            file_path = os.path.join(
-                self._get_band_folder(writable=True),
-                f"{self.condensed_name}_{band.name}.tif",
-            )
+            file_path = self.get_band_path(band, writable=True, **kwargs)
             arr = utils.write_path_in_attrs(arr, file_path)
             utils.write(
                 arr,
@@ -801,11 +798,31 @@ class SarProduct(Product):
                         else:
                             prod_path = self.path.joinpath(self.snap_filename)
 
+                    # AOI
+                    window = kwargs.get("window")
+                    window_raw = None
+                    if window is None:
+                        window = self.extent()
+                    else:
+                        if path.is_path(window):
+                            window = vectors.read(window)
+
+                        # Take a buffer to prevent border effects from terrain correction
+                        window_raw = window
+                        window = geometry.buffer(window, 1000, resolution=2)
+                    try:
+                        window_wkt = window.to_crs(WGS84).geometry.to_wkt().iat[0]
+                    except Exception as exc:
+                        raise TypeError(
+                            "Window should either be a GeoDataFrame, readable as a vector or set to None. Bounds, tuple, list and 'rasterio.Window' are not supported."
+                        ) from exc
+
                     # Create SNAP CLI
                     cmd_list = snap.get_gpt_cli(
                         pp_graph,
                         [
                             f"-Pfile={strings.to_cmd_string(prod_path)}",
+                            f"-Paoi={strings.to_cmd_string(window_wkt)}",
                             f"-Pcalib_pola={strings.to_cmd_string(band.name)}",
                             f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
                             f"-Pdem_path={strings.to_cmd_string(dem_path)}",
@@ -826,9 +843,9 @@ class SarProduct(Product):
 
                 # Convert DIMAP images to GeoTiff
                 LOGGER.debug("Converting DIMAP to GeoTiff")
-                return self._write_sar(pp_dim, band.value, **kwargs)
+                return self._write_sar(pp_dim, band, crop=window_raw, **kwargs)
 
-    def _despeckle_sar(self, band: sab, **kwargs) -> str:
+    def _despeckle_sar(self, band: sab, **kwargs) -> AnyPathType:
         """
         Pre-process SAR data (geocode...)
 
@@ -837,7 +854,7 @@ class SarProduct(Product):
             kwargs: Additional arguments
 
         Returns:
-            str: Despeckled path
+            AnyPathType: Despeckled path
         """
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -870,22 +887,27 @@ class SarProduct(Product):
                     raise RuntimeError("Something went wrong with SNAP!") from ex
 
             # Convert DIMAP images to GeoTiff
-            out = self._write_sar(dspk_dim, band.value.upper(), dspk=True, **kwargs)
+            out = self._write_sar(dspk_dim, band, **kwargs)
 
         return out
 
-    def _write_sar(self, dim_path: str, pol: str, dspk=False, **kwargs) -> str:
+    def _write_sar(self, dim_path: str, band: sab, **kwargs) -> AnyPathType:
         """
         Write SAR image on disk.
 
         Args:
             dim_path (str): DIMAP path
-            pol (str): Polarization name
+            band (sab): Band
             kwargs: Additional arguments
 
         Returns:
-            str: SAR path
+            AnyPathType: SAR path
         """
+        # input data
+        band_id = self.bands[band].id
+        dspk_suffix = "_DSPK"
+        dspk = dspk_suffix in band_id
+        pol = band_id.replace(dspk_suffix, "")
 
         def interp_na(array, dim):
             try:
@@ -932,16 +954,14 @@ class SarProduct(Product):
                 arr = interp_na(arr, dim="y")
                 arr = interp_na(arr, dim="x")
 
-            # Get suffix
-            suffix = kwargs.get("suffix")
+            crop_window = kwargs.get("crop")
+            if crop_window is not None:
+                arr = rasters.crop(arr, crop_window)
 
             # Save the file as the terrain-corrected image
-            file_path = os.path.join(
-                self._get_band_folder(writable=True),
-                f"{path.get_filename(dim_path)}_{pol}{'_DSPK' if dspk else ''}{f'_{suffix}' if suffix else ''}.tif",
-            )
-            # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
+            file_path = self.get_band_path(band, writable=True, **kwargs)
 
+            # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
             # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
             # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
             arr = utils.write_path_in_attrs(arr, file_path)

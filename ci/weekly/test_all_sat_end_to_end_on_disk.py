@@ -200,7 +200,9 @@ def _test_core(
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 if WRITE_ON_DISK:
-                    tmp_dir = os.path.join("/home/data/ci/e2e_satellites")
+                    tmp_dir = os.path.join(
+                        "/mnt", "ds2_db3", "CI", "eoreader", "e2e_satellites"
+                    )
                 output = tmp_dir
                 is_zip = "_ZIP" if prod.is_archived else ""
                 prod.output = os.path.join(output, f"{prod.condensed_name}{is_zip}")

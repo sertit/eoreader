@@ -25,13 +25,14 @@ from typing import Callable, Union
 
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 import xarray as xr
 from lxml import etree
 from rasterio import errors
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
 from rasterio.rpc import RPC
-from sertit import AnyPath, files, geometry, logs, path, rasters
+from sertit import AnyPath, files, geometry, path, rasters
 from sertit.snap import SU_MAX_CORE
 from sertit.types import AnyPathStrType, AnyPathType, AnyXrDataStructure
 
@@ -625,3 +626,16 @@ def get_band_resampling():
         LOGGER.debug(f"Band resampling overridden to '{resampling.name}'.")
 
     return resampling
+
+
+def get_window_suffix(window):
+    win_suffix = ""
+    if window is not None:
+        if path.is_path(window):
+            win_suffix = path.get_filename(window)
+        elif isinstance(window, gpd.GeoDataFrame):
+            win_suffix = window.attrs.get("name")
+        if not win_suffix:
+            win_suffix = f"win{files.hash_file_content(str(window))}"
+
+    return win_suffix
