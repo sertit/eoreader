@@ -2430,6 +2430,7 @@ class Product:
                 nodata=self._raw_nodata,
                 tags=kwargs.get("tags"),
                 predictor=kwargs.get("predictor"),
+                driver=utils.get_driver(kwargs),
             )
             out_xda = utils.read(ortho_path)
         return out_xda

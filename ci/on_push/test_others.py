@@ -15,6 +15,7 @@ from sertit import AnyPath, path, unistra
 
 from ci.scripts_utils import (
     READER,
+    assert_is_cog,
     dask_env,
     get_db_dir,
     get_db_dir_on_disk,
@@ -479,6 +480,51 @@ def test_custom_resamplings():
     # The arrays shouldn't be equal (resampling has changed)
     with pytest.raises(AssertionError):
         np.testing.assert_array_equal(red_default.data, red_bilinear.data)
+
+
+@s3_env
+def test_write(tmp_path):
+    """Test custom resamplings"""
+    # Get paths
+    prod_path = opt_path().joinpath("LT05_L1TP_200030_20111110_20200820_02_T1")
+    window_path = others_path().joinpath(
+        "20201220T104856_L8_200030_OLI_TIRS_window.geojson"
+    )
+    prod = READER.open(prod_path, remove_tmp=True)
+
+    gtiff_driver = tmp_path / "gtiff_d.tif"
+    prod.stack(
+        RED, window=window_path, pixel_size=60, stack_path=gtiff_driver, driver="GTiff"
+    )
+    with pytest.raises(AssertionError):
+        assert_is_cog(gtiff_driver)
+
+    cog = tmp_path / "cog.tif"
+    prod.stack(RED, window=window_path, pixel_size=60, stack_path=cog)
+    assert_is_cog(cog)
+
+    # Don't set it with os.environ otherwise it'll break all the test suite!
+
+    with tempenv.TemporaryEnvironment({"EOREADER_DEFAULT_DRIVER": "GTiff"}):
+        gtiff_env = tmp_path / "gtiff_e.tif"
+        prod.stack(RED, window=window_path, pixel_size=60, stack_path=gtiff_env)
+        with pytest.raises(AssertionError):
+            assert_is_cog(gtiff_env)
+
+    zarr = tmp_path / "zarr.zarr"
+    zstack = prod.stack(
+        RED,
+        window=window_path,
+        pixel_size=60,
+        stack_path=zarr,
+        driver="Zarr",
+        compress="NONE",
+    )
+    with pytest.raises(AssertionError):
+        assert_is_cog(gtiff_env)
+
+    # Just test to read the zarr array
+    np.testing.assert_array_equal(zstack.data, utils.read(zarr).data)
 
 
 def test_deprecation():

@@ -25,6 +25,7 @@
 - **ENH: Add the ability to open a product with a context manager** ([#133](https://github.com/sertit/eoreader/issues/133))
 - **ENH: Use the `window` argument to subset SAR data during SNAP pre-process** ([#186](https://github.com/sertit/eoreader/issues/186))
 - **ENH: Add a function computing the centroid of the footprint of the product**
+- **ENH: Write intermediary files as COG by default and add a environment variable `EOREADER_DEFAULT_DRIVER` to overload the default driver** ([#181](https://github.com/sertit/eoreader/issues/181))
 - **ENH: Add a `path` attribute to the bands, corresponding to their path on disk**
 - FIX: Fix toa radiance to toa reflectance computation for VHR data
 - DOC: Add documentation on how EOReader can improve your data handling ([#108](https://github.com/sertit/eoreader/issues/108))

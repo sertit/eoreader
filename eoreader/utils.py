@@ -38,7 +38,13 @@ from sertit.types import AnyPathStrType, AnyPathType, AnyXrDataStructure
 
 from eoreader import EOREADER_NAME, cache
 from eoreader.bands import is_index, is_sat_band
-from eoreader.env_vars import NOF_BANDS_IN_CHUNKS, TILE_SIZE, USE_DASK, BAND_RESAMPLING
+from eoreader.env_vars import (
+    NOF_BANDS_IN_CHUNKS,
+    TILE_SIZE,
+    USE_DASK,
+    BAND_RESAMPLING,
+    DEFAULT_DRIVER,
+)
 from eoreader.exceptions import InvalidProductError
 from eoreader.keywords import _prune_keywords
 
@@ -262,7 +268,12 @@ def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
         ):
             kwargs["windowed"] = True
 
-    rasters.write(xds, output_path=filepath, **_prune_keywords(["window"], **kwargs))
+    rasters.write(
+        xds,
+        output_path=filepath,
+        driver=get_driver(kwargs),
+        **_prune_keywords(["window", "driver"], **kwargs),
+    )
 
     # Set back the previous long name
     if previous_long_name and xds.rio.count > 1:
@@ -628,7 +639,8 @@ def get_band_resampling():
     return resampling
 
 
-def get_window_suffix(window):
+def get_window_suffix(window) -> str:
+    """Get the window suffix in order to add it into band filenames"""
     win_suffix = ""
     if window is not None:
         if path.is_path(window):
@@ -639,3 +651,11 @@ def get_window_suffix(window):
             win_suffix = f"win{files.hash_file_content(str(window))}"
 
     return win_suffix
+
+
+def get_driver(kwargs: dict) -> str:
+    """Pop the driver to write a file on disk from kwargs."""
+    driver = kwargs.get("driver")
+    if driver is None:
+        driver = os.environ.get(DEFAULT_DRIVER, "COG")
+    return driver

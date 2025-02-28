@@ -4,17 +4,18 @@ import logging
 import os
 
 import numpy as np
-from sertit import ci, rasters
+from sertit import ci
 
 from ci.scripts_utils import (
     READER,
+    assert_is_cog,
     dask_env,
     get_ci_data_dir,
     opt_path,
     reduce_verbosity,
     s3_env,
 )
-from eoreader import EOREADER_NAME
+from eoreader import EOREADER_NAME, utils
 from eoreader.bands import NBR, NDVI, NDWI, WDRVI
 
 LOGGER = logging.getLogger(EOREADER_NAME)
@@ -51,7 +52,8 @@ def test_index(tmp_path):
         # Write on disk
         curr_path = os.path.join(prod.output, idx_name + ".tif")
         ci_idx = get_ci_data_dir().joinpath(prod.condensed_name, idx_name + ".tif")
-        rasters.write(idx_arr, curr_path, dtype=np.float32)
+        utils.write(idx_arr, curr_path, dtype=np.float32)
+        assert_is_cog(curr_path)
 
         # Write to path if needed
         if not ci_idx.exists():

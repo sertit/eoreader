@@ -102,3 +102,11 @@ Examples:
     >>> from rasterio.enums import Resampling
     >>> os.environ["EOREADER_BAND_RESAMPLING"] = str(Resampling.cubic)
 """
+
+DEFAULT_DRIVER = "EOREADER_DEFAULT_DRIVER"
+"""
+Default driver for writing files on disk. 
+Especially useful for intermediary files. 
+Default is :code:`COG`. 
+See GDAL supported raster drivers for more information: https://gdal.org/en/stable/drivers/raster/index.html
+"""
