@@ -9,7 +9,7 @@ from typing import Callable
 import tempenv
 from rasterio.errors import NotGeoreferencedWarning
 from sertit import AnyPath, ci, dask, s3, unistra
-from sertit.types import AnyPathType
+from sertit.types import AnyPathStrType, AnyPathType
 from sertit.unistra import get_db2_path, get_db3_path, get_geodatastore
 
 from eoreader import EOREADER_NAME
@@ -239,3 +239,10 @@ def reduce_verbosity():
 
     # Critical
     logging.getLogger("distributed.worker").setLevel(logging.CRITICAL)
+
+
+def assert_is_cog(cog_path: AnyPathStrType):
+    from rio_cogeo import cog_validate
+
+    is_valid, errors, warnings = cog_validate(cog_path)
+    assert is_valid and len(warnings) == 0, f"Invalid COG! {errors}"

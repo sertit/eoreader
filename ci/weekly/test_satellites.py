@@ -11,7 +11,7 @@ import pytest
 import xarray as xr
 from lxml import etree
 from rasterio.windows import Window
-from sertit import ci, dask, path, rasters
+from sertit import ci, dask, path
 
 from ci.on_push import test_satellites
 from ci.scripts_utils import (
@@ -25,7 +25,7 @@ from ci.scripts_utils import (
     s3_env,
     sar_path,
 )
-from eoreader import EOREADER_NAME
+from eoreader import EOREADER_NAME, utils
 from eoreader.bands import (
     ALL_CLOUDS,
     CIRRUS,
@@ -220,7 +220,7 @@ def check_load_size(
     )
     assert isinstance(band_xds, xr.Dataset)
     band_arr = band_xds[first_band]
-    rasters.write(band_arr, curr_path_band)
+    utils.write(band_arr, curr_path_band)
     ci.assert_raster_almost_equal_magnitude(curr_path_band, ci_band, decimal=1)
 
     return band_arr

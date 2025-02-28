@@ -14,6 +14,7 @@ from sertit import AnyPath, path
 from ci.scripts_utils import (
     CI_EOREADER_S3,
     READER,
+    assert_is_cog,
     dask_env,
     get_ci_db_dir,
     get_db_dir,
@@ -209,6 +210,7 @@ def _test_core(
                     resamplig=Resampling.bilinear,
                     **kwargs,
                 )
+                assert_is_cog(curr_path)
 
                 # Load a band with the size option
                 LOGGER.info("Checking load with size keyword")

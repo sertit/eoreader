@@ -4,7 +4,7 @@ import logging
 import os
 
 import numpy as np
-from sertit import ci, rasters
+from sertit import ci
 
 from ci.scripts_utils import (
     READER,
@@ -14,7 +14,7 @@ from ci.scripts_utils import (
     reduce_verbosity,
     s3_env,
 )
-from eoreader import EOREADER_NAME
+from eoreader import EOREADER_NAME, utils
 from eoreader.bands import (
     BAI,
     BAIM,
@@ -80,7 +80,7 @@ def test_index(tmp_path):
         # Write on disk
         curr_path = os.path.join(prod.output, idx_name + ".tif")
         ci_idx = get_ci_data_dir().joinpath(prod.condensed_name, idx_name + ".tif")
-        rasters.write(idx_arr, curr_path, dtype=np.float32)
+        utils.write(idx_arr, curr_path, dtype=np.float32)
 
         # Write to path if needed
         if not ci_idx.exists():

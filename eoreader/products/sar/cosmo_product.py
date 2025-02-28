@@ -593,6 +593,7 @@ class CosmoProduct(SarProduct):
                     pp_path,
                     nodata=self._snap_no_data,
                     predictor=self._get_predictor(),
+                    driver=utils.get_driver(kwargs),
                 )
 
                 return pp_path
