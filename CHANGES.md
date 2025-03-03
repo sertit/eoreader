@@ -277,7 +277,7 @@
 ### Other
 
 - OPTIM: Using warped VRT instead of reprojecting DEM/VHR stacks to UTM ([#58](https://github.com/sertit/eoreader/issues/58))
-- TYP: Fixing typos in typing
+- TYPO: Fixing typos in typing
 - INTERNAL: Moving `EOREADER_NAME` and `DATETIME_FMT` into `__init__.py`
 - INTERNAL: Moving stacking function into `utils`
 - INTERNAL: Removing unused `cache_property` decorator
