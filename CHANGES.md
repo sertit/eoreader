@@ -27,6 +27,7 @@
 - **ENH: Add a function computing the centroid of the footprint of the product**
 - **ENH: Write intermediary files as COG by default and add a environment variable `EOREADER_DEFAULT_DRIVER` to overload the default driver** ([#181](https://github.com/sertit/eoreader/issues/181))
 - **ENH: Add a `path` attribute to the bands, corresponding to their path on disk**
+- **ENH: Manage COSMO-SkyMed `GTC` (orthorectified) products**
 - FIX: Fix toa radiance to toa reflectance computation for VHR data
 - FIX: Save Cosmo quicklooks as PNG instead of GeoTiffs as they are not georeferenced
 - DOC: Add documentation on how EOReader can improve your data handling ([#108](https://github.com/sertit/eoreader/issues/108))

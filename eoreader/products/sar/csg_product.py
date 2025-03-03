@@ -217,9 +217,7 @@ class CsgProduct(CosmoProduct):
         (setting product-type, band names and so on)
         """
         # Calibration fails with CSG data
-        LOGGER.debug(
-            "SNAP Error: Calibration is useless for CSG data. Removing this step."
-        )
+        LOGGER.debug("SNAP Error: Calibration is useless for CSG data. Step skipped.")
         self._calibrate = False
 
         # Post init done by the super class
