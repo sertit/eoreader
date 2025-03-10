@@ -23,6 +23,7 @@ for more information.
 import logging
 from abc import abstractmethod
 from enum import unique
+from functools import reduce
 from typing import Union
 
 import geopandas as gpd
@@ -52,6 +53,7 @@ from eoreader.bands import (
     VRE_1,
     YELLOW,
     BandNames,
+    PlanetMaskBandNames,
     to_str,
 )
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -531,14 +533,13 @@ class PlanetProduct(OpticalProduct):
         }
 
         # Open unusable mask
-        udm = self.open_mask(
-            "UNUSABLE", size=(band_arr.rio.width, band_arr.rio.height), **kwargs
-        )
-        # Workaround:
-        # FutureWarning: The :code:`numpy.expand_dims` function is not implemented by Dask array.
-        # You may want to use the da.map_blocks function or something similar to silence this warning.
-        # Your code may stop working in a future release.
-        dubious_mask = rasters.read_bit_array(udm.values, dubious_bands[band])
+        udm = self._open_masks(
+            [PlanetMaskBandNames.UNUSABLE],
+            size=(band_arr.rio.width, band_arr.rio.height),
+            **kwargs,
+        )[PlanetMaskBandNames.UNUSABLE]
+
+        dubious_mask = utils.read_bit_array(udm, dubious_bands[band])
 
         # Combine masks
         mask = no_data_mask | dubious_mask
@@ -680,38 +681,34 @@ class PlanetProduct(OpticalProduct):
         # Load nodata
         nodata = self._load_nodata(pixel_size, size, **kwargs).data
 
+        def __get_cloud_mask(cloud_bands: list):
+            cloud_dict = self._open_masks(cloud_bands, pixel_size, size, **kwargs)
+            if len(cloud_dict) > 1:
+                condition = reduce(
+                    lambda x, y: x.fillna(0).astype(np.uint8)
+                    | y.fillna(0).astype(np.uint8),
+                    cloud_dict.values(),
+                )
+            else:
+                condition = cloud_dict[cloud_bands[0]].fillna(0).astype(np.uint8)
+            return self._create_mask(def_xarr, condition, nodata)
+
         if bands:
             for band in bands:
                 if band == ALL_CLOUDS:
-                    cloud = self._create_mask(
-                        def_xarr.rename(ALL_CLOUDS.name),
-                        (
-                            self.open_mask("CLOUD", pixel_size, size, **kwargs).data
-                            & self.open_mask("SHADOW", pixel_size, size, **kwargs).data
-                            & self.open_mask(
-                                "HEAVY_HAZE", pixel_size, size, **kwargs
-                            ).data
-                        ),
-                        nodata,
+                    cloud = __get_cloud_mask(
+                        [
+                            PlanetMaskBandNames.CLOUD,
+                            PlanetMaskBandNames.SHADOW,
+                            PlanetMaskBandNames.HEAVY_HAZE,
+                        ]
                     )
                 elif band == SHADOWS:
-                    cloud = self._create_mask(
-                        def_xarr.rename(SHADOWS.name),
-                        self.open_mask("SHADOW", pixel_size, size, **kwargs).data,
-                        nodata,
-                    )
+                    cloud = __get_cloud_mask([PlanetMaskBandNames.SHADOW])
                 elif band == CLOUDS:
-                    cloud = self._create_mask(
-                        def_xarr.rename(CLOUDS.name),
-                        self.open_mask("CLOUD", pixel_size, size, **kwargs).data,
-                        nodata,
-                    )
+                    cloud = __get_cloud_mask([PlanetMaskBandNames.CLOUD])
                 elif band == CIRRUS:
-                    cloud = self._create_mask(
-                        def_xarr.rename(CIRRUS.name),
-                        self.open_mask("HEAVY_HAZE", pixel_size, size, **kwargs).data,
-                        nodata,
-                    )
+                    cloud = __get_cloud_mask([PlanetMaskBandNames.HEAVY_HAZE])
                 elif band == RAW_CLOUDS:
                     cloud = utils.read(
                         self._get_udm2_path(), pixel_size, size, **kwargs
@@ -762,13 +759,13 @@ class PlanetProduct(OpticalProduct):
             **kwargs,
         )
         # Open mask (here we know we have a UDM file, as the product is supposed to have the band)
-        udm = self.open_mask_udm(pixel_size, size, **kwargs)
+        udm = self._open_mask_udm(pixel_size, size, **kwargs)
 
         if bands:
             for band in bands:
                 if band in [ALL_CLOUDS, CLOUDS]:
                     # Load nodata
-                    nodata, clouds = rasters.read_bit_array(udm.compute(), [0, 1])
+                    nodata, clouds = utils.read_bit_array(udm, [0, 1])
 
                     cloud = self._create_mask(
                         def_xarr.rename(ALL_CLOUDS.name),
@@ -792,70 +789,92 @@ class PlanetProduct(OpticalProduct):
 
         return band_dict
 
-    def open_mask(
-        self,
-        mask_id: str,
-        pixel_size: float = None,
-        size: Union[list, tuple] = None,
-        **kwargs,
-    ) -> Union[xr.DataArray, None]:
+    def _has_mask(self, mask: BandNames) -> bool:
         """
-        Open a Planet UDM2 (Usable Data Mask) mask, band by band, as a xarray.
-        Returns None if the mask is not available.
-
-        Do not open cloud mask with this function. Use :code:`load` instead.
-
-        See `UDM2 specifications <https://developers.planet.com/docs/data/udm-2/>`_ for more
-        information.
-
-        Accepted mask IDs:
-
-        - :code:`CLEAR`:      Band 1     Clear map        [0, 1]  0: not clear, 1: clear
-        - :code:`SNOW`:       Band 2     Snow map         [0, 1]  0: no snow or ice, 1: snow or ice
-        - :code:`SHADOW`:     Band 3     Shadow map       [0, 1]  0: no shadow, 1: shadow
-        - :code:`LIGHT_HAZE`: Band 4     Light haze map   [0, 1]  0: no light haze, 1: light haze
-        - :code:`HEAVY_HAZE`: Band 5     Heavy haze map   [0, 1]  0: no heavy haze, 1: heavy haze
-        - :code:`CLOUD`:      Band 6     Cloud map        [0, 1]  0: no cloud, 1: cloud
-        - :code:`CONFIDENCE`: Band 7     Confidence map   [0-100] %age value: per-pixel algorithmic confidence in classif
-        - :code:`UNUSABLE`:   Band 8     Unusable pixels  --      Equivalent to the UDM asset
+        Can the specified mask be loaded from this product ?
 
         .. code-block:: python
 
-            >>> from eoreader.bands import *
             >>> from eoreader.reader import Reader
-            >>> path = r"SENTINEL2B_20190401-105726-885_L2A_T31UEQ_D_V2-0.zip"
+            >>> from eoreader.bands import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
             >>> prod = Reader().open(path)
-            >>> prod.open_mask("EDG", GREEN)
-            array([[[0, ..., 0]]], dtype=uint8)
+            >>> prod.has_index(DETFOO)
+            True
 
         Args:
-            mask_id: Mask ID
-            pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            mask (BandNames): Mask
 
         Returns:
-            Union[xarray.DataArray, None]: Mask array
-
+            bool: True if the specified mask is provided by the current product
         """
         if self._mask_type == PlanetMaskType.UDM2:
-            mask = self.open_mask_udm2(mask_id, pixel_size, size, **kwargs)
-        elif self._mask_type == PlanetMaskType.UDM:
-            mask = self.open_mask_udm(pixel_size, size, **kwargs)
+            planet_masks = [
+                PlanetMaskBandNames.CLEAR,
+                PlanetMaskBandNames.SNOW,
+                PlanetMaskBandNames.SHADOW,
+                PlanetMaskBandNames.LIGHT_HAZE,
+                PlanetMaskBandNames.HEAVY_HAZE,
+                PlanetMaskBandNames.CLOUD,
+                PlanetMaskBandNames.CONFIDENCE,
+                PlanetMaskBandNames.UNUSABLE,
+            ]
         else:
-            def_xarr = self._read_band(
-                self.get_default_band_path(),
-                band=self.get_default_band(),
-                pixel_size=pixel_size,
-                size=size,
-                as_type=np.uint8,
-                masked=False,
-                **kwargs,
-            )
-            mask = def_xarr.copy(data=np.zeros_like(def_xarr.data))
+            planet_masks = [PlanetMaskBandNames.UDM]
 
-        return mask.rename(self._mask_type.value)
+        return mask in planet_masks
 
-    def open_mask_udm2(
+    def _open_masks(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Open a list of mask files as xarrays.
+
+        Args:
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        band_dict = {}
+
+        for band in bands:
+            if self._mask_type == PlanetMaskType.UDM2:
+                mask = self._open_mask_udm2(band.name, pixel_size, size, **kwargs)
+            elif self._mask_type == PlanetMaskType.UDM:
+                mask = self._open_mask_udm(pixel_size, size, **kwargs)
+            else:
+                def_xarr = self._read_band(
+                    self.get_default_band_path(),
+                    band=self.get_default_band(),
+                    pixel_size=pixel_size,
+                    size=size,
+                    as_type=np.uint8,
+                    masked=False,
+                    **kwargs,
+                )
+                mask = def_xarr.copy(data=np.zeros_like(def_xarr.data))
+
+            # Set nodata for the masks
+            mask = mask.where(mask != 0)
+
+            # Set default dtype (removed by where)
+            mask.encoding["dtype"] = np.uint8
+
+            # Rename
+            band_name = to_str(band)[0]
+            mask.attrs["long_name"] = band_name
+            band_dict[band] = mask.rename(band_name)
+
+        return band_dict
+
+    def _open_mask_udm2(
         self,
         mask_id: str,
         pixel_size: float = None,
@@ -922,12 +941,13 @@ class PlanetProduct(OpticalProduct):
             resampling=Resampling.nearest,  # Nearest to keep the flags
             masked=False,
             indexes=[band_mapping[mask_id]],
+            as_type=np.uint8,
             **kwargs,
         )
 
-        return mask.astype(np.uint8)
+        return mask
 
-    def open_mask_udm(
+    def _open_mask_udm(
         self, pixel_size: float = None, size: Union[list, tuple] = None, **kwargs
     ) -> Union[xr.DataArray, None]:
         """
@@ -979,8 +999,10 @@ class PlanetProduct(OpticalProduct):
             Union[xarray.DataArray, None]: Nodata array
 
         """
-        udm = self.open_mask("UNUSABLE", pixel_size, size, **kwargs)
-        nodata = udm.copy(data=rasters.read_bit_array(udm.compute(), 0))
+        udm = self._open_masks(
+            [PlanetMaskBandNames.UNUSABLE], pixel_size, size, **kwargs
+        )[PlanetMaskBandNames.UNUSABLE]
+        nodata = udm.copy(data=utils.read_bit_array(udm, 0))
         return nodata.rename("NODATA")
 
     def _get_path(

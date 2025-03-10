@@ -31,7 +31,7 @@ import numpy as np
 import xarray as xr
 from rasterio import features
 from rasterio.enums import Resampling
-from sertit import AnyPath, rasters, types
+from sertit import AnyPath, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -649,7 +649,7 @@ class S3SlstrProduct(S3Product):
 
             # Write on disk
             pp_arr = utils.write_path_in_attrs(pp_arr, pp_path)
-            utils.write(pp_arr, pp_path)
+            utils.write(pp_arr, pp_path, **kwargs)
 
         return pp_path
 
@@ -1030,6 +1030,7 @@ class S3SlstrProduct(S3Product):
                 subdataset=cloud_name,
                 pixel_size=pixel_size,
                 to_reflectance=False,
+                dtype=np.uint16,
             )
 
             # Open cloud file
@@ -1089,7 +1090,7 @@ class S3SlstrProduct(S3Product):
 
         """
         bit_ids = types.make_iterable(bit_ids)
-        conds = rasters.read_bit_array(bit_array, bit_ids)
+        conds = utils.read_bit_array(bit_array, bit_ids)
         cond = reduce(lambda x, y: x | y, conds)  # Use every condition (bitwise or)
 
         cond_arr = np.where(cond, self._mask_true, self._mask_false).astype(np.uint8)

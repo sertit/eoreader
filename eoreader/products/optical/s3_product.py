@@ -42,7 +42,7 @@ from pyresample.bilinear import XArrayBilinearResampler
 from rasterio import crs as riocrs
 from rasterio.enums import Resampling
 from rasterio.errors import NotGeoreferencedWarning
-from sertit import path, types, vectors, xml
+from sertit import path, rasters, types, vectors, xml
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from shapely.geometry import Polygon, box
@@ -556,9 +556,6 @@ class S3Product(OpticalProduct):
 
         # Get band paths
         bands = types.make_iterable(bands)
-
-        if pixel_size is None and size is not None:
-            pixel_size = self._pixel_size_from_img_size(size)
         band_paths = self.get_band_paths(bands, pixel_size=pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
@@ -634,8 +631,8 @@ class S3Product(OpticalProduct):
         # Create corresponding UTM area
         suffix_str = " " + suffix if suffix else ""
 
-        # Determine nodata
-        nodata = self._mask_nodata if band_arr.dtype == np.uint8 else self.nodata
+        # Determine nodata (should work at least with uint8, uint32, float32)
+        nodata = rasters.get_nodata_value_from_dtype(band_arr.dtype)
 
         # Filter warnings
         with warnings.catch_warnings():

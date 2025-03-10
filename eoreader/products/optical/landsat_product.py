@@ -29,7 +29,7 @@ import xarray as xr
 from lxml import etree
 from lxml.builder import E
 from rasterio.enums import Resampling
-from sertit import AnyPath, dask, path, rasters, types
+from sertit import AnyPath, path, rasters, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
@@ -57,6 +57,7 @@ from eoreader.bands import (
     VRE_2,
     VRE_3,
     BandNames,
+    LandsatMaskBandNames,
     SpectralBand,
     to_str,
 )
@@ -223,18 +224,18 @@ class LandsatProduct(OpticalProduct):
         """
         self.tile_name = self._get_tile_name()
         if self._collection == LandsatCollection.COL_1:
-            self._pixel_quality_id = "_BQA"
-            self._radsat_id = "_BQA"
+            self._pixel_quality_id = LandsatMaskBandNames.BQA.name
+            self._radsat_id = LandsatMaskBandNames.BQA.name
         else:
-            self._pixel_quality_id = "_QA_PIXEL"
-            self._radsat_id = "_QA_RADSAT"
+            self._pixel_quality_id = LandsatMaskBandNames.QA_PIXEL.name
+            self._radsat_id = LandsatMaskBandNames.QA_RADSAT.name
 
         # Post init done by the super class
         super()._post_init(**kwargs)
 
     def _get_path(self, band_id: str) -> AnyPathType:
         """
-        Get either the archived path of the normal path of a tif file
+        Get either the archived path or the normal path of a tif file
 
         Args:
             band_id (str): Band ID
@@ -246,7 +247,7 @@ class LandsatProduct(OpticalProduct):
         if self.is_archived:
             # Because of gap_mask files that have the same name structure and exists only for L7
             if self.instrument == LandsatInstrument.ETM:
-                regex = rf".*(RT|T1|T2)(_SR|_ST|){band_id}\."
+                regex = rf".*(RT|T1|T2)_(SR_|ST_|){band_id}\."
             else:
                 regex = rf".*{band_id}\."
             prod_path = self._get_archived_rio_path(regex)
@@ -312,14 +313,6 @@ class LandsatProduct(OpticalProduct):
 
         # Read the file with a very low resolution
         qa_path = self._get_path(self._pixel_quality_id)
-        if (
-            not self.is_archived
-            and path.is_cloud_path(qa_path)
-            and dask.get_client() is not None
-        ):
-            # Workaround...
-            qa_path = qa_path.download_to(self.output)
-
         nodata_band = utils.read(
             qa_path,
             pixel_size=self.pixel_size * footprint_dezoom,
@@ -993,7 +986,7 @@ class LandsatProduct(OpticalProduct):
                 band_paths[band] = clean_band
             else:
                 try:
-                    band_paths[band] = self._get_path(f"_B{band_id}")
+                    band_paths[band] = self._get_path(f"B{band_id}")
                 except FileNotFoundError as ex:
                     raise InvalidProductError(
                         f"Non existing {band} ({band_id}) band for {self.path}"
@@ -1115,35 +1108,155 @@ class LandsatProduct(OpticalProduct):
         Returns:
             xr.DataArray: Band xarray
         """
-        resampling = kwargs.pop("resampling", self.band_resampling)
-
-        if self.is_archived:
-            filename = path.get_filename(str(band_path).split("!")[-1])
+        masked = False
+        resampling = Resampling.nearest
+        if band in [
+            LandsatMaskBandNames.BQA,
+            LandsatMaskBandNames.QA_PIXEL,
+            LandsatMaskBandNames.QA_RADSAT,
+        ]:
+            dtype = np.uint16
+        elif band in [
+            LandsatMaskBandNames.SAA,
+            LandsatMaskBandNames.SZA,
+            LandsatMaskBandNames.VAA,
+            LandsatMaskBandNames.VZA,
+            LandsatMaskBandNames.ST_QA,
+        ]:
+            dtype = np.int16
+        elif band == LandsatMaskBandNames.SR_QA_AEROSOL:
+            dtype = np.uint8
         else:
-            filename = path.get_filename(band_path)
+            dtype = np.float32
+            masked = True
+            resampling = kwargs.pop("resampling", self.band_resampling)
 
-        if self._pixel_quality_id in filename or self._radsat_id in filename:
-            band_arr = utils.read(
-                band_path,
-                pixel_size=pixel_size,
-                size=size,
-                resampling=Resampling.nearest,  # NEAREST TO KEEP THE FLAGS
-                masked=False,
-                as_type=np.uint16,
-                **kwargs,
-            )
-        else:
-            # Read band
-            band_arr = utils.read(
-                band_path,
-                pixel_size=pixel_size,
-                size=size,
-                as_type=np.float32,
-                resampling=resampling,
-                **kwargs,
-            )
+        # Load PAN band to native resolution if default/unspecified pixel size
+        if band == PAN and (pixel_size is None or pixel_size == self.pixel_size):
+            pixel_size = self.bands[band].gsd
+
+        # Read band
+        band_arr = utils.read(
+            band_path,
+            pixel_size=pixel_size,
+            size=size,
+            as_type=dtype,
+            masked=masked,
+            resampling=resampling,
+            **utils._prune_keywords(additional_keywords=["resampling"], **kwargs),
+        )
 
         return band_arr
+
+    def _has_mask(self, mask: BandNames) -> bool:
+        """
+        Can the specified mask be loaded from this product ?
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.has_index(DETFOO)
+            True
+
+        Args:
+            mask (BandNames): Mask
+
+        Returns:
+            bool: True if the specified mask is provided by the current product
+        """
+        if self._collection == LandsatCollection.COL_1:
+            landsat_masks = [LandsatMaskBandNames.BQA]
+        else:
+            landsat_masks = [
+                LandsatMaskBandNames.QA_PIXEL,
+                LandsatMaskBandNames.QA_RADSAT,
+            ]
+
+            if self.product_type == LandsatProductType.L2:
+                landsat_masks += [
+                    LandsatMaskBandNames.SR_QA_AEROSOL,
+                    LandsatMaskBandNames.ST_QA,
+                ]
+            else:
+                landsat_masks += [
+                    LandsatMaskBandNames.SAA,
+                    LandsatMaskBandNames.SZA,
+                    LandsatMaskBandNames.VAA,
+                    LandsatMaskBandNames.VZA,
+                ]
+
+        return mask in landsat_masks
+
+    def _open_masks(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Open a list of mask files as xarrays.
+
+        Args:
+            band_arr (xr.DataArray): Band array
+            band (BandNames): Band name as an SpectralBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            xr.DataArray: Cleaned band array
+        """
+        band_dict = {}
+
+        for band in bands:
+            mask_arr = self._open_mask(band, pixel_size, size, **kwargs)
+
+            # Set nodata for some masks, for others I'm not sure if it's really nodata (value = 1, not 0)
+            if band in [
+                LandsatMaskBandNames.SAA,
+                LandsatMaskBandNames.SZA,
+                LandsatMaskBandNames.VAA,
+                LandsatMaskBandNames.VZA,
+            ]:
+                # Keep encoding! -> use rasters.where instead of mask_arr.where
+                mask_arr = rasters.where(mask_arr != 0, mask_arr, np.nan, mask_arr)
+
+            band_dict[band] = mask_arr
+
+        return band_dict
+
+    def _open_mask(
+        self,
+        band: BandNames,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Open one mask files as xarrays.
+
+        Args:
+            bands (BandNames): Wanted mask band
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            xr.DataArray: Mask
+        """
+        band_name = band.name
+        mask_path = self._get_path(band_name)
+
+        band_arr = self._read_band(
+            mask_path,
+            band=band,
+            pixel_size=pixel_size,
+            size=size,
+            **kwargs,
+        )
+        band_arr.attrs["long_name"] = band_name
+        return band_arr.rename(band_name)
 
     def _to_reflectance(
         self,
@@ -1328,13 +1441,13 @@ class LandsatProduct(OpticalProduct):
         Returns:
             xr.DataArray: Cleaned band array
         """
-        # Open QA band
-        landsat_qa_path = self._get_path(self._radsat_id)
-        qa_arr = self._read_band(
-            landsat_qa_path, size=(band_arr.rio.width, band_arr.rio.height), **kwargs
-        )
-
         if self._collection == LandsatCollection.COL_1:
+            qa_arr = self._open_mask(
+                LandsatMaskBandNames.BQA,
+                size=(band_arr.rio.width, band_arr.rio.height),
+                **kwargs,
+            )
+
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
             # Bit ids
             nodata_id = 0  # Fill value
@@ -1344,11 +1457,17 @@ class LandsatProduct(OpticalProduct):
             # -> bit 2 or bit 3
             sat_id_1 = 2
             sat_id_2 = 3
-            nodata, dropped, sat_1, sat_2 = rasters.read_bit_array(
+            nodata, dropped, sat_1, sat_2 = utils.read_bit_array(
                 qa_arr, [nodata_id, dropped_id, sat_id_1, sat_id_2]
             )
             mask = nodata | dropped | sat_1 | sat_2
         else:
+            qa_arr = self._open_mask(
+                LandsatMaskBandNames.QA_RADSAT,
+                size=(band_arr.rio.width, band_arr.rio.height),
+                **kwargs,
+            )
+
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
             # SATURATED & OTHER PIXELS
             try:
@@ -1375,12 +1494,11 @@ class LandsatProduct(OpticalProduct):
             else:
                 other_id = 9  # Dropped pixels
 
-            sat, other = rasters.read_bit_array(qa_arr, [sat_id, other_id])
+            sat, other = utils.read_bit_array(qa_arr, [sat_id, other_id])
 
             # If collection 2, nodata has to be found in pixel QA file
-            landsat_stat_path = self._get_path(self._pixel_quality_id)
-            pixel_arr = self._read_band(
-                landsat_stat_path,
+            pixel_arr = self._open_mask(
+                LandsatMaskBandNames.QA_PIXEL,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
@@ -1408,22 +1526,20 @@ class LandsatProduct(OpticalProduct):
         if self._collection == LandsatCollection.COL_1:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
             # Open QA band
-            landsat_qa_path = self._get_path(self._radsat_id)
-            qa_arr = self._read_band(
-                landsat_qa_path,
+            qa_arr = self._open_mask(
+                LandsatMaskBandNames.BQA,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
 
             # Bit ids
             nodata_id = 0  # Fill value
-            nodata = rasters.read_bit_array(qa_arr, nodata_id)
+            nodata = utils.read_bit_array(qa_arr, nodata_id)
         else:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
             # If collection 2, nodata has to be found in pixel QA file
-            landsat_stat_path = self._get_path(self._pixel_quality_id)
-            pixel_arr = self._read_band(
-                landsat_stat_path,
+            pixel_arr = self._open_mask(
+                LandsatMaskBandNames.QA_PIXEL,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
@@ -1456,8 +1572,6 @@ class LandsatProduct(OpticalProduct):
         # Get band paths
         bands = types.make_iterable(bands)
 
-        if pixel_size is None and size is not None:
-            pixel_size = self._pixel_size_from_img_size(size)
         band_paths = self.get_band_paths(bands, pixel_size=pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
@@ -1569,8 +1683,14 @@ class LandsatProduct(OpticalProduct):
 
         if bands:
             # Open QA band
-            landsat_qa_path = self._get_path(self._pixel_quality_id)
-            qa_arr = self._read_band(landsat_qa_path, pixel_size=pixel_size, size=size)
+            qa_arr_mask = (
+                LandsatMaskBandNames.BQA
+                if self._collection == LandsatCollection.COL_1
+                else LandsatMaskBandNames.QA_PIXEL
+            )
+            qa_arr = self._open_mask(
+                qa_arr_mask, pixel_size=pixel_size, size=size, **kwargs
+            )
 
             if self.instrument in [
                 LandsatInstrument.OLI,
@@ -1617,7 +1737,7 @@ class LandsatProduct(OpticalProduct):
 
         clouds = None
         if ALL_CLOUDS in band_list or CLOUDS in band_list:
-            nodata, cld = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id])
+            nodata, cld = utils.read_bit_array(qa_arr, [nodata_id, cloud_id])
             clouds = self._create_mask(qa_arr, cld, nodata)
 
         for band in band_list:
@@ -1673,7 +1793,7 @@ class LandsatProduct(OpticalProduct):
                 cloud_id = 4  # Clouds with high confidence
                 shd_conf_1_id = 7
                 shd_conf_2_id = 8
-                nodata, cld, shd_conf_1, shd_conf_2 = rasters.read_bit_array(
+                nodata, cld, shd_conf_1, shd_conf_2 = utils.read_bit_array(
                     qa_arr, [nodata_id, cloud_id, shd_conf_1_id, shd_conf_2_id]
                 )
                 shd = shd_conf_1 & shd_conf_2
@@ -1682,7 +1802,7 @@ class LandsatProduct(OpticalProduct):
                 nodata_id = 0
                 cloud_id = 3  # Clouds with high confidence
                 shd_id = 4  # Shadows with high confidence
-                nodata, cld, shd = rasters.read_bit_array(
+                nodata, cld, shd = utils.read_bit_array(
                     qa_arr, [nodata_id, cloud_id, shd_id]
                 )
 
@@ -1754,7 +1874,7 @@ class LandsatProduct(OpticalProduct):
                     shd_conf_2,
                     cir_conf_1,
                     cir_conf_2,
-                ) = rasters.read_bit_array(
+                ) = utils.read_bit_array(
                     qa_arr,
                     [
                         nodata_id,
@@ -1774,7 +1894,7 @@ class LandsatProduct(OpticalProduct):
                 cloud_id = 3  # Clouds with high confidence
                 shd_id = 4  # Shadows with high confidence
                 cir_id = 2  # Cirrus with high confidence
-                nodata, cld, shd, cir = rasters.read_bit_array(
+                nodata, cld, shd, cir = utils.read_bit_array(
                     qa_arr, [nodata_id, cloud_id, shd_id, cir_id]
                 )
 

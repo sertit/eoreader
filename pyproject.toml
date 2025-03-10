@@ -111,4 +111,4 @@ omit = ["*/__init__.py"]
 
 [tool.typos]
 files.extend-exclude = ["*.ipynb", "*.html", ".git/*"]
-default.extend-ignore-re = ["_.*_", "\"\\w*\"", "PN", ", fo", "FRE", "THR", "T60HTE", "_BA"]
+default.extend-ignore-re = ["_.*_", "\"\\w*\"", "PN", ", fo", "FRE", "THR", "T60HTE", "_BA", "ANC_"]

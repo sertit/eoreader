@@ -64,22 +64,62 @@ from eoreader.bands.band_names import DEM, HILLSHADE, SLOPE, DemBandNames
 
 __all__ += ["DemBandNames", "DEM", "SLOPE", "HILLSHADE"]
 
+from eoreader.bands.band_names import (
+    MaskBandNames,
+    DimapV2MaskBandNames,
+    HlsMaskBandNames,
+    LandsatMaskBandNames,
+    PlanetMaskBandNames,
+    S2MaskBandNames,
+    S2TheiaMaskBandNames,
+)
+
+__all__ += [
+    "MaskBandNames",
+    "DimapV2MaskBandNames",
+    "HlsMaskBandNames",
+    "LandsatMaskBandNames",
+    "PlanetMaskBandNames",
+    "S2MaskBandNames",
+    "S2TheiaMaskBandNames",
+]
+
+# Indices
 from eoreader.bands.indices import (
     get_all_index_names,
     get_all_needed_bands,
     get_needed_bands,
     is_index,
+    NEEDED_BANDS,
+    TCBRI,
+    TCGRE,
+    TCWET,
+    SCI,
+    compute_index,
+    get_eoreader_indices,
 )
+
 
 __all__ += [
     "get_all_index_names",
+    "get_eoreader_indices",
     "get_needed_bands",
     "get_all_needed_bands",
     "is_index",
+    "NEEDED_BANDS",
+    "TCBRI",
+    "TCGRE",
+    "TCWET",
+    "SCI",
+    "compute_index",
 ]
 
 # Spyndex indices
+for _idx in get_all_index_names():
+    vars()[_idx] = _idx
 __all__ += get_all_index_names()
+
+# SAR
 from eoreader.bands.band_names import (
     HH,
     HH_DSPK,
@@ -95,7 +135,6 @@ from eoreader.bands.band_names import (
     VV_DSPK,
     SarBandNames,
 )
-from eoreader.bands.indices import *
 from eoreader.bands.sar_bands import SarBand, SarBandMap
 
 __all__ += [
@@ -197,6 +236,20 @@ from eoreader.bands.mappings import (
 
 __all__ += ["EOREADER_TO_SPYNDEX_DICT", "SPYNDEX_TO_EOREADER_DICT", "EOREADER_STAC_MAP"]
 
+from eoreader.bands.band_names import (
+    SCL,
+    AOT,
+    WVP,
+    Sentinel2L2ABands,
+)
+
+__all__ += [
+    "SCL",
+    "AOT",
+    "WVP",
+    "Sentinel2L2ABands",
+]
+
 __all__ += [
     "is_spectral_band",
     "is_thermal_band",
@@ -204,20 +257,22 @@ __all__ += [
     "is_sat_band",
     "is_clouds",
     "is_dem",
+    "is_mask",
+    "is_s2_l2a_specific_band",
     "to_band",
     "to_str",
 ]
 
-from typing import Union
+from typing import Union as _u
 
 from eoreader.exceptions import InvalidTypeError as _ite
 
-BandType = Union[
+BandType = _u[
     str, SpectralBandNames, SarBandNames, CloudsBandNames, DemBandNames, BandNames
 ]
 """ EOReader band type, either a string, a BandName or its children: Spectral, SAR, DEM or Cloud band names """
 
-BandsType = Union[list, BandType]
+BandsType = _u[list, BandType]
 """ EOReader bands type, either a list or a BandType. """
 
 
@@ -416,9 +471,92 @@ def is_dem(dem: BandType) -> bool:
     return is_valid
 
 
+def is_mask(mask: BandType) -> bool:
+    """
+    Returns True if is a Mask band (from :code:`MaskBandNames`)
+
+    Args:
+        mask (BandType): Anything that could be a Mask band
+
+    Returns:
+        bool: True if the band asked is a Mask band
+
+    Examples:
+
+        >>> from eoreader.bands import NDVI, HH, GREEN, SLOPE, CLOUDS, CLDPRB
+        >>>
+        >>> is_mask(NDVI)
+        False
+        >>> is_mask(HH)
+        False
+        >>> is_mask(GREEN)
+        False
+        >>> is_mask(SLOPE)
+        False
+        >>> is_mask(CLOUDS)
+        False
+        >>> is_mask(CLDPRB)
+        True
+    """
+    import contextlib
+
+    is_valid = False
+
+    mask_classes = [
+        DimapV2MaskBandNames,
+        HlsMaskBandNames,
+        LandsatMaskBandNames,
+        PlanetMaskBandNames,
+        S2MaskBandNames,
+        S2TheiaMaskBandNames,
+    ]
+
+    for mask_class in mask_classes:
+        with contextlib.suppress(ValueError):
+            mask_class(mask)
+            is_valid = True
+
+    return is_valid
+
+
+def is_s2_l2a_specific_band(band: BandType) -> bool:
+    """
+    Returns True if is a S2 L2A specific band (from :code:`Sentinel2L2ABands`)
+
+    Args:
+        band (BandType): Anything that could be a S2 L2A specific band
+
+    Returns:
+        bool: True if the band asked is a Mask band
+
+    Examples:
+
+        >>> from eoreader.bands import NDVI, HH, GREEN, SLOPE, CLOUDS, AOT
+        >>>
+        >>> is_s2_l2a_specific_band(NDVI)
+        False
+        >>> is_s2_l2a_specific_band(HH)
+        False
+        >>> is_s2_l2a_specific_band(GREEN)
+        False
+        >>> is_s2_l2a_specific_band(SLOPE)
+        False
+        >>> is_s2_l2a_specific_band(CLOUDS)
+        False
+        >>> is_s2_l2a_specific_band(AOT)
+        True
+    """
+    is_valid = True
+    try:
+        Sentinel2L2ABands(band)
+    except ValueError:
+        is_valid = False
+    return is_valid
+
+
 def to_band(
-    to_convert: Union[list[BandType], BandType], as_list: bool = True
-) -> Union[list, BandNames]:
+    to_convert: _u[list[BandType], BandType], as_list: bool = True
+) -> _u[list, BandNames]:
     """
     Convert a string (or real value) to any alias, band or index.
 
@@ -458,21 +596,35 @@ def to_band(
 
                 band_or_idx = getattr(indices, tc)
             else:
-                try:
-                    band_or_idx = SarBandNames.convert_from(tc)[0]
-                except TypeError:
-                    try:
-                        band_or_idx = SpectralBandNames.convert_from(tc)[0]
-                    except TypeError:
-                        try:
-                            band_or_idx = DemBandNames.convert_from(tc)[0]
-                        except TypeError:
-                            try:
-                                band_or_idx = CloudsBandNames.convert_from(tc)[0]
-                            except TypeError:
-                                pass
+                band_names = [
+                    SarBandNames,
+                    SpectralBandNames,
+                    DemBandNames,
+                    CloudsBandNames,
+                    DimapV2MaskBandNames,
+                    HlsMaskBandNames,
+                    LandsatMaskBandNames,
+                    PlanetMaskBandNames,
+                    S2MaskBandNames,
+                    S2TheiaMaskBandNames,
+                    Sentinel2L2ABands,
+                ]
 
-        elif is_index(tc) or is_sat_band(tc) or is_dem(tc) or is_clouds(tc):
+                for bn in band_names:
+                    try:
+                        band_or_idx = bn.convert_from(tc)[0]
+                        break
+                    except TypeError:
+                        pass
+
+        elif (
+            is_index(tc)
+            or is_sat_band(tc)
+            or is_dem(tc)
+            or is_clouds(tc)
+            or is_mask(tc)
+            or is_s2_l2a_specific_band(tc)
+        ):
             band_or_idx = tc
 
         # Store it
@@ -496,8 +648,8 @@ def to_band(
 
 
 def to_str(
-    to_convert: Union[list[BandType], BandType], as_list: bool = True
-) -> Union[list, str]:
+    to_convert: _u[list[BandType], BandType], as_list: bool = True
+) -> _u[list, str]:
     """
     Convert a string (or real value) to any alias, band or index.
 

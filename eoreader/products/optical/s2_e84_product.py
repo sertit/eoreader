@@ -311,9 +311,6 @@ class S2E84Product(OpticalProduct):
 
         # Get band paths
         bands = types.make_iterable(bands)
-
-        if pixel_size is None and size is not None:
-            pixel_size = self._pixel_size_from_img_size(size)
         band_paths = self.get_band_paths(bands, pixel_size=pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)

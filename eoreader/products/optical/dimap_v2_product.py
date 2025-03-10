@@ -19,6 +19,7 @@ See `here <www.engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf>
 for more information.
 """
 
+import contextlib
 import logging
 import time
 from abc import abstractmethod
@@ -26,10 +27,8 @@ from datetime import date, datetime
 from enum import unique
 from typing import Union
 
-import affine
 import geopandas as gpd
 import numpy as np
-import pandas as pd
 import rasterio
 import xarray as xr
 from lxml import etree
@@ -59,6 +58,7 @@ from eoreader.bands import (
     VRE_2,
     VRE_3,
     BandNames,
+    DimapV2MaskBandNames,
     to_str,
 )
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
@@ -544,7 +544,7 @@ class DimapV2Product(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        return self.open_mask("ROI", **kwargs).to_crs(self.crs())
+        return self._open_mask_as_vec("ROI", **kwargs).to_crs(self.crs())
 
     def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
         """
@@ -630,50 +630,28 @@ class DimapV2Product(VhrProduct):
         # array data
         width = band_arr.rio.width
         height = band_arr.rio.height
-        vec_tr = transform.from_bounds(
-            *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
+        mask_path, mask_exists = self._get_out_path(
+            f"{self.condensed_name}_other_masks_{int(width)}x{int(height)}.npy"
         )
 
-        # Get detector footprint to deduce the outside nodata
-        nodata = self._load_nodata(width, height, vec_tr, **kwargs)
-
-        #  Load masks and merge them into the nodata
-        try:
-            mask_path, mask_exists = self._get_out_path(
-                f"{self.condensed_name}_other_masks_{int(width)}x{int(height)}.npy"
-            )
-            if not mask_exists:
-                LOGGER.debug("Rasterizing DET and VIS masks")
-                # Rasterize nodata
-
-                # Out of order detectors
-                nodata_vec = self.open_mask("DET", **kwargs)
-
-                # Hidden area vector mask
-                nodata_vec = pd.concat([nodata_vec, self.open_mask("VIS", **kwargs)])
-
-                # # Straylight vector mask
-                # nodata_vec = pd.concat(
-                #     [nodata_vec, self.open_mask("SLT", **kwargs)]
-                # )
-
-                if len(nodata_vec) > 0:
-                    # Rasterize mask
-                    mask = features.rasterize(
-                        nodata_vec.geometry,
-                        out_shape=(height, width),
-                        fill=self._mask_false,  # Outside vector
-                        default_value=self._mask_true,  # Inside vector
-                        transform=vec_tr,
-                        dtype=np.uint8,
-                    )
-                    nodata = nodata | mask
-
-                np.save(str(mask_path), nodata)
-            else:
-                nodata = utils.load_np(mask_path, self._tmp_process)
-        except InvalidProductError:
-            pass
+        if not mask_exists:
+            nodata = self._open_masks(
+                [DimapV2MaskBandNames.ROI], size=[width, height], **kwargs
+            )[DimapV2MaskBandNames.ROI].data
+            with contextlib.suppress(InvalidProductError):
+                masks = self._open_masks(
+                    [DimapV2MaskBandNames.DET, DimapV2MaskBandNames.VIS],
+                    size=[width, height],
+                    **kwargs,
+                )
+                nodata = (
+                    nodata.data
+                    | masks[DimapV2MaskBandNames.DET].data
+                    | masks[DimapV2MaskBandNames.VIS].data
+                )
+            np.save(str(mask_path), nodata)
+        else:
+            nodata = utils.load_np(mask_path, self._tmp_process)
 
         return self._set_nodata_mask(band_arr, nodata)
 
@@ -739,16 +717,13 @@ class DimapV2Product(VhrProduct):
         Returns:
             xr.DataArray: Cleaned band array
         """
-        # array data
-        width = band_arr.rio.width
-        height = band_arr.rio.height
-        vec_tr = transform.from_bounds(
-            *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
-        )
-
         # Get detector footprint to deduce the outside nodata
         LOGGER.debug("Load nodata")
-        nodata = self._load_nodata(width, height, vec_tr, **kwargs)
+        nodata = self._open_masks(
+            [DimapV2MaskBandNames.ROI],
+            size=[band_arr.rio.width, band_arr.rio.height],
+            **kwargs,
+        )[DimapV2MaskBandNames.ROI]
 
         LOGGER.debug("Set nodata mask")
         return self._set_nodata_mask(band_arr, nodata)
@@ -878,77 +853,137 @@ class DimapV2Product(VhrProduct):
         band_dict = {}
 
         if bands:
+            cld_arr = self._open_masks(
+                [DimapV2MaskBandNames.CLD], pixel_size=pixel_size, size=size
+            )[DimapV2MaskBandNames.CLD]
+
+            for band in bands:
+                if band not in [ALL_CLOUDS, CLOUDS, RAW_CLOUDS]:
+                    raise InvalidTypeError(f"Non existing cloud band for: {band}")
+
+                # Rename
+                band_name = to_str(band)[0]
+                cld_arr.attrs["long_name"] = band_name
+                band_dict[band] = cld_arr.rename(band_name).astype(np.float32)
+
+        return band_dict
+
+    def _has_mask(self, mask: BandNames) -> bool:
+        """
+        Can the specified mask be loaded from this product ?
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.has_index(DETFOO)
+            True
+
+        Args:
+            mask (BandNames): Mask
+
+        Returns:
+            bool: True if the specified mask is provided by the current product
+        """
+        return mask in [
+            DimapV2MaskBandNames.CLD,
+            DimapV2MaskBandNames.DET,
+            DimapV2MaskBandNames.QTE,
+            DimapV2MaskBandNames.ROI,
+            DimapV2MaskBandNames.SLT,
+            DimapV2MaskBandNames.SNW,
+            DimapV2MaskBandNames.VIS,
+        ]
+
+    def _open_masks(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Open a list of mask files as xarrays.
+
+        Args:
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        band_dict = {}
+
+        for band in bands:
             # Load cloud vector
-            cld_vec = self.open_mask("CLD", **kwargs)
-            has_vec = len(cld_vec) > 0
+            mask_vec = self._open_mask_as_vec(band.name, **kwargs)
+            has_vec = len(mask_vec) > 0
 
             # Load default xarray as a template
             def_utm_path = self._get_default_utm_band(pixel_size=pixel_size, size=size)
 
-            with rasterio.open(str(def_utm_path)) as dst:
-                if dst.count > 1:
+            with rasterio.open(str(def_utm_path)) as ds:
+                if ds.count > 1:
                     def_xarr = utils.read(
-                        dst,
+                        ds,
                         pixel_size=pixel_size,
                         size=size,
                         indexes=[self.bands[self.get_default_band()].id],
                     )
                 else:
-                    def_xarr = utils.read(dst, pixel_size=pixel_size, size=size)
+                    def_xarr = utils.read(ds, pixel_size=pixel_size, size=size)
 
-                # Load nodata
-                width = def_xarr.rio.width
-                height = def_xarr.rio.height
-                vec_tr = transform.from_bounds(
-                    *def_xarr.rio.bounds(), def_xarr.rio.width, def_xarr.rio.height
+            # Load nodata
+            width = def_xarr.rio.width
+            height = def_xarr.rio.height
+            vec_tr = transform.from_bounds(
+                *def_xarr.rio.bounds(), def_xarr.rio.width, def_xarr.rio.height
+            )
+
+            # Rasterize features if existing vector
+            if has_vec:
+                mask_path, mask_exists = self._get_out_path(
+                    f"{self.condensed_name}_{band.name.lower()}_{int(width)}x{int(height)}.npy"
                 )
-                nodata = self._load_nodata(width, height, vec_tr, **kwargs)
-
-                # Rasterize features if existing vector
-                if has_vec:
-                    cld_path, cld_exists = self._get_out_path(
-                        f"{self.condensed_name}_cld_{int(width)}x{int(height)}.npy"
+                if not mask_exists:
+                    LOGGER.debug(f"Rasterizing {band.name} mask")
+                    # Rasterize nodata
+                    mask_arr = features.rasterize(
+                        mask_vec.geometry,
+                        out_shape=(height, width),
+                        fill=self._mask_false,  # Outside vector
+                        default_value=self._mask_true,  # Inside vector
+                        transform=vec_tr,
+                        dtype=np.uint8,
                     )
-                    if not cld_exists:
-                        LOGGER.debug("Rasterizing CLD mask")
-                        # Rasterize nodata
-                        cld_arr = features.rasterize(
-                            cld_vec.geometry,
-                            out_shape=(height, width),
-                            fill=self._mask_false,  # Outside vector
-                            default_value=self._mask_true,  # Inside vector
-                            transform=vec_tr,
-                            dtype=np.uint8,
-                        )
-                        np.save(str(cld_path), cld_arr)
-                    else:
-                        cld_arr = utils.load_np(cld_path, self._tmp_process)
-
-                    # Rasterize gives a 2D array, we want a 3D array
-                    cld_arr = np.expand_dims(cld_arr, axis=0)
+                    np.save(str(mask_path), mask_arr)
                 else:
-                    cld_arr = np.zeros(
-                        (1, def_xarr.rio.height, def_xarr.rio.width), dtype=np.uint8
-                    )
+                    mask_arr = utils.load_np(mask_path, self._tmp_process)
 
-            for band in bands:
-                if band in [ALL_CLOUDS, CLOUDS, RAW_CLOUDS]:
-                    cloud = self._create_mask(
-                        def_xarr,
-                        cld_arr,
-                        nodata,
-                    )
-                else:
-                    raise InvalidTypeError(f"Non existing cloud band for: {band}")
+                # Rasterize gives a 2D array, we want a 3D array
+                mask_arr = np.expand_dims(mask_arr, axis=0)
+            else:
+                mask_arr = np.zeros(
+                    (1, def_xarr.rio.height, def_xarr.rio.width), dtype=np.uint8
+                )
 
-                # Rename
-                band_name = to_str(band)[0]
-                cloud.attrs["long_name"] = band_name
-                band_dict[band] = cloud.rename(band_name).astype(np.float32)
+            # Create mask xarray (and set nodata instead of false)
+            mask = def_xarr.copy(
+                data=xr.where(mask_arr, self._mask_true, self._mask_nodata)
+            ).astype(np.uint8)
+            mask.encoding["dtype"] = np.uint8
+
+            # Rename
+            band_name = to_str(band)[0]
+            mask.attrs["long_name"] = band_name
+            band_dict[band] = mask.rename(band_name)
 
         return band_dict
 
-    def open_mask(self, mask_str: str, **kwargs) -> gpd.GeoDataFrame:
+    def _open_mask_as_vec(self, mask_str: str, **kwargs) -> gpd.GeoDataFrame:
         """
         Open DIMAP V2 mask (GML files stored in MASKS) as :code:`gpd.GeoDataFrame`.
 
@@ -1100,46 +1135,6 @@ class DimapV2Product(VhrProduct):
                 mask.to_file(str(mask_path), driver="GeoJSON")
 
         return mask
-
-    def _load_nodata(
-        self, width: int, height: int, trf: affine.Affine, **kwargs
-    ) -> Union[np.ndarray, None]:
-        """
-        Load nodata (unimaged pixels) as a numpy array.
-
-        Args:
-            width (int): Array width
-            height (int): Array height
-            trf (affine.Affine): Transform to georeference array
-
-        Returns:
-            Union[np.ndarray, None]: Nodata array
-
-        """
-        nodata_det = self.open_mask("ROI", **kwargs)
-
-        if all(nodata_det.is_empty):
-            return np.zeros((1, height, width), dtype=np.uint8)
-        else:
-            nodata_path, nodata_exists = self._get_out_path(
-                f"{self.condensed_name}_nodata_{int(width)}x{int(height)}.npy"
-            )
-            if not nodata_exists:
-                LOGGER.debug("Rasterizing ROI mask")
-                # Rasterize nodata
-                nodata = features.rasterize(
-                    nodata_det.geometry,
-                    out_shape=(height, width),
-                    fill=self._mask_true,  # Outside ROI = nodata (inverted compared to the usual)
-                    default_value=self._mask_false,  # Inside ROI = not nodata
-                    transform=trf,
-                    dtype=np.uint8,
-                )
-                np.save(str(nodata_path), nodata)
-            else:
-                nodata = utils.load_np(nodata_path, self._tmp_process)
-
-            return nodata
 
     def _get_tile_path(self) -> AnyPathType:
         """

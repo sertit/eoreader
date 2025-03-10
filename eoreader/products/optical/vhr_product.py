@@ -254,10 +254,6 @@ class VhrProduct(OpticalProduct):
         with rasterio.open(str(band_path)) as dst:
             dst_crs = dst.crs
 
-            # Compute pixel_size from size (if needed)
-            if pixel_size is None and size is not None:
-                pixel_size = self._pixel_size_from_img_size(size)
-
             # Reproj path in case
             reproj_path = self._get_utm_band_path(band=band.name, pixel_size=pixel_size)
 
@@ -335,10 +331,6 @@ class VhrProduct(OpticalProduct):
         # Return empty if no band are specified
         if not bands:
             return {}
-
-        # Get band paths
-        if pixel_size is None and size is not None:
-            pixel_size = self._pixel_size_from_img_size(size)
         band_paths = self.get_band_paths(bands, pixel_size=pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
@@ -462,9 +454,6 @@ class VhrProduct(OpticalProduct):
         Returns:
             str: Default UTM path
         """
-        # Manage pixel_size
-        if pixel_size is None and size is not None:
-            pixel_size = self._pixel_size_from_img_size(size)
         def_res = pixel_size if pixel_size else self.pixel_size
 
         # Get default band path

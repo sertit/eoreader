@@ -15,6 +15,7 @@
 # limitations under the License.
 """Sentinel-2 products"""
 
+import contextlib
 import difflib
 import json
 import logging
@@ -22,6 +23,7 @@ import os
 import re
 import tempfile
 import zipfile
+from collections import defaultdict, namedtuple
 from datetime import datetime
 from enum import unique
 from typing import Union
@@ -44,6 +46,7 @@ from shapely.geometry import box
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import (
     ALL_CLOUDS,
+    AOT,
     BLUE,
     CA,
     CIRRUS,
@@ -54,6 +57,7 @@ from eoreader.bands import (
     NIR,
     RAW_CLOUDS,
     RED,
+    SCL,
     SHADOWS,
     SWIR_1,
     SWIR_2,
@@ -62,11 +66,17 @@ from eoreader.bands import (
     VRE_2,
     VRE_3,
     WV,
+    WVP,
     BandNames,
+    S2MaskBandNames,
     SpectralBand,
+    is_mask,
+    is_s2_l2a_specific_band,
+    to_band,
     to_str,
 )
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
+from eoreader.keywords import ASSOCIATED_BANDS
 from eoreader.products import OpticalProduct, StacProduct
 from eoreader.products.optical.optical_product import RawUnits
 from eoreader.products.product import OrbitDirection
@@ -108,9 +118,9 @@ class S2Jp2Masks(ListEnum):
     """Sentinel-2 jp2 masks (processing baseline > 4.0)"""
 
     # Both L1C and L2A
-    FOOTPRINT = "DETFOO"
-    CLOUDS = "CLASSI"
-    QUALITY = "QUALIT"  # Regroups TECQUA, DEFECT, NODATA, SATURA
+    DETFOO = "DETFOO"
+    CLASSI = "CLASSI"  # Regroups CLOUDS and SNOWICE
+    QUALIT = "QUALIT"  # Regroups CLOLOW, TECQUA, DEFECT, SATURA, NODATA
 
     # L2A
     CLDPRB = "CLDPRB"
@@ -132,7 +142,36 @@ BAND_DIR_NAMES = {
         "09": ["R60m"],
         "11": ["R20m", "R60m"],
         "12": ["R20m", "R60m"],
+        "SCL": ["R20m", "R60m"],
+        "AOT": ["R10m", "R20m", "R60m"],
+        "WVP": ["R10m", "R20m", "R60m"],
     },
+}
+
+S2_MSK = namedtuple("S2_MSK", ["mask_fname", "band_number"])
+
+MASK_MAPPING_PB_0400 = {
+    S2MaskBandNames.DETFOO: S2_MSK(mask_fname=S2Jp2Masks.DETFOO, band_number=1),
+    S2MaskBandNames.ANC_LOST: S2_MSK(mask_fname=S2Jp2Masks.QUALIT, band_number=1),
+    S2MaskBandNames.ANC_DEG: S2_MSK(mask_fname=S2Jp2Masks.QUALIT, band_number=2),
+    S2MaskBandNames.MSI_LOST: S2_MSK(mask_fname=S2Jp2Masks.QUALIT, band_number=3),
+    S2MaskBandNames.MSI_DEG: S2_MSK(mask_fname=S2Jp2Masks.QUALIT, band_number=4),
+    S2MaskBandNames.QT_DEFECTIVE_PIXELS: S2_MSK(
+        mask_fname=S2Jp2Masks.QUALIT, band_number=5
+    ),
+    S2MaskBandNames.QT_NODATA_PIXELS: S2_MSK(
+        mask_fname=S2Jp2Masks.QUALIT, band_number=6
+    ),
+    S2MaskBandNames.QT_PARTIALLY_CORRECTED_PIXELS: S2_MSK(
+        mask_fname=S2Jp2Masks.QUALIT, band_number=7
+    ),
+    S2MaskBandNames.QT_SATURATED_PIXELS: S2_MSK(
+        mask_fname=S2Jp2Masks.QUALIT, band_number=8
+    ),
+    # S2MaskBandNames.CLOUD_INV: S2_MSK(mask_fname=S2Jp2Masks.QUALIT, band_number=9),  # Non existing for L1C
+    S2MaskBandNames.OPAQUE: S2_MSK(mask_fname=S2Jp2Masks.CLASSI, band_number=1),
+    S2MaskBandNames.CIRRUS: S2_MSK(mask_fname=S2Jp2Masks.CLASSI, band_number=2),
+    S2MaskBandNames.SNOW_ICE: S2_MSK(mask_fname=S2Jp2Masks.CLASSI, band_number=3),
 }
 
 
@@ -217,8 +256,8 @@ class S2Product(OpticalProduct):
         """
         Set product default pixel size (in meters)
         """
-        # S2: use 10m resolution, even if we have 60m and 20m resolution
-        # In the future maybe use one resolution per band ?
+        # S2: use 10 m resolution, even if we got 60 m and 20 m resolution
+        # In the future, maybe use one resolution per band?
         self.pixel_size = 10.0
 
     def _get_tile_name(self) -> str:
@@ -414,7 +453,7 @@ class S2Product(OpticalProduct):
                     footprint = self.extent()
 
         else:
-            det_footprint = self._open_mask_gt_4_0(S2Jp2Masks.FOOTPRINT, def_band)
+            det_footprint = self._open_mask_gt_4_0(S2Jp2Masks.DETFOO, def_band)
             footprint = rasters.vectorize(
                 det_footprint, values=0, keep_values=False, dissolve=True
             )
@@ -540,7 +579,11 @@ class S2Product(OpticalProduct):
         # Manage L2A
         band_dir = BAND_DIR_NAMES[self.product_type]
         for band in band_list:
-            band_id = self.bands[band].id
+            if is_s2_l2a_specific_band(band):
+                band_id = band.name
+            else:
+                band_id = self.bands[band].id
+
             if band_id is None:
                 raise InvalidProductError(
                     f"Non existing band ({band.name}) for S2-{self.product_type.name} products"
@@ -631,16 +674,20 @@ class S2Product(OpticalProduct):
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
-                band_id = self.bands[band].id
+                if is_s2_l2a_specific_band(band):
+                    band_id = band.name
+                else:
+                    band_id = f"B{self.bands[band].id}"
+
                 try:
                     if self.is_archived:
                         band_paths[band] = self._get_archived_rio_path(
-                            f".*{band_folders[band]}.*B{band_id}.*.jp2",
+                            f".*{band_folders[band]}.*{band_id}.*.jp2",
                         )
                     else:
                         band_paths[band] = path.get_file_in_dir(
                             band_folders[band],
-                            f"B{band_id}",
+                            f"{band_id}",
                             extension="jp2",
                         )
                 except (FileNotFoundError, IndexError) as ex:
@@ -770,8 +817,344 @@ class S2Product(OpticalProduct):
 
         return band_arr.astype(np.float32)
 
+    def _reorder_loaded_bands_like_input(
+        self, bands: list, bands_dict: dict, **kwargs
+    ) -> dict:
+        """
+        Get the band key, either with the band alone or with the band and its associated band
+
+        Args:
+            bands (list): Bands that needed to be loaded
+            bands_dict (dict): Dict with loaded bands
+            **kwargs: Other args
+
+        Returns:
+            dict: Loaded bands in the right order
+        """
+        reordered_dict = {}
+        associated_bands = self._sanitized_associated_bands(
+            bands, kwargs.get(ASSOCIATED_BANDS)
+        )
+
+        for band in bands:
+            if associated_bands:
+                for associated_band in associated_bands[band]:
+                    key = self._get_band_key(band, associated_band, **kwargs)
+                    reordered_dict[key] = bands_dict[key]
+            else:
+                key = self._get_band_key(band, associated_band=None, **kwargs)
+                reordered_dict[key] = bands_dict[key]
+
+        return reordered_dict
+
+    def _has_mask(self, mask: BandNames) -> bool:
+        """
+        Can the specified mask be loaded from this product ?
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.has_index(DETFOO)
+            True
+
+        Args:
+            mask (BandNames): Mask
+
+        Returns:
+            bool: True if the specified mask is provided by the current product
+        """
+        s2_masks = [S2MaskBandNames.DETFOO]
+
+        if self._processing_baseline < 4.0:
+            s2_masks += [
+                S2MaskBandNames.TECQUA,
+                S2MaskBandNames.SATURA,
+                S2MaskBandNames.NODATA,
+                S2MaskBandNames.DEFECT,
+            ]
+        else:
+            s2_masks += [
+                S2MaskBandNames.ANC_LOST,
+                S2MaskBandNames.ANC_DEG,
+                S2MaskBandNames.MSI_LOST,
+                S2MaskBandNames.MSI_DEG,
+                S2MaskBandNames.QT_DEFECTIVE_PIXELS,
+                S2MaskBandNames.QT_NODATA_PIXELS,
+                S2MaskBandNames.QT_PARTIALLY_CORRECTED_PIXELS,
+                S2MaskBandNames.QT_SATURATED_PIXELS,
+                S2MaskBandNames.OPAQUE,
+                S2MaskBandNames.CIRRUS,
+                S2MaskBandNames.SNOW_ICE,
+            ]
+
+        if self.product_type == S2ProductType.L2A:
+            s2_masks += [S2MaskBandNames.CLDPRB, S2MaskBandNames.SNWPRB]
+
+        return mask in s2_masks
+
+    def _sanitized_associated_bands(self, bands: list, associated_bands: dict) -> dict:
+        """
+        Sanitizes the associated bands
+        -> convert all inputs to BandNames
+
+        Args:
+            bands (list): Band wanted
+            associated_bands (dict): Associated bands
+
+        Returns:
+            dict: Sanitized associated bands
+        """
+        sanitized_associated_bands = {}
+        if associated_bands:
+            for key, val in associated_bands.items():
+                if val != [None]:
+                    # Allow giving a JP2 mask as an associated band for simplicity
+                    is_jp2_mask = False
+                    if self._processing_baseline >= 4.0:
+                        with contextlib.suppress(ValueError, AttributeError):
+                            jp2_mask = S2Jp2Masks(key)
+                            is_jp2_mask = True
+                            for band, mapping in MASK_MAPPING_PB_0400.items():
+                                if mapping.mask_fname == jp2_mask:
+                                    sanitized_associated_bands[band] = to_band(val)
+
+                    if not is_jp2_mask:
+                        sanitized_associated_bands[to_band(key, as_list=False)] = (
+                            to_band(val)
+                        )
+
+        for band in bands:
+            if is_mask(band) and band not in sanitized_associated_bands:
+                # B00
+                if band in [
+                    S2MaskBandNames.CLDPRB,
+                    S2MaskBandNames.SNWPRB,
+                    S2MaskBandNames.OPAQUE,
+                    S2MaskBandNames.CIRRUS,
+                    S2MaskBandNames.SNOW_ICE,
+                ]:
+                    sanitized_associated_bands[band] = [None]
+                else:
+                    raise ValueError(
+                        f"You must specify an associated spectral band to the {band.name} mask, as it is band-specific."
+                    )
+
+        return sanitized_associated_bands
+
+    def _load_masks(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load cloud files as xarrays. Overload to manage associated bands.
+
+        Args:
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        band_dict = {}
+        if bands:
+            # First, try to open the cloud band written on disk
+            bands_to_load = []
+            associated_bands_to_load = defaultdict(list)
+
+            # Sanitize associated bands
+            associated_bands = self._sanitized_associated_bands(
+                bands, kwargs.get(ASSOCIATED_BANDS)
+            )
+
+            # Update kwargs with sanitized associated bands
+            if associated_bands:
+                kwargs[ASSOCIATED_BANDS] = associated_bands_to_load
+
+            for band in bands:
+                for associated_band in associated_bands[band]:
+                    key = self._get_band_key(band, associated_band, **kwargs)
+                    mask_path = self._construct_band_path(
+                        key,
+                        pixel_size,
+                        size,
+                        writable=False,
+                        **kwargs,
+                    )
+                    if mask_path.is_file():
+                        band_dict[key] = utils.read(mask_path)
+                    else:
+                        bands_to_load.append(band)
+                        associated_bands_to_load[band].append(associated_band)
+
+            # Then load other bands that haven't been loaded before
+            loaded_bands = self._open_masks(
+                bands_to_load,
+                pixel_size,
+                size,
+                **kwargs,
+            )
+
+            # Write them on disk
+            for band_id, band_arr in loaded_bands.items():
+                mask_path = self._construct_band_path(
+                    band_id, pixel_size, size, writable=True, **kwargs
+                )
+                band_arr = utils.write_path_in_attrs(band_arr, mask_path)
+                utils.write(
+                    band_arr,
+                    mask_path,
+                    dtype=band_arr.encoding["dtype"],  # This field is mandatory
+                    nodata=band_arr.encoding.get("_FillValue"),
+                )
+
+            # Merge the dict
+            band_dict.update(loaded_bands)
+
+        return band_dict
+
+    def _open_masks(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Open a list of mask files as xarrays.
+
+        Args:
+            band_arr (xr.DataArray): Band array
+            band (BandNames): Band name as an SpectralBandNames
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            xr.DataArray: Cleaned band array
+        """
+        # Already sanitized
+        associated_bands = self._sanitized_associated_bands(
+            bands, kwargs.get(ASSOCIATED_BANDS)
+        )
+        band_dict = {}
+
+        for band in bands:
+            for associated_band in associated_bands[band]:
+                # Create the key for the output dict
+                key = self._get_band_key(band, associated_band, **kwargs)
+
+                # Open mask
+                LOGGER.debug(f"Loading {to_str(key, as_list=False)} mask")
+                band_arr = self._open_mask(
+                    band, associated_band, pixel_size, size, **kwargs
+                )
+
+                # Save band in output dict
+                band_dict[key] = band_arr
+
+        return band_dict
+
+    def _open_mask(
+        self,
+        band: BandNames,
+        associated_band: BandNames = None,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Open one mask files as xarrays.
+
+        Args:
+            bands (BandNames): Wanted mask band
+            associated_band (BandNames): Associated spectral band to the wanted mask,v to determine the bit ID of some masks. Using the GREEN band if not given.
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            xr.DataArray: Mask
+        """
+        if band in [S2MaskBandNames.CLDPRB, S2MaskBandNames.SNWPRB]:
+            try:
+                if self.is_archived:
+                    mask_path = self._get_archived_rio_path(
+                        f"{self._get_qi_folder()}.*MSK_{band.name}_20m.jp2"
+                    )
+                else:
+                    mask_path = path.get_file_in_dir(
+                        self.path,
+                        f"{self._get_qi_folder()}/MSK_{band.name}_20m.jp2",
+                        exact_name=True,
+                    )
+            except FileNotFoundError:
+                # For some old processing baselines
+                # (2.04 ? But not for all products... i.e. S2A_MSIL2A_20170406T105021_N0204_R051_T30SWD_20170406T105317.SAFE)
+                if self.is_archived:
+                    mask_path = self._get_archived_rio_path(
+                        f"{self._get_qi_folder()}.*_{band.name.replace('PRB', '')}_20m.jp2"
+                    )
+                else:
+                    mask_path = path.get_file_in_dir(
+                        self.path,
+                        f"{self._get_qi_folder()}/*_{band.name.replace('PRB', '')}_20m.jp2",
+                        exact_name=True,
+                    )
+
+            # Old mask proba files are not geocoded
+            if self._processing_baseline < 2.07:
+                mask_path = self._geocode_band(mask_path)
+
+            # Read mask
+            band_arr = utils.read(
+                mask_path,
+                pixel_size=pixel_size,
+                size=size,
+                resampling=Resampling.nearest,
+                as_type=np.uint8,
+                masked=False,
+                **kwargs,
+            )
+        else:
+            if self._processing_baseline < 4.0:
+                vec = self._open_mask_lt_4_0(band.name, associated_band, **kwargs)
+
+                # Rasterize vector
+                def_band = self._read_band(
+                    self.get_default_band_path(),
+                    self.get_default_band(),
+                    pixel_size=pixel_size,
+                    size=size,
+                    **kwargs,
+                )
+
+                # Rasterize to the default band size
+                band_arr = self._rasterize(def_band, vec)
+            else:
+                mapping = MASK_MAPPING_PB_0400[band]
+
+                band_arr = self._open_mask_gt_4_0(
+                    mapping.mask_fname,
+                    associated_band,
+                    pixel_size=pixel_size,
+                    size=size,
+                    indexes=mapping.band_number,
+                    **kwargs,
+                )
+
+        band_name = self._get_band_key(band, associated_band, as_str=True, **kwargs)
+        band_arr.attrs["long_name"] = band_name
+        return band_arr.rename(band_name)
+
     def _open_mask_lt_4_0(
-        self, mask_id: Union[str, S2GmlMasks], band: Union[BandNames, str] = None
+        self,
+        mask_id: Union[str, S2GmlMasks],
+        band: Union[BandNames, str] = None,
+        **kwargs,
     ) -> gpd.GeoDataFrame:
         """
         Open S2 mask (GML files stored in QI_DATA/qi) as :code:`gpd.GeoDataFrame`.
@@ -847,7 +1230,11 @@ class S2Product(OpticalProduct):
 
             # Read vector
             try:
-                mask = vectors.read(mask_path, crs=self.crs())
+                mask = vectors.read(
+                    mask_path,
+                    crs=self.crs(),
+                    **utils._prune_keywords(**kwargs),
+                )
             except vectors.DataSourceError:
                 LOGGER.warning(f"Corrupted mask: {mask_path}. Returning an empty one.")
                 mask = gpd.GeoDataFrame(geometry=[], crs=self.crs())
@@ -888,7 +1275,7 @@ class S2Product(OpticalProduct):
         """
         # Check inputs
         mask_id = S2Jp2Masks.from_value(mask_id)
-        if mask_id == S2Jp2Masks.CLOUDS:
+        if mask_id == S2Jp2Masks.CLASSI:
             band = "00"
 
         # Get QI_DATA path
@@ -977,19 +1364,15 @@ class S2Product(OpticalProduct):
         # Get detector footprint to deduce the outside nodata
         nodata_det = self._open_mask_lt_4_0(
             S2GmlMasks.FOOTPRINT, band
-        )  # Detector nodata, -> pixels that are outside the detectors
+        )  # Detector nodata -> pixels that are outside the detectors
 
         if len(nodata_det) > 0:
             # Rasterize nodata
-            mask = features.rasterize(
-                nodata_det.geometry,
-                out_shape=(band_arr.rio.height, band_arr.rio.width),
-                fill=self._mask_true,  # Outside detector = nodata (inverted compared to the usual)
-                default_value=self._mask_false,  # Inside detector = not nodata
-                transform=transform.from_bounds(
-                    *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
-                ),
-                dtype=np.uint8,
+            mask = self._rasterize(
+                band_arr,
+                nodata_det,
+                value_inside=self._mask_false,
+                value_outside=self._mask_true,
             )
         else:
             # Manage empty geometry: nodata is 0
@@ -1022,18 +1405,8 @@ class S2Product(OpticalProduct):
 
         if len(nodata_pix) > 0:
             # Rasterize mask
-            mask_pix = features.rasterize(
-                nodata_pix.geometry,
-                out_shape=(band_arr.rio.height, band_arr.rio.width),
-                fill=self._mask_false,  # Outside vector
-                default_value=self._mask_true,  # Inside vector
-                transform=transform.from_bounds(
-                    *band_arr.rio.bounds(), band_arr.rio.width, band_arr.rio.height
-                ),
-                dtype=np.uint8,
-            )
-
-            mask[mask_pix] = self._mask_true
+            mask_pix = self._rasterize(band_arr, nodata_pix)
+            mask = mask | mask_pix
 
         return self._set_nodata_mask(band_arr, mask)
 
@@ -1055,7 +1428,7 @@ class S2Product(OpticalProduct):
         """
         # Get detector footprint to deduce the outside nodata
         nodata = self._open_mask_gt_4_0(
-            S2Jp2Masks.FOOTPRINT,
+            S2Jp2Masks.DETFOO,
             band,
             size=(band_arr.rio.width, band_arr.rio.height),
             **kwargs,
@@ -1070,7 +1443,7 @@ class S2Product(OpticalProduct):
         # Nodata pixels (band 6)
         # Saturated pixels (band 8)
         quality = self._open_mask_gt_4_0(
-            S2Jp2Masks.QUALITY,
+            S2Jp2Masks.QUALIT,
             band,
             size=(band_arr.rio.width, band_arr.rio.height),
             indexes=[3, 4, 5, 6, 8],
@@ -1137,7 +1510,7 @@ class S2Product(OpticalProduct):
         """
         # Get detector footprint to deduce the outside nodata
         nodata = self._open_mask_gt_4_0(
-            S2Jp2Masks.FOOTPRINT,
+            S2Jp2Masks.DETFOO,
             band,
             size=(band_arr.rio.width, band_arr.rio.height),
             **kwargs,
@@ -1165,12 +1538,10 @@ class S2Product(OpticalProduct):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        # Return empty if no band are specified
+        # Return empty if no band is specified
         if not bands:
             return {}
 
-        if pixel_size is None and size is not None:
-            pixel_size = self._pixel_size_from_img_size(size)
         band_paths = self.get_band_paths(bands, pixel_size=pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
@@ -1179,6 +1550,120 @@ class S2Product(OpticalProduct):
         )
 
         return band_arrays
+
+    def _has_s2_l2a_bands(self, band: BandNames) -> bool:
+        """
+        Can the specified mask be loaded from this product ?
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands import *
+            >>> path = r"S2A_MSIL2A_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.has_index(SCL)
+            True
+
+        Args:
+            mask (BandNames): Mask
+
+        Returns:
+            bool: True if the specified mask is provided by the current product
+        """
+        return self.product_type == S2ProductType.L2A
+
+    def _load_s2_l2a_bands(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load Sentinel-2 L2A band files as xarrays.
+
+        Args:
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        band_dict = {}
+        if bands:
+            # First, try to open the cloud band written on disk
+            bands_to_load = []
+            for band in bands:
+                s2_l2a_path = self._construct_band_path(
+                    band, pixel_size, size, writable=False, **kwargs
+                )
+                if s2_l2a_path.is_file():
+                    band_dict[band] = utils.read(s2_l2a_path)
+                else:
+                    bands_to_load.append(band)
+
+            # Then load other bands that haven't been loaded before
+            loaded_bands = {}
+            for band, band_path in self.get_band_paths(bands_to_load).items():
+                # SCL is a uint8 classified band
+                if band == SCL:
+                    band_arr = utils.read(
+                        band_path,
+                        pixel_size=pixel_size,
+                        size=size,
+                        resampling=Resampling.nearest,
+                        as_type=np.uint8,
+                        masked=False,
+                        **kwargs,
+                    )
+
+                # WVP and AOT are classif float32 bands
+                elif band in [WVP, AOT]:
+                    band_arr = self._read_band(
+                        band_path, band, pixel_size=pixel_size, size=size, **kwargs
+                    )
+
+                    if str(band_path).endswith(".jp2"):
+                        try:
+                            # Get MTD XML file
+                            root, _ = self.read_datatake_mtd()
+
+                            # Get quantification value
+                            quantif_prefix = band.name
+                            try:
+                                quantif_value = float(
+                                    root.findtext(
+                                        f".//{quantif_prefix}QUANTIFICATION_VALUE"
+                                    )
+                                )
+                            except TypeError as exc:
+                                raise InvalidProductError(
+                                    f"{quantif_prefix}QUANTIFICATION_VALUE not found in datatake metadata!"
+                                ) from exc
+                        except InvalidProductError:
+                            quantif_value = 1000.0
+
+                        # Compute the correct radiometry of the band
+                        band_arr = (band_arr / quantif_value).astype(np.float32)
+
+                else:
+                    raise NotImplementedError
+
+                loaded_bands[band] = band_arr
+
+            # Write them on disk
+            for band_id, band_arr in loaded_bands.items():
+                s2_l2a_path = self._construct_band_path(
+                    band_id, pixel_size, size, writable=True, **kwargs
+                )
+                band_arr = utils.write_path_in_attrs(band_arr, s2_l2a_path)
+                utils.write(band_arr, s2_l2a_path)
+
+            # Merge the dict
+            band_dict.update(loaded_bands)
+
+        return band_dict
 
     def _get_condensed_name(self) -> str:
         """
@@ -1317,6 +1802,7 @@ class S2Product(OpticalProduct):
                 self.get_default_band(),
                 pixel_size=pixel_size,
                 size=size,
+                **kwargs,
             )
             nodata = np.where(np.isnan(def_band), 1, 0)
 
@@ -1379,7 +1865,7 @@ class S2Product(OpticalProduct):
 
         if bands:
             cloud_arr = self._open_mask_gt_4_0(
-                S2Jp2Masks.CLOUDS,
+                S2Jp2Masks.CLASSI,
                 "00",
                 pixel_size=pixel_size,
                 size=size,
@@ -1438,45 +1924,13 @@ class S2Product(OpticalProduct):
         band_dict = {}
 
         if bands:
-            try:
-                if self.is_archived:
-                    mask_path = self._get_archived_rio_path(
-                        f"{self._get_qi_folder()}.*MSK_CLDPRB_20m.jp2"
-                    )
-                else:
-                    mask_path = path.get_file_in_dir(
-                        self.path,
-                        f"{self._get_qi_folder()}/MSK_CLDPRB_20m.jp2",
-                        exact_name=True,
-                    )
-            except FileNotFoundError:
-                # For some old processing baselines
-                # (2.04 ? But not for all products... i.e. S2A_MSIL2A_20170406T105021_N0204_R051_T30SWD_20170406T105317.SAFE)
-                if self.is_archived:
-                    mask_path = self._get_archived_rio_path(
-                        f"{self._get_qi_folder()}.*_CLD_20m.jp2"
-                    )
-                else:
-                    mask_path = path.get_file_in_dir(
-                        self.path,
-                        f"{self._get_qi_folder()}/*_CLD_20m.jp2",
-                        exact_name=True,
-                    )
-
-            # Old mask proba files are not geocoded
-            if self._processing_baseline < 2.07:
-                mask_path = self._geocode_band(mask_path)
-
             # Read mask
-            cloud_arr = utils.read(
-                mask_path,
+            cloud_arr = self._open_masks(
+                [S2MaskBandNames.CLDPRB],
                 pixel_size=pixel_size,
                 size=size,
-                resampling=Resampling.nearest,
-                as_type=np.uint8,
-                masked=False,
                 **kwargs,
-            )
+            )[S2MaskBandNames.CLDPRB]
 
             # Threshold the probability array -> Cloud > 66%
             # Do the same classification as Landsat
@@ -1612,7 +2066,7 @@ class S2Product(OpticalProduct):
             # If empty geometry, just
             cond = np.full(
                 shape=(xds.rio.count, xds.rio.height, xds.rio.width),
-                fill_value=self._mask_false,
+                fill_value=value_outside,
                 dtype=np.uint8,
             )
         return self._create_mask(xds, cond, nodata)
@@ -1668,9 +2122,13 @@ class S2Product(OpticalProduct):
 
         return geocoded_path
 
-    def _get_geocoding_info(self, band_path: AnyPathType) -> (Affine, int, int, CRS):
+    def _get_geocoding_info(
+        self, band_path: AnyPathType = None
+    ) -> (Affine, int, int, CRS):
         """
-        Get geocoding information, used for old L2Ap products (bands or old cloud probability masks).
+        Get geocoding information, used for:
+        - old L2Ap products (bands or old cloud probability masks)
+        - rasterizing masks for PB < 04.00
 
         Args:
             band_path (AnyPathType): Band path to be geocoded
@@ -1679,30 +2137,37 @@ class S2Product(OpticalProduct):
             (Affine, int, int, CRS): Transform, width, height and CRS of the band
         """
         try:
-            if isinstance(band_path, str):
-                band_path = AnyPath(band_path)
-
-            # Read metadata
-            root, ns = self.read_mtd()
-
-            # Determine wanted resolution
-            if "10m" in band_path.name:
-                res = 10
-            elif "20m" in band_path.name:
-                res = 20
+            if band_path is None:
+                resolution = int(self.pixel_size)
             else:
-                res = 60
+                if isinstance(band_path, str):
+                    band_path = AnyPath(band_path)
+
+                # Read metadata
+                root, ns = self.read_mtd()
+
+                # Determine wanted resolution
+                if "10m" in band_path.name:
+                    resolution = 10
+                elif "20m" in band_path.name:
+                    resolution = 20
+                else:
+                    resolution = 60
 
             # Open size
-            width = int(root.findtext(f".//Size[@resolution='{res}']/NCOLS"))
-            height = int(root.findtext(f".//Size[@resolution='{res}']/NROWS"))
+            width = int(root.findtext(f".//Size[@resolution='{resolution}']/NCOLS"))
+            height = int(root.findtext(f".//Size[@resolution='{resolution}']/NROWS"))
 
             # Open upper-left corner
-            ulx = float(root.findtext(f".//Geoposition[@resolution='{res}']/ULX"))
-            uly = float(root.findtext(f".//Geoposition[@resolution='{res}']/ULY"))
+            ulx = float(
+                root.findtext(f".//Geoposition[@resolution='{resolution}']/ULX")
+            )
+            uly = float(
+                root.findtext(f".//Geoposition[@resolution='{resolution}']/ULY")
+            )
 
             # Create transform
-            tf = transform.from_origin(ulx, uly, res, res)
+            tf = transform.from_origin(ulx, uly, resolution, resolution)
         except InvalidProductError as exc:
             raise InvalidProductError("Cannot geocode any band!") from exc
 
@@ -1948,7 +2413,10 @@ class S2StacProduct(StacProduct, S2Product):
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
-                band_id = self.bands[band].id
+                if is_s2_l2a_specific_band(band):
+                    band_id = band.name
+                else:
+                    band_id = self.bands[band].id
                 try:
                     band_paths[band] = self._get_path(band_id)
                 except (FileNotFoundError, IndexError) as ex:

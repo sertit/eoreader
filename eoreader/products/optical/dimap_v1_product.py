@@ -145,7 +145,7 @@ class DimapV1Product(VhrProduct):
         """
         # If ortho -> nodata is not set !
         if self.is_ortho:
-            # Get footprint of the first band of the stack
+            # Get the footprint of the first band of the stack
             footprint_dezoom = 10
             arr = utils.read(
                 self.get_default_band_path(),

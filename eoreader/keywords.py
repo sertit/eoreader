@@ -28,6 +28,7 @@ __all__ = [
     "HILLSHADE_KW",
     "ICEYE_USE_SLC",
     "TO_REFLECTANCE",
+    "ASSOCIATED_BANDS",
 ]
 
 SLSTR_RAD_ADJUST = "slstr_radiance_adjustment"
@@ -41,7 +42,7 @@ SLSTR_VIEW = "slstr_view"
 
 CLEAN_OPTICAL = "clean_optical"
 """
-Method to clean spectral band (manage invalid pixels, only nodata or directly raw data).
+Method to clean a spectral band (manage invalid pixels, only nodata or directly raw data).
 This can speed up the process.
 """
 
@@ -74,6 +75,11 @@ Force use the SLC image for GRD_SLC ICEYE products which contains both.
 TO_REFLECTANCE = "to_reflectance"
 """
 Convert optical data to reflectance or brightness temperature (default is :code:`True`). If :code:`False`, it loads the values as is.
+"""
+
+ASSOCIATED_BANDS = "associated_bands"
+"""
+Associated spectral band to the wanted mask, used for Sentinel-2 and Sentinel-2 Theia, for masks that are band-specific.
 """
 
 

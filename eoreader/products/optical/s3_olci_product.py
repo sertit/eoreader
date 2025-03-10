@@ -28,7 +28,7 @@ import numpy as np
 import rasterio
 import xarray as xr
 from rasterio.enums import Resampling
-from sertit import rasters, rasters_rio
+from sertit import rasters_rio
 from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -535,7 +535,7 @@ class S3OlciProduct(S3Product):
 
             # Write on disk
             band_arr = utils.write_path_in_attrs(band_arr, pp_path)
-            utils.write(band_arr, pp_path)
+            utils.write(band_arr, pp_path, dtype=kwargs.get("dtype", np.float32))
 
         return pp_path
 
@@ -715,6 +715,7 @@ class S3OlciProduct(S3Product):
             subdataset=subds,
             pixel_size=band_arr.rio.resolution(),
             to_reflectance=False,
+            dtype=np.uint32,
         )
 
         # Open flag file
@@ -726,7 +727,7 @@ class S3OlciProduct(S3Product):
             as_type=np.uint32,
             **kwargs,
         )
-        invalid, sat = rasters.read_bit_array(qual_arr, [invalid_id, sat_band_id])
+        invalid, sat = utils.read_bit_array(qual_arr, [invalid_id, sat_band_id])
 
         # Get nodata mask
         no_data = np.where(np.isnan(band_arr.data), self._mask_true, self._mask_false)

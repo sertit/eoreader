@@ -58,6 +58,7 @@ from eoreader.bands import (
     VRE_3,
     WV,
     BandNames,
+    HlsMaskBandNames,
     SpectralBand,
     to_str,
 )
@@ -163,32 +164,73 @@ class HlsProduct(OpticalProduct):
         """
         self.pixel_size = 30.0
 
-    def open_mask(
-        self, pixel_size: float = None, size: Union[list, tuple] = None, **kwargs
-    ) -> Union[xr.DataArray, None]:
+    def _has_mask(self, mask: BandNames) -> bool:
         """
-        Open a HLS Fmask
+        Can the specified mask be loaded from this product ?
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.has_index(DETFOO)
+            True
 
         Args:
-            pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            mask (BandNames): Mask
 
         Returns:
-            Union[xarray.DataArray, None]: Mask array
-
+            bool: True if the specified mask is provided by the current product
         """
-        mask_path = self._get_fmask_path()
+        return mask in [
+            HlsMaskBandNames.FMASK,
+            HlsMaskBandNames.SAA,
+            HlsMaskBandNames.SZA,
+            HlsMaskBandNames.VAA,
+            HlsMaskBandNames.VZA,
+        ]
 
-        # Open mask band
-        return utils.read(
-            mask_path,
-            pixel_size=pixel_size,
-            size=size,
-            resampling=Resampling.nearest,  # Nearest to keep the flags
-            masked=False,
-            as_type=np.uint8,
-            **kwargs,
-        )
+    def _open_masks(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Open a list of mask files as xarrays.
+
+        Args:
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        band_dict = {}
+
+        for band in bands:
+            if band == HlsMaskBandNames.FMASK:
+                mask_path = self._get_fmask_path()
+            else:
+                mask_path = self._get_path(band.name)
+
+            mask = utils.read(
+                mask_path,
+                pixel_size=pixel_size,
+                size=size,
+                resampling=Resampling.nearest,  # Nearest to keep the mask value as is
+                masked=True,  # These masks have nodata -> mask them!
+                **kwargs,
+            )
+
+            band_name = to_str(band)[0]
+            mask.attrs["long_name"] = band_name
+            band_dict[band] = mask.rename(band_name)
+
+        return band_dict
 
     def _load_nodata(
         self, pixel_size: float = None, size: Union[list, tuple] = None, **kwargs
@@ -208,7 +250,9 @@ class HlsProduct(OpticalProduct):
             Union[xarray.DataArray, None]: Nodata array
 
         """
-        fmask = self.open_mask(**kwargs)
+        fmask = self._open_masks(
+            [HlsMaskBandNames.FMASK], pixel_size=pixel_size, size=size, **kwargs
+        )[HlsMaskBandNames.FMASK]
         nodata = fmask.copy(
             data=np.where(fmask == self._mask_nodata, 1, 0).astype(np.uint8)
         )
@@ -876,8 +920,6 @@ class HlsProduct(OpticalProduct):
         # Get band paths
         bands = types.make_iterable(bands)
 
-        if pixel_size is None and size is not None:
-            pixel_size = self._pixel_size_from_img_size(size)
         band_paths = self.get_band_paths(bands, pixel_size=pixel_size, **kwargs)
 
         # Open bands and get array (resampled if needed)
@@ -954,7 +996,9 @@ class HlsProduct(OpticalProduct):
 
         if bands:
             # Open Fmask
-            fmask = self.open_mask(pixel_size, size, **kwargs)
+            fmask = self._open_masks(
+                [HlsMaskBandNames.FMASK], pixel_size=pixel_size, size=size, **kwargs
+            )[HlsMaskBandNames.FMASK]
 
             # Don't use load_nodata in order not to load a 2nd time fmask
             nodata = np.where(fmask == self._mask_nodata, 1, 0)
@@ -962,7 +1006,7 @@ class HlsProduct(OpticalProduct):
             cloud_id = 1
             shadow_id = 3
 
-            cir, cld, shd = rasters.read_bit_array(
+            cir, cld, shd = utils.read_bit_array(
                 fmask, [cirrus_id, cloud_id, shadow_id]
             )
 

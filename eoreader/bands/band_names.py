@@ -545,3 +545,264 @@ class DemBandNames(BandNames):
 DEM = DemBandNames.DEM
 SLOPE = DemBandNames.SLOPE
 HILLSHADE = DemBandNames.HILLSHADE
+
+
+class MaskBandNames(BandNames):
+    """
+    Mask Band names: Base class to make isinstance work
+    -> nothing mapped here, to be done per product I suppose...
+
+    Only single band masks will be managed.
+    """
+
+    #
+
+    # -- DIMAP v1 --
+    # None
+
+    # -- Maxar --
+    # None
+
+    # -- Sentinel-3 --
+    # TODO: Sentinel-3 masks not implemented yet (write an issue on GitHub if needed !)
+    # More complex than for other products because of the an/in/... suffixes
+
+    # -- SV1 --
+    # None
+
+    pass
+
+
+class DimapV2MaskBandNames(MaskBandNames):
+    """DIMAP v2 Mask Band names"""
+
+    CLD = "CLD"
+    """ DIMAP v2 mask - Cloud vector mask """
+
+    DET = "DET"
+    """ DIMAP v2 mask - Out of order detectors vector mask """
+
+    QTE = "QTE"
+    """ DIMAP v2 mask - Synthetic technical quality vector mask """
+
+    ROI = "ROI"
+    """ DIMAP v2 mask - Region of Interest vector mask """
+
+    SLT = "SLT"
+    """ DIMAP v2 mask - Straylight vector mask """
+
+    SNW = "SNW"
+    """ DIMAP v2 mask - Snow vector mask """
+
+    VIS = "VIS"
+    """ DIMAP v2 mask - Hidden area vector mask (optional) """
+
+
+class HlsMaskBandNames(MaskBandNames):
+    """HLS Mask Band names"""
+
+    FMASK = "Fmask"
+    """ HLS mask - Fmask """
+
+    SAA = "SAA"
+    """ HLS and Landsat (collection 2) mask - SAA """
+
+    SZA = "SZA"
+    """ HLS and Landsat (collection 2) mask - SZA """
+
+    VAA = "VAA"
+    """ HLS and Landsat (collection 2) mask - VAA """
+
+    VZA = "VZA"
+    """ HLS and Landsat (collection 2) mask - VZA """
+
+
+class LandsatMaskBandNames(MaskBandNames):
+    """Landsat Mask Band names"""
+
+    # COL_1
+    BQA = "BQA"
+    """ Landsat mask (collection 1) - BQA """
+
+    # COL_2
+    QA_PIXEL = "QA_PIXEL"
+    """ Landsat mask (collection 2) - Quality Assessment pixel """
+
+    QA_RADSAT = "QA_RADSAT"
+    """ Landsat mask (collection 2) - QA_RADSAT """
+
+    # Level 1
+    SAA = "SAA"
+    """ Landsat (collection 2) mask - SAA """
+
+    SZA = "SZA"
+    """ Landsat (collection 2) mask - SZA """
+
+    VAA = "VAA"
+    """ Landsat (collection 2) mask - VAA """
+
+    VZA = "VZA"
+    """ Landsat (collection 2) mask - VZA """
+
+    # Level 2
+    SR_QA_AEROSOL = "SR_QA_AEROSOL"
+    """ Landsat mask (collection 2, level 2) - SR_QA_AEROSOL """
+
+    ST_QA = "ST_QA"
+    """ Landsat mask (collection 2, level 2) - ST_QA """
+
+
+class PlanetMaskBandNames(MaskBandNames):
+    """Planet Mask Band names"""
+
+    # -- Planet --
+    # https://developers.planet.com/docs/data/udm-2/#udm21-bands
+    # UDM2 = "UDM2"
+    # """ Planet mask - Usable Data Mask - 8 bands """
+    # Not implemented (multi band mask)
+
+    CLEAR = "CLEAR"
+    """ Planet mask - Usable Data Mask - First band - Clear map """
+
+    SNOW = "SNOW"
+    """ Planet mask - Usable Data Mask - 2nd band - Snow map """
+
+    SHADOW = "SHADOW"
+    """ Planet mask - Usable Data Mask - 3rd band - Shadow map """
+
+    LIGHT_HAZE = "LIGHT_HAZE"
+    """ Planet mask - Usable Data Mask - 4th band - Light haze map """
+
+    HEAVY_HAZE = "HEAVY_HAZE"
+    """ Planet mask - Usable Data Mask - 5th band - Heavy haze map (not supported by UDM 2.1 onward) """
+
+    CLOUD = "CLOUD"
+    """ Planet mask - Usable Data Mask - 6th band - Cloud map """
+
+    CONFIDENCE = "CONFIDENCE"
+    """ Planet mask - Usable Data Mask - 7th band - Confidence map """
+
+    UNUSABLE = "UNUSABLE"
+    """ Planet mask - Usable Data Mask - 8th band - Unusable pixels (Equivalent to the UDM asset)"""
+
+    UDM = "UDM"
+    """ Planet mask - Unusable Data Mask (Legacy) """
+
+
+class S2MaskBandNames(MaskBandNames):
+    """Sentinel-2 Mask Band names"""
+
+    DETFOO = "DETFOO"
+    """ Sentinel-2 mask - Detectors footprint (Legacy) """
+
+    # Processing baseline < 04.00
+    TECQUA = "TECQUA"
+    """ Sentinel-2 mask - Technical quality mask """
+
+    DEFECT = "DEFECT"
+    """ Sentinel-2 mask (band 5 in MSK_QUALIT for processing baseline >= 04.00) - Defective pixels """
+
+    NODATA = "NODATA"
+    """ Sentinel-2 mask (band 6 and 7 in MSK_QUALIT for processing baseline >= 04.00) - Pixel nodata (inside the detectors) """
+
+    SATURA = "SATURA"
+    """ Sentinel-2 mask (band 8 in MSK_QUALIT for processing baseline >= 04.00) - Saturated Pixels mask """
+
+    # Processing baseline >= 04.00
+    # https://sentiwiki.copernicus.eu/__attachments/1692737/S2-PDGS-CS-DI-PSD%20-%20S2%20Product%20Specification%20Document%202024%20-%2015.0.pdf
+    # table 107
+    # MSK_QUALIT
+    ANC_LOST = "MSK_QUALIT_ANC_LOST"
+    """ Sentinel-2 mask (band 1 in MSK_QUALIT for processing baseline >= 04.00) - Ancillary lost data """
+
+    ANC_DEG = "MSK_QUALIT_ANC_DEG"
+    """ Sentinel-2 mask (band 2 in MSK_QUALIT for processing baseline >= 04.00) - Ancillary degraded data  """
+
+    MSI_LOST = "MSK_QUALIT_MSI_LOST"
+    """ Sentinel-2 mask (band 3 in MSK_QUALIT for processing baseline >= 04.00) - MSI lost data """
+
+    MSI_DEG = "MSK_QUALIT_MSI_DEG"
+    """ Sentinel-2 mask (band 4 in MSK_QUALIT for processing baseline >= 04.00) - MSI degraded data """
+
+    QT_DEFECTIVE_PIXELS = "MSK_QUALIT_QT_DEFECTIVE_PIXELS"
+    """ Sentinel-2 mask (band 5 in MSK_QUALIT for processing baseline >= 04.00) - Defective pixels (matching defective columns) """
+
+    QT_NODATA_PIXELS = "MSK_QUALIT_QT_NODATA_PIXELS"
+    """ Sentinel-2 mask (band 6 in MSK_QUALIT for processing baseline >= 04.00) - No–data pixels """
+
+    QT_PARTIALLY_CORRECTED_PIXELS = "MSK_QUALIT_QT_PARTIALLY_CORRECTED_PIXELS"
+    """ Sentinel-2 mask (band 7 in MSK_QUALIT for processing baseline >= 04.00) - Pixels partially corrected during cross-talk processing."""
+
+    QT_SATURATED_PIXELS = "MSK_QUALIT_QT_SATURATED_PIXELS"
+    """
+    Sentinel-2 mask (band 8 in MSK_QUALIT for processing baseline >= 04.00) - Saturated pixels"""
+
+    # Only for L1B and L1A
+    # CLOUD_INV = "MSK_QUALIT_CLOUD_INV"
+    # """ Sentinel-2 mask (band 9 in MSK_QUALIT for processing baseline >= 04.00) - Coarse cloud masks """
+
+    # MSK_CLASSI
+    OPAQUE = "MSK_CLASSI_OPAQUE"
+    """ Sentinel-2 mask (band 1 in MSK_CLASSI for processing baseline >= 04.00) - Opaque clouds """
+
+    CIRRUS = "MSK_CLASSI_CIRRUS"
+    """ Sentinel-2 mask (band 2 in MSK_CLASSI for processing baseline >= 04.00) - Cirrus clouds """
+
+    SNOW_ICE = "MSK_CLASSI_SNOW_ICE"
+    """ Sentinel-2 mask (band 3 in MSK_CLASSI for processing baseline >= 04.00) - Snow and Ice areas """
+
+    # L2A
+    CLDPRB = "CLDPRB"
+    """ Sentinel-2 mask (L2A only) - Clouds probability (equals 'CLOUDS_RAW')"""
+
+    SNWPRB = "SNWPRB"
+    """ Sentinel-2 mask (L2A only) - Snow probability """
+
+
+class S2TheiaMaskBandNames(MaskBandNames):
+    """Sentinel-2 Theia Mask Band names"""
+
+    # THEIA
+    DFP = "DFP"
+    """ Sentinel-2 THEIA mask - Defective pixels """
+
+    EDG = "EDG"
+    """ Sentinel-2 THEIA mask - Nodata pixels """
+
+    SAT = "SAT"
+    """ Sentinel-2 THEIA mask - Saturated pixels """
+
+    MG2 = "MG2"
+    """ Sentinel-2 THEIA mask - Geophysical mask (classification) """
+
+    IAB = "IAB"
+    """ Sentinel-2 THEIA mask - Mask where water vapor and TOA pixels have been interpolated """
+
+    CLM = "CLM"
+    """ Sentinel-2 THEIA mask - Cloud masks """
+
+
+# Mask bands are not exposed as other bands (great risks of overlap between names!)
+
+
+class Sentinel2L2ABands(BandNames):
+    """Sentinel-2 L2A specific Band names"""
+
+    AOT = "AOT"
+    """ Sentinel-2 L2A specific band - Aerosol Optical Thickness (Quality assurance band) """
+
+    WVP = "WVP"
+    """ Sentinel-2 L2A specific band - Water Vapour (Quality assurance band) """
+
+    SCL = "SCL"
+    """ Sentinel-2 L2A specific band - Scene Classification Layer (Quality assurance band) """
+
+    # TCI = "TCI"
+    # """ Sentinel-2 L2A specific band - True Color Image """
+    # Not implemented (multi-band band, how to solve that? TCI-R, TCI-G, TCI-B?) -> Open a GitHub issue if needed!
+
+
+AOT = Sentinel2L2ABands.AOT
+WVP = Sentinel2L2ABands.WVP
+SCL = Sentinel2L2ABands.SCL
+# TCI = Sentinel2L2ABands.TCI

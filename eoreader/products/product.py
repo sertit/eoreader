@@ -72,6 +72,8 @@ from eoreader.bands import (
     is_clouds,
     is_dem,
     is_index,
+    is_mask,
+    is_s2_l2a_specific_band,
     is_sar_band,
     is_spectral_band,
     to_band,
@@ -635,14 +637,18 @@ class Product:
         # Convert to str
         res_str = self._pixel_size_to_str(pixel_size)
 
+        win_suffix = utils.get_window_suffix(kwargs.get("window"))
+        if win_suffix:
+            win_suffix = f"_{win_suffix}"
+
         return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{to_str(band)[0]}_{res_str.replace('.', '-')}.tif",
+            f"{self.condensed_name}_{to_str(band)[0]}_{res_str.replace('.', '-')}{win_suffix}.tif",
         )
 
     @abstractmethod
     def get_default_band_path(self, **kwargs) -> AnyPathType:
         """
-        Get default band path (among the existing ones).
+        Get the default band path (among the existing ones).
 
         Usually :code:`GREEN` band for optical data and the first existing one between :code:`VV` and :code:`HH` for SAR data.
 
@@ -959,6 +965,14 @@ class Product:
                 "'resolution' has been deprecated in favor of 'pixel_size' to avoid confusion. Removed since 0.22.0."
             )
 
+        # Set the default pixel size if nothing is specified
+        if pixel_size is None:
+            if size is None:
+                pixel_size = self.pixel_size
+            else:
+                # Assume square pixel size
+                pixel_size = self._pixel_size_from_img_size(size)[0]
+
         # Check if all bands are valid
         bands = self.to_band(bands)
 
@@ -1002,6 +1016,8 @@ class Product:
         index_list = []
         dem_list = []
         clouds_list = []
+        mask_list = []
+        s2_l2a_list = []
 
         # Check if everything is valid
         for band in bands:
@@ -1044,6 +1060,20 @@ class Product:
                 else:
                     raise TypeError(
                         f"You cannot ask for cloud bands as {self.name} is a SAR product."
+                    )
+            elif is_mask(band):
+                if self.sensor_type == SensorType.OPTICAL:
+                    mask_list.append(band)
+                else:
+                    raise TypeError(
+                        f"You cannot ask for mask bands as {self.name} is a SAR product."
+                    )
+            elif is_s2_l2a_specific_band(band):
+                if self.product_type.name == "L2A":
+                    s2_l2a_list.append(band)
+                else:
+                    raise TypeError(
+                        f"You cannot ask for Sentinel-2-L2A specific bands as {self.name} is not a Sentinel-2 L2A product."
                     )
 
         # Check if DEM is set and exists
@@ -1099,16 +1129,39 @@ class Product:
                 )
             )
 
-        # Manage the case of arrays of different size -> collocate arrays if needed
+        # Add Masks
+        if mask_list:
+            LOGGER.debug(f"Loading mask bands {to_str(mask_list)}")
+            bands_dict.update(
+                self._load_masks(mask_list, pixel_size=pixel_size, size=size, **kwargs)
+            )
+
+        # Add Clouds
+        if s2_l2a_list:
+            LOGGER.debug(f"Loading Sentinel-2 L2A specific bands {to_str(s2_l2a_list)}")
+            bands_dict.update(
+                self._load_s2_l2a_bands(
+                    s2_l2a_list, pixel_size=pixel_size, size=size, **kwargs
+                )
+            )
+
+        # Manage the case of arrays with different sizes -> collocate arrays if needed
         bands_dict = self._collocate_bands(bands_dict)
 
         # Create a dataset (only after collocation)
         coords = None
         if bands_dict:
-            coords = bands_dict[bands[0]].coords
+            # Cannot use the first band because of S2 masks
+            # (they have associated bands -> i.e. DEFECT_RED instead of DEFECT)
+            first_band = list(bands_dict.keys())[0]
+            coords = bands_dict[first_band].coords
 
-        # Make sure the dataset has the bands in the right order -> re-order the input dict
-        return xr.Dataset({key: bands_dict[key] for key in bands}, coords=coords)
+        # Make sure the dataset has the bands in the order asked by the user (given by bands and potentially associated_bands)
+        # -> re-order the input dict
+        return xr.Dataset(
+            self._reorder_loaded_bands_like_input(bands, bands_dict, **kwargs),
+            coords=coords,
+        )
 
     def _load_clouds(
         self,
@@ -1119,6 +1172,89 @@ class Product:
     ) -> dict:
         """
         Load cloud files as xarrays.
+
+        Args:
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        raise NotImplementedError
+
+    def _get_band_key(
+        self,
+        band: BandNames,
+        associated_band: BandNames = None,
+        as_str: bool = False,
+        **kwargs,
+    ) -> Union[BandNames, str]:
+        """
+        Get the band key, either with the band alone or with the band and its associated band
+
+        Args:
+            band (BandNames): Band name
+            associated_band (BandNames): Band associated with the mask
+            **kwargs: Other args
+
+        Returns:
+            Union[BandNames, str]: Key for the output dataset
+        """
+        if associated_band is not None:
+            key = f"{to_str(band, as_list=False)}_{to_str(associated_band, as_list=False)}"
+        elif as_str:
+            key = to_str(band, as_list=False)
+        else:
+            key = band
+
+        return key
+
+    def _reorder_loaded_bands_like_input(
+        self, bands: list, bands_dict: dict, **kwargs
+    ) -> dict:
+        """
+        Get the band key, either with the band alone or with the band and its associated band
+
+        Args:
+            bands (list): Bands that needed to be loaded
+            bands_dict (dict): Dict with loaded bands
+            **kwargs: Other args
+
+        Returns:
+            dict: Loaded bands in the right order
+        """
+        return {key: bands_dict[key] for key in bands}
+
+    def _load_masks(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load mask files as xarrays.
+
+        Args:
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        raise NotImplementedError
+
+    def _load_s2_l2a_bands(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load Sentinel-2 L2A band files as xarrays.
 
         Args:
             bands (list): List of the wanted bands
@@ -1279,19 +1415,21 @@ class Product:
             band (Union[BandNames, str]): EOReader band (optical, SAR, clouds, DEM)
 
         Returns:
-            bool: True if the products has the specified band
+            bool: True if the product has the specified band
         """
         band = self.to_band(band)[0]
 
         if is_dem(band):
-            if self.sensor_type == SensorType.SAR and band == HILLSHADE:
-                has_band = False
-            else:
-                has_band = True
+            # Only limitation: no hillshade for SAR data
+            has_band = not (self.sensor_type == SensorType.SAR and band == HILLSHADE)
         elif is_clouds(band):
             has_band = self._has_cloud_band(band)
         elif is_index(band):
             has_band = self._has_index(band)
+        elif is_mask(band):
+            has_band = self._has_mask(band)
+        elif is_s2_l2a_specific_band(band):
+            has_band = self._has_s2_l2a_bands(band)
         else:
             has_band = band in self.get_existing_bands()
 
@@ -1337,7 +1475,7 @@ class Product:
 
     def _has_index(self, idx: str) -> bool:
         """
-        Cen the specified index be computed from this product ?
+        Can the specified index be computed from this product ?
 
         .. code-block:: python
 
@@ -1356,6 +1494,48 @@ class Product:
         """
         index_bands = to_band(indices.get_needed_bands(idx))
         return all(np.isin(index_bands, self.get_existing_bands()))
+
+    def _has_mask(self, mask: BandNames) -> bool:
+        """
+        Can the specified mask be loaded from this product ?
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.has_index(DETFOO)
+            True
+
+        Args:
+            mask (BandNames): Mask
+
+        Returns:
+            bool: True if the specified mask is provided by the current product
+        """
+        raise NotImplementedError
+
+    def _has_s2_l2a_bands(self, band: BandNames) -> bool:
+        """
+        Can the specified mask be loaded from this product ?
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands import *
+            >>> path = r"S2A_MSIL2A_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.has_index(SCL)
+            True
+
+        Args:
+            mask (BandNames): Mask
+
+        Returns:
+            bool: True if the specified mask is provided by the current product
+        """
+        return False
 
     def __gt__(self, other: Product) -> bool:
         """

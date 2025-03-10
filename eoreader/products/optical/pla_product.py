@@ -32,7 +32,7 @@ import numpy as np
 import rasterio
 import xarray as xr
 from lxml import etree
-from sertit import path, rasters, xml
+from sertit import path, vectors, xml
 from sertit.misc import ListEnum
 from sertit.types import AnyPathType
 from sertit.vectors import WGS84
@@ -636,9 +636,9 @@ class PlaProduct(PlanetProduct):
                 xml.update_txt(mtd, f"{nsmap[self._nsmap_key]}numRows", ds.height)
                 xml.update_txt(mtd, f"{nsmap[self._nsmap_key]}numColumns", ds.width)
 
-            # Get new extent from VRT
-            extent = rasters.get_extent(analytic_vrt_path)
-            extent_wgs84 = extent.to_crs(WGS84)
+                # Get new extent from VRT
+                extent = vectors.get_geodf(geom=[*ds.bounds], crs=ds.crs)
+                extent_wgs84 = extent.to_crs(WGS84)
 
             # Compute centroid and reproject to WGS84 after
             pos = extent.centroid.to_crs(WGS84).iat[0]

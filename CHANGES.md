@@ -20,6 +20,9 @@
     - `GRI`: `DSWI4`
     - `WV_SI`: `NDSIWV`
     - `PANI`: `BITM`
+- **BREAKING CHANGES: Pass mask-related functions in private as their exposure is done via `load` now**
+- **ENH: Adding the support of masks** ([#101](https://github.com/sertit/eoreader/issues/101))
+- **ENH: Adding the support of Sentinel-2 L2A specific bands (`AOT`, `SCL` and `WV`)** ([#153](https://github.com/sertit/eoreader/issues/153))
 - **ENH: Adding the support of WorldView Legion constellation** ([#183](https://github.com/sertit/eoreader/issues/183))
 - **ENH: Adding the support of Umbra constellation (only GEC file)** ([#114](https://github.com/sertit/eoreader/issues/114))
 - **ENH: Add the ability to open a product with a context manager** ([#133](https://github.com/sertit/eoreader/issues/133))

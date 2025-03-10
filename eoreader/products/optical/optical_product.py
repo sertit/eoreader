@@ -620,6 +620,79 @@ class OpticalProduct(Product):
 
         return band_dict
 
+    @abstractmethod
+    def _open_masks(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Open a list of mask files as xarrays.
+
+        Args:
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        raise NotImplementedError
+
+    def _load_masks(
+        self,
+        bands: list,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load cloud files as xarrays.
+
+        Args:
+            bands (list): List of the wanted bands
+            pixel_size (int): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        band_dict = {}
+        if bands:
+            # First, try to open the cloud band written on disk
+            bands_to_load = []
+            for band in bands:
+                mask_path = self._construct_band_path(
+                    band, pixel_size, size, writable=False, **kwargs
+                )
+                if mask_path.is_file():
+                    band_dict[band] = utils.read(mask_path)
+                else:
+                    bands_to_load.append(band)
+
+            # Then load other bands that haven't been loaded before
+            loaded_bands = self._open_masks(bands_to_load, pixel_size, size, **kwargs)
+
+            # Write them on disk
+            for band_id, band_arr in loaded_bands.items():
+                mask_path = self._construct_band_path(
+                    band_id, pixel_size, size, writable=True, **kwargs
+                )
+                band_arr = utils.write_path_in_attrs(band_arr, mask_path)
+                utils.write(
+                    band_arr,
+                    mask_path,
+                    dtype=band_arr.encoding["dtype"],  # This field is mandatory
+                    nodata=band_arr.encoding.get("_FillValue"),
+                )
+
+            # Merge the dict
+            band_dict.update(loaded_bands)
+
+        return band_dict
+
     def _create_mask(
         self, xda: xr.DataArray, cond: np.ndarray, nodata: np.ndarray = None
     ) -> xr.DataArray:
@@ -639,6 +712,9 @@ class OpticalProduct(Product):
 
         # Set nodata to mask
         if nodata is not None:
+            if isinstance(nodata, xr.DataArray):
+                nodata = nodata.data
+
             mask = mask.where(nodata == 0)
 
         return mask
@@ -667,10 +743,6 @@ class OpticalProduct(Product):
         cleaning_method = CleanMethod.from_value(
             kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
         )
-
-        # Manage multi resolution bands opened with native resolution (such as PAN in Landsat)
-        if pixel_size is None:
-            pixel_size = self.bands[band].gsd
 
         res_str = self._pixel_size_to_str(pixel_size)
 
