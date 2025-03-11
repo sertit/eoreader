@@ -30,6 +30,7 @@
 - **ENH: Manage COSMO-SkyMed `GTC` (orthorectified) products**
 - FIX: Fix toa radiance to toa reflectance computation for VHR data
 - FIX: Save Cosmo quicklooks as PNG instead of GeoTiffs as they are not georeferenced
+- FIX: Fix `to_str` function with `as_list=False`
 - DOC: Add documentation on how EOReader can improve your data handling ([#108](https://github.com/sertit/eoreader/issues/108))
 - DEPS: Add `ephem` for computing earth-sun distance (according to Maxar's method from docs)
 

@@ -519,26 +519,22 @@ def to_str(
     """
     from sertit import types
 
+    def __convert_to_str(to_be_converted):
+        if isinstance(to_be_converted, str):
+            in_str = to_be_converted
+        else:
+            try:
+                in_str = to_be_converted.name
+            except AttributeError:
+                in_str = to_be_converted.__name__
+
+        return in_str
+
     if as_list:
         to_convert = types.make_iterable(to_convert)
-
-        bands_str = []
-        for tc in to_convert:
-            if isinstance(tc, str):
-                band_str = tc
-            else:
-                try:
-                    band_str = tc.name
-                except AttributeError:
-                    band_str = tc.__name__
-
-            bands_str.append(band_str)
-        return bands_str
+        return [__convert_to_str(tc) for tc in to_convert]
     else:
         if types.is_iterable(to_convert):
-            raise _ite(f"Set as_list=True(default) for list arguments")
-        try:
-            band_str = tc.name
-        except AttributeError:
-            band_str = tc.__name__
-        return band_str
+            raise _ite(f"Set as_list=True (default) for list arguments")
+
+        return __convert_to_str(to_convert)
