@@ -174,6 +174,13 @@ But the bands that are not present in the `alias` file won't be recognized.
 :file: _static/optical_band_mapping_inline.html
 ```
 
+### Sentinel-2 L2A specific bands
+
+EOReader can now load (since v0.22.0) Sentinel-2 L2A specific bands (quality assurance bands) as any other band: 
+- Aerosol optical thickness (`AOT`)
+- Scene average water vapour (`WVP`)
+- Scene classification layer (`SCL`)
+
 ### Cloud bands
 
 Maximum 5 cloud bands are available, according to the files provided in the data. All the bands are rasterized and
@@ -274,8 +281,53 @@ Some indices are parametric (see the list [here](https://awesome-ee-spectral-ind
 To add any parameter you can pass it to your load or stack functions:
 
 ```python
-prod.load("WDRVI", alpha=1)
+>>> prod.load("WDRVI", alpha=1)
 ```
+
+### Masks
+
+Since v0.22.0, EOReader can load masks directly in the `load` function.
+However, the band masks are not exposed directly into `eoreader.bands`, but through their enums.
+They can also be called by their string representation.
+
+```python
+# HLS FMASK mask, called through the enum
+>>> from eoreader.bands import HlsMaskBandNames
+>>> prod.load(HlsMaskBandNames.FMASK)
+```
+
+For Sentinel-2 et Sentinel-2 Theia data, some masks are band-specific and should be called with the `associated_bands` keywords.
+This leads to a side effect that can be disorienting: these masks should be retrieved from the dataset with an unusual key (`{band}_{associated_band}`).
+
+```python
+>>> # Sentinel-2 Theia, called with mask strings
+>>> masks = prod.load(["DFP", "EDG", "SAT", "MG2", "IAB", "IAB"], associated_bands={"SAT": "RED", "DFP": ["GREEN", "RED"]})
+
+>>> # Show all variables
+>>> masks.data_vars
+Data variables:
+    DFP_GREEN                 (band, y, x) 
+    DFP_RED                   (band, y, x)
+    S2TheiaMaskBandNames.EDG  (band, y, x)
+    SAT_RED                   (band, y, x)
+    S2TheiaMaskBandNames.MG2  (band, y, x)
+    S2TheiaMaskBandNames.IAB  (band, y, x)
+
+# Open saturation mask for green band
+>>> masks["DFP_GREEN"]
+<xarray.DataArray 'DFP_GREEN' (band: 1, y: 10980, x: 10980)> Size: 482MB
+dask.array<where, shape=(1, 10980, 10980), dtype=float32, chunksize=(1, 1024, 1024), chunktype=numpy.ndarray>
+Coordinates:
+  * x            (x) float64 88kB 5e+05 5e+05 5e+05 ... 6.098e+05 6.098e+05
+  * y            (y) float64 88kB 5.5e+06 5.5e+06 5.5e+06 ... 5.39e+06 5.39e+06
+    spatial_ref  int64 8B 0
+  * band         (band) int64 8B 1
+Attributes:
+    ...
+```
+
+See the different MaskBandNames enums to discover all the available masks and how to call them.
+⚠ This feature is experimental.
 
 ## Documentary Sources
 
