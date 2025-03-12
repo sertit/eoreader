@@ -511,9 +511,20 @@ class MaxarProduct(VhrProduct):
         self.needs_extraction = False
         self._proj_prod_type = [MaxarProductType.Standard]
 
-        # Not exact resolutions but usual ones
+        # Not exact resolutions for this specific product, but the usual ones for CEMS, set by default
+        # This is only used for GSD in band mapping
+        # TODO: -> maybe update Maxar default resolutions to real values for each constellation? Or best available?
         self._pan_res = 0.5
         self._ms_res = 2.0
+
+        # Exact best resolutions, but the data are resampled on delivery
+        # WV LG: PAN = 0.29 m, MS = 1.16 m
+        # WV4: PAN = 0.31 m, MS = 1.24 m
+        # WV3: PAN = 0.34 m, MS = 1.24 m, SWIR = 3.70 m
+        # WV2: PAN = 0.46 m, MS = 1.8 m
+        # WV1: PAN = 0.50 m
+        # GE01: PAN = 0.41 m, MS = 1.64 m
+        # QB02: PAN = 0.61 m, MS = 2.4 m
 
         # Pre init done by the super class
         super()._pre_init(**kwargs)
@@ -527,7 +538,7 @@ class MaxarProduct(VhrProduct):
         WV03: https://earth.esa.int/eogateway/missions/worldview-3
         WV04: https://space.oscar.wmo.int/satellites/view/worldview_4
         Quickbird: https://earth.esa.int/eogateway/missions/quickbird-2
-        GeoEye: https://earth.esa.int/eogateway/missions/worldview-3
+        GeoEye: https://earth.esa.int/eogateway/missions/geoeye-1
         WV Legion: https://database.eohandbook.com/database/missionsummary.aspx?missionID=1011
         """
         if self.constellation == Constellation.WV01:
