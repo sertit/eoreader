@@ -451,6 +451,9 @@ class Product:
         """
         Manage the case of CI SNAP Bands
 
+        Args:
+            writable (bool): Do we need to write the pre-processed band ?
+
         Returns:
             AnyPathType: Band folder
         """

@@ -697,7 +697,7 @@ def get_band_resampling():
 
 
 def get_window_suffix(window) -> str:
-    """Get the window suffix in order to add it into band filenames"""
+    """Get the window suffix to add it into band filenames"""
     win_suffix = ""
     if window is not None:
         if path.is_path(window):

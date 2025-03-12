@@ -426,11 +426,36 @@ class SarProduct(Product):
         """
         raise NotImplementedError
 
-    def get_band_file_name(self, band, **kwargs):
+    def get_band_file_name(self, band: BandNames, **kwargs) -> str:
+        """
+        Get the filename of any SAR band, managing windows.
+
+        Args:
+            band (BandNames): SAR band name
+            **kwargs: Other args
+
+        Returns:
+            str: Band file name
+        """
         win_suffix = utils.get_window_suffix(kwargs.get("window"))
+        if win_suffix is not None:
+            win_suffix = f"_{win_suffix}"
         return f"{self.condensed_name}_{self.bands[band].id}{win_suffix}.tif"
 
-    def get_band_path(self, band, writable=False, **kwargs):
+    def get_band_path(
+        self, band: BandNames, writable: bool = False, **kwargs
+    ) -> AnyPathType:
+        """
+        Get the path of any SAR band, managing windows and writeable output.
+
+        Args:
+            band (BandNames): SAR band name
+            writable (bool): Do we need to write the pre-processed band ?
+            **kwargs: Other args
+
+        Returns:
+            AnyPathType: Band path
+        """
         return self._get_band_folder(writable) / self.get_band_file_name(band, **kwargs)
 
     def get_band_paths(
