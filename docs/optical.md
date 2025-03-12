@@ -8,7 +8,7 @@ You will find an optical tutorial [here](https://eoreader.readthedocs.io/latest/
 
 The product resolution is the one given in [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589). 
 The Data Access Portfolio Document presents the offer of the datasets and data access services that are made available to the Copernicus Users in response to their Earth Observation data requirements.
-However, especially for SAR data, the default pixel size of GRD bands is not the same as the product resolution!
+However, especially for SAR data, the default pixel size of GRD bands is different from the product resolution!
 
 | Constellations              | Class                                                              | Use archive                  |
 |-----------------------------|--------------------------------------------------------------------|------------------------------|
@@ -36,7 +36,7 @@ However, especially for SAR data, the default pixel size of GRD bands is not the
 
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
 
-\*\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, however they don't have been tested). The resolution can vary around the one given here.*
+\*\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). The resolution can vary around the one given here.*
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
@@ -66,7 +66,7 @@ Satellites products that cannot be used as archived have to be extracted before 
 | SuperView-1                 | L1B & L2A                 | 0.5 m (PAN), 2 m (MS)              |
 | GEOSAT-2                    | L1B & L1C & L1D & L1S     | 0.4 m (PAN), 2 m (MS) for L1D data |
 
-\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, however they don't have been tested). The resolution can vary around the one given here.*
+\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). The resolution can vary around the one given here.*
 
 \*\* ⚠ *DIMAP SEN products are orthorectified using RPCs and not the rigorous sensor model. Shift can occur. Please refer to [this issue](https://github.com/sertit/eoreader/issues/53).*
 
@@ -113,7 +113,7 @@ Some additions to the Sentinel-2 bands have been made (`YELLOW`, `PAN`...):
 
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.CA`: Coastal Aerosol
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.BLUE`
-- {meth}`~eoreader.bands.band_names.SpectralBandNames.GREEN_1`: First Green band of PlanetScope 8 bands, mapped to the 5th band of Sentinel-3 OLCI
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.GREEN_1`: First Green band of PlanetScope 8 bands, mapped to the fifth band of Sentinel-3 OLCI
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.GREEN`
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.YELLOW`
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.RED`
@@ -134,45 +134,27 @@ Some additions to the Sentinel-2 bands have been made (`YELLOW`, `PAN`...):
 Note that bands that are not mapped can still be used (i.e. for Sentinel-3 OLCI and SLSTR). 
 They will be called by their true name (i.e. `F1` or `Oa05`). However, 
 the mapped band will have to be called with their mapped name, i.e. `BLUE` rather than `Oa04` for Sentinel-3 OLCI.
-But the bands that are not present in the `alias` file won't be recognized.
+But the bands that are not present in the `bands.__init__` file won't be recognized.
 ```
 
 #### Optical band mapping between constellations
 
-| Bands (names)                    | Coastal aerosol  | Blue             | Green I      | Green             | Yellow          | Red               | Vegetation red edge | Vegetation red edge | Vegetation red edge | NIR               | Narrow NIR        | Water vapor     | SWIR – Cirrus | SWIR              | SWIR         | Panchromatic   | Thermal IR                    | Thermal IR                    |
-|----------------------------------|------------------|------------------|--------------|-------------------|-----------------|-------------------|---------------------|---------------------|---------------------|-------------------|-------------------|-----------------|---------------|-------------------|--------------|----------------|-------------------------------|-------------------------------|
-| **Bands (alias)**                | `CA`             | `BLUE`           | `GREEN_1`    | `GREEN`           | `YELLOW`        | `RED`             | `VRE_1`             | `VRE_2`             | `VRE_3`             | `NIR`             | `NARROW_NIR`      | `WV`            | `SWIR_CIRRUS` | `SWIR_1`          | `SWIR_2`     | `PAN`          | `TIR_1`                       | `TIR_2`                       |
-| Sentinel-2                       | **1** (60m)      | **2** (10m)      |              | **3** (10m)       |                 | **4** (10m)       | **5** (20m)         | **6** (20m)         | **7** (20m)         | **8** (10m)       | **8A** (20m)      | **9** (60m)     | **10** (60m)  | **11** (20m)      | **12** (20m) |                |                               |                               |
-| Sentinel-2 Theia                 | *Not available*  | **2** (10m)      |              | **3** (10m)       |                 | **4** (10m)       | **5** (20m)         | **6** (20m)         | **7** (20m)         | **8A** (10m)      | **8** (20m)       | *Not available* | **10** (60m)  | **11** (20m)      | **12** (20m) |                |                               |                               |
-| Sentinel-3 OLCI*                 | **3** (300m)     | **4** (300m)     | **5** (300m) | **6** (300m)      | **7** (300m)    | **8** (300m)      | **11** (300m)       | **12** (300m)       | **16** (300m)       | **17** (300m)     | **17** (300m)     | **20** (300m)   |               |                   |              |                |                               |                               |
-| Sentinel-3 SLSTR*                |                  |                  |              | **1** (500m)      |                 | **2** (500m)      |                     |                     |                     | **3** (500m)      | **3** (500m)      |                 | **4** (500m)  | **5** (500m)      | **6** (500m) |                | **8** (1km)                   | **9** (1km)                   |
-| Landsat OLI-TIRS (8-9)           | **1** (30m)      | **2** (30m)      |              | **3** (30m)       |                 | **4** (30m)       |                     |                     |                     | **5** (30m)       | **5** (30m)       |                 | **9** (30m)   | **6** (30m)       | **7** (30m)  | **8** (15m)    | **10** (100m)                 | **11** (100m)                 |
-| Landsat ETM (7)                  |                  | **1** (30m)      |              | **2** (30m)       |                 | **3** (30m)       |                     |                     |                     | **4** (30m)       | **4** (30m)       |                 |               | **5** (30m)       | **7** (30m)  | **8** (15m)    | **6** (60m)                   | **6** (60m)                   |
-| Landsat TM (5-4)                 |                  | **1** (30m)      |              | **2** (30m)       |                 | **3** (30m)       |                     |                     |                     | **4**(30m)        | **4** (30m)       |                 |               | **5** (30m)       | **7** (30m)  |                | **6** (120m)                  | **6** (120m)                  |
-| Landsat MSS (5-4)                |                  |                  |              | **1** (60m)       |                 | **2** (60m)       | **3** (60m)         | **3** (60m)         | **3** (60m)         | **4** (60m)       | **4** (60m)       |                 |               |                   |              |                |                               |                               |
-| Landsat MSS (1-3)                |                  |                  |              | **4** (60m)       |                 | **5** (60m)       | **6** (60m)         | **6** (60m)         | **6** (60m)         | **7** (60m)       | **7** (60m)       |                 |               |                   |              |                | **8** (240m)<br>*only for L3* | **8** (240m)<br>*only for L3* |
-| PlanetScope (4 bands)            |                  | **1** (3m)       |              | **2** (3m)        |                 | **3** (3m)        |                     |                     |                     | **4** (3m)        | **4** (3m)        |                 |               |                   |              |                |                               |                               |
-| PlanetScope (5 bands)            |                  | **1** (3m)       |              | **2** (3m)        |                 | **3** (3m)        | **4** (3m)          |                     |                     | **5** (3m)        | **5** (3m)        |                 |               |                   |              |                |                               |                               |
-| PlanetScope (8 bands)            | **1** (3m)       | **2** (3m)       | **3** (3m)   | **4** (3m)        | **5** (3m)      | **6** (3m)        | **7** (3m)          |                     |                     | **8** (3m)        | **8** (3m)        |                 |               |                   |              |                |                               |                               |
-| SkySat                           |                  | **1** (0.5m)     |              | **2** (0.5m)      |                 | **3** (0.5m)      |                     |                     |                     | **4** (0.5m)      | **4** (0.5m)      |                 |               |                   |              |                |                               |                               |
-| RapidEye                         |                  | **1** (5m)       |              | **2** (5m)        |                 | **3** (5m)        | **4** (5m)          |                     |                     | **5** (5m)        | **5** (5m)        |                 |               |                   |              |                |                               |                               |
-| Pleiades                         |                  | **3** (0.5/2m)   |              | **2** (0.5/2m)    |                 | **1** (0.5/2m)    |                     |                     |                     | **4** (0.5/2m)    | **4** (0.5/2m)    |                 |               |                   |              | **1** (0.5m)   |                               |                               |
-| Pleiades-Neo                     | **5** (0.3/1.2m) | **3** (0.3/1.2m) |              | **2** (0.3/1.2m)  |                 | **1** (0.3/1.2m)  | **6** (0.3/1.2m)    | **6** (0.3/1.2m)    | **6** (0.3/1.2m)    | **4** (0.3/1.2m)  | **4** (0.3/1.2m)  |                 |               |                   |              | **1** (0.5m)   |                               |                               |
-| SPOT-4                           |                  |                  |              | **1** (10/20m)    |                 | **2** (10/20m)    |                     |                     |                     | **3** (10/20m)    | **3** (10/20m)    |                 |               | **4** (10/20m)    |              | **1** (10m)    |                               |                               |
-| SPOT-5                           |                  |                  |              | **1** (2.5/5/10m) |                 | **2** (2.5/5/10m) |                     |                     |                     | **3** (2.5/5/10m) | **3** (2.5/5/10m) |                 |               | **4** (2.5/5/10m) |              | **1** (2.5/5m) |                               |                               |
-| SPOT-6/7                         |                  | **3** (1.5/6m)   |              | **2** (1.5/6m)    |                 | **1** (1.5/6m)    |                     |                     |                     | **4** (1.5/6m)    | **4** (1.5/6m)    |                 |               |                   |              | **1** (0.5m)   |                               |                               |
-| Vision-1                         |                  | **1** (0.9/3.5m) |              | **2** (0.9/3.5m)  |                 | **3** (0.9/3.5m)  |                     |                     |                     | **4** (0.9/3.5m)  | **4** (0.9/3.5m)  |                 |               |                   |              | **1** (0.5m)   |                               |                               |
-| WorldView-1                      |                  |                  |              |                   |                 |                   |                     |                     |                     |                   |                   |                 |               |                   |              | **1** (0.5m)   |                               |                               |
-| WorldView-4, GeoEye-1, QuickBird |                  | **1** (0.5m/2m)  |              | **2** (0.5m/2m)   |                 | **3** (0.5m/2m)   |                     |                     |                     | **4** (0.5m/2m)   | **4** (0.5m/2m)   |                 |               |                   |              | **1** (0.5m)   |                               |                               |
-| WorldView-2/3                    | **1** (0.5m/2m)  | **2** (0.5m/2m)  |              | **3** (0.5m/2m)   | **4** (0.5m/2m) | **5** (0.5m/2m)   | **6** (0.5m/2m)     | **6** (0.5m/2m)     | **6** (0.5m/2m)     | **7** (0.5m/2m)   | **7** (0.5m/2m)   | **8** (0.5m/2m) |               |                   |              | **1** (0.5m)   |                               |                               |
-| Superview-1                      |                  | **1** (0.5m/2m)  |              | **2** (0.5m/2m)   |                 | **3** (0.5m/2m)   |                     |                     |                     | **4** (0.5m/2m)   | **4** (0.5m/2m)   |                 |               |                   |              | **1** (0.5m)   |                               |
-| GEOSAT-2                         |                  | **4** (0.4m/2m)  |              | **3** (0.4m/2m)   |                 | **2** (0.4m/2m)   |                     |                     |                     | **1** (0.4m/2m)   | **1** (0.4m/2m)   |                 |               |                   |              | **1** (0.4m)   |                               |
-
-\* *Not all bands of these constellations are mapped in EOReader. However, they can still be used by using directly their name (i.e. `F1` or `Oa05`)*  
-
 ```{raw} html
 :file: _static/optical_band_mapping_inline.html
 ```
+
+Thermal bands are not represented in this plot. Here is the table of the mapping:
+
+| Bands names (alias)          | Thermal IR (`TIR_1`) | Thermal IR (`TIR_2`) |
+|------------------------------|----------------------|----------------------|
+| Sentinel-3 SLSTR             | **8** (1km)          | **9** (1km)          |
+| Landsat OLI-TIRS (8-9)       | **10** (100m)        | **11** (100m)        |
+| Landsat ETM (7)              | **6** (60m)          | **6** (60m)          |
+| Landsat TM (5-4)             | **6** (120m)         | **6** (120m)         |
+| Landsat MSS (only Landsat-3) | **8** (240m)         | **8** (240m)         |
+
+Not all bands of these constellations are mapped in EOReader. 
+However, they can still be used by using directly their name (i.e. `F1` or `Oa05`)*  
 
 ### Sentinel-2 L2A specific bands
 
