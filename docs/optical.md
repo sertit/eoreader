@@ -331,7 +331,7 @@ See the different MaskBandNames enums to discover all the available masks and ho
 
 ## Documentary Sources
 
-- [Data Access Portfolio (2014-2022, section 6.2)](https://spacedata.copernicus.eu/documents/20123/121286/DAP+Release+phase2_Latest.pdf)
+- [Data Access Portfolio (2014-2024)](https://s3.waw3-1.cloudferro.com/swift/v1/portal_uploads_prod/DAPReleasePhase2_V3.1_2024_Latest.pdf)
 
 ### Copernicus
 
@@ -362,13 +362,13 @@ See the different MaskBandNames enums to discover all the available masks and ho
 
 ### Sentinel-3
 
-- [OLCI main page](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-olci)
-- [SLSTR main page](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr)
+- [OLCI main page](https://sentiwiki.copernicus.eu/web/olci-processing)
+- [SLSTR main page](https://sentiwiki.copernicus.eu/web/slstr-processing)
 - [OLCI Handbook](https://sentinel.esa.int/documents/247904/4598069/Sentinel-3-OLCI-Land-Handbook.pdf/455f8c88-520f-da18-d744-f5cda41d2d91)
 - [SLSTR Handbook](https://sentinel.esa.int/documents/247904/4598085/Sentinel-3-SLSTR-Land-Handbook.pdf/bee342eb-40d4-9b31-babb-8bea2748264a)
 - [OLCI Product Format](https://sentinel.esa.int/documents/247904/1872756/Sentinel-3-OLCI-Product-Data-Format-Specification-OLCI-Level-1)
 - [SLSTR Product Format](https://sentinel.esa.int/documents/247904/0/Sentinel-3_Product_Format_Specification_Product_Structures/27300baa-b594-4a56-9efc-5538c71899d1)
-- [SLSTR Clouds](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-3-slstr/level-1/cloud-identification)
+- [SLSTR Clouds](https://sentiwiki.copernicus.eu/web/slstr-processing#SLSTRProcessing-Basiccloudmasking)
 
 ### PlanetScope, SkySat and RapidEye
 
@@ -386,17 +386,18 @@ See the different MaskBandNames enums to discover all the available masks and ho
 - [Product Format (a bit too old)](http://www.engesat.com.br/wp-content/uploads/S5-ST-73-1-CN_2_9-Spec-Format-Produits-SPOT.pdf)
 - [Preprocessing levels](https://earth.esa.int/eogateway/documents/20142/37627/SPOTScene-SPOTView-preprocessing-levels.pdf)
 - [Resolution and spectral modes](https://www.intelligence-airbusds.com/en/8799-resolution-and-spectral-bands)
-- [Convert to reflectance](https://spot.cnes.fr/sites/default/files/migration/smsc/spot/calibration_synthesis_SPOT1245_ed1.pdf)
+- [Convert to reflectance](https://cnes.fr/sites/default/files/migration/smsc/spot/calibration_synthesis_SPOT1245_ed1.pdf)
 
 ### DIMAP V2: Pleiades, SPOT-6/7
 
 - [DIMAP V2 Format](https://www.intelligence-airbusds.com/en/8723-pleiades-and-spot-6-7-format-delivery)
 - [Pleiades User Guide (2019)](https://engesat.com.br/wp-content/uploads/PleiadesUserGuide-17062019.pdf)
 - [SPOT-6/7 User Guide (2019)](https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf)
-- [Request Form(2017)](https://www.intelligence-airbusds.com/files/pmedia/public/r44226_9_airbus_data_request_form_may_2017.pdf)
 - [Pleiades Neo](https://docs.up42.com/getting-started/data-products/pleiades-neo/)
 
 ### Maxar (ex Digital Globe)
+- [Worldview Legion](https://resources.maxar.com/data-sheets/worldview-legion-2)
+- [Radiometric Use of WorldView Legion 1 and WorldView Legion 2 imagery](https://resources.maxar.com/white-papers/radiometric-use-of-worldview-legion-1-and-worldview-legion-2-imagery)
 - [Worldviews](https://earth.esa.int/eogateway/catalog/worldview-esa-archive)
 - [System-Ready Imagery](https://resources.maxar.com/optical-imagery/system-ready-imagery-data-sheet)
 - [View-Ready Imagery](https://resources.maxar.com/optical-imagery/view-ready-imagery-data-sheet)
@@ -410,7 +411,7 @@ See the different MaskBandNames enums to discover all the available masks and ho
 - [Imagery Product Guide](http://en.spacewillinfo.com/uploads/soft/210106/8-210106153503.pdf)
 
 ### GeoSat-2 (ex Deimos-2)
-- [Imagery User Guide](https://geosat.space/wp-content/uploads/2022/04/GEOSAT-2-Imagery-User-Guide-v3.2.pdf)
+- [Imagery User Guide](https://earth.esa.int/eogateway/documents/20142/37627/GEOSAT-2-Imagery-User-Guide.pdf)
 
 ### Instruments
 
@@ -418,11 +419,7 @@ Most instruments can be found on [OSCAR](https://space.oscar.wmo.int/instruments
 
 ### Band mapping
 
-- You can find a magnificent band comparison chart on the [Imagico](http://blog.imagico.de/satellite-comparison-update/)
-  blog.
-- [L8-S2](https://reader.elsevier.com/reader/sd/pii/S0034425718301883)
-- [All Landsats](https://landsat.gsfc.nasa.gov/wp-content/uploads/2016/10/all_Landsat_bands.png)
-- [S2 and PlanetScope](https://developers.planet.com/docs/apis/data/sensors/#the-psbsd-instrument)
+You can find a magnificent band comparison chart on the [Imagico](http://blog.imagico.de/satellite-comparison-update/) blog.
 
 ### Index
 
@@ -431,4 +428,4 @@ Most instruments can be found on [OSCAR](https://space.oscar.wmo.int/instruments
 - [WorldView Index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide)
 - Specific sources inside the index function documentation in {meth}`~eoreader.bands.indices`
 
-*Documentation last accessed on the 04/12/2023*
+*Documentation last accessed on the 12/03/2025*

@@ -108,7 +108,7 @@ However, it seems that SNAP can only use TIF dems...
 
 ### What SNAP's GPT optimizations are you using ?
 
-We are using some optimizations in order to optimize SNAP's GPT speed, as specified [here](https://sertit-utils.readthedocs.io/en/stable/api/sertit.snap.get_gpt_cli.html#sertit.snap.get_gpt_cli)
+We are using some optimizations in order to optimize SNAP's GPT speed, as specified [here](https://sertit-utils.readthedocs.io/stable/api/sertit.snap.get_gpt_cli.html#sertit.snap.get_gpt_cli)
 
 - **Memory**: We are allowing GPT to use 95% of your max virtual memory
 - **CPU**: We are allowing GPT to use `max_core` - 2 cores of your computer (i.e. 14 cores out of 16)

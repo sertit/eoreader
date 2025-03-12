@@ -127,7 +127,7 @@ The default resolution of SAR products is the one given in
 For resolutions not available in this document, we are using the pixel spacing given by the constellation's provider.
 Complex data are **always** converted back to ground range to be used, so the complex resolution is **never** used by EOReader.
 
-The default pixel size of GRD bands is not the same as the product resolution! (i.e. pixel size of 10m with a resolution of 20m for Sentinel-1 IW data)
+The default pixel size of GRD bands is different from the product resolution! (i.e. pixel size of 10 m with a resolution of 20 m for Sentinel-1 IW data)
 
 ```{warning}
 ⚠ Pay attention that for a pixel spacing of 10 meters and a rg x az resolution of 23m, objects under 23m won't be resolved !
@@ -426,20 +426,20 @@ variable:
 
 ## Documentary Sources
 
-- [Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20123/121286/DAP+Release+phase2_Latest.pdf)
+- [Data Access Portfolio (2014-2024)](https://s3.waw3-1.cloudferro.com/swift/v1/portal_uploads_prod/DAPReleasePhase2_V3.1_2024_Latest.pdf)
 
 ### Copernicus 
 - [Copernicus Contributing Missions](https://www.esa.int/ESA_Multimedia/Images/2021/09/Copernicus_Contributing_Missions_overview)
 
 ### Sentinel-1
 
-- [Data Products](https://sentinel.esa.int/web/sentinel/missions/sentinel-1/data-products)
-- [Acquisition Mode](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/acquisition-modes)
+- [Data Products](https://sentiwiki.copernicus.eu/web/s1-mission)
+- [Acquisition Mode](https://sentiwiki.copernicus.eu/web/s1-products)
 - [S1 RTC](https://hyp3-docs.asf.alaska.edu/guides/rtc_product_guide/#readme-file)
 
 ### RADARSAT
 
-- [RADARSAT-2 Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/RADARSAT-2.html)
+- [RADARSAT-2 Product Description](https://catalyst.earth/catalyst-system-files/enterprise-satellite-help/references/gdb_r/RADARSAT-2.html)
 - [RADARSAT-Constellation Product Description](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/characteristics.asp)
 - [Comparison between RS2 and RCM](https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp)
 - [RS2 Product Description](https://earth.esa.int/eogateway/documents/20142/0/Radarsat-2-Product-description.pdf/f2783c7b-6a22-cbe4-f4c1-6992f9926dca)
@@ -448,16 +448,16 @@ variable:
 ### COSMO-Skymed
 
 - [COSMO-Skymed 1st Generation Product Description](https://earth.esa.int/eogateway/missions/cosmo-skymed)
-- [COSMO-Skymed 1st Generation Product Description 2](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/SPW_reuse/COSMO-SkyMed.html)
+- [COSMO-Skymed 1st Generation Product Description 2](https://catalyst.earth/catalyst-system-files/enterprise-aerial-help/references/gdb_r/SPW_reuse/COSMO-SkyMed.html)
 - [COSMO-Skymed 1st Generation Product Handbook](https://earth.esa.int/eogateway/documents/20142/37627/Cosmo-SkyMed-Product-Handbook.pdf)
 - [COSMO-Skymed 2nd Generation System and Products Description](https://earth.esa.int/eogateway/documents/20142/37627/COSMO-SkyMed-Second-Generation-Mission-Products-Description.pdf)
 
 ### TerraSAR-X, TanDEM-X and PAZ SAR
 
 - [TerraSAR-X & TanDEM-X Product Description](https://tandemx-science.dlr.de/pdfs/TX-GS-DD-3302_Basic-Products-Specification-Document_V1.9.pdf)
-- [TerraSAR-X & TanDEM-X Product Description 2](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/TerraSAR-X.html)
+- [TerraSAR-X & TanDEM-X Product Description 2](https://catalyst.earth/catalyst-system-files/professional-help/references/gdb_r/TerraSAR-X.html)
 - [PAZ SAR Image Product Guide](https://www.hisdesat.es/wp-content/uploads/2019/10/PAZ-HDS-GUI-001-PAZ-Image-Product-Guide-issue-1.1-.pdf)
-- [PAZ SAR Product Description](https://catalyst.earth/catalyst-system-files/help/references/gdb_r/PAZ.html)
+- [PAZ SAR Product Description](https://catalyst.earth/catalyst-system-files/professional-help/references/gdb_r/PAZ.html)
 
 ### ICEYE
 
@@ -465,8 +465,8 @@ variable:
 - [ICEYE Product Documentation](https://iceye-ltd.github.io/product-documentation/5.1/)
 
 ### SAOCOM-1
-- [SAOCOM Description](https://saocom.veng.com.ar/en/)
-- [SAOCOM Product Format](https://saocom.veng.com.ar/L1-product-format-EN.pdf)
+- [SAOCOM Description](https://satellite-information.veng.com.ar/en/saocom-en/)
+- [SAOCOM Product Format](https://earth.esa.int/eogateway/documents/20142/0/SAOCOM-1-SAR-Level-1-Product-Format-13-Jan-2020.pdf)
 - [SAOCOM Data Products](https://earth.esa.int/eogateway/catalog/saocom-data-products)
 
 ### Capella
@@ -474,4 +474,8 @@ variable:
 - [Capella Product Guide](https://support.capellaspace.com/hc/en-us/articles/4626115099796-SAR-Imagery-Products-Guide)
 - [Capella Products Format Specification](https://support.capellaspace.com/hc/en-us/articles/5607458273940-SAR-Imagery-Products-Format-Specification)
 
-*Documentation last accessed on the 04/12/2023*
+### Umbra
+
+- [Umbra](https://help.umbra.space/product-guide)
+
+*Documentation last accessed on the 12/03/2025*
