@@ -36,7 +36,7 @@ from lxml.builder import E
 from rasterio import merge
 from sertit import AnyPath, misc, path, rasters_rio, strings, vectors
 from sertit.misc import ListEnum
-from sertit.types import AnyPathStrType
+from sertit.types import AnyPathStrType, AnyPathType
 from shapely.geometry import Polygon, box
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
@@ -479,7 +479,7 @@ class CosmoProduct(SarProduct):
 
         return od
 
-    def _pre_process_sar(self, band, pixel_size: float = None, **kwargs) -> str:
+    def _pre_process_sar(self, band, pixel_size: float = None, **kwargs) -> AnyPathType:
         """
         Pre-process SAR data (geocoding...)
 
@@ -489,7 +489,7 @@ class CosmoProduct(SarProduct):
             kwargs: Additional arguments
 
         Returns:
-            str: Band path
+            AnyPathType: Band path
         """
         if self.product_type == CosmoProductType.GTC:
             ortho_path = self.get_band_path(band, writable=True, **kwargs)
@@ -506,6 +506,10 @@ class CosmoProduct(SarProduct):
                     nodata=self._snap_no_data,
                     predictor=self._get_predictor(),
                     driver=utils.get_driver(kwargs),
+                    **utils._prune_keywords(
+                        additional_keywords=["dtype", "nodata", "predictor", "driver"],
+                        **kwargs,
+                    ),
                 )
                 if len(img_paths) > 1:
                     LOGGER.info(

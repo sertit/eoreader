@@ -30,6 +30,7 @@ import rioxarray
 import xarray as xr
 from rasterio import crs
 from rasterio.enums import Resampling
+from rasterio.windows import Window
 from sertit import AnyPath, geometry, misc, path, rasters, snap, strings, types, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
@@ -438,7 +439,7 @@ class SarProduct(Product):
             str: Band file name
         """
         win_suffix = utils.get_window_suffix(kwargs.get("window"))
-        if win_suffix is not None:
+        if win_suffix:
             win_suffix = f"_{win_suffix}"
         return f"{self.condensed_name}_{self.bands[band].id}{win_suffix}.tif"
 
@@ -497,20 +498,36 @@ class SarProduct(Product):
             if ortho_band.is_file():
                 band_paths[band] = ortho_band
             else:
-                speckle_band = sab.corresponding_speckle(band)
-                if speckle_band in self.pol_channels:
-                    if sab.is_despeckle(band):
-                        # Check if existing speckle ortho band
-                        speckle_ortho_path = self.get_band_path(speckle_band, **kwargs)
-                        if not speckle_ortho_path.is_file():
-                            self._pre_process_sar(speckle_band, pixel_size, **kwargs)
+                # Check if the band exists in the writable output (for CI)
+                ortho_band = self.get_band_path(band, writable=True, **kwargs)
+                if ortho_band.is_file():
+                    band_paths[band] = ortho_band
+                else:
+                    speckle_band = sab.corresponding_speckle(band)
+                    if speckle_band in self.pol_channels:
+                        if sab.is_despeckle(band):
+                            # Check if existing speckle ortho band
+                            speckle_ortho_path = self.get_band_path(
+                                speckle_band, **kwargs
+                            )
+                            if not speckle_ortho_path.is_file():
+                                # Check if the band exists in the writable output (for CI)
+                                speckle_ortho_path = self.get_band_path(
+                                    band, writable=True, **kwargs
+                                )
+                                if not speckle_ortho_path.is_file():
+                                    self._pre_process_sar(
+                                        speckle_band, pixel_size, **kwargs
+                                    )
 
-                        # Despeckle the noisy band
-                        band_paths[band] = self._despeckle_sar(speckle_band, **kwargs)
-                    else:
-                        band_paths[band] = self._pre_process_sar(
-                            band, pixel_size, **kwargs
-                        )
+                            # Despeckle the noisy band
+                            band_paths[band] = self._despeckle_sar(
+                                speckle_band, **kwargs
+                            )
+                        else:
+                            band_paths[band] = self._pre_process_sar(
+                                band, pixel_size, **kwargs
+                            )
 
         return band_paths
 
@@ -705,6 +722,233 @@ class SarProduct(Product):
 
         return band_arrays
 
+    def _pre_process_no_snap(
+        self, band: sab, pixel_size: float = None, **kwargs
+    ) -> AnyPathType:
+        """
+        Pre-process SAR data without SNAP -> no need of orthorectification
+
+        Args:
+            band (sbn): Band to preprocess
+            pixel_size (float): Pixel size
+            kwargs: Additional arguments
+
+        Returns:
+            AnyPathType: Band path
+        """
+        # Set the nodata and write the image where they belong
+        arr = utils.read(
+            self.get_raw_band_paths(**kwargs)[band],
+            pixel_size=pixel_size if pixel_size != 0 else None,
+            masked=False,
+            **kwargs,
+        )
+        arr = arr.where(arr != self._raw_no_data, np.nan)
+
+        file_path = self.get_band_path(band, writable=True, **kwargs)
+        arr = utils.write_path_in_attrs(arr, file_path)
+        utils.write(
+            arr,
+            file_path,
+            dtype=np.float32,
+            nodata=self._snap_no_data,
+            predictor=self._get_predictor(),
+        )
+        return file_path
+
+    def _get_pp_graph(self) -> str:
+        """Get the pre-processing graph"""
+        if PP_GRAPH not in os.environ:
+            if self.constellation_id == Constellation.S1.name:
+                sat = "s1"
+                if self.sensor_mode.value == "SM":
+                    sat += "_sm"
+            elif not self._calibrate:
+                sat = "no_calib"
+            else:
+                sat = "sar"
+            spt = "grd" if self.sar_prod_type == SarProductType.GRD else "cplx"
+            pp_graph = utils.get_data_dir().joinpath(
+                f"{spt}_{sat}_preprocess_default.xml"
+            )
+        else:
+            pp_graph = AnyPath(os.environ[PP_GRAPH]).resolve()
+            if not pp_graph.is_file() or pp_graph.suffix != ".xml":
+                FileNotFoundError(f"{pp_graph} cannot be found.")
+
+        return str(pp_graph)
+
+    def _get_dem(self) -> (str, str):
+        """Get the DEM used by SNAP for orthorectification in Terrain Coprrection operator."""
+        try:
+            dem_name = SnapDems.from_value(
+                os.environ.get(SNAP_DEM_NAME, SnapDems.GLO_30)
+            )
+        except AttributeError as ex:
+            raise ValueError(
+                f"{SNAP_DEM_NAME} should be chosen among {SnapDems.list_values()}"
+            ) from ex
+
+        # Manage DEM path
+        if dem_name == SnapDems.EXT_DEM:
+            dem_path = os.environ.get(DEM_PATH)
+            if not dem_path:
+                raise ValueError(
+                    f"You specified '{dem_name.value}' but you didn't give any DEM path. "
+                    f"Please set the environment variable {DEM_PATH} "
+                    f"or change {SNAP_DEM_NAME} to an acceptable SNAP DEM."
+                )
+        else:
+            dem_path = ""
+
+        return dem_name, dem_path
+
+    def _get_snap_product_path(self, tmp_dir: str, **kwargs) -> AnyPathType:
+        """
+        Get the SNAP-compatible product path.
+
+        WARNING: this can trigger the download of the product if stored on the cloud!
+
+        Args:
+            tmp_dir (str): Temporary directory, where to download the product if stored on the cloud
+            **kwargs: Other args
+
+        Returns:
+            AnyPathType: SNAP-compatible product path
+        """
+        # Download cloud path to cache
+        prod_path = kwargs.get("prod_path")
+        if prod_path is None:
+            if path.is_cloud_path(self.path):
+                LOGGER.debug(
+                    f"Caching {self.path} to {os.path.join(tmp_dir, self.path.name)}"
+                )
+                if self.path.is_dir():
+                    prod_path = os.path.join(
+                        tmp_dir, self.path.name, self.snap_filename
+                    )
+                    self.path.download_to(os.path.join(tmp_dir, self.path.name))
+                else:
+                    prod_path = self.path.fspath  # In tmp file, no need to download_to
+            else:
+                prod_path = self.path.joinpath(self.snap_filename)
+
+        return prod_path
+
+    def _get_subset(self, **kwargs) -> (str, str):
+        """Get the subset to be applied"""
+        window = kwargs.get("window")
+        window_to_crop = None
+
+        # By default, use the whole product
+        geo_region_gdf = ""
+        region = ""  # The 'geoRegion' parameter has precedence over this parameter.
+
+        if isinstance(window, Window):
+            geo_region_gdf = None
+            region = f"{window.col_off},{window.row_off},{window.width},{window.height}"
+            window_to_crop = window
+        elif path.is_path(window):
+            geo_region_gdf = vectors.read(window)
+            window_to_crop = geo_region_gdf
+        else:
+            geo_region_gdf = window
+            window_to_crop = window
+
+        if geo_region_gdf is None:
+            geo_region = ""
+        else:
+            try:
+                # Take a buffer to prevent border effects from terrain correction
+                geo_region_gdf = geometry.buffer(geo_region_gdf, 1000, resolution=2)
+                geo_region = geo_region_gdf.to_crs(WGS84).geometry.to_wkt().iat[0]
+            except Exception as exc:
+                raise NotImplementedError(
+                    "Window should either be a GeoDataFrame, readable as a vector or set to None. Bounds, tuple, list and 'rasterio.Window' are not supported."
+                ) from exc
+
+        return geo_region, region, window_to_crop
+
+    def _get_resolution(self, pixel_size):
+        # Compute resolution in degrees
+        # See https://step.esa.int/main/doc/online-help/?helpid=RangeDopplerGeocodingOp&version=11.0.0
+        equatorial_earth_radius = 6378137.0
+        res_deg = pixel_size / equatorial_earth_radius * 180 / np.pi
+        return pixel_size, res_deg
+
+    def _pre_process_snap(
+        self, band: sab, pixel_size: float = None, **kwargs
+    ) -> AnyPathType:
+        """
+        Pre-process SAR data with SNAP (needs orthorectification, calibration, etc.)
+
+        Args:
+            band (sbn): Band to preprocess
+            pixel_size (float): Pixel size
+            kwargs: Additional arguments
+
+        Returns:
+            AnyPathType: Band path
+        """
+        # Manage pixel size (use SNAP default pixel size for terrain correction)
+        def_pixel_size = float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
+        pixel_size = (
+            pixel_size
+            if (pixel_size and pixel_size != self.pixel_size)
+            else def_pixel_size
+        )
+
+        # Create target dir (tmp dir)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Use dimap for speed and security (i.e. GeoTiff's broken georef)
+            pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
+            pp_dim = pp_target + ".dim"
+
+            # Pre-process graph
+            pp_graph = self._get_pp_graph()
+
+            # Get DEM for orthorectification
+            dem_name, dem_path = self._get_dem()
+
+            # Get the product path, compatible with SNAP
+            # WARNING: this can trigger the download of the product if stored on the cloud!
+            prod_path = self._get_snap_product_path(tmp_dir, **kwargs)
+
+            # Manage subset
+            geo_region, region, window_to_crop = self._get_subset(**kwargs)
+
+            # Get resolution
+            res_m, res_deg = self._get_resolution(pixel_size)
+
+            # Create SNAP CLI
+            cmd_list = snap.get_gpt_cli(
+                pp_graph,
+                [
+                    f"-Pfile={strings.to_cmd_string(prod_path)}",
+                    f"-Pgeo_region={strings.to_cmd_string(geo_region)}",
+                    f"-Pregion={strings.to_cmd_string(region)}",
+                    f"-Pcalib_pola={strings.to_cmd_string(band.name)}",
+                    f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
+                    f"-Pdem_path={strings.to_cmd_string(dem_path)}",
+                    f"-Pcrs={self.crs()}",
+                    f"-Pres_m={res_m}",
+                    f"-Pres_deg={res_deg}",
+                    f"-Pout={strings.to_cmd_string(pp_dim)}",
+                ],
+                display_snap_opt=LOGGER.level == logging.DEBUG,
+            )
+
+            # Pre-process SAR images according to the given graph
+            LOGGER.debug("Pre-process SAR image")
+            try:
+                misc.run_cli(cmd_list)
+            except RuntimeError as ex:
+                raise RuntimeError("Something went wrong with SNAP!") from ex
+
+            # Convert DIMAP images to GeoTiff
+            LOGGER.debug("Converting DIMAP to GeoTiff")
+            return self._write_sar(pp_dim, band, crop=window_to_crop, **kwargs)
+
     def _pre_process_sar(
         self, band: sab, pixel_size: float = None, **kwargs
     ) -> AnyPathType:
@@ -719,154 +963,12 @@ class SarProduct(Product):
         Returns:
             AnyPathType: Band path
         """
-        # pixel_size (use SNAP default pixel size for terrain correction)
-        def_pixel_size = float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
-        pixel_size = (
-            pixel_size
-            if (pixel_size and pixel_size != self.pixel_size)
-            else def_pixel_size
-        )
-
         if not self._need_snap:
-            # Set the nodata and write the image where they belong
-            arr = utils.read(
-                self.get_raw_band_paths(**kwargs)[band],
-                pixel_size=pixel_size if pixel_size != 0 else None,
-                masked=False,
-            )
-            arr = arr.where(arr != self._raw_no_data, np.nan)
-
-            file_path = self.get_band_path(band, writable=True, **kwargs)
-            arr = utils.write_path_in_attrs(arr, file_path)
-            utils.write(
-                arr,
-                file_path,
-                dtype=np.float32,
-                nodata=self._snap_no_data,
-                predictor=self._get_predictor(),
-            )
-            return file_path
+            pre_process_fct = self._pre_process_no_snap
         else:
-            # Create target dir (tmp dir)
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                # Use dimap for speed and security (i.e. GeoTiff's broken georef)
-                pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
-                pp_dim = pp_target + ".dim"
+            pre_process_fct = self._pre_process_snap
 
-                # Pre-process graph
-                if PP_GRAPH not in os.environ:
-                    if self.constellation_id == Constellation.S1.name:
-                        sat = "s1"
-                        if self.sensor_mode.value == "SM":
-                            sat += "_sm"
-                    elif not self._calibrate:
-                        sat = "no_calib"
-                    else:
-                        sat = "sar"
-                    spt = "grd" if self.sar_prod_type == SarProductType.GRD else "cplx"
-                    pp_graph = utils.get_data_dir().joinpath(
-                        f"{spt}_{sat}_preprocess_default.xml"
-                    )
-                else:
-                    pp_graph = AnyPath(os.environ[PP_GRAPH]).resolve()
-                    if not pp_graph.is_file() or pp_graph.suffix != ".xml":
-                        FileNotFoundError(f"{pp_graph} cannot be found.")
-
-                # Command line
-                if not os.path.isfile(pp_dim):
-                    res_deg = rasters.from_meters_to_deg(
-                        pixel_size
-                    )  # Value at Equator, approx, shouldn't be used
-
-                    # Manage DEM name
-                    try:
-                        dem_name = SnapDems.from_value(
-                            os.environ.get(SNAP_DEM_NAME, SnapDems.GLO_30)
-                        )
-                    except AttributeError as ex:
-                        raise ValueError(
-                            f"{SNAP_DEM_NAME} should be chosen among {SnapDems.list_values()}"
-                        ) from ex
-
-                    # Manage DEM path
-                    if dem_name == SnapDems.EXT_DEM:
-                        dem_path = os.environ.get(DEM_PATH)
-                        if not dem_path:
-                            raise ValueError(
-                                f"You specified '{dem_name.value}' but you didn't give any DEM path. "
-                                f"Please set the environment variable {DEM_PATH} "
-                                f"or change {SNAP_DEM_NAME} to an acceptable SNAP DEM."
-                            )
-                    else:
-                        dem_path = ""
-
-                    # Download cloud path to cache
-                    prod_path = kwargs.get("prod_path")
-                    if prod_path is None:
-                        if path.is_cloud_path(self.path):
-                            LOGGER.debug(
-                                f"Caching {self.path} to {os.path.join(tmp_dir, self.path.name)}"
-                            )
-                            if self.path.is_dir():
-                                prod_path = os.path.join(
-                                    tmp_dir, self.path.name, self.snap_filename
-                                )
-                                self.path.download_to(
-                                    os.path.join(tmp_dir, self.path.name)
-                                )
-                            else:
-                                prod_path = (
-                                    self.path.fspath
-                                )  # In tmp file, no need to download_to
-                        else:
-                            prod_path = self.path.joinpath(self.snap_filename)
-
-                    # AOI
-                    window = kwargs.get("window")
-                    window_raw = None
-                    if window is None:
-                        window = self.extent()
-                    else:
-                        if path.is_path(window):
-                            window = vectors.read(window)
-
-                        # Take a buffer to prevent border effects from terrain correction
-                        window_raw = window
-                        window = geometry.buffer(window, 1000, resolution=2)
-                    try:
-                        window_wkt = window.to_crs(WGS84).geometry.to_wkt().iat[0]
-                    except Exception as exc:
-                        raise TypeError(
-                            "Window should either be a GeoDataFrame, readable as a vector or set to None. Bounds, tuple, list and 'rasterio.Window' are not supported."
-                        ) from exc
-
-                    # Create SNAP CLI
-                    cmd_list = snap.get_gpt_cli(
-                        pp_graph,
-                        [
-                            f"-Pfile={strings.to_cmd_string(prod_path)}",
-                            f"-Paoi={strings.to_cmd_string(window_wkt)}",
-                            f"-Pcalib_pola={strings.to_cmd_string(band.name)}",
-                            f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
-                            f"-Pdem_path={strings.to_cmd_string(dem_path)}",
-                            f"-Pcrs={self.crs()}",
-                            f"-Pres_m={pixel_size}",
-                            f"-Pres_deg={res_deg}",
-                            f"-Pout={strings.to_cmd_string(pp_dim)}",
-                        ],
-                        display_snap_opt=LOGGER.level == logging.DEBUG,
-                    )
-
-                    # Pre-process SAR images according to the given graph
-                    LOGGER.debug("Pre-process SAR image")
-                    try:
-                        misc.run_cli(cmd_list)
-                    except RuntimeError as ex:
-                        raise RuntimeError("Something went wrong with SNAP!") from ex
-
-                # Convert DIMAP images to GeoTiff
-                LOGGER.debug("Converting DIMAP to GeoTiff")
-                return self._write_sar(pp_dim, band, crop=window_raw, **kwargs)
+        return pre_process_fct(band, pixel_size, **kwargs)
 
     def _despeckle_sar(self, band: sab, **kwargs) -> AnyPathType:
         """
@@ -897,7 +999,7 @@ class SarProduct(Product):
             if not os.path.isfile(dspk_dim):
                 dspk_path = self.get_band_paths([band], **kwargs)[band]
                 cmd_list = snap.get_gpt_cli(
-                    dspk_graph,
+                    str(dspk_graph),
                     [f"-Pfile={dspk_path}", f"-Pout={dspk_dim}"],
                     display_snap_opt=False,
                 )
@@ -952,7 +1054,7 @@ class SarProduct(Product):
         try:
             imgs = utils.get_dim_img_path(dim_path, f"*{pol}*")
         except FileNotFoundError:
-            imgs = utils.get_dim_img_path(dim_path)  # Maybe not the good name
+            imgs = utils.get_dim_img_path(dim_path)  # Maybe not a good name
 
         # Manage cases where multiple swaths are ortho independently
         if len(imgs) > 1:
@@ -979,7 +1081,10 @@ class SarProduct(Product):
 
             crop_window = kwargs.get("crop")
             if crop_window is not None:
-                arr = rasters.crop(arr, crop_window)
+                if isinstance(crop_window, Window):
+                    arr = arr.rio.isel_window(crop_window)
+                else:
+                    arr = rasters.crop(arr, crop_window)
 
             # Save the file as the terrain-corrected image
             file_path = self.get_band_path(band, writable=True, **kwargs)

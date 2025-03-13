@@ -15,9 +15,9 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
       <tiePointGrids/>
-      <region/>
       <referenceBand/>
-      <geoRegion>${aoi}</geoRegion>
+      <region>${region}</region>
+      <geoRegion>${geo_region}</geoRegion>
       <subSamplingX>1</subSamplingX>
       <subSamplingY>1</subSamplingY>
       <fullSwath>false</fullSwath>
