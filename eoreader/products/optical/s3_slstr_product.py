@@ -1132,7 +1132,7 @@ class S3SlstrProduct(S3Product):
 
         return float(sun_az.mean().data) % 360, float(sun_ze.mean().data)
 
-    def _get_clean_band_path(
+    def get_band_path(
         self,
         band: BandNames,
         pixel_size: float = None,
@@ -1153,7 +1153,7 @@ class S3SlstrProduct(S3Product):
             AnyPathType: Clean band path
         """
 
-        clean_band_path = super()._get_clean_band_path(
+        clean_band_path = super().get_band_path(
             band=band,
             pixel_size=pixel_size,
             writable=writable,

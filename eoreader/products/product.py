@@ -610,44 +610,6 @@ class Product:
 
         return date
 
-    def _construct_band_path(
-        self,
-        band: BandNames,
-        pixel_size: float = None,
-        size: Union[list, tuple] = None,
-        writable: bool = False,
-        **kwargs,
-    ) -> AnyPathType:
-        """
-        Get cloud band path.
-
-        Args:
-            band (BandNames): Wanted band
-            pixel_size (float): Band pixel size in meters
-            writable (bool): True if we want the band folder to be writeable
-            kwargs: Additional arguments
-
-        Returns:
-            AnyPathType: Clean band path
-        """
-        # Manage pixel size
-        if pixel_size is None:
-            if size is not None:
-                pixel_size = self._pixel_size_from_img_size(size)
-            else:
-                pixel_size = self.pixel_size
-
-        # Convert to str
-        res_str = self._pixel_size_to_str(pixel_size)
-
-        win_suffix = utils.get_window_suffix(kwargs.get("window"))
-        if win_suffix:
-            win_suffix = f"_{win_suffix}"
-
-        return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{to_str(band)[0]}_{res_str.replace('.', '-')}{win_suffix}.tif",
-        )
-
     @abstractmethod
     def get_default_band_path(self, **kwargs) -> AnyPathType:
         """
@@ -783,6 +745,103 @@ class Product:
             dict: Dictionary containing the path of each queried band
         """
         raise NotImplementedError
+
+    def _get_out_path(self, filename: str) -> tuple[AnyPathType, bool]:
+        """
+        Returns the output path of a file to be written, depending on if it already exists or not (manages CI folders)
+
+        Args:
+            filename (str): Filename
+
+        Returns:
+            tuple[AnyPathType, bool]: Output path and if the file already exists or not
+        """
+        out = self._get_band_folder() / filename
+        exists = True
+        if not out.exists():
+            exists = False
+            out = self._get_band_folder(writable=True) / filename
+
+        return out, exists
+
+    def get_band_file_name(
+        self,
+        band: BandNames,
+        pixel_size: float,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> str:
+        """
+        Get the filename of any band, managing windows and other args.
+
+        Args:
+            band (BandNames): Wanted band
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Additional arguments
+
+        Returns:
+            str: Band file name
+        """
+        if pixel_size is None:
+            if size is not None:
+                pixel_size = self._pixel_size_from_img_size(size)
+            else:
+                pixel_size = self.pixel_size
+
+        # Pixel size
+        res_str = self._pixel_size_to_str(pixel_size)
+
+        # Window
+        win_suffix = utils.get_window_suffix(kwargs.get("window"))
+        if win_suffix:
+            win_suffix = f"_{win_suffix}"
+
+        # Specific if needed
+
+        return f"{self.condensed_name}_{self.bands[band].id}_{res_str.replace('.', '-')}{win_suffix}{self._get_band_file_name_sensor_specific_suffix(band, **kwargs)}.tif"
+
+    def _get_band_file_name_sensor_specific_suffix(
+        self, band: BandNames, **kwargs
+    ) -> str:
+        """
+        Get the sensor-specific suffix of a band filename.
+
+        Args:
+            band (BandNames): Wanted band
+            **kwargs: Other args
+
+        Returns:
+            str: Band filename sensor-specific suffix
+        """
+        return ""
+
+    def get_band_path(
+        self,
+        band: BandNames,
+        pixel_size: float = None,
+        size: Union[list, tuple] = None,
+        writable: bool = False,
+        **kwargs,
+    ) -> AnyPathType:
+        """
+        Get clean band path.
+
+        The clean band is the opened band where invalid pixels have been managed.
+
+        Args:
+            band (BandNames): Wanted band
+            pixel_size (float): Band pixel size in meters
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            writable (bool): True if we want the band folder to be writeable
+            kwargs: Additional arguments
+
+        Returns:
+            AnyPathType: Clean band path
+        """
+        return self._get_band_folder(writable) / self.get_band_file_name(
+            band, pixel_size=pixel_size, size=size, **kwargs
+        )
 
     @abstractmethod
     def _read_mtd(self) -> (etree._Element, dict):
@@ -1311,7 +1370,7 @@ class Product:
         """
         band_dict = {}
         for idx in index_list:
-            idx_path = self._construct_band_path(
+            idx_path = self.get_band_path(
                 idx, pixel_size, size, writable=False, **kwargs
             )
             if idx_path.is_file():
@@ -1323,7 +1382,7 @@ class Product:
                 idx_arr.attrs["long_name"] = idx
 
                 # Write on disk
-                idx_path = self._construct_band_path(
+                idx_path = self.get_band_path(
                     idx, pixel_size, size, writable=True, **kwargs
                 )
                 idx_arr = utils.write_path_in_attrs(idx_arr, idx_path)
@@ -1626,24 +1685,6 @@ class Product:
 
     def __hash__(self):
         return hash(self.condensed_name)
-
-    def _get_out_path(self, filename: str) -> tuple[AnyPathType, bool]:
-        """
-        Returns the output path of a file to be written, depending on if it already exists or not (manages CI folders)
-
-        Args:
-            filename (str): Filename
-
-        Returns:
-            tuple[AnyPathType, bool]: Output path and if the file already exists or not
-        """
-        out = self._get_band_folder() / filename
-        exists = True
-        if not out.exists():
-            exists = False
-            out = self._get_band_folder(writable=True) / filename
-
-        return out, exists
 
     @property
     def output(self) -> AnyPathType:

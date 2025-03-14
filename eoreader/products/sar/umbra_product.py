@@ -499,7 +499,9 @@ class UmbraProduct(SarProduct):
         """
         raw_band_path = self._get_gec_path()
 
-        ortho_path, ortho_exists = self._get_out_path(self.get_band_file_name(band))
+        ortho_path, ortho_exists = self._get_out_path(
+            self.get_band_file_name(band, pixel_size, **kwargs)
+        )
         if not ortho_exists:
             with rasterio.open(raw_band_path) as ds:
                 # Orthorectify GEC if RPC are available

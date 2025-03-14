@@ -327,9 +327,7 @@ class S2TheiaProduct(OpticalProduct):
         """
         band_paths = {}
         for band in band_list:  # Get clean band path
-            clean_band = self._get_clean_band_path(
-                band, pixel_size=pixel_size, **kwargs
-            )
+            clean_band = self.get_band_path(band, pixel_size=pixel_size, **kwargs)
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
@@ -656,7 +654,7 @@ class S2TheiaProduct(OpticalProduct):
             for band in bands:
                 for associated_band in associated_bands[band]:
                     key = self._get_band_key(band, associated_band, **kwargs)
-                    mask_path = self._construct_band_path(
+                    mask_path = self.get_band_path(
                         key,
                         pixel_size,
                         size,
@@ -679,7 +677,7 @@ class S2TheiaProduct(OpticalProduct):
 
             # Write them on disk
             for band_id, band_arr in loaded_bands.items():
-                mask_path = self._construct_band_path(
+                mask_path = self.get_band_path(
                     band_id, pixel_size, size, writable=True, **kwargs
                 )
                 band_arr = utils.write_path_in_attrs(band_arr, mask_path)

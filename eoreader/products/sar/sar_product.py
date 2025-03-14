@@ -427,38 +427,6 @@ class SarProduct(Product):
         """
         raise NotImplementedError
 
-    def get_band_file_name(self, band: BandNames, **kwargs) -> str:
-        """
-        Get the filename of any SAR band, managing windows.
-
-        Args:
-            band (BandNames): SAR band name
-            **kwargs: Other args
-
-        Returns:
-            str: Band file name
-        """
-        win_suffix = utils.get_window_suffix(kwargs.get("window"))
-        if win_suffix:
-            win_suffix = f"_{win_suffix}"
-        return f"{self.condensed_name}_{self.bands[band].id}{win_suffix}.tif"
-
-    def get_band_path(
-        self, band: BandNames, writable: bool = False, **kwargs
-    ) -> AnyPathType:
-        """
-        Get the path of any SAR band, managing windows and writeable output.
-
-        Args:
-            band (BandNames): SAR band name
-            writable (bool): Do we need to write the pre-processed band ?
-            **kwargs: Other args
-
-        Returns:
-            AnyPathType: Band path
-        """
-        return self._get_band_folder(writable) / self.get_band_file_name(band, **kwargs)
-
     def get_band_paths(
         self, band_list: list, pixel_size: float = None, **kwargs
     ) -> dict:
@@ -494,40 +462,34 @@ class SarProduct(Product):
                     f"Non existing band ({band.name}) for {self.name}"
                 )
 
-            ortho_band = self.get_band_path(band, **kwargs)
-            if ortho_band.is_file():
+            ortho_band, ortho_exists = self._get_out_path(
+                self.get_band_file_name(band, pixel_size, **kwargs)
+            )
+
+            if ortho_exists:
                 band_paths[band] = ortho_band
             else:
-                # Check if the band exists in the writable output (for CI)
-                ortho_band = self.get_band_path(band, writable=True, **kwargs)
-                if ortho_band.is_file():
-                    band_paths[band] = ortho_band
-                else:
-                    speckle_band = sab.corresponding_speckle(band)
-                    if speckle_band in self.pol_channels:
-                        if sab.is_despeckle(band):
-                            # Check if existing speckle ortho band
-                            speckle_ortho_path = self.get_band_path(
-                                speckle_band, **kwargs
-                            )
-                            if not speckle_ortho_path.is_file():
-                                # Check if the band exists in the writable output (for CI)
-                                speckle_ortho_path = self.get_band_path(
-                                    band, writable=True, **kwargs
-                                )
-                                if not speckle_ortho_path.is_file():
-                                    self._pre_process_sar(
-                                        speckle_band, pixel_size, **kwargs
-                                    )
+                # Two options here:
+                # - Non-existing band is a speckle band -> only need to pre-process it
+                # - Non-existing band is a despeckled band -> make sure the speckle band is pre-processed before trying to despeckle it
+                speckle_band = sab.corresponding_speckle(band)
+                if speckle_band in self.pol_channels:
+                    # Non-existing band is a despeckled band -> make sure the speckle band is pre-processed before trying to despeckle it
+                    if sab.is_despeckle(band):
+                        # Check if existing speckle ortho band
+                        _, speckle_ortho_exists = self._get_out_path(
+                            self.get_band_file_name(speckle_band, pixel_size, **kwargs)
+                        )
+                        if not speckle_ortho_exists:
+                            self._pre_process_sar(speckle_band, pixel_size, **kwargs)
 
-                            # Despeckle the noisy band
-                            band_paths[band] = self._despeckle_sar(
-                                speckle_band, **kwargs
-                            )
-                        else:
-                            band_paths[band] = self._pre_process_sar(
-                                band, pixel_size, **kwargs
-                            )
+                        # Despeckle the noisy band
+                        band_paths[band] = self._despeckle_sar(speckle_band, **kwargs)
+                    # Non-existing band is a speckle band -> only need to pre-process it
+                    else:
+                        band_paths[band] = self._pre_process_sar(
+                            band, pixel_size, **kwargs
+                        )
 
         return band_paths
 
@@ -869,7 +831,7 @@ class SarProduct(Product):
 
         return geo_region, region, window_to_crop
 
-    def _get_resolution(self, pixel_size):
+    def _get_resolution(self, pixel_size: float) -> (float, float):
         # Compute resolution in degrees
         # See https://step.esa.int/main/doc/online-help/?helpid=RangeDopplerGeocodingOp&version=11.0.0
         equatorial_earth_radius = 6378137.0
@@ -898,56 +860,71 @@ class SarProduct(Product):
             else def_pixel_size
         )
 
-        # Create target dir (tmp dir)
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            # Use dimap for speed and security (i.e. GeoTiff's broken georef)
-            pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
-            pp_dim = pp_target + ".dim"
-
-            # Pre-process graph
-            pp_graph = self._get_pp_graph()
-
-            # Get DEM for orthorectification
-            dem_name, dem_path = self._get_dem()
-
-            # Get the product path, compatible with SNAP
-            # WARNING: this can trigger the download of the product if stored on the cloud!
-            prod_path = self._get_snap_product_path(tmp_dir, **kwargs)
-
-            # Manage subset
-            geo_region, region, window_to_crop = self._get_subset(**kwargs)
-
-            # Get resolution
-            res_m, res_deg = self._get_resolution(pixel_size)
-
-            # Create SNAP CLI
-            cmd_list = snap.get_gpt_cli(
-                pp_graph,
-                [
-                    f"-Pfile={strings.to_cmd_string(prod_path)}",
-                    f"-Pgeo_region={strings.to_cmd_string(geo_region)}",
-                    f"-Pregion={strings.to_cmd_string(region)}",
-                    f"-Pcalib_pola={strings.to_cmd_string(band.name)}",
-                    f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
-                    f"-Pdem_path={strings.to_cmd_string(dem_path)}",
-                    f"-Pcrs={self.crs()}",
-                    f"-Pres_m={res_m}",
-                    f"-Pres_deg={res_deg}",
-                    f"-Pout={strings.to_cmd_string(pp_dim)}",
-                ],
-                display_snap_opt=LOGGER.level == logging.DEBUG,
+        # Check if the image has been orthorectified without a window.
+        # If so, don't redo the ortho with SNAP, only read the ortho image with the window
+        # This makes a discrepancy between windowed read with pixels between subset and read, but is this bad?
+        # Let's assume it's not
+        no_window_ortho_path, no_window_ortho_exists = self._get_out_path(
+            self.get_band_file_name(
+                band,
+                pixel_size,
+                **utils._prune_keywords(additional_keywords=["window"], **kwargs),
             )
+        )
 
-            # Pre-process SAR images according to the given graph
-            LOGGER.debug("Pre-process SAR image")
-            try:
-                misc.run_cli(cmd_list)
-            except RuntimeError as ex:
-                raise RuntimeError("Something went wrong with SNAP!") from ex
+        if no_window_ortho_exists:
+            return no_window_ortho_path
+        else:
+            # Create target dir (tmp dir)
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                # Use dimap for speed and security (i.e. GeoTiff's broken georef)
+                pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
+                pp_dim = pp_target + ".dim"
 
-            # Convert DIMAP images to GeoTiff
-            LOGGER.debug("Converting DIMAP to GeoTiff")
-            return self._write_sar(pp_dim, band, crop=window_to_crop, **kwargs)
+                # Pre-process graph
+                pp_graph = self._get_pp_graph()
+
+                # Get DEM for orthorectification
+                dem_name, dem_path = self._get_dem()
+
+                # Get the product path, compatible with SNAP
+                # WARNING: this can trigger the download of the product if stored on the cloud!
+                prod_path = self._get_snap_product_path(tmp_dir, **kwargs)
+
+                # Manage subset
+                geo_region, region, window_to_crop = self._get_subset(**kwargs)
+
+                # Get resolution
+                res_m, res_deg = self._get_resolution(pixel_size)
+
+                # Create SNAP CLI
+                cmd_list = snap.get_gpt_cli(
+                    pp_graph,
+                    [
+                        f"-Pfile={strings.to_cmd_string(prod_path)}",
+                        f"-Pgeo_region={strings.to_cmd_string(geo_region)}",
+                        f"-Pregion={strings.to_cmd_string(region)}",
+                        f"-Pcalib_pola={strings.to_cmd_string(band.name)}",
+                        f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
+                        f"-Pdem_path={strings.to_cmd_string(dem_path)}",
+                        f"-Pcrs={self.crs()}",
+                        f"-Pres_m={res_m}",
+                        f"-Pres_deg={res_deg}",
+                        f"-Pout={strings.to_cmd_string(pp_dim)}",
+                    ],
+                    display_snap_opt=LOGGER.level == logging.DEBUG,
+                )
+
+                # Pre-process SAR images according to the given graph
+                LOGGER.debug("Pre-process SAR image")
+                try:
+                    misc.run_cli(cmd_list)
+                except RuntimeError as ex:
+                    raise RuntimeError("Something went wrong with SNAP!") from ex
+
+                # Convert DIMAP images to GeoTiff
+                LOGGER.debug("Converting DIMAP to GeoTiff")
+                return self._write_sar(pp_dim, band, crop=window_to_crop, **kwargs)
 
     def _pre_process_sar(
         self, band: sab, pixel_size: float = None, **kwargs

@@ -317,10 +317,10 @@ class OpticalProduct(Product):
 
             if not pixel_size:
                 pixel_size = band_arr.rio.resolution()[0]
-            clean_band_path = self._get_clean_band_path(
+            clean_band_path = self.get_band_path(
                 band, pixel_size=pixel_size, writable=True, **kwargs
             )
-            # If raw data, clean it !
+            # If raw data, clean it!
             if AnyPath(band_path).name != clean_band_path.name:
                 # Clean pixels
                 cleaning_method = CleanMethod.from_value(
@@ -596,7 +596,7 @@ class OpticalProduct(Product):
             # First, try to open the cloud band written on disk
             bands_to_load = []
             for band in bands:
-                cloud_path = self._construct_band_path(
+                cloud_path = self.get_band_path(
                     band, pixel_size, size, writable=False, **kwargs
                 )
                 if cloud_path.is_file():
@@ -609,7 +609,7 @@ class OpticalProduct(Product):
 
             # Write them on disk
             for band_id, band_arr in loaded_bands.items():
-                cloud_path = self._construct_band_path(
+                cloud_path = self.get_band_path(
                     band_id, pixel_size, size, writable=True, **kwargs
                 )
                 band_arr = utils.write_path_in_attrs(band_arr, cloud_path)
@@ -664,7 +664,7 @@ class OpticalProduct(Product):
             # First, try to open the cloud band written on disk
             bands_to_load = []
             for band in bands:
-                mask_path = self._construct_band_path(
+                mask_path = self.get_band_path(
                     band, pixel_size, size, writable=False, **kwargs
                 )
                 if mask_path.is_file():
@@ -677,7 +677,7 @@ class OpticalProduct(Product):
 
             # Write them on disk
             for band_id, band_arr in loaded_bands.items():
-                mask_path = self._construct_band_path(
+                mask_path = self.get_band_path(
                     band_id, pixel_size, size, writable=True, **kwargs
                 )
                 band_arr = utils.write_path_in_attrs(band_arr, mask_path)
@@ -719,44 +719,32 @@ class OpticalProduct(Product):
 
         return mask
 
-    def _get_clean_band_path(
-        self,
-        band: BandNames,
-        pixel_size: float = None,
-        writable: bool = False,
-        **kwargs,
-    ) -> AnyPathType:
+    def _get_band_file_name_sensor_specific_suffix(
+        self, band: BandNames, **kwargs
+    ) -> str:
         """
-        Get clean band path.
-
-        The clean band is the opened band where invalid pixels have been managed.
+        Get the sensor-specific suffix of a band filename.
 
         Args:
             band (BandNames): Wanted band
-            pixel_size (float): Band pixel size in meters
-            writable (bool): True if we want the band folder to be writeable
-            kwargs: Additional arguments
+            **kwargs: Other args
 
         Returns:
-            AnyPathType: Clean band path
+            str: Band filename sensor-specific suffix
         """
-        cleaning_method = CleanMethod.from_value(
-            kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
-        )
+        if is_spectral_band(band):
+            cleaning_method = CleanMethod.from_value(
+                kwargs.get(CLEAN_OPTICAL, DEF_CLEAN_METHOD)
+            )
 
-        res_str = self._pixel_size_to_str(pixel_size)
+            # Radiometric processing
+            rad_proc = "" if kwargs.get(TO_REFLECTANCE, True) else "_as_is"
 
-        # Radiometric processing
-        rad_proc = "" if kwargs.get(TO_REFLECTANCE, True) else "_as_is"
+            suffix = f"_{cleaning_method.value}{rad_proc}"
+        else:
+            suffix = ""
 
-        # Window name
-        win_suffix = utils.get_window_suffix(kwargs.get("window"))
-        if win_suffix:
-            win_suffix += "_"
-
-        return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{band.name}_{res_str.replace('.', '-')}_{win_suffix}{cleaning_method.value}{rad_proc}.tif",
-        )
+        return suffix
 
     @cache
     def _sun_earth_distance(self) -> float:

@@ -979,9 +979,7 @@ class LandsatProduct(OpticalProduct):
             band_id = self.bands[band].id
 
             # Get clean band path
-            clean_band = self._get_clean_band_path(
-                band, pixel_size=pixel_size, **kwargs
-            )
+            clean_band = self.get_band_path(band, pixel_size=pixel_size, **kwargs)
             if clean_band.is_file():
                 band_paths[band] = clean_band
             else:
