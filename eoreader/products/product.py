@@ -769,6 +769,24 @@ class Product:
 
         return out, exists
 
+    def _is_existing(self, filename: str) -> tuple[AnyPathType, bool]:
+        """
+        Returns the output path of a filename (looking in nor writable folder first), and if it exists or not
+
+        Args:
+            filename (str): Filename
+
+        Returns:
+            tuple[AnyPathType, bool]: Output path and if the file already exists or not
+        """
+        out = self._get_band_folder() / filename
+        exists = out.exists()
+        if not exists:
+            out = self._get_band_folder(writable=True) / filename
+            exists = out.exists()
+
+        return out, exists
+
     def get_band_file_name(
         self,
         band: BandNames,
@@ -2197,13 +2215,13 @@ class Product:
         """
 
         def _res_to_str(res):
-            res_str_raw = f"{abs(res):.2f}m".replace(".", "-")
+            res_str_raw = f"{abs(res):.2f}".replace(".", "-")
 
-            if os.getenv(LEGACY_BAND_NAME_RESOLUTION) == "1":
-                return res_str_raw
-            else:
+            if os.getenv(LEGACY_BAND_NAME_RESOLUTION) != "1":
                 # Remove trailing zeros and trailing '-'
-                return res_str_raw.rstrip("0").rstrip("-")
+                res_str_raw = res_str_raw.rstrip("0").rstrip("-")
+
+            return f"{res_str_raw}m"
 
         if pixel_size:
             if types.is_iterable(pixel_size):

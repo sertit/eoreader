@@ -462,7 +462,7 @@ class SarProduct(Product):
                     f"Non existing band ({band.name}) for {self.name}"
                 )
 
-            ortho_band, ortho_exists = self._get_out_path(
+            ortho_band, ortho_exists = self._is_existing(
                 self.get_band_file_name(band, pixel_size, **kwargs)
             )
 
@@ -477,7 +477,7 @@ class SarProduct(Product):
                     # Non-existing band is a despeckled band -> make sure the speckle band is pre-processed before trying to despeckle it
                     if sab.is_despeckle(band):
                         # Check if existing speckle ortho band
-                        _, speckle_ortho_exists = self._get_out_path(
+                        _, speckle_ortho_exists = self._is_existing(
                             self.get_band_file_name(speckle_band, pixel_size, **kwargs)
                         )
                         if not speckle_ortho_exists:
@@ -699,8 +699,9 @@ class SarProduct(Product):
             AnyPathType: Band path
         """
         # Set the nodata and write the image where they belong
+        raw_band_path = self.get_raw_band_paths(**kwargs)[band]
         arr = utils.read(
-            self.get_raw_band_paths(**kwargs)[band],
+            raw_band_path,
             pixel_size=pixel_size if pixel_size != 0 else None,
             masked=False,
             **kwargs,
@@ -838,6 +839,63 @@ class SarProduct(Product):
         res_deg = pixel_size / equatorial_earth_radius * 180 / np.pi
         return pixel_size, res_deg
 
+    def _already_orthorectified_path(
+        self, band: sab, pixel_size: float = None, **kwargs
+    ) -> AnyPathType:
+        """
+        Check if an acceptable orthorectified file already exists on disk
+
+        Args:
+            band (sbn): Band to preprocess
+            pixel_size (float): Pixel size
+            kwargs: Additional arguments
+
+        Returns:
+            AnyPathType: Band path
+        """
+        already_ortho = None
+        # Check if the image has been orthorectified without a window.
+        # If so, don't redo the ortho with SNAP, only read the ortho image with the window
+        # This makes a discrepancy between windowed read with pixels between subset and read, but is this bad?
+        # Let's assume it's not
+        no_window_ortho_path, no_window_ortho_exists = self._is_existing(
+            self.get_band_file_name(
+                band,
+                pixel_size,
+                **utils._prune_keywords(additional_keywords=["window"], **kwargs),
+            )
+        )
+
+        if no_window_ortho_exists:
+            already_ortho = no_window_ortho_path
+        else:
+            # Check if an ortho band with a better resolution exists (and for legacy purposes, without any resolution)
+            # If so, use it instead of re-orthorectifying bands
+            no_res_name = f"{self.condensed_name}_{self.bands[band].id}*"
+            no_res_files = list(
+                self._get_band_folder(writable=True).glob(no_res_name)
+            ) + list(self._get_band_folder(writable=False).glob(no_res_name))
+            LOGGER.debug(no_res_name)
+            LOGGER.debug(no_res_files)
+
+            if len(no_res_files) > 0:
+                for no_res_file in no_res_files:
+                    split_name = no_res_file.name.split("_")
+                    if "m" in split_name[-1]:
+                        # Check if resolution is better than the one asked
+                        file_res = int(
+                            split_name[-1].replace("m", "").replace("-", ".")
+                        )
+                        if file_res < pixel_size:
+                            already_ortho = no_res_file
+                            break
+                    else:
+                        # No resolution, take it (for legacy purposes)
+                        already_ortho = no_res_file
+                        break
+
+        return already_ortho
+
     def _pre_process_snap(
         self, band: sab, pixel_size: float = None, **kwargs
     ) -> AnyPathType:
@@ -859,21 +917,9 @@ class SarProduct(Product):
             if (pixel_size and pixel_size != self.pixel_size)
             else def_pixel_size
         )
-
-        # Check if the image has been orthorectified without a window.
-        # If so, don't redo the ortho with SNAP, only read the ortho image with the window
-        # This makes a discrepancy between windowed read with pixels between subset and read, but is this bad?
-        # Let's assume it's not
-        no_window_ortho_path, no_window_ortho_exists = self._get_out_path(
-            self.get_band_file_name(
-                band,
-                pixel_size,
-                **utils._prune_keywords(additional_keywords=["window"], **kwargs),
-            )
-        )
-
-        if no_window_ortho_exists:
-            return no_window_ortho_path
+        already_ortho = self._already_orthorectified_path(band, pixel_size, **kwargs)
+        if already_ortho is not None:
+            return already_ortho
         else:
             # Create target dir (tmp dir)
             with tempfile.TemporaryDirectory() as tmp_dir:
