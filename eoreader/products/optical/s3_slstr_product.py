@@ -632,14 +632,6 @@ class S3SlstrProduct(S3Product):
                     LOGGER.debug(f"Converting {band_str} to reflectance")
                     band_arr = self._rad_2_refl(band_arr, band, suffix)
 
-                    # Debug
-                    # utils.write(
-                    #     band_arr,
-                    #     self._get_band_folder(writable=True).joinpath(
-                    #         f"{self.condensed_name}_{band.name}_rad2refl.tif"
-                    #     ),
-                    # )
-
             # Geocode
             LOGGER.debug(f"Geocoding {pp_name}")
             kwargs.pop("suffix", None)
@@ -675,7 +667,12 @@ class S3SlstrProduct(S3Product):
         if band is not None:
             # Get the stripe
             if isinstance(band, BandNames):
-                band = self.bands[band].id
+                try:
+                    # Spectral bands
+                    band = self.bands[band].id
+                except KeyError:
+                    # Cloud bands
+                    band = band.value
 
             if band == F1.value:
                 stripe = SlstrStripe.F if self._F1_is_f else SlstrStripe.I
@@ -1136,6 +1133,7 @@ class S3SlstrProduct(S3Product):
         self,
         band: BandNames,
         pixel_size: float = None,
+        size: Union[list, tuple] = None,
         writable: bool = False,
         **kwargs,
     ) -> AnyPathType:

@@ -133,7 +133,7 @@ def check_product_consistency(prod: Product):
     assert isinstance(orbit_dir, OrbitDirection)
 
 
-def check_load(prod: Product, first_band) -> None:
+def check_load(prod: Product, first_band, pixel_size) -> None:
     """
     Check if the loading process
     Args:
@@ -145,33 +145,38 @@ def check_load(prod: Product, first_band) -> None:
 
     # Don't orthorectify with a window to 1000 m
     with tempenv.TemporaryEnvironment({SAR_DEF_PIXEL_SIZE: "0"}):
-        # Load with the raw process
-        band_arr_raw = prod.load(
-            first_band.value,
-            window=Window(col_off=0, row_off=0, width=100, height=100),
-            clean_optical="raw",
-        )[first_band]
-
         # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
         band_arr1 = prod.load(
             first_band,
+            pixel_size=pixel_size,
             window=Window(col_off=0, row_off=0, width=100, height=100),
             clean_optical="nodata",
         )[first_band]
         band_arr2 = prod.load(
             first_band,
+            pixel_size=pixel_size,
             window=Window(col_off=0, row_off=0, width=100, height=100),
         )[first_band]
-
-        np.testing.assert_array_almost_equal(band_arr1, band_arr2)
-
-        # Check dtypes
-        ci.assert_val(band_arr_raw.dtype, np.float32, "band_arr_raw dtype")
         ci.assert_val(band_arr1.dtype, np.float32, "band_arr1 dtype")
         ci.assert_val(band_arr2.dtype, np.float32, "band_arr2 dtype")
+        ci.assert_val(band_arr1.shape, band_arr2.shape, "band_arr2 shape")
 
-        # Check shapes between raw and no data cleaning
-        ci.assert_val(band_arr_raw.shape, band_arr1.shape, "band_arr1 shape")
+        if prod.sensor_type == SensorType.OPTICAL:
+            # Load with the raw process
+            band_arr_raw = prod.load(
+                first_band.value,
+                pixel_size=pixel_size,
+                window=Window(col_off=0, row_off=0, width=100, height=100),
+                clean_optical="raw",
+            )[first_band]
+
+            np.testing.assert_array_almost_equal(band_arr1, band_arr2)
+
+            # Check dtypes
+            ci.assert_val(band_arr_raw.dtype, np.float32, "band_arr_raw dtype")
+
+            # Check shapes between raw and no data cleaning
+            ci.assert_val(band_arr_raw.shape, band_arr1.shape, "band_arr_raw shape")
 
 
 def check_attrs(prod: Product, array: xr.DataArray, long_name) -> None:
@@ -367,7 +372,7 @@ def core(prod_path, possible_bands, debug, **kwargs):
         first_band = stack_bands[0]
 
         # Check that band loaded 2 times gives the same results (disregarding float uncertainties)
-        check_load(prod, first_band)
+        check_load(prod, first_band, pixel_size)
 
         # Check stack
         stack = test_satellites.check_stack(

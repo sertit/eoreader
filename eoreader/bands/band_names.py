@@ -485,6 +485,26 @@ class SarBandNames(BandNames):
         return "DSPK" in band.name
 
     @classmethod
+    def is_speckle(cls, band: "SarBandNames"):
+        """
+        Returns True if the band corresponds to a speckle one.
+
+        .. code-block:: python
+
+            >>> SarBandNames.is_despeckle(SarBandNames.VV)
+            True
+            >>> SarBandNames.is_despeckle(SarBandNames.VV_DSPK)
+            False
+
+        Args:
+            band (SarBandNames): Band to test
+
+        Returns:
+            SarBandNames: Despeckled band
+        """
+        return not cls.is_despeckle(band)
+
+    @classmethod
     def speckle_list(cls):
         return [band for band in cls if not cls.is_despeckle(band)]
 

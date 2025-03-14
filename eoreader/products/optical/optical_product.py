@@ -596,10 +596,10 @@ class OpticalProduct(Product):
             # First, try to open the cloud band written on disk
             bands_to_load = []
             for band in bands:
-                cloud_path = self.get_band_path(
-                    band, pixel_size, size, writable=False, **kwargs
+                cloud_path, cloud_exists = self._is_existing(
+                    self.get_band_file_name(band, pixel_size, size, **kwargs)
                 )
-                if cloud_path.is_file():
+                if cloud_exists:
                     band_dict[band] = utils.read(cloud_path)
                 else:
                     bands_to_load.append(band)

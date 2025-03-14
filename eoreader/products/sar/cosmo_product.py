@@ -479,7 +479,9 @@ class CosmoProduct(SarProduct):
 
         return od
 
-    def _pre_process_sar(self, band, pixel_size: float = None, **kwargs) -> AnyPathType:
+    def _pre_process_sar(
+        self, pre_processed_path, band, pixel_size: float = None, **kwargs
+    ) -> AnyPathType:
         """
         Pre-process SAR data (geocoding...)
 
@@ -517,11 +519,11 @@ class CosmoProduct(SarProduct):
                     )
             return ortho_path
         elif misc.compare_version(self.get_snap_version(), "11.0.0", ">="):
-            return super()._pre_process_sar(band, pixel_size=pixel_size, **kwargs)
+            return super()._pre_process_sar(pre_processed_path, band, **kwargs)
         else:
             with h5netcdf.File(self._img_path, phony_dims="access") as raw_h5:
                 if self.nof_swaths == 1:
-                    return super()._pre_process_sar(band, pixel_size, **kwargs)
+                    return super()._pre_process_sar(pre_processed_path, band, **kwargs)
                 else:
                     LOGGER.warning(
                         "SNAP (before version 11.0.0) doesn't handle multiswath Cosmo-SkyMed products. This is a workaround. See https://github.com/sertit/eoreader/issues/78"
@@ -581,8 +583,8 @@ class CosmoProduct(SarProduct):
                             # Pre-process swath
                             pp_swath_path.append(
                                 super()._pre_process_sar(
+                                    pre_processed_path,
                                     band,
-                                    pixel_size,
                                     prod_path=prod_path,
                                     suffix=group,
                                     **kwargs,

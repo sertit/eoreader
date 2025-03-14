@@ -455,6 +455,10 @@ class SarProduct(Product):
         Returns:
             dict: Dictionary containing the path of each queried band
         """
+        # Allow using the SNAP PIXEL SIZE if given (and not overridden by a pixel size)
+        if pixel_size is None:
+            pixel_size = float(os.environ.get(SAR_DEF_PIXEL_SIZE, self.pixel_size))
+
         band_paths = {}
         for band in band_list:
             if self.bands[band] is None:
@@ -477,18 +481,22 @@ class SarProduct(Product):
                     # Non-existing band is a despeckled band -> make sure the speckle band is pre-processed before trying to despeckle it
                     if sab.is_despeckle(band):
                         # Check if existing speckle ortho band
-                        _, speckle_ortho_exists = self._is_existing(
+                        speckle_ortho_band, speckle_ortho_exists = self._is_existing(
                             self.get_band_file_name(speckle_band, pixel_size, **kwargs)
                         )
                         if not speckle_ortho_exists:
-                            self._pre_process_sar(speckle_band, pixel_size, **kwargs)
+                            self._pre_process_sar(
+                                speckle_ortho_band, speckle_band, pixel_size, **kwargs
+                            )
 
                         # Despeckle the noisy band
-                        band_paths[band] = self._despeckle_sar(speckle_band, **kwargs)
+                        band_paths[band] = self._despeckle_sar(
+                            ortho_band, speckle_band, pixel_size, **kwargs
+                        )
                     # Non-existing band is a speckle band -> only need to pre-process it
                     else:
                         band_paths[band] = self._pre_process_sar(
-                            band, pixel_size, **kwargs
+                            ortho_band, band, pixel_size, **kwargs
                         )
 
         return band_paths
@@ -638,7 +646,7 @@ class SarProduct(Product):
         except TypeError:
             pass
 
-        return utils.read(
+        band_arr = utils.read(
             band_path,
             pixel_size=pixel_size,
             size=size,
@@ -646,6 +654,22 @@ class SarProduct(Product):
             as_type=np.float32,
             **kwargs,
         )
+
+        # Write file (in case the original file has a different resolution or window, etc.)
+        file_path, exists = self._is_existing(
+            self.get_band_file_name(band, pixel_size=pixel_size, size=size, **kwargs)
+        )
+        if not exists:
+            band_arr = utils.write_path_in_attrs(band_arr, file_path)
+            utils.write(
+                band_arr,
+                file_path,
+                dtype=np.float32,
+                nodata=self._snap_no_data,
+                predictor=self._get_predictor(),
+                driver="GTiff",  # SNAP doesn't handle COGs very well apparently
+            )
+        return band_arr
 
     def _load_bands(
         self,
@@ -665,7 +689,7 @@ class SarProduct(Product):
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
-        # Return empty if no band are specified
+        # Return empty if no band is specified
         if not bands:
             return {}
 
@@ -679,18 +703,23 @@ class SarProduct(Product):
         for band_name, band_path in band_paths.items():
             # Read SAR band
             band_arrays[band_name] = self._read_band(
-                band_path, pixel_size=pixel_size, size=size, **kwargs
+                band_path, band_name, pixel_size=pixel_size, size=size, **kwargs
             )
 
         return band_arrays
 
     def _pre_process_no_snap(
-        self, band: sab, pixel_size: float = None, **kwargs
+        self,
+        pre_processed_path: AnyPathType,
+        band: sab,
+        pixel_size: float = None,
+        **kwargs,
     ) -> AnyPathType:
         """
         Pre-process SAR data without SNAP -> no need of orthorectification
 
         Args:
+            pre_processed_path (AnyPathType): Pre-processed path
             band (sbn): Band to preprocess
             pixel_size (float): Pixel size
             kwargs: Additional arguments
@@ -698,6 +727,8 @@ class SarProduct(Product):
         Returns:
             AnyPathType: Band path
         """
+        LOGGER.debug("Pre-processing file without SNAP")
+
         # Set the nodata and write the image where they belong
         raw_band_path = self.get_raw_band_paths(**kwargs)[band]
         arr = utils.read(
@@ -708,17 +739,16 @@ class SarProduct(Product):
         )
         arr = arr.where(arr != self._raw_no_data, np.nan)
 
-        file_path = self.get_band_path(band, writable=True, **kwargs)
-        arr = utils.write_path_in_attrs(arr, file_path)
+        arr = utils.write_path_in_attrs(arr, pre_processed_path)
         utils.write(
             arr,
-            file_path,
+            pre_processed_path,
             dtype=np.float32,
             nodata=self._snap_no_data,
             predictor=self._get_predictor(),
             driver="GTiff",  # SNAP doesn't handle COGs very well apparently
         )
-        return file_path
+        return pre_processed_path
 
     def _get_pp_graph(self) -> str:
         """Get the pre-processing graph"""
@@ -767,7 +797,9 @@ class SarProduct(Product):
 
         return dem_name, dem_path
 
-    def _get_snap_product_path(self, tmp_dir: str, **kwargs) -> AnyPathType:
+    def _get_snap_path(
+        self, tmp_dir: str, file_path: AnyPathStrType = None, **kwargs
+    ) -> AnyPathType:
         """
         Get the SNAP-compatible product path.
 
@@ -784,16 +816,12 @@ class SarProduct(Product):
         prod_path = kwargs.get("prod_path")
         if prod_path is None:
             if path.is_cloud_path(self.path):
-                LOGGER.debug(
-                    f"Caching {self.path} to {os.path.join(tmp_dir, self.path.name)}"
-                )
-                if self.path.is_dir():
-                    prod_path = os.path.join(
-                        tmp_dir, self.path.name, self.snap_filename
-                    )
-                    self.path.download_to(os.path.join(tmp_dir, self.path.name))
-                else:
-                    prod_path = self.path.fspath  # In tmp file, no need to download_to
+                cached_path = os.path.join(tmp_dir, self.path.name)
+                if not os.path.exists(cached_path):
+                    LOGGER.debug(f"Caching {self.path} to {cached_path}")
+                    self.path.download_to(cached_path)
+
+                prod_path = os.path.join(cached_path, self.snap_filename)
             else:
                 prod_path = self.path.joinpath(self.snap_filename)
 
@@ -840,7 +868,7 @@ class SarProduct(Product):
         res_deg = pixel_size / equatorial_earth_radius * 180 / np.pi
         return pixel_size, res_deg
 
-    def _already_orthorectified_path(
+    def _already_processed_path(
         self, band: sab, pixel_size: float = None, **kwargs
     ) -> AnyPathType:
         """
@@ -876,34 +904,50 @@ class SarProduct(Product):
             no_res_files = list(
                 self._get_band_folder(writable=True).glob(no_res_name)
             ) + list(self._get_band_folder(writable=False).glob(no_res_name))
-            LOGGER.debug(no_res_name)
-            LOGGER.debug(no_res_files)
 
             if len(no_res_files) > 0:
                 for no_res_file in no_res_files:
-                    split_name = no_res_file.name.split("_")
+                    # Discard despeckled file
+                    if (
+                        sab.is_speckle(band)
+                        and sab.corresponding_despeckle(band).name in no_res_file.name
+                    ):
+                        continue
+                    filename = path.get_filename(no_res_file)
+                    split_name = filename.split("_")
                     if "m" in split_name[-1]:
                         # Check if resolution is better than the one asked
-                        file_res = int(
+                        file_res = float(
                             split_name[-1].replace("m", "").replace("-", ".")
                         )
                         if file_res < pixel_size:
+                            LOGGER.debug(
+                                f"Deriving {band.name} at {pixel_size} m from {filename}."
+                            )
                             already_ortho = no_res_file
                             break
-                    else:
+                    elif filename == no_res_name:
                         # No resolution, take it (for legacy purposes)
+                        LOGGER.debug(
+                            f"Deriving {band.name} at {pixel_size} m from {filename}."
+                        )
                         already_ortho = no_res_file
                         break
 
         return already_ortho
 
     def _pre_process_snap(
-        self, band: sab, pixel_size: float = None, **kwargs
+        self,
+        pre_processed_path: AnyPathType,
+        band: sab,
+        pixel_size: float = None,
+        **kwargs,
     ) -> AnyPathType:
         """
         Pre-process SAR data with SNAP (needs orthorectification, calibration, etc.)
 
         Args:
+            pre_processed_path (AnyPathType): Pre-processed path
             band (sbn): Band to preprocess
             pixel_size (float): Pixel size
             kwargs: Additional arguments
@@ -911,14 +955,16 @@ class SarProduct(Product):
         Returns:
             AnyPathType: Band path
         """
-        # Manage pixel size (use SNAP default pixel size for terrain correction)
-        def_pixel_size = float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
-        pixel_size = (
+        # Manage pixel size used for Terrain correction
+        # This is not the pixel size used for reading the file!
+        # It is possible to orthorectify the image at 20 m but read it at 10 m
+        def_snap_pixel_size = float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
+        snap_pixel_size = (
             pixel_size
             if (pixel_size and pixel_size != self.pixel_size)
-            else def_pixel_size
+            else def_snap_pixel_size
         )
-        already_ortho = self._already_orthorectified_path(band, pixel_size, **kwargs)
+        already_ortho = self._already_processed_path(band, pixel_size, **kwargs)
         if already_ortho is not None:
             return already_ortho
         else:
@@ -936,13 +982,13 @@ class SarProduct(Product):
 
                 # Get the product path, compatible with SNAP
                 # WARNING: this can trigger the download of the product if stored on the cloud!
-                prod_path = self._get_snap_product_path(tmp_dir, **kwargs)
+                prod_path = self._get_snap_path(tmp_dir, **kwargs)
 
                 # Manage subset
                 geo_region, region, window_to_crop = self._get_subset(**kwargs)
 
                 # Get resolution
-                res_m, res_deg = self._get_resolution(pixel_size)
+                res_m, res_deg = self._get_resolution(snap_pixel_size)
 
                 # Create SNAP CLI
                 cmd_list = snap.get_gpt_cli(
@@ -971,15 +1017,22 @@ class SarProduct(Product):
 
                 # Convert DIMAP images to GeoTiff
                 LOGGER.debug("Converting DIMAP to GeoTiff")
-                return self._write_sar(pp_dim, band, crop=window_to_crop, **kwargs)
+                return self._write_sar(
+                    pre_processed_path, pp_dim, band, crop=window_to_crop, **kwargs
+                )
 
     def _pre_process_sar(
-        self, band: sab, pixel_size: float = None, **kwargs
+        self,
+        pre_processed_path: AnyPathType,
+        band: sab,
+        pixel_size: float = None,
+        **kwargs,
     ) -> AnyPathType:
         """
         Pre-process SAR data (geocoding...)
 
         Args:
+            pre_processed_path (AnyPathType): Pre-processed path
             band (sbn): Band to preprocess
             pixel_size (float): Pixel size
             kwargs: Additional arguments
@@ -992,19 +1045,26 @@ class SarProduct(Product):
         else:
             pre_process_fct = self._pre_process_snap
 
-        return pre_process_fct(band, pixel_size, **kwargs)
+        return pre_process_fct(pre_processed_path, band, pixel_size, **kwargs)
 
-    def _despeckle_sar(self, band: sab, **kwargs) -> AnyPathType:
+    def _despeckle_sar(
+        self, despeckled_path: AnyPathType, band: sab, pixel_size, **kwargs
+    ) -> AnyPathType:
         """
         Pre-process SAR data (geocode...)
 
         Args:
+            despeckled_path (AnyPathType): Pre-processed path
             band (sbn): Band to despeckle
             kwargs: Additional arguments
 
         Returns:
             AnyPathType: Despeckled path
         """
+        already_dspk = self._already_processed_path(band, pixel_size, **kwargs)
+        if already_dspk is not None:
+            return already_dspk
+
         # Create target dir (tmp dir)
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Out files
@@ -1021,10 +1081,11 @@ class SarProduct(Product):
 
             # Create command line and run it
             if not os.path.isfile(dspk_dim):
-                dspk_path = self.get_band_paths([band], **kwargs)[band]
+                spk_path = self.get_band_path(band, writable=True, **kwargs)
+
                 cmd_list = snap.get_gpt_cli(
                     str(dspk_graph),
-                    [f"-Pfile={dspk_path}", f"-Pout={dspk_dim}"],
+                    [f"-Pfile={spk_path}", f"-Pout={dspk_dim}"],
                     display_snap_opt=False,
                 )
 
@@ -1036,15 +1097,20 @@ class SarProduct(Product):
                     raise RuntimeError("Something went wrong with SNAP!") from ex
 
             # Convert DIMAP images to GeoTiff
-            out = self._write_sar(dspk_dim, band, **kwargs)
+            out = self._write_sar(
+                despeckled_path, dspk_dim, sab.corresponding_despeckle(band), **kwargs
+            )
 
         return out
 
-    def _write_sar(self, dim_path: str, band: sab, **kwargs) -> AnyPathType:
+    def _write_sar(
+        self, out_path: AnyPathType, dim_path: str, band: sab, **kwargs
+    ) -> AnyPathType:
         """
         Write SAR image on disk.
 
         Args:
+            out_path (AnyPathType): Out path
             dim_path (str): DIMAP path
             band (sab): Band
             kwargs: Additional arguments
@@ -1052,6 +1118,8 @@ class SarProduct(Product):
         Returns:
             AnyPathType: SAR path
         """
+        LOGGER.debug("Write SAR")
+        # Save the file as the terrain-corrected image
         # input data
         band_id = self.bands[band].id
         dspk_suffix = "_DSPK"
@@ -1110,23 +1178,20 @@ class SarProduct(Product):
                 else:
                     arr = rasters.crop(arr, crop_window)
 
-            # Save the file as the terrain-corrected image
-            file_path = self.get_band_path(band, writable=True, **kwargs)
-
-            # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
+            # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
             # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
             # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
-            arr = utils.write_path_in_attrs(arr, file_path)
+            arr = utils.write_path_in_attrs(arr, out_path)
             utils.write(
                 arr,
-                file_path,
+                out_path,
                 dtype=np.float32,
                 nodata=self._snap_no_data,
                 predictor=self._get_predictor(),
                 driver="GTiff",  # SNAP doesn't handle COGs very well apparently
             )
 
-        return file_path
+        return out_path
 
     def _compute_hillshade(
         self,

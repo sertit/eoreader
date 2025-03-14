@@ -822,7 +822,7 @@ class Product:
 
         # Specific if needed
 
-        return f"{self.condensed_name}_{self.bands[band].id}_{res_str.replace('.', '-')}{win_suffix}{self._get_band_file_name_sensor_specific_suffix(band, **kwargs)}.tif"
+        return f"{self.condensed_name}_{to_str(band, as_list=False)}_{res_str.replace('.', '-')}{win_suffix}{self._get_band_file_name_sensor_specific_suffix(band, **kwargs)}.tif"
 
     def _get_band_file_name_sensor_specific_suffix(
         self, band: BandNames, **kwargs
@@ -1393,10 +1393,10 @@ class Product:
         """
         band_dict = {}
         for idx in index_list:
-            idx_path = self.get_band_path(
-                idx, pixel_size, size, writable=False, **kwargs
+            idx_path, idx_exists = self._is_existing(
+                self.get_band_file_name(idx, pixel_size, size, **kwargs)
             )
-            if idx_path.is_file():
+            if idx_exists:
                 band_dict[idx] = utils.read(idx_path)
             else:
                 idx_arr = compute_index(index=idx, bands=loaded_bands, **kwargs).rename(
@@ -1405,9 +1405,6 @@ class Product:
                 idx_arr.attrs["long_name"] = idx
 
                 # Write on disk
-                idx_path = self.get_band_path(
-                    idx, pixel_size, size, writable=True, **kwargs
-                )
                 idx_arr = utils.write_path_in_attrs(idx_arr, idx_path)
                 utils.write(idx_arr, idx_path)
                 band_dict[idx] = idx_arr
