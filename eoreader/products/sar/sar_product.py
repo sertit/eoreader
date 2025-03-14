@@ -716,6 +716,7 @@ class SarProduct(Product):
             dtype=np.float32,
             nodata=self._snap_no_data,
             predictor=self._get_predictor(),
+            driver="GTiff",  # SNAP doesn't handle COGs very well apparently
         )
         return file_path
 
@@ -1122,6 +1123,7 @@ class SarProduct(Product):
                 dtype=np.float32,
                 nodata=self._snap_no_data,
                 predictor=self._get_predictor(),
+                driver="GTiff",  # SNAP doesn't handle COGs very well apparently
             )
 
         return file_path
