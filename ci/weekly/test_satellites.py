@@ -44,7 +44,10 @@ from eoreader.bands import (
     VV,
     VV_DSPK,
 )
-from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, SAR_DEF_PIXEL_SIZE
+from eoreader.env_vars import (
+    CI_EOREADER_BAND_FOLDER,
+    SAR_DEF_PIXEL_SIZE,
+)
 from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import Product, S2Product, SensorType, SlstrRadAdjust
 from eoreader.products.product import OrbitDirection

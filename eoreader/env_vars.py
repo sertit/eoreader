@@ -110,3 +110,8 @@ Especially useful for intermediary files.
 Default is :code:`COG`. 
 See GDAL supported raster drivers for more information: https://gdal.org/en/stable/drivers/raster/index.html
 """
+
+LEGACY_BAND_NAME_RESOLUTION = "EOREADER_LEGACY_BAND_NAME_RESOLUTION"
+"""
+Keep legacy resolution in band name (:code:`1000-00m` instead of :code:`1000m`, or :code:`0-50m` instead of :code:`0-5m`)
+"""

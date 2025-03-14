@@ -21,6 +21,7 @@
     - `WV_SI`: `NDSIWV`
     - `PANI`: `BITM`
 - **BREAKING CHANGES: Pass mask-related functions in private as their exposure is done via `load` now**
+- **BREAKING CHANGES: Update the resolution in band paths: `1000-00m` instead of `1000m`, or `0-50m` instead of `0-5m`. Set `EOREADER_LEGACY_BAND_NAME_RESOLUTION` to 1 to keep the older behavior**
 - **ENH: Adding the support of masks** ([#101](https://github.com/sertit/eoreader/issues/101))
 - **ENH: Adding the support of Sentinel-2 L2A specific bands (`AOT`, `SCL` and `WV`)** ([#153](https://github.com/sertit/eoreader/issues/153))
 - **ENH: Adding the support of WorldView Legion constellation** ([#183](https://github.com/sertit/eoreader/issues/183))
@@ -50,7 +51,7 @@
 - FIX: Fix DIMAP V2 mask reprojection when all mask values are equal to 1 (resulting in a failure of computing the bands in case of nodata)
 - FIX: Fix import of `SaocomSensorMode` and `TsxProduct` from `eoreader.product`
 - FIX: Upgrade to v2.0.0 of projection STAC extension
-- DEPS: Add `tifffile` as a dependency to allow to write COGs with `dask` ([#181](https://github.com/sertit/eoreader/issues/181), [#202](https://github.com/sertit/eoreader/discussions/202))
+- DEPS: Add `tifffile` as a dependency to allow writing COGs with `dask` ([#181](https://github.com/sertit/eoreader/issues/181), [#202](https://github.com/sertit/eoreader/discussions/202))
 
 ## 0.21.9 (2025-01-22)
 

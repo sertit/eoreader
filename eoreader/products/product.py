@@ -79,7 +79,12 @@ from eoreader.bands import (
     to_band,
     to_str,
 )
-from eoreader.env_vars import CI_EOREADER_BAND_FOLDER, DEM_PATH, TILE_SIZE
+from eoreader.env_vars import (
+    CI_EOREADER_BAND_FOLDER,
+    DEM_PATH,
+    LEGACY_BAND_NAME_RESOLUTION,
+    TILE_SIZE,
+)
 from eoreader.exceptions import (
     InvalidBandError,
     InvalidIndexError,
@@ -452,14 +457,14 @@ class Product:
         Manage the case of CI SNAP Bands
 
         Args:
-            writable (bool): Do we need to write the pre-processed band ?
+            writable (bool): Do we need to write the pre-processed band?
 
         Returns:
             AnyPathType: Band folder
         """
         band_folder = self._tmp_process
 
-        # Manage CI bands (when we do not write anything, read only)
+        # Manage CI bands (when we do not write anything, read-only)
         if not writable:
             ci_band_folder = os.environ.get(CI_EOREADER_BAND_FOLDER)
             if ci_band_folder:
@@ -2192,7 +2197,13 @@ class Product:
         """
 
         def _res_to_str(res):
-            return f"{abs(res):.2f}m".replace(".", "-")
+            res_str_raw = f"{abs(res):.2f}m".replace(".", "-")
+
+            if os.getenv(LEGACY_BAND_NAME_RESOLUTION) == "1":
+                return res_str_raw
+            else:
+                # Remove trailing zeros and trailing '-'
+                return res_str_raw.rstrip("0").rstrip("-")
 
         if pixel_size:
             if types.is_iterable(pixel_size):
