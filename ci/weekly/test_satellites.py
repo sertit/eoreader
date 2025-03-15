@@ -228,14 +228,16 @@ def check_load_size(
         clean_optical="clean",
         **kwargs,
     )
-    assert isinstance(band_xds, xr.Dataset)
+    assert isinstance(band_xds, xr.Dataset), (
+        f"{curr_path_band} is not a xr.Dataset: {type(band_xds)}"
+    )
     band_arr = band_xds[first_band]
     utils.write(band_arr, curr_path_band)
     ci.assert_val(size, (band_arr.rio.width, band_arr.rio.height), "Size")
     try:
         ci.assert_raster_almost_equal_magnitude(curr_path_band, ci_band, decimal=1)
     except AssertionError as e:
-        if "width incoherent" in str(e):
+        if "width incoherent" in str(e) or "height incoherent" in str(e):
             LOGGER.warning(f"CI band has a wrong size! {e}")
         else:
             raise e

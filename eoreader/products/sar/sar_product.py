@@ -915,12 +915,12 @@ class SarProduct(Product):
                         continue
                     filename = path.get_filename(no_res_file)
                     split_name = filename.split("_")
-                    if "m" in split_name[-1]:
+                    if pixel_size is not None and "m" in split_name[-1]:
                         # Check if resolution is better than the one asked
                         file_res = float(
                             split_name[-1].replace("m", "").replace("-", ".")
                         )
-                        if file_res < pixel_size:
+                        if file_res <= pixel_size:
                             LOGGER.debug(
                                 f"Deriving {band.name} at {pixel_size} m from {filename}."
                             )
@@ -964,7 +964,7 @@ class SarProduct(Product):
             if (pixel_size and pixel_size != self.pixel_size)
             else def_snap_pixel_size
         )
-        already_ortho = self._already_processed_path(band, pixel_size, **kwargs)
+        already_ortho = self._already_processed_path(band, snap_pixel_size, **kwargs)
         if already_ortho is not None:
             return already_ortho
         else:

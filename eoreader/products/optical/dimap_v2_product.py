@@ -638,6 +638,12 @@ class DimapV2Product(VhrProduct):
             nodata = self._open_masks(
                 [DimapV2MaskBandNames.ROI], size=[width, height], **kwargs
             )[DimapV2MaskBandNames.ROI].data
+
+            # Nodata is where ROI is false (ROI = valid data)
+            nodata = xr.where(
+                nodata == self._mask_true, self._mask_false, self._mask_true
+            )
+
             with contextlib.suppress(InvalidProductError):
                 masks = self._open_masks(
                     [DimapV2MaskBandNames.DET, DimapV2MaskBandNames.VIS],
@@ -724,6 +730,9 @@ class DimapV2Product(VhrProduct):
             size=[band_arr.rio.width, band_arr.rio.height],
             **kwargs,
         )[DimapV2MaskBandNames.ROI]
+
+        # Nodata is where ROI is false (ROI = valid data)
+        nodata = xr.where(nodata == self._mask_true, self._mask_false, self._mask_true)
 
         LOGGER.debug("Set nodata mask")
         return self._set_nodata_mask(band_arr, nodata)
@@ -970,9 +979,9 @@ class DimapV2Product(VhrProduct):
                     (1, def_xarr.rio.height, def_xarr.rio.width), dtype=np.uint8
                 )
 
-            # Create mask xarray (and set nodata instead of false)
+            # Create mask xarray
             mask = def_xarr.copy(
-                data=xr.where(mask_arr, self._mask_true, self._mask_nodata)
+                data=xr.where(mask_arr, self._mask_true, self._mask_false)
             ).astype(np.uint8)
             mask.encoding["dtype"] = np.uint8
 
