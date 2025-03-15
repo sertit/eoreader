@@ -196,7 +196,7 @@ def read(
     Args:
         raster_path (AnyPathStrType): Path to the raster
         pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-        size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+        size (Union[tuple, list]): Size of the array (width, height). Overrides pixel_size if provided.
         resampling (Resampling): Resampling method
         masked (bool): Get a masked array
         indexes (Union[int, list]): Indexes to load. Load the whole array if None.
@@ -230,7 +230,7 @@ def read(
             warnings.simplefilter("ignore", category=NotGeoreferencedWarning)
             arr = rasters.read(
                 raster_path,
-                resolution=pixel_size,
+                resolution=pixel_size if size is None else None,
                 resampling=resampling,
                 masked=masked,
                 indexes=indexes,
