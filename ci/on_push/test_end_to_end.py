@@ -21,6 +21,7 @@ from ci.scripts_utils import (
     get_db_dir_on_disk,
     opt_path,
     reduce_verbosity,
+    s3_env,
 )
 from eoreader import EOREADER_NAME
 from eoreader.bands import (
@@ -238,6 +239,7 @@ def _test_core(
     sys.platform == "win32",
     reason="Not enough memory to orthorectify on Windows runner",
 )
+@s3_env
 @dask_env
 def test_spot7():
     """Function testing the support of SPOT-7 constellation"""
@@ -249,6 +251,7 @@ def test_spot7():
 @pytest.mark.skipif(
     shutil.which("gpt") is None, reason="Only works if SNAP GPT's exe can be found."
 )
+@s3_env
 @dask_env
 def test_iceye():
     """Function testing the support of ICEYE constellation"""

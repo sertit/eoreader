@@ -154,6 +154,7 @@ def test_custom_optical():
         )
 
 
+@s3_env
 def test_custom_invalid():
     # Invalid tests
     opt_stack = others_path() / "20200310T030415_WV02_Ortho_BGRN_STK.tif"
