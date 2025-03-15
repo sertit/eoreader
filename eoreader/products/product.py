@@ -1984,7 +1984,9 @@ class Product:
         if stack_path:
             stack_path = AnyPath(stack_path)
             if stack_path.is_file():
-                return utils.read(stack_path, resolution=pixel_size, size=size)
+                stack = utils.read(stack_path, resolution=pixel_size, size=size)
+                stack = self._update_attrs(stack, bands, **kwargs)
+                return stack
             else:
                 os.makedirs(str(stack_path.parent), exist_ok=True)
 
