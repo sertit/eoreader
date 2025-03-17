@@ -1015,6 +1015,12 @@ class SarProduct(Product):
                 except RuntimeError as ex:
                     raise RuntimeError("Something went wrong with SNAP!") from ex
 
+                # Convert Local Incidence Angle files from DIMAP to GeoTiff
+                LOGGER.debug("Converting Local Incidence Angle files from DIMAP to GeoTiff")
+                return self._write_lia(
+                    pre_processed_path, pp_dim, crop=window_to_crop, **kwargs
+                )
+
                 # Convert DIMAP images to GeoTiff
                 LOGGER.debug("Converting DIMAP to GeoTiff")
                 return self._write_sar(
@@ -1193,6 +1199,78 @@ class SarProduct(Product):
 
         return out_path
 
+    def _write_lia(
+        self, out_path: AnyPathType, dim_path: str, **kwargs
+    ) -> AnyPathType:
+        """
+        Write Local Incidence Angle images on disk.
+
+        Args:
+            out_path (AnyPathType): Out path
+            dim_path (str): DIMAP path
+            kwargs: Additional arguments
+
+        Returns:
+            AnyPathType: SAR path
+        """
+        LOGGER.debug("Write LIA")
+        # Save the file as the terrain-corrected image
+        # input data
+
+        def interp_na(array, dim):
+            try:
+                array = array.interpolate_na(dim=dim, limit=10, keep_attrs=True)
+            except ValueError:
+                try:
+                    # ValueError: Index 'y' must be monotonically increasing
+                    dim_idx = getattr(array, dim)
+                    reversed_dim_idx = list(reversed(dim_idx))
+                    array = array.reindex(**{dim: reversed_dim_idx})
+                    array = array.interpolate_na(dim=dim, limit=10, keep_attrs=True)
+                    array = array.reindex(**{dim: dim_idx})
+                except ValueError:
+                    pass
+
+            return array
+
+        # Get the .img path(s)
+        try:
+            imgs = utils.get_dim_img_path(dim_path, f"*Incidence*")
+        except FileNotFoundError:
+           raise LOGGER.warning("No Local Incidence Angle file found. Please activate the options to write these files from 'Terrain-Correction' node in a custuom SNAP graph")
+
+        for img in imgs:
+            # Open Local Incidence Angle image and convert it to a clean geotiff
+            with rioxarray.open_rasterio(img) as arr:
+                arr = arr.where(arr != self._snap_no_data, np.nan)
+    
+                # Interpolate if needed (interpolate na works only 1D-like, sadly)
+                if kwargs.get(SAR_INTERP_NA, False):
+                    arr = interp_na(arr, dim="y")
+                    arr = interp_na(arr, dim="x")
+    
+                crop_window = kwargs.get("crop")
+                if crop_window is not None:
+                    if isinstance(crop_window, Window):
+                        arr = arr.rio.isel_window(crop_window)
+                    else:
+                        arr = rasters.crop(arr, crop_window)
+    
+                # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
+                # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
+                # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
+                arr = utils.write_path_in_attrs(arr, out_path)
+                utils.write(
+                    arr,
+                    out_path,
+                    dtype=np.float32,
+                    nodata=self._snap_no_data,
+                    predictor=self._get_predictor(),
+                    driver="GTiff",  # SNAP doesn't handle COGs very well apparently
+                )
+
+        return out_path
+    
     def _compute_hillshade(
         self,
         dem_path: str = "",
