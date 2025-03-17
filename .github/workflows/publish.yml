@@ -20,6 +20,7 @@ jobs:
         with:
           # Get history and tags for SCM versioning to work
           fetch-depth: 0
+          lfs: false
       - name: Install the latest version of uv with cache enabled
         uses: astral-sh/setup-uv@v5
         with:
