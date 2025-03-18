@@ -158,7 +158,7 @@ class Sv1Product(VhrProduct):
         """
         # Not Pansharpened images
         if self.band_combi == Sv1BandCombination.PMS:
-            # TODO: manage default resolution for PAN band ?
+            # TODO: manage default resolution for PAN band?
             self.pixel_size = self._ms_res
         # Pansharpened images
         else:
@@ -523,7 +523,7 @@ class Sv1Product(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         return False
 

@@ -584,7 +584,7 @@ class MaskBandNames(BandNames):
     # None
 
     # -- Sentinel-3 --
-    # TODO: Sentinel-3 masks not implemented yet (write an issue on GitHub if needed !)
+    # TODO: Sentinel-3 masks not implemented yet (write an issue on GitHub if needed!)
     # More complex than for other products because of the an/in/... suffixes
 
     # -- SV1 --

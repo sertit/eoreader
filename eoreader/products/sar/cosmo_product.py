@@ -613,7 +613,7 @@ class CosmoProduct(SarProduct):
                             ds.close()
 
                     # Write
-                    # WARNING: Set nodata to 0 here as it is the value wanted by SNAP !
+                    # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
 
                     # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
                     # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file

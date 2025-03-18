@@ -431,7 +431,7 @@ class VhrProduct(OpticalProduct):
         Args:
             band (str): Band in string as written on the filepath
             pixel_size (Union[float, tuple, list]): Pixel size of the wanted UTM band
-            writable (bool): Do we need to write the UTM band ?
+            writable (bool): Do we need to write the UTM band?
 
         Returns:
             AnyPathType: UTM band path

@@ -17,7 +17,7 @@
 Sentinel-3 SLSTR products
 
 .. WARNING:
-    Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio !
+    Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio!
     -> use xr.open_dataset that manages that correctly
 """
 
@@ -284,7 +284,7 @@ class S3SlstrProduct(S3Product):
         Args:
             filename (str): Filename
             pixel_size (Union[float, tuple, list]): Pixel size of the wanted UTM band
-            writable (bool): Do we need to write the pre-processed band ?
+            writable (bool): Do we need to write the pre-processed band?
 
         Returns:
             AnyPathType: Pre-processed band path
@@ -610,7 +610,7 @@ class S3SlstrProduct(S3Product):
                 filename, subdataset, dtype=kwargs.get("dtype", np.float32)
             )
 
-            # Radiance preprocess (BT bands are given in BT !)
+            # Radiance preprocess (BT bands are given in BT!)
             if not kwargs.get("flags", False) and band_id in SLSTR_RAD_BANDS:
                 # Adjust radiance if needed
                 # Get the user's radiance adjustment if existing
@@ -627,7 +627,7 @@ class S3SlstrProduct(S3Product):
                 )
 
                 # Convert radiance to reflectances if needed
-                # Convert first pixel by pixel before reprojection !
+                # Convert first pixel by pixel before reprojection!
                 if to_reflectance:
                     LOGGER.debug(f"Converting {band_str} to reflectance")
                     band_arr = self._rad_2_refl(band_arr, band, suffix)
@@ -723,7 +723,7 @@ class S3SlstrProduct(S3Product):
         # Import scipy here (long import)
         from scipy.interpolate import RectBivariateSpline
 
-        # WARNING 2: Rasterio reads like [count, y, x] !
+        # WARNING 2: Rasterio reads like [count, y, x]!
         no_nan_arr = np.nan_to_num(np.squeeze(tie_arr).data[:, ::-1])
         spline_interp = RectBivariateSpline(ty, tx, no_nan_arr)
 
@@ -965,7 +965,7 @@ class S3SlstrProduct(S3Product):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         -> SLSTR does
         """
         return band in [RAW_CLOUDS, ALL_CLOUDS, CLOUDS, CIRRUS]

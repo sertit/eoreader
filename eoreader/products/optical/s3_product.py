@@ -17,7 +17,7 @@
 Sentinel-3 products
 
 .. WARNING:
-    Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio !
+    Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio!
     -> use xr.open_dataset that manages that correctly
 """
 
@@ -267,7 +267,7 @@ class S3Product(OpticalProduct):
 
         # Create wgs84 extent (left, bottom, right, top)
         extent_wgs84 = gpd.GeoDataFrame(geometry=[Polygon(vertex)], crs=vectors.WGS84)
-        # TODO: set CRS here also (in order not to reopen lat/lon) ?
+        # TODO: set CRS here also (in order not to reopen lat/lon)?
 
         return extent_wgs84.to_crs(self.crs())
 
@@ -396,7 +396,7 @@ class S3Product(OpticalProduct):
         """
         Return the paths of required bands.
 
-        .. WARNING:: If not existing, this function will orthorectify your bands !
+        .. WARNING:: If not existing, this function will orthorectify your bands!
 
         .. code-block:: python
 
@@ -847,7 +847,7 @@ class S3Product(OpticalProduct):
                 nc_path = str(nc_path)
 
         # Open the netcdf file as a dataset (from bytes)
-        # mask_and_scale=True => offset and scale are automatically applied !
+        # mask_and_scale=True => offset and scale are automatically applied!
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=NotGeoreferencedWarning)
             if bytes_file:
@@ -879,7 +879,7 @@ class S3Product(OpticalProduct):
             nc = nc.to_array()
 
         # WARNING: rioxarray doesn't like bytesIO -> open with xarray.h5netcdf engine
-        # BUT the xr.DataArray dimensions won't be correctly formatted !
+        # BUT the xr.DataArray dimensions won't be correctly formatted!
         # Align the NetCDF behaviour on rasterio's
 
         # Read as float32 (by default) or with given type
@@ -905,7 +905,7 @@ class S3Product(OpticalProduct):
         # When you modify values of a Dataset, even one linked to files on disk,
         # only the in-memory copy you are manipulating in xarray is modified:
         # the original file on disk is never touched.
-        # -> return a copy() as we will modify it !
+        # -> return a copy() as we will modify it!
         return nc.copy()
 
     @abstractmethod

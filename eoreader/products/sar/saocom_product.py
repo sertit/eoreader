@@ -159,7 +159,7 @@ class SaocomProduct(SarProduct):
         # Impossible to find anywhere the recommaneded pixel spacing for SAOCOM data
         # SLC: For STRIPMAP data this product is sampled at the natural pixel spacing
         # Decision : For other SAR images, usually: pixel_size = resolution / 2.
-        # TODO: Is it the case here ?
+        # TODO: Is it the case here?
         self.pixel_size = def_res / 2.0
         self.resolution = def_res
 
@@ -222,7 +222,7 @@ class SaocomProduct(SarProduct):
             [float(vertex.findtext("lon")), float(vertex.findtext("lat"))]
             for vertex in root.iterfind(".//frame/vertex")
         ]
-        # TODO: ensure that the polygon is valid ?
+        # TODO: ensure that the polygon is valid?
 
         return gpd.GeoDataFrame(
             geometry=[Polygon(corners)],

@@ -1071,7 +1071,7 @@ class Product:
         for band in bands:
             assert self.has_band(band), f"{self.name} has not a {to_str(band)[0]} band."
 
-        # Load bands (only once ! and convert the bands to be loaded to correct format)
+        # Load bands (only once! and convert the bands to be loaded to correct format)
         unique_bands = misc.unique(bands)
         band_xds = self._load(unique_bands, pixel_size, size, **kwargs)
 
@@ -1177,7 +1177,7 @@ class Product:
         for idx in index_list:
             bands_to_load += NEEDED_BANDS[idx]
 
-        # Load band arrays (only keep unique bands: open them only one time !)
+        # Load band arrays (only keep unique bands: open them only one time!)
         unique_bands = misc.unique(bands_to_load)
         bands_dict = {}
         if unique_bands:
@@ -1474,7 +1474,7 @@ class Product:
 
     def has_band(self, band: Union[BandNames, str]) -> bool:
         """
-        Does this product has the specified band ?
+        Does this product has the specified band?
 
         By band, we mean:
 
@@ -1526,7 +1526,7 @@ class Product:
 
     def has_bands(self, bands: Union[list, BandNames, str]) -> bool:
         """
-        Does this product has the specified bands ?
+        Does this product has the specified bands?
 
         By band, we mean:
 
@@ -1549,7 +1549,7 @@ class Product:
     @abstractmethod
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
 
         .. code-block:: python
 
@@ -1564,7 +1564,7 @@ class Product:
 
     def _has_index(self, idx: str) -> bool:
         """
-        Can the specified index be computed from this product ?
+        Can the specified index be computed from this product?
 
         .. code-block:: python
 
@@ -1586,7 +1586,7 @@ class Product:
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -1607,7 +1607,7 @@ class Product:
 
     def _has_s2_l2a_bands(self, band: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -2053,7 +2053,7 @@ class Product:
             xr.DataArray: Updated array
         """
         # Clean attributes, we don't want to pollute our attributes by default ones (not deterministic)
-        # Are we sure of that ?
+        # Are we sure of that?
         path = xarr.attrs.pop("path", None)
         xarr.attrs = {}
         if path is not None:
@@ -2751,7 +2751,7 @@ class Product:
                 "transform": utm_tr,
                 "height": utm_h,
                 "width": utm_w,
-                # TODO: go nearest to speed up results ?
+                # TODO: go nearest to speed up results?
                 "resampling": Resampling.bilinear,
                 "nodata": self._raw_nodata,
                 # Float32 is the max possible

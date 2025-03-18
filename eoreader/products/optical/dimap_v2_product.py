@@ -837,7 +837,7 @@ class DimapV2Product(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         return band not in [CIRRUS, SHADOWS]
 
@@ -879,7 +879,7 @@ class DimapV2Product(VhrProduct):
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -1065,7 +1065,7 @@ class DimapV2Product(VhrProduct):
                 DimapV2ProductType.SEN,
                 DimapV2ProductType.PRJ,
             ]:
-                # Sometimes the GML mask lacks crs (why ?)
+                # Sometimes the GML mask lacks crs (why?)
                 if not mask.crs:
                     mask.crs = self._get_raw_crs()
 
@@ -1122,7 +1122,7 @@ class DimapV2Product(VhrProduct):
                     # Do not keep pixelized mask
                     mask = geometry.simplify_footprint(mask, self.pixel_size)
 
-            # Sometimes the GML mask lacks crs (why ?)
+            # Sometimes the GML mask lacks crs (why?)
             elif (
                 not mask.empty
                 and not mask.crs

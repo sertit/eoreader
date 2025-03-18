@@ -17,7 +17,7 @@
 Sentinel-3 OLCI products
 
 .. WARNING:
-    Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio !
+    Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio!
     -> use xr.open_dataset that manages that correctly
 """
 
@@ -127,7 +127,7 @@ class S3OlciProduct(S3Product):
         Args:
             band (band: Union[BandNames, str]): Wanted band (quality flags accepted)
             pixel_size (Union[float, tuple, list]): Resolution of the wanted UTM band
-            writable (bool): Do we need to write the pre-processed band ?
+            writable (bool): Do we need to write the pre-processed band?
 
         Returns:
             AnyPathType: Pre-processed band path
@@ -524,7 +524,7 @@ class S3OlciProduct(S3Product):
             )
 
             # Convert radiance to reflectances if needed
-            # Convert first pixel by pixel before reprojection !
+            # Convert first pixel by pixel before reprojection!
             if to_reflectance:
                 LOGGER.debug(f"Converting {band_str} to reflectance")
                 band_arr = self._rad_2_refl(band_arr, band)
@@ -739,7 +739,7 @@ class S3OlciProduct(S3Product):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         -> OLCI does not provide any cloud mask
         """
         return False

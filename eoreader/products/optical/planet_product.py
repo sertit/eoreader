@@ -290,14 +290,14 @@ class PlanetProduct(OpticalProduct):
                 "EOReader doesn't handle archived Planet data with multiple subdataset. Please extract this product."
             )
             # TODO: merge_geotiff BUT handle reflectances for every subdataset!
-            # Relevant ? Maybe not as it takes would a lot of time to merge
+            # Relevant? Maybe not as it takes would a lot of time to merge
 
         if path.is_cloud_path(self.path):
             # VRT cannot be created from data stored in the cloud
             raise InvalidProductError(
                 "EOReader doesn't handle cloud-stored Planet data with multiple subdataset. Please download this product on disk."
             )
-            # Relevant ? Maybe not as it takes would a lot of time to download, or a lot of time to merge as geotiffs
+            # Relevant? Maybe not as it takes would a lot of time to download, or a lot of time to merge as geotiffs
 
         analytic_vrt_path, analytic_vrt_exists = self._get_out_path(
             f"{self.condensed_name}_analytic.vrt"
@@ -601,7 +601,7 @@ class PlanetProduct(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         # NOTE: CIRRUS == HEAVY HAZE
 
@@ -789,7 +789,7 @@ class PlanetProduct(OpticalProduct):
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 

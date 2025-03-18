@@ -134,7 +134,7 @@ class StacItem:
 
         # Add assets
         # TODO: manage S3 paths
-        # TODO: relative path ?
+        # TODO: relative path?
         thumbnail_path = self._prod.get_quicklook_path()
         if thumbnail_path:
             item.add_asset(

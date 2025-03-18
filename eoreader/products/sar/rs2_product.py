@@ -82,7 +82,7 @@ class Rs2SensorMode(ListEnum):
     `this comparison <https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/radarsat-comparison.asp>`_
     for more information (Beam Modes)
 
-    .. WARNING:: The name in the metadata may vary !
+    .. WARNING:: The name in the metadata may vary!
     """
 
     # Single Beam Modes
@@ -305,7 +305,7 @@ class Rs2Product(SarProduct):
         elif self.sensor_mode == Rs2SensorMode.XF:
             def_res = 4.6
             if self.product_type in [Rs2ProductType.SGX, Rs2ProductType.SLC]:
-                # Take 1 look ?
+                # Take 1 look?
                 def_pixel_size = 2.0
                 # 4 looks: pix_size = 3.12, res = 7.6
                 # 28 looks: pix_size = 5.0, res = 23.5
@@ -314,7 +314,7 @@ class Rs2Product(SarProduct):
                 Rs2ProductType.SSG,
                 Rs2ProductType.SPG,
             ]:
-                # Take 1 look ?
+                # Take 1 look?
                 def_pixel_size = 3.125
                 # 4 looks: pix_size = 6.25, res = 7.6
                 # 28 looks: pix_size = 8.0, res = 23.5

@@ -502,9 +502,9 @@ class CustomProduct(Product):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
-        # TODO ?
+        # TODO?
         return False
 
     def _get_condensed_name(self) -> str:

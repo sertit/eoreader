@@ -436,7 +436,7 @@ class CapellaProduct(SarProduct):
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing path of the VV band (as they come with the archived products).
-        Capella product only contains a VV band !
+        Capella product only contains a VV band!
 
         Args:
             **kwargs: Additional arguments

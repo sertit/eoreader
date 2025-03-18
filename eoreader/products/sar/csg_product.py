@@ -165,7 +165,7 @@ class CsgProduct(CosmoProduct):
 
         elif self.sensor_mode == CsgSensorMode.SC1:
             # Case SCS
-            # TODO: is this OK ?
+            # TODO: is this OK?
             if nof_range_looks == 1 and nof_az_looks == 1:
                 def_res = 20.0
                 def_pixel_size = 14.0
@@ -182,7 +182,7 @@ class CsgProduct(CosmoProduct):
 
         elif self.sensor_mode == CsgSensorMode.SC2:
             # Case SCS
-            # TODO: is this OK ?
+            # TODO: is this OK?
             if nof_range_looks == 1 and nof_az_looks == 1:
                 def_res = 40.0
                 def_pixel_size = 27.0

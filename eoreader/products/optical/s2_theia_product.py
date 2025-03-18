@@ -115,7 +115,7 @@ class S2TheiaProduct(OpticalProduct):
         Set product default pixel size (in meters)
         """
         # S2: use 10m resolution, even if we have 60m and 20m resolution
-        # In the future maybe set one resolution per band ?
+        # In the future maybe set one resolution per band?
         self.pixel_size = 10.0
 
     def _get_tile_name(self) -> str:
@@ -559,7 +559,7 @@ class S2TheiaProduct(OpticalProduct):
 
         Accepted mask IDs:
 
-        - :code:`DFP`: Defective pixels (do not always exist ! Will raise :code:`InvalidProductError` if not)
+        - :code:`DFP`: Defective pixels (do not always exist! Will raise :code:`InvalidProductError` if not)
         - :code:`EDG`: Nodata pixels mask
         - :code:`SAT`: Saturated pixels mask
         - :code:`MG2`: Geophysical mask (classification)
@@ -592,7 +592,7 @@ class S2TheiaProduct(OpticalProduct):
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -899,7 +899,7 @@ class S2TheiaProduct(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         return True
 

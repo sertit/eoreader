@@ -694,7 +694,7 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "15 meter resolution, sharper image definition",
                 },
             ),
-            # TODO: better manage L-7 TIR bands ?
+            # TODO: better manage L-7 TIR bands?
             # The band 61 (low gain mode) is used when surface brightness is high (e.g., desert, or less vegetated areas),
             # and band 62 (high gain mode) when surface brightness is lower (e.g., vegetated areas)
             # (According to the gain setting rule of Landsat Project Science Ofﬁce (2001)).
@@ -1048,7 +1048,7 @@ class LandsatProduct(OpticalProduct):
                 engine="python",
             )
 
-            # Workaround an unexpected behaviour in pandas !
+            # Workaround an unexpected behaviour in pandas!
             if any(mtd_data.NAME == "="):
                 mtd_data = pd.read_table(
                     mtd_path,
@@ -1148,7 +1148,7 @@ class LandsatProduct(OpticalProduct):
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -1618,7 +1618,7 @@ class LandsatProduct(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
 
         - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
         - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
@@ -1641,14 +1641,14 @@ class LandsatProduct(OpticalProduct):
     @staticmethod
     def _mss_has_cloud_band(band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         return band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS]
 
     @staticmethod
     def _e_tm_has_cloud_band(band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         return band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS, SHADOWS]
 

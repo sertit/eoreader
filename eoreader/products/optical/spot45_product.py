@@ -490,7 +490,7 @@ class Spot45Product(DimapV1Product):
         end_dt = (dt + timedelta(seconds=4)).strftime(DATETIME_FMT)
 
         # Unknown data
-        digit = 3  # TODO: what's this ?
+        digit = 3  # TODO: what's this?
         suffix = "TOU_1234_eord"
 
         # Create name

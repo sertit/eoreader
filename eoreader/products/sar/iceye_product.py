@@ -342,7 +342,7 @@ class IceyeProduct(SarProduct):
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing path of the VV band (as they come with the archived products).
-        ICEYE product only contains a VV band !
+        ICEYE product only contains a VV band!
 
         Args:
             **kwargs: Additional arguments

@@ -196,7 +196,7 @@ class TsxProduct(SarProduct):
             - We force Spatially Enhanced Resolution (SE) as we keep SSC resolutions (as per the ESA Data Access Portfolio)
             - We use the pixel_size from SE products, with incidence angle corresponding to the SSC resolution (or the highest pixel_spacing)
         """
-        # TODO: Manage RE case ? Not handled by Copernicus EMS, so be careful...
+        # TODO: Manage RE case? Not handled by Copernicus EMS, so be careful...
 
         # Read metadata
         try:

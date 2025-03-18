@@ -50,8 +50,8 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class UmbraProductType(ListEnum):
     """
     Umbra products types.
-    Take a look
-    `here <https://help.umbra.space/product-guide/umbra-products/umbra-product-specifications>`_.
+    Take a look to the
+    `specifications <https://help.umbra.space/product-guide/umbra-products/umbra-product-specifications>`_.
     """
 
     SLC = "SLC"
@@ -128,8 +128,8 @@ class UmbraSensorMode(ListEnum):
 class UmbraProduct(SarProduct):
     """
     Class for Umbra Products
-    Take a look
-    `here <https://help.umbra.space/product-guide>`_.
+    Take a look to the
+    `product guide <https://help.umbra.space/product-guide>`_.
     """
 
     def __init__(
@@ -148,8 +148,8 @@ class UmbraProduct(SarProduct):
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)
-        See
-        `here <https://help.umbra.space/product-guide/umbra-products/umbra-product-specifications>`_
+        Take a look to the
+        `specifications <https://help.umbra.space/product-guide/umbra-products/umbra-product-specifications>`_.
         """
         root, _ = self.read_mtd()
         if self._has_stac_mtd:
@@ -328,7 +328,7 @@ class UmbraProduct(SarProduct):
         self.product_type = UmbraProductType.GEC
 
         # WARNING: Umbra don't seem to have Ground Range products...
-        # Use try/except here for the future (for GEO/GRD ?), because now it's ineffective ;-)
+        # Use try/except here for the future (for GEO/GRD?), because now it's ineffective ;-)
         if self.product_type == UmbraProductType.GEC:
             self.sar_prod_type = SarProductType.GEOCODED
         else:
@@ -460,7 +460,7 @@ class UmbraProduct(SarProduct):
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing path of the VV band (as they come with the archived products).
-        Umbra product only contains a VV band !
+        Umbra product only contains a VV band!
 
         Args:
             **kwargs: Additional arguments

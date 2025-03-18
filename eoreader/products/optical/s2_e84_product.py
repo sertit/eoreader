@@ -150,7 +150,7 @@ class S2E84Product(OpticalProduct):
         Set product default pixel size (in meters)
         """
         # S2: use 10m resolution, even if we have 60m and 20m resolution
-        # In the future maybe use one resolution per band ?
+        # In the future maybe use one resolution per band?
         self.pixel_size = 10.0
 
     def _map_bands(self) -> None:
@@ -425,7 +425,7 @@ class S2E84Product(OpticalProduct):
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. WARNING::
-            Sentinel-2 datetime is the datatake sensing time, not the granule sensing time !
+            Sentinel-2 datetime is the datatake sensing time, not the granule sensing time!
             (the one displayed in the product's name)
 
         .. code-block:: python
@@ -445,7 +445,7 @@ class S2E84Product(OpticalProduct):
              Union[str, datetime.datetime]: Its acquisition datetime
         """
         if self.datetime is None:
-            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time !
+            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time!
             sensing_time = self.split_name[2]
 
             # Convert to datetime
@@ -519,7 +519,7 @@ class S2E84Product(OpticalProduct):
                 band_paths[band] = clean_band
             else:
                 try:
-                    # Use JP2 or COGs here ? COGs seem a better option.
+                    # Use JP2 or COGs here? COGs seem a better option.
                     band_paths[band] = self._get_path(band_id, ext="tif")
                 except FileNotFoundError as ex:
                     raise InvalidProductError(

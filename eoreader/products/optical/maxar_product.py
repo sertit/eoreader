@@ -1169,7 +1169,7 @@ class MaxarProduct(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        # If ortho -> nodata is not set !
+        # If ortho -> nodata is not set!
         if self.is_ortho:
             # Get footprint of the first band of the stack
             footprint_dezoom = 10
@@ -1390,7 +1390,7 @@ class MaxarProduct(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         return False
 

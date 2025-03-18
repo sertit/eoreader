@@ -426,4 +426,4 @@ NEEDED_BANDS = get_all_needed_bands()
 # Set all indices
 for _idx in get_all_index_names():
     vars()[_idx] = _idx
-    # TODO: set another thing than str ? Create an IndexName object ?
+    # TODO: set another thing than str? Create an IndexName object?

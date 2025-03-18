@@ -300,7 +300,7 @@ class Vis1Product(DimapV1Product):
             )
             footprint = geometry.get_wider_exterior(footprint)
         else:
-            # If ortho -> nodata is not set !
+            # If ortho -> nodata is not set!
             if self.is_ortho:
                 # Get footprint of the first band of the stack
                 footprint_dezoom = 10

@@ -329,7 +329,7 @@ class SarProduct(Product):
         """
         Get default band path (the first existing one between :code:`VV` and :code:`HH` for SAR data), ready to use (orthorectified)
 
-        .. WARNING:: This functions orthorectifies SAR bands if not existing !
+        .. WARNING:: This functions orthorectifies SAR bands if not existing!
 
         .. code-block:: python
 
@@ -433,7 +433,7 @@ class SarProduct(Product):
         """
         Return the paths of required bands.
 
-        .. WARNING:: This functions orthorectifies and despeckles SAR bands if not existing !
+        .. WARNING:: This functions orthorectifies and despeckles SAR bands if not existing!
 
         .. code-block:: python
 
@@ -556,9 +556,9 @@ class SarProduct(Product):
         """
         Return the existing orthorectified band paths (including despeckle bands).
 
-        .. WARNING:: This functions orthorectifies SAR bands if not existing !
+        .. WARNING:: This functions orthorectifies SAR bands if not existing!
 
-        .. WARNING:: This functions despeckles SAR bands if not existing !
+        .. WARNING:: This functions despeckles SAR bands if not existing!
 
         .. code-block:: python
 
@@ -1215,7 +1215,7 @@ class SarProduct(Product):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
 
         .. code-block:: python
 

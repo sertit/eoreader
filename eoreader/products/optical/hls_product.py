@@ -166,7 +166,7 @@ class HlsProduct(OpticalProduct):
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -649,7 +649,7 @@ class HlsProduct(OpticalProduct):
     def _get_name(self) -> str:
         """
         Set product real name. Overrides get_name due to points in name.
-        TODO: Keep points in name ?
+        TODO: Keep points in name?
 
         Returns:
             str: True name of the product (from metadata)
@@ -670,7 +670,7 @@ class HlsProduct(OpticalProduct):
 
     def _get_split_name(self) -> list:
         """
-        Get split name (with points !)
+        Get split name (with points!)
 
         Returns:
             list: Split products name

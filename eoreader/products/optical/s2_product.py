@@ -468,7 +468,7 @@ class S2Product(OpticalProduct):
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. WARNING::
-            Sentinel-2 datetime is the datatake sensing time, not the granule sensing time !
+            Sentinel-2 datetime is the datatake sensing time, not the granule sensing time!
             (the one displayed in the product's name)
 
         .. code-block:: python
@@ -488,7 +488,7 @@ class S2Product(OpticalProduct):
              Union[str, datetime.datetime]: Its acquisition datetime
         """
         if self.datetime is None:
-            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time !
+            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time!
             sensing_time = self.split_name[2]
 
             # Convert to datetime
@@ -847,7 +847,7 @@ class S2Product(OpticalProduct):
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -1091,7 +1091,7 @@ class S2Product(OpticalProduct):
                     )
             except FileNotFoundError:
                 # For some old processing baselines
-                # (2.04 ? But not for all products... i.e. S2A_MSIL2A_20170406T105021_N0204_R051_T30SWD_20170406T105317.SAFE)
+                # (2.04? But not for all products... i.e. S2A_MSIL2A_20170406T105021_N0204_R051_T30SWD_20170406T105317.SAFE)
                 if self.is_archived:
                     mask_path = self._get_archived_rio_path(
                         f"{self._get_qi_folder()}.*_{band.name.replace('PRB', '')}_20m.jp2"
@@ -1164,7 +1164,7 @@ class S2Product(OpticalProduct):
         - :code:`NODATA`: Pixel nodata (inside the detectors)
         - :code:`DETFOO`: Detectors footprint -> used to process nodata outside the detectors
         - :code:`DEFECT`: Defective pixels
-        - :code:`CLOUDS`, **only with :code:`00` as a band !**
+        - :code:`CLOUDS`, **only with :code:`00` as a band!**
 
         .. code-block:: python
 
@@ -1260,7 +1260,7 @@ class S2Product(OpticalProduct):
 
         - :code:`DETFOO`: Detectors footprint -> used to process nodata outside the detectors
         - :code:`QUALIT`: TECQUA, DEFECT, NODATA, SATURA, CLOLOW merged
-        - :code:`CLASSI`: CLOUDS and SNOICE **only with :code:`00` as a band !**
+        - :code:`CLASSI`: CLOUDS and SNOICE **only with :code:`00` as a band!**
 
         Args:
             mask_id (Union[str, S2GmlMasks]): Mask ID
@@ -1435,7 +1435,7 @@ class S2Product(OpticalProduct):
         nodata = np.where(nodata == 0, 1, 0).astype(np.uint8)
 
         # Manage quality mask
-        # TODO: Optimize it -> very slow (why ?)
+        # TODO: Optimize it -> very slow (why?)
         # Technical quality mask: Only keep MSI_LOST (band 3) and MSI_DEG (band 4)
         # Defective pixels (band 5)
         # Nodata pixels (band 6)
@@ -1551,7 +1551,7 @@ class S2Product(OpticalProduct):
 
     def _has_s2_l2a_bands(self, band: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -1763,7 +1763,7 @@ class S2Product(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
         """
         return band != SHADOWS
