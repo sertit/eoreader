@@ -1017,7 +1017,7 @@ class SarProduct(Product):
 
                 # Convert Local Incidence Angle files from DIMAP to GeoTiff
                 LOGGER.debug("Converting Local Incidence Angle files from DIMAP to GeoTiff")
-                return self._write_lia(
+                self._write_lia(
                     pre_processed_path, pp_dim, crop=window_to_crop, **kwargs
                 )
 
