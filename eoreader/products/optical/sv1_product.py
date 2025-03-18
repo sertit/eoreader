@@ -655,7 +655,9 @@ class Sv1Product(VhrProduct):
                 with rasterio.open(self._get_tile_path(**kwargs)) as ds:
                     rpcs = ds.rpcs
 
-                self._reproject(tile, rpcs, dem_path, ortho_path=ortho_path, **kwargs)
+                self._reproject(
+                    tile, rpcs=rpcs, dem_path=dem_path, ortho_path=ortho_path, **kwargs
+                )
 
         else:
             ortho_path = self._get_tile_path(**kwargs)

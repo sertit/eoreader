@@ -163,7 +163,12 @@ class VhrProduct(OpticalProduct):
 
                 tile = utils.read(self._get_tile_path())
                 self._reproject(
-                    tile, rpcs, dem_path, ortho_path=ortho_path, tags=tags, **kwargs
+                    tile,
+                    rpcs=rpcs,
+                    dem_path=dem_path,
+                    ortho_path=ortho_path,
+                    tags=tags,
+                    **kwargs,
                 )
 
         else:

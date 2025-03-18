@@ -2538,7 +2538,13 @@ class Product:
         return dem_path
 
     def _reproject(
-        self, src_xda: xr.DataArray, rpcs: rpc.RPC, dem_path, ortho_path, **kwargs
+        self,
+        src_xda: xr.DataArray,
+        rpcs: rpc.RPC,
+        dem_path: str,
+        ortho_path: AnyPathStrType,
+        pixel_size: float = None,
+        **kwargs,
     ) -> (np.ndarray, dict):
         """
         Reproject using RPCs (cannot use another pixel size than src to ensure RPCs are valid)
@@ -2552,6 +2558,9 @@ class Product:
         Returns:
             (np.ndarray, dict): Reprojected array and its metadata
         """
+        if pixel_size is None:
+            pixel_size = self.pixel_size
+
         # Set RPC keywords
         # See https://gdal.org/en/stable/api/gdal_alg.html#_CPPv426GDALCreateRPCTransformerV2PK13GDALRPCInfoV2idPPc
         LOGGER.debug(f"Orthorectifying data with {dem_path}")
@@ -2603,7 +2612,7 @@ class Product:
         try:
             out_xda = src_xda.rio.reproject(
                 dst_crs=self.crs(),
-                resolution=self.pixel_size,
+                resolution=pixel_size,
                 resampling=resampling,
                 nodata=self._raw_nodata,
                 num_threads=utils.get_max_cores(),
@@ -2660,7 +2669,7 @@ class Product:
                 src_crs=self._get_raw_crs(),
                 src_nodata=self._raw_nodata,
                 dst_crs=self.crs(),
-                dst_resolution=self.pixel_size,
+                dst_resolution=pixel_size,
                 dst_nodata=self._raw_nodata,  # input data should be in integer
                 num_threads=utils.get_max_cores(),
                 resampling=resampling,

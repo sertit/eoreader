@@ -499,40 +499,45 @@ class UmbraProduct(SarProduct):
         Returns:
             str: Band path
         """
-        raw_band_path = self._get_gec_path()
-        ortho_path = pre_processed_path
-        with rasterio.open(raw_band_path) as ds:
-            # Orthorectify GEC if RPC are available
-            if ds.rpcs is not None:
-                # Reproject and write on disk data
-                dem_path = self._get_dem_path(**kwargs)
-                LOGGER.info(
-                    f"GEC file has RPCs: orthorectifying {band.name} band with {files.get_filename(dem_path)}"
-                )
-                arr = utils.read(self._get_gec_path())
-                self._reproject(
-                    arr,
-                    ds.rpcs,
-                    dem_path=dem_path,
-                    ortho_path=pre_processed_path,
-                    long_name="Orthorectified GEC",
-                )
-                LOGGER.debug(f"{band.name} band orthorectified.")
+        already_ortho = self._already_processed_path(band, pixel_size, **kwargs)
+        if already_ortho is not None:
+            ortho_path = already_ortho
+        else:
+            raw_band_path = self._get_gec_path()
+            ortho_path = pre_processed_path
+            with rasterio.open(raw_band_path) as ds:
+                # Orthorectify GEC if RPC are available
+                if ds.rpcs is not None:
+                    # Reproject and write on disk data
+                    dem_path = self._get_dem_path(**kwargs)
+                    LOGGER.info(
+                        f"GEC file has RPCs: orthorectifying {band.name} band with {files.get_filename(dem_path)}"
+                    )
+                    arr = utils.read(self._get_gec_path())
+                    self._reproject(
+                        arr,
+                        pixel_size=pixel_size,
+                        rpcs=ds.rpcs,
+                        dem_path=dem_path,
+                        ortho_path=pre_processed_path,
+                        long_name="Orthorectified GEC",
+                    )
+                    LOGGER.debug(f"{band.name} band orthorectified.")
 
-            # Reproject to UTM if CRS is not projected
-            elif not ds.crs.is_projected:
-                # Warp band if needed
-                LOGGER.info(
-                    f"GEC file has no RPCs: reprojecting {band.name} band to UTM. Warning, the accuracy will be low in montaineous areas!"
-                )
-                self._warp_band(
-                    raw_band_path,
-                    reproj_path=pre_processed_path,
-                    pixel_size=pixel_size,
-                )
-                LOGGER.debug(f"{band.name} band reprojected.")
-            else:
-                ortho_path = raw_band_path
+                # Reproject to UTM if CRS is not projected
+                elif not ds.crs.is_projected:
+                    # Warp band if needed
+                    LOGGER.info(
+                        f"GEC file has no RPCs: reprojecting {band.name} band to UTM. Warning, the accuracy will be low in montaineous areas!"
+                    )
+                    self._warp_band(
+                        raw_band_path,
+                        reproj_path=pre_processed_path,
+                        pixel_size=pixel_size,
+                    )
+                    LOGGER.debug(f"{band.name} band reprojected.")
+                else:
+                    ortho_path = raw_band_path
         return ortho_path
 
     # @cache

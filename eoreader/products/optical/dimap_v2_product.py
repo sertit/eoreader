@@ -1102,8 +1102,8 @@ class DimapV2Product(VhrProduct):
 
                         reproj_data = self._reproject(
                             mask_raster,
-                            rpcs,
-                            dem_path,
+                            rpcs=rpcs,
+                            dem_path=dem_path,
                             ortho_path=ortho_path,
                             long_name=mask_str,
                             **kwargs,

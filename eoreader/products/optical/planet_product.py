@@ -859,9 +859,6 @@ class PlanetProduct(OpticalProduct):
                 )
                 mask = def_xarr.copy(data=np.zeros_like(def_xarr.data))
 
-            # Set nodata for the masks
-            mask = mask.where(mask != 0)
-
             # Set default dtype (removed by where)
             mask.encoding["dtype"] = np.uint8
 

@@ -649,13 +649,19 @@ def test_wv02_wv03():
     """Function testing the support of WorldView-2/3 constellations"""
     # This test orthorectifies DIMAP data, so we need a DEM stored on disk
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
-    _test_core_optical("*P001_MUL*", dem_path=dem_path)
+    _test_core_optical("*055670633040_01_P001_MUL*", dem_path=dem_path)
 
 
 @s3_env
 def test_ge01_wv04():
     """Function testing the support of GeoEye-1/WorldView-4 constellations"""
     _test_core_optical("*P001_PSH*")
+
+
+@dask_env
+def test_wv_legion():
+    """Function testing the support of WorldView Legion constellations"""
+    _test_core_optical("*050246698010_01_P001_MUL*")
 
 
 @s3_env
@@ -743,6 +749,12 @@ def test_saocom():
 def test_capella():
     """Function testing the support of CAPELLA constellation"""
     _test_core_sar("*CAPELLA*")
+
+
+@s3_env
+def test_umbra():
+    """Function testing the support of UMBRA constellation"""
+    _test_core_sar("*UMBRA*")
 
 
 # TODO:

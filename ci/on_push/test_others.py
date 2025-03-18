@@ -400,7 +400,7 @@ def test_reader_methods():
 
 @s3_env
 def test_context_manager(tmp_path):
-    """Tets windowed reading"""
+    """Test windowed reading"""
     # Get paths
     prod_path = opt_path().joinpath("LT05_L1TP_200030_20111110_20200820_02_T1")
     window_path = others_path().joinpath(
@@ -423,7 +423,7 @@ def test_context_manager(tmp_path):
 
 @s3_env
 def test_windowed_reading():
-    """Tets windowed reading"""
+    """Test windowed reading"""
     # Get paths
     prod_path = opt_path().joinpath("LT05_L1TP_200030_20111110_20200820_02_T1")
     window_path = others_path().joinpath(
