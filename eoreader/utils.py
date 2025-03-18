@@ -464,7 +464,7 @@ def write_path_in_attrs(
 
 
 def stack(
-    band_xds: xr.Dataset, save_as_int: bool, nodata: float, **kwargs
+    band_xds: xr.Dataset, save_as_int: bool, nodata: float = None, **kwargs
 ) -> (xr.DataArray, type):
     """
     Stack a dictionary containing bands in a DataArray
@@ -481,7 +481,8 @@ def stack(
     LOGGER.debug("Stacking")
 
     # Save as integer
-    dtype = np.float32
+    dtype = kwargs.get("dtype", np.float32)
+    nodata = kwargs.get("nodata", rasters.get_nodata_value_from_dtype(dtype))
     if save_as_int:
         scale = 10000
         round_nb = 1000
@@ -517,13 +518,13 @@ def stack(
                     else:
                         band_xds[band] = band_xda * scale
 
-            # Fill no data
-            band_xds = band_xds.fillna(nodata)
-
     # Create dataset, with dims well-ordered
-    stack = band_xds.to_stacked_array(
-        new_dim="bands", sample_dims=("x", "y")
-    ).transpose("bands", "y", "x")
+    stack = (
+        band_xds.fillna(nodata)
+        .astype(dtype)
+        .to_stacked_array(new_dim="bands", sample_dims=("x", "y"))
+        .transpose("bands", "y", "x")
+    )
 
     if dtype == np.float32:
         # Set nodata if needed (NaN values are already set)

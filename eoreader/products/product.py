@@ -95,7 +95,7 @@ from eoreader.exceptions import (
 from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Constellation, Reader
 from eoreader.stac import StacItem
-from eoreader.utils import DEFAULT_TILE_SIZE, UINT16_NODATA, simplify
+from eoreader.utils import DEFAULT_TILE_SIZE, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
@@ -1081,7 +1081,7 @@ class Product:
 
         # Update stack's attributes
         if len(band_xds) > 0:
-            band_xds = self._update_attrs(band_xds, bands, **kwargs)
+            band_xds = self._update_attrs(band_xds, band_xds.keys(), **kwargs)
 
         return band_xds
 
@@ -2002,25 +2002,24 @@ class Product:
         # Pop driver kwarg (only used for writing)
         driver = kwargs.pop("driver", None)
 
-        # Create the analysis stack
+        # Load bands and create the stack
         band_xds = self.load(bands, pixel_size=pixel_size, size=size, **kwargs)
-
-        # Stack bands
-        if save_as_int:
-            nodata = kwargs.pop("nodata", UINT16_NODATA)
-        else:
-            nodata = kwargs.pop("nodata", self.nodata)
-        stack, dtype = utils.stack(band_xds, save_as_int, nodata, **kwargs)
+        stack, dtype = utils.stack(band_xds, save_as_int, **kwargs)
 
         # Update stack's attributes
-        stack = self._update_attrs(stack, bands, **kwargs)
+        stack = self._update_attrs(stack, band_xds.keys(), **kwargs)
 
         # Write on disk
         if stack_path:
             LOGGER.debug("Saving stack")
             stack = utils.write_path_in_attrs(stack, stack_path)
             utils.write(
-                stack, stack_path, dtype=dtype, nodata=nodata, driver=driver, **kwargs
+                stack,
+                stack_path,
+                dtype=dtype,
+                nodata=rasters.get_nodata_value_from_dtype(dtype),
+                driver=driver,
+                **kwargs,
             )
 
         return stack
@@ -2059,10 +2058,15 @@ class Product:
         if path is not None:
             xarr.attrs["path"] = path
 
-        bands = types.make_iterable(bands)
-        long_name = to_str(bands)
-        xr_name = "_".join(long_name)
-        attr_name = " ".join(long_name)
+        long_name = xarr.attrs.get("long_name")
+        if not long_name:
+            bands = types.make_iterable(bands)
+            long_name = to_str(bands)
+            xr_name = "_".join(long_name)
+            attr_name = " ".join(long_name)
+        else:
+            attr_name = long_name
+            xr_name = "_".join(long_name.split(" "))
 
         if isinstance(xarr, xr.DataArray):
             xarr = xarr.rename(xr_name)

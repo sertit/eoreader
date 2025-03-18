@@ -3,13 +3,16 @@
 import logging
 import os
 
+import tempenv
 from sertit import AnyPath, ci, path
 
+from ci.on_push import test_satellites
 from ci.scripts_utils import (
     CI_EOREADER_S3,
     READER,
     dask_env,
     get_ci_data_dir,
+    get_db_dir_on_disk,
     opt_path,
     reduce_verbosity,
     s3_env,
@@ -27,9 +30,10 @@ from eoreader.bands import (
     S2MaskBandNames,
     S2TheiaMaskBandNames,
 )
+from eoreader.env_vars import CI_EOREADER_BAND_FOLDER
 
 LOGGER = logging.getLogger(EOREADER_NAME)
-WRITE_ON_DISK = True
+WRITE_ON_DISK = False
 
 reduce_verbosity()
 
@@ -59,7 +63,7 @@ def test_s2_l2a_specific_bands(tmp_path):
 @dask_env
 def _test_masks(tmp_path, prod_regex, masks, **kwargs):
     pattern_paths = path.get_file_in_dir(
-        opt_path(), prod_regex, exact_name=True, get_list=True
+        opt_path(), prod_regex, exact_name=False, get_list=True
     )
 
     for prod_path in pattern_paths:
@@ -79,9 +83,19 @@ def _test_masks(tmp_path, prod_regex, masks, **kwargs):
             stack_path = prod.output / f"{prod.condensed_name}_masks.tif"
             true_path = get_ci_data_dir().joinpath(prod.condensed_name, stack_path.name)
 
+            # DO NOT REPROJECT BANDS (WITH GDAL / SNAP) --> WAY TOO SLOW
+            os.environ[CI_EOREADER_BAND_FOLDER] = str(
+                get_ci_data_dir().joinpath(prod.condensed_name)
+            )
+
             valid_bands = [b for b in masks.to_value_list() if prod.has_band(b)]
 
-            prod.stack(valid_bands, pixel_size=600, stack_path=stack_path, **kwargs)
+            prod.stack(
+                valid_bands,
+                pixel_size=test_satellites.get_pixel_size(prod),
+                stack_path=stack_path,
+                **kwargs,
+            )
 
             ci.assert_raster_equal(stack_path, true_path)
 
@@ -90,13 +104,20 @@ def _test_masks(tmp_path, prod_regex, masks, **kwargs):
 def test_dimap_v2_masks(tmp_path):
     """Test DIMAP V2 masks"""
     # Non-ortho
-    _test_masks(tmp_path, "SPOT7", DimapV2MaskBandNames)
+    with tempenv.TemporaryEnvironment(
+        {
+            "EOREADER_DEM_PATH": os.path.join(
+                get_db_dir_on_disk(), *test_satellites.MERIT_DEM_SUB_DIR_PATH
+            )
+        }
+    ):
+        _test_masks(tmp_path, "SPOT7", DimapV2MaskBandNames)
 
     # WGS84
     _test_masks(tmp_path, "SPOT6", DimapV2MaskBandNames)
 
     # UTM
-    _test_masks(tmp_path, "PLD", DimapV2MaskBandNames)
+    _test_masks(tmp_path, "PHR", DimapV2MaskBandNames)
 
 
 @s3_env
@@ -152,7 +173,7 @@ def test_s2_masks(tmp_path):
         tmp_path,
         "S2B_MSIL2A_20210517T103619_N7990_R008_T30QVE_20211004T113819.SAFE",
         S2MaskBandNames,
-        associated_bands={S2MaskBandNames.DETFOO: "RED", "QUALIT": ["RED", GREEN]},
+        associated_bands={S2MaskBandNames.DETFOO: ["RED", GREEN], "QUALIT": "RED"},
     )
 
 
@@ -161,7 +182,7 @@ def test_s2_theia_masks(tmp_path):
     """Test S2 Theia masks"""
     _test_masks(
         tmp_path,
-        "S2B_MSIL2A_20210517T103619_N7990_R008_T30QVE_20211004T113819.SAFE",
+        "SENTINEL2A_20190625-105728-756_L2A_T31UEQ_C_V2-2",
         S2TheiaMaskBandNames,
         associated_bands={S2TheiaMaskBandNames.DFP: "RED", "SAT": ["RED", GREEN]},
     )
