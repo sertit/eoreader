@@ -1235,11 +1235,13 @@ class SarProduct(Product):
 
         # Get the .img path(s)
         try:
-            imgs = utils.get_dim_img_path(dim_path, f"*Incidence*")
+            imgs = utils.get_dim_img_path(dim_path, "*Incidence*")
         except FileNotFoundError:
            raise LOGGER.warning("No Local Incidence Angle file found. Please activate the options to write these files from 'Terrain-Correction' node in a custuom SNAP graph")
 
         for img in imgs:
+            lia_out_path = out_path.with_name(img.name).with_suffix(".tif")
+    
             # Open Local Incidence Angle image and convert it to a clean geotiff
             with rioxarray.open_rasterio(img) as arr:
                 arr = arr.where(arr != self._snap_no_data, np.nan)
@@ -1259,17 +1261,17 @@ class SarProduct(Product):
                 # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
                 # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
                 # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
-                arr = utils.write_path_in_attrs(arr, out_path)
+                arr = utils.write_path_in_attrs(arr, lia_out_path)
                 utils.write(
                     arr,
-                    out_path,
+                    lia_out_path,
                     dtype=np.float32,
                     nodata=self._snap_no_data,
                     predictor=self._get_predictor(),
                     driver="GTiff",  # SNAP doesn't handle COGs very well apparently
                 )
 
-        return out_path
+        return out_path.parent
     
     def _compute_hillshade(
         self,
