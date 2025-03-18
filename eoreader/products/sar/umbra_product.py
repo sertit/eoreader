@@ -121,7 +121,7 @@ class UmbraSensorMode(ListEnum):
     """
     StripMap
     
-    Not available yet, but already visible in the `documentation <https://help.umbra.space/product-guide/umbra-products/future-imaging-modes`_.
+    Not available yet, but already visible in the `documentation <https://help.umbra.space/product-guide/umbra-products/future-imaging-modes>`_.
     """
 
 

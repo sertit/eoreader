@@ -437,7 +437,7 @@ MTD_REGEX = {
         r"IMAGERY\.TIF",
     ],
     Constellation.S2_SIN: {
-        "nested": 1,  # File that can be found at any level (product/**/file)
+        "nested": 0,  # File that can be found at child directory
         "regex": [
             r"metadata\.xml",  # Too generic name, check also a band
             r"B12\.jp2",
