@@ -145,6 +145,8 @@ class Product:
         """Does this product needs to be extracted to be processed ? (:code:`True` by default)."""
 
         self.path = AnyPath(product_path)
+        if not self.path.exists():
+            raise FileNotFoundError(f"{product_path} doesn't exist!")
         """Usable path to the product, either extracted or archived path, according to the satellite."""
 
         self.filename = path.get_filename(self.path)
@@ -160,19 +162,23 @@ class Product:
         """
 
         self.archive_path = AnyPath(archive_path) if archive_path else self.path
-        """Archive path, same as the product path if not specified.
-        Useful when you want to know where both the extracted and archived version of your product are stored."""
+        """
+        Archive path, same as the product path if not specified.
+        Useful when you want to know where both the extracted and archived version of your product are stored.
+        """
 
         self.is_archived = self.path.is_file()
-        """ Is the archived product is processed
-        (a products is considered as archived if its products path is a directory)."""
+        """
+        Is the current product archived?
+        (a product is considered as archived if its path is a file).
+        """
 
         # The output will be given later
         self._tmp_output = None
         self._output = None
         self._remove_tmp_process = remove_tmp
 
-        # Get the products date and datetime
+        # Get the product date and datetime
         self.date = None
         """Acquisition date."""
 
@@ -336,15 +342,16 @@ class Product:
         self.clear()
 
         # -- Remove temp folders
-        if self._tmp_output:
-            self._tmp_output.cleanup()
+        with contextlib.suppress(AttributeError):
+            if self._tmp_output:
+                self._tmp_output.cleanup()
 
-        elif (
-            self._remove_tmp_process
-            and self._tmp_process is not None
-            and self._tmp_process.exists()
-        ):
-            files.remove(self._tmp_process)
+            elif (
+                self._remove_tmp_process
+                and self._tmp_process is not None
+                and self._tmp_process.exists()
+            ):
+                files.remove(self._tmp_process)
 
     @abstractmethod
     def _pre_init(self, **kwargs) -> None:
