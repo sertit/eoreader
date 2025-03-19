@@ -319,6 +319,7 @@ def check_stack(
     Returns:
         xr.DataArray: Band array
     """
+    LOGGER.info("Check stack")
 
     # Stack data
     ci_stack = get_ci_data_dir().joinpath(
@@ -455,10 +456,12 @@ def core(prod_path, possible_bands, **kwargs):
 
         if hasattr(prod, "wgs84_extent"):
             with contextlib.suppress(NotImplementedError):
+                LOGGER.info("Check WGS84 extent")
                 prod.wgs84_extent()
 
         if hasattr(prod, "_fallback_wgs84_extent"):
             with contextlib.suppress(NotImplementedError):
+                LOGGER.info("Check WGS84 extent (fallback)")
                 prod._fallback_wgs84_extent()
 
         # Get the bands we want to stack / load

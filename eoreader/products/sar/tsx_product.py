@@ -352,7 +352,7 @@ class TsxProduct(SarProduct):
             crs.CRS: CRS object
         """
         if self.product_type == TsxProductType.EEC:
-            with rasterio.open(self.get_default_band_path()) as ds:
+            with rasterio.open(str(self.get_default_band_path())) as ds:
                 return ds.crs
         else:
             return super().crs()

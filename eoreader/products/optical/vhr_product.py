@@ -148,7 +148,7 @@ class VhrProduct(OpticalProduct):
                 # Reproject and write on disk data
                 dem_path = self._get_dem_path(**kwargs)
 
-                with rasterio.open(self._get_tile_path()) as ds:
+                with rasterio.open(str(self._get_tile_path())) as ds:
                     tags = ds.tags()
 
                     # TODO: change this when available in rioxarray

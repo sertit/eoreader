@@ -288,7 +288,10 @@ class SarProduct(Product):
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
         # Processed by SNAP: the nodata is set -> use get_footprint instead of vectorize
-        return rasters.get_footprint(self.get_default_band_path())
+        downsampled_band = utils.read(
+            self.get_default_band_path(), pixel_size=self.resolution * 10
+        )
+        return rasters.get_footprint(downsampled_band)
 
     def get_default_band(self) -> BandNames:
         """
@@ -637,7 +640,7 @@ class SarProduct(Product):
         # TODO: check if that works
         # In case of data that doesn't have any known pixel_size
         if self.pixel_size < 0.0:
-            with rasterio.open(band_path) as ds:
+            with rasterio.open(str(band_path)) as ds:
                 self.pixel_size = ds.res[0]
 
         try:
@@ -1275,7 +1278,9 @@ class SarProduct(Product):
         Returns:
             gpd.GeoDataFrame: WGS84 extent
         """
-        with rasterio.open(self.get_raw_band_paths()[self.get_default_band()]) as ds:
+        with rasterio.open(
+            str(self.get_raw_band_paths()[self.get_default_band()])
+        ) as ds:
             if ds.crs is not None:
                 extent_wgs84 = gpd.GeoDataFrame(
                     geometry=[geometry.from_bounds_to_polygon(*ds.bounds)],

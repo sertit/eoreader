@@ -652,7 +652,7 @@ class Sv1Product(VhrProduct):
 
                 # TODO: change this when available in rioxarray
                 # See https://github.com/corteva/rioxarray/issues/837
-                with rasterio.open(self._get_tile_path(**kwargs)) as ds:
+                with rasterio.open(str(self._get_tile_path(**kwargs))) as ds:
                     rpcs = ds.rpcs
 
                 self._reproject(

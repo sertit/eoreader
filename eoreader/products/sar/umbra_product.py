@@ -505,7 +505,7 @@ class UmbraProduct(SarProduct):
         else:
             raw_band_path = self._get_gec_path()
             ortho_path = pre_processed_path
-            with rasterio.open(raw_band_path) as ds:
+            with rasterio.open(str(raw_band_path)) as ds:
                 # Orthorectify GEC if RPC are available
                 if ds.rpcs is not None:
                     # Reproject and write on disk data

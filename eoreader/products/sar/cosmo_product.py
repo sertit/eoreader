@@ -23,14 +23,11 @@ import os
 import tempfile
 from datetime import datetime
 from enum import unique
-from io import BytesIO
 from typing import Union
 
 import geopandas as gpd
-import h5netcdf
 import numpy as np
 import rasterio
-import xarray as xr
 from lxml import etree
 from lxml.builder import E
 from rasterio import merge
@@ -114,8 +111,10 @@ class CosmoProduct(SarProduct):
         self.needs_extraction = True
 
         # Get the number of swaths of this product
-        with h5netcdf.File(self._img_path, phony_dims="access") as raw_h5:
-            self.nof_swaths = len(list(raw_h5.groups))
+        with rasterio.open(str(self._img_path)) as raw_h5:
+            sub_ds = [s.split("//")[-1] for s in raw_h5.subdatasets]
+            # Never more than 10 swaths
+            self.nof_swaths = len(set(s.split("/")[0] for s in sub_ds if "S0" in s))
 
         # Pre init done by the super class
         super()._pre_init(**kwargs)
@@ -373,7 +372,9 @@ class CosmoProduct(SarProduct):
                     str_val = str_val.replace("]", "")
                     return str_val
 
-                with h5netcdf.File(self._img_path) as netcdf_ds:
+                import h5netcdf
+
+                with h5netcdf.File(str(self._img_path)) as netcdf_ds:
                     # Create XML attributes
                     global_attr = []
                     for xml_attr, h5_attr in field_map.items():
@@ -459,22 +460,13 @@ class CosmoProduct(SarProduct):
         Returns:
             OrbitDirection: Orbit direction (ASCENDING/DESCENDING)
         """
-        # Get MTD XML file
-        if path.is_cloud_path(self.path):
-            h5_xarr_path = BytesIO(self._img_path.read_bytes())
-        else:
-            h5_xarr_path = str(self._img_path)
-
-        with xr.open_dataset(
-            h5_xarr_path, phony_dims="access", engine="h5netcdf"
-        ) as h5_xarr:
+        with rasterio.open(str(self._img_path)) as h5_xarr:
             # Get the orbit direction
             try:
-                od = OrbitDirection.from_value(getattr(h5_xarr, "Orbit Direction"))
-
+                od = OrbitDirection.from_value(h5_xarr.tags().get("Orbit_Direction"))
             except TypeError as exc:
                 raise InvalidProductError(
-                    "Orbit Direction not found in metadata!"
+                    "'Orbit_Direction' not found in h5 tags!"
                 ) from exc
 
         return od
@@ -521,16 +513,18 @@ class CosmoProduct(SarProduct):
         elif misc.compare_version(self.get_snap_version(), "11.0.0", ">="):
             return super()._pre_process_sar(pre_processed_path, band, **kwargs)
         else:
-            with h5netcdf.File(self._img_path, phony_dims="access") as raw_h5:
-                if self.nof_swaths == 1:
-                    return super()._pre_process_sar(pre_processed_path, band, **kwargs)
-                else:
-                    LOGGER.warning(
-                        "SNAP (before version 11.0.0) doesn't handle multiswath Cosmo-SkyMed products. This is a workaround. See https://github.com/sertit/eoreader/issues/78"
-                    )
+            if self.nof_swaths == 1:
+                return super()._pre_process_sar(pre_processed_path, band, **kwargs)
+            else:
+                LOGGER.warning(
+                    "SNAP (before version 11.0.0) doesn't handle multiswath Cosmo-SkyMed products. This is a workaround. See https://github.com/sertit/eoreader/issues/78"
+                )
 
-                    # For every swath, pre-process the swath array alone
-                    pp_swath_path = []
+                # For every swath, pre-process the swath array alone
+                pp_swath_path = []
+                import h5netcdf
+
+                with h5netcdf.File(str(self._img_path), phony_dims="access") as raw_h5:
                     for group in raw_h5.groups:
                         with tempfile.TemporaryDirectory() as tmp_dir:
                             LOGGER.debug(f"Processing {group}")
@@ -597,7 +591,7 @@ class CosmoProduct(SarProduct):
                     # Force GTiff to be used in SNAP
                     # Don't use rasters.merge_gtiff because off the predictor and the nodata...
                     try:
-                        pp_ds = [rasterio.open(p) for p in pp_swath_path]
+                        pp_ds = [rasterio.open(str(p)) for p in pp_swath_path]
                         merged_array, merged_transform = merge.merge(pp_ds, **kwargs)
                         merged_meta = pp_ds[0].meta.copy()
                         merged_meta.update(

@@ -1097,7 +1097,7 @@ class DimapV2Product(VhrProduct):
 
                         # TODO: change this when available in rioxarray
                         # See https://github.com/corteva/rioxarray/issues/837
-                        with rasterio.open(self._get_tile_path()) as ds:
+                        with rasterio.open(str(self._get_tile_path())) as ds:
                             rpcs = ds.rpcs
 
                         reproj_data = self._reproject(

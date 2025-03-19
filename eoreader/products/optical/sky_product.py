@@ -412,7 +412,7 @@ class SkyProduct(PlanetProduct):
                 import rasterio
 
                 try:
-                    with rasterio.open(band_path) as ds:
+                    with rasterio.open(str(band_path)) as ds:
                         tags = ds.tags()["TIFFTAG_IMAGEDESCRIPTION"]
                         prop = json.loads(tags)["properties"]
 
