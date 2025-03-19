@@ -635,7 +635,7 @@ class DimapV2Product(VhrProduct):
         )
 
         if not mask_exists:
-            nodata = self._open_masks(
+            nodata = self.load(
                 [DimapV2MaskBandNames.ROI], size=[width, height], **kwargs
             )[DimapV2MaskBandNames.ROI].data
 
@@ -645,7 +645,7 @@ class DimapV2Product(VhrProduct):
             )
 
             with contextlib.suppress(InvalidProductError):
-                masks = self._open_masks(
+                masks = self.load(
                     [DimapV2MaskBandNames.DET, DimapV2MaskBandNames.VIS],
                     size=[width, height],
                     **kwargs,
@@ -725,7 +725,7 @@ class DimapV2Product(VhrProduct):
         """
         # Get detector footprint to deduce the outside nodata
         LOGGER.debug("Load nodata")
-        nodata = self._open_masks(
+        nodata = self.load(
             [DimapV2MaskBandNames.ROI],
             size=[band_arr.rio.width, band_arr.rio.height],
             **kwargs,
@@ -862,7 +862,7 @@ class DimapV2Product(VhrProduct):
         band_dict = {}
 
         if bands:
-            cld_arr = self._open_masks(
+            cld_arr = self.load(
                 [DimapV2MaskBandNames.CLD], pixel_size=pixel_size, size=size
             )[DimapV2MaskBandNames.CLD]
 

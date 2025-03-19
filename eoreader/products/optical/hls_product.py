@@ -250,7 +250,7 @@ class HlsProduct(OpticalProduct):
             Union[xarray.DataArray, None]: Nodata array
 
         """
-        fmask = self._open_masks(
+        fmask = self.load(
             [HlsMaskBandNames.FMASK], pixel_size=pixel_size, size=size, **kwargs
         )[HlsMaskBandNames.FMASK]
         nodata = fmask.copy(
@@ -994,7 +994,7 @@ class HlsProduct(OpticalProduct):
 
         if bands:
             # Open Fmask
-            fmask = self._open_masks(
+            fmask = self.load(
                 [HlsMaskBandNames.FMASK], pixel_size=pixel_size, size=size, **kwargs
             )[HlsMaskBandNames.FMASK]
 

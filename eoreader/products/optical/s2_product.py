@@ -992,7 +992,7 @@ class S2Product(OpticalProduct):
                         associated_bands_to_load[band].append(associated_band)
 
             # Then load other bands that haven't been loaded before
-            loaded_bands = self._open_masks(
+            loaded_bands = self.load(
                 bands_to_load,
                 pixel_size,
                 size,
@@ -1923,7 +1923,7 @@ class S2Product(OpticalProduct):
 
         if bands:
             # Read mask
-            cloud_arr = self._open_masks(
+            cloud_arr = self.load(
                 [S2MaskBandNames.CLDPRB],
                 pixel_size=pixel_size,
                 size=size,

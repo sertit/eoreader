@@ -668,7 +668,7 @@ class S2TheiaProduct(OpticalProduct):
                         associated_bands_to_load[band].append(associated_band)
 
             # Then load other bands that haven't been loaded before
-            loaded_bands = self._open_masks(
+            loaded_bands = self.load(
                 bands_to_load,
                 pixel_size,
                 size,
@@ -938,7 +938,7 @@ class S2TheiaProduct(OpticalProduct):
 
         if bands:
             # Get nodata mask
-            masks = self._open_masks(
+            masks = self.load(
                 [S2TheiaMaskBandNames.EDG, S2TheiaMaskBandNames.CLM],
                 pixel_size=pixel_size,
                 size=size,

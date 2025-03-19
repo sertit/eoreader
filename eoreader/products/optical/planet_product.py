@@ -531,7 +531,7 @@ class PlanetProduct(OpticalProduct):
         }
 
         # Open unusable mask
-        udm = self._open_masks(
+        udm = self.load(
             [PlanetMaskBandNames.UNUSABLE],
             size=(band_arr.rio.width, band_arr.rio.height),
             **kwargs,
@@ -680,7 +680,7 @@ class PlanetProduct(OpticalProduct):
         nodata = self._load_nodata(pixel_size, size, **kwargs).data
 
         def __get_cloud_mask(cloud_bands: list):
-            cloud_dict = self._open_masks(cloud_bands, pixel_size, size, **kwargs)
+            cloud_dict = self.load(cloud_bands, pixel_size, size, **kwargs)
             if len(cloud_dict) > 1:
                 condition = reduce(
                     lambda x, y: x.fillna(0).astype(np.uint8)
@@ -994,9 +994,9 @@ class PlanetProduct(OpticalProduct):
             Union[xarray.DataArray, None]: Nodata array
 
         """
-        udm = self._open_masks(
-            [PlanetMaskBandNames.UNUSABLE], pixel_size, size, **kwargs
-        )[PlanetMaskBandNames.UNUSABLE]
+        udm = self.load([PlanetMaskBandNames.UNUSABLE], pixel_size, size, **kwargs)[
+            PlanetMaskBandNames.UNUSABLE
+        ]
         nodata = udm.copy(data=utils.read_bit_array(udm, 0))
         return nodata.rename("NODATA")
 
