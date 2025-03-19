@@ -2013,6 +2013,7 @@ class Product:
         if stack_path:
             LOGGER.debug("Saving stack")
             if save_as_int:
+                dtype = np.uint16
                 stack = utils.convert_to_uint16(stack)
 
             stack = utils.write_path_in_attrs(stack, stack_path)

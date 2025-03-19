@@ -658,7 +658,7 @@ def test_ge01_wv04():
     _test_core_optical("*P001_PSH*")
 
 
-@dask_env
+@s3_env
 def test_wv_legion():
     """Function testing the support of WorldView Legion constellations"""
     _test_core_optical("*050246698010_01_P001_MUL*")

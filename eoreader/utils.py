@@ -478,10 +478,16 @@ def convert_to_uint16(xds: AnyXrDataStructure) -> AnyXrDataStructure:
     scale = 10000
     round_nb = 1000
     round_min = -0.1
+
+    if not isinstance(xds, xr.DataArray):
+        xda = xds.to_array()
+    else:
+        xda = xds
+
     try:
-        stack_min = float(xds.to_array().quantile(0.001))
+        stack_min = float(xda.quantile(0.001))
     except ValueError:
-        stack_min = np.nanpercentile(xds.to_array(), 1)
+        stack_min = np.nanpercentile(xda, 1)
 
     if np.round(stack_min * round_nb) / round_nb < round_min:
         LOGGER.warning(

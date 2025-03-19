@@ -527,6 +527,7 @@ def test_write(tmp_path):
     np.testing.assert_array_equal(zstack.data, utils.read(zarr).data)
 
 
+@s3_env
 def test_deprecation():
     """Test deprecation warning"""
 
