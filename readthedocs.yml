@@ -11,7 +11,8 @@ build:
     python: "3.9"
   jobs:
     post_install:
-      - cd docs/_build/
+      - mkdir -p $READTHEDOCS_OUTPUT
+      - cd $READTHEDOCS_OUTPUT
       - wget -O file.zip ${JUPYTER_CACHE_URL}"?dl=1"
       - unzip -f file.zip
 
