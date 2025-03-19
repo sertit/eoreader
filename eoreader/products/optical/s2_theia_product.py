@@ -415,7 +415,11 @@ class S2TheiaProduct(OpticalProduct):
         return band_arr
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -439,12 +443,14 @@ class S2TheiaProduct(OpticalProduct):
         # Open NODATA pixels mask
         edg_mask = self._open_mask(
             S2TheiaMaskBandNames.EDG,
+            pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
             **kwargs,
         )
         sat_mask = self._open_mask(
             S2TheiaMaskBandNames.SAT,
             associated_band=band,
+            pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
             **kwargs,
         )
@@ -457,6 +463,7 @@ class S2TheiaProduct(OpticalProduct):
             def_mask = self._open_mask(
                 S2TheiaMaskBandNames.DFP,
                 associated_band=band,
+                pixel_size=pixel_size,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
@@ -468,7 +475,11 @@ class S2TheiaProduct(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
@@ -668,7 +679,7 @@ class S2TheiaProduct(OpticalProduct):
                         associated_bands_to_load[band].append(associated_band)
 
             # Then load other bands that haven't been loaded before
-            loaded_bands = self.load(
+            loaded_bands = self._open_masks(
                 bands_to_load,
                 pixel_size,
                 size,
@@ -938,7 +949,7 @@ class S2TheiaProduct(OpticalProduct):
 
         if bands:
             # Get nodata mask
-            masks = self.load(
+            masks = self._load_masks(
                 [S2TheiaMaskBandNames.EDG, S2TheiaMaskBandNames.CLM],
                 pixel_size=pixel_size,
                 size=size,

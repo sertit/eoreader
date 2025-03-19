@@ -495,7 +495,11 @@ class PlanetProduct(OpticalProduct):
         return band_arr
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -513,7 +517,9 @@ class PlanetProduct(OpticalProduct):
         """
         # Nodata
         no_data_mask = self._load_nodata(
-            size=(band_arr.rio.width, band_arr.rio.height), **kwargs
+            pixel_size=pixel_size,
+            size=(band_arr.rio.width, band_arr.rio.height),
+            **kwargs,
         ).values
 
         # Dubious pixels mapping
@@ -531,8 +537,9 @@ class PlanetProduct(OpticalProduct):
         }
 
         # Open unusable mask
-        udm = self.load(
+        udm = self._load_masks(
             [PlanetMaskBandNames.UNUSABLE],
+            pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
             **kwargs,
         )[PlanetMaskBandNames.UNUSABLE]
@@ -546,7 +553,11 @@ class PlanetProduct(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
@@ -561,7 +572,9 @@ class PlanetProduct(OpticalProduct):
         """
         # Nodata
         no_data_mask = self._load_nodata(
-            size=(band_arr.rio.width, band_arr.rio.height), **kwargs
+            size=(band_arr.rio.width, band_arr.rio.height),
+            pixel_size=pixel_size,
+            **kwargs,
         ).values
 
         # -- Merge masks
@@ -680,7 +693,7 @@ class PlanetProduct(OpticalProduct):
         nodata = self._load_nodata(pixel_size, size, **kwargs).data
 
         def __get_cloud_mask(cloud_bands: list):
-            cloud_dict = self.load(cloud_bands, pixel_size, size, **kwargs)
+            cloud_dict = self._load_masks(cloud_bands, pixel_size, size, **kwargs)
             if len(cloud_dict) > 1:
                 condition = reduce(
                     lambda x, y: x.fillna(0).astype(np.uint8)
@@ -994,9 +1007,9 @@ class PlanetProduct(OpticalProduct):
             Union[xarray.DataArray, None]: Nodata array
 
         """
-        udm = self.load([PlanetMaskBandNames.UNUSABLE], pixel_size, size, **kwargs)[
-            PlanetMaskBandNames.UNUSABLE
-        ]
+        udm = self._load_masks(
+            [PlanetMaskBandNames.UNUSABLE], pixel_size, size, **kwargs
+        )[PlanetMaskBandNames.UNUSABLE]
         nodata = udm.copy(data=utils.read_bit_array(udm, 0))
         return nodata.rename("NODATA")
 

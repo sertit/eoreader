@@ -570,7 +570,11 @@ class S2E84Product(OpticalProduct):
         return band_arr.astype(np.float32)
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -585,6 +589,7 @@ class S2E84Product(OpticalProduct):
         """
         # Get detector footprint to deduce the outside nodata
         mask = self.open_mask(
+            pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
         )
 
@@ -592,23 +597,6 @@ class S2E84Product(OpticalProduct):
         nodata_invalid = np.where(np.isin(mask, [0, 1]), 1, 0).astype(np.uint8)
 
         return self._set_nodata_mask(band_arr, nodata_invalid)
-
-    def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
-    ) -> xr.DataArray:
-        """
-        Manage only nodata pixels
-
-        Args:
-            band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
-            kwargs: Other arguments used to load bands
-
-        Returns:
-            xr.DataArray: Cleaned band array
-        """
-        # Nodata is loaded by default (COG file)
-        return band_arr
 
     def _get_condensed_name(self) -> str:
         """

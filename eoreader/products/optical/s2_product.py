@@ -992,7 +992,7 @@ class S2Product(OpticalProduct):
                         associated_bands_to_load[band].append(associated_band)
 
             # Then load other bands that haven't been loaded before
-            loaded_bands = self.load(
+            loaded_bands = self._open_masks(
                 bands_to_load,
                 pixel_size,
                 size,
@@ -1305,7 +1305,11 @@ class S2Product(OpticalProduct):
         return mask
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -1326,7 +1330,11 @@ class S2Product(OpticalProduct):
             return self._manage_invalid_pixels_gt_4_0(band_arr, band, **kwargs)
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
@@ -1340,12 +1348,16 @@ class S2Product(OpticalProduct):
             xr.DataArray: Cleaned band array
         """
         if self._processing_baseline < 4.0:
-            return self._manage_nodata_lt_4_0(band_arr, band, **kwargs)
+            return self._manage_nodata_lt_4_0(band_arr, band, pixel_size, **kwargs)
         else:
-            return self._manage_nodata_gt_4_0(band_arr, band, **kwargs)
+            return self._manage_nodata_gt_4_0(band_arr, band, pixel_size, **kwargs)
 
     def _manage_invalid_pixels_lt_4_0(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -1409,7 +1421,11 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_invalid_pixels_gt_4_0(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -1428,6 +1444,7 @@ class S2Product(OpticalProduct):
         nodata = self._open_mask_gt_4_0(
             S2Jp2Masks.DETFOO,
             band,
+            pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
             **kwargs,
         ).data
@@ -1443,6 +1460,7 @@ class S2Product(OpticalProduct):
         quality = self._open_mask_gt_4_0(
             S2Jp2Masks.QUALIT,
             band,
+            pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
             indexes=[3, 4, 5, 6, 8],
             **kwargs,
@@ -1454,7 +1472,11 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata_lt_4_0(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata
@@ -1492,7 +1514,11 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata_gt_4_0(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata
@@ -1510,6 +1536,7 @@ class S2Product(OpticalProduct):
         nodata = self._open_mask_gt_4_0(
             S2Jp2Masks.DETFOO,
             band,
+            pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
             **kwargs,
         ).data
@@ -1923,7 +1950,7 @@ class S2Product(OpticalProduct):
 
         if bands:
             # Read mask
-            cloud_arr = self.load(
+            cloud_arr = self._load_masks(
                 [S2MaskBandNames.CLDPRB],
                 pixel_size=pixel_size,
                 size=size,

@@ -627,7 +627,11 @@ class S3OlciProduct(S3Product):
         return e0
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...) for OLCI data.
@@ -713,7 +717,7 @@ class S3OlciProduct(S3Product):
         qual_flags_path = self._preprocess(
             qual_regex,
             subdataset=subds,
-            pixel_size=band_arr.rio.resolution(),
+            pixel_size=pixel_size,
             to_reflectance=False,
             dtype=np.uint32,
         )

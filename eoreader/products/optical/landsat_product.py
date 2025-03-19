@@ -1426,7 +1426,11 @@ class LandsatProduct(OpticalProduct):
         return band_arr
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -1442,6 +1446,7 @@ class LandsatProduct(OpticalProduct):
         if self._collection == LandsatCollection.COL_1:
             qa_arr = self._open_mask(
                 LandsatMaskBandNames.BQA,
+                pixel_size=pixel_size,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
@@ -1462,6 +1467,7 @@ class LandsatProduct(OpticalProduct):
         else:
             qa_arr = self._open_mask(
                 LandsatMaskBandNames.QA_RADSAT,
+                pixel_size=pixel_size,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
@@ -1497,6 +1503,7 @@ class LandsatProduct(OpticalProduct):
             # If collection 2, nodata has to be found in pixel QA file
             pixel_arr = self._open_mask(
                 LandsatMaskBandNames.QA_PIXEL,
+                pixel_size=pixel_size,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
@@ -1507,7 +1514,11 @@ class LandsatProduct(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
@@ -1526,6 +1537,7 @@ class LandsatProduct(OpticalProduct):
             # Open QA band
             qa_arr = self._open_mask(
                 LandsatMaskBandNames.BQA,
+                pixel_size=pixel_size,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
@@ -1538,6 +1550,7 @@ class LandsatProduct(OpticalProduct):
             # If collection 2, nodata has to be found in pixel QA file
             pixel_arr = self._open_mask(
                 LandsatMaskBandNames.QA_PIXEL,
+                pixel_size=pixel_size,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )

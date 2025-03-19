@@ -343,24 +343,12 @@ class VhrProduct(OpticalProduct):
 
         return band_arrays
 
-    def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
-    ) -> xr.DataArray:
-        """
-        Manage invalid pixels (Nodata, saturated, defective...)
-
-        Args:
-            band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
-            kwargs: Other arguments used to load bands
-
-        Returns:
-            xr.DataArray: Cleaned band array
-        """
-        return self._manage_nodata(band_arr, band, **kwargs)
-
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata pixels

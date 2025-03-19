@@ -614,7 +614,11 @@ class DimapV2Product(VhrProduct):
         return path.get_filename(self._get_tile_path()).replace("DIM_", "")
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -635,8 +639,11 @@ class DimapV2Product(VhrProduct):
         )
 
         if not mask_exists:
-            nodata = self.load(
-                [DimapV2MaskBandNames.ROI], size=[width, height], **kwargs
+            nodata = self._load_masks(
+                [DimapV2MaskBandNames.ROI],
+                size=[width, height],
+                pixel_size=pixel_size,
+                **kwargs,
             )[DimapV2MaskBandNames.ROI].data
 
             # Nodata is where ROI is false (ROI = valid data)
@@ -645,8 +652,9 @@ class DimapV2Product(VhrProduct):
             )
 
             with contextlib.suppress(InvalidProductError):
-                masks = self.load(
+                masks = self._load_masks(
                     [DimapV2MaskBandNames.DET, DimapV2MaskBandNames.VIS],
+                    pixel_size=pixel_size,
                     size=[width, height],
                     **kwargs,
                 )
@@ -710,7 +718,11 @@ class DimapV2Product(VhrProduct):
         return band_arr
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
@@ -725,8 +737,9 @@ class DimapV2Product(VhrProduct):
         """
         # Get detector footprint to deduce the outside nodata
         LOGGER.debug("Load nodata")
-        nodata = self.load(
+        nodata = self._load_masks(
             [DimapV2MaskBandNames.ROI],
+            pixel_size=pixel_size,
             size=[band_arr.rio.width, band_arr.rio.height],
             **kwargs,
         )[DimapV2MaskBandNames.ROI]
@@ -862,7 +875,7 @@ class DimapV2Product(VhrProduct):
         band_dict = {}
 
         if bands:
-            cld_arr = self.load(
+            cld_arr = self._load_masks(
                 [DimapV2MaskBandNames.CLD], pixel_size=pixel_size, size=size
             )[DimapV2MaskBandNames.CLD]
 
@@ -941,9 +954,12 @@ class DimapV2Product(VhrProduct):
                         pixel_size=pixel_size,
                         size=size,
                         indexes=[self.bands[self.get_default_band()].id],
+                        **kwargs,
                     )
                 else:
-                    def_xarr = utils.read(ds, pixel_size=pixel_size, size=size)
+                    def_xarr = utils.read(
+                        ds, pixel_size=pixel_size, size=size, **kwargs
+                    )
 
             # Load nodata
             width = def_xarr.rio.width
