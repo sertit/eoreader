@@ -18,10 +18,10 @@ clouds, DEM and spectral indices in a sensor-agnostic way.
 ## 🛰️ Managed constellations
 
 ### Optical
-[![Sentinel-2 SAFE and Theia Sentinel-3 OLCI and SLSTR Landsat 1 to 9 Harmonized Landsat-Sentinel PlanetScope, SkySat and RapidEye Pleiades and Pleiades-Neo SPOT-6/7 and 4/5 Vision-1 Maxar (WorldViews, GeoEye) SuperView-1 GEOSAT-2](https://zupimages.net/up/23/22/j3mz.png)](https://eoreader.readthedocs.io/latest/optical.html)
+[![Sentinel-2 SAFE and Theia Sentinel-3 OLCI and SLSTR Landsat 1 to 9 Harmonized Landsat-Sentinel PlanetScope, SkySat and RapidEye Pleiades and Pleiades-Neo SPOT-6/7 and 4/5 Vision-1 Maxar (WorldViews, GeoEye) SuperView-1 GEOSAT-2](https://i.postimg.cc/KvhYHv23/optical-sensors.png)](https://eoreader.readthedocs.io/latest/optical.html)
 
 ### SAR
-[![Sentinel-1 COSMO-Skymed 1st and 2nd Generation TerraSAR-X, TanDEM-X and PAZ SAR RADARSAT-2 and RADARSAT-Constellation ICEYE SAOCOM Capella](https://zupimages.net/up/23/22/7b6k.png)](https://eoreader.readthedocs.io/latest/sar.html)
+[![Sentinel-1 COSMO-Skymed 1st and 2nd Generation TerraSAR-X, TanDEM-X and PAZ SAR RADARSAT-2 and RADARSAT-Constellation ICEYE SAOCOM Capella](https://i.postimg.cc/GhPpwwL7/sar-sensors.png)](https://eoreader.readthedocs.io/latest/sar.html)
 
 ## 🔮 Features
 
