@@ -145,7 +145,11 @@ class Product:
         """Does this product needs to be extracted to be processed ? (:code:`True` by default)."""
 
         self.path = AnyPath(product_path)
-        if not self.path.exists():
+        if (
+            not validators.url(str(self.path))
+            and "item" not in kwargs
+            and not self.path.exists()
+        ):
             raise FileNotFoundError(f"{product_path} doesn't exist!")
         """Usable path to the product, either extracted or archived path, according to the satellite."""
 
