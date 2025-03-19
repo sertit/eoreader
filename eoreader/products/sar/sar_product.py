@@ -289,7 +289,10 @@ class SarProduct(Product):
         """
         # Processed by SNAP: the nodata is set -> use get_footprint instead of vectorize
         downsampled_band = utils.read(
-            self.get_default_band_path(), pixel_size=self.resolution * 10
+            self.get_default_band_path(),
+            pixel_size=max(
+                self.resolution * 10, float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
+            ),
         )
         return rasters.get_footprint(downsampled_band)
 

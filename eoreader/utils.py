@@ -622,10 +622,10 @@ def read_archived_file(
     Overload of sertit.files.read_archived_file to cache its reading:
     this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
     """
-    file_list = files.read_archived_file(
+    file = files.read_archived_file(
         archive_path=archive_path, regex=regex, file_list=file_list
     )
-    return file_list
+    return file
 
 
 @cache
@@ -634,12 +634,12 @@ def read_archived_xml(archive_path: AnyPathStrType, regex: str, file_list: list 
     Overload of sertit.files.read_archived_xml to cache its reading:
     this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
     """
-    file_list = files.read_archived_xml(
+    xml = files.read_archived_xml(
         archive_path=archive_path,
         regex=regex,
         file_list=file_list,
     )
-    return file_list
+    return xml
 
 
 @cache
@@ -650,12 +650,12 @@ def read_archived_html(
     Overload of sertit.files.read_archived_html to cache its reading:
     this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
     """
-    file_list = files.read_archived_html(
+    html = files.read_archived_html(
         archive_path=archive_path,
         regex=regex,
         file_list=file_list,
     )
-    return file_list
+    return html
 
 
 @cache

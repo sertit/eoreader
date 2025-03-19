@@ -225,7 +225,7 @@ def check_geometry(prod: Product, geometry_str: str, tmp_dir: str) -> None:
             geometry.to_file(geometry_path, driver="GeoJSON")
         else:
             raise FileNotFoundError(
-                f"{geometry_str} not found for {prod.condensed_name}!"
+                f"{geometry_str} file not found for {prod.condensed_name}!"
             )
 
     try:
@@ -465,6 +465,7 @@ def core(prod_path, possible_bands, **kwargs):
                 prod._fallback_wgs84_extent()
 
         # Get the bands we want to stack / load
+        LOGGER.debug("Selecting bands for stacking")
         stack_bands = [band for band in possible_bands if prod.has_band(band)]
         first_band = stack_bands[0]
 

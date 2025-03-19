@@ -18,10 +18,10 @@ SAOCOM products.
 """
 
 import logging
-import re
-import zipfile
+import os
 from datetime import datetime
 from enum import unique
+from io import BytesIO
 from typing import Union
 
 import geopandas as gpd
@@ -30,8 +30,9 @@ from sertit import path, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
-from eoreader import DATETIME_FMT, EOREADER_NAME, cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import SarBandNames
+from eoreader.env_vars import SAR_DEF_PIXEL_SIZE
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
@@ -265,10 +266,16 @@ class SaocomProduct(SarProduct):
         """
         # WARNING: Sometimes the product seems to contain several tiles that are not contiguous
         # Do not simplify geometry then
-        return rasters.get_valid_vector(
-            self.get_default_band_path()
-        )  # Processed by SNAP: the nodata is set
+        # Processed by SNAP: the nodata is set
+        default_arr = utils.read(
+            self.get_default_band_path(),
+            pixel_size=max(
+                self.resolution * 10, float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
+            ),
+        )
+        return rasters.get_valid_vector(default_arr)
 
+    @cache
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing band paths (as they come with the archived products).
@@ -302,6 +309,35 @@ class SaocomProduct(SarProduct):
                 continue
 
         return band_paths
+
+    @cache
+    def _get_raw_bands(self) -> list:
+        """
+        Return the existing band paths (as they come with th archived products).
+
+        Returns:
+            list: List of existing bands in the raw products (vv, hh, vh, hv)
+        """
+        try:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+
+            # Open identifier
+            pols = root.findtext(".//acquiredPols")
+            if not pols:
+                raise InvalidProductError("'acquiredPols' not found in metadata!")
+
+            # have the bands ordered like in SarBandNames
+
+            return [
+                band
+                for band in SarBandNames.speckle_list()
+                if band.name in pols.split("-")
+            ]
+
+        except Exception as e:
+            LOGGER.error(e)
+            return super()._get_raw_bands()
 
     def _set_product_type(self) -> None:
         """Set products type"""
@@ -449,13 +485,9 @@ class SaocomProduct(SarProduct):
             if not qlk_exists:
                 try:
                     zip_path = next(self.path.glob(f"{self.name}.zip"))
-
-                    with zipfile.ZipFile(zip_path) as zip_ds:
-                        filenames = [f.filename for f in zip_ds.filelist]
-                        regex = re.compile("Images/.*png")
-                        quicklook_path = zip_ds.extract(
-                            list(filter(regex.match, filenames))[0], quicklook_path
-                        )
+                    quicklook_path = self._get_archived_path(
+                        archive_path=zip_path, regex="Images/.*png"
+                    )
                 except FileNotFoundError:
                     quicklook_path = next(self.path.glob("Images/*.png"))
                 quicklook_path = str(quicklook_path)
@@ -463,6 +495,38 @@ class SaocomProduct(SarProduct):
             LOGGER.warning(f"No quicklook found in {self.condensed_name}")
 
         return quicklook_path
+
+    def plot(self) -> None:
+        """
+        Plot the quicklook if existing
+        """
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError as exc:
+            raise ModuleNotFoundError(
+                "You need to install 'matplotlib' to plot the product."
+            ) from exc
+        else:
+            quicklook_path = self.get_quicklook_path()
+
+            if quicklook_path is not None:
+                plt.figure(figsize=(6, 6))
+                try:
+                    from PIL import Image
+                except ModuleNotFoundError as exc:
+                    raise ModuleNotFoundError(
+                        "You need to install 'pillow' to plot the product."
+                    ) from exc
+
+                qlk = BytesIO(
+                    self._read_archived_file(
+                        f".*{os.path.basename(quicklook_path)}",
+                        archive_path=next(self.path.glob(f"{self.name}.zip")),
+                    )
+                )
+                plt.imshow(Image.open(qlk))
+
+                plt.title(f"{self.condensed_name}")
 
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
