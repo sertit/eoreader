@@ -2004,7 +2004,7 @@ class Product:
 
         # Load bands and create the stack
         band_xds = self.load(bands, pixel_size=pixel_size, size=size, **kwargs)
-        stack, dtype = utils.stack(band_xds, save_as_int, **kwargs)
+        stack, dtype = utils.stack(band_xds, **kwargs)
 
         # Update stack's attributes
         stack = self._update_attrs(stack, band_xds.keys(), **kwargs)
@@ -2012,6 +2012,9 @@ class Product:
         # Write on disk
         if stack_path:
             LOGGER.debug("Saving stack")
+            if save_as_int:
+                stack = utils.convert_to_uint16(stack)
+
             stack = utils.write_path_in_attrs(stack, stack_path)
             utils.write(
                 stack,

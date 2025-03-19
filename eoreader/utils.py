@@ -463,16 +463,63 @@ def write_path_in_attrs(
     return xda
 
 
-def stack(
-    band_xds: xr.Dataset, save_as_int: bool, nodata: float = None, **kwargs
-) -> (xr.DataArray, type):
+def convert_to_uint16(xds: AnyXrDataStructure) -> AnyXrDataStructure:
+    """
+    Convert an array to uint16 before saving it to disk.
+
+    Args:
+        xds (AnyXrDataStructure): Array to convert
+
+    Returns:
+        Converted array
+
+    """
+    dtype = np.uint16
+    scale = 10000
+    round_nb = 1000
+    round_min = -0.1
+    try:
+        stack_min = float(xds.to_array().quantile(0.001))
+    except ValueError:
+        stack_min = np.nanpercentile(xds.to_array(), 1)
+
+    if np.round(stack_min * round_nb) / round_nb < round_min:
+        LOGGER.warning(
+            f"Cannot convert the stack to uint16 as it has negative values ({stack_min} < {round_min}). Keeping it in float32."
+        )
+    else:
+        if stack_min < 0:
+            LOGGER.warning(
+                "Small negative values ]-0.1, 0] have been found. Clipping to 0."
+            )
+            xds = xds.clip(min=0, max=None, keep_attrs=True)
+
+        # Scale to uint16, fill nan and convert to uint16
+        for band, band_xda in xds.items():
+            # SCALING
+            # NOT ALL bands need to be scaled, only:
+            # - Satellite bands
+            # - index
+            if is_sat_band(band) or is_index(band):
+                if np.nanmax(band_xda) > UINT16_NODATA / scale:
+                    LOGGER.debug(
+                        "Band not in reflectance, keeping them as is (the values will be rounded)"
+                    )
+                else:
+                    xds[band] = band_xda * scale
+
+        # Fill no data and convert to uint16
+        xds = xds.fillna(UINT16_NODATA).astype(dtype)
+
+    return xds
+
+
+def stack(band_xds: xr.Dataset, **kwargs) -> (xr.DataArray, type):
     """
     Stack a dictionary containing bands in a DataArray
 
     Args:
         band_xds (xr.Dataset): Dataset containing the bands
-        save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
-        nodata (float): Nodata value
 
     Returns:
         (xr.DataArray, type): Stack as a DataArray and its dtype
@@ -483,45 +530,10 @@ def stack(
     # Save as integer
     dtype = kwargs.get("dtype", np.float32)
     nodata = kwargs.get("nodata", rasters.get_nodata_value_from_dtype(dtype))
-    if save_as_int:
-        scale = 10000
-        round_nb = 1000
-        round_min = -0.1
-        try:
-            stack_min = float(band_xds.to_array().quantile(0.001))
-        except ValueError:
-            stack_min = np.nanpercentile(band_xds.to_array(), 1)
-
-        if np.round(stack_min * round_nb) / round_nb < round_min:
-            LOGGER.warning(
-                f"Cannot convert the stack to uint16 as it has negative values ({stack_min} < {round_min}). Keeping it in float32."
-            )
-        else:
-            if stack_min < 0:
-                LOGGER.warning(
-                    "Small negative values ]-0.1, 0] have been found. Clipping to 0."
-                )
-                band_xds = band_xds.clip(min=0, max=None, keep_attrs=True)
-
-            # Scale to uint16, fill nan and convert to uint16
-            dtype = np.uint16
-            for band, band_xda in band_xds.items():
-                # SCALING
-                # NOT ALL bands need to be scaled, only:
-                # - Satellite bands
-                # - index
-                if is_sat_band(band) or is_index(band):
-                    if np.nanmax(band_xda) > UINT16_NODATA / scale:
-                        LOGGER.debug(
-                            "Band not in reflectance, keeping them as is (the values will be rounded)"
-                        )
-                    else:
-                        band_xds[band] = band_xda * scale
 
     # Create dataset, with dims well-ordered
     stack = (
         band_xds.fillna(nodata)
-        .astype(dtype)
         .to_stacked_array(new_dim="bands", sample_dims=("x", "y"))
         .transpose("bands", "y", "x")
     )

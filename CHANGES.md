@@ -37,6 +37,7 @@
 - FIX: Save Cosmo quicklooks as PNG instead of GeoTiffs as they are not georeferenced
 - FIX: Fix `to_str` function with `as_list=False`
 - FIX: Correctly set the stack attributes when already existing on disk
+- FIX: Don't convert stack to `uint16` in memory with `save_as_int` argument (only convert the version written on disk) 
 - INTERNAL: Rationalize band paths and filename functions (still early work) ([#31](https://github.com/sertit/eoreader/issues/31))
 - DOC: Add documentation on how EOReader can improve your data handling ([#108](https://github.com/sertit/eoreader/issues/108))
 - DEPS: Add `ephem` for computing earth-sun distance (according to Maxar's method from docs)
