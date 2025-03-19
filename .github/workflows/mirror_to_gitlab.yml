@@ -6,14 +6,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Install git-lfs
-        run: sudo apt-get install -y git-lfs
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          lfs: true
-      - name: Checkout LFS objects
-        run: git lfs checkout
       - name: Mirror + trigger CI
         uses: SvanBoxel/gitlab-mirror-and-ci-action@master
         with:
