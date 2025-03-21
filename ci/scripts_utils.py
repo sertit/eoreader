@@ -187,6 +187,7 @@ def s3_env(*args, **kwargs):
     import psutil
     import rasterio
 
+    # Defaults to 5%
     gdal_cachemax_pct = 10
     gdal_cachemax_bytes = int(
         gdal_cachemax_pct / 100 * psutil.virtual_memory().available
@@ -201,8 +202,8 @@ def s3_env(*args, **kwargs):
             with rasterio.Env(
                 # Set to TRUE or EMPTY_DIR to avoid listing all files in the directory once a single file is opened (this is highly recommended).
                 GDAL_DISABLE_READDIR_ON_OPEN=True,
-                # Size of the default block cache, can be set in byte, MB, or as a percentage of available main, memory.
-                GDAL_CACHEMAX=gdal_cachemax_bytes,
+                # # Size of the default block cache, can be set in byte, MB, or as a percentage of available main, memory.
+                # GDAL_CACHEMAX=gdal_cachemax_bytes, # => doesn't seem to improve anything, in fact slows down things a bit
                 # Global cache size for downloads in bytes, defaults to 16 MB.
                 CPL_VSIL_CURL_CACHE_SIZE=mo_to_bytes(200),
                 # Enable / disable per-file caching by setting to TRUE or FALSE.
@@ -217,7 +218,7 @@ def s3_env(*args, **kwargs):
                 # Tells GDAL to merge consecutive range GET requests.
                 GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES",
                 # Number of threads GDAL can use for block reads and (de)compression, set to ALL_CPUS to use all available cores.
-                GDAL_NUM_THREADS="ALL_CPUS",
+                # GDAL_NUM_THREADS="ALL_CPUS", # => doesn't seem to improve anything, in fact slows down things
             ):
                 return unistra.s3_env(
                     function(*args, **kwargs), use_s3_env_var=CI_EOREADER_S3

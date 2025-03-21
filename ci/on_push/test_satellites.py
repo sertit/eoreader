@@ -495,6 +495,8 @@ def test_s2_before_04_00():
 
 
 @s3_env
+# from sertit import unistra
+# @unistra.s3_env
 def test_s2_theia():
     """Function testing the support of Sentinel-2 Theia constellation"""
     _test_core_optical("*SENTINEL2*")
