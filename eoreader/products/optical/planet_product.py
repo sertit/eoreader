@@ -693,7 +693,9 @@ class PlanetProduct(OpticalProduct):
         nodata = self._load_nodata(pixel_size, size, **kwargs).data
 
         def __get_cloud_mask(cloud_bands: list):
-            cloud_dict = self._load_masks(cloud_bands, pixel_size, size, **kwargs)
+            cloud_dict = self._load_masks(
+                cloud_bands, pixel_size=pixel_size, size=size, **kwargs
+            )
             if len(cloud_dict) > 1:
                 condition = reduce(
                     lambda x, y: x.fillna(0).astype(np.uint8)

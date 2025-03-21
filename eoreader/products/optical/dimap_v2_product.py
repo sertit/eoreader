@@ -25,6 +25,7 @@ import time
 from abc import abstractmethod
 from datetime import date, datetime
 from enum import unique
+from functools import reduce
 from typing import Union
 
 import geopandas as gpd
@@ -644,7 +645,7 @@ class DimapV2Product(VhrProduct):
                 size=[width, height],
                 pixel_size=pixel_size,
                 **kwargs,
-            )[DimapV2MaskBandNames.ROI].data
+            )[DimapV2MaskBandNames.ROI]
 
             # Nodata is where ROI is false (ROI = valid data)
             nodata = xr.where(
@@ -658,10 +659,14 @@ class DimapV2Product(VhrProduct):
                     size=[width, height],
                     **kwargs,
                 )
-                nodata = (
-                    nodata.data
-                    | masks[DimapV2MaskBandNames.DET].data
-                    | masks[DimapV2MaskBandNames.VIS].data
+                nodata = reduce(
+                    lambda x, y: x.fillna(0).astype(np.uint8)
+                    | y.fillna(0).astype(np.uint8),
+                    [
+                        nodata,
+                        masks[DimapV2MaskBandNames.DET],
+                        masks[DimapV2MaskBandNames.VIS],
+                    ],
                 )
             np.save(str(mask_path), nodata)
         else:

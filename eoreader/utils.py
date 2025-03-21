@@ -547,7 +547,9 @@ def stack(band_xds: xr.Dataset, **kwargs) -> (xr.DataArray, type):
     if dtype == np.float32:
         # Set nodata if needed (NaN values are already set)
         if stack.rio.encoded_nodata != nodata:
-            stack = stack.rio.write_nodata(nodata, encoded=True, inplace=True)
+            stack = stack.astype(dtype).rio.write_nodata(
+                nodata, encoded=True, inplace=True
+            )
 
     return stack, dtype
 
