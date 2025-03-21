@@ -659,13 +659,17 @@ class DimapV2Product(VhrProduct):
                     size=[width, height],
                     **kwargs,
                 )
+
+                mask_det = rasters.collocate(nodata, masks[DimapV2MaskBandNames.DET])
+                mask_vis = rasters.collocate(nodata, masks[DimapV2MaskBandNames.VIS])
+
                 nodata = reduce(
                     lambda x, y: x.fillna(0).astype(np.uint8)
                     | y.fillna(0).astype(np.uint8),
                     [
                         nodata,
-                        masks[DimapV2MaskBandNames.DET],
-                        masks[DimapV2MaskBandNames.VIS],
+                        mask_det,
+                        mask_vis,
                     ],
                 )
             np.save(str(mask_path), nodata)
