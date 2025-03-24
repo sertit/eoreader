@@ -819,7 +819,7 @@ class Product:
         """
         if pixel_size is None:
             if size is not None:
-                pixel_size = self._pixel_size_from_img_size(size)
+                pixel_size = self._pixel_size_from_img_size(size, **kwargs)
             else:
                 pixel_size = self.pixel_size
 
@@ -1067,7 +1067,7 @@ class Product:
                 pixel_size = self.pixel_size
             else:
                 # Assume square pixel size
-                pixel_size = self._pixel_size_from_img_size(size)[0]
+                pixel_size = self._pixel_size_from_img_size(size, **kwargs)[0]
 
         # Check if all bands are valid
         bands = self.to_band(bands)
@@ -2157,7 +2157,9 @@ class Product:
         with rasterio.open(str(self.get_default_band_path(**kwargs))) as dst:
             return dst.transform, dst.width, dst.height, dst.crs
 
-    def _pixel_size_from_img_size(self, size: Union[list, tuple] = None) -> tuple:
+    def _pixel_size_from_img_size(
+        self, size: Union[list, tuple] = None, **kwargs
+    ) -> tuple:
         """
         Compute the corresponding pixel size to a given image size (positive resolution)
 
@@ -2167,11 +2169,11 @@ class Product:
         Returns:
             tuple: Pixel size as a tuple (x, y)
         """
-        def_tr, def_w, def_h, def_crs = self.default_transform()
-        bounds = transform.array_bounds(def_h, def_w, def_tr)
+        def_tr, def_w, def_h, def_crs = self.default_transform(**kwargs)
 
         # Manage WGS84 case
         if not def_crs.is_projected:
+            bounds = transform.array_bounds(def_h, def_w, def_tr)
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
                 def_crs,
                 self.crs(),
@@ -2190,6 +2192,12 @@ class Product:
         # Round pixel_size to the closest meter (under 1 meter, allow centimetric pixel_size)
         res_x = np.round(res_x, 1) if res_x < 1.0 else np.round(res_x, 0)
         res_y = np.round(res_y, 1) if res_y < 1.0 else np.round(res_y, 0)
+
+        # Fallback in case of very poor resolutions and very small images -> round to the closest hundred (i.e. 994 m means nothing -> round to 1000 m)
+        if res_x > 500 and size[0] < 500:
+            res_x = np.round(res_x / 100, 0) * 100
+        if res_y > 500 and size[1] < 500:
+            res_y = np.round(res_y / 100, 0) * 100
 
         return res_x, res_y
 
