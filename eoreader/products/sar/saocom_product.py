@@ -21,7 +21,6 @@ import logging
 import os
 from datetime import datetime
 from enum import unique
-from io import BytesIO
 from typing import Union
 
 import geopandas as gpd
@@ -485,48 +484,26 @@ class SaocomProduct(SarProduct):
             if not qlk_exists:
                 try:
                     zip_path = next(self.path.glob(f"{self.name}.zip"))
-                    quicklook_path = self._get_archived_path(
-                        archive_path=zip_path, regex="Images/.*png"
+                    rio_qlk_path = self._get_archived_rio_path(
+                        archive_path=zip_path, regex="Images/.*png", as_list=False
                     )
                 except FileNotFoundError:
-                    quicklook_path = next(self.path.glob("Images/*.png"))
+                    rio_qlk_path = next(self.path.glob("Images/*.png"))
+
+                # Write quicklook on disk
+                utils.write(
+                    utils.read(rio_qlk_path),
+                    quicklook_path,
+                    dtype="uint8",
+                    nodata=255,
+                    driver="PNG",
+                )
+
                 quicklook_path = str(quicklook_path)
         except (StopIteration, FileNotFoundError):
             LOGGER.warning(f"No quicklook found in {self.condensed_name}")
 
         return quicklook_path
-
-    def plot(self) -> None:
-        """
-        Plot the quicklook if existing
-        """
-        try:
-            import matplotlib.pyplot as plt
-        except ModuleNotFoundError as exc:
-            raise ModuleNotFoundError(
-                "You need to install 'matplotlib' to plot the product."
-            ) from exc
-        else:
-            quicklook_path = self.get_quicklook_path()
-
-            if quicklook_path is not None:
-                plt.figure(figsize=(6, 6))
-                try:
-                    from PIL import Image
-                except ModuleNotFoundError as exc:
-                    raise ModuleNotFoundError(
-                        "You need to install 'pillow' to plot the product."
-                    ) from exc
-
-                qlk = BytesIO(
-                    self._read_archived_file(
-                        f".*{os.path.basename(quicklook_path)}",
-                        archive_path=next(self.path.glob(f"{self.name}.zip")),
-                    )
-                )
-                plt.imshow(Image.open(qlk))
-
-                plt.title(f"{self.condensed_name}")
 
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
