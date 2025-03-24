@@ -1237,7 +1237,7 @@ class SarProduct(Product):
         try:
             imgs = utils.get_dim_img_path(dim_path, "*Incidence*")
         except FileNotFoundError:
-           raise LOGGER.warning("No Local Incidence Angle file found. Please activate the options to write these files from 'Terrain-Correction' node in a custuom SNAP graph")
+            LOGGER.warning("No Local Incidence Angle file found. Please activate the options to write these files from 'Terrain-Correction' node in a custuom SNAP graph")
 
         for img in imgs:
             lia_out_path = out_path.with_name(img.name).with_suffix(".tif")
