@@ -499,7 +499,7 @@ class SaocomProduct(SarProduct):
                     driver="PNG",
                 )
 
-                quicklook_path = str(quicklook_path)
+            quicklook_path = str(quicklook_path)
         except (StopIteration, FileNotFoundError):
             LOGGER.warning(f"No quicklook found in {self.condensed_name}")
 
