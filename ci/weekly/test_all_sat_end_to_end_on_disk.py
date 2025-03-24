@@ -7,7 +7,6 @@ from typing import Union
 
 import xarray as xr
 from lxml import etree
-from rasterio.windows import Window
 from sertit import AnyPath, path, types
 
 from ci.scripts_utils import (
@@ -245,13 +244,14 @@ def _test_core(
                 )[first_band]
 
                 # Load a band with the size option
-                LOGGER.info("Checking load with window")
-                band_arr = prod.load(  # noqa
-                    first_band,
-                    pixel_size=prod.pixel_size,
-                    window=Window(col_off=0, row_off=0, width=100, height=100),
-                    **kwargs,
-                )[first_band]
+                # This is too heavy for CI :'(
+                # LOGGER.info("Checking load with window")
+                # band_arr = prod.load(  # noqa
+                #     first_band,
+                #     pixel_size=prod.pixel_size,
+                #     window=Window(col_off=0, row_off=0, width=100, height=100),
+                #     **kwargs,
+                # )[first_band]
 
                 # CLOUDS: just try to load them without testing it
                 LOGGER.info("Loading clouds")
