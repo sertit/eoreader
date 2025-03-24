@@ -297,21 +297,38 @@ def _test_core(
                 if prod.sensor_type == SensorType.OPTICAL:
                     existing_bands = prod.get_existing_bands()
                     nof_assets = len(existing_bands)
+                    LOGGER.debug(
+                        f"Nof existing bands to init nof assets: nof_assets={nof_assets}"
+                    )
 
                     # Remove NARROW NIR, except for S2
                     if is_not_s2 and NARROW_NIR in existing_bands:
                         nof_assets -= 1
+                        LOGGER.debug(
+                            f"Remove one asset as NARROW NIR and NIR are the same band: nof_assets={nof_assets}"
+                        )
 
-                    # Keep only one VRE, except for S2 and S3 OLCI (VRE1 is always existing if VRE bands are present)
+                    # Keep only one VRE, except for
+                    # - S2 and S3 OLCI (VRE1 is always existing if VRE bands are present)
+                    # - WV Legion which has VRE 1 and VRE 2
                     if (
                         is_not_s2
                         and prod.constellation != Constellation.S3_OLCI
                         and VRE_1 in existing_bands
                     ):
-                        if VRE_2 in existing_bands:
+                        if (
+                            prod.constellation != Constellation.WVLG
+                            and VRE_2 in existing_bands
+                        ):
                             nof_assets -= 1
+                            LOGGER.debug(
+                                f"Remove one asset as VRE_1 and VRE_2 are the same band: nof_assets={nof_assets}"
+                            )
                         if VRE_3 in existing_bands:
                             nof_assets -= 1
+                            LOGGER.debug(
+                                f"Remove one asset as VRE_1 and VRE_3 are the same band: nof_assets={nof_assets}"
+                            )
 
                     # Remove one TIR for TM data
                     if (
@@ -320,6 +337,9 @@ def _test_core(
                         and TIR_2 in existing_bands
                     ):
                         nof_assets -= 1
+                        LOGGER.debug(
+                            f"Remove one asset as TIR_1 and TIR_2 are the same band: nof_assets={nof_assets}"
+                        )
                 else:
                     prod: SarProduct
                     existing_bands = prod._get_raw_bands()
@@ -327,6 +347,7 @@ def _test_core(
 
                 if prod.get_quicklook_path():
                     nof_assets += 1
+                    LOGGER.debug(f"Add the quicklook as asset: nof_assets={nof_assets}")
 
                 compare(len(item.assets), nof_assets, "number of assets")
 
@@ -578,15 +599,13 @@ def test_spot6():
 @dask_env
 def test_spot7():
     """Function testing the support of SPOT-7 constellation"""
-    # This test orthorectifies DIMAP data, so we need a DEM stored on disk
     _test_core_optical("*IMG_SPOT7*")
 
 
 @s3_env
 @dask_env
-def test_wv02_wv03():
-    """Function testing the support of WorldView-2/3 constellations"""
-    # This test orthorectifies DIMAP data, so we need a DEM stored on disk
+def test_wv02_wv03_wvlg():
+    """Function testing the support of WorldView-2/3 + Legion constellations"""
     _test_core_optical("*P001_MUL*")
 
 
