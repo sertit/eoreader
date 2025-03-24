@@ -704,7 +704,10 @@ class PlanetProduct(OpticalProduct):
                 )
             else:
                 condition = cloud_dict[cloud_bands[0]].fillna(0).astype(np.uint8)
-            return self._create_mask(def_xarr, condition, nodata)
+
+            return self._create_mask(
+                def_xarr, rasters.collocate(def_xarr, condition), nodata
+            )
 
         if bands:
             for band in bands:
