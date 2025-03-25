@@ -2785,4 +2785,5 @@ class Product:
                 ),
                 WarpedVRT(src, **vrt_options) as vrt,
             ):
+                LOGGER.debug(f"Writing warped band to {reproj_path}")
                 rio_shutil.copy(vrt, reproj_path, driver="vrt")

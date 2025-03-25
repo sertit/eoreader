@@ -263,8 +263,9 @@ class VhrProduct(OpticalProduct):
             # Manage the case if we got a LAT LON product
             if not dst_crs.is_projected:
                 if not reproj_path.is_file():
+                    # Here we are warping the whole stack, not only one band
                     reproj_path = self._get_utm_band_path(
-                        band=band.name, pixel_size=pixel_size, writable=True
+                        pixel_size=pixel_size, writable=True
                     )
                     # Warp band if needed
                     self._warp_band(
@@ -409,7 +410,7 @@ class VhrProduct(OpticalProduct):
 
     def _get_utm_band_path(
         self,
-        band: str,
+        band: str = None,
         pixel_size: Union[float, tuple, list] = None,
         writable: bool = False,
     ) -> AnyPathType:
@@ -426,8 +427,10 @@ class VhrProduct(OpticalProduct):
         """
         res_str = self._pixel_size_to_str(pixel_size)
 
+        band_str = f"_{band}" if band is not None else ""
+
         return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{band}_{res_str}.vrt"
+            f"{self.condensed_name}{band_str}_{res_str}.vrt"
         )
 
     def _get_default_utm_band(
@@ -473,8 +476,9 @@ class VhrProduct(OpticalProduct):
 
                     # Warp band if needed
                     if not utm_path.is_file():
+                        # Here we will warp the whole stack
                         utm_path = self._get_utm_band_path(
-                            band=def_band.name, pixel_size=pixel_size, writable=True
+                            pixel_size=pixel_size, writable=True
                         )
                         self._warp_band(
                             def_path,
