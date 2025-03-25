@@ -841,6 +841,50 @@ class S2E84StacProduct(StacProduct, S2E84Product):
 
         return self.item.assets[asset_name].href
 
+    def _read_band(
+        self,
+        band_path: AnyPathType,
+        band: BandNames = None,
+        pixel_size: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Read band from disk.
+
+        .. WARNING::
+            Invalid pixels are not managed here
+
+        Args:
+            band_path (AnyPathType): Band path
+            band (BandNames): Band to read
+            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Other arguments used to load bands
+        Returns:
+            xr.DataArray: Band xarray
+        """
+        # Do this trick because of different endpoints in E84 S2 L1C data
+        from rasterio.io import MemoryFile
+
+        with (
+            MemoryFile(self.read_href(band_path, clients=self.clients)) as memfile,
+            memfile.open() as dataset,
+        ):
+            band_arr = utils.read(
+                dataset,
+                pixel_size=pixel_size,
+                size=size,
+                resampling=kwargs.pop("resampling", self.band_resampling),
+                **kwargs,
+            )
+
+            # Convert type if needed
+            if band_arr.dtype != np.float32:
+                band_arr = band_arr.astype(np.float32)
+
+            return band_arr
+
     @cache
     def _read_mtd(self) -> (etree._Element, dict):
         """
