@@ -1,6 +1,6 @@
 # Release History
 
-## 0.22.0 (2025-mm-dd)
+## 0.22.0 (2025-03-25)
 
 - **BREAKING CHANGES: Remove deprecated features** ([#94](https://github.com/sertit/eoreader/issues/94), [#95](https://github.com/sertit/eoreader/issues/95), [#96](https://github.com/sertit/eoreader/issues/96))
   - `resolution` keyword if favor of `pixel_size`
