@@ -143,10 +143,11 @@ class DimapV1Product(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
+        footprint_dezoom = 10
+
         # If ortho -> nodata is not set!
         if self.is_ortho:
             # Get the footprint of the first band of the stack
-            footprint_dezoom = 10
             arr = utils.read(
                 self.get_default_band_path(),
                 resolution=self.pixel_size * footprint_dezoom,
@@ -163,7 +164,11 @@ class DimapV1Product(VhrProduct):
             footprint = geometry.get_wider_exterior(footprint)
         else:
             # If not ortho -> default band has been orthorectified and nodata will be set
-            footprint = rasters.get_footprint(self.get_default_band_path())
+            downsampled_band = utils.read(
+                self.get_default_band_path(),
+                pixel_size=self.resolution * footprint_dezoom,
+            )
+            footprint = rasters.get_footprint(downsampled_band)
 
         return footprint.to_crs(self.crs())
 

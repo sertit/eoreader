@@ -214,16 +214,20 @@ def _test_core(
                 else:
                     pixel_size = prod.pixel_size * 50
 
+                # Geometric data
+                LOGGER.info("Checking footprint")
+                footprint = prod.footprint()  # noqa
+
+                LOGGER.info("Checking extent")
+                extent = prod.extent()  # noqa
+
                 # BAND TESTS
-                LOGGER.info("Checking load and stack")
+                LOGGER.info("Get stacking bands")
                 stack_bands = [band for band in possible_bands if prod.has_band(band)]
                 first_band = stack_bands[0]
 
-                # Geometric data
-                footprint = prod.footprint()  # noqa
-                extent = prod.extent()  # noqa
-
                 # Get stack bands
+                LOGGER.info("Checking load and stack")
                 # Stack data
                 curr_path = os.path.join(tmp_dir, f"{prod.condensed_name}_stack.tif")
                 stack = prod.stack(
@@ -596,5 +600,5 @@ def test_sv1():
 def test_gs2():
     """Function testing the support of GEOSAT-2 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
-    # _test_core_optical("*DE2_PM4_L1D*", dem_path=dem_path) # Too long
+    _test_core_optical("*DE2_*", dem_path=dem_path)
     _test_core_optical("*Turkey*", dem_path=dem_path)
