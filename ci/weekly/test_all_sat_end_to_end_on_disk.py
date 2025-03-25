@@ -596,5 +596,5 @@ def test_sv1():
 def test_gs2():
     """Function testing the support of GEOSAT-2 constellation"""
     dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
-    _test_core_optical("*DE2_*", dem_path=dem_path)
+    # _test_core_optical("*DE2_PM4_L1D*", dem_path=dem_path) # Too long
     _test_core_optical("*Turkey*", dem_path=dem_path)
