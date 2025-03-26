@@ -56,19 +56,19 @@ np.seterr(divide="ignore", invalid="ignore")
 # (see: https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/27)
 # Goal with this dict: to have as many indices as possible implemented in ASI
 EOREADER_DERIVATIVES = {
-    "NDRE2": ["NDREI", {"N": NIR, "RE1": VRE_2}],
-    "NDRE3": ["NDREI", {"N": NIR, "RE1": VRE_3}],
     "NDMI21": ["NDMI", {"N": NIR, "S1": SWIR_2}],
     "NDMI2100": ["NDMI", {"N": NIR, "S1": SWIR_2}],
-    "CI2": ["CIRE", {"N": VRE_2, "RE1": VRE_1}],
-    "CI1": ["CIRE", {"N": VRE_3, "RE1": VRE_2}],
+    "NDRE2": ["NDREI", {"N": NIR, "RE1": VRE_2}],
+    "NDRE3": ["NDREI", {"N": NIR, "RE1": VRE_3}],
+    "CI21": ["CIRE", {"N": VRE_2, "RE1": VRE_1}],
+    "CI32": ["CIRE", {"N": VRE_3, "RE1": VRE_2}],
+    # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/22
+    "SBI": ["BIXS", {"G": RED, "R": NIR}],
     # https://resources.maxar.com/optical-imagery/multispectral-reference-guide
     "WV_WI": ["NHFD", {"RE1": WV, "A": CA}],
     "WV_VI": ["NHFD", {"RE1": WV, "A": RED}],
     # https://www.indexdatabase.de/db/i-single.php?id=204
     "SRSWIR": ["DSI", {"S1": SWIR_1, "N": SWIR_2}],
-    # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/22
-    "SBI": ["BIXS", {"G": RED, "R": NIR}],
 }
 
 

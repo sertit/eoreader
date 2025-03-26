@@ -36,8 +36,7 @@ custom_prod = Reader().open(
 If you know them, it is best to give **EOReader** all the data you know about your stack:
 
 - `name`: product name. If not provided, the filename will be used
-- `datetime`: product acquisition datetime. If not provided, the datetime of the creation of the object will
-  be used
+- `datetime`: product acquisition datetime. If not provided, the datetime of the creation of the object will be used
 - `constellation`: product constellation. If not provided, `CUSTOM` will be set. Either a string of a `Constellation` enum.
 - `product_type`: product type. If not provided, `CUSTOM` will be set.
 - `pixel_size`: product default pixel size. If not provided, the stack pixel size will be used.

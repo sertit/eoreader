@@ -36,43 +36,43 @@ However, especially for SAR data, the default pixel size of GRD bands is differe
 
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
 
-\*\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). The resolution can vary around the one given here.*
+\*\* *Maxar satellites: Worldview Legion, 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). 
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
 ```
 
-| Constellations              | Product Types             | Default Pixel Size                 |
-|-----------------------------|---------------------------|------------------------------------|
-| Sentinel-2                  | L1C & L2A & L2Ap          | 10 m                               |
-| Sentinel-2 on AWS Cloud     | L2A (for now)             | 10 m                               |
-| Sentinel-2 Theia            | L2A                       | 10 m                               |
-| Sentinel-3 SLSTR            | RBT                       | 300 m                              |
-| Sentinel-3 OLCI             | EFR                       | 500 m                              |
-| Landsat 8/9 OLI-TIRS        | Level 1 & 2               | 30 m                               |
-| Landsat 7 ETM               | Level 1 & 2               | 30 m                               |
-| Landsat 4/5 TM              | Level 1 & 2               | 30 m                               |
-| Landsat 1-5 MSS             | Level 1                   | 60 m                               |
-| Harmonized Landsat-Sentinel | L30 & S30                 | 30 m                               |
-| PlanetScope                 | L3A & L3B                 | 3 m                                |
-| SkySat                      | (Collect Product) ortho_* | 0.5 m                              |
-| RapidEye                    | L3A                       | 5 m                                |
-| Pleiades-Neo                | SEN**, PRJ, ORT & MOS     | 0.3 m (PAN), 1.2 m (MS)            |
-| Pleiades                    | SEN**, PRJ, ORT & MOS     | 0.5 m (PAN), 2 m (MS)              |
-| Vision-1                    | PRJ & ORTP                | 0.9 m (PAN), 3.5 m (MS)            |
-| SPOT 4/5                    | L1A, L1B, L2A             | 10 m (PAN), 20 m (MS)              |
-| SPOT 6/7                    | SEN, PRJ, ORT & MOS       | 1.5 m (PAN), 6 m (MS)              |
-| Maxar*                      | Standard & Ortho          | 0.5 m (PAN), 2 m (MS)              |
-| SuperView-1                 | L1B & L2A                 | 0.5 m (PAN), 2 m (MS)              |
-| GEOSAT-2                    | L1B & L1C & L1D & L1S     | 0.4 m (PAN), 2 m (MS) for L1D data |
+| Constellations              | Product Types             | Default Pixel Size                    |
+|-----------------------------|---------------------------|---------------------------------------|
+| Sentinel-2                  | L1C & L2A & L2Ap          | 10 m                                  |
+| Sentinel-2 on AWS Cloud     | L2A (for now)             | 10 m                                  |
+| Sentinel-2 Theia            | L2A                       | 10 m                                  |
+| Sentinel-3 SLSTR            | RBT                       | 300 m                                 |
+| Sentinel-3 OLCI             | EFR                       | 500 m                                 |
+| Landsat 8/9 OLI-TIRS        | Level 1 & 2               | 30 m                                  |
+| Landsat 7 ETM               | Level 1 & 2               | 30 m                                  |
+| Landsat 4/5 TM              | Level 1 & 2               | 30 m                                  |
+| Landsat 1-5 MSS             | Level 1                   | 60 m                                  |
+| Harmonized Landsat-Sentinel | L30 & S30                 | 30 m                                  |
+| PlanetScope                 | L3A & L3B                 | 3 m                                   |
+| SkySat                      | (Collect Product) ortho_* | 0.5 m                                 |
+| RapidEye                    | L3A                       | 5 m                                   |
+| Pleiades-Neo                | SEN**, PRJ, ORT & MOS     | 0.3 m (PAN), 1.2 m (MS)               |
+| Pleiades                    | SEN**, PRJ, ORT & MOS     | 0.5 m (PAN), 2 m (MS)                 |
+| Vision-1                    | PRJ & ORTP                | 0.9 m (PAN), 3.5 m (MS)               |
+| SPOT 4/5                    | L1A, L1B, L2A             | 10 m (PAN), 20 m (MS)                 |
+| SPOT 6/7                    | SEN**, PRJ, ORT & MOS     | 1.5 m (PAN), 6 m (MS)                 |
+| Maxar*                      | Standard & Ortho          | 0.3 to 0.5 m (PAN), 1.2 to 2.0 m (MS) |
+| SuperView-1                 | L1B & L2A                 | 0.5 m (PAN), 2 m (MS)                 |
+| GEOSAT-2                    | L1B & L1C & L1D & L1S     | 0.4 m (PAN), 2 m (MS) for L1D data    |
 
-\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). The resolution can vary around the one given here.*
+\* *Maxar satellites: Worldview Legion 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). 
 
 \*\* ⚠ *DIMAP SEN products are orthorectified using RPCs and not the rigorous sensor model. Shift can occur. Please refer to [this issue](https://github.com/sertit/eoreader/issues/53).*
 
 ```{note}
 Note that for the rest of this documentation: 
-- HLS.S30 and Sentinel-2 data are equivalent (only 30m gsd).
+- HLS.S30 and Sentinel-2 data are equivalent (with the only difference of a 30 m gsd).
 - HLS.L30 and Landsat-OLI-TIRS data are equivalent.
 ```
 
@@ -82,7 +82,7 @@ The constellations that can be used during CEMS activations are (as of 09/2021):
 
 ## Optical bands
 
-The following bands are available in **EOReader**, but may not be available for all constellations.
+The following bands are available in **EOReader** but may not be available for all constellations.
 
 ```{warning}
 EOReader loads bands in UTM. VHR bands can be orthorectified but EOReader needs a DEM for that.
@@ -228,30 +228,17 @@ In addition to all these indices, EOReader kept the following indices for legacy
 
 | Spectral Indices         | ASI equivalent   | Formulas (with ASI syntax)                                                     | Name                                                |
 |--------------------------|------------------|--------------------------------------------------------------------------------|-----------------------------------------------------|
-| `AFRI_1_6`               | `AFRI1600`       | `(N - 0.66 * S1) / (N + 0.66 * S1)`                                            | Aerosol Free Vegetation Index (1600 nm)             |
-| `AFRI_2_1`               | `AFRI2100`       | `(N - 0.5 * S2) / (N + 0.5 * S2)`                                              | Aerosol Free Vegetation Index (2100 nm)             |
-| `BSI`                    | `BI`             | `((S1 + R) - (N + B))/((S1 + R) + (N + B))`                                    | Barren Soil Index                                   |
-| `DSWI`                   | `DSWI5`          | `(N + G)/(S1 + R)`                                                             | Disease water stress index                          |
-| `GRI`                    | `DSWI4`          | `G/R`                                                                          | Green-to-Red ratio Index                            |
-| `NDGRI`                  | `NGRDI`          | `(G - R) / (G + R)`                                                            | Normalized Green Red Difference Index               |
-| `NDMI21` (or `NDMI2100`) | ❌                | `(N - S2) / (N + S2)`                                                          | Normalized Difference Moisture Index (with 2100 nm) |
-| `NDRE1`                  | `NDREI`          | `(N - RE1) / (N + RE1)`                                                        | Normalized Difference Red Edge Index                |
+| `NDMI21` (or `NDMI2100`) | ❌                | `(N - S2) / (N + S2)`                                                          | Normalized Difference Moisture Index (with 2100 nm) || `NDRE1`                  | `NDREI`          | `(N - RE1) / (N + RE1)`                                                        | Normalized Difference Red Edge Index                |
 | `NDRE2`                  | ❌                | `(N - RE2) / (N + RE2)`                                                        | Normalized Difference Red-Edge Index with RE2       |
 | `NDRE3`                  | ❌                | `(N - RE3) / (N + RE3)`                                                        | Normalized Difference Red-Edge Index with RE1       |
 | `CI32`                   | ❌                | `(RE3 / RE2) - 1`                                                              | Chlorophyll Index RedEdge RE3/RE2                   |
 | `CI21`                   | ❌                | `(RE2 / RE1) - 1`                                                              | Chlorophyll Index RedEdge RE2/RE1                   |
-| `PANI`                   | `BITM`           | `(R**2 + B**2 + G**2)**0.5`                                                    | Panchromatic mocking index                          |
-| `RDI`                    | `DSI`            | `S1/N`                                                                         | Ratio Drought Index / Drought Stress Index          |
-| `RGI`                    | `RGRI`           | `R/G`                                                                          | Relative Greenness Index / Red-Green Ratio Index    |
 | `SBI`                    | ❌                | `(R**2 + N**2)**0.5`                                                           | Soil Brightness Index                               |
 | `SCI`                    | ❌                | `3*G - R - 100`                                                                | Soil Cuirass Index                                  |
 | `SRSWIR`                 | ❌                | `S1/S2`                                                                        | Simple Ratio SWIR16/SWIR21 Clay Minerals            |
 | `TCBRI`                  | ❌                | `0.3037 *B + 0.2793 * G + 0.4743 * R + 0.5585 * N + 0.5082 * S1 + 0.1863 * S2` | Tasseled Cap Brightness                             |
 | `TCGRE`                  | ❌                | `0.2848 *B + 0.2435 * G + 0.5436 * R + 0.7243 * N + 0.0840 * S1 + 0.1800 * S2` | Tasseled Cap Greenness                              |
 | `TCWET`                  | ❌                | `0.1509 *B + 0.1973 * G + 0.3279 * R + 0.3406 * N + 0.7112 * S1 + 0.4572 * S2` | Tasseled Cap Wetness                                |
-| `WI`                     | `WI2015`         | `1.7204 + 171 * G + 3 * R - 70 * N - 45 * S1 - 71 * S2`                        | Water Index (2015)                                  |
-| `WV_BI`                  | `NHFD`           | `(RE1 - A) / (RE1 + A)`                                                        | WorldView Built-up Index                            |
-| `WV_SI`                  | `NDSIWV`         | `(Y - G) / (Y + G)`                                                            | WorldView Soil Index                                |
 | `WV_VI`                  | ❌                | `(WV - R) / (WV + R)`                                                          | WorldView Vegetation Index                          |
 | `WV_WI`                  | ❌                | `(WV - A) / (WV + A)`                                                          | WorldView Water Index                               |
 
@@ -410,4 +397,4 @@ You can find a magnificent band comparison chart on the [Imagico](http://blog.im
 - [WorldView Index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide)
 - Specific sources inside the index function documentation in {meth}`~eoreader.bands.indices`
 
-*Documentation last accessed on the 12/03/2025*
+*Documentation last accessed on 12/03/2025*

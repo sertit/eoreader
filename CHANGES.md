@@ -375,7 +375,7 @@
         - `CI1` is renamed `CI32` and `CI2` is renamed `CI21` for readability purposes
         - `NDWI21` can be written `NDWI2100` for homogeneity purposes
         - `RDI` (or `DSI`) uses now `SWIR_1` instead of `SWIR_2` (see [this](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/18) issue)
-        - `PANI` equivalent is now `BITM` and is normalised ! (divided by 3)
+        - `PANI` equivalent is now `BITM` and is normalised! (divided by 3)
         - `SBI` is normalized (divided by 2) to fit with `BIXS` definition
         - ⚠ *You may need to install the last `spyndex` directly from GitHub latest version to have all available indices*
 - **BREAKING CHANGES: Using `pyresample` to geocode Sentinel-3 data** ([#55](https://github.com/sertit/eoreader/issues/55))
@@ -655,7 +655,7 @@
 - FIX: Using default SAR resolution from
   official [Copernicus Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589) (
   Sentinel-2 default
-  resolution goes to 10.0 m !)
+  resolution goes to 10.0 m!)
 - FIX: Use `--no-binary fiona,rasterio` directly in `requirements.txt`
 - FIX: Removing useless `outputComplex` line in GPT graphs that is breaking SNAP on Linux
 - FIX: Removing the workarounds caused by some bugs of `cloudpathlib` and enabling retrieval of nested SAR products (TSX, TDX, PAZ, RCM) from S3 compatible storage.
@@ -745,7 +745,7 @@
 ### Enhancements
 
 - **ENH: Allowing the user to choose the pixel processing for optical bands: raw band, only nodata or total cleaning of defective pixels** ([#16](https://github.com/sertit/eoreader/issues/16))
-- **ENH: Adding a CustomProduct, allowing the user to load any stack as an EOReader Product !**
+- **ENH: Adding a CustomProduct, allowing the user to load any stack as an EOReader Product!**
 - **ENH: Check if a band exists before trying to load it**
 
 ### Bug Fixes
@@ -805,7 +805,7 @@
 ### Bug Fixes
 
 - FIX: Do not force import `methodtools` (not existing lib in conda)
-- FIX: Using `GRD` resolution given by the constructors as default values for `SLC` products. Do not look it up in metadata as SLC resolution is **NOT** the GRD resolution !
+- FIX: Using `GRD` resolution given by the constructors as default values for `SLC` products. Do not look it up in metadata as SLC resolution is **NOT** the GRD resolution!
 
 ## 0.9.4 (2021-12-13)
 
@@ -879,8 +879,8 @@
 
 ### Breaking Changes
 
-- **BREAKING CHANGE: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties !**
-- **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** ([#10](https://github.com/sertit/eoreader/issues/10))
+- **BREAKING CHANGE: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties!**
+- **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different!)** ([#10](https://github.com/sertit/eoreader/issues/10))
 - **BREAKING CHANGE: `HILLSHADE` is given in `float32` instead of `uint8`**
 - **BREAKING CHANGE: `SLOPE` is given in degrees instead of percents**
 
@@ -889,7 +889,7 @@
 - **ENH: Adding the support of the PAZ SAR sensor**
 - **ENH: Adding the support of the Sentinel-2 processed with
   the [processing baseline 4.0](https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming)** ([#11](https://github.com/sertit/eoreader/issues/11))
-- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !** ([#12](https://github.com/sertit/eoreader/issues/12))
+- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency!** ([#12](https://github.com/sertit/eoreader/issues/12))
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
 - **ENH: Thermal bands of Sentinel-3 SLSTR can now be used**
 - **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for OLCI)** ([#14](https://github.com/sertit/eoreader/issues/14))
@@ -998,7 +998,7 @@
 ### Bug Fixes
 
 - FIX: Better handling of archives for products that needs extraction
-- FIX: TerraSAR-X products need to be extracted to be processed by SNAP !
+- FIX: TerraSAR-X products need to be extracted to be processed by SNAP!
 
 ## 0.6.1 (2021-09-10)
 

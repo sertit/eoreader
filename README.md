@@ -174,7 +174,7 @@ Thus, thanks to **EOReader**, these tools are made independent to the constellat
 
 However, keep in mind that the support of all the constellations used in CEMS is done in the best effort mode, especially for commercial data.
 Indeed, we may not have faced every product type, sensor mode or order configuration, so some details may be missing.
-If this happens to you, do not hesitate to make a PR or write an issue about that !
+If this happens to you, do not hesitate to make a PR or write an issue about that!
 
 ## 🎤 Communication
 ### Talks
