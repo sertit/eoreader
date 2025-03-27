@@ -494,7 +494,12 @@ def test_write(tmp_path):
 
     gtiff_driver = tmp_path / "gtiff_d.tif"
     prod.stack(
-        RED, window=window_path, pixel_size=60, stack_path=gtiff_driver, driver="GTiff"
+        RED,
+        window=window_path,
+        pixel_size=60,
+        stack_path=gtiff_driver,
+        driver="GTiff",
+        nodata=0,
     )
     with pytest.raises(AssertionError):
         assert_is_cog(gtiff_driver)

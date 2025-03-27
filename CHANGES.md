@@ -1,5 +1,9 @@
 # Release History
 
+## 0.22.1 (2025-mm-dd)
+
+- FIX: Fix a regression disallowing to pass a custom nodata to `product.stack`  
+
 ## 0.22.0 (2025-03-25)
 
 - **BREAKING CHANGES: Remove deprecated features** ([#94](https://github.com/sertit/eoreader/issues/94), [#95](https://github.com/sertit/eoreader/issues/95), [#96](https://github.com/sertit/eoreader/issues/96))

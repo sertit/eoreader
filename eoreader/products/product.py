@@ -2025,7 +2025,7 @@ class Product:
                 stack,
                 stack_path,
                 dtype=dtype,
-                nodata=rasters.get_nodata_value_from_dtype(dtype),
+                nodata=kwargs.pop("nodata", rasters.get_nodata_value_from_dtype(dtype)),
                 driver=driver,
                 **kwargs,
             )
