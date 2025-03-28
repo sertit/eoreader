@@ -37,7 +37,7 @@ from sertit.snap import SU_MAX_CORE
 from sertit.types import AnyPathStrType, AnyPathType, AnyXrDataStructure
 
 from eoreader import EOREADER_NAME, cache
-from eoreader.bands import is_index, is_sat_band
+from eoreader.bands import is_index, is_sat_band, to_str
 from eoreader.env_vars import (
     NOF_BANDS_IN_CHUNKS,
     TILE_SIZE,
@@ -463,7 +463,7 @@ def write_path_in_attrs(
     return xda
 
 
-def convert_to_uint16(xds: AnyXrDataStructure) -> AnyXrDataStructure:
+def convert_to_uint16(xds: AnyXrDataStructure) -> (AnyXrDataStructure, type):
     """
     Convert an array to uint16 before saving it to disk.
 
@@ -474,7 +474,6 @@ def convert_to_uint16(xds: AnyXrDataStructure) -> AnyXrDataStructure:
         Converted array
 
     """
-    dtype = np.uint16
     scale = 10000
     round_nb = 1000
     round_min = -0.1
@@ -493,14 +492,15 @@ def convert_to_uint16(xds: AnyXrDataStructure) -> AnyXrDataStructure:
         LOGGER.warning(
             f"Cannot convert the stack to uint16 as it has negative values ({stack_min} < {round_min}). Keeping it in float32."
         )
+        dtype = np.float32
     else:
+        dtype = np.uint16
         if stack_min < 0:
             LOGGER.warning(
                 "Small negative values ]-0.1, 0] have been found. Clipping to 0."
             )
             xds = xds.clip(min=0, max=None, keep_attrs=True)
 
-        # Scale to uint16, fill nan and convert to uint16
         for band, band_xda in xds.items():
             # SCALING
             # NOT ALL bands need to be scaled, only:
@@ -509,7 +509,7 @@ def convert_to_uint16(xds: AnyXrDataStructure) -> AnyXrDataStructure:
             if is_sat_band(band) or is_index(band):
                 if np.nanmax(band_xda) > UINT16_NODATA / scale:
                     LOGGER.debug(
-                        "Band not in reflectance, keeping them as is (the values will be rounded)"
+                        f"Band {to_str(band, as_list=False)} seems already scaled, keeping it as is (the values will be rounded to integers though)."
                     )
                 else:
                     xds[band] = band_xda * scale
@@ -517,7 +517,7 @@ def convert_to_uint16(xds: AnyXrDataStructure) -> AnyXrDataStructure:
         # Fill no data and convert to uint16
         xds = xds.fillna(UINT16_NODATA).astype(dtype)
 
-    return xds
+    return xds, dtype
 
 
 def stack(band_xds: xr.Dataset, **kwargs) -> (xr.DataArray, type):

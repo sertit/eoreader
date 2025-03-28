@@ -2016,13 +2016,23 @@ class Product:
         # Write on disk
         if stack_path:
             LOGGER.debug("Saving stack")
+            # Convert to uint16 only for the stack written on disk
+            # (sadly we have to restack the dataset a second time...)
+            stack_to_save = None
             if save_as_int:
-                dtype = np.uint16
-                stack = utils.convert_to_uint16(stack)
+                stack_to_save, dtype = utils.convert_to_uint16(band_xds)
+                if dtype == np.uint16:
+                    stack_to_save, _ = utils.stack(band_xds, dtype=dtype, **kwargs)
+                    stack_to_save = self._update_attrs(
+                        stack_to_save, band_xds.keys(), **kwargs
+                    )
 
-            stack = utils.write_path_in_attrs(stack, stack_path)
+            if stack_to_save is None:
+                stack_to_save = stack
+
+            stack_to_save = utils.write_path_in_attrs(stack_to_save, stack_path)
             utils.write(
-                stack,
+                stack_to_save,
                 stack_path,
                 dtype=dtype,
                 nodata=kwargs.pop("nodata", rasters.get_nodata_value_from_dtype(dtype)),

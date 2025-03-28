@@ -183,6 +183,17 @@ def test_products():
             assert ds.dtypes[0] == "uint16"
             assert stack.dtype == "float32"
 
+        # Test with already existing stack
+        stack_2 = prod1.stack(
+            [BLUE, RED],
+            window=Window(col_off=0, row_off=0, width=100, height=100),
+            save_as_int=True,
+            stack_path=stack_path,
+        )
+        with rasterio.open(stack_path) as ds:
+            assert ds.dtypes[0] == "uint16"
+            assert stack_2.dtype == "float32"
+
     # SAR
     sar = sar_path().joinpath("SC_124020")
     with pytest.raises(AssertionError):
