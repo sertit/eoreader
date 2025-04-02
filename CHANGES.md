@@ -4,6 +4,7 @@
 
 - FIX: Correct the logic behind saving a stack in uint16 in `product.stack`  
 - FIX: Fix a regression disallowing to pass a custom nodata to `product.stack`  
+- FIX: Fix COSMO GTC reading
 
 ## 0.22.0 (2025-03-25)
 

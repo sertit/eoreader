@@ -499,8 +499,8 @@ class CosmoProduct(SarProduct):
                     dtype=np.float32,
                     nodata=self._snap_no_data,
                     predictor=self._get_predictor(),
-                    driver="GTiff"  # SNAP doesn't handle COGs very well apparently
-                    ** utils._prune_keywords(
+                    driver="GTiff",  # SNAP doesn't handle COGs very well apparently
+                    **utils._prune_keywords(
                         additional_keywords=["dtype", "nodata", "predictor", "driver"],
                         **kwargs,
                     ),
