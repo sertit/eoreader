@@ -1,6 +1,6 @@
 # Release History
 
-## 0.22.1 (2025-mm-dd)
+## 0.22.1 (2025-04-04)
 
 - FIX: Correct the logic behind saving a stack in uint16 in `product.stack`  
 - FIX: Fix a regression disallowing to pass a custom nodata to `product.stack`  
