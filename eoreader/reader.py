@@ -319,7 +319,7 @@ CONSTELLATION_REGEX = {
         r"CSG_SSAR\d_(RAW|SCS|DGM|GEC|GTC)_([UBF]|FQLK_B)_\d{4}_(S2[ABC]|D2[RSJ]|OQ[RS]|STR|SC[12]|PPS|QPS)_\d{3}"
         r"_(HH|VV|VH|HV)_[LR][AD]_[DPFR]_\d{14}_\d{14}\_\d_[FC]_\d{2}[NS]_Z\d{2}_[NFB]\d{2}.h5",
     ],
-    Constellation.TSX: r"TSX1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
+    Constellation.TSX: r"TSX1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLST]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Constellation.TDX: r"TDX1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Constellation.PAZ: r"PAZ1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLST]_[SD]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Constellation.RS2: r"RS2_(OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}|\d{8}_\d{6}_\d{4}_.{1,5})"
