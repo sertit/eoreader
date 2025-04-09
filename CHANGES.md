@@ -1,5 +1,10 @@
 # Release History
 
+## 0.22.2 (2025-xx-xx)
+
+- FIX: Fixed TSX and TDX Products Regex to properly identify Staring Spotlight products as `TsxProduct` and `TdxProduct` - by @guillemc23
+
+
 ## 0.22.1 (2025-04-04)
 
 - FIX: Correct the logic behind saving a stack in uint16 in `product.stack`  
