@@ -8,15 +8,14 @@
       <formatName>SENTINEL-1</formatName>
     </parameters>
   </node>
-<node id="Subset">
+  <node id="Subset">
     <operator>Subset</operator>
     <sources>
-      <sourceProduct refid="Subset"/>
+      <sourceProduct refid="Read"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
       <tiePointGrids/>
-      <region/>
       <referenceBand/>
       <region>${region}</region>
       <geoRegion>${geo_region}</geoRegion>
@@ -29,7 +28,7 @@
   <node id="Apply-Orbit-File">
     <operator>Apply-Orbit-File</operator>
     <sources>
-      <sourceProduct refid="Read"/>
+      <sourceProduct refid="Subset"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <orbitType>Sentinel Precise (Auto Download)</orbitType>
@@ -45,6 +44,7 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <selectedPolarisations/>
       <removeThermalNoise>true</removeThermalNoise>
+      <outputNoise>false</outputNoise>
       <reIntroduceThermalNoise>false</reIntroduceThermalNoise>
     </parameters>
   </node>
@@ -104,6 +104,8 @@
       <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
       <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
       <saveSelectedSourceBand>true</saveSelectedSourceBand>
+      <saveLayoverShadowMask>false</saveLayoverShadowMask>
+      <outputComplex>false</outputComplex>
       <applyRadiometricNormalization>false</applyRadiometricNormalization>
       <saveSigmaNought>false</saveSigmaNought>
       <saveGammaNought>false</saveGammaNought>
@@ -126,7 +128,7 @@
   <node id="Write">
     <operator>Write</operator>
     <sources>
-      <sourceProduct refid="Terrain-Correction"/>
+      <sourceProduct refid="LinearToFromdB"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${out}</file>
@@ -136,28 +138,31 @@
   <applicationData id="Presentation">
     <Description/>
     <node id="Read">
-            <displayPosition x="37.0" y="35.0"/>
+            <displayPosition x="12.0" y="16.0"/>
+    </node>
+    <node id="Subset">
+      <displayPosition x="36.0" y="74.0"/>
     </node>
     <node id="Apply-Orbit-File">
-      <displayPosition x="30.0" y="76.0"/>
+      <displayPosition x="31.0" y="119.0"/>
     </node>
     <node id="ThermalNoiseRemoval">
-      <displayPosition x="24.0" y="125.0"/>
+      <displayPosition x="24.0" y="164.0"/>
     </node>
     <node id="Remove-GRD-Border-Noise">
-      <displayPosition x="27.0" y="175.0"/>
+      <displayPosition x="47.0" y="213.0"/>
     </node>
     <node id="Calibration">
-      <displayPosition x="96.0" y="222.0"/>
+      <displayPosition x="166.0" y="260.0"/>
     </node>
     <node id="Terrain-Correction">
-      <displayPosition x="284.0" y="259.0"/>
+      <displayPosition x="266.0" y="296.0"/>
     </node>
     <node id="LinearToFromdB">
-      <displayPosition x="138.0" y="263.0"/>
+      <displayPosition x="425.0" y="304.0"/>
     </node>
     <node id="Write">
-            <displayPosition x="522.0" y="264.0"/>
+            <displayPosition x="589.0" y="316.0"/>
     </node>
   </applicationData>
 </graph>

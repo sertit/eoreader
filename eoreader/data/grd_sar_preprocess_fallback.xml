@@ -7,7 +7,7 @@
       <file>${file}</file>
     </parameters>
   </node>
-<node id="Subset">
+  <node id="Subset">
     <operator>Subset</operator>
     <sources>
       <sourceProduct refid="Read"/>
@@ -15,7 +15,6 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
       <tiePointGrids/>
-      <region/>
       <referenceBand/>
       <region>${region}</region>
       <geoRegion>${geo_region}</geoRegion>
@@ -51,6 +50,8 @@
       <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
       <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
       <saveSelectedSourceBand>true</saveSelectedSourceBand>
+      <saveLayoverShadowMask>false</saveLayoverShadowMask>
+      <outputComplex>false</outputComplex>
       <applyRadiometricNormalization>false</applyRadiometricNormalization>
       <saveSigmaNought>false</saveSigmaNought>
       <saveGammaNought>false</saveGammaNought>
@@ -74,7 +75,10 @@
   <applicationData id="Presentation">
     <Description/>
     <node id="Read">
-            <displayPosition x="37.0" y="35.0"/>
+            <displayPosition x="4.0" y="33.0"/>
+    </node>
+    <node id="Subset">
+      <displayPosition x="115.0" y="147.0"/>
     </node>
     <node id="Terrain-Correction">
       <displayPosition x="284.0" y="259.0"/>

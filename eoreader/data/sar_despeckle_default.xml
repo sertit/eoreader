@@ -38,4 +38,16 @@
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>
+  <applicationData id="Presentation">
+    <Description/>
+    <node id="Read">
+      <displayPosition x="43.0" y="148.0"/>
+    </node>
+    <node id="Speckle-Filter">
+      <displayPosition x="309.0" y="219.0"/>
+    </node>
+    <node id="Write">
+      <displayPosition x="519.0" y="263.0"/>
+    </node>
+  </applicationData>
 </graph>
