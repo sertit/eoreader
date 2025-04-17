@@ -2,9 +2,8 @@
 
 ## 0.22.2 (2025-xx-xx)
 
-- FIX: Fix GPT graphs (mutiple errors, such a subset hanging alone, the linearTodB step not written, etc.)
+- FIX: Fix GPT graphs (mutiple errors, such a lonely `Subset`, a `LinearToFromdB` step not written, etc.)
 - FIX: Fixed TSX and TDX Products Regex to properly identify Staring Spotlight products as `TsxProduct` and `TdxProduct` - by @guillemc23
-
 
 ## 0.22.1 (2025-04-04)
 
