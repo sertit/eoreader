@@ -1,6 +1,6 @@
 # Release History
 
-## 0.22.2 (2025-xx-xx)
+## 0.22.2 (2025-04-18)
 
 - FIX: Fix GPT graphs (mutiple errors, such a lonely `Subset`, a `LinearToFromdB` step not written, etc.)
 - FIX: Fixed TSX and TDX Products Regex to properly identify Staring Spotlight products as `TsxProduct` and `TdxProduct` - by @guillemc23
