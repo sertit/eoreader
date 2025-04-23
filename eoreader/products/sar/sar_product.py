@@ -1234,6 +1234,7 @@ class SarProduct(Product):
             return array
 
         # Get the .img path(s)
+        imgs = []
         try:
             imgs = utils.get_dim_img_path(dim_path, "*Incidence*")
         except FileNotFoundError:
