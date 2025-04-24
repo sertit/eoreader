@@ -388,12 +388,18 @@ class CosmoProduct(SarProduct):
                                     E(xml_attr, path.get_filename(self._img_path))
                                 )
 
-                    try:
-                        # CSK products
-                        sbi = netcdf_ds.groups["S01"].variables["SBI"]
-                    except KeyError:
-                        # CSG products
-                        sbi = netcdf_ds.groups["S01"].variables["IMG"]
+                    if "S01" in netcdf_ds.groups:
+                        try:
+                            # CSK products
+                            sbi = netcdf_ds.groups["S01"].variables["SBI"]
+                        except KeyError:
+                            # CSG products
+                            sbi = netcdf_ds.groups["S01"].variables["IMG"]
+                    else:
+                        try:
+                            sbi = netcdf_ds.groups["IMG"]
+                        except KeyError:
+                            sbi = netcdf_ds.groups["MBI"]
 
                     for xml_attr, h5_attr in sbi_field_map.items():
                         global_attr.append(E(xml_attr, h5_to_str(sbi.attrs[h5_attr])))
