@@ -1,5 +1,9 @@
 # Release History
 
+## 0.22.3 (2025-mm-dd)
+
+- FIX: Fix crash of _`reorder_loaded_bands_like_input` with indices and associated_bands
+
 ## 0.22.2 (2025-04-18)
 
 - FIX: Fix GPT graphs (mutiple errors, such a lonely `Subset`, a `LinearToFromdB` step not written, etc.)

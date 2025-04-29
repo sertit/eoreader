@@ -835,7 +835,7 @@ class S2Product(OpticalProduct):
         )
 
         for band in bands:
-            if associated_bands:
+            if associated_bands and band in associated_bands:
                 for associated_band in associated_bands[band]:
                     key = self._get_band_key(band, associated_band, **kwargs)
                     reordered_dict[key] = bands_dict[key]
