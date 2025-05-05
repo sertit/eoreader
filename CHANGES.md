@@ -1,6 +1,6 @@
 # Release History
 
-## 0.22.3 (2025-mm-dd)
+## 0.22.3 (2025-05-05)
 
 - FIX: Fix crash of _`reorder_loaded_bands_like_input` with indices and associated_bands
 
