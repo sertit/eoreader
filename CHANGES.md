@@ -1,5 +1,9 @@
 # Release History
 
+## 0.22.4 (2025-05-05)
+
+- DOC: Fix jupyter cache for documentation notebook [#211](https://github.com/sertit/eoreader/issues/211)
+
 ## 0.22.3 (2025-05-05)
 
 - FIX: Fix crash of _`reorder_loaded_bands_like_input` with indices and associated_bands

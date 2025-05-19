@@ -15,7 +15,7 @@ build:
       - cd $READTHEDOCS_OUTPUT
       # JUPYTER_CACHE_URL does not contain "?dl=1" because readthedocs encloses the variable with "'" when it contains "?"
       - wget -O file.zip ${JUPYTER_CACHE_URL}"?dl=1"
-      - unzip -f file.zip
+      - unzip file.zip
 
 python:
   install:
