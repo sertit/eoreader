@@ -728,7 +728,7 @@ class Reader:
         product_path = AnyPath(product_path)
 
         if not product_path.exists():
-            FileNotFoundError(f"Non existing product: {product_path}")
+            raise FileNotFoundError(f"Non existing product: {product_path}")
 
         if custom:
             from eoreader.products import CustomProduct

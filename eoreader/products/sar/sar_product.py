@@ -774,7 +774,7 @@ class SarProduct(Product):
         else:
             pp_graph = AnyPath(os.environ[PP_GRAPH]).resolve()
             if not pp_graph.is_file() or pp_graph.suffix != ".xml":
-                FileNotFoundError(f"{pp_graph} cannot be found.")
+                raise FileNotFoundError(f"{pp_graph} cannot be found.")
 
         return str(pp_graph)
 
@@ -1083,7 +1083,7 @@ class SarProduct(Product):
             else:
                 dspk_graph = AnyPath(os.environ[DSPK_GRAPH]).resolve()
                 if not dspk_graph.is_file() or dspk_graph.suffix != ".xml":
-                    FileNotFoundError(f"{dspk_graph} cannot be found.")
+                    raise FileNotFoundError(f"{dspk_graph} cannot be found.")
 
             # Create command line and run it
             if not os.path.isfile(dspk_dim):
