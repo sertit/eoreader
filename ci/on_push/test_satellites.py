@@ -770,11 +770,12 @@ def test_umbra():
 
 def test_invalid():
     wrong_path = "dzfdzef"
-    assert READER.open(wrong_path, remove_tmp=True) is None
+    with pytest.raises(FileNotFoundError):
+        READER.open(wrong_path, remove_tmp=True)
     assert not READER.valid_name(wrong_path, "S2")
 
 
-@s3_env
-def test_sar():
-    """Function testing some other SAR methods"""
-    # TODO
+# @s3_env
+# def test_sar():
+#     """Function testing some other SAR methods"""
+# TODO
