@@ -47,4 +47,7 @@ SPYNDEX_TO_EOREADER_DICT = dict(
     zip(EOREADER_TO_SPYNDEX_DICT.values(), EOREADER_TO_SPYNDEX_DICT.keys())
 )
 
+# Workaround: https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/74
+SPYNDEX_TO_EOREADER_DICT.update({"T": TIR_1})
+
 EOREADER_STAC_MAP = EOREADER_STAC_MAP

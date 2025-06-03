@@ -131,7 +131,15 @@ def compute_index(index: str, bands: dict, **kwargs) -> xr.DataArray:
             parameters["C2"] = 7.5
             parameters["L"] = 1.0
 
-        index_arr = spyndex.computeIndex(index, parameters)
+        # Try / except is a workaround for: https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/74
+        try:
+            index_arr = spyndex.computeIndex(index, parameters)
+        except Exception as ex:
+            if "T1" in parameters:
+                parameters.update({"T": parameters["T1"]})
+                index_arr = spyndex.computeIndex(index, parameters)
+            else:
+                raise ex
     elif index in EOREADER_DERIVATIVES:
         idx_name = EOREADER_DERIVATIVES[index][0]
         params = {

@@ -2,8 +2,9 @@
 
 ## 0.22.4 (2025-05-05)
 
-- DOC: Fix jupyter cache for documentation notebook [#211](https://github.com/sertit/eoreader/issues/211)
+- FIX: Add workaround for `T` vs `T1+T2` abstraction [issue in Awesome Spectral Index](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/74) [#214](https://github.com/sertit/eoreader/issues/214)
 - FIX: Raise missing file not found exception - by @emmanuel-ferdman
+- DOC: Fix jupyter cache for documentation notebook [#211](https://github.com/sertit/eoreader/issues/211)
 
 ## 0.22.3 (2025-05-05)
 
