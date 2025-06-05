@@ -246,6 +246,7 @@ def read(
                         "size",
                         "window",
                         "chunks",
+                        "driver",
                     ],
                     **kwargs,
                 ),
