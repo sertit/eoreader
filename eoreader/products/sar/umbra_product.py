@@ -33,7 +33,7 @@ from rasterio import crs
 from sertit import files, path, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
-from sertit.vectors import WGS84
+from sertit.vectors import WGS84, DataSourceError
 from shapely import Polygon, force_2d
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
@@ -228,7 +228,7 @@ class UmbraProduct(SarProduct):
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
         if self._has_stac_mtd:
-            footprint = vectors.read(self._get_stac_mtd_path())
+            footprint = self._read_stac_mtd()
         else:
             # Easier with mtd in JSON here
             footprint_mtd = files.read_json(self._get_mtd_path())
@@ -266,12 +266,13 @@ class UmbraProduct(SarProduct):
         Returns:
             crs.CRS: CRS object
         """
-        # For now, it's only SPOTLIGHT, but be ready for any STRIPMAP appearance
-        root, _ = self.read_mtd()
         if self._has_stac_mtd:
             # Estimate UTM from footprint
-            crs = vectors.read(self._get_stac_mtd_path()).estimate_utm_crs()
+            crs = self._read_stac_mtd().estimate_utm_crs()
         else:
+            # For now, it's only SPOTLIGHT, but be ready for any STRIPMAP appearance
+            root, _ = self.read_mtd()
+
             # Estimate UTM from center point
             center = root.findtext(".//sceneCenterPointLla")
             if not center:
@@ -283,6 +284,17 @@ class UmbraProduct(SarProduct):
 
     def _get_stac_mtd_path(self):
         return next(self.path.glob(f"{self.name}.stac*.json"))
+
+    @cache
+    def _read_stac_mtd(self) -> gpd.GeoDataFrame:
+        try:
+            stac_mtd = vectors.read(self._get_stac_mtd_path())
+        except DataSourceError:
+            # Bug with pyogrio v0.11.0?
+            LOGGER.debug("Error when reading STAC json", exc_info=True)
+            stac_mtd = vectors.read(self._get_stac_mtd_path(), engine="fiona")
+
+        return stac_mtd
 
     def _get_mtd_path(self):
         # https://docs.canopy.umbra.space/docs/delivered-product-types

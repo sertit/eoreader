@@ -5,6 +5,7 @@
 - FIX: Add workaround for `T` vs `T1+T2` abstraction [issue in Awesome Spectral Index](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/74) [#214](https://github.com/sertit/eoreader/issues/214)
 - FIX: Raise missing file not found exception - by @emmanuel-ferdman
 - FIX: Prune also `driver` keyword in `utils.read`
+- FIX: Fix potential bug reading Umbra STAC JSON as GeoJSON in `pyogrio` (workaround: use `fiona`)
 - DOC: Fix jupyter cache for documentation notebook [#211](https://github.com/sertit/eoreader/issues/211)
 - DOC: Convert gfm admonitions to rst
 
