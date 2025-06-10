@@ -690,7 +690,8 @@ def test_umbra():
 
 def test_invalid():
     wrong_path = "dzfdzef"
-    assert READER.open(wrong_path, remove_tmp=True) is None
+    with pytest.raises(FileNotFoundError):
+        READER.open(wrong_path, remove_tmp=True)
     assert not READER.valid_name(wrong_path, "S2")
 
 
