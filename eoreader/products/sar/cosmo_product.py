@@ -395,7 +395,7 @@ class CosmoProduct(SarProduct):
                         except KeyError:
                             # CSG products
                             sbi = netcdf_ds.groups["S01"].variables["IMG"]
-                    else netcdf_ds.variables:
+                    elif netcdf_ds.variables:
                         try:
                             sbi = netcdf_ds.variables["IMG"]
                         except KeyError:
