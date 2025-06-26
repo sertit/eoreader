@@ -387,19 +387,23 @@ class CosmoProduct(SarProduct):
                                 global_attr.append(
                                     E(xml_attr, path.get_filename(self._img_path))
                                 )
-
-                    if "S01" in netcdf_ds.groups:
+                    
+                    if "S01" in netcdf_ds.groups and netcdf_ds.groups["S01"].variables:
                         try:
                             # CSK products
                             sbi = netcdf_ds.groups["S01"].variables["SBI"]
                         except KeyError:
                             # CSG products
                             sbi = netcdf_ds.groups["S01"].variables["IMG"]
-                    else:
+                    else netcdf_ds.variables:
                         try:
-                            sbi = netcdf_ds.groups["IMG"]
+                            sbi = netcdf_ds.variables["IMG"]
                         except KeyError:
-                            sbi = netcdf_ds.groups["MBI"]
+                            sbi = netcdf_ds.variables["MBI"]
+                    else:
+                        raise InvalidProductError(
+                            "No valid variable found in the dataset. Cannot read the product."
+                        )
 
                     for xml_attr, h5_attr in sbi_field_map.items():
                         global_attr.append(E(xml_attr, h5_to_str(sbi.attrs[h5_attr])))
