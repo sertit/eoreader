@@ -22,7 +22,7 @@ DSPK_GRAPH = "EOREADER_DSPK_GRAPH"
 """Environment variable for overriding default despeckling graph path"""
 
 SAR_DEF_PIXEL_SIZE = "EOREADER_SAR_DEFAULT_PIXEL_SIZE"
-"""Environment variable for SAR default pixel ize, used for SNAP orthorectification to override default pixel size."""
+"""Environment variable for SAR default pixel size, used for SNAP orthorectification to override default pixel size."""
 
 DEM_PATH = "EOREADER_DEM_PATH"
 """Environment variable for overriding default DEM path"""
@@ -35,7 +35,7 @@ Default is :code:`Copernicus 30m Global DEM`.
 Can be :code:`GETASSE30`, :code:`SRTM 3Sec`, :code:`External DEM`...
 
 If :code:`EOREADER_SNAP_DEM_NAME` is set to :code:`External DEM`,
-SNAP will use your DEM stored in  :code:`EOREADER_DEM_PATH` as an external DEM.
+SNAP will use your DEM stored in :code:`EOREADER_DEM_PATH` as an external DEM.
 """
 
 S3_DB_URL_ROOT = "S3_DB_URL_ROOT"
