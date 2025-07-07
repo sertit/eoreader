@@ -44,7 +44,6 @@ pytest:
         - $EOREADER_CHANGES
         - ci/**/*.{py,xml}
         - .gitlab-ci.yml
-        - pytest.ini
   needs: [ "lint" ]
 
 # Test with data on S3
@@ -75,7 +74,6 @@ pytest_s3:
         - $EOREADER_CHANGES
         - ci/**/*.{py,xml}
         - .gitlab-ci.yml
-        - pytest.ini
   needs: [ "lint" ]
 
 # Test SNAP with SNAP
