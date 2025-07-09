@@ -2606,7 +2606,7 @@ class Product:
             if not cached_dem_exists:
                 LOGGER.warning(
                     "gdalwarp cannot process DEM stored on cloud with 'RPC_DEM' argument, "
-                    "hence cloud-stored DEM cannot be used with non orthorectified DIMAP data. "
+                    "hence cloud-stored DEM cannot be used with non orthorectified data. "
                     f"(DEM: {dem_path}). "
                     "The DEM will be cached before the operation."
                 )
