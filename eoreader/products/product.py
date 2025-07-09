@@ -2591,6 +2591,8 @@ class Product:
         if pixel_size is None:
             pixel_size = self.pixel_size
 
+        kw = utils._prune_keywords(["nodata"], **kwargs)
+
         # Set RPC keywords
         # See https://gdal.org/en/stable/api/gdal_alg.html#_CPPv426GDALCreateRPCTransformerV2PK13GDALRPCInfoV2idPPc
         LOGGER.debug(f"Orthorectifying data with {dem_path}")
@@ -2622,7 +2624,7 @@ class Product:
         if src_xda.rio.crs is None:
             src_xda.rio.write_crs(self._get_raw_crs(), inplace=True)
 
-        kwargs.update(
+        kw.update(
             {
                 "RPC_DEM": dem_path,
                 "RPC_DEM_MISSING_VALUE": 0,
@@ -2637,7 +2639,7 @@ class Product:
         # Reproject with rioxarray
         # Seems to handle the resolution well on the contrary to rasterio's reproject...
 
-        resampling = kwargs.pop("resampling", self.band_resampling)
+        resampling = kw.pop("resampling", self.band_resampling)
 
         try:
             out_xda = src_xda.rio.reproject(
@@ -2648,13 +2650,13 @@ class Product:
                 num_threads=utils.get_max_cores(),
                 rpcs=rpcs,
                 dtype=src_xda.dtype,
-                **kwargs,
+                **kw,
             )
             out_xda.rename(f"Reprojected stack of {self.name}")
 
-            if "long_name" in kwargs:
-                out_xda.attrs["long_name"] = kwargs["long_name"]
-            elif kwargs.get("band") == PAN:
+            if "long_name" in kw:
+                out_xda.attrs["long_name"] = kw["long_name"]
+            elif kw.get("band") == PAN:
                 out_xda.attrs["long_name"] = "PAN"
             else:
                 out_xda.attrs["long_name"] = self.get_bands_names()
@@ -2664,8 +2666,8 @@ class Product:
                 ortho_path,
                 dtype=np.float32,
                 nodata=self._raw_nodata,
-                tags=kwargs.get("tags"),
-                predictor=kwargs.get("predictor"),
+                tags=kw.get("tags"),
+                predictor=kw.get("predictor"),
             )
 
         # Daskified reproject doesn't seem to work with RPC
@@ -2703,7 +2705,7 @@ class Product:
                 dst_nodata=self._raw_nodata,  # input data should be in integer
                 num_threads=utils.get_max_cores(),
                 resampling=resampling,
-                **kwargs,
+                **kw,
             )
             # Get dims
             count, height, width = out_arr.shape
@@ -2726,9 +2728,9 @@ class Product:
                 ortho_path,
                 dtype=np.float32,
                 nodata=self._raw_nodata,
-                tags=kwargs.get("tags"),
-                predictor=kwargs.get("predictor"),
-                driver=utils.get_driver(kwargs),
+                tags=kw.get("tags"),
+                predictor=kw.get("predictor"),
+                driver=utils.get_driver(kw),
             )
             out_xda = utils.read(ortho_path)
         return out_xda

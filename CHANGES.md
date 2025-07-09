@@ -1,5 +1,9 @@
 # Release History
 
+## 0.22.5 (2025-07-09)
+
+- FIX: Fix regression when stacking with a custom nodata value with VHR data to be reprojected
+
 ## 0.22.4 (2025-07-07)
 
 - FIX: Add workaround for `T` vs `T1+T2` abstraction [issue in Awesome Spectral Index](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/74) [#214](https://github.com/sertit/eoreader/issues/214)
