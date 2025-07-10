@@ -26,6 +26,7 @@ from ci.scripts_utils import (
     reduce_verbosity,
     s3_env,
     sar_path,
+    set_dem,
 )
 from eoreader import EOREADER_NAME, utils
 from eoreader.bands import (
@@ -314,8 +315,7 @@ def _test_core(
         tmpdir(Path): path to store temporary data
         debug (bool): Debug option
     """
-    # Set DEM
-    test_satellites.set_dem(dem_path)
+    set_dem()
 
     with xr.set_options(warn_for_unclosed_files=debug):
         # DATA paths

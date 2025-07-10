@@ -38,7 +38,7 @@ from eoreader.bands.bands import Band, BandMap
 
 __all__ = ["Band", "BandMap"]
 
-from eoreader.bands.band_names import BandNames
+from eoreader.bands.band_names import BandNames, VenusMaskBandNames
 
 __all__ += ["BandNames"]
 
@@ -509,6 +509,7 @@ def is_mask(mask: BandType) -> bool:
         PlanetMaskBandNames,
         S2MaskBandNames,
         S2TheiaMaskBandNames,
+        VenusMaskBandNames,
     ]
 
     for mask_class in mask_classes:
