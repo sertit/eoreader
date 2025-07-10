@@ -1,8 +1,9 @@
 # Release History
 
-## 0.22.5 (2025-07-09)
+## 0.22.5 (2025-mm-dd)
 
 - FIX: Fix regression when stacking with a custom nodata value with VHR data to be reprojected
+- FIX: Fix an unprecedented case with a PNEO having different name than usual (`DIM_PNEO3_STD_2025...` instead of `DIM_PNEO3_2025...`)
 
 ## 0.22.4 (2025-07-07)
 

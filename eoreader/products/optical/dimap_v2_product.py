@@ -429,9 +429,12 @@ class DimapV2Product(VhrProduct):
     def _set_product_type(self) -> None:
         """Set products type"""
 
-        # get product type
-        prod_type = self.split_name[3]
-        self.product_type = getattr(DimapV2ProductType, prod_type)
+        # Get product type
+        try:
+            self.product_type = getattr(DimapV2ProductType, self.split_name[3])
+        except AttributeError:
+            # In some cases...
+            self.product_type = getattr(DimapV2ProductType, self.split_name[4])
 
         # Manage not orthorectified product
         if self.product_type in [DimapV2ProductType.SEN, DimapV2ProductType.PRJ]:
