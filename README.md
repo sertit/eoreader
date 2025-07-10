@@ -38,6 +38,13 @@ EOReader works mainly with:
 - [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray) and [`xarrays.Dataset`](http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset) for raster data
 - [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_structures.html#geodataframe) for vector data (extents, footprints...)
 
+EOReader allow you to create internal STAC catalogs directly from raw data.
+
+> [!NOTE] 
+> 💡 EOReader handles data from the past! 
+> Legacy format are mostly supported and if not, they can be requested by creating an issue with the `legacy_format` label.. 
+> This is super useful if you need to create an internal STAC catalog with old data.
+
 ## ⚡️ Quickstart
 
 ### Optical
