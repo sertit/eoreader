@@ -41,8 +41,8 @@ EOReader works mainly with:
 EOReader allow you to create internal STAC catalogs directly from raw data.
 
 > [!NOTE] 
-> 💡 EOReader handles data from the past! 
-> Legacy format are mostly supported and if not, they can be requested by creating an issue with the `legacy_format` label.. 
+> 💡 EOReader handles data from the past!  
+> Legacy format are mostly supported and if not, they can be requested by creating an issue with the `legacy_format` label.  
 > This is super useful if you need to create an internal STAC catalog with old data.
 
 ## ⚡️ Quickstart
