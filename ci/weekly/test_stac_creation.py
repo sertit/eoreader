@@ -73,7 +73,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 reduce_verbosity()
 
 
-def _test_core_optical(pattern: str, debug=False, **kwargs):
+def _test_core_optical(pattern: str, expected_assets, debug=False, **kwargs):
     """
     Core function testing optical data
 
@@ -81,7 +81,7 @@ def _test_core_optical(pattern: str, debug=False, **kwargs):
         pattern (str): Pattern of the satellite
         debug (bool): Debug option
     """
-    _test_core(pattern, opt_path(), debug, **kwargs)
+    _test_core(pattern, opt_path(), debug, expected_assets, **kwargs)
 
 
 def _test_core_sar(pattern: str, debug=False, **kwargs):
@@ -99,6 +99,7 @@ def _test_core(
     pattern: str,
     prod_dir: str,
     debug=False,
+    expected_assets=None,
     **kwargs,
 ):
     """
@@ -349,7 +350,10 @@ def _test_core(
                     nof_assets += 1
                     LOGGER.debug(f"Add the quicklook as asset: nof_assets={nof_assets}")
 
-                compare(len(item.assets), nof_assets, "number of assets")
+                if expected_assets is None:
+                    compare(len(item.assets), nof_assets, "number of assets")
+                else:
+                    compare(len(item.assets), expected_assets, "number of assets")
 
                 for band_name, band in item.assets.items():
                     band: pystac.Asset
@@ -427,37 +431,41 @@ def _test_core(
 
 
 test_optical_constellations_cases = [
-    pytest.param("*S2*_MSI*", {}, id="s2"),
-    pytest.param("*SENTINEL2*", {}, id="s2_theia"),
-    pytest.param("*S3*_OL_1_*", {}, id="s3_olci"),
-    pytest.param("*S3*_SL_1_*", {SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP}, id="s3_slstr"),
-    pytest.param("*LC09*", {}, id="landsat_9"),
-    pytest.param("*LC08*", {}, id="landsat_8"),
-    pytest.param("*LE07*", {}, id="landsat_7"),
-    pytest.param("*LT05*", {}, id="landsat_5_tm"),
-    pytest.param("*LT04*", {}, id="landsat_4_tm"),
-    pytest.param("*LM04*", {}, id="landsat_4_mss"),
-    pytest.param("*LM03*", {}, id="landsat_3_mss"),
-    pytest.param("*LM02*", {}, id="landsat_2_mss"),
-    pytest.param("*LM01*", {}, id="landsat_1_mss"),
-    pytest.param("*HLS*", {}, id="hls"),
-    pytest.param("*202*1014*", {}, id="planet"),
-    pytest.param("*ssc*", {}, id="skysat"),
-    pytest.param("*_RE4_*", {}, id="rapideye"),
-    pytest.param("*IMG_PHR*", {}, id="pleiades"),
-    pytest.param("*IMG_*_PNEO*", {}, id="pleiades_neo"),
-    pytest.param("*SP04*", {}, id="spot4"),
-    pytest.param("*SP05*", {}, id="spot5"),
-    pytest.param("*IMG_SPOT6*", {}, id="spot6"),
-    pytest.param("*IMG_SPOT7*", {}, id="spot7"),
-    pytest.param("*P001_MUL*", {}, id="wv02_wv03_legion"),
-    pytest.param("*P001_PSH*", {}, id="ge01_wv04"),
-    pytest.param("*VIS1_MS4*", {}, id="vision1"),
-    pytest.param("*0001_01*", {}, id="superview1"),
-    pytest.param("*DE2_*", {}, id="geosat2"),
+    pytest.param("*VENUS*", {}, 12, id="venus"),
+    pytest.param("*S2*_MSI*", {}, 11, id="s2"),
+    pytest.param("*SENTINEL2*", {}, 11, id="s2_theia"),
+    pytest.param("*S3*_OL_1_*", {}, 10, id="s3_olci"),
+    pytest.param(
+        "*S3*_SL_1_*", {SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP}, 12, id="s3_slstr"
+    ),
+    pytest.param("*LC09*", {}, 12, id="landsat_9"),
+    pytest.param("*LC08*", {}, 12, id="landsat_8"),
+    pytest.param("*LE07*", {}, 12, id="landsat_7"),
+    pytest.param("*LT05*", {}, 12, id="landsat_5_tm"),
+    pytest.param("*LT04*", {}, 12, id="landsat_4_tm"),
+    pytest.param("*LM04*", {}, 12, id="landsat_4_mss"),
+    pytest.param("*LM03*", {}, 12, id="landsat_3_mss"),
+    pytest.param("*LM02*", {}, 12, id="landsat_2_mss"),
+    pytest.param("*LM01*", {}, 12, id="landsat_1_mss"),
+    pytest.param("*HLS*", {}, 12, id="hls"),
+    pytest.param("*202*1014*", {}, 12, id="planet"),
+    pytest.param("*ssc*", {}, 12, id="skysat"),
+    pytest.param("*_RE4_*", {}, 12, id="rapideye"),
+    pytest.param("*IMG_PHR*", {}, 12, id="pleiades"),
+    pytest.param("*IMG_*_PNEO*", {}, 12, id="pleiades_neo"),
+    pytest.param("*SP04*", {}, 12, id="spot4"),
+    pytest.param("*SP05*", {}, 12, id="spot5"),
+    pytest.param("*IMG_SPOT6*", {}, 12, id="spot6"),
+    pytest.param("*IMG_SPOT7*", {}, 12, id="spot7"),
+    pytest.param("*P001_MUL*", {}, 12, id="wv02_wv03_legion"),
+    pytest.param("*P001_PSH*", {}, 12, id="ge01_wv04"),
+    pytest.param("*VIS1_MS4*", {}, 12, id="vision1"),
+    pytest.param("*0001_01*", {}, 12, id="superview1"),
+    pytest.param("*DE2_*", {}, 12, id="geosat2"),
     pytest.param(
         "*LM05*",
         {},
+        12,
         id="landsat_5_mss",
         marks=pytest.mark.skipif(
             sys.platform == "win32" or os.getenv(CI_EOREADER_S3) == "0",
@@ -467,11 +475,13 @@ test_optical_constellations_cases = [
 ]
 
 
-@pytest.mark.parametrize("pattern, kwargs", test_optical_constellations_cases)
+@pytest.mark.parametrize(
+    "pattern, kwargs, expected_assets", test_optical_constellations_cases
+)
 @s3_env
 @dask_env
-def test_optical_constellations(pattern, kwargs):
-    _test_core_optical(pattern, **kwargs)
+def test_optical_constellations(pattern, kwargs, expected_assets):
+    _test_core_optical(pattern, expected_assets, **kwargs)
 
 
 test_sar_constellations_cases = [
