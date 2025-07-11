@@ -100,6 +100,57 @@ pytest_end_to_end:
     - if: $CI_COMMIT_TAG
       when: always
 
+
+# Test with data on local disk (without dask)
+pytest_no_dask:
+  image: $EO_CONTAINER:geo_latest
+  stage: test
+  variables:
+    CI_EOREADER_USE_S3: "0"
+    EOREADER_USE_DASK: "0"
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install --ignore-installed PyYAML
+    - pip install -e .
+  script:
+    - python -m pytest -v --durations=0 --cov-report term --cov=eoreader ci/on_push --log-cli-level DEBUG
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  tags:
+    - sertit
+    - linux
+    - high_memory
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "NO_DASK"'
+      when: always
+    - if: $CI_COMMIT_TAG
+      when: always
+
+# Test with data on S3 (without dask)
+# TODO: create S3-specific CI ?
+pytest_s3_no_dask:
+  image: $EO_CONTAINER:geo_latest
+  stage: test
+  variables:
+    CI_EOREADER_USE_S3: "1"
+    EOREADER_USE_DASK: "0"
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install --ignore-installed PyYAML
+    - pip install -e .
+  script:
+    - python -m pytest -v --durations=0 --cov-report term --cov=eoreader ci/on_push --log-cli-level DEBUG --capture=tee-sys
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  tags:
+    - sertit
+    - linux
+    - high_memory
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_NAME == "NO_DASK"'
+      when: always
+    - if: $CI_COMMIT_TAG
+      when: always
+
+
 #pytest_end_to_end310:
 #  image: $EO_CONTAINER:geo_310
 #  stage: test
