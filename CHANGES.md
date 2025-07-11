@@ -1,7 +1,8 @@
 # Release History
 
-## 0.22.5 (2025-mm-dd)
+## 0.23.0 (2025-mm-dd)
 
+- **ENH: Desambiguate condensed name of Custom stack in case of creation of several objects with the same datetime and same constellation and product type**
 - FIX: Fix regression when stacking with a custom nodata value with VHR data to be reprojected
 - FIX: Fix an unprecedented case with a PNEO having different name than usual (`DIM_PNEO3_STD_2025...` instead of `DIM_PNEO3_2025...`)
 

@@ -57,17 +57,46 @@ class CustomFields(ListEnum):
     """
 
     NAME = "name"
+    """ Custom name. Default is the filename."""
+
     SENSOR_TYPE = "sensor_type"
+    """ Custom sensor type. """
+
     DATETIME = "datetime"
+    """ Custom datetime. """
+
     BAND_MAP = "band_map"
+    """ Custom band map. Mandatory."""
+
     CONSTELLATION = "constellation"
+    """ Custom constellation. """
+
     INSTRUMENT = "instrument"
+    """ Custom instrument. """
+
     PIX_SIZE = "pixel_size"
+    """ Custom pixel size. Default is the pixel size of the stack. """
+
     PROD_TYPE = "product_type"
+    """ Custom product type. """
+
     SUN_AZ = "sun_azimuth"
+    """ Custom sun zimuth. """
+
     SUN_ZEN = "sun_zenith"
+    """ Custom sun_zenith. """
+
     ORBIT_DIR = "orbit_direction"
+    """ Custom orbit direction. """
+
     CC = "cloud_cover"
+    """ Custom cloud cover. """
+
+    CONDENSED_NAME = "condensed_name"
+    """ Custom condensed name. Overrides computed custom name. """
+
+    ID = "id"
+    """ ID to be added at the end of the condensed name. Not used in case of a given condensed name. """
 
 
 # -- CUSTOM
@@ -87,6 +116,12 @@ class CustomProduct(Product):
     ) -> None:
         self.kwargs = kwargs
         """Custom kwargs"""
+
+        self.id = kwargs.pop(CustomFields.ID.value, None)
+        """ ID to be added at the end of the condensed name. Not used in case of a given condensed name. """
+
+        self.custom_condensed_name = kwargs.pop(CustomFields.CONDENSED_NAME.value, None)
+        """ Custom condensed name. Overrides computed custom name. """
 
         # Initialization from the super class
         # (Custom products are managing constellation on their own)
@@ -514,12 +549,25 @@ class CustomProduct(Product):
         Returns:
             str: Condensed name
         """
+        condensed_name = None
         const = (
             self.constellation
             if isinstance(self.constellation, str)
             else self.constellation.name
         )
-        return f"{self.get_datetime()}_{const}_{self.product_type}"
+
+        # Add ID if needed
+        id = f"_{self.id}" if self.id else ""
+
+        if self.custom_condensed_name is not None:
+            condensed_name = self.custom_condensed_name
+        # Not enough data to have a representative condensed name, return the (file)name
+        elif const == CUSTOM and self.product_type == CUSTOM:
+            condensed_name = f"{self.name}{id}"
+        else:
+            condensed_name = f"{self.get_datetime()}_{const}_{self.product_type}{id}"
+
+        return condensed_name
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):

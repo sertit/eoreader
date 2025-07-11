@@ -71,6 +71,57 @@ custom_prod = Reader().open(
 )
 ```
 
+## Disambiguate the custom stack
+
+At the heart of EOReader lies the condensed name of a product, to whom refers every file produced.
+However, if insufficient data is given at the creation of yuour custom stack, ambiguity can occur if several custom stacks are created in the same second.
+
+To avoid this, if no product type nor constellation is given, the condensed name will be set to the file's filename.
+
+However, if this doesn't please you, there are, several workarounds exist:
+- give a datatime and a product type or a constellation
+- add an `id` that will be added at the end of your condensed name
+- give directly your own custom condensed name via `condensed_name`
+
+```python
+>>> from eoreader.reader import Reader
+>>> from eoreader.bands.alias import *
+
+>>> custom_prod = Reader().open(
+        "stack_path.tif",
+        custom=True,
+        name="20200310T030415_WV02_Ortho",
+        sensor_type="OPTICAL",
+        condensed_name="my_wonderful_name",
+        band_map={
+            BLUE: 1,
+            GREEN: 2,
+            RED: 3,
+            NIR: 4
+        }
+    )
+>>> custom_prod.condensed_name
+my_wonderful_name
+
+>>> custom_prod = Reader().open(
+        "stack_path.tif",
+        custom=True,
+        name="20200310T030415_WV02_Ortho",
+        datetime="20200310T030415",
+        sensor_type="OPTICAL",
+        constellation="WV02",
+        id="test",
+        band_map={
+            BLUE: 1,
+            GREEN: 2,
+            RED: 3,
+            NIR: 4
+        }
+    )
+>>> custom_prod.condensed_name
+20200310T030415_WV02_CUSTOM_test
+```
+
 ## Limitations
 
 - ⚠ For now, stacks must be projected in **UTM** (and orthorectified)

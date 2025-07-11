@@ -89,7 +89,7 @@ def test_custom_optical():
     assert bands[BLUE].attrs["product_type"] == "CUSTOM"
     assert bands[BLUE].attrs["instrument"] == "CUSTOM"
     # assert bands[BLUE].attrs["acquisition_date"] == "20200310T030415"  Don't test this, datetime == now
-    assert bands[BLUE].attrs["condensed_name"].endswith("CUSTOM_CUSTOM")
+    assert bands[BLUE].attrs["condensed_name"] == "20200310T030415_WV02_Ortho_BGRN_STK"
     assert bands[BLUE].attrs["product_path"] == str(opt_stack)
 
     ci.assert_geom_equal(extent_all, extent_min)
@@ -166,3 +166,43 @@ def test_custom_invalid():
             band_map={BLUE: 1, "GREEN": 2, RED: 3, "NIR": 4},
             remove_tmp=True,
         )
+
+
+@s3_env
+def test_custom_condensed_name():
+    """Custom condensed names"""
+    opt_stack = others_path() / "20200310T030415_WV02_Ortho_BGRN_STK.tif"
+    prod = READER.open(
+        opt_stack,
+        custom=True,
+        sensor_type="OPTICAL",
+        band_map={"BLUE": 1, "GREEN": 2, "RED": 3, "NIR": 4, SWIR_1: 5},
+        remove_tmp=True,
+    )
+    ci.assert_val(
+        prod.condensed_name, "20200310T030415_WV02_Ortho_BGRN_STK", "Condensed name fn"
+    )
+
+    prod = READER.open(
+        opt_stack,
+        custom=True,
+        sensor_type="OPTICAL",
+        band_map={"BLUE": 1, "GREEN": 2, "RED": 3, "NIR": 4, SWIR_1: 5},
+        remove_tmp=True,
+        id="2",
+    )
+    ci.assert_val(
+        prod.condensed_name,
+        "20200310T030415_WV02_Ortho_BGRN_STK_2",
+        "Condensed name fn + id",
+    )
+
+    prod = READER.open(
+        opt_stack,
+        custom=True,
+        sensor_type="OPTICAL",
+        band_map={"BLUE": 1, "GREEN": 2, "RED": 3, "NIR": 4, SWIR_1: 5},
+        remove_tmp=True,
+        condensed_name="my_custom_stack",
+    )
+    ci.assert_val(prod.condensed_name, "my_custom_stack", "Custom condensed name")
