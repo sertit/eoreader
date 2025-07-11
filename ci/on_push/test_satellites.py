@@ -50,6 +50,7 @@ from eoreader.env_vars import (
 from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import Product, SensorType, SlstrRadAdjust
 from eoreader.reader import CheckMethod
+from eoreader.utils import use_dask
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -419,8 +420,10 @@ def _test_core(
         )
 
         for pattern_path in pattern_paths[::-1]:
-            use_dask = not (pattern_path.is_file() and os.getenv(CI_EOREADER_S3) == "1")
-            core(pattern_path, possible_bands, use_dask=use_dask, **kwargs)
+            use_dask_in_test = use_dask() and not (
+                pattern_path.is_file() and os.getenv(CI_EOREADER_S3) == "1"
+            )
+            core(pattern_path, possible_bands, use_dask=use_dask_in_test, **kwargs)
 
 
 @dask_env
