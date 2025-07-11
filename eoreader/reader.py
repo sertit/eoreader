@@ -398,7 +398,7 @@ MTD_REGEX = {
         r"imagery_[HV]{2}\.tif",
     ],
     Constellation.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
-    Constellation.PNEO: r"DIM_PNEO\d_(\w+_)\d{15}_(PMS-FS|MS-FS|PMS|MS|P)_(SEN|PRJ|ORT|MOS)_.{8,}(-.{4,}-.{4,}-.{4,}-.{12,}|_._._._.)\.XML",
+    Constellation.PNEO: r"DIM_PNEO\d_(\w+_|)\d{15}_(PMS-FS|MS-FS|PMS|MS|P)_(SEN|PRJ|ORT|MOS)_.{8,}(-.{4,}-.{4,}-.{4,}-.{12,}|_._._._.)\.XML",
     Constellation.SPOT7: r"DIM_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Constellation.SPOT6: r"DIM_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Constellation.VIS1: r"DIM_VIS1_(PSH|MS4|PAN)_\d{14}_(PRJ|ORTP)_S\d{5,}_\d{4}_Meta\.xml",
