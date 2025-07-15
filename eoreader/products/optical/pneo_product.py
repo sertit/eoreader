@@ -22,7 +22,17 @@ for more information.
 import logging
 
 from eoreader import EOREADER_NAME
-from eoreader.bands import BLUE, CA, GREEN, NIR, PAN, RED, VRE_1, SpectralBand
+from eoreader.bands import (
+    BLUE,
+    CA,
+    DEEP_BLUE,
+    GREEN,
+    NIR,
+    PAN,
+    RED,
+    VRE_1,
+    SpectralBand,
+)
 from eoreader.products import DimapV2Product
 from eoreader.stac import GSD, ID, NAME, WV_MAX, WV_MIN
 
@@ -56,6 +66,11 @@ class PneoProduct(DimapV2Product):
             **{NAME: "DEEP BLUE", ID: 5, GSD: self._ms_res, WV_MIN: 400, WV_MAX: 450},
         )
 
+        deep_blue = SpectralBand(
+            eoreader_name=DEEP_BLUE,
+            **{NAME: "DEEP BLUE", ID: 5, GSD: self._ms_res, WV_MIN: 400, WV_MAX: 450},
+        )
+
         pan = SpectralBand(
             eoreader_name=PAN,
             **{NAME: "PAN", ID: 1, GSD: self._pan_res, WV_MIN: 450, WV_MAX: 800},
@@ -86,7 +101,14 @@ class PneoProduct(DimapV2Product):
             **{NAME: "RED EDGE", ID: 6, GSD: self._ms_res, WV_MIN: 700, WV_MAX: 750},
         )
         self._map_bands_core(
-            blue=blue, green=green, red=red, nir=nir, pan=pan, vre=vre, ca=ca
+            blue=blue,
+            green=green,
+            red=red,
+            nir=nir,
+            pan=pan,
+            vre=vre,
+            ca=ca,
+            deep_blue=deep_blue,
         )
 
     def _set_instrument(self) -> None:
