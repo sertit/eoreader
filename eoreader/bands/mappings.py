@@ -1,6 +1,7 @@
 from eoreader.bands.band_names import (
     BLUE,
     CA,
+    DEEP_BLUE,
     EOREADER_STAC_MAP,
     GREEN,
     HH,
@@ -23,6 +24,7 @@ from eoreader.bands.band_names import (
 
 EOREADER_TO_SPYNDEX_DICT = {
     CA: "A",
+    DEEP_BLUE: "DB",
     BLUE: "B",
     GREEN: "G",
     RED: "R",
