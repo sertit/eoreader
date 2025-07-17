@@ -35,6 +35,7 @@ from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
     BLUE,
     CA,
+    DEEP_BLUE,
     GREEN,
     GREEN_1,
     NARROW_NIR,
@@ -47,7 +48,6 @@ from eoreader.bands import (
     YELLOW,
     BandNames,
     Oa01,
-    Oa02,
     Oa09,
     Oa10,
     Oa13,
@@ -69,7 +69,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 # Not used for now
 OLCI_SOLAR_FLUXES_DEFAULT = {
     Oa01: 1714.9084,
-    Oa02: 1872.3961,
+    DEEP_BLUE: 1872.3961,
     CA: 1926.6102,
     BLUE: 1930.2483,
     GREEN_1: 1804.2762,
@@ -212,10 +212,10 @@ class S3OlciProduct(S3Product):
                     DESCRIPTION: "Aerosol correction, improved water constituent retrieval",
                 },
             ),
-            Oa02: SpectralBand(
-                eoreader_name=Oa02,
+            DEEP_BLUE: SpectralBand(
+                eoreader_name=DEEP_BLUE,
                 **{
-                    NAME: "Oa02",
+                    NAME: "DEEP_BLUE",
                     ID: 2,
                     GSD: self.pixel_size,
                     CENTER_WV: 412.5,
@@ -685,7 +685,7 @@ class S3OlciProduct(S3Product):
         # Bit ids
         band_bit_id = {
             Oa01: 20,  # Band 1
-            Oa02: 19,  # Band 2
+            DEEP_BLUE: 19,  # Band 2
             CA: 18,  # Band 3
             BLUE: 17,  # Band 4
             GREEN_1: 16,  # Band 5

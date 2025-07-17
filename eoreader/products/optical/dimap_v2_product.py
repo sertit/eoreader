@@ -62,6 +62,7 @@ from eoreader.bands import (
     DimapV2MaskBandNames,
     to_str,
 )
+from eoreader.bands.band_names import DEEP_BLUE
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
@@ -328,6 +329,7 @@ class DimapV2Product(VhrProduct):
         # Open spectral bands
         pan = kwargs.get("pan")
         blue = kwargs.get("blue")
+        deep_blue = kwargs.get("deep_blue")
         green = kwargs.get("green")
         red = kwargs.get("red")
         nir = kwargs.get("nir")
@@ -404,6 +406,7 @@ class DimapV2Product(VhrProduct):
                     VRE_2: vre.update(id=5),
                     VRE_3: vre.update(id=5),
                     CA: ca.update(id=6),
+                    DEEP_BLUE: deep_blue.update(id=6),
                 }
             )
         elif self.band_combi == DimapV2BandCombination.PMS_FS:
@@ -419,6 +422,7 @@ class DimapV2Product(VhrProduct):
                     VRE_2: vre.update(id=5, gsd=self._pan_res),
                     VRE_3: vre.update(id=5, gsd=self._pan_res),
                     CA: ca.update(id=6, gsd=self._pan_res),
+                    DEEP_BLUE: ca.update(id=6, gsd=self._pan_res),
                 }
             )
         else:

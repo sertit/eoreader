@@ -55,6 +55,7 @@ from eoreader.bands import (
     BandNames,
     SpectralBand,
 )
+from eoreader.bands.band_names import DEEP_BLUE
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
@@ -740,6 +741,16 @@ class MaxarProduct(VhrProduct):
                     eoreader_name=CA,
                     **{
                         NAME: "COASTAL BLUE",
+                        ID: 1,
+                        GSD: self._ms_res,
+                        WV_MIN: 400,
+                        WV_MAX: 450,
+                    },
+                ),
+                "deep_blue": SpectralBand(
+                    eoreader_name=DEEP_BLUE,
+                    **{
+                        NAME: "DEEP BLUE",
                         ID: 1,
                         GSD: self._ms_res,
                         WV_MIN: 400,

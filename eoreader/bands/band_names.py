@@ -166,6 +166,9 @@ class SpectralBandNames(BandNames):
     BLUE = "BLUE"
     """Blue"""
 
+    DEEP_BLUE = "DEEP_BLUE"
+    """Deep blue"""
+
     GREEN = "GREEN"
     """Green"""
 
@@ -328,6 +331,7 @@ class SpectralBandNames(BandNames):
 # -- SPECTRAL BANDS --
 CA = SpectralBandNames.CA  # Coastal aerosol
 BLUE = SpectralBandNames.BLUE
+DEEP_BLUE = SpectralBandNames.DEEP_BLUE
 GREEN = SpectralBandNames.GREEN
 YELLOW = SpectralBandNames.YELLOW
 RED = SpectralBandNames.RED
