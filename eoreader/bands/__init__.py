@@ -157,6 +157,7 @@ __all__ += [
 
 from eoreader.bands.band_names import (
     BLUE,
+    DEEP_BLUE,
     CA,
     F1,
     F2,
