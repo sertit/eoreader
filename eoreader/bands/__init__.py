@@ -198,6 +198,7 @@ __all__ += [
     "SpectralBandNames",
     "CA",
     "BLUE",
+    "DEEP_BLUE",
     "GREEN",
     "GREEN_1",
     "YELLOW",
