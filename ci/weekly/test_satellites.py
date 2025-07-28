@@ -481,6 +481,12 @@ def test_optical_constellations(pattern, kwargs, eoreader_tests_path):
     _test_core_optical(pattern, eoreader_tests_path.tmpdir, **kwargs)
 
 
+@dask_env
+def test_wv_legion(eoreader_tests_path):
+    """Function testing the support of WorldView Legion constellations"""
+    _test_core_optical("*050246698010_01_P001_MUL*", eoreader_tests_path.tmpdir)
+
+
 test_sar_constellations_cases = [
     pytest.param("*S1*_IW_GRDH*", {}, id="s1"),
     pytest.param("*S1*_RTC*", {}, id="s1_rtc"),
