@@ -298,6 +298,17 @@ Attributes:
 See the different MaskBandNames enums to discover all the available masks and how to call them.
 ⚠ This feature is experimental.
 
+## Implemented workarounds
+
+### Corrupted shapes in Maxar products
+
+Some Maxar products have incoherent shapes between .IMD and .TIL files (see [this issue](https://github.com/sertit/eoreader/issues/242) for more information).
+EOreader applies a workaround by updating on the spot the .IMD file to allow GDAL to correctly read the product.
+
+This can be blocked by setting `EOREADER_FIX_MAXAR` to `0` (as the raw product is altered and this behavior may not be desirable).
+
+For now it doesn't work automatically on archived or cloud-stored products. 
+
 ## Documentary Sources
 
 - [Data Access Portfolio (2014-2024)](https://s3.waw3-1.cloudferro.com/swift/v1/portal_uploads_prod/DAPReleasePhase2_V3.1_2024_Latest.pdf)

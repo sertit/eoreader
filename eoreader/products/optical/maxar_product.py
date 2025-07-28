@@ -20,6 +20,7 @@ for more information.
 """
 
 import logging
+import os
 from abc import abstractmethod
 from collections import namedtuple
 from datetime import datetime
@@ -30,9 +31,8 @@ import geopandas as gpd
 import numpy as np
 import xarray as xr
 from lxml import etree
-from packaging.version import Version
 from rasterio import crs as riocrs
-from sertit import geometry, misc, path, rasters, vectors
+from sertit import geometry, path, rasters, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from sertit.vectors import EPSG_4326
@@ -55,6 +55,7 @@ from eoreader.bands import (
     BandNames,
     SpectralBand,
 )
+from eoreader.env_vars import FIX_MAXAR
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
@@ -584,23 +585,10 @@ class MaxarProduct(VhrProduct):
             raise InvalidProductError("Cannot find BANDID in the metadata file")
         self.band_combi = getattr(MaxarBandId, band_combi)
 
-        # Version
-        version = root.findtext(".//IMD/VERSION")
-        if not version:
-            raise InvalidProductError("Cannot find VERSION in the metadata file")
-        self._version = Version(version)
-
-        if misc.compare_version(self._version, "28.4", "=="):
-            raise InvalidProductError(
-                f"This product (version {self._version}) is bugged."
-                "\nIt's .TIL file is maybe broken and the product may bundle several sub-products. "
-                "The best thing to do is to manually create a mosaic from all embedded .TIF files and pass it as a CustomStack to EOReader. "
-                "\nIf you want to have a stack in reflectance, don't forget to apply the corrections on each subproducts separately before creating the mosaic."
-                "\nIf you want a workaround to be implemented, please reopen the issue https://github.com/sertit/eoreader/issues/106 and pledad you usecase :)"
-            )
+        # Fix shapes
+        self._fix_shapes(root)
 
         # Platform
-
         if self.constellation == Constellation.WVLG:
             if "LG01" in self.name:
                 self._platform = LegionPlatform.LG01
@@ -612,6 +600,82 @@ class MaxarProduct(VhrProduct):
 
         # Post init done by the super class
         super()._post_init(**kwargs)
+
+    def _fix_shapes(self, root):
+        """"""
+
+        # BUGGED TIL with GDAL
+        # Sometimes, TIL driver fails to open correctly the different tiles
+        # See https://github.com/sertit/eoreader/issues/242
+
+        # To check that, it can be useful to ensure that the default width and height corresponds to the tiles aggregated width and height
+        # Shape from IMD
+        imd_rows = int(root.findtext(".//IMD/NUMROWS"))
+        imd_cols = int(root.findtext(".//IMD/NUMCOLUMNS"))
+
+        # Shape from TIL
+        til_rows = max(
+            [
+                int(row_offset.text)
+                for row_offset in root.iterfind(".//TIL/TILE/LLROWOFFSET")
+            ]
+        )
+        til_cols = max(
+            [
+                int(col_offset.text)
+                for col_offset in root.iterfind(".//TIL/TILE/URCOLOFFSET")
+            ]
+        )
+
+        if imd_rows != til_rows or imd_cols != til_cols:
+            if os.environ.get(FIX_MAXAR, "1") != "0":
+                LOGGER.warning(
+                    "Your Maxar product is probably corrupted (shape is incoherent, see https://github.com/sertit/eoreader/issues/242). "
+                    "WORKAROUND: The IMD file of this product will be fixed inside the raw product and the old one copied into the working directory. "
+                    "Please double-check the outputs for this product."
+                )
+                # Copy .IMD file
+                if self.is_archived:
+                    imd_fn = f"{self.name}.IMD"
+                    imd_file = self._read_archived_file(".*IMD")
+                else:
+                    imd_fn = next(self.path.glob("*.IMD"))
+                    with open(imd_fn) as f:
+                        imd_file = f.read()
+
+                # Copy old file
+                imd_copy, _ = self._get_out_path(f"{self.name}.IMD")
+                with open(str(imd_copy), "w") as f:
+                    f.write(imd_file)
+
+                # Update to create new IMD file
+                imd_file = imd_file.replace(
+                    f"numRows = {imd_rows};", f"numRows = {til_rows};"
+                ).replace(f"numColumns = {imd_cols};", f"numColumns = {til_cols};")
+
+                # Don't try to fix it if cloud-based or archived
+                if self.is_archived:
+                    raise NotImplementedError(
+                        f"For now, the workaround is to manually copy the corrected IMD file ({imd_copy}) "
+                        f"into your archived product ({self.path}) and re-run the job. "
+                        f"(there is currently no optimized way for overwriting zip files in Python)"
+                    )
+                elif path.is_path(path):
+                    raise NotImplementedError(
+                        f"For now, the workaround is to manually copy the corrected IMD file ({imd_copy}) "
+                        f"into your cloud-stored product ({self.path}) and re-run the job."
+                    )
+
+                # Replace file
+                with open(str(imd_fn), "w") as f:
+                    f.write(imd_file)
+            else:
+                raise InvalidProductError(
+                    f"This product ({self.name}) is corrupted."
+                    "\nThe shapes from the metadata are incoherent between .TIL and .IMD files. "
+                    "The best thing to do is to manually create a mosaic from all embedded .TIF files and pass it as a CustomStack to EOReader. "
+                    "\nIf you want to have a stack in reflectance, remember to apply the corrections on each subproduct separately before creating the mosaic."
+                )
 
     @abstractmethod
     def _set_pixel_size(self) -> None:
