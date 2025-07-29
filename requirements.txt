@@ -1,12 +1,8 @@
 # Tests & lint
-tox
 pre-commit
-black
 pytest
 coverage
 pytest-cov
-flake8
-pylint
 tempenv
 
 # Deploy
@@ -30,6 +26,7 @@ xarray>=2024.06.0  # numpy >= 2
 rioxarray>=0.10.0
 odc-geo>=0.4.6
 tifffile
+ephem
 
 # Vector libs
 rtree
