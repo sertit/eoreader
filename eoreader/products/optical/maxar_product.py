@@ -627,10 +627,12 @@ class MaxarProduct(VhrProduct):
             ]
         )
 
-        if imd_rows != til_rows or imd_cols != til_cols:
+        # Sometimes it's LLROWOFFSET and URCOLOFFSET, sometimes it's LLROWOFFSET + 1 and URCOLOFFSET + 1...
+        if abs(imd_rows - til_rows) > 1 or abs(imd_cols - til_cols) > 1:
             if os.environ.get(FIX_MAXAR, "1") != "0":
                 LOGGER.warning(
-                    "Your Maxar product is probably corrupted (shape is incoherent, see https://github.com/sertit/eoreader/issues/242). "
+                    f"Your Maxar product is probably corrupted. "
+                    f"Shapes retrieved from metadata are incoherent: {imd_rows}x{imd_cols} in .IMD vs {til_rows}x{til_cols} in .TIL. (see https://github.com/sertit/eoreader/issues/242) "
                     "WORKAROUND: The IMD file of this product will be fixed inside the raw product and the old one copied into the working directory. "
                     "Please double-check the outputs for this product."
                 )
