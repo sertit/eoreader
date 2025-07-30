@@ -53,6 +53,8 @@ DEFAULT_TILE_SIZE = 1024
 DEFAULT_NOF_BANDS_IN_CHUNKS = 1
 UINT16_NODATA = rasters.UINT16_NODATA
 
+read_bit_array = rasters.read_bit_array
+
 
 def get_src_dir() -> AnyPathType:
     """
@@ -131,44 +133,6 @@ def use_dask():
             _use_dask = False
 
     return _use_dask
-
-
-# Workaround for now, remove this asap
-def read_bit_array(
-    bit_mask: Union[xr.DataArray, np.ndarray], bit_id: Union[list, int]
-) -> Union[np.ndarray, list]:
-    """
-    Read 8 bit arrays as a succession of binary masks.
-
-    Forces array to :code:`np.uint8`.
-
-    See :py:func:`rasters.read_bit_array`.
-
-    Args:
-        bit_mask (np.ndarray): Bit array to read
-        bit_id (int): Bit ID of the slice to be read
-          Example: read the bit 0 of the mask as a cloud mask (Theia)
-
-    Returns:
-        Union[np.ndarray, list]: Binary mask or list of binary masks if a list of bit_id is given
-    """
-    # TODO: daskify this, should be straightforward if unpackbits is daskified
-
-    # Suppriess nan nodata and convert back to original dtype if known
-
-    if isinstance(bit_mask, np.ndarray):
-        bit_mask = np.nan_to_num(bit_mask)
-    elif isinstance(bit_mask, xr.DataArray):
-        orig_dtype = bit_mask.encoding.get("dtype")
-        bit_mask = bit_mask.fillna(0).data
-        if orig_dtype is not None and bit_mask.dtype != orig_dtype:
-            bit_mask = bit_mask.astype(orig_dtype)
-
-    else:
-        bit_mask = bit_mask.fillna(0)
-    from sertit import rasters_rio
-
-    return rasters_rio.read_bit_array(bit_mask, bit_id)
 
 
 def read(
@@ -576,15 +540,9 @@ def get_dim_img_path(dim_path: AnyPathStrType, img_name: str = "*") -> list:
     Returns:
         list: .img files as a list
     """
-    dim_path = AnyPath(dim_path)
-    if dim_path.suffix == ".dim":
-        dim_path = dim_path.with_suffix(".data")
+    from sertit.rasters import get_dim_img_path
 
-    assert dim_path.suffix == ".data" and dim_path.is_dir()
-
-    return path.get_file_in_dir(
-        dim_path, img_name, extension="img", exact_name=True, get_list=True
-    )
+    return get_dim_img_path(dim_path, img_name, get_list=True)
 
 
 def load_np(path_to_load: AnyPathStrType, output: AnyPathStrType) -> np.ndarray:
@@ -604,7 +562,12 @@ def load_np(path_to_load: AnyPathStrType, output: AnyPathStrType) -> np.ndarray:
 
 
 def get_max_cores():
-    return int(os.getenv(SU_MAX_CORE, os.cpu_count() - 2))
+    try:
+        from sertit.perf import get_max_cores
+
+        return get_max_cores()
+    except ModuleNotFoundError:
+        return int(os.getenv(SU_MAX_CORE, os.cpu_count() - 2))
 
 
 @cache
