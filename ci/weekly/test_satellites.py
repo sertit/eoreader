@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 import tempfile
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -61,28 +62,34 @@ WRITE_ON_DISK = False
 reduce_verbosity()
 
 
-def _test_core_optical(pattern: str, dem_path=None, debug=WRITE_ON_DISK, **kwargs):
+def _test_core_optical(
+    pattern: str, tmpdir: Path, dem_path=None, debug=WRITE_ON_DISK, **kwargs
+):
     """
     Core function testing optical data
 
     Args:
         pattern (str): Pattern of the satellite
+        tmpdir (Path): Path to store temporary data
         debug (bool): Debug option
     """
     possible_bands = [RED, SWIR_2, TIR_1, HILLSHADE, CLOUDS]
-    _test_core(pattern, opt_path(), possible_bands, dem_path, debug, **kwargs)
+    _test_core(pattern, opt_path(), possible_bands, tmpdir, dem_path, debug, **kwargs)
 
 
-def _test_core_sar(pattern: str, dem_path=None, debug=WRITE_ON_DISK, **kwargs):
+def _test_core_sar(
+    pattern: str, tmpdir: Path, dem_path=None, debug=WRITE_ON_DISK, **kwargs
+):
     """
     Core function testing SAR data
 
     Args:
         pattern (str): Pattern of the satellite
+        tmpdir (Path): Path to store temporary data
         debug (bool): Debug option
     """
     possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
-    _test_core(pattern, sar_path(), possible_bands, dem_path, debug, **kwargs)
+    _test_core(pattern, sar_path(), possible_bands, tmpdir, dem_path, debug, **kwargs)
 
 
 def check_product_consistency(prod: Product):
@@ -292,6 +299,7 @@ def _test_core(
     pattern: str,
     prod_dir: str,
     possible_bands: list,
+    tmpdir: Path,
     dem_path=None,
     debug=False,
     **kwargs,
@@ -303,6 +311,7 @@ def _test_core(
         pattern (str): Pattern of the satellite
         prod_dir (str): Product directory
         possible_bands(list): Possible bands
+        tmpdir(Path): path to store temporary data
         debug (bool): Debug option
     """
     # Set DEM
@@ -315,11 +324,11 @@ def _test_core(
         )
 
         for pattern_path in pattern_paths:
-            core(pattern_path, possible_bands, debug, **kwargs)
+            core(pattern_path, possible_bands, debug, tmpdir, **kwargs)
 
 
 @dask_env
-def core(prod_path, possible_bands, debug, **kwargs):
+def core(prod_path, possible_bands, debug, tmpdir, **kwargs):
     LOGGER.info(
         f"%s on drive %s ({CI_EOREADER_S3}: %s)",
         prod_path.name,
@@ -348,9 +357,7 @@ def core(prod_path, possible_bands, debug, **kwargs):
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         if WRITE_ON_DISK:
-            tmp_dir = os.path.join(
-                "/mnt", "ds2_db3", "CI", "eoreader", "OUTPUT", prod.condensed_name
-            )
+            tmp_dir = os.path.join(tmpdir, prod.condensed_name)
         prod.output = tmp_dir
 
         # DO NOT REPROJECT BANDS (WITH GDAL / SNAP) --> WAY TOO SLOW
@@ -404,283 +411,102 @@ def core(prod_path, possible_bands, debug, **kwargs):
         prod.clear()
 
 
-@s3_env
-def test_s2_after_04_00():
-    """Function testing the support of Sentinel-2 constellation"""
-    _test_core_optical("*S2*_MSI*_N7*")
+test_optical_constellations_cases = [
+    pytest.param("*S2*_MSI*_N7*", {}, id="s2_after_04_00"),
+    pytest.param("*S2*_MSI*_N02*", {}, id="s2_before_04_00"),
+    pytest.param("*SENTINEL2*", {}, id="s2_theia"),
+    pytest.param("*S2A_39KZU*", {}, id="s2_cloud"),
+    pytest.param("*S3*_OL_1_*", {}, id="s3_olci"),
+    pytest.param("*S3*_SL_1_*", {SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP}, id="s3_slstr"),
+    pytest.param("*LC09*", {}, id="l9"),
+    pytest.param("*LC08*", {}, id="l8"),
+    pytest.param("*LE07*", {}, id="l7"),
+    pytest.param("*LT05*", {}, id="l5_tm"),
+    pytest.param("*LT04*", {}, id="l4_tm"),
+    pytest.param(
+        "*LM05*",
+        {},
+        marks=pytest.mark.skipif(
+            sys.platform == "win32" or os.getenv(CI_EOREADER_S3) == "0",
+            reason=(
+                "Weirdly, Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk"
+            ),
+        ),
+        id="l5_mss",
+    ),
+    pytest.param("*LM04*", {}, id="l4_mss"),
+    pytest.param("*LM03*", {}, id="l3_mss"),
+    pytest.param("*LM02*", {}, id="l2_mss"),
+    pytest.param("*LM01*", {}, id="l1_mss"),
+    pytest.param("*HLS*", {}, id="hls"),
+    pytest.param("*202*1014*", {}, id="pla"),
+    pytest.param("*ssc*", {}, id="sky"),
+    pytest.param("*_RE4_*", {}, id="re"),
+    pytest.param("*IMG_PHR*", {}, id="pld"),
+    pytest.param("*IMG_*_PNEO*", {}, id="pneo"),
+    pytest.param("*SP04*", {}, id="spot4"),
+    pytest.param("*SP05*", {}, id="spot5"),
+    pytest.param("*IMG_SPOT6*", {}, id="spot6"),
+    pytest.param(
+        "*IMG_SPOT7*",
+        {"dem_path": os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)},
+        id="spot7",
+    ),
+    pytest.param(
+        "*055670633040_01_P001_MUL*",
+        {"dem_path": os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)},
+        id="wv02_wv03_mul",
+    ),
+    pytest.param("*P001_PSH*", {}, id="wv02_wv03_psh"),
+    pytest.param(
+        "*050246698010_01_P001_MUL*", {}, id="wv_legion"
+    ),  # should be removed ? @dask_env
+    pytest.param(
+        "*VIS1_MS4*",
+        {"dem_path": os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)},
+        id="vs1",
+    ),
+    pytest.param(
+        "*0001_01*",
+        {"dem_path": os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)},
+        id="sv1",
+    ),
+    pytest.param("*DE2_*", {}, id="gs2"),
+]
 
 
 @s3_env
-def test_s2_before_04_00():
-    """Function testing the support of Sentinel-2 constellation"""
-    _test_core_optical("*S2*_MSI*_N02*")
-
-
-@s3_env
-def test_s2_theia():
-    """Function testing the support of Sentinel-2 Theia constellation"""
-    _test_core_optical("*SENTINEL2*")
-
-
-@s3_env
-def test_s2_cloud():
-    """Function testing the support of Sentinel-2 cloud-stored constellation"""
-    _test_core_optical("*S2A_39KZU*")
-
-
-@s3_env
-def test_s3_olci():
-    """Function testing the support of Sentinel-3 OLCI constellation"""
-    # Init logger
-    _test_core_optical("*S3*_OL_1_*")
-
-
-@s3_env
-def test_s3_slstr():
-    """Function testing the support of Sentinel-3 SLSTR constellation"""
-    # Init logger
-    _test_core_optical("*S3*_SL_1_*", **{SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP})
-
-
-@s3_env
-def test_l9():
-    """Function testing the support of Landsat-9 constellation"""
-    # Init logger
-    _test_core_optical("*LC09*")
-
-
-@s3_env
-def test_l8():
-    """Function testing the support of Landsat-8 constellation"""
-    # Init logger
-    _test_core_optical("*LC08*")
-
-
-@s3_env
-def test_l7():
-    """Function testing the support of Landsat-7 constellation"""
-    _test_core_optical("*LE07*")
-
-
-@s3_env
-def test_l5_tm():
-    """Function testing the support of Landsat-5 TM constellation"""
-    _test_core_optical("*LT05*")
-
-
-@s3_env
-def test_l4_tm():
-    """Function testing the support of Landsat-4 TM constellation"""
-    _test_core_optical("*LT04*")
-
-
-@pytest.mark.skipif(
-    sys.platform == "win32" or os.getenv(CI_EOREADER_S3) == "0",
-    reason="Weirdly, Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk",
-)
-@s3_env
-def test_l5_mss():
-    """Function testing the support of Landsat-5 MSS constellation"""
-    _test_core_optical("*LM05*")
-
-
-@s3_env
-def test_l4_mss():
-    """Function testing the support of Landsat-4 MSS constellation"""
-    _test_core_optical("*LM04*")
-
-
-@s3_env
-def test_l3_mss():
-    """Function testing the support of Landsat-3 constellation"""
-    _test_core_optical("*LM03*")
-
-
-@s3_env
-def test_l2_mss():
-    """Function testing the support of Landsat-2 constellation"""
-    _test_core_optical("*LM02*")
-
-
-@s3_env
-def test_l1_mss():
-    """Function testing the support of Landsat-1 constellation"""
-    _test_core_optical("*LM01*")
-
-
-@s3_env
-def test_hls():
-    """Function testing the support of HLS constellation"""
-    _test_core_optical("*HLS*")
-
-
-@s3_env
-def test_pla():
-    """Function testing the support of PlanetScope constellation"""
-    _test_core_optical("*202*1014*")
-
-
-@s3_env
-def test_sky():
-    """Function testing the support of SkySat constellation"""
-    _test_core_optical("*ssc*")
-
-
-@s3_env
-def test_re():
-    """Function testing the support of RapidEye constellation"""
-    _test_core_optical("*_RE4_*")
-
-
-@s3_env
-def test_pld():
-    """Function testing the support of Pleiades constellation"""
-    _test_core_optical("*IMG_PHR*")
-
-
-@s3_env
-def test_pneo():
-    """Function testing the support of Pleiades-Neo constellation"""
-    _test_core_optical("*IMG_*_PNEO*")
-
-
-@s3_env
-def test_spot4():
-    """Function testing the support of SPOT-4 constellation"""
-    _test_core_optical("*SP04*")
-
-
-@s3_env
-def test_spot5():
-    """Function testing the support of SPOT-5 constellation"""
-    _test_core_optical("*SP05*")
-
-
-@s3_env
-def test_spot6():
-    """Function testing the support of SPOT-6 constellation"""
-    _test_core_optical("*IMG_SPOT6*")
-
-
-@s3_env
-def test_spot7():
-    """Function testing the support of SPOT-7 constellation"""
-    # This test orthorectifies DIMAP data, so we need a DEM stored on disk
-    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
-    _test_core_optical("*IMG_SPOT7*", dem_path=dem_path)
-
-
-@s3_env
-def test_wv02_wv03():
-    """Function testing the support of WorldView-2/3 constellations"""
-    # This test orthorectifies DIMAP data, so we need a DEM stored on disk
-    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
-    _test_core_optical("*055670633040_01_P001_MUL*", dem_path=dem_path)
-
-
-@s3_env
-def test_ge01_wv04():
-    """Function testing the support of GeoEye-1/WorldView-4 constellations"""
-    _test_core_optical("*P001_PSH*")
+@pytest.mark.parametrize("pattern, kwargs", test_optical_constellations_cases)
+def test_optical_constellations(pattern, kwargs, eoreader_tests_path):
+    _test_core_optical(pattern, eoreader_tests_path.tmpdir, **kwargs)
 
 
 @dask_env
-def test_wv_legion():
+def test_wv_legion(eoreader_tests_path):
     """Function testing the support of WorldView Legion constellations"""
-    _test_core_optical("*050246698010_01_P001_MUL*")
+    _test_core_optical("*050246698010_01_P001_MUL*", eoreader_tests_path.tmpdir)
+
+
+test_sar_constellations_cases = [
+    pytest.param("*S1*_IW_GRDH*", {}, id="s1"),
+    pytest.param("*S1*_RTC*", {}, id="s1_rtc"),
+    pytest.param("*csk_*", {}, id="csk"),
+    pytest.param("*CSG_*", {}, id="csg"),
+    pytest.param("*TSX*", {}, id="tsx"),
+    pytest.param("*TDX*", {}, id="tdx"),
+    pytest.param("*RS2_*", {}, id="rs2"),
+    pytest.param("*RCM*", {}, id="rcm"),
+    pytest.param("*SC_*", {}, id="iceye"),
+    pytest.param("*SAO*", {}, id="saocom"),
+    pytest.param("*CAPELLA*", {}, id="capella"),
+    pytest.param("*UMBRA*", {}, id="umbra"),
+]
 
 
 @s3_env
-def test_vs1():
-    """Function testing the support of Vision-1 constellation"""
-    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
-    _test_core_optical("*VIS1_MS4*", dem_path=dem_path)
-
-
-@s3_env
-def test_sv1():
-    """Function testing the support of SuperView-1 constellation"""
-    dem_path = os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)
-    _test_core_optical("*0001_01*", dem_path=dem_path)
-
-
-@s3_env
-def test_gs2():
-    """Function testing the support of GEOSAT-2 constellation"""
-    _test_core_optical("*DE2_*")
-
-
-@s3_env
-def test_s1():
-    """Function testing the support of Sentinel-1 constellation"""
-    _test_core_sar("*S1*_IW_GRDH*")
-
-
-@s3_env
-def test_s1_rtc():
-    """Function testing the support of Sentinel-1 RTC constellation"""
-    _test_core_sar("*S1*_RTC*")
-
-
-@s3_env
-def test_csk():
-    """Function testing the support of COSMO-Skymed constellation"""
-    _test_core_sar("*csk_*")
-
-
-@s3_env
-def test_csg():
-    """Function testing the support of COSMO-Skymed 2nd Generation constellation"""
-    _test_core_sar("*CSG_*")
-
-
-@s3_env
-def test_tsx():
-    """Function testing the support of TerraSAR-X constellations"""
-    _test_core_sar("*TSX*")
-
-
-# Assume that tests PAZ and TDX
-@s3_env
-def test_tdx():
-    """Function testing the support of PAZ SAR and TanDEM-X constellations"""
-    _test_core_sar("*TDX*")
-
-
-@s3_env
-def test_rs2():
-    """Function testing the support of RADARSAT-2 constellation"""
-    _test_core_sar("*RS2_*")
-
-
-@s3_env
-def test_rcm():
-    """Function testing the support of RADARSAT-Constellation constellation"""
-    _test_core_sar("*RCM*")
-
-
-@s3_env
-def test_iceye():
-    """Function testing the support of ICEYE constellation"""
-    _test_core_sar("*SC_*")
-
-
-@s3_env
-def test_saocom():
-    """Function testing the support of SAOCOM constellation"""
-    _test_core_sar("*SAO*")
-
-
-@s3_env
-def test_capella():
-    """Function testing the support of CAPELLA constellation"""
-    _test_core_sar("*CAPELLA*")
-
-
-@s3_env
-def test_umbra():
-    """Function testing the support of UMBRA constellation"""
-    _test_core_sar("*UMBRA*")
+@pytest.mark.parametrize("pattern, kwargs", test_sar_constellations_cases)
+def test_sar_constellations(pattern, kwargs, eoreader_tests_path):
+    _test_core_sar(pattern, eoreader_tests_path.tmpdir, **kwargs)
 
 
 # TODO:

@@ -426,283 +426,70 @@ def _test_core(
                 )
 
 
+test_optical_constellations_cases = [
+    pytest.param("*S2*_MSI*", {}, id="s2"),
+    pytest.param("*SENTINEL2*", {}, id="s2_theia"),
+    pytest.param("*S3*_OL_1_*", {}, id="s3_olci"),
+    pytest.param("*S3*_SL_1_*", {SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP}, id="s3_slstr"),
+    pytest.param("*LC09*", {}, id="landsat_9"),
+    pytest.param("*LC08*", {}, id="landsat_8"),
+    pytest.param("*LE07*", {}, id="landsat_7"),
+    pytest.param("*LT05*", {}, id="landsat_5_tm"),
+    pytest.param("*LT04*", {}, id="landsat_4_tm"),
+    pytest.param("*LM04*", {}, id="landsat_4_mss"),
+    pytest.param("*LM03*", {}, id="landsat_3_mss"),
+    pytest.param("*LM02*", {}, id="landsat_2_mss"),
+    pytest.param("*LM01*", {}, id="landsat_1_mss"),
+    pytest.param("*HLS*", {}, id="hls"),
+    pytest.param("*202*1014*", {}, id="planet"),
+    pytest.param("*ssc*", {}, id="skysat"),
+    pytest.param("*_RE4_*", {}, id="rapideye"),
+    pytest.param("*IMG_PHR*", {}, id="pleiades"),
+    pytest.param("*IMG_*_PNEO*", {}, id="pleiades_neo"),
+    pytest.param("*SP04*", {}, id="spot4"),
+    pytest.param("*SP05*", {}, id="spot5"),
+    pytest.param("*IMG_SPOT6*", {}, id="spot6"),
+    pytest.param("*IMG_SPOT7*", {}, id="spot7"),
+    pytest.param("*P001_MUL*", {}, id="wv02_wv03_legion"),
+    pytest.param("*P001_PSH*", {}, id="ge01_wv04"),
+    pytest.param("*VIS1_MS4*", {}, id="vision1"),
+    pytest.param("*0001_01*", {}, id="superview1"),
+    pytest.param("*DE2_*", {}, id="geosat2"),
+    pytest.param(
+        "*LM05*",
+        {},
+        id="landsat_5_mss",
+        marks=pytest.mark.skipif(
+            sys.platform == "win32" or os.getenv(CI_EOREADER_S3) == "0",
+            reason="Weirdly, Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk",
+        ),
+    ),
+]
+
+
+@pytest.mark.parametrize("pattern, kwargs", test_optical_constellations_cases)
 @s3_env
 @dask_env
-def test_s2():
-    """Function testing the support of Sentinel-2 constellation"""
-    _test_core_optical("*S2*_MSI*")
+def test_optical_constellations(pattern, kwargs):
+    _test_core_optical(pattern, **kwargs)
 
 
+test_sar_constellations_cases = [
+    pytest.param("*S1*_IW*", {}, id="sentinel_1"),
+    pytest.param("*csk_*", {}, id="cosmo_skymed"),
+    pytest.param("*CSG_*", {}, id="cosmo_skymed_2"),
+    pytest.param("*TSX*", {}, id="terrasar_x"),
+    pytest.param("*TDX*", {}, id="tandem_x"),
+    pytest.param("*RS2_*", {}, id="radarsat_2"),
+    pytest.param("*RCM*", {}, id="radarsat_constellation"),
+    pytest.param("*SC_*", {}, id="iceye"),
+    pytest.param("*SAO*", {}, id="saocom"),
+    pytest.param("*CAPELLA*", {}, id="capella"),
+]
+
+
+@pytest.mark.parametrize("pattern, kwargs", test_sar_constellations_cases)
 @s3_env
 @dask_env
-def test_s2_theia():
-    """Function testing the support of Sentinel-2 Theia constellation"""
-    _test_core_optical("*SENTINEL2*")
-
-
-@s3_env
-@dask_env
-def test_s3_olci():
-    """Function testing the support of Sentinel-3 OLCI constellation"""
-    # Init logger
-    _test_core_optical("*S3*_OL_1_*")
-
-
-@s3_env
-@dask_env
-def test_s3_slstr():
-    """Function testing the support of Sentinel-3 SLSTR constellation"""
-    # Init logger
-    _test_core_optical("*S3*_SL_1_*", **{SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP})
-
-
-@s3_env
-@dask_env
-def test_l9():
-    """Function testing the support of Landsat-9 constellation"""
-    # Init logger
-    _test_core_optical("*LC09*")
-
-
-@s3_env
-@dask_env
-def test_l8():
-    """Function testing the support of Landsat-8 constellation"""
-    # Init logger
-    _test_core_optical("*LC08*")
-
-
-@s3_env
-@dask_env
-def test_l7():
-    """Function testing the support of Landsat-7 constellation"""
-    _test_core_optical("*LE07*")
-
-
-@s3_env
-@dask_env
-def test_l5_tm():
-    """Function testing the support of Landsat-5 TM constellation"""
-    _test_core_optical("*LT05*")
-
-
-@s3_env
-@dask_env
-def test_l4_tm():
-    """Function testing the support of Landsat-4 TM constellation"""
-    _test_core_optical("*LT04*")
-
-
-@pytest.mark.skipif(
-    sys.platform == "win32" or os.getenv(CI_EOREADER_S3) == "0",
-    reason="Weirdly, Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk",
-)
-@s3_env
-@dask_env
-def test_l5_mss():
-    """Function testing the support of Landsat-5 MSS constellation"""
-    _test_core_optical("*LM05*")
-
-
-@s3_env
-@dask_env
-def test_l4_mss():
-    """Function testing the support of Landsat-4 MSS constellation"""
-    _test_core_optical("*LM04*")
-
-
-@s3_env
-@dask_env
-def test_l3_mss():
-    """Function testing the support of Landsat-3 constellation"""
-    _test_core_optical("*LM03*")
-
-
-@s3_env
-@dask_env
-def test_l2_mss():
-    """Function testing the support of Landsat-2 constellation"""
-    _test_core_optical("*LM02*")
-
-
-@s3_env
-@dask_env
-def test_l1_mss():
-    """Function testing the support of Landsat-1 constellation"""
-    _test_core_optical("*LM01*")
-
-
-@s3_env
-@dask_env
-def test_hls():
-    """Function testing the support of HLS constellation"""
-    _test_core_optical("*HLS*")
-
-
-@s3_env
-@dask_env
-def test_pla():
-    """Function testing the support of PlanetScope constellation"""
-    _test_core_optical("*202*1014*")
-
-
-@s3_env
-@dask_env
-def test_sky():
-    """Function testing the support of SkySat constellation"""
-    _test_core_optical("*ssc*")
-
-
-@s3_env
-@dask_env
-def test_re():
-    """Function testing the support of RapidEye constellation"""
-    _test_core_optical("*_RE4_*")
-
-
-@s3_env
-@dask_env
-def test_pld():
-    """Function testing the support of Pleiades constellation"""
-    _test_core_optical("*IMG_PHR*")
-
-
-@s3_env
-@dask_env
-def test_pneo():
-    """Function testing the support of Pleiades-Neo constellation"""
-    _test_core_optical("*IMG_*_PNEO*")
-
-
-@s3_env
-@dask_env
-def test_spot4():
-    """Function testing the support of SPOT-4 constellation"""
-    _test_core_optical("*SP04*")
-
-
-@s3_env
-@dask_env
-def test_spot5():
-    """Function testing the support of SPOT-5 constellation"""
-    _test_core_optical("*SP05*")
-
-
-@s3_env
-@dask_env
-def test_spot6():
-    """Function testing the support of SPOT-6 constellation"""
-    _test_core_optical("*IMG_SPOT6*")
-
-
-@s3_env
-@dask_env
-def test_spot7():
-    """Function testing the support of SPOT-7 constellation"""
-    _test_core_optical("*IMG_SPOT7*")
-
-
-@s3_env
-@dask_env
-def test_wv02_wv03_wvlg():
-    """Function testing the support of WorldView-2/3 + Legion constellations"""
-    _test_core_optical("*P001_MUL*")
-
-
-@s3_env
-@dask_env
-def test_ge01_wv04():
-    """Function testing the support of GeoEye-1/WorldView-4 constellations"""
-    _test_core_optical("*P001_PSH*")
-
-
-@s3_env
-@dask_env
-def test_vs1():
-    """Function testing the support of Vision-1 constellation"""
-    _test_core_optical("*VIS1_MS4*")
-
-
-@s3_env
-@dask_env
-def test_sv1():
-    """Function testing the support of SuperView-1 constellation"""
-    _test_core_optical("*0001_01*")
-
-
-@s3_env
-@dask_env
-def test_gs2():
-    """Function testing the support of GEOSAT-2 constellation"""
-    _test_core_optical("*DE2_*")
-
-
-@s3_env
-@dask_env
-def test_s1():
-    """Function testing the support of Sentinel-1 constellation"""
-    _test_core_sar("*S1*_IW*")
-
-
-@s3_env
-@dask_env
-def test_csk():
-    """Function testing the support of COSMO-Skymed constellation"""
-    _test_core_sar("*csk_*")
-
-
-@s3_env
-@dask_env
-def test_csg():
-    """Function testing the support of COSMO-Skymed 2nd Generation constellation"""
-    _test_core_sar("*CSG_*")
-
-
-@s3_env
-@dask_env
-def test_tsx():
-    """Function testing the support of TerraSAR-X constellations"""
-    _test_core_sar("*TSX*")
-
-
-# Assume that tests PAZ and TDX
-@s3_env
-@dask_env
-def test_tdx():
-    """Function testing the support of PAZ SAR and TanDEM-X constellations"""
-    _test_core_sar("*TDX*")
-
-
-@s3_env
-@dask_env
-def test_rs2():
-    """Function testing the support of RADARSAT-2 constellation"""
-    _test_core_sar("*RS2_*")
-
-
-@s3_env
-@dask_env
-def test_rcm():
-    """Function testing the support of RADARSAT-Constellation constellation"""
-    _test_core_sar("*RCM*")
-
-
-@s3_env
-@dask_env
-def test_iceye():
-    """Function testing the support of ICEYE constellation"""
-    _test_core_sar("*SC_*")
-
-
-@s3_env
-@dask_env
-def test_saocom():
-    """Function testing the support of SAOCOM constellation"""
-    _test_core_sar("*SAO*")
-
-
-@s3_env
-@dask_env
-def test_capella():
-    """Function testing the support of CAPELLA constellation"""
-    _test_core_sar("*CAPELLA*")
+def test_sar_constellations(pattern, kwargs):
+    _test_core_sar(pattern, **kwargs)
