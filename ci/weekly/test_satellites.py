@@ -485,7 +485,7 @@ test_sar_constellations_cases = [
     pytest.param("*csk_*", {}, id="csk"),
     pytest.param("*CSG_*", {}, id="csg"),
     pytest.param("*TSX*", {}, id="tsx"),
-    pytest.param("*TDX*", {}, id="tdx"),
+    pytest.param("*TDX*", {}, id="tdx"),  # Assume that tests PAZ and TDX
     pytest.param("*RS2_*", {}, id="rs2"),
     pytest.param("*RCM*", {}, id="rcm"),
     pytest.param("*SC_*", {}, id="iceye"),
@@ -511,9 +511,3 @@ def test_invalid():
     with pytest.raises(FileNotFoundError):
         READER.open(wrong_path, remove_tmp=True)
     assert not READER.valid_name(wrong_path, "S2")
-
-
-@s3_env
-def test_sar():
-    """Function testing some other SAR methods"""
-    # TODO
