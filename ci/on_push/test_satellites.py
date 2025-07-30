@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 import tempfile
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -95,7 +96,9 @@ def set_dem(dem_path):
             )
 
 
-def _test_core_optical(pattern: str, dem_path=None, debug=WRITE_ON_DISK, **kwargs):
+def _test_core_optical(
+    pattern: str, tmpdir: Path, dem_path=None, debug=WRITE_ON_DISK, **kwargs
+):
     """
     Core function testing optical data
 
@@ -104,10 +107,12 @@ def _test_core_optical(pattern: str, dem_path=None, debug=WRITE_ON_DISK, **kwarg
         debug (bool): Debug option
     """
     possible_bands = [RED, SWIR_2, TIR_1, HILLSHADE, CLOUDS]
-    _test_core(pattern, opt_path(), possible_bands, dem_path, debug, **kwargs)
+    _test_core(pattern, opt_path(), possible_bands, tmpdir, dem_path, debug, **kwargs)
 
 
-def _test_core_sar(pattern: str, dem_path=None, debug=WRITE_ON_DISK, **kwargs):
+def _test_core_sar(
+    pattern: str, tmpdir: Path, dem_path=None, debug=WRITE_ON_DISK, **kwargs
+):
     """
     Core function testing SAR data
 
@@ -116,7 +121,7 @@ def _test_core_sar(pattern: str, dem_path=None, debug=WRITE_ON_DISK, **kwargs):
         debug (bool): Debug option
     """
     possible_bands = [VV, VV_DSPK, HH, HH_DSPK, SLOPE, HILLSHADE]
-    _test_core(pattern, sar_path(), possible_bands, dem_path, debug, **kwargs)
+    _test_core(pattern, sar_path(), possible_bands, tmpdir, dem_path, debug, **kwargs)
 
 
 def check_prod(pattern_path: str, debug: bool = WRITE_ON_DISK) -> Product:
@@ -397,6 +402,7 @@ def _test_core(
     pattern: str,
     prod_dir: str,
     possible_bands: list,
+    tmpdir: Path,
     dem_path=None,
     debug=WRITE_ON_DISK,
     **kwargs,
@@ -408,6 +414,7 @@ def _test_core(
         pattern (str): Pattern of the satellite
         prod_dir (str): Product directory
         possible_bands(list): Possible bands
+        tmpdir(Path): path to store temporary data
         debug (bool): Debug option
     """
     # Set DEM
@@ -423,11 +430,17 @@ def _test_core(
             use_dask_in_test = use_dask() and not (
                 pattern_path.is_file() and os.getenv(CI_EOREADER_S3) == "1"
             )
-            core(pattern_path, possible_bands, use_dask=use_dask_in_test, **kwargs)
+            core(
+                pattern_path,
+                possible_bands,
+                tmpdir,
+                use_dask=use_dask_in_test,
+                **kwargs,
+            )
 
 
 @dask_env
-def core(prod_path, possible_bands, **kwargs):
+def core(prod_path, possible_bands, tmpdir, **kwargs):
     LOGGER.info(
         f"%s on drive %s ({CI_EOREADER_S3}: %s)",
         prod_path.name,
@@ -440,9 +453,7 @@ def core(prod_path, possible_bands, **kwargs):
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         if WRITE_ON_DISK:
-            tmp_dir = os.path.join(
-                "/mnt", "ds2_db3", "CI", "eoreader", "OUTPUT", prod.condensed_name
-            )
+            tmp_dir = os.path.join(tmpdir, prod.condensed_name)
         prod.output = tmp_dir
 
         # DO NOT REPROJECT BANDS (WITH GDAL / SNAP) --> WAY TOO SLOW
