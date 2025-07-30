@@ -498,7 +498,7 @@ def core(prod_path, possible_bands, tmpdir, **kwargs):
 
 test_optical_constellations_cases = [
     pytest.param("*S2*_MSI*_N7*", {}, id="s2_after_04_00"),
-    pytest.param("*S2*_MSI*_N02*", {}, id="s2_before_04_00"),
+    pytest.param("*S2*_MSI*_N0209*", {}, id="s2_before_04_00"),
     pytest.param("*SENTINEL2*", {}, id="s2_theia"),
     pytest.param("*S2A_39KZU*", {}, id="s2_cloud"),
     pytest.param("*S3*_OL_1_*", {}, id="s3_olci"),
@@ -599,6 +599,6 @@ def test_invalid():
 
 
 @s3_env
-def test_s2_before_04_00(eoreader_tests_path):
+def test_s2_after_04_00(eoreader_tests_path):
     """Function testing the support of Sentinel-2 constellation"""
-    _test_core_optical("*S2*_MSI*_N0209*", eoreader_tests_path.tmpdir)
+    _test_core_optical("*S2*_MSI*_N7*", eoreader_tests_path.tmpdir)

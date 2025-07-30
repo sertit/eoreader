@@ -200,25 +200,32 @@ def s3_env(*args, **kwargs):
         @wraps(function)
         def s3_env_wrapper(*args, **kwargs):
             with rasterio.Env(
-                # Set to TRUE or EMPTY_DIR to avoid listing all files in the directory once a single file is opened (this is highly recommended).
-                GDAL_DISABLE_READDIR_ON_OPEN=True,
-                # # Size of the default block cache, can be set in byte, MB, or as a percentage of available main, memory.
-                # GDAL_CACHEMAX=gdal_cachemax_bytes, # => doesn't seem to improve anything, in fact slows down things a bit
                 # Global cache size for downloads in bytes, defaults to 16 MB.
                 CPL_VSIL_CURL_CACHE_SIZE=mo_to_bytes(200),
+                #
                 # Enable / disable per-file caching by setting to TRUE or FALSE.
                 VSI_CACHE=True,
+                #
                 # Per-file cache size in bytes
                 VSI_CACHE_SIZE=mo_to_bytes(5),
+                #
                 # When set to YES, this attempts to download multiple range requests in parallel, reusing the same TCP connection
                 GDAL_HTTP_MULTIPLEX=True,
+                #
                 # Gives the number of initial bytes GDAL should read when opening a file and inspecting its metadata.
                 GDAL_INGESTED_BYTES_AT_OPEN=ko_to_bytes(32),
                 GDAL_HTTP_VERSION=2,
+                #
                 # Tells GDAL to merge consecutive range GET requests.
                 GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES",
+                #
+                # -- useless by experience --
+                # Size of the default block cache, can be set in byte, MB, or as a percentage of available main, memory.
+                # GDAL_CACHEMAX=gdal_cachemax_bytes, # => doesn't seem to improve anything, in fact slows down things a bit
                 # Number of threads GDAL can use for block reads and (de)compression, set to ALL_CPUS to use all available cores.
-                # GDAL_NUM_THREADS="ALL_CPUS", # => doesn't seem to improve anything, in fact slows down things
+                # GDAL_NUM_THREADS="ALL_CPUS", #  => doesn't seem to improve anything, in fact slows down things
+                # Set to TRUE or EMPTY_DIR to avoid listing all files in the directory once a single file is opened (this is highly recommended).
+                # GDAL_DISABLE_READDIR_ON_OPEN=True, #  => seems to have drawbacks especially for s2
             ):
                 return unistra.s3_env(
                     function(*args, **kwargs), use_s3_env_var=CI_EOREADER_S3
