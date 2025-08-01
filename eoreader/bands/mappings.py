@@ -24,7 +24,7 @@ from eoreader.bands.band_names import (
 
 EOREADER_TO_SPYNDEX_DICT = {
     CA: "A",
-    DEEP_BLUE: "DB",
+    DEEP_BLUE: "A",
     BLUE: "B",
     GREEN: "G",
     RED: "R",
