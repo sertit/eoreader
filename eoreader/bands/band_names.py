@@ -238,11 +238,6 @@ class SpectralBandNames(BandNames):
     Oa01
     """
 
-    Oa02 = "Oa02"
-    """
-    Oa02
-    """
-
     Oa09 = "Oa09"
     """
     Oa09
@@ -357,7 +352,6 @@ F2 = SpectralBandNames.F2
 
 # -- S3-OCLI Additional bands --
 Oa01 = SpectralBandNames.Oa01
-Oa02 = SpectralBandNames.Oa02
 Oa09 = SpectralBandNames.Oa09
 Oa10 = SpectralBandNames.Oa10
 Oa13 = SpectralBandNames.Oa13
