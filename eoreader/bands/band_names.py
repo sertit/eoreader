@@ -166,6 +166,11 @@ class SpectralBandNames(BandNames):
     BLUE = "BLUE"
     """Blue"""
 
+    DEEP_BLUE = "DEEP_BLUE"
+    """Deep blue, centered at 420nm is introduced alongside CA (centered at 440nm).
+    DEEP_BLUE is based on the Pleiades Neo band named by the University of Twente(https://webapps.itc.utwente.nl/sensor/getsen.aspx?name=Pleiades%20Neo).
+    """
+
     GREEN = "GREEN"
     """Green"""
 
@@ -231,11 +236,6 @@ class SpectralBandNames(BandNames):
     Oa01 = "Oa01"
     """
     Oa01
-    """
-
-    Oa02 = "Oa02"
-    """
-    Oa02
     """
 
     Oa09 = "Oa09"
@@ -328,6 +328,7 @@ class SpectralBandNames(BandNames):
 # -- SPECTRAL BANDS --
 CA = SpectralBandNames.CA  # Coastal aerosol
 BLUE = SpectralBandNames.BLUE
+DEEP_BLUE = SpectralBandNames.DEEP_BLUE
 GREEN = SpectralBandNames.GREEN
 YELLOW = SpectralBandNames.YELLOW
 RED = SpectralBandNames.RED
@@ -351,7 +352,6 @@ F2 = SpectralBandNames.F2
 
 # -- S3-OCLI Additional bands --
 Oa01 = SpectralBandNames.Oa01
-Oa02 = SpectralBandNames.Oa02
 Oa09 = SpectralBandNames.Oa09
 Oa10 = SpectralBandNames.Oa10
 Oa13 = SpectralBandNames.Oa13
