@@ -167,7 +167,9 @@ class SpectralBandNames(BandNames):
     """Blue"""
 
     DEEP_BLUE = "DEEP_BLUE"
-    """Deep blue"""
+    """Deep blue, centered at 420nm is introduced alongside CA (centered at 440nm).
+    DEEP_BLUE is based on the Pleiades Neo band named by the University of Twente(https://webapps.itc.utwente.nl/sensor/getsen.aspx?name=Pleiades%20Neo).
+    """
 
     GREEN = "GREEN"
     """Green"""
