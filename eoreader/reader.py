@@ -151,6 +151,9 @@ class Constellation(ListEnum):
     SPOT4 = "Spot-4"
     """SPOT-4"""
 
+    VENUS = "Venus"
+    """Venus"""
+
     VIS1 = "Vision-1"
     """Vision-1"""
 
@@ -291,6 +294,7 @@ class Constellation(ListEnum):
 _MAXAR_REGEX = r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)"
 
 CONSTELLATION_REGEX = {
+    Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9_-]+",
     Constellation.S1: r"S1[ABCD]_(IW|EW|SM|WV|S\d)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}(_COG|)",
     Constellation.S2: r"S2[ABCD]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
     # Element84 : S2A_31UDQ_20230714_0_L2A, Sinergise: 0 or 1...
@@ -358,6 +362,9 @@ CONSTELLATION_REGEX = {
 _MAXAR_MTD_REGEX = r"\d{2}\w{3}\d{8}-.*.TIL"
 
 MTD_REGEX = {
+    Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9_-]+_MTD_ALL\.xml",
+    # Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9-]+",
+    # Constellation.VENUS: rf"{CONSTELLATION_REGEX[Constellation.VENUS]}_MTD_ALL\.xml",
     Constellation.S1: {
         "nested": 1,
         # File that can be found at any level (product/**/file)
