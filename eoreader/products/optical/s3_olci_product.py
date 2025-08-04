@@ -215,7 +215,7 @@ class S3OlciProduct(S3Product):
             DEEP_BLUE: SpectralBand(
                 eoreader_name=DEEP_BLUE,
                 **{
-                    NAME: "DEEP_BLUE",
+                    NAME: "Oa02",
                     ID: 2,
                     GSD: self.pixel_size,
                     CENTER_WV: 412.5,
