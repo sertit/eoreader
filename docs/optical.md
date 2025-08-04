@@ -15,6 +15,7 @@ However, especially for SAR data, the default pixel size of GRD bands is differe
 | Sentinel-2                  | {meth}`~eoreader.products.optical.s2_product.S2Product`            | ✅                            |
 | Sentinel-2 on AWS cloud     | {meth}`~eoreader.products.optical.s2_product.S2CloudProduct`       | -                            |
 | Sentinel-2 Theia            | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | ✅                            |
+| Vénμs                       | {meth}`~eoreader.products.optical.venus.VenusProduct`              | ✅                            |
 | Sentinel-3 SLSTR            | {meth}`~eoreader.products.optical.s3_slstr_product.S3SlstrProduct` | ✅                            |
 | Sentinel-3 OLCI             | {meth}`~eoreader.products.optical.s3_olci_product.S3OlciProduct`   | ✅                            |
 | Landsat 8/9 OLI-TIRS        | {meth}`~eoreader.products.optical.landsat_product.LandsatProduct`  | ✅                            |
@@ -47,6 +48,7 @@ Satellites products that cannot be used as archived have to be extracted before 
 | Sentinel-2                  | L1C & L2A & L2Ap          | 10 m                                  |
 | Sentinel-2 on AWS Cloud     | L2A (for now)             | 10 m                                  |
 | Sentinel-2 Theia            | L2A                       | 10 m                                  |
+| Vénμs                       | L2A                       | 5 m                                   |
 | Sentinel-3 SLSTR            | RBT                       | 300 m                                 |
 | Sentinel-3 OLCI             | EFR                       | 500 m                                 |
 | Landsat 8/9 OLI-TIRS        | Level 1 & 2               | 30 m                                  |
@@ -111,7 +113,8 @@ The names are the ones from Sentinel-2, even if sometimes it can be confusing (e
 
 Some additions to the Sentinel-2 bands have been made (`YELLOW`, `PAN`...):
 
-- {meth}`~eoreader.bands.band_names.SpectralBandNames.CA`: Coastal Aerosol
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.DEEP_BLUE`: Deep Blue (same goal as Coastal Aerosol, mainly for VHR data, centered around 420 nm)
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.CA`: Coastal Aerosol (mainly for HR data, centered around 440 nm)
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.BLUE`
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.GREEN_1`: First Green band of PlanetScope 8 bands, mapped to the fifth band of Sentinel-3 OLCI
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.GREEN`
@@ -185,6 +188,7 @@ The only difference with the other bands is that the cloud bands are provided in
 |------------------------------|-------------|-----------------------------------------------------------|
 | Sentinel-2                   | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
 | Sentinel-2 Theia             | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
+| Vénµs                        | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
 | Sentinel-3 OLCI              | ❌           |                                                           |
 | Sentinel-3 SLSTR             | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
 | Landsat 8/9                  | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
@@ -332,6 +336,12 @@ For now it doesn't work automatically on archived or cloud-stored products.
 - [Cloud masks](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks)
 - [Product Specification (Processing Baseline < 4.0)](https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf)
 - [Product Specification (Processing Baseline > 4.0)](https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2-Products-Specification-Document-14_8.pdf)
+
+### Vénµs
+
+- [Mission](https://www.mdpi.com/2072-4292/14/14/3281)
+- [Format L2A](https://www.cesbio.cnrs.fr/multitemp/format-of-ven%c2%b5s-l2a-produced-by-muscate/)
+- [Instrument](https://database.eohandbook.com/database/missionsummary.aspx?missionID=601&utm_source=eoportal&utm_content=venus)
 
 ### Harmonize Landsat-Sentinel
 - [Product Guide v2.0](https://lpdaac.usgs.gov/documents/1698/HLS_User_Guide_V2.pdf)
