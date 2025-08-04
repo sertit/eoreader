@@ -726,6 +726,16 @@ class MaxarProduct(VhrProduct):
                         WV_MAX: 450,
                     },
                 ),
+                "deep_blue": SpectralBand(
+                    eoreader_name=DEEP_BLUE,
+                    **{
+                        NAME: "COASTAL BLUE",
+                        ID: 1,
+                        GSD: self._ms_res,
+                        WV_MIN: 400,
+                        WV_MAX: 450,
+                    },
+                ),
                 "blue": SpectralBand(
                     eoreader_name=BLUE,
                     **{
@@ -816,7 +826,7 @@ class MaxarProduct(VhrProduct):
                 "deep_blue": SpectralBand(
                     eoreader_name=DEEP_BLUE,
                     **{
-                        NAME: "DEEP BLUE",
+                        NAME: "COASTAL BLUE",
                         ID: 1,
                         GSD: self._ms_res,
                         WV_MIN: 400,
