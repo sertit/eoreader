@@ -520,7 +520,10 @@ class PlanetProduct(OpticalProduct):
             pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
             **kwargs,
-        ).values
+        )
+
+        # Collocate
+        no_data_mask = rasters.collocate(band_arr, no_data_mask).values
 
         # Dubious pixels mapping
         # See: https://community.planet.com/planet-s-community-forum-3/planetscope-8-bands-and-udm-mask-245?postid=436#post436
@@ -575,7 +578,10 @@ class PlanetProduct(OpticalProduct):
             size=(band_arr.rio.width, band_arr.rio.height),
             pixel_size=pixel_size,
             **kwargs,
-        ).values
+        )
+
+        # Collocate
+        no_data_mask = rasters.collocate(band_arr, no_data_mask).values
 
         # -- Merge masks
         return self._set_nodata_mask(band_arr, no_data_mask)

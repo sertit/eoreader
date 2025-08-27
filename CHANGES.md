@@ -7,6 +7,7 @@
 - FIX: Fix regression when stacking with a custom nodata value with VHR data to be reprojected
 - FIX: Fix an unprecedented case with a PNEO having different name than usual (`DIM_PNEO3_STD_2025...` instead of `DIM_PNEO3_2025...`)
 - FIX: Fix WV Legion wrong band order in Multi Spectral 1 mode [#246](https://github.com/sertit/eoreader/issues/246)
+- FIX: Collocate Planet spectral bands with masks for some rare cases where it fails
 
 ## 0.22.4 (2025-07-07)
 
