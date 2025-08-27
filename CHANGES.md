@@ -9,6 +9,7 @@
 - FIX: Fix WV Legion wrong band order in Multi Spectral 1 mode [#246](https://github.com/sertit/eoreader/issues/246)
 - FIX: Collocate Planet spectral bands with masks for some rare cases where it fails
 - FIX: Loosen the constraints on PlanetScope stack name as it may change, from `Analytic` to `composite`, etc. [#244](https://github.com/sertit/eoreader/issues/244)
+- FIX: Add a fallback in case of impossibleness of reading ICEYE `QUICKLOOK.kml` file
 
 ## 0.22.4 (2025-07-07)
 

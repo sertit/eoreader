@@ -29,6 +29,7 @@ from lxml import etree
 from sertit import path, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
+from shapely import Polygon
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import SarBandNames as sab
@@ -179,7 +180,30 @@ class IceyeProduct(SarProduct):
             # Some ICEYE products don't have any QUICKLOOK.kml file as it is not a mandatory file!
             extent_wgs84 = self._fallback_wgs84_extent("QUICKLOOK.kml")
 
-        return gpd.GeoDataFrame(geometry=extent_wgs84.geometry, crs=extent_wgs84.crs)
+        # Other fallback
+        if extent_wgs84.crs is None:
+            root, nsmap = self.read_mtd()
+
+            # Some ICEYE product metadata has a namespace some don't
+            namespace = nsmap.get(None, "")
+
+            # Get lat lon of extent coordinates
+            fn = root.findtext(f".//{namespace}coord_first_near").split(" ")[2:]
+            ln = root.findtext(f".//{namespace}coord_last_near").split(" ")[2:]
+            lf = root.findtext(f".//{namespace}coord_last_far").split(" ")[2:]
+            ff = root.findtext(f".//{namespace}coord_first_far").split(" ")[2:]
+
+            extent_wgs84 = gpd.GeoDataFrame(
+                geometry=[Polygon([fn[::-1], ln[::-1], lf[::-1], ff[::-1]])],
+                crs=vectors.WGS84,
+            ).envelope
+
+        # Drop all columns except important ones
+        extent_wgs84 = gpd.GeoDataFrame(
+            geometry=extent_wgs84.geometry, crs=extent_wgs84.crs
+        )
+
+        return extent_wgs84
 
     def _set_product_type(self) -> None:
         """Set products type"""
