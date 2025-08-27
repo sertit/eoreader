@@ -217,7 +217,7 @@ class PlanetProduct(OpticalProduct):
             # Seems only for basic products
             self._raw_units = RawUnits.NONE
         else:
-            # If not specified, Planet product are in scaled radiance (*0.01)
+            # If not specified, Planet products are in scaled radiance (*0.01)
             self._raw_units = RawUnits.RAD
 
         # Post init done by the super class
@@ -1053,9 +1053,13 @@ class PlanetProduct(OpticalProduct):
 
                 ok_paths = self._get_archived_rio_path(regex, as_list=True)
             else:
-                ok_paths = [
-                    str(p) for p in self.path.glob(f"**/*{filename}*.{extension}")
-                ]
+                fn = filename
+                if not fn.endswith("*"):
+                    fn += "*"
+                if not fn.startswith("*"):
+                    fn = "*" + fn
+
+                ok_paths = [str(p) for p in self.path.glob(f"**/{fn}.{extension}")]
 
             if invalid_lookahead:
                 for ok_path in ok_paths.copy():
@@ -1070,7 +1074,7 @@ class PlanetProduct(OpticalProduct):
             if not as_list:
                 ok_paths = ok_paths[0]
         except (FileNotFoundError, IndexError):
-            LOGGER.warning(
+            LOGGER.debug(
                 f"No file corresponding to *{filename}*.{extension} found in {self.path}"
             )
 
