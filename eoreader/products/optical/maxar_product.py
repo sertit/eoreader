@@ -429,7 +429,7 @@ class MaxarBandId(ListEnum):
 
     MS1 = "Multi Spectral 1"
     """
-    First 4 bands (N,R,G,B)
+    First 4 bands (B,G,R,N)
     """
 
     MS2 = "Multi Spectral 2"
@@ -1075,21 +1075,13 @@ class MaxarProduct(VhrProduct):
                 RED: red.update(id=2, gsd=self.pixel_size),
                 GREEN: green.update(id=3, gsd=self.pixel_size),
             }
-        elif self.band_combi == MaxarBandId.BGRN:
+        elif self.band_combi in [MaxarBandId.BGRN, MaxarBandId.MS1]:
             band_map = {
                 BLUE: blue.update(id=1, gsd=self.pixel_size),
                 GREEN: green.update(id=2, gsd=self.pixel_size),
                 RED: red.update(id=3, gsd=self.pixel_size),
                 NIR: nir.update(id=4, gsd=self.pixel_size),
                 NARROW_NIR: nir.update(id=4, gsd=self.pixel_size),
-            }
-        elif self.band_combi == MaxarBandId.MS1:
-            band_map = {
-                NIR: nir.update(id=1, gsd=self.pixel_size),
-                NARROW_NIR: nir.update(id=1, gsd=self.pixel_size),
-                RED: red.update(id=2, gsd=self.pixel_size),
-                GREEN: green.update(id=3, gsd=self.pixel_size),
-                BLUE: blue.update(id=4, gsd=self.pixel_size),
             }
         elif self.band_combi == MaxarBandId.MS2:
             band_map = {
