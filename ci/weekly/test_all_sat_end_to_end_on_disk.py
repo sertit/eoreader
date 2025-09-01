@@ -298,12 +298,12 @@ def _test_core(
                     assert len(list(prod._tmp_process.glob("*"))) == 0
 
 
-def test_s1_slc(capfd):
+def test_s1_slc(capfd, eoreader_tests_path):
     @dask_env
     def test_s1_slc_core():
         """Function testing the support of Sentinel-1 constellation"""
         try:
-            _test_core_sar("*S1*_IW_SLC*.SAFE")
+            _test_core_sar("*S1*_IW_SLC*.SAFE", tmpdir=eoreader_tests_path.tmpdir)
         except RuntimeError:
             # Sometimes SNAP kills the process when out of memory: assert OK in this case
             out, err = capfd.readouterr()
@@ -313,12 +313,12 @@ def test_s1_slc(capfd):
     test_s1_slc_core()
 
 
-def test_s1_slc_zip(capfd):
+def test_s1_slc_zip(capfd, eoreader_tests_path):
     @dask_env
     def test_s1_slc_zip_core():
         """Function testing the support of Sentinel-1 constellation"""
         try:
-            _test_core_sar("*S1*_IW_SLC*.zip")
+            _test_core_sar("*S1*_IW_SLC*.zip", tmpdir=eoreader_tests_path.tmpdir)
         except RuntimeError:
             # Sometimes SNAP kills the process when out of memory: assert OK in this case
             out, err = capfd.readouterr()
