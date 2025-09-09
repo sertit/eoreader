@@ -479,9 +479,7 @@ variable:
 - [SAOCOM Data Products](https://earth.esa.int/eogateway/catalog/saocom-data-products)
 
 ### Capella
-- [Capella SAR Imagery Products](https://support.capellaspace.com/hc/en-us/categories/360002612692-SAR-Imagery-Products)
-- [Capella Product Guide](https://support.capellaspace.com/hc/en-us/articles/4626115099796-SAR-Imagery-Products-Guide)
-- [Capella Products Format Specification](https://support.capellaspace.com/hc/en-us/articles/5607458273940-SAR-Imagery-Products-Format-Specification)
+- [Capella SAR Imagery Products](https://support.capellaspace.com/capella-solutions#main-content)
 
 ### Umbra
 

@@ -16,7 +16,7 @@
 """
 Capella products.
 Take a look
-`here <https://support.capellaspace.com/hc/en-us/categories/360002612692-SAR-Imagery-Products>`_.
+`here <https://support.capellaspace.com/capella-solutions#main-content>`_.
 """
 
 import logging
@@ -49,7 +49,7 @@ class CapellaProductType(ListEnum):
     """
     Capella products types.
     Take a look
-    `here <https://support.capellaspace.com/hc/en-us/articles/360039702691-SAR-Data-Formats>`_.
+    `here <https://support.capellaspace.com/what-sar-imagery-products-are-available-with-capella>`_.
     """
 
     SLC = "SLC"
@@ -124,7 +124,7 @@ class CapellaSensorMode(ListEnum):
     """
     Capella imaging mode.
     Take a look
-    `here <https://support.capellaspace.com/hc/en-us/articles/360059224291-What-SAR-imagery-products-are-available-with-Capella->`_.
+    `here <https://support.capellaspace.com/what-are-capellas-collect-modes>`_.
     """
 
     SM = "stripmap"
@@ -141,7 +141,7 @@ class CapellaProduct(SarProduct):
     """
     Class for Capella Products
     Take a look
-    `here <https://support.capellaspace.com/hc/en-us/categories/360002612692-SAR-Imagery-Products>`_.
+    `here <https://support.capellaspace.com/capella-solutions#main-content>`_.
     """
 
     def __init__(
@@ -161,7 +161,7 @@ class CapellaProduct(SarProduct):
         """
         Set product default pixel size (in meters)
         See here
-        `here <https://support.capellaspace.com/hc/en-us/articles/360059224291-What-SAR-imagery-products-are-available-with-Capella->`_
+        `here <https://support.capellaspace.com/what-sar-imagery-products-are-available-with-capella>`_
         """
         # Using az resolution
         if self.sensor_mode == CapellaSensorMode.SP:
