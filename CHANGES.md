@@ -10,6 +10,7 @@
 - FIX: Collocate Planet spectral bands with masks for some rare cases where it fails
 - FIX: Loosen the constraints on PlanetScope stack name as it may change, from `Analytic` to `composite`, etc. [#244](https://github.com/sertit/eoreader/issues/244)
 - FIX: Add a fallback in case of impossibleness of reading ICEYE `QUICKLOOK.kml` file
+- FIX: Manage the case of Maxar data with negative absolute calibration factor: don't compute the reflectance and leave it as is.
 
 ## 0.22.4 (2025-07-07)
 

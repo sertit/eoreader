@@ -54,6 +54,7 @@ from eoreader.bands import (
     YELLOW,
     BandNames,
     SpectralBand,
+    to_str,
 )
 from eoreader.bands.band_names import DEEP_BLUE
 from eoreader.env_vars import FIX_MAXAR
@@ -1455,11 +1456,18 @@ class MaxarProduct(VhrProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        # Convert DN into radiance
-        band_arr = self._dn_to_toa_rad(band_arr, band)
+        # In some cases...
+        abs_factor, _ = self._get_toa_data_from_mtd(band)
+        if abs_factor < 0:
+            LOGGER.warning(
+                f"Your data has a negative absolute calibration factor. Cannot convert {to_str(band)[0]} to reflectance."
+            )
+        else:
+            # Convert DN into radiance
+            band_arr = self._dn_to_toa_rad(band_arr, band)
 
-        # Convert radiance into reflectance
-        band_arr = self._toa_rad_to_toa_refl(band_arr, band)
+            # Convert radiance into reflectance
+            band_arr = self._toa_rad_to_toa_refl(band_arr, band)
 
         # To float32
         if band_arr.dtype != np.float32:
@@ -1505,21 +1513,7 @@ class MaxarProduct(VhrProduct):
         """
         return self._get_path(extension="TIL")
 
-    def _dn_to_toa_rad(self, dn_arr: xr.DataArray, band: BandNames) -> xr.DataArray:
-        """
-        Compute DN to TOA radiance
-
-        See
-        `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_
-        for more information.
-
-        Args:
-            dn_arr (xr.DataArray): DN array
-            band (BandNames): Band
-
-        Returns:
-            xr.DataArray: TOA Radiance array
-        """
+    def _get_toa_data_from_mtd(self, band: BandNames):
         band_mtd_str = f"BAND_{_MAXAR_BAND_MTD[band]}"
 
         # Get MTD XML file
@@ -1535,10 +1529,29 @@ class MaxarProduct(VhrProduct):
                 "ABSCALFACTOR or EFFECTIVEBANDWIDTH not found in metadata!"
             ) from exc
 
+        return abs_factor, effective_bandwidth
+
+    def _dn_to_toa_rad(self, dn_arr: xr.DataArray, band: BandNames) -> xr.DataArray:
+        """
+        Compute DN to TOA radiance
+
+        See
+        `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_
+        for more information.
+
+        Args:
+            dn_arr (xr.DataArray): DN array
+            band (BandNames): Band
+
+        Returns:
+            xr.DataArray: TOA Radiance array
+        """
+
         # Get constellation-specific gain and offset (latest)
         gain, offset = _MAXAR_GAIN_OFFSET[self.constellation][band]
 
         # Compute the coefficient converting DN in TOA radiance
+        abs_factor, effective_bandwidth = self._get_toa_data_from_mtd(band)
         coeff = gain * abs_factor / effective_bandwidth
 
         # LOGGER.debug(f"DN to rad coeff = {coeff}")
