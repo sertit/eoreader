@@ -82,6 +82,7 @@ from eoreader.bands import (
 from eoreader.env_vars import (
     CI_EOREADER_BAND_FOLDER,
     DEM_PATH,
+    DEM_VCRS,
     LEGACY_BAND_NAME_RESOLUTION,
     TILE_SIZE,
 )
@@ -2575,7 +2576,7 @@ class Product:
         ortho_path: AnyPathStrType,
         pixel_size: float = None,
         **kwargs,
-    ) -> (np.ndarray, dict):
+    ) -> xr.DataArray:
         """
         Reproject using RPCs (cannot use another pixel size than src to ensure RPCs are valid)
 
@@ -2586,153 +2587,42 @@ class Product:
             dem_path (str): DEM path
 
         Returns:
-            (np.ndarray, dict): Reprojected array and its metadata
+            xr.DataArray: Reprojected array
         """
         if pixel_size is None:
             pixel_size = self.pixel_size
 
-        kw = utils._prune_keywords(["nodata"], **kwargs)
-
-        # Set RPC keywords
-        # See https://gdal.org/en/stable/api/gdal_alg.html#_CPPv426GDALCreateRPCTransformerV2PK13GDALRPCInfoV2idPPc
-        LOGGER.debug(f"Orthorectifying data with {dem_path}")
-
-        # RPC_DEM doesn't work with cloud-based DEM
-        # Read it to the extent of the product and save it on disk
-        if path.is_cloud_path(dem_path):
-            cached_dem_path, cached_dem_exists = self._get_out_path(
-                AnyPath(dem_path).name
-            )
-            if not cached_dem_exists:
-                LOGGER.warning(
-                    "gdalwarp cannot process DEM stored on cloud with 'RPC_DEM' argument, "
-                    "hence cloud-stored DEM cannot be used with non orthorectified data. "
-                    f"(DEM: {dem_path}). "
-                    "The DEM will be cached before the operation."
-                )
-
-                utils.write(
-                    utils.read(dem_path, window=self.extent()),
-                    cached_dem_path,
-                    dtype=np.float32,
-                )
-
-                LOGGER.debug("DEM cached.")
-            dem_path = str(cached_dem_path)
-
-        # Set SRC crs if needed
-        if src_xda.rio.crs is None:
-            src_xda.rio.write_crs(self._get_raw_crs(), inplace=True)
-
-        kw.update(
-            {
-                "RPC_DEM": dem_path,
-                "RPC_DEM_MISSING_VALUE": 0,
-                "OSR_USE_ETMERC": "YES",
-                "BIGTIFF": "IF_NEEDED",
-            }
-        )
-        # https://gis.stackexchange.com/questions/328366/gdalwarp-orthorectification-worldview-3-not-using-rpc-projection-properly fixed
-        # Error threshold for transformation approximation, expressed as a number of source pixels.
-        # Defaults to 0.125 pixels unless the RPC_DEM transformer option is specified, in which case an exact transformer, i.e. err_threshold=0, will be used.
-
-        # Reproject with rioxarray
-        # Seems to handle the resolution well on the contrary to rasterio's reproject...
-
+        kw = utils._prune_keywords(["nodata", "num_threads"], **kwargs)
         resampling = kw.pop("resampling", self.band_resampling)
+        vcrs = kw.pop("vcrs", os.getenv(DEM_VCRS))
+        out_xda = rasters.reproject(
+            src_xda,
+            rpcs=rpcs,
+            dem_path=dem_path,
+            pixel_size=pixel_size,
+            dst_crs=self.crs(),
+            resampling=resampling,
+            nodata=self._raw_nodata,
+            num_threads=utils.get_max_cores(),
+            vcrs=vcrs,
+            **kwargs,
+        ).rename(f"Reprojected stack of {self.name}")
 
-        try:
-            out_xda = src_xda.rio.reproject(
-                dst_crs=self.crs(),
-                resolution=pixel_size,
-                resampling=resampling,
-                nodata=self._raw_nodata,
-                num_threads=utils.get_max_cores(),
-                rpcs=rpcs,
-                dtype=src_xda.dtype,
-                **kw,
-            )
-            out_xda.rename(f"Reprojected stack of {self.name}")
+        if "long_name" in kw:
+            out_xda.attrs["long_name"] = kw["long_name"]
+        elif kw.get("band") == PAN:
+            out_xda.attrs["long_name"] = "PAN"
+        else:
+            out_xda.attrs["long_name"] = self.get_bands_names()
 
-            if "long_name" in kw:
-                out_xda.attrs["long_name"] = kw["long_name"]
-            elif kw.get("band") == PAN:
-                out_xda.attrs["long_name"] = "PAN"
-            else:
-                out_xda.attrs["long_name"] = self.get_bands_names()
-
-            utils.write(
-                out_xda,
-                ortho_path,
-                dtype=np.float32,
-                nodata=self._raw_nodata,
-                tags=kw.get("tags"),
-                predictor=kw.get("predictor"),
-            )
-
-        # Daskified reproject doesn't seem to work with RPC
-        # See https://github.com/opendatacube/odc-geo/issues/193
-        # from odc.geo import xr # noqa
-        # out_xda = src_xda.odc.reproject(
-        #     how=self.crs(),
-        #     resolution=self.pixel_size,
-        #     resampling=kwargs.pop("resampling", self.band_resampling),
-        #     dst_nodata=self._raw_nodata,
-        #     num_threads=utils.get_max_cores(),
-        #     rpcs=rpcs,
-        #     dtype=src_xda.dtype,
-        #     **kwargs
-        # )
-
-        # Legacy with rasterio directly: rioxarray is bugged with RPCs and Python 3.9
-        # https://github.com/corteva/rioxarray/issues/844
-        except ValueError:
-            from sertit.rasters import get_nodata_value_from_xr
-            from sertit.rasters_rio import write
-
-            nodata = get_nodata_value_from_xr(src_xda)
-            arr = src_xda.fillna(nodata) if nodata is not None else src_xda
-
-            # WARNING: may not give correct output pixel size
-            out_arr, dst_transform = warp.reproject(
-                arr.compute().data,
-                src_transform=None,
-                rpcs=rpcs,
-                src_crs=self._get_raw_crs(),
-                src_nodata=self._raw_nodata,
-                dst_crs=self.crs(),
-                dst_resolution=pixel_size,
-                dst_nodata=self._raw_nodata,  # input data should be in integer
-                num_threads=utils.get_max_cores(),
-                resampling=resampling,
-                **kw,
-            )
-            # Get dims
-            count, height, width = out_arr.shape
-
-            # Update metadata
-            meta = {
-                "driver": "GTiff",
-                "dtype": src_xda.dtype,
-                "nodata": self._raw_nodata,
-                "width": width,
-                "height": height,
-                "count": count,
-                "crs": self.crs(),
-                "transform": dst_transform,
-                "compress": "lzw",
-            }
-            write(
-                out_arr,
-                meta,
-                ortho_path,
-                dtype=np.float32,
-                nodata=self._raw_nodata,
-                tags=kw.get("tags"),
-                predictor=kw.get("predictor"),
-                driver=utils.get_driver(kw),
-            )
-            out_xda = utils.read(ortho_path)
+        utils.write(
+            out_xda,
+            ortho_path,
+            dtype=np.float32,
+            nodata=self._raw_nodata,
+            tags=kw.get("tags"),
+            predictor=kw.get("predictor"),
+        )
         return out_xda
 
     def _warp_band(

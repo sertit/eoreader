@@ -27,6 +27,16 @@ SAR_DEF_PIXEL_SIZE = "EOREADER_SAR_DEFAULT_PIXEL_SIZE"
 DEM_PATH = "EOREADER_DEM_PATH"
 """Environment variable for overriding default DEM path"""
 
+DEM_VCRS = "EOREADER_DEM_VCRS"
+"""
+Environment variable for setting the vertical CRS of the DEM. 
+Only useful to reproject your data with RPCs. 
+Not useful if your DEM has already a vertical CRS or if its height is already taken from the ellipsoid.
+
+- EOReader is able to detect the vertical CRS of the COPDEM (if COPDEM or Copernicus in its name).
+- :code:`xdem` has also a mechanism of auto-detection of some CRS. See their documentation for more details.
+"""
+
 SNAP_DEM_NAME = "EOREADER_SNAP_DEM_NAME"
 """
 Environment variable for overriding default DEM name used in SNAP.
