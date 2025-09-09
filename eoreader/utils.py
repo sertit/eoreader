@@ -546,12 +546,9 @@ def stack(band_xds: xr.Dataset, **kwargs) -> (xr.DataArray, type):
         .transpose("bands", "y", "x")
     )
 
-    if dtype == np.float32:
-        # Set nodata if needed (NaN values are already set)
-        if stack.rio.encoded_nodata != nodata:
-            stack = stack.astype(dtype).rio.write_nodata(
-                nodata, encoded=True, inplace=True
-            )
+    # Set nodata if needed (NaN values are already set)
+    if dtype == np.float32 and stack.rio.encoded_nodata != nodata:
+        stack = rasters.set_nodata(stack.astype(dtype), nodata)
 
     return stack, dtype
 

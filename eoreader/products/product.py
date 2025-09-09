@@ -1959,8 +1959,6 @@ class Product:
 
         return bands
 
-    # pylint: disable=R0913
-    # Too many arguments (6/5)
     def stack(
         self,
         bands: list,
@@ -1971,7 +1969,7 @@ class Product:
         **kwargs,
     ) -> xr.DataArray:
         """
-        Stack bands and index of a products.
+        Stack bands and index of a product.
 
         .. code-block:: python
 
