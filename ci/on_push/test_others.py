@@ -179,7 +179,7 @@ def test_products():
             save_as_int=True,
             stack_path=stack_path,
         )
-        with rasterio.open(stack_path) as ds:
+        with rasterio.open(str(stack_path)) as ds:
             assert ds.dtypes[0] == "uint16"
             assert stack.dtype == "float32"
 
@@ -190,7 +190,7 @@ def test_products():
             save_as_int=True,
             stack_path=stack_path,
         )
-        with rasterio.open(stack_path) as ds:
+        with rasterio.open(str(stack_path)) as ds:
             assert ds.dtypes[0] == "uint16"
             assert stack_2.dtype == "float32"
 
