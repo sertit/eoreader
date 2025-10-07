@@ -105,8 +105,8 @@ log_cli_format = "%(name)s: %(asctime)s - [%(levelname)s] - %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 log_cli_level = "INFO"
 filterwarnings = [
-    "ignore::PytestReturnNotNoneWarning",
-    "ignore::NotGeoreferencedWarning",
+    "ignore::pytest.PytestReturnNotNoneWarning",
+    "ignore::rasterio.errors.NotGeoreferencedWarning",
 ]
 
 [tool.coverage.run]
