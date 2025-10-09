@@ -28,7 +28,8 @@ import numpy as np
 import rasterio
 import rioxarray
 import xarray as xr
-from rasterio import crs
+from affine import Affine
+from rasterio import CRS, crs
 from rasterio.enums import Resampling
 from rasterio.windows import Window
 from sertit import AnyPath, geometry, misc, path, rasters, snap, strings, types, vectors
@@ -287,14 +288,45 @@ class SarProduct(Product):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
+        if self.is_ortho:
+            default_band_path = self.get_raw_band_paths()[self.get_default_band()]
+        else:
+            default_band_path = self.get_default_band_path()
+
         # Processed by SNAP: the nodata is set -> use get_footprint instead of vectorize
         downsampled_band = utils.read(
-            self.get_default_band_path(),
+            default_band_path,
             pixel_size=max(
                 self.resolution * 10, float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
             ),
         )
         return rasters.get_footprint(downsampled_band)
+
+    @cache
+    def default_transform(self, **kwargs) -> (Affine, int, int, CRS):
+        """
+        Returns default transform data of the default band (UTM),
+        as the :code:`rasterio.warp.calculate_default_transform` does:
+        - transform
+        - width
+        - height
+        - crs
+
+        Args:
+            kwargs: Additional arguments
+        Returns:
+            Affine, int, int, CRS: transform, width, height, CRS
+
+        """
+        if self.is_ortho:
+            default_band_path = self.get_raw_band_paths(**kwargs)[
+                self.get_default_band()
+            ]
+        else:
+            default_band_path = self.get_default_band_path(**kwargs)
+
+        with rasterio.open(str(default_band_path)) as dst:
+            return dst.transform, dst.width, dst.height, dst.crs
 
     def get_default_band(self) -> BandNames:
         """
@@ -398,11 +430,16 @@ class SarProduct(Product):
         Returns:
             gpd.GeoDataFrame: Extent in UTM
         """
-        # Get WGS84 extent
-        extent_wgs84 = self.wgs84_extent()
+        if self.is_ortho:
+            return rasters.get_extent(
+                self.get_raw_band_paths()[self.get_default_band()]
+            ).to_crs(self.crs())
+        else:
+            # Get WGS84 extent
+            extent_wgs84 = self.wgs84_extent()
 
-        # Convert to UTM
-        return extent_wgs84.to_crs(self.crs())
+            # Convert to UTM
+            return extent_wgs84.to_crs(self.crs())
 
     @cache
     def crs(self) -> crs.CRS:
@@ -420,11 +457,17 @@ class SarProduct(Product):
         Returns:
             crs.CRS: CRS object
         """
-        # Get WGS84 extent
-        extent_wgs84 = self.wgs84_extent()
+        if self.is_ortho:
+            with rasterio.open(
+                str(self.get_raw_band_paths()[self.get_default_band()])
+            ) as ds:
+                return ds.crs
+        else:
+            # Get WGS84 extent
+            extent_wgs84 = self.wgs84_extent()
 
-        # Estimate UTM from extent
-        return extent_wgs84.estimate_utm_crs()
+            # Estimate UTM from extent
+            return extent_wgs84.estimate_utm_crs()
 
     @abstractmethod
     def _set_sensor_mode(self) -> None:

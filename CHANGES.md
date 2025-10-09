@@ -13,6 +13,7 @@
 - FIX: Add a fallback in case of impossibleness of reading ICEYE `QUICKLOOK.kml` file
 - FIX: Manage the case of Maxar data with negative absolute calibration factor: don't compute the reflectance and leave it as is.
 - FIX: Fix DEM management with RPC orthorectification: handle correctly the vertical CRS (see DEM notebook and `EOREADER_DEM_VCRS` environment variable). [#53](https://github.com/sertit/eoreader/issues/53)
+- OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - CI: Filter some warnings in pytest
 
 ## 0.22.4 (2025-07-07)

@@ -26,8 +26,7 @@ from typing import Union
 import geopandas as gpd
 import rasterio
 from lxml import etree
-from rasterio import crs
-from sertit import path, rasters, vectors
+from sertit import path, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
 
@@ -345,51 +344,6 @@ class TsxProduct(SarProduct):
 
         # Post init done by the super class
         super()._post_init(**kwargs)
-
-    @cache
-    def extent(self) -> gpd.GeoDataFrame:
-        """
-        Get UTM extent of the tile
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.utm_extent()
-                                   Name  ...                                           geometry
-            0  Sentinel-1 Image Overlay  ...  POLYGON ((817914.501 4684349.823, 555708.624 4...
-            [1 rows x 12 columns]
-
-        Returns:
-            gpd.GeoDataFrame: Extent in UTM
-        """
-        if self.product_type == TsxProductType.EEC:
-            return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
-        else:
-            return super().extent()
-
-    @cache
-    def crs(self) -> crs.CRS:
-        """
-        Get UTM projection
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S1A_IW_GRDH_1SDV_20191215T060906_20191215T060931_030355_0378F7_3696.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.utm_crs()
-            CRS.from_epsg(32630)
-
-        Returns:
-            crs.CRS: CRS object
-        """
-        if self.product_type == TsxProductType.EEC:
-            with rasterio.open(str(self.get_default_band_path())) as ds:
-                return ds.crs
-        else:
-            return super().crs()
 
     @cache
     def wgs84_extent(self) -> gpd.GeoDataFrame:
