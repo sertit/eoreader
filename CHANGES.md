@@ -4,6 +4,7 @@
 
 - **ENH: Desambiguate condensed name of Custom stack in case of creation of several objects with the same datetime and same constellation and product type**
 - **ENH: Fix corrupted Maxar products with incoherent width between .IMD and .TIL files** [#242](https://github.com/sertit/eoreader/issues/242)
+- **ENH: Add TerraSAR-X management of default resolution and pixel size for RE data**
 - FIX: Fix regression when stacking with a custom nodata value with VHR data to be reprojected
 - FIX: Fix an unprecedented case with a PNEO having different name than usual (`DIM_PNEO3_STD_2025...` instead of `DIM_PNEO3_2025...`)
 - FIX: Fix WV Legion wrong band order in Multi Spectral 1 mode [#246](https://github.com/sertit/eoreader/issues/246)
@@ -11,7 +12,7 @@
 - FIX: Loosen the constraints on PlanetScope stack name as it may change, from `Analytic` to `composite`, etc. [#244](https://github.com/sertit/eoreader/issues/244)
 - FIX: Add a fallback in case of impossibleness of reading ICEYE `QUICKLOOK.kml` file
 - FIX: Manage the case of Maxar data with negative absolute calibration factor: don't compute the reflectance and leave it as is.
-- FIX: Fix DEM management with RPC orthorectification: handle correctly the vertical CRS (see dem notebook and `EOREADER_DEM_VCRS` environment variable). [#53](https://github.com/sertit/eoreader/issues/53)
+- FIX: Fix DEM management with RPC orthorectification: handle correctly the vertical CRS (see DEM notebook and `EOREADER_DEM_VCRS` environment variable). [#53](https://github.com/sertit/eoreader/issues/53)
 - CI: Filter some warnings in pytest
 
 ## 0.22.4 (2025-07-07)

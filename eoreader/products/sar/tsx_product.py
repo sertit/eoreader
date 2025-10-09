@@ -196,8 +196,6 @@ class TsxProduct(SarProduct):
             - We force Spatially Enhanced Resolution (SE) as we keep SSC resolutions (as per the ESA Data Access Portfolio)
             - We use the pixel_size from SE products, with incidence angle corresponding to the SSC resolution (or the highest pixel_spacing)
         """
-        # TODO: Manage RE case? Not handled by Copernicus EMS, so be careful...
-
         # Read metadata
         try:
             root, _ = self.read_mtd()
@@ -205,6 +203,8 @@ class TsxProduct(SarProduct):
             polarization = TsxPolarization.from_value(
                 acq_info.findtext(".//polarisationMode")
             )
+            res_variant = root.findtext(".//resolutionVariant")
+            is_re = res_variant == "RE"
         except (InvalidProductError, TypeError) as exc:
             raise InvalidProductError(
                 "acquisitionInfo or polarisationMode not found in metadata!"
@@ -214,29 +214,57 @@ class TsxProduct(SarProduct):
         def_pixel_size = None
         if self.sensor_mode == TsxSensorMode.HS:
             if polarization == TsxPolarization.S:
-                def_pixel_size = 0.5
-                def_res = 1.1
+                if is_re:
+                    def_pixel_size = 1.5
+                    def_res = 3.1
+                else:
+                    def_pixel_size = 0.5
+                    def_res = 1.4
             elif polarization == TsxPolarization.D:
-                def_pixel_size = 1.0
-                def_res = 2.2
+                if is_re:
+                    def_pixel_size = 2.0
+                    def_res = 4.4
+                else:
+                    def_pixel_size = 1.0
+                    def_res = 2.2
         elif self.sensor_mode == TsxSensorMode.SL:
             if polarization == TsxPolarization.S:
-                def_pixel_size = 0.75
-                def_res = 1.7
+                if is_re:
+                    def_pixel_size = 1.75
+                    def_res = 3.8
+                else:
+                    def_pixel_size = 0.75
+                    def_res = 1.7
             elif polarization == TsxPolarization.D:
-                def_pixel_size = 1.0
-                def_res = 3.4
+                if is_re:
+                    def_pixel_size = 2.5
+                    def_res = 5.5
+                else:
+                    def_pixel_size = 1.0
+                    def_res = 3.4
         elif self.sensor_mode == TsxSensorMode.ST:
             if polarization == TsxPolarization.S:
-                def_pixel_size = 0.2
-                def_res = 0.24
+                if is_re:
+                    def_pixel_size = 0.4
+                    def_res = 0.9
+                else:
+                    def_pixel_size = 0.2
+                    def_res = 0.24
         elif self.sensor_mode == TsxSensorMode.SM:
             if polarization == TsxPolarization.S:
-                def_pixel_size = 1.25
-                def_res = 3.3
+                if is_re:
+                    def_pixel_size = 3.25
+                    def_res = 7.0
+                else:
+                    def_pixel_size = 1.25
+                    def_res = 3.3
             elif polarization == TsxPolarization.D:
-                def_pixel_size = 3.0
-                def_res = 6.6
+                if is_re:
+                    def_pixel_size = 4.5
+                    def_res = 9.9
+                else:
+                    def_pixel_size = 3.0
+                    def_res = 6.6
         elif self.sensor_mode == TsxSensorMode.SC:
             # Read metadata
             try:
@@ -262,6 +290,12 @@ class TsxProduct(SarProduct):
                 f"Unknown sensor mode: {self.sensor_mode} or unknown polarization: {polarization}"
             )
 
+        # Overrides the pixel size for ortho EEC products
+        if self.product_type == TsxProductType.EEC:
+            with rasterio.open(
+                str(self.get_raw_band_paths()[self.get_default_band()])
+            ) as ds:
+                def_pixel_size = ds.res[0]
         self.pixel_size = def_pixel_size
         self.resolution = def_res
 
