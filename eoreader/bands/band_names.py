@@ -327,6 +327,7 @@ class SpectralBandNames(BandNames):
 
 # -- SPECTRAL BANDS --
 CA = SpectralBandNames.CA  # Coastal aerosol
+DEEP_BLUE = SpectralBandNames.DEEP_BLUE
 BLUE = SpectralBandNames.BLUE
 DEEP_BLUE = SpectralBandNames.DEEP_BLUE
 GREEN = SpectralBandNames.GREEN
@@ -800,6 +801,31 @@ class S2TheiaMaskBandNames(MaskBandNames):
 
     CLM = "CLM"
     """ Sentinel-2 THEIA mask - Cloud masks """
+
+
+class VenusMaskBandNames(MaskBandNames):
+    """Venus Theia Mask Band names"""
+
+    CLM = "CLM"
+    """ Venus mask - Cloud masks """
+
+    EDG = "EDG"
+    """ Venus mask - Nodata pixels """
+
+    SAT = "SAT"
+    """ Venus mask - Saturated pixels """
+
+    MG2 = "MG2"
+    """ Venus mask - Geophysical mask (classification) """
+
+    IAB = "IAB"
+    """ Venus mask - Mask where water vapor and TOA pixels have been interpolated """
+
+    PIX = "PIX"
+    """ Venus mask - Aberrant_Pixels """
+
+    USI = "USI"
+    """ Venus mask - Useful Image """
 
 
 # Mask bands are not exposed as other bands (great risks of overlap between names!)
