@@ -41,6 +41,7 @@ from eoreader.bands import (
     SpectralBandMap,
     is_sat_band,
     to_band,
+    to_str,
 )
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.product import OrbitDirection, Product, SensorType
@@ -369,8 +370,15 @@ class CustomProduct(Product):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
+
         for band in band_list:
-            band_paths[band] = self.path
+            read_band, exists = self._is_existing(
+                self.get_band_file_name(band, pixel_size, **kwargs)
+            )
+            if exists:
+                band_paths[band] = read_band
+            else:
+                band_paths[band] = self.path
         return band_paths
 
     def get_existing_band_paths(self) -> dict:
@@ -392,8 +400,6 @@ class CustomProduct(Product):
         """
         return [name for name, nb in self.bands.items() if nb]
 
-    # unused band_name (compatibility reasons)
-    # pylint: disable=W0613
     def _read_band(
         self,
         band_path: AnyPathType,
@@ -418,7 +424,8 @@ class CustomProduct(Product):
             xr.DataArray: Band xarray
 
         """
-        return utils.read(
+        band_name = to_str(band)[0]
+        band_arr = utils.read(
             band_path,
             pixel_size=pixel_size,
             size=size,
@@ -426,7 +433,18 @@ class CustomProduct(Product):
             indexes=[self.bands[band].id],
             as_type=np.float32,
             **kwargs,
+        ).rename(band_name)
+
+        band_arr.attrs["long_name"] = band_name
+
+        # Write file (in case the original file has a different resolution or window, etc.)
+        file_path, exists = self._is_existing(
+            self.get_band_file_name(band, pixel_size=pixel_size, size=size, **kwargs)
         )
+        if not exists:
+            band_arr = utils.write_path_in_attrs(band_arr, file_path)
+            utils.write(band_arr, file_path, dtype=np.float32)
+        return band_arr
 
     def _load_bands(
         self,
