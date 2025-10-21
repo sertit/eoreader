@@ -1,0 +1,51 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: EOReader
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Remi
+    family-names: Braun
+    affiliation: ICube-SERTIT
+  - given-names: Michal
+    family-names: Parusinski
+  - given-names: Jules
+    family-names: Teulade
+  - given-names: guillem
+    family-names: oreno
+    affiliation: PooPals Inc. @poopals
+  - given-names: Bastien
+    family-names: Coriat
+  - given-names: Emmanuel
+    family-names: Ferdman
+  - given-names: TabeaW
+    family-names: TabeaW
+    affiliation: DLR
+  - given-names: Jayanth
+    family-names: Siddamsetty
+  - given-names: Florian
+    family-names: Deboissieu
+  - given-names: Arthur
+    family-names: Vincent
+    affiliation: CS GROUP
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.15831875
+repository-code: 'https://github.com/sertit/eoreader'
+url: 'https://eoreader.readthedocs.io/stable/'
+abstract: >
+  EOReader is a Python library developed by ICube-SERTIT (University of Strasbourg)
+  designed to open, read, and harmonize Earth Observation products (optical and radar)
+  from multiple satellite constellations (Sentinel, Landsat, Pléiades, SPOT, and more).
+  It provides a unified interface to access spectral bands, metadata, cloud masks,
+  and other physical parameters, with a strong focus on multi-sensor interoperability.
+keywords:
+  - Python
+  - Earth Observation
+  - Remote Sensing
+  - Data Harmonization
+license: Apache-2.0
