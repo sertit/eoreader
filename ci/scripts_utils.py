@@ -41,7 +41,7 @@ def get_ci_db_dir() -> AnyPathType:
     if int(os.getenv(CI_EOREADER_S3, 0)):
         # ON S3
         unistra.define_s3_client()
-        return AnyPath("s3://sertit-eoreader-ci")
+        return AnyPath("s3://sertit-ci/eoreader")
     else:
         # ON DISK
         try:
