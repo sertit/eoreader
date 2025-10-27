@@ -15,6 +15,7 @@
 - FIX: Manage the case of Maxar data with negative absolute calibration factor: don't compute the reflectance and leave it as is.
 - FIX: Fix DEM management with RPC orthorectification: handle correctly the vertical CRS (see DEM notebook and `EOREADER_DEM_VCRS` environment variable). [#53](https://github.com/sertit/eoreader/issues/53)
 - FIX: Add `DISPLAY` as DIMAP-V2 radiometric processings [#249](https://github.com/sertit/eoreader/issues/249)
+- FIX: Change RADARSAT-2 file regex to identify the product, to avoid confusion with others [#250](https://github.com/sertit/eoreader/issues/250)
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - CI: Filter some warnings in pytest
 

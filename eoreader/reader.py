@@ -360,7 +360,7 @@ _MAXAR_MTD_REGEX = r"\d{2}\w{3}\d{8}-.*.TIL"
 MTD_REGEX = {
     Constellation.S1: {
         "nested": 1,
-        # File that can be found at any level (product/**/file)
+        # File that can be found at first level (product/*/file)
         "regex": r".*s1[abcd]-(iw|ew|sm|wv|s\d)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}(-cog|)\.xml",
     },
     Constellation.S2: {"nested": 2, "regex": r"MTD_TL.xml"},
@@ -393,10 +393,11 @@ MTD_REGEX = {
     Constellation.TSX: rf"{CONSTELLATION_REGEX[Constellation.TSX]}\.xml",
     Constellation.TDX: rf"{CONSTELLATION_REGEX[Constellation.TDX]}\.xml",
     Constellation.PAZ: rf"{CONSTELLATION_REGEX[Constellation.PAZ]}\.xml",
-    Constellation.RS2: [
-        r"product\.xml",  # Too generic name, check also a band
-        r"imagery_[HV]{2}\.tif",
-    ],
+    Constellation.RS2: {
+        "nested": 1,
+        # File that can be found at first level (product/*/file)
+        "regex": r"rs2prod.*\.xsd",
+    },
     Constellation.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Constellation.PNEO: r"DIM_PNEO\d_(\w+_|)\d{15}_(PMS-FS|MS-FS|PMS|MS|P)_(SEN|PRJ|ORT|MOS)_.{8,}(-.{4,}-.{4,}-.{4,}-.{12,}|_._._._.)\.XML",
     Constellation.SPOT7: r"DIM_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
