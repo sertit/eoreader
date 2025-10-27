@@ -9,17 +9,17 @@ from typing import Union
 import pytest
 import xarray as xr
 from lxml import etree
-from sertit import path, types
+from sertit import AnyPath, path, types
 
 from ci.scripts_utils import (
     CI_EOREADER_S3,
     READER,
     dask_env,
     get_ci_db_dir,
+    get_db_dir,
     get_db_dir_on_disk,
     opt_path,
     reduce_verbosity,
-    set_dem,
 )
 from eoreader import EOREADER_NAME
 from eoreader.bands import (
@@ -46,7 +46,10 @@ from eoreader.bands import (
     Oa01,
 )
 from eoreader.env_vars import (
+    DEM_PATH,
+    S3_DB_URL_ROOT,
     SAR_DEF_PIXEL_SIZE,
+    TEST_USING_S3_DB,
 )
 from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import S2Product, SlstrRadAdjust
@@ -63,6 +66,36 @@ MERIT_DEM_SUB_DIR_PATH = [
 WRITE_ON_DISK = False
 
 reduce_verbosity()
+
+
+def set_dem(dem_path):
+    """Set DEM"""
+    if dem_path:
+        dem_path = AnyPath(dem_path)
+        if not dem_path.is_file():
+            raise FileNotFoundError(f"Not existing DEM: {dem_path}")
+        os.environ[DEM_PATH] = str(dem_path)
+    else:
+        if os.environ.get(TEST_USING_S3_DB) not in ("Y", "YES", "TRUE", "T", "1"):
+            try:
+                merit_dem = get_db_dir().joinpath(*MERIT_DEM_SUB_DIR_PATH)
+                # eudem_path = os.path.join(utils.get_db_dir(), 'GLOBAL', "EUDEM_v2", "eudem_wgs84.tif")
+                os.environ[DEM_PATH] = str(merit_dem)
+            except NotADirectoryError as ex:
+                LOGGER.debug("Non available default DEM: %s", ex)
+                pass
+        else:
+            if S3_DB_URL_ROOT not in os.environ:
+                raise Exception(
+                    f"You must specify the S3 db root using env variable {S3_DB_URL_ROOT} if you activate S3_DB"
+                )
+            merit_dem = "/".join(
+                [os.environ.get(S3_DB_URL_ROOT), *MERIT_DEM_SUB_DIR_PATH]
+            )
+            os.environ[DEM_PATH] = merit_dem
+            LOGGER.info(
+                f"Using DEM provided through Unistra S3 ({os.environ[DEM_PATH]})"
+            )
 
 
 def _test_core_optical(
@@ -136,7 +169,7 @@ def _test_core(
         possible_bands(list): Possible bands
         debug (bool): Debug option
     """
-    set_dem()
+    set_dem(dem_path)
 
     with xr.set_options(warn_for_unclosed_files=debug):
         # DATA paths
