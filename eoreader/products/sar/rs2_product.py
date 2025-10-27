@@ -205,6 +205,7 @@ class Rs2Product(SarProduct):
                 Rs2ProductType.SCN,
                 Rs2ProductType.SCF,
                 Rs2ProductType.SCS,
+                Rs2ProductType.SGF,  # Not in table...
             ]:
                 def_pixel_size = 25.0
                 def_res = 50.0
@@ -547,8 +548,8 @@ class Rs2Product(SarProduct):
         if not reader.valid_name(name, self._get_constellation()):
             LOGGER.warning(
                 "This RADARSAT-2 filename is not valid. "
-                "However RADARSAT-2 files do not provide anywhere the true name of the product. "
-                "Use it with caution."
+                "However RADARSAT-2 files do not provide anywhere in the metadata the conventional name of the product. "
+                "This may have border effects."
             )
 
         return name
