@@ -362,7 +362,12 @@ class Sv1Product(VhrProduct):
             root, _ = self.read_mtd()
             datetime_str = root.findtext(".//StartTime")
             if not datetime_str:
-                raise InvalidProductError("Cannot find StartTime in the metadata file.")
+                datetime_str = root.findtext(".//ReceiveTime")
+
+            if not datetime_str:
+                raise InvalidProductError(
+                    "Cannot find StartTime or ReceiveTime in the metadata file."
+                )
 
             # WARNING: in Beijing time!
             date_dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S").replace(
@@ -503,8 +508,8 @@ class Sv1Product(VhrProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
-        mtd_from_path = "MUX*.xml"
-        mtd_archived = r"MUX.*\.xml"
+        mtd_from_path = "MUX.xml"
+        mtd_archived = r"MUX\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
@@ -516,8 +521,8 @@ class Sv1Product(VhrProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
-        mtd_from_path = "PAN*.xml"
-        mtd_archived = r"PAN.*\.xml"
+        mtd_from_path = "PAN.xml"
+        mtd_archived = r"PAN\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 

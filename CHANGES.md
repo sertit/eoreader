@@ -18,6 +18,7 @@
 - FIX: Add `DISPLAY` as DIMAP-V2 radiometric processings [#249](https://github.com/sertit/eoreader/issues/249)
 - FIX: Change RADARSAT-2 file regex to identify the product, to avoid confusion with others [#250](https://github.com/sertit/eoreader/issues/250)
 - FIX: Add SGF product type for SCN sensor mode for RADARSAT-2 [#251](https://github.com/sertit/eoreader/issues/251)
+- FIX: Precise metadata regex for SuperView data [#253](https://github.com/sertit/eoreader/issues/253)
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - CI: Filter some warnings in pytest
 
