@@ -170,6 +170,13 @@ class DimapV2RadiometricProcessing(ListEnum):
     In this case, the spectral properties cannot be retrieved since the initial images have undergone several radiometric adjustments for aesthetic rendering.
     """
 
+    DISPLAY = "DISPLAY"
+    """
+    In the Display radiometric option, a true colour curve has been applied to the image directly usable for visualisation on screen. 
+    The colour curve is the LUT computed by the Reflectance processing. 
+    The image true colour is properly retrieved from sensor calibration and correction of systematic effects of the atmosphere.
+    """
+
 
 @unique
 class DimapV2BandCombination(ListEnum):
@@ -257,6 +264,7 @@ class DimapV2Product(VhrProduct):
     ) -> None:
         self._empty_mask = []
         self._altitude = None
+        self._rad_proc = None
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
@@ -272,13 +280,13 @@ class DimapV2Product(VhrProduct):
 
         # Raw units
         root, _ = self.read_mtd()
-        rad_proc = DimapV2RadiometricProcessing.from_value(
+        self._rad_proc = DimapV2RadiometricProcessing.from_value(
             root.findtext(".//RADIOMETRIC_PROCESSING")
         )
 
-        if rad_proc == DimapV2RadiometricProcessing.REFLECTANCE:
+        if self._rad_proc == DimapV2RadiometricProcessing.REFLECTANCE:
             self._raw_units = RawUnits.REFL
-        elif rad_proc in [
+        elif self._rad_proc in [
             DimapV2RadiometricProcessing.BASIC,
             DimapV2RadiometricProcessing.LINEAR_STRETCH,
         ]:
@@ -721,9 +729,9 @@ class DimapV2Product(VhrProduct):
 
         else:
             LOGGER.warning(
-                "The spectral properties of a SEAMLESS radiometric processed image "
+                f"The spectral properties of a {self._rad_proc.value} radiometric processed image "
                 "cannot be retrieved since the initial images have undergone "
-                "several radiometric adjustments for aesthetic rendering."
+                "several radiometric adjustments for aesthetic rendering. "
                 "Returned as is."
             )
 

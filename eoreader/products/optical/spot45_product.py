@@ -583,9 +583,9 @@ class Spot45Product(DimapV1Product):
 
         else:
             LOGGER.warning(
-                "The spectral properties of a SEAMLESS radiometric processed image "
+                f"The spectral properties of a {self._rad_proc.value} radiometric processed image "
                 "cannot be retrieved since the initial images have undergone "
-                "several radiometric adjustments for aesthetic rendering."
+                "several radiometric adjustments for aesthetic rendering. "
                 "Returned as is."
             )
 
