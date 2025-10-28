@@ -17,11 +17,12 @@ def pytest_addoption(parser):
     )
 
 
-@pytest.fixture(autouse=True)
-def patch_ci_db_dir(request, monkeypatch):
-    ci_db_dir = request.config.getoption("--ci_db_dir")
+def pytest_sessionstart(session):
+    ci_db_dir = session.config.getoption("--ci_db_dir")
     if ci_db_dir:
-        monkeypatch.setattr("ci.scripts_utils.get_ci_db_dir", lambda: Path(ci_db_dir))
+        import ci.scripts_utils
+
+        ci.scripts_utils.get_ci_db_dir = lambda: Path(ci_db_dir)
 
 
 @dataclass

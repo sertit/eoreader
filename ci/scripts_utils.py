@@ -13,7 +13,7 @@ from sertit.types import AnyPathStrType, AnyPathType
 from sertit.unistra import get_db2_path, get_db3_path, get_geodatastore
 
 from eoreader import EOREADER_NAME
-from eoreader.env_vars import TILE_SIZE
+from eoreader.env_vars import DEM_PATH, TILE_SIZE
 from eoreader.reader import Reader
 from eoreader.utils import use_dask
 
@@ -21,6 +21,36 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 READER = Reader()
 
 CI_EOREADER_S3 = "CI_EOREADER_USE_S3"
+
+
+def set_dem() -> str:
+    """
+    Retrieve the DEM path from the environment or use a default path.
+
+    This function checks if the `EOREADER_DEM_PATH` environment variable is set.
+    If not, it attempts to use a predefined default path. If that default path
+    does not exist on the filesystem, a FileNotFoundError is raised.
+
+    Returns:
+        str: Absolute path to the DEM directory.
+
+    Raises:
+        FileNotFoundError: If no DEM path is set and the default path doesn't exist.
+    """
+    default_dem_path = "/path/to/default/dem"
+
+    dem_path = os.getenv("EOREADER_DEM_PATH")
+
+    if dem_path is None:
+        if os.path.exists(default_dem_path):
+            dem_path = default_dem_path
+            os.environ[DEM_PATH] = dem_path
+        else:
+            raise FileNotFoundError(
+                f"EOREADER_DEM_PATH is not set and default path '{default_dem_path}' does not exist."
+            )
+
+    return dem_path
 
 
 def get_ci_dir() -> AnyPathType:

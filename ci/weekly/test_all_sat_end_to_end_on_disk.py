@@ -169,7 +169,6 @@ def _test_core(
         possible_bands(list): Possible bands
         debug (bool): Debug option
     """
-    # Set DEM
     set_dem(dem_path)
 
     with xr.set_options(warn_for_unclosed_files=debug):
@@ -207,9 +206,7 @@ def _test_core(
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 if WRITE_ON_DISK:
-                    tmp_dir = os.path.join(
-                        "/mnt", "ds2_db3", "CI", "eoreader", "e2e_satellites"
-                    )
+                    tmp_dir = os.path.join(tmpdir, prod.condensed_name)
                 output = tmp_dir
                 is_zip = "_ZIP" if prod.is_archived else ""
                 prod.output = os.path.join(output, f"{prod.condensed_name}{is_zip}")
@@ -329,6 +326,7 @@ def test_s1_slc_zip(capfd, eoreader_tests_path):
 
 
 test_optical_constellations_cases = [
+    pytest.param("*VENUS*", {}, id="venus"),
     pytest.param("*S2*_MSI*T30*", {}, id="s2"),
     pytest.param("*SENTINEL2*", {}, id="s2_theia"),
     pytest.param("*S3*_OL_1_*", {}, id="s3_olci"),

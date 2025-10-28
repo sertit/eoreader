@@ -2,6 +2,7 @@
 
 ## 0.23.0 (2025-mm-dd)
 
+- **ENH: Adding the support of `VENUS` sensor** [#235](https://github.com/sertit/eoreader/issues/235) - by @ArthurVincentCS
 - **ENH: Desambiguate condensed name of Custom stack in case of creation of several objects with the same datetime and same constellation and product type**
 - **ENH: Fix corrupted Maxar products with incoherent width between .IMD and .TIL files** [#242](https://github.com/sertit/eoreader/issues/242)
 - **ENH: Add TerraSAR-X management of default resolution and pixel size for RE data**

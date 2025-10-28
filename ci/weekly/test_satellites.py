@@ -314,7 +314,6 @@ def _test_core(
         tmpdir(Path): path to store temporary data
         debug (bool): Debug option
     """
-    # Set DEM
     test_satellites.set_dem(dem_path)
 
     with xr.set_options(warn_for_unclosed_files=debug):
@@ -412,6 +411,7 @@ def core(prod_path, possible_bands, debug, tmpdir, **kwargs):
 
 
 test_optical_constellations_cases = [
+    pytest.param("*VENUS*", {}, id="venus"),
     pytest.param("*S2*_MSI*_N7*", {}, id="s2_after_04_00"),
     pytest.param("*S2*_MSI*_N02*", {}, id="s2_before_04_00"),
     pytest.param("*SENTINEL2*", {}, id="s2_theia"),

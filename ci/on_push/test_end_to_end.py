@@ -147,7 +147,6 @@ def _test_core(
         possible_bands(list): Possible bands
         debug (bool): Debug option
     """
-    # Set DEM
     set_dem(dem_path)
 
     with xr.set_options(warn_for_unclosed_files=debug):
