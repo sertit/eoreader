@@ -18,7 +18,7 @@ clouds, DEM and spectral indices in a sensor-agnostic way.
 ## 🛰️ Managed constellations
 
 ### Optical
-[![Sentinel-2 SAFE and Theia Sentinel-3 OLCI and SLSTR Landsat 1 to 9 Harmonized Landsat-Sentinel PlanetScope, SkySat and RapidEye Pleiades and Pleiades-Neo SPOT-6/7 and 4/5 Vision-1 Maxar (WorldViews, GeoEye) SuperView-1 GEOSAT-2](https://i.postimg.cc/KvhYHv23/optical-sensors.png)](https://eoreader.readthedocs.io/latest/optical.html)
+[![Sentinel-2 SAFE and Theia Sentinel-3 OLCI and SLSTR Venus Landsat 1 to 9 Harmonized Landsat-Sentinel PlanetScope, SkySat and RapidEye Pleiades and Pleiades-Neo SPOT-6/7 and 4/5 Vision-1 Maxar (WorldViews, GeoEye) SuperView-1 GEOSAT-2](https://zupimages.net/up/25/44/4ek9.png)](https://eoreader.readthedocs.io/latest/optical.html)
 
 ### SAR
 [![Sentinel-1 COSMO-Skymed 1st and 2nd Generation TerraSAR-X, TanDEM-X and PAZ SAR RADARSAT-2 and RADARSAT-Constellation ICEYE SAOCOM Capella](https://i.postimg.cc/GhPpwwL7/sar-sensors.png)](https://eoreader.readthedocs.io/latest/sar.html)
@@ -71,7 +71,7 @@ stack = s2_prod.stack([RED, GREEN, BLUE], stack_path="s2_rgb_stack.tif")
 ```
 
 EOReader aligns spectral bands from every handled sensor in order to make any call to a band generic:  
-[![Optical Band Mapping](https://zupimages.net/up/23/40/0zgb.png)](https://eoreader.readthedocs.io/latest/optical_band_mapping.html)
+[![Optical Band Mapping](https://zupimages.net/up/25/44/jn42.png)](https://eoreader.readthedocs.io/latest/optical_band_mapping.html)
 
 ### SAR
 In the same way, you can import and stack radar band from any handled SAR constellation, with the same pattern.
