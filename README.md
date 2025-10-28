@@ -71,7 +71,7 @@ stack = s2_prod.stack([RED, GREEN, BLUE], stack_path="s2_rgb_stack.tif")
 ```
 
 EOReader aligns spectral bands from every handled sensor in order to make any call to a band generic:  
-[![Optical Band Mapping](https://zupimages.net/up/25/44/bedd.png)](https://eoreader.readthedocs.io/latest/optical_band_mapping.html)
+[![Optical Band Mapping](https://zupimages.net/up/25/44/i20v.png)](https://eoreader.readthedocs.io/latest/optical_band_mapping.html)
 
 ### SAR
 In the same way, you can import and stack radar band from any handled SAR constellation, with the same pattern.
