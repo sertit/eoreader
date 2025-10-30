@@ -2569,10 +2569,10 @@ class Product:
     def _orthorectify(
         self,
         src_xda: xr.DataArray,
-        rpcs: rpc.RPC,
-        gcps: control.GroundControlPoint,
         dem_path: str,
         ortho_path: AnyPathStrType,
+        rpcs: rpc.RPC = None,
+        gcps: control.GroundControlPoint = None,
         pixel_size: float = None,
         **kwargs,
     ) -> xr.DataArray:
