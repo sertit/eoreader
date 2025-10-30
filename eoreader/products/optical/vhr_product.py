@@ -154,7 +154,12 @@ class VhrProduct(OpticalProduct):
                     # TODO: change this when available in rioxarray
                     # See https://github.com/corteva/rioxarray/issues/837
                     rpcs = kwargs.pop("rpcs") if "rpcs" in kwargs else ds.rpcs
-                    gcps = kwargs.pop("gcps") if "gcps" in kwargs else ds.gcps[0]
+
+                    # Only look for GCPs if RPCs are absent
+                    if not rpcs:
+                        gcps = kwargs.pop("gcps") if "gcps" in kwargs else ds.gcps[0]
+                    else:
+                        gcps = None
 
                 if not rpcs and not gcps:
                     raise InvalidProductError(
