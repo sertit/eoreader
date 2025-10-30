@@ -21,6 +21,7 @@
 - FIX: Precise metadata regex for SuperView data [#253](https://github.com/sertit/eoreader/issues/253)
 - FIX: Handle old DIMAP V1 data [#234](https://github.com/sertit/eoreader/issues/234)
 - FIX: Handle GCPs in VHR data
+- FIX: Fix raw CRS exported as string rather than CRS object for Maxar data [#255](https://github.com/sertit/eoreader/issues/255)
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - CI: Filter some warnings in pytest
 - DOC: Add a CITATION file [#262](https://github.com/sertit/eoreader/issues/262)

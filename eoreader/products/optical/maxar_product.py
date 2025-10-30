@@ -1193,6 +1193,9 @@ class MaxarProduct(VhrProduct):
                 "Only Geographic or UTM map projections are supported yet"
             )
 
+        if isinstance(crs, str):
+            crs = riocrs.CRS.from_string(crs)
+
         return crs
 
     @cache
