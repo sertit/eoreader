@@ -114,97 +114,96 @@ class CsgProduct(CosmoProduct):
 
         # See page 63
         nof_range_looks = int(self.split_name[4][:2])
-        nof_az_looks = int(self.split_name[4][:-2])
 
         if self.sensor_mode == CsgSensorMode.S2A:
-            if nof_range_looks == 1 and nof_az_looks == 1:
+            if nof_range_looks == 1:
                 def_res = 0.4
                 def_pixel_size = 0.15
                 # Apodized: 0.12
-            elif nof_range_looks == 2 and nof_az_looks == 2:
+            elif nof_range_looks == 2:
                 def_res = 0.7
                 def_pixel_size = 0.3
-            elif nof_range_looks == 3 and nof_az_looks == 3:
+            elif nof_range_looks == 3:
                 def_res = 1.0
                 def_pixel_size = 0.45
 
         elif self.sensor_mode in [CsgSensorMode.S2B, CsgSensorMode.S2_MSOS]:
-            if nof_range_looks == 1 and nof_az_looks == 1:
+            if nof_range_looks == 1:
                 def_res = 0.7
                 def_pixel_size = 0.25
                 # Apodized: 0.2
-            elif nof_range_looks == 2 and nof_az_looks == 2:
+            elif nof_range_looks == 2:
                 def_res = 1.2
                 def_pixel_size = 0.5
-            elif nof_range_looks == 4 and nof_az_looks == 4:
+            elif nof_range_looks == 4:
                 def_res = 2.3
                 def_pixel_size = 1.0
 
         elif self.sensor_mode == CsgSensorMode.S2C:
-            if nof_range_looks == 1 and nof_az_looks == 1:
+            if nof_range_looks == 1:
                 def_res = 0.8
                 def_pixel_size = 0.3
                 # Apodized: 0.24
-            elif nof_range_looks == 2 and nof_az_looks == 2:
+            elif nof_range_looks == 2:
                 def_res = 1.4
                 def_pixel_size = 0.6
-            elif nof_range_looks == 3 and nof_az_looks == 3:
+            elif nof_range_looks == 3:
                 def_res = 2.1
                 def_pixel_size = 0.9
 
         elif self.sensor_mode == CsgSensorMode.PP:
-            if nof_range_looks == 1 and nof_az_looks == 1:
+            if nof_range_looks == 1:
                 def_res = 12.0
                 def_pixel_size = 2.0
-            elif nof_range_looks == 2 and nof_az_looks == 1:
+            elif nof_range_looks == 2:
                 def_res = 12.0
                 def_pixel_size = 4.0
-            elif nof_range_looks == 5 and nof_az_looks == 2:
+            elif nof_range_looks == 5:
                 def_res = 22.5
                 def_pixel_size = 10.0
 
         elif self.sensor_mode == CsgSensorMode.SC1:
             # Case SCS
             # TODO: is this OK?
-            if nof_range_looks == 1 and nof_az_looks == 1:
+            if nof_range_looks == 1:
                 def_res = 20.0
                 def_pixel_size = 14.0
             # GRD
-            elif nof_range_looks == 3 and nof_az_looks == 1:
+            elif nof_range_looks == 3:
                 def_res = 20.0
                 def_pixel_size = 5.0
-            elif nof_range_looks == 5 and nof_az_looks == 1:
+            elif nof_range_looks == 5:
                 def_res = 23.0
                 def_pixel_size = 10.0
-            elif nof_range_looks == 8 and nof_az_looks == 2:
+            elif nof_range_looks == 8:
                 def_res = 35.0
                 def_pixel_size = 15.0
 
         elif self.sensor_mode == CsgSensorMode.SC2:
             # Case SCS
             # TODO: is this OK?
-            if nof_range_looks == 1 and nof_az_looks == 1:
+            if nof_range_looks == 1:
                 def_res = 40.0
                 def_pixel_size = 27.0
             # GRD
-            elif nof_range_looks == 4 and nof_az_looks == 1:
+            elif nof_range_looks == 4:
                 def_res = 40.0
                 def_pixel_size = 10.0
-            elif nof_range_looks == 7 and nof_az_looks == 1:
+            elif nof_range_looks == 7:
                 def_res = 47.0
                 def_pixel_size = 20.0
-            elif nof_range_looks == 16 and nof_az_looks == 3:
+            elif nof_range_looks == 16:
                 def_res = 115.0
                 def_pixel_size = 50.0
 
         elif self.sensor_mode in [CsgSensorMode.SM, CsgSensorMode.QP]:
-            if nof_range_looks == 1 and nof_az_looks == 1:
+            if nof_range_looks == 1:
                 def_res = 3.0
                 def_pixel_size = 1.25
-            elif nof_range_looks == 2 and nof_az_looks == 2:
+            elif nof_range_looks == 2:
                 def_res = 5.6
                 def_pixel_size = 2.5
-            elif nof_range_looks == 4 and nof_az_looks == 4:
+            elif nof_range_looks == 4:
                 def_res = 11.2
                 def_pixel_size = 5.0
 
