@@ -1140,7 +1140,7 @@ class DimapV2Product(VhrProduct):
                         with rasterio.open(str(self._get_tile_path())) as ds:
                             rpcs = ds.rpcs
 
-                        reproj_data = self._reproject(
+                        reproj_data = self._orthorectify(
                             mask_raster,
                             rpcs=rpcs,
                             dem_path=dem_path,

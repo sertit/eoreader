@@ -526,7 +526,7 @@ class UmbraProduct(SarProduct):
                         f"GEC file has RPCs: orthorectifying {band.name} band with {files.get_filename(dem_path)}"
                     )
                     arr = utils.read(self._get_gec_path())
-                    self._reproject(
+                    self._orthorectify(
                         arr,
                         pixel_size=pixel_size,
                         rpcs=ds.rpcs,

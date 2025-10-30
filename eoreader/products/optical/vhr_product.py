@@ -154,22 +154,24 @@ class VhrProduct(OpticalProduct):
                     # TODO: change this when available in rioxarray
                     # See https://github.com/corteva/rioxarray/issues/837
                     rpcs = kwargs.pop("rpcs") if "rpcs" in kwargs else ds.rpcs
+                    gcps = kwargs.pop("gcps") if "gcps" in kwargs else ds.gcps[0]
 
-                if not rpcs:
+                if not rpcs and not gcps:
                     raise InvalidProductError(
-                        "Your projected VHR data doesn't have any RPC. "
+                        "Your projected VHR data doesn't have any RPCs or GCPs. "
                         "EOReader cannot orthorectify it!"
                     )
-
-                tile = utils.read(self._get_tile_path())
-                self._reproject(
-                    tile,
-                    rpcs=rpcs,
-                    dem_path=dem_path,
-                    ortho_path=ortho_path,
-                    tags=tags,
-                    **kwargs,
-                )
+                else:
+                    tile = utils.read(self._get_tile_path())
+                    self._orthorectify(
+                        tile,
+                        rpcs=rpcs,
+                        gcps=gcps,
+                        dem_path=dem_path,
+                        ortho_path=ortho_path,
+                        tags=tags,
+                        **kwargs,
+                    )
 
         else:
             ortho_path = self._get_tile_path()

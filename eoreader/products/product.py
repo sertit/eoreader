@@ -39,7 +39,7 @@ import validators
 import xarray as xr
 from affine import Affine
 from lxml import etree, html
-from rasterio import rpc, transform, warp
+from rasterio import control, rpc, transform, warp
 from rasterio import shutil as rio_shutil
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
@@ -2566,10 +2566,11 @@ class Product:
 
         return dem_path
 
-    def _reproject(
+    def _orthorectify(
         self,
         src_xda: xr.DataArray,
         rpcs: rpc.RPC,
+        gcps: control.GroundControlPoint,
         dem_path: str,
         ortho_path: AnyPathStrType,
         pixel_size: float = None,
@@ -2582,7 +2583,10 @@ class Product:
             src_arr (np.ndarray): Array to reproject
             src_meta (dict): Metadata
             rpcs (rpc.RPC): RPCs
+            gcps (control.GroundControlPoint): Ground Control Points
             dem_path (str): DEM path
+            ortho_path (AnyPathStrType): Ortho path
+            pixel_size (float): Pixel size
 
         Returns:
             xr.DataArray: Reprojected array
@@ -2596,6 +2600,7 @@ class Product:
         out_xda = rasters.reproject(
             src_xda,
             rpcs=rpcs,
+            gcps=gcps,
             dem_path=dem_path,
             pixel_size=pixel_size,
             dst_crs=self.crs(),

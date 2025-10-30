@@ -20,6 +20,7 @@
 - FIX: Add SGF product type for SCN sensor mode for RADARSAT-2 [#251](https://github.com/sertit/eoreader/issues/251)
 - FIX: Precise metadata regex for SuperView data [#253](https://github.com/sertit/eoreader/issues/253)
 - FIX: Handle old DIMAP V1 data [#234](https://github.com/sertit/eoreader/issues/234)
+- FIX: Handle GCPs in VHR data
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - CI: Filter some warnings in pytest
 - DOC: Add a CITATION file [#262](https://github.com/sertit/eoreader/issues/262)
