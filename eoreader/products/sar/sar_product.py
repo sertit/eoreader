@@ -1290,7 +1290,8 @@ class SarProduct(Product):
             LOGGER.warning("No Local Incidence Angle file found. Please activate the options to write these files from 'Terrain-Correction' node in a custuom SNAP graph")
 
         for img in imgs:
-            lia_out_path = out_path.with_name(img.name).with_suffix(".tif")
+            base_name = out_path.stem
+            lia_out_path = out_path.parent / f"{base_name}_localIncidenceAngle.tif"
     
             # Open Local Incidence Angle image and convert it to a clean geotiff
             with rioxarray.open_rasterio(img) as arr:
@@ -1321,7 +1322,7 @@ class SarProduct(Product):
                     driver="GTiff",  # SNAP doesn't handle COGs very well apparently
                 )
 
-        return out_path.parent
+        return lia_out_path
     
     def _compute_hillshade(
         self,
