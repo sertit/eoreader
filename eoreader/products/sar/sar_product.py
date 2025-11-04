@@ -1021,6 +1021,7 @@ class SarProduct(Product):
             with tempfile.TemporaryDirectory() as tmp_dir:
                 # Use dimap for speed and security (i.e. GeoTiff's broken georef)
                 pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
+                pp_dim = pp_target + ".dim"
 
                 # Pre-process graph
                 pp_graph = self._get_pp_graph()
