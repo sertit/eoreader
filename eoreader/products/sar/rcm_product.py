@@ -88,7 +88,7 @@ class RcmSensorMode(ListEnum):
     RADARSAT-Constellation sensor mode.
     Take a look `here <https://www.asc-csa.gc.ca/eng/satellites/radarsat/technical-features/characteristics.asp>`_.
 
-    .. WARNING:: The name in the metadata may vary !
+    .. WARNING:: The name in the metadata may vary!
     """
 
     THREE_M = "Very High Resolution 3m"

@@ -330,11 +330,13 @@ class OpticalProduct(Product):
                     pass
                 elif cleaning_method == CleanMethod.NODATA:
                     LOGGER.debug(f"Manage nodata for band {band.name}")
-                    band_arr = self._manage_nodata(band_arr, band=band, **kwargs)
+                    band_arr = self._manage_nodata(
+                        band_arr, band=band, pixel_size=pixel_size, **kwargs
+                    )
                 else:
                     LOGGER.debug(f"Manage invalid pixels for band {band.name}")
                     band_arr = self._manage_invalid_pixels(
-                        band_arr, band=band, **kwargs
+                        band_arr, band=band, pixel_size=pixel_size, **kwargs
                     )
                 band_arr.attrs["cleaning_method"] = cleaning_method.value
 
@@ -396,7 +398,11 @@ class OpticalProduct(Product):
 
     @abstractmethod
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -404,16 +410,22 @@ class OpticalProduct(Product):
         Args:
             band_arr (xr.DataArray): Band array
             band (BandNames): Band name as an SpectralBandNames
+            pixel_size (float): Pixel size
             kwargs: Other arguments used to load bands
 
         Returns:
             xr.DataArray: Cleaned band array
         """
-        raise NotImplementedError
+        # Let's assume there is only nodata
+        return self._manage_nodata(band_arr, band, pixel_size=pixel_size, **kwargs)
 
     @abstractmethod
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
@@ -421,12 +433,14 @@ class OpticalProduct(Product):
         Args:
             band_arr (xr.DataArray): Band array
             band (BandNames): Band name as an SpectralBandNames
+            pixel_size (float): Pixel size
             kwargs: Other arguments used to load bands
 
         Returns:
             xr.DataArray: Cleaned band array
         """
-        raise NotImplementedError
+        # Let's assume nodata is loaded by default
+        return band_arr
 
     @staticmethod
     def _set_nodata_mask(band_arr: xr.DataArray, mask: xr.DataArray) -> xr.DataArray:
@@ -664,10 +678,10 @@ class OpticalProduct(Product):
             # First, try to open the cloud band written on disk
             bands_to_load = []
             for band in bands:
-                mask_path = self.get_band_path(
-                    band, pixel_size, size, writable=False, **kwargs
+                mask_path, mask_exists = self._is_existing(
+                    self.get_band_file_name(band, pixel_size, size, **kwargs)
                 )
-                if mask_path.is_file():
+                if mask_exists:
                     band_dict[band] = utils.read(mask_path)
                 else:
                     bands_to_load.append(band)

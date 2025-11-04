@@ -30,12 +30,13 @@ extensions:
     - Viewing position (in progress)
 """
 
+import logging
 from datetime import datetime
 
 import geopandas as gpd
 from sertit.vectors import WGS84
 
-from eoreader import cache
+from eoreader import EOREADER_NAME, cache
 from eoreader.stac import GSD, stac_utils
 from eoreader.stac._stac_keywords import (
     BBOX,
@@ -53,6 +54,8 @@ from eoreader.stac.stac_utils import (
     get_media_type,
     repr_multiline_str,
 )
+
+LOGGER = logging.getLogger(EOREADER_NAME)
 
 
 class StacItem:
@@ -106,12 +109,16 @@ class StacItem:
     @cache
     def geometry_fct(self) -> gpd.GeoDataFrame:
         if self._prod.is_ortho:
+            LOGGER.debug(
+                f"Compute footprint for STAC Item for {self._prod.condensed_name}"
+            )
             return self._prod.footprint().to_crs(WGS84)
         else:
             return self.bbox_fct()
 
     @cache
     def bbox_fct(self) -> gpd.GeoDataFrame:
+        LOGGER.debug(f"Compute extent for STAC Item for {self._prod.condensed_name}")
         return self._prod.extent().to_crs(WGS84)
 
     @cache
@@ -124,6 +131,7 @@ class StacItem:
             ) from exc
 
         # Item creation
+        LOGGER.debug(f"Creating STAC Item for {self._prod.condensed_name}")
         item = pystac.Item(
             id=self.id,
             datetime=self.datetime,
@@ -134,7 +142,8 @@ class StacItem:
 
         # Add assets
         # TODO: manage S3 paths
-        # TODO: relative path ?
+        # TODO: relative path?
+        LOGGER.debug(f"Add quicklook to STAC Item for {self._prod.condensed_name}")
         thumbnail_path = self._prod.get_quicklook_path()
         if thumbnail_path:
             item.add_asset(
@@ -145,12 +154,15 @@ class StacItem:
             )
 
         # Add EO extension
+        LOGGER.debug(f"Add EO extension to STAC Item for {self._prod.condensed_name}")
         self.eo.add_to_item(item)
 
         # Add the PROJ extension
+        LOGGER.debug(f"Add PROJ extension to STAC Item for {self._prod.condensed_name}")
         self.proj.add_to_item(item)
 
         # Add the View extension
+        LOGGER.debug(f"Add VIEW extension to STAC Item for {self._prod.condensed_name}")
         self.view.add_to_item(item)
 
         stac_utils.fill_common_mtd(
@@ -161,6 +173,7 @@ class StacItem:
         # let's check the validator to make sure we've specified everything correctly.
         # The validation logic will take into account the new extensions
         # that have been enabled and validate against the proper schemas for those extensions
+        LOGGER.debug(f"Validate STAC Item for {self._prod.condensed_name}")
         item.validate()
 
         return item

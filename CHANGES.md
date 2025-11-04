@@ -1,6 +1,57 @@
 # Release History
 
-## 0.22.0 (2025-mm-dd)
+## 0.23.0 (2025-mm-dd)
+
+- **ENH: Adding the support of `VENUS` sensor** [#235](https://github.com/sertit/eoreader/issues/235) - by @ArthurVincentCS
+- **ENH: Desambiguate condensed name of Custom stack in case of creation of several objects with the same datetime and same constellation and product type**
+- **ENH: Fix corrupted Maxar products with incoherent width between .IMD and .TIL files** [#242](https://github.com/sertit/eoreader/issues/242)
+- **ENH: Add TerraSAR-X management of default resolution and pixel size for RE data**
+- FIX: Write intermediate data for loaded bands also for Custom stacks
+- FIX: Fix regression when stacking with a custom nodata value with VHR data to be reprojected
+- FIX: Fix an unprecedented case with a PNEO having different name than usual (`DIM_PNEO3_STD_2025...` instead of `DIM_PNEO3_2025...`)
+- FIX: Fix WV Legion wrong band order in Multi Spectral 1 mode [#246](https://github.com/sertit/eoreader/issues/246)
+- FIX: Collocate Planet spectral bands with masks for some rare cases where it fails
+- FIX: Loosen the constraints on PlanetScope stack name as it may change, from `Analytic` to `composite`, etc. [#244](https://github.com/sertit/eoreader/issues/244)
+- FIX: Add a fallback in case of impossibleness of reading ICEYE `QUICKLOOK.kml` file
+- FIX: Manage the case of Maxar data with negative absolute calibration factor: don't compute the reflectance and leave it as is.
+- FIX: Fix DEM management with RPC orthorectification: handle correctly the vertical CRS (see DEM notebook and `EOREADER_DEM_VCRS` environment variable). [#53](https://github.com/sertit/eoreader/issues/53)
+- FIX: Add `DISPLAY` as DIMAP-V2 radiometric processings [#249](https://github.com/sertit/eoreader/issues/249)
+- FIX: Change RADARSAT-2 file regex to identify the product, to avoid confusion with others [#250](https://github.com/sertit/eoreader/issues/250)
+- FIX: Add SGF product type for SCN sensor mode for RADARSAT-2 [#251](https://github.com/sertit/eoreader/issues/251)
+- FIX: Precise metadata regex for SuperView data [#253](https://github.com/sertit/eoreader/issues/253)
+- FIX: Handle old DIMAP V1 data [#234](https://github.com/sertit/eoreader/issues/234)
+- FIX: Handle GCPs in VHR data
+- FIX: Fix raw CRS exported as string rather than CRS object for Maxar data [#255](https://github.com/sertit/eoreader/issues/255)
+- FIX: Use only the number of range looks to derive the resolution and pixel_size of CSG data [#256](https://github.com/sertit/eoreader/issues/256)
+- OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
+- CI: Filter some warnings in pytest
+- DOC: Add a CITATION file [#262](https://github.com/sertit/eoreader/issues/262)
+
+## 0.22.4 (2025-07-07)
+
+- FIX: Add workaround for `T` vs `T1+T2` abstraction [issue in Awesome Spectral Index](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/74) [#214](https://github.com/sertit/eoreader/issues/214)
+- FIX: Raise missing file not found exception - by @emmanuel-ferdman
+- FIX: Prune also `driver` keyword in `utils.read`
+- FIX: Fix potential bug reading Umbra STAC JSON as GeoJSON in `pyogrio` (workaround: use `fiona`)
+- DOC: Fix jupyter cache for documentation notebook [#211](https://github.com/sertit/eoreader/issues/211)
+- DOC: Convert gfm admonitions to rst
+
+## 0.22.3 (2025-05-05)
+
+- FIX: Fix crash of _`reorder_loaded_bands_like_input` with indices and associated_bands
+
+## 0.22.2 (2025-04-18)
+
+- FIX: Fix GPT graphs (mutiple errors, such a lonely `Subset`, a `LinearToFromdB` step not written, etc.)
+- FIX: Fixed TSX and TDX Products Regex to properly identify Staring Spotlight products as `TsxProduct` and `TdxProduct` - by @guillemc23
+
+## 0.22.1 (2025-04-04)
+
+- FIX: Correct the logic behind saving a stack in uint16 in `product.stack`  
+- FIX: Fix a regression disallowing to pass a custom nodata to `product.stack`  
+- FIX: Fix COSMO GTC reading
+
+## 0.22.0 (2025-03-25)
 
 - **BREAKING CHANGES: Remove deprecated features** ([#94](https://github.com/sertit/eoreader/issues/94), [#95](https://github.com/sertit/eoreader/issues/95), [#96](https://github.com/sertit/eoreader/issues/96))
   - `resolution` keyword if favor of `pixel_size`
@@ -32,10 +83,14 @@
 - **ENH: Write intermediary files as COG by default and add a environment variable `EOREADER_DEFAULT_DRIVER` to overload the default driver** ([#181](https://github.com/sertit/eoreader/issues/181))
 - **ENH: Add a `path` attribute to the bands, corresponding to their path on disk**
 - **ENH: Manage COSMO-SkyMed `GTC` (orthorectified) products**
+- **ENH: Raise a proper exception in case of non-existing product path**
 - FIX: Fix toa radiance to toa reflectance computation for VHR data
 - FIX: Save Cosmo quicklooks as PNG instead of GeoTiffs as they are not georeferenced
 - FIX: Fix `to_str` function with `as_list=False`
 - FIX: Correctly set the stack attributes when already existing on disk
+- FIX: Don't convert stack to `uint16` in memory with `save_as_int` argument (only convert the version written on disk) 
+- FIX: Fix reading bands for Sentinel-2 L1C data from Element-84 which have different AWS endpoints between STAC files and their assets
+- FIX: Don't warp multiple times VHR stacks
 - INTERNAL: Rationalize band paths and filename functions (still early work) ([#31](https://github.com/sertit/eoreader/issues/31))
 - DOC: Add documentation on how EOReader can improve your data handling ([#108](https://github.com/sertit/eoreader/issues/108))
 - DEPS: Add `ephem` for computing earth-sun distance (according to Maxar's method from docs)
@@ -371,7 +426,7 @@
         - `CI1` is renamed `CI32` and `CI2` is renamed `CI21` for readability purposes
         - `NDWI21` can be written `NDWI2100` for homogeneity purposes
         - `RDI` (or `DSI`) uses now `SWIR_1` instead of `SWIR_2` (see [this](https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/18) issue)
-        - `PANI` equivalent is now `BITM` and is normalised ! (divided by 3)
+        - `PANI` equivalent is now `BITM` and is normalised! (divided by 3)
         - `SBI` is normalized (divided by 2) to fit with `BIXS` definition
         - ⚠ *You may need to install the last `spyndex` directly from GitHub latest version to have all available indices*
 - **BREAKING CHANGES: Using `pyresample` to geocode Sentinel-3 data** ([#55](https://github.com/sertit/eoreader/issues/55))
@@ -651,7 +706,7 @@
 - FIX: Using default SAR resolution from
   official [Copernicus Data Access Portfolio (2014-2022)](https://spacedata.copernicus.eu/documents/20126/0/DAP+Release+phase2+V2_8.pdf/82297817-2b96-d3de-c397-776292336434?t=1633508426589) (
   Sentinel-2 default
-  resolution goes to 10.0 m !)
+  resolution goes to 10.0 m!)
 - FIX: Use `--no-binary fiona,rasterio` directly in `requirements.txt`
 - FIX: Removing useless `outputComplex` line in GPT graphs that is breaking SNAP on Linux
 - FIX: Removing the workarounds caused by some bugs of `cloudpathlib` and enabling retrieval of nested SAR products (TSX, TDX, PAZ, RCM) from S3 compatible storage.
@@ -741,7 +796,7 @@
 ### Enhancements
 
 - **ENH: Allowing the user to choose the pixel processing for optical bands: raw band, only nodata or total cleaning of defective pixels** ([#16](https://github.com/sertit/eoreader/issues/16))
-- **ENH: Adding a CustomProduct, allowing the user to load any stack as an EOReader Product !**
+- **ENH: Adding a CustomProduct, allowing the user to load any stack as an EOReader Product!**
 - **ENH: Check if a band exists before trying to load it**
 
 ### Bug Fixes
@@ -801,7 +856,7 @@
 ### Bug Fixes
 
 - FIX: Do not force import `methodtools` (not existing lib in conda)
-- FIX: Using `GRD` resolution given by the constructors as default values for `SLC` products. Do not look it up in metadata as SLC resolution is **NOT** the GRD resolution !
+- FIX: Using `GRD` resolution given by the constructors as default values for `SLC` products. Do not look it up in metadata as SLC resolution is **NOT** the GRD resolution!
 
 ## 0.9.4 (2021-12-13)
 
@@ -875,8 +930,8 @@
 
 ### Breaking Changes
 
-- **BREAKING CHANGE: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties !**
-- **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different !)** ([#10](https://github.com/sertit/eoreader/issues/10))
+- **BREAKING CHANGE: `crs`, `footprint`, `extent`, `wgs84_extent` are now properties!**
+- **BREAKING CHANGE: Removing raw `gdaldem` CLI from EOReader (the `HILLSHADE` and `SLOPE` bands are now slightly different!)** ([#10](https://github.com/sertit/eoreader/issues/10))
 - **BREAKING CHANGE: `HILLSHADE` is given in `float32` instead of `uint8`**
 - **BREAKING CHANGE: `SLOPE` is given in degrees instead of percents**
 
@@ -885,7 +940,7 @@
 - **ENH: Adding the support of the PAZ SAR sensor**
 - **ENH: Adding the support of the Sentinel-2 processed with
   the [processing baseline 4.0](https://sentinels.copernicus.eu/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming)** ([#11](https://github.com/sertit/eoreader/issues/11))
-- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency !** ([#12](https://github.com/sertit/eoreader/issues/12))
+- **ENH: Removing SNAP from Sentinel-3 pre-process -> Freeing optical data from SNAP dependency!** ([#12](https://github.com/sertit/eoreader/issues/12))
 - **ENH: Enabling the use of other S3-SLSTR suffixes than `an` (stripe A at nadir position)**
 - **ENH: Thermal bands of Sentinel-3 SLSTR can now be used**
 - **ENH: All bands of Sentinel-3 SLSTR/OLCI can now be used (`S7`, `F1`, `F2` for SLSTR, `Oaxx` for OLCI)** ([#14](https://github.com/sertit/eoreader/issues/14))
@@ -994,7 +1049,7 @@
 ### Bug Fixes
 
 - FIX: Better handling of archives for products that needs extraction
-- FIX: TerraSAR-X products need to be extracted to be processed by SNAP !
+- FIX: TerraSAR-X products need to be extracted to be processed by SNAP!
 
 ## 0.6.1 (2021-09-10)
 

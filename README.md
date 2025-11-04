@@ -1,7 +1,5 @@
 [![pypi](https://img.shields.io/pypi/v/eoreader.svg)](https://pypi.python.org/pypi/eoreader)
 [![Conda](https://img.shields.io/conda/vn/conda-forge/eoreader.svg)](https://anaconda.org/conda-forge/eoreader)
-[![Tests](https://github.com/sertit/eoreader/actions/workflows/test.yml/badge.svg)](https://github.com/sertit/eoreader/actions/workflows/test.yml)
-[![Gitter](https://badges.gitter.im/eoreader/community.svg)](https://gitter.im/eoreader/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/sertit/eoreader/blob/master/LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5082050.svg)](https://doi.org/10.5281/zenodo.5082050)
 [![stars](https://img.shields.io/github/stars/sertit/eoreader?style=social)](https://github.com/sertit/eoreader)
@@ -20,10 +18,10 @@ clouds, DEM and spectral indices in a sensor-agnostic way.
 ## 🛰️ Managed constellations
 
 ### Optical
-[![Sentinel-2 SAFE and Theia Sentinel-3 OLCI and SLSTR Landsat 1 to 9 Harmonized Landsat-Sentinel PlanetScope, SkySat and RapidEye Pleiades and Pleiades-Neo SPOT-6/7 and 4/5 Vision-1 Maxar (WorldViews, GeoEye) SuperView-1 GEOSAT-2](https://zupimages.net/up/23/22/j3mz.png)](https://eoreader.readthedocs.io/latest/optical.html)
+[![Sentinel-2 SAFE and Theia Sentinel-3 OLCI and SLSTR Venus Landsat 1 to 9 Harmonized Landsat-Sentinel PlanetScope, SkySat and RapidEye Pleiades and Pleiades-Neo SPOT-6/7 and 4/5 Vision-1 Maxar (WorldViews, GeoEye) SuperView-1 GEOSAT-2](https://zupimages.net/up/25/44/vh66.png)](https://eoreader.readthedocs.io/latest/optical.html)
 
 ### SAR
-[![Sentinel-1 COSMO-Skymed 1st and 2nd Generation TerraSAR-X, TanDEM-X and PAZ SAR RADARSAT-2 and RADARSAT-Constellation ICEYE SAOCOM Capella](https://zupimages.net/up/23/22/7b6k.png)](https://eoreader.readthedocs.io/latest/sar.html)
+[![Sentinel-1 COSMO-Skymed 1st and 2nd Generation TerraSAR-X, TanDEM-X and PAZ SAR RADARSAT-2 and RADARSAT-Constellation ICEYE SAOCOM Capella](https://i.postimg.cc/GhPpwwL7/sar-sensors.png)](https://eoreader.readthedocs.io/latest/sar.html)
 
 ## 🔮 Features
 
@@ -39,6 +37,13 @@ EOReader implements **sensor-agnostic** features:
 EOReader works mainly with:
 - [`xarrays.DataArray`](http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray) and [`xarrays.Dataset`](http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset) for raster data
 - [`geopandas.GeoDataFrames`](https://geopandas.org/docs/user_guide/data_structures.html#geodataframe) for vector data (extents, footprints...)
+
+EOReader allow you to create internal STAC catalogs directly from raw data.
+
+> [!NOTE] 
+> 💡 EOReader handles data from the past!  
+> Legacy format are mostly supported and if not, they can be requested by creating an issue with the `legacy_format` label.  
+> This is super useful if you need to create an internal STAC catalog with old data.
 
 ## ⚡️ Quickstart
 
@@ -66,7 +71,7 @@ stack = s2_prod.stack([RED, GREEN, BLUE], stack_path="s2_rgb_stack.tif")
 ```
 
 EOReader aligns spectral bands from every handled sensor in order to make any call to a band generic:  
-[![Optical Band Mapping](https://zupimages.net/up/23/40/0zgb.png)](https://eoreader.readthedocs.io/latest/optical_band_mapping.html)
+[![Optical Band Mapping](https://zupimages.net/up/25/44/i20v.png)](https://eoreader.readthedocs.io/latest/optical_band_mapping.html)
 
 ### SAR
 In the same way, you can import and stack radar band from any handled SAR constellation, with the same pattern.
@@ -176,7 +181,7 @@ Thus, thanks to **EOReader**, these tools are made independent to the constellat
 
 However, keep in mind that the support of all the constellations used in CEMS is done in the best effort mode, especially for commercial data.
 Indeed, we may not have faced every product type, sensor mode or order configuration, so some details may be missing.
-If this happens to you, do not hesitate to make a PR or write an issue about that !
+If this happens to you, do not hesitate to make a PR or write an issue about that!
 
 ## 🎤 Communication
 ### Talks

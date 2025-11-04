@@ -229,7 +229,7 @@ class S1RtcAsfProduct(SarProduct):
              Union[str, datetime.datetime]: Its acquisition datetime
         """
         if self.datetime is None:
-            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time !
+            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time!
             sensing_time = self.split_name[2]
 
             # Convert to datetime

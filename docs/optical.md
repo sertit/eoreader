@@ -15,6 +15,7 @@ However, especially for SAR data, the default pixel size of GRD bands is differe
 | Sentinel-2                  | {meth}`~eoreader.products.optical.s2_product.S2Product`            | ✅                            |
 | Sentinel-2 on AWS cloud     | {meth}`~eoreader.products.optical.s2_product.S2CloudProduct`       | -                            |
 | Sentinel-2 Theia            | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | ✅                            |
+| Vénμs                       | {meth}`~eoreader.products.optical.venus.VenusProduct`              | ✅                            |
 | Sentinel-3 SLSTR            | {meth}`~eoreader.products.optical.s3_slstr_product.S3SlstrProduct` | ✅                            |
 | Sentinel-3 OLCI             | {meth}`~eoreader.products.optical.s3_olci_product.S3OlciProduct`   | ✅                            |
 | Landsat 8/9 OLI-TIRS        | {meth}`~eoreader.products.optical.landsat_product.LandsatProduct`  | ✅                            |
@@ -36,43 +37,44 @@ However, especially for SAR data, the default pixel size of GRD bands is differe
 
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
 
-\*\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). The resolution can vary around the one given here.*
+\*\* *Maxar satellites: Worldview Legion, 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). 
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
 ```
 
-| Constellations              | Product Types             | Default Pixel Size                 |
-|-----------------------------|---------------------------|------------------------------------|
-| Sentinel-2                  | L1C & L2A & L2Ap          | 10 m                               |
-| Sentinel-2 on AWS Cloud     | L2A (for now)             | 10 m                               |
-| Sentinel-2 Theia            | L2A                       | 10 m                               |
-| Sentinel-3 SLSTR            | RBT                       | 300 m                              |
-| Sentinel-3 OLCI             | EFR                       | 500 m                              |
-| Landsat 8/9 OLI-TIRS        | Level 1 & 2               | 30 m                               |
-| Landsat 7 ETM               | Level 1 & 2               | 30 m                               |
-| Landsat 4/5 TM              | Level 1 & 2               | 30 m                               |
-| Landsat 1-5 MSS             | Level 1                   | 60 m                               |
-| Harmonized Landsat-Sentinel | L30 & S30                 | 30 m                               |
-| PlanetScope                 | L3A & L3B                 | 3 m                                |
-| SkySat                      | (Collect Product) ortho_* | 0.5 m                              |
-| RapidEye                    | L3A                       | 5 m                                |
-| Pleiades-Neo                | SEN**, PRJ, ORT & MOS     | 0.3 m (PAN), 1.2 m (MS)            |
-| Pleiades                    | SEN**, PRJ, ORT & MOS     | 0.5 m (PAN), 2 m (MS)              |
-| Vision-1                    | PRJ & ORTP                | 0.9 m (PAN), 3.5 m (MS)            |
-| SPOT 4/5                    | L1A, L1B, L2A             | 10 m (PAN), 20 m (MS)              |
-| SPOT 6/7                    | SEN, PRJ, ORT & MOS       | 1.5 m (PAN), 6 m (MS)              |
-| Maxar*                      | Standard & Ortho          | 0.5 m (PAN), 2 m (MS)              |
-| SuperView-1                 | L1B & L2A                 | 0.5 m (PAN), 2 m (MS)              |
-| GEOSAT-2                    | L1B & L1C & L1D & L1S     | 0.4 m (PAN), 2 m (MS) for L1D data |
+| Constellations              | Product Types             | Default Pixel Size                    |
+|-----------------------------|---------------------------|---------------------------------------|
+| Sentinel-2                  | L1C & L2A & L2Ap          | 10 m                                  |
+| Sentinel-2 on AWS Cloud     | L2A (for now)             | 10 m                                  |
+| Sentinel-2 Theia            | L2A                       | 10 m                                  |
+| Vénμs                       | L2A                       | 5 m                                   |
+| Sentinel-3 SLSTR            | RBT                       | 300 m                                 |
+| Sentinel-3 OLCI             | EFR                       | 500 m                                 |
+| Landsat 8/9 OLI-TIRS        | Level 1 & 2               | 30 m                                  |
+| Landsat 7 ETM               | Level 1 & 2               | 30 m                                  |
+| Landsat 4/5 TM              | Level 1 & 2               | 30 m                                  |
+| Landsat 1-5 MSS             | Level 1                   | 60 m                                  |
+| Harmonized Landsat-Sentinel | L30 & S30                 | 30 m                                  |
+| PlanetScope                 | L3A & L3B                 | 3 m                                   |
+| SkySat                      | (Collect Product) ortho_* | 0.5 m                                 |
+| RapidEye                    | L3A                       | 5 m                                   |
+| Pleiades-Neo                | SEN**, PRJ, ORT & MOS     | 0.3 m (PAN), 1.2 m (MS)               |
+| Pleiades                    | SEN**, PRJ, ORT & MOS     | 0.5 m (PAN), 2 m (MS)                 |
+| Vision-1                    | PRJ & ORTP                | 0.9 m (PAN), 3.5 m (MS)               |
+| SPOT 4/5                    | L1A, L1B, L2A             | 10 m (PAN), 20 m (MS)                 |
+| SPOT 6/7                    | SEN**, PRJ, ORT & MOS     | 1.5 m (PAN), 6 m (MS)                 |
+| Maxar*                      | Standard & Ortho          | 0.3 to 0.5 m (PAN), 1.2 to 2.0 m (MS) |
+| SuperView-1                 | L1B & L2A                 | 0.5 m (PAN), 2 m (MS)                 |
+| GEOSAT-2                    | L1B & L1C & L1D & L1S     | 0.4 m (PAN), 2 m (MS) for L1D data    |
 
-\* *Maxar satellites: Worldview 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). The resolution can vary around the one given here.*
+\* *Maxar satellites: Worldview Legion 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). 
 
 \*\* ⚠ *DIMAP SEN products are orthorectified using RPCs and not the rigorous sensor model. Shift can occur. Please refer to [this issue](https://github.com/sertit/eoreader/issues/53).*
 
 ```{note}
 Note that for the rest of this documentation: 
-- HLS.S30 and Sentinel-2 data are equivalent (only 30m gsd).
+- HLS.S30 and Sentinel-2 data are equivalent (with the only difference of a 30 m gsd).
 - HLS.L30 and Landsat-OLI-TIRS data are equivalent.
 ```
 
@@ -82,7 +84,7 @@ The constellations that can be used during CEMS activations are (as of 09/2021):
 
 ## Optical bands
 
-The following bands are available in **EOReader**, but may not be available for all constellations.
+The following bands are available in **EOReader** but may not be available for all constellations.
 
 ```{warning}
 EOReader loads bands in UTM. VHR bands can be orthorectified but EOReader needs a DEM for that.
@@ -111,7 +113,8 @@ The names are the ones from Sentinel-2, even if sometimes it can be confusing (e
 
 Some additions to the Sentinel-2 bands have been made (`YELLOW`, `PAN`...):
 
-- {meth}`~eoreader.bands.band_names.SpectralBandNames.CA`: Coastal Aerosol
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.DEEP_BLUE`: Deep Blue (same goal as Coastal Aerosol, mainly for VHR data, centered around 420 nm)
+- {meth}`~eoreader.bands.band_names.SpectralBandNames.CA`: Coastal Aerosol (mainly for HR data, centered around 440 nm)
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.BLUE`
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.GREEN_1`: First Green band of PlanetScope 8 bands, mapped to the fifth band of Sentinel-3 OLCI
 - {meth}`~eoreader.bands.band_names.SpectralBandNames.GREEN`
@@ -185,6 +188,7 @@ The only difference with the other bands is that the cloud bands are provided in
 |------------------------------|-------------|-----------------------------------------------------------|
 | Sentinel-2                   | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
 | Sentinel-2 Theia             | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
+| Vénµs                        | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
 | Sentinel-3 OLCI              | ❌           |                                                           |
 | Sentinel-3 SLSTR             | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
 | Landsat 8/9                  | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
@@ -228,30 +232,17 @@ In addition to all these indices, EOReader kept the following indices for legacy
 
 | Spectral Indices         | ASI equivalent   | Formulas (with ASI syntax)                                                     | Name                                                |
 |--------------------------|------------------|--------------------------------------------------------------------------------|-----------------------------------------------------|
-| `AFRI_1_6`               | `AFRI1600`       | `(N - 0.66 * S1) / (N + 0.66 * S1)`                                            | Aerosol Free Vegetation Index (1600 nm)             |
-| `AFRI_2_1`               | `AFRI2100`       | `(N - 0.5 * S2) / (N + 0.5 * S2)`                                              | Aerosol Free Vegetation Index (2100 nm)             |
-| `BSI`                    | `BI`             | `((S1 + R) - (N + B))/((S1 + R) + (N + B))`                                    | Barren Soil Index                                   |
-| `DSWI`                   | `DSWI5`          | `(N + G)/(S1 + R)`                                                             | Disease water stress index                          |
-| `GRI`                    | `DSWI4`          | `G/R`                                                                          | Green-to-Red ratio Index                            |
-| `NDGRI`                  | `NGRDI`          | `(G - R) / (G + R)`                                                            | Normalized Green Red Difference Index               |
-| `NDMI21` (or `NDMI2100`) | ❌                | `(N - S2) / (N + S2)`                                                          | Normalized Difference Moisture Index (with 2100 nm) |
-| `NDRE1`                  | `NDREI`          | `(N - RE1) / (N + RE1)`                                                        | Normalized Difference Red Edge Index                |
+| `NDMI21` (or `NDMI2100`) | ❌                | `(N - S2) / (N + S2)`                                                          | Normalized Difference Moisture Index (with 2100 nm) || `NDRE1`                  | `NDREI`          | `(N - RE1) / (N + RE1)`                                                        | Normalized Difference Red Edge Index                |
 | `NDRE2`                  | ❌                | `(N - RE2) / (N + RE2)`                                                        | Normalized Difference Red-Edge Index with RE2       |
 | `NDRE3`                  | ❌                | `(N - RE3) / (N + RE3)`                                                        | Normalized Difference Red-Edge Index with RE1       |
 | `CI32`                   | ❌                | `(RE3 / RE2) - 1`                                                              | Chlorophyll Index RedEdge RE3/RE2                   |
 | `CI21`                   | ❌                | `(RE2 / RE1) - 1`                                                              | Chlorophyll Index RedEdge RE2/RE1                   |
-| `PANI`                   | `BITM`           | `(R**2 + B**2 + G**2)**0.5`                                                    | Panchromatic mocking index                          |
-| `RDI`                    | `DSI`            | `S1/N`                                                                         | Ratio Drought Index / Drought Stress Index          |
-| `RGI`                    | `RGRI`           | `R/G`                                                                          | Relative Greenness Index / Red-Green Ratio Index    |
 | `SBI`                    | ❌                | `(R**2 + N**2)**0.5`                                                           | Soil Brightness Index                               |
 | `SCI`                    | ❌                | `3*G - R - 100`                                                                | Soil Cuirass Index                                  |
 | `SRSWIR`                 | ❌                | `S1/S2`                                                                        | Simple Ratio SWIR16/SWIR21 Clay Minerals            |
 | `TCBRI`                  | ❌                | `0.3037 *B + 0.2793 * G + 0.4743 * R + 0.5585 * N + 0.5082 * S1 + 0.1863 * S2` | Tasseled Cap Brightness                             |
 | `TCGRE`                  | ❌                | `0.2848 *B + 0.2435 * G + 0.5436 * R + 0.7243 * N + 0.0840 * S1 + 0.1800 * S2` | Tasseled Cap Greenness                              |
 | `TCWET`                  | ❌                | `0.1509 *B + 0.1973 * G + 0.3279 * R + 0.3406 * N + 0.7112 * S1 + 0.4572 * S2` | Tasseled Cap Wetness                                |
-| `WI`                     | `WI2015`         | `1.7204 + 171 * G + 3 * R - 70 * N - 45 * S1 - 71 * S2`                        | Water Index (2015)                                  |
-| `WV_BI`                  | `NHFD`           | `(RE1 - A) / (RE1 + A)`                                                        | WorldView Built-up Index                            |
-| `WV_SI`                  | `NDSIWV`         | `(Y - G) / (Y + G)`                                                            | WorldView Soil Index                                |
 | `WV_VI`                  | ❌                | `(WV - R) / (WV + R)`                                                          | WorldView Vegetation Index                          |
 | `WV_WI`                  | ❌                | `(WV - A) / (WV + A)`                                                          | WorldView Water Index                               |
 
@@ -311,6 +302,17 @@ Attributes:
 See the different MaskBandNames enums to discover all the available masks and how to call them.
 ⚠ This feature is experimental.
 
+## Implemented workarounds
+
+### Corrupted shapes in Maxar products
+
+Some Maxar products have incoherent shapes between .IMD and .TIL files (see [this issue](https://github.com/sertit/eoreader/issues/242) for more information).
+EOreader applies a workaround by updating on the spot the .IMD file to allow GDAL to correctly read the product.
+
+This can be blocked by setting `EOREADER_FIX_MAXAR` to `0` (as the raw product is altered and this behavior may not be desirable).
+
+For now it doesn't work automatically on archived or cloud-stored products. 
+
 ## Documentary Sources
 
 - [Data Access Portfolio (2014-2024)](https://s3.waw3-1.cloudferro.com/swift/v1/portal_uploads_prod/DAPReleasePhase2_V3.1_2024_Latest.pdf)
@@ -334,6 +336,12 @@ See the different MaskBandNames enums to discover all the available masks and ho
 - [Cloud masks](https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks)
 - [Product Specification (Processing Baseline < 4.0)](https://sentinel.esa.int/documents/247904/349490/S2_MSI_Product_Specification.pdf)
 - [Product Specification (Processing Baseline > 4.0)](https://sentinels.copernicus.eu/documents/247904/685211/Sentinel-2-Products-Specification-Document-14_8.pdf)
+
+### Vénµs
+
+- [Mission](https://www.mdpi.com/2072-4292/14/14/3281)
+- [Format L2A](https://www.cesbio.cnrs.fr/multitemp/format-of-ven%c2%b5s-l2a-produced-by-muscate/)
+- [Instrument](https://database.eohandbook.com/database/missionsummary.aspx?missionID=601&utm_source=eoportal&utm_content=venus)
 
 ### Harmonize Landsat-Sentinel
 - [Product Guide v2.0](https://lpdaac.usgs.gov/documents/1698/HLS_User_Guide_V2.pdf)
@@ -410,4 +418,4 @@ You can find a magnificent band comparison chart on the [Imagico](http://blog.im
 - [WorldView Index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide)
 - Specific sources inside the index function documentation in {meth}`~eoreader.bands.indices`
 
-*Documentation last accessed on the 12/03/2025*
+*Documentation last accessed on 12/03/2025*

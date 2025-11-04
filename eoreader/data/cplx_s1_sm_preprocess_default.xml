@@ -16,7 +16,6 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
       <tiePointGrids/>
-      <region/>
       <referenceBand/>
       <region>${region}</region>
       <geoRegion>${geo_region}</geoRegion>
@@ -58,7 +57,6 @@
       <outputBetaBand>false</outputBetaBand>
     </parameters>
   </node>
-
   <node id="Multilook">
     <operator>Multilook</operator>
     <sources>
@@ -100,6 +98,8 @@
       <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
       <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
       <saveSelectedSourceBand>true</saveSelectedSourceBand>
+      <saveLayoverShadowMask>false</saveLayoverShadowMask>
+      <outputComplex>false</outputComplex>
       <applyRadiometricNormalization>false</applyRadiometricNormalization>
       <saveSigmaNought>false</saveSigmaNought>
       <saveGammaNought>false</saveGammaNought>
@@ -110,7 +110,6 @@
       <externalAuxFile/>
     </parameters>
   </node>
-
   <node id="LinearToFromdB">
     <operator>LinearToFromdB</operator>
     <sources>
@@ -120,7 +119,6 @@
       <sourceBands/>
     </parameters>
   </node>
-
   <node id="Write">
     <operator>Write</operator>
     <sources>
@@ -131,32 +129,31 @@
       <formatName>BEAM-DIMAP</formatName>
     </parameters>
   </node>
-
   <applicationData id="Presentation">
     <Description/>
     <node id="Read">
-      <displayPosition x="7.0" y="131.0"/>
+      <displayPosition x="33.0" y="2.0"/>
+    </node>
+    <node id="Subset">
+      <displayPosition x="37.0" y="58.0"/>
+    </node>
+    <node id="ThermalNoiseRemoval">
+      <displayPosition x="13.0" y="118.0"/>
     </node>
     <node id="Calibration">
-      <displayPosition x="43.0" y="188.0"/>
+      <displayPosition x="70.0" y="164.0"/>
+    </node>
+    <node id="Multilook">
+      <displayPosition x="91.0" y="213.0"/>
     </node>
     <node id="Terrain-Correction">
-      <displayPosition x="143.0" y="265.0"/>
+      <displayPosition x="133.0" y="261.0"/>
     </node>
     <node id="LinearToFromdB">
       <displayPosition x="256.0" y="299.0"/>
     </node>
-    <node id="Multilook">
-      <displayPosition x="108.0" y="224.0"/>
-    </node>
     <node id="Write">
       <displayPosition x="461.0" y="307.0"/>
-    </node>
-    <node id="ThermalNoiseRemoval">
-      <displayPosition x="205.0" y="136.0"/>
-    </node>
-    <node id="TOPSAR-Deburst">
-      <displayPosition x="277.0" y="173.0"/>
     </node>
   </applicationData>
 </graph>

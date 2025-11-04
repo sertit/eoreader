@@ -37,7 +37,7 @@ from sertit.snap import SU_MAX_CORE
 from sertit.types import AnyPathStrType, AnyPathType, AnyXrDataStructure
 
 from eoreader import EOREADER_NAME, cache
-from eoreader.bands import is_index, is_sat_band
+from eoreader.bands import is_index, is_sat_band, to_str
 from eoreader.env_vars import (
     NOF_BANDS_IN_CHUNKS,
     TILE_SIZE,
@@ -52,6 +52,45 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 DEFAULT_TILE_SIZE = 1024
 DEFAULT_NOF_BANDS_IN_CHUNKS = 1
 UINT16_NODATA = rasters.UINT16_NODATA
+
+
+# Workaround for now, remove this asap
+def read_bit_array(
+    bit_mask: Union[xr.DataArray, np.ndarray], bit_id: Union[list, int]
+) -> Union[np.ndarray, list]:
+    """
+    Read 8 bit arrays as a succession of binary masks.
+
+    Forces array to :code:`np.uint8`.
+
+    See :py:func:`rasters.read_bit_array`.
+
+    Args:
+        bit_mask (np.ndarray): Bit array to read
+        bit_id (int): Bit ID of the slice to be read
+          Example: read the bit 0 of the mask as a cloud mask (Theia)
+
+    Returns:
+        Union[np.ndarray, list]: Binary mask or list of binary masks if a list of bit_id is given
+    """
+    if misc.compare_version("sertit", "1.47.0", ">="):
+        return rasters.read_bit_array(bit_mask, bit_id)
+    else:
+        # Suppress nan nodata and convert back to original dtype if known
+
+        if isinstance(bit_mask, np.ndarray):
+            bit_mask = np.nan_to_num(bit_mask)
+        elif isinstance(bit_mask, xr.DataArray):
+            orig_dtype = bit_mask.encoding.get("dtype")
+            bit_mask = bit_mask.fillna(0).data
+            if orig_dtype is not None and bit_mask.dtype != orig_dtype:
+                bit_mask = bit_mask.astype(orig_dtype)
+
+        else:
+            bit_mask = bit_mask.fillna(0)
+        from sertit import rasters_rio
+
+        return rasters_rio.read_bit_array(bit_mask, bit_id)
 
 
 def get_src_dir() -> AnyPathType:
@@ -133,44 +172,6 @@ def use_dask():
     return _use_dask
 
 
-# Workaround for now, remove this asap
-def read_bit_array(
-    bit_mask: Union[xr.DataArray, np.ndarray], bit_id: Union[list, int]
-) -> Union[np.ndarray, list]:
-    """
-    Read 8 bit arrays as a succession of binary masks.
-
-    Forces array to :code:`np.uint8`.
-
-    See :py:func:`rasters.read_bit_array`.
-
-    Args:
-        bit_mask (np.ndarray): Bit array to read
-        bit_id (int): Bit ID of the slice to be read
-          Example: read the bit 0 of the mask as a cloud mask (Theia)
-
-    Returns:
-        Union[np.ndarray, list]: Binary mask or list of binary masks if a list of bit_id is given
-    """
-    # TODO: daskify this, should be straightforward if unpackbits is daskified
-
-    # Suppriess nan nodata and convert back to original dtype if known
-
-    if isinstance(bit_mask, np.ndarray):
-        bit_mask = np.nan_to_num(bit_mask)
-    elif isinstance(bit_mask, xr.DataArray):
-        orig_dtype = bit_mask.encoding.get("dtype")
-        bit_mask = bit_mask.fillna(0).data
-        if orig_dtype is not None and bit_mask.dtype != orig_dtype:
-            bit_mask = bit_mask.astype(orig_dtype)
-
-    else:
-        bit_mask = bit_mask.fillna(0)
-    from sertit import rasters_rio
-
-    return rasters_rio.read_bit_array(bit_mask, bit_id)
-
-
 def read(
     raster_path: AnyPathStrType,
     pixel_size: Union[tuple, list, float] = None,
@@ -246,6 +247,7 @@ def read(
                         "size",
                         "window",
                         "chunks",
+                        "driver",
                     ],
                     **kwargs,
                 ),
@@ -463,16 +465,69 @@ def write_path_in_attrs(
     return xda
 
 
-def stack(
-    band_xds: xr.Dataset, save_as_int: bool, nodata: float, **kwargs
-) -> (xr.DataArray, type):
+def convert_to_uint16(xds: AnyXrDataStructure) -> (AnyXrDataStructure, type):
+    """
+    Convert an array to uint16 before saving it to disk.
+
+    Args:
+        xds (AnyXrDataStructure): Array to convert
+
+    Returns:
+        Converted array
+
+    """
+    scale = 10000
+    round_nb = 1000
+    round_min = -0.1
+
+    if not isinstance(xds, xr.DataArray):
+        xda = xds.to_array()
+    else:
+        xda = xds
+
+    try:
+        stack_min = float(xda.quantile(0.001))
+    except ValueError:
+        stack_min = np.nanpercentile(xda, 1)
+
+    if np.round(stack_min * round_nb) / round_nb < round_min:
+        LOGGER.warning(
+            f"Cannot convert the stack to uint16 as it has negative values ({stack_min} < {round_min}). Keeping it in float32."
+        )
+        dtype = np.float32
+    else:
+        dtype = np.uint16
+        if stack_min < 0:
+            LOGGER.warning(
+                "Small negative values ]-0.1, 0] have been found. Clipping to 0."
+            )
+            xds = xds.clip(min=0, max=None, keep_attrs=True)
+
+        for band, band_xda in xds.items():
+            # SCALING
+            # NOT ALL bands need to be scaled, only:
+            # - Satellite bands
+            # - index
+            if is_sat_band(band) or is_index(band):
+                if np.nanmax(band_xda) > UINT16_NODATA / scale:
+                    LOGGER.debug(
+                        f"Band {to_str(band, as_list=False)} seems already scaled, keeping it as is (the values will be rounded to integers though)."
+                    )
+                else:
+                    xds[band] = band_xda * scale
+
+        # Fill no data and convert to uint16
+        xds = xds.fillna(UINT16_NODATA).astype(dtype)
+
+    return xds, dtype
+
+
+def stack(band_xds: xr.Dataset, **kwargs) -> (xr.DataArray, type):
     """
     Stack a dictionary containing bands in a DataArray
 
     Args:
         band_xds (xr.Dataset): Dataset containing the bands
-        save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
-        nodata (float): Nodata value
 
     Returns:
         (xr.DataArray, type): Stack as a DataArray and its dtype
@@ -481,54 +536,19 @@ def stack(
     LOGGER.debug("Stacking")
 
     # Save as integer
-    dtype = np.float32
-    if save_as_int:
-        scale = 10000
-        round_nb = 1000
-        round_min = -0.1
-        try:
-            stack_min = float(band_xds.to_array().quantile(0.001))
-        except ValueError:
-            stack_min = np.nanpercentile(band_xds.to_array(), 1)
-
-        if np.round(stack_min * round_nb) / round_nb < round_min:
-            LOGGER.warning(
-                f"Cannot convert the stack to uint16 as it has negative values ({stack_min} < {round_min}). Keeping it in float32."
-            )
-        else:
-            if stack_min < 0:
-                LOGGER.warning(
-                    "Small negative values ]-0.1, 0] have been found. Clipping to 0."
-                )
-                band_xds = band_xds.clip(min=0, max=None, keep_attrs=True)
-
-            # Scale to uint16, fill nan and convert to uint16
-            dtype = np.uint16
-            for band, band_xda in band_xds.items():
-                # SCALING
-                # NOT ALL bands need to be scaled, only:
-                # - Satellite bands
-                # - index
-                if is_sat_band(band) or is_index(band):
-                    if np.nanmax(band_xda) > UINT16_NODATA / scale:
-                        LOGGER.debug(
-                            "Band not in reflectance, keeping them as is (the values will be rounded)"
-                        )
-                    else:
-                        band_xds[band] = band_xda * scale
-
-            # Fill no data
-            band_xds = band_xds.fillna(nodata)
+    dtype = kwargs.get("dtype", np.float32)
+    nodata = kwargs.get("nodata", rasters.get_nodata_value_from_dtype(dtype))
 
     # Create dataset, with dims well-ordered
-    stack = band_xds.to_stacked_array(
-        new_dim="bands", sample_dims=("x", "y")
-    ).transpose("bands", "y", "x")
+    stack = (
+        band_xds.fillna(nodata)
+        .to_stacked_array(new_dim="bands", sample_dims=("x", "y"))
+        .transpose("bands", "y", "x")
+    )
 
-    if dtype == np.float32:
-        # Set nodata if needed (NaN values are already set)
-        if stack.rio.encoded_nodata != nodata:
-            stack = stack.rio.write_nodata(nodata, encoded=True, inplace=True)
+    # Set nodata if needed (NaN values are already set)
+    if dtype == np.float32 and stack.rio.encoded_nodata != nodata:
+        stack = rasters.set_nodata(stack.astype(dtype), nodata)
 
     return stack, dtype
 
@@ -554,15 +574,9 @@ def get_dim_img_path(dim_path: AnyPathStrType, img_name: str = "*") -> list:
     Returns:
         list: .img files as a list
     """
-    dim_path = AnyPath(dim_path)
-    if dim_path.suffix == ".dim":
-        dim_path = dim_path.with_suffix(".data")
+    from sertit.rasters import get_dim_img_path
 
-    assert dim_path.suffix == ".data" and dim_path.is_dir()
-
-    return path.get_file_in_dir(
-        dim_path, img_name, extension="img", exact_name=True, get_list=True
-    )
+    return get_dim_img_path(dim_path, img_name, get_list=True)
 
 
 def load_np(path_to_load: AnyPathStrType, output: AnyPathStrType) -> np.ndarray:
@@ -582,7 +596,12 @@ def load_np(path_to_load: AnyPathStrType, output: AnyPathStrType) -> np.ndarray:
 
 
 def get_max_cores():
-    return int(os.getenv(SU_MAX_CORE, os.cpu_count() - 2))
+    try:
+        from sertit.perf import get_max_cores
+
+        return get_max_cores()
+    except ModuleNotFoundError:
+        return int(os.getenv(SU_MAX_CORE, os.cpu_count() - 2))
 
 
 @cache
@@ -603,10 +622,10 @@ def read_archived_file(
     Overload of sertit.files.read_archived_file to cache its reading:
     this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
     """
-    file_list = files.read_archived_file(
+    file = files.read_archived_file(
         archive_path=archive_path, regex=regex, file_list=file_list
     )
-    return file_list
+    return file
 
 
 @cache
@@ -615,12 +634,12 @@ def read_archived_xml(archive_path: AnyPathStrType, regex: str, file_list: list 
     Overload of sertit.files.read_archived_xml to cache its reading:
     this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
     """
-    file_list = files.read_archived_xml(
+    xml = files.read_archived_xml(
         archive_path=archive_path,
         regex=regex,
         file_list=file_list,
     )
-    return file_list
+    return xml
 
 
 @cache
@@ -631,12 +650,12 @@ def read_archived_html(
     Overload of sertit.files.read_archived_html to cache its reading:
     this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
     """
-    file_list = files.read_archived_html(
+    html = files.read_archived_html(
         archive_path=archive_path,
         regex=regex,
         file_list=file_list,
     )
-    return file_list
+    return html
 
 
 @cache

@@ -166,7 +166,7 @@ class HlsProduct(OpticalProduct):
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -250,7 +250,7 @@ class HlsProduct(OpticalProduct):
             Union[xarray.DataArray, None]: Nodata array
 
         """
-        fmask = self._open_masks(
+        fmask = self._load_masks(
             [HlsMaskBandNames.FMASK], pixel_size=pixel_size, size=size, **kwargs
         )[HlsMaskBandNames.FMASK]
         nodata = fmask.copy(
@@ -649,7 +649,7 @@ class HlsProduct(OpticalProduct):
     def _get_name(self) -> str:
         """
         Set product real name. Overrides get_name due to points in name.
-        TODO: Keep points in name ?
+        TODO: Keep points in name?
 
         Returns:
             str: True name of the product (from metadata)
@@ -670,7 +670,7 @@ class HlsProduct(OpticalProduct):
 
     def _get_split_name(self) -> list:
         """
-        Get split name (with points !)
+        Get split name (with points!)
 
         Returns:
             list: Split products name
@@ -859,40 +859,6 @@ class HlsProduct(OpticalProduct):
 
         return band_arr * scale_factor + offset
 
-    def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
-    ) -> xr.DataArray:
-        """
-        Manage invalid pixels (Nodata, saturated, defective...)
-
-        Args:
-            band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as a SpectralBandNames
-            kwargs: Other arguments used to load bands
-
-        Returns:
-            xr.DataArray: Cleaned band array
-        """
-        # There is no invalid pixels in HLS products
-        return self._manage_nodata(band_arr, band, **kwargs)
-
-    def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
-    ) -> xr.DataArray:
-        """
-        Manage only nodata pixels
-
-        Args:
-            band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
-            kwargs: Other arguments used to load bands
-
-        Returns:
-            xr.DataArray: Cleaned band array
-        """
-        # Nodata is loaded by default (COG file)
-        return band_arr
-
     def _load_bands(
         self,
         bands: Union[list, BandNames],
@@ -994,7 +960,7 @@ class HlsProduct(OpticalProduct):
 
         if bands:
             # Open Fmask
-            fmask = self._open_masks(
+            fmask = self._load_masks(
                 [HlsMaskBandNames.FMASK], pixel_size=pixel_size, size=size, **kwargs
             )[HlsMaskBandNames.FMASK]
 

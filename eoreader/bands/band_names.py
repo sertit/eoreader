@@ -166,6 +166,11 @@ class SpectralBandNames(BandNames):
     BLUE = "BLUE"
     """Blue"""
 
+    DEEP_BLUE = "DEEP_BLUE"
+    """Deep blue, centered at 420nm is introduced alongside CA (centered at 440nm).
+    DEEP_BLUE is based on the Pleiades Neo band named by the University of Twente(https://webapps.itc.utwente.nl/sensor/getsen.aspx?name=Pleiades%20Neo).
+    """
+
     GREEN = "GREEN"
     """Green"""
 
@@ -231,11 +236,6 @@ class SpectralBandNames(BandNames):
     Oa01 = "Oa01"
     """
     Oa01
-    """
-
-    Oa02 = "Oa02"
-    """
-    Oa02
     """
 
     Oa09 = "Oa09"
@@ -327,7 +327,9 @@ class SpectralBandNames(BandNames):
 
 # -- SPECTRAL BANDS --
 CA = SpectralBandNames.CA  # Coastal aerosol
+DEEP_BLUE = SpectralBandNames.DEEP_BLUE
 BLUE = SpectralBandNames.BLUE
+DEEP_BLUE = SpectralBandNames.DEEP_BLUE
 GREEN = SpectralBandNames.GREEN
 YELLOW = SpectralBandNames.YELLOW
 RED = SpectralBandNames.RED
@@ -351,7 +353,6 @@ F2 = SpectralBandNames.F2
 
 # -- S3-OCLI Additional bands --
 Oa01 = SpectralBandNames.Oa01
-Oa02 = SpectralBandNames.Oa02
 Oa09 = SpectralBandNames.Oa09
 Oa10 = SpectralBandNames.Oa10
 Oa13 = SpectralBandNames.Oa13
@@ -584,7 +585,7 @@ class MaskBandNames(BandNames):
     # None
 
     # -- Sentinel-3 --
-    # TODO: Sentinel-3 masks not implemented yet (write an issue on GitHub if needed !)
+    # TODO: Sentinel-3 masks not implemented yet (write an issue on GitHub if needed!)
     # More complex than for other products because of the an/in/... suffixes
 
     # -- SV1 --
@@ -800,6 +801,31 @@ class S2TheiaMaskBandNames(MaskBandNames):
 
     CLM = "CLM"
     """ Sentinel-2 THEIA mask - Cloud masks """
+
+
+class VenusMaskBandNames(MaskBandNames):
+    """Venus Theia Mask Band names"""
+
+    CLM = "CLM"
+    """ Venus mask - Cloud masks """
+
+    EDG = "EDG"
+    """ Venus mask - Nodata pixels """
+
+    SAT = "SAT"
+    """ Venus mask - Saturated pixels """
+
+    MG2 = "MG2"
+    """ Venus mask - Geophysical mask (classification) """
+
+    IAB = "IAB"
+    """ Venus mask - Mask where water vapor and TOA pixels have been interpolated """
+
+    PIX = "PIX"
+    """ Venus mask - Aberrant_Pixels """
+
+    USI = "USI"
+    """ Venus mask - Useful Image """
 
 
 # Mask bands are not exposed as other bands (great risks of overlap between names!)

@@ -73,7 +73,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 reduce_verbosity()
 
 
-def _test_core_optical(pattern: str, debug=False, **kwargs):
+def _test_core_optical(pattern: str, expected_assets, debug=False, **kwargs):
     """
     Core function testing optical data
 
@@ -81,7 +81,7 @@ def _test_core_optical(pattern: str, debug=False, **kwargs):
         pattern (str): Pattern of the satellite
         debug (bool): Debug option
     """
-    _test_core(pattern, opt_path(), debug, **kwargs)
+    _test_core(pattern, opt_path(), debug, expected_assets, **kwargs)
 
 
 def _test_core_sar(pattern: str, debug=False, **kwargs):
@@ -99,6 +99,7 @@ def _test_core(
     pattern: str,
     prod_dir: str,
     debug=False,
+    expected_assets=None,
     **kwargs,
 ):
     """
@@ -297,21 +298,38 @@ def _test_core(
                 if prod.sensor_type == SensorType.OPTICAL:
                     existing_bands = prod.get_existing_bands()
                     nof_assets = len(existing_bands)
+                    LOGGER.debug(
+                        f"Nof existing bands to init nof assets: nof_assets={nof_assets}"
+                    )
 
                     # Remove NARROW NIR, except for S2
                     if is_not_s2 and NARROW_NIR in existing_bands:
                         nof_assets -= 1
+                        LOGGER.debug(
+                            f"Remove one asset as NARROW NIR and NIR are the same band: nof_assets={nof_assets}"
+                        )
 
-                    # Keep only one VRE, except for S2 and S3 OLCI (VRE1 is always existing if VRE bands are present)
+                    # Keep only one VRE, except for
+                    # - S2 and S3 OLCI (VRE1 is always existing if VRE bands are present)
+                    # - WV Legion which has VRE 1 and VRE 2
                     if (
                         is_not_s2
                         and prod.constellation != Constellation.S3_OLCI
                         and VRE_1 in existing_bands
                     ):
-                        if VRE_2 in existing_bands:
+                        if (
+                            prod.constellation != Constellation.WVLG
+                            and VRE_2 in existing_bands
+                        ):
                             nof_assets -= 1
+                            LOGGER.debug(
+                                f"Remove one asset as VRE_1 and VRE_2 are the same band: nof_assets={nof_assets}"
+                            )
                         if VRE_3 in existing_bands:
                             nof_assets -= 1
+                            LOGGER.debug(
+                                f"Remove one asset as VRE_1 and VRE_3 are the same band: nof_assets={nof_assets}"
+                            )
 
                     # Remove one TIR for TM data
                     if (
@@ -320,6 +338,9 @@ def _test_core(
                         and TIR_2 in existing_bands
                     ):
                         nof_assets -= 1
+                        LOGGER.debug(
+                            f"Remove one asset as TIR_1 and TIR_2 are the same band: nof_assets={nof_assets}"
+                        )
                 else:
                     prod: SarProduct
                     existing_bands = prod._get_raw_bands()
@@ -327,8 +348,12 @@ def _test_core(
 
                 if prod.get_quicklook_path():
                     nof_assets += 1
+                    LOGGER.debug(f"Add the quicklook as asset: nof_assets={nof_assets}")
 
-                compare(len(item.assets), nof_assets, "number of assets")
+                if expected_assets is None:
+                    compare(len(item.assets), nof_assets, "number of assets")
+                else:
+                    compare(len(item.assets), expected_assets, "number of assets")
 
                 for band_name, band in item.assets.items():
                     band: pystac.Asset
@@ -405,285 +430,76 @@ def _test_core(
                 )
 
 
-@s3_env
-@dask_env
-def test_s2():
-    """Function testing the support of Sentinel-2 constellation"""
-    _test_core_optical("*S2*_MSI*")
+test_optical_constellations_cases = [
+    pytest.param("*VENUS*", {}, 12, id="venus"),
+    pytest.param("*S2*_MSI*", {}, 11, id="s2"),
+    pytest.param("*SENTINEL2*", {}, 11, id="s2_theia"),
+    pytest.param("*S3*_OL_1_*", {}, 10, id="s3_olci"),
+    pytest.param(
+        "*S3*_SL_1_*", {SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP}, 12, id="s3_slstr"
+    ),
+    pytest.param("*LC09*", {}, 12, id="landsat_9"),
+    pytest.param("*LC08*", {}, 12, id="landsat_8"),
+    pytest.param("*LE07*", {}, 12, id="landsat_7"),
+    pytest.param("*LT05*", {}, 12, id="landsat_5_tm"),
+    pytest.param("*LT04*", {}, 12, id="landsat_4_tm"),
+    pytest.param("*LM04*", {}, 12, id="landsat_4_mss"),
+    pytest.param("*LM03*", {}, 12, id="landsat_3_mss"),
+    pytest.param("*LM02*", {}, 12, id="landsat_2_mss"),
+    pytest.param("*LM01*", {}, 12, id="landsat_1_mss"),
+    pytest.param("*HLS*", {}, 12, id="hls"),
+    pytest.param("*202*1014*", {}, 12, id="planet"),
+    pytest.param("*ssc*", {}, 12, id="skysat"),
+    pytest.param("*_RE4_*", {}, 12, id="rapideye"),
+    pytest.param("*IMG_PHR*", {}, 12, id="pleiades"),
+    pytest.param("*IMG_*_PNEO*", {}, 12, id="pleiades_neo"),
+    pytest.param("*SP04*", {}, 12, id="spot4"),
+    pytest.param("*SP05*", {}, 12, id="spot5"),
+    pytest.param("*IMG_SPOT6*", {}, 12, id="spot6"),
+    pytest.param("*IMG_SPOT7*", {}, 12, id="spot7"),
+    pytest.param("*P001_MUL*", {}, 12, id="wv02_wv03_legion"),
+    pytest.param("*P001_PSH*", {}, 12, id="ge01_wv04"),
+    pytest.param("*VIS1_MS4*", {}, 12, id="vision1"),
+    pytest.param("*0001_01*", {}, 12, id="superview1"),
+    pytest.param("*DE2_*", {}, 12, id="geosat2"),
+    pytest.param(
+        "*LM05*",
+        {},
+        12,
+        id="landsat_5_mss",
+        marks=pytest.mark.skipif(
+            sys.platform == "win32" or os.getenv(CI_EOREADER_S3) == "0",
+            reason="Weirdly, Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk",
+        ),
+    ),
+]
 
 
-@s3_env
-@dask_env
-def test_s2_theia():
-    """Function testing the support of Sentinel-2 Theia constellation"""
-    _test_core_optical("*SENTINEL2*")
-
-
-@s3_env
-@dask_env
-def test_s3_olci():
-    """Function testing the support of Sentinel-3 OLCI constellation"""
-    # Init logger
-    _test_core_optical("*S3*_OL_1_*")
-
-
-@s3_env
-@dask_env
-def test_s3_slstr():
-    """Function testing the support of Sentinel-3 SLSTR constellation"""
-    # Init logger
-    _test_core_optical("*S3*_SL_1_*", **{SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP})
-
-
-@s3_env
-@dask_env
-def test_l9():
-    """Function testing the support of Landsat-9 constellation"""
-    # Init logger
-    _test_core_optical("*LC09*")
-
-
-@s3_env
-@dask_env
-def test_l8():
-    """Function testing the support of Landsat-8 constellation"""
-    # Init logger
-    _test_core_optical("*LC08*")
-
-
-@s3_env
-@dask_env
-def test_l7():
-    """Function testing the support of Landsat-7 constellation"""
-    _test_core_optical("*LE07*")
-
-
-@s3_env
-@dask_env
-def test_l5_tm():
-    """Function testing the support of Landsat-5 TM constellation"""
-    _test_core_optical("*LT05*")
-
-
-@s3_env
-@dask_env
-def test_l4_tm():
-    """Function testing the support of Landsat-4 TM constellation"""
-    _test_core_optical("*LT04*")
-
-
-@pytest.mark.skipif(
-    sys.platform == "win32" or os.getenv(CI_EOREADER_S3) == "0",
-    reason="Weirdly, Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk",
+@pytest.mark.parametrize(
+    "pattern, kwargs, expected_assets", test_optical_constellations_cases
 )
 @s3_env
 @dask_env
-def test_l5_mss():
-    """Function testing the support of Landsat-5 MSS constellation"""
-    _test_core_optical("*LM05*")
+def test_optical_constellations(pattern, kwargs, expected_assets):
+    _test_core_optical(pattern, expected_assets, **kwargs)
 
 
+test_sar_constellations_cases = [
+    pytest.param("*S1*_IW*", {}, id="sentinel_1"),
+    pytest.param("*csk_*", {}, id="cosmo_skymed"),
+    pytest.param("*CSG_*", {}, id="cosmo_skymed_2"),
+    pytest.param("*TSX*", {}, id="terrasar_x"),
+    pytest.param("*TDX*", {}, id="tandem_x"),
+    pytest.param("*RS2_*", {}, id="radarsat_2"),
+    pytest.param("*RCM*", {}, id="radarsat_constellation"),
+    pytest.param("*SC_*", {}, id="iceye"),
+    pytest.param("*SAO*", {}, id="saocom"),
+    pytest.param("*CAPELLA*", {}, id="capella"),
+]
+
+
+@pytest.mark.parametrize("pattern, kwargs", test_sar_constellations_cases)
 @s3_env
 @dask_env
-def test_l4_mss():
-    """Function testing the support of Landsat-4 MSS constellation"""
-    _test_core_optical("*LM04*")
-
-
-@s3_env
-@dask_env
-def test_l3_mss():
-    """Function testing the support of Landsat-3 constellation"""
-    _test_core_optical("*LM03*")
-
-
-@s3_env
-@dask_env
-def test_l2_mss():
-    """Function testing the support of Landsat-2 constellation"""
-    _test_core_optical("*LM02*")
-
-
-@s3_env
-@dask_env
-def test_l1_mss():
-    """Function testing the support of Landsat-1 constellation"""
-    _test_core_optical("*LM01*")
-
-
-@s3_env
-@dask_env
-def test_hls():
-    """Function testing the support of HLS constellation"""
-    _test_core_optical("*HLS*")
-
-
-@s3_env
-@dask_env
-def test_pla():
-    """Function testing the support of PlanetScope constellation"""
-    _test_core_optical("*202*1014*")
-
-
-@s3_env
-@dask_env
-def test_sky():
-    """Function testing the support of SkySat constellation"""
-    _test_core_optical("*ssc*")
-
-
-@s3_env
-@dask_env
-def test_re():
-    """Function testing the support of RapidEye constellation"""
-    _test_core_optical("*_RE4_*")
-
-
-@s3_env
-@dask_env
-def test_pld():
-    """Function testing the support of Pleiades constellation"""
-    _test_core_optical("*IMG_PHR*")
-
-
-@s3_env
-@dask_env
-def test_pneo():
-    """Function testing the support of Pleiades-Neo constellation"""
-    _test_core_optical("*IMG_*_PNEO*")
-
-
-@s3_env
-@dask_env
-def test_spot4():
-    """Function testing the support of SPOT-4 constellation"""
-    _test_core_optical("*SP04*")
-
-
-@s3_env
-@dask_env
-def test_spot5():
-    """Function testing the support of SPOT-5 constellation"""
-    _test_core_optical("*SP05*")
-
-
-@s3_env
-@dask_env
-def test_spot6():
-    """Function testing the support of SPOT-6 constellation"""
-    _test_core_optical("*IMG_SPOT6*")
-
-
-@s3_env
-@dask_env
-def test_spot7():
-    """Function testing the support of SPOT-7 constellation"""
-    # This test orthorectifies DIMAP data, so we need a DEM stored on disk
-    _test_core_optical("*IMG_SPOT7*")
-
-
-@s3_env
-@dask_env
-def test_wv02_wv03():
-    """Function testing the support of WorldView-2/3 constellations"""
-    # This test orthorectifies DIMAP data, so we need a DEM stored on disk
-    _test_core_optical("*P001_MUL*")
-
-
-@s3_env
-@dask_env
-def test_ge01_wv04():
-    """Function testing the support of GeoEye-1/WorldView-4 constellations"""
-    _test_core_optical("*P001_PSH*")
-
-
-@s3_env
-@dask_env
-def test_vs1():
-    """Function testing the support of Vision-1 constellation"""
-    _test_core_optical("*VIS1_MS4*")
-
-
-@s3_env
-@dask_env
-def test_sv1():
-    """Function testing the support of SuperView-1 constellation"""
-    _test_core_optical("*0001_01*")
-
-
-@s3_env
-@dask_env
-def test_gs2():
-    """Function testing the support of GEOSAT-2 constellation"""
-    _test_core_optical("*DE2_*")
-
-
-@s3_env
-@dask_env
-def test_s1():
-    """Function testing the support of Sentinel-1 constellation"""
-    _test_core_sar("*S1*_IW*")
-
-
-@s3_env
-@dask_env
-def test_csk():
-    """Function testing the support of COSMO-Skymed constellation"""
-    _test_core_sar("*csk_*")
-
-
-@s3_env
-@dask_env
-def test_csg():
-    """Function testing the support of COSMO-Skymed 2nd Generation constellation"""
-    _test_core_sar("*CSG_*")
-
-
-@s3_env
-@dask_env
-def test_tsx():
-    """Function testing the support of TerraSAR-X constellations"""
-    _test_core_sar("*TSX*")
-
-
-# Assume that tests PAZ and TDX
-@s3_env
-@dask_env
-def test_tdx():
-    """Function testing the support of PAZ SAR and TanDEM-X constellations"""
-    _test_core_sar("*TDX*")
-
-
-@s3_env
-@dask_env
-def test_rs2():
-    """Function testing the support of RADARSAT-2 constellation"""
-    _test_core_sar("*RS2_*")
-
-
-@s3_env
-@dask_env
-def test_rcm():
-    """Function testing the support of RADARSAT-Constellation constellation"""
-    _test_core_sar("*RCM*")
-
-
-@s3_env
-@dask_env
-def test_iceye():
-    """Function testing the support of ICEYE constellation"""
-    _test_core_sar("*SC_*")
-
-
-@s3_env
-@dask_env
-def test_saocom():
-    """Function testing the support of SAOCOM constellation"""
-    _test_core_sar("*SAO*")
-
-
-@s3_env
-@dask_env
-def test_capella():
-    """Function testing the support of CAPELLA constellation"""
-    _test_core_sar("*CAPELLA*")
+def test_sar_constellations(pattern, kwargs):
+    _test_core_sar(pattern, **kwargs)

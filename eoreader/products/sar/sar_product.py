@@ -28,7 +28,8 @@ import numpy as np
 import rasterio
 import rioxarray
 import xarray as xr
-from rasterio import crs
+from affine import Affine
+from rasterio import CRS, crs
 from rasterio.enums import Resampling
 from rasterio.windows import Window
 from sertit import AnyPath, geometry, misc, path, rasters, snap, strings, types, vectors
@@ -287,8 +288,45 @@ class SarProduct(Product):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
+        if self.is_ortho:
+            default_band_path = self.get_raw_band_paths()[self.get_default_band()]
+        else:
+            default_band_path = self.get_default_band_path()
+
         # Processed by SNAP: the nodata is set -> use get_footprint instead of vectorize
-        return rasters.get_footprint(self.get_default_band_path())
+        downsampled_band = utils.read(
+            default_band_path,
+            pixel_size=max(
+                self.resolution * 10, float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
+            ),
+        )
+        return rasters.get_footprint(downsampled_band)
+
+    @cache
+    def default_transform(self, **kwargs) -> (Affine, int, int, CRS):
+        """
+        Returns default transform data of the default band (UTM),
+        as the :code:`rasterio.warp.calculate_default_transform` does:
+        - transform
+        - width
+        - height
+        - crs
+
+        Args:
+            kwargs: Additional arguments
+        Returns:
+            Affine, int, int, CRS: transform, width, height, CRS
+
+        """
+        if self.is_ortho:
+            default_band_path = self.get_raw_band_paths(**kwargs)[
+                self.get_default_band()
+            ]
+        else:
+            default_band_path = self.get_default_band_path(**kwargs)
+
+        with rasterio.open(str(default_band_path)) as dst:
+            return dst.transform, dst.width, dst.height, dst.crs
 
     def get_default_band(self) -> BandNames:
         """
@@ -329,7 +367,7 @@ class SarProduct(Product):
         """
         Get default band path (the first existing one between :code:`VV` and :code:`HH` for SAR data), ready to use (orthorectified)
 
-        .. WARNING:: This functions orthorectifies SAR bands if not existing !
+        .. WARNING:: This functions orthorectifies SAR bands if not existing!
 
         .. code-block:: python
 
@@ -392,11 +430,16 @@ class SarProduct(Product):
         Returns:
             gpd.GeoDataFrame: Extent in UTM
         """
-        # Get WGS84 extent
-        extent_wgs84 = self.wgs84_extent()
+        if self.is_ortho:
+            return rasters.get_extent(
+                self.get_raw_band_paths()[self.get_default_band()]
+            ).to_crs(self.crs())
+        else:
+            # Get WGS84 extent
+            extent_wgs84 = self.wgs84_extent()
 
-        # Convert to UTM
-        return extent_wgs84.to_crs(self.crs())
+            # Convert to UTM
+            return extent_wgs84.to_crs(self.crs())
 
     @cache
     def crs(self) -> crs.CRS:
@@ -414,11 +457,17 @@ class SarProduct(Product):
         Returns:
             crs.CRS: CRS object
         """
-        # Get WGS84 extent
-        extent_wgs84 = self.wgs84_extent()
+        if self.is_ortho:
+            with rasterio.open(
+                str(self.get_raw_band_paths()[self.get_default_band()])
+            ) as ds:
+                return ds.crs
+        else:
+            # Get WGS84 extent
+            extent_wgs84 = self.wgs84_extent()
 
-        # Estimate UTM from extent
-        return extent_wgs84.estimate_utm_crs()
+            # Estimate UTM from extent
+            return extent_wgs84.estimate_utm_crs()
 
     @abstractmethod
     def _set_sensor_mode(self) -> None:
@@ -433,7 +482,7 @@ class SarProduct(Product):
         """
         Return the paths of required bands.
 
-        .. WARNING:: This functions orthorectifies and despeckles SAR bands if not existing !
+        .. WARNING:: This functions orthorectifies and despeckles SAR bands if not existing!
 
         .. code-block:: python
 
@@ -556,9 +605,9 @@ class SarProduct(Product):
         """
         Return the existing orthorectified band paths (including despeckle bands).
 
-        .. WARNING:: This functions orthorectifies SAR bands if not existing !
+        .. WARNING:: This functions orthorectifies SAR bands if not existing!
 
-        .. WARNING:: This functions despeckles SAR bands if not existing !
+        .. WARNING:: This functions despeckles SAR bands if not existing!
 
         .. code-block:: python
 
@@ -637,7 +686,7 @@ class SarProduct(Product):
         # TODO: check if that works
         # In case of data that doesn't have any known pixel_size
         if self.pixel_size < 0.0:
-            with rasterio.open(band_path) as ds:
+            with rasterio.open(str(band_path)) as ds:
                 self.pixel_size = ds.res[0]
 
         try:
@@ -768,7 +817,7 @@ class SarProduct(Product):
         else:
             pp_graph = AnyPath(os.environ[PP_GRAPH]).resolve()
             if not pp_graph.is_file() or pp_graph.suffix != ".xml":
-                FileNotFoundError(f"{pp_graph} cannot be found.")
+                raise FileNotFoundError(f"{pp_graph} cannot be found.")
 
         return str(pp_graph)
 
@@ -1083,7 +1132,7 @@ class SarProduct(Product):
             else:
                 dspk_graph = AnyPath(os.environ[DSPK_GRAPH]).resolve()
                 if not dspk_graph.is_file() or dspk_graph.suffix != ".xml":
-                    FileNotFoundError(f"{dspk_graph} cannot be found.")
+                    raise FileNotFoundError(f"{dspk_graph} cannot be found.")
 
             # Create command line and run it
             if not os.path.isfile(dspk_dim):
@@ -1296,7 +1345,7 @@ class SarProduct(Product):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
 
         .. code-block:: python
 
@@ -1356,7 +1405,9 @@ class SarProduct(Product):
         Returns:
             gpd.GeoDataFrame: WGS84 extent
         """
-        with rasterio.open(self.get_raw_band_paths()[self.get_default_band()]) as ds:
+        with rasterio.open(
+            str(self.get_raw_band_paths()[self.get_default_band()])
+        ) as ds:
             if ds.crs is not None:
                 extent_wgs84 = gpd.GeoDataFrame(
                     geometry=[geometry.from_bounds_to_polygon(*ds.bounds)],

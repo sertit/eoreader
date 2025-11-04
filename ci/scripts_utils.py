@@ -13,7 +13,7 @@ from sertit.types import AnyPathStrType, AnyPathType
 from sertit.unistra import get_db2_path, get_db3_path, get_geodatastore
 
 from eoreader import EOREADER_NAME
-from eoreader.env_vars import TILE_SIZE
+from eoreader.env_vars import DEM_PATH, TILE_SIZE
 from eoreader.reader import Reader
 from eoreader.utils import use_dask
 
@@ -21,6 +21,36 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 READER = Reader()
 
 CI_EOREADER_S3 = "CI_EOREADER_USE_S3"
+
+
+def set_dem() -> str:
+    """
+    Retrieve the DEM path from the environment or use a default path.
+
+    This function checks if the `EOREADER_DEM_PATH` environment variable is set.
+    If not, it attempts to use a predefined default path. If that default path
+    does not exist on the filesystem, a FileNotFoundError is raised.
+
+    Returns:
+        str: Absolute path to the DEM directory.
+
+    Raises:
+        FileNotFoundError: If no DEM path is set and the default path doesn't exist.
+    """
+    default_dem_path = "/path/to/default/dem"
+
+    dem_path = os.getenv("EOREADER_DEM_PATH")
+
+    if dem_path is None:
+        if os.path.exists(default_dem_path):
+            dem_path = default_dem_path
+            os.environ[DEM_PATH] = dem_path
+        else:
+            raise FileNotFoundError(
+                f"EOREADER_DEM_PATH is not set and default path '{default_dem_path}' does not exist."
+            )
+
+    return dem_path
 
 
 def get_ci_dir() -> AnyPathType:
@@ -41,7 +71,7 @@ def get_ci_db_dir() -> AnyPathType:
     if int(os.getenv(CI_EOREADER_S3, 0)):
         # ON S3
         unistra.define_s3_client()
-        return AnyPath("s3://sertit-eoreader-ci")
+        return AnyPath("s3://sertit-ci/eoreader")
     else:
         # ON DISK
         try:
@@ -187,6 +217,7 @@ def s3_env(*args, **kwargs):
     import psutil
     import rasterio
 
+    # Defaults to 5%
     gdal_cachemax_pct = 10
     gdal_cachemax_bytes = int(
         gdal_cachemax_pct / 100 * psutil.virtual_memory().available
@@ -195,19 +226,44 @@ def s3_env(*args, **kwargs):
         f"GDAL CACHEMAX[{gdal_cachemax_pct}%] = {gdal_cachemax_bytes / 1024 / 1024:.2f} Mo"
     )
 
-    with rasterio.Env(
-        GDAL_DISABLE_READDIR_ON_OPEN=True,
-        GDAL_CACHEMAX=gdal_cachemax_bytes,
-        CPL_VSIL_CURL_CACHE_SIZE=mo_to_bytes(10),
-        VSI_CACHE=True,
-        VSI_CACHE_SIZE=mo_to_bytes(5),
-        GDAL_HTTP_MULTIPLEX=True,
-        GDAL_INGESTED_BYTES_AT_OPEN=ko_to_bytes(32),
-        GDAL_HTTP_VERSION=2,
-        GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES",
-        GDAL_NUM_THREADS="ALL_CPUS",
-    ):
-        return unistra.s3_env(*args, use_s3_env_var=CI_EOREADER_S3, **kwargs)
+    def decorator(function):
+        @wraps(function)
+        def s3_env_wrapper(*args, **kwargs):
+            with rasterio.Env(
+                # Global cache size for downloads in bytes, defaults to 16 MB.
+                CPL_VSIL_CURL_CACHE_SIZE=mo_to_bytes(200),
+                #
+                # Enable / disable per-file caching by setting to TRUE or FALSE.
+                VSI_CACHE=True,
+                #
+                # Per-file cache size in bytes
+                VSI_CACHE_SIZE=mo_to_bytes(5),
+                #
+                # When set to YES, this attempts to download multiple range requests in parallel, reusing the same TCP connection
+                GDAL_HTTP_MULTIPLEX=True,
+                #
+                # Gives the number of initial bytes GDAL should read when opening a file and inspecting its metadata.
+                GDAL_INGESTED_BYTES_AT_OPEN=ko_to_bytes(32),
+                GDAL_HTTP_VERSION=2,
+                #
+                # Tells GDAL to merge consecutive range GET requests.
+                GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES",
+                #
+                # -- useless by experience --
+                # Size of the default block cache, can be set in byte, MB, or as a percentage of available main, memory.
+                # GDAL_CACHEMAX=gdal_cachemax_bytes, # => doesn't seem to improve anything, in fact slows down things a bit
+                # Number of threads GDAL can use for block reads and (de)compression, set to ALL_CPUS to use all available cores.
+                # GDAL_NUM_THREADS="ALL_CPUS", #  => doesn't seem to improve anything, in fact slows down things
+                # Set to TRUE or EMPTY_DIR to avoid listing all files in the directory once a single file is opened (this is highly recommended).
+                # GDAL_DISABLE_READDIR_ON_OPEN=True, #  => seems to have drawbacks especially for s2
+            ):
+                return unistra.s3_env(
+                    function(*args, **kwargs), use_s3_env_var=CI_EOREADER_S3
+                )
+
+        return s3_env_wrapper
+
+    return decorator(*args, **kwargs)
 
 
 def compare(to_be_checked, ref, topic):

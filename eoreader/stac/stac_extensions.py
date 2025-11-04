@@ -129,6 +129,7 @@ class EoExt:
             raise ImportError(
                 "You need to install 'pystac[validation]' to export your product to a STAC Item!"
             ) from exc
+
         # Add the EO extension
         eo_ext = EOExtension.ext(item, add_if_missing=True)
 

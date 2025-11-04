@@ -151,6 +151,9 @@ class Constellation(ListEnum):
     SPOT4 = "Spot-4"
     """SPOT-4"""
 
+    VENUS = "Venus"
+    """Venus"""
+
     VIS1 = "Vision-1"
     """Vision-1"""
 
@@ -291,6 +294,7 @@ class Constellation(ListEnum):
 _MAXAR_REGEX = r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)"
 
 CONSTELLATION_REGEX = {
+    Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9_-]+",
     Constellation.S1: r"S1[ABCD]_(IW|EW|SM|WV|S\d)_(RAW|SLC|GRD|OCN)[FHM_]_[0-2]S[SD][HV]_\d{8}T\d{6}_\d{8}T\d{6}_\d{6}_.{11}(_COG|)",
     Constellation.S2: r"S2[ABCD]_MSIL(1C|2A)_\d{8}T\d{6}_N\d{4}_R\d{3}_T\d{2}\w{3}_\d{8}T\d{6}",
     # Element84 : S2A_31UDQ_20230714_0_L2A, Sinergise: 0 or 1...
@@ -319,7 +323,7 @@ CONSTELLATION_REGEX = {
         r"CSG_SSAR\d_(RAW|SCS|DGM|GEC|GTC)_([UBF]|FQLK_B)_\d{4}_(S2[ABC]|D2[RSJ]|OQ[RS]|STR|SC[12]|PPS|QPS)_\d{3}"
         r"_(HH|VV|VH|HV)_[LR][AD]_[DPFR]_\d{14}_\d{14}\_\d_[FC]_\d{2}[NS]_Z\d{2}_[NFB]\d{2}.h5",
     ],
-    Constellation.TSX: r"TSX1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
+    Constellation.TSX: r"TSX1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLST]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Constellation.TDX: r"TDX1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLS]_[SDTQ]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Constellation.PAZ: r"PAZ1_SAR__(SSC|MGD|GEC|EEC)_([SR]E|__)___[SH][MCLST]_[SD]_[SD]RA_\d{8}T\d{6}_\d{8}T\d{6}",
     Constellation.RS2: r"RS2_(OK\d+_PK\d+_DK\d+_.{2,}_\d{8}_\d{6}|\d{8}_\d{6}_\d{4}_.{1,5})"
@@ -358,9 +362,12 @@ CONSTELLATION_REGEX = {
 _MAXAR_MTD_REGEX = r"\d{2}\w{3}\d{8}-.*.TIL"
 
 MTD_REGEX = {
+    Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9_-]+_MTD_ALL\.xml",
+    # Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9-]+",
+    # Constellation.VENUS: rf"{CONSTELLATION_REGEX[Constellation.VENUS]}_MTD_ALL\.xml",
     Constellation.S1: {
         "nested": 1,
-        # File that can be found at any level (product/**/file)
+        # File that can be found at first level (product/*/file)
         "regex": r".*s1[abcd]-(iw|ew|sm|wv|s\d)\d*-(raw|slc|grd|ocn)-[hv]{2}-\d{8}t\d{6}-\d{8}t\d{6}-\d{6}-\w{6}-\d{3}(-cog|)\.xml",
     },
     Constellation.S2: {"nested": 2, "regex": r"MTD_TL.xml"},
@@ -393,12 +400,13 @@ MTD_REGEX = {
     Constellation.TSX: rf"{CONSTELLATION_REGEX[Constellation.TSX]}\.xml",
     Constellation.TDX: rf"{CONSTELLATION_REGEX[Constellation.TDX]}\.xml",
     Constellation.PAZ: rf"{CONSTELLATION_REGEX[Constellation.PAZ]}\.xml",
-    Constellation.RS2: [
-        r"product\.xml",  # Too generic name, check also a band
-        r"imagery_[HV]{2}\.tif",
-    ],
+    Constellation.RS2: {
+        "nested": 1,
+        # File that can be found at first level (product/*/file)
+        "regex": r"rs2prod.*\.xsd",
+    },
     Constellation.PLD: r"DIM_PHR1[AB]_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
-    Constellation.PNEO: r"DIM_PNEO\d_\d{15}_(PMS-FS|MS-FS|PMS|MS|P)_(SEN|PRJ|ORT|MOS)_.{8,}(-.{4,}-.{4,}-.{4,}-.{12,}|_._._._.)\.XML",
+    Constellation.PNEO: r"DIM_PNEO\d_(\w+_|)\d{15}_(PMS-FS|MS-FS|PMS|MS|P)_(SEN|PRJ|ORT|MOS)_.{8,}(-.{4,}-.{4,}-.{4,}-.{12,}|_._._._.)\.XML",
     Constellation.SPOT7: r"DIM_SPOT7_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Constellation.SPOT6: r"DIM_SPOT6_(P|MS|PMS|MS-N|MS-X|PMS-N|PMS-X)_\d{15}_(SEN|PRJ|ORT|MOS)_.{10,}\.XML",
     Constellation.VIS1: r"DIM_VIS1_(PSH|MS4|PAN)_\d{14}_(PRJ|ORTP)_S\d{5,}_\d{4}_Meta\.xml",
@@ -437,7 +445,7 @@ MTD_REGEX = {
         r"IMAGERY\.TIF",
     ],
     Constellation.S2_SIN: {
-        "nested": 1,  # File that can be found at any level (product/**/file)
+        "nested": 0,  # File that can be found at child directory
         "regex": [
             r"metadata\.xml",  # Too generic name, check also a band
             r"B12\.jp2",
@@ -728,7 +736,7 @@ class Reader:
         product_path = AnyPath(product_path)
 
         if not product_path.exists():
-            FileNotFoundError(f"Non existing product: {product_path}")
+            raise FileNotFoundError(f"Non existing product: {product_path}")
 
         if custom:
             from eoreader.products import CustomProduct

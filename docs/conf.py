@@ -61,11 +61,6 @@ autodoc_default_options = {
 nb_execution_mode = "cache"
 nb_execution_timeout = -1
 
-# Manage new READTHEDOCS output mechanism
-cache_path = os.getenv('READTHEDOCS_OUTPUT')
-if cache_path is not None:
-    nb_execution_cache_path = f"{cache_path}/../docs/_build/.jupyter_cache"
-
 # Merge stderr and stdout
 nb_merge_streams = True
 
@@ -225,7 +220,42 @@ def my_doc_skip(app, what, name, obj, skip, options):
     return skip
 
 
+_GITHUB_ADMONITIONS = {
+    "> [!NOTE]": "note",
+    "> [!TIP]": "tip",
+    "> [!IMPORTANT]": "important",
+    "> [!WARNING]": "warning",
+    "> [!CAUTION]": "caution",
+}
+
+def run_convert_github_admonitions_to_rst(app, relative_path, parent_docname, lines):
+    # loop through lines, replace github admonitions
+    for i, orig_line in enumerate(lines):
+        orig_line_splits = orig_line.split("\n")
+        replacing = False
+        for j, line in enumerate(orig_line_splits):
+            # look for admonition key
+            for admonition_key in _GITHUB_ADMONITIONS:
+                if admonition_key in line:
+                    line = line.replace(admonition_key, ":::{" + _GITHUB_ADMONITIONS[admonition_key] + "}\n")
+                    # start replacing quotes in subsequent lines
+                    replacing = True
+                    break
+            else:
+                # replace indent to match directive
+                if replacing and "> " in line:
+                    line = line.replace("> ", "  ")
+                elif replacing:
+                    # missing "> ", so stop replacing and terminate directive
+                    line = f"\n:::\n{line}"
+                    replacing = False
+            # swap line back in splits
+            orig_line_splits[j] = line
+        # swap line back in original
+        lines[i] = "\n".join(orig_line_splits)
+
 def setup(app):
     """dummy docstring for pydocstyle"""
     app.connect('autodoc-skip-member', my_doc_skip)
     app.connect("html-page-context", _html_page_context)
+    app.connect("include-read", run_convert_github_admonitions_to_rst)

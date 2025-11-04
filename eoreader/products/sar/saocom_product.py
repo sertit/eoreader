@@ -18,8 +18,7 @@ SAOCOM products.
 """
 
 import logging
-import re
-import zipfile
+import os
 from datetime import datetime
 from enum import unique
 from typing import Union
@@ -30,8 +29,9 @@ from sertit import path, rasters, vectors
 from sertit.misc import ListEnum
 from shapely.geometry import Polygon
 
-from eoreader import DATETIME_FMT, EOREADER_NAME, cache
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.bands import SarBandNames
+from eoreader.env_vars import SAR_DEF_PIXEL_SIZE
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
@@ -159,7 +159,7 @@ class SaocomProduct(SarProduct):
         # Impossible to find anywhere the recommaneded pixel spacing for SAOCOM data
         # SLC: For STRIPMAP data this product is sampled at the natural pixel spacing
         # Decision : For other SAR images, usually: pixel_size = resolution / 2.
-        # TODO: Is it the case here ?
+        # TODO: Is it the case here?
         self.pixel_size = def_res / 2.0
         self.resolution = def_res
 
@@ -222,7 +222,7 @@ class SaocomProduct(SarProduct):
             [float(vertex.findtext("lon")), float(vertex.findtext("lat"))]
             for vertex in root.iterfind(".//frame/vertex")
         ]
-        # TODO: ensure that the polygon is valid ?
+        # TODO: ensure that the polygon is valid?
 
         return gpd.GeoDataFrame(
             geometry=[Polygon(corners)],
@@ -265,10 +265,16 @@ class SaocomProduct(SarProduct):
         """
         # WARNING: Sometimes the product seems to contain several tiles that are not contiguous
         # Do not simplify geometry then
-        return rasters.get_valid_vector(
-            self.get_default_band_path()
-        )  # Processed by SNAP: the nodata is set
+        # Processed by SNAP: the nodata is set
+        default_arr = utils.read(
+            self.get_default_band_path(),
+            pixel_size=max(
+                self.resolution * 10, float(os.environ.get(SAR_DEF_PIXEL_SIZE, 0))
+            ),
+        )
+        return rasters.get_valid_vector(default_arr)
 
+    @cache
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing band paths (as they come with the archived products).
@@ -302,6 +308,35 @@ class SaocomProduct(SarProduct):
                 continue
 
         return band_paths
+
+    @cache
+    def _get_raw_bands(self) -> list:
+        """
+        Return the existing band paths (as they come with th archived products).
+
+        Returns:
+            list: List of existing bands in the raw products (vv, hh, vh, hv)
+        """
+        try:
+            # Get MTD XML file
+            root, _ = self.read_mtd()
+
+            # Open identifier
+            pols = root.findtext(".//acquiredPols")
+            if not pols:
+                raise InvalidProductError("'acquiredPols' not found in metadata!")
+
+            # have the bands ordered like in SarBandNames
+
+            return [
+                band
+                for band in SarBandNames.speckle_list()
+                if band.name in pols.split("-")
+            ]
+
+        except Exception as e:
+            LOGGER.error(e)
+            return super()._get_raw_bands()
 
     def _set_product_type(self) -> None:
         """Set products type"""
@@ -449,16 +484,22 @@ class SaocomProduct(SarProduct):
             if not qlk_exists:
                 try:
                     zip_path = next(self.path.glob(f"{self.name}.zip"))
-
-                    with zipfile.ZipFile(zip_path) as zip_ds:
-                        filenames = [f.filename for f in zip_ds.filelist]
-                        regex = re.compile("Images/.*png")
-                        quicklook_path = zip_ds.extract(
-                            list(filter(regex.match, filenames))[0], quicklook_path
-                        )
+                    rio_qlk_path = self._get_archived_rio_path(
+                        archive_path=zip_path, regex="Images/.*png", as_list=False
+                    )
                 except FileNotFoundError:
-                    quicklook_path = next(self.path.glob("Images/*.png"))
-                quicklook_path = str(quicklook_path)
+                    rio_qlk_path = next(self.path.glob("Images/*.png"))
+
+                # Write quicklook on disk
+                utils.write(
+                    utils.read(rio_qlk_path),
+                    quicklook_path,
+                    dtype="uint8",
+                    nodata=255,
+                    driver="PNG",
+                )
+
+            quicklook_path = str(quicklook_path)
         except (StopIteration, FileNotFoundError):
             LOGGER.warning(f"No quicklook found in {self.condensed_name}")
 

@@ -16,12 +16,13 @@ jobs:
           id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Get history and tags for SCM versioning to work
           fetch-depth: 0
+          lfs: false
       - name: Install the latest version of uv with cache enabled
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
           version: "latest"
           enable-cache: true

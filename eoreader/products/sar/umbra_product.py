@@ -33,7 +33,7 @@ from rasterio import crs
 from sertit import files, path, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType
-from sertit.vectors import WGS84
+from sertit.vectors import WGS84, DataSourceError
 from shapely import Polygon, force_2d
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
@@ -50,8 +50,8 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 class UmbraProductType(ListEnum):
     """
     Umbra products types.
-    Take a look
-    `here <https://help.umbra.space/product-guide/umbra-products/umbra-product-specifications>`_.
+    Take a look to the
+    `specifications <https://help.umbra.space/product-guide/umbra-products/umbra-product-specifications>`_.
     """
 
     SLC = "SLC"
@@ -121,15 +121,15 @@ class UmbraSensorMode(ListEnum):
     """
     StripMap
     
-    Not available yet, but already visible in the `documentation <https://help.umbra.space/product-guide/umbra-products/future-imaging-modes`_.
+    Not available yet, but already visible in the `documentation <https://help.umbra.space/product-guide/umbra-products/future-imaging-modes>`_.
     """
 
 
 class UmbraProduct(SarProduct):
     """
     Class for Umbra Products
-    Take a look
-    `here <https://help.umbra.space/product-guide>`_.
+    Take a look to the
+    `product guide <https://help.umbra.space/product-guide>`_.
     """
 
     def __init__(
@@ -148,8 +148,8 @@ class UmbraProduct(SarProduct):
     def _set_pixel_size(self) -> None:
         """
         Set product default pixel size (in meters)
-        See
-        `here <https://help.umbra.space/product-guide/umbra-products/umbra-product-specifications>`_
+        Take a look to the
+        `specifications <https://help.umbra.space/product-guide/umbra-products/umbra-product-specifications>`_.
         """
         root, _ = self.read_mtd()
         if self._has_stac_mtd:
@@ -228,7 +228,7 @@ class UmbraProduct(SarProduct):
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
         if self._has_stac_mtd:
-            footprint = vectors.read(self._get_stac_mtd_path())
+            footprint = self._read_stac_mtd()
         else:
             # Easier with mtd in JSON here
             footprint_mtd = files.read_json(self._get_mtd_path())
@@ -266,12 +266,13 @@ class UmbraProduct(SarProduct):
         Returns:
             crs.CRS: CRS object
         """
-        # For now, it's only SPOTLIGHT, but be ready for any STRIPMAP appearance
-        root, _ = self.read_mtd()
         if self._has_stac_mtd:
             # Estimate UTM from footprint
-            crs = vectors.read(self._get_stac_mtd_path()).estimate_utm_crs()
+            crs = self._read_stac_mtd().estimate_utm_crs()
         else:
+            # For now, it's only SPOTLIGHT, but be ready for any STRIPMAP appearance
+            root, _ = self.read_mtd()
+
             # Estimate UTM from center point
             center = root.findtext(".//sceneCenterPointLla")
             if not center:
@@ -283,6 +284,17 @@ class UmbraProduct(SarProduct):
 
     def _get_stac_mtd_path(self):
         return next(self.path.glob(f"{self.name}.stac*.json"))
+
+    @cache
+    def _read_stac_mtd(self) -> gpd.GeoDataFrame:
+        try:
+            stac_mtd = vectors.read(self._get_stac_mtd_path())
+        except DataSourceError:
+            # Bug with pyogrio v0.11.0?
+            LOGGER.debug("Error when reading STAC json", exc_info=True)
+            stac_mtd = vectors.read(self._get_stac_mtd_path(), engine="fiona")
+
+        return stac_mtd
 
     def _get_mtd_path(self):
         # https://docs.canopy.umbra.space/docs/delivered-product-types
@@ -328,7 +340,7 @@ class UmbraProduct(SarProduct):
         self.product_type = UmbraProductType.GEC
 
         # WARNING: Umbra don't seem to have Ground Range products...
-        # Use try/except here for the future (for GEO/GRD ?), because now it's ineffective ;-)
+        # Use try/except here for the future (for GEO/GRD?), because now it's ineffective ;-)
         if self.product_type == UmbraProductType.GEC:
             self.sar_prod_type = SarProductType.GEOCODED
         else:
@@ -460,7 +472,7 @@ class UmbraProduct(SarProduct):
     def get_raw_band_paths(self, **kwargs) -> dict:
         """
         Return the existing path of the VV band (as they come with the archived products).
-        Umbra product only contains a VV band !
+        Umbra product only contains a VV band!
 
         Args:
             **kwargs: Additional arguments
@@ -499,40 +511,45 @@ class UmbraProduct(SarProduct):
         Returns:
             str: Band path
         """
-        raw_band_path = self._get_gec_path()
-        ortho_path = pre_processed_path
-        with rasterio.open(raw_band_path) as ds:
-            # Orthorectify GEC if RPC are available
-            if ds.rpcs is not None:
-                # Reproject and write on disk data
-                dem_path = self._get_dem_path(**kwargs)
-                LOGGER.info(
-                    f"GEC file has RPCs: orthorectifying {band.name} band with {files.get_filename(dem_path)}"
-                )
-                arr = utils.read(self._get_gec_path())
-                self._reproject(
-                    arr,
-                    ds.rpcs,
-                    dem_path=dem_path,
-                    ortho_path=pre_processed_path,
-                    long_name="Orthorectified GEC",
-                )
-                LOGGER.debug(f"{band.name} band orthorectified.")
+        already_ortho = self._already_processed_path(band, pixel_size, **kwargs)
+        if already_ortho is not None:
+            ortho_path = already_ortho
+        else:
+            raw_band_path = self._get_gec_path()
+            ortho_path = pre_processed_path
+            with rasterio.open(str(raw_band_path)) as ds:
+                # Orthorectify GEC if RPC are available
+                if ds.rpcs is not None:
+                    # Reproject and write on disk data
+                    dem_path = self._get_dem_path(**kwargs)
+                    LOGGER.info(
+                        f"GEC file has RPCs: orthorectifying {band.name} band with {files.get_filename(dem_path)}"
+                    )
+                    arr = utils.read(self._get_gec_path())
+                    self._orthorectify(
+                        arr,
+                        pixel_size=pixel_size,
+                        rpcs=ds.rpcs,
+                        dem_path=dem_path,
+                        ortho_path=pre_processed_path,
+                        long_name="Orthorectified GEC",
+                    )
+                    LOGGER.debug(f"{band.name} band orthorectified.")
 
-            # Reproject to UTM if CRS is not projected
-            elif not ds.crs.is_projected:
-                # Warp band if needed
-                LOGGER.info(
-                    f"GEC file has no RPCs: reprojecting {band.name} band to UTM. Warning, the accuracy will be low in montaineous areas!"
-                )
-                self._warp_band(
-                    raw_band_path,
-                    reproj_path=pre_processed_path,
-                    pixel_size=pixel_size,
-                )
-                LOGGER.debug(f"{band.name} band reprojected.")
-            else:
-                ortho_path = raw_band_path
+                # Reproject to UTM if CRS is not projected
+                elif not ds.crs.is_projected:
+                    # Warp band if needed
+                    LOGGER.info(
+                        f"GEC file has no RPCs: reprojecting {band.name} band to UTM. Warning, the accuracy will be low in montaineous areas!"
+                    )
+                    self._warp_band(
+                        raw_band_path,
+                        reproj_path=pre_processed_path,
+                        pixel_size=pixel_size,
+                    )
+                    LOGGER.debug(f"{band.name} band reprojected.")
+                else:
+                    ortho_path = raw_band_path
         return ortho_path
 
     # @cache

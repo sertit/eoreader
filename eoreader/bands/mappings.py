@@ -1,6 +1,7 @@
 from eoreader.bands.band_names import (
     BLUE,
     CA,
+    DEEP_BLUE,
     EOREADER_STAC_MAP,
     GREEN,
     HH,
@@ -23,6 +24,7 @@ from eoreader.bands.band_names import (
 
 EOREADER_TO_SPYNDEX_DICT = {
     CA: "A",
+    DEEP_BLUE: "A",
     BLUE: "B",
     GREEN: "G",
     RED: "R",
@@ -46,5 +48,8 @@ EOREADER_TO_SPYNDEX_DICT = {
 SPYNDEX_TO_EOREADER_DICT = dict(
     zip(EOREADER_TO_SPYNDEX_DICT.values(), EOREADER_TO_SPYNDEX_DICT.keys())
 )
+
+# Workaround: https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/74
+SPYNDEX_TO_EOREADER_DICT.update({"T": TIR_1})
 
 EOREADER_STAC_MAP = EOREADER_STAC_MAP

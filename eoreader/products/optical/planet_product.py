@@ -217,7 +217,7 @@ class PlanetProduct(OpticalProduct):
             # Seems only for basic products
             self._raw_units = RawUnits.NONE
         else:
-            # If not specified, Planet product are in scaled radiance (*0.01)
+            # If not specified, Planet products are in scaled radiance (*0.01)
             self._raw_units = RawUnits.RAD
 
         # Post init done by the super class
@@ -290,14 +290,14 @@ class PlanetProduct(OpticalProduct):
                 "EOReader doesn't handle archived Planet data with multiple subdataset. Please extract this product."
             )
             # TODO: merge_geotiff BUT handle reflectances for every subdataset!
-            # Relevant ? Maybe not as it takes would a lot of time to merge
+            # Relevant? Maybe not as it takes would a lot of time to merge
 
         if path.is_cloud_path(self.path):
             # VRT cannot be created from data stored in the cloud
             raise InvalidProductError(
                 "EOReader doesn't handle cloud-stored Planet data with multiple subdataset. Please download this product on disk."
             )
-            # Relevant ? Maybe not as it takes would a lot of time to download, or a lot of time to merge as geotiffs
+            # Relevant? Maybe not as it takes would a lot of time to download, or a lot of time to merge as geotiffs
 
         analytic_vrt_path, analytic_vrt_exists = self._get_out_path(
             f"{self.condensed_name}_analytic.vrt"
@@ -495,7 +495,11 @@ class PlanetProduct(OpticalProduct):
         return band_arr
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -513,8 +517,13 @@ class PlanetProduct(OpticalProduct):
         """
         # Nodata
         no_data_mask = self._load_nodata(
-            size=(band_arr.rio.width, band_arr.rio.height), **kwargs
-        ).values
+            pixel_size=pixel_size,
+            size=(band_arr.rio.width, band_arr.rio.height),
+            **kwargs,
+        )
+
+        # Collocate
+        no_data_mask = rasters.collocate(band_arr, no_data_mask).values
 
         # Dubious pixels mapping
         # See: https://community.planet.com/planet-s-community-forum-3/planetscope-8-bands-and-udm-mask-245?postid=436#post436
@@ -531,8 +540,9 @@ class PlanetProduct(OpticalProduct):
         }
 
         # Open unusable mask
-        udm = self._open_masks(
+        udm = self._load_masks(
             [PlanetMaskBandNames.UNUSABLE],
+            pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
             **kwargs,
         )[PlanetMaskBandNames.UNUSABLE]
@@ -546,7 +556,11 @@ class PlanetProduct(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
@@ -561,8 +575,13 @@ class PlanetProduct(OpticalProduct):
         """
         # Nodata
         no_data_mask = self._load_nodata(
-            size=(band_arr.rio.width, band_arr.rio.height), **kwargs
-        ).values
+            size=(band_arr.rio.width, band_arr.rio.height),
+            pixel_size=pixel_size,
+            **kwargs,
+        )
+
+        # Collocate
+        no_data_mask = rasters.collocate(band_arr, no_data_mask).values
 
         # -- Merge masks
         return self._set_nodata_mask(band_arr, no_data_mask)
@@ -601,7 +620,7 @@ class PlanetProduct(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         # NOTE: CIRRUS == HEAVY HAZE
 
@@ -680,7 +699,9 @@ class PlanetProduct(OpticalProduct):
         nodata = self._load_nodata(pixel_size, size, **kwargs).data
 
         def __get_cloud_mask(cloud_bands: list):
-            cloud_dict = self._open_masks(cloud_bands, pixel_size, size, **kwargs)
+            cloud_dict = self._load_masks(
+                cloud_bands, pixel_size=pixel_size, size=size, **kwargs
+            )
             if len(cloud_dict) > 1:
                 condition = reduce(
                     lambda x, y: x.fillna(0).astype(np.uint8)
@@ -689,7 +710,10 @@ class PlanetProduct(OpticalProduct):
                 )
             else:
                 condition = cloud_dict[cloud_bands[0]].fillna(0).astype(np.uint8)
-            return self._create_mask(def_xarr, condition, nodata)
+
+            return self._create_mask(
+                def_xarr, rasters.collocate(def_xarr, condition), nodata
+            )
 
         if bands:
             for band in bands:
@@ -789,7 +813,7 @@ class PlanetProduct(OpticalProduct):
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -858,9 +882,6 @@ class PlanetProduct(OpticalProduct):
                     **kwargs,
                 )
                 mask = def_xarr.copy(data=np.zeros_like(def_xarr.data))
-
-            # Set nodata for the masks
-            mask = mask.where(mask != 0)
 
             # Set default dtype (removed by where)
             mask.encoding["dtype"] = np.uint8
@@ -997,7 +1018,7 @@ class PlanetProduct(OpticalProduct):
             Union[xarray.DataArray, None]: Nodata array
 
         """
-        udm = self._open_masks(
+        udm = self._load_masks(
             [PlanetMaskBandNames.UNUSABLE], pixel_size, size, **kwargs
         )[PlanetMaskBandNames.UNUSABLE]
         nodata = udm.copy(data=utils.read_bit_array(udm, 0))
@@ -1032,9 +1053,13 @@ class PlanetProduct(OpticalProduct):
 
                 ok_paths = self._get_archived_rio_path(regex, as_list=True)
             else:
-                ok_paths = [
-                    str(p) for p in self.path.glob(f"**/*{filename}*.{extension}")
-                ]
+                fn = filename
+                if not fn.endswith("*"):
+                    fn += "*"
+                if not fn.startswith("*"):
+                    fn = "*" + fn
+
+                ok_paths = [str(p) for p in self.path.glob(f"**/{fn}.{extension}")]
 
             if invalid_lookahead:
                 for ok_path in ok_paths.copy():
@@ -1049,7 +1074,7 @@ class PlanetProduct(OpticalProduct):
             if not as_list:
                 ok_paths = ok_paths[0]
         except (FileNotFoundError, IndexError):
-            LOGGER.warning(
+            LOGGER.debug(
                 f"No file corresponding to *{filename}*.{extension} found in {self.path}"
             )
 

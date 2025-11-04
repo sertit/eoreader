@@ -25,6 +25,7 @@ import time
 from abc import abstractmethod
 from datetime import date, datetime
 from enum import unique
+from functools import reduce
 from typing import Union
 
 import geopandas as gpd
@@ -61,6 +62,7 @@ from eoreader.bands import (
     DimapV2MaskBandNames,
     to_str,
 )
+from eoreader.bands.band_names import DEEP_BLUE
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
 from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
@@ -168,6 +170,13 @@ class DimapV2RadiometricProcessing(ListEnum):
     In this case, the spectral properties cannot be retrieved since the initial images have undergone several radiometric adjustments for aesthetic rendering.
     """
 
+    DISPLAY = "DISPLAY"
+    """
+    In the Display radiometric option, a true colour curve has been applied to the image directly usable for visualisation on screen. 
+    The colour curve is the LUT computed by the Reflectance processing. 
+    The image true colour is properly retrieved from sensor calibration and correction of systematic effects of the atmosphere.
+    """
+
 
 @unique
 class DimapV2BandCombination(ListEnum):
@@ -255,6 +264,7 @@ class DimapV2Product(VhrProduct):
     ) -> None:
         self._empty_mask = []
         self._altitude = None
+        self._rad_proc = None
 
         # Initialization from the super class
         super().__init__(product_path, archive_path, output_path, remove_tmp, **kwargs)
@@ -270,13 +280,13 @@ class DimapV2Product(VhrProduct):
 
         # Raw units
         root, _ = self.read_mtd()
-        rad_proc = DimapV2RadiometricProcessing.from_value(
+        self._rad_proc = DimapV2RadiometricProcessing.from_value(
             root.findtext(".//RADIOMETRIC_PROCESSING")
         )
 
-        if rad_proc == DimapV2RadiometricProcessing.REFLECTANCE:
+        if self._rad_proc == DimapV2RadiometricProcessing.REFLECTANCE:
             self._raw_units = RawUnits.REFL
-        elif rad_proc in [
+        elif self._rad_proc in [
             DimapV2RadiometricProcessing.BASIC,
             DimapV2RadiometricProcessing.LINEAR_STRETCH,
         ]:
@@ -327,6 +337,7 @@ class DimapV2Product(VhrProduct):
         # Open spectral bands
         pan = kwargs.get("pan")
         blue = kwargs.get("blue")
+        deep_blue = kwargs.get("deep_blue")
         green = kwargs.get("green")
         red = kwargs.get("red")
         nir = kwargs.get("nir")
@@ -403,6 +414,7 @@ class DimapV2Product(VhrProduct):
                     VRE_2: vre.update(id=5),
                     VRE_3: vre.update(id=5),
                     CA: ca.update(id=6),
+                    DEEP_BLUE: deep_blue.update(id=6),
                 }
             )
         elif self.band_combi == DimapV2BandCombination.PMS_FS:
@@ -418,6 +430,7 @@ class DimapV2Product(VhrProduct):
                     VRE_2: vre.update(id=5, gsd=self._pan_res),
                     VRE_3: vre.update(id=5, gsd=self._pan_res),
                     CA: ca.update(id=6, gsd=self._pan_res),
+                    DEEP_BLUE: ca.update(id=6, gsd=self._pan_res),
                 }
             )
         else:
@@ -428,9 +441,12 @@ class DimapV2Product(VhrProduct):
     def _set_product_type(self) -> None:
         """Set products type"""
 
-        # get product type
-        prod_type = self.split_name[3]
-        self.product_type = getattr(DimapV2ProductType, prod_type)
+        # Get product type
+        try:
+            self.product_type = getattr(DimapV2ProductType, self.split_name[3])
+        except AttributeError:
+            # In some cases...
+            self.product_type = getattr(DimapV2ProductType, self.split_name[4])
 
         # Manage not orthorectified product
         if self.product_type in [DimapV2ProductType.SEN, DimapV2ProductType.PRJ]:
@@ -614,7 +630,11 @@ class DimapV2Product(VhrProduct):
         return path.get_filename(self._get_tile_path()).replace("DIM_", "")
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -635,9 +655,12 @@ class DimapV2Product(VhrProduct):
         )
 
         if not mask_exists:
-            nodata = self._open_masks(
-                [DimapV2MaskBandNames.ROI], size=[width, height], **kwargs
-            )[DimapV2MaskBandNames.ROI].data
+            nodata = self._load_masks(
+                [DimapV2MaskBandNames.ROI],
+                size=[width, height],
+                pixel_size=pixel_size,
+                **kwargs,
+            )[DimapV2MaskBandNames.ROI]
 
             # Nodata is where ROI is false (ROI = valid data)
             nodata = xr.where(
@@ -645,15 +668,24 @@ class DimapV2Product(VhrProduct):
             )
 
             with contextlib.suppress(InvalidProductError):
-                masks = self._open_masks(
+                masks = self._load_masks(
                     [DimapV2MaskBandNames.DET, DimapV2MaskBandNames.VIS],
+                    pixel_size=pixel_size,
                     size=[width, height],
                     **kwargs,
                 )
-                nodata = (
-                    nodata.data
-                    | masks[DimapV2MaskBandNames.DET].data
-                    | masks[DimapV2MaskBandNames.VIS].data
+
+                mask_det = rasters.collocate(nodata, masks[DimapV2MaskBandNames.DET])
+                mask_vis = rasters.collocate(nodata, masks[DimapV2MaskBandNames.VIS])
+
+                nodata = reduce(
+                    lambda x, y: x.fillna(0).astype(np.uint8)
+                    | y.fillna(0).astype(np.uint8),
+                    [
+                        nodata,
+                        mask_det,
+                        mask_vis,
+                    ],
                 )
             np.save(str(mask_path), nodata)
         else:
@@ -697,9 +729,9 @@ class DimapV2Product(VhrProduct):
 
         else:
             LOGGER.warning(
-                "The spectral properties of a SEAMLESS radiometric processed image "
+                f"The spectral properties of a {self._rad_proc.value} radiometric processed image "
                 "cannot be retrieved since the initial images have undergone "
-                "several radiometric adjustments for aesthetic rendering."
+                "several radiometric adjustments for aesthetic rendering. "
                 "Returned as is."
             )
 
@@ -710,7 +742,11 @@ class DimapV2Product(VhrProduct):
         return band_arr
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
@@ -725,8 +761,9 @@ class DimapV2Product(VhrProduct):
         """
         # Get detector footprint to deduce the outside nodata
         LOGGER.debug("Load nodata")
-        nodata = self._open_masks(
+        nodata = self._load_masks(
             [DimapV2MaskBandNames.ROI],
+            pixel_size=pixel_size,
             size=[band_arr.rio.width, band_arr.rio.height],
             **kwargs,
         )[DimapV2MaskBandNames.ROI]
@@ -837,7 +874,7 @@ class DimapV2Product(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         return band not in [CIRRUS, SHADOWS]
 
@@ -862,7 +899,7 @@ class DimapV2Product(VhrProduct):
         band_dict = {}
 
         if bands:
-            cld_arr = self._open_masks(
+            cld_arr = self._load_masks(
                 [DimapV2MaskBandNames.CLD], pixel_size=pixel_size, size=size
             )[DimapV2MaskBandNames.CLD]
 
@@ -879,7 +916,7 @@ class DimapV2Product(VhrProduct):
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -941,9 +978,12 @@ class DimapV2Product(VhrProduct):
                         pixel_size=pixel_size,
                         size=size,
                         indexes=[self.bands[self.get_default_band()].id],
+                        **kwargs,
                     )
                 else:
-                    def_xarr = utils.read(ds, pixel_size=pixel_size, size=size)
+                    def_xarr = utils.read(
+                        ds, pixel_size=pixel_size, size=size, **kwargs
+                    )
 
             # Load nodata
             width = def_xarr.rio.width
@@ -1065,7 +1105,7 @@ class DimapV2Product(VhrProduct):
                 DimapV2ProductType.SEN,
                 DimapV2ProductType.PRJ,
             ]:
-                # Sometimes the GML mask lacks crs (why ?)
+                # Sometimes the GML mask lacks crs (why?)
                 if not mask.crs:
                     mask.crs = self._get_raw_crs()
 
@@ -1097,13 +1137,13 @@ class DimapV2Product(VhrProduct):
 
                         # TODO: change this when available in rioxarray
                         # See https://github.com/corteva/rioxarray/issues/837
-                        with rasterio.open(self._get_tile_path()) as ds:
+                        with rasterio.open(str(self._get_tile_path())) as ds:
                             rpcs = ds.rpcs
 
-                        reproj_data = self._reproject(
+                        reproj_data = self._orthorectify(
                             mask_raster,
-                            rpcs,
-                            dem_path,
+                            rpcs=rpcs,
+                            dem_path=dem_path,
                             ortho_path=ortho_path,
                             long_name=mask_str,
                             **kwargs,
@@ -1122,7 +1162,7 @@ class DimapV2Product(VhrProduct):
                     # Do not keep pixelized mask
                     mask = geometry.simplify_footprint(mask, self.pixel_size)
 
-            # Sometimes the GML mask lacks crs (why ?)
+            # Sometimes the GML mask lacks crs (why?)
             elif (
                 not mask.empty
                 and not mask.crs

@@ -56,19 +56,19 @@ np.seterr(divide="ignore", invalid="ignore")
 # (see: https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/27)
 # Goal with this dict: to have as many indices as possible implemented in ASI
 EOREADER_DERIVATIVES = {
-    "NDRE2": ["NDREI", {"N": NIR, "RE1": VRE_2}],
-    "NDRE3": ["NDREI", {"N": NIR, "RE1": VRE_3}],
     "NDMI21": ["NDMI", {"N": NIR, "S1": SWIR_2}],
     "NDMI2100": ["NDMI", {"N": NIR, "S1": SWIR_2}],
-    "CI2": ["CIRE", {"N": VRE_2, "RE1": VRE_1}],
-    "CI1": ["CIRE", {"N": VRE_3, "RE1": VRE_2}],
+    "NDRE2": ["NDREI", {"N": NIR, "RE1": VRE_2}],
+    "NDRE3": ["NDREI", {"N": NIR, "RE1": VRE_3}],
+    "CI21": ["CIRE", {"N": VRE_2, "RE1": VRE_1}],
+    "CI32": ["CIRE", {"N": VRE_3, "RE1": VRE_2}],
+    # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/22
+    "SBI": ["BIXS", {"G": RED, "R": NIR}],
     # https://resources.maxar.com/optical-imagery/multispectral-reference-guide
     "WV_WI": ["NHFD", {"RE1": WV, "A": CA}],
     "WV_VI": ["NHFD", {"RE1": WV, "A": RED}],
     # https://www.indexdatabase.de/db/i-single.php?id=204
     "SRSWIR": ["DSI", {"S1": SWIR_1, "N": SWIR_2}],
-    # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/22
-    "SBI": ["BIXS", {"G": RED, "R": NIR}],
 }
 
 
@@ -131,7 +131,15 @@ def compute_index(index: str, bands: dict, **kwargs) -> xr.DataArray:
             parameters["C2"] = 7.5
             parameters["L"] = 1.0
 
-        index_arr = spyndex.computeIndex(index, parameters)
+        # Try / except is a workaround for: https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/74
+        try:
+            index_arr = spyndex.computeIndex(index, parameters)
+        except Exception as ex:
+            if "T1" in parameters:
+                parameters.update({"T": parameters["T1"]})
+                index_arr = spyndex.computeIndex(index, parameters)
+            else:
+                raise ex
     elif index in EOREADER_DERIVATIVES:
         idx_name = EOREADER_DERIVATIVES[index][0]
         params = {
@@ -426,4 +434,4 @@ NEEDED_BANDS = get_all_needed_bands()
 # Set all indices
 for _idx in get_all_index_names():
     vars()[_idx] = _idx
-    # TODO: set another thing than str ? Create an IndexName object ?
+    # TODO: set another thing than str? Create an IndexName object?

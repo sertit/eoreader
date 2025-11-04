@@ -20,6 +20,7 @@ for more information.
 """
 
 import logging
+import os
 from abc import abstractmethod
 from collections import namedtuple
 from datetime import datetime
@@ -30,9 +31,8 @@ import geopandas as gpd
 import numpy as np
 import xarray as xr
 from lxml import etree
-from packaging.version import Version
 from rasterio import crs as riocrs
-from sertit import geometry, misc, path, rasters, vectors
+from sertit import geometry, path, rasters, vectors
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 from sertit.vectors import EPSG_4326
@@ -54,7 +54,10 @@ from eoreader.bands import (
     YELLOW,
     BandNames,
     SpectralBand,
+    to_str,
 )
+from eoreader.bands.band_names import DEEP_BLUE
+from eoreader.env_vars import FIX_MAXAR
 from eoreader.exceptions import InvalidProductError
 from eoreader.products import VhrProduct
 from eoreader.products.optical.optical_product import RawUnits
@@ -427,7 +430,7 @@ class MaxarBandId(ListEnum):
 
     MS1 = "Multi Spectral 1"
     """
-    First 4 bands (N,R,G,B)
+    First 4 bands (B,G,R,N)
     """
 
     MS2 = "Multi Spectral 2"
@@ -584,23 +587,10 @@ class MaxarProduct(VhrProduct):
             raise InvalidProductError("Cannot find BANDID in the metadata file")
         self.band_combi = getattr(MaxarBandId, band_combi)
 
-        # Version
-        version = root.findtext(".//IMD/VERSION")
-        if not version:
-            raise InvalidProductError("Cannot find VERSION in the metadata file")
-        self._version = Version(version)
-
-        if misc.compare_version(self._version, "28.4", "=="):
-            raise InvalidProductError(
-                f"This product (version {self._version}) is bugged."
-                "\nIt's .TIL file is maybe broken and the product may bundle several sub-products. "
-                "The best thing to do is to manually create a mosaic from all embedded .TIF files and pass it as a CustomStack to EOReader. "
-                "\nIf you want to have a stack in reflectance, don't forget to apply the corrections on each subproducts separately before creating the mosaic."
-                "\nIf you want a workaround to be implemented, please reopen the issue https://github.com/sertit/eoreader/issues/106 and pledad you usecase :)"
-            )
+        # Fix shapes
+        self._fix_shapes(root)
 
         # Platform
-
         if self.constellation == Constellation.WVLG:
             if "LG01" in self.name:
                 self._platform = LegionPlatform.LG01
@@ -612,6 +602,84 @@ class MaxarProduct(VhrProduct):
 
         # Post init done by the super class
         super()._post_init(**kwargs)
+
+    def _fix_shapes(self, root):
+        """"""
+
+        # BUGGED TIL with GDAL
+        # Sometimes, TIL driver fails to open correctly the different tiles
+        # See https://github.com/sertit/eoreader/issues/242
+
+        # To check that, it can be useful to ensure that the default width and height corresponds to the tiles aggregated width and height
+        # Shape from IMD
+        imd_rows = int(root.findtext(".//IMD/NUMROWS"))
+        imd_cols = int(root.findtext(".//IMD/NUMCOLUMNS"))
+
+        # Shape from TIL
+        til_rows = max(
+            [
+                int(row_offset.text)
+                for row_offset in root.iterfind(".//TIL/TILE/LLROWOFFSET")
+            ]
+        )
+        til_cols = max(
+            [
+                int(col_offset.text)
+                for col_offset in root.iterfind(".//TIL/TILE/URCOLOFFSET")
+            ]
+        )
+
+        # Sometimes it's LLROWOFFSET and URCOLOFFSET, sometimes it's LLROWOFFSET + 1 and URCOLOFFSET + 1...
+        if abs(imd_rows - til_rows) > 1 or abs(imd_cols - til_cols) > 1:
+            if os.environ.get(FIX_MAXAR, "1") != "0":
+                LOGGER.warning(
+                    f"Your Maxar product is probably corrupted. "
+                    f"Shapes retrieved from metadata are incoherent: {imd_rows}x{imd_cols} in .IMD vs {til_rows}x{til_cols} in .TIL. (see https://github.com/sertit/eoreader/issues/242) "
+                    "WORKAROUND: The IMD file of this product will be fixed inside the raw product and the old one copied into the working directory. "
+                    "Please double-check the outputs for this product."
+                )
+                # Copy .IMD file
+                if self.is_archived:
+                    imd_fn = f"{self.name}.IMD"
+                    imd_file = self._read_archived_file(".*IMD")
+                else:
+                    imd_fn = next(self.path.glob("*.IMD"))
+                    with open(imd_fn) as f:
+                        imd_file = f.read()
+
+                # Copy old file
+                imd_copy, _ = self._get_out_path(f"{self.name}.IMD")
+                with open(str(imd_copy), "w") as f:
+                    f.write(imd_file)
+
+                # Update to create new IMD file
+                imd_file = imd_file.replace(
+                    f"numRows = {imd_rows};", f"numRows = {til_rows};"
+                ).replace(f"numColumns = {imd_cols};", f"numColumns = {til_cols};")
+
+                # Don't try to fix it if cloud-based or archived
+                if self.is_archived:
+                    raise NotImplementedError(
+                        f"For now, the workaround is to manually copy the corrected IMD file ({imd_copy}) "
+                        f"into your archived product ({self.path}) and re-run the job. "
+                        f"(there is currently no optimized way for overwriting zip files in Python)"
+                    )
+                elif path.is_path(path):
+                    raise NotImplementedError(
+                        f"For now, the workaround is to manually copy the corrected IMD file ({imd_copy}) "
+                        f"into your cloud-stored product ({self.path}) and re-run the job."
+                    )
+
+                # Replace file
+                with open(str(imd_fn), "w") as f:
+                    f.write(imd_file)
+            else:
+                raise InvalidProductError(
+                    f"This product ({self.name}) is corrupted."
+                    "\nThe shapes from the metadata are incoherent between .TIL and .IMD files. "
+                    "The best thing to do is to manually create a mosaic from all embedded .TIF files and pass it as a CustomStack to EOReader. "
+                    "\nIf you want to have a stack in reflectance, remember to apply the corrections on each subproduct separately before creating the mosaic."
+                )
 
     @abstractmethod
     def _set_pixel_size(self) -> None:
@@ -651,6 +719,16 @@ class MaxarProduct(VhrProduct):
                 ),
                 "ca": SpectralBand(
                     eoreader_name=CA,
+                    **{
+                        NAME: "COASTAL BLUE",
+                        ID: 1,
+                        GSD: self._ms_res,
+                        WV_MIN: 400,
+                        WV_MAX: 450,
+                    },
+                ),
+                "deep_blue": SpectralBand(
+                    eoreader_name=DEEP_BLUE,
                     **{
                         NAME: "COASTAL BLUE",
                         ID: 1,
@@ -738,6 +816,16 @@ class MaxarProduct(VhrProduct):
                 ),
                 "ca": SpectralBand(
                     eoreader_name=CA,
+                    **{
+                        NAME: "COASTAL BLUE",
+                        ID: 1,
+                        GSD: self._ms_res,
+                        WV_MIN: 400,
+                        WV_MAX: 450,
+                    },
+                ),
+                "deep_blue": SpectralBand(
+                    eoreader_name=DEEP_BLUE,
                     **{
                         NAME: "COASTAL BLUE",
                         ID: 1,
@@ -988,21 +1076,13 @@ class MaxarProduct(VhrProduct):
                 RED: red.update(id=2, gsd=self.pixel_size),
                 GREEN: green.update(id=3, gsd=self.pixel_size),
             }
-        elif self.band_combi == MaxarBandId.BGRN:
+        elif self.band_combi in [MaxarBandId.BGRN, MaxarBandId.MS1]:
             band_map = {
                 BLUE: blue.update(id=1, gsd=self.pixel_size),
                 GREEN: green.update(id=2, gsd=self.pixel_size),
                 RED: red.update(id=3, gsd=self.pixel_size),
                 NIR: nir.update(id=4, gsd=self.pixel_size),
                 NARROW_NIR: nir.update(id=4, gsd=self.pixel_size),
-            }
-        elif self.band_combi == MaxarBandId.MS1:
-            band_map = {
-                NIR: nir.update(id=1, gsd=self.pixel_size),
-                NARROW_NIR: nir.update(id=1, gsd=self.pixel_size),
-                RED: red.update(id=2, gsd=self.pixel_size),
-                GREEN: green.update(id=3, gsd=self.pixel_size),
-                BLUE: blue.update(id=4, gsd=self.pixel_size),
             }
         elif self.band_combi == MaxarBandId.MS2:
             band_map = {
@@ -1113,6 +1193,9 @@ class MaxarProduct(VhrProduct):
                 "Only Geographic or UTM map projections are supported yet"
             )
 
+        if isinstance(crs, str):
+            crs = riocrs.CRS.from_string(crs)
+
         return crs
 
     @cache
@@ -1169,7 +1252,7 @@ class MaxarProduct(VhrProduct):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        # If ortho -> nodata is not set !
+        # If ortho -> nodata is not set!
         if self.is_ortho:
             # Get footprint of the first band of the stack
             footprint_dezoom = 10
@@ -1376,11 +1459,18 @@ class MaxarProduct(VhrProduct):
         Returns:
             xr.DataArray: Band in reflectance
         """
-        # Convert DN into radiance
-        band_arr = self._dn_to_toa_rad(band_arr, band)
+        # In some cases...
+        abs_factor, _ = self._get_toa_data_from_mtd(band)
+        if abs_factor < 0:
+            LOGGER.warning(
+                f"Your data has a negative absolute calibration factor. Cannot convert {to_str(band)[0]} to reflectance."
+            )
+        else:
+            # Convert DN into radiance
+            band_arr = self._dn_to_toa_rad(band_arr, band)
 
-        # Convert radiance into reflectance
-        band_arr = self._toa_rad_to_toa_refl(band_arr, band)
+            # Convert radiance into reflectance
+            band_arr = self._toa_rad_to_toa_refl(band_arr, band)
 
         # To float32
         if band_arr.dtype != np.float32:
@@ -1390,7 +1480,7 @@ class MaxarProduct(VhrProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         return False
 
@@ -1426,21 +1516,7 @@ class MaxarProduct(VhrProduct):
         """
         return self._get_path(extension="TIL")
 
-    def _dn_to_toa_rad(self, dn_arr: xr.DataArray, band: BandNames) -> xr.DataArray:
-        """
-        Compute DN to TOA radiance
-
-        See
-        `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_
-        for more information.
-
-        Args:
-            dn_arr (xr.DataArray): DN array
-            band (BandNames): Band
-
-        Returns:
-            xr.DataArray: TOA Radiance array
-        """
+    def _get_toa_data_from_mtd(self, band: BandNames):
         band_mtd_str = f"BAND_{_MAXAR_BAND_MTD[band]}"
 
         # Get MTD XML file
@@ -1456,10 +1532,29 @@ class MaxarProduct(VhrProduct):
                 "ABSCALFACTOR or EFFECTIVEBANDWIDTH not found in metadata!"
             ) from exc
 
+        return abs_factor, effective_bandwidth
+
+    def _dn_to_toa_rad(self, dn_arr: xr.DataArray, band: BandNames) -> xr.DataArray:
+        """
+        Compute DN to TOA radiance
+
+        See
+        `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_
+        for more information.
+
+        Args:
+            dn_arr (xr.DataArray): DN array
+            band (BandNames): Band
+
+        Returns:
+            xr.DataArray: TOA Radiance array
+        """
+
         # Get constellation-specific gain and offset (latest)
         gain, offset = _MAXAR_GAIN_OFFSET[self.constellation][band]
 
         # Compute the coefficient converting DN in TOA radiance
+        abs_factor, effective_bandwidth = self._get_toa_data_from_mtd(band)
         coeff = gain * abs_factor / effective_bandwidth
 
         # LOGGER.debug(f"DN to rad coeff = {coeff}")

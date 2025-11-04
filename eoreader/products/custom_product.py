@@ -41,6 +41,7 @@ from eoreader.bands import (
     SpectralBandMap,
     is_sat_band,
     to_band,
+    to_str,
 )
 from eoreader.exceptions import InvalidProductError
 from eoreader.products.product import OrbitDirection, Product, SensorType
@@ -57,17 +58,46 @@ class CustomFields(ListEnum):
     """
 
     NAME = "name"
+    """ Custom name. Default is the filename."""
+
     SENSOR_TYPE = "sensor_type"
+    """ Custom sensor type. """
+
     DATETIME = "datetime"
+    """ Custom datetime. """
+
     BAND_MAP = "band_map"
+    """ Custom band map. Mandatory."""
+
     CONSTELLATION = "constellation"
+    """ Custom constellation. """
+
     INSTRUMENT = "instrument"
+    """ Custom instrument. """
+
     PIX_SIZE = "pixel_size"
+    """ Custom pixel size. Default is the pixel size of the stack. """
+
     PROD_TYPE = "product_type"
+    """ Custom product type. """
+
     SUN_AZ = "sun_azimuth"
+    """ Custom sun zimuth. """
+
     SUN_ZEN = "sun_zenith"
+    """ Custom sun_zenith. """
+
     ORBIT_DIR = "orbit_direction"
+    """ Custom orbit direction. """
+
     CC = "cloud_cover"
+    """ Custom cloud cover. """
+
+    CONDENSED_NAME = "condensed_name"
+    """ Custom condensed name. Overrides computed custom name. """
+
+    ID = "id"
+    """ ID to be added at the end of the condensed name. Not used in case of a given condensed name. """
 
 
 # -- CUSTOM
@@ -87,6 +117,12 @@ class CustomProduct(Product):
     ) -> None:
         self.kwargs = kwargs
         """Custom kwargs"""
+
+        self.id = kwargs.pop(CustomFields.ID.value, None)
+        """ ID to be added at the end of the condensed name. Not used in case of a given condensed name. """
+
+        self.custom_condensed_name = kwargs.pop(CustomFields.CONDENSED_NAME.value, None)
+        """ Custom condensed name. Overrides computed custom name. """
 
         # Initialization from the super class
         # (Custom products are managing constellation on their own)
@@ -334,8 +370,15 @@ class CustomProduct(Product):
             dict: Dictionary containing the path of each queried band
         """
         band_paths = {}
+
         for band in band_list:
-            band_paths[band] = self.path
+            read_band, exists = self._is_existing(
+                self.get_band_file_name(band, pixel_size, **kwargs)
+            )
+            if exists:
+                band_paths[band] = read_band
+            else:
+                band_paths[band] = self.path
         return band_paths
 
     def get_existing_band_paths(self) -> dict:
@@ -357,8 +400,6 @@ class CustomProduct(Product):
         """
         return [name for name, nb in self.bands.items() if nb]
 
-    # unused band_name (compatibility reasons)
-    # pylint: disable=W0613
     def _read_band(
         self,
         band_path: AnyPathType,
@@ -383,7 +424,8 @@ class CustomProduct(Product):
             xr.DataArray: Band xarray
 
         """
-        return utils.read(
+        band_name = to_str(band)[0]
+        band_arr = utils.read(
             band_path,
             pixel_size=pixel_size,
             size=size,
@@ -391,7 +433,18 @@ class CustomProduct(Product):
             indexes=[self.bands[band].id],
             as_type=np.float32,
             **kwargs,
+        ).rename(band_name)
+
+        band_arr.attrs["long_name"] = band_name
+
+        # Write file (in case the original file has a different resolution or window, etc.)
+        file_path, exists = self._is_existing(
+            self.get_band_file_name(band, pixel_size=pixel_size, size=size, **kwargs)
         )
+        if not exists:
+            band_arr = utils.write_path_in_attrs(band_arr, file_path)
+            utils.write(band_arr, file_path, dtype=np.float32)
+        return band_arr
 
     def _load_bands(
         self,
@@ -502,9 +555,9 @@ class CustomProduct(Product):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
-        # TODO ?
+        # TODO?
         return False
 
     def _get_condensed_name(self) -> str:
@@ -514,12 +567,25 @@ class CustomProduct(Product):
         Returns:
             str: Condensed name
         """
+        condensed_name = None
         const = (
             self.constellation
             if isinstance(self.constellation, str)
             else self.constellation.name
         )
-        return f"{self.get_datetime()}_{const}_{self.product_type}"
+
+        # Add ID if needed
+        id = f"_{self.id}" if self.id else ""
+
+        if self.custom_condensed_name is not None:
+            condensed_name = self.custom_condensed_name
+        # Not enough data to have a representative condensed name, return the (file)name
+        elif const == CUSTOM and self.product_type == CUSTOM:
+            condensed_name = f"{self.name}{id}"
+        else:
+            condensed_name = f"{self.get_datetime()}_{const}_{self.product_type}{id}"
+
+        return condensed_name
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):

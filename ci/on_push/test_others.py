@@ -179,9 +179,20 @@ def test_products():
             save_as_int=True,
             stack_path=stack_path,
         )
-        with rasterio.open(stack_path) as ds:
+        with rasterio.open(str(stack_path)) as ds:
             assert ds.dtypes[0] == "uint16"
             assert stack.dtype == "float32"
+
+        # Test with already existing stack
+        stack_2 = prod1.stack(
+            [BLUE, RED],
+            window=Window(col_off=0, row_off=0, width=100, height=100),
+            save_as_int=True,
+            stack_path=stack_path,
+        )
+        with rasterio.open(str(stack_path)) as ds:
+            assert ds.dtypes[0] == "uint16"
+            assert stack_2.dtype == "float32"
 
     # SAR
     sar = sar_path().joinpath("SC_124020")
@@ -400,7 +411,7 @@ def test_reader_methods():
 
 @s3_env
 def test_context_manager(tmp_path):
-    """Tets windowed reading"""
+    """Test windowed reading"""
     # Get paths
     prod_path = opt_path().joinpath("LT05_L1TP_200030_20111110_20200820_02_T1")
     window_path = others_path().joinpath(
@@ -423,7 +434,7 @@ def test_context_manager(tmp_path):
 
 @s3_env
 def test_windowed_reading():
-    """Tets windowed reading"""
+    """Test windowed reading"""
     # Get paths
     prod_path = opt_path().joinpath("LT05_L1TP_200030_20111110_20200820_02_T1")
     window_path = others_path().joinpath(
@@ -484,7 +495,7 @@ def test_custom_resamplings():
 
 @s3_env
 def test_write(tmp_path):
-    """Test custom resamplings"""
+    """Test write with different drivers"""
     # Get paths
     prod_path = opt_path().joinpath("LT05_L1TP_200030_20111110_20200820_02_T1")
     window_path = others_path().joinpath(
@@ -494,7 +505,12 @@ def test_write(tmp_path):
 
     gtiff_driver = tmp_path / "gtiff_d.tif"
     prod.stack(
-        RED, window=window_path, pixel_size=60, stack_path=gtiff_driver, driver="GTiff"
+        RED,
+        window=window_path,
+        pixel_size=60,
+        stack_path=gtiff_driver,
+        driver="GTiff",
+        nodata=0,
     )
     with pytest.raises(AssertionError):
         assert_is_cog(gtiff_driver)
@@ -504,7 +520,6 @@ def test_write(tmp_path):
     assert_is_cog(cog)
 
     # Don't set it with os.environ otherwise it'll break all the test suite!
-
     with tempenv.TemporaryEnvironment({"EOREADER_DEFAULT_DRIVER": "GTiff"}):
         gtiff_env = tmp_path / "gtiff_e.tif"
         prod.stack(RED, window=window_path, pixel_size=60, stack_path=gtiff_env)
@@ -520,13 +535,12 @@ def test_write(tmp_path):
         driver="Zarr",
         compress="NONE",
     )
-    with pytest.raises(AssertionError):
-        assert_is_cog(gtiff_env)
 
     # Just test to read the zarr array
     np.testing.assert_array_equal(zstack.data, utils.read(zarr).data)
 
 
+@s3_env
 def test_deprecation():
     """Test deprecation warning"""
 

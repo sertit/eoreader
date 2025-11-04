@@ -39,7 +39,7 @@ import validators
 import xarray as xr
 from affine import Affine
 from lxml import etree, html
-from rasterio import rpc, transform, warp
+from rasterio import control, rpc, transform, warp
 from rasterio import shutil as rio_shutil
 from rasterio.crs import CRS
 from rasterio.enums import Resampling
@@ -82,6 +82,7 @@ from eoreader.bands import (
 from eoreader.env_vars import (
     CI_EOREADER_BAND_FOLDER,
     DEM_PATH,
+    DEM_VCRS,
     LEGACY_BAND_NAME_RESOLUTION,
     TILE_SIZE,
 )
@@ -95,7 +96,7 @@ from eoreader.exceptions import (
 from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Constellation, Reader
 from eoreader.stac import StacItem
-from eoreader.utils import DEFAULT_TILE_SIZE, UINT16_NODATA, simplify
+from eoreader.utils import DEFAULT_TILE_SIZE, simplify
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 PRODUCT_FACTORY = Reader()
@@ -145,6 +146,12 @@ class Product:
         """Does this product needs to be extracted to be processed ? (:code:`True` by default)."""
 
         self.path = AnyPath(product_path)
+        if (
+            not validators.url(str(self.path))
+            and "item" not in kwargs
+            and not self.path.exists()
+        ):
+            raise FileNotFoundError(f"{product_path} doesn't exist!")
         """Usable path to the product, either extracted or archived path, according to the satellite."""
 
         self.filename = path.get_filename(self.path)
@@ -160,19 +167,23 @@ class Product:
         """
 
         self.archive_path = AnyPath(archive_path) if archive_path else self.path
-        """Archive path, same as the product path if not specified.
-        Useful when you want to know where both the extracted and archived version of your product are stored."""
+        """
+        Archive path, same as the product path if not specified.
+        Useful when you want to know where both the extracted and archived version of your product are stored.
+        """
 
         self.is_archived = self.path.is_file()
-        """ Is the archived product is processed
-        (a products is considered as archived if its products path is a directory)."""
+        """
+        Is the current product archived?
+        (a product is considered as archived if its path is a file).
+        """
 
         # The output will be given later
         self._tmp_output = None
         self._output = None
         self._remove_tmp_process = remove_tmp
 
-        # Get the products date and datetime
+        # Get the product date and datetime
         self.date = None
         """Acquisition date."""
 
@@ -336,15 +347,16 @@ class Product:
         self.clear()
 
         # -- Remove temp folders
-        if self._tmp_output:
-            self._tmp_output.cleanup()
+        with contextlib.suppress(AttributeError):
+            if self._tmp_output:
+                self._tmp_output.cleanup()
 
-        elif (
-            self._remove_tmp_process
-            and self._tmp_process is not None
-            and self._tmp_process.exists()
-        ):
-            files.remove(self._tmp_process)
+            elif (
+                self._remove_tmp_process
+                and self._tmp_process is not None
+                and self._tmp_process.exists()
+            ):
+                files.remove(self._tmp_process)
 
     @abstractmethod
     def _pre_init(self, **kwargs) -> None:
@@ -808,7 +820,7 @@ class Product:
         """
         if pixel_size is None:
             if size is not None:
-                pixel_size = self._pixel_size_from_img_size(size)
+                pixel_size = self._pixel_size_from_img_size(size, **kwargs)
             else:
                 pixel_size = self.pixel_size
 
@@ -1056,7 +1068,7 @@ class Product:
                 pixel_size = self.pixel_size
             else:
                 # Assume square pixel size
-                pixel_size = self._pixel_size_from_img_size(size)[0]
+                pixel_size = self._pixel_size_from_img_size(size, **kwargs)[0]
 
         # Check if all bands are valid
         bands = self.to_band(bands)
@@ -1064,7 +1076,7 @@ class Product:
         for band in bands:
             assert self.has_band(band), f"{self.name} has not a {to_str(band)[0]} band."
 
-        # Load bands (only once ! and convert the bands to be loaded to correct format)
+        # Load bands (only once! and convert the bands to be loaded to correct format)
         unique_bands = misc.unique(bands)
         band_xds = self._load(unique_bands, pixel_size, size, **kwargs)
 
@@ -1074,7 +1086,7 @@ class Product:
 
         # Update stack's attributes
         if len(band_xds) > 0:
-            band_xds = self._update_attrs(band_xds, bands, **kwargs)
+            band_xds = self._update_attrs(band_xds, band_xds.keys(), **kwargs)
 
         return band_xds
 
@@ -1170,7 +1182,7 @@ class Product:
         for idx in index_list:
             bands_to_load += NEEDED_BANDS[idx]
 
-        # Load band arrays (only keep unique bands: open them only one time !)
+        # Load band arrays (only keep unique bands: open them only one time!)
         unique_bands = misc.unique(bands_to_load)
         bands_dict = {}
         if unique_bands:
@@ -1467,7 +1479,7 @@ class Product:
 
     def has_band(self, band: Union[BandNames, str]) -> bool:
         """
-        Does this product has the specified band ?
+        Does this product has the specified band?
 
         By band, we mean:
 
@@ -1519,7 +1531,7 @@ class Product:
 
     def has_bands(self, bands: Union[list, BandNames, str]) -> bool:
         """
-        Does this product has the specified bands ?
+        Does this product has the specified bands?
 
         By band, we mean:
 
@@ -1542,7 +1554,7 @@ class Product:
     @abstractmethod
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
 
         .. code-block:: python
 
@@ -1557,7 +1569,7 @@ class Product:
 
     def _has_index(self, idx: str) -> bool:
         """
-        Can the specified index be computed from this product ?
+        Can the specified index be computed from this product?
 
         .. code-block:: python
 
@@ -1579,7 +1591,7 @@ class Product:
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -1600,7 +1612,7 @@ class Product:
 
     def _has_s2_l2a_bands(self, band: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -1947,8 +1959,6 @@ class Product:
 
         return bands
 
-    # pylint: disable=R0913
-    # Too many arguments (6/5)
     def stack(
         self,
         bands: list,
@@ -1959,7 +1969,7 @@ class Product:
         **kwargs,
     ) -> xr.DataArray:
         """
-        Stack bands and index of a products.
+        Stack bands and index of a product.
 
         .. code-block:: python
 
@@ -1995,25 +2005,38 @@ class Product:
         # Pop driver kwarg (only used for writing)
         driver = kwargs.pop("driver", None)
 
-        # Create the analysis stack
+        # Load bands and create the stack
         band_xds = self.load(bands, pixel_size=pixel_size, size=size, **kwargs)
-
-        # Stack bands
-        if save_as_int:
-            nodata = kwargs.pop("nodata", UINT16_NODATA)
-        else:
-            nodata = kwargs.pop("nodata", self.nodata)
-        stack, dtype = utils.stack(band_xds, save_as_int, nodata, **kwargs)
+        stack, dtype = utils.stack(band_xds, **kwargs)
 
         # Update stack's attributes
-        stack = self._update_attrs(stack, bands, **kwargs)
+        stack = self._update_attrs(stack, band_xds.keys(), **kwargs)
 
         # Write on disk
         if stack_path:
             LOGGER.debug("Saving stack")
-            stack = utils.write_path_in_attrs(stack, stack_path)
+            # Convert to uint16 only for the stack written on disk
+            # (sadly we have to restack the dataset a second time...)
+            stack_to_save = None
+            if save_as_int:
+                stack_to_save, dtype = utils.convert_to_uint16(band_xds)
+                if dtype == np.uint16:
+                    stack_to_save, _ = utils.stack(band_xds, dtype=dtype, **kwargs)
+                    stack_to_save = self._update_attrs(
+                        stack_to_save, band_xds.keys(), **kwargs
+                    )
+
+            if stack_to_save is None:
+                stack_to_save = stack
+
+            stack_to_save = utils.write_path_in_attrs(stack_to_save, stack_path)
             utils.write(
-                stack, stack_path, dtype=dtype, nodata=nodata, driver=driver, **kwargs
+                stack_to_save,
+                stack_path,
+                dtype=dtype,
+                nodata=kwargs.pop("nodata", rasters.get_nodata_value_from_dtype(dtype)),
+                driver=driver,
+                **kwargs,
             )
 
         return stack
@@ -2046,16 +2069,21 @@ class Product:
             xr.DataArray: Updated array
         """
         # Clean attributes, we don't want to pollute our attributes by default ones (not deterministic)
-        # Are we sure of that ?
+        # Are we sure of that?
         path = xarr.attrs.pop("path", None)
         xarr.attrs = {}
         if path is not None:
             xarr.attrs["path"] = path
 
-        bands = types.make_iterable(bands)
-        long_name = to_str(bands)
-        xr_name = "_".join(long_name)
-        attr_name = " ".join(long_name)
+        long_name = xarr.attrs.get("long_name")
+        if not long_name:
+            bands = types.make_iterable(bands)
+            long_name = to_str(bands)
+            xr_name = "_".join(long_name)
+            attr_name = " ".join(long_name)
+        else:
+            attr_name = long_name
+            xr_name = "_".join(long_name.split(" "))
 
         if isinstance(xarr, xr.DataArray):
             xarr = xarr.rename(xr_name)
@@ -2138,7 +2166,9 @@ class Product:
         with rasterio.open(str(self.get_default_band_path(**kwargs))) as dst:
             return dst.transform, dst.width, dst.height, dst.crs
 
-    def _pixel_size_from_img_size(self, size: Union[list, tuple] = None) -> tuple:
+    def _pixel_size_from_img_size(
+        self, size: Union[list, tuple] = None, **kwargs
+    ) -> tuple:
         """
         Compute the corresponding pixel size to a given image size (positive resolution)
 
@@ -2148,11 +2178,11 @@ class Product:
         Returns:
             tuple: Pixel size as a tuple (x, y)
         """
-        def_tr, def_w, def_h, def_crs = self.default_transform()
-        bounds = transform.array_bounds(def_h, def_w, def_tr)
+        def_tr, def_w, def_h, def_crs = self.default_transform(**kwargs)
 
         # Manage WGS84 case
         if not def_crs.is_projected:
+            bounds = transform.array_bounds(def_h, def_w, def_tr)
             utm_tr, utm_w, utm_h = warp.calculate_default_transform(
                 def_crs,
                 self.crs(),
@@ -2171,6 +2201,12 @@ class Product:
         # Round pixel_size to the closest meter (under 1 meter, allow centimetric pixel_size)
         res_x = np.round(res_x, 1) if res_x < 1.0 else np.round(res_x, 0)
         res_y = np.round(res_y, 1) if res_y < 1.0 else np.round(res_y, 0)
+
+        # Fallback in case of very poor resolutions and very small images -> round to the closest hundred (i.e. 994 m means nothing -> round to 1000 m)
+        if res_x > 500 and size[0] < 500:
+            res_x = np.round(res_x / 100, 0) * 100
+        if res_y > 500 and size[1] < 500:
+            res_y = np.round(res_y / 100, 0) * 100
 
         return res_x, res_y
 
@@ -2530,9 +2566,16 @@ class Product:
 
         return dem_path
 
-    def _reproject(
-        self, src_xda: xr.DataArray, rpcs: rpc.RPC, dem_path, ortho_path, **kwargs
-    ) -> (np.ndarray, dict):
+    def _orthorectify(
+        self,
+        src_xda: xr.DataArray,
+        dem_path: str,
+        ortho_path: AnyPathStrType,
+        rpcs: rpc.RPC = None,
+        gcps: control.GroundControlPoint = None,
+        pixel_size: float = None,
+        **kwargs,
+    ) -> xr.DataArray:
         """
         Reproject using RPCs (cannot use another pixel size than src to ensure RPCs are valid)
 
@@ -2540,151 +2583,49 @@ class Product:
             src_arr (np.ndarray): Array to reproject
             src_meta (dict): Metadata
             rpcs (rpc.RPC): RPCs
+            gcps (control.GroundControlPoint): Ground Control Points
             dem_path (str): DEM path
+            ortho_path (AnyPathStrType): Ortho path
+            pixel_size (float): Pixel size
 
         Returns:
-            (np.ndarray, dict): Reprojected array and its metadata
+            xr.DataArray: Reprojected array
         """
-        # Set RPC keywords
-        # See https://gdal.org/en/stable/api/gdal_alg.html#_CPPv426GDALCreateRPCTransformerV2PK13GDALRPCInfoV2idPPc
-        LOGGER.debug(f"Orthorectifying data with {dem_path}")
+        if pixel_size is None:
+            pixel_size = self.pixel_size
 
-        # RPC_DEM doesn't work with cloud-based DEM
-        # Read it to the extent of the product and save it on disk
-        if path.is_cloud_path(dem_path):
-            cached_dem_path, cached_dem_exists = self._get_out_path(
-                AnyPath(dem_path).name
-            )
-            if not cached_dem_exists:
-                LOGGER.warning(
-                    "gdalwarp cannot process DEM stored on cloud with 'RPC_DEM' argument, "
-                    "hence cloud-stored DEM cannot be used with non orthorectified DIMAP data. "
-                    f"(DEM: {dem_path}). "
-                    "The DEM will be cached before the operation."
-                )
+        kw = utils._prune_keywords(["nodata", "num_threads"], **kwargs)
+        resampling = kw.pop("resampling", self.band_resampling)
+        vcrs = kw.pop("vcrs", os.getenv(DEM_VCRS))
+        out_xda = rasters.reproject(
+            src_xda,
+            rpcs=rpcs,
+            gcps=gcps,
+            dem_path=dem_path,
+            pixel_size=pixel_size,
+            dst_crs=self.crs(),
+            resampling=resampling,
+            nodata=self._raw_nodata,
+            num_threads=utils.get_max_cores(),
+            vcrs=vcrs,
+            **kwargs,
+        ).rename(f"Reprojected stack of {self.name}")
 
-                utils.write(
-                    utils.read(dem_path, window=self.extent()),
-                    cached_dem_path,
-                    dtype=np.float32,
-                )
+        if "long_name" in kw:
+            out_xda.attrs["long_name"] = kw["long_name"]
+        elif kw.get("band") == PAN:
+            out_xda.attrs["long_name"] = "PAN"
+        else:
+            out_xda.attrs["long_name"] = self.get_bands_names()
 
-                LOGGER.debug("DEM cached.")
-            dem_path = str(cached_dem_path)
-
-        # Set SRC crs if needed
-        if src_xda.rio.crs is None:
-            src_xda.rio.write_crs(self._get_raw_crs(), inplace=True)
-
-        kwargs.update(
-            {
-                "RPC_DEM": dem_path,
-                "RPC_DEM_MISSING_VALUE": 0,
-                "OSR_USE_ETMERC": "YES",
-                "BIGTIFF": "IF_NEEDED",
-            }
+        utils.write(
+            out_xda,
+            ortho_path,
+            dtype=np.float32,
+            nodata=self._raw_nodata,
+            tags=kw.get("tags"),
+            predictor=kw.get("predictor"),
         )
-        # https://gis.stackexchange.com/questions/328366/gdalwarp-orthorectification-worldview-3-not-using-rpc-projection-properly fixed
-        # Error threshold for transformation approximation, expressed as a number of source pixels.
-        # Defaults to 0.125 pixels unless the RPC_DEM transformer option is specified, in which case an exact transformer, i.e. err_threshold=0, will be used.
-
-        # Reproject with rioxarray
-        # Seems to handle the resolution well on the contrary to rasterio's reproject...
-
-        resampling = kwargs.pop("resampling", self.band_resampling)
-
-        try:
-            out_xda = src_xda.rio.reproject(
-                dst_crs=self.crs(),
-                resolution=self.pixel_size,
-                resampling=resampling,
-                nodata=self._raw_nodata,
-                num_threads=utils.get_max_cores(),
-                rpcs=rpcs,
-                dtype=src_xda.dtype,
-                **kwargs,
-            )
-            out_xda.rename(f"Reprojected stack of {self.name}")
-
-            if "long_name" in kwargs:
-                out_xda.attrs["long_name"] = kwargs["long_name"]
-            elif kwargs.get("band") == PAN:
-                out_xda.attrs["long_name"] = "PAN"
-            else:
-                out_xda.attrs["long_name"] = self.get_bands_names()
-
-            utils.write(
-                out_xda,
-                ortho_path,
-                dtype=np.float32,
-                nodata=self._raw_nodata,
-                tags=kwargs.get("tags"),
-                predictor=kwargs.get("predictor"),
-            )
-
-        # Daskified reproject doesn't seem to work with RPC
-        # See https://github.com/opendatacube/odc-geo/issues/193
-        # from odc.geo import xr # noqa
-        # out_xda = src_xda.odc.reproject(
-        #     how=self.crs(),
-        #     resolution=self.pixel_size,
-        #     resampling=kwargs.pop("resampling", self.band_resampling),
-        #     dst_nodata=self._raw_nodata,
-        #     num_threads=utils.get_max_cores(),
-        #     rpcs=rpcs,
-        #     dtype=src_xda.dtype,
-        #     **kwargs
-        # )
-
-        # Legacy with rasterio directly: rioxarray is bugged with RPCs and Python 3.9
-        # https://github.com/corteva/rioxarray/issues/844
-        except ValueError:
-            from sertit.rasters import get_nodata_value_from_xr
-            from sertit.rasters_rio import write
-
-            nodata = get_nodata_value_from_xr(src_xda)
-            arr = src_xda.fillna(nodata) if nodata is not None else src_xda
-
-            # WARNING: may not give correct output pixel size
-            out_arr, dst_transform = warp.reproject(
-                arr.compute().data,
-                src_transform=None,
-                rpcs=rpcs,
-                src_crs=self._get_raw_crs(),
-                src_nodata=self._raw_nodata,
-                dst_crs=self.crs(),
-                dst_resolution=self.pixel_size,
-                dst_nodata=self._raw_nodata,  # input data should be in integer
-                num_threads=utils.get_max_cores(),
-                resampling=resampling,
-                **kwargs,
-            )
-            # Get dims
-            count, height, width = out_arr.shape
-
-            # Update metadata
-            meta = {
-                "driver": "GTiff",
-                "dtype": src_xda.dtype,
-                "nodata": self._raw_nodata,
-                "width": width,
-                "height": height,
-                "count": count,
-                "crs": self.crs(),
-                "transform": dst_transform,
-                "compress": "lzw",
-            }
-            write(
-                out_arr,
-                meta,
-                ortho_path,
-                dtype=np.float32,
-                nodata=self._raw_nodata,
-                tags=kwargs.get("tags"),
-                predictor=kwargs.get("predictor"),
-                driver=utils.get_driver(kwargs),
-            )
-            out_xda = utils.read(ortho_path)
         return out_xda
 
     def _warp_band(
@@ -2735,7 +2676,7 @@ class Product:
                 "transform": utm_tr,
                 "height": utm_h,
                 "width": utm_w,
-                # TODO: go nearest to speed up results ?
+                # TODO: go nearest to speed up results?
                 "resampling": Resampling.bilinear,
                 "nodata": self._raw_nodata,
                 # Float32 is the max possible
@@ -2749,4 +2690,5 @@ class Product:
                 ),
                 WarpedVRT(src, **vrt_options) as vrt,
             ):
+                LOGGER.debug(f"Writing warped band to {reproj_path}")
                 rio_shutil.copy(vrt, reproj_path, driver="vrt")

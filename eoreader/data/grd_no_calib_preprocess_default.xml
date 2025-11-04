@@ -51,6 +51,8 @@
       <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
       <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
       <saveSelectedSourceBand>true</saveSelectedSourceBand>
+      <saveLayoverShadowMask>false</saveLayoverShadowMask>
+      <outputComplex>false</outputComplex>
       <applyRadiometricNormalization>false</applyRadiometricNormalization>
       <saveSigmaNought>false</saveSigmaNought>
       <saveGammaNought>false</saveGammaNought>
@@ -73,7 +75,7 @@
   <node id="Write">
     <operator>Write</operator>
     <sources>
-      <sourceProduct refid="Terrain-Correction"/>
+      <sourceProduct refid="LinearToFromdB"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${out}</file>
@@ -83,10 +85,13 @@
   <applicationData id="Presentation">
     <Description/>
     <node id="Read">
-            <displayPosition x="37.0" y="35.0"/>
+            <displayPosition x="7.0" y="19.0"/>
+    </node>
+    <node id="Subset">
+      <displayPosition x="21.0" y="65.0"/>
     </node>
     <node id="Terrain-Correction">
-      <displayPosition x="284.0" y="259.0"/>
+      <displayPosition x="40.0" y="148.0"/>
     </node>
     <node id="LinearToFromdB">
       <displayPosition x="138.0" y="263.0"/>

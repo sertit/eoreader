@@ -7,7 +7,7 @@
       <file>${file}</file>
     </parameters>
   </node>
-<node id="Subset">
+  <node id="Subset">
     <operator>Subset</operator>
     <sources>
       <sourceProduct refid="Read"/>
@@ -15,7 +15,6 @@
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
       <tiePointGrids/>
-      <region/>
       <referenceBand/>
       <region>${region}</region>
       <geoRegion>${geo_region}</geoRegion>
@@ -70,6 +69,8 @@
       <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
       <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
       <saveSelectedSourceBand>true</saveSelectedSourceBand>
+      <saveLayoverShadowMask>false</saveLayoverShadowMask>
+      <outputComplex>false</outputComplex>
       <applyRadiometricNormalization>false</applyRadiometricNormalization>
       <saveSigmaNought>false</saveSigmaNought>
       <saveGammaNought>false</saveGammaNought>
@@ -92,7 +93,7 @@
   <node id="Write">
     <operator>Write</operator>
     <sources>
-      <sourceProduct refid="Terrain-Correction"/>
+      <sourceProduct refid="LinearToFromdB"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${out}</file>
@@ -102,19 +103,22 @@
   <applicationData id="Presentation">
     <Description/>
     <node id="Read">
-            <displayPosition x="37.0" y="35.0"/>
+            <displayPosition x="32.0" y="40.0"/>
+    </node>
+    <node id="Subset">
+      <displayPosition x="43.0" y="96.0"/>
     </node>
     <node id="Calibration">
-      <displayPosition x="96.0" y="222.0"/>
+      <displayPosition x="74.0" y="150.0"/>
     </node>
     <node id="Terrain-Correction">
-      <displayPosition x="284.0" y="259.0"/>
+      <displayPosition x="183.0" y="244.0"/>
     </node>
     <node id="LinearToFromdB">
-      <displayPosition x="138.0" y="263.0"/>
+      <displayPosition x="386.0" y="290.0"/>
     </node>
     <node id="Write">
-            <displayPosition x="522.0" y="264.0"/>
+            <displayPosition x="584.0" y="312.0"/>
     </node>
   </applicationData>
 </graph>

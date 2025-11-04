@@ -17,7 +17,7 @@
 Sentinel-3 OLCI products
 
 .. WARNING:
-    Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio !
+    Not georeferenced NetCDF files are badly opened by GDAL and therefore by rasterio!
     -> use xr.open_dataset that manages that correctly
 """
 
@@ -35,6 +35,7 @@ from eoreader import EOREADER_NAME, cache, utils
 from eoreader.bands import (
     BLUE,
     CA,
+    DEEP_BLUE,
     GREEN,
     GREEN_1,
     NARROW_NIR,
@@ -47,7 +48,6 @@ from eoreader.bands import (
     YELLOW,
     BandNames,
     Oa01,
-    Oa02,
     Oa09,
     Oa10,
     Oa13,
@@ -69,7 +69,7 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 # Not used for now
 OLCI_SOLAR_FLUXES_DEFAULT = {
     Oa01: 1714.9084,
-    Oa02: 1872.3961,
+    DEEP_BLUE: 1872.3961,
     CA: 1926.6102,
     BLUE: 1930.2483,
     GREEN_1: 1804.2762,
@@ -127,7 +127,7 @@ class S3OlciProduct(S3Product):
         Args:
             band (band: Union[BandNames, str]): Wanted band (quality flags accepted)
             pixel_size (Union[float, tuple, list]): Resolution of the wanted UTM band
-            writable (bool): Do we need to write the pre-processed band ?
+            writable (bool): Do we need to write the pre-processed band?
 
         Returns:
             AnyPathType: Pre-processed band path
@@ -212,8 +212,8 @@ class S3OlciProduct(S3Product):
                     DESCRIPTION: "Aerosol correction, improved water constituent retrieval",
                 },
             ),
-            Oa02: SpectralBand(
-                eoreader_name=Oa02,
+            DEEP_BLUE: SpectralBand(
+                eoreader_name=DEEP_BLUE,
                 **{
                     NAME: "Oa02",
                     ID: 2,
@@ -524,7 +524,7 @@ class S3OlciProduct(S3Product):
             )
 
             # Convert radiance to reflectances if needed
-            # Convert first pixel by pixel before reprojection !
+            # Convert first pixel by pixel before reprojection!
             if to_reflectance:
                 LOGGER.debug(f"Converting {band_str} to reflectance")
                 band_arr = self._rad_2_refl(band_arr, band)
@@ -575,7 +575,7 @@ class S3OlciProduct(S3Product):
                 sza_nc = self._read_nc(self._geom_file, self._sza_name)
                 utils.write(sza_nc, sza_path)
 
-            with rasterio.open(sza_path) as ds_sza:
+            with rasterio.open(str(sza_path)) as ds_sza:
                 # Values can be easily interpolated at pixels from Tie Points by linear interpolation using the image column coordinate.
                 sza, _ = rasters_rio.read(
                     ds_sza,
@@ -627,7 +627,11 @@ class S3OlciProduct(S3Product):
         return e0
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...) for OLCI data.
@@ -681,7 +685,7 @@ class S3OlciProduct(S3Product):
         # Bit ids
         band_bit_id = {
             Oa01: 20,  # Band 1
-            Oa02: 19,  # Band 2
+            DEEP_BLUE: 19,  # Band 2
             CA: 18,  # Band 3
             BLUE: 17,  # Band 4
             GREEN_1: 16,  # Band 5
@@ -713,7 +717,7 @@ class S3OlciProduct(S3Product):
         qual_flags_path = self._preprocess(
             qual_regex,
             subdataset=subds,
-            pixel_size=band_arr.rio.resolution(),
+            pixel_size=pixel_size,
             to_reflectance=False,
             dtype=np.uint32,
         )
@@ -739,7 +743,7 @@ class S3OlciProduct(S3Product):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         -> OLCI does not provide any cloud mask
         """
         return False

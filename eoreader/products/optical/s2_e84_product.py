@@ -150,7 +150,7 @@ class S2E84Product(OpticalProduct):
         Set product default pixel size (in meters)
         """
         # S2: use 10m resolution, even if we have 60m and 20m resolution
-        # In the future maybe use one resolution per band ?
+        # In the future maybe use one resolution per band?
         self.pixel_size = 10.0
 
     def _map_bands(self) -> None:
@@ -425,7 +425,7 @@ class S2E84Product(OpticalProduct):
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. WARNING::
-            Sentinel-2 datetime is the datatake sensing time, not the granule sensing time !
+            Sentinel-2 datetime is the datatake sensing time, not the granule sensing time!
             (the one displayed in the product's name)
 
         .. code-block:: python
@@ -445,7 +445,7 @@ class S2E84Product(OpticalProduct):
              Union[str, datetime.datetime]: Its acquisition datetime
         """
         if self.datetime is None:
-            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time !
+            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time!
             sensing_time = self.split_name[2]
 
             # Convert to datetime
@@ -519,7 +519,7 @@ class S2E84Product(OpticalProduct):
                 band_paths[band] = clean_band
             else:
                 try:
-                    # Use JP2 or COGs here ? COGs seem a better option.
+                    # Use JP2 or COGs here? COGs seem a better option.
                     band_paths[band] = self._get_path(band_id, ext="tif")
                 except FileNotFoundError as ex:
                     raise InvalidProductError(
@@ -570,7 +570,11 @@ class S2E84Product(OpticalProduct):
         return band_arr.astype(np.float32)
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -585,6 +589,7 @@ class S2E84Product(OpticalProduct):
         """
         # Get detector footprint to deduce the outside nodata
         mask = self.open_mask(
+            pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
         )
 
@@ -592,23 +597,6 @@ class S2E84Product(OpticalProduct):
         nodata_invalid = np.where(np.isin(mask, [0, 1]), 1, 0).astype(np.uint8)
 
         return self._set_nodata_mask(band_arr, nodata_invalid)
-
-    def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
-    ) -> xr.DataArray:
-        """
-        Manage only nodata pixels
-
-        Args:
-            band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
-            kwargs: Other arguments used to load bands
-
-        Returns:
-            xr.DataArray: Cleaned band array
-        """
-        # Nodata is loaded by default (COG file)
-        return band_arr
 
     def _get_condensed_name(self) -> str:
         """
@@ -852,6 +840,50 @@ class S2E84StacProduct(StacProduct, S2E84Product):
                 ) from exc
 
         return self.item.assets[asset_name].href
+
+    def _read_band(
+        self,
+        band_path: AnyPathType,
+        band: BandNames = None,
+        pixel_size: Union[tuple, list, float] = None,
+        size: Union[list, tuple] = None,
+        **kwargs,
+    ) -> xr.DataArray:
+        """
+        Read band from disk.
+
+        .. WARNING::
+            Invalid pixels are not managed here
+
+        Args:
+            band_path (AnyPathType): Band path
+            band (BandNames): Band to read
+            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Other arguments used to load bands
+        Returns:
+            xr.DataArray: Band xarray
+        """
+        # Do this trick because of different endpoints in E84 S2 L1C data
+        from rasterio.io import MemoryFile
+
+        with (
+            MemoryFile(self.read_href(band_path, clients=self.clients)) as memfile,
+            memfile.open() as dataset,
+        ):
+            band_arr = utils.read(
+                dataset,
+                pixel_size=pixel_size,
+                size=size,
+                resampling=kwargs.pop("resampling", self.band_resampling),
+                **kwargs,
+            )
+
+            # Convert type if needed
+            if band_arr.dtype != np.float32:
+                band_arr = band_arr.astype(np.float32)
+
+            return band_arr
 
     @cache
     def _read_mtd(self) -> (etree._Element, dict):

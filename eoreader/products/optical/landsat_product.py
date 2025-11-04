@@ -694,7 +694,7 @@ class LandsatProduct(OpticalProduct):
                     DESCRIPTION: "15 meter resolution, sharper image definition",
                 },
             ),
-            # TODO: better manage L-7 TIR bands ?
+            # TODO: better manage L-7 TIR bands?
             # The band 61 (low gain mode) is used when surface brightness is high (e.g., desert, or less vegetated areas),
             # and band 62 (high gain mode) when surface brightness is lower (e.g., vegetated areas)
             # (According to the gain setting rule of Landsat Project Science Ofﬁce (2001)).
@@ -1048,7 +1048,7 @@ class LandsatProduct(OpticalProduct):
                 engine="python",
             )
 
-            # Workaround an unexpected behaviour in pandas !
+            # Workaround an unexpected behaviour in pandas!
             if any(mtd_data.NAME == "="):
                 mtd_data = pd.read_table(
                     mtd_path,
@@ -1148,7 +1148,7 @@ class LandsatProduct(OpticalProduct):
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -1426,7 +1426,11 @@ class LandsatProduct(OpticalProduct):
         return band_arr
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -1442,6 +1446,7 @@ class LandsatProduct(OpticalProduct):
         if self._collection == LandsatCollection.COL_1:
             qa_arr = self._open_mask(
                 LandsatMaskBandNames.BQA,
+                pixel_size=pixel_size,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
@@ -1462,6 +1467,7 @@ class LandsatProduct(OpticalProduct):
         else:
             qa_arr = self._open_mask(
                 LandsatMaskBandNames.QA_RADSAT,
+                pixel_size=pixel_size,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
@@ -1497,6 +1503,7 @@ class LandsatProduct(OpticalProduct):
             # If collection 2, nodata has to be found in pixel QA file
             pixel_arr = self._open_mask(
                 LandsatMaskBandNames.QA_PIXEL,
+                pixel_size=pixel_size,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
@@ -1507,7 +1514,11 @@ class LandsatProduct(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
@@ -1526,6 +1537,7 @@ class LandsatProduct(OpticalProduct):
             # Open QA band
             qa_arr = self._open_mask(
                 LandsatMaskBandNames.BQA,
+                pixel_size=pixel_size,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
@@ -1538,6 +1550,7 @@ class LandsatProduct(OpticalProduct):
             # If collection 2, nodata has to be found in pixel QA file
             pixel_arr = self._open_mask(
                 LandsatMaskBandNames.QA_PIXEL,
+                pixel_size=pixel_size,
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
@@ -1618,7 +1631,7 @@ class LandsatProduct(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
 
         - (COL 1)[https://www.usgs.gov/land-resources/nli/landsat/landsat-collection-1-level-1-quality-assessment-band]
         - (COL 2)[https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands]
@@ -1641,14 +1654,14 @@ class LandsatProduct(OpticalProduct):
     @staticmethod
     def _mss_has_cloud_band(band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         return band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS]
 
     @staticmethod
     def _e_tm_has_cloud_band(band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         return band in [RAW_CLOUDS, CLOUDS, ALL_CLOUDS, SHADOWS]
 

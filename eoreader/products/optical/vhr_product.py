@@ -148,23 +148,35 @@ class VhrProduct(OpticalProduct):
                 # Reproject and write on disk data
                 dem_path = self._get_dem_path(**kwargs)
 
-                with rasterio.open(self._get_tile_path()) as ds:
+                with rasterio.open(str(self._get_tile_path())) as ds:
                     tags = ds.tags()
 
                     # TODO: change this when available in rioxarray
                     # See https://github.com/corteva/rioxarray/issues/837
                     rpcs = kwargs.pop("rpcs") if "rpcs" in kwargs else ds.rpcs
 
-                if not rpcs:
+                    # Only look for GCPs if RPCs are absent
+                    if not rpcs:
+                        gcps = kwargs.pop("gcps") if "gcps" in kwargs else ds.gcps[0]
+                    else:
+                        gcps = None
+
+                if not rpcs and not gcps:
                     raise InvalidProductError(
-                        "Your projected VHR data doesn't have any RPC. "
+                        "Your projected VHR data doesn't have any RPCs or GCPs. "
                         "EOReader cannot orthorectify it!"
                     )
-
-                tile = utils.read(self._get_tile_path())
-                self._reproject(
-                    tile, rpcs, dem_path, ortho_path=ortho_path, tags=tags, **kwargs
-                )
+                else:
+                    tile = utils.read(self._get_tile_path())
+                    self._orthorectify(
+                        tile,
+                        rpcs=rpcs,
+                        gcps=gcps,
+                        dem_path=dem_path,
+                        ortho_path=ortho_path,
+                        tags=tags,
+                        **kwargs,
+                    )
 
         else:
             ortho_path = self._get_tile_path()
@@ -258,8 +270,9 @@ class VhrProduct(OpticalProduct):
             # Manage the case if we got a LAT LON product
             if not dst_crs.is_projected:
                 if not reproj_path.is_file():
+                    # Here we are warping the whole stack, not only one band
                     reproj_path = self._get_utm_band_path(
-                        band=band.name, pixel_size=pixel_size, writable=True
+                        pixel_size=pixel_size, writable=True
                     )
                     # Warp band if needed
                     self._warp_band(
@@ -338,24 +351,12 @@ class VhrProduct(OpticalProduct):
 
         return band_arrays
 
-    def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
-    ) -> xr.DataArray:
-        """
-        Manage invalid pixels (Nodata, saturated, defective...)
-
-        Args:
-            band_arr (xr.DataArray): Band array
-            band (BandNames): Band name as an SpectralBandNames
-            kwargs: Other arguments used to load bands
-
-        Returns:
-            xr.DataArray: Cleaned band array
-        """
-        return self._manage_nodata(band_arr, band, **kwargs)
-
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
@@ -416,7 +417,7 @@ class VhrProduct(OpticalProduct):
 
     def _get_utm_band_path(
         self,
-        band: str,
+        band: str = None,
         pixel_size: Union[float, tuple, list] = None,
         writable: bool = False,
     ) -> AnyPathType:
@@ -426,15 +427,17 @@ class VhrProduct(OpticalProduct):
         Args:
             band (str): Band in string as written on the filepath
             pixel_size (Union[float, tuple, list]): Pixel size of the wanted UTM band
-            writable (bool): Do we need to write the UTM band ?
+            writable (bool): Do we need to write the UTM band?
 
         Returns:
             AnyPathType: UTM band path
         """
         res_str = self._pixel_size_to_str(pixel_size)
 
+        band_str = f"_{band}" if band is not None else ""
+
         return self._get_band_folder(writable).joinpath(
-            f"{self.condensed_name}_{band}_{res_str}.vrt"
+            f"{self.condensed_name}{band_str}_{res_str}.vrt"
         )
 
     def _get_default_utm_band(
@@ -480,8 +483,9 @@ class VhrProduct(OpticalProduct):
 
                     # Warp band if needed
                     if not utm_path.is_file():
+                        # Here we will warp the whole stack
                         utm_path = self._get_utm_band_path(
-                            band=def_band.name, pixel_size=pixel_size, writable=True
+                            pixel_size=pixel_size, writable=True
                         )
                         self._warp_band(
                             def_path,

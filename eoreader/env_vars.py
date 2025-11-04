@@ -22,10 +22,20 @@ DSPK_GRAPH = "EOREADER_DSPK_GRAPH"
 """Environment variable for overriding default despeckling graph path"""
 
 SAR_DEF_PIXEL_SIZE = "EOREADER_SAR_DEFAULT_PIXEL_SIZE"
-"""Environment variable for SAR default pixel ize, used for SNAP orthorectification to override default pixel size."""
+"""Environment variable for SAR default pixel size, used for SNAP orthorectification to override default pixel size."""
 
 DEM_PATH = "EOREADER_DEM_PATH"
 """Environment variable for overriding default DEM path"""
+
+DEM_VCRS = "EOREADER_DEM_VCRS"
+"""
+Environment variable for setting the vertical CRS of the DEM. 
+Only useful to reproject your data with RPCs. 
+Not useful if your DEM has already a vertical CRS or if its height is already taken from the ellipsoid.
+
+- EOReader is able to detect the vertical CRS of the COPDEM (if COPDEM or Copernicus in its name).
+- :code:`xdem` has also a mechanism of auto-detection of some CRS. See their documentation for more details.
+"""
 
 SNAP_DEM_NAME = "EOREADER_SNAP_DEM_NAME"
 """
@@ -35,7 +45,7 @@ Default is :code:`Copernicus 30m Global DEM`.
 Can be :code:`GETASSE30`, :code:`SRTM 3Sec`, :code:`External DEM`...
 
 If :code:`EOREADER_SNAP_DEM_NAME` is set to :code:`External DEM`,
-SNAP will use your DEM stored in  :code:`EOREADER_DEM_PATH` as an external DEM.
+SNAP will use your DEM stored in :code:`EOREADER_DEM_PATH` as an external DEM.
 """
 
 S3_DB_URL_ROOT = "S3_DB_URL_ROOT"
@@ -114,4 +124,10 @@ See GDAL supported raster drivers for more information: https://gdal.org/en/stab
 LEGACY_BAND_NAME_RESOLUTION = "EOREADER_LEGACY_BAND_NAME_RESOLUTION"
 """
 Keep legacy resolution in band name (:code:`1000-00m` instead of :code:`1000m`, or :code:`0-50m` instead of :code:`0-5m`)
+"""
+
+FIX_MAXAR = "EOREADER_FIX_MAXAR"
+"""
+Fix faulty Maxar product (corrupted shapes in metadata). 
+This requires an alteration of the raw data, hence the possibility to block it by setting this environment variable to 0.
 """

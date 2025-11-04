@@ -468,7 +468,7 @@ class S2Product(OpticalProduct):
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
         .. WARNING::
-            Sentinel-2 datetime is the datatake sensing time, not the granule sensing time !
+            Sentinel-2 datetime is the datatake sensing time, not the granule sensing time!
             (the one displayed in the product's name)
 
         .. code-block:: python
@@ -488,7 +488,7 @@ class S2Product(OpticalProduct):
              Union[str, datetime.datetime]: Its acquisition datetime
         """
         if self.datetime is None:
-            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time !
+            # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time!
             sensing_time = self.split_name[2]
 
             # Convert to datetime
@@ -835,7 +835,7 @@ class S2Product(OpticalProduct):
         )
 
         for band in bands:
-            if associated_bands:
+            if associated_bands and band in associated_bands:
                 for associated_band in associated_bands[band]:
                     key = self._get_band_key(band, associated_band, **kwargs)
                     reordered_dict[key] = bands_dict[key]
@@ -847,7 +847,7 @@ class S2Product(OpticalProduct):
 
     def _has_mask(self, mask: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -1091,7 +1091,7 @@ class S2Product(OpticalProduct):
                     )
             except FileNotFoundError:
                 # For some old processing baselines
-                # (2.04 ? But not for all products... i.e. S2A_MSIL2A_20170406T105021_N0204_R051_T30SWD_20170406T105317.SAFE)
+                # (2.04? But not for all products... i.e. S2A_MSIL2A_20170406T105021_N0204_R051_T30SWD_20170406T105317.SAFE)
                 if self.is_archived:
                     mask_path = self._get_archived_rio_path(
                         f"{self._get_qi_folder()}.*_{band.name.replace('PRB', '')}_20m.jp2"
@@ -1164,7 +1164,7 @@ class S2Product(OpticalProduct):
         - :code:`NODATA`: Pixel nodata (inside the detectors)
         - :code:`DETFOO`: Detectors footprint -> used to process nodata outside the detectors
         - :code:`DEFECT`: Defective pixels
-        - :code:`CLOUDS`, **only with :code:`00` as a band !**
+        - :code:`CLOUDS`, **only with :code:`00` as a band!**
 
         .. code-block:: python
 
@@ -1260,7 +1260,7 @@ class S2Product(OpticalProduct):
 
         - :code:`DETFOO`: Detectors footprint -> used to process nodata outside the detectors
         - :code:`QUALIT`: TECQUA, DEFECT, NODATA, SATURA, CLOLOW merged
-        - :code:`CLASSI`: CLOUDS and SNOICE **only with :code:`00` as a band !**
+        - :code:`CLASSI`: CLOUDS and SNOICE **only with :code:`00` as a band!**
 
         Args:
             mask_id (Union[str, S2GmlMasks]): Mask ID
@@ -1305,7 +1305,11 @@ class S2Product(OpticalProduct):
         return mask
 
     def _manage_invalid_pixels(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -1326,7 +1330,11 @@ class S2Product(OpticalProduct):
             return self._manage_invalid_pixels_gt_4_0(band_arr, band, **kwargs)
 
     def _manage_nodata(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata pixels
@@ -1340,12 +1348,16 @@ class S2Product(OpticalProduct):
             xr.DataArray: Cleaned band array
         """
         if self._processing_baseline < 4.0:
-            return self._manage_nodata_lt_4_0(band_arr, band, **kwargs)
+            return self._manage_nodata_lt_4_0(band_arr, band, pixel_size, **kwargs)
         else:
-            return self._manage_nodata_gt_4_0(band_arr, band, **kwargs)
+            return self._manage_nodata_gt_4_0(band_arr, band, pixel_size, **kwargs)
 
     def _manage_invalid_pixels_lt_4_0(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -1409,7 +1421,11 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_invalid_pixels_gt_4_0(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage invalid pixels (Nodata, saturated, defective...)
@@ -1428,6 +1444,7 @@ class S2Product(OpticalProduct):
         nodata = self._open_mask_gt_4_0(
             S2Jp2Masks.DETFOO,
             band,
+            pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
             **kwargs,
         ).data
@@ -1435,7 +1452,7 @@ class S2Product(OpticalProduct):
         nodata = np.where(nodata == 0, 1, 0).astype(np.uint8)
 
         # Manage quality mask
-        # TODO: Optimize it -> very slow (why ?)
+        # TODO: Optimize it -> very slow (why?)
         # Technical quality mask: Only keep MSI_LOST (band 3) and MSI_DEG (band 4)
         # Defective pixels (band 5)
         # Nodata pixels (band 6)
@@ -1443,6 +1460,7 @@ class S2Product(OpticalProduct):
         quality = self._open_mask_gt_4_0(
             S2Jp2Masks.QUALIT,
             band,
+            pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
             indexes=[3, 4, 5, 6, 8],
             **kwargs,
@@ -1454,7 +1472,11 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata_lt_4_0(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata
@@ -1492,7 +1514,11 @@ class S2Product(OpticalProduct):
         return self._set_nodata_mask(band_arr, mask)
 
     def _manage_nodata_gt_4_0(
-        self, band_arr: xr.DataArray, band: BandNames, **kwargs
+        self,
+        band_arr: xr.DataArray,
+        band: BandNames,
+        pixel_size: float = None,
+        **kwargs,
     ) -> xr.DataArray:
         """
         Manage only nodata
@@ -1510,6 +1536,7 @@ class S2Product(OpticalProduct):
         nodata = self._open_mask_gt_4_0(
             S2Jp2Masks.DETFOO,
             band,
+            pixel_size=pixel_size,
             size=(band_arr.rio.width, band_arr.rio.height),
             **kwargs,
         ).data
@@ -1551,7 +1578,7 @@ class S2Product(OpticalProduct):
 
     def _has_s2_l2a_bands(self, band: BandNames) -> bool:
         """
-        Can the specified mask be loaded from this product ?
+        Can the specified mask be loaded from this product?
 
         .. code-block:: python
 
@@ -1763,7 +1790,7 @@ class S2Product(OpticalProduct):
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-2-msi/level-1c/cloud-masks
         """
         return band != SHADOWS
@@ -1923,7 +1950,7 @@ class S2Product(OpticalProduct):
 
         if bands:
             # Read mask
-            cloud_arr = self._open_masks(
+            cloud_arr = self._load_masks(
                 [S2MaskBandNames.CLDPRB],
                 pixel_size=pixel_size,
                 size=size,

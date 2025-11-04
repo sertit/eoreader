@@ -158,7 +158,7 @@ class Sv1Product(VhrProduct):
         """
         # Not Pansharpened images
         if self.band_combi == Sv1BandCombination.PMS:
-            # TODO: manage default resolution for PAN band ?
+            # TODO: manage default resolution for PAN band?
             self.pixel_size = self._ms_res
         # Pansharpened images
         else:
@@ -362,7 +362,12 @@ class Sv1Product(VhrProduct):
             root, _ = self.read_mtd()
             datetime_str = root.findtext(".//StartTime")
             if not datetime_str:
-                raise InvalidProductError("Cannot find StartTime in the metadata file.")
+                datetime_str = root.findtext(".//ReceiveTime")
+
+            if not datetime_str:
+                raise InvalidProductError(
+                    "Cannot find StartTime or ReceiveTime in the metadata file."
+                )
 
             # WARNING: in Beijing time!
             date_dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S").replace(
@@ -503,8 +508,8 @@ class Sv1Product(VhrProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
-        mtd_from_path = "MUX*.xml"
-        mtd_archived = r"MUX.*\.xml"
+        mtd_from_path = "MUX.xml"
+        mtd_archived = r"MUX\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
@@ -516,14 +521,14 @@ class Sv1Product(VhrProduct):
         Returns:
             (etree._Element, dict): Metadata XML root and its namespaces as a dict
         """
-        mtd_from_path = "PAN*.xml"
-        mtd_archived = r"PAN.*\.xml"
+        mtd_from_path = "PAN.xml"
+        mtd_archived = r"PAN\.xml"
 
         return self._read_mtd_xml(mtd_from_path, mtd_archived)
 
     def _has_cloud_band(self, band: BandNames) -> bool:
         """
-        Does this product has the specified cloud band ?
+        Does this product has the specified cloud band?
         """
         return False
 
@@ -652,10 +657,12 @@ class Sv1Product(VhrProduct):
 
                 # TODO: change this when available in rioxarray
                 # See https://github.com/corteva/rioxarray/issues/837
-                with rasterio.open(self._get_tile_path(**kwargs)) as ds:
+                with rasterio.open(str(self._get_tile_path(**kwargs))) as ds:
                     rpcs = ds.rpcs
 
-                self._reproject(tile, rpcs, dem_path, ortho_path=ortho_path, **kwargs)
+                self._orthorectify(
+                    tile, rpcs=rpcs, dem_path=dem_path, ortho_path=ortho_path, **kwargs
+                )
 
         else:
             ortho_path = self._get_tile_path(**kwargs)

@@ -37,7 +37,7 @@ from sertit.misc import ListEnum
 from sertit.types import AnyPathType
 from sertit.vectors import WGS84
 
-from eoreader import DATETIME_FMT, EOREADER_NAME
+from eoreader import DATETIME_FMT, EOREADER_NAME, cache
 from eoreader.bands import (
     BLUE,
     CA,
@@ -454,6 +454,7 @@ class PlaProduct(PlanetProduct):
 
         return datetime_str
 
+    @cache
     def _get_stack_path(self, as_list: bool = False) -> Union[str, list]:
         """
         Get Planet stack path(s)
@@ -470,7 +471,7 @@ class PlaProduct(PlanetProduct):
                 stack_path = [stack_path]
         else:
             stack_path = self._get_path(
-                "Analytic", "tif", invalid_lookahead="udm", as_list=as_list
+                "", "tif", invalid_lookahead="udm", as_list=as_list
             )
 
         if as_list and len(stack_path) < 1:
