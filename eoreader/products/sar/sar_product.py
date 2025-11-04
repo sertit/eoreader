@@ -1018,16 +1018,9 @@ class SarProduct(Product):
             return already_ortho
         else:
             # Create target dir (tmp dir)
-            with tempfile.TemporaryDirectory() as main_tmp_dir:
-                # Create dedicated SNAP subfolders to avoid overwrite
-                tmp_dir_lia = os.path.join(main_tmp_dir, f"{self.condensed_name}_lia")
-                tmp_dir_sar = os.path.join(main_tmp_dir, f"{self.condensed_name}_sar")
-                os.makedirs(tmp_dir_lia, exist_ok=True)
-                os.makedirs(tmp_dir_sar, exist_ok=True)
-            
+            with tempfile.TemporaryDirectory() as tmp_dir:
                 # Use dimap for speed and security (i.e. GeoTiff's broken georef)
-                pp_target = os.path.join(tmp_dir_sar, f"{self.condensed_name}")
-                pp_dim = pp_target + ".dim"
+                pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
 
                 # Pre-process graph
                 pp_graph = self._get_pp_graph()
@@ -1073,11 +1066,7 @@ class SarProduct(Product):
                 # Convert Local Incidence Angle files from DIMAP to GeoTiff
                 LOGGER.debug("Converting Local Incidence Angle files from DIMAP to GeoTiff")
                 self._write_lia(
-                    pre_processed_path,
-                    pp_dim,
-                    crop=window_to_crop,
-                    tmp_dir=tmp_dir_lia,
-                    **kwargs,
+                    pre_processed_path, pp_dim, crop=window_to_crop, **kwargs
                 )
 
                 # Convert DIMAP images to GeoTiff
@@ -1295,8 +1284,7 @@ class SarProduct(Product):
         # Get the .img path(s)
         imgs = []
         try:
-            tmp_dir = kwargs.get("tmp_dir", Path(dim_path).parent)
-            imgs = utils.get_dim_img_path(dim_path, "*Incidence*", search_dir=tmp_dir)
+            imgs = utils.get_dim_img_path(dim_path, "*Incidence*")
         except FileNotFoundError:
             LOGGER.warning("No Local Incidence Angle file found. Please activate the options to write these files from 'Terrain-Correction' node in a custuom SNAP graph")
 
