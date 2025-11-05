@@ -1065,10 +1065,11 @@ class SarProduct(Product):
                     raise RuntimeError("Something went wrong with SNAP!") from ex
 
                 # Convert Local Incidence Angle files from DIMAP to GeoTiff
-                LOGGER.debug("Converting Local Incidence Angle files from DIMAP to GeoTiff")
-                self._write_lia(
-                    pre_processed_path, pp_dim, crop=window_to_crop, **kwargs
-                )
+                if os.getenv("WRITE_LIA", "true").lower() == "true":
+                    LOGGER.debug("Converting Local Incidence Angle files from DIMAP to GeoTiff")
+                    self._write_lia(
+                        pre_processed_path, pp_dim, crop=window_to_crop, **kwargs
+                    )
 
                 # Convert DIMAP images to GeoTiff
                 LOGGER.debug("Converting DIMAP to GeoTiff")
