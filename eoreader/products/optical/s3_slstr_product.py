@@ -28,7 +28,7 @@ from functools import reduce
 
 import numpy as np
 import xarray as xr
-from rasterio import features, rasters
+from rasterio import features
 from rasterio.enums import Resampling
 from sertit import AnyPath, rasters, types
 from sertit.misc import ListEnum
