@@ -243,9 +243,9 @@ class SarProduct(Product):
         return snap.get_snap_version()
 
     @cache
-    def _has_snap_10_or_higher(self) -> bool:
+    def _has_snap_x_or_higher(self, version: int) -> bool:
         """True if SNAP version is 10 or higher"""
-        return misc.compare_version(self.get_snap_version(), "10.0.0", ">=")
+        return misc.compare_version(self.get_snap_version(), f"{version}.0.0", ">=")
 
     def _get_predictor(self) -> int:
         """
@@ -260,10 +260,9 @@ class SarProduct(Product):
         """
         # If we could know if imageio handles Predictor=3:
         # # 3 for float if handled
-        # return 3 if xxx else 1
-
-        # But we cannot:
-        return 1
+        pred = 3 if self._has_snap_x_or_higher(13) else 1
+        LOGGER.debug(f"SAR predictor: {pred} (SNAP version: {self.get_snap_version()})")
+        return pred
 
     def _need_snap_to_pre_process(self):
         """This product needs SNAP for pre-process."""

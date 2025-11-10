@@ -206,7 +206,7 @@ class S1Product(SarProduct):
         super()._pre_init(**kwargs)
 
         # Check if COG in name (S1 needs always SNAP)
-        if "_COG" in self.filename and not self._has_snap_10_or_higher():
+        if "_COG" in self.filename and not self._has_snap_x_or_higher(10):
             raise NotImplementedError(
                 "S1 COG products are only handled by SNAP 10.0 or higher. "
                 "Please upgrade your software to process this product."

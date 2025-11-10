@@ -24,7 +24,9 @@
 - FIX: Fix raw CRS exported as string rather than CRS object for Maxar data [#255](https://github.com/sertit/eoreader/issues/255)
 - FIX: Use only the number of range looks to derive the resolution and pixel_size of CSG data [#256](https://github.com/sertit/eoreader/issues/256)
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
+- OPTIM: Allow predictor = 3 with LZW compression when saving SAR intermediate data as SNAP handles it properly now. [#173](https://github.com/sertit/eoreader/issues/173)
 - CI: Filter some warnings in pytest
+- DEPS: Test on SNAP 12 and 13 [#213](https://github.com/sertit/eoreader/issues/213)
 - DOC: Add a CITATION file [#262](https://github.com/sertit/eoreader/issues/262)
 
 ## 0.22.4 (2025-07-07)
