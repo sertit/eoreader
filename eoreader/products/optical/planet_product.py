@@ -24,7 +24,6 @@ import logging
 from abc import abstractmethod
 from enum import unique
 from functools import reduce
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -224,7 +223,7 @@ class PlanetProduct(OpticalProduct):
         super()._post_init(**kwargs)
 
     @abstractmethod
-    def _get_stack_path(self, as_list: bool = False) -> Union[str, list]:
+    def _get_stack_path(self, as_list: bool = False) -> str | list:
         """
         Get Planet stack path(s)
 
@@ -232,11 +231,11 @@ class PlanetProduct(OpticalProduct):
             as_list (bool): Get stack path as a list (useful if several subdatasets are present)
 
         Returns:
-            Union[str, list]: Stack path(s)
+            str | list: Stack path(s)
         """
         raise NotImplementedError
 
-    def _get_udm_path(self, as_list: bool = False) -> Union[str, list]:
+    def _get_udm_path(self, as_list: bool = False) -> str | list:
         """
         Get Planet UDM path
 
@@ -244,7 +243,7 @@ class PlanetProduct(OpticalProduct):
             as_list (bool): Get stack path as a list (useful if several subdatasets are present)
 
         Returns:
-            Union[str, list]: Stack path(s)
+            str | list: Stack path(s)
         """
         if self._merged:
             udm_path, _ = self._get_out_path(f"{self.condensed_name}_udm.vrt")
@@ -257,7 +256,7 @@ class PlanetProduct(OpticalProduct):
 
         return udm_path
 
-    def _get_udm2_path(self, as_list: bool = False) -> Union[str, list]:
+    def _get_udm2_path(self, as_list: bool = False) -> str | list:
         """
         Get Planet UDM2 path
 
@@ -265,7 +264,7 @@ class PlanetProduct(OpticalProduct):
             as_list (bool): Get stack path as a list (useful if several subdatasets are present)
 
         Returns:
-            Union[str, list]: Stack path(s)
+            str | list: Stack path(s)
         """
         if self._merged:
             udm2_path, _ = self._get_out_path(f"{self.condensed_name}_udm2.vrt")
@@ -440,8 +439,8 @@ class PlanetProduct(OpticalProduct):
         self,
         band_path: AnyPathType,
         band: BandNames = None,
-        pixel_size: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: tuple | list | float = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -453,8 +452,8 @@ class PlanetProduct(OpticalProduct):
         Args:
             band_path (AnyPathType): Band path
             band (BandNames): Band to read
-            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -547,7 +546,7 @@ class PlanetProduct(OpticalProduct):
             **kwargs,
         )[PlanetMaskBandNames.UNUSABLE]
 
-        dubious_mask = utils.read_bit_array(udm, dubious_bands[band])
+        dubious_mask = rasters.read_bit_array(udm, dubious_bands[band])
 
         # Combine masks
         mask = no_data_mask | dubious_mask
@@ -590,7 +589,7 @@ class PlanetProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -599,7 +598,7 @@ class PlanetProduct(OpticalProduct):
         Args:
             bands list: List of the wanted bands
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -642,7 +641,7 @@ class PlanetProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -653,7 +652,7 @@ class PlanetProduct(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -668,7 +667,7 @@ class PlanetProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -679,7 +678,7 @@ class PlanetProduct(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -754,7 +753,7 @@ class PlanetProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -765,7 +764,7 @@ class PlanetProduct(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -787,7 +786,7 @@ class PlanetProduct(OpticalProduct):
             for band in bands:
                 if band in [ALL_CLOUDS, CLOUDS]:
                     # Load nodata
-                    nodata, clouds = utils.read_bit_array(udm, [0, 1])
+                    nodata, clouds = rasters.read_bit_array(udm, [0, 1])
 
                     cloud = self._create_mask(
                         def_xarr.rename(ALL_CLOUDS.name),
@@ -850,7 +849,7 @@ class PlanetProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -859,7 +858,7 @@ class PlanetProduct(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -897,9 +896,9 @@ class PlanetProduct(OpticalProduct):
         self,
         mask_id: str,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
-    ) -> Union[xr.DataArray, None]:
+    ) -> xr.DataArray:
         """
         Open a Planet UDM2 (Usable Data Mask) mask, band by band, as a xarray.
         Returns None if the mask is not available.
@@ -932,10 +931,10 @@ class PlanetProduct(OpticalProduct):
         Args:
             mask_id: Mask ID
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
 
         Returns:
-            Union[xarray.DataArray, None]: Mask array
+            xarray.DataArray: Mask array
 
         """
         band_mapping = {
@@ -967,8 +966,8 @@ class PlanetProduct(OpticalProduct):
         return mask
 
     def _open_mask_udm(
-        self, pixel_size: float = None, size: Union[list, tuple] = None, **kwargs
-    ) -> Union[xr.DataArray, None]:
+        self, pixel_size: float = None, size: list | tuple = None, **kwargs
+    ) -> xr.DataArray:
         """
         Open a Planet UDM (Unusable Data Mask) mask as a xarray.
         For RapidEye, the mask is subsampled to 50m, so this function will interpolate to make it to the correct pixel size
@@ -981,10 +980,10 @@ class PlanetProduct(OpticalProduct):
 
         Args:
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
 
         Returns:
-            Union[xarray.DataArray, None]: Mask array
+            xarray.DataArray: Mask array
 
         """
         mask_path = self._get_udm_path()
@@ -1001,8 +1000,8 @@ class PlanetProduct(OpticalProduct):
         )
 
     def _load_nodata(
-        self, pixel_size: float = None, size: Union[list, tuple] = None, **kwargs
-    ) -> Union[xr.DataArray, None]:
+        self, pixel_size: float = None, size: list | tuple = None, **kwargs
+    ) -> xr.DataArray:
         """
         Load nodata (unimaged pixels) as a numpy array.
 
@@ -1012,35 +1011,35 @@ class PlanetProduct(OpticalProduct):
 
         Args:
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
 
         Returns:
-            Union[xarray.DataArray, None]: Nodata array
+            xarray.DataArray: Nodata array
 
         """
         udm = self._load_masks(
             [PlanetMaskBandNames.UNUSABLE], pixel_size, size, **kwargs
         )[PlanetMaskBandNames.UNUSABLE]
-        nodata = udm.copy(data=utils.read_bit_array(udm, 0))
+        nodata = udm.copy(data=rasters.read_bit_array(udm, 0))
         return nodata.rename("NODATA")
 
     def _get_path(
         self,
         filename: str,
         extension: str,
-        invalid_lookahead: Union[str, list] = None,
+        invalid_lookahead: str | list = None,
         as_list=False,
-    ) -> Union[list, str]:
+    ) -> list | str:
         """
         Get either the archived path of the normal path of an asset
 
         Args:
             filename (str): Filename with wildcards
             extension (str): Extension
-            invalid_lookahead (Union[str, list]): Invalid lookahed (string that cannot be placed after the filename)
+            invalid_lookahead (str | list): Invalid lookahed (string that cannot be placed after the filename)
 
         Returns:
-            Union[list, str]: Paths(s)
+            list | str: Paths(s)
 
         """
         if invalid_lookahead is not None:

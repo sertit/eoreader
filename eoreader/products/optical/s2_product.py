@@ -26,7 +26,6 @@ import zipfile
 from collections import defaultdict, namedtuple
 from datetime import datetime
 from enum import unique
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -463,7 +462,7 @@ class S2Product(OpticalProduct):
 
         return footprint
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
@@ -485,7 +484,7 @@ class S2Product(OpticalProduct):
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
             # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time!
@@ -699,8 +698,8 @@ class S2Product(OpticalProduct):
         self,
         band_path: AnyPathStrType,
         band: BandNames = None,
-        pixel_size: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: tuple | list | float = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -712,8 +711,8 @@ class S2Product(OpticalProduct):
         Args:
             band_path (AnyPathType): Band path
             band (BandNames): Band to read
-            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -946,7 +945,7 @@ class S2Product(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -955,7 +954,7 @@ class S2Product(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1021,7 +1020,7 @@ class S2Product(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1062,7 +1061,7 @@ class S2Product(OpticalProduct):
         band: BandNames,
         associated_band: BandNames = None,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1072,7 +1071,7 @@ class S2Product(OpticalProduct):
             bands (BandNames): Wanted mask band
             associated_band (BandNames): Associated spectral band to the wanted mask,v to determine the bit ID of some masks. Using the GREEN band if not given.
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             xr.DataArray: Mask
@@ -1150,8 +1149,8 @@ class S2Product(OpticalProduct):
 
     def _open_mask_lt_4_0(
         self,
-        mask_id: Union[str, S2GmlMasks],
-        band: Union[BandNames, str] = None,
+        mask_id: str | S2GmlMasks,
+        band: BandNames | str = None,
         **kwargs,
     ) -> gpd.GeoDataFrame:
         """
@@ -1191,8 +1190,8 @@ class S2Product(OpticalProduct):
             [6 rows x 3 columns]
 
         Args:
-            mask_id (Union[str, S2GmlMasks]): Mask name, such as DEFECT, NODATA, SATURA...
-            band (Union[BandNames, str]): Band number as an SpectralBandNames or str (for clouds: 00)
+            mask_id (str | S2GmlMasks): Mask name, such as DEFECT, NODATA, SATURA...
+            band (BandNames | str): Band number as an SpectralBandNames or str (for clouds: 00)
 
         Returns:
             gpd.GeoDataFrame: Mask as a vector
@@ -1247,10 +1246,10 @@ class S2Product(OpticalProduct):
 
     def _open_mask_gt_4_0(
         self,
-        mask_id: Union[str, S2Jp2Masks],
-        band: Union[BandNames, str] = None,
+        mask_id: str | S2Jp2Masks,
+        band: BandNames | str = None,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1263,10 +1262,10 @@ class S2Product(OpticalProduct):
         - :code:`CLASSI`: CLOUDS and SNOICE **only with :code:`00` as a band!**
 
         Args:
-            mask_id (Union[str, S2GmlMasks]): Mask ID
-            band (Union[BandNames, str]): Band number as an SpectralBandNames or str (for clouds: 00)
+            mask_id (str | S2GmlMasks): Mask ID
+            band (BandNames | str): Band number as an SpectralBandNames or str (for clouds: 00)
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
 
         Returns:
             gpd.GeoDataFrame: Mask as a DataArray
@@ -1549,7 +1548,7 @@ class S2Product(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1558,7 +1557,7 @@ class S2Product(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1601,7 +1600,7 @@ class S2Product(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1610,7 +1609,7 @@ class S2Product(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1799,7 +1798,7 @@ class S2Product(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1811,7 +1810,7 @@ class S2Product(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1869,7 +1868,7 @@ class S2Product(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1881,7 +1880,7 @@ class S2Product(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1929,7 +1928,7 @@ class S2Product(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ):
         """
@@ -1941,7 +1940,7 @@ class S2Product(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -2010,7 +2009,7 @@ class S2Product(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -2030,7 +2029,7 @@ class S2Product(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -2480,7 +2479,7 @@ class S2StacProduct(StacProduct, S2Product):
         Args:
             force_pd (bool): If collection 2, return a pandas.DataFrame instead of an XML root + namespace
         Returns:
-            Tuple[Union[pd.DataFrame, etree._Element], dict]:
+            (etree._Element, dict):
                 Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
         """
         return self._read_mtd_xml_stac(self._get_path("granule-metadata"))

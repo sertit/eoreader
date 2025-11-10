@@ -4,7 +4,6 @@ import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import Union
 
 import pytest
 import xarray as xr
@@ -154,7 +153,7 @@ def _test_core_sar(
 
 def _test_core(
     pattern: str,
-    prod_dirs: Union[str, list],
+    prod_dirs: str | list,
     possible_bands: list,
     tmpdir: Path,
     dem_path=None,
@@ -165,7 +164,7 @@ def _test_core(
     Core function testing all data
     Args:
         pattern (str): Pattern of the satellite
-        prod_dirs (Union[str, list]): Product directory
+        prod_dirs (str | list): Product directory
         possible_bands(list): Possible bands
         debug (bool): Debug option
     """

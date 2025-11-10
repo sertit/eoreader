@@ -5,7 +5,6 @@ import logging
 import os
 import sys
 import tempfile
-from typing import Union
 
 import pystac
 import pytest
@@ -368,9 +367,7 @@ def _test_core(
                         else:
                             eoreader_name = SarBandNames.from_value(eoreader_name_str)
 
-                        prod_band: Union[SpectralBand, SarBand] = prod.bands[
-                            eoreader_name
-                        ]
+                        prod_band: SpectralBand | SarBand = prod.bands[eoreader_name]
                         compare(band_name, prod_band.name, "band name")
 
                         eo_band = band.extra_fields[EO_BANDS][0]

@@ -25,11 +25,10 @@ import logging
 from collections import namedtuple
 from enum import unique
 from functools import reduce
-from typing import Union
 
 import numpy as np
 import xarray as xr
-from rasterio import features
+from rasterio import features, rasters
 from rasterio.enums import Resampling
 from sertit import AnyPath, types
 from sertit.misc import ListEnum
@@ -275,7 +274,7 @@ class S3SlstrProduct(S3Product):
         self,
         filename: str,
         suffix: str,
-        pixel_size: Union[float, tuple, list] = None,
+        pixel_size: float | tuple | list = None,
         writable: bool = True,
     ) -> AnyPathType:
         """
@@ -283,7 +282,7 @@ class S3SlstrProduct(S3Product):
 
         Args:
             filename (str): Filename
-            pixel_size (Union[float, tuple, list]): Pixel size of the wanted UTM band
+            pixel_size (float | tuple | list): Pixel size of the wanted UTM band
             writable (bool): Do we need to write the pre-processed band?
 
         Returns:
@@ -548,7 +547,7 @@ class S3SlstrProduct(S3Product):
 
     def _preprocess(
         self,
-        band: Union[BandNames, str],
+        band: BandNames | str,
         pixel_size: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
@@ -561,7 +560,7 @@ class S3SlstrProduct(S3Product):
         - Convert radiance to reflectance
 
         Args:
-            band (Union[BandNames, str]): Band to preprocess (quality flags or others are accepted)
+            band (BandNames | str): Band to preprocess (quality flags or others are accepted)
             pixel_size (float): Pixl size
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
@@ -645,7 +644,7 @@ class S3SlstrProduct(S3Product):
 
         return pp_path
 
-    def _get_suffix(self, band: Union[str, BandNames] = None, **kwargs) -> str:
+    def _get_suffix(self, band: str | BandNames = None, **kwargs) -> str:
         """
         Get the suffix according to the (given) stripe and view.
             - "an" and "ao" refer to the 500 m grid, stripe A, respectively for nadir view (n) and oblique view (o)
@@ -655,7 +654,7 @@ class S3SlstrProduct(S3Product):
             - "fn" and "fo" refer to the F1 channel 1 km grid
 
         Args:
-            band (Union[BandNames, str]): Band from which to get the stripe
+            band (BandNames | str): Band from which to get the stripe
             kwargs: Other arguments
 
         Returns:
@@ -807,7 +806,7 @@ class S3SlstrProduct(S3Product):
     def _radiance_adjustment(
         self,
         band_arr: xr.DataArray,
-        band: Union[str, BandNames],
+        band: str | BandNames,
         view: str,
         rad_adjust: SlstrRadAdjust = SlstrRadAdjust.S3_PN_SLSTR_L1_08,
     ) -> xr.DataArray:
@@ -837,7 +836,7 @@ class S3SlstrProduct(S3Product):
 
         Args:
             band_arr (xr.DataArray): Band array
-            band (Union[str, BandNames]): Optical Band
+            band (str | BandNames): Optical Band
             view (str): View (n or o for Nadir and Oblique)
             rad_adjust (SlstrRadAdjust): Radiance Adjustment
 
@@ -978,7 +977,7 @@ class S3SlstrProduct(S3Product):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1009,7 +1008,7 @@ class S3SlstrProduct(S3Product):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1075,7 +1074,7 @@ class S3SlstrProduct(S3Product):
     def _create_mask(
         self,
         bit_array: xr.DataArray,
-        bit_ids: Union[int, list],
+        bit_ids: int | list,
         nodata: np.ndarray,
     ) -> xr.DataArray:
         """
@@ -1083,7 +1082,7 @@ class S3SlstrProduct(S3Product):
 
         Args:
             bit_array (xr.DataArray): Conditional array
-            bit_ids (Union[int, list]): Bit IDs
+            bit_ids (int | list): Bit IDs
             nodata (np.ndarray): Nodata mask
 
         Returns:
@@ -1091,7 +1090,7 @@ class S3SlstrProduct(S3Product):
 
         """
         bit_ids = types.make_iterable(bit_ids)
-        conds = utils.read_bit_array(bit_array, bit_ids)
+        conds = rasters.read_bit_array(bit_array, bit_ids)
         cond = reduce(lambda x, y: x | y, conds)  # Use every condition (bitwise or)
 
         cond_arr = np.where(cond, self._mask_true, self._mask_false).astype(np.uint8)
@@ -1137,7 +1136,7 @@ class S3SlstrProduct(S3Product):
         self,
         band: BandNames,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         writable: bool = False,
         **kwargs,
     ) -> AnyPathType:

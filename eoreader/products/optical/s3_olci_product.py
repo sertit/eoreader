@@ -22,13 +22,12 @@ Sentinel-3 OLCI products
 """
 
 import logging
-from typing import Union
 
 import numpy as np
 import rasterio
 import xarray as xr
 from rasterio.enums import Resampling
-from sertit import rasters_rio
+from sertit import rasters, rasters_rio
 from sertit.types import AnyPathStrType, AnyPathType
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -117,16 +116,16 @@ class S3OlciProduct(S3Product):
 
     def _get_preprocessed_band_path(
         self,
-        band: Union[BandNames, str],
-        pixel_size: Union[float, tuple, list] = None,
+        band: BandNames | str,
+        pixel_size: float | tuple | list = None,
         writable=True,
     ) -> AnyPathType:
         """
         Create the pre-processed band path
 
         Args:
-            band (band: Union[BandNames, str]): Wanted band (quality flags accepted)
-            pixel_size (Union[float, tuple, list]): Resolution of the wanted UTM band
+            band (band: BandNames | str): Wanted band (quality flags accepted)
+            pixel_size (float | tuple | list): Resolution of the wanted UTM band
             writable (bool): Do we need to write the pre-processed band?
 
         Returns:
@@ -477,7 +476,7 @@ class S3OlciProduct(S3Product):
 
     def _preprocess(
         self,
-        band: Union[BandNames, str],
+        band: BandNames | str,
         pixel_size: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
@@ -489,7 +488,7 @@ class S3OlciProduct(S3Product):
         - Geocode
 
         Args:
-            band (Union[BandNames, str]): Band to preprocess (quality flags or others are accepted)
+            band (BandNames | str): Band to preprocess (quality flags or others are accepted)
             pixel_size (float): Pixl size
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
@@ -731,7 +730,7 @@ class S3OlciProduct(S3Product):
             as_type=np.uint32,
             **kwargs,
         )
-        invalid, sat = utils.read_bit_array(qual_arr, [invalid_id, sat_band_id])
+        invalid, sat = rasters.read_bit_array(qual_arr, [invalid_id, sat_band_id])
 
         # Get nodata mask
         no_data = np.where(np.isnan(band_arr.data), self._mask_true, self._mask_false)
@@ -752,7 +751,7 @@ class S3OlciProduct(S3Product):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -761,7 +760,7 @@ class S3OlciProduct(S3Product):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}

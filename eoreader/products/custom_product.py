@@ -18,7 +18,6 @@
 import logging
 from datetime import datetime
 from enum import unique
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -404,8 +403,8 @@ class CustomProduct(Product):
         self,
         band_path: AnyPathType,
         band: BandNames = None,
-        pixel_size: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: tuple | list | float = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -417,8 +416,8 @@ class CustomProduct(Product):
         Args:
             band_path (AnyPathType): Band path
             band (BandNames): Band to read
-            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -448,9 +447,9 @@ class CustomProduct(Product):
 
     def _load_bands(
         self,
-        bands: Union[list, BandNames],
+        bands: list | BandNames,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -459,7 +458,7 @@ class CustomProduct(Product):
         Args:
             bands (list, BandNames): List of the wanted bands
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -507,8 +506,8 @@ class CustomProduct(Product):
     def _compute_hillshade(
         self,
         dem_path: str = "",
-        pixel_size: Union[float, tuple] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: float | tuple = None,
+        size: list | tuple = None,
         resampling: Resampling = Resampling.bilinear,
     ) -> AnyPathType:
         """
@@ -516,9 +515,9 @@ class CustomProduct(Product):
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            pixel_size (Union[float, tuple]): Pixel size in meters. If not specified, use the product pixel size.
+            pixel_size (float | tuple): Pixel size in meters. If not specified, use the product pixel size.
             resampling (Resampling): Resampling method
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
         Returns:
             AnyPathType: Hillshade mask path
         """

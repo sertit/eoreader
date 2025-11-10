@@ -25,7 +25,6 @@ from abc import abstractmethod
 from collections import namedtuple
 from datetime import datetime
 from enum import unique
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -1311,7 +1310,7 @@ class MaxarProduct(VhrProduct):
 
         return raw_extent.to_crs(self.crs())
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
         Get the product's acquisition datetime, with format  :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
@@ -1329,7 +1328,7 @@ class MaxarProduct(VhrProduct):
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
             # Get MTD XML file
@@ -1488,7 +1487,7 @@ class MaxarProduct(VhrProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1497,7 +1496,7 @@ class MaxarProduct(VhrProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}

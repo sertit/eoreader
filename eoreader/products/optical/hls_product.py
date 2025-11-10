@@ -23,7 +23,6 @@ import logging
 import os
 from datetime import datetime
 from enum import unique
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -195,7 +194,7 @@ class HlsProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -204,7 +203,7 @@ class HlsProduct(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -233,8 +232,8 @@ class HlsProduct(OpticalProduct):
         return band_dict
 
     def _load_nodata(
-        self, pixel_size: float = None, size: Union[list, tuple] = None, **kwargs
-    ) -> Union[xr.DataArray, None]:
+        self, pixel_size: float = None, size: list | tuple = None, **kwargs
+    ) -> xr.DataArray:
         """
         Load nodata (unimaged pixels) as a numpy array.
 
@@ -244,10 +243,10 @@ class HlsProduct(OpticalProduct):
 
         Args:
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
 
         Returns:
-            Union[xarray.DataArray, None]: Nodata array
+            xarray.DataArray: Nodata array
 
         """
         fmask = self._load_masks(
@@ -600,7 +599,7 @@ class HlsProduct(OpticalProduct):
 
         self.bands.map_bands(msi_bands)
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
         TODO
 
@@ -620,7 +619,7 @@ class HlsProduct(OpticalProduct):
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
             # Get MTD XML file
@@ -799,8 +798,8 @@ class HlsProduct(OpticalProduct):
         self,
         band_path: AnyPathType,
         band: BandNames = None,
-        pixel_size: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: tuple | list | float = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -812,8 +811,8 @@ class HlsProduct(OpticalProduct):
         Args:
             band_path (AnyPathType): Band path
             band (BandNames): Band to read
-            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -861,9 +860,9 @@ class HlsProduct(OpticalProduct):
 
     def _load_bands(
         self,
-        bands: Union[list, BandNames],
+        bands: list | BandNames,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -872,7 +871,7 @@ class HlsProduct(OpticalProduct):
         Args:
             bands (list, BandNames): List of the wanted bands
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -940,7 +939,7 @@ class HlsProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -951,7 +950,7 @@ class HlsProduct(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -970,7 +969,7 @@ class HlsProduct(OpticalProduct):
             cloud_id = 1
             shadow_id = 3
 
-            cir, cld, shd = utils.read_bit_array(
+            cir, cld, shd = rasters.read_bit_array(
                 fmask, [cirrus_id, cloud_id, shadow_id]
             )
 

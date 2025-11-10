@@ -19,7 +19,6 @@ import logging
 import os
 from datetime import datetime
 from enum import unique
-from typing import Union
 
 import geopandas as gpd
 from lxml import etree
@@ -307,7 +306,7 @@ class S1Product(SarProduct):
                 f"Invalid {self.constellation.value} name: {self.name}"
             )
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
@@ -325,7 +324,7 @@ class S1Product(SarProduct):
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
             # Get MTD XML file
