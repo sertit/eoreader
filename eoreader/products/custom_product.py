@@ -437,7 +437,7 @@ class CustomProduct(Product):
 
         if exists:
             band_arr = utils.read(file_path).rename(band_name)
-        else: # if doesn't exists
+        else:  # if doesn't exists
             band_arr = utils.read(
                 band_path,
                 pixel_size=pixel_size,
@@ -450,7 +450,7 @@ class CustomProduct(Product):
 
             # PLD transformation
             # according to: https://content.satimagingcorp.com/media/pdf/User_Guide_Pleiades.pdf
-            band_arr = band_arr/gain + bias
+            band_arr = band_arr / gain + bias
 
         band_arr.attrs["long_name"] = band_name
 
