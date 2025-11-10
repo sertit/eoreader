@@ -30,7 +30,7 @@ import numpy as np
 import xarray as xr
 from rasterio import features, rasters
 from rasterio.enums import Resampling
-from sertit import AnyPath, types
+from sertit import AnyPath, rasters, types
 from sertit.misc import ListEnum
 from sertit.types import AnyPathStrType, AnyPathType
 
