@@ -26,7 +26,8 @@
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - CI: Filter some warnings in pytest
 - DOC: Add a CITATION file [#262](https://github.com/sertit/eoreader/issues/262)
-- ENH: Add gain and bias for CustomProducts to cope with custom stacks in DN.
+- ENH: Add gain and offset for CustomProducts to cope with custom stacks in DN.
+- CI: Add on push automatic test for Gain and Offset
 
 ## 0.22.4 (2025-07-07)
 
