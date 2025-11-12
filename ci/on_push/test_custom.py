@@ -17,7 +17,7 @@ from ci.scripts_utils import (
     s3_env,
 )
 from eoreader import EOREADER_NAME
-from eoreader.bands import BLUE, CA, GREEN, HILLSHADE, NDVI, NIR, RED, SWIR_1, BITM
+from eoreader.bands import BLUE, CA, GREEN, HILLSHADE, NDVI, NIR, RED, SWIR_1
 from eoreader.env_vars import DEM_PATH
 from eoreader.exceptions import InvalidTypeError
 from eoreader.products import SensorType
