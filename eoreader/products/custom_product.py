@@ -407,7 +407,7 @@ class CustomProduct(Product):
         pixel_size: Union[tuple, list, float] = None,
         size: Union[list, tuple] = None,
         gain: int = 1,
-        bias: int = 0,
+        offset: int = 0,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -448,9 +448,8 @@ class CustomProduct(Product):
                 **kwargs,
             ).rename(band_name)
 
-            # PLD transformation
-            # according to: https://content.satimagingcorp.com/media/pdf/User_Guide_Pleiades.pdf
-            band_arr = band_arr / gain + bias
+            # According to: https://content.satimagingcorp.com/media/pdf/User_Guide_Pleiades.pdf
+            band_arr = band_arr / gain + offset
 
         band_arr.attrs["long_name"] = band_name
 
