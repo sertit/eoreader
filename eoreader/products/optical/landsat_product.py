@@ -20,7 +20,6 @@ import logging
 import tarfile
 from datetime import datetime
 from enum import unique
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -879,7 +878,7 @@ class LandsatProduct(OpticalProduct):
 
         self.bands.map_bands(oli_bands)
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
@@ -897,7 +896,7 @@ class LandsatProduct(OpticalProduct):
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
             mtd_data, _ = self._read_mtd()
@@ -1003,7 +1002,7 @@ class LandsatProduct(OpticalProduct):
         Args:
             force_pd (bool): If collection 2, return a pandas.DataFrame instead of an XML root + namespace
         Returns:
-            Tuple[Union[pd.DataFrame, etree._Element], dict]:
+            (etree._Element, dict):
                 Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
         """
         # Try with XML (we don't know what collection it is)
@@ -1087,8 +1086,8 @@ class LandsatProduct(OpticalProduct):
         self,
         band_path: AnyPathType,
         band: BandNames = None,
-        pixel_size: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: tuple | list | float = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1100,8 +1099,8 @@ class LandsatProduct(OpticalProduct):
         Args:
             band_path (AnyPathType): Band path
             band (BandNames): Band to read
-            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -1192,7 +1191,7 @@ class LandsatProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1229,7 +1228,7 @@ class LandsatProduct(OpticalProduct):
         self,
         band: BandNames,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1238,7 +1237,7 @@ class LandsatProduct(OpticalProduct):
         Args:
             bands (BandNames): Wanted mask band
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             xr.DataArray: Mask
@@ -1460,7 +1459,7 @@ class LandsatProduct(OpticalProduct):
             # -> bit 2 or bit 3
             sat_id_1 = 2
             sat_id_2 = 3
-            nodata, dropped, sat_1, sat_2 = utils.read_bit_array(
+            nodata, dropped, sat_1, sat_2 = rasters.read_bit_array(
                 qa_arr, [nodata_id, dropped_id, sat_id_1, sat_id_2]
             )
             mask = nodata | dropped | sat_1 | sat_2
@@ -1498,7 +1497,7 @@ class LandsatProduct(OpticalProduct):
             else:
                 other_id = 9  # Dropped pixels
 
-            sat, other = utils.read_bit_array(qa_arr, [sat_id, other_id])
+            sat, other = rasters.read_bit_array(qa_arr, [sat_id, other_id])
 
             # If collection 2, nodata has to be found in pixel QA file
             pixel_arr = self._open_mask(
@@ -1544,7 +1543,7 @@ class LandsatProduct(OpticalProduct):
 
             # Bit ids
             nodata_id = 0  # Fill value
-            nodata = utils.read_bit_array(qa_arr, nodata_id)
+            nodata = rasters.read_bit_array(qa_arr, nodata_id)
         else:
             # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
             # If collection 2, nodata has to be found in pixel QA file
@@ -1560,9 +1559,9 @@ class LandsatProduct(OpticalProduct):
 
     def _load_bands(
         self,
-        bands: Union[list, BandNames],
+        bands: list | BandNames,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1571,7 +1570,7 @@ class LandsatProduct(OpticalProduct):
         Args:
             bands (list, BandNames): List of the wanted bands
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1669,7 +1668,7 @@ class LandsatProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1685,7 +1684,7 @@ class LandsatProduct(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1748,7 +1747,7 @@ class LandsatProduct(OpticalProduct):
 
         clouds = None
         if ALL_CLOUDS in band_list or CLOUDS in band_list:
-            nodata, cld = utils.read_bit_array(qa_arr, [nodata_id, cloud_id])
+            nodata, cld = rasters.read_bit_array(qa_arr, [nodata_id, cloud_id])
             clouds = self._create_mask(qa_arr, cld, nodata)
 
         for band in band_list:
@@ -1772,7 +1771,7 @@ class LandsatProduct(OpticalProduct):
         return band_dict
 
     def _open_e_tm_clouds(
-        self, qa_arr: xr.DataArray, band_list: Union[list, BandNames]
+        self, qa_arr: xr.DataArray, band_list: list | BandNames
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -1804,7 +1803,7 @@ class LandsatProduct(OpticalProduct):
                 cloud_id = 4  # Clouds with high confidence
                 shd_conf_1_id = 7
                 shd_conf_2_id = 8
-                nodata, cld, shd_conf_1, shd_conf_2 = utils.read_bit_array(
+                nodata, cld, shd_conf_1, shd_conf_2 = rasters.read_bit_array(
                     qa_arr, [nodata_id, cloud_id, shd_conf_1_id, shd_conf_2_id]
                 )
                 shd = shd_conf_1 & shd_conf_2
@@ -1813,7 +1812,7 @@ class LandsatProduct(OpticalProduct):
                 nodata_id = 0
                 cloud_id = 3  # Clouds with high confidence
                 shd_id = 4  # Shadows with high confidence
-                nodata, cld, shd = utils.read_bit_array(
+                nodata, cld, shd = rasters.read_bit_array(
                     qa_arr, [nodata_id, cloud_id, shd_id]
                 )
 
@@ -1842,7 +1841,7 @@ class LandsatProduct(OpticalProduct):
         return band_dict
 
     def _open_oli_clouds(
-        self, qa_arr: xr.DataArray, band_list: Union[list, BandNames]
+        self, qa_arr: xr.DataArray, band_list: list | BandNames
     ) -> dict:
         """
         Load cloud files as xarrays.
@@ -1885,7 +1884,7 @@ class LandsatProduct(OpticalProduct):
                     shd_conf_2,
                     cir_conf_1,
                     cir_conf_2,
-                ) = utils.read_bit_array(
+                ) = rasters.read_bit_array(
                     qa_arr,
                     [
                         nodata_id,
@@ -1905,7 +1904,7 @@ class LandsatProduct(OpticalProduct):
                 cloud_id = 3  # Clouds with high confidence
                 shd_id = 4  # Shadows with high confidence
                 cir_id = 2  # Cirrus with high confidence
-                nodata, cld, shd, cir = utils.read_bit_array(
+                nodata, cld, shd, cir = rasters.read_bit_array(
                     qa_arr, [nodata_id, cloud_id, shd_id, cir_id]
                 )
 
@@ -2073,7 +2072,7 @@ class LandsatStacProduct(StacProduct, LandsatProduct):
         Args:
             force_pd (bool): If collection 2, return a pandas.DataFrame instead of an XML root + namespace
         Returns:
-            Tuple[Union[pd.DataFrame, etree._Element], dict]:
+            (etree._Element, dict):
                 Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
         """
         return self._read_mtd_xml_stac(self._get_path("mtl.xml"))

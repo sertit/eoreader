@@ -8,7 +8,7 @@ build:
     - proj-bin
     - libgeos-dev
   tools:
-    python: "3.9"
+    python: "3.11"
   jobs:
     post_install:
       - mkdir -p $READTHEDOCS_OUTPUT

@@ -8,7 +8,7 @@ variables:
   EOREADER_CHANGES: eoreader/**/[^_]*.{py,xml}
 
 lint:
-  image: python:3.9-buster
+  image: python:3.10-buster
   stage: lint
   script:
     - python -m pip install --upgrade pip
