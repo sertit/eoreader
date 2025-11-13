@@ -24,8 +24,8 @@ import inspect
 import logging
 import re
 import sys
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable
 
 import numpy as np
 import spyndex

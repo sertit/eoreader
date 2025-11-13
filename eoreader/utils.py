@@ -278,7 +278,7 @@ def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
         ):
             kwargs["windowed"] = True
 
-    # WORKAROUND TO: https://github.com/numpy/numpy/releases/tag/v2.2.3
+    # WORKAROUND TO: https://github.com/numpy/numpy/issues/25677#issuecomment-2514436348
     # Computing the stats for COGs and dask bugs with numpy 2.0 (fixed with 2.1)
     write_cogs_with_dask = not (
         misc.compare_version("numpy", "2.0", ">=")
