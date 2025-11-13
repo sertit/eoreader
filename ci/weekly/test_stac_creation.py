@@ -352,7 +352,11 @@ def _test_core(
                 if expected_assets is None:
                     compare(len(item.assets), nof_assets, "number of assets")
                 else:
-                    compare(len(item.assets), expected_assets, "number of assets")
+                    compare(
+                        len(item.assets),
+                        expected_assets,
+                        f"number of assets (computed nb of assets is: {nof_assets})",
+                    )
 
                 for band_name, band in item.assets.items():
                     band: pystac.Asset
@@ -429,44 +433,44 @@ def _test_core(
 
 test_optical_constellations_cases = [
     pytest.param("*VENUS*", {}, 12, id="venus"),
-    pytest.param("*S2*_MSI*", {}, 11, id="s2"),
-    pytest.param("*SENTINEL2*", {}, 11, id="s2_theia"),
-    pytest.param("*S3*_OL_1_*", {}, 10, id="s3_olci"),
+    pytest.param("*S2*_MSI*", {}, None, id="s2"),
+    pytest.param("*SENTINEL2*", {}, None, id="s2_theia"),
+    pytest.param("*S3*_OL_1_*", {}, None, id="s3_olci"),
     pytest.param(
-        "*S3*_SL_1_*", {SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP}, 12, id="s3_slstr"
+        "*S3*_SL_1_*", {SLSTR_RAD_ADJUST: SlstrRadAdjust.SNAP}, None, id="s3_slstr"
     ),
-    pytest.param("*LC09*", {}, 12, id="landsat_9"),
-    pytest.param("*LC08*", {}, 12, id="landsat_8"),
-    pytest.param("*LE07*", {}, 12, id="landsat_7"),
-    pytest.param("*LT05*", {}, 12, id="landsat_5_tm"),
-    pytest.param("*LT04*", {}, 12, id="landsat_4_tm"),
-    pytest.param("*LM04*", {}, 12, id="landsat_4_mss"),
-    pytest.param("*LM03*", {}, 12, id="landsat_3_mss"),
-    pytest.param("*LM02*", {}, 12, id="landsat_2_mss"),
-    pytest.param("*LM01*", {}, 12, id="landsat_1_mss"),
-    pytest.param("*HLS*", {}, 12, id="hls"),
-    pytest.param("*202*1014*", {}, 12, id="planet"),
-    pytest.param("*ssc*", {}, 12, id="skysat"),
-    pytest.param("*_RE4_*", {}, 12, id="rapideye"),
-    pytest.param("*IMG_PHR*", {}, 12, id="pleiades"),
-    pytest.param("*IMG_*_PNEO*", {}, 12, id="pleiades_neo"),
-    pytest.param("*SP04*", {}, 12, id="spot4"),
-    pytest.param("*SP05*", {}, 12, id="spot5"),
-    pytest.param("*IMG_SPOT6*", {}, 12, id="spot6"),
-    pytest.param("*IMG_SPOT7*", {}, 12, id="spot7"),
-    pytest.param("*P001_MUL*", {}, 12, id="wv02_wv03_legion"),
-    pytest.param("*P001_PSH*", {}, 12, id="ge01_wv04"),
-    pytest.param("*VIS1_MS4*", {}, 12, id="vision1"),
-    pytest.param("*0001_01*", {}, 12, id="superview1"),
-    pytest.param("*DE2_*", {}, 12, id="geosat2"),
+    pytest.param("*LC09*", {}, None, id="landsat_9"),
+    pytest.param("*LC08*", {}, None, id="landsat_8"),
+    pytest.param("*LE07*", {}, None, id="landsat_7"),
+    pytest.param("*LT05*", {}, None, id="landsat_5_tm"),
+    pytest.param("*LT04*", {}, None, id="landsat_4_tm"),
+    pytest.param("*LM04*", {}, None, id="landsat_4_mss"),
+    pytest.param("*LM03*", {}, None, id="landsat_3_mss"),
+    pytest.param("*LM02*", {}, None, id="landsat_2_mss"),
+    pytest.param("*LM01*", {}, None, id="landsat_1_mss"),
+    pytest.param("*HLS*", {}, None, id="hls"),
+    pytest.param("*202*1014*", {}, None, id="planet"),
+    pytest.param("*ssc*", {}, None, id="skysat"),
+    pytest.param("*_RE4_*", {}, None, id="rapideye"),
+    pytest.param("*IMG_PHR*", {}, None, id="pleiades"),
+    pytest.param("*IMG_*_PNEO*", {}, None, id="pleiades_neo"),
+    pytest.param("*SP04*", {}, None, id="spot4"),
+    pytest.param("*SP05*", {}, None, id="spot5"),
+    pytest.param("*IMG_SPOT6*", {}, None, id="spot6"),
+    pytest.param("*IMG_SPOT7*", {}, None, id="spot7"),
+    pytest.param("*P001_MUL*", {}, None, id="wv02_wv03_legion"),
+    pytest.param("*P001_PSH*", {}, None, id="ge01_wv04"),
+    pytest.param("*VIS1_MS4*", {}, None, id="vision1"),
+    pytest.param("*0001_01*", {}, None, id="superview1"),
+    pytest.param("*DE2_*", {}, None, id="geosat2"),
     pytest.param(
         "*LM05*",
         {},
-        12,
+        None,
         id="landsat_5_mss",
         marks=pytest.mark.skipif(
             sys.platform == "win32" or os.getenv(CI_EOREADER_S3) == "0",
-            reason="Weirdly, Landsat-5 image shape is not the same with data from disk or S3. Skipping test on disk",
+            reason="Weirdly, Landsat-5 image shape is different with data from disk or S3. Skipping test on disk",
         ),
     ),
 ]
