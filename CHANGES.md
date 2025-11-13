@@ -6,6 +6,7 @@
 - **ENH: Desambiguate condensed name of Custom stack in case of creation of several objects with the same datetime and same constellation and product type**
 - **ENH: Fix corrupted Maxar products with incoherent width between .IMD and .TIL files** [#242](https://github.com/sertit/eoreader/issues/242)
 - **ENH: Add TerraSAR-X management of default resolution and pixel size for RE data**
+- **ENH: Add gain and offset for CustomProducts to cope with custom stacks in DN**
 - FIX: Write intermediate data for loaded bands also for Custom stacks
 - FIX: Fix regression when stacking with a custom nodata value with VHR data to be reprojected
 - FIX: Fix an unprecedented case with a PNEO having different name than usual (`DIM_PNEO3_STD_2025...` instead of `DIM_PNEO3_2025...`)
@@ -26,8 +27,6 @@
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - CI: Filter some warnings in pytest
 - DOC: Add a CITATION file [#262](https://github.com/sertit/eoreader/issues/262)
-- ENH: Add gain and offset for CustomProducts to cope with custom stacks in DN.
-- CI: Add on push automatic test for Gain and Offset
 
 ## 0.22.4 (2025-07-07)
 
