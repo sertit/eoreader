@@ -405,6 +405,8 @@ class CustomProduct(Product):
         band: BandNames = None,
         pixel_size: tuple | list | float = None,
         size: list | tuple = None,
+        gain: int = 1,
+        offset: int = 0,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -418,28 +420,38 @@ class CustomProduct(Product):
             band (BandNames): Band to read
             pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
+            gain (int): Gain factor to convert DN to TOA radiance
+            bias (int): Bias factor to convert DN to TOA radiance
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
 
         """
         band_name = to_str(band)[0]
-        band_arr = utils.read(
-            band_path,
-            pixel_size=pixel_size,
-            size=size,
-            resampling=kwargs.pop("resampling", self.band_resampling),
-            indexes=[self.bands[band].id],
-            as_type=np.float32,
-            **kwargs,
-        ).rename(band_name)
-
-        band_arr.attrs["long_name"] = band_name
 
         # Write file (in case the original file has a different resolution or window, etc.)
         file_path, exists = self._is_existing(
             self.get_band_file_name(band, pixel_size=pixel_size, size=size, **kwargs)
         )
+
+        if exists:
+            band_arr = utils.read(file_path).rename(band_name)
+        else:  # if doesn't exists
+            band_arr = utils.read(
+                band_path,
+                pixel_size=pixel_size,
+                size=size,
+                resampling=kwargs.pop("resampling", self.band_resampling),
+                indexes=[self.bands[band].id],
+                as_type=np.float32,
+                **kwargs,
+            ).rename(band_name)
+
+            # According to: https://content.satimagingcorp.com/media/pdf/User_Guide_Pleiades.pdf
+            band_arr = band_arr / gain + offset
+
+        band_arr.attrs["long_name"] = band_name
+
         if not exists:
             band_arr = utils.write_path_in_attrs(band_arr, file_path)
             utils.write(band_arr, file_path, dtype=np.float32)
