@@ -271,7 +271,7 @@ class S1RtcAsfProduct(SarProduct):
             (etree._Element, dict): Metadata XML root and its namespaces
         """
         # No MTD!
-        return None, {}
+        return etree.Element("root"), {}
 
     def get_quicklook_path(self) -> str:
         """
