@@ -6,7 +6,7 @@ import tempfile
 
 import pytest
 from rasterio.windows import Window
-from sertit import ci
+from sertit import AnyPath, ci
 
 from ci.scripts_utils import (
     READER,
@@ -216,7 +216,7 @@ def test_custom_gain_offset():
         opt_stack = others_path() / "PHR_PR_20160105_mspan_stereo2_ORTHO_small.tif"
         output_stack = others_path() / "PHR_PR_20160105_custom_stack.tif"
 
-        tmp_custom_stack = tmp_dir / "PHR_PR_20160105_custom_stack.tif"
+        tmp_custom_stack = AnyPath(tmp_dir) / "PHR_PR_20160105_custom_stack.tif"
         prod = READER.open(
             opt_stack,
             custom=True,
