@@ -405,6 +405,8 @@ class CustomProduct(Product):
         band: BandNames = None,
         pixel_size: tuple | list | float = None,
         size: list | tuple = None,
+        gain: int = 1,
+        offset: int = 0,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -418,6 +420,8 @@ class CustomProduct(Product):
             band (BandNames): Band to read
             pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
             size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
+            gain (int): Gain factor to convert DN to TOA radiance
+            bias (int): Bias factor to convert DN to TOA radiance
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
