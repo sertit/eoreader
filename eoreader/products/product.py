@@ -2594,6 +2594,12 @@ class Product:
         kw = utils._prune_keywords(["nodata", "num_threads"], **kwargs)
         resampling = kw.pop("resampling", self.band_resampling)
         vcrs = kw.pop("vcrs", os.getenv(DEM_VCRS))
+
+        if rpcs and not src_xda.rio.crs:
+            # RPCs are always in 4326 by convention
+            # https://rasterio.readthedocs.io/en/latest/topics/reproject.html#reprojecting-with-other-georeferencing-metadata
+            src_xda.rio.write_crs(vectors.EPSG_4326, inplace=True)
+
         out_xda = rasters.reproject(
             src_xda,
             rpcs=rpcs,

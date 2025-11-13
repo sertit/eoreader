@@ -24,7 +24,8 @@
 - FIX: Handle GCPs in VHR data
 - FIX: Fix raw CRS exported as string rather than CRS object for Maxar data [#255](https://github.com/sertit/eoreader/issues/255)
 - FIX: Use only the number of range looks to derive the resolution and pixel_size of CSG data [#256](https://github.com/sertit/eoreader/issues/256)
-- FIX: Retunr an empty `lxml.Element` as metadata for S1 RTC ASF products instead of `None` to ensure consistency
+- FIX: Return an empty `lxml.Element` as metadata for S1 RTC ASF products instead of `None` to ensure consistency
+- FIX: Set `EPSG:4326` for rasters with empty CRS to be orthorectified with RPCs 
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - OPTIM: Allow predictor = 3 with LZW compression when saving SAR intermediate data as SNAP handles it properly now. [#173](https://github.com/sertit/eoreader/issues/173)
 - CI: Filter some warnings in pytest
