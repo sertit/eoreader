@@ -1192,13 +1192,16 @@ class SarProduct(Product):
         # Get the .img path(s)
         try:
             imgs = utils.get_dim_img_path(dim_path, f"*{pol}*")
+            LOGGER.debug(f"Found {imgs} sub-images (for {pol}).")
         except FileNotFoundError:
+            LOGGER.debug(f"No {pol} image found in {dim_path}")
             imgs = utils.get_dim_img_path(dim_path)  # Maybe not a good name
+            LOGGER.debug(f"Using {imgs} instead")
 
         # Manage cases where multiple swaths are ortho independently
         if len(imgs) > 1:
             mos_path, exists = self._get_out_path(
-                path.get_filename(dim_path) + "_mos.vrt"
+                path.get_filename(dim_path) + f"_mos_{pol}.vrt"
             )
             if not exists:
                 # Get .img file path (readable by rasterio)
@@ -1226,8 +1229,6 @@ class SarProduct(Product):
                     arr = rasters.crop(arr, crop_window)
 
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
-            # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
-            # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
             arr = utils.write_path_in_attrs(arr, out_path)
             utils.write(
                 arr,
