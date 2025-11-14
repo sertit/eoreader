@@ -52,7 +52,6 @@ from eoreader.env_vars import (
 from eoreader.keywords import SLSTR_RAD_ADJUST
 from eoreader.products import Product, S2Product, SensorType, SlstrRadAdjust
 from eoreader.products.product import OrbitDirection
-from eoreader.reader import Constellation
 
 LOGGER = logging.getLogger(EOREADER_NAME)
 
@@ -117,13 +116,7 @@ def check_product_consistency(prod: Product):
     # Load MTD
     LOGGER.info("Checking Mtd")
     mtd_xml, nmsp = prod.read_mtd()
-    if not (
-        prod.constellation == Constellation.S1 and prod.product_type.value == "RTC"
-    ):
-        assert isinstance(mtd_xml, etree._Element)
-    else:
-        assert mtd_xml is None
-
+    assert isinstance(mtd_xml, etree._Element)
     assert isinstance(nmsp, dict)
 
     # Mean sun angle type, cloud cover...
