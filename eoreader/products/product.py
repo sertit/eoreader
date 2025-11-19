@@ -1516,9 +1516,15 @@ class Product:
             for exo_key in exo_dict.keys():
                 exo_data = exo_dict[exo_key]
                 LOGGER.debug(f"EXO data info: {exo_key} ; {exo_data}")
+                # Resampling method (to adapt data sampling)
                 resampling = Resampling.bilinear
                 if 'resampler' in exo_data.keys() and 'nearest' in exo_data['resampler']:
                     resampling = Resampling.nearest
+                # Select band index (to manage multi layer data)
+                band_idxs=[1]
+                if 'bandnumber' in exo_data.keys():
+                    band_idxs=[int(exo_data['bandnumber'])]
+                # Warp the data as vrt
                 exo_path = self._warp_exo(
                     exo_data['path'],
                     pixel_size=pixel_size,
@@ -1526,9 +1532,10 @@ class Product:
                     resampling=resampling,
                     **kwargs,
                 )
+                # Actually load the data layer
                 exo_name = str(exo_key)
                 exo_arr = utils.read(
-                    exo_path, pixel_size=pixel_size, size=size, as_type=np.float32
+                    exo_path, pixel_size=pixel_size, size=size, resampling=resampling, indexes=band_idxs, as_type=np.float32
                 ).rename(exo_name)
                 exo_arr.attrs["long_name"] = exo_name
                 exo_bands[exo_key] = exo_arr
@@ -2025,8 +2032,6 @@ class Product:
                     "width": out_w,
                     "nodata": self.nodata,
                 }
-                print(warped_exo_path)
-
                 with WarpedVRT(exo_ds, **vrt_options) as vrt:
                     # At this point 'vrt' is a full dataset with dimensions,
                     # CRS, and spatial extent matching 'vrt_options'.
