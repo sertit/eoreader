@@ -527,64 +527,50 @@ class CosmoProduct(SarProduct):
                 return super()._pre_process_sar(pre_processed_path, band, **kwargs)
             else:
                 LOGGER.warning(
-                    "SNAP (before version 11.0.0) doesn't handle multiswath Cosmo-SkyMed products. This is a workaround. See https://github.com/sertit/eoreader/issues/78"
+                    "SNAP (before version 11.0.0) doesn't handle multiswath Cosmo-SkyMed products. "
+                    "This is a workaround. See https://github.com/sertit/eoreader/issues/78"
                 )
 
-                # For every swath, pre-process the swath array alone
                 pp_swath_path = []
                 import h5netcdf
+                import tempfile
 
                 with h5netcdf.File(str(self._img_path), phony_dims="access") as raw_h5:
                     for group in raw_h5.groups:
                         with tempfile.TemporaryDirectory() as tmp_dir:
                             LOGGER.debug(f"Processing {group}")
 
-                            # Create a mock-up of a COSMO product with only one swath and handled by SNAP
                             prod_path = os.path.join(
                                 tmp_dir, f"{path.get_filename(self._img_path)}.h5"
                             )
-                            with h5netcdf.File(
-                                prod_path, "w", phony_dims="access"
-                            ) as group_h5:
-                                # Basic layer
+
+                            # Create HDF5 for this swath, renamed to S01
+                            with h5netcdf.File(prod_path, "w", phony_dims="access") as group_h5:
+                                # Copy root attributes
                                 group_h5.attrs.update(raw_h5.attrs)
-
-                                # Change the swath to S01 as it is the only one read by SNAP (and is mandatory for the file to be recognized)
+                                # SNAP requires S01
                                 new_group = "S01"
-                                group_h5.create_group(new_group)
-                                group_h5.groups[new_group].attrs.update(
-                                    raw_h5.groups[group].attrs
-                                )
+                                grp_out = group_h5.create_group(new_group)
+                                # Copy swath attributes
+                                grp_out.attrs.update(raw_h5.groups[group].attrs)
 
-                                # Copy all variables
-                                for var_name in raw_h5.groups[group].variables:
-                                    var = raw_h5.groups[group].variables[var_name]
-                                    group_h5.groups[new_group].create_variable(
-                                        f"/{new_group}/{var_name}",
+                                # Copy variables
+                                for var_name, var in raw_h5.groups[group].variables.items():
+                                    v = grp_out.create_variable(
+                                        var_name,
                                         dimensions=var.dimensions,
                                         dtype=var.dtype,
                                         data=var,
                                         chunks=var.chunks,
                                     )
-                                    group_h5.groups[new_group].variables[
-                                        var_name
-                                    ].attrs.update(var.attrs)
+                                    v.attrs.update(var.attrs)
 
-                                # Copy all groups
-                                for grp_name in raw_h5.groups[group].groups:
-                                    grp = raw_h5.groups[group].groups[grp_name]
-                                    if (
-                                        grp_name
-                                        not in group_h5.groups[new_group].groups
-                                    ):
-                                        group_h5.groups[new_group].create_group(
-                                            grp_name
-                                        )
-                                        group_h5.groups[new_group].groups[
-                                            grp_name
-                                        ].attrs.update(grp.attrs)
+                                # Copy nested groups correctly
+                                for subgrp_name, subgrp in raw_h5.groups[group].groups.items():
+                                    new_subgrp = grp_out.create_group(subgrp_name)
+                                    new_subgrp.attrs.update(subgrp.attrs)
 
-                            # Pre-process swath
+                            # Pre-process individual swath
                             pp_swath_path.append(
                                 super()._pre_process_sar(
                                     pre_processed_path,
@@ -595,14 +581,13 @@ class CosmoProduct(SarProduct):
                                 )
                             )
 
-                    # Merge the swaths
                     LOGGER.debug("Merging the swaths")
                     pp_path = self.get_band_path(band, writable=True, **kwargs)
-                    # Force GTiff to be used in SNAP
-                    # Don't use rasters.merge_gtiff because off the predictor and the nodata...
+
                     try:
                         pp_ds = [rasterio.open(str(p)) for p in pp_swath_path]
                         merged_array, merged_transform = merge.merge(pp_ds, **kwargs)
+
                         merged_meta = pp_ds[0].meta.copy()
                         merged_meta.update(
                             {
@@ -616,18 +601,14 @@ class CosmoProduct(SarProduct):
                         for ds in pp_ds:
                             ds.close()
 
-                    # Write
-                    # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
-
-                    # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
-                    # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
+                    # SNAP requires nodata=0 and predictor=1 (for SNAP < 10)
                     rasters_rio.write(
                         merged_array,
                         merged_meta,
                         pp_path,
                         nodata=self._snap_no_data,
                         predictor=self._get_predictor(),
-                        driver="GTiff",  # SNAP doesn't handle COGs very well apparently
+                        driver="GTiff",
                     )
 
                 return pp_path
