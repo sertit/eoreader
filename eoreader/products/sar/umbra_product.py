@@ -22,7 +22,6 @@ Take a look
 import logging
 from datetime import datetime
 from enum import unique
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -363,7 +362,7 @@ class UmbraProduct(SarProduct):
 
         self.sensor_mode = UmbraSensorMode(mode)
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
@@ -381,7 +380,7 @@ class UmbraProduct(SarProduct):
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
             # Get MTD XML file
@@ -526,7 +525,7 @@ class UmbraProduct(SarProduct):
                         f"GEC file has RPCs: orthorectifying {band.name} band with {files.get_filename(dem_path)}"
                     )
                     arr = utils.read(self._get_gec_path())
-                    self._reproject(
+                    self._orthorectify(
                         arr,
                         pixel_size=pixel_size,
                         rpcs=ds.rpcs,

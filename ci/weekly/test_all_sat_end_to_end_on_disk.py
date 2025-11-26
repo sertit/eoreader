@@ -4,12 +4,12 @@ import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import Union
 
 import pytest
 import xarray as xr
 from lxml import etree
 from sertit import AnyPath, path, types
+from sertit.types import AnyPathStrType
 
 from ci.scripts_utils import (
     CI_EOREADER_S3,
@@ -124,10 +124,10 @@ def _test_core_optical(
     _test_core(
         pattern,
         [opt_path(), get_ci_db_dir().joinpath("more_optical")],
-        possible_bands,
-        tmpdir,
-        dem_path,
-        debug,
+        possible_bands=possible_bands,
+        tmpdir=tmpdir,
+        dem_path=dem_path,
+        debug=debug,
         **kwargs,
     )
 
@@ -145,16 +145,17 @@ def _test_core_sar(
     _test_core(
         pattern,
         get_ci_db_dir().joinpath("all_sar"),
-        possible_bands,
-        dem_path,
-        debug,
+        possible_bands=possible_bands,
+        tmpdir=tmpdir,
+        dem_path=dem_path,
+        debug=debug,
         **kwargs,
     )
 
 
 def _test_core(
     pattern: str,
-    prod_dirs: Union[str, list],
+    prod_dirs: AnyPathStrType | list,
     possible_bands: list,
     tmpdir: Path,
     dem_path=None,
@@ -165,7 +166,7 @@ def _test_core(
     Core function testing all data
     Args:
         pattern (str): Pattern of the satellite
-        prod_dirs (Union[str, list]): Product directory
+        prod_dirs (str | list): Product directory
         possible_bands(list): Possible bands
         debug (bool): Debug option
     """

@@ -595,7 +595,7 @@ class VenusProduct(OpticalProduct):
         )
 
         if band in [VenusMaskBandNames.SAT, VenusMaskBandNames.PIX]:
-            mask = mask.copy(data=utils.read_bit_array(mask, 0))  # TODO : check 0
+            mask = mask.copy(data=rasters.read_bit_array(mask, 0))  # TODO : check 0
 
         band_name = self._get_band_key(band, associated_band, as_str=True, **kwargs)
         mask.attrs["long_name"] = band_name
@@ -708,7 +708,7 @@ class VenusProduct(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -769,7 +769,7 @@ class VenusProduct(OpticalProduct):
         # TODO : same as S2TheiaProduct
         """
         bit_ids = types.make_iterable(bit_ids)
-        conds = utils.read_bit_array(bit_array.astype(np.uint8), bit_ids)
+        conds = rasters.read_bit_array(bit_array.astype(np.uint8), bit_ids)
         cond = reduce(lambda x, y: x | y, conds)  # Use every condition (bitwise or)
 
         return super()._create_mask(bit_array, cond, nodata)

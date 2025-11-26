@@ -22,7 +22,6 @@ Take a look
 import logging
 from datetime import datetime
 from enum import unique
-from typing import Union
 
 import geopandas as gpd
 from lxml import etree
@@ -208,7 +207,7 @@ class S1RtcAsfProduct(SarProduct):
                 f"Invalid {self.constellation.value} name: {self.name}"
             )
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
@@ -226,7 +225,7 @@ class S1RtcAsfProduct(SarProduct):
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
             # Sentinel-2 datetime (in the filename) is the datatake sensing time, not the granule sensing time!
@@ -272,7 +271,7 @@ class S1RtcAsfProduct(SarProduct):
             (etree._Element, dict): Metadata XML root and its namespaces
         """
         # No MTD!
-        return None, {}
+        return etree.Element("root"), {}
 
     def get_quicklook_path(self) -> str:
         """

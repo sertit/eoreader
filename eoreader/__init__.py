@@ -19,7 +19,7 @@
 
 # flake8: noqa
 from functools import wraps
-from typing import Callable
+from collections.abc import Callable
 
 EOREADER_NAME = "eoreader"
 DATETIME_FMT = "%Y%m%dT%H%M%S"

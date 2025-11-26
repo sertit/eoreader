@@ -46,7 +46,7 @@ EOREADER_TO_SPYNDEX_DICT = {
 }
 
 SPYNDEX_TO_EOREADER_DICT = dict(
-    zip(EOREADER_TO_SPYNDEX_DICT.values(), EOREADER_TO_SPYNDEX_DICT.keys())
+    zip(EOREADER_TO_SPYNDEX_DICT.values(), EOREADER_TO_SPYNDEX_DICT.keys(), strict=True)
 )
 
 # Workaround: https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/74

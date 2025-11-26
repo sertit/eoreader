@@ -22,7 +22,6 @@ for more information.
 import logging
 from datetime import datetime
 from enum import unique
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -331,7 +330,7 @@ class Sv1Product(VhrProduct):
             crs=self.crs(),
         )
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
@@ -355,7 +354,7 @@ class Sv1Product(VhrProduct):
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
             # Get MTD XML file
@@ -536,7 +535,7 @@ class Sv1Product(VhrProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -545,7 +544,7 @@ class Sv1Product(VhrProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -660,7 +659,7 @@ class Sv1Product(VhrProduct):
                 with rasterio.open(str(self._get_tile_path(**kwargs))) as ds:
                     rpcs = ds.rpcs
 
-                self._reproject(
+                self._orthorectify(
                     tile, rpcs=rpcs, dem_path=dem_path, ortho_path=ortho_path, **kwargs
                 )
 

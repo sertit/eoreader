@@ -21,7 +21,6 @@ for more information.
 
 import logging
 from abc import abstractmethod
-from typing import Union
 
 import affine
 import rasterio
@@ -155,21 +154,28 @@ class VhrProduct(OpticalProduct):
                     # See https://github.com/corteva/rioxarray/issues/837
                     rpcs = kwargs.pop("rpcs") if "rpcs" in kwargs else ds.rpcs
 
-                if not rpcs:
+                    # Only look for GCPs if RPCs are absent
+                    if not rpcs:
+                        gcps = kwargs.pop("gcps") if "gcps" in kwargs else ds.gcps[0]
+                    else:
+                        gcps = None
+
+                if not rpcs and not gcps:
                     raise InvalidProductError(
-                        "Your projected VHR data doesn't have any RPC. "
+                        "Your projected VHR data doesn't have any RPCs or GCPs. "
                         "EOReader cannot orthorectify it!"
                     )
-
-                tile = utils.read(self._get_tile_path())
-                self._reproject(
-                    tile,
-                    rpcs=rpcs,
-                    dem_path=dem_path,
-                    ortho_path=ortho_path,
-                    tags=tags,
-                    **kwargs,
-                )
+                else:
+                    tile = utils.read(self._get_tile_path())
+                    self._orthorectify(
+                        tile,
+                        rpcs=rpcs,
+                        gcps=gcps,
+                        dem_path=dem_path,
+                        ortho_path=ortho_path,
+                        tags=tags,
+                        **kwargs,
+                    )
 
         else:
             ortho_path = self._get_tile_path()
@@ -233,8 +239,8 @@ class VhrProduct(OpticalProduct):
         self,
         band_path: AnyPathType,
         band: BandNames = None,
-        pixel_size: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: tuple | list | float = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -246,8 +252,8 @@ class VhrProduct(OpticalProduct):
         Args:
             band_path (AnyPathType): Band path
             band (BandNames): Band to read
-            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -318,7 +324,7 @@ class VhrProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -327,7 +333,7 @@ class VhrProduct(OpticalProduct):
         Args:
             bands list: List of the wanted bands
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -386,7 +392,7 @@ class VhrProduct(OpticalProduct):
             extension (str): Extension
 
         Returns:
-            Union[list, AnyPathType]: Path or list of paths (needs this because of potential mosaic)
+            list | AnyPathType: Path or list of paths (needs this because of potential mosaic)
 
         """
         prod_path = []
@@ -411,7 +417,7 @@ class VhrProduct(OpticalProduct):
     def _get_utm_band_path(
         self,
         band: str = None,
-        pixel_size: Union[float, tuple, list] = None,
+        pixel_size: float | tuple | list = None,
         writable: bool = False,
     ) -> AnyPathType:
         """
@@ -419,7 +425,7 @@ class VhrProduct(OpticalProduct):
 
         Args:
             band (str): Band in string as written on the filepath
-            pixel_size (Union[float, tuple, list]): Pixel size of the wanted UTM band
+            pixel_size (float | tuple | list): Pixel size of the wanted UTM band
             writable (bool): Do we need to write the UTM band?
 
         Returns:
@@ -434,7 +440,7 @@ class VhrProduct(OpticalProduct):
         )
 
     def _get_default_utm_band(
-        self, pixel_size: float = None, size: Union[list, tuple] = None
+        self, pixel_size: float = None, size: list | tuple = None
     ) -> AnyPathType:
         """
         Get the default UTM band:
@@ -443,7 +449,7 @@ class VhrProduct(OpticalProduct):
 
         Args:
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
 
         Returns:
             str: Default UTM path

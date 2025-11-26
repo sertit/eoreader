@@ -58,7 +58,7 @@ _DIMAP_BAND_MTD = {
     SWIR_1: "XS4",
 }
 
-# https://spot.cnes.fr/sites/default/files/migration/smsc/spot/calibration_synthesis_SPOT1245_ed1.pdf (3.3)
+# https://cnes.fr/sites/default/files/migration/smsc/spot/calibration_synthesis_SPOT1245_ed1.pdf (3.3)
 # HRVIR 1, 2
 _SPOT4_E0 = {
     PAN: [1570.2, 1589],
@@ -86,7 +86,7 @@ The values of the normalized solar irradiance have been computed using WMO (Worl
 @unique
 class Spot4BandCombination(ListEnum):
     """
-    Band combination for SPOT4 data
+    Band combination for SPOT-4 data
     See `this <https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
     """
 
@@ -119,7 +119,7 @@ class Spot4BandCombination(ListEnum):
 @unique
 class Spot5BandCombination(ListEnum):
     """
-    Band combination for SPOT4/5 data
+    Band combination for SPOT-5 data
     See `this <https://www.intelligence-airbusds.com/files/pmedia/public/r451_9_resolutionspectralmodes_uk_sept2010.pdf>`_ for more information.
     """
 
@@ -214,11 +214,16 @@ class Spot45Product(DimapV1Product):
         self._proj_prod_type = [Spot45ProductType.L0]
 
         # Raw units
-        rad_proc = root.findtext(".//RADIOMETRIC_PROCESSING").upper()
+        rad_proc = root.findtext(".//RADIOMETRIC_PROCESSING")
+
+        if rad_proc is None:
+            raise InvalidProductError("RADIOMETRIC_PROCESSING not found in metadata.")
+        else:
+            rad_proc = rad_proc.upper()
 
         if rad_proc == "REFLECTANCE":
             self._raw_units = RawUnits.REFL
-        elif rad_proc in "BASIC":
+        elif rad_proc in ["BASIC", "SYSTEM"]:
             self._raw_units = RawUnits.DN
         else:
             self._raw_units = RawUnits.NONE
@@ -232,8 +237,15 @@ class Spot45Product(DimapV1Product):
         """
         root, _ = self.read_mtd()
         band_combi = root.findtext(".//SPECTRAL_PROCESSING")
-        if not band_combi:
-            raise InvalidProductError("SPECTRAL_PROCESSING not found in metadata!")
+
+        if band_combi is None:
+            band_combi = root.findtext(".//SENSOR_CODE")
+
+        if band_combi is None:
+            raise InvalidProductError(
+                "SPECTRAL_PROCESSING or SENSOR_CODE not found in metadata."
+            )
+
         if self.constellation == Constellation.SPOT4:
             self.band_combi = Spot4BandCombination.from_value(band_combi)
         else:

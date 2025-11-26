@@ -8,7 +8,7 @@ variables:
   EOREADER_CHANGES: eoreader/**/[^_]*.{py,xml}
 
 lint:
-  image: python:3.9-buster
+  image: python:3.10-buster
   stage: lint
   script:
     - python -m pip install --upgrade pip
@@ -29,8 +29,11 @@ pytest:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - python -m pytest -v --durations=0 --cov-report term --cov=eoreader ci/on_push --log-cli-level DEBUG
+    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_s3.html --cov=eoreader ci/on_push --log-cli-level DEBUG
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/cov_s3.html
   tags:
     - sertit
     - linux
@@ -59,8 +62,11 @@ pytest_s3:
     - pip install --ignore-installed PyYAML
     - pip install -e .
   script:
-    - python -m pytest -v --durations=0 --cov-report term --cov=eoreader ci/on_push --log-cli-level DEBUG --capture=tee-sys
+    - python -m pytest -v --durations=0 --cov-report term --cov-report html:${CI_PROJECT_DIR}/cov_s3.html --cov=eoreader ci/on_push --log-cli-level DEBUG --capture=tee-sys
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/cov_s3.html
   tags:
     - sertit
     - linux

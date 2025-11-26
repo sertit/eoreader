@@ -22,7 +22,6 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 from functools import reduce
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -240,7 +239,7 @@ class S2TheiaProduct(OpticalProduct):
 
         return footprint
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
@@ -258,7 +257,7 @@ class S2TheiaProduct(OpticalProduct):
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
             # Get MTD XML file
@@ -352,8 +351,8 @@ class S2TheiaProduct(OpticalProduct):
         self,
         band_path: AnyPathType,
         band: BandNames = None,
-        pixel_size: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: tuple | list | float = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -365,8 +364,8 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             band_path (AnyPathType): Band path
             band (BandNames): Band to read
-            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -633,7 +632,7 @@ class S2TheiaProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -642,7 +641,7 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -708,7 +707,7 @@ class S2TheiaProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -717,7 +716,7 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -749,7 +748,7 @@ class S2TheiaProduct(OpticalProduct):
         band: BandNames,
         associated_band: BandNames = None,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -762,7 +761,7 @@ class S2TheiaProduct(OpticalProduct):
             bands (BandNames): Wanted mask band
             associated_band (BandNames): Associated spectral band to the wanted mask,v to determine the bit ID of some masks. Using the GREEN band if not given.
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             xr.DataArray: Mask
@@ -808,7 +807,7 @@ class S2TheiaProduct(OpticalProduct):
         )
 
         if band in [S2TheiaMaskBandNames.SAT, S2TheiaMaskBandNames.DFP]:
-            mask = mask.copy(data=utils.read_bit_array(mask, bit_id))
+            mask = mask.copy(data=rasters.read_bit_array(mask, bit_id))
 
         band_name = self._get_band_key(band, associated_band, as_str=True, **kwargs)
         mask.attrs["long_name"] = band_name
@@ -818,7 +817,7 @@ class S2TheiaProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -827,7 +826,7 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             bands list: List of the wanted bands
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -918,7 +917,7 @@ class S2TheiaProduct(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -940,7 +939,7 @@ class S2TheiaProduct(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -995,14 +994,14 @@ class S2TheiaProduct(OpticalProduct):
         return band_dict
 
     def _create_mask(
-        self, bit_array: xr.DataArray, bit_ids: Union[int, list], nodata: np.ndarray
+        self, bit_array: xr.DataArray, bit_ids: int | list, nodata: np.ndarray
     ) -> xr.DataArray:
         """
         Create a mask masked array (uint8) from a bit array, bit IDs and a nodata mask.
 
         Args:
             bit_array (xr.DataArray): Conditional array
-            bit_ids (Union[int, list]): Bit IDs
+            bit_ids (int | list): Bit IDs
             nodata (np.ndarray): Nodata mask
 
         Returns:
@@ -1010,7 +1009,7 @@ class S2TheiaProduct(OpticalProduct):
 
         """
         bit_ids = types.make_iterable(bit_ids)
-        conds = utils.read_bit_array(bit_array.astype(np.uint8), bit_ids)
+        conds = rasters.read_bit_array(bit_array.astype(np.uint8), bit_ids)
         cond = reduce(lambda x, y: x | y, conds)  # Use every condition (bitwise or)
 
         return super()._create_mask(bit_array, cond, nodata)

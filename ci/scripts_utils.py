@@ -3,8 +3,8 @@
 import logging
 import os
 import warnings
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable
 
 import tempenv
 from rasterio.errors import NotGeoreferencedWarning

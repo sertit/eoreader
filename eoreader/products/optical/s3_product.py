@@ -30,7 +30,6 @@ import zipfile
 from abc import abstractmethod
 from datetime import datetime
 from enum import unique
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -251,18 +250,24 @@ class S3Product(OpticalProduct):
 
         # Get WGS84 vertices
         vertex = [
-            (lonv, latv) for lonv, latv in zip(lon.data[0, 0, :], lat.data[0, 0, :])
-        ]
-        vertex += [
-            (lonv, latv) for lonv, latv in zip(lon.data[0, :, -1], lat.data[0, :, -1])
+            (lonv, latv)
+            for lonv, latv in zip(lon.data[0, 0, :], lat.data[0, 0, :], strict=True)
         ]
         vertex += [
             (lonv, latv)
-            for lonv, latv in zip(lon.data[0, -1, ::-1], lat.data[0, -1, ::-1])
+            for lonv, latv in zip(lon.data[0, :, -1], lat.data[0, :, -1], strict=True)
         ]
         vertex += [
             (lonv, latv)
-            for lonv, latv in zip(lon.data[0, ::-1, 0], lat.data[0, ::-1, 0])
+            for lonv, latv in zip(
+                lon.data[0, -1, ::-1], lat.data[0, -1, ::-1], strict=True
+            )
+        ]
+        vertex += [
+            (lonv, latv)
+            for lonv, latv in zip(
+                lon.data[0, ::-1, 0], lat.data[0, ::-1, 0], strict=True
+            )
         ]
 
         # Create wgs84 extent (left, bottom, right, top)
@@ -307,7 +312,7 @@ class S3Product(OpticalProduct):
     def _replace(
         self,
         ppm_to_replace: str,
-        band: Union[str, BandNames] = None,
+        band: str | BandNames = None,
         suffix: str = None,
         view: str = None,
     ) -> str:
@@ -316,7 +321,7 @@ class S3Product(OpticalProduct):
 
         Args:
             ppm_to_replace (str): Preprocessed member to replace
-            band (Union[str, BandNames]): Replace the band
+            band (str | BandNames): Replace the band
             suffix (str): Replace the suffix
             view (str): Replace the view
 
@@ -334,7 +339,7 @@ class S3Product(OpticalProduct):
 
         return ppm_to_replace
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
@@ -352,7 +357,7 @@ class S3Product(OpticalProduct):
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
             # Get MTD XML file
@@ -441,8 +446,8 @@ class S3Product(OpticalProduct):
         self,
         band_path: AnyPathType,
         band: BandNames = None,
-        pixel_size: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: tuple | list | float = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -454,8 +459,8 @@ class S3Product(OpticalProduct):
         Args:
             band_path (AnyPathType): Band path
             band (BandNames): Band to read
-            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -521,7 +526,7 @@ class S3Product(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -530,7 +535,7 @@ class S3Product(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -553,7 +558,7 @@ class S3Product(OpticalProduct):
     @abstractmethod
     def _preprocess(
         self,
-        band: Union[BandNames, str],
+        band: BandNames | str,
         pixel_size: float = None,
         to_reflectance: bool = True,
         subdataset: str = None,
@@ -565,7 +570,7 @@ class S3Product(OpticalProduct):
         - Convert radiance to reflectance
 
         Args:
-            band (Union[BandNames, str]): Band to preprocess (quality flags or others are accepted)
+            band (BandNames | str): Band to preprocess (quality flags or others are accepted)
             pixel_size (float): Pixel size
             to_reflectance (bool): Convert band to reflectance
             subdataset (str): Subdataset
@@ -775,7 +780,7 @@ class S3Product(OpticalProduct):
 
     def _read_nc(
         self,
-        filename: Union[str, BandNames],
+        filename: str | BandNames,
         subdataset: str = None,
         dtype=np.float32,
         squeeze: bool = False,
@@ -790,7 +795,7 @@ class S3Product(OpticalProduct):
         Caches the file if needed (rasterio does not seem to be able to open a netcdf stored in the cloud).
 
         Args:
-            filename (Union[str, BandNames]): Filename or band (set a wildcard ('*') in the beginning if needed, this function doesn't do that!)
+            filename (str | BandNames): Filename or band (set a wildcard ('*') in the beginning if needed, this function doesn't do that!)
             subdataset (str): NetCDF subdataset if needed
             dtype: Dtype
             squeeze(bool): Squeeze array or not
@@ -900,7 +905,7 @@ class S3Product(OpticalProduct):
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -909,7 +914,7 @@ class S3Product(OpticalProduct):
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}

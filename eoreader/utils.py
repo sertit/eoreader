@@ -21,7 +21,7 @@ import os
 import platform
 import warnings
 from functools import wraps
-from typing import Callable, Union
+from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -52,45 +52,6 @@ LOGGER = logging.getLogger(EOREADER_NAME)
 DEFAULT_TILE_SIZE = 1024
 DEFAULT_NOF_BANDS_IN_CHUNKS = 1
 UINT16_NODATA = rasters.UINT16_NODATA
-
-
-# Workaround for now, remove this asap
-def read_bit_array(
-    bit_mask: Union[xr.DataArray, np.ndarray], bit_id: Union[list, int]
-) -> Union[np.ndarray, list]:
-    """
-    Read 8 bit arrays as a succession of binary masks.
-
-    Forces array to :code:`np.uint8`.
-
-    See :py:func:`rasters.read_bit_array`.
-
-    Args:
-        bit_mask (np.ndarray): Bit array to read
-        bit_id (int): Bit ID of the slice to be read
-          Example: read the bit 0 of the mask as a cloud mask (Theia)
-
-    Returns:
-        Union[np.ndarray, list]: Binary mask or list of binary masks if a list of bit_id is given
-    """
-    if misc.compare_version("sertit", "1.47.0", ">="):
-        return rasters.read_bit_array(bit_mask, bit_id)
-    else:
-        # Suppress nan nodata and convert back to original dtype if known
-
-        if isinstance(bit_mask, np.ndarray):
-            bit_mask = np.nan_to_num(bit_mask)
-        elif isinstance(bit_mask, xr.DataArray):
-            orig_dtype = bit_mask.encoding.get("dtype")
-            bit_mask = bit_mask.fillna(0).data
-            if orig_dtype is not None and bit_mask.dtype != orig_dtype:
-                bit_mask = bit_mask.astype(orig_dtype)
-
-        else:
-            bit_mask = bit_mask.fillna(0)
-        from sertit import rasters_rio
-
-        return rasters_rio.read_bit_array(bit_mask, bit_id)
 
 
 def get_src_dir() -> AnyPathType:
@@ -174,11 +135,11 @@ def use_dask():
 
 def read(
     raster_path: AnyPathStrType,
-    pixel_size: Union[tuple, list, float] = None,
-    size: Union[tuple, list] = None,
+    pixel_size: tuple | list | float = None,
+    size: tuple | list = None,
     resampling: Resampling = Resampling.nearest,
     masked: bool = True,
-    indexes: Union[int, list] = None,
+    indexes: int | list = None,
     **kwargs,
 ) -> xr.DataArray:
     """
@@ -196,11 +157,11 @@ def read(
 
     Args:
         raster_path (AnyPathStrType): Path to the raster
-        pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-        size (Union[tuple, list]): Size of the array (width, height). Overrides pixel_size if provided.
+        pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+        size (tuple | list): Size of the array (width, height). Overrides pixel_size if provided.
         resampling (Resampling): Resampling method
         masked (bool): Get a masked array
-        indexes (Union[int, list]): Indexes to load. Load the whole array if None.
+        indexes (int | list): Indexes to load. Load the whole array if None.
         **kwargs: Optional keyword arguments to pass into rioxarray.open_rasterio().
     Returns:
         xr.DataArray: Masked xarray corresponding to the raster data and its metadata
@@ -317,10 +278,8 @@ def write(xds: xr.DataArray, filepath: AnyPathStrType, **kwargs) -> None:
         ):
             kwargs["windowed"] = True
 
-    # TODO: drop this when python > 3.9
-    # WORKAROUND TO: https://github.com/numpy/numpy/releases/tag/v2.2.3
+    # WORKAROUND TO: https://github.com/numpy/numpy/issues/25677#issuecomment-2514436348
     # Computing the stats for COGs and dask bugs with numpy 2.0 (fixed with 2.1)
-    # However python 3.9 is limited to 2.0.x, so be careful with that (really not nice to have no stats when reading the files)
     write_cogs_with_dask = not (
         misc.compare_version("numpy", "2.0", ">=")
         and misc.compare_version("numpy", "2.1", "<")
@@ -665,7 +624,7 @@ def get_archived_path(
     as_list: bool = False,
     case_sensitive: bool = False,
     file_list: list = None,
-) -> Union[list, AnyPathType]:
+) -> list | AnyPathType:
     """
     Overload of sertit.path.get_archived_path to cache its reading:
     this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
@@ -686,7 +645,7 @@ def get_archived_rio_path(
     regex: str,
     as_list: bool = False,
     file_list: list = None,
-) -> Union[list, AnyPathType]:
+) -> list | AnyPathType:
     """
     Overload of sertit.path.get_archived_path to cache its reading:
     this operation is expensive when done with large archives (especially tars) stored on the cloud (and thus better done only once)
