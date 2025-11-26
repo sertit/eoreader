@@ -24,6 +24,7 @@ import tempfile
 from datetime import datetime
 from enum import unique
 from typing import Union
+from pathlib import Path
 
 import geopandas as gpd
 import numpy as np
@@ -534,6 +535,7 @@ class CosmoProduct(SarProduct):
                 pp_swath_path = []
                 import h5netcdf
                 import tempfile
+                from eoreader.reader import Reader
 
                 with h5netcdf.File(str(self._img_path), phony_dims="access") as raw_h5:
                     for group in raw_h5.groups:
@@ -544,42 +546,50 @@ class CosmoProduct(SarProduct):
                                 tmp_dir, f"{path.get_filename(self._img_path)}.h5"
                             )
 
-                            # Create HDF5 for this swath, renamed to S01
-                            with h5netcdf.File(prod_path, "w", phony_dims="access") as group_h5:
+                            with h5netcdf.File(prod_path, "w", phony_dims="access") as out_h5:
                                 # Copy root attributes
-                                group_h5.attrs.update(raw_h5.attrs)
+                                out_h5.attrs.update(raw_h5.attrs)
                                 # SNAP requires S01
                                 new_group = "S01"
-                                grp_out = group_h5.create_group(new_group)
+                                grp_out = out_h5.create_group(new_group)
                                 # Copy swath attributes
                                 grp_out.attrs.update(raw_h5.groups[group].attrs)
 
                                 # Copy variables
                                 for var_name, var in raw_h5.groups[group].variables.items():
-                                    v = grp_out.create_variable(
-                                        var_name,
+                                    grp_out.create_variable(
+                                        f"/{new_group}/{var_name}",
                                         dimensions=var.dimensions,
                                         dtype=var.dtype,
                                         data=var,
                                         chunks=var.chunks,
                                     )
-                                    v.attrs.update(var.attrs)
+                                    grp_out.variables[var_name].attrs.update(var.attrs)
 
                                 # Copy nested groups correctly
                                 for subgrp_name, subgrp in raw_h5.groups[group].groups.items():
                                     new_subgrp = grp_out.create_group(subgrp_name)
                                     new_subgrp.attrs.update(subgrp.attrs)
 
+                            LOGGER.info(f"Created seperated .h5 for swath {group}: {prod_path}")
+
                             # Pre-process individual swath
-                            pp_swath_path.append(
-                                super()._pre_process_sar(
-                                    pre_processed_path,
-                                    band,
-                                    prod_path=prod_path,
-                                    suffix=group,
-                                    **kwargs,
-                                )
+                            swath_prod = Reader().open(tmp_dir)      # new product built from the swath HDF only
+
+                            # --- Now preprocess this *independent* product ---
+                            pp_swath = swath_prod._pre_process_sar(
+                                pre_processed_path,
+                                band,
+                                prod_path=prod_path,
+                                suffix=group,   # S01, S02, S03...
+                                **kwargs,
                             )
+
+                            # Rename swath output file
+                            swath_path = Path(pp_swath).with_name(f"{Path(pp_swath).stem}_{group}.tif")
+                            Path(pp_swath).rename(swath_path)
+                            pp_swath_path.append(swath_path)
+                            LOGGER.info(f"Generated swath {group}: {swath_path}")
 
                     LOGGER.debug("Merging the swaths")
                     pp_path = self.get_band_path(band, writable=True, **kwargs)
@@ -587,6 +597,7 @@ class CosmoProduct(SarProduct):
                     try:
                         pp_ds = [rasterio.open(str(p)) for p in pp_swath_path]
                         merged_array, merged_transform = merge.merge(pp_ds, **kwargs)
+                        no_data = pp_ds[0].meta.get("nodata", -9999) # self._snap_no_data
 
                         merged_meta = pp_ds[0].meta.copy()
                         merged_meta.update(
@@ -600,13 +611,15 @@ class CosmoProduct(SarProduct):
                     finally:
                         for ds in pp_ds:
                             ds.close()
+                        for p in pp_swath_path:
+                            Path(p).unlink()
 
                     # SNAP requires nodata=0 and predictor=1 (for SNAP < 10)
                     rasters_rio.write(
                         merged_array,
                         merged_meta,
                         pp_path,
-                        nodata=self._snap_no_data,
+                        nodata=no_data,
                         predictor=self._get_predictor(),
                         driver="GTiff",
                     )
