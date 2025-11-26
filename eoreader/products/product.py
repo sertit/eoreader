@@ -93,7 +93,7 @@ from eoreader.exceptions import (
     InvalidTypeError,
     UnhandledArchiveError,
 )
-from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW, EXO_KW
+from eoreader.keywords import DEM_KW, EXO_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Constellation, Reader
 from eoreader.stac import StacItem
 from eoreader.utils import DEFAULT_TILE_SIZE, simplify
@@ -1256,7 +1256,6 @@ class Product:
             first_band = list(bands_dict.keys())[0]
             coords = bands_dict[first_band].coords
 
-
         # Make sure the dataset has the bands in the order asked by the user (given by bands and potentially associated_bands)
         # -> re-order the input dict
         bands_dict = self._reorder_loaded_bands_like_input(bands, bands_dict, **kwargs)
@@ -1264,7 +1263,9 @@ class Product:
         # Load, collocate and add exogenous data layers
         if exo_dict:
             LOGGER.info(f"Loading bands {str(exo_dict)}")
-            exo_band_dict = self._load_exo(exo_dict, pixel_size=pixel_size, size=size, **kwargs)
+            exo_band_dict = self._load_exo(
+                exo_dict, pixel_size=pixel_size, size=size, **kwargs
+            )
             LOGGER.debug("Collocating EXO bands")
             exo_band_dict = self._collocate_bands(exo_band_dict)
             LOGGER.debug("Append EXO bands at the end of current band_dict")
@@ -1513,20 +1514,20 @@ class Product:
         """
         exo_bands = {}
         if exo_dict:
-            for exo_key in exo_dict.keys():
+            for exo_key in exo_dict:
                 exo_data = exo_dict[exo_key]
                 LOGGER.debug(f"EXO data info: {exo_key} ; {exo_data}")
                 # Resampling method (to adapt data sampling)
                 resampling = Resampling.bilinear
-                if 'resampler' in exo_data.keys() and 'nearest' in exo_data['resampler']:
+                if "resampler" in exo_data and "nearest" in exo_data["resampler"]:
                     resampling = Resampling.nearest
                 # Select band index (to manage multi layer data)
-                band_idxs=[1]
-                if 'bandnumber' in exo_data.keys():
-                    band_idxs=[int(exo_data['bandnumber'])]
+                band_idxs = [1]
+                if "bandnumber" in exo_data:
+                    band_idxs = [int(exo_data["bandnumber"])]
                 # Warp the data as vrt
                 exo_path = self._warp_exo(
-                    exo_data['path'],
+                    exo_data["path"],
                     pixel_size=pixel_size,
                     size=size,
                     resampling=resampling,
@@ -1535,7 +1536,12 @@ class Product:
                 # Actually load the data layer
                 exo_name = str(exo_key)
                 exo_arr = utils.read(
-                    exo_path, pixel_size=pixel_size, size=size, resampling=resampling, indexes=band_idxs, as_type=np.float32
+                    exo_path,
+                    pixel_size=pixel_size,
+                    size=size,
+                    resampling=resampling,
+                    indexes=band_idxs,
+                    as_type=np.float32,
                 ).rename(exo_name)
                 exo_arr.attrs["long_name"] = exo_name
                 exo_bands[exo_key] = exo_arr
@@ -1932,7 +1938,6 @@ class Product:
                     rio_shutil.copy(vrt, warped_dem_path, driver="vrt")
 
         return warped_dem_path
-
 
     def _warp_exo(
         self,
