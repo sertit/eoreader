@@ -7,6 +7,7 @@
 - **ENH: Fix corrupted Maxar products with incoherent width between .IMD and .TIL files** [#242](https://github.com/sertit/eoreader/issues/242)
 - **ENH: Add TerraSAR-X management of default resolution and pixel size for RE data**
 - **ENH: Add gain and offset for CustomProducts to cope with custom stacks in DN**
+- **ENH: Allow exogenous data in load and stack** [#273](https://github.com/sertit/eoreader/issues/273) - by @gsalgues
 - FIX: Write intermediate data for loaded bands also for Custom stacks
 - FIX: Fix regression when stacking with a custom nodata value with VHR data to be reprojected
 - FIX: Fix an unprecedented case with a PNEO having different name than usual (`DIM_PNEO3_STD_2025...` instead of `DIM_PNEO3_2025...`)
