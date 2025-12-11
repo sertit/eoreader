@@ -29,6 +29,7 @@ __all__ = [
     "ICEYE_USE_SLC",
     "TO_REFLECTANCE",
     "ASSOCIATED_BANDS",
+    "WRITE_LIA_KW",
     "EXO_KW",
 ]
 
@@ -66,6 +67,11 @@ Set a DEM path when specifically loading the :code:`SLOPE` band, used to overloa
 HILLSHADE_KW = "hillshade_dem"
 """
 Set a DEM path when specifically loading the :code:`HILLSHADE` band, used to overload the :code:`DEM_PATH` environment variable.
+"""
+
+WRITE_LIA_KW = "write_lia"
+"""
+Keyword that allows the user to choose whether to write the Local Incidence Angle.
 """
 
 ICEYE_USE_SLC = "iceye_use_slc"

@@ -18,6 +18,7 @@
 import logging
 import os
 import tempfile
+import xml.etree.ElementTree as ET
 from abc import abstractmethod
 from enum import unique
 from string import Formatter
@@ -48,7 +49,7 @@ from eoreader.env_vars import (
     SNAP_DEM_NAME,
 )
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.keywords import SAR_INTERP_NA
+from eoreader.keywords import SAR_INTERP_NA, WRITE_LIA_KW
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import Constellation
 from eoreader.stac import INTENSITY
@@ -819,6 +820,37 @@ class SarProduct(Product):
 
         return str(pp_graph)
 
+    def _prepare_graph_no_lia(self, graph_path: str) -> str:
+        """
+        Prepare a SNAP graph without Local Incidence Angle (LIA) processing.
+
+        This removes the ``BandSelect_LIA`` and ``Write_LIA`` nodes and writes the
+        modified graph to a temporary directory.
+
+        Args:
+            graph_path (str): Path to the original SNAP graph.
+
+        Returns:
+            str: Path to the modified graph saved in a temporary directory.
+        """
+        tree = ET.parse(graph_path)
+        root = tree.getroot()
+
+        # Node IDs to remove
+        remove_ids = {"BandSelect_LIA", "Write_LIA"}
+
+        # Remove matching nodes, ignoring if they don't exist
+        for node in list(root.findall("node")):
+            if node.get("id") in remove_ids:
+                root.remove(node)
+
+        # Write modified graph to temporary directory
+        tmp_dir = tempfile.mkdtemp(prefix="graph_no_lia_")
+        new_graph_path = os.path.join(tmp_dir, os.path.basename(graph_path))
+        tree.write(new_graph_path, encoding="utf-8", xml_declaration=True)
+
+        return new_graph_path
+
     def _get_dem(self) -> (str, str):
         """Get the DEM used by SNAP for orthorectification in Terrain Coprrection operator."""
         try:
@@ -1021,8 +1053,14 @@ class SarProduct(Product):
                 pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
                 pp_dim = pp_target + ".dim"
 
+                write_lia = kwargs.get(WRITE_LIA_KW, False)
+
                 # Pre-process graph
                 pp_graph = self._get_pp_graph()
+
+                # Remove LIA nodes from graph
+                if not write_lia:
+                    pp_graph = self._prepare_graph_no_lia(pp_graph)
 
                 # Get DEM for orthorectification
                 dem_name, dem_path = self._get_dem()
@@ -1050,6 +1088,7 @@ class SarProduct(Product):
                         f"-Pcrs={self.crs()}",
                         f"-Pres_m={res_m}",
                         f"-Pres_deg={res_deg}",
+                        f"-Pwrite_lia={write_lia}",
                         f"-Pout={strings.to_cmd_string(pp_dim)}",
                     ],
                     display_snap_opt=LOGGER.level == logging.DEBUG,
@@ -1061,6 +1100,15 @@ class SarProduct(Product):
                     misc.run_cli(cmd_list)
                 except RuntimeError as ex:
                     raise RuntimeError("Something went wrong with SNAP!") from ex
+
+                # Convert Local Incidence Angle files from DIMAP to GeoTiff
+                if write_lia:
+                    LOGGER.debug(
+                        "Converting Local Incidence Angle files from DIMAP to GeoTiff"
+                    )
+                    self._write_lia(
+                        pre_processed_path, pp_dim, crop=window_to_crop, **kwargs
+                    )
 
                 # Convert DIMAP images to GeoTiff
                 LOGGER.debug("Converting DIMAP to GeoTiff")
@@ -1240,6 +1288,82 @@ class SarProduct(Product):
             )
 
         return out_path
+
+    def _write_lia(self, out_path: AnyPathType, dim_path: str, **kwargs) -> AnyPathType:
+        """
+        Write Local Incidence Angle images on disk.
+
+        Args:
+            out_path (AnyPathType): Out path
+            dim_path (str): DIMAP path
+            kwargs: Additional arguments
+
+        Returns:
+            AnyPathType: SAR path
+        """
+        LOGGER.debug("Write LIA")
+        # Save the file as the terrain-corrected image
+        # input data
+
+        def interp_na(array, dim):
+            try:
+                array = array.interpolate_na(dim=dim, limit=10, keep_attrs=True)
+            except ValueError:
+                try:
+                    # ValueError: Index 'y' must be monotonically increasing
+                    dim_idx = getattr(array, dim)
+                    reversed_dim_idx = list(reversed(dim_idx))
+                    array = array.reindex(**{dim: reversed_dim_idx})
+                    array = array.interpolate_na(dim=dim, limit=10, keep_attrs=True)
+                    array = array.reindex(**{dim: dim_idx})
+                except ValueError:
+                    pass
+
+            return array
+
+        # Get the .img path(s)
+        imgs = []
+        try:
+            imgs = utils.get_dim_img_path(dim_path, "*Incidence*")
+        except FileNotFoundError:
+            LOGGER.warning(
+                "No Local Incidence Angle file found. Please activate the options to write these files from 'Terrain-Correction' node in a custuom SNAP graph"
+            )
+
+        for img in imgs:
+            base_name = out_path.stem
+            lia_out_path = out_path.parent / f"{base_name}_localIncidenceAngle.tif"
+
+            # Open Local Incidence Angle image and convert it to a clean geotiff
+            with rioxarray.open_rasterio(img) as arr:
+                arr = arr.where(arr != self._snap_no_data, np.nan)
+
+                # Interpolate if needed (interpolate na works only 1D-like, sadly)
+                if kwargs.get(SAR_INTERP_NA, False):
+                    arr = interp_na(arr, dim="y")
+                    arr = interp_na(arr, dim="x")
+
+                crop_window = kwargs.get("crop")
+                if crop_window is not None:
+                    if isinstance(crop_window, Window):
+                        arr = arr.rio.isel_window(crop_window)
+                    else:
+                        arr = rasters.crop(arr, crop_window)
+
+                # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
+                # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
+                # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
+                arr = utils.write_path_in_attrs(arr, lia_out_path)
+                utils.write(
+                    arr,
+                    lia_out_path,
+                    dtype=np.float32,
+                    nodata=self._snap_no_data,
+                    predictor=self._get_predictor(),
+                    driver="GTiff",  # SNAP doesn't handle COGs very well apparently
+                )
+
+        return lia_out_path
 
     def _compute_hillshade(
         self,

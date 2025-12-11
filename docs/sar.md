@@ -411,7 +411,7 @@ The default `Terrain Correction` step is:
         <saveDEM>false</saveDEM>
         <saveLatLon>false</saveLatLon>
         <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
-        <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
+        <saveLocalIncidenceAngle>${write_lia}</saveLocalIncidenceAngle>
         <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
         <saveSelectedSourceBand>true</saveSelectedSourceBand>
         <applyRadiometricNormalization>false</applyRadiometricNormalization>
