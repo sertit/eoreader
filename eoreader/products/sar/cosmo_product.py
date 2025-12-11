@@ -597,8 +597,6 @@ class CosmoProduct(SarProduct):
                     try:
                         pp_ds = [rasterio.open(str(p)) for p in pp_swath_path]
                         merged_array, merged_transform = merge.merge(pp_ds, **kwargs)
-                        no_data = pp_ds[0].meta.get("nodata", -9999) # self._snap_no_data
-
                         merged_meta = pp_ds[0].meta.copy()
                         merged_meta.update(
                             {
@@ -614,14 +612,17 @@ class CosmoProduct(SarProduct):
                         for p in pp_swath_path:
                             Path(p).unlink()
 
-                    # SNAP requires nodata=0 and predictor=1 (for SNAP < 10)
+                    # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
+
+                    # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
+                    # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
                     rasters_rio.write(
                         merged_array,
                         merged_meta,
                         pp_path,
-                        nodata=no_data,
+                        nodata=self._snap_no_data,
                         predictor=self._get_predictor(),
-                        driver="GTiff",
+                        driver="GTiff", # SNAP doesn't handle COGs very well apparently
                     )
 
                 return pp_path
