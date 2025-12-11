@@ -21,7 +21,9 @@ import tempfile
 from abc import abstractmethod
 from enum import unique
 from string import Formatter
+import tempfile
 from typing import Union
+import xml.etree.ElementTree as ET
 
 import geopandas as gpd
 import numpy as np
@@ -49,7 +51,7 @@ from eoreader.env_vars import (
     SNAP_DEM_NAME,
 )
 from eoreader.exceptions import InvalidProductError, InvalidTypeError
-from eoreader.keywords import SAR_INTERP_NA
+from eoreader.keywords import SAR_INTERP_NA, WRITE_LIA_KW
 from eoreader.products.product import Product, SensorType
 from eoreader.reader import Constellation
 from eoreader.stac import INTENSITY
@@ -821,6 +823,37 @@ class SarProduct(Product):
 
         return str(pp_graph)
 
+    def _prepare_graph_no_lia(self, graph_path: str) -> str:
+        """
+        Prepare a SNAP graph without Local Incidence Angle (LIA) processing.
+
+        This removes the ``BandSelect_LIA`` and ``Write_LIA`` nodes and writes the
+        modified graph to a temporary directory.
+
+        Args:
+            graph_path (str): Path to the original SNAP graph.
+
+        Returns:
+            str: Path to the modified graph saved in a temporary directory.
+        """
+        tree = ET.parse(graph_path)
+        root = tree.getroot()
+
+        # Node IDs to remove
+        remove_ids = {"BandSelect_LIA", "Write_LIA"}
+
+        # Remove matching nodes, ignoring if they don't exist
+        for node in list(root.findall("node")):
+            if node.get("id") in remove_ids:
+                root.remove(node)
+
+        # Write modified graph to temporary directory
+        tmp_dir = tempfile.mkdtemp(prefix="graph_no_lia_")
+        new_graph_path = os.path.join(tmp_dir, os.path.basename(graph_path))
+        tree.write(new_graph_path, encoding="utf-8", xml_declaration=True)
+
+        return new_graph_path
+
     def _get_dem(self) -> (str, str):
         """Get the DEM used by SNAP for orthorectification in Terrain Coprrection operator."""
         try:
@@ -1023,8 +1056,14 @@ class SarProduct(Product):
                 pp_target = os.path.join(tmp_dir, f"{self.condensed_name}")
                 pp_dim = pp_target + ".dim"
 
+                write_lia = kwargs.get(WRITE_LIA_KW, False)
+
                 # Pre-process graph
                 pp_graph = self._get_pp_graph()
+
+                # Remove LIA nodes from graph
+                if not write_lia:
+                    pp_graph = self._prepare_graph_no_lia(pp_graph)
 
                 # Get DEM for orthorectification
                 dem_name, dem_path = self._get_dem()
@@ -1052,6 +1091,7 @@ class SarProduct(Product):
                         f"-Pcrs={self.crs()}",
                         f"-Pres_m={res_m}",
                         f"-Pres_deg={res_deg}",
+                        f"-Pwrite_lia={write_lia}",
                         f"-Pout={strings.to_cmd_string(pp_dim)}",
                     ],
                     display_snap_opt=LOGGER.level == logging.DEBUG,
@@ -1065,7 +1105,7 @@ class SarProduct(Product):
                     raise RuntimeError("Something went wrong with SNAP!") from ex
 
                 # Convert Local Incidence Angle files from DIMAP to GeoTiff
-                if os.getenv("WRITE_LIA", "true").lower() == "true":
+                if write_lia: 
                     LOGGER.debug("Converting Local Incidence Angle files from DIMAP to GeoTiff")
                     self._write_lia(
                         pre_processed_path, pp_dim, crop=window_to_crop, **kwargs
