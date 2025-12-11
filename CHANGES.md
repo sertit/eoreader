@@ -8,6 +8,7 @@
 - **ENH: Add TerraSAR-X management of default resolution and pixel size for RE data**
 - **ENH: Add gain and offset for CustomProducts to cope with custom stacks in DN**
 - **ENH: Allow exogenous data in load and stack** [#273](https://github.com/sertit/eoreader/issues/273) - by @gsalgues
+- **ENH: Export local incidence angles for SAR data** - by @simone-tilia
 - FIX: Write intermediate data for loaded bands also for Custom stacks
 - FIX: Fix regression when stacking with a custom nodata value with VHR data to be reprojected
 - FIX: Fix an unprecedented case with a PNEO having different name than usual (`DIM_PNEO3_STD_2025...` instead of `DIM_PNEO3_2025...`)
@@ -28,6 +29,7 @@
 - FIX: Return an empty `lxml.Element` as metadata for S1 RTC ASF products instead of `None` to ensure consistency
 - FIX: Set `EPSG:4326` for rasters with empty CRS to be orthorectified with RPCs 
 - FIX: Fix multi-polarisation SAR data with swaths orthorectified independently (i.e. SAOCOM)
+- FIX: Manage more CSK formats - by @simone-tilia
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - OPTIM: Allow predictor = 3 with LZW compression when saving SAR intermediate data as SNAP handles it properly now. [#173](https://github.com/sertit/eoreader/issues/173)
 - CI: Filter some warnings in pytest
