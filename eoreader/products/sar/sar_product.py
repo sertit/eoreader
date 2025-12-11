@@ -798,7 +798,7 @@ class SarProduct(Product):
         )
         return pre_processed_path
 
-    def _get_pp_graph(self) -> str:
+    def _get_pp_graph(self, write_lia: bool = False, tmp_dir: str = None) -> str:
         """Get the pre-processing graph"""
         if PP_GRAPH not in os.environ:
             if self.constellation_id == Constellation.S1.name:
@@ -810,9 +810,19 @@ class SarProduct(Product):
             else:
                 sat = "sar"
             spt = "grd" if self.sar_prod_type == SarProductType.GRD else "cplx"
-            pp_graph = utils.get_data_dir().joinpath(
-                f"{spt}_{sat}_preprocess_default.xml"
-            )
+
+            # Remove LIA nodes from graph
+            # This is buggy right now with SNAP 13, merge this once new version is released
+            # if not write_lia:
+            #     pp_graph = self._prepare_graph_no_lia(tmp_dir, pp_graph)
+
+            if write_lia:
+                pp_graph = (
+                    utils.get_data_dir() / "lia" / f"{spt}_{sat}_preprocess_default.xml"
+                )
+            else:
+                pp_graph = utils.get_data_dir() / f"{spt}_{sat}_preprocess_default.xml"
+
         else:
             pp_graph = AnyPath(os.environ[PP_GRAPH]).resolve()
             if not pp_graph.is_file() or pp_graph.suffix != ".xml":
@@ -820,7 +830,7 @@ class SarProduct(Product):
 
         return str(pp_graph)
 
-    def _prepare_graph_no_lia(self, graph_path: str) -> str:
+    def _prepare_graph_no_lia(self, tmp_dir, graph_path: str) -> str:
         """
         Prepare a SNAP graph without Local Incidence Angle (LIA) processing.
 
@@ -828,6 +838,7 @@ class SarProduct(Product):
         modified graph to a temporary directory.
 
         Args:
+            tmp_dir: Temp directory
             graph_path (str): Path to the original SNAP graph.
 
         Returns:
@@ -845,8 +856,9 @@ class SarProduct(Product):
                 root.remove(node)
 
         # Write modified graph to temporary directory
-        tmp_dir = tempfile.mkdtemp(prefix="graph_no_lia_")
-        new_graph_path = os.path.join(tmp_dir, os.path.basename(graph_path))
+        new_graph_path = os.path.join(
+            tmp_dir, path.get_filename(graph_path) + "_no_lia.xml"
+        )
         tree.write(new_graph_path, encoding="utf-8", xml_declaration=True)
 
         return new_graph_path
@@ -1056,11 +1068,7 @@ class SarProduct(Product):
                 write_lia = kwargs.get(WRITE_LIA_KW, False)
 
                 # Pre-process graph
-                pp_graph = self._get_pp_graph()
-
-                # Remove LIA nodes from graph
-                if not write_lia:
-                    pp_graph = self._prepare_graph_no_lia(pp_graph)
+                pp_graph = self._get_pp_graph(write_lia, tmp_dir)
 
                 # Get DEM for orthorectification
                 dem_name, dem_path = self._get_dem()

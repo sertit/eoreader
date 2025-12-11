@@ -7,7 +7,7 @@
       <file>${file}</file>
     </parameters>
   </node>
-  <node id="Subset">
+<node id="Subset">
     <operator>Subset</operator>
     <sources>
       <sourceProduct refid="Read"/>
@@ -60,7 +60,7 @@
       <saveDEM>false</saveDEM>
       <saveLatLon>false</saveLatLon>
       <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
-      <saveLocalIncidenceAngle>${write_lia}</saveLocalIncidenceAngle>
+      <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
       <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
       <saveSelectedSourceBand>true</saveSelectedSourceBand>
       <saveLayoverShadowMask>false</saveLayoverShadowMask>
@@ -75,38 +75,10 @@
       <externalAuxFile/>
     </parameters>
   </node>
-  <node id="BandSelect_LIA">
-    <operator>BandSelect</operator>
-    <sources>
-      <sourceProduct refid="Terrain-Correction"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <bandNamePattern>.*Incidence.*</bandNamePattern>
-    </parameters>
-  </node>
-  <node id="Write_LIA">
-    <operator>Write</operator>
-    <sources>
-      <sourceProduct refid="BandSelect_LIA"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <file>${out}</file>
-      <formatName>BEAM-DIMAP</formatName>
-    </parameters>
-  </node>
-  <node id="BandSelect">
-    <operator>BandSelect</operator>
-    <sources>
-      <sourceProduct refid="Terrain-Correction"/>
-    </sources>
-    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
-      <bandNamePattern>.*^(?!.*Incidence).*$.*</bandNamePattern>
-    </parameters>
-  </node>
   <node id="LinearToFromdB">
     <operator>LinearToFromdB</operator>
     <sources>
-      <sourceProduct refid="BandSelect"/>
+      <sourceProduct refid="Terrain-Correction"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -144,3 +116,4 @@
     </node>
   </applicationData>
 </graph>
+

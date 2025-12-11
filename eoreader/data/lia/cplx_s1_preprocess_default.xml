@@ -5,6 +5,7 @@
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${file}</file>
+      <formatName>SENTINEL-1</formatName>
     </parameters>
   </node>
   <node id="Subset">
@@ -24,10 +25,22 @@
       <copyMetadata>true</copyMetadata>
     </parameters>
   </node>
+  <node id="ThermalNoiseRemoval">
+    <operator>ThermalNoiseRemoval</operator>
+    <sources>
+      <sourceProduct refid="Subset"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations/>
+      <removeThermalNoise>true</removeThermalNoise>
+      <outputNoise>false</outputNoise>
+      <reIntroduceThermalNoise>false</reIntroduceThermalNoise>
+    </parameters>
+  </node>
   <node id="Calibration">
     <operator>Calibration</operator>
     <sources>
-      <sourceProduct refid="Subset"/>
+      <sourceProduct refid="ThermalNoiseRemoval"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -43,10 +56,32 @@
       <outputBetaBand>false</outputBetaBand>
     </parameters>
   </node>
+  <node id="TOPSAR-Deburst">
+    <operator>TOPSAR-Deburst</operator>
+    <sources>
+      <sourceProduct refid="Calibration"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations/>
+    </parameters>
+  </node>
+  <node id="Multilook">
+    <operator>Multilook</operator>
+    <sources>
+      <sourceProduct refid="TOPSAR-Deburst"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <sourceBands/>
+      <nRgLooks>2</nRgLooks>
+      <nAzLooks>2</nAzLooks>
+      <outputIntensity>true</outputIntensity>
+      <grSquarePixel>true</grSquarePixel>
+    </parameters>
+  </node>
   <node id="Terrain-Correction">
     <operator>Terrain-Correction</operator>
     <sources>
-      <sourceProduct refid="Calibration"/>
+      <sourceProduct refid="Multilook"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -66,7 +101,7 @@
       <saveDEM>false</saveDEM>
       <saveLatLon>false</saveLatLon>
       <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
-      <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
+      <saveLocalIncidenceAngle>${write_lia}</saveLocalIncidenceAngle>
       <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
       <saveSelectedSourceBand>true</saveSelectedSourceBand>
       <saveLayoverShadowMask>false</saveLayoverShadowMask>
@@ -81,10 +116,38 @@
       <externalAuxFile/>
     </parameters>
   </node>
+  <node id="BandSelect_LIA">
+    <operator>BandSelect</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Correction"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <bandNamePattern>.*Incidence.*</bandNamePattern>
+    </parameters>
+  </node>
+  <node id="Write_LIA">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="BandSelect_LIA"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>${out}</file>
+      <formatName>BEAM-DIMAP</formatName>
+    </parameters>
+  </node>
+  <node id="BandSelect">
+    <operator>BandSelect</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Correction"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <bandNamePattern>Sigma0.*</bandNamePattern>
+    </parameters>
+  </node>
   <node id="LinearToFromdB">
     <operator>LinearToFromdB</operator>
     <sources>
-      <sourceProduct refid="Terrain-Correction"/>
+      <sourceProduct refid="BandSelect"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -103,23 +166,31 @@
   <applicationData id="Presentation">
     <Description/>
     <node id="Read">
-            <displayPosition x="32.0" y="40.0"/>
+      <displayPosition x="12.0" y="19.0"/>
     </node>
     <node id="Subset">
-      <displayPosition x="43.0" y="96.0"/>
+      <displayPosition x="12.0" y="70.0"/>
+    </node>
+    <node id="ThermalNoiseRemoval">
+      <displayPosition x="4.0" y="126.0"/>
     </node>
     <node id="Calibration">
-      <displayPosition x="74.0" y="150.0"/>
+      <displayPosition x="61.0" y="174.0"/>
+    </node>
+    <node id="TOPSAR-Deburst">
+      <displayPosition x="94.0" y="215.0"/>
+    </node>
+    <node id="Multilook">
+      <displayPosition x="192.0" y="256.0"/>
     </node>
     <node id="Terrain-Correction">
-      <displayPosition x="183.0" y="244.0"/>
+      <displayPosition x="263.0" y="287.0"/>
     </node>
     <node id="LinearToFromdB">
-      <displayPosition x="386.0" y="290.0"/>
+      <displayPosition x="428.0" y="307.0"/>
     </node>
     <node id="Write">
-            <displayPosition x="584.0" y="312.0"/>
+      <displayPosition x="577.0" y="307.0"/>
     </node>
   </applicationData>
 </graph>
-
