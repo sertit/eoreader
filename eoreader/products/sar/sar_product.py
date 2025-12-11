@@ -18,12 +18,10 @@
 import logging
 import os
 import tempfile
+import xml.etree.ElementTree as ET
 from abc import abstractmethod
 from enum import unique
 from string import Formatter
-import tempfile
-from typing import Union
-import xml.etree.ElementTree as ET
 
 import geopandas as gpd
 import numpy as np
@@ -1104,8 +1102,10 @@ class SarProduct(Product):
                     raise RuntimeError("Something went wrong with SNAP!") from ex
 
                 # Convert Local Incidence Angle files from DIMAP to GeoTiff
-                if write_lia: 
-                    LOGGER.debug("Converting Local Incidence Angle files from DIMAP to GeoTiff")
+                if write_lia:
+                    LOGGER.debug(
+                        "Converting Local Incidence Angle files from DIMAP to GeoTiff"
+                    )
                     self._write_lia(
                         pre_processed_path, pp_dim, crop=window_to_crop, **kwargs
                     )
@@ -1289,9 +1289,7 @@ class SarProduct(Product):
 
         return out_path
 
-    def _write_lia(
-        self, out_path: AnyPathType, dim_path: str, **kwargs
-    ) -> AnyPathType:
+    def _write_lia(self, out_path: AnyPathType, dim_path: str, **kwargs) -> AnyPathType:
         """
         Write Local Incidence Angle images on disk.
 
@@ -1328,28 +1326,30 @@ class SarProduct(Product):
         try:
             imgs = utils.get_dim_img_path(dim_path, "*Incidence*")
         except FileNotFoundError:
-            LOGGER.warning("No Local Incidence Angle file found. Please activate the options to write these files from 'Terrain-Correction' node in a custuom SNAP graph")
+            LOGGER.warning(
+                "No Local Incidence Angle file found. Please activate the options to write these files from 'Terrain-Correction' node in a custuom SNAP graph"
+            )
 
         for img in imgs:
             base_name = out_path.stem
             lia_out_path = out_path.parent / f"{base_name}_localIncidenceAngle.tif"
-    
+
             # Open Local Incidence Angle image and convert it to a clean geotiff
             with rioxarray.open_rasterio(img) as arr:
                 arr = arr.where(arr != self._snap_no_data, np.nan)
-    
+
                 # Interpolate if needed (interpolate na works only 1D-like, sadly)
                 if kwargs.get(SAR_INTERP_NA, False):
                     arr = interp_na(arr, dim="y")
                     arr = interp_na(arr, dim="x")
-    
+
                 crop_window = kwargs.get("crop")
                 if crop_window is not None:
                     if isinstance(crop_window, Window):
                         arr = arr.rio.isel_window(crop_window)
                     else:
                         arr = rasters.crop(arr, crop_window)
-    
+
                 # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
                 # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
                 # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
@@ -1364,7 +1364,7 @@ class SarProduct(Product):
                 )
 
         return lia_out_path
-    
+
     def _compute_hillshade(
         self,
         dem_path: str = "",
