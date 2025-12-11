@@ -245,9 +245,9 @@ class SarProduct(Product):
         return snap.get_snap_version()
 
     @cache
-    def _has_snap_10_or_higher(self) -> bool:
+    def _has_snap_x_or_higher(self, version: int) -> bool:
         """True if SNAP version is 10 or higher"""
-        return misc.compare_version(self.get_snap_version(), "10.0.0", ">=")
+        return misc.compare_version(self.get_snap_version(), f"{version}.0.0", ">=")
 
     def _get_predictor(self) -> int:
         """
@@ -262,10 +262,9 @@ class SarProduct(Product):
         """
         # If we could know if imageio handles Predictor=3:
         # # 3 for float if handled
-        # return 3 if xxx else 1
-
-        # But we cannot:
-        return 1
+        pred = 3 if self._has_snap_x_or_higher(13) else 1
+        LOGGER.debug(f"SAR predictor: {pred} (SNAP version: {self.get_snap_version()})")
+        return pred
 
     def _need_snap_to_pre_process(self):
         """This product needs SNAP for pre-process."""
@@ -665,8 +664,8 @@ class SarProduct(Product):
         self,
         band_path: AnyPathType,
         band: BandNames = None,
-        pixel_size: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: tuple | list | float = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -678,8 +677,8 @@ class SarProduct(Product):
         Args:
             band_path (AnyPathType): Band path
             band (BandNames): Band to read
-            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -724,9 +723,9 @@ class SarProduct(Product):
 
     def _load_bands(
         self,
-        bands: Union[list, BandNames],
+        bands: list | BandNames,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -735,7 +734,7 @@ class SarProduct(Product):
         Args:
             bands (list, BandNames): List of the wanted bands
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1241,13 +1240,16 @@ class SarProduct(Product):
         # Get the .img path(s)
         try:
             imgs = utils.get_dim_img_path(dim_path, f"*{pol}*")
+            LOGGER.debug(f"Found {imgs} sub-images (for {pol}).")
         except FileNotFoundError:
+            LOGGER.debug(f"No {pol} image found in {dim_path}")
             imgs = utils.get_dim_img_path(dim_path)  # Maybe not a good name
+            LOGGER.debug(f"Using {imgs} instead")
 
         # Manage cases where multiple swaths are ortho independently
         if len(imgs) > 1:
             mos_path, exists = self._get_out_path(
-                path.get_filename(dim_path) + "_mos.vrt"
+                path.get_filename(dim_path) + f"_mos_{pol}.vrt"
             )
             if not exists:
                 # Get .img file path (readable by rasterio)
@@ -1275,8 +1277,6 @@ class SarProduct(Product):
                     arr = rasters.crop(arr, crop_window)
 
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
-            # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
-            # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
             arr = utils.write_path_in_attrs(arr, out_path)
             utils.write(
                 arr,
@@ -1368,8 +1368,8 @@ class SarProduct(Product):
     def _compute_hillshade(
         self,
         dem_path: str = "",
-        pixel_size: Union[float, tuple] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: float | tuple = None,
+        size: list | tuple = None,
         resampling: Resampling = Resampling.bilinear,
     ) -> AnyPathType:
         """
@@ -1377,9 +1377,9 @@ class SarProduct(Product):
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            pixel_size (Union[float, tuple]): Pixel size in meters. If not specified, use the product pixel size.
+            pixel_size (float | tuple): Pixel size in meters. If not specified, use the product pixel size.
             resampling (Resampling): Resampling method
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
         Returns:
             AnyPathType: Hillshade mask path
         """

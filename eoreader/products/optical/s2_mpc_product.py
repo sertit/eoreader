@@ -173,7 +173,7 @@ class S2MpcStacProduct(StacProduct, S2E84Product):
             force_pd (bool): If collection 2, return a pandas.DataFrame instead of an XML root + namespace
 
         Returns:
-            Tuple[Union[pd.DataFrame, etree._Element], dict]:
+            (etree._Element, dict):
                 Metadata as a Pandas.DataFrame or as (etree._Element, dict): Metadata XML root and its namespaces
         """
         return self._read_mtd_xml_stac(self._get_path("granule-metadata"))

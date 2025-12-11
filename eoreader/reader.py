@@ -21,7 +21,6 @@ import importlib
 import logging
 import re
 from enum import unique
-from typing import Union
 from zipfile import BadZipFile
 
 import validators
@@ -487,12 +486,12 @@ class Reader:
                 self._mtd_nested[constellation] = 0
 
     @staticmethod
-    def _compile(regex: Union[str, list], prefix="^", suffix="&") -> list:
+    def _compile(regex: str | list, prefix="^", suffix="&") -> list:
         """
         Compile regex or list of regex
 
         Args:
-            regex (Union[str, list]): Regex in :code:`re` sense
+            regex (str | list): Regex in :code:`re` sense
             prefix (str): Prefix of regex, ^ by default (means start of the string)
             suffix (str): Prefix of regex, & by default (means end of the string)
 
@@ -519,7 +518,7 @@ class Reader:
         method: CheckMethod = CheckMethod.MTD,
         remove_tmp: bool = False,
         custom: bool = False,
-        constellation: Union[Constellation, str, list] = None,
+        constellation: Constellation | str | list = None,
         **kwargs,
     ) -> Product:  # noqa: F821
         """
@@ -579,7 +578,7 @@ class Reader:
             method (CheckMethod): Checking method used to recognize the products
             remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
             custom (bool): True if we want to use a custom stack
-            constellation (Union[Constellation, str, list]): One or several constellations to help the Reader to choose more rapidly the correct Product
+            constellation (Constellation | str | list): One or several constellations to help the Reader to choose more rapidly the correct Product
             **kwargs: Other arguments
         Returns:
             Product: EOReader's product
@@ -714,7 +713,7 @@ class Reader:
         method: CheckMethod = CheckMethod.MTD,
         remove_tmp: bool = False,
         custom: bool = False,
-        constellation: Union[Constellation, str, list] = None,
+        constellation: Constellation | str | list = None,
         **kwargs,
     ):
         """
@@ -727,7 +726,7 @@ class Reader:
             method (CheckMethod): Checking method used to recognize the products
             remove_tmp (bool): Remove temp files (such as clean or orthorectified bands...) when the product is deleted
             custom (bool): True if we want to use a custom stack
-            constellation (Union[Constellation, str, list]): One or several constellations to help the Reader to choose more rapidly the correct Product
+            constellation (Constellation | str | list): One or several constellations to help the Reader to choose more rapidly the correct Product
             **kwargs: Other arguments
         Returns:
             Product: EOReader's product
@@ -797,7 +796,7 @@ class Reader:
     def valid_name(
         self,
         product_path: AnyPathStrType,
-        constellation: Union[str, Constellation],
+        constellation: Constellation | str,
     ) -> bool:
         """
         Check if the product's name is valid for the given satellite
@@ -840,7 +839,7 @@ class Reader:
     def valid_mtd(
         self,
         product_path: AnyPathStrType,
-        constellation: Union[str, Constellation],
+        constellation: Constellation | str,
     ) -> bool:
         """
         Check if the product's mtd is in the product folder/archive
@@ -869,7 +868,7 @@ class Reader:
 
         Args:
             product_path (AnyPathStrType): Product path
-            constellation (Union[str, Constellation]): Constellation's name or ID
+            constellation (Constellation | str): Constellation's name or ID
 
         Returns:
             bool: True if valid name
@@ -921,9 +920,7 @@ class Reader:
         return all(is_valid)
 
 
-def is_filename_valid(
-    product_path: AnyPathStrType, regex: Union[list, re.Pattern]
-) -> bool:
+def is_filename_valid(product_path: AnyPathStrType, regex: list | re.Pattern) -> bool:
     """
     Check if the filename corresponds to the given satellite regex.
 
@@ -934,7 +931,7 @@ def is_filename_valid(
 
     Args:
         product_path (AnyPathStrType): Product path
-        regex (Union[list, re.Pattern]): Regex or list of regex
+        regex (list | re.Pattern): Regex or list of regex
 
     Returns:
         bool: True if the filename corresponds to the given satellite regex

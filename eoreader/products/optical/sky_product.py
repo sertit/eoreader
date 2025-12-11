@@ -25,7 +25,6 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 from enum import unique
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -323,7 +322,7 @@ class SkyProduct(PlanetProduct):
                 f"Unknown product type for stack named {path.get_filename(stack_path)}"
             )
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
@@ -341,7 +340,7 @@ class SkyProduct(PlanetProduct):
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
             # Get MTD XML file
@@ -361,7 +360,7 @@ class SkyProduct(PlanetProduct):
 
         return datetime_str
 
-    def _get_stack_path(self, as_list: bool = False) -> Union[str, list]:
+    def _get_stack_path(self, as_list: bool = False) -> str | list:
         """
         Get Planet stack path(s)
 
@@ -369,7 +368,7 @@ class SkyProduct(PlanetProduct):
             as_list (bool): Get stack path as a list (useful if several subdatasets are present)
 
         Returns:
-            Union[str, list]: Stack path(s)
+            str | list: Stack path(s)
         """
         if self._merged:
             stack_path, _ = self._get_out_path(f"{self.condensed_name}_analytic.vrt")

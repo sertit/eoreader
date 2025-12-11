@@ -263,16 +263,14 @@ __all__ += [
     "to_str",
 ]
 
-from typing import Union as _u
-
 from eoreader.exceptions import InvalidTypeError as _ite
 
-BandType = _u[
-    str, SpectralBandNames, SarBandNames, CloudsBandNames, DemBandNames, BandNames
-]
+BandType = (
+    str | SpectralBandNames | SarBandNames | CloudsBandNames | DemBandNames | BandNames
+)
 """ EOReader band type, either a string, a BandName or its children: Spectral, SAR, DEM or Cloud band names """
 
-BandsType = _u[list, BandType]
+BandsType = list | BandType
 """ EOReader bands type, either a list or a BandType. """
 
 
@@ -556,15 +554,15 @@ def is_s2_l2a_specific_band(band: BandType) -> bool:
 
 
 def to_band(
-    to_convert: _u[list[BandType], BandType], as_list: bool = True
-) -> _u[list, BandNames]:
+    to_convert: list[BandType] | BandType, as_list: bool = True
+) -> list | BandNames:
     """
     Convert a string (or real value) to any alias, band or index.
 
     You can pass the name or the value of the bands.
 
     Args:
-        to_convert (Union[list, BandNames, str]): Values to convert into band objects
+        to_convert (list | BandNames | str): Values to convert into band objects
         as_list (bool): Return the result as a list
 
     Returns:
@@ -648,16 +646,14 @@ def to_band(
         return convert_to_band(to_convert)
 
 
-def to_str(
-    to_convert: _u[list[BandType], BandType], as_list: bool = True
-) -> _u[list, str]:
+def to_str(to_convert: list[BandType] | BandType, as_list: bool = True) -> list | str:
     """
     Convert a string (or real value) to any alias, band or index.
 
     You can pass the name or the value of the bands.
 
     Args:
-        to_convert (Union[list, BandNames, str]): Values to convert into str
+        to_convert (list | BandNames | str): Values to convert into str
         as_list (bool): Return the result as a list
 
     Returns:
