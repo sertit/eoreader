@@ -42,13 +42,13 @@ EOReader allow you to create internal STAC catalogs directly from raw data.
 
 > [!NOTE] 
 > 💡 EOReader handles data from the past!  
-> Legacy format are mostly supported and if not, they can be requested by creating an issue with the `legacy_format` label.  
+> Legacy formats are mostly supported and if not, they can be requested by creating an issue with the `legacy_format` label.  
 > This is super useful if you need to create an internal STAC catalog with old data.
 
 ## ⚡️ Quickstart
 
 ### Optical
-EOReader allows you ta load and stack spectral bands, spetrcal indices, DEM and cloud bands agnostically from every handled optical constellation:
+EOReader allows you ta load and stack spectral bands, spectral indices, DEM and cloud bands agnostically from every handled optical constellation:
 
 ```python
 from eoreader.reader import Reader
@@ -70,11 +70,11 @@ bands = s2_prod.load([NDVI, GREEN, CLOUDS])
 stack = s2_prod.stack([RED, GREEN, BLUE], stack_path="s2_rgb_stack.tif")
 ```
 
-EOReader aligns spectral bands from every handled sensor in order to make any call to a band generic:  
+EOReader aligns spectral bands from every handled sensor to make any call to a band generic:  
 [![Optical Band Mapping](https://zupimages.net/up/25/44/i20v.png)](https://eoreader.readthedocs.io/latest/optical_band_mapping.html)
 
 ### SAR
-In the same way, you can import and stack radar band from any handled SAR constellation, with the same pattern.
+In the same way, you can import and stack radar bands from any handled SAR constellation, with the same pattern.
 
 ```python
 from eoreader.reader import Reader
@@ -102,7 +102,6 @@ stack = s1_prod.stack([VV_DSPK, VH_DSPK], stack_path="s1_stack.tif")
 > SAR products need [`ESA SNAP`](https://senbox.atlassian.net/wiki/spaces/SNAP/pages/70503590/Creating+a+GPF+Graph)
 > free software to be orthorectified and calibrated.
 > Ensure that you have the folder containing your `gpt` executable in your `PATH`.
-> If you are using SNAP 8.0, be sure to have your software up-to-date (SNAP version >= 8.0).
 
 ## 📖 Documentation
 
