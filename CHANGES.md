@@ -30,6 +30,7 @@
 - FIX: Set `EPSG:4326` for rasters with empty CRS to be orthorectified with RPCs 
 - FIX: Fix multi-polarisation SAR data with swaths orthorectified independently (i.e. SAOCOM)
 - FIX: Manage more CSK formats - by @simone-tilia
+- FIX: Fix STAC product geometry with MPC [#277](https://github.com/sertit/eoreader/issues/277)
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - OPTIM: Allow predictor = 3 with LZW compression when saving SAR intermediate data as SNAP handles it properly now. [#173](https://github.com/sertit/eoreader/issues/173)
 - CI: Filter some warnings in pytest
