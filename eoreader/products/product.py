@@ -30,7 +30,6 @@ import tempfile
 from abc import abstractmethod
 from enum import unique
 from io import BytesIO
-from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -56,7 +55,7 @@ from sertit import (
     xml,
 )
 from sertit.misc import ListEnum
-from sertit.types import AnyPathStrType, AnyPathType
+from sertit.types import AnyPathStrType, AnyPathType, AnyXrDataStructure
 from sertit.vectors import WGS84
 
 from eoreader import EOREADER_NAME, cache, utils
@@ -93,7 +92,7 @@ from eoreader.exceptions import (
     InvalidTypeError,
     UnhandledArchiveError,
 )
-from eoreader.keywords import DEM_KW, HILLSHADE_KW, SLOPE_KW
+from eoreader.keywords import DEM_KW, EXO_KW, HILLSHADE_KW, SLOPE_KW
 from eoreader.reader import Constellation, Reader
 from eoreader.stac import StacItem
 from eoreader.utils import DEFAULT_TILE_SIZE, simplify
@@ -578,7 +577,7 @@ class Product:
         return utils.get_split_name(self.name)
 
     @abstractmethod
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, dt.datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | dt.datetime:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
@@ -596,11 +595,11 @@ class Product:
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         raise NotImplementedError
 
-    def get_date(self, as_date: bool = False) -> Union[str, dt.date]:
+    def get_date(self, as_date: bool = False) -> str | dt.date:
         """
         Get the product's acquisition date.
 
@@ -803,7 +802,7 @@ class Product:
         self,
         band: BandNames,
         pixel_size: float,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> str:
         """
@@ -812,7 +811,7 @@ class Product:
         Args:
             band (BandNames): Wanted band
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
 
         Returns:
@@ -855,7 +854,7 @@ class Product:
         self,
         band: BandNames,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         writable: bool = False,
         **kwargs,
     ) -> AnyPathType:
@@ -867,7 +866,7 @@ class Product:
         Args:
             band (BandNames): Wanted band
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             writable (bool): True if we want the band folder to be writeable
             kwargs: Additional arguments
 
@@ -997,8 +996,8 @@ class Product:
         self,
         band_path: AnyPathType,
         band: BandNames = None,
-        pixel_size: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: tuple | list | float = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -1010,8 +1009,8 @@ class Product:
         Args:
             band_path (AnyPathType): Band path
             band (BandNames): Band to read
-            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -1021,9 +1020,9 @@ class Product:
 
     def load(
         self,
-        bands: Union[list, BandNames, str],
+        bands: list | BandNames | str,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.Dataset:
         """
@@ -1049,9 +1048,9 @@ class Product:
             >>> bands = prod.load([GREEN, NDVI], pixel_size=20)
 
         Args:
-            bands (Union[list, BandNames, str]): Band list
+            bands (list | BandNames | str): Band list
             pixel_size (float): Pixel size of the band, in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -1094,7 +1093,7 @@ class Product:
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.Dataset:
         """
@@ -1103,7 +1102,7 @@ class Product:
         Args:
             bands (list): Band list
             pixel_size (float): Pixel size of the band, in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -1115,6 +1114,9 @@ class Product:
         clouds_list = []
         mask_list = []
         s2_l2a_list = []
+
+        # We get and remove the dict to avoid interference
+        exo_dict = kwargs.pop(EXO_KW, None)
 
         # Check if everything is valid
         for band in bands:
@@ -1255,8 +1257,22 @@ class Product:
 
         # Make sure the dataset has the bands in the order asked by the user (given by bands and potentially associated_bands)
         # -> re-order the input dict
+        bands_dict = self._reorder_loaded_bands_like_input(bands, bands_dict, **kwargs)
+
+        # Load, collocate and add exogenous data layers
+        if exo_dict:
+            LOGGER.info(f"Loading bands {str(exo_dict)}")
+            exo_band_dict = self._load_exo(
+                exo_dict, pixel_size=pixel_size, size=size, **kwargs
+            )
+            LOGGER.debug("Collocating EXO bands")
+            exo_band_dict = self._collocate_bands(exo_band_dict)
+            LOGGER.debug("Append EXO bands at the end of current band_dict")
+            bands_dict.update(exo_band_dict)
+
+        # Build and return xarray dataset
         return xr.Dataset(
-            self._reorder_loaded_bands_like_input(bands, bands_dict, **kwargs),
+            bands_dict,
             coords=coords,
         )
 
@@ -1264,7 +1280,7 @@ class Product:
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1273,7 +1289,7 @@ class Product:
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1286,7 +1302,7 @@ class Product:
         associated_band: BandNames = None,
         as_str: bool = False,
         **kwargs,
-    ) -> Union[BandNames, str]:
+    ) -> BandNames | str:
         """
         Get the band key, either with the band alone or with the band and its associated band
 
@@ -1296,7 +1312,7 @@ class Product:
             **kwargs: Other args
 
         Returns:
-            Union[BandNames, str]: Key for the output dataset
+            BandNames | str: Key for the output dataset
         """
         if associated_band is not None:
             key = f"{to_str(band, as_list=False)}_{to_str(associated_band, as_list=False)}"
@@ -1327,7 +1343,7 @@ class Product:
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1336,7 +1352,7 @@ class Product:
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1347,7 +1363,7 @@ class Product:
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1356,7 +1372,7 @@ class Product:
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1368,7 +1384,7 @@ class Product:
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1377,7 +1393,7 @@ class Product:
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1388,8 +1404,8 @@ class Product:
         self,
         index_list: list,
         loaded_bands: dict,
-        pixel_size: Union[float, tuple] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: float | tuple = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1398,7 +1414,7 @@ class Product:
         Args:
             bands (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Additional arguments
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1427,7 +1443,7 @@ class Product:
         self,
         band_list: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -1436,7 +1452,7 @@ class Product:
         Args:
             band_list (list): List of the wanted bands
             pixel_size (int): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -1477,7 +1493,60 @@ class Product:
 
         return dem_bands
 
-    def has_band(self, band: Union[BandNames, str]) -> bool:
+    def _load_exo(
+        self,
+        exo_dict: dict,
+        pixel_size: float = None,
+        size: list | tuple = None,
+        **kwargs,
+    ) -> dict:
+        """
+        Load bands as numpy arrays with the same pixel size (and same metadata).
+
+        Args:
+            exo_list (list): List of the exogenous data layer to load
+            pixel_size (int): Band pixel size in meters
+            size (tuple | list]): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Other arguments used to load bands
+        Returns:
+            dict: Dictionary {band_name, band_xarray}
+        """
+        exo_bands = {}
+        if exo_dict:
+            for exo_key in exo_dict:
+                exo_data = exo_dict[exo_key]
+                LOGGER.debug(f"EXO data info: {exo_key} ; {exo_data}")
+                # Resampling method (to adapt data sampling)
+                resampling = Resampling.bilinear
+                if "resampler" in exo_data and "nearest" in exo_data["resampler"]:
+                    resampling = Resampling.nearest
+                # Select band index (to manage multi layer data)
+                band_idxs = [1]
+                if "bandnumber" in exo_data:
+                    band_idxs = [int(exo_data["bandnumber"])]
+                # Warp the data as vrt
+                exo_path = self._warp_exo(
+                    exo_data["path"],
+                    pixel_size=pixel_size,
+                    size=size,
+                    resampling=resampling,
+                    **kwargs,
+                )
+                # Actually load the data layer
+                exo_name = str(exo_key)
+                exo_arr = utils.read(
+                    exo_path,
+                    pixel_size=pixel_size,
+                    size=size,
+                    resampling=resampling,
+                    indexes=band_idxs,
+                    as_type=np.float32,
+                ).rename(exo_name)
+                exo_arr.attrs["long_name"] = exo_name
+                exo_bands[exo_key] = exo_arr
+        return exo_bands
+
+    def has_band(self, band: BandNames | str) -> bool:
         """
         Does this product has the specified band?
 
@@ -1506,7 +1575,7 @@ class Product:
             True
 
         Args:
-            band (Union[BandNames, str]): EOReader band (optical, SAR, clouds, DEM)
+            band (BandNames | str): EOReader band (optical, SAR, clouds, DEM)
 
         Returns:
             bool: True if the product has the specified band
@@ -1529,7 +1598,7 @@ class Product:
 
         return has_band
 
-    def has_bands(self, bands: Union[list, BandNames, str]) -> bool:
+    def has_bands(self, bands: list | BandNames | str) -> bool:
         """
         Does this product has the specified bands?
 
@@ -1543,7 +1612,7 @@ class Product:
         See :code:`has_band` for a code example.
 
         Args:
-            bands (Union[list, BandNames, str]): EOReader bands (optical, SAR, clouds, DEM)
+            bands (list | BandNames | str): EOReader bands (optical, SAR, clouds, DEM)
 
         Returns:
             bool: True if the products has the specified band
@@ -1765,8 +1834,8 @@ class Product:
     def _warp_dem(
         self,
         dem_path: str = "",
-        pixel_size: Union[float, tuple] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: float | tuple = None,
+        size: list | tuple = None,
         resampling: Resampling = Resampling.bilinear,
         **kwargs,
     ) -> AnyPathType:
@@ -1784,9 +1853,9 @@ class Product:
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            pixel_size (Union[float, tuple]): Pixel size in meters. If not specified, use the product pixel size.
+            pixel_size (float | tuple): Pixel size in meters. If not specified, use the product pixel size.
             resampling (Resampling): Resampling method
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
 
         Returns:
@@ -1796,8 +1865,8 @@ class Product:
 
         warped_dem_path, warped_dem_exists = self._get_out_path(dem_name)
         if warped_dem_exists:
-            LOGGER.debug(
-                "Already existing DEM for %s. Skipping process.", self.condensed_name
+            LOGGER.info(
+                "Already existing DEM for %s. Skipping process.", warped_dem_path
             )
         else:
             LOGGER.debug("Warping DEM for %s", self.condensed_name)
@@ -1869,12 +1938,117 @@ class Product:
 
         return warped_dem_path
 
+    def _warp_exo(
+        self,
+        exo_path: str = "",
+        pixel_size: float | tuple = None,
+        size: list | tuple = None,
+        resampling: Resampling = Resampling.nearest,
+        **kwargs,
+    ) -> AnyPathType:
+        """
+        Get this exogenous data, warped to this product footprint and CRS.
+
+        .. code-block:: python
+
+            >>> from eoreader.reader import Reader
+            >>> from eoreader.bands import *
+            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
+            >>> prod = Reader().open(path)
+            >>> prod.warp_exo(pixel_size=20)  # In meters
+            '/path/to/20200824T110631_S2_T30TTK_L1C_150432_DEM.tif'
+
+        Args:
+            dem_path (str): DEM path, using EUDEM/MERIT DEM if none
+            pixel_size (float | tuple): Pixel size in meters. If not specified, use the product pixel size.
+            resampling (Resampling): Resampling method
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
+            kwargs: Other arguments used to load bands
+
+        Returns:
+            AnyPathType: DEM path (as a VRT)
+        """
+        exo_name = f"{self.condensed_name}_EXO_{path.get_filename(exo_path)}.vrt"
+
+        warped_exo_path, warped_exo_exists = self._get_out_path(exo_name)
+        if warped_exo_exists:
+            LOGGER.debug(
+                "Already existing EXO for %s. Skipping process.", self.condensed_name
+            )
+        else:
+            LOGGER.debug("Warping EXO for %s", self.condensed_name)
+
+            # # Allow S3 HTTP Urls only on Linux because rasterio bugs on Windows
+            # if validators.url(exo_path) and platform.system() == "Windows":
+            #     raise OSError(
+            #         f"URLs to EXO like {exo_path} are not supported on Windows! Use Docker or Linux instead"
+            #     )
+
+            # # Check existence
+            # if not validators.url(exo_path):
+            #     exo_path = AnyPath(exo_path)
+            #     if not exo_path.is_file():
+            #         raise FileNotFoundError(f"EXO file does not exist here: {exo_path}")
+
+            # Reproject EXO into products CRS
+            LOGGER.debug("Using EXO: %s", exo_path)
+            def_tr, def_w, def_h, def_crs = self.default_transform(**kwargs)
+            with rasterio.open(str(exo_path)) as exo_ds:
+                # Get adjusted transform and shape (with new pixel_size)
+                if size is not None and pixel_size is None:
+                    try:
+                        # Get destination transform
+                        out_h = size[1]
+                        out_w = size[0]
+
+                        # Get destination transform
+                        coeff_x = def_w / out_w
+                        coeff_y = def_h / out_h
+                        dst_tr = def_tr
+                        dst_tr *= dst_tr.scale(coeff_x, coeff_y)
+
+                    except (TypeError, KeyError) as exc:
+                        raise ValueError(
+                            f"Size should exist (as pixel_size is None)"
+                            f" and castable to a list: {size}"
+                        ) from exc
+
+                else:
+                    # Refine pixel_size
+                    if pixel_size is None:
+                        pixel_size = self.pixel_size
+
+                    bounds = transform.array_bounds(def_h, def_w, def_tr)
+                    dst_tr, out_w, out_h = warp.calculate_default_transform(
+                        def_crs,
+                        self.crs(),
+                        def_w,
+                        def_h,
+                        *bounds,
+                        resolution=pixel_size,
+                    )
+
+                vrt_options = {
+                    "resampling": resampling,
+                    "crs": self.crs(),
+                    "transform": dst_tr,
+                    "height": out_h,
+                    "width": out_w,
+                    "nodata": self.nodata,
+                }
+                with WarpedVRT(exo_ds, **vrt_options) as vrt:
+                    # At this point 'vrt' is a full dataset with dimensions,
+                    # CRS, and spatial extent matching 'vrt_options'.
+                    rio_shutil.copy(vrt, warped_exo_path, driver="vrt")
+
+        return warped_exo_path
+
     @abstractmethod
     def _compute_hillshade(
         self,
         dem_path: str = "",
-        pixel_size: Union[float, tuple] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: float | tuple = None,
+        size: list | tuple = None,
         resampling: Resampling = Resampling.bilinear,
     ) -> AnyPathType:
         """
@@ -1882,8 +2056,8 @@ class Product:
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            pixel_size (Union[float, tuple]): Pixel size in meters. If not specified, use the product pixel size.
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (float | tuple): Pixel size in meters. If not specified, use the product pixel size.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             resampling (Resampling): Resampling method
 
         Returns:
@@ -1895,8 +2069,8 @@ class Product:
     def _compute_slope(
         self,
         dem_path: str = "",
-        pixel_size: Union[float, tuple] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: float | tuple = None,
+        size: list | tuple = None,
         resampling: Resampling = Resampling.bilinear,
     ) -> AnyPathType:
         """
@@ -1904,8 +2078,8 @@ class Product:
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            pixel_size (Union[float, tuple]): Pixel size in meters. If not specified, use the product pixel size.
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (float | tuple): Pixel size in meters. If not specified, use the product pixel size.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             resampling (Resampling): Resampling method
 
         Returns:
@@ -1963,7 +2137,7 @@ class Product:
         self,
         bands: list,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         stack_path: AnyPathStrType = None,
         save_as_int: bool = False,
         **kwargs,
@@ -1982,7 +2156,7 @@ class Product:
         Args:
             bands (list): Bands and index combination
             pixel_size (float): Stack pixel size. . If not specified, use the product pixel size.
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             stack_path (AnyPathStrType): Stack path
             save_as_int (bool): Convert stack to uint16 to save disk space (and therefore multiply the values by 10.000)
             **kwargs: Other arguments passed to :code:`load` or :code:`rioxarray.to_raster()` (such as :code:`compress`)
@@ -2058,12 +2232,12 @@ class Product:
         raise NotImplementedError
 
     def _update_attrs(
-        self, xarr: Union[xr.DataArray, xr.Dataset], bands: list, **kwargs
+        self, xarr: AnyXrDataStructure, bands: list, **kwargs
     ) -> xr.DataArray:
         """
         Update attributes of the given array
         Args:
-            xarr (Union[xr.DataArray, xr.Dataset]): Array whose attributes need an update
+            xarr (AnyXrDataStructure): Array whose attributes need an update
             bands (list): Bands
         Returns:
             xr.DataArray: Updated array
@@ -2166,14 +2340,12 @@ class Product:
         with rasterio.open(str(self.get_default_band_path(**kwargs))) as dst:
             return dst.transform, dst.width, dst.height, dst.crs
 
-    def _pixel_size_from_img_size(
-        self, size: Union[list, tuple] = None, **kwargs
-    ) -> tuple:
+    def _pixel_size_from_img_size(self, size: list | tuple = None, **kwargs) -> tuple:
         """
         Compute the corresponding pixel size to a given image size (positive resolution)
 
         Args:
-            size (Union[list, tuple]): Size
+            size (list | tuple): Size
 
         Returns:
             tuple: Pixel size as a tuple (x, y)
@@ -2238,12 +2410,12 @@ class Product:
         for obj in objects:
             obj.cache_clear()
 
-    def _pixel_size_to_str(self, pixel_size: Union[float, tuple, list] = None):
+    def _pixel_size_to_str(self, pixel_size: float | tuple | list = None):
         """
         Convert a pixel_size to a normalized string
 
         Args:
-            pixel_size (Union[float, tuple, list]): Pixel size
+            pixel_size (float | tuple | list): Pixel size
 
         Returns:
             str: Pixel size as a string
@@ -2314,7 +2486,7 @@ class Product:
     def __repr__(self):
         return "\n".join(self._to_repr())
 
-    def get_quicklook_path(self) -> Union[None, str]:
+    def get_quicklook_path(self) -> str:
         """
         Get quicklook path if existing (no such thing for Sentinel-2)
 
@@ -2388,7 +2560,7 @@ class Product:
         """
         raise NotImplementedError
 
-    def to_band(self, raw_bands: Union[list, BandNames, str, int]) -> list:
+    def to_band(self, raw_bands: list | BandNames | str | int) -> list:
         """
         Convert any raw band identifier to a usable band.
 
@@ -2396,7 +2568,7 @@ class Product:
         For example, for Sentinel-3 OLCI you can use `7`, `Oa07` or `YELLOW`. For Landsat-8, you can use `BLUE` or `2`.
 
         Args:
-            raw_bands (Union[list, BandNames, str, int]): Raw bands
+            raw_bands (list | BandNames | str | int): Raw bands
 
         Returns:
             list: Mapped bands
@@ -2597,6 +2769,12 @@ class Product:
         kw = utils._prune_keywords(["nodata", "num_threads"], **kwargs)
         resampling = kw.pop("resampling", self.band_resampling)
         vcrs = kw.pop("vcrs", os.getenv(DEM_VCRS))
+
+        if rpcs and not src_xda.rio.crs:
+            # RPCs are always in 4326 by convention
+            # https://rasterio.readthedocs.io/en/latest/topics/reproject.html#reprojecting-with-other-georeferencing-metadata
+            src_xda.rio.write_crs(vectors.EPSG_4326, inplace=True)
+
         out_xda = rasters.reproject(
             src_xda,
             rpcs=rpcs,

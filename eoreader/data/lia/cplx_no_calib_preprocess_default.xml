@@ -24,29 +24,23 @@
       <copyMetadata>true</copyMetadata>
     </parameters>
   </node>
-  <node id="Calibration">
-    <operator>Calibration</operator>
+  <node id="Multilook">
+    <operator>Multilook</operator>
     <sources>
       <sourceProduct refid="Subset"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
-      <auxFile>Latest Auxiliary File</auxFile>
-      <externalAuxFile/>
-      <outputImageInComplex>false</outputImageInComplex>
-      <outputImageScaleInDb>false</outputImageScaleInDb>
-      <createGammaBand>false</createGammaBand>
-      <createBetaBand>false</createBetaBand>
-      <selectedPolarisations>${calib_pola}</selectedPolarisations>
-      <outputSigmaBand>true</outputSigmaBand>
-      <outputGammaBand>false</outputGammaBand>
-      <outputBetaBand>false</outputBetaBand>
+      <nRgLooks>2</nRgLooks>
+      <nAzLooks>2</nAzLooks>
+      <outputIntensity>true</outputIntensity>
+      <grSquarePixel>true</grSquarePixel>
     </parameters>
   </node>
   <node id="Terrain-Correction">
     <operator>Terrain-Correction</operator>
     <sources>
-      <sourceProduct refid="Calibration"/>
+      <sourceProduct refid="Multilook"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -66,7 +60,7 @@
       <saveDEM>false</saveDEM>
       <saveLatLon>false</saveLatLon>
       <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
-      <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
+      <saveLocalIncidenceAngle>${write_lia}</saveLocalIncidenceAngle>
       <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
       <saveSelectedSourceBand>true</saveSelectedSourceBand>
       <saveLayoverShadowMask>false</saveLayoverShadowMask>
@@ -81,10 +75,38 @@
       <externalAuxFile/>
     </parameters>
   </node>
+  <node id="BandSelect_LIA">
+    <operator>BandSelect</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Correction"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <bandNamePattern>.*Incidence.*</bandNamePattern>
+    </parameters>
+  </node>
+  <node id="Write_LIA">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="BandSelect_LIA"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>${out}</file>
+      <formatName>BEAM-DIMAP</formatName>
+    </parameters>
+  </node>
+  <node id="BandSelect">
+    <operator>BandSelect</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Correction"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <bandNamePattern>.*^(?!.*Incidence).*$.*</bandNamePattern>
+    </parameters>
+  </node>
   <node id="LinearToFromdB">
     <operator>LinearToFromdB</operator>
     <sources>
-      <sourceProduct refid="Terrain-Correction"/>
+      <sourceProduct refid="BandSelect"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -103,23 +125,22 @@
   <applicationData id="Presentation">
     <Description/>
     <node id="Read">
-            <displayPosition x="32.0" y="40.0"/>
+      <displayPosition x="7.0" y="131.0"/>
     </node>
     <node id="Subset">
-      <displayPosition x="43.0" y="96.0"/>
+      <displayPosition x="71.0" y="179.0"/>
     </node>
-    <node id="Calibration">
-      <displayPosition x="74.0" y="150.0"/>
+    <node id="Multilook">
+      <displayPosition x="108.0" y="224.0"/>
     </node>
     <node id="Terrain-Correction">
-      <displayPosition x="183.0" y="244.0"/>
+      <displayPosition x="143.0" y="265.0"/>
     </node>
     <node id="LinearToFromdB">
-      <displayPosition x="386.0" y="290.0"/>
+      <displayPosition x="256.0" y="299.0"/>
     </node>
     <node id="Write">
-            <displayPosition x="584.0" y="312.0"/>
+      <displayPosition x="461.0" y="307.0"/>
     </node>
   </applicationData>
 </graph>
-

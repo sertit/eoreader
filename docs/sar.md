@@ -123,6 +123,10 @@ You can use both a local path e.g. `/mnt/dataserver/dems/srtm_30_v4/index.vrt` o
 a URL pointing to a web resources hosted on a S3 compatible storage e.g. 
 `https://s3.storage.com/dem-bucket/srtm_cog.tif` (not available on Windows for now).
 
+## Local Incidence Angles
+
+Thanks to the keyword {meth}`~eoreader.keywords.WRITE_LIA_KW` or `write_lia`, it is possible to load the local incidence angles of any SAR products.
+
 ## Default pixel size and resolution
 
 The default resolution of SAR products is the one given in 

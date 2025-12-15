@@ -1,5 +1,3 @@
-from typing import Union
-
 from sertit import misc, types
 
 from eoreader.exceptions import InvalidTypeError
@@ -10,7 +8,7 @@ class BandNames(misc.ListEnum):
     """Super class for band names, **do not use it**."""
 
     @classmethod
-    def from_list(cls, name_list: Union[list, str]) -> list:
+    def from_list(cls, name_list: list | str) -> list:
         """
         Get the band enums from list of band names
 
@@ -20,7 +18,7 @@ class BandNames(misc.ListEnum):
             [<SarBandNames.VV: 'VV'>]
 
         Args:
-            name_list (Union[list, str]): List of names
+            name_list (list | str): List of names
 
         Returns:
             list: List of enums

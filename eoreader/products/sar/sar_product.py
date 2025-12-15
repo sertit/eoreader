@@ -18,12 +18,10 @@
 import logging
 import os
 import tempfile
+import xml.etree.ElementTree as ET
 from abc import abstractmethod
 from enum import unique
 from string import Formatter
-import tempfile
-from typing import Union
-import xml.etree.ElementTree as ET
 
 import geopandas as gpd
 import numpy as np
@@ -245,9 +243,9 @@ class SarProduct(Product):
         return snap.get_snap_version()
 
     @cache
-    def _has_snap_10_or_higher(self) -> bool:
+    def _has_snap_x_or_higher(self, version: int) -> bool:
         """True if SNAP version is 10 or higher"""
-        return misc.compare_version(self.get_snap_version(), "10.0.0", ">=")
+        return misc.compare_version(self.get_snap_version(), f"{version}.0.0", ">=")
 
     def _get_predictor(self) -> int:
         """
@@ -262,10 +260,9 @@ class SarProduct(Product):
         """
         # If we could know if imageio handles Predictor=3:
         # # 3 for float if handled
-        # return 3 if xxx else 1
-
-        # But we cannot:
-        return 1
+        pred = 3 if self._has_snap_x_or_higher(13) else 1
+        LOGGER.debug(f"SAR predictor: {pred} (SNAP version: {self.get_snap_version()})")
+        return pred
 
     def _need_snap_to_pre_process(self):
         """This product needs SNAP for pre-process."""
@@ -665,8 +662,8 @@ class SarProduct(Product):
         self,
         band_path: AnyPathType,
         band: BandNames = None,
-        pixel_size: Union[tuple, list, float] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: tuple | list | float = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> xr.DataArray:
         """
@@ -678,8 +675,8 @@ class SarProduct(Product):
         Args:
             band_path (AnyPathType): Band path
             band (BandNames): Band to read
-            pixel_size (Union[tuple, list, float]): Size of the pixels of the wanted band, in dataset unit (X, Y)
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            pixel_size (tuple | list | float): Size of the pixels of the wanted band, in dataset unit (X, Y)
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             xr.DataArray: Band xarray
@@ -724,9 +721,9 @@ class SarProduct(Product):
 
     def _load_bands(
         self,
-        bands: Union[list, BandNames],
+        bands: list | BandNames,
         pixel_size: float = None,
-        size: Union[list, tuple] = None,
+        size: list | tuple = None,
         **kwargs,
     ) -> dict:
         """
@@ -735,7 +732,7 @@ class SarProduct(Product):
         Args:
             bands (list, BandNames): List of the wanted bands
             pixel_size (float): Band pixel size in meters
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
             kwargs: Other arguments used to load bands
         Returns:
             dict: Dictionary {band_name, band_xarray}
@@ -801,7 +798,7 @@ class SarProduct(Product):
         )
         return pre_processed_path
 
-    def _get_pp_graph(self) -> str:
+    def _get_pp_graph(self, write_lia: bool = False, tmp_dir: str = None) -> str:
         """Get the pre-processing graph"""
         if PP_GRAPH not in os.environ:
             if self.constellation_id == Constellation.S1.name:
@@ -813,9 +810,19 @@ class SarProduct(Product):
             else:
                 sat = "sar"
             spt = "grd" if self.sar_prod_type == SarProductType.GRD else "cplx"
-            pp_graph = utils.get_data_dir().joinpath(
-                f"{spt}_{sat}_preprocess_default.xml"
-            )
+
+            # Remove LIA nodes from graph
+            # This is buggy right now with SNAP 13, merge this once new version is released
+            # if not write_lia:
+            #     pp_graph = self._prepare_graph_no_lia(tmp_dir, pp_graph)
+
+            if write_lia:
+                pp_graph = (
+                    utils.get_data_dir() / "lia" / f"{spt}_{sat}_preprocess_default.xml"
+                )
+            else:
+                pp_graph = utils.get_data_dir() / f"{spt}_{sat}_preprocess_default.xml"
+
         else:
             pp_graph = AnyPath(os.environ[PP_GRAPH]).resolve()
             if not pp_graph.is_file() or pp_graph.suffix != ".xml":
@@ -823,7 +830,7 @@ class SarProduct(Product):
 
         return str(pp_graph)
 
-    def _prepare_graph_no_lia(self, graph_path: str) -> str:
+    def _prepare_graph_no_lia(self, tmp_dir, graph_path: str) -> str:
         """
         Prepare a SNAP graph without Local Incidence Angle (LIA) processing.
 
@@ -831,6 +838,7 @@ class SarProduct(Product):
         modified graph to a temporary directory.
 
         Args:
+            tmp_dir: Temp directory
             graph_path (str): Path to the original SNAP graph.
 
         Returns:
@@ -848,8 +856,9 @@ class SarProduct(Product):
                 root.remove(node)
 
         # Write modified graph to temporary directory
-        tmp_dir = tempfile.mkdtemp(prefix="graph_no_lia_")
-        new_graph_path = os.path.join(tmp_dir, os.path.basename(graph_path))
+        new_graph_path = os.path.join(
+            tmp_dir, path.get_filename(graph_path) + "_no_lia.xml"
+        )
         tree.write(new_graph_path, encoding="utf-8", xml_declaration=True)
 
         return new_graph_path
@@ -1059,11 +1068,7 @@ class SarProduct(Product):
                 write_lia = kwargs.get(WRITE_LIA_KW, False)
 
                 # Pre-process graph
-                pp_graph = self._get_pp_graph()
-
-                # Remove LIA nodes from graph
-                if not write_lia:
-                    pp_graph = self._prepare_graph_no_lia(pp_graph)
+                pp_graph = self._get_pp_graph(write_lia, tmp_dir)
 
                 # Get DEM for orthorectification
                 dem_name, dem_path = self._get_dem()
@@ -1105,8 +1110,10 @@ class SarProduct(Product):
                     raise RuntimeError("Something went wrong with SNAP!") from ex
 
                 # Convert Local Incidence Angle files from DIMAP to GeoTiff
-                if write_lia: 
-                    LOGGER.debug("Converting Local Incidence Angle files from DIMAP to GeoTiff")
+                if write_lia:
+                    LOGGER.debug(
+                        "Converting Local Incidence Angle files from DIMAP to GeoTiff"
+                    )
                     self._write_lia(
                         pre_processed_path, pp_dim, crop=window_to_crop, **kwargs
                     )
@@ -1241,13 +1248,16 @@ class SarProduct(Product):
         # Get the .img path(s)
         try:
             imgs = utils.get_dim_img_path(dim_path, f"*{pol}*")
+            LOGGER.debug(f"Found {imgs} sub-images (for {pol}).")
         except FileNotFoundError:
+            LOGGER.debug(f"No {pol} image found in {dim_path}")
             imgs = utils.get_dim_img_path(dim_path)  # Maybe not a good name
+            LOGGER.debug(f"Using {imgs} instead")
 
         # Manage cases where multiple swaths are ortho independently
         if len(imgs) > 1:
             mos_path, exists = self._get_out_path(
-                path.get_filename(dim_path) + "_mos.vrt"
+                path.get_filename(dim_path) + f"_mos_{pol}.vrt"
             )
             if not exists:
                 # Get .img file path (readable by rasterio)
@@ -1275,8 +1285,6 @@ class SarProduct(Product):
                     arr = rasters.crop(arr, crop_window)
 
             # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
-            # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
-            # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
             arr = utils.write_path_in_attrs(arr, out_path)
             utils.write(
                 arr,
@@ -1289,9 +1297,7 @@ class SarProduct(Product):
 
         return out_path
 
-    def _write_lia(
-        self, out_path: AnyPathType, dim_path: str, **kwargs
-    ) -> AnyPathType:
+    def _write_lia(self, out_path: AnyPathType, dim_path: str, **kwargs) -> AnyPathType:
         """
         Write Local Incidence Angle images on disk.
 
@@ -1328,28 +1334,30 @@ class SarProduct(Product):
         try:
             imgs = utils.get_dim_img_path(dim_path, "*Incidence*")
         except FileNotFoundError:
-            LOGGER.warning("No Local Incidence Angle file found. Please activate the options to write these files from 'Terrain-Correction' node in a custuom SNAP graph")
+            LOGGER.warning(
+                "No Local Incidence Angle file found. Please activate the options to write these files from 'Terrain-Correction' node in a custuom SNAP graph"
+            )
 
         for img in imgs:
             base_name = out_path.stem
             lia_out_path = out_path.parent / f"{base_name}_localIncidenceAngle.tif"
-    
+
             # Open Local Incidence Angle image and convert it to a clean geotiff
             with rioxarray.open_rasterio(img) as arr:
                 arr = arr.where(arr != self._snap_no_data, np.nan)
-    
+
                 # Interpolate if needed (interpolate na works only 1D-like, sadly)
                 if kwargs.get(SAR_INTERP_NA, False):
                     arr = interp_na(arr, dim="y")
                     arr = interp_na(arr, dim="x")
-    
+
                 crop_window = kwargs.get("crop")
                 if crop_window is not None:
                     if isinstance(crop_window, Window):
                         arr = arr.rio.isel_window(crop_window)
                     else:
                         arr = rasters.crop(arr, crop_window)
-    
+
                 # WARNING: Set nodata to 0 here as it is the value wanted by SNAP!
                 # SNAP < 10.0.0 fails with classic predictor !!! Set the predictor to the default value (1) !!!
                 # Caused by: javax.imageio.IIOException: Illegal value for Predictor in TIFF file
@@ -1364,12 +1372,12 @@ class SarProduct(Product):
                 )
 
         return lia_out_path
-    
+
     def _compute_hillshade(
         self,
         dem_path: str = "",
-        pixel_size: Union[float, tuple] = None,
-        size: Union[list, tuple] = None,
+        pixel_size: float | tuple = None,
+        size: list | tuple = None,
         resampling: Resampling = Resampling.bilinear,
     ) -> AnyPathType:
         """
@@ -1377,9 +1385,9 @@ class SarProduct(Product):
 
         Args:
             dem_path (str): DEM path, using EUDEM/MERIT DEM if none
-            pixel_size (Union[float, tuple]): Pixel size in meters. If not specified, use the product pixel size.
+            pixel_size (float | tuple): Pixel size in meters. If not specified, use the product pixel size.
             resampling (Resampling): Resampling method
-            size (Union[tuple, list]): Size of the array (width, height). Not used if pixel_size is provided.
+            size (tuple | list): Size of the array (width, height). Not used if pixel_size is provided.
         Returns:
             AnyPathType: Hillshade mask path
         """

@@ -20,10 +20,8 @@ More info `here <https://egeos.my.salesforce.com/sfc/p/#1r000000qoOc/a/69000000J
 
 import logging
 import os
-import tempfile
 from datetime import datetime
 from enum import unique
-from typing import Union
 from pathlib import Path
 
 import geopandas as gpd
@@ -250,7 +248,7 @@ class CosmoProduct(SarProduct):
                 f"{self.product_type.value} product type is not available for {self.name}"
             )
 
-    def get_datetime(self, as_datetime: bool = False) -> Union[str, datetime]:
+    def get_datetime(self, as_datetime: bool = False) -> str | datetime:
         """
         Get the product's acquisition datetime, with format :code:`YYYYMMDDTHHMMSS` <-> :code:`%Y%m%dT%H%M%S`
 
@@ -268,7 +266,7 @@ class CosmoProduct(SarProduct):
             as_datetime (bool): Return the date as a datetime.datetime. If false, returns a string.
 
         Returns:
-             Union[str, datetime.datetime]: Its acquisition datetime
+             str | dt.datetime: Its acquisition datetime
         """
         if self.datetime is None:
             # Get MTD XML file
@@ -390,7 +388,7 @@ class CosmoProduct(SarProduct):
                                 global_attr.append(
                                     E(xml_attr, path.get_filename(self._img_path))
                                 )
-                    
+
                     if "S01" in netcdf_ds.groups and netcdf_ds.groups["S01"].variables:
                         try:
                             # CSK products
@@ -534,8 +532,10 @@ class CosmoProduct(SarProduct):
                 )
 
                 pp_swath_path = []
-                import h5netcdf
                 import tempfile
+
+                import h5netcdf
+
                 from eoreader.reader import Reader
 
                 with h5netcdf.File(str(self._img_path), phony_dims="access") as raw_h5:
@@ -547,7 +547,9 @@ class CosmoProduct(SarProduct):
                                 tmp_dir, f"{path.get_filename(self._img_path)}.h5"
                             )
 
-                            with h5netcdf.File(prod_path, "w", phony_dims="access") as out_h5:
+                            with h5netcdf.File(
+                                prod_path, "w", phony_dims="access"
+                            ) as out_h5:
                                 # Copy root attributes
                                 out_h5.attrs.update(raw_h5.attrs)
                                 # SNAP requires S01
@@ -557,7 +559,9 @@ class CosmoProduct(SarProduct):
                                 grp_out.attrs.update(raw_h5.groups[group].attrs)
 
                                 # Copy variables
-                                for var_name, var in raw_h5.groups[group].variables.items():
+                                for var_name, var in raw_h5.groups[
+                                    group
+                                ].variables.items():
                                     grp_out.create_variable(
                                         f"/{new_group}/{var_name}",
                                         dimensions=var.dimensions,
@@ -568,26 +572,34 @@ class CosmoProduct(SarProduct):
                                     grp_out.variables[var_name].attrs.update(var.attrs)
 
                                 # Copy nested groups correctly
-                                for subgrp_name, subgrp in raw_h5.groups[group].groups.items():
+                                for subgrp_name, subgrp in raw_h5.groups[
+                                    group
+                                ].groups.items():
                                     new_subgrp = grp_out.create_group(subgrp_name)
                                     new_subgrp.attrs.update(subgrp.attrs)
 
-                            LOGGER.info(f"Created seperated .h5 for swath {group}: {prod_path}")
+                            LOGGER.info(
+                                f"Created seperated .h5 for swath {group}: {prod_path}"
+                            )
 
                             # Pre-process individual swath
-                            swath_prod = Reader().open(tmp_dir)      # new product built from the swath HDF only
+                            swath_prod = Reader().open(
+                                tmp_dir
+                            )  # new product built from the swath HDF only
 
                             # --- Now preprocess this *independent* product ---
                             pp_swath = swath_prod._pre_process_sar(
                                 pre_processed_path,
                                 band,
                                 prod_path=prod_path,
-                                suffix=group,   # S01, S02, S03...
+                                suffix=group,  # S01, S02, S03...
                                 **kwargs,
                             )
 
                             # Rename swath output file
-                            swath_path = Path(pp_swath).with_name(f"{Path(pp_swath).stem}_{group}.tif")
+                            swath_path = Path(pp_swath).with_name(
+                                f"{Path(pp_swath).stem}_{group}.tif"
+                            )
                             Path(pp_swath).rename(swath_path)
                             pp_swath_path.append(swath_path)
                             LOGGER.info(f"Generated swath {group}: {swath_path}")
@@ -624,7 +636,7 @@ class CosmoProduct(SarProduct):
                         pp_path,
                         nodata=self._snap_no_data,
                         predictor=self._get_predictor(),
-                        driver="GTiff", # SNAP doesn't handle COGs very well apparently
+                        driver="GTiff",  # SNAP doesn't handle COGs very well apparently
                     )
 
                 return pp_path

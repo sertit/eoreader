@@ -5,6 +5,7 @@
     <sources/>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <file>${file}</file>
+      <formatName>SENTINEL-1</formatName>
     </parameters>
   </node>
   <node id="Subset">
@@ -24,10 +25,44 @@
       <copyMetadata>true</copyMetadata>
     </parameters>
   </node>
+  <node id="Apply-Orbit-File">
+    <operator>Apply-Orbit-File</operator>
+    <sources>
+      <sourceProduct refid="Subset"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <orbitType>Sentinel Precise (Auto Download)</orbitType>
+      <polyDegree>3</polyDegree>
+      <continueOnFail>true</continueOnFail>
+    </parameters>
+  </node>
+  <node id="ThermalNoiseRemoval">
+    <operator>ThermalNoiseRemoval</operator>
+    <sources>
+      <sourceProduct refid="Apply-Orbit-File"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations/>
+      <removeThermalNoise>true</removeThermalNoise>
+      <outputNoise>false</outputNoise>
+      <reIntroduceThermalNoise>false</reIntroduceThermalNoise>
+    </parameters>
+  </node>
+  <node id="Remove-GRD-Border-Noise">
+    <operator>Remove-GRD-Border-Noise</operator>
+    <sources>
+      <sourceProduct refid="ThermalNoiseRemoval"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <selectedPolarisations/>
+      <borderLimit>500</borderLimit>
+      <trimThreshold>0.5</trimThreshold>
+    </parameters>
+  </node>
   <node id="Calibration">
     <operator>Calibration</operator>
     <sources>
-      <sourceProduct refid="Subset"/>
+      <sourceProduct refid="Remove-GRD-Border-Noise"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -66,7 +101,7 @@
       <saveDEM>false</saveDEM>
       <saveLatLon>false</saveLatLon>
       <saveIncidenceAngleFromEllipsoid>false</saveIncidenceAngleFromEllipsoid>
-      <saveLocalIncidenceAngle>false</saveLocalIncidenceAngle>
+      <saveLocalIncidenceAngle>${write_lia}</saveLocalIncidenceAngle>
       <saveProjectedLocalIncidenceAngle>false</saveProjectedLocalIncidenceAngle>
       <saveSelectedSourceBand>true</saveSelectedSourceBand>
       <saveLayoverShadowMask>false</saveLayoverShadowMask>
@@ -81,10 +116,38 @@
       <externalAuxFile/>
     </parameters>
   </node>
+  <node id="BandSelect_LIA">
+    <operator>BandSelect</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Correction"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <bandNamePattern>.*Incidence.*</bandNamePattern>
+    </parameters>
+  </node>
+  <node id="Write_LIA">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="BandSelect_LIA"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <file>${out}</file>
+      <formatName>BEAM-DIMAP</formatName>
+    </parameters>
+  </node>
+  <node id="BandSelect">
+    <operator>BandSelect</operator>
+    <sources>
+      <sourceProduct refid="Terrain-Correction"/>
+    </sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <bandNamePattern>Sigma0.*</bandNamePattern>
+    </parameters>
+  </node>
   <node id="LinearToFromdB">
     <operator>LinearToFromdB</operator>
     <sources>
-      <sourceProduct refid="Terrain-Correction"/>
+      <sourceProduct refid="BandSelect"/>
     </sources>
     <parameters class="com.bc.ceres.binding.dom.XppDomElement">
       <sourceBands/>
@@ -103,23 +166,31 @@
   <applicationData id="Presentation">
     <Description/>
     <node id="Read">
-            <displayPosition x="32.0" y="40.0"/>
+            <displayPosition x="12.0" y="16.0"/>
     </node>
     <node id="Subset">
-      <displayPosition x="43.0" y="96.0"/>
+      <displayPosition x="36.0" y="74.0"/>
+    </node>
+    <node id="Apply-Orbit-File">
+      <displayPosition x="31.0" y="119.0"/>
+    </node>
+    <node id="ThermalNoiseRemoval">
+      <displayPosition x="24.0" y="164.0"/>
+    </node>
+    <node id="Remove-GRD-Border-Noise">
+      <displayPosition x="47.0" y="213.0"/>
     </node>
     <node id="Calibration">
-      <displayPosition x="74.0" y="150.0"/>
+      <displayPosition x="166.0" y="260.0"/>
     </node>
     <node id="Terrain-Correction">
-      <displayPosition x="183.0" y="244.0"/>
+      <displayPosition x="266.0" y="296.0"/>
     </node>
     <node id="LinearToFromdB">
-      <displayPosition x="386.0" y="290.0"/>
+      <displayPosition x="425.0" y="304.0"/>
     </node>
     <node id="Write">
-            <displayPosition x="584.0" y="312.0"/>
+            <displayPosition x="589.0" y="316.0"/>
     </node>
   </applicationData>
 </graph>
-

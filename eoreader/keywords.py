@@ -30,6 +30,7 @@ __all__ = [
     "TO_REFLECTANCE",
     "ASSOCIATED_BANDS",
     "WRITE_LIA_KW",
+    "EXO_KW",
 ]
 
 SLSTR_RAD_ADJUST = "slstr_radiance_adjustment"
@@ -86,6 +87,11 @@ Convert optical data to reflectance or brightness temperature (default is :code:
 ASSOCIATED_BANDS = "associated_bands"
 """
 Associated spectral band to the wanted mask, used for Sentinel-2 and Sentinel-2 Theia, for masks that are band-specific.
+"""
+
+EXO_KW = "exo"
+"""
+Set the exo data arguments.
 """
 
 

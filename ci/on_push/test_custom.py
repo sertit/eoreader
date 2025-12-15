@@ -2,10 +2,11 @@
 
 import logging
 import os
+import tempfile
 
 import pytest
 from rasterio.windows import Window
-from sertit import ci
+from sertit import AnyPath, ci
 
 from ci.scripts_utils import (
     READER,
@@ -206,3 +207,29 @@ def test_custom_condensed_name():
         condensed_name="my_custom_stack",
     )
     ci.assert_val(prod.condensed_name, "my_custom_stack", "Custom condensed name")
+
+
+@s3_env
+def test_custom_gain_offset():
+    """Gain and Offset for Custom Stacks with an index (BITM)"""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        opt_stack = others_path() / "PHR_PR_20160105_mspan_stereo2_ORTHO_small.tif"
+        output_stack = others_path() / "PHR_PR_20160105_custom_stack.tif"
+
+        tmp_custom_stack = AnyPath(tmp_dir) / "PHR_PR_20160105_custom_stack.tif"
+        prod = READER.open(
+            opt_stack,
+            custom=True,
+            sensor_type="OPTICAL",
+            band_map={"RED": 1, "GREEN": 2, "BLUE": 3, "NIR": 4},
+            remove_tmp=True,
+        )
+
+        prod.stack(
+            [RED, GREEN, BLUE, NIR, "BITM"],
+            stack_path=tmp_custom_stack,
+            gain=10000,
+            bias=0,
+        )
+
+        ci.assert_raster_max_mismatch(tmp_custom_stack, output_stack)

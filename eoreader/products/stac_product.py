@@ -85,9 +85,12 @@ class StacProduct(Product):
         Returns:
             gpd.GeoDataFrame: Extent in UTM
         """
+        extent_geom = geometry.from_bounds_to_polygon(*self.item.bbox)
+        if not isinstance(extent_geom, list):
+            extent_geom = [extent_geom]
         # Get extent
         return gpd.GeoDataFrame(
-            geometry=geometry.from_bounds_to_polygon(*self.item.bbox),
+            geometry=extent_geom,
             crs=vectors.EPSG_4326,
         ).to_crs(self.crs())
 
@@ -109,11 +112,18 @@ class StacProduct(Product):
         Returns:
             gpd.GeoDataFrame: Footprint as a GeoDataFrame
         """
-        # Get extent
-        return gpd.GeoDataFrame.from_dict(
-            data=shapely.polygons(self.item.geometry["coordinates"]),
-            crs=vectors.EPSG_4326,
-        ).to_crs(self.crs())
+        # Get footprint
+        try:
+            footprint = gpd.GeoDataFrame.from_dict(
+                data=shapely.polygons(self.item.geometry["coordinates"]),
+                crs=vectors.EPSG_4326,
+            )
+        except ValueError:
+            footprint = gpd.GeoDataFrame(
+                geometry=shapely.polygons(self.item.geometry["coordinates"]),
+                crs=vectors.EPSG_4326,
+            )
+        return footprint.to_crs(self.crs())
 
     @cache
     def crs(self) -> crs.CRS:
@@ -131,7 +141,10 @@ class StacProduct(Product):
                 crs=vectors.EPSG_4326,
             ).estimate_utm_crs()
         else:
-            def_crs = crs.CRS.from_epsg(code=epsg)
+            try:
+                def_crs = crs.CRS.from_epsg(code=epsg)
+            except ValueError:
+                def_crs = crs.CRS.from_string(epsg)
 
         return def_crs
 
