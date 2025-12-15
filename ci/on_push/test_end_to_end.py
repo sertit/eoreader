@@ -6,10 +6,11 @@ import shutil
 import sys
 import tempfile
 
+import numpy as np
 import pytest
 import xarray as xr
 from rasterio.enums import Resampling
-from sertit import AnyPath, path
+from sertit import AnyPath, ci, path
 
 from ci.scripts_utils import (
     CI_EOREADER_S3,
@@ -210,6 +211,11 @@ def _test_core(
                     resamplig=Resampling.bilinear,
                     **kwargs,
                 )
+
+                with pytest.raises(AssertionError):
+                    mean_val = stack.mean().data
+                    ci.assert_val(mean_val, np.nan, "Content")
+                    LOGGER.info(f"Mean stack value: {mean_val}")
                 assert_is_cog(curr_path)
 
                 # Load a band with the size option
@@ -220,6 +226,11 @@ def _test_core(
                     clean_optical="clean",
                     **kwargs,
                 )[first_band]
+
+                with pytest.raises(AssertionError):
+                    mean_val_arr = band_arr.mean().data
+                    ci.assert_val(mean_val_arr, np.nan, "Content")
+                    LOGGER.info(f"Mean load value: {mean_val_arr}")
             prod.clear()
 
 

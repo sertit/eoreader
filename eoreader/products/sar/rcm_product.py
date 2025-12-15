@@ -210,7 +210,11 @@ class RcmProduct(SarProduct):
 
             extent_wgs84 = product_kml[product_kml.Name == "Polygon Outline"].envelope
 
-        except (IndexError, StopIteration):
+            if extent_wgs84.empty:
+                raise ValueError(
+                    "Something went wrong when reading the 'mapOverlay.kml' file"
+                )
+        except (IndexError, StopIteration, ValueError):
             # Some RCM products don't have any mapOverlay.kml file as it is not a mandatory file!
             extent_wgs84 = self._fallback_wgs84_extent("preview/mapOverlay.kml")
 

@@ -426,7 +426,13 @@ class Rs2Product(SarProduct):
                 product_kml = vectors.read(extent_file)
 
             extent_wgs84 = product_kml[product_kml.Name == "Polygon Outline"].envelope
-        except (IndexError, StopIteration):
+
+            if extent_wgs84.empty:
+                raise ValueError(
+                    "Something went wrong when reading the 'product.kml' file"
+                )
+
+        except (IndexError, StopIteration, ValueError):
             # Some RS2 products don't have any product.kml file as it is not a mandatory file!
             extent_wgs84 = self._fallback_wgs84_extent("product.kml")
 

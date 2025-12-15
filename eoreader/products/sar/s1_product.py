@@ -255,6 +255,11 @@ class S1Product(SarProduct):
                     # raise to be caught by fallback
                     raise InvalidProductError
 
+            if extent_wgs84.empty:
+                raise ValueError(
+                    "Something went wrong when reading the 'map-overlay.kml' file"
+                )
+
         except Exception:
             # Sometimes, map-overlay.kml of S1 products cannot be read properly
             extent_wgs84 = self._fallback_wgs84_extent("preview/map-overlay.kml")

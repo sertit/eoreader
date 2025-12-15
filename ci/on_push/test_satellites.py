@@ -342,6 +342,9 @@ def check_stack(
     )
     ci.assert_val(stack.dtype, np.float32, "dtype")
 
+    with pytest.raises(AssertionError):
+        ci.assert_val(stack.mean().data, np.nan, "Content")
+
     # Check attributes
     check_attrs(prod, stack, long_name=" ".join(to_str(stack_bands)))
 
