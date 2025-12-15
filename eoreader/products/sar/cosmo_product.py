@@ -37,6 +37,7 @@ from shapely.geometry import Polygon, box
 
 from eoreader import DATETIME_FMT, EOREADER_NAME, cache, utils
 from eoreader.exceptions import InvalidProductError
+from eoreader.keywords import WRITE_LIA_KW
 from eoreader.products import SarProduct, SarProductType
 from eoreader.products.product import OrbitDirection
 
@@ -608,6 +609,7 @@ class CosmoProduct(SarProduct):
 
                     try:
                         pp_ds = [rasterio.open(str(p)) for p in pp_swath_path]
+                        kwargs.pop(WRITE_LIA_KW, None)
                         merged_array, merged_transform = merge.merge(pp_ds, **kwargs)
                         merged_meta = pp_ds[0].meta.copy()
                         merged_meta.update(
