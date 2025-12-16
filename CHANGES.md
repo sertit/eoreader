@@ -38,6 +38,7 @@
 - CI: Add some exception to coverage and add the report back into artifacts
 - DEPS: Test on SNAP 12 and 13 [#213](https://github.com/sertit/eoreader/issues/213)
 - DEPS: Drop support for Python 3.9 [#175](https://github.com/sertit/eoreader/issues/175)
+- DEPS: Revamp deps
 - DOC: Add a CITATION file [#262](https://github.com/sertit/eoreader/issues/262)
 
 ## 0.22.4 (2025-07-07)
