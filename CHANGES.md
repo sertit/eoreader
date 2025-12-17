@@ -36,6 +36,7 @@
 - OPTIM: Allow predictor = 3 with LZW compression when saving SAR intermediate data as SNAP handles it properly now. [#173](https://github.com/sertit/eoreader/issues/173)
 - CI: Filter some warnings in pytest
 - CI: Add some exception to coverage and add the report back into artifacts
+- CI: Add weekly tests on Python 3.13 and 3.14
 - DEPS: Test on SNAP 12 and 13 [#213](https://github.com/sertit/eoreader/issues/213)
 - DEPS: Drop support for Python 3.9 [#175](https://github.com/sertit/eoreader/issues/175)
 - DEPS: Revamp deps
