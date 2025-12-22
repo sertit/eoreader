@@ -645,13 +645,20 @@ class S3Product(OpticalProduct):
                 resampler = XArrayResamplerNN(swath_def, area_def, self.pixel_size * 3)
                 resampler.get_neighbour_info()
 
-                # From 08/2019, still true in 01/2025
-                # https://github.com/pytroll/pyresample/issues/206#issuecomment-520971930
-                # XArrayResamplerNN is using "pykdtree which is faster than scipy and uses OpenMP, but is not dask or multi-process friendly otherwise"
-                # Workaround is to force dask computation with multithreads scheduler
-                band_arr_resampled = resampler.get_sample_from_neighbour_info(
-                    band_arr.squeeze(), fill_value=nodata
-                ).load(scheduler="threads")
+                # Sometimes, some weird multithread errors happen
+                # SystemError: Objects/tupleobject.c:927: bad argument to internal function
+                try:
+                    # From 08/2019, still true in 01/2025
+                    # https://github.com/pytroll/pyresample/issues/206#issuecomment-520971930
+                    # XArrayResamplerNN is using "pykdtree which is faster than scipy and uses OpenMP, but is not dask or multi-process friendly otherwise"
+                    # Workaround is to force dask computation with multithreads scheduler
+                    band_arr_resampled = resampler.get_sample_from_neighbour_info(
+                        band_arr.squeeze(), fill_value=nodata
+                    ).load(scheduler="threads")
+                except SystemError:
+                    band_arr_resampled = resampler.get_sample_from_neighbour_info(
+                        band_arr.squeeze().load(), fill_value=nodata
+                    ).load(scheduler="threads")
 
             # Resampling Bilinear
             else:
