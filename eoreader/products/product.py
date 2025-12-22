@@ -2785,6 +2785,7 @@ class Product:
             resampling=resampling,
             nodata=self._raw_nodata,
             num_threads=utils.get_max_cores(),
+            extent=self.extent(),
             vcrs=vcrs,
             **kwargs,
         ).rename(f"Reprojected stack of {self.name}")
