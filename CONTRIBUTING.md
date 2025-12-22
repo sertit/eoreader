@@ -51,3 +51,12 @@ Releases are made by tagging a commit on the master branch. To make a new releas
 * Ensure you correctly updated `README.md` and `CHANGES.md`
 * Check that the version string in `eoreader/__meta__.py` (the variable `__version__`) is correctly updated
 * Push your local master branch to remote.
+
+### Update notebooks
+
+* Run the notebooks in a dedicated docker container that points to the data.
+* Be sure you have the latest version of EOReader installed (why not installing it in editable mode) `pip install -e /home/data/_EXTRACTEO/eoreader`
+* `cd /home/data/_EXTRACTEO/eoreader`
+* Run sphinx (here with 14 CPUs) `sphinx-build docs docs/_build/html -E -j 14`
+* Zip the `eoreader/docs/_build.jupyter_cache` folder 
+* Place it where the path given by the `JUPYTER_CACHE_URL` environment variable points (used in the `readthedocs.yml` file)
