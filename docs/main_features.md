@@ -156,6 +156,7 @@ Some additional arguments can be passed to this function, please see {meth}`~eor
 - Methods to clean optical bands are best described [here](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html),
 - Sentinel-3 additional keywords use is highlighted in the [corresponding notebook](https://eoreader.readthedocs.io/latest/notebooks/sentinel-3.html).
 - Windows can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/latest/notebooks/windowed_reading.html)).
+- Exogenous data can be passed to the `load` and `stack` functions ([notebook](https://eoreader.readthedocs.io/latest/notebooks/exogenous_data.html)).
 
 💡 The bands will be opened with a chunk of `[1, TILE_SIZE, TILE_SIZE]` with `TILE_SIZE` coming from the 
 [`EOREADER_TILE_SIZE` environment variable](https://eoreader.readthedocs.io/latest/api/eoreader.env_vars.TILE_SIZE.html#eoreader.env_vars.TILE_SIZE). 

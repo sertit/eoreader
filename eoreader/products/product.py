@@ -1261,14 +1261,12 @@ class Product:
 
         # Load, collocate and add exogenous data layers
         if exo_dict:
-            LOGGER.info(f"Loading bands {str(exo_dict)}")
+            LOGGER.info("Loading exogenous bands")
             exo_band_dict = self._load_exo(
                 exo_dict, pixel_size=pixel_size, size=size, **kwargs
             )
-            LOGGER.debug("Collocating EXO bands")
-            exo_band_dict = self._collocate_bands(exo_band_dict)
-            LOGGER.debug("Append EXO bands at the end of current band_dict")
             bands_dict.update(exo_band_dict)
+            bands_dict = self._collocate_bands(bands_dict)
 
         # Build and return xarray dataset
         return xr.Dataset(
@@ -1511,15 +1509,22 @@ class Product:
         Returns:
             dict: Dictionary {band_name, band_xarray}
         """
+        default_resampler = Resampling.bilinear
         exo_bands = {}
         if exo_dict:
             for exo_key in exo_dict:
                 exo_data = exo_dict[exo_key]
                 LOGGER.debug(f"EXO data info: {exo_key} ; {exo_data}")
                 # Resampling method (to adapt data sampling)
-                resampling = Resampling.bilinear
-                if "resampler" in exo_data and "nearest" in exo_data["resampler"]:
-                    resampling = Resampling.nearest
+                resampling = exo_data.get("resampler", default_resampler)
+                if resampling is None:
+                    resampling = default_resampler
+                else:
+                    try:
+                        resampling = Resampling(resampling)
+                    except ValueError:
+                        resampling = getattr(Resampling, resampling)
+
                 # Select band index (to manage multi layer data)
                 band_idxs = [1]
                 if "bandnumber" in exo_data:

@@ -7,6 +7,7 @@
    sentinel-3
    custom
    dem
+   exogenous_data
    water_detection
    optical_cleaning_methods
    windowed_reading

@@ -126,6 +126,7 @@ Available notebooks provided as examples:
 - [Water detection on multiple products](https://eoreader.readthedocs.io/latest/notebooks/water_detection.html)
 - [Windowed Reading](https://eoreader.readthedocs.io/latest/notebooks/windowed_reading.html)
 - [DEM](https://eoreader.readthedocs.io/latest/notebooks/dem.html)
+- [Exogenous data](https://eoreader.readthedocs.io/latest/notebooks/exogenous_data.html)
 - [Custom stacks](https://eoreader.readthedocs.io/latest/notebooks/custom.html)
 - [Methods to clean optical bands](https://eoreader.readthedocs.io/latest/notebooks/optical_cleaning_methods.html)
 - [AWS storage](https://eoreader.readthedocs.io/latest/notebooks/aws.html)
