@@ -2694,7 +2694,7 @@ class Product:
             archive_path = self.path
 
         return vectors.read(
-            vector_path=archive_path,
+            archive_path,
             crs=crs,
             archive_regex=archive_regex,
             window=window,
