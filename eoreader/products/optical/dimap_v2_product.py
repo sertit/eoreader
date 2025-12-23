@@ -1019,9 +1019,14 @@ class DimapV2Product(VhrProduct):
                 )
 
             # Create mask xarray
-            mask = def_xarr.copy(
-                data=xr.where(mask_arr, self._mask_true, self._mask_false)
-            ).astype(np.uint8)
+            mask = (
+                def_xarr.copy(
+                    data=xr.where(mask_arr, self._mask_true, self._mask_false)
+                )
+                .fillna(self._mask_nodata)
+                .astype(np.uint8)
+            )
+            mask.rio.write_nodata(self._mask_nodata, inplace=True)
             mask.encoding["dtype"] = np.uint8
 
             # Rename

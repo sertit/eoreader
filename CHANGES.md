@@ -34,6 +34,7 @@
 - FIX: Fix STAC product geometry with MPC [#277](https://github.com/sertit/eoreader/issues/277)
 - FIX: Add fallback behavior with empty KML files for SAR data
 - FIX: Fix loss of CRS when loading clouds from Sentinel-2 L2A 
+- FIX: Force nodata when opening Dimap V2 masks
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - OPTIM: Allow predictor = 3 with LZW compression when saving SAR intermediate data as SNAP handles it properly now. [#173](https://github.com/sertit/eoreader/issues/173)
 - CI: Filter some warnings in pytest
