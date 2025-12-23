@@ -573,7 +573,7 @@ class CustomProduct(Product):
 
     def _get_condensed_name(self) -> str:
         """
-        Get products condensed name ({acq_datetime}_{constellation}_{product_type}).
+        Get products condensed name ({acq_datetime}_{constellation}_{product_type}_{id}).
 
         Returns:
             str: Condensed name

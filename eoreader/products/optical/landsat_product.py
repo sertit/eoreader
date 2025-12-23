@@ -1621,7 +1621,7 @@ class LandsatProduct(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get products condensed name ({date}_Lx{instrument}_{tile}_{product_type}).
+        Get Landsat products condensed name ({date}_{constellation}_{tile}_{instrument}).
 
         Returns:
             str: Condensed Landsat name

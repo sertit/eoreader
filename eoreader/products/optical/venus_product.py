@@ -627,7 +627,7 @@ class VenusProduct(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get products condensed name ({date}_VENUS_{tile]_{product_type}).
+        Get Venus condensed name ({date}_VENUS_{tile}_{product_type}).
 
         Returns:
             str: Condensed name

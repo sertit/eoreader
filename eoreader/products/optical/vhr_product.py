@@ -376,7 +376,7 @@ class VhrProduct(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get PlanetScope products condensed name ({date}_PLD_{product_type}_{band_combi}).
+        Get VHR products condensed name ({date}_{constellation}_{product_type}_{band_combi}_{job_id}).
 
         Returns:
             str: Condensed name

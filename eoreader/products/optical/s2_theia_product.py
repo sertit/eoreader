@@ -847,7 +847,7 @@ class S2TheiaProduct(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get products condensed name ({date}_S2THEIA_{tile]_{product_type}).
+        Get S2THEIA condensed name ({date}_S2THEIA_{tile]_{product_type}).
 
         Returns:
             str: Condensed name

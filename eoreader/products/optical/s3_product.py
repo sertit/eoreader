@@ -698,7 +698,7 @@ class S3Product(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get S3 products condensed name ({date}_S3_{tile]_{product_type}).
+        Get S3 products condensed name ({date}_S3_{data_type}).
 
         Returns:
             str: Condensed name

@@ -698,7 +698,7 @@ class Spot45Product(DimapV1Product):
 
     def _get_condensed_name(self) -> str:
         """
-        Get PlanetScope products condensed name ({date}_PLD_{product_type}_{band_combi}).
+        Get PlanetScope products condensed name ({date}_{constellation}_{product_type}_{band_combi}).
 
         Returns:
             str: Condensed name

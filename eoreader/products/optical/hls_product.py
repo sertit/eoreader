@@ -922,7 +922,7 @@ class HlsProduct(OpticalProduct):
 
     def _get_condensed_name(self) -> str:
         """
-        Get products condensed name ({date}_Lx{instrument}_{tile}_{product_type}).
+        Get HLS products condensed name ({date}_{constellation}_{product_type}_{tile}).
 
         Returns:
             str: Condensed Landsat name
