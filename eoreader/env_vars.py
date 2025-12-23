@@ -67,16 +67,16 @@ If set (to 1) and :code:`dask` is installed, EOReader will read products as dask
 
 TILE_SIZE = "EOREADER_TILE_SIZE"
 """
-If set, overrides the default tile size used in chunking (1024 by default, i.e. default chunk is {"band": 1, "x": 1024, "y": 1024}).
+If set, overrides the default tile size used in chunking (1024 by default, i.e. default chunk is :code:`{"band": 1, "x": 1024, "y": 1024}`).
 Only used if :code:`EOREADER_USE_DASK` is set to 1.
-If 'auto' is set, the value passed as chunks will be 'auto'.
+If 'auto' is set, the value passed as chunks will be :code:`'auto'`.
 """
 
 NOF_BANDS_IN_CHUNKS = "EOREADER_NOF_BANDS_IN_CHUNKS"
 """
-If set, overrides the default number of bands to be considered used in chunking (1 by default, i.e. default chunk is {"band": 1, "x": 1024, "y": 1024}).
+If set, overrides the default number of bands to be considered used in chunking (1 by default, i.e. default chunk is :code:`{"band": 1, "x": 1024, "y": 1024}`).
 Only used if :code:`EOREADER_USE_DASK` is set to 1.
-Not used in case of :code:`EOREADER_USE_DASK` set as 'auto'.
+Not used in case of :code:`EOREADER_USE_DASK` set as :code:`'auto'`.
 """
 
 BAND_RESAMPLING = "EOREADER_BAND_RESAMPLING"
@@ -85,21 +85,22 @@ Overrides the default resampling (bilinear) used when loading bands.
 Note that for discrete files such as masks, the nearest resampling is set in stone.
 
 Available values (use the number and see rasterio's Resampling for more details and limitations):
-- nearest = 0
-- bilinear = 1
-- cubic = 2
-- cubic_spline = 3
-- lanczos = 4
-- average = 5
-- mode = 6
-- gauss = 7
-- max = 8
-- min = 9
-- med = 10
-- q1 = 11
-- q3 = 12
-- sum = 13
-- rms = 14
+
+- :code:`nearest = 0`
+- :code:`bilinear = 1`
+- :code:`cubic = 2`
+- :code:`cubic_spline = 3`
+- :code:`lanczos = 4`
+- :code:`average = 5`
+- :code:`mode = 6`
+- :code:`gauss = 7`
+- :code:`max = 8`
+- :code:`min = 9`
+- :code:`med = 10`
+- :code:`q1 = 11`
+- :code:`q3 = 12`
+- :code:`sum = 13`
+- :code:`rms = 14`
 
 Examples:
 
@@ -117,7 +118,9 @@ DEFAULT_DRIVER = "EOREADER_DEFAULT_DRIVER"
 """
 Default driver for writing files on disk. 
 Especially useful for intermediary files. 
+
 Default is :code:`COG`. 
+
 See GDAL supported raster drivers for more information: https://gdal.org/en/stable/drivers/raster/index.html
 """
 
@@ -129,5 +132,5 @@ Keep legacy resolution in band name (:code:`1000-00m` instead of :code:`1000m`, 
 FIX_MAXAR = "EOREADER_FIX_MAXAR"
 """
 Fix faulty Maxar product (corrupted shapes in metadata). 
-This requires an alteration of the raw data, hence the possibility to block it by setting this environment variable to 0.
+This requires an alteration of the raw data, hence the possibility to block it by setting this environment variable to :code:`'0'`.
 """

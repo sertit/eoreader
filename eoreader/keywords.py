@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Additional keywords for EOReader used in :code:`load` or  :code:`stack`"""
+"""Additional keywords for EOReader used in :code:`load` or :code:`stack`"""
 
 import sys
 
@@ -34,13 +34,13 @@ __all__ = [
 ]
 
 SLSTR_RAD_ADJUST = "slstr_radiance_adjustment"
-""" SLSTR radiance adjustment, please see  :code:`eoreader.products.optical.s3_slstr_product.SlstrRadAdjust`"""
+""" SLSTR radiance adjustment, please see :py:class:`eoreader.products.optical.s3_slstr_product.SlstrRadAdjust`"""
 
 SLSTR_STRIPE = "slstr_stripe"
-""" SLSTR stripe, please see  :code:`eoreader.products.optical.s3_slstr_product.SlstrStripe`"""
+""" SLSTR stripe, please see :py:class:`eoreader.products.optical.s3_slstr_product.SlstrStripe`"""
 
 SLSTR_VIEW = "slstr_view"
-""" SLSTR view, please see  :code:`eoreader.products.optical.s3_slstr_product.SlstrView`"""
+""" SLSTR view, please see :py:class:`eoreader.products.optical.s3_slstr_product.SlstrView`"""
 
 CLEAN_OPTICAL = "clean_optical"
 """
@@ -56,17 +56,17 @@ Interpolate nodata pixels that can be found inside the footprint
 
 DEM_KW = "dem"
 """
-Set a DEM path when specifically loading the :code:`DEM` band, used to overload the :code:`DEM_PATH` environment variable.
+Set a DEM path when specifically loading the :code:`DEM` band, used to overload the :py:const:`eoreader.env_vars.DEM_PATH` environment variable.
 """
 
 SLOPE_KW = "slope_dem"
 """
-Set a DEM path when specifically loading the :code:`SLOPE` band, used to overload the :code:`DEM_PATH` environment variable.
+Set a DEM path when specifically loading the :code:`SLOPE` band, used to overload the :py:const:`eoreader.env_vars.DEM_PATH` environment variable.
 """
 
 HILLSHADE_KW = "hillshade_dem"
 """
-Set a DEM path when specifically loading the :code:`HILLSHADE` band, used to overload the :code:`DEM_PATH` environment variable.
+Set a DEM path when specifically loading the :code:`HILLSHADE` band, used to overload the :py:const:`eoreader.env_vars.DEM_PATH` environment variable.
 """
 
 WRITE_LIA_KW = "write_lia"
