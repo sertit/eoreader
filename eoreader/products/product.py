@@ -29,7 +29,6 @@ import shutil
 import tempfile
 from abc import abstractmethod
 from enum import unique
-from io import BytesIO
 
 import geopandas as gpd
 import numpy as np
@@ -2501,10 +2500,22 @@ class Product:
         LOGGER.debug(f"No quicklook available for {self.constellation.value} data!")
         return None
 
-    def plot(self) -> None:
+    def plot(self, nodata: float = None, **kwargs) -> None:
         """
-        Plot the quicklook if existing
+        Plot the quicklook if existing.
+
+        - Using :code:`xarray.plot.imshow` for RGB quicklooks
+        - Using :code:`xarray.plot` for single band quicklooks (default colormap is :code:`mako`)
+
+        :code:`robust` is set to True by default.
+
+        Args:
+            nodata (float): Nodata value
+            **kwargs: Other arguments that can be passed to :code:`xarray.plot.plot` or :code:`xarray.plot.imshow`
         """
+        cmap = kwargs.pop("cmap", "mako")
+        robust = kwargs.pop("robust", True)
+
         try:
             import matplotlib.pyplot as plt
         except ModuleNotFoundError as exc:
@@ -2515,37 +2526,44 @@ class Product:
             quicklook_path = self.get_quicklook_path()
 
             if quicklook_path is not None:
-                plt.figure(figsize=(6, 6))
-                if path.get_ext(quicklook_path).lower() in ["png", "jpg", "jpeg"]:
-                    try:
-                        from PIL import Image
-                    except ModuleNotFoundError as exc:
-                        raise ModuleNotFoundError(
-                            "You need to install 'pillow' to plot the product."
-                        ) from exc
-
+                is_image = path.get_ext(quicklook_path).lower() in [
+                    "png",
+                    "jpg",
+                    "jpeg",
+                ]
+                if is_image:
                     if self.is_archived:
-                        qlk = BytesIO(
-                            self._read_archived_file(
-                                f".*{os.path.basename(quicklook_path)}"
-                            )
+                        quicklook_path = self._get_archived_rio_path(
+                            f".*{os.path.basename(quicklook_path)}"
                         )
                     else:
                         if path.is_cloud_path(quicklook_path):
                             quicklook_path = AnyPath(quicklook_path).fspath
 
-                        qlk = quicklook_path
-                    plt.imshow(Image.open(qlk))
-                else:
-                    qck = utils.read(quicklook_path)
-                    if qck.rio.count == 3:
-                        qck.plot.imshow(robust=True)
-                    elif qck.rio.count == 1:
-                        qck.plot(cmap="GnBu_r", robust=True)
-                    else:
-                        pass
+                # Read quicklook
+                qck = utils.read(quicklook_path)
 
-                plt.title(f"{self.condensed_name}")
+                # Sanitize quicklook (nodata, correct orientation)
+                if nodata is not None:
+                    qck = qck.where(qck != nodata)
+
+                if is_image:
+                    # Make the y negative coordinates positive for images (rasters are fine like that).
+                    qck = qck.assign_coords({"y": qck.y * -1})
+
+                # Plot quicklook according to the number of bands
+                plt.figure(figsize=(6, 6))
+                if qck.rio.count == 3:
+                    qck.plot.imshow(robust=robust)
+                elif qck.rio.count == 1:
+                    qck.plot(cmap=cmap, robust=robust)
+                else:
+                    LOGGER.warning(
+                        f"Your quicklook has an invalid number of bands (accepted number is 1 or 3): {qck.rio.count}"
+                    )
+                    pass
+
+                plt.title(f"Quicklook of {self.condensed_name}")
 
     @cache
     def get_orbit_direction(self) -> OrbitDirection:
