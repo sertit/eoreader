@@ -34,7 +34,6 @@
 - FIX: Add fallback behavior with empty KML files for SAR data
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - OPTIM: Allow predictor = 3 with LZW compression when saving SAR intermediate data as SNAP handles it properly now. [#173](https://github.com/sertit/eoreader/issues/173)
-- OPTIM: Don't clip data already in reflectance (assume the data has been sanitized by the producer)
 - CI: Filter some warnings in pytest
 - CI: Add some exception to coverage and add the report back into artifacts
 - CI: Add weekly tests on Python 3.13 and 3.14

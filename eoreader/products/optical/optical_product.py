@@ -345,19 +345,17 @@ class OpticalProduct(Product):
                     LOGGER.debug(f"Converting {band.name} to reflectance (if needed)")
                     band_arr = self._to_reflectance(band_arr, band_path, band)
 
-                    # Sanitize reflectance values only if raw un its have been converted into reflectance.
-                    if self._raw_units != RawUnits.REFL:
-                        # b_min = band_arr.min().data
-                        # if b_min < 0:
-                        #     LOGGER.debug(
-                        #         f"Reflectance array has negative values ({b_min} < 0): clipping negative reflectances to 0."
-                        #     )
-                        # Negative reflectances should be discarded: https://labo.obs-mip.fr/multitemp/can-surface-reflectance-be-negative
-                        # NB: Reflectances > 1 are valid, see https://forum.step.esa.int/t/toa-range-in-sentinel-2-images-between-0-an-1/3168
-                        LOGGER.debug(
-                            "Clip the reflectance array to 0 as minimum value (in some cases, reflectance can have higher value than 1)"
-                        )
-                        band_arr = band_arr.clip(min=0, keep_attrs=True)
+                    # b_min = band_arr.min().data
+                    # if b_min < 0:
+                    #     LOGGER.debug(
+                    #         f"Reflectance array has negative values ({b_min} < 0): clipping negative reflectances to 0."
+                    #     )
+                    # Negative reflectances should be discarded: https://labo.obs-mip.fr/multitemp/can-surface-reflectance-be-negative
+                    # NB: Reflectances > 1 are valid, see https://forum.step.esa.int/t/toa-range-in-sentinel-2-images-between-0-an-1/3168
+                    LOGGER.debug(
+                        "Clip the reflectance array to 0 as minimum value (in some cases, reflectance can have higher value than 1)"
+                    )
+                    band_arr = band_arr.clip(min=0, keep_attrs=True)
 
                 # Write on disk
                 try:
