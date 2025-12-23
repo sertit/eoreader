@@ -1962,8 +1962,8 @@ class S2Product(OpticalProduct):
             # 01 = “Low” = Algorithm has low to no confidence that this condition exists (0-33 percent confidence)
             # 10 = “Medium” = Algorithm has medium confidence that this condition exists (34-66 percent confidence)
             # 11 = “High” = Algorithm has high confidence that this condition exists (67-100 percent confidence
-            cloud_arr_thresh = xr.where(
-                cloud_arr > 66, self._mask_true, self._mask_false
+            cloud_arr_thresh = cloud_arr.copy(
+                data=xr.where(cloud_arr > 66, self._mask_true, self._mask_false).data
             )
 
             # Set nodata

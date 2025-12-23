@@ -21,7 +21,7 @@
 - FIX: Fix DEM management with RPC orthorectification: handle correctly the vertical CRS (see DEM notebook and `EOREADER_DEM_VCRS` environment variable). [#53](https://github.com/sertit/eoreader/issues/53)
 - FIX: Add `DISPLAY` as DIMAP-V2 radiometric processings [#249](https://github.com/sertit/eoreader/issues/249)
 - FIX: Change RADARSAT-2 file regex to identify the product, to avoid confusion with others [#250](https://github.com/sertit/eoreader/issues/250)
-- FIX: Add SGF product type for SCN sensor mode for RADARSAT-2 [#251](https://github.com/sertit/eoreader/issues/251)
+- FIX: Add `SGF` product type for `SCN` sensor mode for RADARSAT-2 [#251](https://github.com/sertit/eoreader/issues/251)
 - FIX: Precise metadata regex for SuperView data [#253](https://github.com/sertit/eoreader/issues/253)
 - FIX: Handle old DIMAP V1 data [#234](https://github.com/sertit/eoreader/issues/234)
 - FIX: Handle GCPs in VHR data
@@ -33,6 +33,7 @@
 - FIX: Manage more CSK formats - by @simone-tilia
 - FIX: Fix STAC product geometry with MPC [#277](https://github.com/sertit/eoreader/issues/277)
 - FIX: Add fallback behavior with empty KML files for SAR data
+- FIX: Fix loss of CRS when loading clouds from Sentinel-2 L2A 
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - OPTIM: Allow predictor = 3 with LZW compression when saving SAR intermediate data as SNAP handles it properly now. [#173](https://github.com/sertit/eoreader/issues/173)
 - CI: Filter some warnings in pytest

@@ -1234,7 +1234,7 @@ class Product:
                 self._load_masks(mask_list, pixel_size=pixel_size, size=size, **kwargs)
             )
 
-        # Add Clouds
+        # Add Sentinel-2 L2A specific bands
         if s2_l2a_list:
             LOGGER.debug(f"Loading Sentinel-2 L2A specific bands {to_str(s2_l2a_list)}")
             bands_dict.update(
