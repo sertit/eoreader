@@ -127,6 +127,7 @@ class S1RtcAsfProduct(SarProduct):
         Returns:
             gpd.GeoDataFrame: Extent in UTM
         """
+        # Here the footprint is "free" as it is read directly from a vector
         footprint = self.footprint()
         return gpd.GeoDataFrame(
             geometry=[box(*footprint.total_bounds)], crs=footprint.crs

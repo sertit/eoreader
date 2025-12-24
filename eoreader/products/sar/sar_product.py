@@ -430,9 +430,7 @@ class SarProduct(Product):
             gpd.GeoDataFrame: Extent in UTM
         """
         if self.is_ortho:
-            return rasters.get_extent(
-                self.get_raw_band_paths()[self.get_default_band()]
-            ).to_crs(self.crs())
+            return super().extent()
         else:
             # Get WGS84 extent
             extent_wgs84 = self.wgs84_extent()

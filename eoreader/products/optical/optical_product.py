@@ -20,7 +20,6 @@ from abc import abstractmethod
 from datetime import datetime
 from enum import unique
 
-import geopandas as gpd
 import numpy as np
 import rasterio
 import xarray as xr
@@ -192,26 +191,6 @@ class OpticalProduct(Product):
             utm = dst.crs
 
         return utm
-
-    @cache
-    def extent(self) -> gpd.GeoDataFrame:
-        """
-        Get UTM extent of the tile
-
-        .. code-block:: python
-
-            >>> from eoreader.reader import Reader
-            >>> path = r"S2A_MSIL1C_20200824T110631_N0209_R137_T30TTK_20200824T150432.SAFE.zip"
-            >>> prod = Reader().open(path)
-            >>> prod.extent()
-                                                        geometry
-            0  POLYGON ((309780.000 4390200.000, 309780.000 4...
-
-        Returns:
-            gpd.GeoDataFrame: Extent in UTM
-        """
-        # Get extent
-        return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
 
     def get_existing_bands(self) -> list:
         """

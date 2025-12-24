@@ -299,17 +299,6 @@ class CustomProduct(Product):
         return self.path
 
     @cache
-    def extent(self) -> gpd.GeoDataFrame:
-        """
-        Get UTM extent of stack.
-
-        Returns:
-            gpd.GeoDataFrame: Extent in UTM
-        """
-        # Get extent
-        return rasters.get_extent(self.get_default_band_path()).to_crs(self.crs())
-
-    @cache
     @simplify
     def footprint(self) -> gpd.GeoDataFrame:
         """

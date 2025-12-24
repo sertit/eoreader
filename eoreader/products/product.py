@@ -410,7 +410,11 @@ class Product:
         Returns:
             gpd.GeoDataFrame: Extent in UTM
         """
-        raise NotImplementedError
+        # No need to daskify this as the product is not opened.
+        def_band = rasters.read(self.get_default_band_path(), chunks=None)
+
+        # Get extent
+        return rasters.get_extent(def_band).to_crs(self.crs())
 
     @cache
     def centroid(self, in_wgs84=False) -> gpd.GeoDataFrame:
