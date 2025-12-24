@@ -573,6 +573,7 @@ def test_deprecation():
 def test_constellations():
     real_const = Constellation.get_real_constellations()
     assert Constellation.SPOT45 not in real_const
+    assert Constellation.VANTOR not in real_const
     assert Constellation.MAXAR not in real_const
     assert Constellation.CUSTOM not in real_const
     assert Constellation.S2_E84 not in real_const
@@ -582,5 +583,6 @@ def test_constellations():
     assert Constellation.S1_RTC_MPC not in real_const
 
     assert Constellation.is_real_constellation(Constellation.S2)
+    assert not Constellation.is_real_constellation(Constellation.VANTOR)
     assert not Constellation.is_real_constellation(Constellation.MAXAR)
     assert not Constellation.is_real_constellation(Constellation.S1_RTC_ASF)

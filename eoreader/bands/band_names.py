@@ -579,7 +579,7 @@ class MaskBandNames(BandNames):
     # -- DIMAP v1 --
     # None
 
-    # -- Maxar --
+    # -- Vantor --
     # None
 
     # -- Sentinel-3 --

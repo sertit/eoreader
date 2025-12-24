@@ -69,7 +69,7 @@ Hereunder are the paths meant to be given to the reader.
 | `Harmonized Landsat-Sentinel`                  | Main directory containing the `.tif` images,<br>i.e. `HLS.S30.T42RUS.2022241T060629.v2.0`                               |
 | `PlanetScope`, `SkySat` and `RapidEye`         | Directory containing the `manifest.json` file,<br>i.e. `20210406_015904_37_2407`                                        |
 | `DIMAP`<br>(Pleiades, SPOTs,<br>Vision-1, ...) | Directory containing the `.JP2` files,<br>i.e. `IMG_PHR1B_PMS_001`                                                      |
-| `Maxar`<br>(WorldViews,<br>GeoEye...)          | Directory containing the `.TIL` file,<br>i.e. `013187549010_01_P001_PSH`                                                |
+| `Vantor`<br>(WorldViews,<br>GeoEye...)         | Directory containing the `.TIL` file,<br>i.e. `013187549010_01_P001_PSH`                                                |
 | `SuperView-1`                                  | Directory containing the `.shp` file,<br>i.e. `0032100150001_01`                                                        |  
 | `GEOSAT-2`                                     | Directory containing the `.dim` file,<br>i.e. `DE2_PM4_L1C_000000_20161107T013821_20161107T013826_DE2_12927_DE02`       |
 

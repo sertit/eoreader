@@ -31,13 +31,13 @@ However, especially for SAR data, the default pixel size of GRD bands is differe
 | Vision-1                    | {meth}`~eoreader.products.optical.vis1_product.Vis1Product`        | ✅                            |
 | SPOT 4/5                    | {meth}`~eoreader.products.optical.spot45_product.Spot45Product`    | ✅                            |
 | SPOT 6/7                    | {meth}`~eoreader.products.optical.spot67_product.Spot67Product`    | ✅                            |
-| Maxar**                     | {meth}`~eoreader.products.optical.maxar_product.MaxarProduct`      | ✅                            |
+| Vantor**                     | {meth}`~eoreader.products.optical.vantor_product.VantorProduct`    | ✅                            |
 | SuperView-1                 | {meth}`~eoreader.products.optical.sv1_product.Sv1Product`          | ✅                            |
 | GEOSAT-2                    | {meth}`~eoreader.products.optical.gs2_product.Gs2Product`          | ✅                            |
 
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
 
-\*\* *Maxar satellites: Worldview Legion, 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). 
+\*\* *Vantor satellites: Worldview Legion, 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). 
 
 ```{warning}
 Satellites products that cannot be used as archived have to be extracted before use.
@@ -64,11 +64,11 @@ Satellites products that cannot be used as archived have to be extracted before 
 | Vision-1                    | PRJ & ORTP                | 0.9 m (PAN), 3.5 m (MS)               |
 | SPOT 4/5                    | L1A, L1B, L2A             | 10 m (PAN), 20 m (MS)                 |
 | SPOT 6/7                    | SEN**, PRJ, ORT & MOS     | 1.5 m (PAN), 6 m (MS)                 |
-| Maxar*                      | Standard & Ortho          | 0.3 to 0.5 m (PAN), 1.2 to 2.0 m (MS) |
+| Vantor*                      | Standard & Ortho          | 0.3 to 0.5 m (PAN), 1.2 to 2.0 m (MS) |
 | SuperView-1                 | L1B & L2A                 | 0.5 m (PAN), 2 m (MS)                 |
 | GEOSAT-2                    | L1B & L1C & L1D & L1S     | 0.4 m (PAN), 2 m (MS) for L1D data    |
 
-\* *Maxar satellites: Worldview Legion 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). 
+\* *Vantor satellites: Worldview Legion 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). 
 
 \*\* ⚠ *DIMAP SEN products are orthorectified using RPCs and not the rigorous sensor model. Shift can occur. Please refer to [this issue](https://github.com/sertit/eoreader/issues/53).*
 
@@ -184,29 +184,29 @@ The only difference with the other bands is that the cloud bands are provided in
 - {meth}`~eoreader.bands.band_names.CloudsBandNames.ALL_CLOUDS`: Cloud **OR** Cirrus **OR** Shadows presence (1) or absence (0).  
   Do not take into account missing bands (i.e. for Landsat MSS constellation, `ALL_CLOUDS` == `CLOUDS`)
 
-| Sensors                      | Cloud files | Clouds Bands                                              |
-|------------------------------|-------------|-----------------------------------------------------------|
-| Sentinel-2                   | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
-| Sentinel-2 Theia             | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
-| Vénµs                        | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
-| Sentinel-3 OLCI              | ❌           |                                                           |
-| Sentinel-3 SLSTR             | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
-| Landsat 8/9                  | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
-| Landsat 7                    | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`           |
-| Landsat 4/5 TM               | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`           |
-| Landsat 1-5 MSS              | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
-| Harmonized Landsat-Sentinel  | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
-| PlanetScope                  | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
-| SkySat                       | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
-| RapidEye                     | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
-| Pleiades                     | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
-| Pleiades-Neo                 | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
-| SPOT-4/5                     | ❌           |                                                           |
-| SPOT-6/7                     | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
-| Vision-1                     | ❌           |                                                           |
-| Maxar (GeoEye-1, WorldViews) | ❌           |                                                           |
-| SuperView-1                  | ❌           |                                                           |
-| GEOSAT-2                     | ❌           |                                                           |
+| Sensors                       | Cloud files | Clouds Bands                                              |
+|-------------------------------|-------------|-----------------------------------------------------------|
+| Sentinel-2                    | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
+| Sentinel-2 Theia              | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
+| Vénµs                         | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
+| Sentinel-3 OLCI               | ❌           |                                                           |
+| Sentinel-3 SLSTR              | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
+| Landsat 8/9                   | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
+| Landsat 7                     | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`           |
+| Landsat 4/5 TM                | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `ALL_CLOUDS`           |
+| Landsat 1-5 MSS               | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
+| Harmonized Landsat-Sentinel   | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
+| PlanetScope                   | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
+| SkySat                        | ✅           | `RAW_CLOUDS`, `CLOUDS`, `SHADOWS`, `CIRRUS`, `ALL_CLOUDS` |
+| RapidEye                      | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
+| Pleiades                      | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
+| Pleiades-Neo                  | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
+| SPOT-4/5                      | ❌           |                                                           |
+| SPOT-6/7                      | ✅           | `RAW_CLOUDS`, `CLOUDS`, `ALL_CLOUDS`                      |
+| Vision-1                      | ❌           |                                                           |
+| Vantor (GeoEye-1, WorldViews) | ❌           |                                                           |
+| SuperView-1                   | ❌           |                                                           |
+| GEOSAT-2                      | ❌           |                                                           |
 
 ### DEM bands
 
@@ -304,12 +304,12 @@ See the different MaskBandNames enums to discover all the available masks and ho
 
 ## Implemented workarounds
 
-### Corrupted shapes in Maxar products
+### Corrupted shapes in Vantor products
 
-Some Maxar products have incoherent shapes between .IMD and .TIL files (see [this issue](https://github.com/sertit/eoreader/issues/242) for more information).
+Some Vantor products have incoherent shapes between .IMD and .TIL files (see [this issue](https://github.com/sertit/eoreader/issues/242) for more information).
 EOreader applies a workaround by updating on the spot the .IMD file to allow GDAL to correctly read the product.
 
-This can be blocked by setting `EOREADER_FIX_MAXAR` to `0` (as the raw product is altered and this behavior may not be desirable).
+This can be blocked by setting `EOREADER_FIX_VANTOR` to `0` (as the raw product is altered and this behavior may not be desirable).
 
 For now it doesn't work automatically on archived or cloud-stored products. 
 
@@ -385,13 +385,14 @@ For now it doesn't work automatically on archived or cloud-stored products.
 - [SPOT-6/7 User Guide (2019)](https://earth.esa.int/eogateway/documents/20142/37627/SPOT-6-7-imagery-user-guide.pdf)
 - [Pleiades Neo](https://docs.up42.com/getting-started/data-products/pleiades-neo/)
 
-### Maxar (ex Digital Globe)
-- [Worldview Legion](https://resources.maxar.com/data-sheets/worldview-legion-2)
-- [Radiometric Use of WorldView Legion 1 and WorldView Legion 2 imagery](https://resources.maxar.com/white-papers/radiometric-use-of-worldview-legion-1-and-worldview-legion-2-imagery)
+### Vantor (ex Maxar, Digital Globe)
+- [Vantor ressources](https://vantor.com/resources)
+- [Worldview Legion](https://vantor.com/resources/worldview-legion-datasheet/)
+- [Radiometric Use of WorldView Legion](https://vantor.com/resources/radiometric-use-of-worldview-legion-imagery)
 - [Worldviews](https://earth.esa.int/eogateway/catalog/worldview-esa-archive)
-- [System-Ready Imagery](https://resources.maxar.com/optical-imagery/system-ready-imagery-data-sheet)
-- [View-Ready Imagery](https://resources.maxar.com/optical-imagery/view-ready-imagery-data-sheet)
-- [Map-Ready Imagery](https://resources.maxar.com/optical-imagery/map-ready-imagery-data-sheet)
+- [System-Ready Imagery](https://vantor.com/resources/imagery-system-ready-1b-datasheet/)
+- [View-Ready Imagery](https://vantor.com/resources/view-ready-2a-datasheet/)
+- [Map-Ready Imagery](https://vantor.com/resources/imagery-map-ready-datasheet/)
 - [ISD](https://dg-cms-uploads-production.s3.amazonaws.com/uploads/document/file/106/ISD_External.pdf)
 - [Digital Globe Standard Imagery (old)](https://earth.esa.int/eogateway/documents/20142/37627/DigitalGlobe-Standard-Imagery.pdf)
 - [Digital Globe Products Guide (old)](https://www.geosoluciones.cl/documentos/worldview/DigitalGlobe-Core-Imagery-Products-Guide.pdf)
@@ -415,7 +416,7 @@ You can find a magnificent band comparison chart on the [Imagico](http://blog.im
 
 - [Awesome Spectral Indices](https://awesome-ee-spectral-indices.readthedocs.io/en/latest/)
 - [Index consistency](https://www.indexdatabase.de/)
-- [WorldView Index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide)
+- [WorldView Index](https://resources.maxar.com/optical-imagery/multispectral-reference-guide) (old)
 - Specific sources inside the index function documentation in {meth}`~eoreader.bands.indices`
 
 *Documentation last accessed on 12/03/2025*

@@ -50,10 +50,14 @@ __all__ += [
     "DimapV2ProductType",
     "PldProduct",
     "Spot67Product",
-    "MaxarProduct",
-    "MaxarProductType",
-    "MaxarSatId",
-    "MaxarBandId",
+    "VantorProduct",
+    "VantorProductType",
+    "VantorSatId",
+    "VantorBandId",
+    "MaxarProduct",  # legacy, to be deprecated
+    "MaxarProductType",  # legacy, to be deprecated
+    "MaxarSatId",  # legacy, to be deprecated
+    "MaxarBandId",  # legacy, to be deprecated
     "Vis1Product",
     "Vis1ProductType",
     "Vis1BandCombination",
@@ -73,6 +77,14 @@ from .optical.dimap_v2_product import (
 )
 from .optical.pld_product import PldProduct
 from .optical.spot67_product import Spot67Product
+from .optical.vantor_product import (
+    VantorProduct,
+    VantorProductType,
+    VantorSatId,
+    VantorBandId,
+)
+
+# legacy, to be deprecated
 from .optical.maxar_product import (
     MaxarProduct,
     MaxarProductType,

@@ -10,6 +10,8 @@
 - **ENH: Allow exogenous data in load and stack** [#273](https://github.com/sertit/eoreader/issues/273) - by @gsalgues
 - **ENH: Export local incidence angles for SAR data** - by @simone-tilia
 - **ENH: Enhance plotting feature (remove PIL usage, manage nodata and pass kwargs to plotting functions)**
+- **ENH: Switch from Maxar to Vantor [#280](https://github.com/sertit/eoreader/issues/280)**
+- **ENH: Add Worldview-Legion calibration parameters for satellite 03 to 06 included**
 - FIX: Write intermediate data for loaded bands also for Custom stacks
 - FIX: Fix regression when stacking with a custom nodata value with VHR data to be reprojected
 - FIX: Fix an unprecedented case with a PNEO having different name than usual (`DIM_PNEO3_STD_2025...` instead of `DIM_PNEO3_2025...`)

@@ -256,13 +256,17 @@ class Constellation(ListEnum):
     SPOT45 = "Spot-4/5"
     """SPOT-4/5 (not a real constellation, but used as a template for SPOT4/5 products)"""
 
+    VANTOR = "Vantor"
+    """Vantor (not a real constellation, but used as a template for every Vantor products)"""
+
+    # legacy, to be deprecated
     MAXAR = "Maxar"
-    """Maxar (not a real constellation, but used as a template for every Maxar products)"""
+    """Legacy for Vantor constellations"""
 
     @classmethod
     def get_real_constellations(cls):
         """
-        Get only constellations of existing satellite (discard CUSTOM, templates, flavors etc.)
+        Get only constellations of existing satellites (discard CUSTOM, templates, flavors etc.)
         """
         not_real = [
             cls.S2_E84,
@@ -270,6 +274,7 @@ class Constellation(ListEnum):
             cls.S2_SIN,
             cls.S1_RTC_ASF,
             cls.S1_RTC_MPC,
+            cls.VANTOR,
             cls.MAXAR,
             cls.SPOT45,
             cls.CUSTOM,
@@ -290,7 +295,7 @@ class Constellation(ListEnum):
         return cls.convert_from(const)[0] in cls.get_real_constellations()
 
 
-_MAXAR_REGEX = r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)"
+_VANTOR_REGEX = r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)"
 
 CONSTELLATION_REGEX = {
     Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9_-]+",
@@ -336,14 +341,15 @@ CONSTELLATION_REGEX = {
     Constellation.SPOT5: r"SP05_HRG_(HM_|J__|T__|X__|TX__|HMX)__\d_\d{8}T\d{6}_\d{8}T\d{6}_.*",
     Constellation.VIS1: r"VIS1_(PAN|BUN|PSH|MS4)_.+_\d{2}-\d",
     Constellation.RCM: r"RCM\d_OK\d+_PK\d+_\d_.{4,}_\d{8}_\d{6}(_(HH|VV|VH|HV|RV|RH)){1,4}_(SLC|GRC|GRD|GCC|GCD)",
-    Constellation.QB02: _MAXAR_REGEX,
-    Constellation.GE01: _MAXAR_REGEX,
-    Constellation.WV01: _MAXAR_REGEX,
-    Constellation.WV02: _MAXAR_REGEX,
-    Constellation.WV03: _MAXAR_REGEX,
-    Constellation.WV04: _MAXAR_REGEX,
-    Constellation.WVLG: _MAXAR_REGEX,
-    Constellation.MAXAR: _MAXAR_REGEX,
+    Constellation.QB02: _VANTOR_REGEX,
+    Constellation.GE01: _VANTOR_REGEX,
+    Constellation.WV01: _VANTOR_REGEX,
+    Constellation.WV02: _VANTOR_REGEX,
+    Constellation.WV03: _VANTOR_REGEX,
+    Constellation.WV04: _VANTOR_REGEX,
+    Constellation.WVLG: _VANTOR_REGEX,
+    Constellation.MAXAR: _VANTOR_REGEX,
+    Constellation.VANTOR: _VANTOR_REGEX,
     Constellation.ICEYE: r"((SM|SL|SC|SLEA)[HW]*_\d{5,}|ICEYE_X\d_(SM|SL|SC|SLEA)H*_\d{5,}_\d{8}T\d{6})",
     Constellation.SAOCOM: r".+EOL1[ABCD]SARSAO1[AB]\d+(-product|)",
     Constellation.CAPELLA: r"CAPELLA_C\d{2}_S[PMS]_(GEO|GEC|SLC|SICD|SIDD)_(HH|VV)_\d{14}_\d{14}",
@@ -358,7 +364,7 @@ CONSTELLATION_REGEX = {
     Constellation.S1_RTC_ASF: r"S1[ABCD]_(IW|EW|SM|WV|S\d)_\d{8}T\d{6}_[DS][VH][PRO]_RTC\d{2}_.*",
 }
 
-_MAXAR_MTD_REGEX = r"\d{2}\w{3}\d{8}-.*.TIL"
+_VANTOR_MTD_REGEX = r"\d{2}\w{3}\d{8}-.*.TIL"
 
 MTD_REGEX = {
     Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9_-]+_MTD_ALL\.xml",
@@ -416,14 +422,14 @@ MTD_REGEX = {
             r"\d+_[RHV]{2}\.tif",
         ],
     },
-    Constellation.QB02: _MAXAR_MTD_REGEX,
-    Constellation.GE01: _MAXAR_MTD_REGEX,
-    Constellation.WV01: _MAXAR_MTD_REGEX,
-    Constellation.WV02: _MAXAR_MTD_REGEX,
-    Constellation.WV03: _MAXAR_MTD_REGEX,
-    Constellation.WV04: _MAXAR_MTD_REGEX,
-    Constellation.WVLG: _MAXAR_MTD_REGEX,
-    Constellation.MAXAR: _MAXAR_MTD_REGEX,
+    Constellation.QB02: _VANTOR_MTD_REGEX,
+    Constellation.GE01: _VANTOR_MTD_REGEX,
+    Constellation.WV01: _VANTOR_MTD_REGEX,
+    Constellation.WV02: _VANTOR_MTD_REGEX,
+    Constellation.WV03: _VANTOR_MTD_REGEX,
+    Constellation.WV04: _VANTOR_MTD_REGEX,
+    Constellation.WVLG: _VANTOR_MTD_REGEX,
+    Constellation.MAXAR: _VANTOR_MTD_REGEX,
     Constellation.ICEYE: r"ICEYE_(X\d{1,}_|)(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
     Constellation.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
     Constellation.CAPELLA: rf"{CONSTELLATION_REGEX[Constellation.CAPELLA]}.*\.json",
@@ -999,7 +1005,7 @@ def create_product(
     sat_class = constellation.name.lower() + "_product"
 
     # Channel correctly the constellations to their generic files (just in case)
-    # Maxar-like constellations
+    # Vantor-like constellations
     if constellation in [
         Constellation.QB02,
         Constellation.GE01,
@@ -1009,7 +1015,7 @@ def create_product(
         Constellation.WV04,
         Constellation.WVLG,
     ]:
-        sat_class = "maxar_product"
+        sat_class = "vantor_product"
         constellation = None  # All product names are the same, so assess it with MTD
     # Lansat constellations
     elif constellation in [

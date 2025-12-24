@@ -129,8 +129,14 @@ LEGACY_BAND_NAME_RESOLUTION = "EOREADER_LEGACY_BAND_NAME_RESOLUTION"
 Keep legacy resolution in band name (:code:`1000-00m` instead of :code:`1000m`, or :code:`0-50m` instead of :code:`0-5m`)
 """
 
+FIX_VANTOR = "EOREADER_FIX_VANTOR"
+"""
+Fix faulty Vantor product (corrupted shapes in metadata). 
+This requires an alteration of the raw data, hence the possibility to block it by setting this environment variable to :code:`'0'`.
+"""
+
+# legacy, to be deprecated
 FIX_MAXAR = "EOREADER_FIX_MAXAR"
 """
-Fix faulty Maxar product (corrupted shapes in metadata). 
-This requires an alteration of the raw data, hence the possibility to block it by setting this environment variable to :code:`'0'`.
+Legacy for :py:const:`FIX_VANTOR`.
 """

@@ -64,7 +64,7 @@ EOREADER_DERIVATIVES = {
     "CI32": ["CIRE", {"N": VRE_3, "RE1": VRE_2}],
     # https://github.com/awesome-spectral-indices/awesome-spectral-indices/issues/22
     "SBI": ["BIXS", {"G": RED, "R": NIR}],
-    # https://resources.maxar.com/optical-imagery/multispectral-reference-guide
+    # https://resources.maxar.com/optical-imagery/multispectral-reference-guide (disconnected...)
     "WV_WI": ["NHFD", {"RE1": WV, "A": CA}],
     "WV_VI": ["NHFD", {"RE1": WV, "A": RED}],
     # https://www.indexdatabase.de/db/i-single.php?id=204

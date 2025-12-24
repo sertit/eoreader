@@ -767,8 +767,8 @@ class OpticalProduct(Product):
         """
         Correction for the Sun-Earth distance variation
 
-        Uses ephem's function according to Maxar documentation:
-        https://resources.maxar.com/white-papers/radiometric-use-of-worldview-legion-1-and-worldview-legion-2-imagery
+        Uses ephem's function according to Vantor documentation:
+        https://vantor.com/resources/radiometric-use-of-worldview-legion-imagery/
 
         ___________
 
@@ -782,7 +782,7 @@ class OpticalProduct(Product):
          - 0.01673 is the Earth orbit eccentricity.
          - 0.0172 is the Earth angular velocity (radians/day).
 
-        This method seems to be an approximation of the one described in Maxar doc which seems to have more precision
+        This method seems to be an approximation of the one described in Vantor doc which seems to have more precision
 
         Returns:
             float: Sun-Earth distance variation
@@ -812,7 +812,7 @@ class OpticalProduct(Product):
         Compute TOA reflectance from TOA radiance
 
         See
-        `here <https://resources.maxar.com/white-papers/radiometric-use-of-worldview-legion-1-and-worldview-legion-2-imagery>`_
+        `here <https://vantor.com/resources/radiometric-use-of-worldview-legion-imagery/>`_
         for more information.
 
         Args:

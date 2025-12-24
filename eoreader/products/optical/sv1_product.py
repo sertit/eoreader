@@ -672,10 +672,6 @@ class Sv1Product(VhrProduct):
         """
         Compute DN to TOA radiance
 
-        See
-        `here <https://apollomapping.com/image_downloads/Maxar_AbsRadCalDataSheet2018v0.pdf>`_
-        for more information.
-
         Args:
             dn_arr (xr.DataArray): DN array
             band (BandNames): Band
