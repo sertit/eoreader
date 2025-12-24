@@ -429,6 +429,7 @@ MTD_REGEX = {
     Constellation.WV03: _VANTOR_MTD_REGEX,
     Constellation.WV04: _VANTOR_MTD_REGEX,
     Constellation.WVLG: _VANTOR_MTD_REGEX,
+    Constellation.VANTOR: _VANTOR_MTD_REGEX,
     Constellation.MAXAR: _VANTOR_MTD_REGEX,
     Constellation.ICEYE: r"ICEYE_(X\d{1,}_|)(SLC|GRD)_((SM|SL|SC)H*|SLEA)_\d{5,}_\d{8}T\d{6}\.xml",
     Constellation.SAOCOM: r"S1[AB]_OPER_SAR_EOSSP__CORE_L1[A-D]_OL(F|VF)_\d{8}T\d{6}.xemt",
