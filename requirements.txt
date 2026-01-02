@@ -37,7 +37,7 @@ shapely>=2.0.0
 spyndex>=0.7.1
 
 # SERTIT libs
-sertit[full]>=1.49.0
+sertit[full]>=1.50.2
 
 # Dask
 dask[distributed]>=2024.5.1
