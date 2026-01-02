@@ -796,14 +796,19 @@ class SarProduct(Product):
         )
         return pre_processed_path
 
-    def _get_pp_graph(self, write_lia: bool = False, tmp_dir: str = None) -> str:
+    def _get_pp_graph(
+        self,
+        write_lia: bool = False,
+        tmp_dir: str = None,
+        fallback_no_calib: bool = False,
+    ) -> str:
         """Get the pre-processing graph"""
         if PP_GRAPH not in os.environ:
             if self.constellation_id == Constellation.S1.name:
                 sat = "s1"
                 if self.sensor_mode.value == "SM":
                     sat += "_sm"
-            elif not self._calibrate:
+            elif fallback_no_calib or not self._calibrate:
                 sat = "no_calib"
             else:
                 sat = "sar"
@@ -1082,21 +1087,22 @@ class SarProduct(Product):
                 res_m, res_deg = self._get_resolution(snap_pixel_size)
 
                 # Create SNAP CLI
+                snap_args = [
+                    f"-Pfile={strings.to_cmd_string(prod_path)}",
+                    f"-Pgeo_region={strings.to_cmd_string(geo_region)}",
+                    f"-Pregion={strings.to_cmd_string(region)}",
+                    f"-Pcalib_pola={strings.to_cmd_string(band.name)}",
+                    f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
+                    f"-Pdem_path={strings.to_cmd_string(dem_path)}",
+                    f"-Pcrs={self.crs()}",
+                    f"-Pres_m={res_m}",
+                    f"-Pres_deg={res_deg}",
+                    f"-Pwrite_lia={write_lia}",
+                    f"-Pout={strings.to_cmd_string(pp_dim)}",
+                ]
                 cmd_list = snap.get_gpt_cli(
                     pp_graph,
-                    [
-                        f"-Pfile={strings.to_cmd_string(prod_path)}",
-                        f"-Pgeo_region={strings.to_cmd_string(geo_region)}",
-                        f"-Pregion={strings.to_cmd_string(region)}",
-                        f"-Pcalib_pola={strings.to_cmd_string(band.name)}",
-                        f"-Pdem_name={strings.to_cmd_string(dem_name.value)}",
-                        f"-Pdem_path={strings.to_cmd_string(dem_path)}",
-                        f"-Pcrs={self.crs()}",
-                        f"-Pres_m={res_m}",
-                        f"-Pres_deg={res_deg}",
-                        f"-Pwrite_lia={write_lia}",
-                        f"-Pout={strings.to_cmd_string(pp_dim)}",
-                    ],
+                    snap_args,
                     display_snap_opt=LOGGER.level == logging.DEBUG,
                 )
 
@@ -1104,8 +1110,23 @@ class SarProduct(Product):
                 LOGGER.debug("Pre-process SAR image")
                 try:
                     misc.run_cli(cmd_list)
+
+                    # Check the BEAM-DIMAP output exists (if not, trigger CSK fallback)
+                    assert (
+                        AnyPath(pp_dim).suffix == ".data" and AnyPath(pp_dim).is_dir()
+                    )
+
+                # With SNAP 13.0.0, there is an issue with CSK and calibration:
+                # - no output is written for DGM
+                # - GPT graph fails for SCS
+                # Add this fallback for the moment
+                except AssertionError:
+                    self._fallback_csk_snap_13(write_lia, tmp_dir, snap_args)
                 except RuntimeError as ex:
-                    raise RuntimeError("Something went wrong with SNAP!") from ex
+                    if self.constellation == Constellation.CSK:
+                        self._fallback_csk_snap_13(write_lia, tmp_dir, snap_args)
+                    else:
+                        raise RuntimeError("Something went wrong with SNAP!") from ex
 
                 # Convert Local Incidence Angle files from DIMAP to GeoTiff
                 if write_lia:
@@ -1118,9 +1139,31 @@ class SarProduct(Product):
 
                 # Convert DIMAP images to GeoTiff
                 LOGGER.debug("Converting DIMAP to GeoTiff")
+
                 return self._write_sar(
                     pre_processed_path, pp_dim, band, crop=window_to_crop, **kwargs
                 )
+
+    def _fallback_csk_snap_13(self, write_lia: bool, tmp_dir, snap_args):
+        """
+        With SNAP 13.0.0, there is an issue with CSK and calibration
+        Apply this fallback until it's resolved
+        """
+        LOGGER.warning(
+            "There is an issue with CSK and calibration with SNAP 13.0.0. "
+            "This step is removed to make the computation work nevertheless. "
+            "Please be aware that the result may be degraded."
+        )
+        pp_graph = self._get_pp_graph(write_lia, tmp_dir, fallback_no_calib=True)
+        cmd_list = snap.get_gpt_cli(
+            pp_graph,
+            snap_args,
+            display_snap_opt=LOGGER.level == logging.DEBUG,
+        )
+        try:
+            misc.run_cli(cmd_list)
+        except RuntimeError as ex:
+            raise RuntimeError("Something went wrong with SNAP!") from ex
 
     def _pre_process_sar(
         self,
@@ -1204,6 +1247,17 @@ class SarProduct(Product):
 
         return out
 
+    def _find_beam_dimaps(self, dim_path, pol) -> list:
+        try:
+            imgs = utils.get_dim_img_path(dim_path, f"*{pol}*")
+            LOGGER.debug(f"Found {imgs} sub-images (for {pol}).")
+        except FileNotFoundError:
+            LOGGER.debug(f"No {pol} image found in {dim_path}")
+            imgs = utils.get_dim_img_path(dim_path)  # Maybe not a good name
+            LOGGER.debug(f"Using {imgs} instead")
+
+        return imgs
+
     def _write_sar(
         self, out_path: AnyPathType, dim_path: str, band: sab, **kwargs
     ) -> AnyPathType:
@@ -1244,13 +1298,7 @@ class SarProduct(Product):
             return array
 
         # Get the .img path(s)
-        try:
-            imgs = utils.get_dim_img_path(dim_path, f"*{pol}*")
-            LOGGER.debug(f"Found {imgs} sub-images (for {pol}).")
-        except FileNotFoundError:
-            LOGGER.debug(f"No {pol} image found in {dim_path}")
-            imgs = utils.get_dim_img_path(dim_path)  # Maybe not a good name
-            LOGGER.debug(f"Using {imgs} instead")
+        imgs = self._find_beam_dimaps(dim_path, pol)
 
         # Manage cases where multiple swaths are ortho independently
         if len(imgs) > 1:

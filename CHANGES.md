@@ -39,6 +39,7 @@
 - FIX: Force nodata when opening Dimap V2 masks
 - FIX: Factorize `extent` code
 - FIX: Remove useless columns from footprint vectors
+- FIX: Add a falback for COSMO-SkyMed calibration regression in SNAP 13.0.0
 - OPTIM: Use raw band path over default band path to speed up the computation of image information (extent, footprint, CRS, transform) of SAR ortho products
 - OPTIM: Allow predictor = 3 with LZW compression when saving SAR intermediate data as SNAP handles it properly now. [#173](https://github.com/sertit/eoreader/issues/173)
 - CI: Filter some warnings in pytest
