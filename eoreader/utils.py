@@ -402,6 +402,10 @@ def simplify(footprint_fct: Callable):
     def simplify_wrapper(self):
         """Simplify footprint wrapper"""
         footprint = footprint_fct(self)
+
+        # Simplify the vector: keep only the geometry column and reindex it
+        footprint = footprint[["geometry"]].reset_index(drop=True)
+
         return geometry.simplify_footprint(footprint, self.pixel_size)
 
     return simplify_wrapper

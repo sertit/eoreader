@@ -365,6 +365,11 @@ CONSTELLATION_REGEX = {
 }
 
 _VANTOR_MTD_REGEX = r"\d{2}\w{3}\d{8}-.*.TIL"
+_SPOT45_MTD_REGEX = [
+    r"METADATA\.DIM",  # Too generic name, check also a band
+    r"IMAGERY\.TIF",
+]
+
 
 MTD_REGEX = {
     Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9_-]+_MTD_ALL\.xml",
@@ -438,18 +443,9 @@ MTD_REGEX = {
     Constellation.SV1: r"SV1-0[1-4]_\d{8}_L(1B|2A)\d{10}_\d{13}_\d{2}-(MUX|PSH)\.xml",
     Constellation.HLS: rf"{CONSTELLATION_REGEX[Constellation.HLS]}\.Fmask\.tif",
     Constellation.GS2: rf"{CONSTELLATION_REGEX[Constellation.GS2]}\.dim",
-    Constellation.SPOT45: [
-        r"METADATA\.DIM",  # Too generic name, check also a band
-        r"IMAGERY\.TIF",
-    ],
-    Constellation.SPOT4: [
-        r"METADATA\.DIM",  # Too generic name, check also a band
-        r"IMAGERY\.TIF",
-    ],
-    Constellation.SPOT5: [
-        r"METADATA\.DIM",  # Too generic name, check also a band
-        r"IMAGERY\.TIF",
-    ],
+    Constellation.SPOT45: _SPOT45_MTD_REGEX,
+    Constellation.SPOT4: _SPOT45_MTD_REGEX,
+    Constellation.SPOT5: _SPOT45_MTD_REGEX,
     Constellation.S2_SIN: {
         "nested": 0,  # File that can be found at child directory
         "regex": [
