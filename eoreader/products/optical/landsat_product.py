@@ -1506,6 +1506,7 @@ class LandsatProduct(OpticalProduct):
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
+            # No need to propagate attributes here, it's only a mask that will be applied later: we can use xr.where instead of rasters.where
             nodata = xr.where(pixel_arr == 1, 1, 0)
 
             mask = sat | other | nodata
@@ -1553,6 +1554,7 @@ class LandsatProduct(OpticalProduct):
                 size=(band_arr.rio.width, band_arr.rio.height),
                 **kwargs,
             )
+            # No need to propagate attributes here, it's only a mask that will be applied later: we can use xr.where instead of rasters.where
             nodata = xr.where(pixel_arr == 1, 1, 0).astype(np.uint8)
 
         return self._set_nodata_mask(band_arr, nodata)

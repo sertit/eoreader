@@ -1508,6 +1508,7 @@ class S2Product(OpticalProduct):
                 "Empty detector footprint (DETFOO) vector. Nodata will be set where the pixels are null."
             )
             s2_nodata = 0
+            # No need to propagate attributes here, it's only a mask that will be applied later: we can use xr.where instead of rasters.where
             mask = xr.where(band_arr == s2_nodata, 1, 0).astype(np.uint8)
 
         return self._set_nodata_mask(band_arr, mask)

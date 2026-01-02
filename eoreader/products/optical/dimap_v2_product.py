@@ -662,8 +662,8 @@ class DimapV2Product(VhrProduct):
             )[DimapV2MaskBandNames.ROI]
 
             # Nodata is where ROI is false (ROI = valid data)
-            nodata = xr.where(
-                nodata == self._mask_true, self._mask_false, self._mask_true
+            nodata = rasters.where(
+                nodata == self._mask_true, self._mask_false, self._mask_true, nodata
             )
 
             with contextlib.suppress(InvalidProductError):
@@ -768,6 +768,7 @@ class DimapV2Product(VhrProduct):
         )[DimapV2MaskBandNames.ROI]
 
         # Nodata is where ROI is false (ROI = valid data)
+        # No need to propagate attributes here, it's only a mask that will be applied later: we can use xr.where instead of rasters.where
         nodata = xr.where(nodata == self._mask_true, self._mask_false, self._mask_true)
 
         LOGGER.debug("Set nodata mask")
