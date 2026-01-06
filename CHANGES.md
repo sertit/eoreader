@@ -1,12 +1,16 @@
 # Release History
 
+## 0.23.1 (2026-mm-dd)
+
+- DOC: Update copyright to 2026
+
 ## 0.23.0 (2026-01-02)
 
 - **ENH: Adding the support of `VENUS` sensor** [#235](https://github.com/sertit/eoreader/issues/235) - by @ArthurVincentCS
 - **ENH: Desambiguate condensed name of Custom stack in case of creation of several objects with the same datetime and same constellation and product type**
 - **ENH: Fix corrupted Maxar products with incoherent width between .IMD and .TIL files** [#242](https://github.com/sertit/eoreader/issues/242)
 - **ENH: Add TerraSAR-X management of default resolution and pixel size for RE data**
-- **ENH: Add gain and offset for CustomProducts to cope with custom stacks in DN**
+- **ENH: Add gain and offset for CustomProducts to cope with custom stacks in DN** - by @oscarn2
 - **ENH: Allow exogenous data in load and stack** [#273](https://github.com/sertit/eoreader/issues/273) - by @gsalgues
 - **ENH: Export local incidence angles for SAR data** - by @simone-tilia
 - **ENH: Enhance plotting feature (remove PIL usage, manage nodata and pass kwargs to plotting functions)**
