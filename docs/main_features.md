@@ -54,6 +54,66 @@ with Reader().open(path, remove_tmp=True) as prod:
 # Here not
 ```
 
+### Condensed name
+
+If you chose to create the output folder after creation of the `Product` object, you can leverage the `condensed_name` to name it.  
+
+The `condensed_name` of your product is a powerful feature: it is the **more compact name** possible to identify your product in a **unique** way, with a pattern **common** to every EOReader product.  
+It is very convenient to name in the same way all your results, to be able to sort them by date, sensors, etc.
+
+It is constructed this way: `{date}_{constellation}_{other_identifiers}` (tiles, ID, instrument, etc. depending on the sensor type)
+
+Hereunder is an example of a folder containing results for a lot of different sensors. 
+The results are named after the condensed names, so they are easily sortable by date and sensor (here the most recent product is first).
+
+<details><summary>Example of condensed names</summary>
+<pre><code>├── DATA
+│   ├── 20250128T184154_UMBRA_VV_SP_GEC
+│   ├── 20241008T091030_WVLG_Standard_Multi_050246698010
+│   ├── 20231031T064451_S2_T39KZU_L2A_073602
+│   ├── 20231027T163107_S1_VV_VH_IW_RTC
+│   ├── 20221127T214948_HLS_S30_T60FXK
+│   ├── 20220828T055634_L9_152041_OLI_TIRS
+│   ├── 20220828T055634_HLS_L30_T42RVR
+│   ├── 20220617T042706_L7_152041_ETM
+│   ├── 20220303T123054_SKY_ORTHO_PSH_u0001
+│   ├── 20220118T215211_PNEO_ORT_PMS_000007338
+│   ├── 20220111T222049_VIS1_PRJ_MS4_S121952
+│   ├── 20210926T061012_CAPELLA_HH_SS_GEC
+│   ├── 20210906T180801_RCM_HH_HV_3M_GRD
+│   ├── 20210827T162210_ICEYE_VV_SC_GRD
+│   ├── 20210628T054829_CSG_HH_PP_SCS
+│   ├── 20210422T104727_S2THEIA_T32ULU_L2A
+│   ├── 20201223T220311_SKY_ORTHO_PSH_u0002
+│   ├── 20201220T104856_L8_200030_OLI_TIRS
+│   ├── 20201029T105210_VENUS_SUDOUE-1_L2A
+│   ├── 20201008T224018_CSK_HH_HI_DGM
+│   ├── 20201005T102800_GE01_Ortho_BGRN_013187549010
+│   ├── 20200926T100102_PLA_L3B
+│   ├── 20200607T080134_SV1_L1B_PMS_0001022989
+│   ├── 20200605T042203_TSX_HH_SM_MGD
+│   ├── 20200511T023158_PLD_ORT_PMS_5547047101
+│   ├── 20191215T105023_S3_OLCI_EFR
+│   ├── 20191215T060906_S1_VV_VH_IW_GRD
+│   ├── 20191204T101938_SAOCOM_VV_HH_VH_HV_TN_L1A
+│   ├── 20191115T233722_S3_SLSTR_RBT
+│   ├── 20191017T080142_RE_L3A_3754903
+│   ├── 20181218T093848_SPOT6_ORT_PMS_3726409101
+│   ├── 20161107T013821_GS2_L1C_MS4_12927
+│   ├── 20160604T175322_RS2_HH_U_SGF
+│   ├── 20160502T131229_WV03_Standard_Multi_055670633040
+│   ├── 20160215T025702_SPOT7_SEN_MS_1671661101
+│   ├── 20141115T055250_TDX_HH_SM_MGD
+│   ├── 20121230T102407_L5_200030_MSS
+│   ├── 20111112T165942_L5_029031_TM
+│   ├── 20100226T032514_SPOT5_L1A_J
+│   ├── 20060213T030050_SPOT4_L1A_MI
+│   ├── 19930710T155617_L4_024031_TM
+│   ├── 19820906T164709_L3_033028_MSS
+│   ├── 19820202T155126_L2_024030_MSS
+│   ├── 19771229T152402_L1_034032_MSS</code></pre>
+</details>
+
 ### Recognized paths
 
 **EOReader** always uses the directory containing the product files.
@@ -84,6 +144,21 @@ Hereunder are the paths meant to be given to the reader.
 | `ICEYE`                                  | Directory containing the `.tif` file,<br>i.e. `SC_124020`                                                                              |
 | `SAOCOM`                                 | Directory containing the `.xemt` **AND** the `.zip` files,<br>i.e. `11245-EOL1CSARSAO1A198523`                                         |
 | `CAPELLA`                                | Directory containing the `.tif` file,<br>i.e. `CAPELLA_C05_SP_SLC_HH_20220320114010_20220320114013`                                    |
+
+For example, if you want to link the following Pleiades:
+```
+├── /home/data
+│   ├── DATA
+│   │   ├── Call925
+│   │   │   ├── 6650951101
+│   │   │   │   ├── IMG_PHR1A_PMS_001
+│   │   │   │   │   ├── DIM_PHR1A_PMS_202302251324499_ORT_6650951101.XML
+│   │   │   │   │   ├── IMG_PHR1A_PMS_202302251324499_ORT_6650951101_R1C1.JP2
+│   │   │   │   │   ├── PREVIEW_PHR1A_PMS_202302251324499_ORT_6650951101.KMZ
+│   │   │   │   │   ├── ...
+```
+
+The product is the folder containing the DIMAP file, i.e. `IMG_PHR1A_PMS_001`, so the path to give to EOReader is `/home/data/DATA/Call925/6650951101/IMG_PHR1A_PMS_001`
 
 ## Load
 
