@@ -13,9 +13,9 @@ However, especially for SAR data, the default pixel size of GRD bands is differe
 | Constellations              | Class                                                              | Use archive                  |
 |-----------------------------|--------------------------------------------------------------------|------------------------------|
 | Sentinel-2                  | {meth}`~eoreader.products.optical.s2_product.S2Product`            | ✅                            |
-| Sentinel-2 on AWS cloud     | {meth}`~eoreader.products.optical.s2_product.S2CloudProduct`       | -                            |
+| Sentinel-2 on AWS cloud     | {meth}`~eoreader.products.optical.s2_product.S2StacProduct`        | -                            |
 | Sentinel-2 Theia            | {meth}`~eoreader.products.optical.s2_theia_product.S2TheiaProduct` | ✅                            |
-| Vénμs                       | {meth}`~eoreader.products.optical.venus.VenusProduct`              | ✅                            |
+| Vénμs                       | {meth}`~eoreader.products.optical.venus_product.VenusProduct`      | ✅                            |
 | Sentinel-3 SLSTR            | {meth}`~eoreader.products.optical.s3_slstr_product.S3SlstrProduct` | ✅                            |
 | Sentinel-3 OLCI             | {meth}`~eoreader.products.optical.s3_olci_product.S3OlciProduct`   | ✅                            |
 | Landsat 8/9 OLI-TIRS        | {meth}`~eoreader.products.optical.landsat_product.LandsatProduct`  | ✅                            |

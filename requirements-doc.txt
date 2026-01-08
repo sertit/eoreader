@@ -1,7 +1,7 @@
 -r requirements.txt
 
  # Help solving the env (spyndex requires the whole gee dependencies... https://github.com/awesome-spectral-indices/spyndex/issues/17)
-earthengine-api<1.5.23
+earthengine-api!=1.5.23
 google_auth>=2.40.0
 
 # Doc
