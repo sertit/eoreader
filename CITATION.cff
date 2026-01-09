@@ -8,18 +8,17 @@ message: >-
   metadata from this file.
 type: software
 authors:
-  - given-names: Remi
+  - given-names: Rémi
     family-names: Braun
     affiliation: ICube-SERTIT
-  - name: "ICube-SERTIT development team"
-    website: "https://github.com/orgs/sertit/people"
-  - given-names: guillem
-    family-names: oreno
-    affiliation: PooPals Inc. @poopals
+    orcid: 'https://orcid.org/0000-0002-5063-2087'
+  - name: ICube-SERTIT development team
+    website: 'https://github.com/orgs/sertit/people'
+  - given-names: Guillem
+    family-names: Oreno
   - given-names: Emmanuel
     family-names: Ferdman
   - given-names: TabeaW
-    family-names: TabeaW
     affiliation: DLR
   - given-names: Jayanth
     family-names: Siddamsetty
@@ -28,17 +27,26 @@ authors:
   - given-names: Arthur
     family-names: Vincent
     affiliation: CS GROUP
+  - affiliation: CS GROUP
+    given-names: Germain
+    family-names: Salgues
+  - given-names: Simone
+    family-names: Tilia
+    affiliation: e-GEOS S.p.A
 identifiers:
   - type: doi
     value: 10.5281/zenodo.15831875
 repository-code: 'https://github.com/sertit/eoreader'
 url: 'https://eoreader.readthedocs.io/stable/'
 abstract: >
-  EOReader is a Python library developed by ICube-SERTIT (University of Strasbourg)
-  designed to open, read, and harmonize Earth Observation products (optical and radar)
-  from multiple satellite constellations (Sentinel, Landsat, Pléiades, SPOT, and more).
-  It provides a unified interface to access spectral bands, metadata, cloud masks,
-  and other physical parameters, with a strong focus on multi-sensor interoperability.
+  EOReader is a Python library developed by ICube-SERTIT
+  (University of Strasbourg) designed to open, read, and
+  harmonize Earth Observation products (optical and radar)
+  from multiple satellite constellations (Sentinel, Landsat,
+  Pléiades, SPOT, and more). It provides a unified interface
+  to access spectral bands, metadata, cloud masks, and other
+  physical parameters, with a strong focus on multi-sensor
+  interoperability.
 keywords:
   - Python
   - Earth Observation
