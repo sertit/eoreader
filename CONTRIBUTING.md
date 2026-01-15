@@ -37,12 +37,12 @@ pip install -r requirements-doc.txt
 ```
 
 
-We use `pre-commit` to run a suite of linters, formatters and pre-commit hooks (`black`, `isort`, `flake8`) to
+We use `pre-commit` to run a suite of linters, formatters and pre-commit hooks (`ruff`) to
 ensure the code base is homogeneously formatted and easier to read. It's important that you install it, since we run the
 exact same hooks in the Continuous Integration.
 
 For now, you won't be able to run the test suite as we cannot provide an example of each product (some are licensed). We
-will take care of that for you. Please be sure that your code is running on Python 3.9+.
+will take care of that for you. Please be sure that your code is running on Python 3.10+.
 
 ## Release EOReader
 
