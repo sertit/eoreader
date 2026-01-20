@@ -582,11 +582,13 @@ def test_constellations():
     assert Constellation.S2_SIN not in real_const
     assert Constellation.S1_RTC_ASF not in real_const
     assert Constellation.S1_RTC_MPC not in real_const
+    assert Constellation.SATELLOGIC not in real_const
 
     assert Constellation.is_real_constellation(Constellation.S2)
     assert not Constellation.is_real_constellation(Constellation.VANTOR)
     assert not Constellation.is_real_constellation(Constellation.MAXAR)
     assert not Constellation.is_real_constellation(Constellation.S1_RTC_ASF)
+    assert not Constellation.is_real_constellation(Constellation.SATELLOGIC)
 
 
 def test_regex_glob():

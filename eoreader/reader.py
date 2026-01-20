@@ -284,6 +284,7 @@ class Constellation(ListEnum):
             cls.MAXAR,
             cls.SPOT45,
             cls.CUSTOM,
+            cls.SATELLOGIC,
         ]
         return {const for const in cls.__members__.values() if const not in not_real}
 
