@@ -31,9 +31,10 @@ However, especially for SAR data, the default pixel size of GRD bands is differe
 | Vision-1                    | {meth}`~eoreader.products.optical.vis1_product.Vis1Product`        | ✅                            |
 | SPOT 4/5                    | {meth}`~eoreader.products.optical.spot45_product.Spot45Product`    | ✅                            |
 | SPOT 6/7                    | {meth}`~eoreader.products.optical.spot67_product.Spot67Product`    | ✅                            |
-| Vantor**                     | {meth}`~eoreader.products.optical.vantor_product.VantorProduct`    | ✅                            |
+| Vantor**                    | {meth}`~eoreader.products.optical.vantor_product.VantorProduct`    | ✅                            |
 | SuperView-1                 | {meth}`~eoreader.products.optical.sv1_product.Sv1Product`          | ✅                            |
 | GEOSAT-2                    | {meth}`~eoreader.products.optical.gs2_product.Gs2Product`          | ✅                            |
+| Aleph-1 (Satellogic)        | {meth}`~eoreader.products.optical.aleph1_product.Aleph1Product`    | ✅                            |
 
 \* *Archived Landsat Collection-1 are not managed because of the tar.gz format, which is too slow to process. It is better to work on the extracted product. Landsat-9 Collection-1 products don't exist.*
 
@@ -64,9 +65,10 @@ Satellites products that cannot be used as archived have to be extracted before 
 | Vision-1                    | PRJ & ORTP                | 0.9 m (PAN), 3.5 m (MS)               |
 | SPOT 4/5                    | L1A, L1B, L2A             | 10 m (PAN), 20 m (MS)                 |
 | SPOT 6/7                    | SEN**, PRJ, ORT & MOS     | 1.5 m (PAN), 6 m (MS)                 |
-| Vantor*                      | Standard & Ortho          | 0.3 to 0.5 m (PAN), 1.2 to 2.0 m (MS) |
+| Vantor*                     | Standard & Ortho          | 0.3 to 0.5 m (PAN), 1.2 to 2.0 m (MS) |
 | SuperView-1                 | L1B & L2A                 | 0.5 m (PAN), 2 m (MS)                 |
 | GEOSAT-2                    | L1B & L1C & L1D & L1S     | 0.4 m (PAN), 2 m (MS) for L1D data    |
+| Aleph-1 (Satellogic)        | L1B & L1D & L1D-SR        | 0.7 m for L1D data                    |
 
 \* *Vantor satellites: Worldview Legion 2, 3, 4 and GeoEye-1 (but WorldView-1, QuickBird should work, but they don't have been tested). 
 
@@ -207,6 +209,7 @@ The only difference with the other bands is that the cloud bands are provided in
 | Vantor (GeoEye-1, WorldViews) | ❌           |                                                           |
 | SuperView-1                   | ❌           |                                                           |
 | GEOSAT-2                      | ❌           |                                                           |
+| Aleph-1 (Satellogic)          | ✅           | `RAW_CLOUDS`, `CLOUDS`, `CIRRUS`, `ALL_CLOUDS`            |
 
 ### DEM bands
 
@@ -403,6 +406,9 @@ For now it doesn't work automatically on archived or cloud-stored products.
 
 ### GeoSat-2 (ex Deimos-2)
 - [Imagery User Guide](https://earth.esa.int/eogateway/documents/20142/37627/GEOSAT-2-Imagery-User-Guide.pdf)
+
+### Aleph-1 (Satellogic)
+- [Imagery Products Guide](https://developers.satellogic.com/imagery-products/introduction.html)
 
 ### Instruments
 

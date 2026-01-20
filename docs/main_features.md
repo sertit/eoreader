@@ -132,6 +132,7 @@ Hereunder are the paths meant to be given to the reader.
 | `Vantor`<br>(WorldViews,<br>GeoEye...)         | Directory containing the `.TIL` file,<br>i.e. `013187549010_01_P001_PSH`                                                |
 | `SuperView-1`                                  | Directory containing the `.shp` file,<br>i.e. `0032100150001_01`                                                        |  
 | `GEOSAT-2`                                     | Directory containing the `.dim` file,<br>i.e. `DE2_PM4_L1C_000000_20161107T013821_20161107T013826_DE2_12927_DE02`       |
+| `Aleph-1` `(Satellogic)`                       | Directory containing the `TOA.vrt` file,<br>i.e. `20240321_185542_636_SN43_L1D_MS_203088`                               |
 
 #### SAR
 
@@ -144,6 +145,7 @@ Hereunder are the paths meant to be given to the reader.
 | `ICEYE`                                  | Directory containing the `.tif` file,<br>i.e. `SC_124020`                                                                              |
 | `SAOCOM`                                 | Directory containing the `.xemt` **AND** the `.zip` files,<br>i.e. `11245-EOL1CSARSAO1A198523`                                         |
 | `CAPELLA`                                | Directory containing the `.tif` file,<br>i.e. `CAPELLA_C05_SP_SLC_HH_20220320114010_20220320114013`                                    |
+| `UMBRA`                                  | Directory containing the `.tif` file,<br>i.e. `2023-11-10-09-37-28_UMBRA-04`                                                           |
 
 For example, if you want to link the following Pleiades:
 ```

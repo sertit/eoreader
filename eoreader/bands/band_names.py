@@ -826,6 +826,13 @@ class VenusMaskBandNames(MaskBandNames):
     """ Venus mask - Useful Image """
 
 
+class Aleph1MaskBandNames(MaskBandNames):
+    """Aleph-1 (Satellogic) Mask Band names"""
+
+    CLOUD = "CLOUD"
+    """ Aleph-1 (Satellogic) mask - Cloud masks """
+
+
 # Mask bands are not exposed as other bands (great risks of overlap between names!)
 
 

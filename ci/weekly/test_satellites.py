@@ -463,6 +463,7 @@ test_optical_constellations_cases = [
         id="sv1",
     ),
     pytest.param("*DE2_*", {}, id="gs2"),
+    pytest.param("*_SN*_MS_*", {}, id="aleph-1"),
 ]
 
 

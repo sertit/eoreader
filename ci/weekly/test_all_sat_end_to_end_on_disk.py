@@ -393,6 +393,7 @@ test_optical_constellations_cases = [
         {"dem_path": os.path.join(get_db_dir_on_disk(), *MERIT_DEM_SUB_DIR_PATH)},
         id="gs2_l1b",
     ),
+    pytest.param("*_SN*_MS_*", {}, id="aleph-1"),
 ]
 
 

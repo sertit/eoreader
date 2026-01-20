@@ -1,7 +1,8 @@
 # Release History
 
-## 0.23.1 (2026-mm-dd)
+## 0.24.0 (2026-mm-dd)
 
+- **ENH: Adding the support of `Satellogic` (`Aleph-1`) constellation** [#229](https://github.com/sertit/eoreader/issues/229)
 - DOC: Update copyright to 2026
 
 ## 0.23.0 (2026-01-02)

@@ -186,3 +186,6 @@ def test_s2_theia_masks(tmp_path):
         S2TheiaMaskBandNames,
         associated_bands={S2TheiaMaskBandNames.DFP: "RED", "SAT": ["RED", GREEN]},
     )
+
+
+# TODO: Test Venus and Satellogic (with clouds)

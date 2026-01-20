@@ -187,6 +187,9 @@ class Constellation(ListEnum):
     WVLG = "WorldView Legion"
     """WorldView Legion"""
 
+    ALEPH1 = "Aleph-1"
+    """Aleph-1 (Satellogic)"""
+
     RCM = "RADARSAT-Constellation Mission"
     """RADARSAT-Constellation Mission"""
 
@@ -259,6 +262,9 @@ class Constellation(ListEnum):
     VANTOR = "Vantor"
     """Vantor (not a real constellation, but used as a template for every Vantor products)"""
 
+    SATELLOGIC = "Satellogic"
+    """Satellogic (not a real constellation, but used for convenience for Aleph-1 products)"""
+
     # legacy, to be deprecated
     MAXAR = "Maxar"
     """Legacy for Vantor constellations"""
@@ -296,6 +302,7 @@ class Constellation(ListEnum):
 
 
 _VANTOR_REGEX = r"\d{12}_\d{2}_P\d{3}_(MUL|PAN|PSH|MOS)"
+_ALEPH1_REGEX = r"\d{8}_\d{6}_\w{3,}_L(0|1[ABCD])(_SR|)(_MS|)_\d{6,}"
 
 CONSTELLATION_REGEX = {
     Constellation.VENUS: r"VENUS-XS_\d{8}-\d{6}-\d{3}_L2A_[A-Z0-9_-]+",
@@ -316,7 +323,7 @@ CONSTELLATION_REGEX = {
     Constellation.L1: r"LM01_L1(TP|GS)_\d{6}_\d{8}_\d{8}_\d{2}_T2",
     Constellation.SKY: r"\d{8}_\d{6}_ssc\w{1,4}_\w{4,5}",
     Constellation.PLA: r"\d{8}_\d{6}_(\d{2}_|)\w{4}",
-    Constellation.RE: r"(\d{7}_\d{4}-\d{2}-\d{2}_RE\d_3A_\d{6}|\d{4}-\d{2}-\d{2}T\d{6}_RE\d_1B_.+|RE_.+_RE\d_(1B|3A)_.+)",
+    Constellation.RE: r"(\d{7}_\d{4}-\d{2}-\d{2}_RE\d_3A_\d{6,}|\d{4}-\d{2}-\d{2}T\d{6}_RE\d_1B_.+|RE_.+_RE\d_(1B|3A)_.+)",
     Constellation.CSK: [
         r".+",  # Need to check inside as the folder does not have any recognizable name
         r"CSKS\d_(RAW|SCS|DGM|GEC|GTC)_[UB]_(HI|PP|WR|HR|S2)_"
@@ -362,9 +369,12 @@ CONSTELLATION_REGEX = {
     Constellation.GS2: r"DE2_(PM4|PSH|PS3|PS4|MS4|PAN)_L1[A-D]_\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_DE2_\d{5}_.{4}",
     Constellation.S2_SIN: [r"\d", r"B12\.jp2"],
     Constellation.S1_RTC_ASF: r"S1[ABCD]_(IW|EW|SM|WV|S\d)_\d{8}T\d{6}_[DS][VH][PRO]_RTC\d{2}_.*",
+    Constellation.ALEPH1: _ALEPH1_REGEX,
+    Constellation.SATELLOGIC: _ALEPH1_REGEX,
 }
 
 _VANTOR_MTD_REGEX = r"\d{2}\w{3}\d{8}-.*.TIL"
+_ALEPH1_MTD_REGEX = r"\d{8}_\d{6}_\w{3,}_L(0|1[ABCD])(_SR|)(_MS|)_TOA\.vrt"
 _SPOT45_MTD_REGEX = [
     r"METADATA\.DIM",  # Too generic name, check also a band
     r"IMAGERY\.TIF",
@@ -454,6 +464,8 @@ MTD_REGEX = {
         ],
     },
     Constellation.S1_RTC_ASF: rf"{CONSTELLATION_REGEX[Constellation.S1_RTC_ASF]}\.kmz",
+    Constellation.ALEPH1: _ALEPH1_MTD_REGEX,
+    Constellation.SATELLOGIC: _ALEPH1_MTD_REGEX,
 }
 
 
@@ -472,7 +484,7 @@ class Reader:
         # Register constellations
         for constellation, regex in CONSTELLATION_REGEX.items():
             self._constellation_regex[constellation] = self._compile(
-                regex, prefix="", suffix=""
+                regex, prefix="^", suffix="$"
             )
 
         # Register metadata
@@ -489,14 +501,14 @@ class Reader:
                 self._mtd_nested[constellation] = 0
 
     @staticmethod
-    def _compile(regex: str | list, prefix="^", suffix="&") -> list:
+    def _compile(regex: str | list, prefix="^", suffix="$") -> list:
         """
         Compile regex or list of regex
 
         Args:
             regex (str | list): Regex in :code:`re` sense
             prefix (str): Prefix of regex, ^ by default (means start of the string)
-            suffix (str): Prefix of regex, & by default (means end of the string)
+            suffix (str): Prefix of regex, $ by default (means end of the string)
 
         Returns:
             list: List of compiled pattern
@@ -1035,6 +1047,8 @@ def create_product(
     elif constellation in [Constellation.S2_SIN]:
         sat_class = "s2_product"
         kwargs["is_sinergise"] = True
+    elif constellation in [Constellation.SATELLOGIC]:
+        sat_class = "aleph1_product"
 
     # Manage both optical and SAR
     try:
